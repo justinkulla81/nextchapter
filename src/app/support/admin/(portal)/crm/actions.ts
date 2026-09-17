@@ -8,8 +8,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName, isOrgQuickPick, placeholderOrgKindFor, ORG_PLACEHOLDER_NAME, type OrgPlaceholderKind } from '@/lib/crm/normalize'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
-import { refreshTouchFields, backfillPersonFromEmail } from '@/lib/crm/sync'
-import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
+import { refreshTouchFields } from '@/lib/crm/sync'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
@@ -23,10 +22,6 @@ import type {
 } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
-
-const CUTOFF_LABEL = CRM_ACTIVITY_CUTOFF.toLocaleDateString('en-US', {
-  month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles',
-})
 
 /** Bare slug from any LinkedIn profile URL, or null if it isn't one. */
 function slugOf(input: string): string | null {
@@ -723,18 +718,18 @@ export interface EmailBackfillResult {
 }
 
 /**
- * "Do you have their email?" — the Review List's other on-ramp for a person
- * who's easy to identify but hard to auto-complete, an ADDRESS instead of a
- * TITLE/ORG. Saving it also runs a one-time correspondence check: a real
- * relationship often has years of mail sitting in Gmail that the nightly
- * sweep's rolling window was never going to reach, since it only matches
- * people who already had an email on file — this is exactly how it gets
- * on file in the first place.
+ * Saves an address and returns. That is all.
+ *
+ * Split from the old save-and-search action because the two halves have
+ * opposite budgets: writing one column is instant, and searching a mailbox
+ * for it is a Google round trip per message. Bundling them made adding an
+ * address as slow, and as failure-prone, as the search. The search now lives
+ * in /api/admin/crm/check-mail, which the caller fires afterwards and can
+ * lose without losing the address.
  */
-export async function setPersonEmailAndCheckCorrespondence(personId: string, formData: FormData): Promise<EmailBackfillResult> {
+export async function setPersonEmail(personId: string, rawEmail: string): Promise<EmailBackfillResult> {
   const admin = await requireAdmin()
-  const raw = String(formData.get('email') ?? '').trim()
-  const email = normalizeEmail(raw)
+  const email = normalizeEmail(rawEmail)
   if (!email) return { ok: false, message: 'That doesn’t look like a real email address.' }
 
   const person = await prisma.crmPerson.findUniqueOrThrow({
@@ -750,45 +745,11 @@ export async function setPersonEmailAndCheckCorrespondence(personId: string, for
       priority: person.priority ?? 'P2',
     },
   })
-
-  // The address is saved above, and it is the part that matters. The Gmail
-  // check that follows talks to a third party inside a request a human is
-  // waiting on: a timeout or a 4xx used to escape this action and take the
-  // whole page down with it ("This page couldn't load"), losing the save
-  // from the user's point of view even though it had already happened.
-  let result: Awaited<ReturnType<typeof backfillPersonFromEmail>>
-  try {
-    result = await backfillPersonFromEmail(personId, email)
-  } catch (e) {
-    captureServerEvent(admin.email ?? 'admin', 'crm_email_backfill_failed', {
-      personId, error: e instanceof Error ? e.message : String(e),
-    })
-    revalidatePath(`${CRM}/needs-completion`)
-    revalidatePath(`${CRM}/people/${personId}`)
-    return {
-      ok: true,
-      message: `Saved ${email}. Couldn’t check past emails just now — the nightly sync will pick them up.`,
-    }
-  }
-  captureServerEvent(admin.email ?? 'admin', 'crm_email_backfill', { personId, found: result.found, reason: result.reason ?? null })
+  captureServerEvent(admin.email ?? 'admin', 'crm_email_set', { personId })
   revalidatePath(`${CRM}/needs-completion`)
   revalidatePath(`${CRM}/people/${personId}`)
-
-  if (result.reason === 'no_connection' || result.reason === 'no_token') {
-    return { ok: true, message: `Saved ${email}. Connect Gmail (Activity sync) to check for past correspondence.` }
-  }
-  if (result.reason === 'person_deleted') {
-    return { ok: true, message: `Saved ${email}. This record was merged into another one — refresh the page and check correspondence there.` }
-  }
-  if (result.found === 0) {
-    return { ok: true, message: `Saved ${email}. No emails found since ${CUTOFF_LABEL}.` }
-  }
-  // The date range is worth saying out loud: silence about the cutoff reads
-  // as "this is everything", and it isn't — older mail is deliberately out.
-  return {
-    ok: true,
-    message: `Saved ${email}. Found ${result.found} email${result.found === 1 ? '' : 's'} since ${CUTOFF_LABEL} — logged to their history.`,
-  }
+  revalidatePath(CRM)
+  return { ok: true, message: `Saved ${email}.` }
 }
 
 // ── Pipelines (Phase 4) ──────────────────────────────────────────────────────

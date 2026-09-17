@@ -57,6 +57,152 @@ function warmthFromConnectionDegree(degree: string | undefined): CrmWarmth | nul
   return 'COLD' // 3rd-degree, or any other value LinkedIn ever sends here
 }
 
+function rolesFrom(body: CapturePayload): CrmPersonRole[] {
+  return Array.isArray(body.roles)
+    ? body.roles.filter((r): r is CrmPersonRole => (PERSON_ROLES as string[]).includes(r))
+    : []
+}
+
+/**
+ * The stored name looks like it was parsed out of the job title.
+ *
+ * A real case: a record whose name was "Product Development" and whose title
+ * was "SVP, Innovation & Product Development" — an import took a fragment of
+ * the headline as the person's name, and no search for their actual name
+ * could ever find them. The plausibility checks don't catch it, because
+ * "Product Development" is perfectly well-formed; what gives it away is that
+ * it sits INSIDE the title.
+ *
+ * Deliberately narrow. It is the one case where the page in front of you is
+ * better evidence than the database, and everything else keeps what's stored.
+ */
+function nameLooksLikeTitleFragment(
+  storedName: string,
+  scrapedName: string,
+  title: string | null | undefined,
+): boolean {
+  const stored = storedName.trim().toLowerCase()
+  const t = (title ?? '').trim().toLowerCase()
+  if (!stored || !t || stored === t) return false
+  if (!t.includes(stored)) return false
+
+  // A real name often appears in its owner's own headline — "Charlene Li
+  // Keynote Speaker & Strategic Advisor" contains "Charlene Li", and that
+  // record is perfectly correct. So containment alone is not enough: the
+  // scraped name must share NO word with the stored one before this is
+  // treated as a bad parse rather than a person who leads with their name.
+  const words = (v: string) => new Set(v.split(/[^a-z0-9]+/i).filter((w) => w.length > 1))
+  const storedWords = words(stored)
+  for (const w of words(scrapedName.trim().toLowerCase())) {
+    if (storedWords.has(w)) return false
+  }
+  return true
+}
+
+/**
+ * Someone already in the CRM, captured again.
+ *
+ * Fills what's missing and never overwrites what's there: the record is the
+ * accumulated judgement (a priority you set, a warmth you graded), and a
+ * profile page is a snapshot of one moment. The single exception is a name
+ * that is demonstrably a fragment of the stored job title — see above.
+ *
+ * Roles are unioned rather than replaced, so capturing someone as an
+ * Investor doesn't erase that they're also an Advisor.
+ */
+async function fillBlanks(
+  existing: {
+    id: string
+    fullName: string
+    location: string | null
+    notes: string | null
+    linkedinUrl: string | null
+    priority: CrmPriorityTier | null
+    warmth: CrmWarmth
+    roles: CrmPersonRole[]
+    needsCompletion: boolean
+    affiliations: { id: string; title: string | null; orgId: string }[]
+  },
+  body: CapturePayload,
+  parsed: { name: string; orgId: string | null; roles: CrmPersonRole[] },
+) {
+  const data: Record<string, unknown> = {}
+  const filled: string[] = []
+  const primary = existing.affiliations[0] ?? null
+
+  if (parsed.name && parsed.name !== existing.fullName && nameLooksLikeTitleFragment(existing.fullName, parsed.name, primary?.title)) {
+    data.fullName = parsed.name
+    data.firstName = parsed.name.split(' ')[0] ?? null
+    data.lastName = parsed.name.split(' ').slice(1).join(' ') || null
+    filled.push(`name (was “${existing.fullName}”)`)
+  }
+
+  const location = body.location?.trim()
+  if (location && !existing.location) { data.location = location; filled.push('location') }
+
+  const note = body.note?.trim()
+  if (note && !existing.notes) { data.notes = note; filled.push('note') }
+
+  if (!existing.linkedinUrl && body.url) { data.linkedinUrl = body.url; filled.push('LinkedIn URL') }
+
+  if (!existing.priority && body.priority && VALID_PRIORITIES.has(body.priority)) {
+    data.priority = body.priority as CrmPriorityTier
+    filled.push('priority')
+  }
+
+  const warmth = warmthFromConnectionDegree(body.connectionDegree)
+  if (warmth && existing.warmth === 'UNKNOWN') { data.warmth = warmth; filled.push('warmth') }
+
+  const newRoles = parsed.roles.filter((r) => !existing.roles.includes(r))
+  if (newRoles.length > 0) { data.roles = { push: newRoles }; filled.push('contact type') }
+
+  const jobTitle = body.jobTitle?.trim()
+  if (primary) {
+    // An empty title on an existing affiliation is a blank like any other.
+    if (jobTitle && !primary.title?.trim()) {
+      await prisma.crmAffiliation.update({ where: { id: primary.id }, data: { title: jobTitle } })
+      filled.push('job title')
+    }
+  } else if (parsed.orgId) {
+    await prisma.crmAffiliation.create({
+      data: { personId: existing.id, orgId: parsed.orgId, title: jobTitle || '', isPrimary: true },
+    })
+    filled.push('organization')
+  }
+
+  // Whatever it was flagged for may now be filled in.
+  if (existing.needsCompletion && (jobTitle || primary?.title) && (parsed.orgId || primary)) {
+    data.needsCompletion = false
+  }
+
+  if (Object.keys(data).length > 0) {
+    await prisma.crmPerson.update({ where: { id: existing.id }, data })
+  }
+  if (filled.length > 0) {
+    await prisma.crmSourceRecord.create({
+      data: {
+        sourceFile: 'CHROME_EXTENSION',
+        rawJson: { ...body, via: 'extension', filled },
+        personId: existing.id,
+        matchTier: 'FILL_BLANKS',
+      },
+    })
+  }
+  captureServerEvent('extension', 'crm_capture_filled', {
+    personId: existing.id, fields: filled.length, filled,
+  })
+
+  const who = (data.fullName as string | undefined) ?? existing.fullName
+  return {
+    ok: true,
+    existing: true,
+    personId: existing.id,
+    message: filled.length > 0
+      ? `${who} was already in the CRM — filled in ${filled.join(', ')}.`
+      : `${who} is already in the CRM, and nothing here was missing.`,
+  }
+}
+
 /**
  * Capture endpoint for the browser extension.
  *
@@ -89,14 +235,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Need a name or a LinkedIn URL.' }, { status: 400, headers: CORS })
       }
 
-      const existing = slug ? await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug } }) : null
-      if (existing) {
-        return NextResponse.json(
-          { ok: true, existing: true, personId: existing.id, message: `${existing.fullName} is already in the CRM.` },
-          { headers: CORS }
-        )
-      }
-
       let orgId: string | null = null
       let orgKey: string | null = null
       if (isRealOrgName(body.company)) {
@@ -109,6 +247,19 @@ export async function POST(req: NextRequest) {
           })
           orgId = org.id
         }
+      }
+
+      const existing = slug
+        ? await prisma.crmPerson.findUnique({
+            where: { linkedinSlug: slug },
+            include: { affiliations: { where: { isPrimary: true }, take: 1 } },
+          })
+        : null
+      if (existing) {
+        return NextResponse.json(
+          await fillBlanks(existing, body, { name, orgId, roles: rolesFrom(body) }),
+          { headers: CORS }
+        )
       }
 
       // See crm/actions.ts's resolveInput for why a slug-derived fallback
@@ -124,9 +275,7 @@ export async function POST(req: NextRequest) {
           { status: 400, headers: CORS }
         )
       }
-      const roles = Array.isArray(body.roles)
-        ? body.roles.filter((r): r is CrmPersonRole => (PERSON_ROLES as string[]).includes(r))
-        : []
+      const roles = rolesFrom(body)
       const priority = (body.priority && VALID_PRIORITIES.has(body.priority) ? body.priority : 'P2') as CrmPriorityTier
       const warmth = warmthFromConnectionDegree(body.connectionDegree)
       const now = new Date()

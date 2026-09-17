@@ -23,95 +23,94 @@ export function CrmBulkBar({ children, count }: { children: React.ReactNode; cou
     >
       {children}
 
-      <div className="sticky bottom-0 mt-3 space-y-2 rounded-lg border border-border bg-background/95 p-3 backdrop-blur">
-        <div className="flex flex-wrap items-end gap-3">
-          <p className="text-sm text-muted-foreground">
-            {selected > 0 ? `${selected} of ${count} selected` : 'Tick rows to edit several at once'}
-          </p>
+      {/* Only once something is ticked. It used to sit there permanently in
+          a disabled state explaining how to enable itself, which cost a strip
+          of every screen to say nothing — the row checkboxes are the
+          affordance, and this is the response to using them. */}
+      {selected > 0 && (
+        <div className="sticky bottom-0 mt-3 space-y-2 rounded-lg border border-border bg-background/95 p-3 backdrop-blur">
+          <div className="flex flex-wrap items-end gap-3">
+            <p className="text-sm font-medium">{selected} of {count} selected</p>
 
-          <label className="text-xs">
-            <span className="mb-1 block font-medium">Quality</span>
-            <select name="bulkQuality" defaultValue="" className="h-8 rounded border border-input bg-transparent px-2 text-xs">
-              <option value="">Leave as is</option>
-              {QUALITIES.map((q) => <option key={q} value={q}>{QUALITY_LABELS[q]}</option>)}
-            </select>
-          </label>
+            <label className="text-xs">
+              <span className="mb-1 block font-medium">Quality</span>
+              <select name="bulkQuality" defaultValue="" className="h-8 rounded border border-input bg-transparent px-2 text-xs">
+                <option value="">Leave as is</option>
+                {QUALITIES.map((q) => <option key={q} value={q}>{QUALITY_LABELS[q]}</option>)}
+              </select>
+            </label>
 
-          <label className="text-xs">
-            <span className="mb-1 block font-medium">Warmth</span>
-            <select name="bulkWarmth" defaultValue="" className="h-8 rounded border border-input bg-transparent px-2 text-xs">
-              <option value="">Leave as is</option>
-              {WARMTHS.map((w) => <option key={w} value={w}>{WARMTH_LABELS[w]}</option>)}
-            </select>
-          </label>
+            <label className="text-xs">
+              <span className="mb-1 block font-medium">Warmth</span>
+              <select name="bulkWarmth" defaultValue="" className="h-8 rounded border border-input bg-transparent px-2 text-xs">
+                <option value="">Leave as is</option>
+                {WARMTHS.map((w) => <option key={w} value={w}>{WARMTH_LABELS[w]}</option>)}
+              </select>
+            </label>
 
-          {/* A person is routinely more than one thing, and applying types
-              one pass at a time is how the field stays empty. */}
-          <div className="text-xs">
-            <span className="mb-1 block font-medium">
-              Add contact types <span className="font-normal text-muted-foreground">pick several</span>
-            </span>
-            <CrmRolePicker name="bulkRole" label="Add contact types" placeholder="None" />
+            {/* A person is routinely more than one thing, and applying types
+                one pass at a time is how the field stays empty. */}
+            <div className="text-xs">
+              <span className="mb-1 block font-medium">
+                Add contact types <span className="font-normal text-muted-foreground">pick several</span>
+              </span>
+              <CrmRolePicker name="bulkRole" label="Add contact types" placeholder="None" />
+            </div>
+
+            <SubmitButton
+              formAction={bulkUpdatePeople}
+              variant="outline"
+              pendingLabel="Applying…"
+            >
+              Apply to selected
+            </SubmitButton>
           </div>
 
-          <SubmitButton
-            formAction={bulkUpdatePeople}
-            variant="outline"
-            disabled={selected === 0}
-            pendingLabel="Applying…"
-          >
-            Apply to selected
-          </SubmitButton>
-
-          {selected === 0 && <span className="text-xs text-muted-foreground">Tick at least one row to enable this.</span>}
-        </div>
-
-        {selected > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
-            {/* Destructive, so it takes a second explicit step and is never
-                the default focus, per design-principles.md. */}
-            {!confirmingDelete ? (
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(true)}
-                className="rounded-md border border-destructive/50 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive"
-              >
-                Remove {selected} selected
-              </button>
-            ) : (
-              <>
-                <span className="text-xs font-medium text-destructive">
-                  Remove {selected} {selected === 1 ? 'person' : 'people'}? They&apos;ll stop showing up anywhere,
-                  and re-uploading old data won&apos;t bring them back.
-                </span>
-                <SubmitButton
-                  formAction={async (fd: FormData) => {
-                    const r = await bulkDeletePeople(fd)
-                    setResult(
-                      r.skipped > 0
-                        ? `Removed ${r.deleted}. Kept ${r.skipped} already converted to a coach, recruiter or candidate.`
-                        : `Removed ${r.deleted}.`
-                    )
-                    setConfirmingDelete(false)
-                  }}
-                  size="sm"
-                  pendingLabel="Removing…"
-                >
-                  Yes, remove
-                </SubmitButton>
+              {/* Destructive, so it takes a second explicit step and is never
+                  the default focus, per design-principles.md. */}
+              {!confirmingDelete ? (
                 <button
                   type="button"
-                  onClick={() => setConfirmingDelete(false)}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+                  onClick={() => setConfirmingDelete(true)}
+                  className="rounded-md border border-destructive/50 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive"
                 >
-                  Cancel
+                  Remove {selected} selected
                 </button>
-              </>
+              ) : (
+                <>
+                  <span className="text-xs font-medium text-destructive">
+                    Remove {selected} {selected === 1 ? 'person' : 'people'}? They&apos;ll stop showing up anywhere,
+                    and re-uploading old data won&apos;t bring them back.
+                  </span>
+                  <SubmitButton
+                    formAction={async (fd: FormData) => {
+                      const r = await bulkDeletePeople(fd)
+                      setResult(
+                        r.skipped > 0
+                          ? `Removed ${r.deleted}. Kept ${r.skipped} already converted to a coach, recruiter or candidate.`
+                          : `Removed ${r.deleted}.`
+                      )
+                      setConfirmingDelete(false)
+                    }}
+                    size="sm"
+                    pendingLabel="Removing…"
+                  >
+                    Yes, remove
+                  </SubmitButton>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDelete(false)}
+                    className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                </>
             )}
             {result && <span role="status" className="text-xs text-muted-foreground">{result}</span>}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </form>
   )
 }
