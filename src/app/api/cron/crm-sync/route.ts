@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
   }
   if (!force) {
     const last = await prisma.crmSyncRun.findFirst({
-      where: { finishedAt: { not: null } }, orderBy: { startedAt: 'desc' }, select: { startedAt: true },
+      // Scheduled runs only. A manual "Sync now" sweeps a few hours, not the
+      // full window, so counting it as the last sweep would skip real coverage.
+      where: { finishedAt: { not: null }, source: { in: ['gmail', 'calendar'] } },
+      orderBy: { startedAt: 'desc' }, select: { startedAt: true },
     })
     if (last) {
       const dueAt = last.startedAt.getTime() + intervalHours * 3_600_000

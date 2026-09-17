@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
-import { CrmAutoMergeButton } from '@/components/admin/CrmAutoMergeButton'
+import { CrmSyncNowButton } from '@/components/admin/CrmSyncNowButton'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
@@ -216,7 +216,7 @@ export default async function CrmPeoplePage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <CrmQuickAdd />
-        <CrmAutoMergeButton />
+        <CrmSyncNowButton />
       </div>
 
       <StickyFilters name={STICKY_COOKIE} value={stickyQs} />

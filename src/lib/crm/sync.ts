@@ -209,7 +209,7 @@ export interface SweepResult {
  * explicitly, or the scan silently stops partway through the window and
  * never reaches its older, less-recent mail at all.
  */
-export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepResult> {
+export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gmail'): Promise<SweepResult> {
   const base: SweepResult = { source: 'gmail', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
   const connection = await getActiveGoogleConnection()
   if (!connection) return { ...base, reason: 'no_connection' }
@@ -220,7 +220,11 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
   // `days` a manual backfill passes.
   const rollingFrom = new Date(Date.now() - days * DAY)
   const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
-  const run = await prisma.crmSyncRun.create({ data: { source: 'gmail', windowFrom } })
+  // `runSource` labels a hand-triggered sweep separately ('gmail-manual'), so
+  // the scheduled sweep's "is one due yet" check can ignore it — otherwise
+  // pressing Sync now at teatime would push the next full sweep a whole
+  // interval past it.
+  const run = await prisma.crmSyncRun.create({ data: { source: runSource, windowFrom } })
 
   try {
     const selfEmail = (await getProfileEmail(token)) ?? connection.email
