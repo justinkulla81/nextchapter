@@ -37,21 +37,21 @@ async function main() {
     }),
   ])
 
-  type Agg = { count: number; first: Date; last: Date; firstInbound: Date | null }
+  type Agg = { count: number; first: Date; last: Date; lastDirection: string; firstInbound: Date | null }
   const byPerson = new Map<string, Agg>()
   for (const a of activities) {
     if (!a.personId) continue
     const cur = byPerson.get(a.personId)
     if (!cur) {
       byPerson.set(a.personId, {
-        count: 1, first: a.occurredAt, last: a.occurredAt,
+        count: 1, first: a.occurredAt, last: a.occurredAt, lastDirection: a.direction,
         firstInbound: a.direction === 'INBOUND' ? a.occurredAt : null,
       })
       continue
     }
     cur.count++
     if (a.occurredAt < cur.first) cur.first = a.occurredAt
-    if (a.occurredAt > cur.last) cur.last = a.occurredAt
+    if (a.occurredAt > cur.last) { cur.last = a.occurredAt; cur.lastDirection = a.direction }
     if (a.direction === 'INBOUND' && (!cur.firstInbound || a.occurredAt < cur.firstInbound)) {
       cur.firstInbound = a.occurredAt
     }
@@ -62,7 +62,7 @@ async function main() {
   const ids = new Set<string>([...byPerson.keys(), ...claimed.map((p) => p.id)])
   const people = await prisma.crmPerson.findMany({
     where: { id: { in: [...ids] } },
-    select: { id: true, fullName: true, touchCount: true, lastTouchedAt: true },
+    select: { id: true, fullName: true, touchCount: true, lastTouchedAt: true, awaitingReplySince: true },
   })
   console.log(`${people.length} candidate ${people.length === 1 ? 'person' : 'people'}\n`)
 
@@ -71,7 +71,12 @@ async function main() {
     const agg = byPerson.get(p.id)
     const nextCount = agg?.count ?? 0
     const nextLast = agg?.last ?? null
-    if (nextCount === p.touchCount && nextLast?.getTime() === p.lastTouchedAt?.getTime()) continue
+    const nextAwaiting = agg?.lastDirection === 'OUTBOUND' ? agg.last : null
+    if (
+      nextCount === p.touchCount &&
+      nextLast?.getTime() === p.lastTouchedAt?.getTime() &&
+      nextAwaiting?.getTime() === p.awaitingReplySince?.getTime()
+    ) continue
 
     changed++
     console.log(
@@ -86,6 +91,10 @@ async function main() {
           lastTouchedAt: nextLast,
           firstTouchedAt: agg?.first ?? null,
           firstRepliedAt: agg?.firstInbound ?? null,
+          // If the last thing that happened was ours, we are the ones waiting.
+          // Omitting this is why people whose only activity was an outbound
+          // email showed no "waiting on them" badge after the first recompute.
+          awaitingReplySince: agg?.lastDirection === 'OUTBOUND' ? agg.last : null,
         },
       })
     }
