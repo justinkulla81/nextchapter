@@ -45,7 +45,8 @@
     "verify:membership-phase8": "tsx --env-file=.env.local scripts/verify-membership-phase8.ts",
     "verify:crucible-employers": "tsx --env-file=.env.local scripts/verify-crucible-employers.ts",
     "verify:market-reality-calibration": "tsx --env-file=.env.local scripts/verify-market-reality-calibration.ts",
-    "crm:touch-fields": "tsx --env-file=.env.local scripts/crm/recompute-touch-fields.ts"
+    "crm:touch-fields": "tsx --env-file=.env.local scripts/crm/recompute-touch-fields.ts",
+    "crm:purge-precutoff": "tsx --env-file=.env.local scripts/crm/purge-precutoff-activities.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
