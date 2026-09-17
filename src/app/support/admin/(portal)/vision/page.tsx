@@ -1,31 +1,47 @@
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { renderMarkdown } from '@/lib/vision/markdown'
-import { KIND_LABELS, BUCKET_LABELS, formatDate } from '@/lib/vision/labels'
+import { VisionInlineSelect } from '@/components/admin/VisionInlineEdit'
+import {
+  KIND_GROUPS, KIND_LABELS, AREAS, AREA_LABELS, areaClass,
+  BUCKET_LABELS, STATUS_LABELS, formatDate,
+} from '@/lib/vision/labels'
 
 export const maxDuration = 30
 
 export default async function VisionHomePage() {
   await requireAdmin()
 
-  const [doc, sparks, byBucket, feedbackNew, unaddressed, competitors, blockers] = await Promise.all([
-    prisma.productVisionDoc.findFirst({ where: { isCurrent: true } }),
-    prisma.productItem.count({ where: { status: 'SPARK' } }),
-    prisma.productItem.groupBy({
-      by: ['bucket'], _count: { _all: true },
-      where: { status: { notIn: ['SPARK', 'SHIPPED', 'WONT_DO'] } },
-    }),
-    prisma.productFeedback.count({ where: { status: 'NEW' } }),
-    prisma.productFeedback.count({ where: { status: 'TRIAGED' } }),
-    prisma.productCompetitor.count(),
-    prisma.productItem.findMany({
-      where: { kind: 'BLOCKER', status: { notIn: ['SHIPPED', 'WONT_DO'] } },
-      include: { _count: { select: { blocking: true } } },
-      orderBy: { createdAt: 'desc' }, take: 5,
-    }),
-  ])
+  const OPEN: Prisma.ProductItemWhereInput = { status: { notIn: ['SPARK', 'SHIPPED', 'WONT_DO'] } }
+
+  const [doc, sparks, byBucket, byArea, feedbackNew, unaddressed, competitors, blockers, todos] =
+    await Promise.all([
+      prisma.productVisionDoc.findFirst({ where: { isCurrent: true } }),
+      prisma.productItem.count({ where: { status: 'SPARK' } }),
+      prisma.productItem.groupBy({ by: ['bucket'], _count: { _all: true }, where: OPEN }),
+      prisma.productItem.groupBy({ by: ['area'], _count: { _all: true }, where: OPEN }),
+      prisma.productFeedback.count({ where: { status: 'NEW' } }),
+      prisma.productFeedback.count({ where: { status: 'TRIAGED' } }),
+      prisma.productCompetitor.count(),
+      prisma.productItem.findMany({
+        where: { kind: 'BLOCKER', status: { notIn: ['SHIPPED', 'WONT_DO'] } },
+        include: { _count: { select: { blocking: true } } },
+        orderBy: { createdAt: 'desc' }, take: 5,
+      }),
+      // The to-dos live on the roadmap like everything else; this is the same
+      // rows, surfaced where you actually look each morning. Shipped and
+      // not-doing drop out, so the list empties as you work it.
+      prisma.productItem.findMany({
+        where: { kind: 'TODO', ...OPEN },
+        orderBy: [{ priority: { sort: 'asc', nulls: 'last' } }, { bucket: 'asc' }, { updatedAt: 'desc' }],
+        select: { id: true, title: true, area: true, status: true, bucket: true, priority: true },
+        take: 25,
+      }),
+    ])
   const bucketCount = new Map(byBucket.map((b) => [b.bucket, b._count._all]))
+  const areaCount = new Map(byArea.map((a) => [a.area, a._count._all]))
 
   return (
     <div className="space-y-6">
@@ -75,6 +91,43 @@ export default async function VisionHomePage() {
 
       <section>
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-semibold">
+            To-do <span className="text-sm font-normal text-muted-foreground">{todos.length} open</span>
+          </h2>
+          <Link href="/support/admin/vision/items?kind=TODO" className="text-sm text-brand underline">
+            On the roadmap
+          </Link>
+        </div>
+        {todos.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            No open to-dos. Add one on the roadmap with the kind set to To-do.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {todos.map((t) => (
+              <li key={t.id} className="flex flex-wrap items-center gap-2 p-2.5">
+                <Link href={`/support/admin/vision/items/${t.id}`} className="min-w-0 flex-1 text-sm font-medium hover:underline">
+                  {t.title}
+                </Link>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${areaClass(t.area)}`}>{AREA_LABELS[t.area]}</span>
+                {t.priority && <span className="text-xs text-muted-foreground">P{t.priority}</span>}
+                <span className="text-xs text-muted-foreground">{BUCKET_LABELS[t.bucket]}</span>
+                {/* Tick it off without leaving the page — the whole reason the
+                    list is here rather than one click away. */}
+                <VisionInlineSelect
+                  itemId={t.id} field="status" value={t.status} label="Status"
+                  options={(['NEW', 'TRIAGED', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'WONT_DO'] as const).map((st) => ({
+                    value: st, label: st === 'SHIPPED' ? 'Done' : STATUS_LABELS[st],
+                  }))}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold">{doc?.title ?? 'Master product vision'}</h2>
           <Link href="/support/admin/vision/doc" className="text-sm text-brand underline">
             {doc ? 'Edit or download' : 'Write it'}
@@ -108,9 +161,21 @@ export default async function VisionHomePage() {
         ))}
       </section>
 
+      <section>
+        <h2 className="mb-2 text-lg font-semibold">By area</h2>
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {AREAS.map((a) => (
+            <Link key={a} href={`/support/admin/vision/items?area=${a}`} className="rounded-lg border border-border p-3 hover:border-brand">
+              <p className="text-xs text-muted-foreground">{AREA_LABELS[a]}</p>
+              <p className="mt-0.5 text-lg font-semibold">{areaCount.get(a) ?? 0}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <p className="text-xs text-muted-foreground">
-        Item kinds: {Object.values(KIND_LABELS).join(' · ')} — one table, because these convert into one
-        another constantly.
+        Item kinds — {KIND_GROUPS.map((g) => `${g.label}: ${g.kinds.map((k) => KIND_LABELS[k]).join(', ')}`).join(' · ')}
+        . One table, because these convert into one another constantly.
       </p>
     </div>
   )

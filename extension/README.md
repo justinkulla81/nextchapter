@@ -36,6 +36,11 @@ that gap.
 Prefill is best-effort and always editable before saving — LinkedIn's markup
 changes often, and a wrong guess you can see beats a right one you can't.
 
+On a LinkedIn profile already in the CRM (matched by profile URL), the popup
+shows a banner with their priority, when they were last contacted, and a link
+straight to their record — checked as soon as the popup opens, before you've
+typed anything.
+
 ## Security
 
 The extension holds a **scoped capture token**, not your admin session. It can

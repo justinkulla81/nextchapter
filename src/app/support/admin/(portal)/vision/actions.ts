@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { defaultAreaForKind } from '@/lib/vision/labels'
 import type {
-  ProductItemKind, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
+  ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
   ProductFeedbackSource, ProductCompetitorOverlap, CrmPortfolioOverlap,
 } from '@prisma/client'
 
@@ -85,18 +86,68 @@ export async function createItem(formData: FormData) {
   if (!title) return
   const kind = (String(formData.get('kind') ?? 'IDEA') || 'IDEA') as ProductItemKind
   const statusRaw = String(formData.get('status') ?? '').trim()
+  const areaRaw = String(formData.get('area') ?? '').trim()
 
   const item = await prisma.productItem.create({
     data: {
       kind, title,
+      area: (areaRaw || defaultAreaForKind(kind)) as ProductItemArea,
       body: String(formData.get('body') ?? '').trim() || null,
       status: (statusRaw || 'SPARK') as ProductItemStatus,
       visionSection: String(formData.get('visionSection') ?? '').trim() || null,
     },
   })
-  captureServerEvent(admin.email ?? 'admin', 'vision_item_created', { itemId: item.id, kind, status: item.status })
+  captureServerEvent(admin.email ?? 'admin', 'vision_item_created', {
+    itemId: item.id, kind, area: item.area, status: item.status,
+  })
   revalidatePath(`${V}/items`)
   revalidatePath(`${V}/brainstorm`)
+  revalidatePath(V)
+}
+
+/**
+ * One field, set straight from a list row.
+ *
+ * The full edit form lives on the item page, but prioritising and scheduling
+ * are things you do to twenty rows in a sitting while looking at them next to
+ * each other — and opening twenty pages to do it is how a roadmap stops
+ * getting groomed. Deliberately narrow: it writes the one field named, so it
+ * can never blank the rest of the row the way a partial form post would.
+ */
+export async function setItemField(
+  itemId: string,
+  field: 'kind' | 'area' | 'status' | 'bucket' | 'effort' | 'priority' | 'title',
+  value: string,
+) {
+  const admin = await requireAdmin()
+  const v = value.trim()
+
+  let data: Record<string, unknown>
+  switch (field) {
+    case 'title':
+      if (!v) return
+      data = { title: v }
+      break
+    case 'priority':
+      data = { priority: v ? Math.max(1, Math.min(5, parseInt(v, 10) || 3)) : null }
+      break
+    case 'status': {
+      const status = v as ProductItemStatus
+      // Same rule as the full form: shipping stamps the date, un-shipping clears it.
+      data = { status, shippedAt: status === 'SHIPPED' ? new Date() : null }
+      break
+    }
+    default:
+      if (!v) return
+      data = { [field]: v }
+  }
+
+  await prisma.productItem.update({ where: { id: itemId }, data })
+  captureServerEvent(admin.email ?? 'admin', 'vision_item_field_set', { itemId, field, value: v || null })
+  revalidatePath(`${V}/items`)
+  revalidatePath(`${V}/items/${itemId}`)
+  revalidatePath(`${V}/brainstorm`)
+  revalidatePath(V)
 }
 
 export async function updateItem(itemId: string, formData: FormData) {
@@ -110,6 +161,7 @@ export async function updateItem(itemId: string, formData: FormData) {
       title: String(formData.get('title') ?? '').trim() || undefined,
       body: String(formData.get('body') ?? '').trim() || null,
       kind: (String(formData.get('kind') ?? '').trim() || undefined) as ProductItemKind | undefined,
+      area: (String(formData.get('area') ?? '').trim() || undefined) as ProductItemArea | undefined,
       status: status || undefined,
       bucket: (String(formData.get('bucket') ?? '').trim() || undefined) as ProductRoadmapBucket | undefined,
       effort: (String(formData.get('effort') ?? '').trim() || undefined) as ProductEffort | undefined,
@@ -133,6 +185,7 @@ export async function promoteSpark(itemId: string) {
   captureServerEvent(admin.email ?? 'admin', 'vision_spark_promoted', { itemId })
   revalidatePath(`${V}/brainstorm`)
   revalidatePath(`${V}/items`)
+  revalidatePath(V)
 }
 
 export async function deleteItem(itemId: string) {
@@ -157,13 +210,37 @@ export async function createFeedback(formData: FormData) {
       rawText,
       source: (String(formData.get('source') ?? 'TESTER') || 'TESTER') as ProductFeedbackSource,
       personId: String(formData.get('personId') ?? '').trim() || null,
+      candidateId: String(formData.get('candidateId') ?? '').trim() || null,
       personLabel: String(formData.get('personLabel') ?? '').trim() || null,
       channel: String(formData.get('channel') ?? '').trim() || null,
       // When they SAID it, which is not when you got round to logging it.
       receivedAt: receivedRaw ? new Date(receivedRaw) : new Date(),
     },
   })
-  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_logged', { feedbackId: fb.id, source: fb.source })
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_logged', {
+    feedbackId: fb.id, source: fb.source, hasCandidate: Boolean(fb.candidateId),
+  })
+  revalidatePath(`${V}/feedback`)
+  revalidatePath(V)
+}
+
+/**
+ * Attaches (or detaches) the candidate who said it.
+ *
+ * Kept separate from the CRM person link because most people using the
+ * product have no CrmPerson row — and their feedback is the feedback that
+ * matters most. Attributing it to a real account also means the item it
+ * feeds can be read next to what that candidate was actually doing.
+ */
+export async function setFeedbackCandidate(feedbackId: string, candidateId: string) {
+  const admin = await requireAdmin()
+  await prisma.productFeedback.update({
+    where: { id: feedbackId },
+    data: { candidateId: candidateId.trim() || null },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_candidate_set', {
+    feedbackId, candidateId: candidateId.trim() || null,
+  })
   revalidatePath(`${V}/feedback`)
 }
 

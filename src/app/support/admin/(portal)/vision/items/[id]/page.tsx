@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { updateItem, deleteItem } from '../../actions'
 import { extractSections } from '@/lib/vision/markdown'
+import { KindSelect, AreaSelect } from '@/components/admin/VisionKindSelect'
 import {
-  KINDS, KIND_LABELS, STATUSES, STATUS_LABELS, BUCKETS, BUCKET_LABELS,
+  KIND_LABELS, AREA_LABELS, areaClass, STATUSES, STATUS_LABELS, BUCKETS, BUCKET_LABELS,
   EFFORTS, EFFORT_LABELS, SOURCE_LABELS, statusClass, formatDate,
 } from '@/lib/vision/labels'
 
@@ -47,6 +48,7 @@ export default async function VisionItemPage({ params }: { params: Promise<{ id:
       <header>
         <h1 className="text-2xl font-semibold">{item.title}</h1>
         <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+          <span className={`rounded-full px-2 py-0.5 text-xs ${areaClass(item.area)}`}>{AREA_LABELS[item.area]}</span>
           <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{KIND_LABELS[item.kind]}</span>
           <span className={`rounded-full px-2 py-0.5 text-xs ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
           <span className="text-xs text-muted-foreground">{BUCKET_LABELS[item.bucket]}</span>
@@ -101,10 +103,12 @@ export default async function VisionItemPage({ params }: { params: Promise<{ id:
             <textarea name="body" rows={5} defaultValue={item.body ?? ''} className="w-full rounded-md border border-input bg-transparent p-2 text-sm" />
           </label>
           <label className="text-sm">
+            <span className="mb-1 block font-medium">Area</span>
+            <AreaSelect value={item.area} className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm" />
+          </label>
+          <label className="text-sm">
             <span className="mb-1 block font-medium">Kind</span>
-            <select name="kind" defaultValue={item.kind} className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm">
-              {KINDS.map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
-            </select>
+            <KindSelect value={item.kind} className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm" />
           </label>
           <label className="text-sm">
             <span className="mb-1 block font-medium">Status</span>

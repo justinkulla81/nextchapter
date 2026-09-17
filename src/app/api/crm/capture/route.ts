@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { PERSON_ROLES } from '@/lib/crm/labels'
 import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
+import { slugOf } from '@/lib/crm/linkedin'
 
 export const maxDuration = 30
 
@@ -54,12 +55,6 @@ function warmthFromConnectionDegree(degree: string | undefined): CrmWarmth | nul
   if (d.includes('1st')) return 'HOT'
   if (d.includes('2nd')) return 'WARM'
   return 'COLD' // 3rd-degree, or any other value LinkedIn ever sends here
-}
-
-function slugOf(url: string | undefined): string | null {
-  if (!url) return null
-  const m = url.toLowerCase().match(/linkedin\.com\/in\/([^/?#\s]+)/)
-  return m ? m[1].replace(/\/+$/, '') : null
 }
 
 /**

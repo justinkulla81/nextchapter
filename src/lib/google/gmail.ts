@@ -131,20 +131,29 @@ export async function listMessagesSince(
 }
 
 /**
- * Every message ever exchanged with one address, oldest correspondence and
- * all — deliberately no `after:` filter, unlike listMessagesSince. This is
- * for the one-person, on-demand backfill triggered from the Review List's
- * "do you have their email?" prompt: bounded to a single relationship
- * rather than a mailbox-wide sweep, a real history can be years deep and
- * that's exactly the point of asking.
+ * Every message exchanged with one address since `since`, for the
+ * one-person, on-demand backfill triggered from the "do you have their
+ * email?" prompt.
+ *
+ * `since` used to be absent — a real relationship can be years deep and
+ * that was the point of asking. It is now required by every caller and set
+ * to the CRM cutoff, for two reasons: a decade of personal mail with
+ * someone who later became an advisor is not CRM activity, and fetching it
+ * is what made this call time out. Each message costs two further API
+ * round trips (headers, then body), so an unbounded history could not
+ * finish inside a serverless request — it wrote a partial history and died
+ * before recomputing the person's touch fields, leaving a record that had
+ * mail logged against it and still read "never contacted".
  */
 export async function listMessagesForAddress(
   accessToken: string,
   email: string,
+  since: Date,
   max = 250
 ): Promise<string[]> {
   const addr = JSON.stringify(email) // quoted so Gmail treats it as one token, not two search terms
-  return listMessagesByQuery(accessToken, `{from:${addr} to:${addr}} -in:spam -in:trash`, max)
+  const after = `after:${Math.floor(since.getTime() / 1000)}`
+  return listMessagesByQuery(accessToken, `{from:${addr} to:${addr}} ${after} -in:spam -in:trash`, max)
 }
 
 async function listMessagesByQuery(accessToken: string, q: string, max: number): Promise<string[]> {

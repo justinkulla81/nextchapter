@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -16,6 +18,7 @@ import { CrmInlineFollowUp } from '@/components/admin/CrmInlineFollowUp'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
 import { CrmInlineGoals } from '@/components/admin/CrmInlineGoals'
+import { StickyFilters } from '@/components/admin/StickyFilters'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
@@ -34,6 +37,16 @@ export const maxDuration = 30
 const PAGE_SIZES = [50, 100, 200, 1500] as const
 const DEFAULT_PAGE_SIZE = 100
 
+// The filters this list was last worked with, kept across sessions. See
+// StickyFilters for why a cookie.
+const STICKY_COOKIE = 'crm_people_filters'
+
+/** Whole days since `when`, or null. Counted here so the row component stays
+ * pure — see CrmInlineFollowUp's `awaitingDays`. */
+function daysSince(when: Date | null): number | null {
+  return when ? Math.floor((Date.now() - when.getTime()) / 86_400_000) : null
+}
+
 export default async function CrmPeoplePage({
   searchParams,
 }: {
@@ -41,11 +54,21 @@ export default async function CrmPeoplePage({
 }) {
   await requireAdmin()
   const sp = await searchParams
+
+  // A bare visit restores the remembered view. Only a BARE one: any param at
+  // all (including ?reset=1, which Clear uses) is a deliberate choice about
+  // what to look at and is never overridden.
+  if (Object.keys(sp).length === 0) {
+    const saved = (await cookies()).get(STICKY_COOKIE)?.value
+    if (saved) redirect(`/support/admin/crm?${decodeURIComponent(saved)}`)
+  }
+
   const q = (sp.q ?? '').trim()
   const role = sp.role ?? ''
   const quality = sp.quality ?? ''
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
+  const waiting = sp.waiting ?? ''
   const goal = sp.goal ?? ''
   const priority = sp.priority ?? ''
   const minScore = parseInt(sp.minScore ?? '', 10)
@@ -87,6 +110,8 @@ export default async function CrmPeoplePage({
     ...(warmth ? { warmth: warmth as CrmWarmth } : {}),
     ...(touched === 'never' ? { lastTouchedAt: null } : {}),
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
+    ...(waiting === 'waiting' ? { awaitingReplySince: { not: null } } : {}),
+    ...(waiting === 'not-waiting' ? { awaitingReplySince: null } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
@@ -101,7 +126,7 @@ export default async function CrmPeoplePage({
       take: perPage,
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
-        lastTouchedAt: true, touchCount: true, priorityScore: true, linkedinUrl: true,
+        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, priorityScore: true, linkedinUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
@@ -115,10 +140,19 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, goal, priority,
+    q, role, quality, warmth, touched, waiting, goal, priority,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
+  // What gets remembered: the filters and the view settings, never the page
+  // number — resuming on page 7 of a list you last opened yesterday is not
+  // "where I left off", it's disorienting.
+  const stickyQs = (() => {
+    const p = new URLSearchParams()
+    for (const [k, v] of Object.entries(baseParams)) if (v) p.set(k, String(v))
+    return p.toString()
+  })()
+
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
     for (const [k, v] of Object.entries({ ...baseParams, ...over })) if (v) p.set(k, String(v))
@@ -185,8 +219,11 @@ export default async function CrmPeoplePage({
         <CrmAutoMergeButton />
       </div>
 
+      <StickyFilters name={STICKY_COOKIE} value={stickyQs} />
+
       <AdminFilterBar
         basePath="/support/admin/crm"
+        clearHref="/support/admin/crm?reset=1"
         searchValue={q}
         searchPlaceholder="Search name, company, title, email or notes…"
         filters={[
@@ -194,18 +231,23 @@ export default async function CrmPeoplePage({
           { key: 'quality', label: 'Quality', value: quality, options: [{ value: '', label: 'Any quality' }, ...QUALITIES.map((x) => ({ value: x, label: QUALITY_LABELS[x] }))] },
           { key: 'warmth', label: 'Warmth', value: warmth, options: [{ value: '', label: 'Any warmth' }, ...WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))] },
           { key: 'touched', label: 'Contact', value: touched, options: [{ value: '', label: 'Contacted or not' }, { value: 'never', label: 'Never contacted' }, { value: 'ever', label: 'Contacted at least once' }] },
+          { key: 'waiting', label: 'Waiting on reply', value: waiting, options: [{ value: '', label: 'Waiting or not' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'not-waiting', label: 'Not waiting on them' }] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           // Thresholds match the real distribution: people top out around 67
           // and cluster near 30, so 70+ would match nobody and 30+ everybody.
-          { key: 'priority', label: 'Priority', value: priority, options: [{ value: '', label: 'Any priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))] },
-          { key: 'minScore', label: 'Priority', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any priority' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
+          // Labelled the way the rows are: the badge on every row says P0, so
+          // a filter offering "Immediate" made you translate between the two.
+          { key: 'priority', label: 'Priority', value: priority, options: [{ value: '', label: 'Any priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))] },
+          // This one filters the computed score, not the tier — two dropdowns
+          // both reading "Priority: All" was just ambiguous.
+          { key: 'minScore', label: 'Score', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any score' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
         ]}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-          {q || role || quality || warmth || touched ? ' matching these filters' : ''}
+          {q || role || quality || warmth || touched || waiting ? ' matching these filters' : ''}
         </p>
         {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
         <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
@@ -270,16 +312,22 @@ export default async function CrmPeoplePage({
                         options={[{ value: '', label: '—' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: t }))]}
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    {/* Three lines per person, fixed. A LinkedIn headline can
+                        run five lines on its own and was setting the height of
+                        the whole row; it truncates here and the full text is
+                        one hover (or the peek panel) away. */}
+                    <td className="max-w-xs px-3 py-1.5">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
                       {p.affiliations[0]?.title && (
-                        <span className="block text-xs text-muted-foreground">{p.affiliations[0].title}</span>
+                        <span className="block truncate text-xs text-muted-foreground" title={p.affiliations[0].title}>
+                          {p.affiliations[0].title}
+                        </span>
                       )}
                       <span className="block">
                         <CrmEmailBackfillPrompt personId={p.id} email={p.email} />
                       </span>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-1.5">
                       <div className="flex items-center gap-1.5">
                         <CrmInlineOrgEdit personId={p.id} orgName={p.affiliations[0]?.org.name ?? null} />
                         {p.affiliations[0]?.org && (
@@ -289,22 +337,26 @@ export default async function CrmPeoplePage({
                         )}
                       </div>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-1.5">
                       <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-1.5">
                       <CrmInlineGoals personId={p.id} goals={p.goals} name={p.fullName} />
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-3 py-1.5">
                       <CrmContactCell
                         personId={p.id} name={p.fullName}
                         lastLabel={sinceLabel(p.lastTouchedAt)} touchCount={p.touchCount}
+                        awaitingReply={p.awaitingReplySince !== null}
                       />
                     </td>
-                    <td className="px-3 py-2">
-                      <CrmInlineFollowUp personId={p.id} note={p.nextFollowUpNote} dueAt={p.nextFollowUpAt} />
+                    <td className="whitespace-nowrap px-3 py-1.5">
+                      <CrmInlineFollowUp
+                        personId={p.id} note={p.nextFollowUpNote} dueAt={p.nextFollowUpAt}
+                        awaitingDays={daysSince(p.awaitingReplySince)}
+                      />
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
                   </tr>
                 ))}
               </tbody>

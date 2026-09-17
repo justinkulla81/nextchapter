@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { VisionFeedbackCandidate } from '@/components/admin/VisionFeedbackCandidate'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { createFeedback, linkFeedback, markFeedbackAddressed, archiveFeedback } from '../actions'
 import { SOURCES, SOURCE_LABELS, FEEDBACK_STATUS_LABELS, formatDate } from '@/lib/vision/labels'
 
@@ -24,11 +26,12 @@ export default async function VisionFeedbackPage({
     ...(q ? { OR: [{ rawText: { contains: q, mode: 'insensitive' } }, { personLabel: { contains: q, mode: 'insensitive' } }] } : {}),
   }
 
-  const [feedback, items, testers, counts] = await Promise.all([
+  const [feedback, items, testers, candidates, counts] = await Promise.all([
     prisma.productFeedback.findMany({
       where, orderBy: [{ status: 'asc' }, { receivedAt: 'desc' }], take: 200,
       include: {
         person: { select: { id: true, fullName: true } },
+        candidate: { select: { id: true, firstName: true, lastName: true } },
         links: { include: { item: { select: { id: true, title: true, status: true } } } },
       },
     }),
@@ -40,9 +43,19 @@ export default async function VisionFeedbackPage({
       where: { roles: { hasSome: ['ADVISOR', 'JOB_SEEKER', 'COACH_PROSPECT'] } },
       select: { id: true, fullName: true }, orderBy: { fullName: 'asc' }, take: 300,
     }),
+    // Real users of the product. Most of them have no CrmPerson row, and
+    // theirs is the feedback that matters most — see ProductFeedback.candidateId.
+    prisma.candidateProfile.findMany({
+      where: EXCLUDE_SYSTEM_ACCOUNT,
+      select: { id: true, firstName: true, lastName: true, email: true },
+      orderBy: { createdAt: 'desc' }, take: 1000,
+    }),
     prisma.productFeedback.groupBy({ by: ['status'], _count: { _all: true } }),
   ])
   const countBy = new Map(counts.map((c) => [c.status, c._count._all]))
+  const candidateOptions = candidates
+    .map((c) => ({ id: c.id, name: `${c.firstName ?? ''} ${c.lastName ?? ''}`.trim() || (c.email ?? 'Unnamed'), email: c.email }))
+    .sort((a, b) => a.name.localeCompare(b.name))
   const owed = feedback.filter((f) => f.status === 'TRIAGED' && f.links.some((l) => l.item.status === 'SHIPPED'))
 
   return (
@@ -75,9 +88,16 @@ export default async function VisionFeedbackPage({
             className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
           />
         </label>
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-5">
           <label className="text-sm">
-            <span className="mb-1 block font-medium">Who</span>
+            <span className="mb-1 block font-medium">Candidate</span>
+            <select name="candidateId" defaultValue="" className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm">
+              <option value="">Not a candidate</option>
+              {candidateOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block font-medium">Or in the Ecosystem</span>
             <select name="personId" defaultValue="" className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm">
               <option value="">Not in the Ecosystem</option>
               {testers.map((t) => <option key={t.id} value={t.id}>{t.fullName}</option>)}
@@ -133,7 +153,11 @@ export default async function VisionFeedbackPage({
               <li key={f.id} className="rounded-lg border border-border p-3">
                 <p className="text-sm">“{f.rawText}”</p>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  {f.person ? (
+                  {f.candidate ? (
+                    <Link href={`/support/admin/candidates/${f.candidate.id}`} className="underline">
+                      {`${f.candidate.firstName ?? ''} ${f.candidate.lastName ?? ''}`.trim() || 'Candidate'}
+                    </Link>
+                  ) : f.person ? (
                     <Link href={`/support/admin/crm/people/${f.person.id}`} className="underline">{f.person.fullName}</Link>
                   ) : (f.personLabel ?? 'Unattributed')}
                   <span>{SOURCE_LABELS[f.source]}</span>
@@ -156,9 +180,17 @@ export default async function VisionFeedbackPage({
 
                 <details className="mt-2">
                   <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
-                    {f.status === 'NEW' ? 'Link it to something' : 'Link, or close the loop'}
+                    {f.status === 'NEW' ? 'Attach a candidate, link it to something' : 'Attach, link, or close the loop'}
                   </summary>
                   <div className="mt-2 space-y-3">
+                    <VisionFeedbackCandidate
+                      feedbackId={f.id}
+                      candidates={candidateOptions}
+                      value={f.candidate
+                        ? { id: f.candidate.id, name: `${f.candidate.firstName ?? ''} ${f.candidate.lastName ?? ''}`.trim() || 'Candidate' }
+                        : null}
+                    />
+
                     <form action={link} className="flex flex-wrap items-end gap-2">
                       <label className="text-xs">
                         <span className="mb-1 block font-medium">Existing item</span>

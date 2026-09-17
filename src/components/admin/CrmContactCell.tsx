@@ -22,12 +22,13 @@ const CHANNELS = [
  * make every date a lie.
  */
 export function CrmContactCell({
-  personId, name, lastLabel, touchCount,
+  personId, name, lastLabel, touchCount, awaitingReply,
 }: {
   personId: string
   name: string
   lastLabel: string
   touchCount: number
+  awaitingReply?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
@@ -43,6 +44,11 @@ export function CrmContactCell({
       >
         <span className={lastLabel === 'Never' ? 'text-muted-foreground' : ''}>{lastLabel}</span>
         {touchCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({touchCount})</span>}
+        {awaitingReply && (
+          <span className="ml-1.5 rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
+            Waiting on them
+          </span>
+        )}
       </button>
     )
   }

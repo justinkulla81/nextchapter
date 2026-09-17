@@ -12,11 +12,15 @@ import { formatDate } from '@/lib/crm/labels'
  * with no specific day attached.
  */
 export function CrmInlineFollowUp({
-  personId, note, dueAt,
+  personId, note, dueAt, awaitingDays,
 }: {
   personId: string
   note: string | null
   dueAt: Date | null
+  /** Days since we last spoke with no reply, or null when we aren't waiting.
+   * Counted by the caller: "how long ago" is a clock read, and reading the
+   * clock during render is exactly what the purity rule forbids. */
+  awaitingDays?: number | null
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -26,15 +30,24 @@ export function CrmInlineFollowUp({
 
   if (!open) {
     const hasFollowUp = Boolean(note || dueAt)
+    // "No follow-up set" is the least useful thing this cell can say about
+    // someone we emailed a week ago and never heard back from — that IS the
+    // follow-up, and the number of days is the part that decides whether to
+    // nudge today. An explicit follow-up still wins: it's a decision, where
+    // this is an inference.
+    const waitingDays = hasFollowUp ? null : awaitingDays ?? null
+
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`text-left text-xs hover:underline ${hasFollowUp ? 'text-amber-700' : 'text-muted-foreground'}`}
+        className={`text-left text-xs hover:underline ${hasFollowUp || waitingDays !== null ? 'text-amber-700' : 'text-muted-foreground'}`}
       >
         {hasFollowUp
           ? `Follow up${dueAt ? ` ${formatDate(dueAt)}` : ''}${note ? `: ${note}` : ''}`
-          : 'No follow-up set'}
+          : waitingDays !== null
+            ? `Waiting for a reply · ${waitingDays === 0 ? 'today' : `${waitingDays}d`}`
+            : 'No follow-up set'}
       </button>
     )
   }

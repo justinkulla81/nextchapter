@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { KIND_LABELS, STATUS_LABELS, BUCKET_LABELS, SOURCE_LABELS, OVERLAP_LABELS } from '@/lib/vision/labels'
+import { KIND_LABELS, AREA_LABELS, STATUS_LABELS, BUCKET_LABELS, SOURCE_LABELS, OVERLAP_LABELS } from '@/lib/vision/labels'
 
 export const maxDuration = 60
 
@@ -26,7 +26,16 @@ export async function GET(req: NextRequest) {
           where: { status: { not: 'SPARK' } },
           orderBy: [{ bucket: 'asc' }, { priority: { sort: 'asc', nulls: 'last' } }],
           include: {
-            feedbackLinks: { include: { feedback: { include: { person: { select: { fullName: true } } } } } },
+            feedbackLinks: {
+              include: {
+                feedback: {
+                  include: {
+                    person: { select: { fullName: true } },
+                    candidate: { select: { firstName: true, lastName: true } },
+                  },
+                },
+              },
+            },
             blockedBy: { select: { title: true } },
           },
         })
@@ -40,7 +49,10 @@ export async function GET(req: NextRequest) {
   const unlinked = include.has('feedback')
     ? await prisma.productFeedback.findMany({
         where: { links: { none: {} }, status: { not: 'ARCHIVED' } },
-        include: { person: { select: { fullName: true } } },
+        include: {
+          person: { select: { fullName: true } },
+          candidate: { select: { firstName: true, lastName: true } },
+        },
         orderBy: { receivedAt: 'desc' },
       })
     : []
@@ -68,6 +80,7 @@ export async function GET(req: NextRequest) {
       for (const i of rows) {
         out.push(`#### ${i.title}`)
         const meta = [
+          AREA_LABELS[i.area],
           KIND_LABELS[i.kind],
           STATUS_LABELS[i.status],
           i.priority ? `priority ${i.priority}` : null,
@@ -81,7 +94,10 @@ export async function GET(req: NextRequest) {
         if (i.feedbackLinks.length > 0) {
           out.push(`**What ${i.feedbackLinks.length} ${i.feedbackLinks.length === 1 ? 'person' : 'people'} actually said:**`, '')
           for (const l of i.feedbackLinks) {
-            const who = l.feedback.person?.fullName ?? l.feedback.personLabel ?? 'Unattributed'
+            const candidateName = l.feedback.candidate
+              ? `${l.feedback.candidate.firstName ?? ''} ${l.feedback.candidate.lastName ?? ''}`.trim()
+              : ''
+            const who = candidateName || l.feedback.person?.fullName || l.feedback.personLabel || 'Unattributed'
             out.push(`> ${l.feedback.rawText.replace(/\n/g, '\n> ')}`)
             out.push(`> — ${who}, ${SOURCE_LABELS[l.feedback.source]}, ${l.feedback.receivedAt.toISOString().slice(0, 10)}`, '')
           }
@@ -95,7 +111,10 @@ export async function GET(req: NextRequest) {
     out.push('---', '', '## Feedback not yet linked to anything', '')
     out.push('_Raw, untriaged. Often the most useful part of a bundle like this._', '')
     for (const f of unlinked) {
-      const who = f.person?.fullName ?? f.personLabel ?? 'Unattributed'
+      const candidateName = f.candidate
+        ? `${f.candidate.firstName ?? ''} ${f.candidate.lastName ?? ''}`.trim()
+        : ''
+      const who = candidateName || f.person?.fullName || f.personLabel || 'Unattributed'
       out.push(`> ${f.rawText.replace(/\n/g, '\n> ')}`)
       out.push(`> — ${who}, ${SOURCE_LABELS[f.source]}, ${f.receivedAt.toISOString().slice(0, 10)}`, '')
     }

@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { KindSelect, AreaSelect } from '@/components/admin/VisionKindSelect'
 import { createItem, promoteSpark, deleteItem } from '../actions'
-import { KINDS, KIND_LABELS, formatDate } from '@/lib/vision/labels'
+import { KIND_LABELS, AREA_LABELS, areaClass, formatDate } from '@/lib/vision/labels'
 
 export const maxDuration = 30
 
@@ -38,9 +39,8 @@ export default async function VisionBrainstormPage() {
             placeholder="Anything. Half-formed is fine."
             className="h-9 min-w-64 flex-1 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
           />
-          <select name="kind" defaultValue="IDEA" aria-label="Kind" className="h-9 rounded-md border border-input bg-transparent px-3 text-sm">
-            {KINDS.map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
-          </select>
+          <AreaSelect value="PRODUCT" />
+          <KindSelect value="IDEA" />
           <SubmitButton pendingLabel="Adding…">Add spark</SubmitButton>
         </div>
       </form>
@@ -57,8 +57,10 @@ export default async function VisionBrainstormPage() {
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
                 <span className="min-w-0">
                   <span className="text-sm">{s.title}</span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    {KIND_LABELS[s.kind]} · {formatDate(s.createdAt)}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span className={`rounded-full px-2 py-0.5 ${areaClass(s.area)}`}>{AREA_LABELS[s.area]}</span>
+                    <span>{KIND_LABELS[s.kind]}</span>
+                    <span>{formatDate(s.createdAt)}</span>
                   </span>
                 </span>
                 {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
@@ -75,7 +77,9 @@ export default async function VisionBrainstormPage() {
           </ul>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
-          Nothing leaves this list by accident. An unjudged idea sitting in a prioritized backlog is noise
+          The same capture box and spark strip sit on the{' '}
+          <Link href="/support/admin/vision/items" className="underline">roadmap</Link>, so a thought that
+          arrives while you are grooming does not need a detour. Nothing leaves this list by accident. An unjudged idea sitting in a prioritized backlog is noise
           that makes the whole backlog less trusted.
         </p>
       </section>

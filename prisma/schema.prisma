@@ -1474,6 +1474,10 @@ model CandidateProfile {
   // allowed to draw on.
   marketIntelWeeklyBriefs MarketIntelWeeklyBrief[]
 
+  // Vision — what this candidate told us about the product, kept verbatim.
+  // See ProductFeedback.candidateId.
+  productFeedback ProductFeedback[]
+
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
   // same as never having visited the section. HARD GUARDRAIL: these four
@@ -8606,6 +8610,13 @@ model CrmPerson {
   firstRepliedAt DateTime?
   touchCount     Int       @default(0)
 
+  /// Set to the most recent activity's occurredAt when that activity is
+  /// OUTBOUND (we emailed/called them last) — i.e. we're still waiting on
+  /// them. Null whenever the last real activity is INBOUND (they replied) or
+  /// there's no activity at all. Recomputed by refreshTouchFields alongside
+  /// the four fields above, never typed by hand.
+  awaitingReplySince DateTime?
+
   // ── graduation links ──
   candidateId String?
   candidate   CandidateProfile? @relation("CrmPersonCandidate", fields: [candidateId], references: [id], onDelete: SetNull)
@@ -8643,6 +8654,7 @@ model CrmPerson {
   @@index([priority])
   @@index([lastTouchedAt])
   @@index([fullName])
+  @@index([awaitingReplySince])
 }
 
 // Many-to-many between people and organizations. The single change that makes
@@ -9318,15 +9330,38 @@ model CrmCaptureToken {
 /// because these convert into one another constantly — a question becomes a
 /// gap, a gap becomes a feature, a feature serves a goal. Splitting them means
 /// migrating a row every time you learn something.
+/// Which part of the business a ProductItem is about — orthogonal to its
+/// kind. "Hire a fractional CFO" and "Fix the resume parser" are both to-dos;
+/// what separates them is the area, and a roadmap that can only group by kind
+/// makes the company's non-product work invisible.
+enum ProductItemArea {
+  COMPANY
+  PRODUCT
+  GTM
+  OPERATIONS
+  FINANCE
+  LEGAL
+}
+
 enum ProductItemKind {
+  // Company — claims about the business: where it is going and what governs it.
   GOAL
-  FEATURE
   IDEA
   QUESTION
-  GAP
   PRINCIPLE
-  TODO
   BLOCKER
+  // Product — claims about the thing we ship.
+  FEATURE
+  BUG
+  FEEDBACK
+  TEXT
+  CONTENT
+  // Cross-cutting. GAP belongs to neither side cleanly (a market gap is a
+  // company claim, a missing feature is a product one) and TODO is a task
+  // about either, so both stay out of the two groups rather than being
+  // forced into one.
+  GAP
+  TODO
 }
 
 /// SPARK exists so brainstorming and triage can want opposite things.
@@ -9429,6 +9464,10 @@ model ProductVisionDoc {
 model ProductItem {
   id       String               @id @default(cuid())
   kind     ProductItemKind
+  /// Defaults to PRODUCT because most rows are, and because an area that has
+  /// to be chosen before the thought is written down is an area that gets
+  /// chosen wrongly.
+  area     ProductItemArea      @default(PRODUCT)
   title    String
   body     String?              @db.Text
   status   ProductItemStatus    @default(SPARK)
@@ -9485,6 +9524,15 @@ model ProductFeedback {
   person      CrmPerson?            @relation(fields: [personId], references: [id], onDelete: SetNull)
   personLabel String?
 
+  /// The candidate who said it, when they are a user of the product rather
+  /// than (or as well as) an Ecosystem contact. Separate from personId
+  /// because most of the people using NextChapter have no CrmPerson row at
+  /// all, and their feedback is the feedback that matters most — forcing it
+  /// through the CRM would mean either losing the attribution or minting a
+  /// fake relationship record for every tester.
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+
   rawText String  @db.Text
   channel String? // 'call' | 'email' | 'in person' | 'survey' | ...
 
@@ -9502,6 +9550,7 @@ model ProductFeedback {
 
   @@index([status, receivedAt(sort: Desc)])
   @@index([personId])
+  @@index([candidateId])
 }
 
 /// Many feedback to one item. Eight testers complaining about onboarding

@@ -255,6 +255,39 @@ async function init() {
     page.scraped = {}
   }
   renderFields()
+
+  if (kind === 'person' && page.url.includes('linkedin.com/in/')) checkExisting(base, token)
+}
+
+/**
+ * "Is this person already in the CRM?" — checked as soon as the popup opens
+ * on a profile, before you've typed anything. Silent on any failure (bad
+ * token, offline, server hiccup): the save button's own error handling
+ * already covers those, and this is a courtesy notice, not a gate.
+ */
+async function checkExisting(base, token) {
+  try {
+    const res = await fetch(`${base}/api/crm/lookup?url=${encodeURIComponent(page.url)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    if (!data.exists) return
+
+    const banner = $('existing-banner')
+    banner.textContent = `Already in the CRM${data.priority ? ` (${data.priority})` : ''} — last contacted ${data.lastContacted}. `
+    const link = document.createElement('a')
+    link.href = '#'
+    link.textContent = 'View record'
+    link.addEventListener('click', (e) => {
+      e.preventDefault()
+      chrome.tabs.create({ url: `${base}/support/admin/crm/people/${data.personId}` })
+    })
+    banner.append(link)
+    banner.hidden = false
+  } catch {
+    // See doc comment above.
+  }
 }
 
 document.addEventListener('click', async (e) => {

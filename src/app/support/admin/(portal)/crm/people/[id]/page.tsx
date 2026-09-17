@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
@@ -25,7 +26,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       affiliations: { include: { org: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
-      activities: { orderBy: { occurredAt: 'desc' }, take: 50, include: { outreachTracking: { include: { links: true } } } },
+      // Only what happened since the CRM began — see CRM_ACTIVITY_CUTOFF.
+      // Pre-cutoff rows stay in the table (nothing is deleted) but a decade
+      // of pre-company mail is not this person's outreach history.
+      activities: {
+        where: { occurredAt: { gte: CRM_ACTIVITY_CUTOFF } },
+        orderBy: { occurredAt: 'desc' }, take: 50,
+        include: { outreachTracking: { include: { links: true } } },
+      },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
       introPathsAsTarget: {
@@ -90,7 +98,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </header>
 
       <section className="grid gap-4 sm:grid-cols-4">
-        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} />
+        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={person.awaitingReplySince ? 'Waiting on their reply' : undefined} />
         <Stat label="Touches" value={String(person.touchCount)} />
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
@@ -279,11 +287,12 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-lg border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-lg font-semibold">{value}</p>
+      {hint && <p className="mt-1 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">{hint}</p>}
     </div>
   )
 }

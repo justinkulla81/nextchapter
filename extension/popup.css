@@ -44,3 +44,8 @@ button:disabled { cursor: progress; opacity: .6; }
 .msg { font-size: 12px; margin: 8px 0 0; min-height: 1.2em; }
 .msg.ok { color: var(--green); }
 .msg.err { color: #c4574a; }
+.banner {
+  margin: 0 0 8px; padding: 6px 8px; font-size: 12px; border-radius: 4px;
+  background: #fdf3e3; border: 1px solid #eddcae; color: #8a6416;
+}
+.banner a { color: inherit; font-weight: 600; }

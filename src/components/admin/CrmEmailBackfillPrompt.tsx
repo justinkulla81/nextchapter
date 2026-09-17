@@ -44,26 +44,32 @@ export function CrmEmailBackfillPrompt({ personId, email }: { personId: string; 
   }
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-1.5">
+    // One line, not two: this prompt sits on every row of a long list, and
+    // the missing-email state was costing a whole extra line of height per
+    // person. Nothing here wraps — the label, the field and the button are
+    // one strip.
+    <span className="inline-flex flex-nowrap items-center gap-1.5">
       {/* Still scannable as "missing" at a glance in a dense list — was a
           plain amber "No email on file" label before this became editable. */}
-      {!savedEmail && <span className="text-xs font-medium text-amber-700">No email on file</span>}
-      <form action={submit} className="inline-flex items-center gap-1">
+      {!savedEmail && <span className="whitespace-nowrap text-xs font-medium text-amber-700">No email</span>}
+      <form action={submit} className="inline-flex flex-nowrap items-center gap-1">
         <input
           type="email"
           name="email"
           defaultValue={savedEmail ?? ''}
           disabled={pending}
-          placeholder="Do you have their email?"
+          placeholder="their@email.com"
           aria-label="Their email address"
-          className={`h-6 w-40 rounded border border-input bg-transparent px-1.5 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand ${pending ? 'cursor-progress opacity-60' : ''}`}
+          className={`h-6 w-36 rounded border border-input bg-transparent px-1.5 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand ${pending ? 'cursor-progress opacity-60' : ''}`}
         />
         <button
           type="submit"
           disabled={pending}
-          className={`h-6 shrink-0 rounded border border-border px-1.5 text-xs hover:bg-muted ${pending ? 'cursor-progress opacity-60' : ''}`}
+          className={`h-6 shrink-0 whitespace-nowrap rounded border border-border px-1.5 text-xs hover:bg-muted ${pending ? 'cursor-progress opacity-60' : ''}`}
         >
-          {pending ? 'Checking…' : 'Check'}
+          {/* "Check" described the Gmail search this also runs; "Add Email"
+              describes what the person clicking it is trying to do. */}
+          {pending ? 'Adding…' : savedEmail ? 'Save' : 'Add Email'}
         </button>
         {savedEmail && (
           <button type="button" onClick={() => setEditing(false)} className="text-xs text-muted-foreground underline">

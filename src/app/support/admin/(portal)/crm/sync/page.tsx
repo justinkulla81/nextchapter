@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { getActiveGoogleConnection } from '@/lib/google/connection'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { updateSyncSetting, disconnectAdminGmailInbox } from '../actions'
@@ -19,7 +20,7 @@ export default async function CrmSyncPage({
   const [runs, addedAgg, autoLogged, withTouch, totalPeople, needsReview, setting, gmailConnection, calendarConnection] = await Promise.all([
     prisma.crmSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 8 }),
     prisma.crmSyncRun.aggregate({ _sum: { suggested: true } }),
-    prisma.crmActivity.count({ where: { isAutoLogged: true } }),
+    prisma.crmActivity.count({ where: { isAutoLogged: true, occurredAt: { gte: CRM_ACTIVITY_CUTOFF } } }),
     prisma.crmPerson.count({ where: { lastTouchedAt: { not: null } } }),
     prisma.crmPerson.count(),
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),

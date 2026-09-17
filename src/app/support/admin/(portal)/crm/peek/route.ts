@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { ORG_TYPE_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 20
@@ -65,7 +66,10 @@ export async function GET(req: NextRequest) {
         include: { org: { select: { id: true, name: true, _count: { select: { affiliations: true } } } } },
         orderBy: { isPrimary: 'desc' },
       },
-      activities: { orderBy: { occurredAt: 'desc' }, take: 8 },
+      activities: {
+        where: { occurredAt: { gte: CRM_ACTIVITY_CUTOFF } },
+        orderBy: { occurredAt: 'desc' }, take: 8,
+      },
       opportunities: { include: { pipeline: true, stage: true }, take: 5 },
       introPathsAsTarget: { include: { connectorPerson: { select: { fullName: true } } }, take: 5 },
     },
@@ -99,6 +103,7 @@ export async function GET(req: NextRequest) {
       { label: 'Touches', value: String(person.touchCount) },
       person.phone ? { label: 'Phone', value: person.phone } : null,
     ].filter(Boolean),
+    awaitingReply: person.awaitingReplySince !== null,
     body: person.notes ?? null,
     linkedinUrl: person.linkedinUrl,
     // A follow-up can be flagged with no specific date — dueAt is null then,

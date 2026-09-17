@@ -31,12 +31,18 @@ export function AdminFilterBar({
   searchPlaceholder = 'Search…',
   filters = [],
   dateRange,
+  clearHref,
 }: {
   basePath: string
   searchValue: string
   searchPlaceholder?: string
   filters?: AdminFilterOption[]
   dateRange?: AdminDateRangeFilter
+  /** Where "Clear" goes. Defaults to the bare list. A list that REMEMBERS
+   * its filters (see StickyFilters) needs an explicit reset target instead,
+   * or clearing lands on the bare URL and is redirected straight back to
+   * the view it was trying to leave. */
+  clearHref?: string
 }) {
   const formRef = useRef<HTMLFormElement>(null)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -112,7 +118,7 @@ export function AdminFilterBar({
         Filter
       </button>
       {(searchValue || filters.some((f) => f.value) || (dateRange && (dateRange.afterValue || dateRange.beforeValue))) && (
-        <a href={basePath} className="text-sm text-muted-foreground underline underline-offset-4">
+        <a href={clearHref ?? basePath} className="text-sm text-muted-foreground underline underline-offset-4">
           Clear
         </a>
       )}

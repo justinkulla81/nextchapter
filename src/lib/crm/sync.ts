@@ -1,4 +1,5 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
 import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getProfileEmail } from '@/lib/google/gmail'
@@ -11,6 +12,7 @@ import {
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { looksLikeNotAPerson } from './person-plausibility'
+import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 
 const DAY = 86_400_000
 
@@ -69,22 +71,42 @@ export async function buildSweepContext(selfEmail: string | null): Promise<Sweep
   return { selfEmails, internalEmails, crmByEmail }
 }
 
-/** Recomputes the derived touch fields from the activity log. */
+/**
+ * Recomputes the derived touch fields from the activity log.
+ *
+ * Scoped to real interactions since CRM_ACTIVITY_CUTOFF: field and stage
+ * changes are bookkeeping rather than contact, and anything predating the
+ * company is not outreach. Applied here as well as at the write, so a row
+ * already sitting in the table from before the rule existed cannot keep
+ * inflating a touch count.
+ */
+export const REAL_TOUCH: Prisma.CrmActivityWhereInput = {
+  type: { notIn: ['FIELD_CHANGED', 'STAGE_CHANGED'] },
+  occurredAt: { gte: CRM_ACTIVITY_CUTOFF },
+}
+
 export async function refreshTouchFields(personIds: string[]) {
   for (const personId of personIds) {
-    const [agg, first, firstInbound] = await Promise.all([
+    const [agg, first, firstInbound, lastActivity] = await Promise.all([
       prisma.crmActivity.aggregate({
-        where: { personId, type: { notIn: ['FIELD_CHANGED', 'STAGE_CHANGED'] } },
+        where: { personId, ...REAL_TOUCH },
         _count: { _all: true },
         _max: { occurredAt: true },
       }),
       prisma.crmActivity.findFirst({
-        where: { personId, type: { notIn: ['FIELD_CHANGED', 'STAGE_CHANGED'] } },
+        where: { personId, ...REAL_TOUCH },
         orderBy: { occurredAt: 'asc' }, select: { occurredAt: true },
       }),
       prisma.crmActivity.findFirst({
-        where: { personId, direction: 'INBOUND', type: { notIn: ['FIELD_CHANGED', 'STAGE_CHANGED'] } },
+        where: { personId, direction: 'INBOUND', ...REAL_TOUCH },
         orderBy: { occurredAt: 'asc' }, select: { occurredAt: true },
+      }),
+      // Whichever real activity happened most recently, regardless of
+      // direction — if it's ours, we're the last one to have spoken and are
+      // waiting on them.
+      prisma.crmActivity.findFirst({
+        where: { personId, ...REAL_TOUCH },
+        orderBy: { occurredAt: 'desc' }, select: { occurredAt: true, direction: true },
       }),
     ])
     await prisma.crmPerson.update({
@@ -94,6 +116,7 @@ export async function refreshTouchFields(personIds: string[]) {
         lastTouchedAt: agg._max.occurredAt,
         firstTouchedAt: first?.occurredAt ?? null,
         firstRepliedAt: firstInbound?.occurredAt ?? null,
+        awaitingReplySince: lastActivity?.direction === 'OUTBOUND' ? lastActivity.occurredAt : null,
       },
     })
   }
@@ -193,7 +216,10 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
   const token = await getValidAccessToken()
   if (!token) return { ...base, reason: 'no_token' }
 
-  const windowFrom = new Date(Date.now() - days * DAY)
+  // The rolling window never reaches back past the cutoff, however wide a
+  // `days` a manual backfill passes.
+  const rollingFrom = new Date(Date.now() - days * DAY)
+  const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
   const run = await prisma.crmSyncRun.create({ data: { source: 'gmail', windowFrom } })
 
   try {
@@ -207,6 +233,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
     for (const id of ids) {
       const msg = await getMessageHeaders(token, id)
       if (!msg) continue
+      // Belt and braces: the query already asked for nothing older, but a
+      // message's internalDate is the thing the activity is dated by.
+      if (!isAfterCrmCutoff(msg.internalDate)) continue
       result.scanned++
 
       const participants = [msg.from, ...msg.to, ...msg.cc]
@@ -309,7 +338,8 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
     return { ...base, reason: 'no_connection' }
   }
 
-  const windowFrom = new Date(Date.now() - daysBack * DAY)
+  const rollingFrom = new Date(Date.now() - daysBack * DAY)
+  const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
   const run = await prisma.crmSyncRun.create({ data: { source: 'calendar', windowFrom } })
 
   try {
@@ -347,7 +377,9 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
 
         // Nothing to log yet for a meeting that hasn't happened — the person
         // itself is still created above so they're findable before then.
-        if (!isPast) continue
+        // A meeting older than the cutoff is the same case in reverse: the
+        // attendee is still worth having, the meeting is not an interaction.
+        if (!isPast || !isAfterCrmCutoff(ev.start)) continue
 
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${personId}` } },
@@ -390,25 +422,50 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
 export interface PersonBackfillResult {
   found: number
   oldestAt: Date | null
-  reason?: 'no_connection' | 'no_token' | 'invalid_email'
+  reason?: 'no_connection' | 'no_token' | 'invalid_email' | 'person_deleted'
 }
 
 /**
- * On-demand, single-person history check — triggered from the Review List's
- * "do you have their email?" prompt, not the nightly sweep.
+ * On-demand, single-person history check — triggered from the "do you have
+ * their email?" prompt, not the nightly sweep.
  *
- * Deliberately narrower than sweepGmail in every way that matters for a
- * one-off, human-initiated action: no date window (a real relationship can
- * predate the sweep's rolling lookback by years — the whole reason to ask),
- * no new-person creation for other participants on a thread (you already
- * know who this is), and every found message logs straight to `personId`
- * rather than being reclassified. Upserts on the same `${id}:${personId}`
- * key sweepGmail uses, so a later nightly sweep re-finding the same message
- * updates nothing instead of double-logging it.
+ * Narrower than sweepGmail in the ways that matter for a one-off,
+ * human-initiated action: it reaches past the sweep's rolling lookback
+ * (bounded only by CRM_ACTIVITY_CUTOFF), creates no new people for the
+ * other participants on a thread (you already know who this is), and logs
+ * every found message straight to `personId` rather than reclassifying it.
+ * Upserts on the same `${id}:${personId}` key sweepGmail uses, so a later
+ * nightly sweep re-finding the same message updates nothing instead of
+ * double-logging it.
+ *
+ * The refresh at the end runs in a `finally`. It used to be the last line
+ * of a loop that could take longer than the request it runs inside: the
+ * mail landed, the function was killed, and the person was left with real
+ * correspondence logged and a touch count of zero — reading "never
+ * contacted" on a record whose history was sitting right there. The cutoff
+ * makes that far less likely by shrinking the work; the `finally` makes a
+ * partial run self-consistent rather than silently wrong.
  */
-export async function backfillPersonFromEmail(personId: string, rawEmail: string): Promise<PersonBackfillResult> {
+export async function backfillPersonFromEmail(
+  personId: string,
+  rawEmail: string,
+  // Capped low on purpose: this runs inside the request that a human is
+  // waiting on, and each message costs two more Gmail round trips. Since the
+  // cutoff, even a chatty thread is a few dozen messages — a cap this size
+  // is the difference between a slow save and a request that dies.
+  maxMessages = 60,
+): Promise<PersonBackfillResult> {
   const email = normalizeEmail(rawEmail)
   if (!email) return { found: 0, oldestAt: null, reason: 'invalid_email' }
+
+  // getOrCreatePerson already refuses to log new activity against a
+  // soft-deleted person (see its own comment) — this direct-by-id entry
+  // point bypasses that lookup entirely, so it needs the same guard, or a
+  // stale personId (a duplicate merged away after the caller loaded the
+  // page) silently resurrects real data onto a hidden row instead of the
+  // live one the CRM actually shows.
+  const target = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { deletedAt: true } })
+  if (!target || target.deletedAt) return { found: 0, oldestAt: null, reason: 'person_deleted' }
 
   const connection = await getActiveGoogleConnection()
   if (!connection) return { found: 0, oldestAt: null, reason: 'no_connection' }
@@ -422,33 +479,38 @@ export async function backfillPersonFromEmail(personId: string, rawEmail: string
     crmByEmail: new Map(),
   }
 
-  const ids = await listMessagesForAddress(token, email)
+  const ids = await listMessagesForAddress(token, email, CRM_ACTIVITY_CUTOFF, maxMessages)
   let found = 0
   let oldestAt: Date | null = null
 
-  for (const id of ids) {
-    const msg = await getMessageHeaders(token, id)
-    if (!msg) continue
-    const fromEmail = normalizeEmail(msg.from)
-    const fullBody = await getMessageBody(token, id)
-    await prisma.crmActivity.upsert({
-      where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
-      create: {
-        type: 'EMAIL',
-        direction: directionOf(fromEmail, ctx),
-        occurredAt: msg.internalDate,
-        personId,
-        subject: msg.subject,
-        body: fullBody ?? snippetOf(msg.snippet),
-        isAutoLogged: true,
-        sourceRef: `${id}:${personId}`,
-      },
-      update: {},
-    })
-    found++
-    if (!oldestAt || msg.internalDate < oldestAt) oldestAt = msg.internalDate
+  try {
+    for (const id of ids) {
+      const msg = await getMessageHeaders(token, id)
+      if (!msg) continue
+      if (!isAfterCrmCutoff(msg.internalDate)) continue
+      const fromEmail = normalizeEmail(msg.from)
+      const fullBody = await getMessageBody(token, id)
+      await prisma.crmActivity.upsert({
+        where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
+        create: {
+          type: 'EMAIL',
+          direction: directionOf(fromEmail, ctx),
+          occurredAt: msg.internalDate,
+          personId,
+          subject: msg.subject,
+          body: fullBody ?? snippetOf(msg.snippet),
+          isAutoLogged: true,
+          sourceRef: `${id}:${personId}`,
+        },
+        update: {},
+      })
+      found++
+      if (!oldestAt || msg.internalDate < oldestAt) oldestAt = msg.internalDate
+    }
+  } finally {
+    // Always — a run cut short still has to leave the person's derived
+    // fields agreeing with the activity rows it did manage to write.
+    await refreshTouchFields([personId])
   }
-
-  await refreshTouchFields([personId])
   return { found, oldestAt }
 }

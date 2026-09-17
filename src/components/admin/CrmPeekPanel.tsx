@@ -23,6 +23,7 @@ interface Peek {
   goals?: CrmGoal[]
   email?: string | null
   location?: string | null
+  awaitingReply?: boolean
   editable?: { leadQuality: string; warmth: string; priority: string | null }
   company?: { id: string; name: string; otherPeopleCount: number } | null
   facts: Fact[]
@@ -185,7 +186,14 @@ export function CrmPeekPanel() {
                 {data.facts.map((f) => (
                   <div key={f.label}>
                     <dt className="text-xs text-muted-foreground">{f.label}</dt>
-                    <dd className="mt-0.5 break-words">{f.value}</dd>
+                    <dd className="mt-0.5 break-words">
+                      {f.value}
+                      {f.label === 'Last contacted' && data.awaitingReply && (
+                        <span className="ml-1.5 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
+                          Waiting on them
+                        </span>
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
