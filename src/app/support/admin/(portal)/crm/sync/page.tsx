@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
-import { getActiveGoogleConnection } from '@/lib/google/connection'
+import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
+import { getSendAsAddresses } from '@/lib/google/gmail'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { updateSyncSetting, disconnectAdminGmailInbox } from '../actions'
+import { updateSyncSetting, updateSelfEmails, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -29,6 +30,8 @@ export default async function CrmSyncPage({
     prisma.adminGoogleCalendarConnection.findFirst(),
   ])
   const addedCount = addedAgg._sum.suggested ?? 0
+  const token = gmailConnection ? await getValidAccessToken().catch(() => null) : null
+  const aliases = token ? await getSendAsAddresses(token).catch(() => []) : []
   const intervalHours = setting?.intervalHours ?? 24
   const enabled = setting?.enabled ?? true
 
@@ -156,6 +159,39 @@ export default async function CrmSyncPage({
             Sweeping is on
           </label>
           <SubmitButton size="sm" pendingLabel="Saving…">Save schedule</SubmitButton>
+        </form>
+      </section>
+
+      {/* Mail forwarded in from one of your own addresses is yours, not a
+          conversation with someone. Aliases come from Gmail; this covers
+          the forwarding-only ones Gmail doesn't list. */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Your addresses</h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Mail to or from any of these is treated as you — never logged as correspondence, and never
+          turned into a person. Saving also removes any record already made for one of them.
+        </p>
+        {aliases.length > 0 && (
+          <div className="text-sm">
+            <p className="mb-1 font-medium">From Gmail (send-as aliases)</p>
+            <p className="flex flex-wrap gap-1.5">
+              {aliases.map((a) => (
+                <span key={a} className="rounded bg-muted px-2 py-0.5 text-xs">{a}</span>
+              ))}
+            </p>
+          </div>
+        )}
+        <form action={updateSelfEmails} className="space-y-2">
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium">Other addresses that forward to you</span>
+            <textarea
+              name="selfEmails" rows={3}
+              defaultValue={(setting?.selfEmails ?? []).join('\n')}
+              placeholder={'you@alumni.school.edu\nyou@old-company.com'}
+              className="w-full max-w-lg rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+            />
+          </label>
+          <SubmitButton size="sm" pendingLabel="Saving…">Save addresses</SubmitButton>
         </form>
       </section>
 

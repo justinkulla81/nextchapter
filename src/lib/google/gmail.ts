@@ -122,6 +122,20 @@ export interface GmailHeaderMessage {
 }
 
 /**
+ * Every address this mailbox sends as, from Gmail's own settings.
+ *
+ * Authoritative for aliases and needs no upkeep: add a send-as address in
+ * Gmail and the next sweep knows it's you. Returns [] rather than failing
+ * the sweep if the call is refused.
+ */
+export async function getSendAsAddresses(accessToken: string): Promise<string[]> {
+  const res = await fetchWithRetry(new URL('https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs'), accessToken)
+  if (!res.ok) return []
+  const data = (await res.json()) as { sendAs?: { sendAsEmail?: string }[] }
+  return (data.sendAs ?? []).map((s) => s.sendAsEmail ?? '').filter(Boolean)
+}
+
+/**
  * Excluded from every CRM query.
  *
  * Drafts were not, and a draft with a recipient looks exactly like a sent

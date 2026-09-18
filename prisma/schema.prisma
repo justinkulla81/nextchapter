@@ -9663,6 +9663,12 @@ model CrmSyncSetting {
   id             String   @id @default("singleton")
   intervalHours  Int      @default(24)
   enabled        Boolean  @default(true)
+  /// Your own addresses that Gmail doesn't list as send-as aliases —
+  /// forwarding-only alumni and old work addresses. Send-as aliases are read
+  /// from Gmail on every sweep; these cover the rest. Without them, mail
+  /// forwarded in from an alias was logged as correspondence with a
+  /// "person" who was you.
+  selfEmails     String[] @default([])
   updatedAt      DateTime @updatedAt
   updatedByEmail String?
 }

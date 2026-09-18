@@ -2,7 +2,7 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
-import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getProfileEmail } from '@/lib/google/gmail'
+import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -50,8 +50,11 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
  * with their own systems of record, so their mail is excluded from logging
  * AND from suggestion rather than filtered out later.
  */
-export async function buildSweepContext(selfEmail: string | null): Promise<SweepContext> {
-  const [people, candidates, coaches, recruiters] = await Promise.all([
+export async function buildSweepContext(
+  selfEmail: string | null,
+  extraSelf: string[] = [],
+): Promise<SweepContext> {
+  const [people, candidates, coaches, recruiters, setting] = await Promise.all([
     prisma.crmPerson.findMany({
       where: { OR: [{ email: { not: null } }, { emails: { isEmpty: false } }] },
       select: { id: true, email: true, emails: true },
@@ -59,6 +62,7 @@ export async function buildSweepContext(selfEmail: string | null): Promise<Sweep
     prisma.candidateProfile.findMany({ select: { email: true } }),
     prisma.coach.findMany({ select: { workEmail: true } }),
     prisma.recruiter.findMany({ select: { workEmail: true } }),
+    prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' }, select: { selfEmails: true } }),
   ])
 
   const crmByEmail = new Map<string, string>()
@@ -86,10 +90,15 @@ export async function buildSweepContext(selfEmail: string | null): Promise<Sweep
     if (e) internalEmails.add(e)
   }
 
+  // Every address that is you: the connected mailbox, its send-as aliases
+  // (passed in, read from Gmail), the ones listed on Activity sync, and the
+  // admin allowlist. Mail forwarded in from any of them is yours, not
+  // correspondence — and an address here is never turned into a "person".
   const selfEmails = new Set<string>()
-  const self = normalizeEmail(selfEmail)
-  if (self) selfEmails.add(self)
-  for (const raw of (process.env.ADMIN_EMAILS ?? '').split(',')) {
+  for (const raw of [
+    selfEmail, ...extraSelf, ...(setting?.selfEmails ?? []),
+    ...(process.env.ADMIN_EMAILS ?? '').split(','),
+  ]) {
     const e = normalizeEmail(raw)
     if (e) selfEmails.add(e)
   }
@@ -287,7 +296,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
 
   try {
     const selfEmail = (await getProfileEmail(token)) ?? connection.email
-    const ctx = await buildSweepContext(selfEmail)
+    const ctx = await buildSweepContext(selfEmail, await getSendAsAddresses(token))
     const ids = await listMessagesSince(token, windowFrom, maxMessages)
     const touched = new Set<string>()
     const personCache = new Map<string, string | null>()

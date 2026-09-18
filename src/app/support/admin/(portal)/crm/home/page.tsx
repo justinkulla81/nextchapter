@@ -81,10 +81,13 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feed, addedWeek, updatedWeek, waiting, tiers, sentWeek, receivedWeek] = await Promise.all([
+  const [daily, feedRows, addedWeek, updatedWeek, waiting, tiers, weekTotals] = await Promise.all([
     prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
       SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
-             a.direction::text AS direction, COUNT(*)::int AS n
+             a.direction::text AS direction,
+             -- Messages, not rows: one email to five contacts is five activity
+             -- rows (one per person) and was counted five times.
+             COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
       FROM "CrmActivity" a
       JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
       WHERE a.type = 'EMAIL' AND a."occurredAt" >= ${chartStart}
@@ -96,9 +99,11 @@ export default async function CrmHomePage({
         person: { deletedAt: null },
       },
       orderBy: { occurredAt: 'desc' },
-      take: FEED_SIZE,
+      // Rows, not messages — a group email is one row per person on it, so
+      // over-fetch and fold them back into messages below.
+      take: FEED_SIZE * 3,
       select: {
-        id: true, occurredAt: true, direction: true, subject: true, body: true,
+        id: true, occurredAt: true, direction: true, subject: true, body: true, sourceRef: true,
         person: { select: { id: true, fullName: true, priority: true } },
       },
     }),
@@ -121,8 +126,13 @@ export default async function CrmHomePage({
     }).then((r) => r.length),
     prisma.crmPerson.count({ where: { deletedAt: null, awaitingReplySince: { not: null } } }),
     prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
-    prisma.crmActivity.count({ where: { type: 'EMAIL', direction: 'OUTBOUND', occurredAt: { gte: weekAgo }, person: { deletedAt: null } } }),
-    prisma.crmActivity.count({ where: { type: 'EMAIL', direction: 'INBOUND', occurredAt: { gte: weekAgo }, person: { deletedAt: null } } }),
+    prisma.$queryRaw<{ direction: string; n: number }[]>`
+      SELECT a.direction::text AS direction,
+             COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
+      FROM "CrmActivity" a
+      JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+      WHERE a.type = 'EMAIL' AND a."occurredAt" >= ${weekAgo}
+      GROUP BY 1`,
   ])
 
   // Every day in the window, including silent ones — a gap in the line is
@@ -140,6 +150,23 @@ export default async function CrmHomePage({
     else if (r.direction === 'INBOUND') row.received += r.n
   }
   const days = [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date))
+
+  const sentWeek = weekTotals.find((r) => r.direction === 'OUTBOUND')?.n ?? 0
+  const receivedWeek = weekTotals.find((r) => r.direction === 'INBOUND')?.n ?? 0
+
+  // One entry per email, listing everyone it involved.
+  type FeedItem = (typeof feedRows)[number] & { people: NonNullable<(typeof feedRows)[number]['person']>[] }
+  const feedByMsg = new Map<string, FeedItem>()
+  for (const r of feedRows) {
+    const key = r.sourceRef?.split(':')[0] ?? r.id
+    const existing = feedByMsg.get(key)
+    if (existing) {
+      if (r.person && !existing.people.some((p) => p.id === r.person!.id)) existing.people.push(r.person)
+    } else if (feedByMsg.size < FEED_SIZE) {
+      feedByMsg.set(key, { ...r, people: r.person ? [r.person] : [] })
+    }
+  }
+  const feed = [...feedByMsg.values()]
 
   const tierCount = (t: 'P0' | 'P1' | 'P2') => tiers.find((x) => x.priority === t)?._count._all ?? 0
 
@@ -226,13 +253,20 @@ export default async function CrmHomePage({
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
                       <span className="text-xs font-medium text-muted-foreground">{out ? 'You →' : 'From'}</span>
-                      {a.person ? (
-                        <CrmPeekButton id={a.person.id} kind="person">{a.person.fullName}</CrmPeekButton>
-                      ) : <span>Unknown</span>}
-                      {a.person?.priority && (
-                        <span className={`rounded px-1 text-xs font-semibold ${priorityTierClass(a.person.priority)}`}>
-                          {a.person.priority}
+                      {a.people.length === 0 && <span>Unknown</span>}
+                      {a.people.slice(0, 3).map((p, i) => (
+                        <span key={p.id} className="inline-flex items-baseline gap-1">
+                          {i > 0 && <span className="text-muted-foreground">,</span>}
+                          <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
+                          {p.priority && (
+                            <span className={`rounded px-1 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
+                              {p.priority}
+                            </span>
+                          )}
                         </span>
+                      ))}
+                      {a.people.length > 3 && (
+                        <span className="text-xs text-muted-foreground">+{a.people.length - 3} more</span>
                       )}
                       <span className="truncate font-medium">{a.subject || '(no subject)'}</span>
                     </p>

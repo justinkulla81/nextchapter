@@ -9,6 +9,7 @@ import { isRealOrgName, isOrgQuickPick, placeholderOrgKindFor, ORG_PLACEHOLDER_N
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import { refreshTouchFields } from '@/lib/crm/sync'
+import { getSendAsAddresses } from '@/lib/google/gmail'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
@@ -753,6 +754,52 @@ export async function setPersonEmail(personId: string, rawEmail: string): Promis
 }
 
 // ── Pipelines (Phase 4) ──────────────────────────────────────────────────────
+
+/**
+ * Your own addresses that Gmail doesn't list as aliases.
+ *
+ * Saving also retires any CRM record for one of them — including send-as
+ * aliases, which the sweep now treats as you without being told. Those
+ * records were never people: they're what the sweep made out of mail
+ * forwarded in from your old work and alumni addresses, and they were
+ * counting newsletters as correspondence. Soft-deleted, so they're
+ * recoverable and, like any deleted record, never re-created by a sweep.
+ */
+export async function updateSelfEmails(formData: FormData) {
+  const admin = await requireAdmin()
+  const listed = String(formData.get('selfEmails') ?? '')
+    .split(/[\s,;]+/)
+    .map((e) => normalizeEmail(e))
+    .filter((e): e is string => Boolean(e))
+  const unique = [...new Set(listed)]
+
+  await prisma.crmSyncSetting.upsert({
+    where: { id: 'singleton' },
+    create: { id: 'singleton', selfEmails: unique, updatedByEmail: admin.email ?? null },
+    update: { selfEmails: unique, updatedByEmail: admin.email ?? null },
+  })
+
+  const token = await getValidAccessToken().catch(() => null)
+  const aliases = token ? await getSendAsAddresses(token) : []
+  const retired = await retireSelfRecords([...unique, ...aliases])
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_self_emails_saved', { count: unique.length, retired })
+  revalidatePath(`${CRM}/sync`)
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/home`)
+}
+
+async function retireSelfRecords(addresses: string[]): Promise<number> {
+  const set = [...new Set(addresses.map((a) => normalizeEmail(a)).filter((a): a is string => Boolean(a)))]
+  if (set.length === 0) return 0
+  const people = await prisma.crmPerson.findMany({
+    where: { deletedAt: null, OR: [{ email: { in: set } }, { emails: { hasSome: set } }] },
+    select: { id: true },
+  })
+  if (people.length === 0) return 0
+  await prisma.crmPerson.updateMany({ where: { id: { in: people.map((p) => p.id) } }, data: { deletedAt: new Date() } })
+  return people.length
+}
 
 /**
  * Moves an opportunity between stages.
