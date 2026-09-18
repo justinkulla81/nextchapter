@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { findEmailOwner } from './email-owner'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
 
@@ -31,9 +32,14 @@ export async function syncChroContactToCrm(companyId: string): Promise<void> {
         })
   }
 
-  const person = company.chroEmail
-    ? await prisma.crmPerson.findFirst({ where: { OR: [{ email: company.chroEmail }, { emails: { has: company.chroEmail } }] } })
-    : await prisma.crmPerson.findFirst({ where: { fullName: company.chroName } })
+  // By address when there is one — the same ownership rule as everywhere
+  // else, so a case or Gmail-spelling difference can't mint a second person.
+  const owner = company.chroEmail ? await findEmailOwner(company.chroEmail, { includeDeleted: true }) : null
+  const person = owner
+    ? await prisma.crmPerson.findUnique({ where: { id: owner.id } })
+    : company.chroEmail
+      ? null
+      : await prisma.crmPerson.findFirst({ where: { fullName: company.chroName } })
 
   const personId = person
     ? person.id

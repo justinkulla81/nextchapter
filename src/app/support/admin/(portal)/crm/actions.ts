@@ -11,6 +11,7 @@ import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import { refreshTouchFields } from '@/lib/crm/sync'
 import { getSendAsAddresses } from '@/lib/google/gmail'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
+import { findEmailOwner } from '@/lib/crm/email-owner'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
@@ -211,14 +212,16 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
     }
   }
   if (match?.email) {
-    const byEmail = await prisma.crmPerson.findFirst({ where: { email: match.email } })
-    if (byEmail?.deletedAt) {
+    // Every address the person holds, and Gmail's dot/plus variants — not
+    // just the primary `email` column, which is all this used to check.
+    const byEmail = await findEmailOwner(match.email, { includeDeleted: true })
+    if (byEmail?.deleted) {
       return { status: 'error', message: `${byEmail.fullName} was previously removed from the Ecosystem. Restore them from a full backup if that was a mistake — this won't recreate them.` }
     }
     if (byEmail) {
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: byEmail.id, on: 'email' })
       revalidatePath(CRM)
-      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the Ecosystem — matched on email.` }
+      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the Ecosystem with ${match.email} — opened their record.` }
     }
   }
 
@@ -716,6 +719,8 @@ export async function acceptExportSuggestion(personId: string): Promise<{ accept
 export interface EmailBackfillResult {
   ok: boolean
   message: string
+  /** Set when the address already belongs to someone else. */
+  duplicateOf?: { id: string; name: string }
 }
 
 /**
@@ -732,6 +737,18 @@ export async function setPersonEmail(personId: string, rawEmail: string): Promis
   const admin = await requireAdmin()
   const email = normalizeEmail(rawEmail)
   if (!email) return { ok: false, message: 'That doesn’t look like a real email address.' }
+
+  // One address, one person. Checked against live records only — a removed
+  // person's old address is free to be given to someone real.
+  const owner = await findEmailOwner(email, { excludePersonId: personId })
+  if (owner) {
+    captureServerEvent(admin.email ?? 'admin', 'crm_duplicate_email_blocked', { personId, ownerId: owner.id, via: 'add_email' })
+    return {
+      ok: false,
+      message: `Already on ${owner.fullName}’s record — one address can only belong to one person.`,
+      duplicateOf: { id: owner.id, name: owner.fullName },
+    }
+  }
 
   const person = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: personId }, select: { emails: true, priority: true },

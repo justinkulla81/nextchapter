@@ -18,6 +18,8 @@ describe('normalizeEmail', () => {
   it('rejects anything that is not an address', () => {
     expect(normalizeEmail('not an email')).toBeNull()
     expect(normalizeEmail(null)).toBeNull()
+    expect(normalizeEmail('@kindcap.com')).toBeNull()
+    expect(normalizeEmail('john@localhost')).toBeNull()
   })
 })
 
@@ -130,5 +132,24 @@ describe('self-detection with gmail aliasing', () => {
     // Getting this wrong flips a sent message to INBOUND and corrupts reply detection.
     expect(directionOf('justinkulla+notes@gmail.com', g)).toBe('OUTBOUND')
     expect(classifyParticipant('justin.kulla@gmail.com', g)).toEqual({ kind: 'self' })
+  })
+})
+
+describe('one address, one person', () => {
+  // crmByEmail is keyed by canonical mailbox. A contact on file as
+  // jsmith@gmail.com who writes from j.smith+news@gmail.com is the same
+  // person — treating them as a stranger used to create a second record.
+  const g: SweepContext = {
+    selfEmails: new Set(),
+    internalEmails: new Set(),
+    crmByEmail: new Map([['jsmith@gmail.com', 'per_js'], ['j.smith@acme.com', 'per_acme']]),
+  }
+  it('matches a Gmail contact under any dot or +tag spelling', () => {
+    expect(classifyParticipant('j.smith+news@gmail.com', g)).toEqual({ kind: 'crm', personId: 'per_js' })
+    expect(classifyParticipant('jsmith@gmail.com', g)).toEqual({ kind: 'crm', personId: 'per_js' })
+  })
+  it('keeps dots significant outside Gmail', () => {
+    expect(classifyParticipant('jsmith@acme.com', g)).toEqual({ kind: 'unknown' })
+    expect(classifyParticipant('j.smith@acme.com', g)).toEqual({ kind: 'crm', personId: 'per_acme' })
   })
 })

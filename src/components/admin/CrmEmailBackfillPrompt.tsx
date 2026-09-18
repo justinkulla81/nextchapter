@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { setPersonEmail } from '@/app/support/admin/(portal)/crm/actions'
+import { CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 
 /**
  * "No email" plus a field, or a plain click-to-edit link when there is one.
@@ -24,6 +25,7 @@ export function CrmEmailBackfillPrompt({ personId, email }: { personId: string; 
   const [savedEmail, setSavedEmail] = useState(email)
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [duplicateOf, setDuplicateOf] = useState<{ id: string; name: string } | null>(null)
   const [note, setNote] = useState<string | null>(null)
 
   async function checkMail(address: string) {
@@ -55,10 +57,11 @@ export function CrmEmailBackfillPrompt({ personId, email }: { personId: string; 
     const address = value.trim()
     if (!address) return
     setError(null)
+    setDuplicateOf(null)
     setNote(null)
     start(async () => {
       const res = await setPersonEmail(personId, address)
-      if (!res.ok) { setError(res.message); return }
+      if (!res.ok) { setError(res.message); setDuplicateOf(res.duplicateOf ?? null); return }
       setSavedEmail(address)
       setEditing(false)
       void checkMail(address)
@@ -107,7 +110,19 @@ export function CrmEmailBackfillPrompt({ personId, email }: { personId: string; 
           Cancel
         </button>
       )}
-      {error && <span className="text-xs text-destructive">{error}</span>}
+      {error && (
+        <span role="alert" className="whitespace-nowrap text-xs text-destructive">
+          {duplicateOf ? (
+            <>
+              Already on{' '}
+              <CrmPeekButton id={duplicateOf.id} kind="person" className="font-medium underline">
+                {duplicateOf.name}
+              </CrmPeekButton>
+              ’s record
+            </>
+          ) : error}
+        </span>
+      )}
     </span>
   )
 }

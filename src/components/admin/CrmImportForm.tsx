@@ -70,6 +70,17 @@ export function CrmImportForm() {
           {counts && counts.deleted > 0 && (
             <li><strong className="text-foreground">{counts.deleted}</strong> previously deleted — will be skipped</li>
           )}
+          {counts && counts.duplicate > 0 && (
+            <li className="text-destructive">
+              <strong>{counts.duplicate}</strong> repeat an email from an earlier row — will be skipped
+            </li>
+          )}
+          {counts && counts.emailConflicts > 0 && (
+            <li className="text-orange">
+              <strong>{counts.emailConflicts}</strong> have an email that already belongs to someone else — the
+              address won&apos;t be added
+            </li>
+          )}
         </ul>
       </div>
 
@@ -131,6 +142,14 @@ export function CrmImportForm() {
                     {p.action === 'deleted' && (
                       <span className="text-muted-foreground" title={`Matched ${p.matchedName} on ${p.matchedOn}, but that record was deleted`}>
                         Skipped — previously deleted
+                      </span>
+                    )}
+                    {p.action === 'duplicate' && (
+                      <span className="text-destructive">Skipped — same email as {p.emailOwnedBy}</span>
+                    )}
+                    {p.emailOwnedBy && p.action !== 'duplicate' && (
+                      <span className="block text-xs text-orange">
+                        {p.email} already belongs to {p.emailOwnedBy} — not added
                       </span>
                     )}
                   </td>

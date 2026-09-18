@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { findEmailOwner, canonicalEmail } from '@/lib/crm/email-owner'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -51,10 +52,14 @@ export interface ImportRowPlan {
   email: string | null
   phone: string | null
   linkedinUrl: string | null
-  action: 'create' | 'update' | 'confirm' | 'deleted'
+  /** 'duplicate': the same email as an earlier row in this file. */
+  action: 'create' | 'update' | 'confirm' | 'deleted' | 'duplicate'
   matchedOn: string | null
   matchedId: string | null
   matchedName: string | null
+  /** Who already holds this row's email, when it isn't the matched person.
+   * The row still applies; the address doesn't. */
+  emailOwnedBy: string | null
 }
 
 export interface ImportPreview {
@@ -63,7 +68,7 @@ export interface ImportPreview {
   fileName?: string
   headers?: string[]
   plan?: ImportRowPlan[]
-  counts?: { create: number; update: number; confirm: number; deleted: number }
+  counts?: { create: number; update: number; confirm: number; deleted: number; duplicate: number; emailConflicts: number }
   payload?: string
 }
 
@@ -101,6 +106,8 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
   const lastCols = ['Last Name', 'last_name']
 
   const plan: ImportRowPlan[] = []
+  // Row numbers as a spreadsheet shows them: the header is row 1.
+  const seenEmails = new Map<string, { row: number; name: string }>()
   for (const [i, rec] of records.entries()) {
     const name =
       pick(rec, nameCols) ??
@@ -122,7 +129,10 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
       if (hit) { action = hit.deletedAt ? 'deleted' : 'update'; matchedOn = 'LinkedIn URL'; matched = hit }
     }
     if (!matched && email) {
-      const hit = await prisma.crmPerson.findFirst({ where: { email }, select: { id: true, fullName: true, deletedAt: true } })
+      // Every address a person holds, Gmail variants included — see
+      // findEmailOwner. This used to check the primary column only.
+      const owner = await findEmailOwner(email, { includeDeleted: true })
+      const hit = owner ? { id: owner.id, fullName: owner.fullName, deletedAt: owner.deleted ? new Date() : null } : null
       if (hit) { action = hit.deletedAt ? 'deleted' : 'update'; matchedOn = 'email'; matched = hit }
     }
     if (!matched && isRealOrgName(company)) {
@@ -142,9 +152,28 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
       if (hit) { action = hit.deletedAt ? 'deleted' : 'confirm'; matchedOn = 'name only'; matched = hit }
     }
 
+    // One address, one person — two checks the import never made. The
+    // address may belong to someone other than the person this row matched,
+    // and the same address may appear twice in this file, which used to
+    // create two people.
+    let emailOwnedBy: string | null = null
+    const canon = canonicalEmail(email)
+    if (canon) {
+      const earlier = seenEmails.get(canon)
+      if (earlier && action === 'create') {
+        action = 'duplicate'
+        emailOwnedBy = `row ${earlier.row} (${earlier.name}) in this file`
+      } else if (matched && action !== 'deleted') {
+        const owner = await findEmailOwner(email, { excludePersonId: matched.id })
+        if (owner) emailOwnedBy = owner.fullName
+      }
+      if (!earlier) seenEmails.set(canon, { row: i + 2, name })
+    }
+
     plan.push({
       index: i, name, company, title, email, phone, linkedinUrl,
       action, matchedOn, matchedId: matched?.id ?? null, matchedName: matched?.fullName ?? null,
+      emailOwnedBy,
     })
   }
 
@@ -153,6 +182,8 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
     update: plan.filter((p) => p.action === 'update').length,
     confirm: plan.filter((p) => p.action === 'confirm').length,
     deleted: plan.filter((p) => p.action === 'deleted').length,
+    duplicate: plan.filter((p) => p.action === 'duplicate').length,
+    emailConflicts: plan.filter((p) => p.emailOwnedBy && p.action !== 'duplicate').length,
   }
 
   return {
@@ -184,12 +215,13 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
     if (k.startsWith('decide-')) decisions.set(Number(k.slice(7)), String(v))
   }
 
-  let created = 0, updated = 0, skipped = 0
+  let created = 0, updated = 0, skipped = 0, duplicates = 0
 
   for (const row of plan) {
     // A previously-deleted person is never resurrected by a re-upload — no
     // decision is offered for this on the preview screen, it always skips.
     if (row.action === 'deleted') { skipped++; continue }
+    if (row.action === 'duplicate') { duplicates++; continue }
     const decision = row.action === 'confirm' ? decisions.get(row.index) ?? 'skip' : row.action
     if (decision === 'skip') { skipped++; continue }
 
@@ -212,10 +244,13 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
 
     if (targetId) {
       const existing = await prisma.crmPerson.findUniqueOrThrow({ where: { id: targetId } })
+      // Re-checked at apply time, not trusted from the preview: the address
+      // may have been given to someone in between.
+      const emailFree = row.email && !(await findEmailOwner(row.email, { excludePersonId: targetId }))
       await prisma.crmPerson.update({
         where: { id: targetId },
         data: {
-          email: existing.email ?? row.email,
+          email: existing.email ?? (emailFree ? row.email : null),
           phone: existing.phone ?? row.phone,
           linkedinSlug: existing.linkedinSlug ?? slug,
           linkedinUrl: existing.linkedinUrl ?? row.linkedinUrl,
@@ -230,6 +265,7 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
       }
       updated++
     } else {
+      if (row.email && (await findEmailOwner(row.email))) { duplicates++; continue }
       const person = await prisma.crmPerson.create({
         data: {
           fullName: row.name,
@@ -256,7 +292,10 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
     }
   }
 
-  captureServerEvent(admin.email ?? 'admin', 'crm_csv_imported', { created, updated, skipped, rows: plan.length })
+  captureServerEvent(admin.email ?? 'admin', 'crm_csv_imported', { created, updated, skipped, duplicates, rows: plan.length })
   revalidatePath('/support/admin/crm')
-  return { ok: true, message: `Added ${created}, updated ${updated}, skipped ${skipped}.` }
+  const dupeNote = duplicates > 0
+    ? ` Not added: ${duplicates} whose email already belongs to someone — one address, one person.`
+    : ''
+  return { ok: true, message: `Added ${created}, updated ${updated}, skipped ${skipped}.${dupeNote}` }
 }

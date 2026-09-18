@@ -63,7 +63,9 @@ export function normalizeEmail(raw: string | null | undefined): string | null {
   // "Jane Doe <jane@x.com>" and bare addresses both arrive here.
   const m = String(raw).match(/<([^>]+)>/)
   const addr = (m ? m[1] : String(raw)).trim().toLowerCase()
-  if (!addr.includes('@') || addr.includes(' ')) return null
+  // Something before the @, a dotted domain after it, no spaces. "Contains
+  // an @" let "@kindcap.com" onto a record as an address.
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addr)) return null
   return addr
 }
 
@@ -156,7 +158,8 @@ export function classifyParticipant(email: string, ctx: SweepContext): Participa
   // candidate/coach/recruiter exclusion below — otherwise adding someone to
   // the CRM on purpose would have no effect for anyone who also happens to
   // hold a product account under the same address.
-  const personId = ctx.crmByEmail.get(email)
+  // crmByEmail is keyed by canonical mailbox — see buildSweepContext.
+  const personId = ctx.crmByEmail.get(canonicalGmail(email))
   if (personId) return { kind: 'crm', personId }
   if (ctx.internalEmails.has(email)) return { kind: 'internal' }
   if (isAutomatedAddress(email)) return { kind: 'automated' }

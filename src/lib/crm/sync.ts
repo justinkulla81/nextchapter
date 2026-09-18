@@ -13,6 +13,7 @@ import type { CalendarAttendee } from '@/lib/google/admin-calendar'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { looksLikeNotAPerson } from './person-plausibility'
 import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
+import { canonicalEmail, findEmailOwner } from './email-owner'
 
 const DAY = 86_400_000
 
@@ -65,10 +66,14 @@ export async function buildSweepContext(
     prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' }, select: { selfEmails: true } }),
   ])
 
+  // Keyed by the canonical mailbox (Gmail dots/+tags collapsed), and looked
+  // up the same way in classifyParticipant, so a contact who writes from
+  // j.smith@gmail.com isn't treated as a stranger because their record says
+  // jsmith@gmail.com — which used to create a second person.
   const crmByEmail = new Map<string, string>()
   for (const p of people) {
     for (const raw of [p.email, ...p.emails]) {
-      const e = normalizeEmail(raw)
+      const e = canonicalEmail(raw)
       if (e && !crmByEmail.has(e)) crmByEmail.set(e, p.id)
     }
   }
@@ -213,10 +218,12 @@ async function getOrCreatePerson(
     return id ? { id, created: false } : null
   }
 
-  const existing = await prisma.crmPerson.findFirst({ where: { email }, select: { id: true, deletedAt: true } })
+  // Any record holding this mailbox — in either address field, in any Gmail
+  // spelling, live or deleted. Only the primary field used to be checked.
+  const existing = await findEmailOwner(email, { includeDeleted: true })
   if (existing) {
-    cache.set(email, existing.deletedAt ? null : existing.id)
-    return existing.deletedAt ? null : { id: existing.id, created: false }
+    cache.set(email, existing.deleted ? null : existing.id)
+    return existing.deleted ? null : { id: existing.id, created: false }
   }
 
   const name = rawName && !isPlaceholderName(rawName) ? rawName : null
