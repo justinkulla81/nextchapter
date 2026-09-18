@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin()
   const now = new Date()
-  const [{ approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue] = await Promise.all([
+  const [
+    { approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue,
+    peopleTotal, orgsTotal, removedTotal, warnPending,
+  ] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
     // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
@@ -45,6 +48,15 @@ export default async function AdminPortalLayout({ children }: { children: React.
       })
       return personCount + oppCount
     }),
+    // Plain directory sizes — rendered as a gray "count" badge in the nav,
+    // not the orange "needs action" one, since nothing here is waiting on
+    // you. See AdminNav's badgeTone.
+    prisma.crmPerson.count({ where: { deletedAt: null } }),
+    prisma.crmOrganization.count(),
+    prisma.crmPerson.count({ where: { deletedAt: { not: null } } }),
+    // The one state on the Layoff notices page actually waiting on review —
+    // mirrors that page's own default filter (status: 'pending').
+    prisma.warnNotice.count({ where: { promotedAt: null, dismissedAt: null } }),
   ])
 
   const badges = {
@@ -58,6 +70,10 @@ export default async function AdminPortalLayout({ children }: { children: React.
     communityModeration,
     crmQueue,
     crmPeopleQueue,
+    peopleTotal,
+    orgsTotal,
+    removedTotal,
+    warnPending,
     // Job Board listings are their own review queue (shown on the Job Board
     // nav item above) and never appear as rows on the Requests page itself —
     // counting them here would double them into a badge for a list they

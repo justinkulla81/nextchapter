@@ -107,8 +107,13 @@ export default async function CrmPeoplePage({
   // what to look at and is never overridden.
   if (Object.keys(sp).length === 0) {
     const saved = (await cookies()).get(STICKY_COOKIE)?.value
-    if (saved) redirect(`/support/admin/crm?${decodeURIComponent(saved)}`)
+    // `restored=1` is the banner's only signal that this view was silently
+    // applied rather than chosen just now — without it, someone you just
+    // logged a contact with can vanish from "never contacted" with nothing
+    // on screen explaining why.
+    if (saved) redirect(`/support/admin/crm?${decodeURIComponent(saved)}&restored=1`)
   }
+  const restored = sp.restored === '1'
 
   const q = (sp.q ?? '').trim()
   const role = sp.role ?? ''
@@ -170,7 +175,7 @@ export default async function CrmPeoplePage({
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
   }
 
-  const [total, rows, needsCompletion, orgNames] = await Promise.all([
+  const [total, rows, needsCompletion, removedCount, orgNames] = await Promise.all([
     prisma.crmPerson.count({ where }),
     prisma.crmPerson.findMany({
       where,
@@ -188,8 +193,25 @@ export default async function CrmPeoplePage({
       },
     }),
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
+    prisma.crmPerson.count({ where: { deletedAt: { not: null } } }),
     prisma.crmOrganization.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
   ])
+
+  const restoredSummary = restored
+    ? [
+        q && `search “${q}”`,
+        role && `contact type ${PERSON_ROLE_LABELS[role as CrmPersonRole]}`,
+        quality && `quality ${QUALITY_LABELS[quality as CrmLeadQuality]}`,
+        warmth && `warmth ${WARMTH_LABELS[warmth as CrmWarmth]}`,
+        touched === 'never' && 'never contacted',
+        touched === 'ever' && 'contacted at least once',
+        waiting === 'waiting' && 'waiting on their reply',
+        waiting === 'not-waiting' && 'not waiting on them',
+        goal && `goal ${GOAL_LABELS[goal as CrmGoal]}`,
+        priority && `priority ${priority}`,
+        Number.isFinite(minScore) && `score ${minScore}+`,
+      ].filter((x): x is string => Boolean(x))
+    : []
 
   const suggestions = total === 0 && q ? await nearMisses(q) : []
 
@@ -248,6 +270,9 @@ export default async function CrmPeoplePage({
           <Link href="/support/admin/crm/research" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Research
           </Link>
+          <Link href="/support/admin/crm/removed" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            Removed{removedCount > 0 && <span className="ml-1.5 rounded-full bg-muted-foreground/20 px-1.5 text-xs font-semibold text-muted-foreground">{removedCount}</span>}
+          </Link>
           <Link href="/support/admin/crm/sync" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Activity sync
           </Link>
@@ -274,6 +299,18 @@ export default async function CrmPeoplePage({
 
       <StickyFilters name={STICKY_COOKIE} value={stickyQs} />
 
+      {restoredSummary.length > 0 && (
+        <div role="status" className="flex flex-wrap items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-sm">
+          <span>
+            <span className="font-medium">Showing your last filters:</span>{' '}
+            <span className="text-muted-foreground">{restoredSummary.join(' · ')}</span>
+          </span>
+          <Link href="/support/admin/crm?reset=1" className="ml-auto text-sm font-medium text-brand underline underline-offset-2">
+            Clear
+          </Link>
+        </div>
+      )}
+
       <AdminFilterBar
         basePath="/support/admin/crm"
         clearHref="/support/admin/crm?reset=1"
@@ -291,6 +328,7 @@ export default async function CrmPeoplePage({
           // Labelled the way the rows are: the badge on every row says P0, so
           // a filter offering "Immediate" made you translate between the two.
           { key: 'priority', label: 'Priority', value: priority, options: [{ value: '', label: 'Any priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))] },
+    // (banner reads these back below — see restoredSummary)
           // This one filters the computed score, not the tier — two dropdowns
           // both reading "Priority: All" was just ambiguous.
           { key: 'minScore', label: 'Score', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any score' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },

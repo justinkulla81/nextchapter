@@ -13,6 +13,7 @@ import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
+  PRIORITY_TIERS, PRIORITY_TIER_LABELS, priorityTierClass,
   qualityClass, formatDate, sinceLabel,
 } from '@/lib/crm/labels'
 
@@ -88,6 +89,17 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             {/* Labeled rather than bare — "Hot" on its own reads as a stray
                 word; "Warmth: Hot" says what it is without a hover or click. */}
             <span className="ml-2 text-muted-foreground">Warmth: {WARMTH_LABELS[person.warmth]}</span>
+            {/* Priority lived on the People list row and nowhere else — the
+                one place you're actually looking at someone had no way to
+                set it. Same inline-select, same P0/P1/P2 color coding. */}
+            <span className={`ml-2 rounded px-1.5 py-0.5 text-xs font-semibold ${priorityTierClass(person.priority)}`}>
+              {person.priority ?? '—'}
+            </span>
+            <CrmInlineSelect
+              personId={person.id} field="priority" value={person.priority ?? ''}
+              label={`Priority for ${person.fullName}`}
+              options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))]}
+            />
             {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
             {person.linkedinUrl && (
               <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>

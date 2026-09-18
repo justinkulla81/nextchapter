@@ -28,6 +28,11 @@ interface NavLink {
   href: string
   label: string
   badge?: string
+  /** 'alert' (default, orange) means this needs action — a queue, a review.
+   * 'count' (gray) is a plain size — a directory, a bin — never a call to
+   * do something. Mixing the two into one orange style would make every
+   * list in the nav look like it's waiting on you. */
+  badgeTone?: 'alert' | 'count'
   muted?: boolean
   disabled?: boolean
 }
@@ -63,6 +68,9 @@ export function areaForPath(pathname: string): AdminArea {
 
 function ecosystemSections(badges: Record<string, number>): NavSection[] {
   const badgeFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
+  // Same undefined-at-zero rule as badgeFor, so an empty bin shows no pill
+  // rather than a gray "0".
+  const countFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
 
   return [
     {
@@ -81,16 +89,18 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
-        { href: '/support/admin/crm/warn', label: 'Layoff notices' },
+        // Pending == not yet promoted to a lead or dismissed — the one
+        // state on this page that is actually waiting on you.
+        { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
       ],
     },
     {
       title: 'Records',
       links: [
-        { href: '/support/admin/crm', label: 'People' },
-        { href: '/support/admin/crm/organizations', label: 'Organizations' },
+        { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
+        { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/research', label: 'Research' },
-        { href: '/support/admin/crm/removed', label: 'Removed' },
+        { href: '/support/admin/crm/removed', label: 'Removed', badge: countFor('removedTotal'), badgeTone: 'count' },
       ],
     },
     {
@@ -300,7 +310,12 @@ function NavContent({
           </p>
           {section.links.map((link) => {
             const badgeEl = link.badge && (
-              <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
+                  link.badgeTone === 'count' ? 'bg-white/10 text-white/60' : 'bg-orange/20 text-orange'
+                )}
+              >
                 {link.badge}
               </span>
             )
