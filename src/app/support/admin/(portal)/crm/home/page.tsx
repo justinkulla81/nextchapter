@@ -18,20 +18,26 @@ const FEED_SIZE = 50
 const TZ = 'America/New_York'
 
 /**
- * Which origins count as "people added".
+ * Which origins count as "people added", and their labels for the breakdown.
  *
  * An allowlist, not "everything but the spreadsheets": the week the CRM was
  * seeded, a bulk import put 3,600 rows in one afternoon and "people added"
- * read 3,791 — true, and useless. These are the ways someone gets added in
- * the course of actually working. A person with no source record at all was
- * created by the email or calendar sync. A new import format therefore
- * stays out until someone decides it belongs here.
+ * read 3,791 — true, and useless. Four ways someone legitimately joins the
+ * CRM in the course of working it: captured by the extension, added by
+ * hand, found by the sync because a message actually mentioned
+ * NextChapter, or approved off the Review List. A SYNC-sourced person with
+ * no confirmed (non-review) activity is excluded from that third bucket —
+ * an inbound message that never mentions NextChapter can no longer create
+ * a person at all, but an unreviewed OUTBOUND one still can, and that
+ * alone isn't yet "because it mentioned NextChapter" (see the SQL below).
+ * A new import format stays out until someone decides it belongs here.
  */
 const ADDED_SOURCES: Record<string, string> = {
   CHROME_EXTENSION: 'extension',
   QUICK_ADD: 'added by hand',
   MANUAL: 'added by hand',
-  SYNC: 'from email',
+  SYNC: 'mentioned NextChapter',
+  REVIEWED: 'approved by review',
 }
 
 function localDate(d: Date): string {
@@ -81,59 +87,109 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, updatedWeek, waiting, tiers, weekTotals] = await Promise.all([
-    prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
-      SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
-             a.direction::text AS direction,
-             -- Messages, not rows: one email to five contacts is five activity
-             -- rows (one per person) and was counted five times.
-             COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
-      FROM "CrmActivity" a
-      JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
-      WHERE a.type = 'EMAIL' AND a."occurredAt" >= ${chartStart}
-      GROUP BY 1, 2`,
-    prisma.crmActivity.findMany({
-      where: {
-        type: 'EMAIL',
-        occurredAt: { gte: CRM_ACTIVITY_CUTOFF, ...(before ? { lt: before } : {}) },
-        person: { deletedAt: null },
-      },
-      orderBy: { occurredAt: 'desc' },
-      // Rows, not messages — a group email is one row per person on it, so
-      // over-fetch and fold them back into messages below.
-      take: FEED_SIZE * 3,
-      select: {
-        id: true, occurredAt: true, direction: true, subject: true, body: true, sourceRef: true,
-        person: { select: { id: true, fullName: true, priority: true } },
-      },
-    }),
-    // By where each person first came from. See ADDED_SOURCES below.
-    prisma.$queryRaw<{ src: string; n: number }[]>`
-      SELECT COALESCE(
-               (SELECT s."sourceFile"::text FROM "CrmSourceRecord" s
-                WHERE s."personId" = p.id ORDER BY s."importedAt" ASC LIMIT 1),
-               'SYNC') AS src,
-             COUNT(*)::int AS n
-      FROM "CrmPerson" p
-      WHERE p."deletedAt" IS NULL AND p."createdAt" >= ${weekAgo}
-      GROUP BY 1`,
-    // "Updated" means a person edited the record — every field change is
-    // logged as FIELD_CHANGED. The sync rewriting touch counts is not an
-    // update anyone made, and updatedAt can't tell the two apart.
-    prisma.crmActivity.findMany({
-      where: { type: { in: ['FIELD_CHANGED', 'STAGE_CHANGED'] }, occurredAt: { gte: weekAgo }, person: { deletedAt: null } },
-      distinct: ['personId'], select: { personId: true },
-    }).then((r) => r.length),
-    prisma.crmPerson.count({ where: { deletedAt: null, awaitingReplySince: { not: null } } }),
-    prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
-    prisma.$queryRaw<{ direction: string; n: number }[]>`
-      SELECT a.direction::text AS direction,
-             COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
-      FROM "CrmActivity" a
-      JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
-      WHERE a.type = 'EMAIL' AND a."occurredAt" >= ${weekAgo}
-      GROUP BY 1`,
-  ])
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, waiting, tiers, weekTotals, response, needsReviewCount] =
+    await Promise.all([
+      prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
+        SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
+               a.direction::text AS direction,
+               -- Messages, not rows: one email to five contacts is five activity
+               -- rows (one per person) and was counted five times.
+               COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
+        FROM "CrmActivity" a
+        JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+        WHERE a.type = 'EMAIL' AND a."needsReview" = false AND a."occurredAt" >= ${chartStart}
+        GROUP BY 1, 2`,
+      prisma.crmActivity.findMany({
+        where: {
+          type: 'EMAIL',
+          needsReview: false,
+          occurredAt: { gte: CRM_ACTIVITY_CUTOFF, ...(before ? { lt: before } : {}) },
+          person: { deletedAt: null },
+        },
+        orderBy: { occurredAt: 'desc' },
+        // Rows, not messages — a group email is one row per person on it, so
+        // over-fetch and fold them back into messages below.
+        take: FEED_SIZE * 3,
+        select: {
+          id: true, occurredAt: true, direction: true, subject: true, body: true, sourceRef: true,
+          person: { select: { id: true, fullName: true, priority: true } },
+        },
+      }),
+      // Origin allowlist — see ADDED_SOURCES. A SYNC-sourced person (no
+      // CrmSourceRecord) only counts once they have at least one CONFIRMED
+      // activity: since the mention-gate change, an inbound message that
+      // never mentions NextChapter can no longer create one at all, but an
+      // unreviewed outbound message still can — and that alone isn't yet
+      // "because it mentioned NextChapter".
+      prisma.$queryRaw<{ src: string; n: number }[]>`
+        WITH first_src AS (
+          SELECT DISTINCT ON (s."personId") s."personId", s."sourceFile"::text AS src
+          FROM "CrmSourceRecord" s
+          ORDER BY s."personId", s."importedAt" ASC
+        )
+        SELECT COALESCE(fs.src, 'SYNC') AS src, COUNT(*)::int AS n
+        FROM "CrmPerson" p
+        LEFT JOIN first_src fs ON fs."personId" = p.id
+        WHERE p."deletedAt" IS NULL AND p."createdAt" >= ${weekAgo}
+          AND (
+            COALESCE(fs.src, 'SYNC') IN ('CHROME_EXTENSION', 'QUICK_ADD', 'MANUAL')
+            OR (
+              COALESCE(fs.src, 'SYNC') = 'SYNC'
+              AND EXISTS (SELECT 1 FROM "CrmActivity" a WHERE a."personId" = p.id AND a."needsReview" = false)
+            )
+          )
+        GROUP BY 1`,
+      // Approved off the Review List this week — a person created earlier
+      // whose needsCompletion cleared this week (see completionClearedAt).
+      // Excludes anyone created this week too, so they're not double
+      // counted against the bucket above.
+      prisma.crmPerson.count({
+        where: { deletedAt: null, completionClearedAt: { gte: weekAgo }, createdAt: { lt: weekAgo } },
+      }),
+      // "Updated" means a person edited the record — every field change is
+      // logged as FIELD_CHANGED. The sync rewriting touch counts is not an
+      // update anyone made, and updatedAt can't tell the two apart.
+      prisma.crmActivity.findMany({
+        where: { type: { in: ['FIELD_CHANGED', 'STAGE_CHANGED'] }, occurredAt: { gte: weekAgo }, person: { deletedAt: null } },
+        distinct: ['personId'], select: { personId: true },
+      }).then((r) => r.length),
+      prisma.crmPerson.count({ where: { deletedAt: null, awaitingReplySince: { not: null } } }),
+      prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
+      prisma.$queryRaw<{ direction: string; n: number }[]>`
+        SELECT a.direction::text AS direction,
+               COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
+        FROM "CrmActivity" a
+        JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+        WHERE a.type = 'EMAIL' AND a."needsReview" = false AND a."occurredAt" >= ${weekAgo}
+        GROUP BY 1`,
+      // Response rate: of the people you've sent a confirmed email since the
+      // cutoff, what fraction have ever replied — all-time, and for just
+      // the people first emailed this week (a reply to this week's outreach
+      // can land after the week ends; "replied" here means at all, not
+      // necessarily yet).
+      prisma.$queryRaw<{ emailed_total: number; replied_total: number; emailed_week: number; replied_week: number }[]>`
+        WITH emailed AS (
+          SELECT a."personId" AS pid, MIN(a."occurredAt") AS first_sent
+          FROM "CrmActivity" a
+          JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+          WHERE a.type = 'EMAIL' AND a.direction = 'OUTBOUND' AND a."needsReview" = false
+            AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
+          GROUP BY a."personId"
+        ),
+        replied AS (
+          SELECT DISTINCT a."personId" AS pid
+          FROM "CrmActivity" a
+          WHERE a.type = 'EMAIL' AND a.direction = 'INBOUND' AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
+        )
+        SELECT
+          COUNT(*)::int AS emailed_total,
+          COUNT(*) FILTER (WHERE r.pid IS NOT NULL)::int AS replied_total,
+          COUNT(*) FILTER (WHERE e.first_sent >= ${weekAgo})::int AS emailed_week,
+          COUNT(*) FILTER (WHERE e.first_sent >= ${weekAgo} AND r.pid IS NOT NULL)::int AS replied_week
+        FROM emailed e
+        LEFT JOIN replied r ON r.pid = e.pid`,
+      prisma.crmActivity.count({ where: { needsReview: true, person: { deletedAt: null } } }),
+    ])
 
   // Every day in the window, including silent ones — a gap in the line is
   // a day with no email, and that is worth seeing as a zero.
@@ -175,19 +231,35 @@ export default async function CrmHomePage({
     const label = ADDED_SOURCES[r.src]
     if (label) addedBy.set(label, (addedBy.get(label) ?? 0) + r.n)
   }
+  if (approvedWeek > 0) addedBy.set(ADDED_SOURCES.REVIEWED, (addedBy.get(ADDED_SOURCES.REVIEWED) ?? 0) + approvedWeek)
   const addedTotal = [...addedBy.values()].reduce((a, b) => a + b, 0)
   const addedHint = addedTotal > 0
     ? [...addedBy.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v} ${k}`).join(' · ')
     : 'last 7 days'
   const nextBefore = feed.length === FEED_SIZE ? feed[feed.length - 1].occurredAt.toISOString() : null
 
-  const stats: { label: string; value: number; hint: string; href: string; tone?: string }[] = [
-    { label: 'People added this week', value: addedTotal, hint: addedHint, href: '/support/admin/crm/needs-completion' },
-    { label: 'Records updated this week', value: updatedWeek, hint: 'edited by you', href: '/support/admin/crm' },
-    { label: 'Waiting on a reply', value: waiting, hint: 'you spoke last', href: '/support/admin/crm?waiting=waiting' },
-    { label: 'P0', value: tierCount('P0'), hint: 'Immediate', href: '/support/admin/crm?priority=P0', tone: priorityTierClass('P0') },
-    { label: 'P1', value: tierCount('P1'), hint: 'High', href: '/support/admin/crm?priority=P1', tone: priorityTierClass('P1') },
-    { label: 'P2', value: tierCount('P2'), hint: 'Not urgent', href: '/support/admin/crm?priority=P2', tone: priorityTierClass('P2') },
+  const resp = response[0] ?? { emailed_total: 0, replied_total: 0, emailed_week: 0, replied_week: 0 }
+  const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
+  const weekReplyRate = pct(resp.replied_week, resp.emailed_week)
+  const allTimeReplyRate = pct(resp.replied_total, resp.emailed_total)
+
+  const stats: { label: string; value: string; hint: string; href: string; tone?: string }[] = [
+    { label: 'People added this week', value: String(addedTotal), hint: addedHint, href: '/support/admin/crm/needs-completion' },
+    { label: 'Records updated this week', value: String(updatedWeek), hint: 'edited by you', href: '/support/admin/crm' },
+    { label: 'Waiting on a reply', value: String(waiting), hint: 'you spoke last', href: '/support/admin/crm?waiting=waiting' },
+    {
+      label: 'Emails this week', value: String(sentWeek + receivedWeek),
+      hint: resp.emailed_week > 0 ? `${weekReplyRate}% of people you emailed replied` : `${sentWeek} sent · ${receivedWeek} received`,
+      href: '/support/admin/crm/home',
+    },
+    {
+      label: 'Response rate', value: `${allTimeReplyRate}%`,
+      hint: `${resp.replied_total} of ${resp.emailed_total} people replied`,
+      href: '/support/admin/crm?waiting=not-waiting',
+    },
+    { label: 'P0', value: String(tierCount('P0')), hint: 'Immediate', href: '/support/admin/crm?priority=P0', tone: priorityTierClass('P0') },
+    { label: 'P1', value: String(tierCount('P1')), hint: 'High', href: '/support/admin/crm?priority=P1', tone: priorityTierClass('P1') },
+    { label: 'P2', value: String(tierCount('P2')), hint: 'Not urgent', href: '/support/admin/crm?priority=P2', tone: priorityTierClass('P2') },
   ]
 
   return (
@@ -204,6 +276,22 @@ export default async function CrmHomePage({
         <CrmSyncNowButton />
       </header>
 
+      {needsReviewCount > 0 && (
+        <Link
+          href="/support/admin/crm/needs-review"
+          className="flex items-center gap-2 rounded-lg border border-orange/40 bg-orange/5 px-3 py-2 text-sm hover:border-orange"
+        >
+          <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-xs font-semibold text-orange">
+            {needsReviewCount}
+          </span>
+          <span>
+            outbound {needsReviewCount === 1 ? 'email doesn\u2019t' : 'emails don\u2019t'} mention NextChapter and
+            {needsReviewCount === 1 ? ' needs' : ' need'} review before counting as outreach
+          </span>
+          <span className="ml-auto font-medium text-orange">Review →</span>
+        </Link>
+      )}
+
       <section className="rounded-lg border border-border bg-card p-4">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-base font-semibold">Emails per day</h2>
@@ -215,13 +303,13 @@ export default async function CrmHomePage({
         <CrmEmailChart days={days} />
       </section>
 
-      <section aria-label="Stats" className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <section aria-label="Stats" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="rounded-lg border border-border bg-card p-3 hover:border-brand">
             <p className="text-xs text-muted-foreground">
               {s.tone ? <span className={`rounded px-1.5 py-0.5 font-semibold ${s.tone}`}>{s.label}</span> : s.label}
             </p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value.toLocaleString()}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
           </Link>
         ))}

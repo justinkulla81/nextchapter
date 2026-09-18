@@ -8578,6 +8578,13 @@ model CrmPerson {
   // profile being completed. Drives the "Needs completion" queue — the dry
   // run projects 82 such rows at import, small enough to actually clear.
   needsCompletion Boolean @default(false)
+  /// When needsCompletion last flipped from true to false — a human
+  /// confirming this record belongs in the CRM (filling in a title,
+  /// merging a duplicate, editing them on the Review List). Null for
+  /// anyone reviewed before this field existed, and for anyone who never
+  /// needed review in the first place. Used to count "approved by review"
+  /// in the Ecosystem home page's people-added stat.
+  completionClearedAt DateTime?
 
   /// A manual priority tier, separate from the computed score.
   ///
@@ -8812,6 +8819,16 @@ model CrmActivity {
   sourceRef     String? // gmail thread id / calendar event id — dedupes re-syncs
   loggedByEmail String?
 
+  /// True for a synced email that doesn't mention NextChapter — an
+  /// outbound message you sent that isn't obviously about the product still
+  /// gets logged, but sits here until a human confirms it belongs in the
+  /// CRM, rather than silently counting as outreach. An INBOUND message
+  /// that doesn't mention NextChapter is never created at all (see
+  /// sweepGmail), so this only ever applies to OUTBOUND email.
+  needsReview     Boolean   @default(false)
+  reviewedAt      DateTime?
+  reviewedByEmail String?
+
   createdAt        DateTime             @default(now())
   outreachTracking CrmOutreachTracking?
 
@@ -8819,6 +8836,7 @@ model CrmActivity {
   @@index([personId, occurredAt(sort: Desc)])
   @@index([orgId, occurredAt(sort: Desc)])
   @@index([opportunityId, occurredAt(sort: Desc)])
+  @@index([needsReview, occurredAt(sort: Desc)])
 }
 
 /// Open/click tracking for one outreach email sent through the compose flow

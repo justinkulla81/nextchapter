@@ -86,6 +86,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/queue', label: 'Org queue', badge: badgeFor('crmQueue') },
         { href: '/support/admin/crm/queue/people', label: 'People queue', badge: badgeFor('crmPeopleQueue') },
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
+        { href: '/support/admin/crm/needs-review', label: 'Needs review', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },

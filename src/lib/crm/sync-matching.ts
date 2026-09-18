@@ -186,3 +186,21 @@ export function isSelf(email: string, ctx: SweepContext): boolean {
 export function directionOf(fromEmail: string | null, ctx: SweepContext): 'OUTBOUND' | 'INBOUND' {
   return fromEmail !== null && isSelf(fromEmail, ctx) ? 'OUTBOUND' : 'INBOUND'
 }
+
+/**
+ * Whether a message is plausibly about NextChapter, from what a metadata
+ * fetch already gives you — subject and Gmail's own snippet — never a full
+ * body fetch just to answer this. A reply keeps its parent's subject by
+ * default, so a thread that started "NextChapter" stays matched without
+ * re-reading each reply.
+ *
+ * Deliberately loose: "next chapter" (spaced), any case, or the bare domain
+ * in a signature link. False positives (an unrelated email that happens to
+ * say "next chapter of my career") cost nothing — an inbound one is
+ * relevant and logged, an outbound one needed no review anyway. False
+ * negatives are the real cost, which is why the check is this generous.
+ */
+export function mentionsNextChapter(subject: string | null | undefined, snippet: string | null | undefined): boolean {
+  const text = `${subject ?? ''} ${snippet ?? ''}`.toLowerCase()
+  return /next\s*chapter/.test(text) || text.includes('launchyournextchapter')
+}

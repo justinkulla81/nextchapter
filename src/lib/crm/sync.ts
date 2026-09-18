@@ -6,7 +6,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
-  normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf,
+  normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf, mentionsNextChapter,
   type SweepContext,
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
@@ -123,6 +123,10 @@ export async function buildSweepContext(
 export const REAL_TOUCH: Prisma.CrmActivityWhereInput = {
   type: { notIn: ['FIELD_CHANGED', 'STAGE_CHANGED'] },
   occurredAt: { gte: CRM_ACTIVITY_CUTOFF },
+  // An outbound email that doesn't mention NextChapter sits unreviewed —
+  // see CrmActivity.needsReview — and an unconfirmed message shouldn't move
+  // "last contacted" or "waiting on a reply" until a human says it counts.
+  needsReview: false,
 }
 
 export async function refreshTouchFields(personIds: string[]) {
@@ -361,7 +365,12 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     const bodies = new Map<string, string | null>()
     const needBodies = ids.filter((id, i) => {
       const m = headers[i]
-      return m && isAfterCrmCutoff(m.internalDate) && !logged.has(id) && wantsBody(m)
+      if (!m || !isAfterCrmCutoff(m.internalDate) || logged.has(id) || !wantsBody(m)) return false
+      // An inbound message that never mentions NextChapter is never written
+      // at all (see the main loop below) — no point paying for its body.
+      const direction = directionOf(normalizeEmail(m.from), ctx)
+      if (direction === 'INBOUND' && !mentionsNextChapter(m.subject, m.snippet)) return false
+      return true
     })
     await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageBody(token, id)) })
 
@@ -373,8 +382,17 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       if (!isAfterCrmCutoff(msg.internalDate)) continue
       result.scanned++
 
-      const participants = [msg.from, ...msg.to, ...msg.cc]
       const fromEmail = normalizeEmail(msg.from)
+      const direction = directionOf(fromEmail, ctx)
+      const relevant = mentionsNextChapter(msg.subject, msg.snippet)
+      // Inbound mail that never mentions NextChapter is never added to the
+      // CRM at all — no activity, no new person from it, by direct
+      // instruction. Outbound mail that doesn't mention it is still logged
+      // (see needsReview below) — it's real outreach, just needing a human
+      // to confirm it belongs here before it counts as contact.
+      if (direction === 'INBOUND' && !relevant) continue
+
+      const participants = [msg.from, ...msg.to, ...msg.cc]
       let loggedForThisMessage = false
       let hasInternal = false
       // Fetched at most once per message, and only once a real (or
@@ -417,7 +435,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
           create: {
             type: 'EMAIL',
-            direction: directionOf(fromEmail, ctx),
+            direction,
             occurredAt: msg.internalDate,
             personId,
             subject: msg.subject,
@@ -427,6 +445,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             body: fullBody ?? snippetOf(msg.snippet),
             isAutoLogged: true,
             sourceRef: `${id}:${personId}`,
+            // Always false here — an INBOUND row only ever reaches this line
+            // when `relevant` is true (see the guard above).
+            needsReview: direction === 'OUTBOUND' && !relevant,
           },
           update: {},
           select: { createdAt: true },
@@ -642,7 +663,12 @@ export async function backfillPersonFromEmail(
       try {
         const msg = await getMessageHeaders(token, id)
         if (!msg || !isAfterCrmCutoff(msg.internalDate)) return null
-        return { id, msg, fullBody: await getMessageBody(token, id) }
+        const direction = directionOf(normalizeEmail(msg.from), ctx)
+        // Same rule as the sweep: an inbound message that never mentions
+        // NextChapter is never written, so there's no point paying for its
+        // body either.
+        if (direction === 'INBOUND' && !mentionsNextChapter(msg.subject, msg.snippet)) return null
+        return { id, msg, direction, fullBody: await getMessageBody(token, id) }
       } catch {
         failed++
         return null
@@ -651,19 +677,20 @@ export async function backfillPersonFromEmail(
 
     for (const item of fetched) {
       if (!item) continue
-      const { id, msg, fullBody } = item
-      const fromEmail = normalizeEmail(msg.from)
+      const { id, msg, direction, fullBody } = item
+      const relevant = mentionsNextChapter(msg.subject, msg.snippet)
       await prisma.crmActivity.upsert({
         where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
         create: {
           type: 'EMAIL',
-          direction: directionOf(fromEmail, ctx),
+          direction,
           occurredAt: msg.internalDate,
           personId,
           subject: msg.subject,
           body: fullBody ?? snippetOf(msg.snippet),
           isAutoLogged: true,
           sourceRef: `${id}:${personId}`,
+          needsReview: direction === 'OUTBOUND' && !relevant,
         },
         update: {},
       })

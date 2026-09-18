@@ -10,6 +10,7 @@ import { PERSON_ROLES } from '@/lib/crm/labels'
 import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 import { slugOf } from '@/lib/crm/linkedin'
 import { logManualContact } from '@/lib/crm/log-contact'
+import { completionUpdate } from '@/lib/crm/completion'
 
 export const maxDuration = 30
 
@@ -182,7 +183,7 @@ async function fillBlanks(
 
   // Whatever it was flagged for may now be filled in.
   if (existing.needsCompletion && (jobTitle || primary?.title) && (parsed.orgId || primary)) {
-    data.needsCompletion = false
+    Object.assign(data, completionUpdate(true, true))
   }
 
   if (Object.keys(data).length > 0) {

@@ -10,6 +10,7 @@ import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
+import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -52,6 +53,8 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   }
   const saveRoles = updatePersonRoles.bind(null, id)
   const sources = [...new Set(person.sourceRecords.map((s) => s.sourceFile))]
+  const needsReview = person.activities.filter((a) => a.needsReview)
+  const confirmedActivities = person.activities.filter((a) => !a.needsReview)
   // Surfaced as a banner rather than buried in a list: walking into a meeting
   // unaware that your counterpart's own research undercuts your premise is the
   // specific failure this field exists to prevent.
@@ -254,15 +257,41 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
       </section>
 
+      {needsReview.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">
+            Needs review <span className="text-sm font-normal text-muted-foreground">{needsReview.length}</span>
+          </h2>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Outbound, doesn&apos;t mention NextChapter — real mail you sent, not yet counted as outreach until
+            you confirm it belongs here.
+          </p>
+          <ul className="rounded-lg border border-orange/40 bg-orange/5 divide-y divide-orange/20">
+            {needsReview.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                <span>
+                  <span className="font-medium">{a.subject ?? a.type}</span>
+                  {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
+                </span>
+                <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {formatDate(a.occurredAt)}
+                  <CrmActivityReviewInline activityId={a.id} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section>
         <h2 className="mb-2 text-lg font-semibold">History</h2>
-        {person.activities.length === 0 ? (
+        {confirmedActivities.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             Nothing logged yet. Email and calendar sync arrive in a later phase; LinkedIn messages are logged with the button above.
           </p>
         ) : (
           <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.activities.map((a) => (
+            {confirmedActivities.map((a) => (
               <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
                 <span>
                   <span className="font-medium">{a.subject ?? a.type}</span>

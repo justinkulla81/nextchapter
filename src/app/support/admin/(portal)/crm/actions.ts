@@ -14,6 +14,7 @@ import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { findEmailOwner } from '@/lib/crm/email-owner'
 import { logManualContact } from '@/lib/crm/log-contact'
 import { restorePeople, type RestoreResult } from '@/lib/crm/restore'
+import { completionUpdate } from '@/lib/crm/completion'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
@@ -323,7 +324,10 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
   const admin = await requireAdmin()
   const before = await prisma.crmPerson.findUnique({
     where: { id: personId },
-    select: { leadQuality: true, warmth: true, notes: true, priority: true, fullName: true, location: true },
+    select: {
+      leadQuality: true, warmth: true, notes: true, priority: true, fullName: true, location: true,
+      needsCompletion: true,
+    },
   })
 
   if (field === 'title') {
@@ -331,7 +335,10 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
     // anything relative to an organization.
     const aff = await prisma.crmAffiliation.findFirst({ where: { personId, isPrimary: true } })
     if (aff) await prisma.crmAffiliation.update({ where: { id: aff.id }, data: { title: value || null } })
-    await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: !value } })
+    await prisma.crmPerson.update({
+      where: { id: personId },
+      data: completionUpdate(!value, before?.needsCompletion ?? true),
+    })
   } else if (field === 'leadQuality') {
     await prisma.crmPerson.update({ where: { id: personId }, data: { leadQuality: value as CrmLeadQuality } })
   } else if (field === 'warmth') {
@@ -529,7 +536,11 @@ export async function updatePersonRoles(personId: string, formData: FormData) {
     // Same "title + org now both present" bar updatePersonField's title
     // branch already uses to leave the completion queue.
     if (gotTitle || (existing?.orgId && existing.title)) {
-      await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: false } })
+      const was = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { needsCompletion: true } })
+      await prisma.crmPerson.update({
+        where: { id: personId },
+        data: completionUpdate(true, was?.needsCompletion ?? true),
+      })
     }
   }
 
@@ -684,7 +695,10 @@ export async function acceptExportSuggestion(personId: string): Promise<{ accept
   const admin = await requireAdmin()
   const person = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: personId },
-    select: { id: true, fullName: true, linkedinSlug: true, roles: true, affiliations: { select: { id: true } } },
+    select: {
+      id: true, fullName: true, linkedinSlug: true, roles: true, needsCompletion: true,
+      affiliations: { select: { id: true } },
+    },
   })
   if (!person.linkedinSlug) return { accepted: false }
   const sug = await prisma.crmLinkedInConnection.findUnique({ where: { slug: person.linkedinSlug } })
@@ -710,7 +724,10 @@ export async function acceptExportSuggestion(personId: string): Promise<{ accept
   const addJobSeeker = placeholderKind === 'unemployed' && !person.roles.includes('JOB_SEEKER')
   await prisma.crmPerson.update({
     where: { id: personId },
-    data: { needsCompletion: false, ...(addJobSeeker ? { roles: [...person.roles, 'JOB_SEEKER' as const] } : {}) },
+    data: {
+      ...completionUpdate(true, person.needsCompletion),
+      ...(addJobSeeker ? { roles: [...person.roles, 'JOB_SEEKER' as const] } : {}),
+    },
   })
 
   captureServerEvent(admin.email ?? 'admin', 'crm_completion_accepted', { personId, source: 'linkedin_export' })
@@ -831,6 +848,51 @@ export async function restoreRemovedPeople(ids: string[]): Promise<RestoreResult
   revalidatePath(`${CRM}/removed`)
   revalidatePath(`${CRM}/home`)
   return result
+}
+
+/**
+ * The NextChapter-mention review queue.
+ *
+ * An outbound email that never mentions NextChapter still gets logged by
+ * the sync (it is real outreach), but with needsReview: true — see
+ * CrmActivity's own comment. Approving confirms it belongs in the CRM's
+ * touch counts and "waiting on a reply"; discarding removes it, same as it
+ * never having been logged. Both recompute the person's derived fields,
+ * since REAL_TOUCH excludes anything still unreviewed.
+ */
+export async function approveActivities(ids: string[]): Promise<{ approved: number }> {
+  const admin = await requireAdmin()
+  const rows = await prisma.crmActivity.findMany({
+    where: { id: { in: ids.slice(0, 500) }, needsReview: true },
+    select: { id: true, personId: true },
+  })
+  if (rows.length === 0) return { approved: 0 }
+  await prisma.crmActivity.updateMany({
+    where: { id: { in: rows.map((r) => r.id) } },
+    data: { needsReview: false, reviewedAt: new Date(), reviewedByEmail: admin.email ?? null },
+  })
+  await refreshTouchFields([...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))])
+  captureServerEvent(admin.email ?? 'admin', 'crm_activity_review_approved', { count: rows.length })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/needs-review`)
+  revalidatePath(`${CRM}/home`)
+  return { approved: rows.length }
+}
+
+export async function discardActivities(ids: string[]): Promise<{ discarded: number }> {
+  const admin = await requireAdmin()
+  const rows = await prisma.crmActivity.findMany({
+    where: { id: { in: ids.slice(0, 500) }, needsReview: true },
+    select: { id: true, personId: true },
+  })
+  if (rows.length === 0) return { discarded: 0 }
+  await prisma.crmActivity.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } })
+  await refreshTouchFields([...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))])
+  captureServerEvent(admin.email ?? 'admin', 'crm_activity_review_discarded', { count: rows.length })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/needs-review`)
+  revalidatePath(`${CRM}/home`)
+  return { discarded: rows.length }
 }
 
 /**
@@ -1790,7 +1852,7 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
   // Apply the export suggestion where one exists; approve as-is otherwise.
   const people = await prisma.crmPerson.findMany({
     where: { id: { in: ids } },
-    select: { id: true, linkedinSlug: true, roles: true, affiliations: { select: { id: true } } },
+    select: { id: true, linkedinSlug: true, roles: true, needsCompletion: true, affiliations: { select: { id: true } } },
   })
   const slugs = people.map((p) => p.linkedinSlug).filter((s): s is string => Boolean(s))
   const suggestions = await prisma.crmLinkedInConnection.findMany({ where: { slug: { in: slugs } } })
@@ -1817,7 +1879,10 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
     }
     await prisma.crmPerson.update({
       where: { id: p.id },
-      data: { needsCompletion: false, ...(addJobSeeker ? { roles: [...p.roles, 'JOB_SEEKER' as const] } : {}) },
+      data: {
+        ...completionUpdate(true, p.needsCompletion),
+        ...(addJobSeeker ? { roles: [...p.roles, 'JOB_SEEKER' as const] } : {}),
+      },
     })
     if (saved) applied++
     else approvedAsIs++
