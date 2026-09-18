@@ -16,6 +16,7 @@ export function CrmInlineOrgEdit({ personId, orgName }: { personId: string; orgN
       placeholder="—"
       disabled={pending}
       aria-label="Organization"
+      title={orgName ?? undefined}
       onBlur={(e) => {
         const next = e.target.value.trim()
         if (next === (orgName ?? '').trim()) return

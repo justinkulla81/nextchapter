@@ -396,7 +396,11 @@ export default async function CrmPeoplePage({
                       </span>
                     </td>
                     <td className="px-3 py-1.5">
-                      <div className="flex items-center gap-1.5">
+                      {/* A real width, set on the contents: the cell holds an input,
+                          which has no natural width in a table and was collapsing
+                          the column to 3-4 letters ("Neb", "Wal"). ~30 characters
+                          show; anything longer is in the tooltip. */}
+                      <div className="flex w-60 items-center gap-1.5">
                         <CrmInlineOrgEdit personId={p.id} orgName={p.affiliations[0]?.org.name ?? null} />
                         {p.affiliations[0]?.org && (
                           <CrmPeekButton id={p.affiliations[0].org.id} kind="org" className="shrink-0 text-xs text-muted-foreground hover:underline focus-visible:ring-2 focus-visible:ring-brand">
