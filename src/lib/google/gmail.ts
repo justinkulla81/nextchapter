@@ -121,13 +121,23 @@ export interface GmailHeaderMessage {
   snippet: string | null
 }
 
+/**
+ * Excluded from every CRM query.
+ *
+ * Drafts were not, and a draft with a recipient looks exactly like a sent
+ * message to the sweep — an empty autosaved compose to a contact was logged
+ * as an email to them, doubling their touch count and marking them as
+ * owing a reply to something never sent.
+ */
+const NOT_MAIL = '-in:spam -in:trash -in:drafts'
+
 /** Message ids in a rolling window, newest first. */
 export async function listMessagesSince(
   accessToken: string,
   since: Date,
   max = 400
 ): Promise<string[]> {
-  return listMessagesByQuery(accessToken, `after:${Math.floor(since.getTime() / 1000)} -in:spam -in:trash`, max)
+  return listMessagesByQuery(accessToken, `after:${Math.floor(since.getTime() / 1000)} ${NOT_MAIL}`, max)
 }
 
 /**
@@ -151,9 +161,40 @@ export async function listMessagesForAddress(
   since: Date,
   max = 250
 ): Promise<string[]> {
-  const addr = JSON.stringify(email) // quoted so Gmail treats it as one token, not two search terms
   const after = `after:${Math.floor(since.getTime() / 1000)}`
-  return listMessagesByQuery(accessToken, `{from:${addr} to:${addr}} ${after} -in:spam -in:trash`, max)
+  return listMessagesByQuery(accessToken, `${addressClause(email)} ${after} ${NOT_MAIL}`, max)
+}
+
+/**
+ * Any header the address appears in.
+ *
+ * Was from/to only, which missed every thread where they were copied — a
+ * real relationship often runs through an assistant with the person cc'd,
+ * and those threads are exactly the ones that show the relationship is real.
+ */
+function addressClause(email: string): string {
+  const a = JSON.stringify(email) // quoted so Gmail treats it as one token, not two search terms
+  return `{from:${a} to:${a} cc:${a} bcc:${a}}`
+}
+
+/**
+ * How much correspondence with an address predates `before`, and when the
+ * newest of it was — without fetching it.
+ *
+ * The CRM deliberately ignores mail before its cutoff, but "no past emails"
+ * about someone you corresponded with for four years reads as a bug. This
+ * lets the caller say what is actually true: nothing recent, plenty older.
+ */
+export async function olderCorrespondence(
+  accessToken: string,
+  email: string,
+  before: Date,
+): Promise<{ count: number; newestAt: Date | null }> {
+  const q = `${addressClause(email)} before:${Math.floor(before.getTime() / 1000)} ${NOT_MAIL}`
+  const ids = await listMessagesByQuery(accessToken, q, 100)
+  if (ids.length === 0) return { count: 0, newestAt: null }
+  const newest = await getMessageHeaders(accessToken, ids[0])
+  return { count: ids.length, newestAt: newest?.internalDate ?? null }
 }
 
 async function listMessagesByQuery(accessToken: string, q: string, max: number): Promise<string[]> {
@@ -193,12 +234,42 @@ async function listMessagesByQuery(accessToken: string, q: string, max: number):
  * that isn't a rate limit (404, permission) means the message itself is
  * gone or unreachable, so that still fails fast with no retry.
  */
-async function fetchWithRetry(url: URL, accessToken: string, attempts = 4): Promise<Response> {
+export class GmailFetchError extends Error {
+  constructor(public status: number, public messageId: string) {
+    super(`Gmail fetch failed (${status}) for message ${messageId}`)
+  }
+}
+
+/**
+ * Gmail says "slow down" with a 403, not only a 429.
+ *
+ * Its per-user quota errors arrive as 403 with reason rateLimitExceeded or
+ * userRateLimitExceeded. This used to retry only 429 and 5xx, so a throttled
+ * fetch came straight back as a failure — and every caller treats a failed
+ * header fetch as "no such message" and moves on. Under load, real emails
+ * were silently dropped from the sync with nothing recorded anywhere.
+ */
+async function isRateLimited(res: Response): Promise<boolean> {
+  if (res.status === 429) return true
+  if (res.status !== 403) return false
+  const body = await res.clone().text().catch(() => '')
+  return /rateLimitExceeded|userRateLimitExceeded|quotaExceeded/i.test(body)
+}
+
+async function fetchWithRetry(url: URL, accessToken: string, attempts = 6): Promise<Response> {
   let res: Response | null = null
   for (let i = 0; i < attempts; i++) {
     res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-    if (res.ok || (res.status !== 429 && res.status < 500)) return res
-    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 500 * 2 ** i))
+    if (res.ok) return res
+    const retryable = res.status >= 500 || (await isRateLimited(res))
+    if (!retryable) return res
+    if (i < attempts - 1) {
+      // Honour Retry-After when Gmail sends one; otherwise back off
+      // exponentially with jitter, so eight workers don't retry in lockstep.
+      const after = Number(res.headers.get('retry-after'))
+      const wait = Number.isFinite(after) && after > 0 ? after * 1000 : 1000 * 2 ** i + Math.random() * 500
+      await new Promise((r) => setTimeout(r, Math.min(wait, 20_000)))
+    }
   }
   return res!
 }
@@ -212,7 +283,10 @@ export async function getMessageHeaders(
   for (const h of ['From', 'To', 'Cc', 'Subject', 'Date']) url.searchParams.append('metadataHeaders', h)
 
   const res = await fetchWithRetry(url, accessToken)
-  if (!res.ok) return null
+  // A deleted message is genuinely absent. Anything else is a failure the
+  // caller needs to know about rather than read as "nothing here".
+  if (res.status === 404) return null
+  if (!res.ok) throw new GmailFetchError(res.status, id)
   const data = (await res.json()) as {
     id: string
     threadId: string

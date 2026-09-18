@@ -35,11 +35,17 @@ export function CrmEmailBackfillPrompt({ personId, email }: { personId: string; 
         body: JSON.stringify({ personId, email: address }),
       })
       const data = await res.json()
-      setNote(
-        !data.ok ? (data.message ?? 'could not check mail')
-        : data.found > 0 ? `${data.found} past email${data.found === 1 ? '' : 's'} found`
-        : 'no past emails'
-      )
+      const olderLabel = data.older
+        ? `nothing since Jun 1 · ${data.older.count >= 100 ? '100+' : data.older.count} older${
+            data.older.newestAt
+              ? `, last ${new Date(data.older.newestAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+              : ''
+          }`
+        : null
+      const base = !data.ok ? (data.message ?? 'could not check mail')
+        : data.found > 0 ? `${data.found} email${data.found === 1 ? '' : 's'} logged`
+        : olderLabel ?? 'no emails found'
+      setNote(data.failed > 0 ? `${base} · ${data.failed} couldn’t be read` : base)
     } catch {
       setNote('could not check mail')
     }

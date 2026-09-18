@@ -26,11 +26,11 @@ export function CrmSyncNowButton() {
       if (!data.ok) {
         setResult(data.message ?? 'Could not sync.')
       } else {
-        setResult(
-          data.created > 0
-            ? `${data.created} new ${data.created === 1 ? 'activity' : 'activities'}`
-            : `Nothing new in the last ${data.windowHours}h`
-        )
+        const base = data.created > 0
+          ? `${data.created} new ${data.created === 1 ? 'activity' : 'activities'}`
+          : `Nothing new in the last ${data.windowHours}h`
+        // Never let a partial run read as a complete one.
+        setResult(data.failed > 0 ? `${base} · ${data.failed} couldn’t be read — run again` : base)
         router.refresh()
       }
     } catch {

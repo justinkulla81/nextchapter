@@ -17,6 +17,32 @@ import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 const DAY = 86_400_000
 
 /**
+ * How many Gmail fetches run at once.
+ *
+ * The sweep used to fetch one message at a time at ~0.85s each, which put a
+ * two-day window at 297s against a 300s function limit — the 05:00 and
+ * 06:00 scheduled sweeps on 17 Sept were killed mid-run and recorded
+ * nothing. Eight in flight is well inside Gmail's per-user rate limit
+ * (messages.get costs 5 units) — eight was not, once several sweeps ran close
+ * together — and still several times faster than one at a time.
+ */
+const GMAIL_CONCURRENCY = 4
+
+/** Promise.all with at most `limit` in flight, results in input order. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length)
+  let next = 0
+  async function worker() {
+    while (next < items.length) {
+      const i = next++
+      out[i] = await fn(items[i])
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return out
+}
+
+/**
  * Builds the exclusion and matching sets once per sweep.
  *
  * The internal set is the safeguard that makes a full-mailbox sweep
@@ -86,39 +112,70 @@ export const REAL_TOUCH: Prisma.CrmActivityWhereInput = {
 }
 
 export async function refreshTouchFields(personIds: string[]) {
-  for (const personId of personIds) {
-    const [agg, first, firstInbound, lastActivity] = await Promise.all([
-      prisma.crmActivity.aggregate({
-        where: { personId, ...REAL_TOUCH },
-        _count: { _all: true },
-        _max: { occurredAt: true },
+  const ids = [...new Set(personIds)]
+  if (ids.length === 0) return
+
+  // Three queries for any number of people, then one UPDATE. This used to be
+  // five round trips per person, one person at a time — at ~100-400ms a trip
+  // it was most of a sweep's runtime, and a big part of why the scheduled
+  // sweep was being killed at its 300s limit.
+  for (let i = 0; i < ids.length; i += 500) {
+    const chunk = ids.slice(i, i + 500)
+    const where = { personId: { in: chunk }, ...REAL_TOUCH }
+    const [aggs, inbound, latest] = await Promise.all([
+      prisma.crmActivity.groupBy({
+        by: ['personId'], where,
+        _count: { _all: true }, _min: { occurredAt: true }, _max: { occurredAt: true },
       }),
-      prisma.crmActivity.findFirst({
-        where: { personId, ...REAL_TOUCH },
-        orderBy: { occurredAt: 'asc' }, select: { occurredAt: true },
-      }),
-      prisma.crmActivity.findFirst({
-        where: { personId, direction: 'INBOUND', ...REAL_TOUCH },
-        orderBy: { occurredAt: 'asc' }, select: { occurredAt: true },
+      prisma.crmActivity.groupBy({
+        by: ['personId'], where: { ...where, direction: 'INBOUND' },
+        _min: { occurredAt: true },
       }),
       // Whichever real activity happened most recently, regardless of
       // direction — if it's ours, we're the last one to have spoken and are
       // waiting on them.
-      prisma.crmActivity.findFirst({
-        where: { personId, ...REAL_TOUCH },
-        orderBy: { occurredAt: 'desc' }, select: { occurredAt: true, direction: true },
+      prisma.crmActivity.findMany({
+        where, orderBy: [{ personId: 'asc' }, { occurredAt: 'desc' }],
+        distinct: ['personId'], select: { personId: true, occurredAt: true, direction: true },
       }),
     ])
-    await prisma.crmPerson.update({
-      where: { id: personId },
-      data: {
-        touchCount: agg._count._all,
-        lastTouchedAt: agg._max.occurredAt,
-        firstTouchedAt: first?.occurredAt ?? null,
-        firstRepliedAt: firstInbound?.occurredAt ?? null,
-        awaitingReplySince: lastActivity?.direction === 'OUTBOUND' ? lastActivity.occurredAt : null,
-      },
+    const agg = new Map(aggs.map((a) => [a.personId, a]))
+    const firstIn = new Map(inbound.map((a) => [a.personId, a._min.occurredAt]))
+    const last = new Map(latest.map((a) => [a.personId, a]))
+
+    const rows = chunk.map((id) => {
+      const a = agg.get(id)
+      const l = last.get(id)
+      return {
+        id,
+        count: a?._count._all ?? 0,
+        lastAt: a?._max.occurredAt ?? null,
+        firstAt: a?._min.occurredAt ?? null,
+        firstInAt: firstIn.get(id) ?? null,
+        awaiting: l?.direction === 'OUTBOUND' ? l.occurredAt : null,
+      }
     })
+
+    // A person with no remaining activity still gets zeroed — which is what
+    // keeps a removed activity from leaving a phantom touch behind.
+    await prisma.$executeRaw`
+      UPDATE "CrmPerson" AS p SET
+        "touchCount" = v.count,
+        "lastTouchedAt" = v.last_at,
+        "firstTouchedAt" = v.first_at,
+        "firstRepliedAt" = v.first_in_at,
+        "awaitingReplySince" = v.awaiting
+      FROM (
+        SELECT * FROM unnest(
+          ${rows.map((r) => r.id)}::text[],
+          ${rows.map((r) => r.count)}::int[],
+          ${rows.map((r) => r.lastAt)}::timestamp[],
+          ${rows.map((r) => r.firstAt)}::timestamp[],
+          ${rows.map((r) => r.firstInAt)}::timestamp[],
+          ${rows.map((r) => r.awaiting)}::timestamp[]
+        ) AS t(id, count, last_at, first_at, first_in_at, awaiting)
+      ) AS v
+      WHERE p.id = v.id`
   }
 }
 
@@ -190,6 +247,8 @@ export interface SweepResult {
   /** New CrmPerson rows created for an address the sweep didn't recognize. */
   suggested: number
   skippedInternal: number
+  /** Messages Gmail would not return even after retrying. Never silently zero. */
+  failed?: number
   reason?: string
 }
 
@@ -234,8 +293,56 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     const personCache = new Map<string, string | null>()
     const result = { ...base }
 
-    for (const id of ids) {
-      const msg = await getMessageHeaders(token, id)
+    // A fetch that fails after retrying is counted, not skipped. It used to
+    // come back as null and read as "no such message", so throttled mail
+    // vanished from the sync without a trace.
+    let failed = 0
+    const headers = await mapLimit(ids, GMAIL_CONCURRENCY, async (id) => {
+      try {
+        return await getMessageHeaders(token, id)
+      } catch {
+        failed++
+        return null
+      }
+    })
+
+    // Messages already logged need no body: the write below is an upsert
+    // that changes nothing. Re-running a window used to re-download every
+    // body anyway, one at a time — most of a sweep's runtime.
+    const logged = new Set<string>()
+    const loggedRefs = new Set<string>()
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100)
+      const rows = await prisma.crmActivity.findMany({
+        where: { type: 'EMAIL', OR: chunk.map((id) => ({ sourceRef: { startsWith: `${id}:` } })) },
+        select: { sourceRef: true },
+      })
+      for (const r of rows) {
+        if (!r.sourceRef) continue
+        loggedRefs.add(r.sourceRef)
+        logged.add(r.sourceRef.split(':')[0])
+      }
+    }
+
+    // Bodies for everything that will actually be written, fetched together
+    // up front. Whether a message will be written is decidable in memory:
+    // it needs one participant who isn't us, internal, or automated.
+    const wantsBody = (msg: NonNullable<(typeof headers)[number]>) =>
+      [msg.from, ...msg.to, ...msg.cc].some((raw) => {
+        const e = normalizeEmail(raw)
+        if (!e) return false
+        const k = classifyParticipant(e, ctx).kind
+        return k !== 'internal' && k !== 'self' && k !== 'automated'
+      })
+    const bodies = new Map<string, string | null>()
+    const needBodies = ids.filter((id, i) => {
+      const m = headers[i]
+      return m && isAfterCrmCutoff(m.internalDate) && !logged.has(id) && wantsBody(m)
+    })
+    await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageBody(token, id)) })
+
+    for (const [i, id] of ids.entries()) {
+      const msg = headers[i]
       if (!msg) continue
       // Belt and braces: the query already asked for nothing older, but a
       // message's internalDate is the thing the activity is dated by.
@@ -270,8 +377,18 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
           isNewPerson = resolved.created
         }
 
+        // Already on file for this person: nothing to write, and nothing about
+        // them has changed, so they needn't be refreshed either. Re-covering a
+        // window — which Sync now does deliberately — costs almost nothing.
+        if (loggedRefs.has(`${id}:${personId}`)) {
+          loggedForThisMessage = true
+          continue
+        }
+
         // A message can involve several such people; each gets the activity.
-        if (fullBody === undefined) fullBody = await getMessageBody(token, id)
+        if (fullBody === undefined) {
+          fullBody = bodies.has(id) ? bodies.get(id)! : logged.has(id) ? null : await getMessageBody(token, id)
+        }
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
           create: {
@@ -302,12 +419,16 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     }
 
     await refreshTouchFields([...touched])
+    result.failed = failed
     await prisma.crmSyncRun.update({
       where: { id: run.id },
       data: {
         finishedAt: new Date(), scanned: result.scanned, matched: result.matched,
         activitiesCreated: result.activitiesCreated, suggested: result.suggested,
         skippedInternal: result.skippedInternal,
+        // Marks the run incomplete, which is the point: Sync now starts from
+        // the last CLEAN run, so the next click re-covers this window.
+        ...(failed > 0 ? { error: `${failed} of ${ids.length} messages could not be fetched from Gmail` } : {}),
       },
     })
     return result
@@ -426,6 +547,8 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
 export interface PersonBackfillResult {
   found: number
   oldestAt: Date | null
+  /** Messages Gmail would not return even after retrying. */
+  failed?: number
   reason?: 'no_connection' | 'no_token' | 'invalid_email' | 'person_deleted'
 }
 
@@ -485,15 +608,27 @@ export async function backfillPersonFromEmail(
 
   const ids = await listMessagesForAddress(token, email, CRM_ACTIVITY_CUTOFF, maxMessages)
   let found = 0
+  let failed = 0
   let oldestAt: Date | null = null
 
   try {
-    for (const id of ids) {
-      const msg = await getMessageHeaders(token, id)
-      if (!msg) continue
-      if (!isAfterCrmCutoff(msg.internalDate)) continue
+    // Every message here is kept, so headers and bodies are both needed —
+    // fetched together, several at once, then written in order.
+    const fetched = await mapLimit(ids, GMAIL_CONCURRENCY, async (id) => {
+      try {
+        const msg = await getMessageHeaders(token, id)
+        if (!msg || !isAfterCrmCutoff(msg.internalDate)) return null
+        return { id, msg, fullBody: await getMessageBody(token, id) }
+      } catch {
+        failed++
+        return null
+      }
+    })
+
+    for (const item of fetched) {
+      if (!item) continue
+      const { id, msg, fullBody } = item
       const fromEmail = normalizeEmail(msg.from)
-      const fullBody = await getMessageBody(token, id)
       await prisma.crmActivity.upsert({
         where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
         create: {
@@ -516,5 +651,5 @@ export async function backfillPersonFromEmail(
     // fields agreeing with the activity rows it did manage to write.
     await refreshTouchFields([personId])
   }
-  return { found, oldestAt }
+  return { found, oldestAt, ...(failed > 0 ? { failed } : {}) }
 }

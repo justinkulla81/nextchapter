@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { bulkUpdatePeople, bulkDeletePeople } from '@/app/support/admin/(portal)/crm/actions'
 import { QUALITIES, QUALITY_LABELS, WARMTHS, WARMTH_LABELS } from '@/lib/crm/labels'
@@ -14,14 +14,28 @@ export function CrmBulkBar({ children, count }: { children: React.ReactNode; cou
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [result, setResult] = useState<string | null>(null)
 
+  const formRef = useRef<HTMLFormElement>(null)
+
   const recount = (form: HTMLFormElement) =>
     setSelected(form.querySelectorAll<HTMLInputElement>('input[name="selected"]:checked').length)
 
+  // The count lives in state but the truth is the checkboxes. When rows
+  // change under it — a removal, a refresh — re-read them, or the bar goes on
+  // claiming "2 of 1 selected" about people who no longer exist.
+  useEffect(() => {
+    if (formRef.current) recount(formRef.current)
+  }, [count, children])
+
   return (
     <form
+      ref={formRef}
       onChange={(e) => { recount(e.currentTarget); setConfirmingDelete(false); setResult(null) }}
     >
       {children}
+
+      {selected === 0 && result && (
+        <p role="status" className="mt-3 text-sm text-muted-foreground">{result}</p>
+      )}
 
       {/* Only once something is ticked. It used to sit there permanently in
           a disabled state explaining how to enable itself, which cost a strip
