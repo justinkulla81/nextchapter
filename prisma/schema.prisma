@@ -8545,6 +8545,11 @@ model CrmPerson {
   // from Gmail sync rather than from the contact list.
   email  String?
   emails String[] @default([])
+
+  /// Set when this record was absorbed into another by a merge. A removed
+  /// record with this set is a duplicate, not a person you took out — the
+  /// Removed page shows where it went instead of offering to restore it.
+  mergedIntoId String?
   phone  String?
 
   // Fallback dedup key, "normalized name|normalized org". Nullable because

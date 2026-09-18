@@ -265,6 +265,15 @@ export async function POST(req: NextRequest) {
             include: { affiliations: { where: { isPrimary: true }, take: 1 } },
           })
         : null
+      if (existing?.deletedAt) {
+        // Writing to a removed record changes something you can't see. Say
+        // it's removed and where to bring it back instead.
+        const when = existing.deletedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })
+        return NextResponse.json(
+          { error: `${existing.fullName} was removed from the CRM on ${when}. Restore them from Ecosystem → Removed, then save again.`, removed: true, personId: existing.id },
+          { status: 409, headers: CORS }
+        )
+      }
       if (existing) {
         const result = await fillBlanks(existing, body, { name, orgId, roles: rolesFrom(body) })
         if (body.messagedToday) {

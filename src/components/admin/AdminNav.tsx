@@ -90,6 +90,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm', label: 'People' },
         { href: '/support/admin/crm/organizations', label: 'Organizations' },
         { href: '/support/admin/crm/research', label: 'Research' },
+        { href: '/support/admin/crm/removed', label: 'Removed' },
       ],
     },
     {

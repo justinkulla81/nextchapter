@@ -13,6 +13,7 @@ import { getSendAsAddresses } from '@/lib/google/gmail'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { findEmailOwner } from '@/lib/crm/email-owner'
 import { logManualContact } from '@/lib/crm/log-contact'
+import { restorePeople, type RestoreResult } from '@/lib/crm/restore'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
@@ -817,6 +818,19 @@ async function retireSelfRecords(addresses: string[]): Promise<number> {
   if (people.length === 0) return 0
   await prisma.crmPerson.updateMany({ where: { id: { in: people.map((p) => p.id) } }, data: { deletedAt: new Date() } })
   return people.length
+}
+
+/** Restores removed people — see restorePeople for what is held back and why. */
+export async function restoreRemovedPeople(ids: string[]): Promise<RestoreResult> {
+  const admin = await requireAdmin()
+  const result = await restorePeople(ids.slice(0, 2000))
+  captureServerEvent(admin.email ?? 'admin', 'crm_people_restored', {
+    requested: ids.length, restored: result.restored.length, skipped: result.skipped.length,
+  })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/removed`)
+  revalidatePath(`${CRM}/home`)
+  return result
 }
 
 /**
@@ -1928,7 +1942,7 @@ export async function mergePersonIntoPerson(sourceId: string, targetId: string):
     // it — @unique on linkedinSlug means both rows briefly holding the same
     // value, even for one statement, throws P2002. This order must not
     // change without re-checking that.
-    await tx.crmPerson.update({ where: { id: sourceId }, data: { deletedAt: new Date(), linkedinSlug: null } })
+    await tx.crmPerson.update({ where: { id: sourceId }, data: { deletedAt: new Date(), linkedinSlug: null, mergedIntoId: targetId } })
 
     // Fill only what the target is missing — an explicit merge target's own
     // data always wins over the record being absorbed into it.

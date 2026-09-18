@@ -33,7 +33,15 @@ export async function GET(req: NextRequest) {
     where: { linkedinSlug: slug },
     select: { id: true, fullName: true, deletedAt: true, priority: true, lastTouchedAt: true },
   })
-  if (!person || person.deletedAt) return NextResponse.json({ exists: false }, { headers: CORS })
+  if (!person) return NextResponse.json({ exists: false }, { headers: CORS })
+  // Removed, not absent. Saying "not in the CRM" here sent you to save them
+  // again, which then quietly updated a record you couldn't see.
+  if (person.deletedAt) {
+    return NextResponse.json(
+      { exists: false, removed: true, personId: person.id, fullName: person.fullName, removedAt: person.deletedAt.toISOString() },
+      { headers: CORS }
+    )
+  }
 
   return NextResponse.json(
     {

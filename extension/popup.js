@@ -137,8 +137,23 @@ async function readPage() {
     // sits right below it in the same sibling run.
     const lines = nameEl ? collectSiblingLines(nameEl, 8, 3) : []
     out.jobTitle = lines[0] || scope.querySelector('.text-body-medium')?.textContent?.trim() || ''
+    // Layouts disagree on the order below the headline: some put the
+    // company/school line next, others go straight to the location line
+    // ("Greater Madison Area · Contact info"), with the company shown as a
+    // badge off to the side. Assuming company-first filed a location as the
+    // company. A line that reads as a place is treated as the location, and
+    // the company then comes from the badge links below.
+    const looksLikePlace = (t) =>
+      /contact info/i.test(t) ||
+      /\b(area|region|metropolitan|metro|county|united states|united kingdom|canada)\b/i.test(t)
+    let companyLine = lines[1] || ''
+    let locationLine = lines[2] || ''
+    if (companyLine && looksLikePlace(companyLine)) {
+      locationLine = companyLine
+      companyLine = ''
+    }
     out.company =
-      (lines[1] ? lines[1].split('·')[0].trim() : '') ||
+      (companyLine ? companyLine.split('·')[0].trim() : '') ||
       pick('[aria-label^="Current company"]') ||
       pick('button[aria-label*="Current company"] span') ||
       // Newer top-card layout: the company/school badges under the name are
@@ -151,7 +166,7 @@ async function readPage() {
       // the CSS class names wrapping them.
       scope.querySelector('a[href*="/company/"]')?.textContent?.trim() ||
       ''
-    out.location = lines[2] || ''
+    out.location = locationLine.split('·')[0].trim()
 
     // The connection-degree badge ("· 1st" / "· 2nd" / "· 3rd") sits right
     // next to the name — deliberately excluded from collectSiblingLines
@@ -295,6 +310,21 @@ async function checkExisting(base, token) {
     })
     if (!res.ok) return
     const data = await res.json()
+    if (data.removed) {
+      const when = new Date(data.removedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      const banner = $('existing-banner')
+      banner.textContent = `${data.fullName} was removed from the CRM on ${when}. `
+      const link = document.createElement('a')
+      link.href = '#'
+      link.textContent = 'Restore them'
+      link.addEventListener('click', (e) => {
+        e.preventDefault()
+        chrome.tabs.create({ url: `${base}/support/admin/crm/removed?q=${encodeURIComponent(data.fullName)}` })
+      })
+      banner.append(link)
+      banner.hidden = false
+      return
+    }
     if (!data.exists) return
 
     const banner = $('existing-banner')
