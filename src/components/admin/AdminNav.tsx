@@ -50,7 +50,7 @@ export type AdminArea = 'administrator' | 'ecosystem' | 'vision'
 
 export const AREAS: { key: AdminArea; label: string; href: string; hint: string }[] = [
   { key: 'administrator', label: 'Administrator', href: '/support/admin', hint: 'Running the product' },
-  { key: 'ecosystem', label: 'Ecosystem', href: '/support/admin/crm/queue', hint: 'People and organizations' },
+  { key: 'ecosystem', label: 'Ecosystem', href: '/support/admin/crm/home', hint: 'People and organizations' },
   { key: 'vision', label: 'Vision', href: '/support/admin/vision', hint: 'What we build and why' },
 ]
 
@@ -65,6 +65,10 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
   const badgeFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
 
   return [
+    {
+      title: 'Overview',
+      links: [{ href: '/support/admin/crm/home', label: 'Home' }],
+    },
     {
       title: 'Work the list',
       links: [
@@ -263,7 +267,8 @@ function NavContent({
       {/*
         Three discrete areas -> adjacent buttons rather than a dropdown, per
         design-principles.md. Each one lands on the page you actually want to
-        start from, not a shell: the Ecosystem opens on its queue.
+        start from, not a shell: the Ecosystem opens on its home page, which
+        links into the queues.
       */}
       <div className="mb-1" role="group" aria-label="Admin area">
         <div className="grid grid-cols-3 gap-1 rounded-lg bg-white/5 p-1">
