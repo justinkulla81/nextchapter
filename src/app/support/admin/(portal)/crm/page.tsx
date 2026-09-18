@@ -41,6 +41,53 @@ const DEFAULT_PAGE_SIZE = 100
 // StickyFilters for why a cookie.
 const STICKY_COOKIE = 'crm_people_filters'
 
+function searchTokens(q: string): string[] {
+  return q.split(/\s+/).map((t) => t.trim()).filter(Boolean).slice(0, 6)
+}
+
+function editDistance(a: string, b: string): number {
+  if (Math.abs(a.length - b.length) > 2) return 3
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0]
+    prev[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j]
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1))
+      diag = tmp
+    }
+  }
+  return prev[b.length]
+}
+
+/**
+ * Names that are one or two typos away from what was searched.
+ *
+ * Only runs when a search finds nobody, so it costs nothing on the common
+ * path. Every searched word must land within two edits of some word in the
+ * name — "andre benin" finds "Andre Bennin", "andy milller" finds "Andy
+ * Miller" — which is loose enough to catch a slip and tight enough not to
+ * return half the CRM.
+ */
+async function nearMisses(q: string): Promise<{ id: string; fullName: string }[]> {
+  const tokens = searchTokens(q.toLowerCase()).filter((t) => t.length >= 3)
+  if (tokens.length === 0) return []
+  const people = await prisma.crmPerson.findMany({ where: { deletedAt: null }, select: { id: true, fullName: true } })
+  const scored: { id: string; fullName: string; score: number }[] = []
+  for (const p of people) {
+    const words = p.fullName.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+    let total = 0
+    let ok = true
+    for (const t of tokens) {
+      const best = Math.min(...words.map((w) => (w.startsWith(t) ? 0 : editDistance(t, w))), 3)
+      if (best > 2) { ok = false; break }
+      total += best
+    }
+    if (ok) scored.push({ id: p.id, fullName: p.fullName, score: total })
+  }
+  return scored.sort((a, b) => a.score - b.score).slice(0, 6)
+}
+
 /** Whole days since `when`, or null. Counted here so the row component stays
  * pure — see CrmInlineFollowUp's `awaitingDays`. */
 function daysSince(when: Date | null): number | null {
@@ -94,15 +141,21 @@ export default async function CrmPeoplePage({
 
   const where: Prisma.CrmPersonWhereInput = {
     deletedAt: null,
+    // Every word has to match somewhere, but not side by side: "andre benin"
+    // used to be matched as one string, so a middle initial, a reordered name
+    // or "andy miller" against "Andrew Miller" found nothing at all.
     ...(q
       ? {
-          OR: [
-            { fullName: { contains: q, mode: 'insensitive' } },
-            { email: { contains: q, mode: 'insensitive' } },
-            { notes: { contains: q, mode: 'insensitive' } },
-            { affiliations: { some: { org: { name: { contains: q, mode: 'insensitive' } } } } },
-            { affiliations: { some: { title: { contains: q, mode: 'insensitive' } } } },
-          ],
+          AND: searchTokens(q).map((t) => ({
+            OR: [
+              { fullName: { contains: t, mode: 'insensitive' as const } },
+              { email: { contains: t, mode: 'insensitive' as const } },
+              { notes: { contains: t, mode: 'insensitive' as const } },
+              { linkedinUrl: { contains: t, mode: 'insensitive' as const } },
+              { affiliations: { some: { org: { name: { contains: t, mode: 'insensitive' as const } } } } },
+              { affiliations: { some: { title: { contains: t, mode: 'insensitive' as const } } } },
+            ],
+          })),
         }
       : {}),
     ...(role ? { roles: { has: role as CrmPersonRole } } : {}),
@@ -137,6 +190,8 @@ export default async function CrmPeoplePage({
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
     prisma.crmOrganization.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
   ])
+
+  const suggestions = total === 0 && q ? await nearMisses(q) : []
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
@@ -266,10 +321,25 @@ export default async function CrmPeoplePage({
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
           <p className="font-medium">No one matches these filters.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Clear the search, or add someone with the box above.
-          </p>
-          <Link href="/support/admin/crm" className="mt-3 inline-block text-sm font-medium text-brand underline">
+          {suggestions.length > 0 ? (
+            <p className="mt-2 text-sm">
+              <span className="text-muted-foreground">Did you mean </span>
+              {suggestions.map((sg, i) => (
+                <span key={sg.id}>
+                  {i > 0 && ', '}
+                  <CrmPeekButton id={sg.id} kind="person">{sg.fullName}</CrmPeekButton>
+                </span>
+              ))}
+              <span className="text-muted-foreground">?</span>
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Clear the search, or add someone with the box above.
+            </p>
+          )}
+          {/* ?reset=1, not the bare URL — a bare visit restores the
+              remembered filters, which would put you straight back here. */}
+          <Link href="/support/admin/crm?reset=1" className="mt-3 inline-block text-sm font-medium text-brand underline">
             Clear filters
           </Link>
         </div>
