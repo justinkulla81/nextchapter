@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { logContact } from '@/app/support/admin/(portal)/crm/actions'
 
 const CHANNELS = [
@@ -30,9 +31,27 @@ export function CrmContactCell({
   touchCount: number
   awaitingReply?: boolean
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
-  const today = new Date().toISOString().slice(0, 10)
+  // Local date, not UTC: after 8pm Eastern, toISOString() is already tomorrow.
+  const today = new Date().toLocaleDateString('en-CA')
+  const [channel, setChannel] = useState<string>('EMAIL')
+  const [date, setDate] = useState(today)
+
+  // Not a <form>: this cell renders inside the bulk-edit form, and a form in
+  // a form is invalid HTML — the browser dropped this one, so "Log" submitted
+  // the bulk bar and nothing was ever recorded.
+  function log() {
+    start(async () => {
+      const fd = new FormData()
+      fd.set('channel', channel)
+      fd.set('occurredAt', date)
+      await logContact(personId, fd)
+      setOpen(false)
+      router.refresh()
+    })
+  }
 
   if (!open) {
     return (
@@ -54,29 +73,25 @@ export function CrmContactCell({
   }
 
   return (
-    <form
-      action={(fd) => start(async () => { await logContact(personId, fd); setOpen(false) })}
-      className="min-w-56 space-y-1.5 rounded-md border border-border bg-background p-2"
-    >
-      <fieldset className="flex flex-wrap gap-1">
-        <legend className="sr-only">How you contacted {name}</legend>
-        {CHANNELS.map((c, i) => (
-          <label key={c.key} className="cursor-pointer">
-            <input type="radio" name="channel" value={c.key} defaultChecked={i === 0} className="peer sr-only" />
-            <span className="block rounded-full border border-border px-2 py-0.5 text-xs peer-checked:border-brand peer-checked:bg-brand/10 peer-checked:font-medium peer-checked:text-brand">
-              {c.label}
-            </span>
-          </label>
+    <div role="group" aria-label={`Log contact with ${name}`} className="min-w-56 space-y-1.5 rounded-md border border-border bg-background p-2">
+      <div className="flex flex-wrap gap-1">
+        {CHANNELS.map((c) => (
+          <button
+            key={c.key} type="button" aria-pressed={channel === c.key} onClick={() => setChannel(c.key)}
+            className={`rounded-full border px-2 py-0.5 text-xs ${channel === c.key ? 'border-brand bg-brand/10 font-medium text-brand' : 'border-border hover:bg-muted'}`}
+          >
+            {c.label}
+          </button>
         ))}
-      </fieldset>
+      </div>
       <div className="flex items-center gap-1.5">
         <label className="sr-only" htmlFor={`when-${personId}`}>When</label>
         <input
-          id={`when-${personId}`} type="date" name="occurredAt" defaultValue={today} max={today}
+          id={`when-${personId}`} type="date" value={date} max={today} onChange={(e) => setDate(e.target.value)}
           className="h-7 rounded border border-input bg-transparent px-1.5 text-xs"
         />
         <button
-          type="submit" disabled={pending}
+          type="button" onClick={log} disabled={pending}
           className={`rounded bg-brand px-2 py-1 text-xs font-medium text-white ${pending ? 'cursor-progress opacity-60' : ''}`}
         >
           {pending ? 'Saving…' : 'Log'}
@@ -85,6 +100,6 @@ export function CrmContactCell({
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   )
 }

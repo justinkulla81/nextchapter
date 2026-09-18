@@ -12,6 +12,7 @@ import { refreshTouchFields } from '@/lib/crm/sync'
 import { getSendAsAddresses } from '@/lib/google/gmail'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { findEmailOwner } from '@/lib/crm/email-owner'
+import { logManualContact } from '@/lib/crm/log-contact'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
@@ -19,7 +20,7 @@ import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
-  CrmFunderKind, CrmValueType, CrmActivityType,
+  CrmFunderKind, CrmValueType,
   CrmOrgType, CrmGoal, CrmEligibility, CrmOpportunityOutcome, CrmPriorityTier, Prisma,
 } from '@prisma/client'
 
@@ -1493,41 +1494,17 @@ export async function setPersonPriority(personId: string, tier: CrmPriorityTier 
  */
 export async function logContact(personId: string, formData: FormData) {
   const admin = await requireAdmin()
-  const channel = String(formData.get('channel') ?? 'EMAIL')
-  const dateRaw = String(formData.get('occurredAt') ?? '').trim()
-  const note = String(formData.get('note') ?? '').trim() || null
-
-  const TYPES: Record<string, string> = {
-    EMAIL: 'EMAIL', LINKEDIN: 'LINKEDIN_MESSAGE', CALL: 'CALL',
-    MEETING: 'MEETING', TEXT: 'NOTE', OTHER: 'NOTE',
-  }
-  const type = (TYPES[channel] ?? 'NOTE') as CrmActivityType
-  const occurredAt = dateRaw ? new Date(`${dateRaw}T12:00:00Z`) : new Date()
-
-  const person = await prisma.crmPerson.findUniqueOrThrow({
-    where: { id: personId }, select: { touchCount: true, firstTouchedAt: true, lastTouchedAt: true },
+  const { type } = await logManualContact({
+    personId,
+    channel: String(formData.get('channel') ?? 'EMAIL'),
+    date: String(formData.get('occurredAt') ?? ''),
+    note: String(formData.get('note') ?? ''),
+    loggedByEmail: admin.email ?? null,
   })
-
-  await prisma.crmActivity.create({
-    data: {
-      type, direction: 'OUTBOUND', personId, occurredAt,
-      subject: `Contacted by ${channel.toLowerCase()}`, body: note,
-      isAutoLogged: false, loggedByEmail: admin.email ?? null,
-    },
-  })
-  await prisma.crmPerson.update({
-    where: { id: personId },
-    data: {
-      // Logging an OLDER contact must not move lastTouchedAt backwards.
-      lastTouchedAt: !person.lastTouchedAt || occurredAt > person.lastTouchedAt ? occurredAt : undefined,
-      firstTouchedAt: !person.firstTouchedAt || occurredAt < person.firstTouchedAt ? occurredAt : undefined,
-      touchCount: person.touchCount + 1,
-    },
-  })
-
   captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type, auto: false, surface: 'list' })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
+  revalidatePath(`${CRM}/home`)
 }
 
 // ── Bulk actions on organizations and leads ──────────────────────────────────

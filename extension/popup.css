@@ -49,3 +49,13 @@ button:disabled { cursor: progress; opacity: .6; }
   background: #fdf3e3; border: 1px solid #eddcae; color: #8a6416;
 }
 .banner a { color: inherit; font-weight: 600; }
+
+/* The one-off "I messaged them" checkbox: its own row, set apart from the
+   contact-type grid so it reads as an action, not another category. */
+.checkbox-item.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-weight: 600;
+}

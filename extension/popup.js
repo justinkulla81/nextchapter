@@ -32,6 +32,9 @@ const KINDS = {
     { id: 'location', label: 'Location', type: 'text' },
     { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
+    // LinkedIn can never log itself — this is the only way a DM you just sent
+    // counts as contact. Logged as a LinkedIn message dated now.
+    { id: 'messagedToday', label: 'I messaged them on LinkedIn today', type: 'toggle' },
     // No LinkedIn field here — it costs a whole row for something that's
     // already sent every time as `payload.url` (see the save handler below)
     // and rarely needs a second look once you're already on the profile.
@@ -99,7 +102,16 @@ async function readPage() {
       for (let i = 0; i < maxUp && node && lines.length < maxLines; i++) {
         let sib = node.nextElementSibling
         while (sib && lines.length < maxLines) {
-          const t = (sib.matches('p') ? sib.textContent : sib.querySelector('p')?.textContent || '').trim()
+          // Hidden text is not a profile line. A profile with a video in its
+          // header carries the player's screen-reader boilerplate ("This is a
+          // modal window.") in a <p> right below the name; read as a line, it
+          // took the headline's slot and shifted every field after it by one —
+          // the title became that sentence, the company became the headline.
+          const p = sib.matches('p') ? sib : sib.querySelector('p')
+          const hidden = !p || p.closest(
+            '.video-js, [class*="vjs-"], .visually-hidden, .sr-only, [aria-hidden="true"], [hidden]'
+          ) || (typeof p.checkVisibility === 'function' && !p.checkVisibility())
+          const t = hidden ? '' : (p.textContent || '').trim()
           // "· 1st" / "· 2nd" connection-degree badges sit in the same spot;
           // skip them rather than mistaking one for the headline. Some
           // profiles also show a pronoun badge ("He/Him", "She/Her",
@@ -183,6 +195,17 @@ function renderFields() {
   const host = $('fields')
   host.innerHTML = ''
   for (const f of KINDS[kind]) {
+    if (f.type === 'toggle') {
+      const item = document.createElement('label')
+      item.className = 'checkbox-item toggle'
+      const cb = document.createElement('input')
+      cb.type = 'checkbox'
+      cb.id = `f-${f.id}`
+      item.append(cb, document.createTextNode(f.label))
+      host.append(item)
+      continue
+    }
+
     const label = document.createElement('label')
     label.htmlFor = `f-${f.id}`
     label.textContent = f.label
@@ -335,6 +358,10 @@ $('save').addEventListener('click', async () => {
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
   for (const f of KINDS[kind]) {
+    if (f.type === 'toggle') {
+      if ($(`f-${f.id}`)?.checked) payload[f.id] = true
+      continue
+    }
     if (f.type === 'checkboxes') {
       const checked = Array.from(document.querySelectorAll(`#f-${f.id} input:checked`)).map((cb) => cb.value)
       if (checked.length > 0) payload[f.id] = checked

@@ -9,6 +9,7 @@ import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { PERSON_ROLES } from '@/lib/crm/labels'
 import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 import { slugOf } from '@/lib/crm/linkedin'
+import { logManualContact } from '@/lib/crm/log-contact'
 
 export const maxDuration = 30
 
@@ -40,6 +41,8 @@ interface CapturePayload {
   categories?: string[]
   location?: string
   connectionDegree?: string
+  /** "I messaged them on LinkedIn today" — logs a LinkedIn message, dated now. */
+  messagedToday?: boolean
 }
 
 const VALID_PRIORITIES = new Set(['P0', 'P1', 'P2'])
@@ -55,6 +58,13 @@ function warmthFromConnectionDegree(degree: string | undefined): CrmWarmth | nul
   if (d.includes('1st')) return 'HOT'
   if (d.includes('2nd')) return 'WARM'
   return 'COLD' // 3rd-degree, or any other value LinkedIn ever sends here
+}
+
+async function logLinkedInMessage(personId: string) {
+  // Same path as logging from the People list, so the date, touch count and
+  // "waiting on a reply" come out identical wherever you record it.
+  await logManualContact({ personId, channel: 'LINKEDIN', date: null, loggedByEmail: null })
+  captureServerEvent('extension', 'crm_activity_logged', { personId, type: 'LINKEDIN_MESSAGE', auto: false, surface: 'extension' })
 }
 
 function rolesFrom(body: CapturePayload): CrmPersonRole[] {
@@ -256,10 +266,12 @@ export async function POST(req: NextRequest) {
           })
         : null
       if (existing) {
-        return NextResponse.json(
-          await fillBlanks(existing, body, { name, orgId, roles: rolesFrom(body) }),
-          { headers: CORS }
-        )
+        const result = await fillBlanks(existing, body, { name, orgId, roles: rolesFrom(body) })
+        if (body.messagedToday) {
+          await logLinkedInMessage(existing.id)
+          result.message = `${result.message} Logged your LinkedIn message today.`
+        }
+        return NextResponse.json(result, { headers: CORS })
       }
 
       // See crm/actions.ts's resolveInput for why a slug-derived fallback
@@ -330,7 +342,11 @@ export async function POST(req: NextRequest) {
         data: { sourceFile: 'CHROME_EXTENSION', rawJson: { ...body, via: 'extension' }, personId: person.id, matchTier: 'CREATE' },
       })
       captureServerEvent('extension', 'crm_captured', { kind: 'person', personId: person.id })
-      return NextResponse.json({ ok: true, personId: person.id, message: `Saved ${full}.` }, { headers: CORS })
+      if (body.messagedToday) await logLinkedInMessage(person.id)
+      return NextResponse.json({
+        ok: true, personId: person.id,
+        message: body.messagedToday ? `Saved ${full}, and logged your LinkedIn message today.` : `Saved ${full}.`,
+      }, { headers: CORS })
     }
 
     if (body.kind === 'layoff') {

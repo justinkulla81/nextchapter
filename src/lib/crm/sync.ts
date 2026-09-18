@@ -172,6 +172,21 @@ export async function refreshTouchFields(personIds: string[]) {
 
     // A person with no remaining activity still gets zeroed — which is what
     // keeps a removed activity from leaving a phantom touch behind.
+    // One JSON parameter, not six typed arrays. With arrays, Postgres infers
+    // each one's type from its values — and a column that's empty for every
+    // row in the batch (nobody replied, say) carries no type at all, so the
+    // UPDATE failed outright. That hit exactly the small refreshes: one
+    // logged contact, one mail check, a sync that touched only non-repliers.
+    const payload = JSON.stringify(rows.map((r) => ({
+      id: r.id,
+      count: r.count,
+      last_at: r.lastAt?.toISOString() ?? null,
+      first_at: r.firstAt?.toISOString() ?? null,
+      first_in_at: r.firstInAt?.toISOString() ?? null,
+      awaiting: r.awaiting?.toISOString() ?? null,
+    })))
+    // timestamp without time zone ignores the trailing Z, which is what we
+    // want: every DateTime here is stored as UTC wall-clock time.
     await prisma.$executeRaw`
       UPDATE "CrmPerson" AS p SET
         "touchCount" = v.count,
@@ -179,16 +194,9 @@ export async function refreshTouchFields(personIds: string[]) {
         "firstTouchedAt" = v.first_at,
         "firstRepliedAt" = v.first_in_at,
         "awaitingReplySince" = v.awaiting
-      FROM (
-        SELECT * FROM unnest(
-          ${rows.map((r) => r.id)}::text[],
-          ${rows.map((r) => r.count)}::int[],
-          ${rows.map((r) => r.lastAt)}::timestamp[],
-          ${rows.map((r) => r.firstAt)}::timestamp[],
-          ${rows.map((r) => r.firstInAt)}::timestamp[],
-          ${rows.map((r) => r.awaiting)}::timestamp[]
-        ) AS t(id, count, last_at, first_at, first_in_at, awaiting)
-      ) AS v
+      FROM jsonb_to_recordset(${payload}::jsonb) AS v(
+        id text, count int, last_at timestamp, first_at timestamp, first_in_at timestamp, awaiting timestamp
+      )
       WHERE p.id = v.id`
   }
 }
