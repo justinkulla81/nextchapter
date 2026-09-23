@@ -69,6 +69,9 @@ export async function POST() {
     if (error.includes('invalid_grant')) {
       return NextResponse.json({ ok: false, message: 'Gmail access expired — reconnect it on Activity sync.' })
     }
+    if (error.includes('403')) {
+      return NextResponse.json({ ok: false, message: 'Gmail permission is missing — reconnect it on Activity sync and tick every permission box.' })
+    }
     return NextResponse.json({ ok: false, message: 'Gmail did not answer. Try again in a moment.' })
   }
 }

@@ -65,11 +65,19 @@ export default async function CrmSyncPage({
       )}
       {params.googleError && (
         <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          <p>
-            Connection failed ({params.googleError}). If this is your first time connecting, make sure this
-            Google account is added as a test user on the OAuth consent screen in Google Cloud Console —
-            this app is still in Testing publishing status.
-          </p>
+          {params.googleError === 'missing_scopes' ? (
+            <p>
+              Google connected, but without permission to read your email or calendar — nothing was saved.
+              On Google&apos;s permissions screen, tick <strong>every</strong> box (read your email, send email,
+              and calendar), then choose Continue.
+            </p>
+          ) : (
+            <p>
+              Connection failed ({params.googleError}). If this is your first time connecting, make sure this
+              Google account is added as a test user on the OAuth consent screen in Google Cloud Console —
+              this app is still in Testing publishing status.
+            </p>
+          )}
           {params.googleErrorDetail && (
             <p className="mt-1 font-mono text-xs opacity-80">{params.googleErrorDetail}</p>
           )}

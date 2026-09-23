@@ -45,6 +45,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(adminUrl(`${returnPath}?googleError=no_refresh_token`))
     }
 
+    // Google's consent screen lets you untick individual permissions, and a
+    // grant missing them still "succeeds" — it just yields a token that can
+    // sign in and nothing else (every mail call then 403s). Refuse it before
+    // it overwrites a working connection.
+    const granted = (tokens.scope ?? '').split(/\s+/)
+    const needed = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/calendar.events']
+    if (needed.some((s) => !granted.includes(s))) {
+      return NextResponse.redirect(adminUrl(`${returnPath}?googleError=missing_scopes`))
+    }
+
     const email = await fetchGoogleUserEmail(tokens.access_token)
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
