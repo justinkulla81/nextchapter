@@ -36,6 +36,12 @@ that gap.
 Prefill is best-effort and always editable before saving — LinkedIn's markup
 changes often, and a wrong guess you can see beats a right one you can't.
 
+Beyond LinkedIn, the Person tab reads staff-directory and bio pages too: name
+(the page's `<h1>`), employer (the "Name | Organization" title), role (the first
+short job-title line after the name), plus the first `mailto:` and `tel:` links.
+Email and phone are saved on the record; someone already saved under that email
+is matched rather than duplicated.
+
 On a LinkedIn profile already in the CRM (matched by profile URL), the popup
 shows a banner with their priority, when they were last contacted, and a link
 straight to their record — checked as soon as the popup opens, before you've

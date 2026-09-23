@@ -11,6 +11,7 @@ import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 import { slugOf } from '@/lib/crm/linkedin'
 import { logManualContact } from '@/lib/crm/log-contact'
 import { completionUpdate } from '@/lib/crm/completion'
+import { normalizeEmail } from '@/lib/crm/sync-matching'
 
 export const maxDuration = 30
 
@@ -41,6 +42,8 @@ interface CapturePayload {
   priority?: string
   categories?: string[]
   location?: string
+  email?: string
+  phone?: string
   connectionDegree?: string
   /** "I messaged them on LinkedIn today" — logs a LinkedIn message, dated now. */
   messagedToday?: boolean
@@ -126,6 +129,9 @@ async function fillBlanks(
     id: string
     fullName: string
     location: string | null
+    email: string | null
+    emails: string[]
+    phone: string | null
     notes: string | null
     linkedinUrl: string | null
     priority: CrmPriorityTier | null
@@ -154,7 +160,18 @@ async function fillBlanks(
   const note = body.note?.trim()
   if (note && !existing.notes) { data.notes = note; filled.push('note') }
 
-  if (!existing.linkedinUrl && body.url) { data.linkedinUrl = body.url; filled.push('LinkedIn URL') }
+  if (!existing.linkedinUrl && slugOf(body.url)) { data.linkedinUrl = body.url; filled.push('LinkedIn URL') }
+
+  // A staff-directory or bio page is often the only place an address or a
+  // direct line is published. Fill only what's missing; the record's own
+  // email is never replaced, and a second address is kept alongside it.
+  const email = normalizeEmail(body.email)
+  if (email && !existing.emails.includes(email)) {
+    if (!existing.email) { data.email = email; filled.push('email') }
+    data.emails = { push: email }
+  }
+  const phone = body.phone?.trim()
+  if (phone && !existing.phone) { data.phone = phone; filled.push('phone') }
 
   if (!existing.priority && body.priority && VALID_PRIORITIES.has(body.priority)) {
     data.priority = body.priority as CrmPriorityTier
@@ -261,12 +278,16 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // A LinkedIn profile is matched by its slug; any other page (a staff
+      // directory, a bio) has no slug, so an email published there is what
+      // says it's someone already saved.
+      const email = normalizeEmail(body.email)
+      const include = { affiliations: { where: { isPrimary: true }, take: 1 } } as const
       const existing = slug
-        ? await prisma.crmPerson.findUnique({
-            where: { linkedinSlug: slug },
-            include: { affiliations: { where: { isPrimary: true }, take: 1 } },
-          })
-        : null
+        ? await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, include })
+        : email
+          ? await prisma.crmPerson.findFirst({ where: { OR: [{ email }, { emails: { has: email } }] }, include })
+          : null
       if (existing?.deletedAt) {
         // Writing to a removed record changes something you can't see. Say
         // it's removed and where to bring it back instead.
@@ -326,10 +347,13 @@ export async function POST(req: NextRequest) {
           firstName: full.split(' ')[0] ?? null,
           lastName: full.split(' ').slice(1).join(' ') || null,
           linkedinSlug: slug,
-          // The LinkedIn URL you were actually on — captured even when the
-          // slug lookup above fails, so a person from a non-/in/ page still
-          // gets whatever link you had open.
-          linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : (body.url ?? null),
+          // Only ever a real LinkedIn link — a staff-directory URL here would
+          // show up on the record labelled "LinkedIn". The page you were on is
+          // kept in the source record below.
+          linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : null,
+          email,
+          emails: email ? [email] : [],
+          phone: body.phone?.trim() || null,
           location: body.location?.trim() || null,
           notes: body.note?.trim() || null,
           // Someone you hand-picked from their profile is approved by the act

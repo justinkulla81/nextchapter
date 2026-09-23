@@ -29,6 +29,8 @@ const KINDS = {
     { id: 'name', label: 'Name', type: 'text' },
     { id: 'company', label: 'Company', type: 'text' },
     { id: 'jobTitle', label: 'Title', type: 'text' },
+    { id: 'email', label: 'Email', type: 'text' },
+    { id: 'phone', label: 'Phone', type: 'text' },
     { id: 'location', label: 'Location', type: 'text' },
     { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
@@ -216,6 +218,57 @@ async function readPage() {
     const text = document.body.innerText.slice(0, 20000)
     const m = text.match(/\b(?:cut|cuts|cutting|lay(?:s|ing)? off|laid off|eliminat\w+|reduc\w+)\D{0,24}([\d,]{3,})\b/i)
     if (m) out.headcount = Number(m[1].replace(/,/g, ''))
+
+    // Anything that isn't a LinkedIn profile can still be a person: a staff
+    // directory, a faculty bio, a "leadership" page. None of them share
+    // markup, so this leans on what pages of that kind reliably have — one
+    // <h1> that is the name, a "Name | Organization" <title>, a mailto: and a
+    // tel: link, and a short line naming the role somewhere after the name.
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim()
+    const titleCase = (t) => (t && t === t.toUpperCase() ? t.toLowerCase().replace(/(^|[\s'’-])([a-z])/g, (m2, a, b) => a + b.toUpperCase()) : t)
+    const looksLikeName = (t) => {
+      const words = t.split(' ')
+      return words.length >= 2 && words.length <= 5 && !/\d/.test(t) && words.every((w) => /^[A-Z][\p{L}'’.-]*$/u.test(w))
+    }
+    const scope = document.querySelector('main') || document.body
+    const h1 = scope.querySelector('h1') || document.querySelector('h1')
+    const titleParts = clean(document.title).split(/\s+[|\-–—]\s+/).filter(Boolean)
+    const nameCandidates = [clean(h1?.textContent), titleParts[0]].filter(Boolean).map(titleCase)
+    const person = { name: nameCandidates.find(looksLikeName) || '' }
+
+    // "Daniel J. Elsener | Marian University": the segment that isn't the name.
+    person.company =
+      titleParts.slice(1).find((p2) => p2.toLowerCase() !== person.name.toLowerCase() && !/^(home|directory|about|profile|people|staff|faculty)$/i.test(p2)) ||
+      meta('og:site_name') || ''
+
+    const mail = document.querySelector('a[href^="mailto:" i]')
+    person.email = mail
+      ? decodeURIComponent(mail.getAttribute('href').replace(/^mailto:/i, '').split('?')[0]).trim()
+      : (document.body.innerText.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/) || [''])[0]
+    const tel = document.querySelector('a[href^="tel:" i]')
+    const phoneText = tel ? clean(tel.textContent) : ''
+    person.phone = /\d{3}\D*\d{3}\D*\d{4}/.test(phoneText)
+      ? phoneText
+      : tel ? decodeURIComponent(tel.getAttribute('href').replace(/^tel:/i, '')).trim()
+      : (document.body.innerText.match(/\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/) || [''])[0]
+
+    // The role: the first short line after the name that reads as a job title.
+    // Text nodes rather than elements, so it works whether the title sits in
+    // its own <strong> or is a bare line before a <br>. Menus and footers are
+    // skipped — "Vice President for Admissions" in a nav is a link, not a role.
+    const ROLE = /\b(president|vice president|vp|chief|ceo|cfo|coo|cto|cio|chair(?:man|woman|person)?|director|dean|provost|chancellor|professor|lecturer|principal|partner|founder|co-?founder|managing|head of|manager|officer|executive|superintendent|commissioner|secretary|treasurer|trustee|fellow|counsel|advisor|adviser)\b/i
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const t = clean(node.textContent)
+      if (t.length < 3 || t.length > 90 || !ROLE.test(t)) continue
+      if (h1 && !(h1.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) continue
+      if (node.parentElement?.closest('nav, header, footer, aside, script, style, [role="navigation"]')) continue
+      // A sentence that happens to contain "president", not a role line.
+      if (t.split(' ').length > 10 || /[a-z]\.\s+[A-Z]/.test(t)) continue
+      person.jobTitle = t
+      break
+    }
+    out.person = person
   }
   return out
 }
@@ -274,7 +327,9 @@ function renderFields() {
     const input = document.createElement('input')
     input.id = `f-${f.id}`
     input.type = f.type
-    const guess = page.scraped[f.id]
+    // A non-LinkedIn page has its own person read (see readPage) that takes
+    // over for the shared field ids, so research's Publisher isn't overwritten.
+    const guess = (kind === 'person' && page.scraped.person ? page.scraped.person[f.id] : undefined) ?? page.scraped[f.id]
     if (guess !== undefined && guess !== '') input.value = guess
     else if (f.id === 'title') input.value = page.title
     host.append(input)
@@ -301,6 +356,7 @@ async function init() {
     page.selection = result?.selection ?? ''
     if (page.url.includes('linkedin.com/in/')) kind = 'person'
     else if (page.scraped.headcount) kind = 'layoff'
+    else if (page.scraped.person?.name && (page.scraped.person.email || page.scraped.person.phone || /\/(directory|people|profile|faculty|staff|team|leadership|bio)s?\b/i.test(new URL(page.url).pathname))) kind = 'person'
     else kind = 'research'
   } catch {
     // Chrome refuses to inject into its own pages and the Web Store; the popup
