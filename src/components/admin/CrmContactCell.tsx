@@ -38,6 +38,7 @@ export function CrmContactCell({
   const today = new Date().toLocaleDateString('en-CA')
   const [channel, setChannel] = useState<string>('EMAIL')
   const [date, setDate] = useState(today)
+  const [direction, setDirection] = useState<'OUTBOUND' | 'INBOUND'>('OUTBOUND')
 
   // Not a <form>: this cell renders inside the bulk-edit form, and a form in
   // a form is invalid HTML — the browser dropped this one, so "Log" submitted
@@ -47,6 +48,7 @@ export function CrmContactCell({
       const fd = new FormData()
       fd.set('channel', channel)
       fd.set('occurredAt', date)
+      fd.set('direction', direction)
       await logContact(personId, fd)
       setOpen(false)
       router.refresh()
@@ -74,6 +76,16 @@ export function CrmContactCell({
 
   return (
     <div role="group" aria-label={`Log contact with ${name}`} className="min-w-56 space-y-1.5 rounded-md border border-border bg-background p-2">
+      <div className="flex gap-1" role="group" aria-label="Who reached out">
+        {([['OUTBOUND', 'I reached out'], ['INBOUND', 'They replied']] as const).map(([value, label]) => (
+          <button
+            key={value} type="button" aria-pressed={direction === value} onClick={() => setDirection(value)}
+            className={`rounded-md border px-2 py-0.5 text-xs ${direction === value ? 'border-brand bg-brand/10 font-medium text-brand' : 'border-border hover:bg-muted'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-wrap gap-1">
         {CHANNELS.map((c) => (
           <button
