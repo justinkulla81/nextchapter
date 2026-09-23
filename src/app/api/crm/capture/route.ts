@@ -285,9 +285,20 @@ export async function POST(req: NextRequest) {
       const include = { affiliations: { where: { isPrimary: true }, take: 1 } } as const
       const existing = slug
         ? await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, include })
-        : email
-          ? await prisma.crmPerson.findFirst({ where: { OR: [{ email }, { emails: { has: email } }] }, include })
-          : null
+        : (email
+            ? await prisma.crmPerson.findFirst({ where: { OR: [{ email }, { emails: { has: email } }] }, include })
+            : null) ??
+          // No slug and no matching email: the same name at the same
+          // organization is the same person — this is what lets a second
+          // capture of a bio page fill in the phone or email the first one
+          // missed, instead of creating a duplicate. Both must match, so two
+          // different people who share a common name are never merged.
+          (name && orgId
+            ? await prisma.crmPerson.findFirst({
+                where: { fullName: { equals: name, mode: 'insensitive' }, affiliations: { some: { orgId } } },
+                include,
+              })
+            : null)
       if (existing?.deletedAt) {
         // Writing to a removed record changes something you can't see. Say
         // it's removed and where to bring it back instead.
