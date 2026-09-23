@@ -154,7 +154,7 @@ export async function refreshTouchFields(personIds: string[]) {
       // waiting on them.
       prisma.crmActivity.findMany({
         where, orderBy: [{ personId: 'asc' }, { occurredAt: 'desc' }],
-        distinct: ['personId'], select: { personId: true, occurredAt: true, direction: true },
+        distinct: ['personId'], select: { personId: true, occurredAt: true, direction: true, type: true },
       }),
     ])
     const agg = new Map(aggs.map((a) => [a.personId, a]))
@@ -170,7 +170,10 @@ export async function refreshTouchFields(personIds: string[]) {
         lastAt: a?._max.occurredAt ?? null,
         firstAt: a?._min.occurredAt ?? null,
         firstInAt: firstIn.get(id) ?? null,
-        awaiting: l?.direction === 'OUTBOUND' ? l.occurredAt : null,
+        // A meeting you attended isn't a message awaiting an answer — the
+        // calendar sweep logs every one as outbound, which used to leave
+        // people "waiting on a reply" for a coffee that already happened.
+        awaiting: l?.direction === 'OUTBOUND' && l.type !== 'MEETING' ? l.occurredAt : null,
       }
     })
 

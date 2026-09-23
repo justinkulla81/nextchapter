@@ -155,31 +155,34 @@ export default async function CrmHomePage({
       }).then((r) => r.length),
       prisma.crmPerson.count({ where: { deletedAt: null, awaitingReplySince: { not: null } } }),
       prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
-      prisma.$queryRaw<{ direction: string; n: number }[]>`
+      prisma.$queryRaw<{ direction: string; n: number; people: number }[]>`
         SELECT a.direction::text AS direction,
-               COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n
+               COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n,
+               COUNT(DISTINCT a."personId")::int AS people
         FROM "CrmActivity" a
         JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
         WHERE a.type = 'EMAIL' AND a."needsReview" = false AND a."occurredAt" >= ${weekAgo}
         GROUP BY 1`,
-      // Response rate: of the people you've sent a confirmed email since the
-      // cutoff, what fraction have ever replied — all-time, and for just
-      // the people first emailed this week (a reply to this week's outreach
-      // can land after the week ends; "replied" here means at all, not
-      // necessarily yet).
+      // Response rate: of the people you've reached out to since the cutoff —
+      // by email, LinkedIn message, call or a logged text, not meetings (a
+      // meeting isn't outreach) — what fraction have replied since. A message
+      // from them BEFORE you first wrote isn't a reply to anything. All-time,
+      // and for just the people first reached this week (a reply can land
+      // after the week ends; "replied" means at all, not necessarily yet).
       prisma.$queryRaw<{ emailed_total: number; replied_total: number; emailed_week: number; replied_week: number }[]>`
         WITH emailed AS (
           SELECT a."personId" AS pid, MIN(a."occurredAt") AS first_sent
           FROM "CrmActivity" a
           JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
-          WHERE a.type = 'EMAIL' AND a.direction = 'OUTBOUND' AND a."needsReview" = false
-            AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
+          WHERE a.type IN ('EMAIL', 'LINKEDIN_MESSAGE', 'CALL', 'NOTE') AND a.direction = 'OUTBOUND'
+            AND a."needsReview" = false AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
           GROUP BY a."personId"
         ),
         replied AS (
           SELECT DISTINCT a."personId" AS pid
           FROM "CrmActivity" a
-          WHERE a.type = 'EMAIL' AND a.direction = 'INBOUND' AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
+          JOIN emailed e ON e.pid = a."personId" AND a."occurredAt" > e.first_sent
+          WHERE a.direction = 'INBOUND' AND a."needsReview" = false
         )
         SELECT
           COUNT(*)::int AS emailed_total,
@@ -209,6 +212,7 @@ export default async function CrmHomePage({
 
   const sentWeek = weekTotals.find((r) => r.direction === 'OUTBOUND')?.n ?? 0
   const receivedWeek = weekTotals.find((r) => r.direction === 'INBOUND')?.n ?? 0
+  const sentPeopleWeek = weekTotals.find((r) => r.direction === 'OUTBOUND')?.people ?? 0
 
   // One entry per email, listing everyone it involved.
   type FeedItem = (typeof feedRows)[number] & { people: NonNullable<(typeof feedRows)[number]['person']>[] }
@@ -240,7 +244,6 @@ export default async function CrmHomePage({
 
   const resp = response[0] ?? { emailed_total: 0, replied_total: 0, emailed_week: 0, replied_week: 0 }
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
-  const weekReplyRate = pct(resp.replied_week, resp.emailed_week)
   const allTimeReplyRate = pct(resp.replied_total, resp.emailed_total)
 
   const stats: { label: string; value: string; hint: string; href: string; tone?: string }[] = [
@@ -248,13 +251,16 @@ export default async function CrmHomePage({
     { label: 'Records updated this week', value: String(updatedWeek), hint: 'edited by you', href: '/support/admin/crm' },
     { label: 'Waiting on a reply', value: String(waiting), hint: 'you spoke last', href: '/support/admin/crm?waiting=waiting' },
     {
-      label: 'Emails this week', value: String(sentWeek + receivedWeek),
-      hint: resp.emailed_week > 0 ? `${weekReplyRate}% of people you emailed replied` : `${sentWeek} sent · ${receivedWeek} received`,
+      // Messages, not people — the hint gives the people behind them, so the
+      // figure can't be read against the response rate's people-count below.
+      label: 'Emails sent this week', value: String(sentWeek),
+      hint: `to ${sentPeopleWeek} ${sentPeopleWeek === 1 ? 'person' : 'people'} · ${receivedWeek} received`,
       href: '/support/admin/crm/home',
     },
     {
       label: 'Response rate', value: `${allTimeReplyRate}%`,
-      hint: `${resp.replied_total} of ${resp.emailed_total} people replied`,
+      hint: `${resp.replied_total} of ${resp.emailed_total} people you reached out to replied` +
+        (resp.emailed_week > 0 ? ` · this week ${resp.replied_week} of ${resp.emailed_week}` : ''),
       href: '/support/admin/crm?waiting=not-waiting',
     },
     { label: 'P0', value: String(tierCount('P0')), hint: 'Immediate', href: '/support/admin/crm?priority=P0', tone: priorityTierClass('P0') },
