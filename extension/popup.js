@@ -268,6 +268,39 @@ async function readPage() {
       person.jobTitle = t
       break
     }
+
+    // Structured data beats guessing from layout, when a page publishes it.
+    // Sites (universities, firms, publishers) add schema.org JSON-LD for search
+    // engines: a Person carries name, jobTitle, email, telephone, employer and
+    // address as named fields, so none of the above is inference.
+    const nodes = []
+    const walk = (v) => {
+      if (Array.isArray(v)) return v.forEach(walk)
+      if (v && typeof v === 'object') { nodes.push(v); walk(v['@graph']); walk(v.mainEntity) }
+    }
+    for (const el of document.querySelectorAll('script[type="application/ld+json"]')) {
+      try { walk(JSON.parse(el.textContent)) } catch { /* malformed block — ignore */ }
+    }
+    const typeOf = (n) => [].concat(n['@type'] || []).map(String)
+    const str = (v) => (typeof v === 'string' ? clean(v) : v && typeof v === 'object' ? clean(v.name || v['@value'] || '') : '')
+    const ld = nodes.find((n) => typeOf(n).includes('Person'))
+    if (ld) {
+      const org = ld.worksFor || ld.affiliation
+      const addr = ld.address && typeof ld.address === 'object' ? [ld.address.addressLocality, ld.address.addressRegion].filter(Boolean).join(', ') : str(ld.address)
+      const ldEmail = str(ld.email).replace(/^mailto:/i, '')
+      const merged = {
+        name: str(ld.name) || [str(ld.givenName), str(ld.familyName)].filter(Boolean).join(' '),
+        jobTitle: str(ld.jobTitle),
+        company: str(Array.isArray(org) ? org[0] : org),
+        email: ldEmail,
+        phone: str(ld.telephone),
+        location: addr,
+      }
+      for (const [k, v] of Object.entries(merged)) if (v) person[k] = v
+      out.hasPersonSchema = true
+    }
+    out.isArticle = nodes.some((n) => typeOf(n).some((t) => /^(News|Blog|Scholarly|Tech)?Article$|^Report$|^ScholarlyArticle$/.test(t))) ||
+      meta('og:type') === 'article'
     out.person = person
   }
   return out
@@ -356,6 +389,8 @@ async function init() {
     page.selection = result?.selection ?? ''
     if (page.url.includes('linkedin.com/in/')) kind = 'person'
     else if (page.scraped.headcount) kind = 'layoff'
+    else if (page.scraped.hasPersonSchema && page.scraped.person?.name) kind = 'person'
+    else if (page.scraped.isArticle && !page.scraped.person?.email) kind = 'research'
     else if (page.scraped.person?.name && (page.scraped.person.email || page.scraped.person.phone || /\/(directory|people|profile|faculty|staff|team|leadership|bio)s?\b/i.test(new URL(page.url).pathname))) kind = 'person'
     else kind = 'research'
   } catch {
