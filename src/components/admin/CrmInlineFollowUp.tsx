@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { setPersonFollowUp, clearPersonFollowUp } from '@/app/support/admin/(portal)/crm/actions'
+import { setPersonFollowUp, clearPersonFollowUp, markPersonPassed } from '@/app/support/admin/(portal)/crm/actions'
 import { formatDate } from '@/lib/crm/labels'
 
 /**
@@ -12,7 +12,7 @@ import { formatDate } from '@/lib/crm/labels'
  * with no specific day attached.
  */
 export function CrmInlineFollowUp({
-  personId, note, dueAt, awaitingDays,
+  personId, note, dueAt, awaitingDays, passed,
 }: {
   personId: string
   note: string | null
@@ -21,6 +21,8 @@ export function CrmInlineFollowUp({
    * Counted by the caller: "how long ago" is a clock read, and reading the
    * clock during render is exactly what the purity rule forbids. */
   awaitingDays?: number | null
+  /** Manually declared "no current interest" — see CrmPerson.passedAt. */
+  passed?: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -34,7 +36,10 @@ export function CrmInlineFollowUp({
     // someone we emailed a week ago and never heard back from — that IS the
     // follow-up, and the number of days is the part that decides whether to
     // nudge today. An explicit follow-up still wins: it's a decision, where
-    // this is an inference.
+    // this is an inference. Passed is a decision too, and a resolved one —
+    // it wins over the "waiting" inference for the same reason, but a fresh
+    // next step (hasFollowUp) still wins over a stale "passed" if both are
+    // somehow set.
     const waitingDays = hasFollowUp ? null : awaitingDays ?? null
 
     return (
@@ -45,9 +50,11 @@ export function CrmInlineFollowUp({
       >
         {hasFollowUp
           ? `Follow up${dueAt ? ` ${formatDate(dueAt)}` : ''}${note ? `: ${note}` : ''}`
-          : waitingDays !== null
-            ? `Waiting for a reply · ${waitingDays === 0 ? 'today' : `${waitingDays}d`}`
-            : 'No follow-up set'}
+          : passed
+            ? 'Passed — no current interest'
+            : waitingDays !== null
+              ? `Waiting for a reply · ${waitingDays === 0 ? 'today' : `${waitingDays}d`}`
+              : 'No follow-up set'}
       </button>
     )
   }
@@ -78,14 +85,24 @@ export function CrmInlineFollowUp({
         >
           Save
         </button>
-        {(note || dueAt) && (
+        {!passed && (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => start(async () => { await markPersonPassed(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
+            className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          >
+            Mark passed
+          </button>
+        )}
+        {(note || dueAt || passed) && (
           <button
             type="button"
             disabled={pending}
             onClick={() => start(async () => { await clearPersonFollowUp(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted"
           >
-            Clear
+            {passed ? 'Resume' : 'Clear'}
           </button>
         )}
         <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground underline">

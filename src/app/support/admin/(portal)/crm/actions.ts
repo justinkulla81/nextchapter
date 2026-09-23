@@ -424,6 +424,9 @@ export async function setPersonFollowUp(personId: string, note: string, dateStr:
       nextFollowUpNote: note.trim() || null,
       // Noon UTC, not midnight — see logCallWithFollowUp's own comment.
       nextFollowUpAt: dateStr ? new Date(`${dateStr}T12:00:00Z`) : null,
+      // Scheduling a real next step is a decision to keep pursuing —
+      // mutually exclusive with having passed on them.
+      passedAt: null,
     },
   })
   captureServerEvent(admin.email ?? 'admin', 'crm_followup_set', { personId, hasDate: Boolean(dateStr) })
@@ -434,8 +437,27 @@ export async function setPersonFollowUp(personId: string, note: string, dateStr:
 /** Marks a follow-up reminder done — clears it without requiring a new call. */
 export async function clearPersonFollowUp(personId: string) {
   const admin = await requireAdmin()
-  await prisma.crmPerson.update({ where: { id: personId }, data: { nextFollowUpAt: null, nextFollowUpNote: null } })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { nextFollowUpAt: null, nextFollowUpNote: null, passedAt: null } })
   captureServerEvent(admin.email ?? 'admin', 'crm_followup_cleared', { personId })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
+/**
+ * "No current interest" — the third resolution for a follow-up, distinct
+ * from clearing it: clearing says the reminder is done and says nothing
+ * about the relationship, this says the pursuit is over (for now). Clears
+ * any pending next step, since a passed deal has no next step; does NOT
+ * touch priority/warmth/roles — passing on a follow-up doesn't mean the
+ * person themselves stopped mattering.
+ */
+export async function markPersonPassed(personId: string) {
+  const admin = await requireAdmin()
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: { passedAt: new Date(), nextFollowUpAt: null, nextFollowUpNote: null },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_passed', { personId })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
 }

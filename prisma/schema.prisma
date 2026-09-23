@@ -8602,6 +8602,14 @@ model CrmPerson {
   nextFollowUpAt   DateTime?
   nextFollowUpNote String?   @db.Text
 
+  /// Manually declares "no current interest" — the third resolution for a
+  /// follow-up, alongside a real next step (above) and simply waiting on a
+  /// reply (awaitingReplySince, below). Mutually exclusive with both: setting
+  /// a next step or logging a fresh reply clears this, and marking someone
+  /// passed clears any pending next step. Never inferred — only a human
+  /// decides someone has passed.
+  passedAt DateTime?
+
   // "X" in the People queue — see CrmOrganization.queueSnoozedAt's comment;
   // same mechanism, kept independent so dismissing a person never dismisses
   // the company they work for, or vice versa.
