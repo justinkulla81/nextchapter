@@ -52,9 +52,13 @@ export async function POST() {
     })
   } catch (e) {
     // A third party being slow is not the page's problem to crash over.
-    captureServerEvent(admin.email ?? 'admin', 'crm_manual_sync_failed', {
-      error: e instanceof Error ? e.message : String(e),
-    })
+    const error = e instanceof Error ? e.message : String(e)
+    captureServerEvent(admin.email ?? 'admin', 'crm_manual_sync_failed', { error })
+    // Google expires the refresh token every 7 days while the OAuth app is in
+    // testing mode — retrying can never fix that, so don't say "try again".
+    if (error.includes('invalid_grant')) {
+      return NextResponse.json({ ok: false, message: 'Gmail access expired — reconnect it on Activity sync.' })
+    }
     return NextResponse.json({ ok: false, message: 'Gmail did not answer. Try again in a moment.' })
   }
 }
