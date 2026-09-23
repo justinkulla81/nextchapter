@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 /**
- * Pulls the last few hours of mail on demand.
+ * Runs the mail and calendar sweeps on demand.
  *
  * The scheduled sweep runs on an interval measured in hours, which is right
  * for keeping 3,700 people current and wrong for the moment you have just
@@ -26,8 +26,9 @@ export function CrmSyncNowButton() {
       if (!data.ok) {
         setResult(data.message ?? 'Could not sync.')
       } else {
-        const base = data.created > 0
-          ? `${data.created} new ${data.created === 1 ? 'activity' : 'activities'}`
+        const total = data.created + (data.meetings ?? 0)
+        const base = total > 0
+          ? `${total} new ${total === 1 ? 'activity' : 'activities'}`
           : `Nothing new in the last ${data.windowHours}h`
         // Never let a partial run read as a complete one.
         setResult(data.failed > 0 ? `${base} · ${data.failed} couldn’t be read — run again` : base)

@@ -5,6 +5,7 @@ import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
 import { getSendAsAddresses } from '@/lib/google/gmail'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { CrmSyncNowButton } from '@/components/admin/CrmSyncNowButton'
 import { updateSyncSetting, updateSelfEmails, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
@@ -86,11 +87,24 @@ export default async function CrmSyncPage({
             <p className="text-sm text-muted-foreground">
               Calendar connected as <span className="font-medium text-foreground">{calendarConnection.connectedByEmail ?? 'unknown'}</span>
             </p>
+            {!token && (
+              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                Gmail access has expired — Google revokes it every 7 days while the app is in Testing.
+                Nothing is syncing until you reconnect.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               This is the same connection Market Pulse&apos;s research-inbox sweep and Webinar scheduling use —
               disconnecting either one below affects that too.
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="/api/google/oauth/start?from=/support/admin/crm/sync"
+                className={`rounded-md px-3 py-1.5 text-sm ${token ? 'border border-border hover:bg-muted' : 'bg-brand font-medium text-white'}`}
+              >
+                Reconnect Google
+              </a>
+              <CrmSyncNowButton />
               <form action={disconnectAdminGmailInbox}>
                 <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">Disconnect Gmail</button>
               </form>

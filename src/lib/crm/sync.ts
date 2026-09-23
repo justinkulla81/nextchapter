@@ -497,7 +497,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
  * is gated on `ev.start` being in the past, not the scan or the person
  * creation.
  */
-export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<SweepResult> {
+export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 'calendar'): Promise<SweepResult> {
   const base: SweepResult = { source: 'calendar', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
   // getValidAdminAccessToken throws when no calendar is connected; an
   // unconnected calendar is "nothing to sweep", not an error worth failing on.
@@ -510,7 +510,9 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
 
   const rollingFrom = new Date(Date.now() - daysBack * DAY)
   const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
-  const run = await prisma.crmSyncRun.create({ data: { source: 'calendar', windowFrom } })
+  // A hand-triggered sweep is labelled separately ('calendar-manual') for the
+  // same reason sweepGmail's is: the scheduled "is one due" check ignores it.
+  const run = await prisma.crmSyncRun.create({ data: { source: runSource, windowFrom } })
 
   try {
     const ctx = await buildSweepContext(null)

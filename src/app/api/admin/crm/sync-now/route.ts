@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { sweepGmail } from '@/lib/crm/sync'
+import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 // The same budget as the scheduled sweep: a page's server action gets 30
@@ -46,8 +46,18 @@ export async function POST() {
     if (result.reason === 'no_connection' || result.reason === 'no_token') {
       return NextResponse.json({ ok: false, message: 'Gmail is not connected — reconnect it on Activity sync.' })
     }
+    // The same two sweeps the nightly job runs — calendar too, so a meeting
+    // you just had shows up alongside the mail. Independent of Gmail's result
+    // (and of a calendar that isn't connected), and same 30-day forward window.
+    let meetings = 0
+    try {
+      const cal = await sweepCalendar(windowHours / 24, 30, 'calendar-manual')
+      meetings = cal.activitiesCreated
+    } catch {
+      // Gmail already succeeded; a calendar hiccup shouldn't hide that.
+    }
     return NextResponse.json({
-      ok: true, created: result.activitiesCreated, scanned: result.scanned, windowHours,
+      ok: true, created: result.activitiesCreated, meetings, scanned: result.scanned, windowHours,
       failed: result.failed ?? 0,
     })
   } catch (e) {
