@@ -236,7 +236,7 @@ async function isInsufficientScopeError(response: Response): Promise<boolean> {
 async function getFullMessage(
   accessToken: string,
   id: string
-): Promise<{ message: GmailMessage | null; insufficientScope: boolean }> {
+): Promise<FetchedMessage> {
   const url = `${GMAIL_API}/messages/${id}?format=full`
   // Gmail rate-limits bursts (429) and has transient 5xx — a message that
   // failed once was previously dropped for good. Retry with backoff.
@@ -248,12 +248,15 @@ async function getFullMessage(
     await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
     response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
   }
-  if (response.status === 403) return { message: null, insufficientScope: await isInsufficientScopeError(response) }
-  if (!response.ok) return { message: null, insufficientScope: false }
-  return { message: await response.json(), insufficientScope: false }
+  // Still rate-limited or erroring after the retries: worth another try next
+  // run. Anything else (a message deleted since it was listed) never will be.
+  if (await isRetryable(response)) return { message: null, insufficientScope: false, temporary: true }
+  if (response.status === 403) return { message: null, insufficientScope: await isInsufficientScopeError(response), temporary: false }
+  if (!response.ok) return { message: null, insufficientScope: false, temporary: false }
+  return { message: await response.json(), insufficientScope: false, temporary: false }
 }
 
-type FetchedMessage = { message: GmailMessage | null; insufficientScope: boolean }
+type FetchedMessage = { message: GmailMessage | null; insufficientScope: boolean; temporary?: boolean }
 
 // Fetching each message is a standalone network round trip with no shared
 // state — unlike the classify+persist step below (kept sequential because it
@@ -664,7 +667,8 @@ export async function syncGmailConnection(
           const fetched = fetchedMap.get(id)
           if (!fetched?.message) {
             if (fetched?.insufficientScope) scopeInsufficient = true
-            else sliceComplete = false // retried and still failed — try this day again next run
+            else if (fetched?.temporary !== false) sliceComplete = false // still rate-limited — try this day again next run
+            // a permanent failure (deleted message) is skipped, never allowed to stall the mailbox
             continue
           }
           const result = await processMessage(connection, id, fetched, direction, workHistoryCompanies, registeredAt, interimListingDomainMap)
