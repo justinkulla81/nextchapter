@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { revokeRoleGrant } from '@/lib/auth/role-grants'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 
 // §A2.4 break-glass reactivation needs something real to react against —
 // this is the flip side: an ACTIVE MembershipSubscription whose
@@ -33,6 +34,8 @@ export async function GET(request: NextRequest) {
       })
       await revokeRoleGrant(subscription.candidate.userId, 'member')
       captureServerEvent(subscription.candidateId, 'membership_lapsed', {})
+      // Moves the candidate's CRM opportunity to "dormant" — see candidate-sync.ts.
+      syncCandidateToCrm(subscription.candidateId).catch(() => {})
       lapsedCount += 1
     } catch (error) {
       console.error('Membership lapse check failed for subscription', subscription.id, error)

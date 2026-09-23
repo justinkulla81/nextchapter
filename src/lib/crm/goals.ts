@@ -17,6 +17,7 @@ export const GOAL_LABELS: Record<CrmGoal, string> = {
   ECOSYSTEM_RECRUITING: 'Ecosystem recruiting',
   ADVISORY_RECRUITING: 'Advisory recruiting',
   USER_ACQUISITION: 'User acquisition',
+  MEMBERSHIP_UPGRADE: 'Membership upgrade',
 }
 
 export const GOAL_HINTS: Record<CrmGoal, string> = {
@@ -27,6 +28,7 @@ export const GOAL_HINTS: Record<CrmGoal, string> = {
   ECOSYSTEM_RECRUITING: 'Coaches and recruiters onto the platform',
   ADVISORY_RECRUITING: 'Advisers, academics and policy people',
   USER_ACQUISITION: 'Members and the people who send them',
+  MEMBERSHIP_UPGRADE: 'Existing candidates moving to a paid plan',
 }
 
 export const GOALS = Object.keys(GOAL_LABELS) as CrmGoal[]
@@ -105,4 +107,5 @@ export const PIPELINE_GOAL: Record<string, CrmGoal> = {
   employee_recruiting: 'FULL_TIME_RECRUITING',
   policy_advisers: 'ADVISORY_RECRUITING',
   job_seekers: 'USER_ACQUISITION',
+  candidate_membership: 'MEMBERSHIP_UPGRADE',
 }

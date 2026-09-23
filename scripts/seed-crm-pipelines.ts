@@ -13,6 +13,7 @@
  *   npm run seed:crm-pipelines
  */
 import { PrismaClient } from '@prisma/client'
+import { PIPELINE_GOAL } from '../src/lib/crm/goals'
 
 const prisma = new PrismaClient()
 
@@ -47,6 +48,11 @@ const PIPELINES: { key: string; label: string; stages: StageSeed[] }[] = [
   { key: 'employee_recruiting', label: 'Employee recruiting', stages: spine('Offer out', 'Hired') },
   { key: 'policy_advisers', label: 'Policy & advisers', stages: spine('Adviser agreement', 'Active adviser') },
   { key: 'job_seekers', label: 'Job seekers', stages: spine('Signed up', 'Active member') },
+  // Separate from job_seekers on purpose: that pipeline is about getting
+  // someone onto the platform at all (won the moment they sign up); this one
+  // is the independent journey of an already-signed-up, still-free candidate
+  // moving to a paid plan.
+  { key: 'candidate_membership', label: 'Candidate membership', stages: spine('Considering upgrade', 'Paid member') },
 ]
 
 async function main() {
@@ -54,10 +60,11 @@ async function main() {
   let stageCount = 0
 
   for (const [i, p] of PIPELINES.entries()) {
+    const goal = PIPELINE_GOAL[p.key]
     const pipeline = await prisma.crmPipeline.upsert({
       where: { key: p.key },
-      create: { key: p.key, label: p.label, sortOrder: i },
-      update: { label: p.label, sortOrder: i },
+      create: { key: p.key, label: p.label, sortOrder: i, goal },
+      update: { label: p.label, sortOrder: i, goal },
     })
     pipelineCount++
 

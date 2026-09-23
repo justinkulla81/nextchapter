@@ -19,6 +19,7 @@ import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeNotifyAdminOfNewCandidate } from '@/lib/email/send-admin-new-candidate-account'
+import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 import { computeResumeAnalysis } from '@/lib/scoring/resume-analysis/compute'
 import { computeMarketRealityComponents } from '@/lib/scoring/market-reality/compute'
 import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
@@ -241,6 +242,9 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
     // name/email — this is the main trigger point for the single admin
     // new-candidate notification (no-ops until both are actually known).
     maybeNotifyAdminOfNewCandidate(profile.id).catch(() => {})
+    // Mirrors every real candidate into the CRM — safe to call repeatedly
+    // (see candidate-sync.ts), and must never block or fail resume upload.
+    syncCandidateToCrm(profile.id).catch(() => {})
 
     try {
       const analyzed = await prisma.resume.findUnique({

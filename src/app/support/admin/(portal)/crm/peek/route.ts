@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
-import { ORG_TYPE_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
+import { ORG_TYPE_LABELS, sinceLabel, formatDate, MEMBERSHIP_STATUS_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 20
 
@@ -72,6 +72,7 @@ export async function GET(req: NextRequest) {
       },
       opportunities: { include: { pipeline: true, stage: true }, take: 5 },
       introPathsAsTarget: { include: { connectorPerson: { select: { fullName: true } } }, take: 5 },
+      candidate: { select: { membershipSubscription: { select: { status: true } } } },
     },
   })
   if (!person) return Response.json({ error: 'Not found' }, { status: 404 })
@@ -102,6 +103,8 @@ export async function GET(req: NextRequest) {
       { label: 'Last contacted', value: sinceLabel(person.lastTouchedAt) },
       { label: 'Touches', value: String(person.touchCount) },
       person.phone ? { label: 'Phone', value: person.phone } : null,
+      // Only set when this person is also a real NextChapter candidate.
+      person.candidate ? { label: 'Membership', value: MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE'] } : null,
     ].filter(Boolean),
     awaitingReply: person.awaitingReplySince !== null,
     body: person.notes ?? null,

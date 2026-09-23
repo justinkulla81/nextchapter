@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 
 const FREE_MEMBERSHIP_MONTHS = 12
 
@@ -65,4 +66,6 @@ export async function activateAlumStatus(candidateId: string, source: AlumActiva
     planKey: plan?.planKey ?? 'membership_monthly',
     freeUntil,
   })
+  // Advances the candidate's CRM opportunity to "won" — see candidate-sync.ts.
+  syncCandidateToCrm(candidateId).catch(() => {})
 }

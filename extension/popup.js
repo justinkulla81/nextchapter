@@ -137,14 +137,29 @@ async function readPage() {
     // sits right below it in the same sibling run.
     const lines = nameEl ? collectSiblingLines(nameEl, 8, 3) : []
     out.jobTitle = lines[0] || scope.querySelector('.text-body-medium')?.textContent?.trim() || ''
+    // A headline shaped "Role, Org | extra credential | extra tag" packs the
+    // org (and often unrelated fellowships/tags) into the same line as the
+    // title — e.g. "Executive Director, Harvard Project on Workforce | Aspen
+    // Ascend Fellow | Education & Economic Mobility" saved verbatim as a
+    // Title once and nobody trimmed it before saving. Requiring BOTH a comma
+    // AND a later "|" keeps this narrow: it only fires on this specific
+    // multi-clause shape, not on an ordinary single-clause title that happens
+    // to contain a comma.
+    if (out.jobTitle.includes(',') && out.jobTitle.includes('|')) {
+      out.jobTitle = out.jobTitle.split(',')[0].trim()
+    }
     // Layouts disagree on the order below the headline: some put the
     // company/school line next, others go straight to the location line
     // ("Greater Madison Area · Contact info"), with the company shown as a
     // badge off to the side. Assuming company-first filed a location as the
     // company. A line that reads as a place is treated as the location, and
-    // the company then comes from the badge links below.
+    // the company then comes from the badge links below. "Greater Boston" (no
+    // trailing "Area") slipped through the original version of this check —
+    // LinkedIn's short metro nicknames always lead with "Greater ", so that
+    // prefix is checked on its own, not only as part of a longer phrase.
     const looksLikePlace = (t) =>
       /contact info/i.test(t) ||
+      /^greater\s+/i.test(t) ||
       /\b(area|region|metropolitan|metro|county|united states|united kingdom|canada)\b/i.test(t)
     let companyLine = lines[1] || ''
     let locationLine = lines[2] || ''

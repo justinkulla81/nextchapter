@@ -15,7 +15,7 @@ import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
   PRIORITY_TIERS, PRIORITY_TIER_LABELS, priorityTierClass,
-  qualityClass, formatDate, sinceLabel,
+  qualityClass, formatDate, sinceLabel, MEMBERSHIP_STATUS_LABELS,
 } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -43,6 +43,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
       },
       opportunities: { include: { pipeline: true, stage: true } },
+      // Only ever set when this person is also a real NextChapter
+      // candidate (see CrmPerson.candidateId's schema comment) — shown as a
+      // plain fact, since their own membership-upgrade opportunity above
+      // already carries the deal-stage view of the same thing.
+      candidate: { select: { membershipSubscription: { select: { status: true } } } },
     },
   })
   if (!person) notFound()
@@ -118,6 +123,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
       </section>
+
+      {person.candidate && (
+        <p className="text-sm text-muted-foreground">
+          Also a NextChapter candidate — membership: <span className="font-medium text-foreground">
+            {MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}
+          </span>
+        </p>
+      )}
 
       <section>
         <h2 className="mb-2 text-lg font-semibold">Contact type</h2>

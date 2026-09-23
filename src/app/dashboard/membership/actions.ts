@@ -7,6 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { hasRoleGrant, grantRoleIfMissing } from '@/lib/auth/role-grants'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 
 export type FormState = { error?: string; success?: string } | undefined
 
@@ -47,6 +48,8 @@ export async function subscribeToMembership(billingPeriod: 'MONTHLY' | 'ANNUAL')
     data: { candidateId: ctx.profile.id, planKey, status: 'ACTIVE', source: 'SELF_SERVE', currentPeriodEnd },
   })
   await grantRoleIfMissing(ctx.user.id, 'member')
+  // Advances the candidate's CRM opportunity to "won" — see candidate-sync.ts.
+  syncCandidateToCrm(ctx.profile.id).catch(() => {})
 
   captureServerEvent(ctx.profile.id, 'membership_subscribed', { planKey, priceCents: plan.priceCents })
   revalidatePath('/dashboard/membership')
@@ -74,6 +77,8 @@ export async function reactivateMembership(): Promise<FormState> {
     data: { status: 'ACTIVE', reactivatedAt: new Date(), lapsedAt: null, currentPeriodEnd },
   })
   await grantRoleIfMissing(ctx.user.id, 'member')
+  // Advances the candidate's CRM opportunity to "won" — see candidate-sync.ts.
+  syncCandidateToCrm(ctx.profile.id).catch(() => {})
 
   captureServerEvent(ctx.profile.id, 'membership_reactivated', { planKey: subscription.planKey })
   revalidatePath('/dashboard/membership')

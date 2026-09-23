@@ -1,4 +1,4 @@
-import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibility, CrmPriorityTier } from '@prisma/client'
+import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibility, CrmPriorityTier, MembershipStatus } from '@prisma/client'
 
 // Human labels for the CRM enums. Sentence case per design-principles.md.
 //
@@ -76,6 +76,16 @@ export const PRIORITY_TIER_LABELS: Record<CrmPriorityTier, string> = {
   P0: 'Immediate',
   P1: 'High',
   P2: 'Not urgent',
+}
+
+// No MembershipSubscription row at all means never subscribed — genuinely
+// distinct from LAPSED/CANCELLED (which mean "was, isn't now"). "FREE" isn't
+// a real MembershipStatus value; it's what an absent subscription means.
+export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus | 'FREE', string> = {
+  FREE: 'Free',
+  ACTIVE: 'Active (paid)',
+  LAPSED: 'Lapsed',
+  CANCELLED: 'Cancelled',
 }
 
 // Alphabetical by the display label, not enum declaration order — every

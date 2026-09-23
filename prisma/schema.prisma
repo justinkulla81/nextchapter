@@ -9675,6 +9675,12 @@ enum CrmGoal {
   ECOSYSTEM_RECRUITING
   ADVISORY_RECRUITING
   USER_ACQUISITION
+  // Getting an existing, already-signed-up candidate onto a paid membership
+  // plan. Deliberately separate from USER_ACQUISITION (job_seekers), which is
+  // about getting someone onto the platform at all — a real candidate is
+  // "won" there the moment they sign up, then starts a second, independent
+  // journey here.
+  MEMBERSHIP_UPGRADE
 }
 
 /// How often the Gmail and Calendar sweeps run.
