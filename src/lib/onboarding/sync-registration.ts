@@ -6,6 +6,7 @@ import type { CandidateProfile } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { findIdentityMatchesForCandidate } from '@/lib/onboarding/identity-match'
+import { findCrmInviteMatches, inferLeadSource } from '@/lib/candidates/lead-source'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -93,6 +94,13 @@ export async function syncRegistrationCompletion(
       )
     )
   }
+
+  // Someone the admin invited from the CRM, and how this person found us —
+  // both best-effort, neither may block registration.
+  after(async () => {
+    await findCrmInviteMatches(updated.id).catch((error) => console.error('Failed to check CRM invites:', error))
+    await inferLeadSource(updated.id).catch((error) => console.error('Failed to infer lead source:', error))
+  })
 
   return { profile: updated, justRegistered: true }
 }

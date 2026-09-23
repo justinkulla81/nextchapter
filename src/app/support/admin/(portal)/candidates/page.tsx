@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 import type { Prisma, CurrentJobStatus, SearchIntensity } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -32,6 +33,7 @@ interface Row {
   grade: string | null
   optedIn: boolean
   signupIp: string | null
+  leadSource: string | null
   signedUpAt: Date
   location: string | null
   resumeSignedUrl: string | null
@@ -97,6 +99,8 @@ export default async function AdminCandidatesPage({
         highestLevelReached: true,
         recruiterDatabaseOptIn: true,
         signupIp: true,
+        leadSource: true,
+        leadSourceDetail: true,
         createdAt: true,
         currentCity: true,
         currentState: true,
@@ -134,6 +138,7 @@ export default async function AdminCandidatesPage({
       grade,
       optedIn: c.recruiterDatabaseOptIn,
       signupIp: c.signupIp,
+      leadSource: c.leadSource ? LEAD_SOURCE_LABELS[c.leadSource] + (c.leadSourceDetail ? ` · ${c.leadSourceDetail}` : '') : null,
       location: [c.currentCity, c.currentState].filter(Boolean).join(', ') || null,
       resumeSignedUrl: resumeLinksByCandidateId.get(c.id) ?? null,
       dossier: dossierGates.get(c.id) ?? null,
@@ -187,6 +192,7 @@ export default async function AdminCandidatesPage({
         ),
     },
     { header: 'Recruiter opt-in', render: (r) => (r.optedIn ? 'Yes' : 'No') },
+    { header: 'Lead source', render: (r) => r.leadSource ?? 'Not known' },
     { header: 'Signup IP', render: (r) => r.signupIp ?? '—' },
     { header: 'Date signed up', render: (r) => r.signedUpAt.toLocaleDateString() },
   ]

@@ -37,6 +37,10 @@ const KINDS = {
     // LinkedIn can never log itself — this is the only way a DM you just sent
     // counts as contact. Logged as a LinkedIn message dated now.
     { id: 'messagedToday', label: 'I messaged them on LinkedIn today', type: 'toggle' },
+    // Flags them so that when someone with a similar name or the same email
+    // signs up, the admin is asked to confirm it's them — and the candidate's
+    // lead source becomes this referral.
+    { id: 'invitedAsCandidate', label: 'I invited them to join NextChapter as a candidate', type: 'toggle' },
     // No LinkedIn field here — it costs a whole row for something that's
     // already sent every time as `payload.url` (see the save handler below)
     // and rarely needs a second look once you're already on the profile.

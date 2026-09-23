@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
+import { markInvitedAsCandidate } from '@/lib/candidates/invite'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName, isOrgQuickPick, placeholderOrgKindFor, ORG_PLACEHOLDER_NAME, type OrgPlaceholderKind } from '@/lib/crm/normalize'
@@ -2224,4 +2225,21 @@ export async function sendOutreachEmail(personId: string, subject: string, body:
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
   return { sent: true, message: `Sent to ${person.fullName}.` }
+}
+
+/** Flags (or un-flags) that the admin invited this person to join NextChapter as a candidate. */
+export async function setCandidateInvited(personId: string, invited: boolean): Promise<{ message: string }> {
+  const admin = await requireAdmin()
+  let message: string
+  if (invited) {
+    const { alreadyMember } = await markInvitedAsCandidate(personId, `You (${admin.email ?? 'admin'})`)
+    message = alreadyMember ? 'Already a NextChapter member.' : 'Marked as invited.'
+  } else {
+    await prisma.crmPerson.update({ where: { id: personId }, data: { candidateInvitedAt: null, candidateInvitedBy: null } })
+    message = 'Invite flag removed.'
+  }
+  captureServerEvent(admin.email ?? 'admin', 'crm_candidate_invited', { personId, invited, surface: 'crm' })
+  revalidatePath(`${CRM}/people/${personId}`)
+  revalidatePath(`${CRM}/home`)
+  return { message }
 }

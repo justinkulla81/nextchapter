@@ -6,6 +6,7 @@ import { confirmIdentityMatch, rejectIdentityMatch } from '@/app/support/admin/(
 import { cn } from '@/lib/utils'
 
 const SOURCE_LABEL: Record<string, string> = {
+  CRM_INVITE: 'Someone you invited from the CRM',
   REFERENCE: 'Named as a reference',
   COACH_INVITE: "A coach's invited client",
   RECRUITER_LEAD: "A recruiter's sourced lead",
@@ -15,6 +16,7 @@ const SOURCE_LABEL: Record<string, string> = {
 const STRENGTH_LABEL: Record<string, string> = {
   EMAIL_EXACT: 'Exact email match',
   PHONE_EXACT: 'Exact phone match',
+  NAME_SIMILAR: 'Similar name (confirm it’s the same person)',
   FUZZY_NAME_WORK_LOCATION: 'Name + work history match (no email/phone on file)',
 }
 

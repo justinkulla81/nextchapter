@@ -170,9 +170,12 @@ async function listMessageIds(
       q: `after:${afterUnixSeconds} before:${beforeUnixSeconds}`,
     })
     if (pageToken) params.set('pageToken', pageToken)
-    const response = await fetch(`${GMAIL_API}/messages?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const url = `${GMAIL_API}/messages?${params.toString()}`
+    let response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    for (let attempt = 1; attempt <= 4 && (await isRetryable(response)); attempt++) {
+      await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
+      response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    }
     if (!response.ok) {
       // An incomplete list must not be mistaken for a complete one — the
       // caller keeps its bookmark where it was and tries this day again.

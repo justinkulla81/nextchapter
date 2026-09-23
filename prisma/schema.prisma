@@ -551,6 +551,15 @@ model CandidateProfile {
   // surfaced to a real recruiter/employer as an actual match.
   isSampleData Boolean @default(false)
 
+  // How this candidate found NextChapter. Guessed once at registration from
+  // real signals (a coach/recruiter invite, an outplacement seat, the first
+  // visit's referrer); a referral the admin confirms, or an admin edit,
+  // always wins over a guess. leadSourceSetBy: "auto" | "invite" | admin email.
+  leadSource       CandidateLeadSource?
+  leadSourceDetail String?
+  leadSourceSetBy  String?
+  leadSourceSetAt  DateTime?
+
   // Captured once, at the very first CandidateProfile row creation
   // (including anonymous pre-registration profiles) — a simple bot signal
   // for admin: many accounts sharing one IP in a short window is suspicious
@@ -3993,7 +4002,22 @@ model ScholarshipApplication {
   @@index([status])
 }
 
+enum CandidateLeadSource {
+  REFERRAL_ADMIN // invited/referred by the NextChapter founder
+  REFERRAL_OTHER // referred by someone else (a candidate, a friend, a partner)
+  LINKEDIN
+  SEARCH // Google, Bing, ChatGPT and other search/AI answers
+  SOCIAL // other social networks
+  EMAIL // an email or newsletter link
+  COACH // a coach's client invite
+  RECRUITER // a recruiter's sourced-candidate invite
+  OUTPLACEMENT // an employer's outplacement seat
+  ORGANIC // came directly, no referrer
+  OTHER
+}
+
 enum CandidateIdentityMatchSource {
+  CRM_INVITE // a CrmPerson the admin marked "invited to join NextChapter" (the capture extension)
   REFERENCE // Reference.refereeEmail matched this candidate's confirmed email
   COACH_INVITE // CoachClientInvite.invitedEmail matched — signed up organically, not via the invite link
   RECRUITER_LEAD // SourcedCandidate.email matched — same, organic signup rather than the invite link
@@ -4001,6 +4025,7 @@ enum CandidateIdentityMatchSource {
 }
 
 enum CandidateIdentityMatchStrength {
+  NAME_SIMILAR // CRM_INVITE only — the invited person's name looks like this candidate's (typos, nicknames, middle names)
   EMAIL_EXACT
   PHONE_EXACT
   FUZZY_NAME_WORK_LOCATION // CONTACT only — name + company overlap with this candidate's own WorkHistoryEntry, no email/phone on file
@@ -8646,6 +8671,14 @@ model CrmPerson {
   // ── graduation links ──
   candidateId String?
   candidate   CandidateProfile? @relation("CrmPersonCandidate", fields: [candidateId], references: [id], onDelete: SetNull)
+
+  /// When the admin invited this person to join NextChapter as a candidate
+  /// (the capture extension's "Invited to join" toggle). A new signup whose
+  /// name or email resembles an invited person is flagged for review on
+  /// Identity Matches; confirming links the two and sets the candidate's
+  /// lead source to the admin's referral.
+  candidateInvitedAt    DateTime?
+  candidateInvitedBy    String?
 
   coachId String?
   coach   Coach?  @relation(fields: [coachId], references: [id], onDelete: SetNull)

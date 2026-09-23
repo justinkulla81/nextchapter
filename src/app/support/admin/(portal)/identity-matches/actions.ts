@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
+import { linkInvitedCrmPerson } from '@/lib/candidates/link-invite'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // Every confirm/reject here requires requireAdmin() and is invoked only
 // from an admin clicking a button — same "always human-reviewed" pattern as
@@ -18,6 +20,10 @@ export async function confirmIdentityMatch(matchId: string): Promise<void> {
 
   try {
     switch (match.source) {
+      case 'CRM_INVITE':
+        await linkInvitedCrmPerson(match.sourceRecordId, match.candidateId)
+        captureServerEvent(admin.email ?? 'admin', 'crm_invite_linked_to_candidate', { candidateId: match.candidateId, personId: match.sourceRecordId })
+        break
       case 'REFERENCE':
         await prisma.reference.update({
           where: { id: match.sourceRecordId, refereeCandidateId: null },

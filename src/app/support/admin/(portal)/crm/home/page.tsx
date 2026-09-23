@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
@@ -87,7 +88,7 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, waiting, tiers, weekTotals, response, needsReviewCount] =
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, waiting, tiers, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -192,6 +193,16 @@ export default async function CrmHomePage({
         FROM emailed e
         LEFT JOIN replied r ON r.pid = e.pid`,
       prisma.crmActivity.count({ where: { needsReview: true, person: { deletedAt: null } } }),
+      // Invited from the CRM (the extension's or person page's "invited to
+      // join" flag), and of those, how many are now linked to a real signup.
+      prisma.crmPerson.count({ where: { deletedAt: null, candidateInvitedAt: { not: null } } }),
+      prisma.crmPerson.count({ where: { deletedAt: null, candidateInvitedAt: { not: null }, candidateId: { not: null } } }),
+      prisma.candidateProfile.count({ where: { isSampleData: false, isSystemAccount: false, registrationCompletedAt: { not: null } } }),
+      prisma.candidateProfile.groupBy({
+        by: ['leadSource'],
+        where: { isSampleData: false, isSystemAccount: false, registrationCompletedAt: { not: null } },
+        _count: { _all: true },
+      }),
     ])
 
   // Every day in the window, including silent ones — a gap in the line is
@@ -266,6 +277,23 @@ export default async function CrmHomePage({
     { label: 'P0', value: String(tierCount('P0')), hint: 'Immediate', href: '/support/admin/crm?priority=P0', tone: priorityTierClass('P0') },
     { label: 'P1', value: String(tierCount('P1')), hint: 'High', href: '/support/admin/crm?priority=P1', tone: priorityTierClass('P1') },
     { label: 'P2', value: String(tierCount('P2')), hint: 'Not urgent', href: '/support/admin/crm?priority=P2', tone: priorityTierClass('P2') },
+    {
+      label: 'Invited to NextChapter', value: String(invitedTotal),
+      hint: `${invitedJoined} joined · ${invitedTotal - invitedJoined} not yet`,
+      href: '/support/admin/crm?invited=1',
+    },
+    {
+      // Real, registered candidates who weren't one of your invites — with
+      // how they did find us, most common first.
+      label: 'Candidates not invited', value: String(realCandidates - invitedJoined),
+      hint: candidatesBySource
+        .filter((g) => g.leadSource !== 'REFERRAL_ADMIN')
+        .sort((a, b) => b._count._all - a._count._all)
+        .slice(0, 3)
+        .map((g) => `${g._count._all} ${g.leadSource ? LEAD_SOURCE_LABELS[g.leadSource].toLowerCase() : 'unknown'}`)
+        .join(' · ') || 'none yet',
+      href: '/support/admin/candidates',
+    },
   ]
 
   return (

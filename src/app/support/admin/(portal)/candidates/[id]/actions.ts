@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { AdminNudgeType, CandidateStakeholderType } from '@prisma/client'
+import type { AdminNudgeType, CandidateLeadSource, CandidateStakeholderType } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -105,4 +105,19 @@ export async function sendCandidateNudgeEmail(
 
   if (!result.sent) return { error: result.error }
   return undefined
+}
+
+/** Admin sets or corrects how this candidate found NextChapter — always wins over a guess. */
+export async function updateCandidateLeadSource(candidateId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const raw = String(formData.get('leadSource') ?? '')
+  const leadSource = raw ? (raw as CandidateLeadSource) : null
+  const detail = String(formData.get('leadSourceDetail') ?? '').trim() || null
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { leadSource, leadSourceDetail: detail, leadSourceSetBy: admin.email ?? 'admin', leadSourceSetAt: new Date() },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'candidate_lead_source_set', { candidateId, leadSource })
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+  revalidatePath('/support/admin/candidates')
 }

@@ -11,6 +11,7 @@ import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 import { slugOf } from '@/lib/crm/linkedin'
 import { logManualContact } from '@/lib/crm/log-contact'
 import { completionUpdate } from '@/lib/crm/completion'
+import { markInvitedAsCandidate } from '@/lib/candidates/invite'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 
 export const maxDuration = 30
@@ -47,6 +48,8 @@ interface CapturePayload {
   connectionDegree?: string
   /** "I messaged them on LinkedIn today" — logs a LinkedIn message, dated now. */
   messagedToday?: boolean
+  /** "I invited them to join NextChapter as a candidate." */
+  invitedAsCandidate?: boolean
 }
 
 const VALID_PRIORITIES = new Set(['P0', 'P1', 'P2'])
@@ -314,6 +317,11 @@ export async function POST(req: NextRequest) {
           await logLinkedInMessage(existing.id)
           result.message = `${result.message} Logged your LinkedIn message today.`
         }
+        if (body.invitedAsCandidate) {
+          const { alreadyMember } = await markInvitedAsCandidate(existing.id, 'You — invited via the capture extension')
+          captureServerEvent('extension', 'crm_candidate_invited', { personId: existing.id, alreadyMember })
+          result.message = `${result.message} ${alreadyMember ? 'They’re already a NextChapter member.' : 'Marked as invited to NextChapter.'}`
+        }
         return NextResponse.json(result, { headers: CORS })
       }
 
@@ -389,9 +397,17 @@ export async function POST(req: NextRequest) {
       })
       captureServerEvent('extension', 'crm_captured', { kind: 'person', personId: person.id })
       if (body.messagedToday) await logLinkedInMessage(person.id)
+      if (body.invitedAsCandidate) {
+        await markInvitedAsCandidate(person.id, 'You — invited via the capture extension')
+        captureServerEvent('extension', 'crm_candidate_invited', { personId: person.id, alreadyMember: false })
+      }
+      const extras = [
+        body.messagedToday && 'logged your LinkedIn message today',
+        body.invitedAsCandidate && 'marked as invited to NextChapter',
+      ].filter(Boolean)
       return NextResponse.json({
         ok: true, personId: person.id,
-        message: body.messagedToday ? `Saved ${full}, and logged your LinkedIn message today.` : `Saved ${full}.`,
+        message: extras.length > 0 ? `Saved ${full}, and ${extras.join(' and ')}.` : `Saved ${full}.`,
       }, { headers: CORS })
     }
 

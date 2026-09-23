@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
+import { CrmInviteToggle } from '@/components/admin/CrmInviteToggle'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
@@ -114,7 +115,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             )}
           </p>
         </div>
-        <CrmLogLinkedInButton personId={person.id} />
+        <div className="flex flex-col items-end gap-2">
+          <CrmLogLinkedInButton personId={person.id} />
+          <CrmInviteToggle
+            personId={person.id}
+            invitedAt={person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null}
+            isCandidate={!!person.candidateId}
+          />
+        </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-4">

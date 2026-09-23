@@ -31,7 +31,8 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote, sendAdminThreadReply } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource } from './actions'
+import { LEAD_SOURCES, LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
   WEEKLY_TARGET: 'Weekly target',
@@ -85,7 +86,7 @@ export const maxDuration = 30
 
 async function loadIpAndResume(candidateId: string) {
   const [profile, resume] = await Promise.all([
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { signupIp: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { signupIp: true, leadSource: true, leadSourceDetail: true, leadSourceSetBy: true } }),
     prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' } }),
   ])
 
@@ -98,6 +99,9 @@ async function loadIpAndResume(candidateId: string) {
 
   return {
     signupIp: profile?.signupIp ?? null,
+    leadSource: profile?.leadSource ?? null,
+    leadSourceDetail: profile?.leadSourceDetail ?? null,
+    leadSourceSetBy: profile?.leadSourceSetBy ?? null,
     resumeFileName: resume?.fileName ?? null,
     resumeSignedUrl,
     looksLikeResume: resume?.looksLikeResume ?? null,
@@ -260,6 +264,29 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         <p className="mt-1 text-sm text-muted-foreground">
           Signup IP: {ipAndResume.signupIp ?? 'unknown'}
         </p>
+        <form action={updateCandidateLeadSource.bind(null, id)} className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <label htmlFor="leadSource" className="font-medium">Lead source</label>
+          <select
+            id="leadSource" name="leadSource" defaultValue={ipAndResume.leadSource ?? ''}
+            className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
+          >
+            <option value="">Not known yet</option>
+            {LEAD_SOURCES.map((s) => <option key={s} value={s}>{LEAD_SOURCE_LABELS[s]}</option>)}
+          </select>
+          <input
+            name="leadSourceDetail" defaultValue={ipAndResume.leadSourceDetail ?? ''}
+            placeholder="Who referred them / which campaign" aria-label="Lead source detail"
+            className="h-8 w-64 rounded-md border border-input bg-transparent px-2 text-sm"
+          />
+          <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">Save</SubmitButton>
+          {ipAndResume.leadSourceSetBy && (
+            <span className="text-xs text-muted-foreground">
+              {ipAndResume.leadSourceSetBy === 'auto' ? 'Guessed from their first visit or invite'
+                : ipAndResume.leadSourceSetBy === 'invite' ? 'From your CRM invite'
+                : `Set by ${ipAndResume.leadSourceSetBy}`}
+            </span>
+          )}
+        </form>
         <div className="mt-2 flex flex-wrap gap-3 text-sm">
           <Link
             href={`/support/admin/candidates/${id}/profile`}

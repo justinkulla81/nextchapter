@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { findCrmInviteMatches } from '@/lib/candidates/lead-source'
 
 const MEMBERSHIP_PIPELINE_KEY = 'candidate_membership'
 
@@ -51,6 +52,20 @@ export async function syncCandidateToCrm(candidateId: string): Promise<Candidate
   let person = await prisma.crmPerson.findFirst({ where: { candidateId: candidate.id, deletedAt: null } })
   if (!person && email) {
     person = await prisma.crmPerson.findFirst({ where: { email, deletedAt: null } })
+  }
+
+  // An exact email match to someone the admin invited is the referral itself —
+  // no review needed to know how this candidate got here. A name-only
+  // resemblance is flagged for review instead (findCrmInviteMatches below).
+  if (person?.candidateInvitedAt) {
+    await prisma.candidateProfile.updateMany({
+      where: { id: candidate.id, OR: [{ leadSource: null }, { leadSourceSetBy: 'auto' }] },
+      data: { leadSource: 'REFERRAL_ADMIN', leadSourceDetail: person.candidateInvitedBy ?? 'Invited from the CRM', leadSourceSetBy: 'invite', leadSourceSetAt: new Date() },
+    })
+  } else if (!person) {
+    // The name is usually only known after the resume is read — which is
+    // when this runs — so this is the reliable moment to look for invites.
+    await findCrmInviteMatches(candidate.id).catch((e) => console.error('Failed to check CRM invites:', e))
   }
 
   let personCreated = false

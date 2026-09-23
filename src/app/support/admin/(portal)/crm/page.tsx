@@ -121,6 +121,7 @@ export default async function CrmPeoplePage({
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
   const waiting = sp.waiting ?? ''
+  const invited = sp.invited === '1' ? '1' : ''
   const goal = sp.goal ?? ''
   const priority = sp.priority ?? ''
   const minScore = parseInt(sp.minScore ?? '', 10)
@@ -172,6 +173,7 @@ export default async function CrmPeoplePage({
     ...(waiting === 'not-waiting' ? { awaitingReplySince: null } : {}),
     ...(waiting === 'passed' ? { passedAt: { not: null } } : {}),
     ...(waiting === 'keep-in-touch' ? { keepInTouchAt: { not: null } } : {}),
+    ...(invited ? { candidateInvitedAt: { not: null } } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
@@ -211,6 +213,7 @@ export default async function CrmPeoplePage({
         waiting === 'not-waiting' && 'not waiting on them',
         waiting === 'passed' && 'not interested',
         waiting === 'keep-in-touch' && 'keep in touch',
+        invited && 'invited to NextChapter',
         goal && `goal ${GOAL_LABELS[goal as CrmGoal]}`,
         priority && `priority ${priority}`,
         Number.isFinite(minScore) && `score ${minScore}+`,
@@ -221,7 +224,7 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, waiting, goal, priority,
+    q, role, quality, warmth, touched, waiting, invited, goal, priority,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
@@ -326,6 +329,7 @@ export default async function CrmPeoplePage({
           { key: 'warmth', label: 'Warmth', value: warmth, options: [{ value: '', label: 'Any warmth' }, ...WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))] },
           { key: 'touched', label: 'Contact', value: touched, options: [{ value: '', label: 'Contacted or not' }, { value: 'never', label: 'Never contacted' }, { value: 'ever', label: 'Contacted at least once' }] },
           { key: 'waiting', label: 'Waiting on reply', value: waiting, options: [{ value: '', label: 'Waiting or not' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'not-waiting', label: 'Not waiting on them' }, { value: 'passed', label: 'Not interested' }, { value: 'keep-in-touch', label: 'Keep in touch (newsletter)' }] },
+          { key: 'invited', label: 'Invited', value: invited, options: [{ value: '', label: 'Invited or not' }, { value: '1', label: 'Invited to NextChapter' }] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           // Thresholds match the real distribution: people top out around 67
           // and cluster near 30, so 70+ would match nobody and 30+ everybody.
@@ -342,7 +346,7 @@ export default async function CrmPeoplePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-          {q || role || quality || warmth || touched || waiting ? ' matching these filters' : ''}
+          {q || role || quality || warmth || touched || waiting || invited ? ' matching these filters' : ''}
         </p>
         {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
         <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
