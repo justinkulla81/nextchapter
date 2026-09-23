@@ -28,6 +28,11 @@ export async function ReconnectBanner({
   ) as string[]
   const plural = services.length > 1
 
+  // One Google grant covers both Gmail and Calendar, and the combined flow
+  // re-arms both connections at once. Separate Gmail-only / Calendar-only
+  // buttons meant reconnecting Gmail left the Calendar banner standing.
+  const reconnectHref = withOAuthReturnTo('/api/auth/google-connect/start', returnTo)
+
   if (variant === 'link') {
     return (
       <p className="text-sm">
@@ -35,17 +40,9 @@ export async function ReconnectBanner({
           Reconnect your {services.join(' and ')} to keep activity tracked automatically
         </span>
         {' — '}
-        {needsGmailReconnect && (
-          <a href={withOAuthReturnTo('/api/auth/gmail/start', returnTo)} className="text-primary underline underline-offset-4">
-            reconnect Gmail
-          </a>
-        )}
-        {needsGmailReconnect && needsCalendarReconnect && ' · '}
-        {needsCalendarReconnect && (
-          <a href={withOAuthReturnTo('/api/auth/calendar/start', returnTo)} className="text-primary underline underline-offset-4">
-            reconnect Calendar
-          </a>
-        )}
+        <a href={reconnectHref} className="text-primary underline underline-offset-4">
+          reconnect Google
+        </a>
         {' '}(+5 pts{plural ? ' each' : ''}).
       </p>
     )
@@ -59,16 +56,9 @@ export async function ReconnectBanner({
         {plural ? ' per connection' : ''}.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        {needsGmailReconnect && (
-          <Button nativeButton={false} render={<a href={withOAuthReturnTo('/api/auth/gmail/start', returnTo)} />} size="sm">
-            Reconnect Gmail
-          </Button>
-        )}
-        {needsCalendarReconnect && (
-          <Button nativeButton={false} render={<a href={withOAuthReturnTo('/api/auth/calendar/start', returnTo)} />} size="sm">
-            Reconnect Calendar
-          </Button>
-        )}
+        <Button nativeButton={false} render={<a href={reconnectHref} />} size="sm">
+          Reconnect Google (Gmail and Calendar)
+        </Button>
       </div>
     </div>
   )

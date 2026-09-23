@@ -427,7 +427,7 @@ async function AutomaticTrackingSection({
               <CardContent className="space-y-3">
                 <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                   Your Gmail connection expired (this happens periodically while this feature is in testing).{' '}
-                  <a href={withOAuthReturnTo('/api/auth/gmail/start', '/dashboard/network')} className="underline">
+                  <a href={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/network')} className="underline">
                     Reconnect
                   </a>
                   .
@@ -490,7 +490,7 @@ async function AutomaticTrackingSection({
               <CardContent className="space-y-3">
                 <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                   Your calendar connection expired (this happens periodically while this feature is in testing).{' '}
-                  <a href={withOAuthReturnTo('/api/auth/calendar/start', '/dashboard/network')} className="underline">
+                  <a href={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/network')} className="underline">
                     Reconnect
                   </a>
                   .
