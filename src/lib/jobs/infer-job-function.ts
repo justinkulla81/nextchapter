@@ -195,11 +195,18 @@ export function isAmbiguousPartnerTitle(title: string): boolean {
   return true
 }
 
+// Any "Chief ___ Officer" (Strategy, Investment, Diversity...) — the
+// named list above only covered a handful, so "Chief Strategy Officer" fell
+// all the way through to IC.
+const CHIEF_OFFICER = /\bchief [a-z&,/ -]{2,40}officer\b/
+
 export function inferLevelFromTitle(title: string): string {
-  const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `
+  // "Vice President" contains "president" — without this, every VP title
+  // read as C-Suite via the bare 'president' keyword.
+  const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase())).replace(/\bvice[\s-]+president\b/g, 'vp')} `
   for (const entry of LEVEL_KEYWORDS) {
     const matchesKeyword = entry.keywords.some((kw) => lower.includes(kw))
-    const matchesExecAcronym = entry.level === 'C-Suite' && EXEC_ACRONYM_PATTERN.test(lower)
+    const matchesExecAcronym = entry.level === 'C-Suite' && (EXEC_ACRONYM_PATTERN.test(lower) || CHIEF_OFFICER.test(lower))
     const matchesBoardQualifier = entry.level === 'C-Suite' && BOARD_QUALIFIER.test(lower)
     const matchesBareED = entry.level === 'Director' && BARE_ED_ABBREVIATION.test(lower)
     const matchesBarePrincipal =

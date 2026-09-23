@@ -412,6 +412,7 @@ async function processMessage(
       fromAddress: direction === 'INBOUND' ? from : to,
       hasResumeAttachment: resumeShared,
       isRecruiterContact,
+      matchedRule: classification.rule?.slice(0, 300) ?? null,
     },
   })
 

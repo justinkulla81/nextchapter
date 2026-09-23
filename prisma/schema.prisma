@@ -550,6 +550,7 @@ model CandidateProfile {
   // purposes only and must never receive a real candidate email or be
   // surfaced to a real recruiter/employer as an actual match.
   isSampleData Boolean @default(false)
+  classificationFeedback ClassificationFeedback[]
 
   // How this candidate found NextChapter. Guessed once at registration from
   // real signals (a coach/recruiter invite, an outplacement seat, the first
@@ -4046,6 +4047,32 @@ enum CandidateIdentityMatchStatus {
 // product decision: even an exact email match still requires a click,
 // because the actual link operation touches another person's data, not just
 // this candidate's own).
+// A candidate saying an automatic detection was wrong — a "rejection" that
+// wasn't, an "application" that was a newsletter. Kept (never just deleted)
+// with the rule that fired, so misfires can be reviewed by rule and fixed in
+// the classifier instead of one email at a time. See the admin page
+// /support/admin/classification-feedback.
+model ClassificationFeedback {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  // What was removed: an email-detected activity, or an application row.
+  recordKind  String // "EMAIL_ACTIVITY" | "JOB_APPLICATION"
+  recordId    String
+  detectedAs  String // the activityType it was classified as, or "APPLICATION"
+  reason      String // NOT_A_REJECTION | NOT_AN_APPLICATION | NOT_JOB_RELATED | DUPLICATE | WRONG_COMPANY | OTHER
+  note        String?
+  subject     String?
+  fromAddress String?
+  companyName String?
+  matchedRule String?
+  reviewedAt  DateTime? // an admin looked at it (and fixed the rule or decided it was a one-off)
+  createdAt   DateTime         @default(now())
+
+  @@index([createdAt])
+  @@index([matchedRule])
+}
+
 model CandidateIdentityMatch {
   id          String           @id @default(cuid())
   candidateId String
@@ -4196,6 +4223,10 @@ model TrackedEmailActivity {
   detectedAt          DateTime          @default(now())
   reviewedAt          DateTime? // candidate confirmed/corrected a needs-review item
   dismissedAt         DateTime? // candidate marked this classification wrong — excluded from all stats/lists
+  // Which pattern made the classifier decide this (e.g. "rejection:sentence"
+  // or a regex source) — recorded at sync so a candidate's "this is wrong"
+  // points straight at the rule to fix. Null on rows synced before this existed.
+  matchedRule         String?
 
   @@unique([connectionId, externalMessageId])
   @@index([candidateId, activityType])

@@ -13,6 +13,9 @@ import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 export interface PatternMatch {
   matched: boolean
   confidence: 'high' | 'low'
+  /** Which pattern fired — stored with the detection so a candidate's
+   * "this is wrong" points at the exact rule to fix. */
+  rule?: string
 }
 
 // Real ATS/email-client templates routinely emit a "smart" curly apostrophe
@@ -46,8 +49,13 @@ export function normalizeForMatching(text: string): string {
 }
 
 function testAny(text: string, patterns: RegExp[]): boolean {
+  return firstMatch(text, patterns) !== null
+}
+
+// The source of the first pattern that matches, or null.
+function firstMatch(text: string, patterns: RegExp[]): string | null {
   const normalized = normalizeForMatching(text)
-  return patterns.some((p) => p.test(normalized))
+  return patterns.find((p) => p.test(normalized))?.source ?? null
 }
 
 // --- BULK / PROMOTIONAL PRE-FILTER ---
@@ -251,21 +259,21 @@ const APPLICATION_CONTEXT = /\b(application|applied|applying|candidacy|candidate
 const ADDRESSED = /\b(you|your)\b|\b(other|another) (candidates?|applicants?)\b/i
 const CONDITIONAL = /\b(if|unless|should|in the event|in case|whether)\b/i
 
-function hasRejectionSentence(text: string): boolean {
-  const sentences = normalizeForMatching(text).split(/(?<=[.!?;])\s+/)
-  return sentences.some((sentence) =>
-    DECISION_NO.some((p) => p.test(sentence)) &&
-    APPLICATION_CONTEXT.test(sentence) &&
-    ADDRESSED.test(sentence) &&
-    !CONDITIONAL.test(sentence)
-  )
+// The decision cue that fired, or null.
+function rejectionSentenceCue(text: string): string | null {
+  for (const sentence of normalizeForMatching(text).split(/(?<=[.!?;])\s+/)) {
+    if (!APPLICATION_CONTEXT.test(sentence) || !ADDRESSED.test(sentence) || CONDITIONAL.test(sentence)) continue
+    const cue = DECISION_NO.find((p) => p.test(sentence))
+    if (cue) return cue.source
+  }
+  return null
 }
 
 export function matchRejection(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject}. ${bodyPreview}`
-  if (testAny(text, REJECTION_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (hasRejectionSentence(text)) return { matched: true, confidence: 'high' }
-  if (testAny(text, REJECTION_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
+  { const hit = firstMatch(text, REJECTION_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `REJECTION_HIGH_CONFIDENCE: ${hit}` } }
+  { const cue = rejectionSentenceCue(text); if (cue) return { matched: true, confidence: 'high', rule: `REJECTION_SENTENCE: ${cue}` } }
+  { const hit = firstMatch(text, REJECTION_LOW_CONFIDENCE); if (hit) return { matched: true, confidence: 'low', rule: `REJECTION_LOW_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 
@@ -279,8 +287,8 @@ const OFFER_LOW_CONFIDENCE = [/next steps.{0,30}offer/i, /compensation package/i
 
 export function matchOffer(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, OFFER_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (testAny(text, OFFER_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
+  { const hit = firstMatch(text, OFFER_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `OFFER_HIGH_CONFIDENCE: ${hit}` } }
+  { const hit = firstMatch(text, OFFER_LOW_CONFIDENCE); if (hit) return { matched: true, confidence: 'low', rule: `OFFER_LOW_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 
@@ -309,8 +317,8 @@ const INTERVIEW_INVITE_LOW_CONFIDENCE = [
 
 export function matchInterviewInvite(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, INTERVIEW_INVITE_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (testAny(text, INTERVIEW_INVITE_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
+  { const hit = firstMatch(text, INTERVIEW_INVITE_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `INTERVIEW_INVITE_HIGH_CONFIDENCE: ${hit}` } }
+  { const hit = firstMatch(text, INTERVIEW_INVITE_LOW_CONFIDENCE); if (hit) return { matched: true, confidence: 'low', rule: `INTERVIEW_INVITE_LOW_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 
@@ -352,7 +360,7 @@ const APPLICATION_CONFIRMATION_HIGH_CONFIDENCE = [
 
 export function matchApplicationConfirmation(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, APPLICATION_CONFIRMATION_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  { const hit = firstMatch(text, APPLICATION_CONFIRMATION_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `APPLICATION_CONFIRMATION_HIGH_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 
@@ -742,8 +750,8 @@ const THANK_YOU_BARE_SUBJECT = /^(re:\s*)?thanks?( you)?[!.]{0,3}$/i
 
 export function matchThankYou(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, THANK_YOU_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (THANK_YOU_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
+  { const hit = firstMatch(text, THANK_YOU_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `THANK_YOU_HIGH_CONFIDENCE: ${hit}` } }
+  if (THANK_YOU_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high', rule: 'THANK_YOU_BARE_SUBJECT' }
   return { matched: false, confidence: 'low' }
 }
 
@@ -771,8 +779,8 @@ const FOLLOW_UP_BARE_SUBJECT =
 
 export function matchFollowUp(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, FOLLOW_UP_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (FOLLOW_UP_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
+  { const hit = firstMatch(text, FOLLOW_UP_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `FOLLOW_UP_HIGH_CONFIDENCE: ${hit}` } }
+  if (FOLLOW_UP_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high', rule: 'FOLLOW_UP_BARE_SUBJECT' }
   return { matched: false, confidence: 'low' }
 }
 
@@ -786,7 +794,7 @@ const INTRO_REQUEST_HIGH_CONFIDENCE = [
 
 export function matchIntroRequest(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, INTRO_REQUEST_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  { const hit = firstMatch(text, INTRO_REQUEST_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `INTRO_REQUEST_HIGH_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 
@@ -843,9 +851,9 @@ export function matchResumeShared(subject: string, bodyPreview: string, attachme
 
 export function matchNetworkingOutreach(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, NETWORKING_OUTREACH_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  if (NETWORKING_OUTREACH_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
-  if (testAny(text, NETWORKING_OUTREACH_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
+  { const hit = firstMatch(text, NETWORKING_OUTREACH_HIGH_CONFIDENCE); if (hit) return { matched: true, confidence: 'high', rule: `NETWORKING_OUTREACH_HIGH_CONFIDENCE: ${hit}` } }
+  if (NETWORKING_OUTREACH_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high', rule: 'NETWORKING_OUTREACH_BARE_SUBJECT' }
+  { const hit = firstMatch(text, NETWORKING_OUTREACH_LOW_CONFIDENCE); if (hit) return { matched: true, confidence: 'low', rule: `NETWORKING_OUTREACH_LOW_CONFIDENCE: ${hit}` } }
   return { matched: false, confidence: 'low' }
 }
 

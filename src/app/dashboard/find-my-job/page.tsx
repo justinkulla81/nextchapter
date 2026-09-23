@@ -660,6 +660,7 @@ async function FindMyJobBody({
     kind: 'email',
     label: a.subject || (a.companyName ? `Email — ${a.companyName}` : 'Email'),
     date: a.detectedAt,
+    detectedAs: a.activityType,
   })
   // Recruiter contact now covers both directions of email (a recruiter's
   // inbound outreach or the candidate's own outbound reply/cold outreach to
@@ -713,15 +714,18 @@ async function FindMyJobBody({
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-2xl font-bold text-foreground tabular-nums">
-            {allApplications.length}
-            <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-              ({applicationsThisWeek} job{applicationsThisWeek === 1 ? '' : 's'} this week)
-            </span>
-          </p>
-          <p className="text-xs text-muted-foreground">Applications sent</p>
-        </div>
+        {/* Expandable like the tiles beside it, so a misread "application"
+            can be spotted and removed (with a reason) instead of just counted. */}
+        <NetworkStatTile
+          label={`Applications sent · ${applicationsThisWeek} this week`}
+          items={allApplications.map((j) => ({
+            id: j.id,
+            kind: 'application' as const,
+            label: [j.title, j.companyName].filter(Boolean).join(' — ') || 'Application',
+            date: j.appliedAt!,
+            detectedAs: 'APPLICATION',
+          }))}
+        />
         {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
           <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
         ))}

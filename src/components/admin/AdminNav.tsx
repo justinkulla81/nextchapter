@@ -163,6 +163,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
         { href: '/support/admin/scholarship-applications', label: 'Scholarship Applications', badge: badgeFor('scholarshipApplications') },
         { href: '/support/admin/identity-matches', label: 'Identity Matches', badge: badgeFor('identityMatches') },
+        { href: '/support/admin/classification-feedback', label: 'Detection Feedback' },
         { href: '/support/admin/references', label: 'References' },
         { href: '/support/admin/reference-disputes', label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
         { href: '/support/admin/employer-references', label: 'Employer References' },

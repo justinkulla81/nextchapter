@@ -33,6 +33,7 @@ export interface ClassificationResult {
     | 'NEEDS_REVIEW'
   confidence: 'high' | 'low'
   companyName: string | null
+  rule?: string
 }
 
 // Subdomain labels that describe a mail *purpose*, not a company — real
@@ -120,7 +121,7 @@ export function classifyInboundEmail(
   if (rejection.matched && winsOverBulk(rejection.confidence)) {
     return {
       activityType: 'REJECTION',
-      confidence: rejection.confidence,
+      confidence: rejection.confidence, rule: rejection.rule,
       companyName:
         companyName ?? guessCompanyFromRejectionText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
@@ -128,19 +129,19 @@ export function classifyInboundEmail(
 
   const offer = matchOffer(subject, bodyPreview)
   if (offer.matched && winsOverBulk(offer.confidence)) {
-    return { activityType: 'OFFER', confidence: offer.confidence, companyName }
+    return { activityType: 'OFFER', confidence: offer.confidence, rule: offer.rule, companyName }
   }
 
   const interview = matchInterviewInvite(subject, bodyPreview)
   if (interview.matched && winsOverBulk(interview.confidence)) {
-    return { activityType: 'INTERVIEW_INVITE', confidence: interview.confidence, companyName }
+    return { activityType: 'INTERVIEW_INVITE', confidence: interview.confidence, rule: interview.rule, companyName }
   }
 
   const confirmation = matchApplicationConfirmation(subject, bodyPreview)
   if (confirmation.matched && winsOverBulk(confirmation.confidence)) {
     return {
       activityType: 'APPLICATION_CONFIRMATION',
-      confidence: confirmation.confidence,
+      confidence: confirmation.confidence, rule: confirmation.rule,
       companyName:
         companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
@@ -166,7 +167,7 @@ export function classifyInboundEmail(
     if (outreach.confidence === 'high' && matchScreeningCallRequest(subject, bodyPreview)) {
       return { activityType: 'INTERVIEW_INVITE', confidence: 'high', companyName }
     }
-    return { activityType: 'RECRUITER_OUTREACH', confidence: outreach.confidence, companyName }
+    return { activityType: 'RECRUITER_OUTREACH', confidence: outreach.confidence, rule: outreach.rule, companyName }
   }
 
   return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }
@@ -176,21 +177,21 @@ export function classifyOutboundEmail(subject: string, bodyPreview: string, toAd
   const companyName = guessCompanyFromDomain(toAddress)
 
   const thankYou = matchThankYou(subject, bodyPreview)
-  if (thankYou.matched) return { activityType: 'THANK_YOU', confidence: thankYou.confidence, companyName }
+  if (thankYou.matched) return { activityType: 'THANK_YOU', confidence: thankYou.confidence, rule: thankYou.rule, companyName }
 
   const introRequest = matchIntroRequest(subject, bodyPreview)
-  if (introRequest.matched) return { activityType: 'INTRO_REQUEST', confidence: introRequest.confidence, companyName }
+  if (introRequest.matched) return { activityType: 'INTRO_REQUEST', confidence: introRequest.confidence, rule: introRequest.rule, companyName }
 
   // Covers both "following up" and "checking in" phrasing — see
   // matchFollowUp's comment in ats-patterns.ts for why these were merged.
   const followUp = matchFollowUp(subject, bodyPreview)
-  if (followUp.matched) return { activityType: 'FOLLOW_UP', confidence: followUp.confidence, companyName }
+  if (followUp.matched) return { activityType: 'FOLLOW_UP', confidence: followUp.confidence, rule: followUp.rule, companyName }
 
   // Lowest priority — a bare networking keyword shouldn't steal a message
   // that already matched one of the more specific categories above.
   const networkingOutreach = matchNetworkingOutreach(subject, bodyPreview)
   if (networkingOutreach.matched) {
-    return { activityType: 'NETWORKING_OUTREACH', confidence: networkingOutreach.confidence, companyName }
+    return { activityType: 'NETWORKING_OUTREACH', confidence: networkingOutreach.confidence, rule: networkingOutreach.rule, companyName }
   }
 
   return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }

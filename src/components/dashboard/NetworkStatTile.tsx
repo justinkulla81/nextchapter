@@ -2,15 +2,18 @@ import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
 import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { StatTile } from '@/components/dashboard/StatTile'
+import { DetectionRemoveButton } from '@/components/dashboard/DetectionRemoveButton'
 
 export interface StatTileItem {
   id: string
   // 'manual' — a self-logged OutreachLog entry, not a machine guess (see
   // resolveSelfLoggedOutreach) — has no dismiss action below, since there's
   // no auto-detected classification on it to be "wrong."
-  kind: 'email' | 'calendar' | 'manual'
+  kind: 'email' | 'calendar' | 'manual' | 'application'
   label: string
   date: Date
+  /** What it was detected as (e.g. REJECTION) — email and application items ask why it's wrong. */
+  detectedAs?: string
 }
 
 // Expands in place (via StatTile's <details>) rather than linking to another
@@ -32,7 +35,10 @@ export function NetworkStatTile({ label, items }: { label: string; items: StatTi
                   {item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
               </div>
-              {item.kind !== 'manual' && (
+              {(item.kind === 'application' || (item.kind === 'email' && item.detectedAs)) && (
+                <DetectionRemoveButton id={item.id} kind={item.kind === 'application' ? 'application' : 'email'} detectedAs={item.detectedAs ?? 'APPLICATION'} />
+              )}
+              {(item.kind === 'calendar' || (item.kind === 'email' && !item.detectedAs)) && (
                 <form action={(item.kind === 'email' ? dismissEmailActivity : dismissCalendarEvent).bind(null, item.id)}>
                   <SubmitButton
                     variant="ghost"

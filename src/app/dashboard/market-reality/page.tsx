@@ -32,6 +32,8 @@ import {
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanationForm'
 import { EstimateTag } from '@/components/ui/estimate-tag'
+import { getSearchDiagnosis } from '@/lib/reports/search-diagnosis-data'
+import type { Verdict } from '@/lib/reports/search-diagnosis'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
 
@@ -156,6 +158,91 @@ interface JobSearchPatternData {
 interface ExecutiveSummary {
   improvementNarrative: string[]
   whatToDoMore: string[]
+}
+
+const VERDICT_STYLE: Record<Verdict, { label: string; tone: string }> = {
+  act: { label: 'Act on this', tone: 'bg-destructive/10 text-destructive' },
+  watch: { label: 'Worth watching', tone: 'bg-warning/15 text-warning' },
+  good: { label: 'On track', tone: 'bg-success/10 text-success' },
+  unknown: { label: 'Not enough data', tone: 'bg-muted text-muted-foreground' },
+}
+
+// Live, not frozen at report time: rejections and applications arrive from
+// Gmail every hour, and a diagnosis of the search should move with them.
+// Pure arithmetic over the candidate's own records — no AI call.
+async function SearchDiagnosisSection({ candidateId }: { candidateId: string }) {
+  const d = await getSearchDiagnosis(candidateId)
+  if (d.totals.applications === 0) return null
+  const maxWeek = Math.max(1, ...d.weeks.map((w) => w.applied))
+  return (
+    <div className="mt-10 border-t border-border pt-8">
+      <SectionHeading>Search diagnosis</SectionHeading>
+      <p className="mt-2 text-sm text-muted-foreground">
+        From your {d.totals.applications} applications, {d.totals.interviews} interview{d.totals.interviews === 1 ? '' : 's'},{' '}
+        {d.totals.rejections} rejection{d.totals.rejections === 1 ? '' : 's'} and your networking — updated as new mail arrives.
+        Something counted wrongly? Remove it on the{' '}
+        <Link href="/dashboard/find-my-job" className="text-primary underline underline-offset-4">Jobs</Link> page.
+      </p>
+
+      {d.ideas.length > 0 && (
+        <div className="mt-5 rounded-lg border border-brand/30 bg-brand/5 p-4">
+          <p className="text-sm font-semibold text-foreground">What to change next</p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-foreground">
+            {d.ideas.map((idea) => <li key={idea}>{idea}</li>)}
+          </ol>
+        </div>
+      )}
+
+      <ul className="mt-5 divide-y divide-border rounded-lg border border-border">
+        {d.checks.map((c) => (
+          <li key={c.key} className="p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">{c.question}</p>
+              <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', VERDICT_STYLE[c.verdict].tone)}>
+                {VERDICT_STYLE[c.verdict].label}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-foreground">{c.headline}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{c.detail}</p>
+            {c.suggestion && <p className="mt-1.5 text-sm text-foreground"><span className="font-medium">Try:</span> {c.suggestion}</p>}
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-5">
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Last 12 weeks</p>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full min-w-[32rem] text-xs tabular-nums">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-1 pr-2 font-normal">Week of</th>
+                <th className="py-1 pr-2 font-normal">Applied</th>
+                <th className="py-1 pr-2 font-normal">Interviews</th>
+                <th className="py-1 font-normal">Rejections</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.weeks.map((w) => (
+                <tr key={w.weekStart.toISOString()} className="border-t border-border">
+                  <td className="py-1 pr-2 text-muted-foreground">
+                    {w.weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                  </td>
+                  <td className="py-1 pr-2">
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block h-2 rounded-sm bg-brand/60" style={{ width: `${(w.applied / maxWeek) * 6}rem` }} aria-hidden />
+                      {w.applied}
+                    </span>
+                  </td>
+                  <td className="py-1 pr-2">{w.interviews}</td>
+                  <td className="py-1">{w.rejections}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
@@ -685,6 +772,10 @@ export default async function MarketRealityReportPage() {
 
           <Suspense fallback={null}>
             <SearchStrategyGuidanceSection candidateId={profile.id} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <SearchDiagnosisSection candidateId={profile.id} />
           </Suspense>
 
 

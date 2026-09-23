@@ -90,3 +90,90 @@ export async function forceFullResyncAction(): Promise<{ error?: string }> {
   revalidatePath('/dashboard/find-my-job')
   return {}
 }
+
+const REASONS = new Set(['NOT_A_REJECTION', 'NOT_AN_INTERVIEW', 'NOT_AN_OFFER', 'NOT_AN_APPLICATION', 'NOT_JOB_RELATED', 'DUPLICATE', 'WRONG_COMPANY', 'OTHER'])
+const DAY = 86_400_000
+
+/**
+ * "This detection is wrong" with a reason — hides it everywhere (same as
+ * dismissEmailActivity) and keeps a feedback record with the rule that fired,
+ * so the classifier can be fixed by rule rather than one email at a time. A
+ * wrong rejection also stops marking the matching application rejected; a
+ * wrong application confirmation also removes the application it created.
+ */
+export async function reportWrongDetection(activityId: string, reason: string): Promise<void> {
+  const profile = await getProfile()
+  if (!profile || !REASONS.has(reason)) return
+  const activity = await prisma.trackedEmailActivity.findFirst({ where: { id: activityId, candidateId: profile.id, dismissedAt: null } })
+  if (!activity) return
+
+  await prisma.trackedEmailActivity.update({ where: { id: activity.id }, data: { dismissedAt: new Date() } })
+  await prisma.classificationFeedback.create({
+    data: {
+      candidateId: profile.id, recordKind: 'EMAIL_ACTIVITY', recordId: activity.id,
+      detectedAs: activity.activityType, reason, subject: activity.subject, fromAddress: activity.fromAddress,
+      companyName: activity.companyName, matchedRule: activity.matchedRule,
+    },
+  })
+
+  if (activity.companyName) {
+    const company = activity.companyName
+    const apps = await prisma.jobPosting.findMany({ where: { candidateId: profile.id, companyName: { equals: company, mode: 'insensitive' } } })
+    if (activity.activityType === 'REJECTION') {
+      // Only if no other (still-trusted) rejection from that company backs it up.
+      const other = await prisma.trackedEmailActivity.count({
+        where: { candidateId: profile.id, activityType: 'REJECTION', dismissedAt: null, companyName: { equals: company, mode: 'insensitive' } },
+      })
+      if (other === 0) {
+        await prisma.jobPosting.updateMany({
+          where: { id: { in: apps.map((a) => a.id) }, declinedBy: 'COMPANY' },
+          data: { declinedAt: null, declinedBy: null },
+        })
+      }
+    }
+    if (activity.activityType === 'APPLICATION_CONFIRMATION') {
+      const near = apps.filter((a) => a.source === 'EMAIL_DETECTED' && a.appliedAt && Math.abs(a.appliedAt.getTime() - activity.detectedAt.getTime()) < 45 * DAY)
+      if (near.length > 0) await prisma.jobPosting.deleteMany({ where: { id: { in: near.map((a) => a.id) } } })
+    }
+  }
+
+  captureServerEvent(profile.id, 'email_detection_reported_wrong', { activityType: activity.activityType, reason, rule: activity.matchedRule ?? null })
+  revalidatePath('/dashboard/find-my-job')
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/market-reality')
+}
+
+/** Removes an application that isn't real (a misread confirmation, a duplicate), with a reason. */
+export async function removeJobApplication(jobPostingId: string, reason: string): Promise<void> {
+  const profile = await getProfile()
+  if (!profile || !REASONS.has(reason)) return
+  const app = await prisma.jobPosting.findFirst({ where: { id: jobPostingId, candidateId: profile.id } })
+  if (!app) return
+
+  // The confirmation email that created it, when there is one — hidden too,
+  // so a later sync or rescan can't bring the application back.
+  const confirmation = app.companyName && app.source === 'EMAIL_DETECTED'
+    ? await prisma.trackedEmailActivity.findFirst({
+        where: {
+          candidateId: profile.id, activityType: 'APPLICATION_CONFIRMATION', dismissedAt: null,
+          companyName: { equals: app.companyName, mode: 'insensitive' },
+          ...(app.appliedAt ? { detectedAt: { gte: new Date(app.appliedAt.getTime() - 45 * DAY) } } : {}),
+        },
+        orderBy: { detectedAt: 'asc' },
+      })
+    : null
+  if (confirmation) await prisma.trackedEmailActivity.update({ where: { id: confirmation.id }, data: { dismissedAt: new Date() } })
+
+  await prisma.classificationFeedback.create({
+    data: {
+      candidateId: profile.id, recordKind: 'JOB_APPLICATION', recordId: app.id, detectedAs: 'APPLICATION', reason,
+      subject: confirmation?.subject ?? app.title, fromAddress: confirmation?.fromAddress ?? null,
+      companyName: app.companyName, matchedRule: confirmation?.matchedRule ?? (app.source === 'EMAIL_DETECTED' ? null : `added ${app.source}`),
+    },
+  })
+  await prisma.jobPosting.delete({ where: { id: app.id } })
+
+  captureServerEvent(profile.id, 'job_application_removed', { source: app.source, reason })
+  revalidatePath('/dashboard/find-my-job')
+  revalidatePath('/dashboard/market-reality')
+}
