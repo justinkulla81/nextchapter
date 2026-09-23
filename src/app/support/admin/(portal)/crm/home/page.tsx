@@ -88,7 +88,7 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, waiting, tiers, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -154,7 +154,6 @@ export default async function CrmHomePage({
         where: { type: { in: ['FIELD_CHANGED', 'STAGE_CHANGED'] }, occurredAt: { gte: weekAgo }, person: { deletedAt: null } },
         distinct: ['personId'], select: { personId: true },
       }).then((r) => r.length),
-      prisma.crmPerson.count({ where: { deletedAt: null, awaitingReplySince: { not: null } } }),
       prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
       prisma.$queryRaw<{ direction: string; n: number; people: number }[]>`
         SELECT a.direction::text AS direction,
@@ -267,12 +266,11 @@ export default async function CrmHomePage({
   const stats: { label: string; value: string; hint: string; href: string; tone?: string }[] = [
     { label: 'People added this week', value: String(addedTotal), hint: addedHint, href: '/support/admin/crm/needs-completion' },
     { label: 'Records updated this week', value: String(updatedWeek), hint: 'edited by you', href: '/support/admin/crm' },
-    { label: 'Waiting on a reply', value: String(waiting), hint: 'you spoke last', href: '/support/admin/crm?waiting=waiting' },
     {
       // Messages, not people — the hint gives the people behind them, so the
       // figure can't be read against the response rate's people-count below.
       label: 'Emails sent this week', value: String(sentWeek),
-      hint: `to ${sentPeopleWeek} ${sentPeopleWeek === 1 ? 'person' : 'people'} · ${receivedWeek} received`,
+      hint: `to ${sentPeopleWeek} ${sentPeopleWeek === 1 ? 'person' : 'people'} · ${receivedWeek} ${receivedWeek === 1 ? 'email' : 'emails'} from contacts`,
       href: '/support/admin/crm/home',
     },
     {
@@ -285,20 +283,22 @@ export default async function CrmHomePage({
     { label: 'P1', value: String(tierCount('P1')), hint: 'High', href: '/support/admin/crm?priority=P1', tone: priorityTierClass('P1') },
     { label: 'P2', value: String(tierCount('P2')), hint: 'Not urgent', href: '/support/admin/crm?priority=P2', tone: priorityTierClass('P2') },
     {
-      label: 'Invited to NextChapter', value: String(invitedTotal),
-      hint: `${invitedJoined} joined · ${invitedTotal - invitedJoined} not yet`,
+      label: 'Your candidate invites', value: String(invitedTotal),
+      hint: `people you invited to join · ${invitedJoined} signed up`,
       href: '/support/admin/crm?invited=1',
     },
     {
-      // Real, registered candidates who weren't one of your invites — with
-      // how they did find us, most common first.
-      label: 'Candidates not invited', value: String(realCandidates - invitedJoined),
-      hint: candidatesBySource
-        .filter((g) => g.leadSource !== 'REFERRAL_ADMIN')
-        .sort((a, b) => b._count._all - a._count._all)
-        .slice(0, 3)
-        .map((g) => `${g._count._all} ${g.leadSource ? LEAD_SOURCE_LABELS[g.leadSource].toLowerCase() : 'unknown'}`)
-        .join(' · ') || 'none yet',
+      // Every real, registered candidate — how many came from your invites,
+      // and how the rest found NextChapter, most common first.
+      label: 'Candidates signed up', value: String(realCandidates),
+      hint: [
+        `${invitedJoined} from your invites`,
+        ...candidatesBySource
+          .filter((g) => g.leadSource !== 'REFERRAL_ADMIN')
+          .sort((a, b) => b._count._all - a._count._all)
+          .slice(0, 3)
+          .map((g) => `${g._count._all} ${g.leadSource ? LEAD_SOURCE_LABELS[g.leadSource].toLowerCase() : 'source unknown'}`),
+      ].join(' · '),
       href: '/support/admin/candidates',
     },
   ]
