@@ -181,8 +181,9 @@ async function fillBlanks(
     filled.push('organization')
   }
 
-  // Whatever it was flagged for may now be filled in.
-  if (existing.needsCompletion && (jobTitle || primary?.title) && (parsed.orgId || primary)) {
+  // Capturing someone by hand approves them, even if the mail sync had
+  // already added and flagged them first.
+  if (existing.needsCompletion) {
     Object.assign(data, completionUpdate(true, true))
   }
 
@@ -331,11 +332,11 @@ export async function POST(req: NextRequest) {
           linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : (body.url ?? null),
           location: body.location?.trim() || null,
           notes: body.note?.trim() || null,
-          // The Review List's own definition is "missing a title or an
-          // organization" — now that the scraper reliably fills both, a
-          // capture that already has them is a finished record, not a
-          // half-done one. Only flag it when something's actually missing.
-          needsCompletion: !(body.jobTitle?.trim() && orgId),
+          // Someone you hand-picked from their profile is approved by the act
+          // of saving them — the Review List is for people the sync added on
+          // its own, not for anyone you chose. A missing title or org stays
+          // visible on the row; it just doesn't ask to be reviewed.
+          needsCompletion: false,
           roles,
           // Someone worth capturing mid-browse is worth a baseline follow-up
           // by default — P2 unless you picked a different priority yourself.
