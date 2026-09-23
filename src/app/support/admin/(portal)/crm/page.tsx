@@ -168,9 +168,10 @@ export default async function CrmPeoplePage({
     ...(warmth ? { warmth: warmth as CrmWarmth } : {}),
     ...(touched === 'never' ? { lastTouchedAt: null } : {}),
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
-    ...(waiting === 'waiting' ? { awaitingReplySince: { not: null }, passedAt: null } : {}),
+    ...(waiting === 'waiting' ? { awaitingReplySince: { not: null }, passedAt: null, keepInTouchAt: null } : {}),
     ...(waiting === 'not-waiting' ? { awaitingReplySince: null } : {}),
     ...(waiting === 'passed' ? { passedAt: { not: null } } : {}),
+    ...(waiting === 'keep-in-touch' ? { keepInTouchAt: { not: null } } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
@@ -185,7 +186,7 @@ export default async function CrmPeoplePage({
       take: perPage,
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
-        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, passedAt: true, priorityScore: true, linkedinUrl: true,
+        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
@@ -208,7 +209,8 @@ export default async function CrmPeoplePage({
         touched === 'ever' && 'contacted at least once',
         waiting === 'waiting' && 'waiting on their reply',
         waiting === 'not-waiting' && 'not waiting on them',
-        waiting === 'passed' && 'passed / no current interest',
+        waiting === 'passed' && 'not interested',
+        waiting === 'keep-in-touch' && 'keep in touch',
         goal && `goal ${GOAL_LABELS[goal as CrmGoal]}`,
         priority && `priority ${priority}`,
         Number.isFinite(minScore) && `score ${minScore}+`,
@@ -323,7 +325,7 @@ export default async function CrmPeoplePage({
           { key: 'quality', label: 'Quality', value: quality, options: [{ value: '', label: 'Any quality' }, ...QUALITIES.map((x) => ({ value: x, label: QUALITY_LABELS[x] }))] },
           { key: 'warmth', label: 'Warmth', value: warmth, options: [{ value: '', label: 'Any warmth' }, ...WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))] },
           { key: 'touched', label: 'Contact', value: touched, options: [{ value: '', label: 'Contacted or not' }, { value: 'never', label: 'Never contacted' }, { value: 'ever', label: 'Contacted at least once' }] },
-          { key: 'waiting', label: 'Waiting on reply', value: waiting, options: [{ value: '', label: 'Waiting or not' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'not-waiting', label: 'Not waiting on them' }, { value: 'passed', label: 'Passed / no interest' }] },
+          { key: 'waiting', label: 'Waiting on reply', value: waiting, options: [{ value: '', label: 'Waiting or not' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'not-waiting', label: 'Not waiting on them' }, { value: 'passed', label: 'Not interested' }, { value: 'keep-in-touch', label: 'Keep in touch (newsletter)' }] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           // Thresholds match the real distribution: people top out around 67
           // and cluster near 30, so 70+ would match nobody and 30+ everybody.
@@ -459,13 +461,13 @@ export default async function CrmPeoplePage({
                       <CrmContactCell
                         personId={p.id} name={p.fullName}
                         lastLabel={sinceLabel(p.lastTouchedAt)} touchCount={p.touchCount}
-                        awaitingReply={p.awaitingReplySince !== null && p.passedAt === null}
+                        awaitingReply={p.awaitingReplySince !== null && p.passedAt === null && p.keepInTouchAt === null}
                       />
                     </td>
                     <td className="whitespace-nowrap px-3 py-1.5">
                       <CrmInlineFollowUp
                         personId={p.id} note={p.nextFollowUpNote} dueAt={p.nextFollowUpAt}
-                        awaitingDays={daysSince(p.awaitingReplySince)} passed={p.passedAt !== null}
+                        awaitingDays={daysSince(p.awaitingReplySince)} passed={p.passedAt !== null} keepInTouch={p.keepInTouchAt !== null}
                       />
                     </td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{Math.round(p.priorityScore)}</td>

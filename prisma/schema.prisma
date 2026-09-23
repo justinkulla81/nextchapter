@@ -8610,6 +8610,12 @@ model CrmPerson {
   /// decides someone has passed.
   passedAt DateTime?
 
+  /// "Replied, nothing to chase — just keep me in the loop." A fourth
+  /// resolution alongside a next step, waiting, and passed; mutually exclusive
+  /// with all three. Marking it also pins the person into the "Quarterly
+  /// newsletter" segment. Only a human sets it.
+  keepInTouchAt DateTime?
+
   // "X" in the People queue — see CrmOrganization.queueSnoozedAt's comment;
   // same mechanism, kept independent so dismissing a person never dismisses
   // the company they work for, or vice versa.

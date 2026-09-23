@@ -28,7 +28,8 @@ function localToday(): string {
  * a message sent this afternoon at 8am.
  *
  * Derived fields are recomputed rather than bumped by hand, which is what
- * sets "waiting on a reply": the last thing that happened was you.
+ * sets "waiting on a reply": the last thing that happened was you — and what
+ * clears it when they reply.
  */
 export async function logManualContact(input: {
   personId: string
@@ -36,6 +37,8 @@ export async function logManualContact(input: {
   /** YYYY-MM-DD, Eastern. Omitted or today: now. */
   date?: string | null
   note?: string | null
+  /** INBOUND = they replied to you (reply came outside the mail sync). */
+  direction?: 'OUTBOUND' | 'INBOUND'
   loggedByEmail: string | null
 }): Promise<{ occurredAt: Date; type: CrmActivityType }> {
   const channel = (CONTACT_CHANNELS as readonly string[]).includes(input.channel)
@@ -47,10 +50,12 @@ export async function logManualContact(input: {
     ? new Date()
     : new Date(`${day}T16:00:00Z`) // midday Eastern
 
+  const inbound = input.direction === 'INBOUND'
+  const via = channel === 'LINKEDIN' ? 'LinkedIn' : channel.toLowerCase()
   await prisma.crmActivity.create({
     data: {
-      type, direction: 'OUTBOUND', personId: input.personId, occurredAt,
-      subject: `Contacted by ${channel === 'LINKEDIN' ? 'LinkedIn' : channel.toLowerCase()}`,
+      type, direction: inbound ? 'INBOUND' : 'OUTBOUND', personId: input.personId, occurredAt,
+      subject: inbound ? `Replied by ${via}` : `Contacted by ${via}`,
       body: input.note?.trim() || null,
       isAutoLogged: false, loggedByEmail: input.loggedByEmail,
     },

@@ -425,10 +425,12 @@ export async function setPersonFollowUp(personId: string, note: string, dateStr:
       // Noon UTC, not midnight — see logCallWithFollowUp's own comment.
       nextFollowUpAt: dateStr ? new Date(`${dateStr}T12:00:00Z`) : null,
       // Scheduling a real next step is a decision to keep pursuing —
-      // mutually exclusive with having passed on them.
+      // mutually exclusive with having passed on them or parking them.
       passedAt: null,
+      keepInTouchAt: null,
     },
   })
+  await removeFromNewsletter(personId)
   captureServerEvent(admin.email ?? 'admin', 'crm_followup_set', { personId, hasDate: Boolean(dateStr) })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
@@ -437,8 +439,43 @@ export async function setPersonFollowUp(personId: string, note: string, dateStr:
 /** Marks a follow-up reminder done — clears it without requiring a new call. */
 export async function clearPersonFollowUp(personId: string) {
   const admin = await requireAdmin()
-  await prisma.crmPerson.update({ where: { id: personId }, data: { nextFollowUpAt: null, nextFollowUpNote: null, passedAt: null } })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { nextFollowUpAt: null, nextFollowUpNote: null, passedAt: null, keepInTouchAt: null } })
+  await removeFromNewsletter(personId)
   captureServerEvent(admin.email ?? 'admin', 'crm_followup_cleared', { personId })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
+const NEWSLETTER_SEGMENT = 'Quarterly newsletter'
+
+async function removeFromNewsletter(personId: string) {
+  await prisma.crmSegmentMember.deleteMany({ where: { personId, segment: { name: NEWSLETTER_SEGMENT } } })
+}
+
+/**
+ * "Replied, just keep in touch" — no next step to chase, so it clears any
+ * pending one and pins the person into a "Quarterly newsletter" segment (made
+ * on first use). Sending is still a separate, deliberate step from Segments.
+ */
+export async function markPersonKeepInTouch(personId: string) {
+  const admin = await requireAdmin()
+  const segment = await prisma.crmSegment.upsert({
+    where: { name: NEWSLETTER_SEGMENT },
+    create: { name: NEWSLETTER_SEGMENT, kind: 'PINNED', description: 'People who replied and asked to be kept in the loop.' },
+    update: {},
+  })
+  await prisma.$transaction([
+    prisma.crmPerson.update({
+      where: { id: personId },
+      data: { keepInTouchAt: new Date(), passedAt: null, nextFollowUpAt: null, nextFollowUpNote: null },
+    }),
+    prisma.crmSegmentMember.upsert({
+      where: { segmentId_personId: { segmentId: segment.id, personId } },
+      create: { segmentId: segment.id, personId },
+      update: { isExcluded: false },
+    }),
+  ])
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_keep_in_touch', { personId })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
 }
@@ -455,8 +492,9 @@ export async function markPersonPassed(personId: string) {
   const admin = await requireAdmin()
   await prisma.crmPerson.update({
     where: { id: personId },
-    data: { passedAt: new Date(), nextFollowUpAt: null, nextFollowUpNote: null },
+    data: { passedAt: new Date(), keepInTouchAt: null, nextFollowUpAt: null, nextFollowUpNote: null },
   })
+  await removeFromNewsletter(personId)
   captureServerEvent(admin.email ?? 'admin', 'crm_person_passed', { personId })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
@@ -1597,9 +1635,10 @@ export async function logContact(personId: string, formData: FormData) {
     channel: String(formData.get('channel') ?? 'EMAIL'),
     date: String(formData.get('occurredAt') ?? ''),
     note: String(formData.get('note') ?? ''),
+    direction: formData.get('direction') === 'INBOUND' ? 'INBOUND' : 'OUTBOUND',
     loggedByEmail: admin.email ?? null,
   })
-  captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type, auto: false, surface: 'list' })
+  captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type, auto: false, surface: 'list', direction: String(formData.get('direction') ?? 'OUTBOUND') })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
   revalidatePath(`${CRM}/home`)

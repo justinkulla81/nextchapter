@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { setPersonFollowUp, clearPersonFollowUp, markPersonPassed } from '@/app/support/admin/(portal)/crm/actions'
+import { setPersonFollowUp, clearPersonFollowUp, markPersonPassed, markPersonKeepInTouch } from '@/app/support/admin/(portal)/crm/actions'
 import { formatDate } from '@/lib/crm/labels'
 
 /**
@@ -12,7 +12,7 @@ import { formatDate } from '@/lib/crm/labels'
  * with no specific day attached.
  */
 export function CrmInlineFollowUp({
-  personId, note, dueAt, awaitingDays, passed,
+  personId, note, dueAt, awaitingDays, passed, keepInTouch,
 }: {
   personId: string
   note: string | null
@@ -23,6 +23,8 @@ export function CrmInlineFollowUp({
   awaitingDays?: number | null
   /** Manually declared "no current interest" — see CrmPerson.passedAt. */
   passed?: boolean
+  /** Replied, nothing to chase, on the quarterly newsletter — see CrmPerson.keepInTouchAt. */
+  keepInTouch?: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -50,8 +52,10 @@ export function CrmInlineFollowUp({
       >
         {hasFollowUp
           ? `Follow up${dueAt ? ` ${formatDate(dueAt)}` : ''}${note ? `: ${note}` : ''}`
-          : passed
-            ? 'Passed — no current interest'
+          : keepInTouch
+            ? 'Keep in touch — quarterly'
+            : passed
+            ? 'Not interested'
             : waitingDays !== null
               ? `Waiting for a reply · ${waitingDays === 0 ? 'today' : `${waitingDays}d`}`
               : 'No follow-up set'}
@@ -85,6 +89,16 @@ export function CrmInlineFollowUp({
         >
           Save
         </button>
+        {!keepInTouch && (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => start(async () => { await markPersonKeepInTouch(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
+            className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          >
+            Keep in touch
+          </button>
+        )}
         {!passed && (
           <button
             type="button"
@@ -92,17 +106,17 @@ export function CrmInlineFollowUp({
             onClick={() => start(async () => { await markPersonPassed(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
             className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
           >
-            Mark passed
+            Not interested
           </button>
         )}
-        {(note || dueAt || passed) && (
+        {(note || dueAt || passed || keepInTouch) && (
           <button
             type="button"
             disabled={pending}
             onClick={() => start(async () => { await clearPersonFollowUp(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted"
           >
-            {passed ? 'Resume' : 'Clear'}
+            {passed || keepInTouch ? 'Resume' : 'Clear'}
           </button>
         )}
         <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground underline">
