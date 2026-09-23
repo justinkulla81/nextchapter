@@ -174,7 +174,14 @@ export default async function CrmHomePage({
         WITH emailed AS (
           SELECT a."personId" AS pid, MIN(a."occurredAt") AS first_sent
           FROM "CrmActivity" a
+          -- Candidate outreach (people you invited to join, or who are only
+          -- candidates) is a different funnel with its own card below —
+          -- mixing it in made the BD response rate drop every time you
+          -- invited someone.
           JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+            AND p."candidateInvitedAt" IS NULL
+            -- A candidate who is also an advisor, investor, etc. still counts.
+            AND NOT (p."candidateId" IS NOT NULL AND p.roles <@ ARRAY['JOB_SEEKER']::"CrmPersonRole"[])
           WHERE a.type IN ('EMAIL', 'LINKEDIN_MESSAGE', 'CALL', 'NOTE') AND a.direction = 'OUTBOUND'
             AND a."needsReview" = false AND a."occurredAt" >= ${CRM_ACTIVITY_CUTOFF}
           GROUP BY a."personId"
@@ -270,7 +277,7 @@ export default async function CrmHomePage({
     },
     {
       label: 'Response rate', value: `${allTimeReplyRate}%`,
-      hint: `${resp.replied_total} of ${resp.emailed_total} people you reached out to replied` +
+      hint: `${resp.replied_total} of ${resp.emailed_total} people you reached out to replied (not counting candidate invites)` +
         (resp.emailed_week > 0 ? ` · this week ${resp.replied_week} of ${resp.emailed_week}` : ''),
       href: '/support/admin/crm?waiting=not-waiting',
     },
