@@ -23,12 +23,30 @@ export interface PatternMatch {
 // once here, ahead of every category matcher (they all route through
 // testAny), fixes every contraction pattern in this file at once instead of
 // patching each one's character class individually.
-function normalizeApostrophes(text: string): string {
-  return text.replace(/[‘’ʼ]/g, "'")
+//
+// Widened past apostrophes: a phrase pattern also silently misses when the
+// text between two words isn't a single plain space — a text/plain body
+// hard-wraps mid-phrase ("after careful\nconsideration", real CloudLinux
+// mail), a template writes "&rsquo;" or "&#8217;" instead of the character,
+// or a non-breaking space sits between words. Every one of those failed
+// the literal " " in these patterns the same way the curly apostrophe did.
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>',
+  rsquo: "'", lsquo: "'", rdquo: '"', ldquo: '"', ndash: '-', mdash: '-', hellip: '...',
+}
+export function normalizeForMatching(text: string): string {
+  return text
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m)
+    .replace(/[‘’ʼ′]/g, "'")
+    .replace(/[“”″]/g, '"')
+    .replace(/[\u00a0\u2000-\u200b\u202f\u205f\u3000]/g, ' ')
+    .replace(/\s+/g, ' ')
 }
 
 function testAny(text: string, patterns: RegExp[]): boolean {
-  const normalized = normalizeApostrophes(text)
+  const normalized = normalizeForMatching(text)
   return patterns.some((p) => p.test(normalized))
 }
 
@@ -196,9 +214,57 @@ const REJECTION_LOW_CONFIDENCE = [
   /keep your resume (on file|in our files)/i,
 ]
 
+// The phrase list above grew one real miss at a time, and every new
+// employer's template found a new way to say the same thing ("no longer
+// under active consideration", "decided not to proceed with your
+// candidacy"). This is the general rule those phrases are all instances of,
+// checked one sentence at a time: a rejection is a sentence that
+//   1. states a negative decision (DECISION_NO), and
+//   2. is about this person's application (APPLICATION_CONTEXT), and
+//   3. is addressed to them ("you"/"your") or names the other candidates.
+// A sentence that's conditional ("If we are not moving forward, we won't
+// contact you" — confirmation boilerplate) never counts: it describes what
+// might happen, not what did.
+//
+// "After careful consideration/review" is deliberately NOT a signal on its
+// own — confirmations say "we will give careful consideration to your
+// application" (Morgan Stanley) and interview invites say "after careful
+// review, we'd like to invite you". It reads as a rejection only because
+// of the negative decision that follows it, which rule 1 already catches.
+const DECISION_NO = [
+  /\bnot (be )?(moving|move|going|go) forward\b/i,
+  /\b(not|won't|unable to|cannot|can't) (to )?(proceed|progress|advance|continue)\b/i,
+  /\bdecided (not )?to (pursue|go|proceed with|move forward with) (other|another|a different|someone)\b/i,
+  /\bdecided not to\b/i,
+  /\bno longer (under|in|being given|receiving) (active |further )?consideration\b/i,
+  /\bno longer (being )?considered\b/i,
+  /\b(not|won't) (be )?(selected|considered further|shortlisted|invited to|advanced|advancing|progressing)\b/i,
+  /\b(pursue|pursuing|proceed with|proceeding with|move forward with|moving forward with|moved forward with|go with|going with|went with|selected|chose|chosen|hired|offered the (role|position) to) (an?other|other|different|a different|the other) (candidates?|applicants?|individuals?)\b/i,
+  /\bcandidates? whose (experience|background|qualifications|skills|profiles?) (more closely|better|most closely)\b/i,
+  /\b(position|role|opening|requisition)\b[^.]{0,50}?\b(has been|was|is now|have been) (filled|closed|cancell?ed|put on hold|withdrawn)\b/i,
+  /\bregret to (inform|let you know|advise|tell)\b/i,
+  /\b(not|won't) be (offering|extending)\b/i,
+  /\b(application|candidacy) (was|has been|is) (unsuccessful|not successful|declined|not selected)\b/i,
+  /\bnot (the right|a) (fit|match)\b/i,
+]
+const APPLICATION_CONTEXT = /\b(application|applied|applying|candidacy|candidates?|applicants?|position|role|opening|opportunity|consideration|hiring|interview)\b/i
+const ADDRESSED = /\b(you|your)\b|\b(other|another) (candidates?|applicants?)\b/i
+const CONDITIONAL = /\b(if|unless|should|in the event|in case|whether)\b/i
+
+function hasRejectionSentence(text: string): boolean {
+  const sentences = normalizeForMatching(text).split(/(?<=[.!?;])\s+/)
+  return sentences.some((sentence) =>
+    DECISION_NO.some((p) => p.test(sentence)) &&
+    APPLICATION_CONTEXT.test(sentence) &&
+    ADDRESSED.test(sentence) &&
+    !CONDITIONAL.test(sentence)
+  )
+}
+
 export function matchRejection(subject: string, bodyPreview: string): PatternMatch {
-  const text = `${subject} ${bodyPreview}`
+  const text = `${subject}. ${bodyPreview}`
   if (testAny(text, REJECTION_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (hasRejectionSentence(text)) return { matched: true, confidence: 'high' }
   if (testAny(text, REJECTION_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
   return { matched: false, confidence: 'low' }
 }
@@ -406,13 +472,25 @@ const REJECTION_COMPANY_UPDATE_FROM_SUBJECT = /^update (?:from|on your applicati
 const REJECTION_COMPANY_INTEREST_IN_BODY =
   /interest in\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5}?)(?:\s+and\b|\.\s|,\s|\s+—|\s+-\s|\s*$)/i
 
+// "Your Franklin Templeton Application Status", "Generate Capital | Application
+// Update", "OpenAI Application Update for Justin" — the employer named in
+// front of the word "application" in the subject.
+const REJECTION_COMPANY_BEFORE_APPLICATION_IN_SUBJECT =
+  /^(?:[Yy]our\s+)?([A-Z][\w&.'-]*(?:\s[A-Z][\w&.'-]*){0,4}?)\s*(?:[|:\-–—]\s*)?[Aa]pplication\b/
+// The body's "interest in X" is case-insensitive, so it happily returns
+// "our organization" or "the position" — words, not an employer.
+const NOT_A_COMPANY = /^(our|the|this|your|a|an|us|joining|working|employment|career|careers|opportunities|position|role)\b/i
+
 export function guessCompanyFromRejectionText(subject: string, bodyPreview: string): string | null {
   const fromConfirmationShape = guessCompanyFromConfirmationText(subject, bodyPreview)
   if (fromConfirmationShape) return fromConfirmationShape
   const subjectMatch = subject.match(REJECTION_COMPANY_UPDATE_FROM_SUBJECT)
   if (subjectMatch) return subjectMatch[1].trim()
+  const beforeApplication = subject.trim().match(REJECTION_COMPANY_BEFORE_APPLICATION_IN_SUBJECT)
+  if (beforeApplication && !NOT_A_COMPANY.test(beforeApplication[1])) return beforeApplication[1].trim()
   const bodyMatch = bodyPreview.match(REJECTION_COMPANY_INTEREST_IN_BODY)
-  return bodyMatch ? bodyMatch[1].trim().replace(/[.,]+$/, '') : null
+  const fromBody = bodyMatch ? bodyMatch[1].trim().replace(/[.,]+$/, '') : null
+  return fromBody && !NOT_A_COMPANY.test(fromBody) ? fromBody : null
 }
 
 // Workday relays confirmation/rejection mail from <tenant-slug>@myworkday.com

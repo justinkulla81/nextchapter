@@ -28,8 +28,18 @@ const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
 // `q=after:<date>` anchored to the last successful sync (or, for a brand
 // new connection, a fixed backfill window) and paginating within that
 // window instead of relying on a flat maxResults cap.
-const MESSAGES_PAGE_SIZE = 100
-const MAX_PAGES_PER_LABEL = 10 // sanity bound: up to 1,000 messages/label/sync
+const MESSAGES_PAGE_SIZE = 500
+// The sync walks forward from its bookmark one day at a time and only
+// moves the bookmark past a day once every message in it was fetched and
+// processed. It used to list the newest 1,000 messages per label and then
+// set the bookmark to "now" — on a mailbox receiving ~130 messages a day,
+// everything older than the newest 1,000 was skipped for good (63% of one
+// real inbox since July, including most of its rejection emails).
+const SLICE_MS = 24 * 60 * 60 * 1000
+// Per run, so a page-visit sync stays well inside its time limit; a mailbox
+// that's behind catches up over successive runs instead of timing out.
+const MAX_MESSAGES_PER_SYNC = 400
+const POINTS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 const FIRST_SYNC_BACKFILL_MS = 90 * 24 * 60 * 60 * 1000 // 90 days
 // Gmail's `after:` filter is date-granularity, not time-of-day — back off an
 // extra day from the true cutoff so a message from earlier the same day as
@@ -145,29 +155,34 @@ async function ensureFreshAccessToken(connection: EmailConnection): Promise<stri
   }
 }
 
-async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT', afterUnixSeconds: number): Promise<string[]> {
+async function listMessageIds(
+  accessToken: string,
+  labelId: 'INBOX' | 'SENT',
+  afterUnixSeconds: number,
+  beforeUnixSeconds: number,
+): Promise<string[] | null> {
   const ids: string[] = []
   let pageToken: string | undefined
-  let page = 0
   do {
     const params = new URLSearchParams({
       labelIds: labelId,
       maxResults: String(MESSAGES_PAGE_SIZE),
-      q: `after:${afterUnixSeconds}`,
+      q: `after:${afterUnixSeconds} before:${beforeUnixSeconds}`,
     })
     if (pageToken) params.set('pageToken', pageToken)
     const response = await fetch(`${GMAIL_API}/messages?${params.toString()}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!response.ok) {
+      // An incomplete list must not be mistaken for a complete one — the
+      // caller keeps its bookmark where it was and tries this day again.
       console.error(`Gmail messages.list (${labelId}) failed: ${response.status} ${await response.text()}`)
-      break
+      return null
     }
     const data = (await response.json()) as { messages?: { id: string }[]; nextPageToken?: string }
     ids.push(...(data.messages ?? []).map((m) => m.id))
     pageToken = data.nextPageToken
-    page++
-  } while (pageToken && page < MAX_PAGES_PER_LABEL)
+  } while (pageToken)
   return ids
 }
 
@@ -184,6 +199,18 @@ async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT', af
 // token can't do format=full" count as insufficientScope; anything else
 // is a transient failure, same treatment as any other non-403 error.
 const RATE_LIMIT_REASONS = new Set(['rateLimitExceeded', 'userRateLimitExceeded', 'dailyLimitExceeded', 'quotaExceeded'])
+
+async function isRetryable(response: Response): Promise<boolean> {
+  if (response.status === 429 || response.status >= 500) return true
+  if (response.status !== 403) return false
+  try {
+    const body = (await response.clone().json()) as { error?: { errors?: { reason?: string }[] } }
+    const reason = body.error?.errors?.[0]?.reason
+    return !!reason && RATE_LIMIT_REASONS.has(reason)
+  } catch {
+    return false
+  }
+}
 
 async function isInsufficientScopeError(response: Response): Promise<boolean> {
   try {
@@ -208,7 +235,16 @@ async function getFullMessage(
   id: string
 ): Promise<{ message: GmailMessage | null; insufficientScope: boolean }> {
   const url = `${GMAIL_API}/messages/${id}?format=full`
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  // Gmail rate-limits bursts (429) and has transient 5xx — a message that
+  // failed once was previously dropped for good. Retry with backoff.
+  // Gmail's per-user quota comes back as a 403 (not a 429) — it used to be
+  // treated as a permanent failure, dropping every message fetched during a
+  // burst. Waits are long enough to let the per-minute window roll over.
+  let response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  for (let attempt = 1; attempt <= 4 && (await isRetryable(response)); attempt++) {
+    await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
+    response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  }
   if (response.status === 403) return { message: null, insufficientScope: await isInsufficientScopeError(response) }
   if (!response.ok) return { message: null, insufficientScope: false }
   return { message: await response.json(), insufficientScope: false }
@@ -224,7 +260,7 @@ type FetchedMessage = { message: GmailMessage | null; insufficientScope: boolean
 // sequentially was most of what made a sync feel "slow" — this bounds
 // concurrency instead of firing them all at once, which would risk Gmail's
 // per-user rate limit.
-const MESSAGE_FETCH_CONCURRENCY = 8
+const MESSAGE_FETCH_CONCURRENCY = 4
 
 async function fetchMessages(accessToken: string, ids: string[]): Promise<Map<string, FetchedMessage>> {
   const results = new Map<string, FetchedMessage>()
@@ -285,7 +321,10 @@ async function processMessage(
   // in the tracker (see syncJobPostingFromEmail's own record-keeping below),
   // but never earns this week's Search Action points — see registeredAt's
   // definition in syncGmailConnection for why.
-  const awardPoints = !registeredAt || emailDate >= registeredAt
+  // ...and never for mail more than a week old: the sync can reach mail
+  // late (a reconnect after an expired token, a catch-up after a backlog),
+  // and a month-old email arriving today must not count toward this week.
+  const awardPoints = (!registeredAt || emailDate >= registeredAt) && Date.now() - emailDate.getTime() < POINTS_WINDOW_MS
 
   // The connected mailbox emailing itself — a personal daily-planner/digest
   // tool sending "from" the same account it was granted access to, a "+tag"
@@ -522,40 +561,19 @@ function sentActionLabel(activityType: string): string {
   }
 }
 
-export async function syncGmailConnection(connectionId: string): Promise<{ synced: number } | null> {
+export async function syncGmailConnection(
+  connectionId: string,
+  options: { maxMessages?: number; ignoreThrottle?: boolean; deadline?: number } = {},
+): Promise<{ synced: number; caughtUp?: boolean } | null> {
   const connection = await prisma.emailConnection.findUnique({ where: { id: connectionId } })
   if (!connection || connection.disconnectedAt) return null
 
-  if (connection.lastSyncAt && Date.now() - connection.lastSyncAt.getTime() < THROTTLE_MS) {
+  if (!options.ignoreThrottle && connection.lastSyncAt && Date.now() - connection.lastSyncAt.getTime() < THROTTLE_MS) {
     return { synced: 0 }
   }
 
   const accessToken = await ensureFreshAccessToken(connection)
   if (!accessToken) return null
-
-  const sinceDate = connection.lastSyncAt ?? new Date(Date.now() - FIRST_SYNC_BACKFILL_MS)
-  const afterUnixSeconds = Math.floor((sinceDate.getTime() - QUERY_OVERLAP_MS) / 1000)
-  const [inboxIds, sentIds] = await Promise.all([
-    listMessageIds(accessToken, 'INBOX', afterUnixSeconds),
-    listMessageIds(accessToken, 'SENT', afterUnixSeconds),
-  ])
-
-  // A single batched existence check replaces up to 100 sequential
-  // findUnique round trips — most syncs (this runs on every page visit)
-  // see zero or a handful of genuinely new messages out of the ~100 most
-  // recent IDs fetched per label, so this collapses the common case from
-  // ~100 DB round trips to 1, which is what made a real send take multiple
-  // refreshes to show up (the sync was slow enough that it got deferred
-  // off the request path, so the first refresh after sending still saw
-  // last-sync's data).
-  const allIds = [...inboxIds, ...sentIds]
-  const existing = await prisma.trackedEmailActivity.findMany({
-    where: { connectionId: connection.id, externalMessageId: { in: allIds } },
-    select: { externalMessageId: true },
-  })
-  const existingIds = new Set(existing.map((e) => e.externalMessageId))
-  const newInboxIds = inboxIds.filter((id) => !existingIds.has(id))
-  const newSentIds = sentIds.filter((id) => !existingIds.has(id))
 
   // Fetched once per sync, not once per message — feeds the FORMER_COLLEAGUE
   // auto-tag when an auto-added contact's email domain matches a past
@@ -583,48 +601,83 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   // "no floor" only for the pathological case of a null registration date.
   const registeredAt = candidate?.registrationCompletedAt ?? null
 
-  // Fetching is bounded-concurrency (see fetchMessages) since it's pure
-  // network I/O with no shared state. Persisting stays sequential (not
-  // Promise.all) on purpose: autoCompleteEngagementAction does a
-  // read-modify-write on the sprint's committedActions JSON blob, and
-  // running two of those concurrently for different action types can
-  // silently lose one's completion to the other's overwrite.
-  const [inboxFetched, sentFetched] = await Promise.all([
-    fetchMessages(accessToken, newInboxIds),
-    fetchMessages(accessToken, newSentIds),
-  ])
-
+  // lastSyncAt is the bookmark: every message before it has been fetched
+  // and processed. Walk forward a day at a time; a day only counts as done
+  // once its full list came back and every new message in it was fetched.
+  let cursor = connection.lastSyncAt ?? new Date(Date.now() - FIRST_SYNC_BACKFILL_MS)
   let synced = 0
+  let budget = options.maxMessages ?? MAX_MESSAGES_PER_SYNC
   let scopeInsufficient = false
-  // Each message is its own try/catch — previously one message throwing
-  // (malformed payload, a transient fetch error) aborted the whole loop,
-  // silently dropping every message after it in that batch AND, since
-  // lastSyncAt only gets written after the loop finishes clean, permanently
-  // stalling this connection's sync on that same message on every future
-  // visit until someone noticed and dug through logs.
-  for (const id of newInboxIds) {
-    if (scopeInsufficient) break
-    try {
-      const fetched = inboxFetched.get(id)
-      if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies, registeredAt, interimListingDomainMap)
-      if (result === 'insufficient_scope') scopeInsufficient = true
-      else if (result === 'synced') synced++
-    } catch (error) {
-      console.error(`Failed to process inbound message ${id}:`, error)
+  let daysDone = 0
+
+  while (cursor.getTime() < Date.now() && !scopeInsufficient) {
+    const sliceEnd = new Date(Math.min(cursor.getTime() + SLICE_MS, Date.now()))
+    // Gmail's after:/before: are date-granular — overlap a day back so
+    // nothing near a boundary is dropped; already-tracked ids are skipped.
+    const after = Math.floor((cursor.getTime() - QUERY_OVERLAP_MS) / 1000)
+    const before = Math.floor((sliceEnd.getTime() + QUERY_OVERLAP_MS) / 1000)
+    const [inboxIds, sentIds] = await Promise.all([
+      listMessageIds(accessToken, 'INBOX', after, before),
+      listMessageIds(accessToken, 'SENT', after, before),
+    ])
+    if (!inboxIds || !sentIds) break
+
+    const allIds = [...inboxIds, ...sentIds]
+    const existing = await prisma.trackedEmailActivity.findMany({
+      where: { connectionId: connection.id, externalMessageId: { in: allIds } },
+      select: { externalMessageId: true },
+    })
+    const existingIds = new Set(existing.map((e) => e.externalMessageId))
+    const newInboxIds = inboxIds.filter((id) => !existingIds.has(id))
+    const newSentIds = sentIds.filter((id) => !existingIds.has(id))
+    // Out of budget for this run: stop before the day, leave the bookmark,
+    // and pick up here next time rather than half-processing it. The first
+    // day of a run is always processed, however large, so one very busy
+    // day can never stall the mailbox.
+    const newCount = newInboxIds.length + newSentIds.length
+    if (newCount > budget && daysDone > 0) break
+    budget -= newCount
+
+    // Fetching is bounded-concurrency (see fetchMessages) since it's pure
+    // network I/O with no shared state. Persisting stays sequential (not
+    // Promise.all) on purpose: autoCompleteEngagementAction does a
+    // read-modify-write on the sprint's committedActions JSON blob, and
+    // running two of those concurrently for different action types can
+    // silently lose one's completion to the other's overwrite.
+    const [inboxFetched, sentFetched] = await Promise.all([
+      fetchMessages(accessToken, newInboxIds),
+      fetchMessages(accessToken, newSentIds),
+    ])
+
+    let sliceComplete = true
+    for (const [ids, fetchedMap, direction] of [
+      [newInboxIds, inboxFetched, 'INBOUND'],
+      [newSentIds, sentFetched, 'OUTBOUND'],
+    ] as const) {
+      for (const id of ids) {
+        if (scopeInsufficient) break
+        try {
+          const fetched = fetchedMap.get(id)
+          if (!fetched?.message) {
+            if (fetched?.insufficientScope) scopeInsufficient = true
+            else sliceComplete = false // retried and still failed — try this day again next run
+            continue
+          }
+          const result = await processMessage(connection, id, fetched, direction, workHistoryCompanies, registeredAt, interimListingDomainMap)
+          if (result === 'insufficient_scope') scopeInsufficient = true
+          else if (result === 'synced') synced++
+        } catch (error) {
+          // One malformed message must not stall the whole mailbox forever;
+          // it's logged and the day still completes.
+          console.error(`Failed to process ${direction.toLowerCase()} message ${id}:`, error)
+        }
+      }
     }
-  }
-  for (const id of newSentIds) {
-    if (scopeInsufficient) break
-    try {
-      const fetched = sentFetched.get(id)
-      if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies, registeredAt, interimListingDomainMap)
-      if (result === 'insufficient_scope') scopeInsufficient = true
-      else if (result === 'synced') synced++
-    } catch (error) {
-      console.error(`Failed to process outbound message ${id}:`, error)
-    }
+    if (!sliceComplete || scopeInsufficient) break
+    cursor = sliceEnd
+    daysDone++
+    await prisma.emailConnection.update({ where: { id: connection.id }, data: { lastSyncAt: cursor } })
+    if (budget <= 0 || (options.deadline && Date.now() > options.deadline)) break
   }
 
   // A token issued under the old gmail.metadata scope 403s on the new
@@ -633,9 +686,6 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   // than silently retrying forever.
   if (scopeInsufficient) {
     await prisma.emailConnection.update({ where: { id: connection.id }, data: { needsReconnectAt: new Date() } })
-    return { synced }
   }
-
-  await prisma.emailConnection.update({ where: { id: connection.id }, data: { lastSyncAt: new Date() } })
-  return { synced }
+  return { synced, caughtUp: cursor.getTime() >= Date.now() - 60_000 }
 }
