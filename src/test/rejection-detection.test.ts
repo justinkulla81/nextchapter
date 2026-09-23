@@ -34,7 +34,7 @@ const REJECTIONS: [string, string, string][] = [
   ],
   ['position filled', 'Update', 'Thank you for applying. The position you applied for has been filled.'],
   ['pursue other candidates', 'Your application', 'We appreciate your interest; however, we have decided to pursue other candidates for this role.'],
-  ['not the right fit', 'Re: application', 'Unfortunately you are not the right fit for this role at this time.'],
+  ['not the right fit', 'Re: application', 'Thanks for applying. Unfortunately you are not the right fit for this role at this time.'],
   ['selected another candidate', 'Update on the VP role', 'We have selected another candidate whose experience more closely matches your application for this position.'],
 ]
 
@@ -86,6 +86,15 @@ describe('rejection detection', () => {
       expect(classifyInboundEmail(subject, body, 'jobs@company.example', false).activityType).toBe(expected)
     })
   }
+
+  it('a loyalty program ending a perk is not a rejection', () => {
+    const r = classifyInboundEmail(
+      'Update to select AAdvantage® benefits',
+      'Today we wanted to let you know after careful consideration, we have mutually decided to not continue our enhanced relationship in the coming months. We are excited to continue building on the program with more opportunities to earn.',
+      'AmericanAirlines@info.ms.aa.com', true,
+    )
+    expect(r.activityType).not.toBe('REJECTION')
+  })
 
   it('a newsletter about hiring is not a rejection', () => {
     const r = classifyInboundEmail('Weekly digest', 'Why so many companies are not moving forward with hiring plans this quarter.', 'news@digest.example', true)

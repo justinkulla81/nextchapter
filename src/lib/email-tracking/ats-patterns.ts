@@ -255,13 +255,21 @@ const DECISION_NO = [
   /\b(application|candidacy) (was|has been|is) (unsuccessful|not successful|declined|not selected)\b/i,
   /\bnot (the right|a) (fit|match)\b/i,
 ]
-const APPLICATION_CONTEXT = /\b(application|applied|applying|candidacy|candidates?|applicants?|position|role|opening|opportunity|consideration|hiring|interview)\b/i
+// Not "consideration" or "hiring": "after careful consideration, we have
+// decided to not continue our relationship" is how an airline ends a perk
+// program (a real false rejection), not how anyone ends an application.
+const APPLICATION_CONTEXT = /\b(application|applied|applying|candidacy|candidates?|applicants?|position|role|opening|opportunity|interview)\b/i
+// The email as a whole must be about applying for a job — one sentence
+// using job words is not enough when the rest is a newsletter or promo.
+const JOB_APPLICATION_SIGNAL = /\b(your application|you applied|applying (for|to)|for applying|your candidacy|your interest in (the|our|joining)|the (position|role) (of|for|you))\b/i
 const ADDRESSED = /\b(you|your)\b|\b(other|another) (candidates?|applicants?)\b/i
 const CONDITIONAL = /\b(if|unless|should|in the event|in case|whether)\b/i
 
 // The decision cue that fired, or null.
 function rejectionSentenceCue(text: string): string | null {
-  for (const sentence of normalizeForMatching(text).split(/(?<=[.!?;])\s+/)) {
+  const normalized = normalizeForMatching(text)
+  if (!JOB_APPLICATION_SIGNAL.test(normalized)) return null
+  for (const sentence of normalized.split(/(?<=[.!?;])\s+/)) {
     if (!APPLICATION_CONTEXT.test(sentence) || !ADDRESSED.test(sentence) || CONDITIONAL.test(sentence)) continue
     const cue = DECISION_NO.find((p) => p.test(sentence))
     if (cue) return cue.source
@@ -497,7 +505,8 @@ export function guessCompanyFromRejectionText(subject: string, bodyPreview: stri
   const beforeApplication = subject.trim().match(REJECTION_COMPANY_BEFORE_APPLICATION_IN_SUBJECT)
   if (beforeApplication && !NOT_A_COMPANY.test(beforeApplication[1])) return beforeApplication[1].trim()
   const bodyMatch = bodyPreview.match(REJECTION_COMPANY_INTEREST_IN_BODY)
-  const fromBody = bodyMatch ? bodyMatch[1].trim().replace(/[.,]+$/, '') : null
+  // "interest in Micron. At this time…" — the name ends at the sentence.
+  const fromBody = bodyMatch ? bodyMatch[1].split(/[.!?]\s/)[0].trim().replace(/[.,]+$/, '') : null
   return fromBody && !NOT_A_COMPANY.test(fromBody) ? fromBody : null
 }
 

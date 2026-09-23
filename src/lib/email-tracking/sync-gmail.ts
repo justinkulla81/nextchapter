@@ -408,6 +408,9 @@ async function processMessage(
       externalMessageId: messageId,
       threadId,
       direction,
+      // When the email arrived, not when it was synced — a catch-up of
+      // months-old mail must not look like this week's activity.
+      detectedAt: emailDate,
       activityType: classification.activityType,
       confidence: classification.confidence,
       companyName: classification.companyName,
