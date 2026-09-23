@@ -15,6 +15,7 @@
  *    awarded for mail older than a week (see POINTS_WINDOW_MS in sync-gmail.ts).
  */
 import { prisma } from '../../src/lib/prisma'
+import { normalizeMailboxIdentity } from '../../src/lib/email-tracking/email-address'
 import { classifyInboundEmail } from '../../src/lib/email-tracking/classify-email'
 import { orgNamesMatch } from '../../src/lib/text/org-name-match'
 import { extractEmailBody, getHeader, type GmailMessage } from '../../src/lib/google/gmail-body'
@@ -42,7 +43,13 @@ async function token(refreshToken: string): Promise<string> {
 
 async function getMessage(tok: string, id: string): Promise<GmailMessage | null> {
   for (let attempt = 0; attempt < 6; attempt++) {
-    const r = await fetch(`${GMAIL}/messages/${id}?format=full`, { headers: { Authorization: `Bearer ${tok}` } })
+    let r: Response
+    try {
+      r = await fetch(`${GMAIL}/messages/${id}?format=full`, { headers: { Authorization: `Bearer ${tok}` } })
+    } catch {
+      await new Promise((res) => setTimeout(res, 15000)) // network blip
+      continue
+    }
     if (r.ok) return r.json()
     // Gmail's per-minute quota answers 403 "rateLimitExceeded", not 429.
     const quota = r.status === 403 && /rateLimitExceeded|quotaExceeded/.test(await r.text())
@@ -82,7 +89,10 @@ async function main() {
         const from = getHeader(msg.payload?.headers, 'From')
         const body = extractEmailBody(msg.payload, 4000)
         const unsub = !!getHeader(msg.payload?.headers, 'List-Unsubscribe')
-        const result = classifyInboundEmail(subject, body, from, unsub)
+        // Same self-mail rule as the live sync: the mailbox emailing itself
+        // (a daily planner digest) is never a job-search signal.
+        const self = !!c.connectedEmail && normalizeMailboxIdentity(from) === normalizeMailboxIdentity(c.connectedEmail)
+        const result = classifyInboundEmail(subject, body, from, unsub, self)
         if (result.activityType !== 'REJECTION' || result.confidence !== 'high') continue
         flipped++
         console.log(`  ${row.activityType} -> REJECTION | ${result.companyName ?? '?'} | ${subject}`)
