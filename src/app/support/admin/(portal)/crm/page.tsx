@@ -397,10 +397,10 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Priority</th>
                   <SortHeader label="Name" sortKey="name" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <th className="px-3 py-2 font-medium">Organization</th>
+                  <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
-                  <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
-                  <th className="px-3 py-2 font-medium">Follow-up</th>
+                  <th className="px-3 py-2 font-medium">Deal status</th>
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
@@ -451,18 +451,18 @@ export default async function CrmPeoplePage({
                         )}
                       </div>
                     </td>
-                    <td className="px-3 py-1.5">
-                      <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
-                    </td>
-                    <td className="px-3 py-1.5">
-                      <CrmInlineGoals personId={p.id} goals={p.goals} name={p.fullName} />
-                    </td>
                     <td className="whitespace-nowrap px-3 py-1.5">
                       <CrmContactCell
                         personId={p.id} name={p.fullName}
                         lastLabel={sinceLabel(p.lastTouchedAt)} touchCount={p.touchCount}
                         awaitingReply={p.awaitingReplySince !== null && p.passedAt === null && p.keepInTouchAt === null}
                       />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <CrmInlineGoals personId={p.id} goals={p.goals} name={p.fullName} />
                     </td>
                     <td className="whitespace-nowrap px-3 py-1.5">
                       <CrmInlineFollowUp

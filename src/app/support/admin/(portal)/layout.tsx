@@ -96,10 +96,10 @@ export default async function AdminPortalLayout({ children }: { children: React.
           userId={user.id}
           currentRole="nc_admin"
           personName={user.email ?? 'You'}
-          className="lg:pl-[calc(16rem+1.5rem)]"
+          className="lg:pl-[calc(var(--admin-nav-w,16rem)+1.5rem)]"
         />
-        <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
-          <div className="mx-auto max-w-7xl">{children}</div>
+        <main className="px-6 py-12 lg:pl-[calc(var(--admin-nav-w,16rem)+1.5rem)]">
+          <div className="mx-auto max-w-[var(--admin-max-w,80rem)]">{children}</div>
         </main>
       </div>
     </div>

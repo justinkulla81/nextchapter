@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useFormStatus } from 'react-dom'
@@ -362,15 +362,53 @@ function NavContent({
   )
 }
 
+const COLLAPSED_KEY = 'admin-nav-collapsed'
+const COLLAPSED_EVENT = 'admin-nav-collapsed-change'
+function subscribeCollapsed(cb: () => void) {
+  window.addEventListener(COLLAPSED_EVENT, cb)
+  window.addEventListener('storage', cb)
+  return () => { window.removeEventListener(COLLAPSED_EVENT, cb); window.removeEventListener('storage', cb) }
+}
+function readCollapsed() {
+  try { return localStorage.getItem(COLLAPSED_KEY) === '1' } catch { return false }
+}
+
 export function AdminNav({ badges = {} }: { badges?: Record<string, number> }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const sections = buildSections(badges)
+  // Remembered per browser. Read through useSyncExternalStore so the server
+  // render (always expanded) and the first client render agree, then it flips.
+  const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false)
+  // The layout offsets its content by --admin-nav-w and caps it at
+  // --admin-max-w (both fall back to the expanded values), so hiding the menu
+  // hands the whole width to the page instead of just moving the gutter.
+  useEffect(() => {
+    const root = document.documentElement.style
+    root.setProperty('--admin-nav-w', collapsed ? '0rem' : '16rem')
+    root.setProperty('--admin-max-w', collapsed ? '100%' : '80rem')
+  }, [collapsed])
+  function toggleCollapsed() {
+    try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '0' : '1') } catch { /* not persisted */ }
+    window.dispatchEvent(new Event(COLLAPSED_EVENT))
+  }
   const current = sections.flatMap((s) => s.links).find((link) => pathname.startsWith(link.href))
 
   return (
     <>
       <PartnerTopBar surface="admin">
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-pressed={collapsed}
+          aria-label={collapsed ? 'Show navigation menu' : 'Hide navigation menu'}
+          className="hidden items-center gap-2 rounded-md border border-white/30 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 lg:flex"
+        >
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          {collapsed ? 'Show menu' : 'Hide menu'}
+        </button>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -386,7 +424,7 @@ export function AdminNav({ badges = {} }: { badges?: Record<string, number> }) {
       </PartnerTopBar>
 
       {/* Desktop: persistent sidebar */}
-      <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
+      <aside className={`fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy ${collapsed ? '' : 'lg:block'}`}>
         <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-admin" />
         <NavContent pathname={pathname} badges={badges} />
       </aside>
