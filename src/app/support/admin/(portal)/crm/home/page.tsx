@@ -325,7 +325,7 @@ export default async function CrmHomePage({
 
       {possibleSignups.length > 0 && (
         <Link
-          href={possibleSignups.length === 1 ? `/support/admin/crm/people/${possibleSignups[0].sourceRecordId}` : '/support/admin/identity-matches'}
+          href="/support/admin/crm/needs-completion"
           className="flex items-center gap-2 rounded-lg border border-emerald-400/50 bg-emerald-50 px-3 py-2 text-sm hover:border-emerald-500 dark:bg-emerald-950/40"
         >
           <span className="rounded-full bg-emerald-200 px-1.5 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">
@@ -333,8 +333,8 @@ export default async function CrmHomePage({
           </span>
           <span>
             {possibleSignups.length === 1
-              ? `${possibleSignups[0].matchedName ?? 'Someone you invited'} may have signed up — confirm to link their account`
-              : 'people you invited may have signed up — confirm to link their accounts'}
+              ? `${possibleSignups[0].matchedName ?? 'Someone you invited'} may have signed up — review on the Review List`
+              : 'new sign-ups may be people already in your CRM — review on the Review List'}
           </span>
         </Link>
       )}

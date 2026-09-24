@@ -90,9 +90,10 @@ export async function inferLeadSource(candidateId: string): Promise<void> {
 }
 
 /**
- * Flags every CRM person the admin marked "invited to join NextChapter"
- * whose email or name resembles this candidate's, for review on Identity
- * Matches. Never links anything itself.
+ * Flags every unlinked CRM person whose email or name resembles this new
+ * candidate's — people you invited above all, but anyone already in the CRM
+ * — for review on the Review List (and Identity Matches). Never links
+ * anything itself.
  */
 export async function findCrmInviteMatches(candidateId: string): Promise<number> {
   const candidate = await prisma.candidateProfile.findUnique({
@@ -104,14 +105,17 @@ export async function findCrmInviteMatches(candidateId: string): Promise<number>
   const email = candidate.email?.trim().toLowerCase() || null
   if (!fullName && !email) return 0
 
-  const invited = await prisma.crmPerson.findMany({
-    where: { candidateInvitedAt: { not: null }, deletedAt: null, OR: [{ candidateId: null }, { candidateId }] },
-    select: { id: true, fullName: true, email: true, emails: true, candidateId: true, affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } } },
+  // Everyone in the CRM not already tied to an account — invited or not. A
+  // sign-up that resembles someone you already track (a LinkedIn import, an
+  // advisor) is a merge to review, not a new person; when in doubt it goes
+  // to the Review List rather than being guessed either way.
+  const people = await prisma.crmPerson.findMany({
+    where: { deletedAt: null, candidateId: null },
+    select: { id: true, fullName: true, email: true, emails: true, affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } } },
   })
 
   let flagged = 0
-  for (const p of invited) {
-    if (p.candidateId === candidateId) continue // already linked
+  for (const p of people) {
     const emailHit = !!email && (p.email?.toLowerCase() === email || p.emails.some((e) => e.toLowerCase() === email))
     const nameHit = !!fullName && namesLookAlike(fullName, p.fullName)
     if (!emailHit && !nameHit) continue

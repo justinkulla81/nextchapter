@@ -14,6 +14,7 @@ import { CrmNeedsCompletionRow } from '@/components/admin/CrmNeedsCompletionRow'
 import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
 import { CrmNeedsCompletionList } from '@/components/admin/CrmNeedsCompletionList'
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
+import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
 
 export const maxDuration = 30
 
@@ -30,6 +31,22 @@ export default async function CrmNeedsCompletionPage({
   const sp = await searchParams
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
+
+  // Sign-ups that may be someone already in the CRM — never linked on a
+  // guess; they wait here for a yes/no.
+  const signupMatches = await prisma.candidateIdentityMatch.findMany({
+    where: { source: 'CRM_INVITE', status: 'PENDING' },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true, strength: true, sourceRecordId: true, matchedName: true, matchedCompany: true,
+      candidate: { select: { id: true, firstName: true, lastName: true, email: true, createdAt: true } },
+    },
+  })
+  const matchedPeople = await prisma.crmPerson.findMany({
+    where: { id: { in: signupMatches.map((m) => m.sourceRecordId) } },
+    select: { id: true, candidateInvitedAt: true },
+  })
+  const invitedIds = new Set(matchedPeople.filter((p) => p.candidateInvitedAt).map((p) => p.id))
 
   const [total, rows] = await Promise.all([
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
@@ -171,11 +188,44 @@ export default async function CrmNeedsCompletionPage({
       <header>
         <h1 className="text-2xl font-semibold">Review List</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Records missing a title or an organization. Where the person is in your LinkedIn export,
+          New sign-ups to link, then records missing a title or an organization. Where the person is in your LinkedIn export,
           the suggestion below is one click away — completing a profile is usually accepting a
           prefill rather than typing.
         </p>
       </header>
+
+      {signupMatches.length > 0 && (
+        <section aria-labelledby="signup-matches">
+          <h2 id="signup-matches" className="text-lg font-semibold">Possible sign-ups</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            New NextChapter accounts that look like someone already in the CRM. Linking merges the
+            record the sign-up created into the existing one.
+          </p>
+          <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {signupMatches.map((m) => (
+              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">
+                <span className="min-w-0">
+                  <Link href={`/support/admin/candidates/${m.candidate.id}`} className="font-medium hover:underline">
+                    {[m.candidate.firstName, m.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed'}
+                  </Link>
+                  <span className="text-muted-foreground">
+                    {m.candidate.email ? ` · ${m.candidate.email}` : ''} · signed up {m.candidate.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {m.strength === 'EMAIL_EXACT' ? 'Same email as ' : 'Similar name to '}
+                    <Link href={`/support/admin/crm/people/${m.sourceRecordId}`} className="text-foreground underline underline-offset-2">
+                      {m.matchedName ?? 'a CRM record'}
+                    </Link>
+                    {m.matchedCompany ? ` (${m.matchedCompany})` : ''}
+                    {invitedIds.has(m.sourceRecordId) ? ' — you invited them' : ' — in your CRM, not flagged as invited'}
+                  </span>
+                </span>
+                <CrmSignupMatchActions matchId={m.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {total === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">

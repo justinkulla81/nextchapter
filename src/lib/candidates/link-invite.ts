@@ -13,7 +13,7 @@ import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 export async function linkInvitedCrmPerson(invitedPersonId: string, candidateId: string): Promise<void> {
   const invited = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: invitedPersonId },
-    select: { id: true, roles: true, goals: true, candidateInvitedBy: true, deletedAt: true, email: true, emails: true },
+    select: { id: true, roles: true, goals: true, candidateInvitedAt: true, candidateInvitedBy: true, deletedAt: true, email: true, emails: true },
   })
   if (invited.deletedAt) return
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { email: true } })
@@ -59,8 +59,11 @@ export async function linkInvitedCrmPerson(invitedPersonId: string, candidateId:
     })
   }
 
-  // A confirmed referral outranks any guess, but not a source the admin set by hand.
-  await prisma.candidateProfile.updateMany({
+  // A confirmed referral outranks any guess, but not a source the admin set
+  // by hand. Only for someone you actually invited — linking a sign-up to a
+  // record you merely had (a LinkedIn import) says nothing about how they
+  // found NextChapter.
+  if (invited.candidateInvitedAt) await prisma.candidateProfile.updateMany({
     where: { id: candidateId, OR: [{ leadSource: null }, { leadSourceSetBy: { in: ['auto', 'invite'] } }] },
     data: {
       leadSource: 'REFERRAL_ADMIN',
