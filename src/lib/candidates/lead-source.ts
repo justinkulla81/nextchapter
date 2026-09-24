@@ -128,3 +128,42 @@ export async function findCrmInviteMatches(candidateId: string): Promise<number>
   }
   return flagged
 }
+
+/**
+ * The other direction: someone flagged as invited AFTER they'd already
+ * signed up (you invited them on LinkedIn, then marked it in the CRM once
+ * they'd joined). findCrmInviteMatches only runs at signup, so it never saw
+ * them — this checks existing candidates when the flag is set. Same bar:
+ * an exact email or a look-alike name; flagged for review, never linked.
+ */
+export async function findSignupsForInvitedPerson(personId: string): Promise<number> {
+  const person = await prisma.crmPerson.findUnique({
+    where: { id: personId },
+    select: { fullName: true, email: true, emails: true, candidateId: true, deletedAt: true, affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } } },
+  })
+  if (!person || person.deletedAt || person.candidateId) return 0
+  const emails = new Set([person.email, ...person.emails].filter(Boolean).map((e) => e!.trim().toLowerCase()))
+
+  const candidates = await prisma.candidateProfile.findMany({
+    where: { isSampleData: false, isSystemAccount: false },
+    select: { id: true, firstName: true, lastName: true, email: true },
+  })
+  let flagged = 0
+  for (const c of candidates) {
+    const fullName = [c.firstName, c.lastName].filter(Boolean).join(' ').trim()
+    const emailHit = !!c.email && emails.has(c.email.trim().toLowerCase())
+    const nameHit = !!fullName && namesLookAlike(fullName, person.fullName)
+    if (!emailHit && !nameHit) continue
+    await prisma.candidateIdentityMatch.upsert({
+      where: { candidateId_source_sourceRecordId: { candidateId: c.id, source: 'CRM_INVITE', sourceRecordId: personId } },
+      update: {},
+      create: {
+        candidateId: c.id, source: 'CRM_INVITE', sourceRecordId: personId,
+        strength: emailHit ? 'EMAIL_EXACT' : 'NAME_SIMILAR',
+        matchedName: person.fullName, matchedEmail: person.email, matchedCompany: person.affiliations[0]?.org.name ?? null,
+      },
+    })
+    flagged++
+  }
+  return flagged
+}
