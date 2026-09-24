@@ -10,12 +10,15 @@ describe('namesLookAlike', () => {
     ['Kerry McKittrick', 'Kerry Mckitrick'],
     ['José García', 'Jose Garcia'],
     ['Robert (Bob) Smith', 'Bob Smith'],
+    ["Patricia Fukuda O'Donnell", 'Patricia Fukuda'],
+    ['Richard Allin Jr.', 'Richard Allin'],
   ]
   const different: [string, string][] = [
     ['John Smith', 'Jane Smith'],
     ['Daniel Elsener', 'Daniel Jones'],
     ['Mariana Dahan', 'Marianna Rossell'],
     ['Sam Lee', 'Sam'],
+    ['John Paul Jones', 'Jane Paul'],
   ]
   for (const [a, b] of same) it(`${a} ≈ ${b}`, () => expect(namesLookAlike(a, b)).toBe(true))
   for (const [a, b] of different) it(`${a} ≠ ${b}`, () => expect(namesLookAlike(a, b)).toBe(false))

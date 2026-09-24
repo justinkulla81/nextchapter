@@ -62,5 +62,11 @@ export function namesLookAlike(a: string, b: string): boolean {
   const lastA = ta[ta.length - 1]
   const lastB = tb[tb.length - 1]
   const lastOk = lastA === lastB || (Math.min(lastA.length, lastB.length) >= 5 && editDistance(lastA, lastB) <= 1)
-  return lastOk && firstNamesMatch(ta[0], tb[0])
+  if (lastOk) return firstNamesMatch(ta[0], tb[0])
+  // A compound or married surname: "Patricia Fukuda O'Donnell" on the signup
+  // form, "Patricia Fukuda" on LinkedIn — the shorter name's surname is one
+  // of the longer name's later names.
+  const [short, long] = ta.length <= tb.length ? [ta, tb] : [tb, ta]
+  const shortLast = short[short.length - 1]
+  return long.length > short.length && shortLast.length >= 3 && long.slice(1).includes(shortLast) && firstNamesMatch(ta[0], tb[0])
 }
