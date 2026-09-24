@@ -4,9 +4,10 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
-import { CrmSyncNowButton } from '@/components/admin/CrmSyncNowButton'
+import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { CrmEmailChart, type EmailDay } from '@/components/admin/CrmEmailChart'
 import { priorityTierClass } from '@/lib/crm/labels'
+import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 
 export const maxDuration = 30
 
@@ -88,7 +89,7 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -155,6 +156,7 @@ export default async function CrmHomePage({
         distinct: ['personId'], select: { personId: true },
       }).then((r) => r.length),
       prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
+      prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null }, lastTouchedAt: null }, _count: { _all: true } }),
       prisma.$queryRaw<{ direction: string; n: number; people: number }[]>`
         SELECT a.direction::text AS direction,
                COUNT(DISTINCT COALESCE(split_part(a."sourceRef", ':', 1), a.id))::int AS n,
@@ -246,6 +248,13 @@ export default async function CrmHomePage({
   const feed = [...feedByMsg.values()]
 
   const tierCount = (t: 'P0' | 'P1' | 'P2') => tiers.find((x) => x.priority === t)?._count._all ?? 0
+  const tierNeverContacted = (t: 'P0' | 'P1' | 'P2') => tiersNeverContacted.find((x) => x.priority === t)?._count._all ?? 0
+  // Total in the tier, plus how many of them you haven't reached out to yet —
+  // the part of the tier that's still work.
+  const tierCard = (t: 'P0' | 'P1' | 'P2', hint: string) => ({
+    label: t, value: String(tierCount(t)), hint: `${hint} · total`, href: `/support/admin/crm?priority=${t}`, tone: priorityTierClass(t),
+    sub: { value: tierNeverContacted(t), label: 'not contacted yet', href: `/support/admin/crm?priority=${t}&touched=never` },
+  })
 
   const addedBy = new Map<string, number>()
   for (const r of addedWeek) {
@@ -263,7 +272,7 @@ export default async function CrmHomePage({
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
   const allTimeReplyRate = pct(resp.replied_total, resp.emailed_total)
 
-  const stats: { label: string; value: string; hint: string; href: string; tone?: string }[] = [
+  const stats: { label: string; value: string; hint: string; href: string; tone?: string; sub?: { value: number; label: string; href: string } }[] = [
     { label: 'People added this week', value: String(addedTotal), hint: addedHint, href: '/support/admin/crm/needs-completion' },
     { label: 'Records updated this week', value: String(updatedWeek), hint: 'edited by you', href: '/support/admin/crm' },
     {
@@ -279,9 +288,9 @@ export default async function CrmHomePage({
         (resp.emailed_week > 0 ? ` · this week ${resp.replied_week} of ${resp.emailed_week}` : ''),
       href: '/support/admin/crm?waiting=not-waiting',
     },
-    { label: 'P0', value: String(tierCount('P0')), hint: 'Immediate', href: '/support/admin/crm?priority=P0', tone: priorityTierClass('P0') },
-    { label: 'P1', value: String(tierCount('P1')), hint: 'High', href: '/support/admin/crm?priority=P1', tone: priorityTierClass('P1') },
-    { label: 'P2', value: String(tierCount('P2')), hint: 'Not urgent', href: '/support/admin/crm?priority=P2', tone: priorityTierClass('P2') },
+    tierCard('P0', 'Immediate'),
+    tierCard('P1', 'High'),
+    tierCard('P2', 'Not urgent'),
     {
       label: 'Your candidate invites', value: String(invitedTotal),
       hint: `people you invited to join · ${invitedJoined} signed up`,
@@ -320,8 +329,10 @@ export default async function CrmHomePage({
             Outreach at a glance — what went out, what came back, and where things stand.
           </p>
         </div>
-        <CrmSyncNowButton />
+        <CrmSyncButton />
       </header>
+
+      <CrmSyncHealthAlert />
 
       {possibleSignups.length > 0 && (
         <Link
@@ -367,15 +378,31 @@ export default async function CrmHomePage({
       </section>
 
       <section aria-label="Stats" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="rounded-lg border border-border bg-card p-3 hover:border-brand">
-            <p className="text-xs text-muted-foreground">
-              {s.tone ? <span className={`rounded px-1.5 py-0.5 font-semibold ${s.tone}`}>{s.label}</span> : s.label}
-            </p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
-          </Link>
-        ))}
+        {stats.map((s) => {
+          const main = (
+            <>
+              <p className="text-xs text-muted-foreground">
+                {s.tone ? <span className={`rounded px-1.5 py-0.5 font-semibold ${s.tone}`}>{s.label}</span> : s.label}
+              </p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
+            </>
+          )
+          // A card with a second number links each number to its own list.
+          return s.sub ? (
+            <div key={s.label} className="flex items-end justify-between gap-3 rounded-lg border border-border bg-card p-3 hover:border-brand">
+              <Link href={s.href} className="min-w-0 hover:underline">{main}</Link>
+              <Link href={s.sub.href} className="text-right hover:underline">
+                <p className="text-2xl font-semibold tabular-nums">{s.sub.value}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{s.sub.label}</p>
+              </Link>
+            </div>
+          ) : (
+            <Link key={s.label} href={s.href} className="rounded-lg border border-border bg-card p-3 hover:border-brand">
+              {main}
+            </Link>
+          )
+        })}
       </section>
 
       <section>

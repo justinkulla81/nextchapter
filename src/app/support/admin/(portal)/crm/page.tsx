@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
-import { CrmSyncNowButton } from '@/components/admin/CrmSyncNowButton'
+import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
@@ -292,7 +292,7 @@ export default async function CrmPeoplePage({
           <Link href="/support/admin/crm/needs-completion" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Review List{needsCompletion > 0 && <span className="ml-1.5 rounded-full bg-orange/20 px-1.5 text-xs font-semibold text-orange">{needsCompletion}</span>}
           </Link>
-          <CrmSyncNowButton />
+          <CrmSyncButton />
           <Link href={`/support/admin/crm/export?${qs({})}`} className="rounded-md border border-border px-3 py-1.5 hover:bg-muted" prefetch={false}>
             Download CSV
           </Link>

@@ -1,4 +1,5 @@
 import 'server-only'
+import { googleErrorReason } from './error-reason'
 
 export interface CalendarAttendee {
   email: string | null
@@ -34,7 +35,7 @@ export async function listCalendarEvents(
   url.searchParams.set('fields', 'items(id,summary,start,attendees(email,displayName,responseStatus),organizer(email))')
 
   const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (!res.ok) throw new Error(`Calendar list failed: ${res.status}`)
+  if (!res.ok) throw new Error(`Calendar list failed: ${res.status}${await googleErrorReason(res)}`)
   const data = (await res.json()) as {
     items?: {
       id: string

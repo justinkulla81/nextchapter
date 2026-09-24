@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isMissingPermission, isRateLimited } from '@/lib/google/error-reason'
 
 // The same budget as the scheduled sweep: a page's server action gets 30
 // seconds, and this can need more on a busy day.
@@ -13,8 +14,10 @@ const HOUR = 3_600_000
 // last few hours; never more, so a long gap can't turn one click into a
 // full historical backfill.
 const MIN_WINDOW_HOURS = 6
-const MAX_WINDOW_HOURS = 48
-const MAX_MESSAGES = 400
+// Reaches back to the last successful sweep, so an outage (an expired or
+// under-permissioned Google grant) is caught up in full once it's fixed.
+const MAX_WINDOW_HOURS = 14 * 24
+const MAX_MESSAGES = 1000
 
 /**
  * Pulls everything since the last sweep that actually finished.
@@ -69,7 +72,10 @@ export async function POST() {
     if (error.includes('invalid_grant')) {
       return NextResponse.json({ ok: false, message: 'Gmail access expired — reconnect it on Activity sync.' })
     }
-    if (error.includes('403')) {
+    if (isRateLimited(error)) {
+      return NextResponse.json({ ok: false, message: 'Google is rate-limiting Gmail right now. Try again in a minute.' })
+    }
+    if (isMissingPermission(error) || error.includes('403')) {
       return NextResponse.json({ ok: false, message: 'Gmail permission is missing — reconnect it on Activity sync and tick every permission box.' })
     }
     return NextResponse.json({ ok: false, message: 'Gmail did not answer. Try again in a moment.' })

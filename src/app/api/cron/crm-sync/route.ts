@@ -49,7 +49,16 @@ export async function GET(request: NextRequest) {
 
   // Look back far enough to cover the whole interval plus a margin, so nothing
   // falls between two sweeps.
-  const days = Number(request.nextUrl.searchParams.get('days') ?? String(Math.max(2, Math.ceil(intervalHours / 24) + 1)))
+  // After failed runs, reach back to the last successful one (up to 14
+  // days) — otherwise mail from an outage longer than one interval is never
+  // swept once the connection is fixed.
+  const lastOk = await prisma.crmSyncRun.findFirst({
+    where: { source: { in: ['gmail', 'gmail-manual'] }, finishedAt: { not: null }, error: null },
+    orderBy: { startedAt: 'desc' },
+    select: { startedAt: true },
+  })
+  const sinceOkDays = lastOk ? Math.ceil((Date.now() - lastOk.startedAt.getTime()) / 86_400_000) + 1 : 14
+  const days = Number(request.nextUrl.searchParams.get('days') ?? String(Math.min(14, Math.max(2, Math.ceil(intervalHours / 24) + 1, sinceOkDays))))
   // Calendar's forward window is deliberately much wider than the backward
   // one: a meeting invite sent today for a date a month out should propose
   // its attendee well before the meeting, not the day before it — sweeping

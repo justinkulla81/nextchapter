@@ -1,6 +1,7 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
 import { extractEmailBody, type GmailMessage as GmailFullMessage } from './gmail-body'
+import { googleErrorReason } from './error-reason'
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me'
 
@@ -222,7 +223,7 @@ async function listMessagesByQuery(accessToken: string, q: string, max: number):
     if (pageToken) url.searchParams.set('pageToken', pageToken)
 
     const res = await fetchWithRetry(url, accessToken)
-    if (!res.ok) throw new Error(`Gmail list failed: ${res.status}`)
+    if (!res.ok) throw new Error(`Gmail list failed: ${res.status}${await googleErrorReason(res)}`)
     const data = (await res.json()) as { messages?: { id: string }[]; nextPageToken?: string }
     for (const m of data.messages ?? []) ids.push(m.id)
     if (!data.nextPageToken) break

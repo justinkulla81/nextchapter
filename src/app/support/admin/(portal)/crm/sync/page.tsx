@@ -5,9 +5,10 @@ import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
 import { getSendAsAddresses } from '@/lib/google/gmail'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { CrmSyncNowButton } from '@/components/admin/CrmSyncNowButton'
+import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { updateSyncSetting, updateSelfEmails, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
+import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 
 export const maxDuration = 30
 
@@ -60,8 +61,9 @@ export default async function CrmSyncPage({
         </div>
       </header>
 
+      {!params.googleConnected && <CrmSyncHealthAlert />}
       {params.googleConnected && (
-        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Google connected — Gmail and Calendar.</p>
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Google connected — Gmail and Calendar. Catching up on everything since the last successful sync…</p>
       )}
       {params.googleError && (
         <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -112,7 +114,7 @@ export default async function CrmSyncPage({
               >
                 Reconnect Google
               </a>
-              <CrmSyncNowButton />
+              <CrmSyncButton />
               <form action={disconnectAdminGmailInbox}>
                 <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">Disconnect Gmail</button>
               </form>
