@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NextChapter Capture",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Save a person, a layoff story, research, or a product idea to the NextChapter CRM from the page you're on.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["https://*/*"],

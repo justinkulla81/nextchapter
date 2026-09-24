@@ -22,8 +22,23 @@ export function isRealOrgName(v: string | null | undefined): v is string {
   // marker in the dropdown, not part of the value these should match.
   const s = v.trim().replace(/^-+\s*/, '').toLowerCase()
   if (!s) return false
-  return !ORG_NOISE.has(s)
+  return !ORG_NOISE.has(s) && !JOB_SEEKING.test(s) && !LINKEDIN_CARD_TEXT.test(s)
 }
+
+/**
+ * "looking for new opportunity", "open to work", "seeking my next role":
+ * LinkedIn lets a job seeker type a status into the company field, and it
+ * shows up as a company badge on their profile. It says they have no
+ * employer, so it's never an organization.
+ */
+const JOB_SEEKING = /^(actively\s+)?(looking|seeking|searching)\s+(for|a|an|my|new|next|opportunit\w*|roles?|positions?|employment|work)\b|\bopen to (work|new|opportunit)|\b(new|next) (opportunit|role|challenge)|\bin transition\b|\bbetween (roles|jobs|opportunities)\b|\bcareer (break|transition)\b/
+
+/**
+ * A LinkedIn company card's full text ("United NationsInternational
+ * Affairs6,888,866 followers") — what a scraper gets when it reads a
+ * card from the Interests or sidebar section instead of a company name.
+ */
+const LINKEDIN_CARD_TEXT = /\bfollowers?\b|\d{1,3}(,\d{3})+/
 
 /**
  * Which of the two noise words carries enough signal to stand in for a real
@@ -63,7 +78,7 @@ export function placeholderOrgKindFor(companyRaw: string | null | undefined): Or
   if (!companyRaw) return null
   const s = companyRaw.trim().replace(/^-+\s*/, '').toLowerCase()
   if (!s) return null
-  if (UNEMPLOYED_SIGNAL.has(s)) return 'unemployed'
+  if (UNEMPLOYED_SIGNAL.has(s) || JOB_SEEKING.test(s)) return 'unemployed'
   if (FREELANCER_SIGNAL.has(s)) return 'freelancer'
   return null
 }

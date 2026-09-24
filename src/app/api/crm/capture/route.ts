@@ -3,7 +3,7 @@ import type { CrmPersonRole, CrmPriorityTier, CrmWarmth } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { verifyCaptureToken } from '@/lib/crm/capture-token'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { isRealOrgName } from '@/lib/crm/normalize'
+import { isRealOrgName, placeholderOrgKindFor, ORG_PLACEHOLDER_NAME } from '@/lib/crm/normalize'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { PERSON_ROLES } from '@/lib/crm/labels'
@@ -279,6 +279,21 @@ export async function POST(req: NextRequest) {
           })
           orgId = org.id
         }
+      } else {
+        // "looking for new opportunity", "Self-employed": not an employer,
+        // but it says which bucket they're in, and an affiliation is the only
+        // place a title can live — without one the headline was dropped.
+        const placeholder = placeholderOrgKindFor(body.company)
+        if (placeholder) {
+          const name = ORG_PLACEHOLDER_NAME[placeholder]
+          const key = normalizeOrgName(name)
+          const org = await prisma.crmOrganization.upsert({
+            where: { canonicalNameNormalized: key },
+            create: { name, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+            update: {},
+          })
+          orgId = org.id
+        }
       }
 
       // A LinkedIn profile is matched by its slug; any other page (a staff
@@ -295,8 +310,9 @@ export async function POST(req: NextRequest) {
           // organization is the same person — this is what lets a second
           // capture of a bio page fill in the phone or email the first one
           // missed, instead of creating a duplicate. Both must match, so two
-          // different people who share a common name are never merged.
-          (name && orgId
+          // different people who share a common name are never merged — and
+          // never on a placeholder ("- Unemployed" is not an organization).
+          (name && orgId && orgKey
             ? await prisma.crmPerson.findFirst({
                 where: { fullName: { equals: name, mode: 'insensitive' }, affiliations: { some: { orgId } } },
                 include,

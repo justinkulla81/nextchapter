@@ -173,20 +173,65 @@ async function readPage() {
       locationLine = companyLine
       companyLine = ''
     }
-    out.company =
-      (companyLine ? companyLine.split('·')[0].trim() : '') ||
-      pick('[aria-label^="Current company"]') ||
-      pick('button[aria-label*="Current company"] span') ||
-      // Newer top-card layout: the company/school badges under the name are
-      // plain links with no "Current company" aria-label at all — the first
-      // one is company far more often than school.
-      pick('.pv-text-details__right-panel a[href*="/company/"]') ||
-      pick('a[data-field="experience_company_logo"]') ||
-      // Broadest fallback: any company-page link inside the profile's main
-      // content. Hrefs are far more durable across LinkedIn redesigns than
-      // the CSS class names wrapping them.
-      scope.querySelector('a[href*="/company/"]')?.textContent?.trim() ||
-      ''
+    // Where the current employer can come from, most reliable first. Every
+    // source is confined to the profile's top card or its Experience
+    // section: the old last resort — "any /company/ link in <main>" — read
+    // Jeremy Hall's employer off the United Nations card in his Interests
+    // section ("United NationsInternational Affairs6,888,866 followers").
+    const topCard = nameEl?.closest('section') || null
+    const expSection =
+      document.getElementById('experience')?.closest('section') ||
+      Array.from(scope.querySelectorAll('section')).find((sec) =>
+        /^\s*experience/i.test(sec.querySelector('h2')?.textContent || ''))
+    // The first Experience entry, only if it's current ("… – Present").
+    // Grouped entries (several roles at one company) lead with the company;
+    // single roles lead with the title, then "Company · Full-time".
+    const currentExperienceCompany = () => {
+      const li = expSection?.querySelector('li')
+      if (!li || !/\bpresent\b/i.test(li.textContent || '')) return ''
+      const logo = li.querySelector('img[alt$=" logo" i]')?.getAttribute('alt')?.replace(/\s+logo$/i, '').trim()
+      if (logo) return logo
+      const spans = Array.from(li.querySelectorAll('span[aria-hidden="true"], p'))
+        .map((el) => (el.textContent || '').trim()).filter(Boolean)
+      const lines = spans.filter((t, i) => spans.indexOf(t) === i)
+      const grouped = !!li.querySelector('ul li')
+      return ((grouped ? lines[0] : lines[1]) || '').split('·')[0].trim()
+    }
+    const topCardCompanyLink = () => {
+      const a = topCard && Array.from(topCard.querySelectorAll('a[href*="/company/"]'))
+        .find((el) => (el.textContent || '').trim())
+      return a ? a.textContent.trim() : ''
+    }
+    // A status typed into the company field ("looking for new opportunity",
+    // "open to work") means no employer — stop there rather than falling
+    // through to a worse source. Card text ("6,888,866 followers") is never
+    // a company name.
+    const JOB_SEEKING = /^(actively\s+)?(looking|seeking|searching)\s+(for|a|an|my|new|next|opportunit\w*|roles?|positions?|employment|work)\b|\bopen to (work|new|opportunit)|\b(new|next) (opportunit|role|challenge)|\bin transition\b|\bbetween (roles|jobs|opportunities)\b|\bcareer (break|transition)\b/i
+    const CARD_TEXT = /\bfollowers?\b|\d{1,3}(,\d{3})+/i
+    out.company = ''
+    for (const source of [
+      () => (companyLine ? companyLine.split('·')[0].trim() : ''),
+      () => pick('[aria-label^="Current company"]'),
+      () => pick('button[aria-label*="Current company"] span'),
+      () => pick('.pv-text-details__right-panel a[href*="/company/"]'),
+      topCardCompanyLink,
+      currentExperienceCompany,
+    ]) {
+      const t = (source() || '').replace(/\s+/g, ' ').trim()
+      if (!t || CARD_TEXT.test(t)) continue
+      // Saved under the "- Unemployed" placeholder, so their headline is
+      // kept (a title needs an organization to hang on).
+      if (JOB_SEEKING.test(t)) { out.company = '- Unemployed'; break }
+      out.company = t
+      break
+    }
+    // "Senior Technical Writer at Oracle": the headline names the employer
+    // when nothing else on the card does.
+    const atMatch = !out.company && out.jobTitle.match(/^(.{3,80}?)\s+(?:at|@)\s+([^|,·]{2,60})$/i)
+    if (atMatch && !JOB_SEEKING.test(atMatch[2])) {
+      out.jobTitle = atMatch[1].trim()
+      out.company = atMatch[2].trim()
+    }
     out.location = locationLine.split('·')[0].trim()
 
     // The connection-degree badge ("· 1st" / "· 2nd" / "· 3rd") sits right
