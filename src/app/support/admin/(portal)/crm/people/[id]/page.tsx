@@ -6,6 +6,7 @@ import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
 import { CrmInviteToggle } from '@/components/admin/CrmInviteToggle'
+import { CrmNextChapterAccount } from '@/components/admin/CrmNextChapterAccount'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
@@ -48,10 +49,15 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       // candidate (see CrmPerson.candidateId's schema comment) — shown as a
       // plain fact, since their own membership-upgrade opportunity above
       // already carries the deal-stage view of the same thing.
-      candidate: { select: { membershipSubscription: { select: { status: true } } } },
+      candidate: { select: { id: true, createdAt: true, membershipSubscription: { select: { status: true } } } },
     },
   })
   if (!person) notFound()
+  // Sign-ups that look like someone invited from here, waiting on a yes/no.
+  const inviteMatches = person.candidateId ? [] : await prisma.candidateIdentityMatch.findMany({
+    where: { source: 'CRM_INVITE', sourceRecordId: person.id, status: 'PENDING' },
+    select: { id: true, strength: true, candidate: { select: { firstName: true, lastName: true, email: true, createdAt: true } } },
+  })
 
   const saveNotes = async (formData: FormData) => {
     'use server'
@@ -132,13 +138,22 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
       </section>
 
-      {person.candidate && (
-        <p className="text-sm text-muted-foreground">
-          Also a NextChapter candidate — membership: <span className="font-medium text-foreground">
-            {MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}
-          </span>
-        </p>
-      )}
+      <CrmNextChapterAccount
+        info={{
+          account: person.candidate
+            ? { href: `/support/admin/candidates/${person.candidate.id}`, since: formatDate(person.candidate.createdAt) }
+            : null,
+          invitedAt: person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null,
+          possibleSignups: inviteMatches.map((m) => ({
+            matchId: m.id,
+            name: [m.candidate.firstName, m.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
+            email: m.candidate.email,
+            signedUp: formatDate(m.candidate.createdAt),
+            sameEmail: m.strength === 'EMAIL_EXACT',
+          })),
+        }}
+        membership={person.candidate ? `membership: ${MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}` : undefined}
+      />
 
       <section>
         <h2 className="mb-2 text-lg font-semibold">Contact type</h2>

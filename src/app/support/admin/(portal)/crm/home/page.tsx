@@ -303,6 +303,12 @@ export default async function CrmHomePage({
     },
   ]
 
+  // New sign-ups that look like someone you invited, not yet confirmed.
+  const possibleSignups = await prisma.candidateIdentityMatch.findMany({
+    where: { source: 'CRM_INVITE', status: 'PENDING' },
+    select: { sourceRecordId: true, matchedName: true },
+  })
+
   return (
     <div className="space-y-6">
       <CrmPeekPanel />
@@ -316,6 +322,22 @@ export default async function CrmHomePage({
         </div>
         <CrmSyncNowButton />
       </header>
+
+      {possibleSignups.length > 0 && (
+        <Link
+          href={possibleSignups.length === 1 ? `/support/admin/crm/people/${possibleSignups[0].sourceRecordId}` : '/support/admin/identity-matches'}
+          className="flex items-center gap-2 rounded-lg border border-emerald-400/50 bg-emerald-50 px-3 py-2 text-sm hover:border-emerald-500 dark:bg-emerald-950/40"
+        >
+          <span className="rounded-full bg-emerald-200 px-1.5 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">
+            {possibleSignups.length}
+          </span>
+          <span>
+            {possibleSignups.length === 1
+              ? `${possibleSignups[0].matchedName ?? 'Someone you invited'} may have signed up — confirm to link their account`
+              : 'people you invited may have signed up — confirm to link their accounts'}
+          </span>
+        </Link>
+      )}
 
       {needsReviewCount > 0 && (
         <Link

@@ -10,6 +10,7 @@ import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmInlineGoals } from '@/components/admin/CrmInlineGoals'
 import { CrmInlineText } from '@/components/admin/CrmInlineText'
 import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
+import { CrmNextChapterAccount, type NextChapterAccountInfo } from '@/components/admin/CrmNextChapterAccount'
 import type { CrmPersonRole, CrmGoal } from '@prisma/client'
 
 interface Fact { label: string; value: string }
@@ -24,6 +25,7 @@ interface Peek {
   email?: string | null
   location?: string | null
   awaitingReply?: boolean
+  nextChapter?: NextChapterAccountInfo
   editable?: { leadQuality: string; warmth: string; priority: string | null }
   company?: { id: string; name: string; otherPeopleCount: number } | null
   facts: Fact[]
@@ -130,6 +132,10 @@ export function CrmPeekPanel() {
             <>
               {data.kind === 'person' && data.roles && (
                 <CrmInlineRoles personId={data.id} roles={data.roles} name={data.title} onSaved={() => refetch(data.id, 'person')} />
+              )}
+
+              {data.kind === 'person' && data.nextChapter && (
+                <CrmNextChapterAccount info={data.nextChapter} onChanged={() => refetch(data.id, 'person')} />
               )}
 
               {data.company !== undefined && (

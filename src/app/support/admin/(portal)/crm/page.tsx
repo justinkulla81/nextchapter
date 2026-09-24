@@ -189,7 +189,7 @@ export default async function CrmPeoplePage({
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
         lastTouchedAt: true, touchCount: true, awaitingReplySince: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
-        nextFollowUpNote: true, nextFollowUpAt: true,
+        nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
           select: { title: true, org: { select: { id: true, name: true } } },
@@ -432,6 +432,15 @@ export default async function CrmPeoplePage({
                         one hover (or the peek panel) away. */}
                     <td className="max-w-xs px-3 py-1.5">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
+                      {p.candidateId ? (
+                        <span className="ml-1.5 inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 align-middle text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" title="Has a NextChapter candidate account">
+                          ✓ NC account
+                        </span>
+                      ) : p.candidateInvitedAt ? (
+                        <span className="ml-1.5 inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 align-middle text-[11px] text-muted-foreground" title="Invited to NextChapter — no account linked yet">
+                          Invited
+                        </span>
+                      ) : null}
                       {p.affiliations[0]?.title && (
                         <span className="block truncate text-xs text-muted-foreground" title={p.affiliations[0].title}>
                           {p.affiliations[0].title}

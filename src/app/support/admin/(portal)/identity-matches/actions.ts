@@ -66,6 +66,7 @@ export async function confirmIdentityMatch(matchId: string): Promise<void> {
   })
 
   revalidatePath('/support/admin/identity-matches')
+  revalidatePath('/support/admin/crm')
 }
 
 export async function rejectIdentityMatch(matchId: string): Promise<void> {
@@ -77,4 +78,5 @@ export async function rejectIdentityMatch(matchId: string): Promise<void> {
   })
 
   revalidatePath('/support/admin/identity-matches')
+  revalidatePath('/support/admin/crm')
 }

@@ -72,10 +72,15 @@ export async function GET(req: NextRequest) {
       },
       opportunities: { include: { pipeline: true, stage: true }, take: 5 },
       introPathsAsTarget: { include: { connectorPerson: { select: { fullName: true } } }, take: 5 },
-      candidate: { select: { membershipSubscription: { select: { status: true } } } },
+      candidate: { select: { id: true, createdAt: true, membershipSubscription: { select: { status: true } } } },
     },
   })
   if (!person) return Response.json({ error: 'Not found' }, { status: 404 })
+  // Sign-ups that look like someone invited from here, waiting on a yes/no.
+  const inviteMatches = person.candidateId ? [] : await prisma.candidateIdentityMatch.findMany({
+    where: { source: 'CRM_INVITE', sourceRecordId: person.id, status: 'PENDING' },
+    select: { id: true, strength: true, candidate: { select: { firstName: true, lastName: true, email: true, createdAt: true } } },
+  })
   const primaryOrg = person.affiliations[0]?.org ?? null
 
   return Response.json({
@@ -107,6 +112,19 @@ export async function GET(req: NextRequest) {
       person.candidate ? { label: 'Membership', value: MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE'] } : null,
     ].filter(Boolean),
     awaitingReply: person.awaitingReplySince !== null,
+    nextChapter: {
+      account: person.candidate
+        ? { href: `/support/admin/candidates/${person.candidate.id}`, since: formatDate(person.candidate.createdAt) }
+        : null,
+      invitedAt: person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null,
+      possibleSignups: inviteMatches.map((m) => ({
+        matchId: m.id,
+        name: [m.candidate.firstName, m.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
+        email: m.candidate.email,
+        signedUp: formatDate(m.candidate.createdAt),
+        sameEmail: m.strength === 'EMAIL_EXACT',
+      })),
+    },
     body: person.notes ?? null,
     linkedinUrl: person.linkedinUrl,
     // A follow-up can be flagged with no specific date — dueAt is null then,

@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { mergePersonIntoPerson } from '@/app/support/admin/(portal)/crm/actions'
+import { mergePersonRecords } from '@/lib/crm/merge-person'
 import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 
 /**
@@ -13,9 +13,11 @@ import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 export async function linkInvitedCrmPerson(invitedPersonId: string, candidateId: string): Promise<void> {
   const invited = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: invitedPersonId },
-    select: { id: true, roles: true, goals: true, candidateInvitedBy: true, deletedAt: true },
+    select: { id: true, roles: true, goals: true, candidateInvitedBy: true, deletedAt: true, email: true, emails: true },
   })
   if (invited.deletedAt) return
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { email: true } })
+  const signupEmail = candidate.email?.trim().toLowerCase() || null
 
   const autoCreated = await prisma.crmPerson.findFirst({
     where: { candidateId, deletedAt: null, id: { not: invitedPersonId } },
@@ -33,13 +35,17 @@ export async function linkInvitedCrmPerson(invitedPersonId: string, candidateId:
       else await prisma.crmOpportunity.update({ where: { id: opp.id }, data: { primaryPersonId: invitedPersonId } })
     }
     await prisma.crmPerson.update({ where: { id: autoCreated.id }, data: { candidateId: null } })
-    await mergePersonIntoPerson(autoCreated.id, invitedPersonId)
+    await mergePersonRecords(autoCreated.id, invitedPersonId)
   }
 
   await prisma.crmPerson.update({
     where: { id: invitedPersonId },
     data: {
       candidateId,
+      // The address they signed up with — an invite from LinkedIn usually
+      // had none on file.
+      ...(signupEmail && !invited.email ? { email: signupEmail } : {}),
+      ...(signupEmail && !invited.emails.includes(signupEmail) ? { emails: { push: signupEmail } } : {}),
       ...(invited.roles.includes('JOB_SEEKER') ? {} : { roles: { push: 'JOB_SEEKER' } }),
       ...(invited.goals.includes('MEMBERSHIP_UPGRADE') ? {} : { goals: { push: 'MEMBERSHIP_UPGRADE' } }),
     },
