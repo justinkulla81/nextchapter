@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 import { approveActivities, discardActivities } from '@/app/support/admin/(portal)/crm/actions'
 import { CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { priorityTierClass } from '@/lib/crm/labels'
@@ -58,6 +59,8 @@ export function CrmNeedsReviewList({ rows }: { rows: ReviewRow[] }) {
     })
   }
 
+  const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.id))
+
   if (rows.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
@@ -90,6 +93,20 @@ export function CrmNeedsReviewList({ rows }: { rows: ReviewRow[] }) {
           </button>
         </div>
       )}
+
+      <label className="flex items-center gap-3 px-3 text-sm text-muted-foreground">
+        <input
+          type="checkbox"
+          aria-label="Select all emails"
+          checked={allSelected}
+          ref={(el) => { if (el) el.indeterminate = selected.size > 0 && !allSelected }}
+          onChange={() => {
+            setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))
+            if (!allSelected) posthog.capture('crm_needs_review_select_all', { count: rows.length })
+          }}
+        />
+        {allSelected ? `All ${rows.length} selected` : `Select all ${rows.length}`}
+      </label>
 
       <ul className="divide-y divide-border rounded-lg border border-border bg-card">
         {rows.map((r) => (
