@@ -178,7 +178,16 @@ async function readPage() {
     // section: the old last resort — "any /company/ link in <main>" — read
     // Jeremy Hall's employer off the United Nations card in his Interests
     // section ("United NationsInternational Affairs6,888,866 followers").
-    const topCard = nameEl?.closest('section') || null
+    // The top card: the smallest block around the name that also holds the
+    // "Contact info" link. <section> alone isn't reliable — on some layouts
+    // the name's nearest <section> excludes the company badges beside it.
+    const topCard = (() => {
+      let el = nameEl
+      for (let i = 0; el && i < 14; i++, el = el.parentElement) {
+        if (el.querySelector('a[href*="contact-info"]') || /contact info/i.test(el.innerText || '')) return el
+      }
+      return nameEl?.closest('section') || null
+    })()
     const expSection =
       document.getElementById('experience')?.closest('section') ||
       Array.from(scope.querySelectorAll('section')).find((sec) =>
@@ -197,11 +206,52 @@ async function readPage() {
       const grouped = !!li.querySelector('ul li')
       return ((grouped ? lines[0] : lines[1]) || '').split('·')[0].trim()
     }
-    const topCardCompanyLink = () => {
-      const a = topCard && Array.from(topCard.querySelectorAll('a[href*="/company/"]'))
-        .find((el) => (el.textContent || '').trim())
-      return a ? a.textContent.trim() : ''
+    // The badges beside the name (current company, school). LinkedIn
+    // renders them as links or buttons depending on the layout, with
+    // build-hashed classes — so every short link/button in the top card is a
+    // candidate, minus the name, the headline, location and UI controls.
+    const firstLine = (el) => ((el.innerText || el.textContent || '').split('\n').map((t) => t.trim()).find(Boolean) || '')
+    const UI_TEXT = /^(contact info|message|more|connect|follow|following|pending|open to|share profile|add profile section|enhance profile|resources|view in sales navigator)$|connections?$|followers?$|^\d/i
+    const topCardBadges = () => {
+      if (!topCard) return []
+      const skip = new Set([out.name, out.jobTitle, lines[0], locationLine].map((t) => (t || '').trim().toLowerCase()).filter(Boolean))
+      const seen = new Set()
+      const badges = []
+      for (const el of topCard.querySelectorAll('a, button')) {
+        const text = firstLine(el).replace(/\s+/g, ' ')
+        const key = text.toLowerCase()
+        if (text.length < 2 || text.length > 70 || skip.has(key) || seen.has(key) || UI_TEXT.test(text)) continue
+        if (el.closest('h1, h2') || text.includes('·')) continue
+        seen.add(key)
+        const href = el.getAttribute('href') || ''
+        const label = el.getAttribute('aria-label') || ''
+        badges.push({
+          text,
+          school: /\/school\//.test(href) || /education/i.test(label) ||
+            /\b(university|college|school|academy|institute of technology|polytechnic)\b/i.test(text),
+        })
+      }
+      return badges
     }
+    // "Current company: NextLadder Ventures. Click to skip to experience card"
+    const currentCompanyLabel = () => {
+      const el = document.querySelector('[aria-label*="Current company" i]')
+      const m = (el?.getAttribute('aria-label') || '').match(/current company:?\s*(.+?)(?:\.\s*click\b.*)?$/i)
+      return m ? m[1].trim() : ''
+    }
+    const headline = (lines[0] || out.jobTitle || '').toLowerCase()
+    // A badge the headline also names ("Co-founder, NextLadder Ventures")
+    // is the employer beyond doubt — school or not (Harvard staff).
+    // Matched on the badge's distinctive words, so "Harvard University" is
+    // found in "Executive Director, Harvard Project on Workforce".
+    const GENERIC_ORG_WORDS = new Set(['the', 'of', 'and', 'at', 'for', 'university', 'college', 'school', 'inc', 'llc', 'ltd', 'co', 'corp', 'corporation', 'company', 'group', 'plc', 'lp', 'llp'])
+    const headlineWords = new Set(headline.split(/[^a-z0-9&'-]+/).filter(Boolean))
+    const badgeInHeadline = () => topCardBadges().find((b) => {
+      const core = b.text.toLowerCase().split(/[^a-z0-9&'-]+/).filter((w) => w && !GENERIC_ORG_WORDS.has(w))
+      return core.length > 0 && core.some((w) => w.length >= 3) && core.every((w) => headlineWords.has(w))
+    })?.text || ''
+    const firstCompanyBadge = () => topCardBadges().find((b) => !b.school)?.text || ''
+
     // A status typed into the company field ("looking for new opportunity",
     // "open to work") means no employer — stop there rather than falling
     // through to a worse source. Card text ("6,888,866 followers") is never
@@ -210,11 +260,11 @@ async function readPage() {
     const CARD_TEXT = /\bfollowers?\b|\d{1,3}(,\d{3})+/i
     out.company = ''
     for (const source of [
+      currentCompanyLabel,
+      badgeInHeadline,
       () => (companyLine ? companyLine.split('·')[0].trim() : ''),
       () => pick('[aria-label^="Current company"]'),
-      () => pick('button[aria-label*="Current company"] span'),
-      () => pick('.pv-text-details__right-panel a[href*="/company/"]'),
-      topCardCompanyLink,
+      firstCompanyBadge,
       currentExperienceCompany,
     ]) {
       const t = (source() || '').replace(/\s+/g, ' ').trim()
@@ -231,6 +281,13 @@ async function readPage() {
     if (atMatch && !JOB_SEEKING.test(atMatch[2])) {
       out.jobTitle = atMatch[1].trim()
       out.company = atMatch[2].trim()
+    }
+    // The title is the role, not "role + employer": "Co-founder, NextLadder
+    // Ventures" / "VP at Acme" / "CFO | Acme" → "Co-founder" / "VP" / "CFO".
+    if (out.company && out.company !== '- Unemployed') {
+      const esc = out.company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const stripped = out.jobTitle.replace(new RegExp(`\\s*(?:,|\\bat\\b|@|\\||-|–|—)\\s*${esc}\\s*$`, 'i'), '').trim()
+      if (stripped && stripped !== out.jobTitle) out.jobTitle = stripped
     }
     out.location = locationLine.split('·')[0].trim()
 
