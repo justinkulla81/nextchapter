@@ -275,6 +275,29 @@ async function readPage() {
       out.company = t
       break
     }
+    // Structure-free fallback: the headline's org segment ("Co-Founder &
+    // Managing Partner, Magnify Ventures" → "Magnify Ventures") that also
+    // shows up as its own line of text on the page — the company badge,
+    // whatever elements LinkedIn wraps it in this week. Where LinkedIn puts
+    // the badges relative to the name changes between layouts; the text
+    // doesn't.
+    if (!out.company) {
+      const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().toLowerCase()
+      const pageLines = new Set([
+        ...(scope.innerText || '').split('\n').map(clean),
+        ...Array.from(scope.querySelectorAll('span, p, a, button, div, h3, h4'))
+          .filter((el) => el.children.length === 0 || [...el.children].every((c) => c.tagName === 'SPAN' && !c.children.length))
+          .map((el) => clean(el.textContent)),
+      ].filter(Boolean))
+      const segs = (lines[0] || out.jobTitle || '')
+        .split(/\s*(?:,|\||·|\bat\b|@|\s[-–—]\s)\s*/i)
+        .slice(1).map((t) => t.trim()).filter((t) => t.length >= 2)
+      const ORG_WORD = /\b(ventures|capital|partners|group|inc|llc|ltd|labs|fund|funds|foundation|institute|university|college|bank|holdings|technologies|systems|solutions|consulting|advisors|associates|company|corp|corporation|health|network|alliance|collective|studio|agency)\b/i
+      const hit = segs.find((t) => pageLines.has(t.toLowerCase()) && !JOB_SEEKING.test(t) && !CARD_TEXT.test(t))
+        // Not on the page as a line, but reads as an organization name.
+        ?? segs.find((t) => ORG_WORD.test(t) && !JOB_SEEKING.test(t) && t.split(' ').length <= 6)
+      if (hit) out.company = hit
+    }
     // "Senior Technical Writer at Oracle": the headline names the employer
     // when nothing else on the card does.
     const atMatch = !out.company && out.jobTitle.match(/^(.{3,80}?)\s+(?:at|@)\s+([^|,·]{2,60})$/i)
@@ -476,6 +499,8 @@ function renderFields() {
 }
 
 async function init() {
+  // Shown so a stale copy (extension not reloaded after an update) is obvious.
+  if ($('version')) $('version').textContent = `v${chrome.runtime.getManifest().version}`
   const { base, token } = await chrome.storage.local.get(['base', 'token'])
   if (!base || !token) {
     $('setup').hidden = false
