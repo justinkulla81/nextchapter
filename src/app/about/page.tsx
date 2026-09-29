@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: { title: 'About NextChapter: the AI platform for career transitions', description: DESCRIPTION, url: 'https://launchyournextchapter.com/about' },
 }
 
-// Founder headshot (square, shown as a circle). Without the file the
+// Founder headshot (square, shown with rounded corners). Without the file the
 // founder section shows initials.
 const PHOTO_PATH = '/images/team/justin-kulla.jpg'
 const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', PHOTO_PATH))
@@ -196,19 +196,19 @@ export default function AboutPage() {
         <section className="bg-off-white" aria-labelledby="founder">
           <div className="mx-auto max-w-6xl px-6 py-16">
             <p className={EYEBROW}>Founder</p>
-            <div className="mt-6 grid gap-8 md:grid-cols-[220px_minmax(0,1fr)]">
-              <div className="max-w-[220px]">
+            <div className="mt-6 grid gap-8 md:grid-cols-[260px_minmax(0,1fr)]">
+              <div className="max-w-[260px]">
                 {hasPhoto ? (
                   <Image
                     src={PHOTO_PATH}
                     alt="Justin Kulla"
-                    width={440}
-                    height={440}
-                    sizes="220px"
-                    className="aspect-square w-full rounded-full object-cover"
+                    width={520}
+                    height={520}
+                    sizes="260px"
+                    className="aspect-square w-full rounded-2xl object-cover"
                   />
                 ) : (
-                  <div className="grid aspect-square w-full place-items-center rounded-full bg-navy text-5xl font-bold tracking-tight text-white" aria-hidden="true">
+                  <div className="grid aspect-square w-full place-items-center rounded-2xl bg-navy text-5xl font-bold tracking-tight text-white" aria-hidden="true">
                     JK
                   </div>
                 )}

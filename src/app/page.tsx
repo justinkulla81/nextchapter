@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { StatCallouts } from '@/components/StatCallouts'
 import { CompetencyGridVisual } from '@/components/marketing/CompetencyGridVisual'
 import { SampleMarketRealityReport } from '@/components/marketing/SampleMarketRealityReport'
 import { AudienceRouter } from '@/components/marketing/AudienceRouter'
+import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 
@@ -79,44 +79,7 @@ export default function Home() {
 
       {/* 1 — Hero (§C3.1.1) */}
       <section className="relative bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <Logo className="text-3xl" />
-          <nav className="flex items-center gap-6">
-            <Link
-              href="/why-stuck"
-              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
-            >
-              Why you&apos;re stuck
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-block"
-            >
-              How it works
-            </Link>
-            <Link
-              href="/coaches"
-              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
-            >
-              For coaches
-            </Link>
-            <Link
-              href="/about"
-              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
-            >
-              About
-            </Link>
-            <Link
-              href="/for-organizations"
-              className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block"
-            >
-              For organizations →
-            </Link>
-            <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
-              Log in
-            </Button>
-          </nav>
-        </div>
+        <SiteNav />
 
         <div className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-6xl">

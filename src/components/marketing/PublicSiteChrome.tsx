@@ -6,24 +6,45 @@ import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 
 const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-foreground'
 
+/**
+ * The public site's top navigation — the homepage uses this same component,
+ * so every public page shows identical links.
+ */
+export function SiteNav({ current }: { current?: 'about' }) {
+  return (
+    <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <Link href="/" aria-label="NextChapter home">
+        <Logo className="text-3xl" />
+      </Link>
+      <nav className="flex items-center gap-6" aria-label="Main">
+        <Link href="/why-stuck" className={`${NAV_LINK} lg:inline-block`}>
+          Why you&apos;re stuck
+        </Link>
+        <Link href="/how-it-works" className={`${NAV_LINK} sm:inline-block`}>
+          How it works
+        </Link>
+        <Link href="/coaches" className={`${NAV_LINK} lg:inline-block`}>
+          For coaches
+        </Link>
+        <Link href="/about" aria-current={current === 'about' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
+          About
+        </Link>
+        <Link href="/for-organizations" className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block">
+          For organizations →
+        </Link>
+        <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
+          Log in
+        </Button>
+      </nav>
+    </div>
+  )
+}
+
 /** The homepage's header, for public pages that stand on their own (About, Contact). */
 export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' }) {
   return (
-    <header className="border-b border-light-gray bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
-        <Link href="/" aria-label="NextChapter home">
-          <Logo className="text-3xl" />
-        </Link>
-        <nav className="flex items-center gap-6" aria-label="Main">
-          <Link href="/how-it-works" className={`${NAV_LINK} sm:inline-block`}>How it works</Link>
-          <Link href="/about" aria-current={current === 'about' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block ${current === 'about' ? 'text-navy' : ''}`}>About</Link>
-          <Link href="/contact" aria-current={current === 'contact' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block ${current === 'contact' ? 'text-navy' : ''}`}>Contact</Link>
-          <Link href="/for-organizations" className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block">For organizations →</Link>
-          <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
-            Log in
-          </Button>
-        </nav>
-      </div>
+    <header className="bg-white">
+      <SiteNav current={current === 'about' ? 'about' : undefined} />
     </header>
   )
 }
