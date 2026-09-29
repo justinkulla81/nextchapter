@@ -101,6 +101,12 @@ export default function Home() {
               For coaches
             </Link>
             <Link
+              href="/about"
+              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
+            >
+              About
+            </Link>
+            <Link
               href="/for-organizations"
               className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block"
             >
@@ -393,6 +399,14 @@ export default function Home() {
           </div>
           <p className="mt-4 text-sm text-light-blue">
             © {new Date().getFullYear()} NextChapter. Candidates are never charged — ever.
+            {' · '}
+            <Link href="/about" className="underline underline-offset-4">
+              About
+            </Link>
+            {' · '}
+            <Link href="/contact" className="underline underline-offset-4">
+              Contact
+            </Link>
             {' · '}
             <Link href="/pricing" className="underline underline-offset-4">
               Pricing

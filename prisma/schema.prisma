@@ -9908,3 +9908,36 @@ model WarnSyncRun {
 
   @@index([state, startedAt(sort: Desc)])
 }
+
+/// Who sent a /contact message — picks which fields the form shows and how
+/// the sender is filed in the CRM.
+enum ContactAudience {
+  CANDIDATE
+  ORGANIZATION
+  COACH_RECRUITER
+  OTHER
+}
+
+/// A message sent through the public /contact form. Kept here so none
+/// depends on the notification email arriving; listed on the admin Contact
+/// messages page.
+model ContactSubmission {
+  id           String          @id @default(cuid())
+  audience     ContactAudience
+  fullName     String
+  email        String
+  organization String?
+  role         String?
+  message      String          @db.Text
+  ip           String?
+  userAgent    String?
+  /// The CRM person this message was filed under (created if new).
+  crmPersonId  String?
+  emailedAt    DateTime?
+  handledAt    DateTime?
+  handledBy    String?
+  createdAt    DateTime        @default(now())
+
+  @@index([createdAt])
+  @@index([ip, createdAt])
+}
