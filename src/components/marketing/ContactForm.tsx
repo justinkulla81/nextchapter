@@ -10,6 +10,7 @@ const PLACEHOLDER: Record<ContactAudience, string> = {
   CANDIDATE: 'Tell us where you are in your search and what you’d like help with.',
   ORGANIZATION: 'Tell us about your organization and the people you support.',
   COACH_RECRUITER: 'Tell us about your practice and how you’d like to use NextChapter.',
+  JOB_APPLICANT: 'Tell us about yourself and why you want to work on NextChapter.',
   OTHER: 'How can we help?',
 }
 
@@ -19,7 +20,7 @@ const LABEL = 'text-sm font-semibold text-navy'
 /**
  * The /contact form. The first choice decides which fields show: an
  * organization is asked for its name and the sender's role, a coach or
- * recruiter for their practice. The action hands typed values back on an
+ * recruiter for their practice, a job applicant for the role and LinkedIn. The action hands typed values back on an
  * error, so fields refill after React's post-submit reset.
  */
 export function ContactForm({ initialAudience }: { initialAudience: ContactAudience }) {
@@ -40,34 +41,28 @@ export function ContactForm({ initialAudience }: { initialAudience: ContactAudie
 
   const v = state?.values
   const showOrg = audience === 'ORGANIZATION' || audience === 'COACH_RECRUITER'
-  const showRole = audience === 'ORGANIZATION'
+  const showRole = audience === 'ORGANIZATION' || audience === 'JOB_APPLICANT'
+  const applying = audience === 'JOB_APPLICANT'
 
   return (
     <form action={action} className={pending ? 'cursor-wait' : undefined} noValidate>
-      <fieldset>
-        <legend className={LABEL}>I’m reaching out as…</legend>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {CONTACT_AUDIENCES.map((a) => (
-            <button
-              key={a.value}
-              type="button"
-              aria-pressed={audience === a.value}
-              onClick={() => {
-                setAudience(a.value)
-                posthog?.capture('contact_audience_selected', { audience: a.value })
-              }}
-              className={`rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                audience === a.value
-                  ? 'border-brand bg-brand/5 text-navy ring-1 ring-brand'
-                  : 'border-light-gray bg-white text-foreground hover:bg-off-white'
-              }`}
-            >
-              {a.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <input type="hidden" name="audience" value={audience} />
+      {/* Five choices, so a dropdown (design principles: 5+ options). */}
+      <div className="flex flex-col gap-1">
+        <label htmlFor="contact-audience" className={LABEL}>I’m reaching out because…</label>
+        <select
+          id="contact-audience"
+          name="audience"
+          value={audience}
+          onChange={(e) => {
+            const next = e.target.value as ContactAudience
+            setAudience(next)
+            posthog?.capture('contact_audience_selected', { audience: next })
+          }}
+          className={`${FIELD} sm:max-w-md`}
+        >
+          {CONTACT_AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+        </select>
+      </div>
 
       {/* Hidden from people; bots fill it in. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -91,12 +86,18 @@ export function ContactForm({ initialAudience }: { initialAudience: ContactAudie
         )}
         {showRole && (
           <div className="flex flex-col gap-1">
-            <label htmlFor="contact-role" className={LABEL}>Your role</label>
+            <label htmlFor="contact-role" className={LABEL}>{applying ? 'Role you’re interested in' : 'Your role'}</label>
             <input id="contact-role" name="role" autoComplete="organization-title" defaultValue={v?.role} className={FIELD} />
           </div>
         )}
+        {applying && (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="contact-linkedin" className={LABEL}>LinkedIn profile</label>
+            <input id="contact-linkedin" name="linkedinUrl" type="url" inputMode="url" placeholder="linkedin.com/in/yourname" required defaultValue={v?.linkedinUrl} className={FIELD} />
+          </div>
+        )}
         <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="contact-message" className={LABEL}>How can we help?</label>
+          <label htmlFor="contact-message" className={LABEL}>{applying ? 'Why NextChapter?' : 'How can we help?'}</label>
           <textarea id="contact-message" name="message" rows={5} required placeholder={PLACEHOLDER[audience]} defaultValue={v?.message} className={`${FIELD} resize-y`} />
           <p className="text-xs text-muted-foreground">
             Question about your account? <span className="font-medium text-foreground">{SUPPORT_EMAIL}</span> is faster.

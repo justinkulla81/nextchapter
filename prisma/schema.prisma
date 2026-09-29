@@ -9915,6 +9915,7 @@ enum ContactAudience {
   CANDIDATE
   ORGANIZATION
   COACH_RECRUITER
+  JOB_APPLICANT // applying to work at NextChapter
   OTHER
 }
 
@@ -9928,6 +9929,8 @@ model ContactSubmission {
   email        String
   organization String?
   role         String?
+  /// Job applicants' LinkedIn profile.
+  linkedinUrl  String?
   message      String          @db.Text
   ip           String?
   userAgent    String?

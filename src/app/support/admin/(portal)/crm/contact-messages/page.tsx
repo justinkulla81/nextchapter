@@ -50,6 +50,8 @@ export default async function ContactMessagesPage({ searchParams }: { searchPara
                   <span className="select-all text-muted-foreground">{r.email}</span>
                   <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium">{CONTACT_AUDIENCE_SHORT[r.audience]}</span>
                   {r.organization && <span className="text-muted-foreground">{r.organization}{r.role ? ` · ${r.role}` : ''}</span>}
+                  {!r.organization && r.role && <span className="text-muted-foreground">{r.audience === 'JOB_APPLICANT' ? `Interested in: ${r.role}` : r.role}</span>}
+                  {r.linkedinUrl && <a href={r.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-brand underline">LinkedIn</a>}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm">{r.message}</p>
                 <p className="mt-2 text-xs text-muted-foreground">

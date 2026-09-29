@@ -10,7 +10,7 @@ import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/consta
 
 const TITLE = 'About: the AI platform for career transitions'
 const DESCRIPTION =
-  'NextChapter is the AI platform for career transitions. Founded by Justin Kulla, an education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.'
+  'NextChapter is the AI platform for career transitions. Founded by Justin Kulla, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   openGraph: { title: 'About NextChapter: the AI platform for career transitions', description: DESCRIPTION, url: 'https://launchyournextchapter.com/about' },
 }
 
-// Drop a square-ish headshot at public/images/team/justin-kulla.jpg and the
-// founder section uses it; until then it shows initials.
+// Founder headshot (square, shown as a circle). Without the file the
+// founder section shows initials.
 const PHOTO_PATH = '/images/team/justin-kulla.jpg'
 const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', PHOTO_PATH))
 
@@ -52,8 +52,6 @@ const jsonLd = {
   ],
 }
 
-const TERMS = ['AI job search', 'Career transitions', 'Career exploration', 'Career pathways', 'Education & retraining', 'Workforce development']
-
 const PILLARS = [
   { kicker: 'AI job search', title: 'AI agents run the search', body: 'They find matching roles, track every application, response and rejection, and tell you what to do next.' },
   { kicker: 'Career exploration', title: 'Know which jobs you can get', body: 'The Market Reality Grade shows how employers read your background and which roles and titles fit.' },
@@ -77,20 +75,6 @@ const ORGANIZATIONS: { label: string; href: string }[] = [
   { label: 'Career coaches and recruiters', href: '/for-coaches' },
 ]
 
-const DEGREES = [
-  { school: 'MIT Sloan', degree: 'MBA' },
-  { school: 'Harvard Kennedy School', degree: 'Master of Public Administration' },
-  { school: 'Carnegie Mellon', degree: 'MS, Information Systems Management' },
-]
-
-const RECORD = [
-  { k: 'Founder', v: 'NextChapter · BusinessBlocks (acquired by AmTrust Financial)' },
-  { k: 'Investor', v: 'Partner, TZP Group, impact and education · Founding member, Weld North' },
-  { k: 'Operator', v: 'SVP, Global M&A and Venture Investments, AmTrust Financial · CTO, Edgenuity' },
-]
-
-const INVESTMENTS = ['Imagine Learning', 'The Learning House', 'Performance Matters', 'Edgenuity']
-
 function LinkedInIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
@@ -112,7 +96,7 @@ export default function AboutPage() {
       <main>
         {/* What NextChapter is */}
         <section className="bg-gradient-to-b from-off-white to-white">
-          <div className="mx-auto max-w-6xl px-6 pt-16 pb-16 sm:pt-20">
+          <div className="mx-auto max-w-6xl px-6 pt-16 pb-10 sm:pt-20">
             <p className={EYEBROW}>About NextChapter</p>
             <h1 className="mt-3 max-w-3xl text-balance text-4xl font-bold tracking-tight text-navy sm:text-6xl">
               The AI platform for career transitions
@@ -140,17 +124,12 @@ export default function AboutPage() {
                 Work with us
               </TrackedLink>
             </div>
-            <ul className="mt-8 flex flex-wrap gap-2" aria-label="What we work on">
-              {TERMS.map((t) => (
-                <li key={t} className="rounded-full border border-light-gray bg-white px-3 py-1 text-xs text-muted-foreground">{t}</li>
-              ))}
-            </ul>
           </div>
         </section>
 
         {/* The problem */}
         <section>
-          <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="mx-auto max-w-6xl px-6 pt-8 pb-16">
             <p className={EYEBROW}>The problem</p>
             <h2 className={H2}>Losing a job is common. Finding the next one takes too long.</h2>
             <div className="mt-4 max-w-2xl space-y-4 text-base leading-relaxed text-foreground/85">
@@ -208,15 +187,6 @@ export default function AboutPage() {
                     <li key={o.label}><Link href={o.href} className="hover:text-brand hover:underline">{o.label}</Link></li>
                   ))}
                 </ul>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  <Link href="/for-organizations" className="font-medium text-brand underline underline-offset-4">For organizations</Link>
-                  {' · '}
-                  <Link href="/security" className="font-medium text-brand underline underline-offset-4">Security</Link>
-                  {' · '}
-                  <TrackedLink href="/contact?as=organization" event="about_cta_clicked" properties={{ cta: 'serve_talk_to_us', audience: 'organization' }} className="font-medium text-brand underline underline-offset-4">
-                    Talk to us
-                  </TrackedLink>
-                </p>
               </div>
             </div>
           </div>
@@ -233,12 +203,12 @@ export default function AboutPage() {
                     src={PHOTO_PATH}
                     alt="Justin Kulla"
                     width={440}
-                    height={550}
-                    className="aspect-[4/5] w-full rounded-2xl object-cover"
-                    priority={false}
+                    height={440}
+                    sizes="220px"
+                    className="aspect-square w-full rounded-full object-cover"
                   />
                 ) : (
-                  <div className="grid aspect-[4/5] w-full place-items-center rounded-2xl bg-navy text-5xl font-bold tracking-tight text-white" aria-hidden="true">
+                  <div className="grid aspect-square w-full place-items-center rounded-full bg-navy text-5xl font-bold tracking-tight text-white" aria-hidden="true">
                     JK
                   </div>
                 )}
@@ -256,10 +226,10 @@ export default function AboutPage() {
                 </TrackedLink>
 
                 <div className="mt-6 max-w-2xl space-y-4 text-base leading-relaxed text-foreground/85">
-                  <p>Justin has spent nearly 20 years as an investor, founder and operator in education technology.</p>
+                  <p>Justin is a serial founder who has spent nearly 20 years as an investor, founder and operator in education technology.</p>
                   <p>
-                    He founded BusinessBlocks, an education company for small businesses, and led it as CEO through a
-                    successful exit to AmTrust Financial, a Fortune 500 company. At AmTrust he became SVP and Head of
+                    He founded BusinessBlocks, a venture-backed education company for small businesses, and led it as CEO
+                    through a successful exit to AmTrust Financial, a Fortune 500 company. At AmTrust he became SVP and Head of
                     Global M&amp;A and Venture Investments.
                   </p>
                   <p>
@@ -268,34 +238,12 @@ export default function AboutPage() {
                     Matters, and served as CTO of Edgenuity. He started his career in technology at Credit Suisse and
                     Google.
                   </p>
+                  <p>
+                    He holds an MBA from MIT, a Master of Public Administration from Harvard and a master’s in
+                    Information Systems Management from Carnegie Mellon.
+                  </p>
                 </div>
 
-                <ul className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Education">
-                  {DEGREES.map((d) => (
-                    <li key={d.school} className="rounded-xl border border-light-gray bg-white px-4 py-3">
-                      <span className="block text-sm font-semibold text-navy">{d.school}</span>
-                      <span className="text-xs text-muted-foreground">{d.degree}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <dl className="mt-6 max-w-2xl divide-y divide-light-gray border-y border-light-gray">
-                  {RECORD.map((r) => (
-                    <div key={r.k} className="grid gap-1 py-3 text-sm sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-4">
-                      <dt className="pt-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-gray">{r.k}</dt>
-                      <dd className="text-foreground/85">{r.v}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                <div className="mt-6">
-                  <p className="text-sm font-semibold text-navy">Education investments</p>
-                  <ul className="mt-2 flex flex-wrap gap-2">
-                    {INVESTMENTS.map((i) => (
-                      <li key={i} className="rounded-md border border-light-gray bg-white px-3 py-1.5 text-sm font-semibold text-navy">{i}</li>
-                    ))}
-                  </ul>
-                </div>
               </div>
             </div>
           </div>

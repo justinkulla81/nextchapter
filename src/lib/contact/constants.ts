@@ -1,9 +1,10 @@
 import type { ContactAudience } from '@prisma/client'
 
 export const CONTACT_AUDIENCES: { value: ContactAudience; label: string }[] = [
-  { value: 'CANDIDATE', label: 'Someone looking for my next role' },
-  { value: 'ORGANIZATION', label: 'An organization' },
-  { value: 'COACH_RECRUITER', label: 'A coach or recruiter' },
+  { value: 'CANDIDATE', label: 'I want help finding my next role' },
+  { value: 'ORGANIZATION', label: 'I represent an organization' },
+  { value: 'COACH_RECRUITER', label: 'I’m a coach or recruiter' },
+  { value: 'JOB_APPLICANT', label: 'I’m applying for a job at NextChapter' },
   { value: 'OTHER', label: 'Press or something else' },
 ]
 
@@ -11,6 +12,7 @@ export const CONTACT_AUDIENCE_SHORT: Record<ContactAudience, string> = {
   CANDIDATE: 'Job seeker',
   ORGANIZATION: 'Organization',
   COACH_RECRUITER: 'Coach or recruiter',
+  JOB_APPLICANT: 'Job applicant',
   OTHER: 'Press / other',
 }
 

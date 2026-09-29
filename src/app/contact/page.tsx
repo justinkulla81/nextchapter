@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 // ?as=organization (from the About page's "Work with us") preselects the audience.
 const AS: Record<string, ContactAudience> = {
-  candidate: 'CANDIDATE', organization: 'ORGANIZATION', coach: 'COACH_RECRUITER', recruiter: 'COACH_RECRUITER', press: 'OTHER',
+  candidate: 'CANDIDATE', organization: 'ORGANIZATION', coach: 'COACH_RECRUITER', recruiter: 'COACH_RECRUITER', apply: 'JOB_APPLICANT', careers: 'JOB_APPLICANT', press: 'OTHER',
 }
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ as?: string }> }) {
@@ -43,7 +43,13 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <div>
               <h2 className="font-semibold text-navy">Organizations</h2>
               <p className="mt-1 text-muted-foreground">
-                Outplacement firms, workforce boards, nonprofits and employers: choose “An organization” and we’ll set up a walkthrough.
+                Outplacement firms, workforce boards, nonprofits and employers: choose “I represent an organization” and we’ll set up a walkthrough.
+              </p>
+            </div>
+            <div>
+              <h2 className="font-semibold text-navy">Careers</h2>
+              <p className="mt-1 text-muted-foreground">
+                Want to work on NextChapter? Choose “I’m applying for a job at NextChapter” and include your LinkedIn profile.
               </p>
             </div>
             <div>

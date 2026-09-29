@@ -13,6 +13,7 @@ const ROLE_FOR: Record<ContactAudience, CrmPersonRole | null> = {
   CANDIDATE: 'JOB_SEEKER',
   COACH_RECRUITER: null, // coach vs recruiter isn't asked; left for a human to tag
   ORGANIZATION: null,
+  JOB_APPLICANT: null,
   OTHER: null,
 }
 
@@ -37,6 +38,7 @@ export async function fileContactInCrm(sub: ContactSubmission): Promise<string |
           email,
           emails: [email],
           roles: role ? [role] : [],
+          linkedinUrl: sub.linkedinUrl,
           // No organization and no role to go on: a human should look.
           needsCompletion: !(sub.organization && isRealOrgName(sub.organization)),
         },
@@ -92,7 +94,8 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
     ['From', `${sub.fullName} <${sub.email}>`],
     ['Reaching out as', CONTACT_AUDIENCE_SHORT[sub.audience]],
     ['Organization', sub.organization],
-    ['Role', sub.role],
+    [sub.audience === 'JOB_APPLICANT' ? 'Interested in' : 'Role', sub.role],
+    ['LinkedIn', sub.linkedinUrl],
   ]
   const crmLink = crmPersonId ? `https://admin.launchyournextchapter.com/support/admin/crm/people/${crmPersonId}` : null
   const html = `
@@ -120,7 +123,9 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: FORWARD_TO,
       replyTo: sub.email,
-      subject: `Contact form: ${sub.fullName}${sub.organization ? ` (${sub.organization})` : ''} · ${CONTACT_AUDIENCE_SHORT[sub.audience]}`,
+      subject: sub.audience === 'JOB_APPLICANT'
+        ? `Job application: ${sub.fullName}${sub.role ? ` · ${sub.role}` : ''}`
+        : `Contact form: ${sub.fullName}${sub.organization ? ` (${sub.organization})` : ''} · ${CONTACT_AUDIENCE_SHORT[sub.audience]}`,
       html,
       text,
     })
