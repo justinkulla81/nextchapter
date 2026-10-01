@@ -5,17 +5,26 @@ import { useEffect, useRef, useState } from 'react'
 export interface EmailDay {
   /** YYYY-MM-DD, in the admin's timezone. */
   date: string
+  /** Emails you sent. */
   sent: number
-  received: number
+  /** Candidate invites you sent. */
+  invites: number
 }
 
-const SERIES = [
-  { key: 'sent', label: 'Sent', color: 'var(--viz-series-1)' },
-  { key: 'received', label: 'Received', color: 'var(--viz-series-2)' },
-] as const
+type SeriesKey = 'total' | 'sent' | 'invites'
+
+// Total first, so it is drawn beneath its two parts: on a day with only
+// emails or only invites it IS that line, and the part's colour should win.
+const SERIES: { key: SeriesKey; label: string; color: string }[] = [
+  { key: 'total', label: 'Total', color: 'var(--viz-text)' },
+  { key: 'sent', label: 'Emails sent', color: 'var(--viz-series-1)' },
+  { key: 'invites', label: 'Invites', color: 'var(--viz-series-3)' },
+]
+
+const value = (d: EmailDay, key: SeriesKey): number => (key === 'total' ? d.sent + d.invites : d[key])
 
 const HEIGHT = 220
-const PAD = { top: 12, right: 72, bottom: 28, left: 36 }
+const PAD = { top: 12, right: 104, bottom: 28, left: 36 }
 
 // Four gridline steps, each a round number, and the smallest such top that
 // clears the peak — a 131 peak gets 200, not 400.
@@ -31,14 +40,17 @@ function shortDate(d: string): string {
 }
 
 /**
- * Emails per day, sent against received.
+ * Outreach per day: emails sent, candidate invites, and the two together.
  *
- * Two lines on one axis — both are counts of the same thing, so one scale is
- * honest. Series use the first two slots of the validated categorical palette
- * (blue, orange; worst colorblind separation ΔE 24.7 light / 26.8 dark), and
- * each line is also labelled at its end, so identity never rests on colour.
- * Hover or arrow keys move a crosshair that reads out both values for a day;
- * the same numbers are one click away as a table.
+ * What came back is not here — replies are in the feed below and in the
+ * response rate; this chart answers "how much went out". Three lines on one
+ * axis, all counts of things sent. The parts use slots 1 and 3 of the
+ * validated categorical palette (blue, aqua) — slot 2, orange, still means
+ * "from them" in the feed, so it is not reused here — and the total is plain
+ * ink, being the sum rather than a third kind of thing. Each line is also
+ * labelled at its end, so identity never rests on colour. Hover or arrow keys
+ * move a crosshair that reads out every value for a day; the same numbers are
+ * one click away as a table.
  */
 export function CrmEmailChart({ days }: { days: EmailDay[] }) {
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -56,14 +68,14 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
   const n = days.length
   const innerW = width - PAD.left - PAD.right
   const innerH = HEIGHT - PAD.top - PAD.bottom
-  const yMax = niceMax(Math.max(1, ...days.map((d) => Math.max(d.sent, d.received))))
+  const yMax = niceMax(Math.max(1, ...days.map((d) => d.sent + d.invites)))
   const x = (i: number) => PAD.left + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW)
   const y = (v: number) => PAD.top + innerH - (v / yMax) * innerH
   const ticks = [0, 1, 2, 3, 4].map((k) => (yMax / 4) * k)
   const xEvery = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(innerW / 90))))
 
-  const path = (key: 'sent' | 'received') =>
-    days.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d[key]).toFixed(1)}`).join(' ')
+  const path = (key: SeriesKey) =>
+    days.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(value(d, key)).toFixed(1)}`).join(' ')
 
   function onMove(e: React.MouseEvent<SVGRectElement>) {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -82,15 +94,24 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
   const a = active !== null ? days[active] : null
   // Keep the tooltip inside the plot: flip it to the left of the crosshair
   // past the midpoint.
-  const tipLeft = active !== null ? (x(active) > width / 2 ? x(active) - 148 : x(active) + 12) : 0
+  const tipLeft = active !== null ? (x(active) > width / 2 ? x(active) - 164 : x(active) + 12) : 0
 
-  // End labels sit at each line's last value; nudge apart if they'd collide.
-  const endY = { sent: last ? y(last.sent) : 0, received: last ? y(last.received) : 0 }
-  if (Math.abs(endY.sent - endY.received) < 14) {
-    const mid = (endY.sent + endY.received) / 2
-    const up = last && last.sent >= last.received ? 'sent' : 'received'
-    endY[up] = mid - 7
-    endY[up === 'sent' ? 'received' : 'sent'] = mid + 7
+  // End labels sit at each line's last value; push apart any that would
+  // collide, working down from the top, then back up if that ran off the plot.
+  const GAP = 14
+  const endY = {} as Record<SeriesKey, number>
+  if (last) {
+    const order = [...SERIES].sort((p, q) => value(last, q.key) - value(last, p.key))
+    let prev = -Infinity
+    for (const s of order) {
+      prev = Math.max(y(value(last, s.key)), prev + GAP)
+      endY[s.key] = prev
+    }
+    let floor = PAD.top + innerH
+    for (const s of [...order].reverse()) {
+      endY[s.key] = Math.min(endY[s.key], floor)
+      floor = endY[s.key] - GAP
+    }
   }
 
   return (
@@ -107,7 +128,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
       <div ref={wrapRef} className="relative">
         <svg
           width={width} height={HEIGHT} role="img" tabIndex={0} onKeyDown={onKey}
-          aria-label={`Emails per day over the last ${n} days. Use left and right arrow keys to read each day.`}
+          aria-label={`Emails sent, invites and total outreach per day over the last ${n} days. Use left and right arrow keys to read each day.`}
           className="block outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           {ticks.map((t) => (
@@ -133,7 +154,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
           {last && SERIES.map((s) => (
             <text key={s.key} x={width - PAD.right + 8} y={endY[s.key]} dy="0.32em" fontSize={11}
               fill="var(--viz-text)">
-              {s.label} {last[s.key]}
+              {s.label} {value(last, s.key)}
             </text>
           ))}
 
@@ -141,7 +162,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
             <g pointerEvents="none">
               <line x1={x(active)} x2={x(active)} y1={PAD.top} y2={PAD.top + innerH} stroke="var(--viz-crosshair)" strokeWidth={1} />
               {SERIES.map((s) => (
-                <circle key={s.key} cx={x(active)} cy={y(days[active][s.key])} r={4.5}
+                <circle key={s.key} cx={x(active)} cy={y(value(days[active], s.key))} r={4.5}
                   fill={s.color} stroke="var(--viz-surface)" strokeWidth={2} />
               ))}
             </g>
@@ -164,7 +185,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
             {SERIES.map((s) => (
               <p key={s.key} className="mt-0.5 flex items-center gap-1.5 text-muted-foreground">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: s.color }} />
-                {s.label} <span className="ml-auto pl-3 font-medium tabular-nums text-foreground">{a[s.key]}</span>
+                {s.label} <span className="ml-auto pl-3 font-medium tabular-nums text-foreground">{value(a, s.key)}</span>
               </p>
             ))}
           </div>
@@ -177,8 +198,9 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
           <thead>
             <tr className="text-left text-muted-foreground">
               <th className="py-1 font-medium">Day</th>
-              <th className="py-1 text-right font-medium">Sent</th>
-              <th className="py-1 text-right font-medium">Received</th>
+              <th className="py-1 text-right font-medium">Emails sent</th>
+              <th className="py-1 text-right font-medium">Invites</th>
+              <th className="py-1 text-right font-medium">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -186,7 +208,8 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
               <tr key={d.date} className="border-t border-border">
                 <td className="py-1">{shortDate(d.date)}</td>
                 <td className="py-1 text-right">{d.sent}</td>
-                <td className="py-1 text-right">{d.received}</td>
+                <td className="py-1 text-right">{d.invites}</td>
+                <td className="py-1 text-right">{d.sent + d.invites}</td>
               </tr>
             ))}
           </tbody>
@@ -197,6 +220,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
         .viz-root {
           --viz-series-1: #2a78d6;
           --viz-series-2: #eb6834;
+          --viz-series-3: #1baf7a;
           --viz-grid: #e2e8f0;
           --viz-crosshair: #94a3b8;
           --viz-text: #0a0a0a;
@@ -206,6 +230,7 @@ export function CrmEmailChart({ days }: { days: EmailDay[] }) {
         .dark .viz-root {
           --viz-series-1: #3987e5;
           --viz-series-2: #d95926;
+          --viz-series-3: #199e70;
           --viz-grid: rgba(255, 255, 255, 0.1);
           --viz-crosshair: rgba(255, 255, 255, 0.35);
           --viz-text: #fafafa;

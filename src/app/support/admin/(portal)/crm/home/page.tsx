@@ -89,7 +89,7 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource] =
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -211,6 +211,14 @@ export default async function CrmHomePage({
         where: { isSampleData: false, isSystemAccount: false, registrationCompletedAt: { not: null } },
         _count: { _all: true },
       }),
+      // Candidate invites by the day they were sent — the other half of a
+      // day's outreach, and the larger half on the days you work a list.
+      prisma.$queryRaw<{ day: string; n: number }[]>`
+        SELECT to_char((p."candidateInvitedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
+               COUNT(*)::int AS n
+        FROM "CrmPerson" p
+        WHERE p."deletedAt" IS NULL AND p."candidateInvitedAt" >= ${chartStart}
+        GROUP BY 1`,
     ])
 
   // Every day in the window, including silent ones — a gap in the line is
@@ -219,15 +227,20 @@ export default async function CrmHomePage({
   const firstDay = localDate(CRM_ACTIVITY_CUTOFF)
   for (let i = CHART_DAYS - 1; i >= 0; i--) {
     const d = localDate(new Date(now.getTime() - i * DAY))
-    if (d >= firstDay) byDay.set(d, { date: d, sent: 0, received: 0 })
+    if (d >= firstDay) byDay.set(d, { date: d, sent: 0, invites: 0 })
   }
   for (const r of daily) {
     const row = byDay.get(r.day)
-    if (!row) continue
-    if (r.direction === 'OUTBOUND') row.sent += r.n
-    else if (r.direction === 'INBOUND') row.received += r.n
+    if (row && r.direction === 'OUTBOUND') row.sent += r.n
+  }
+  for (const r of invitesDaily) {
+    const row = byDay.get(r.day)
+    if (row) row.invites += r.n
   }
   const days = [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date))
+  // The same local days the chart's last week covers, so the header agrees
+  // with the line beneath it.
+  const invitesWeek = days.slice(-WEEK_DAYS).reduce((sum, d) => sum + d.invites, 0)
 
   const sentWeek = weekTotals.find((r) => r.direction === 'OUTBOUND')?.n ?? 0
   const receivedWeek = weekTotals.find((r) => r.direction === 'INBOUND')?.n ?? 0
@@ -368,10 +381,11 @@ export default async function CrmHomePage({
 
       <section className="rounded-lg border border-border bg-card p-4">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-base font-semibold">Emails per day</h2>
+          <h2 className="text-base font-semibold">Outreach per day</h2>
           <p className="text-sm text-muted-foreground">
-            Last 7 days: <span className="font-medium tabular-nums text-foreground">{sentWeek}</span> sent ·{' '}
-            <span className="font-medium tabular-nums text-foreground">{receivedWeek}</span> received
+            Last 7 days: <span className="font-medium tabular-nums text-foreground">{sentWeek + invitesWeek}</span> total ·{' '}
+            <span className="font-medium tabular-nums text-foreground">{sentWeek}</span> emails sent ·{' '}
+            <span className="font-medium tabular-nums text-foreground">{invitesWeek}</span> invites
           </p>
         </div>
         <CrmEmailChart days={days} />
