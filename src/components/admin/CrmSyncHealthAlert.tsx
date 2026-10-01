@@ -11,6 +11,26 @@ export async function CrmSyncHealthAlert() {
   const health = await getCrmSyncHealth()
   if (health.failing.length === 0) return null
 
+  // A run that read all but a handful of messages is not a sync that is
+  // down. It used to get the same red "aren't reaching the CRM" banner, which
+  // was untrue and sent people looking for a reconnect that wasn't needed.
+  if (health.reason === 'partial') {
+    const m = health.failing[0].error.match(/^(\d+) of (\d+)/)
+    return (
+      <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
+        <div className="min-w-0">
+          <p className="font-medium">
+            The last Gmail sync read {m ? `all but ${m[1]} of ${m[2]}` : 'most'} messages — Google limits how fast mail can be read.
+          </p>
+          <p className="mt-0.5 text-muted-foreground">
+            Everything else is in the CRM. Sync now picks up the rest; no need to reconnect.
+          </p>
+        </div>
+        <CrmSyncNowButton />
+      </div>
+    )
+  }
+
   const since = new Date(Math.min(...health.failing.map((f) => f.since.getTime())))
   const what = health.failing.map((f) => f.label).join(' and ')
 

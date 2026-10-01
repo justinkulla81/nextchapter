@@ -46,8 +46,15 @@ function alphanumeric(s: string): string {
  * never happens by chance, so this needs no other corroborating signal.
  */
 function nameMatchesDomain(fullName: string, email: string): boolean {
-  const domain = email.split('@')[1]
+  const [local, domain] = email.split('@')
   if (!domain) return false
+  // Unless the domain is the person's own: jordan@jordanclemons.com is
+  // Jordan Clemons, not a brand called Jordan Clemons. Told apart by the
+  // mailbox being one of the words of the name — a company writing from its
+  // own domain uses a function ("statements@", "order-update@"), not half of
+  // its name. This dropped a real introduction on the floor.
+  const words = fullName.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 2)
+  if (words.length >= 2 && words.includes(alphanumeric(local))) return false
   const domainRoot = alphanumeric(domainRootLabel(domain))
   const name = alphanumeric(fullName)
   return domainRoot.length >= 4 && name.length >= 4 && (name.includes(domainRoot) || domainRoot.includes(name))

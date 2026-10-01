@@ -42,6 +42,14 @@ describe('looksLikeNotAPerson', () => {
   it('leaves a real person at a real company alone', () => {
     expect(looksLikeNotAPerson('Jonathan Betz', 'jtb@plaidmatrix.fund')).toBe(false)
   })
+  it('leaves a person writing from their own name-as-domain alone', () => {
+    // Jordan Clemons's introduction of a new contact was dropped: his name
+    // "matched the domain", which is the brand check, and he is not a brand.
+    expect(looksLikeNotAPerson('Jordan Clemons', 'jordan@jordanclemons.com')).toBe(false)
+    expect(looksLikeNotAPerson('Jordan Clemons', 'clemons@jordanclemons.com')).toBe(false)
+    // The brand check still holds when the mailbox is a function, not a name.
+    expect(looksLikeNotAPerson('American Express', 'statements@americanexpress.com')).toBe(true)
+  })
   it('flags a brand-name subdomain, not just the registrable domain', () => {
     // The naive "first label" domain-root check missed this: the brand is
     // "americanexpress", but that's the SECOND label here, not the first.

@@ -30,13 +30,13 @@ const DAY = 86_400_000
 const GMAIL_CONCURRENCY = 4
 
 /** Promise.all with at most `limit` in flight, results in input order. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length)
   let next = 0
   async function worker() {
     while (next < items.length) {
       const i = next++
-      out[i] = await fn(items[i])
+      out[i] = await fn(items[i], i)
     }
   }
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
@@ -327,15 +327,40 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     // A fetch that fails after retrying is counted, not skipped. It used to
     // come back as null and read as "no such message", so throttled mail
     // vanished from the sync without a trace.
-    let failed = 0
-    const headers = await mapLimit(ids, GMAIL_CONCURRENCY, async (id) => {
+    const unread: number[] = []
+    const headers = await mapLimit(ids, GMAIL_CONCURRENCY, async (id, i) => {
       try {
         return await getMessageHeaders(token, id)
       } catch {
-        failed++
+        unread.push(i)
         return null
       }
     })
+    // One more go at whatever was refused, one at a time. By now the calls
+    // above have waited out any rate limit, so this is usually all it takes
+    // to turn a partial run into a complete one.
+    let failed = 0
+    for (const i of unread) {
+      try {
+        headers[i] = await getMessageHeaders(token, ids[i])
+      } catch {
+        failed++
+      }
+    }
+
+    // The best display name seen for each address anywhere in the window. A
+    // reply typed to a bare address carries no name, and it is the newest
+    // message, so it is read first — which named a new person "kgold" when
+    // the introduction two hours earlier said "Kelly Gold".
+    const nameByEmail = new Map<string, string>()
+    for (const m of headers) {
+      if (!m) continue
+      for (const raw of [m.from, ...m.to, ...m.cc]) {
+        const e = normalizeEmail(raw)
+        const n = displayNameFrom(raw)
+        if (e && n && !isPlaceholderName(n) && !nameByEmail.has(e)) nameByEmail.set(e, n)
+      }
+    }
 
     // Messages already logged need no body: the write below is an upsert
     // that changes nothing. Re-running a window used to re-download every
@@ -416,7 +441,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         if (verdict.kind === 'crm') {
           personId = verdict.personId
         } else {
-          const resolved = await getOrCreatePerson(email, displayNameFrom(raw), personCache)
+          const resolved = await getOrCreatePerson(email, displayNameFrom(raw) ?? nameByEmail.get(email) ?? null, personCache)
           if (!resolved) continue // deleted before — stays excluded, not silently re-added
           personId = resolved.id
           isNewPerson = resolved.created
@@ -431,8 +456,11 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         }
 
         // A message can involve several such people; each gets the activity.
+        // Reaching here means this person has no row for the message yet —
+        // including when someone else on it already does, as when an address
+        // is added to a contact after the message was first swept.
         if (fullBody === undefined) {
-          fullBody = bodies.has(id) ? bodies.get(id)! : logged.has(id) ? null : await getMessageBody(token, id)
+          fullBody = bodies.has(id) ? bodies.get(id)! : await getMessageBody(token, id)
         }
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },

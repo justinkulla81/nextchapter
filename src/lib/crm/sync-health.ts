@@ -13,7 +13,16 @@ export interface CrmSyncHealth {
    * isn't — waiting (and Sync now) is the fix for those.
    */
   needsReconnect: boolean
-  reason: 'not_connected' | 'permission' | 'expired' | 'unavailable' | null
+  reason: 'not_connected' | 'permission' | 'expired' | 'unavailable' | 'partial' | null
+}
+
+/**
+ * The error a sweep records when it ran but Gmail refused a few messages.
+ * Not an outage: everything else in the window was read and logged, so the
+ * alert must not say mail has stopped reaching the CRM.
+ */
+export function isPartialRun(error: string): boolean {
+  return /^\d+ of \d+ messages could not be fetched/.test(error)
 }
 
 export async function getCrmSyncHealth(): Promise<CrmSyncHealth> {
@@ -50,6 +59,7 @@ export async function getCrmSyncHealth(): Promise<CrmSyncHealth> {
       ? 'expired'
       : errors.some((e) => isMissingPermission(e) || (/\b403\b/.test(e) && !isRateLimited(e)))
         ? 'permission'
-        : failing.length > 0 ? 'unavailable' : null
+        : failing.length === 0 ? null
+          : errors.every(isPartialRun) ? 'partial' : 'unavailable'
   return { failing, reason, needsReconnect: reason === 'not_connected' || reason === 'expired' || reason === 'permission' }
 }

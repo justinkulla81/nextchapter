@@ -32,6 +32,18 @@ const MAX_MESSAGES = 1000
 export async function POST() {
   const admin = await requireAdmin()
 
+  // One sweep at a time. The header and the alert each have a Sync now, and
+  // a second click while the first is still reading starts a second pass over
+  // the same mail — two sweeps sharing one Gmail rate limit, which is how
+  // both end up with messages they couldn't read.
+  const running = await prisma.crmSyncRun.findFirst({
+    where: { finishedAt: null, source: { in: ['gmail', 'gmail-manual'] }, startedAt: { gt: new Date(Date.now() - maxDuration * 1000) } },
+    select: { id: true },
+  })
+  if (running) {
+    return NextResponse.json({ ok: false, message: 'A sync is already running — it takes a minute or two. This page updates when you reload.' })
+  }
+
   const last = await prisma.crmSyncRun.findFirst({
     where: { finishedAt: { not: null }, error: null, source: { in: ['gmail', 'gmail-manual'] } },
     orderBy: { startedAt: 'desc' },
@@ -47,7 +59,7 @@ export async function POST() {
       activitiesCreated: result.activitiesCreated, reason: result.reason ?? null,
     })
     if (result.reason === 'no_connection' || result.reason === 'no_token') {
-      return NextResponse.json({ ok: false, message: 'Gmail is not connected — reconnect it on Activity sync.' })
+      return NextResponse.json({ ok: false, needsReconnect: true, message: 'Gmail is not connected — opening Google to reconnect.' })
     }
     // The same two sweeps the nightly job runs — calendar too, so a meeting
     // you just had shows up alongside the mail. Independent of Gmail's result
@@ -70,13 +82,13 @@ export async function POST() {
     // Google expires the refresh token every 7 days while the OAuth app is in
     // testing mode — retrying can never fix that, so don't say "try again".
     if (error.includes('invalid_grant')) {
-      return NextResponse.json({ ok: false, message: 'Gmail access expired — reconnect it on Activity sync.' })
+      return NextResponse.json({ ok: false, needsReconnect: true, message: 'Gmail access expired — opening Google to reconnect.' })
     }
     if (isRateLimited(error)) {
       return NextResponse.json({ ok: false, message: 'Google is rate-limiting Gmail right now. Try again in a minute.' })
     }
     if (isMissingPermission(error) || error.includes('403')) {
-      return NextResponse.json({ ok: false, message: 'Gmail permission is missing — reconnect it on Activity sync and tick every permission box.' })
+      return NextResponse.json({ ok: false, needsReconnect: true, message: 'Gmail permission is missing — opening Google to reconnect. Tick every permission box.' })
     }
     return NextResponse.json({ ok: false, message: 'Gmail did not answer. Try again in a moment.' })
   }

@@ -38,6 +38,16 @@ export function CrmSyncNowButton({ needsReconnect = false }: { needsReconnect?: 
       const data = await res.json()
       if (!data.ok) {
         setResult(data.message ?? 'Could not sync.')
+        // Only reconnecting fixes this, so go there rather than leave a
+        // message naming another page to find. Google returns here with
+        // ?googleConnected=1 and the sync runs on its own. Not straight
+        // after a reconnect, though — that would loop.
+        if (data.needsReconnect && !justReconnected) {
+          setLeaving(true)
+          posthog.capture('crm_google_reconnect_redirected', { from: pathname })
+          window.location.assign(`/api/google/oauth/start?from=${encodeURIComponent(pathname)}`)
+          return
+        }
       } else {
         const total = data.created + (data.meetings ?? 0)
         const base = total > 0
@@ -85,10 +95,10 @@ export function CrmSyncNowButton({ needsReconnect = false }: { needsReconnect?: 
       <button
         type="button"
         onClick={run}
-        disabled={busy}
-        className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted ${busy ? 'cursor-progress opacity-60' : ''}`}
+        disabled={busy || leaving}
+        className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted ${busy || leaving ? 'cursor-progress opacity-60' : ''}`}
       >
-        {busy ? 'Syncing…' : 'Sync now'}
+        {leaving ? 'Opening Google…' : busy ? 'Syncing…' : 'Sync now'}
       </button>
       {result && <span className="text-xs text-muted-foreground">{result}</span>}
     </span>

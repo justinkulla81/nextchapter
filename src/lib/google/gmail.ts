@@ -271,19 +271,48 @@ async function isRateLimited(res: Response): Promise<boolean> {
   return /rateLimitExceeded|userRateLimitExceeded|quotaExceeded/i.test(body)
 }
 
+/**
+ * One pace for every CRM Gmail call in this process.
+ *
+ * Google allows this app 6,000 quota units per user per minute, and reading a
+ * message costs 5 — 1,200 reads a minute, shared with everything else that
+ * touches the same mailbox. A sweep of 700-900 messages run flat out spent
+ * that in seconds; the retries below then gave up after ~30s, short of the
+ * minute the quota needs to refill, and the leftovers were recorded as a
+ * failed run. Ten reads a second is half the allowance, and a rate-limit
+ * answer pauses every worker rather than just the one that received it.
+ */
+const MIN_GAP_MS = 100
+let nextSlotAt = 0
+let pausedUntil = 0
+
+async function takeSlot(): Promise<void> {
+  const now = Date.now()
+  const at = Math.max(now, nextSlotAt, pausedUntil)
+  nextSlotAt = at + MIN_GAP_MS
+  if (at > now) await new Promise((r) => setTimeout(r, at - now))
+}
+
 async function fetchWithRetry(url: URL, accessToken: string, attempts = 6): Promise<Response> {
   let res: Response | null = null
   for (let i = 0; i < attempts; i++) {
+    await takeSlot()
     res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
     if (res.ok) return res
-    const retryable = res.status >= 500 || (await isRateLimited(res))
+    const limited = await isRateLimited(res)
+    const retryable = res.status >= 500 || limited
     if (!retryable) return res
     if (i < attempts - 1) {
       // Honour Retry-After when Gmail sends one; otherwise back off
-      // exponentially with jitter, so eight workers don't retry in lockstep.
+      // exponentially with jitter. The waits add up to just over a minute,
+      // which is how long a spent per-minute quota takes to come back.
       const after = Number(res.headers.get('retry-after'))
-      const wait = Number.isFinite(after) && after > 0 ? after * 1000 : 1000 * 2 ** i + Math.random() * 500
-      await new Promise((r) => setTimeout(r, Math.min(wait, 20_000)))
+      const wait = Math.min(
+        Number.isFinite(after) && after > 0 ? after * 1000 : 2000 * 2 ** i + Math.random() * 500,
+        30_000,
+      )
+      if (limited) pausedUntil = Math.max(pausedUntil, Date.now() + wait)
+      else await new Promise((r) => setTimeout(r, wait))
     }
   }
   return res!
