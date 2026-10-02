@@ -5,7 +5,8 @@ import type { DigestAudience } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { prisma } from '@/lib/prisma'
-import { ingestResearchUrl } from '@/lib/research/ingest'
+import { fetchArticle } from '@/lib/research/fetch-article'
+import { classifyResearchItem } from '@/lib/research/classify'
 import { sendProductPositioningFlagEmail } from '@/lib/email/send-product-positioning-flag'
 import { fetchNewsMetadata, isReadyToPublish } from '@/lib/news/metadata'
 import { embedsItself, safeImageUrl } from '@/lib/news/kind'
@@ -56,30 +57,6 @@ export async function disconnectGoogleInbox() {
   revalidatePath('/support/admin/digest')
 }
 
-export async function addResearchItem(
-  _prevState: { error?: string; success?: boolean } | undefined,
-  formData: FormData
-): Promise<{ error?: string; success?: boolean }> {
-  const admin = await requireAdmin()
-  const url = String(formData.get('url') ?? '').trim()
-
-  if (!url || !/^https?:\/\//i.test(url)) {
-    return { error: 'Enter a valid URL starting with http:// or https://.' }
-  }
-
-  const item = await ingestResearchUrl(url, 'manual')
-
-  captureServerEvent(admin?.email ?? 'admin', 'research_item_ingested', {
-    itemId: item.id,
-    source: 'manual',
-    bucket: item.bucket,
-    needsReview: item.needsReview,
-  })
-
-  revalidatePath('/support/admin/digest')
-  return { success: true }
-}
-
 // ── Homepage News ────────────────────────────────────────────────────────────
 
 // The public pages are cached; anything that changes what they show clears
@@ -97,44 +74,103 @@ export interface NewsFormState {
   share?: { itemId: string; url: string; caption: string }
 }
 
+const AUDIENCE_LABEL: Record<DigestAudience, string> = {
+  CANDIDATE: 'candidates', COACH: 'coaches', RECRUITER: 'recruiters', EMPLOYER: 'employers',
+}
+const AUDIENCES = Object.keys(AUDIENCE_LABEL) as DigestAudience[]
+
 /**
- * Adds a link to News and, when it has what a card needs, publishes it.
+ * The one way a link is added by hand: into Market Pulse, and from there to
+ * the homepage, the Tuesday email digest, both, or neither.
  *
- * Deliberately not the Market Pulse ingest: no model call, no summary, and
- * no digest audience — an Instagram post pasted here should not land in
- * next Tuesday's candidate email. A link already in Market Pulse is reused
- * rather than duplicated.
+ * Each destination is a choice on the form, not a default. A link sent to
+ * the homepage is published at once when the page shares a headline (or the
+ * post embeds itself), and saved as a draft when it doesn't. A link queued
+ * for the digest gets the one-or-two-sentence summary the email prints
+ * beside it — the only step here that calls the model, and only for
+ * articles. A link already in Market Pulse is updated, never duplicated.
  */
-export async function addNewsItem(_prev: NewsFormState | undefined, formData: FormData): Promise<NewsFormState> {
+export async function addLink(_prev: NewsFormState | undefined, formData: FormData): Promise<NewsFormState> {
   const admin = await requireAdmin()
   const url = String(formData.get('url') ?? '').trim()
   if (!/^https?:\/\//i.test(url)) {
     return { error: 'Enter a full link starting with https://.' }
   }
+  const toHomepage = formData.get('homepage') === 'on'
+  const audiences = AUDIENCES.filter((a) => formData.getAll('audiences').includes(a))
+  const newsTags = cleanNewsTags(formData.getAll('tags'))
 
-  const existing = await prisma.researchLibraryItem.findFirst({ where: { url }, select: { id: true, newsKind: true } })
-  if (existing?.newsKind) return { error: 'That link is already in News — edit it in the list below.' }
+  const existing = await prisma.researchLibraryItem.findFirst({
+    where: { url }, select: { id: true, newsKind: true, title: true, summary: true, digestAudiences: true },
+  })
+  if (existing?.newsKind && toHomepage && audiences.length === 0) {
+    return { error: 'That link is already in News — edit it in the Homepage News list below.' }
+  }
 
   const meta = await fetchNewsMetadata(url)
-  const news = {
-    newsKind: meta.kind, newsTitle: meta.title, newsBlurb: meta.blurb,
-    newsImageUrl: meta.imageUrl, newsSource: meta.source,
+  const addToNews = toHomepage && !existing?.newsKind
+  const publish = addToNews && isReadyToPublish({ newsKind: meta.kind, newsTitle: meta.title, url })
+  const news = addToNews
+    ? {
+        newsKind: meta.kind, newsTitle: meta.title, newsBlurb: meta.blurb, newsImageUrl: meta.imageUrl,
+        newsSource: meta.source, newsTags, newsPublishedAt: publish ? new Date() : null,
+      }
+    : {}
+
+  // What the digest email prints after the headline. Written by the model
+  // from the article text when it can be read; the publisher's own
+  // description when it can't.
+  let summary = existing?.summary ?? null
+  let classification: Awaited<ReturnType<typeof classifyResearchItem>> | null = null
+  if (audiences.length > 0 && !summary && meta.kind === 'article') {
+    const fetched = await fetchArticle(url)
+    if (fetched.status === 'success' && fetched.text) {
+      classification = await classifyResearchItem(url, fetched.title ?? meta.title, fetched.text).catch(() => null)
+    }
+    summary = classification?.summary ?? meta.blurb
   }
-  const publish = isReadyToPublish({ ...news, url })
-  const data = { ...news, newsTags: cleanNewsTags(formData.getAll('tags')), newsPublishedAt: publish ? new Date() : null }
+  const research = classification
+    ? {
+        bucket: classification.bucket, confidenceScore: classification.confidenceScore,
+        credibilityTier: classification.credibilityTier, suggestedAction: classification.suggestedAction,
+        contradictsLockedDecision: classification.contradictsLockedDecision, personaTag: classification.personaTag,
+      }
+    : {}
 
   const item = existing
-    ? await prisma.researchLibraryItem.update({ where: { id: existing.id }, data })
+    ? await prisma.researchLibraryItem.update({
+        where: { id: existing.id },
+        data: {
+          ...news, ...research, summary,
+          title: existing.title ?? meta.title,
+          digestAudiences: [...new Set([...existing.digestAudiences, ...audiences])],
+        },
+      })
     : await prisma.researchLibraryItem.create({
-        data: { url, ingestionSource: 'manual', title: meta.title, status: 'reviewed', digestAudiences: [], ...data },
+        data: {
+          url, ingestionSource: 'manual', title: meta.title, status: 'reviewed',
+          summary: summary ?? meta.blurb, digestAudiences: audiences, ...news, ...research,
+        },
       })
 
-  captureServerEvent(admin?.email ?? 'admin', 'news_item_added', { itemId: item.id, kind: meta.kind, published: publish })
+  captureServerEvent(admin?.email ?? 'admin', 'market_pulse_link_added', {
+    itemId: item.id, kind: meta.kind, toHomepage, published: publish, audiences, tags: newsTags, summarized: !!classification,
+  })
   revalidateNews()
+
+  const parts = [existing ? 'Already in Market Pulse — updated.' : 'Added to Market Pulse.']
+  if (addToNews) {
+    parts.push(publish ? 'Live on the homepage.' : 'Saved as a homepage draft — the page would not share a headline. Add one in the list below, then publish.')
+  }
+  if (audiences.length > 0) {
+    parts.push(
+      item.title
+        ? `Queued for the Tuesday email to ${audiences.map((a) => AUDIENCE_LABEL[a]).join(', ')}.`
+        : 'Queued for the Tuesday email, but it has no headline yet, so it will not be sent until you add one.',
+    )
+  }
   return {
-    message: publish
-      ? 'Added and live on the homepage.'
-      : 'Added as a draft — the page would not share a headline. Add one below, then publish.',
+    message: parts.join(' '),
     ...(publish ? { share: { itemId: item.id, url, caption: [meta.title, url].filter(Boolean).join('\n\n') } } : {}),
   }
 }

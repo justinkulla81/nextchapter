@@ -1,6 +1,6 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
-import { detectNewsKind, embedsItself, podcastEmbed, safeImageUrl, sourceFromUrl, vimeoId, youtubeId, type NewsKind } from './kind'
+import { detectNewsKind, embedsItself, podcastEmbed, safeImageUrl, sourceFromUrl, stripSourceSuffix, vimeoId, youtubeId, type NewsKind } from './kind'
 
 export interface NewsMetadata {
   kind: NewsKind
@@ -55,11 +55,12 @@ async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> 
       }
       return null
     }
+    const source = clean(meta('og:site_name'), 80) ?? fallback.source
     return {
-      title: clean(meta('og:title', 'twitter:title') ?? $('title').first().text(), TITLE_MAX),
+      title: stripSourceSuffix(clean(meta('og:title', 'twitter:title') ?? $('title').first().text(), TITLE_MAX), source),
       blurb: clean(meta('og:description', 'twitter:description', 'description'), BLURB_MAX),
       imageUrl: safeImageUrl(meta('og:image:secure_url', 'og:image', 'twitter:image'), res.url || url),
-      source: clean(meta('og:site_name'), 80) ?? fallback.source,
+      source,
     }
   } catch {
     return fallback

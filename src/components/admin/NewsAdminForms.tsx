@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import posthog from 'posthog-js'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { addNewsItem, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
+import { addLink, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
 import { NEWS_TAGS } from '@/lib/news/tags'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 
@@ -58,20 +58,64 @@ export function LinkedInShareButton({ itemId, caption, compact = false }: { item
   )
 }
 
-export function AddNewsItemForm() {
-  const [state, formAction] = useActionState(addNewsItem, undefined)
+const DIGEST_AUDIENCES = [
+  { value: 'CANDIDATE', label: 'Candidates' },
+  { value: 'COACH', label: 'Coaches' },
+  { value: 'RECRUITER', label: 'Recruiters' },
+  { value: 'EMPLOYER', label: 'Employers' },
+]
+
+/**
+ * The one box for adding a link. Where it goes is chosen here: the homepage
+ * (on by default — it is the usual reason to add one), the Tuesday email
+ * digest, both, or just the Market Pulse table.
+ */
+export function AddLinkForm() {
+  const [state, formAction] = useActionState(addLink, undefined)
   return (
-    <form action={formAction} className="space-y-3">
+    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">Add a link</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          An article, a YouTube or Vimeo video, a Spotify or Apple podcast, or a LinkedIn or Instagram post. It is saved to
+          Market Pulse; the choices below decide where else it goes.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-64 flex-1">
-          <label htmlFor="news-url" className="text-sm text-muted-foreground">
-            Link to an article, a YouTube or Vimeo video, a Spotify or Apple podcast, or a LinkedIn or Instagram post
-          </label>
-          <input id="news-url" name="url" type="url" required placeholder="https://…" className={`${INPUT} h-9`} />
+          <label htmlFor="add-url" className="text-sm text-muted-foreground">Link</label>
+          <input id="add-url" name="url" type="url" required placeholder="https://…" className={`${INPUT} h-9`} />
         </div>
-        <SubmitButton pendingLabel="Fetching preview…" savedLabel="Done">Add to News</SubmitButton>
+        <SubmitButton pendingLabel="Adding…" savedLabel="Done">Add link</SubmitButton>
       </div>
-      <TagCheckboxes idPrefix="new" />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">Homepage</legend>
+          <label htmlFor="add-homepage" className="flex items-center gap-1.5 text-sm">
+            <input id="add-homepage" type="checkbox" name="homepage" defaultChecked className="size-3.5" />
+            Show in News on the homepage and the News page
+          </label>
+          <TagCheckboxes idPrefix="new" />
+        </fieldset>
+
+        <fieldset>
+          <legend className="text-sm font-medium">Tuesday email digest</legend>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tick who should get it. It goes out by itself on the next Tuesday morning, one article per email.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            {DIGEST_AUDIENCES.map((a) => (
+              <label key={a.value} htmlFor={`add-aud-${a.value}`} className="flex items-center gap-1.5 text-sm">
+                <input id={`add-aud-${a.value}`} type="checkbox" name="audiences" value={a.value} className="size-3.5" />
+                {a.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
       {state?.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
       {state?.message && <p role="status" className="text-sm text-primary">{state.message}</p>}
       {state?.share && (

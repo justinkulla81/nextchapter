@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import type { ResearchLibraryItem, DigestSend, DigestAudience } from '@prisma/client'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
-import { AddResearchItemForm } from '@/components/admin/AddResearchItemForm'
 import { DigestAudienceFilter } from '@/components/admin/DigestAudienceFilter'
 import { DigestAudienceCheckboxes } from '@/components/admin/DigestAudienceCheckboxes'
 import { getActiveGoogleConnection } from '@/lib/google/connection'
@@ -15,7 +14,7 @@ import {
   resolveDigestRecipientName,
 } from '@/lib/admin/digest-composer'
 import { NewsAdminPanel } from '@/components/admin/NewsAdminPanel'
-import { FindArticlesForm } from '@/components/admin/NewsAdminForms'
+import { AddLinkForm, FindArticlesForm } from '@/components/admin/NewsAdminForms'
 import { DISCOVERY_TOPIC_LABELS } from '@/lib/news/discovery-topics'
 import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox, addExistingItemToNews } from './actions'
 
@@ -334,11 +333,11 @@ export default async function AdminDigestPage({
         )}
       </div>
 
+      <AddLinkForm />
+
       <NewsAdminPanel />
 
       <FindArticlesForm topics={DISCOVERY_TOPIC_LABELS} />
-
-      <AddResearchItemForm />
 
       {contradicting.length > 0 && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
@@ -405,12 +404,20 @@ export default async function AdminDigestPage({
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Weekly Market Digest</h2>
           <p className="mt-1 text-muted-foreground">
-            Real, scheduled sends — coaches, recruiters, and employers every Tuesday (14:30/15:00/15:30
-            UTC), candidates via the daily dispatch — each pulling the queued item(s) below into that
-            audience&apos;s own digest email. Nothing here is auto-published; picking an audience above
-            is what puts an article in reach of its next send. An item drops out of the queue on its
-            own the first time it&apos;s actually sent (see &quot;Sent articles&quot; below).
+            The digest sends itself. Nothing here needs pushing.
           </p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>
+              An article joins the queue when an audience is ticked for it — in “Add a link” above, or in the
+              “Digest audiences” column of the table. Links from the alerts inbox arrive with Candidates already ticked;
+              untick it there to keep one out.
+            </li>
+            <li>
+              Every Tuesday morning each audience&apos;s email goes out with the newest queued article that has a
+              headline: candidates at 9:00 AM Eastern, then coaches, recruiters and employers from 10:30.
+            </li>
+            <li>Once an article has gone to an audience it leaves that audience&apos;s queue and shows under “Sent articles”.</li>
+          </ol>
         </div>
 
         <div>

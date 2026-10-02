@@ -153,3 +153,18 @@ describe('parseFeed', () => {
     expect(items[0].publishedAt?.toISOString()).toBe('2026-09-16T10:27:00.000Z')
   })
 })
+
+import { stripSourceSuffix } from '@/lib/news/kind'
+
+describe('stripSourceSuffix', () => {
+  it('drops the publisher name from the end of a headline', () => {
+    expect(stripSourceSuffix('The US economy added just 29,000 jobs | CNN Business', 'CNN')).toBe('The US economy added just 29,000 jobs')
+    expect(stripSourceSuffix('Reskilling in the Age of AI - Harvard Business Review', 'Harvard Business Review')).toBe('Reskilling in the Age of AI')
+    expect(stripSourceSuffix('Work & careers | The Guardian', 'theguardian.com')).toBe('Work & careers')
+  })
+  it('leaves a headline whose last part is not the source', () => {
+    expect(stripSourceSuffix('Layoffs rise - and so does long-term unemployment', 'CNN')).toBe('Layoffs rise - and so does long-term unemployment')
+    expect(stripSourceSuffix('Mid-career pivots', 'CNN')).toBe('Mid-career pivots')
+    expect(stripSourceSuffix(null, 'CNN')).toBeNull()
+  })
+})

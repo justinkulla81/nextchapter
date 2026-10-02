@@ -103,7 +103,10 @@ export interface DigestNugget {
 // makes the pool self-dequeuing per audience (see markItemsSent above).
 export async function getDigestNuggets(audience: DigestAudience, limit: number): Promise<DigestNugget[]> {
   return prisma.researchLibraryItem.findMany({
-    where: { digestAudiences: { has: audience }, NOT: { sentAudiences: { has: audience } } },
+    // A link with no headline prints nothing in the email, but used to be
+    // picked anyway — it was marked sent, and the real article queued
+    // behind it waited another week.
+    where: { digestAudiences: { has: audience }, NOT: { sentAudiences: { has: audience } }, title: { not: null } },
     orderBy: { dateFound: 'desc' },
     take: limit,
     select: { id: true, title: true, url: true, summary: true },

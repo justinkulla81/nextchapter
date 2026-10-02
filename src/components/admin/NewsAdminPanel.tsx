@@ -5,7 +5,7 @@ import { isReadyToPublish } from '@/lib/news/metadata'
 import { setNewsPublished } from '@/app/support/admin/(portal)/digest/actions'
 import { NEWS_KINDS } from '@/lib/news/kind'
 import { newsTagLabel } from '@/lib/news/tags'
-import { AddNewsItemForm, CopyLinksButton, EditNewsItemForm, LinkedInShareButton } from './NewsAdminForms'
+import { CopyLinksButton, EditNewsItemForm, LinkedInShareButton } from './NewsAdminForms'
 
 const KIND_LABEL: Record<string, string> = Object.fromEntries(NEWS_KINDS.map((k) => [k.key, k.label]))
 
@@ -46,11 +46,9 @@ export async function NewsAdminPanel() {
         </div>
       </div>
 
-      <AddNewsItemForm />
-
       {items.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          Nothing in News yet. Paste a link above and it goes live with its headline and picture.
+          Nothing in News yet. Add a link above with “Show in News” ticked and it goes live with its headline and picture.
         </p>
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border">

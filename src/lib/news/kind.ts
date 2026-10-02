@@ -163,3 +163,22 @@ export function safeImageUrl(raw: string | null | undefined, base?: string): str
     return null
   }
 }
+
+/**
+ * A headline without the publisher's name tacked on the end.
+ *
+ * Page titles are written for browser tabs — "Jobs report disappoints | CNN
+ * Business" — and the card already names the source on its own line. Only a
+ * trailing segment that is the source is removed; a headline that merely
+ * contains a dash or a bar is left alone.
+ */
+export function stripSourceSuffix(title: string | null, source: string | null): string | null {
+  if (!title || !source) return title
+  const m = title.match(/^(.*\S)\s+[|–—-]\s+([^|–—]+)$/)
+  if (!m) return title
+  const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const tail = norm(m[2])
+  const src = norm(source)
+  if (tail.length < 2 || src.length < 2) return title
+  return tail.includes(src) || src.includes(tail) ? m[1] : title
+}
