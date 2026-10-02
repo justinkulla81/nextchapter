@@ -10,6 +10,7 @@ import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { NewsFeed } from '@/components/news/NewsFeed'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
 
 // The page is otherwise static. Publishing News in the admin clears it at
@@ -357,6 +358,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="border-t border-border bg-white px-6 py-16">
+        <NewsletterSignup source="home" />
       </section>
 
       {/* 8 — Waitlist / signup (§C3.1.8). The product is live for

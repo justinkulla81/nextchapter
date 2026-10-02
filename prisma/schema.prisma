@@ -9947,6 +9947,28 @@ enum ContactAudience {
   OTHER
 }
 
+/// Someone who asked for the weekly email from a signup box on the public
+/// site, without creating an account. Receives the Tuesday candidate digest's
+/// article (not the personal market numbers, which need a profile) and
+/// occasional NextChapter news. One row per address; unsubscribing sets
+/// unsubscribedAt rather than deleting, so signing up again is a decision
+/// we can see and a removed address is never re-added by an import.
+model NewsletterSubscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  /// Which page's box they used: 'home' | 'how-it-works' | 'why-stuck'.
+  source           String?
+  /// In the unsubscribe link, so the link works without signing in and
+  /// cannot be guessed from the address.
+  unsubscribeToken String    @unique @default(cuid())
+  ip               String?
+  unsubscribedAt   DateTime?
+  lastSentAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([ip, createdAt])
+}
+
 /// A message sent through the public /contact form. Kept here so none
 /// depends on the notification email arriving; listed on the admin Contact
 /// messages page.

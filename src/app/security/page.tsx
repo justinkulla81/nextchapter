@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
-import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata = {
   title: 'Security & Privacy — NextChapter',
@@ -33,20 +32,7 @@ export default function SecurityPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/outplacement" className="font-medium text-brand hover:text-navy">
-              For Employers
-            </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <span className="font-medium text-foreground">Security &amp; Privacy</span>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
         <p className="text-sm font-semibold tracking-wide text-brand uppercase">Security &amp; Privacy</p>

@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Logo } from '@/components/Logo'
 import { ReferralForm } from '@/components/marketing/ReferralForm'
 import { ReferralShareBox } from '@/components/marketing/ReferralShareBox'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
   title: 'Refer Someone — NextChapter',
@@ -13,18 +12,7 @@ export const metadata: Metadata = {
 export default function ReferPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
-          <Link href="/">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/" className="text-muted-foreground hover:text-foreground">
-              Home
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <div className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">

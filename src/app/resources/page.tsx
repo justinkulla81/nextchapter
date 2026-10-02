@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
   title: 'Resources',
@@ -13,13 +13,7 @@ export const metadata: Metadata = {
 export default function ResourcesIndexPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-5xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy">Resources</h1>

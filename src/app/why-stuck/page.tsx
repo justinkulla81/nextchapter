@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
 import { X } from 'lucide-react'
-import { Logo } from '@/components/Logo'
 import { ByTheNumbers } from '@/components/home/ByTheNumbers'
 import { SituationalButtons } from '@/components/home/SituationalButtons'
 import { SearchQuestionForm } from '@/components/marketing/SearchQuestionForm'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
   title: "Why You're Stuck — NextChapter",
@@ -27,21 +27,7 @@ const painPoints = [
 export default function WhyStuckPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-          <Link href="/">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground">
-              How it works
-            </Link>
-            <Link href="/" className="text-muted-foreground hover:text-foreground">
-              Home
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <section className="bg-white px-6 py-20">
         <div className="mx-auto max-w-3xl text-center">
@@ -157,6 +143,10 @@ export default function WhyStuckPage() {
             <SearchQuestionForm />
           </div>
         </div>
+      </section>
+
+      <section className="bg-white px-6 py-16">
+        <NewsletterSignup source="why-stuck" />
       </section>
     </div>
   )

@@ -1,6 +1,5 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Logo } from '@/components/Logo'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -12,12 +11,10 @@ const EFFECTIVE_DATE = 'September 4, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
+    <>
+    <PublicSiteHeader />
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/" className="inline-block">
-        <Logo className="text-2xl" />
-      </Link>
-
-      <h1 className="mt-8 text-3xl font-bold tracking-tight text-navy">Privacy Policy</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-navy">Privacy Policy</h1>
       <p className="mt-2 text-sm text-muted-foreground">Effective date: {EFFECTIVE_DATE}</p>
 
       <div className="mt-8 space-y-8 text-base leading-relaxed text-foreground">
@@ -244,5 +241,6 @@ export default function PrivacyPolicyPage() {
         </section>
       </div>
     </div>
+    </>
   )
 }

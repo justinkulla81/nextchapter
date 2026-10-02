@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 function formatUsd(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -41,16 +41,7 @@ export default async function PricingPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-1.5 text-sm">
-            <span className="font-medium text-foreground">Pricing</span>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
         <div className="text-center">

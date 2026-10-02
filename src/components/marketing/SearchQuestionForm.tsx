@@ -15,22 +15,33 @@ const EXAMPLES = [
   '“I keep reaching final rounds and then hear nothing. How do I find out why?”',
 ].join('\n')
 
+interface BriefFormCopy {
+  /** Stored with the message and shown to admins; must be in the action's allowlist. */
+  source: 'why-stuck' | 'about'
+  audience: 'CANDIDATE' | 'OTHER'
+  messageLabel: string
+  hint: string
+  placeholder: string
+  submitLabel: string
+  sentTitle: string
+}
+
 /**
- * "Ask us about your search" on the Why you're stuck page: name, email and
- * one open box.
+ * A three-field message form: name, email and one open box.
  *
- * Posts to the same action as /contact, as a candidate, so a question is
- * stored, filed in the CRM and emailed exactly like any other message —
- * marked with where it came from. The action hands typed values back on an
- * error, so nothing someone wrote is lost to a missing email address.
+ * Posts to the same action as /contact, so a message is stored, filed in the
+ * CRM and emailed exactly like any other — marked with the page it came
+ * from. The action hands typed values back on an error, so nothing someone
+ * wrote is lost to a missing email address.
  */
-export function SearchQuestionForm() {
+export function BriefContactForm({ source, audience, messageLabel, hint, placeholder, submitLabel, sentTitle }: BriefFormCopy) {
   const [state, action, pending] = useActionState<ContactFormState, FormData>(submitContactForm, undefined)
+  const id = `brief-${source}`
 
   if (state?.sent) {
     return (
       <div role="status" className="rounded-xl border border-success/30 bg-success/5 p-6 text-left">
-        <p className="text-lg font-semibold text-navy">Thanks{state.name ? `, ${state.name}` : ''}. We’ve got your question.</p>
+        <p className="text-lg font-semibold text-navy">Thanks{state.name ? `, ${state.name}` : ''}. {sentTitle}</p>
         <p className="mt-2 text-sm text-muted-foreground">
           {state.email ? <>We’ll reply to <span className="font-medium text-foreground">{state.email}</span>.</> : 'We’ll reply by email.'}
         </p>
@@ -41,34 +52,31 @@ export function SearchQuestionForm() {
   const v = state?.values
   return (
     <form action={action} noValidate className={`space-y-4 text-left ${pending ? 'cursor-wait' : ''}`}>
-      <input type="hidden" name="audience" value="CANDIDATE" />
-      <input type="hidden" name="source" value="why-stuck" />
+      <input type="hidden" name="audience" value={audience} />
+      <input type="hidden" name="source" value={source} />
       {/* Hidden from people; a bot that fills it in is turned away. */}
       <div className="hidden" aria-hidden>
-        <label htmlFor="ask-website">Website</label>
-        <input id="ask-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor={`${id}-website`}>Website</label>
+        <input id={`${id}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="ask-name" className={LABEL}>Your name</label>
-          <input id="ask-name" name="fullName" type="text" autoComplete="name" required defaultValue={v?.fullName ?? ''} className={FIELD} />
+          <label htmlFor={`${id}-name`} className={LABEL}>Your name</label>
+          <input id={`${id}-name`} name="fullName" type="text" autoComplete="name" required defaultValue={v?.fullName ?? ''} className={FIELD} />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="ask-email" className={LABEL}>Email</label>
-          <input id="ask-email" name="email" type="email" autoComplete="email" required defaultValue={v?.email ?? ''} className={FIELD} />
+          <label htmlFor={`${id}-email`} className={LABEL}>Email</label>
+          <input id={`${id}-email`} name="email" type="email" autoComplete="email" required defaultValue={v?.email ?? ''} className={FIELD} />
         </div>
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="ask-message" className={LABEL}>What’s the hardest part of your search right now?</label>
-        <p id="ask-hint" className="text-sm text-muted-foreground">
-          Say it the way you’d say it to a friend. The more specific you are — the role you want, how long you’ve been
-          looking, what you’ve already tried — the more useful our answer will be.
-        </p>
+        <label htmlFor={`${id}-message`} className={LABEL}>{messageLabel}</label>
+        <p id={`${id}-hint`} className="text-sm text-muted-foreground">{hint}</p>
         <textarea
-          id="ask-message" name="message" rows={7} required maxLength={5000} aria-describedby="ask-hint"
-          placeholder={EXAMPLES} defaultValue={v?.message ?? ''} className={`${FIELD} mt-1`}
+          id={`${id}-message`} name="message" rows={source === 'why-stuck' ? 7 : 5} required maxLength={5000} aria-describedby={`${id}-hint`}
+          placeholder={placeholder} defaultValue={v?.message ?? ''} className={`${FIELD} mt-1`}
         />
       </div>
 
@@ -79,10 +87,38 @@ export function SearchQuestionForm() {
           type="submit" disabled={pending}
           className={`inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
         >
-          {pending ? 'Sending…' : 'Send my question'}
+          {pending ? 'Sending…' : submitLabel}
         </button>
         <p className="text-sm text-muted-foreground">We read every one and reply by email.</p>
       </div>
     </form>
+  )
+}
+
+/** "Ask us about your search" on the Why you're stuck page. */
+export function SearchQuestionForm() {
+  return (
+    <BriefContactForm
+      source="why-stuck" audience="CANDIDATE"
+      messageLabel="What’s the hardest part of your search right now?"
+      hint="Say it the way you’d say it to a friend. The more specific you are — the role you want, how long you’ve been looking, what you’ve already tried — the more useful our answer will be."
+      placeholder={EXAMPLES}
+      submitLabel="Send my question"
+      sentTitle="We’ve got your question."
+    />
+  )
+}
+
+/** The short contact form at the foot of the About page. */
+export function AboutContactForm() {
+  return (
+    <BriefContactForm
+      source="about" audience="OTHER"
+      messageLabel="Your message"
+      hint="A question, an introduction, a partnership idea, or feedback on NextChapter."
+      placeholder="Tell us who you are and what you have in mind."
+      submitLabel="Send message"
+      sentTitle="Your message is on its way."
+    />
   )
 }

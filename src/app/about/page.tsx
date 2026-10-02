@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
+import { AboutContactForm } from '@/components/marketing/SearchQuestionForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
 
@@ -275,6 +276,16 @@ export default function AboutPage() {
                   Contact us
                 </TrackedLink>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="scroll-mt-6 bg-off-white px-6 py-16">
+          <div className="mx-auto max-w-2xl">
+            <h2 className="text-2xl font-bold tracking-tight text-navy">Get in touch</h2>
+            <p className="mt-2 text-muted-foreground">Send a note and it comes straight to us.</p>
+            <div className="mt-6 rounded-xl border border-light-gray bg-white p-6 shadow-sm">
+              <AboutContactForm />
             </div>
           </div>
         </section>

@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { GuideEmailGate } from '@/components/guides/GuideEmailGate'
 import type { GuideLandingContent } from '@/lib/constants/guide-landing-content'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export function GuideLandingPageTemplate({ content }: { content: GuideLandingContent }) {
   const faqJsonLd = {
@@ -21,16 +21,7 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
       {/* Deliberately no primary nav here — this page is reachable only via
           situational buttons, the /resources index, and search/AI citation,
           never by clicking through the site's main nav. */}
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground">
-            ← All resources
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{content.title}</h1>

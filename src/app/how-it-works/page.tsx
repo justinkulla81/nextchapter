@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ClipboardList, Compass, ListChecks, ShieldCheck, Trophy, type LucideIcon } from 'lucide-react'
-import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 
 export const metadata: Metadata = {
   title: 'How It Works — NextChapter',
@@ -67,21 +68,7 @@ const EXAMPLE_ACTIONS = [
 export default function HowItWorksPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-          <Link href="/">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/why-stuck" className="text-muted-foreground hover:text-foreground">
-              Why you&apos;re stuck
-            </Link>
-            <Link href="/" className="text-muted-foreground hover:text-foreground">
-              Home
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <div className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center">
@@ -149,6 +136,10 @@ export default function HowItWorksPage() {
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
             Get your Market Reality Assessment
           </Button>
+        </div>
+
+        <div className="mt-20 border-t border-border pt-16">
+          <NewsletterSignup source="how-it-works" />
         </div>
       </div>
     </div>

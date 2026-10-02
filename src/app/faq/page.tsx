@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Logo } from '@/components/Logo'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { FAQSection } from '@/components/FAQSection'
 import { FAQ_CATEGORIES } from '@/components/faq-data'
 import { StructuredData } from '@/components/StructuredData'
@@ -35,18 +36,22 @@ export default async function FAQPage() {
   const isLoggedIn = !!user && !user.is_anonymous
 
   return (
+    <>
+    {/* Signed out, this is a page of the public site and wears its header.
+        Signed in, it is a help page of the product and links back to it. */}
+    {!isLoggedIn && <PublicSiteHeader />}
     <div className="mx-auto max-w-3xl px-6 py-16">
       <StructuredData data={jsonLd} />
-      <div className="flex items-center justify-between">
-        <Link href={isLoggedIn ? '/dashboard' : '/'} className="inline-block">
-          <Logo className="text-2xl" />
-        </Link>
-        {isLoggedIn && (
+      {isLoggedIn && (
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard" className="inline-block">
+            <Logo className="text-2xl" />
+          </Link>
           <Link href="/dashboard" className="text-sm font-medium text-brand hover:text-navy">
             Dashboard
           </Link>
-        )}
-      </div>
+        </div>
+      )}
 
       <h1 className="mt-8 text-center text-3xl font-bold tracking-tight text-navy">
         Frequently asked questions
@@ -56,5 +61,6 @@ export default async function FAQPage() {
         <FAQSection />
       </div>
     </div>
+    </>
   )
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Logo } from '@/components/Logo'
 import { PersonaOnboardingCta } from '@/components/start/PersonaOnboardingCta'
 import { PERSONAS, getPersona } from '@/lib/constants/personas'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export function generateStaticParams() {
   return PERSONAS.map((p) => ({ persona: p.slug }))
@@ -31,21 +31,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
-          <Link href="/">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/why-stuck" className="text-muted-foreground hover:text-foreground">
-              Why you&apos;re stuck
-            </Link>
-            <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground">
-              How it works
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <p className="text-sm font-semibold tracking-widest text-brand uppercase">{persona.label}</p>

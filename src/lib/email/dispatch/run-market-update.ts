@@ -6,6 +6,7 @@ import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCandidateEmail } from '@/lib/email/send-market-digest-candidate'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
+import { sendWeeklyNewsletter } from '@/lib/newsletter/send-weekly'
 
 // Tuesday — "Market Update."
 export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
@@ -55,10 +56,22 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
     }
   }
 
-  if (sentCount > 0) {
-    await recordDigestSend('candidate', sentCount, nugget ? [nugget.id] : [])
+  // The same article, to people who signed up on the site without an
+  // account. Its own try: a problem with that list must not undo the record
+  // of what the candidates were sent.
+  let newsletterSent = 0
+  try {
+    // The admin's intro copy is written to candidates about their target role,
+    // so the newsletter uses its own.
+    newsletterSent = (await sendWeeklyNewsletter(nugget, null)).sent
+  } catch (error) {
+    console.error('Weekly newsletter failed', error)
+  }
+
+  if (sentCount > 0 || newsletterSent > 0) {
+    if (sentCount > 0) await recordDigestSend('candidate', sentCount, nugget ? [nugget.id] : [])
     if (nugget) await markItemsSent([nugget.id], 'CANDIDATE')
   }
 
-  return { checked: eligible.length, sent: sentCount }
+  return { checked: eligible.length, sent: sentCount, newsletterSent }
 }

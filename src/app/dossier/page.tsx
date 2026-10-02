@@ -1,9 +1,8 @@
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
-import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
 import { SampleDossier } from '@/components/marketing/SampleDossier'
+import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata = {
   title: 'The Executive Dossier — NextChapter',
@@ -23,20 +22,7 @@ export default function DossierPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/" className="font-medium text-brand hover:text-navy">
-              NextChapter
-            </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <span className="font-medium text-foreground">The Executive Dossier</span>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16 text-center">
         <p className="text-sm font-semibold tracking-wide text-brand uppercase">The Executive Dossier</p>
