@@ -5620,10 +5620,25 @@ model ResearchLibraryItem {
   status    String   @default("new")
   createdAt DateTime @default(now())
 
+  // Homepage News. Separate from everything above on purpose: the summary
+  // and bucket are internal triage written for us, and the inbox fills this
+  // table from Google Alerts unattended — so nothing reaches the public
+  // site unless an admin adds it to News, and what shows there is these
+  // fields only. newsKind non-null means "in News"; newsPublishedAt
+  // non-null means "live on the homepage and /news".
+  // 'article' | 'video' | 'instagram'
+  newsKind        String?
+  newsTitle       String?
+  newsBlurb       String?   @db.Text
+  newsImageUrl    String?
+  newsSource      String?
+  newsPublishedAt DateTime?
+
   @@index([bucket, status])
   @@index([needsReview])
   @@index([digestAudiences])
   @@index([sentAt])
+  @@index([newsPublishedAt])
 }
 
 // One company-owned Gmail inbox (research@...), connected via OAuth by an

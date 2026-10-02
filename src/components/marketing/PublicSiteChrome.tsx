@@ -50,7 +50,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' })
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
@@ -82,6 +82,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' }) {
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
+          {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
           {' · '}

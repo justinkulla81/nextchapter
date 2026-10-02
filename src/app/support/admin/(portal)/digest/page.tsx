@@ -14,7 +14,8 @@ import {
   getSentDigestItems,
   resolveDigestRecipientName,
 } from '@/lib/admin/digest-composer'
-import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox } from './actions'
+import { NewsAdminPanel } from '@/components/admin/NewsAdminPanel'
+import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox, addExistingItemToNews } from './actions'
 
 export const maxDuration = 30
 
@@ -162,6 +163,19 @@ export default async function AdminDigestPage({
       render: (r) => <DigestAudienceCheckboxes itemId={r.id} current={r.digestAudiences} />,
     },
     {
+      header: 'News',
+      render: (r) =>
+        r.newsKind ? (
+          <span className="text-xs text-muted-foreground">{r.newsPublishedAt ? 'Live on homepage' : 'Draft in News'}</span>
+        ) : (
+          <form action={addExistingItemToNews.bind(null, r.id)}>
+            <button type="submit" className="text-sm text-primary underline underline-offset-4">
+              Add to News
+            </button>
+          </form>
+        ),
+    },
+    {
       header: 'Triage',
       render: (r) => (
         <div className="flex flex-col gap-1">
@@ -306,6 +320,8 @@ export default async function AdminDigestPage({
           </>
         )}
       </div>
+
+      <NewsAdminPanel />
 
       <AddResearchItemForm />
 

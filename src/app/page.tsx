@@ -9,6 +9,14 @@ import { AudienceRouter } from '@/components/marketing/AudienceRouter'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { NewsFeed } from '@/components/news/NewsFeed'
+import { getPublishedNews } from '@/lib/news/published'
+
+// The page is otherwise static. Publishing News in the admin clears it at
+// once; the timer is the fallback.
+export const revalidate = 300
+
+const HOMEPAGE_NEWS_COUNT = 6
 
 // Partners Master Build Script §C3.1 — homepage restructured to the spec's
 // exact 8-part order: hero -> the problem in one screen -> the three beats
@@ -72,7 +80,8 @@ const jsonLd = {
   },
 }
 
-export default function Home() {
+export default async function Home() {
+  const news = await getPublishedNews(HOMEPAGE_NEWS_COUNT)
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
@@ -304,6 +313,29 @@ export default function Home() {
         </div>
       </section>
 
+      {/* News — fed from Market Pulse in the admin. Absent, not empty, when
+          nothing is published. */}
+      {news.length > 0 && (
+        <section className="border-b border-border bg-white py-20" aria-labelledby="news-heading">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 id="news-heading" className="text-3xl font-bold tracking-tight text-navy">News</h2>
+                <p className="mt-2 max-w-xl text-muted-foreground">
+                  Articles, videos and posts on the job market and the mid-career search.
+                </p>
+              </div>
+              <Link href="/news" className="text-sm font-medium text-primary underline underline-offset-4">
+                See all news →
+              </Link>
+            </div>
+            <div className="mt-10">
+              <NewsFeed items={news} placement="home" />
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="bg-white py-16">
         <div className="mx-auto max-w-3xl px-6">
           <StatCallouts stats={HOMEPAGE_STATS} />
@@ -377,6 +409,10 @@ export default function Home() {
             {' · '}
             <Link href="/security" className="underline underline-offset-4">
               Security
+            </Link>
+            {' · '}
+            <Link href="/news" className="underline underline-offset-4">
+              News
             </Link>
             {' · '}
             <Link href="/faq" className="underline underline-offset-4">
