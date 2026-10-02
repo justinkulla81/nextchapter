@@ -3,7 +3,8 @@
  *
  * A fixed list rather than free text, so the public filter never grows a
  * second spelling of the same thing. Ordered the way a reader comes at a
- * search: what is happening, what to do about it, how it feels.
+ * search: what is happening, what to do about it, how it feels — the
+ * hard parts, other people's accounts of them, and encouragement.
  */
 export const NEWS_TAGS = [
   { key: 'news', label: 'News' },
@@ -11,6 +12,7 @@ export const NEWS_TAGS = [
   { key: 'strategy', label: 'Job search strategy' },
   { key: 'tips', label: 'Tips and tricks' },
   { key: 'challenges', label: 'Job search challenges' },
+  { key: 'stories', label: 'Stories' },
   { key: 'motivation', label: 'Motivation' },
 ] as const
 
