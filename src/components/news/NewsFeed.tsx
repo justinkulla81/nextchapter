@@ -48,7 +48,17 @@ function Picture({ src, className }: { src: string; className: string }) {
   )
 }
 
-function ArticleCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
+/**
+ * The standard card: picture, then what kind of thing it is, then the words.
+ *
+ * Articles use it with a headline and a short summary. A LinkedIn or
+ * Instagram post with a picture or caption on file uses it too, without a
+ * headline — the caption is the content, so it gets the room instead.
+ */
+function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: NewsItemView; onOpen: () => void; cta?: string }) {
+  const lines = item.title
+    ? (item.imageUrl ? 'line-clamp-2' : 'line-clamp-6')
+    : (item.imageUrl ? 'line-clamp-6' : 'line-clamp-[14]')
   return (
     <a
       href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}
@@ -57,16 +67,18 @@ function ArticleCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
       {item.imageUrl && <Picture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
       <div className={BODY}>
         <Meta item={item} />
-        <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy group-hover:underline">
-          {item.title}
-        </h3>
-        {/* With no picture there is room to say more. */}
+        {item.title && (
+          <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy group-hover:underline">
+            {item.title}
+          </h3>
+        )}
+        {/* With no picture, or no headline, there is room to say more. */}
         {item.blurb && (
-          <p className={`mt-2 text-sm text-muted-foreground ${item.imageUrl ? 'line-clamp-2' : 'line-clamp-6'}`}>{item.blurb}</p>
+          <p className={`mt-2 text-sm ${item.title ? 'text-muted-foreground' : 'text-foreground'} ${lines}`}>{item.blurb}</p>
         )}
         <div className="mt-auto pt-3">
           <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
-          <p className="mt-3 text-sm font-medium text-primary">Read the article →</p>
+          <p className="mt-3 text-sm font-medium text-primary">{cta}</p>
         </div>
       </div>
     </a>
@@ -322,6 +334,12 @@ export function NewsFeed({ items, placement, filterable = false }: { items: News
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((item) => {
             const onOpen = () => posthog?.capture('news_item_clicked', props(item))
+            // A post with its picture or caption on file is laid out like
+            // every other card; one without is shown through its host's embed.
+            if ((item.kind === 'instagram' || item.kind === 'linkedin') && (item.imageUrl || item.blurb)) {
+              const host = item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'
+              return <ArticleCard key={item.id} item={item} onOpen={onOpen} cta={`Open on ${host} →`} />
+            }
             if (item.kind === 'instagram') return <InstagramCard key={item.id} item={item} onOpen={onOpen} />
             if (item.kind === 'linkedin') return <LinkedInCard key={item.id} item={item} onOpen={onOpen} />
             if (item.kind === 'podcast') return <PodcastCard key={item.id} item={item} onOpen={onOpen} />

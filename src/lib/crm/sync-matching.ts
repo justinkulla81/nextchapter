@@ -204,3 +204,27 @@ export function mentionsNextChapter(subject: string | null | undefined, snippet:
   const text = `${subject ?? ''} ${snippet ?? ''}`.toLowerCase()
   return /next\s*chapter/.test(text) || text.includes('launchyournextchapter')
 }
+
+/**
+ * Google Calendar's notice that someone used your booking page — or changed
+ * or cancelled what they booked.
+ *
+ * These read backwards to every other rule here. The notice is sent from
+ * your own address ("Appointment booked: 30 Min Google Meet (Kelly Gold) @
+ * …"), so it looks like something you sent; it never says NextChapter, so
+ * it looks irrelevant; and the booker's address arrives with no name
+ * attached. But it is the other person acting, on a link you sent them for
+ * this purpose — so it is logged as coming from them, counts without
+ * review, and takes their name from the subject.
+ *
+ * Returns the booker's name when the subject is one of these, else null.
+ */
+export function appointmentBooker(subject: string | null | undefined): { name: string | null } | null {
+  const m = (subject ?? '').match(/^\s*Appointment (?:booked|canceled|cancelled|rescheduled|updated):\s*(.*)$/i)
+  if (!m) return null
+  // The booker is the last parenthesised name before the "@ date".
+  const before = m[1].split(' @ ')[0]
+  const names = [...before.matchAll(/\(([^()]+)\)/g)].map((x) => x[1].trim())
+  const name = names[names.length - 1]
+  return { name: name && !name.includes('@') ? name : null }
+}

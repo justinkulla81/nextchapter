@@ -25,6 +25,24 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
     }
     await tx.crmAffiliation.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
 
+    // A synced email or meeting is keyed "<message>:<person>". Left pointing
+    // at the absorbed record, the next sweep would not recognise the message
+    // as already logged for the survivor and would log it a second time. So
+    // the key follows the activity — and where the survivor already has that
+    // same message, the absorbed copy is the duplicate and is dropped.
+    const from = `:${sourceId}`
+    const to = `:${targetId}`
+    await tx.$executeRaw`
+      DELETE FROM "CrmActivity" s
+      WHERE s."personId" = ${sourceId} AND right(s."sourceRef", ${from.length}) = ${from}
+        AND EXISTS (
+          SELECT 1 FROM "CrmActivity" t
+          WHERE t.type = s.type
+            AND t."sourceRef" = left(s."sourceRef", length(s."sourceRef") - ${from.length}) || ${to}
+        )`
+    await tx.$executeRaw`
+      UPDATE "CrmActivity" SET "sourceRef" = left("sourceRef", length("sourceRef") - ${from.length}) || ${to}
+      WHERE "personId" = ${sourceId} AND right("sourceRef", ${from.length}) = ${from}`
     await tx.crmActivity.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmTask.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmSourceRecord.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })

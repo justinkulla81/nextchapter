@@ -22,7 +22,7 @@ import { StickyFilters } from '@/components/admin/StickyFilters'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
-  priorityTierClass, sinceLabel,
+  priorityTierClass, sinceLabel, meetingLabel,
 } from '@/lib/crm/labels'
 import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal, CrmPriorityTier } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
@@ -188,7 +188,7 @@ export default async function CrmPeoplePage({
       take: perPage,
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
-        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
+        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
@@ -469,6 +469,7 @@ export default async function CrmPeoplePage({
                         personId={p.id} name={p.fullName}
                         lastLabel={sinceLabel(p.lastTouchedAt)} touchCount={p.touchCount}
                         awaitingReply={p.awaitingReplySince !== null && p.passedAt === null && p.keepInTouchAt === null}
+                        meetingLabel={meetingLabel(p.nextMeetingAt)}
                       />
                     </td>
                     <td className="px-3 py-1.5">

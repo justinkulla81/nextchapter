@@ -153,3 +153,35 @@ describe('one address, one person', () => {
     expect(classifyParticipant('j.smith@acme.com', g)).toEqual({ kind: 'crm', personId: 'per_acme' })
   })
 })
+
+import { appointmentBooker } from '@/lib/crm/sync-matching'
+
+describe('appointmentBooker', () => {
+  it('reads the booker from a calendar booking notice', () => {
+    expect(appointmentBooker('Appointment booked: 30 Min Google Meet (Kelly Gold) @ Thu Oct 8, 2026 1:30pm - 2pm (EDT) (Justin Kulla)'))
+      .toEqual({ name: 'Kelly Gold' })
+    expect(appointmentBooker('Appointment canceled: 30 Min Google Meet (Jordan Clemons) @ Tue Sep 15, 2026 1pm - 1:30pm (EDT) (justin.kulla@gmail.com)'))
+      .toEqual({ name: 'Jordan Clemons' })
+  })
+  it('recognises the notice even when it names nobody', () => {
+    expect(appointmentBooker('Appointment booked: Intro call @ Thu Oct 8, 2026')).toEqual({ name: null })
+  })
+  it('is not triggered by an ordinary invitation or email', () => {
+    expect(appointmentBooker('Invitation: Jason | Justin NextChapter @ Mon Oct 5, 2026')).toBeNull()
+    expect(appointmentBooker('Re: your appointment booked last week')).toBeNull()
+    expect(appointmentBooker(null)).toBeNull()
+  })
+})
+
+import { meetingLabel } from '@/lib/crm/labels'
+
+describe('meetingLabel', () => {
+  it('names the day of a meeting still ahead', () => {
+    const inThreeDays = new Date(Date.now() + 3 * 86_400_000)
+    expect(meetingLabel(inThreeDays)).toMatch(/^[A-Z][a-z]{2}, [A-Z][a-z]{2} \d{1,2}$/)
+  })
+  it('says nothing once the meeting has started, or when there is none', () => {
+    expect(meetingLabel(new Date(Date.now() - 60_000))).toBeNull()
+    expect(meetingLabel(null)).toBeNull()
+  })
+})

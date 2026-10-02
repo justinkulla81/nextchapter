@@ -8721,6 +8721,12 @@ model CrmPerson {
   /// the four fields above, never typed by hand.
   awaitingReplySince DateTime?
 
+  /// The start of the next meeting on the calendar with this person, or null.
+  /// Written only by the calendar sweep, which looks 30 days ahead: set when
+  /// an upcoming event has them as an attendee, cleared once it has passed,
+  /// been moved out of range, or been cancelled.
+  nextMeetingAt DateTime?
+
   // ── graduation links ──
   candidateId String?
   candidate   CandidateProfile? @relation("CrmPersonCandidate", fields: [candidateId], references: [id], onDelete: SetNull)

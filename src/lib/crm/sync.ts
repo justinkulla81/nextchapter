@@ -6,7 +6,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
-  normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf, mentionsNextChapter,
+  normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
   type SweepContext,
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
@@ -57,7 +57,12 @@ export async function buildSweepContext(
 ): Promise<SweepContext> {
   const [people, candidates, coaches, recruiters, setting] = await Promise.all([
     prisma.crmPerson.findMany({
-      where: { OR: [{ email: { not: null } }, { emails: { isEmpty: false } }] },
+      // Live records only. A removed or merged-away record keeps its
+      // addresses, and matching mail to it logged new activity on a row
+      // nobody can see — including, after a merge, mail that belonged on the
+      // record it was merged into. Whether a removed person stays excluded
+      // is decided in getOrCreatePerson, which does look at removed rows.
+      where: { deletedAt: null, OR: [{ email: { not: null } }, { emails: { isEmpty: false } }] },
       select: { id: true, email: true, emails: true },
     }),
     prisma.candidateProfile.findMany({ select: { email: true } }),
@@ -396,6 +401,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       if (!m || !isAfterCrmCutoff(m.internalDate) || logged.has(id) || !wantsBody(m)) return false
       // An inbound message that never mentions NextChapter is never written
       // at all (see the main loop below) — no point paying for its body.
+      if (appointmentBooker(m.subject)) return true
       const direction = directionOf(normalizeEmail(m.from), ctx)
       if (direction === 'INBOUND' && !mentionsNextChapter(m.subject, m.snippet)) return false
       return true
@@ -411,8 +417,11 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       result.scanned++
 
       const fromEmail = normalizeEmail(msg.from)
-      const direction = directionOf(fromEmail, ctx)
-      const relevant = mentionsNextChapter(msg.subject, msg.snippet)
+      // A booking on your calendar page is the other person's doing, however
+      // the notice is addressed — see appointmentBooker.
+      const booking = appointmentBooker(msg.subject)
+      const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
+      const relevant = booking ? true : mentionsNextChapter(msg.subject, msg.snippet)
       // Inbound mail that never mentions NextChapter is never added to the
       // CRM at all — no activity, no new person from it, by direct
       // instruction. Outbound mail that doesn't mention it is still logged
@@ -441,7 +450,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         if (verdict.kind === 'crm') {
           personId = verdict.personId
         } else {
-          const resolved = await getOrCreatePerson(email, displayNameFrom(raw) ?? nameByEmail.get(email) ?? null, personCache)
+          const resolved = await getOrCreatePerson(email, displayNameFrom(raw) ?? nameByEmail.get(email) ?? booking?.name ?? null, personCache)
           if (!resolved) continue // deleted before — stays excluded, not silently re-added
           personId = resolved.id
           isNewPerson = resolved.created
@@ -551,6 +560,8 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     const touched = new Set<string>()
     const personCache = new Map<string, string | null>()
     const result = { ...base }
+    // The soonest meeting still ahead for each person on one.
+    const upcoming = new Map<string, Date>()
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
 
@@ -579,9 +590,14 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
         if (isNewPerson) result.suggested++
 
         // Nothing to log yet for a meeting that hasn't happened — the person
-        // itself is still created above so they're findable before then.
-        // A meeting older than the cutoff is the same case in reverse: the
-        // attendee is still worth having, the meeting is not an interaction.
+        // itself is still created above so they're findable before then, and
+        // the meeting is noted as scheduled. A meeting older than the cutoff
+        // is the same case in reverse: the attendee is still worth having,
+        // the meeting is not an interaction.
+        if (!isPast) {
+          const soonest = upcoming.get(personId)
+          if (!soonest || ev.start < soonest) upcoming.set(personId, ev.start)
+        }
         if (!isPast || !isAfterCrmCutoff(ev.start)) continue
 
         const created = await prisma.crmActivity.upsert({
@@ -604,6 +620,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     }
 
     await refreshTouchFields([...touched])
+    await setUpcomingMeetings(upcoming, new Date(Date.now() + daysForward * DAY))
     await prisma.crmSyncRun.update({
       where: { id: run.id },
       data: {
@@ -620,6 +637,29 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     })
     throw e
   }
+}
+
+/**
+ * Writes each person's next scheduled meeting, and clears it for anyone the
+ * calendar no longer has one for.
+ *
+ * Only dates inside the window just read are cleared: a meeting the sweep
+ * could have seen and didn't has happened, moved or been cancelled, while
+ * one further out than it looked is simply not known about either way.
+ * Raw SQL so that noting a meeting doesn't count as editing the record.
+ */
+async function setUpcomingMeetings(upcoming: Map<string, Date>, windowEnd: Date) {
+  const ids = [...upcoming.keys()]
+  await prisma.$executeRaw`
+    UPDATE "CrmPerson" SET "nextMeetingAt" = NULL
+    WHERE "nextMeetingAt" IS NOT NULL AND "nextMeetingAt" <= ${windowEnd}
+      AND NOT (id = ANY(${ids}::text[]))`
+  if (ids.length === 0) return
+  const payload = JSON.stringify(ids.map((id) => ({ id, at: upcoming.get(id)!.toISOString() })))
+  await prisma.$executeRaw`
+    UPDATE "CrmPerson" AS p SET "nextMeetingAt" = v.at
+    FROM jsonb_to_recordset(${payload}::jsonb) AS v(id text, at timestamp)
+    WHERE p.id = v.id AND p."nextMeetingAt" IS DISTINCT FROM v.at`
 }
 
 export interface PersonBackfillResult {

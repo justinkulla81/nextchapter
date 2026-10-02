@@ -25,6 +25,7 @@ interface Peek {
   email?: string | null
   location?: string | null
   awaitingReply?: boolean
+  meeting?: string | null
   nextChapter?: NextChapterAccountInfo
   editable?: { leadQuality: string; warmth: string; priority: string | null }
   company?: { id: string; name: string; otherPeopleCount: number } | null
@@ -194,11 +195,15 @@ export function CrmPeekPanel() {
                     <dt className="text-xs text-muted-foreground">{f.label}</dt>
                     <dd className="mt-0.5 break-words">
                       {f.value}
-                      {f.label === 'Last contacted' && data.awaitingReply && (
+                      {f.label === 'Last contacted' && (data.meeting ? (
+                        <span className="ml-1.5 inline-block rounded-full bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand">
+                          Meeting scheduled · {data.meeting}
+                        </span>
+                      ) : data.awaitingReply && (
                         <span className="ml-1.5 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
                           Waiting on them
                         </span>
-                      )}
+                      ))}
                     </dd>
                   </div>
                 ))}

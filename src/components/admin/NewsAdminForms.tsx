@@ -132,34 +132,36 @@ export function EditNewsItemForm({ item }: {
   item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[] }
 }) {
   const [state, formAction] = useActionState(updateNewsItem, undefined)
-  const drawsItself = item.kind === 'instagram' || item.kind === 'linkedin'
+  const isPost = item.kind === 'instagram' || item.kind === 'linkedin'
+  const host = item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'
   return (
     <form action={formAction} className="mt-3 grid gap-3 sm:grid-cols-2">
       <input type="hidden" name="id" value={item.id} />
-      {drawsItself ? (
+      {isPost ? (
         <p className="text-sm text-muted-foreground sm:col-span-2">
-          {item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'} draws this post itself, picture and text included, so only its topics are set here.
+          With a picture or a caption, this shows as a card like the others: picture on top, then the caption. With neither,
+          it shows through {host}&apos;s own embed.
         </p>
       ) : (
-        <>
-          <div className="sm:col-span-2">
-            <label htmlFor={`title-${item.id}`} className="text-sm text-muted-foreground">Headline</label>
-            <input id={`title-${item.id}`} name="title" defaultValue={item.title ?? ''} maxLength={200} className={`${INPUT} h-9`} />
-          </div>
-          <div className="sm:col-span-2">
-            <label htmlFor={`blurb-${item.id}`} className="text-sm text-muted-foreground">Summary (one or two sentences)</label>
-            <textarea id={`blurb-${item.id}`} name="blurb" defaultValue={item.blurb ?? ''} rows={2} maxLength={400} className={`${INPUT} py-2`} />
-          </div>
-          <div>
-            <label htmlFor={`image-${item.id}`} className="text-sm text-muted-foreground">Picture link (https)</label>
-            <input id={`image-${item.id}`} name="imageUrl" type="url" defaultValue={item.imageUrl ?? ''} className={`${INPUT} h-9`} />
-          </div>
-          <div>
-            <label htmlFor={`source-${item.id}`} className="text-sm text-muted-foreground">Source</label>
-            <input id={`source-${item.id}`} name="source" defaultValue={item.source ?? ''} maxLength={80} className={`${INPUT} h-9`} />
-          </div>
-        </>
+        <div className="sm:col-span-2">
+          <label htmlFor={`title-${item.id}`} className="text-sm text-muted-foreground">Headline</label>
+          <input id={`title-${item.id}`} name="title" defaultValue={item.title ?? ''} maxLength={200} className={`${INPUT} h-9`} />
+        </div>
       )}
+      <div className="sm:col-span-2">
+        <label htmlFor={`blurb-${item.id}`} className="text-sm text-muted-foreground">
+          {isPost ? 'Caption (the post’s own words)' : 'Summary (one or two sentences)'}
+        </label>
+        <textarea id={`blurb-${item.id}`} name="blurb" defaultValue={item.blurb ?? ''} rows={isPost ? 4 : 2} maxLength={isPost ? 600 : 400} className={`${INPUT} py-2`} />
+      </div>
+      <div>
+        <label htmlFor={`image-${item.id}`} className="text-sm text-muted-foreground">Picture link (https)</label>
+        <input id={`image-${item.id}`} name="imageUrl" type="url" defaultValue={item.imageUrl ?? ''} className={`${INPUT} h-9`} />
+      </div>
+      <div>
+        <label htmlFor={`source-${item.id}`} className="text-sm text-muted-foreground">{isPost ? 'Posted by' : 'Source'}</label>
+        <input id={`source-${item.id}`} name="source" defaultValue={item.source ?? ''} maxLength={80} className={`${INPUT} h-9`} />
+      </div>
       <div className="sm:col-span-2">
         <TagCheckboxes idPrefix={`edit-${item.id}`} selected={item.tags} />
       </div>

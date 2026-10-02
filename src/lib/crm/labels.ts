@@ -133,3 +133,12 @@ export function sinceLabel(d: Date | null | undefined): string {
   if (days < 365) return `${Math.floor(days / 30)}mo ago`
   return `${Math.floor(days / 365)}y ago`
 }
+
+/**
+ * "Mon, Oct 5" for a meeting still ahead; null once it has started, or when
+ * there is none — a meeting that has happened is a touch, not a plan.
+ */
+export function meetingLabel(d: Date | null | undefined): string | null {
+  if (!d || d.getTime() <= Date.now()) return null
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' })
+}

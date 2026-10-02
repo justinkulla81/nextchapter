@@ -23,13 +23,15 @@ const CHANNELS = [
  * make every date a lie.
  */
 export function CrmContactCell({
-  personId, name, lastLabel, touchCount, awaitingReply,
+  personId, name, lastLabel, touchCount, awaitingReply, meetingLabel,
 }: {
   personId: string
   name: string
   lastLabel: string
   touchCount: number
   awaitingReply?: boolean
+  /** The day of the next meeting on the calendar with them, when there is one. */
+  meetingLabel?: string | null
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -65,7 +67,12 @@ export function CrmContactCell({
       >
         <span className={lastLabel === 'Never' ? 'text-muted-foreground' : ''}>{lastLabel}</span>
         {touchCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({touchCount})</span>}
-        {awaitingReply && (
+        {/* A meeting on the calendar answers "are we waiting on them". */}
+        {meetingLabel ? (
+          <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand">
+            Meeting scheduled · {meetingLabel}
+          </span>
+        ) : awaitingReply && (
           <span className="ml-1.5 rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
             Waiting on them
           </span>

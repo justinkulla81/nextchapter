@@ -213,9 +213,14 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
   const current = await prisma.researchLibraryItem.findUnique({ where: { id }, select: { url: true, newsKind: true, newsPublishedAt: true } })
   if (!current?.newsKind) return { error: 'That item is no longer in News.' }
   const newsTags = cleanNewsTags(formData.getAll('tags'))
-  // A post that draws itself has no headline or picture to edit — only its topics.
+  // A post has no headline. Its caption and picture are optional: with
+  // either, the card is laid out like every other; with neither, the post is
+  // shown through its host's own embed.
   if (current.newsKind === 'instagram' || current.newsKind === 'linkedin') {
-    await prisma.researchLibraryItem.update({ where: { id }, data: { newsTags } })
+    await prisma.researchLibraryItem.update({
+      where: { id },
+      data: { newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags },
+    })
   } else {
     const title = text('title')
     if (current.newsPublishedAt && !embedsItself(current.newsKind, current.url) && !title) {

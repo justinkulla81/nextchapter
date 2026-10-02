@@ -17,7 +17,7 @@ import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
   PRIORITY_TIERS, PRIORITY_TIER_LABELS, priorityTierClass,
-  qualityClass, formatDate, sinceLabel, MEMBERSHIP_STATUS_LABELS,
+  qualityClass, formatDate, sinceLabel, meetingLabel, MEMBERSHIP_STATUS_LABELS,
 } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -132,7 +132,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </header>
 
       <section className="grid gap-4 sm:grid-cols-4">
-        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={person.awaitingReplySince ? 'Waiting on their reply' : undefined} />
+        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={meetingLabel(person.nextMeetingAt) ? `Meeting scheduled · ${meetingLabel(person.nextMeetingAt)}` : person.awaitingReplySince ? 'Waiting on their reply' : undefined} />
         <Stat label="Touches" value={String(person.touchCount)} />
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />

@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
-import { ORG_TYPE_LABELS, sinceLabel, formatDate, MEMBERSHIP_STATUS_LABELS } from '@/lib/crm/labels'
+import { ORG_TYPE_LABELS, sinceLabel, meetingLabel, formatDate, MEMBERSHIP_STATUS_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 20
 
@@ -112,6 +112,7 @@ export async function GET(req: NextRequest) {
       person.candidate ? { label: 'Membership', value: MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE'] } : null,
     ].filter(Boolean),
     awaitingReply: person.awaitingReplySince !== null,
+    meeting: meetingLabel(person.nextMeetingAt),
     nextChapter: {
       account: person.candidate
         ? { href: `/support/admin/candidates/${person.candidate.id}`, since: formatDate(person.candidate.createdAt) }

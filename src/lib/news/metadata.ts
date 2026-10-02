@@ -1,6 +1,6 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
-import { detectNewsKind, embedsItself, podcastEmbed, safeImageUrl, sourceFromUrl, stripSourceSuffix, vimeoId, youtubeId, type NewsKind } from './kind'
+import { detectNewsKind, embedsItself, linkedinEmbedUrl, podcastEmbed, safeImageUrl, sourceFromUrl, stripSourceSuffix, vimeoId, youtubeId, type NewsKind } from './kind'
 
 export interface NewsMetadata {
   kind: NewsKind
@@ -11,6 +11,8 @@ export interface NewsMetadata {
 }
 
 const BLURB_MAX = 280
+// A post has no headline; its own words are the content, so more of them are kept.
+const CAPTION_MAX = 600
 const TITLE_MAX = 200
 
 const BROWSER_HEADERS = {
@@ -68,13 +70,51 @@ async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> 
 }
 
 /**
+ * A LinkedIn post's author, words and picture, read from the public page
+ * LinkedIn serves for embedding — the same page the embed frame shows, so it
+ * needs no sign-in. The picture is the post's image, or a video's cover
+ * frame; the author's profile photo is not the picture.
+ *
+ * Nulls when LinkedIn will not answer, and the card then falls back to
+ * LinkedIn's own embed.
+ */
+async function fetchLinkedInPost(url: string): Promise<Omit<NewsMetadata, 'kind'>> {
+  const fallback = { title: null, blurb: null, imageUrl: null, source: 'LinkedIn' }
+  const embed = linkedinEmbedUrl(url)
+  if (!embed) return fallback
+  try {
+    const res = await fetch(embed, { signal: AbortSignal.timeout(8000), headers: BROWSER_HEADERS })
+    if (!res.ok) return fallback
+    const $ = cheerio.load(await res.text())
+    const description = $('meta[property="og:description"]').attr('content') ?? ''
+    const author = $('[data-tracking-control-name="public_post_embed_feed-actor-name"]').first().text()
+    const isPostMedia = (u: string | undefined) =>
+      !!u && /licdn\.com/.test(u) && !/profile-displayphoto|company-logo|profile-framedphoto/.test(u)
+    const candidates = [
+      $('[data-poster-url]').first().attr('data-poster-url'),
+      ...$('img').map((_, el) => $(el).attr('data-delayed-url') ?? $(el).attr('src')).get(),
+    ]
+    return {
+      title: null,
+      // "… | 478 comments on LinkedIn" is LinkedIn's addition, not the author's.
+      blurb: clean(description.replace(/\s*\|\s*[\d,]+ comments? on LinkedIn\s*$/i, ''), CAPTION_MAX),
+      imageUrl: safeImageUrl(candidates.find(isPostMedia)),
+      source: clean(author, 80) ?? 'LinkedIn',
+    }
+  } catch {
+    return fallback
+  }
+}
+
+/**
  * The headline, summary and picture a link offers about itself.
  *
  * No model call and nothing paid: videos and Spotify answer through their
  * public oEmbed endpoints, articles and Apple Podcasts through the Open
- * Graph tags every publisher sets for link previews. Instagram and LinkedIn
- * are not fetched at all — both refuse anonymous requests, and their own
- * embeds draw the post on the page instead.
+ * Graph tags every publisher sets for link previews, LinkedIn posts through
+ * the public page LinkedIn serves for embedding. Instagram is not fetched at
+ * all — it refuses anonymous requests, and its own embed draws the post on
+ * the page instead.
  *
  * Never throws. A publisher that blocks the request (several do) comes back
  * with nulls, and the admin fills the headline in by hand.
@@ -83,7 +123,7 @@ export async function fetchNewsMetadata(url: string): Promise<NewsMetadata> {
   const kind = detectNewsKind(url)
 
   if (kind === 'instagram') return { kind, title: null, blurb: null, imageUrl: null, source: 'Instagram' }
-  if (kind === 'linkedin') return { kind, title: null, blurb: null, imageUrl: null, source: 'LinkedIn' }
+  if (kind === 'linkedin') return { kind, ...(await fetchLinkedInPost(url)) }
 
   if (kind === 'podcast') {
     const host = podcastEmbed(url)!.host

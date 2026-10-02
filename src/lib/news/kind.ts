@@ -13,8 +13,8 @@ export const NEWS_KINDS: { key: NewsKind; label: string; plural: string }[] = [
   { key: 'article', label: 'Article', plural: 'Articles' },
   { key: 'video', label: 'Video', plural: 'Videos' },
   { key: 'podcast', label: 'Podcast', plural: 'Podcasts' },
-  { key: 'linkedin', label: 'LinkedIn', plural: 'LinkedIn posts' },
-  { key: 'instagram', label: 'Instagram', plural: 'Instagram posts' },
+  { key: 'linkedin', label: 'LinkedIn post', plural: 'LinkedIn posts' },
+  { key: 'instagram', label: 'Instagram post', plural: 'Instagram posts' },
 ]
 
 function parse(url: string): URL | null {
