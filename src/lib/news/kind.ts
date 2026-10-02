@@ -106,7 +106,7 @@ export function podcastEmbed(url: string): PodcastEmbed | null {
     // An optional "/intl-de" style prefix sits in front on shared links.
     const m = u.pathname.match(/^(?:\/intl-[a-z-]+)?\/(?:embed\/)?(episode|show)\/([A-Za-z0-9]+)/)
     if (!m) return null
-    return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, height: m[1] === 'episode' ? 152 : 352, host: 'Spotify' }
+    return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, height: m[1] === 'episode' ? 152 : 232, host: 'Spotify' }
   }
   if (h === 'podcasts.apple.com' || h === 'embed.podcasts.apple.com') {
     if (!/\/podcast\/.*\/id\d+/.test(u.pathname) && !/\/podcast\/id\d+/.test(u.pathname)) return null

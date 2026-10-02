@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import { Play } from 'lucide-react'
-import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, type NewsKind } from '@/lib/news/kind'
+import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, youtubeId, type NewsKind } from '@/lib/news/kind'
 import { NEWS_TAGS, newsTagLabel, type NewsTagKey } from '@/lib/news/tags'
 import type { NewsItemView } from '@/lib/news/published'
 
@@ -11,7 +11,11 @@ type Placement = 'home' | 'news'
 
 const KIND_LABEL = Object.fromEntries(NEWS_KINDS.map((k) => [k.key, k.label])) as Record<NewsKind, string>
 
-const CARD = 'mb-6 break-inside-avoid overflow-hidden rounded-xl border border-border bg-white shadow-sm'
+// Every card is the same box, whatever is in it. A post that is longer than
+// the box scrolls inside it rather than making its card taller than its
+// neighbours.
+const CARD = 'flex h-[32rem] flex-col overflow-hidden rounded-xl border border-border bg-white shadow-sm'
+const BODY = 'flex min-h-0 flex-1 flex-col p-5'
 
 function Meta({ item }: { item: NewsItemView }) {
   return (
@@ -48,28 +52,35 @@ function ArticleCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
   return (
     <a
       href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}
-      className={`${CARD} group block transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`}
+      className={`${CARD} group transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`}
     >
-      {item.imageUrl && <Picture src={item.imageUrl} className="aspect-[16/9] w-full bg-off-white object-cover" />}
-      <div className="p-5">
+      {item.imageUrl && <Picture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
+      <div className={BODY}>
         <Meta item={item} />
         <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy group-hover:underline">
           {item.title}
         </h3>
-        {item.blurb && <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{item.blurb}</p>}
-        <Tags tags={item.tags} />
-        <p className="mt-3 text-sm font-medium text-primary">Read the article →</p>
+        {/* With no picture there is room to say more. */}
+        {item.blurb && (
+          <p className={`mt-2 text-sm text-muted-foreground ${item.imageUrl ? 'line-clamp-2' : 'line-clamp-6'}`}>{item.blurb}</p>
+        )}
+        <div className="mt-auto pt-3">
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
+          <p className="mt-3 text-sm font-medium text-primary">Read the article →</p>
+        </div>
       </div>
     </a>
   )
 }
+
+const videoHost = (url: string) => (youtubeId(url) ? 'YouTube' : 'Vimeo')
 
 function VideoCard({ item, onOpen, onPlay }: { item: NewsItemView; onOpen: () => void; onPlay: () => void }) {
   const [playing, setPlaying] = useState(false)
   const embed = videoEmbedUrl(item.url)
   return (
     <article className={CARD}>
-      <div className="relative aspect-video w-full bg-navy">
+      <div className="relative aspect-video w-full shrink-0 bg-navy">
         {playing && embed ? (
           <iframe
             src={embed} title={item.title ?? 'Video'} allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
@@ -89,15 +100,22 @@ function VideoCard({ item, onOpen, onPlay }: { item: NewsItemView; onOpen: () =>
           </button>
         )}
       </div>
-      <div className="p-5">
+      <div className={BODY}>
         <Meta item={item} />
         <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy">
           <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="hover:underline">
             {item.title}
           </a>
         </h3>
-        {item.blurb && <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{item.blurb}</p>}
-        <Tags tags={item.tags} />
+        {item.blurb && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.blurb}</p>}
+        <div className="mt-auto pt-3">
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
+          <p className="mt-3 text-sm font-medium">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
+              Watch on {videoHost(item.url)} →
+            </a>
+          </p>
+        </div>
       </div>
     </article>
   )
@@ -113,9 +131,9 @@ function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
         src={embed.src} title={item.title ?? `Podcast on ${embed.host}`} loading="lazy" height={embed.height}
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
         sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
-        className="block w-full border-0"
+        className="block w-full shrink-0 border-0"
       />
-      <div className="p-5">
+      <div className={BODY}>
         <Meta item={item} />
         {item.title && (
           <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy">
@@ -124,30 +142,44 @@ function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
             </a>
           </h3>
         )}
-        {item.blurb && <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{item.blurb}</p>}
-        <Tags tags={item.tags} />
+        {item.blurb && <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">{item.blurb}</p>}
+        <div className="mt-auto pt-3">
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
+          <p className="mt-3 text-sm font-medium">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
+              Listen on {embed.host} →
+            </a>
+          </p>
+        </div>
       </div>
     </article>
   )
 }
 
+/** The strip under an embedded post: what it is, its topics, and the way out to it. */
+function EmbedFooter({ item, onOpen, href, label }: { item: NewsItemView; onOpen: () => void; href: string; label: string }) {
+  return (
+    <div className="shrink-0 border-t border-border px-5 py-3">
+      <Meta item={item} />
+      <div className="[&>ul]:mt-2"><Tags tags={item.tags} /></div>
+      <p className="mt-2 text-sm font-medium">
+        <a href={href} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">{label}</a>
+      </p>
+    </div>
+  )
+}
+
 /**
  * LinkedIn's own embed of a post. It does not report its height, so the
- * frame is a fixed window that scrolls for a long post.
+ * frame takes what the card has left and scrolls for a long post.
  */
 function LinkedInCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
   const embed = linkedinEmbedUrl(item.url)
   if (!embed) return null
   return (
     <article className={CARD}>
-      <iframe src={embed} title="LinkedIn post" loading="lazy" height={520} allowFullScreen className="block w-full border-0" />
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 py-3">
-        <Meta item={item} />
-        <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-sm font-medium text-primary hover:underline">
-          Open on LinkedIn →
-        </a>
-        {item.tags.length > 0 && <div className="w-full [&>ul]:mt-0"><Tags tags={item.tags} /></div>}
-      </div>
+      <iframe src={embed} title="LinkedIn post" loading="lazy" allowFullScreen className="block min-h-0 w-full flex-1 border-0" />
+      <EmbedFooter item={item} onOpen={onOpen} href={item.url} label="Open on LinkedIn →" />
     </article>
   )
 }
@@ -160,9 +192,10 @@ const IG_SCRIPT_ID = 'instagram-embed-js'
 
 /**
  * Instagram's own embed: its script swaps the blockquote for the post —
- * picture, caption and all — and sizes it. Loaded once per page however many
- * posts there are, and only when one is actually on the page. Until it
- * loads (or if it is blocked), the blockquote stays as a plain link.
+ * picture, caption and all — at the post's full height, which scrolls
+ * inside the card. Loaded once per page however many posts there are, and
+ * only when one is actually on the page. Until it loads (or if it is
+ * blocked), the blockquote stays as a plain link.
  */
 function InstagramCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
   const permalink = instagramPermalink(item.url)
@@ -183,19 +216,19 @@ function InstagramCard({ item, onOpen }: { item: NewsItemView; onOpen: () => voi
 
   if (!permalink) return null
   return (
-    <article className="mb-6 break-inside-avoid">
-      <div className="[&_iframe]:!m-0 [&_iframe]:!w-full [&_iframe]:!max-w-full [&_iframe]:!min-w-0 [&_iframe]:!rounded-xl">
+    <article className={CARD}>
+      <div className="min-h-0 flex-1 overflow-y-auto [&_iframe]:!m-0 [&_iframe]:!w-full [&_iframe]:!max-w-full [&_iframe]:!min-w-0 [&_iframe]:!rounded-none [&_iframe]:!border-0">
         <blockquote
-          className="instagram-media m-0 rounded-xl border border-border bg-white p-5 shadow-sm"
+          className="instagram-media m-0 p-5"
           data-instgrm-captioned="" data-instgrm-permalink={permalink} data-instgrm-version="14"
         >
-          <Meta item={item} />
           <a href={permalink} target="_blank" rel="noopener noreferrer" onClick={onOpen}
-            className="mt-2 block text-lg leading-snug font-semibold text-navy hover:underline">
+            className="block text-lg leading-snug font-semibold text-navy hover:underline">
             {item.title ?? 'View this post on Instagram'}
           </a>
         </blockquote>
       </div>
+      <EmbedFooter item={item} onOpen={onOpen} href={permalink} label="Open on Instagram →" />
     </article>
   )
 }
@@ -204,11 +237,7 @@ const SELECT = 'h-9 rounded-md border border-input bg-white px-3 text-sm outline
 
 /**
  * The News cards — articles, videos, podcasts, LinkedIn and Instagram posts
- * — in one column flow, newest first.
- *
- * Columns rather than a grid because the kinds are different heights by
- * nature — an Instagram post is twice an article — and a grid would stretch
- * every row to its tallest card.
+ * — in one grid of identical boxes, newest first, reading left to right.
  *
  * `filterable` adds the two archive filters (type and topic). They narrow
  * what is already on the page, and the choice is written into the address
@@ -290,7 +319,7 @@ export function NewsFeed({ items, placement, filterable = false }: { items: News
           </button>
         </div>
       ) : (
-        <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((item) => {
             const onOpen = () => posthog?.capture('news_item_clicked', props(item))
             if (item.kind === 'instagram') return <InstagramCard key={item.id} item={item} onOpen={onOpen} />

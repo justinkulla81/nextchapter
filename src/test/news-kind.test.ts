@@ -95,7 +95,7 @@ describe('podcastEmbed', () => {
   it('builds the Spotify player for an episode and a show', () => {
     expect(podcastEmbed('https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk?si=abc'))
       .toEqual({ src: 'https://open.spotify.com/embed/episode/4rOoJ6Egrf8K2IrywzwOMk', height: 152, host: 'Spotify' })
-    expect(podcastEmbed('https://open.spotify.com/intl-de/show/2MAi0BvDc6GTFvKFPXnkCL')?.height).toBe(352)
+    expect(podcastEmbed('https://open.spotify.com/intl-de/show/2MAi0BvDc6GTFvKFPXnkCL')?.height).toBe(232)
     // Music is not a podcast.
     expect(podcastEmbed('https://open.spotify.com/track/4rOoJ6Egrf8K2IrywzwOMk')).toBeNull()
   })
