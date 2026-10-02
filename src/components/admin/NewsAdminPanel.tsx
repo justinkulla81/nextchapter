@@ -24,7 +24,7 @@ export async function NewsAdminPanel() {
     take: 100,
     select: {
       id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true,
-      newsImageUrl: true, newsSource: true, newsPublishedAt: true, newsTags: true,
+      newsImageUrl: true, newsSource: true, newsPublishedAt: true, newsTags: true, newsTake: true, newsSlug: true,
     },
   })
   const live = items.filter((i) => i.newsPublishedAt).length
@@ -83,6 +83,13 @@ export async function NewsAdminPanel() {
                     {i.newsTags.length > 0 && (
                       <p className="mt-1 text-xs text-muted-foreground">{i.newsTags.map(newsTagLabel).join(' · ')}</p>
                     )}
+                    {isLive && i.newsTake && i.newsSlug && (
+                      <p className="mt-1 text-xs">
+                        <Link href={`/news/${i.newsSlug}`} target="_blank" className="text-primary underline underline-offset-4">
+                          Has its own page with our take
+                        </Link>
+                      </p>
+                    )}
                     {isLive && (
                       <p className="mt-1">
                         <LinkedInShareButton compact itemId={i.id} caption={[i.newsTitle, i.url].filter(Boolean).join('\n\n')} />
@@ -109,7 +116,7 @@ export async function NewsAdminPanel() {
                   <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">Edit details</summary>
                   <EditNewsItemForm item={{
                     id: i.id, kind: i.newsKind ?? 'article', title: i.newsTitle, blurb: i.newsBlurb,
-                    imageUrl: i.newsImageUrl, source: i.newsSource, tags: i.newsTags,
+                    imageUrl: i.newsImageUrl, source: i.newsSource, tags: i.newsTags, take: i.newsTake,
                   }} />
                 </details>
               </li>

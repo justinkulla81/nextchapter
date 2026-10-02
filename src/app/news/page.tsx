@@ -2,11 +2,17 @@ import type { Metadata } from 'next'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { getPublishedNews } from '@/lib/news/published'
+import { newsDisplayTitle } from '@/lib/news/slug'
+import { getLayoffTracker } from '@/lib/warn/public-tracker'
+import { LayoffTracker } from '@/components/news/LayoffTracker'
+import { StructuredData } from '@/components/StructuredData'
+
+const SITE = 'https://launchyournextchapter.com'
 
 export const metadata: Metadata = {
   title: 'News — NextChapter',
   description: 'Articles, videos, podcasts and posts on the job market and searching for a job, picked by NextChapter.',
-  alternates: { canonical: '/news' },
+  alternates: { canonical: '/news', types: { 'application/rss+xml': '/news/feed.xml' } },
 }
 
 // Publishing in the admin clears this page straight away; the timer only
@@ -14,9 +20,27 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function NewsPage() {
-  const items = await getPublishedNews(200)
+  const [items, tracker] = await Promise.all([getPublishedNews(200), getLayoffTracker()])
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={{
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'News — NextChapter',
+        description: 'Articles, videos, podcasts and posts on the job market and searching for a job, picked by NextChapter.',
+        url: `${SITE}/news`,
+        publisher: { '@type': 'Organization', name: 'NextChapter', url: SITE },
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: items.length,
+          itemListElement: items.slice(0, 50).map((i, n) => ({
+            '@type': 'ListItem',
+            position: n + 1,
+            name: newsDisplayTitle(i),
+            url: i.slug ? `${SITE}/news/${i.slug}` : i.url,
+          })),
+        },
+      }} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-16">
         <div className="mx-auto max-w-6xl px-6">
@@ -33,6 +57,16 @@ export default async function NewsPage() {
               <NewsFeed items={items} placement="news" filterable />
             )}
           </div>
+
+          <p className="mt-6 text-sm text-muted-foreground">
+            Follow along: <a href="/news/feed.xml" className="text-primary underline underline-offset-4">RSS feed</a>
+          </p>
+
+          {tracker && (
+            <div className="mt-20 border-t border-border pt-16">
+              <LayoffTracker data={tracker} />
+            </div>
+          )}
         </div>
       </main>
       <PublicSiteFooter page="news" />

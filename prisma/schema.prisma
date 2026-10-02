@@ -5635,6 +5635,11 @@ model ResearchLibraryItem {
   newsPublishedAt DateTime?
   // Keys from NEWS_TAGS (src/lib/news/tags.ts) — a fixed list, any number per item.
   newsTags        String[]  @default([])
+  // Our own paragraph on why the item matters. Having one is what gives an
+  // item its own page at /news/<newsSlug>: the take is the original writing
+  // on that page, and without it the page would only repeat the publisher.
+  newsTake        String?   @db.Text
+  newsSlug        String?   @unique
 
   // Set when the daily topic search found this link (ingestionSource
   // 'discovery'): the label of the topic it was found under.

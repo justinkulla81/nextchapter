@@ -204,10 +204,16 @@ async function main() {
   })
   console.error(`within the ${MAX_AGE_DAYS}-day window: ${rows.length}`)
 
-  if (dry || !target) {
+  if (dry) {
     console.log(JSON.stringify(rows.slice(0, 5), null, 1))
-    console.error(dry ? '(dry run, nothing posted)' : 'No --target/NEXTCHAPTER_URL; nothing posted.')
+    console.error('(dry run, nothing posted)')
     return
+  }
+  // Nowhere to post to is a broken job, not a dry run: the scheduled job ran
+  // green for weeks while importing nothing because its address was unset.
+  if (!target) {
+    console.error('NEXTCHAPTER_URL is not set, so nothing was posted. Set it (and CRON_SECRET) in the repository secrets.')
+    process.exit(1)
   }
 
   // Posted in chunks: one request for the whole table runs past both the

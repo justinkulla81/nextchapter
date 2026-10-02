@@ -5,7 +5,9 @@ export function StructuredData({ data }: { data: Record<string, unknown> }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // "<" is escaped so text from outside (a publisher's headline) can never
+      // close the script tag it is printed inside.
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\\u003c') }}
     />
   )
 }

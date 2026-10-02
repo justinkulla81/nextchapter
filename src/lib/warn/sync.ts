@@ -2,8 +2,8 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
-import { matchOrCreateCompanyForEmployer } from './company-match'
-import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
+import { matchOrCreateCompanyForEmployer, loadCompanyIndex, type CompanyIndex } from './company-match'
+import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
 import { TABLE_SPECS, makeTableParser } from './states'
 
@@ -73,11 +73,12 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
     result.fetched = rows.length
 
     const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    const [companies, known] = await Promise.all([loadCompanyIndex(), loadNoticeIndex()])
 
     for (const row of rows) {
       if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
 
-      const created = await stageNotice(row, url)
+      const created = await stageNotice(row, url, companies, known)
       if (created) result.created++
       if (!promote) continue
 
@@ -115,8 +116,56 @@ function clean<T extends string | null>(value: T): T {
   return (value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim() || null) as T
 }
 
+/**
+ * What is already on file, read once, so a notice seen before costs no query.
+ *
+ * Most of what a state publishes each week was there last week. Asking the
+ * database about each row — a thousand questions for Indiana alone — was the
+ * other half of why the weekly sync ran out of time.
+ *
+ * Keyed by state, employer and notice date, holding the headcounts on file
+ * for that notice. The headcount is deliberately not part of the key: six
+ * states publish it on a separate page per notice, and when that page fails
+ * to load the same notice arrives without one. Matching on the count as well
+ * stored it a second time — once as "75 workers", once as "unknown".
+ */
+type NoticeIndex = Map<string, Set<number | null>>
+const noticeKey = (r: { state: string | null; normalizedEmployer: string; noticeDate: Date | null }) =>
+  `${r.state ?? ''}|${r.normalizedEmployer}|${r.noticeDate ? r.noticeDate.toISOString().slice(0, 10) : ''}`
+async function loadNoticeIndex(): Promise<NoticeIndex> {
+  const rows = await prisma.warnNotice.findMany({ select: { state: true, normalizedEmployer: true, noticeDate: true, employees: true } })
+  const index: NoticeIndex = new Map()
+  for (const r of rows) {
+    const key = noticeKey(r)
+    if (!index.has(key)) index.set(key, new Set())
+    index.get(key)!.add(r.employees)
+  }
+  return index
+}
+
 /** Records the filing. Returns true when it is new. */
-async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
+async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyIndex, known?: NoticeIndex): Promise<boolean> {
+  const key = noticeKey(row)
+  const onFile = known?.get(key)
+  if (onFile) {
+    if (onFile.has(row.employees)) return false
+    // Same notice, headcount missing this time: nothing new to record.
+    if (row.employees == null) return false
+    // Same notice, and now we have the headcount it was stored without.
+    if (onFile.has(null)) {
+      const blank = await prisma.warnNotice.findFirst({
+        where: { state: row.state, normalizedEmployer: row.normalizedEmployer, noticeDate: row.noticeDate, employees: null },
+        select: { id: true },
+      })
+      if (blank) {
+        await prisma.warnNotice.update({ where: { id: blank.id }, data: { employees: row.employees } })
+        onFile.delete(null)
+        onFile.add(row.employees)
+        return false
+      }
+    }
+  }
+
   const existing = await prisma.warnNotice.findFirst({
     where: {
       state: row.state, normalizedEmployer: row.normalizedEmployer,
@@ -125,7 +174,7 @@ async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
     select: { id: true },
   })
   if (existing) return false
-  const match = await matchOrCreateCompanyForEmployer(row.employer)
+  const match = await matchOrCreateCompanyForEmployer(row.employer, companies)
   await prisma.warnNotice.create({
     data: {
       state: row.state, employer: clean(row.employer), normalizedEmployer: row.normalizedEmployer,
@@ -137,6 +186,10 @@ async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
       ...(match.candidates ? { companyMatchCandidates: match.candidates } : {}),
     },
   })
+  if (known) {
+    if (!known.has(key)) known.set(key, new Set())
+    known.get(key)!.add(row.employees)
+  }
   return true
 }
 
@@ -231,12 +284,46 @@ async function promoteNotice(row: WarnRow, sourceUrl: string): Promise<boolean> 
   return true
 }
 
+/** How many states are fetched at once, and when to stop starting new ones. */
+const STATE_CONCURRENCY = 3
+const SYNC_BUDGET_MS = 240_000
+
+/**
+ * Syncs every state, the longest-unsynced first, several at a time.
+ *
+ * It used to walk the list in a fixed order, one state at a time, inside a
+ * function that is stopped at 300 seconds. The first few states used the
+ * whole budget, so the rest — twenty of twenty-five — were never reached and
+ * had not synced since someone last ran them by hand. Nothing recorded an
+ * error, because a run that is killed never gets to write one.
+ *
+ * Now the states that have waited longest go first, three run at once, and no
+ * new state is started once the budget is nearly spent — so if a week does
+ * run long, it is a different state that waits each time, and the one cut
+ * short says so.
+ */
 export async function syncAllWarnStates(promote = true): Promise<WarnSyncResult[]> {
+  const started = Date.now()
+  const lastRuns = await prisma.warnSyncRun.groupBy({
+    by: ['state'], where: { finishedAt: { not: null }, error: null }, _max: { startedAt: true },
+  })
+  const lastOk = new Map(lastRuns.map((r) => [r.state, r._max.startedAt?.getTime() ?? 0]))
+  const queue = [...WARN_SOURCES].sort((a, b) => (lastOk.get(a.state) ?? 0) - (lastOk.get(b.state) ?? 0))
+
   const out: WarnSyncResult[] = []
-  for (const source of WARN_SOURCES) {
-    // One state failing must not cost the others their results.
-    out.push(await syncWarnState(source.state, promote))
+  async function worker() {
+    for (;;) {
+      const source = queue.shift()
+      if (!source) return
+      if (Date.now() - started > SYNC_BUDGET_MS) {
+        out.push({ state: source.state, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0, error: 'not_reached_this_run' })
+        continue
+      }
+      // One state failing must not cost the others their results.
+      out.push(await syncWarnState(source.state, promote))
+    }
   }
+  await Promise.all(Array.from({ length: STATE_CONCURRENCY }, worker))
   return out
 }
 
@@ -277,11 +364,12 @@ export async function importLayoffsFyi(rows: LayoffsFyiRow[]): Promise<WarnSyncR
   const mapped = toWarnRows(rows)
   result.fetched = mapped.length
   const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+  const [companies, known] = await Promise.all([loadCompanyIndex(), loadNoticeIndex()])
 
   for (const row of mapped) {
     if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
 
-    if (await stageNotice(row, LAYOFFS_FYI_URL)) result.created++
+    if (await stageNotice(row, LAYOFFS_FYI_URL, companies, known)) result.created++
     if (!row.employees || row.employees < MIN_EMPLOYEES) { result.skippedSmall++; continue }
     if (await promoteNotice(row, LAYOFFS_FYI_URL)) result.promoted++
   }
@@ -338,11 +426,55 @@ export async function importRenderedState(state: string, html: string): Promise<
     if (!rows.length) throw new Error(`${state}: rendered page produced no rows — its table has changed`)
 
     const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    const [companies, known] = await Promise.all([loadCompanyIndex(), loadNoticeIndex()])
     for (const row of rows) {
       if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
-      if (await stageNotice(row, url)) result.created++
+      if (await stageNotice(row, url, companies, known)) result.created++
       // Neither rendered state publishes a sector code, so both wait for review.
       result.needsReview++
+    }
+
+    await prisma.warnSyncRun.update({
+      where: { id: run.id },
+      data: { finishedAt: new Date(), fetched: result.fetched, created: result.created, promoted: result.promoted },
+    })
+    return result
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    await prisma.warnSyncRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), error: message } })
+    return { ...result, error: message }
+  }
+}
+
+/**
+ * Imports a WARN file that the weekly browser job downloaded.
+ *
+ * For states whose notices are a workbook on a site that refuses scripted
+ * requests (Texas). Same recency cutoff and staging as every other state;
+ * only the fetching differs.
+ */
+export async function importFileState(state: string, file: Buffer, fileUrl: string): Promise<WarnSyncResult> {
+  const spec = FILE_STATES[state]
+  const result: WarnSyncResult = {
+    state, fetched: 0, created: 0, promoted: 0,
+    skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0,
+  }
+  if (!spec) return { ...result, error: 'no_spec' }
+
+  const run = await prisma.warnSyncRun.create({ data: { state } })
+  try {
+    const rows = spec.parse(file)
+    result.fetched = rows.length
+    if (!rows.length) throw new Error(`${state}: the downloaded file produced no rows — its layout has changed`)
+
+    const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    const [companies, known] = await Promise.all([loadCompanyIndex(), loadNoticeIndex()])
+    for (const row of rows) {
+      if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
+      if (await stageNotice(row, fileUrl, companies, known)) result.created++
+      // No sector published, so these wait for a person, like the other
+      // headcount-only states.
+      if (!spec.hasIndustry) result.needsReview++
     }
 
     await prisma.warnSyncRun.update({

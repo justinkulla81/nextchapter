@@ -19,12 +19,24 @@ export interface WarnCompanyMatchResult {
  * WARN filings often carry, plus legal suffixes) for a confident auto-link,
  * then the looser orgNamesMatch containment check for "maybe, ask a human."
  */
-export async function matchOrCreateCompanyForEmployer(rawEmployer: string): Promise<WarnCompanyMatchResult> {
+/**
+ * Every company, read once for a whole import.
+ *
+ * Matching used to re-read the full company table for each notice. At a few
+ * thousand companies and a few hundred notices that was most of an import's
+ * runtime, and what pushed the weekly sync past its time limit.
+ */
+export type CompanyIndex = { id: string; name: string }[]
+export async function loadCompanyIndex(): Promise<CompanyIndex> {
+  return prisma.company.findMany({ select: { id: true, name: true } })
+}
+
+export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index?: CompanyIndex): Promise<WarnCompanyMatchResult> {
   const employer = fixAllCapsCompanyName(rawEmployer.trim())
   const strictKey = strictOrgKey(employer, normalizeOrgName)
   if (!strictKey) return { companyId: null, status: 'UNMATCHED', candidates: null }
 
-  const companies = await prisma.company.findMany({ select: { id: true, name: true } })
+  const companies = index ?? (await loadCompanyIndex())
 
   const strictMatch = companies.find((c) => strictOrgKey(c.name, normalizeOrgName) === strictKey)
   if (strictMatch) return { companyId: strictMatch.id, status: 'MATCHED', candidates: null }
@@ -43,6 +55,9 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string): Prom
     where: { canonicalNameNormalized },
     update: {},
     create: { name: cleanName, canonicalNameNormalized },
+    select: { id: true, name: true },
   })
+  // So the next notice from the same employer in this import finds it.
+  if (index && !index.some((c) => c.id === created.id)) index.push({ id: created.id, name: created.name })
   return { companyId: created.id, status: 'MATCHED', candidates: null }
 }

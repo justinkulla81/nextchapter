@@ -1,11 +1,23 @@
 import type { MetadataRoute } from 'next'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
+import { getPublishedNews } from '@/lib/news/published'
+
+// Rebuilt on a timer so a newly published take reaches the sitemap.
+export const revalidate = 3600
 
 const siteUrl = 'https://launchyournextchapter.com'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // News items that have their own page — the ones with our take.
+  const newsPages = (await getPublishedNews(500)).filter((i) => i.slug)
   return [
+    ...newsPages.map((i) => ({
+      url: `${siteUrl}/news/${i.slug}`,
+      lastModified: new Date(i.publishedAt),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    })),
     {
       url: siteUrl,
       lastModified: new Date(),

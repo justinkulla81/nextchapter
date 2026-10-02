@@ -1,4 +1,4 @@
-import { readXlsx, excelSerialToDate } from './xlsx'
+import { readXlsx, excelSerialToDate, type XlsxSheet } from './xlsx'
 import { pdfText } from './pdf'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import {
@@ -194,32 +194,73 @@ export function sourceUrl(source: WarnSource): string {
 }
 
 /**
- * Texas Workforce Commission, via the state's Socrata open-data API.
+ * Texas Workforce Commission's yearly WARN workbook.
  *
- * A real documented API rather than a file, so it is the easiest source to
- * keep working. It carries a headcount but NO industry, which is why Texas
- * notices stage for review instead of promoting themselves.
+ * The state's open-data API, which this used to read, stopped being updated
+ * on 7 July 2026; the commission's own page still posts a workbook per year, current to the
+ * week. It carries the same columns under the same names, with dates as
+ * Excel day numbers. The site refuses scripted requests, so the weekly
+ * browser job downloads the file and posts it here — see FILE_STATES.
  */
-export function parseTexasWarn(buf: Buffer, _sourceUrl: string): WarnRow[] {
-  const rows = JSON.parse(buf.toString('utf8')) as Record<string, string>[]
-  return rows
-    .filter((r) => r.job_site_name)
-    .map((r) => {
-      const count = r.total_layoff_number ? parseInt(String(r.total_layoff_number).replace(/[^\d]/g, ''), 10) : NaN
-      return {
-        state: 'TX',
-        employer: r.job_site_name.trim(),
-        normalizedEmployer: normalizeOrgName(r.job_site_name),
-        noticeDate: r.notice_date ? new Date(r.notice_date) : null,
-        effectiveDate: r.layoff_date ? new Date(r.layoff_date) : null,
-        employees: Number.isFinite(count) && count > 0 ? count : null,
-        layoffType: null,
-        county: r.county_name ?? null,
-        address: r.city_name ?? null,
-        // Texas publishes no sector. Recorded as null rather than guessed.
-        industry: null,
-      }
+export function parseTexasWorkbook(sheets: XlsxSheet[]): WarnRow[] {
+  const rows = sheets[0]?.rows ?? []
+  const header = (rows[0] ?? []).map((h) => String(h ?? '').trim().toLowerCase())
+  const col = (name: string) => header.indexOf(name)
+  const c = {
+    notice: col('notice_date'), site: col('job_site_name'), county: col('county_name'),
+    count: col('total_layoff_number'), layoff: col('layoff_date'), city: col('city_name'),
+  }
+  if (c.notice < 0 || c.site < 0) throw new Error('TX: the workbook no longer has NOTICE_DATE and JOB_SITE_NAME columns')
+
+  // Excel counts days from 30 Dec 1899; a cell may also already be a date string.
+  const date = (v: string | undefined): Date | null => {
+    if (!v) return null
+    const n = Number(v)
+    const d = Number.isFinite(n) && n > 20_000 && n < 80_000 ? new Date(Date.UTC(1899, 11, 30) + n * 86_400_000) : new Date(v)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+
+  const out: WarnRow[] = []
+  for (const r of rows.slice(1)) {
+    const employer = String(r[c.site] ?? '').trim()
+    if (!employer) continue
+    const count = parseInt(String(r[c.count] ?? '').replace(/[^\d]/g, ''), 10)
+    out.push({
+      state: 'TX',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: date(r[c.notice]),
+      effectiveDate: date(r[c.layoff]),
+      employees: Number.isFinite(count) && count > 0 ? count : null,
+      layoffType: null,
+      county: String(r[c.county] ?? '').trim() || null,
+      address: String(r[c.city] ?? '').trim() || null,
+      // Texas publishes no sector. Recorded as null rather than guessed.
+      industry: null,
     })
+  }
+  return out
+}
+
+/**
+ * States whose notices are a file that only a rendered browser can download.
+ * The weekly browser job opens `page`, finds the newest link matching
+ * `link`, and posts the file to /api/admin/warn/import-file.
+ */
+export const FILE_STATES: Record<string, { page: string; link: string; parse: (buf: Buffer) => WarnRow[]; hasIndustry: boolean }> = {
+  TX: {
+    page: 'https://www.twc.texas.gov/data-reports/warn-notice',
+    link: 'warn-act-listings',
+    parse: (buf) => parseTexasWorkbook(readXlsx(buf)),
+    hasIndustry: false,
+  },
+  // Rhode Island began answering scripted requests with 403 in autumn 2026.
+  RI: {
+    page: RHODE_ISLAND_PAGE,
+    link: '.xls',
+    parse: (buf) => parseRhodeIslandWarn(readXlsx(buf)),
+    hasIndustry: false,
+  },
 }
 
 /** Where each table-shaped state publishes its notices. */
@@ -315,19 +356,21 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
  *       NAICS code and description alongside the headcount.
  *
  * With a headcount but no sector, so notices stage for review:
- *   TX  Socrata JSON API.
  *   AK AL NE OR SD UT  plain HTML tables.
  *   IA  a "WARN Log" workbook, one sheet per year, resolved from the page.
  *   NJ  a workbook holding every year, linked from a page that renders its own
  *       list client-side; the workbook needs no browser.
- *   RI  a spreadsheet whose URL carries its upload month, so it is resolved
- *       from the page; one sheet per year, newest read.
  *   AZ DE ID KS ME VT  the Geographic Solutions portal, which lists notices
  *       without a headcount and puts it on each notice's own page.
  *
  * Fetched by the weekly browser job instead of here — see RENDERED_STATES:
  *   MA  returns 403 to every scripted request, its own CSV included.
  *   WI  builds its notice list client-side.
+ *   RI  a spreadsheet linked from a page that now refuses scripted requests;
+ *       one sheet per year, newest read. See FILE_STATES.
+ *   TX  a workbook per year on a site that refuses scripted requests — see
+ *       FILE_STATES. Headcount, no sector. (Its open-data API went stale in
+ *       July 2026 and is no longer read.)
  *
  * Checked and NOT usable, so nobody repeats the work:
  *   NY  current notices are a Tableau embed with no data endpoint; the legacy
@@ -355,15 +398,6 @@ export const WARN_SOURCES: WarnSource[] = [
     format: 'xlsx',
     parse: parseCaliforniaWarn,
     hasIndustry: true,
-  },
-  {
-    state: 'TX',
-    // Most recent first, capped — the dataset goes back to 2019 and only
-    // recent filings are worth acting on.
-    url: 'https://data.texas.gov/resource/8w53-c4f6.json?$order=notice_date%20DESC&$limit=400',
-    format: 'json',
-    parse: parseTexasWarn,
-    hasIndustry: false,
   },
   ...TABLE_SOURCES,
   ...GEOSOLINC_SOURCES,
@@ -411,19 +445,6 @@ export const WARN_SOURCES: WarnSource[] = [
     url: NEW_JERSEY_FILE,
     format: 'xlsx',
     parse: (buf: Buffer) => parseNewJerseyWarn(readXlsx(buf)),
-    hasIndustry: false,
-  },
-  {
-    state: 'RI',
-    url: RHODE_ISLAND_PAGE,
-    format: 'xlsx',
-    resolve: async () => {
-      const html = await fetchText(RHODE_ISLAND_PAGE)
-      const file = resolveRhodeIslandFile(html)
-      if (!file) throw new Error('RI: no spreadsheet linked on the WARN page')
-      return file
-    },
-    parse: (buf: Buffer) => parseRhodeIslandWarn(readXlsx(buf)),
     hasIndustry: false,
   },
 ]

@@ -11,6 +11,7 @@ import { sendProductPositioningFlagEmail } from '@/lib/email/send-product-positi
 import { fetchNewsMetadata, isReadyToPublish } from '@/lib/news/metadata'
 import { embedsItself, safeImageUrl } from '@/lib/news/kind'
 import { cleanNewsTags } from '@/lib/news/tags'
+import { newsSlug } from '@/lib/news/slug'
 import { runNewsDiscovery } from '@/lib/news/discover'
 
 export async function markResearchItemStatus(id: string, status: 'reviewed' | 'actioned' | 'dismissed') {
@@ -65,6 +66,7 @@ function revalidateNews() {
   revalidatePath('/support/admin/digest')
   revalidatePath('/')
   revalidatePath('/news')
+  revalidatePath('/news/[slug]', 'page')
 }
 
 export interface NewsFormState {
@@ -210,16 +212,26 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
   const imageUrl = safeImageUrl(rawImage)
   if (rawImage && !imageUrl) return { error: 'The picture link has to start with https://.' }
 
-  const current = await prisma.researchLibraryItem.findUnique({ where: { id }, select: { url: true, newsKind: true, newsPublishedAt: true } })
+  const current = await prisma.researchLibraryItem.findUnique({
+    where: { id }, select: { url: true, newsKind: true, newsPublishedAt: true, newsSlug: true, newsTitle: true, newsSource: true },
+  })
   if (!current?.newsKind) return { error: 'That item is no longer in News.' }
   const newsTags = cleanNewsTags(formData.getAll('tags'))
+  // Our take keeps its paragraphs, unlike the single-line fields.
+  const take = String(formData.get('take') ?? '').replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, 4000) || null
+  // The page address is fixed the first time a take is saved, and kept after
+  // that — through headline edits, and even if the take is later removed —
+  // so a link someone has already shared never breaks or moves.
+  const slugData = take && !current.newsSlug
+    ? { newsSlug: newsSlug(text('title') ?? current.newsTitle, `${current.newsKind} ${text('source') ?? current.newsSource ?? ''}`, id) }
+    : {}
   // A post has no headline. Its caption and picture are optional: with
   // either, the card is laid out like every other; with neither, the post is
   // shown through its host's own embed.
   if (current.newsKind === 'instagram' || current.newsKind === 'linkedin') {
     await prisma.researchLibraryItem.update({
       where: { id },
-      data: { newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags },
+      data: { newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, ...slugData },
     })
   } else {
     const title = text('title')
@@ -228,7 +240,7 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
     }
     await prisma.researchLibraryItem.update({
       where: { id },
-      data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags },
+      data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, ...slugData },
     })
   }
   captureServerEvent(admin?.email ?? 'admin', 'news_item_updated', { itemId: id })

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { CrmPriorityTier } from '@prisma/client'
 import { LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -89,7 +90,7 @@ export default async function CrmHomePage({
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
 
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily] =
+  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily, inviteRows, signupRows] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -219,6 +220,23 @@ export default async function CrmHomePage({
         FROM "CrmPerson" p
         WHERE p."deletedAt" IS NULL AND p."candidateInvitedAt" >= ${chartStart}
         GROUP BY 1`,
+      // The feed's other two kinds of event: people you invited to join, and
+      // people who finished registering. Same page window as the emails.
+      prisma.crmPerson.findMany({
+        where: { deletedAt: null, candidateInvitedAt: { not: null, ...(before ? { lt: before } : {}) } },
+        orderBy: { candidateInvitedAt: 'desc' },
+        take: FEED_SIZE * 3,
+        select: { id: true, fullName: true, priority: true, candidateInvitedAt: true },
+      }),
+      prisma.candidateProfile.findMany({
+        where: {
+          isSampleData: false, isSystemAccount: false,
+          registrationCompletedAt: { not: null, ...(before ? { lt: before } : {}) },
+        },
+        orderBy: { registrationCompletedAt: 'desc' },
+        take: FEED_SIZE,
+        select: { id: true, firstName: true, lastName: true, email: true, leadSource: true, registrationCompletedAt: true },
+      }),
     ])
 
   // Every day in the window, including silent ones — a gap in the line is
@@ -258,7 +276,48 @@ export default async function CrmHomePage({
       feedByMsg.set(key, { ...r, people: r.person ? [r.person] : [] })
     }
   }
-  const feed = [...feedByMsg.values()]
+  const emails = [...feedByMsg.values()]
+
+  // A day's invites as one line. They go out in batches — forty in an
+  // afternoon — and forty lines would bury every email around them.
+  type Person = { id: string; fullName: string; priority: CrmPriorityTier | null }
+  const invitesByDay = new Map<string, { at: Date; people: Person[] }>()
+  for (const r of inviteRows) {
+    const at = r.candidateInvitedAt!
+    const key = localDate(at)
+    const day = invitesByDay.get(key) ?? { at, people: [] }
+    day.people.push({ id: r.id, fullName: r.fullName, priority: r.priority })
+    invitesByDay.set(key, day)
+  }
+
+  // A sign-up shows the CRM person it belongs to, when there is one.
+  const signupPeople = signupRows.length
+    ? await prisma.crmPerson.findMany({
+        where: { deletedAt: null, candidateId: { in: signupRows.map((c) => c.id) } },
+        select: { id: true, fullName: true, priority: true, candidateId: true, candidateInvitedAt: true },
+      })
+    : []
+  const personByCandidate = new Map(signupPeople.map((p) => [p.candidateId, p]))
+
+  type Entry =
+    | { kind: 'email'; key: string; at: Date; item: (typeof emails)[number] }
+    | { kind: 'invite'; key: string; at: Date; people: Person[] }
+    | { kind: 'signup'; key: string; at: Date; candidateId: string; name: string; source: string | null; person: Person | null; invited: boolean }
+  const merged: Entry[] = [
+    ...emails.map((item) => ({ kind: 'email' as const, key: `e-${item.id}`, at: item.occurredAt, item })),
+    ...[...invitesByDay.entries()].map(([day, v]) => ({ kind: 'invite' as const, key: `i-${day}`, at: v.at, people: v.people })),
+    ...signupRows.map((c) => {
+      const person = personByCandidate.get(c.id) ?? null
+      return {
+        kind: 'signup' as const, key: `s-${c.id}`, at: c.registrationCompletedAt!, candidateId: c.id,
+        name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'A candidate',
+        source: c.leadSource ? LEAD_SOURCE_LABELS[c.leadSource] : null,
+        person: person ? { id: person.id, fullName: person.fullName, priority: person.priority } : null,
+        invited: !!person?.candidateInvitedAt,
+      }
+    }),
+  ].sort((a, b) => b.at.getTime() - a.at.getTime())
+  const feed = merged.slice(0, FEED_SIZE)
 
   const tierCount = (t: 'P0' | 'P1' | 'P2') => tiers.find((x) => x.priority === t)?._count._all ?? 0
   const tierNeverContacted = (t: 'P0' | 'P1' | 'P2') => tiersNeverContacted.find((x) => x.priority === t)?._count._all ?? 0
@@ -279,7 +338,7 @@ export default async function CrmHomePage({
   const addedHint = addedTotal > 0
     ? [...addedBy.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v} ${k}`).join(' · ')
     : 'last 7 days'
-  const nextBefore = feed.length === FEED_SIZE ? feed[feed.length - 1].occurredAt.toISOString() : null
+  const nextBefore = merged.length > FEED_SIZE || emails.length === FEED_SIZE ? feed[feed.length - 1].at.toISOString() : null
 
   const resp = response[0] ?? { emailed_total: 0, replied_total: 0, emailed_week: 0, replied_week: 0 }
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
@@ -421,7 +480,7 @@ export default async function CrmHomePage({
 
       <section>
         <div className="mb-2 flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold">Email activity</h2>
+          <h2 className="text-lg font-semibold">Activity <span className="text-sm font-normal text-muted-foreground">· emails, invites and sign-ups</span></h2>
           {before && (
             <Link href="/support/admin/crm/home" className="text-sm text-brand underline">Back to latest</Link>
           )}
@@ -429,34 +488,85 @@ export default async function CrmHomePage({
 
         {feed.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            No email activity yet. Sync now pulls in anything recent.
+            No activity yet. Sync now pulls in any recent email.
           </p>
         ) : (
           <ul className="viz-root divide-y divide-border rounded-lg border border-border bg-card">
-            {feed.map((a) => {
+            {feed.map((entry) => {
+              const time = (
+                <time dateTime={entry.at.toISOString()} className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {when(entry.at)}
+                </time>
+              )
+              const dot = (color: string) => (
+                <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
+              )
+              const person = (p: Person, i: number) => (
+                <span key={p.id} className="inline-flex items-baseline gap-1">
+                  {i > 0 && <span className="text-muted-foreground">,</span>}
+                  <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
+                  {p.priority && (
+                    <span className={`rounded px-1 text-xs font-semibold ${priorityTierClass(p.priority)}`}>{p.priority}</span>
+                  )}
+                </span>
+              )
+
+              if (entry.kind === 'invite') {
+                return (
+                  <li key={entry.key} className="flex gap-3 px-3 py-2.5">
+                    {dot('var(--viz-series-3)')}
+                    <div className="min-w-0 flex-1">
+                      <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                        <span className="text-xs font-medium text-muted-foreground">You invited</span>
+                        {entry.people.slice(0, 3).map(person)}
+                        {entry.people.length > 3 && (
+                          <Link href="/support/admin/crm?invited=1" className="text-xs text-muted-foreground underline">
+                            +{entry.people.length - 3} more
+                          </Link>
+                        )}
+                        <span className="font-medium">
+                          {entry.people.length === 1 ? 'Invited to join NextChapter' : `${entry.people.length} people invited to join NextChapter`}
+                        </span>
+                      </p>
+                    </div>
+                    {time}
+                  </li>
+                )
+              }
+
+              if (entry.kind === 'signup') {
+                return (
+                  <li key={entry.key} className="flex gap-3 px-3 py-2.5">
+                    {dot('var(--viz-text)')}
+                    <div className="min-w-0 flex-1">
+                      <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                        <span className="text-xs font-medium text-muted-foreground">Signed up</span>
+                        {entry.person
+                          ? person(entry.person, 0)
+                          : <Link href={`/support/admin/candidates/${entry.candidateId}`} className="hover:underline">{entry.name}</Link>}
+                        <span className="font-medium">Finished registering as a candidate</span>
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {[entry.invited ? 'From your invite' : null, entry.source ? `Source: ${entry.source}` : 'Source unknown'].filter(Boolean).join(' · ')}
+                        {' · '}
+                        <Link href={`/support/admin/candidates/${entry.candidateId}`} className="underline">Candidate record</Link>
+                      </p>
+                    </div>
+                    {time}
+                  </li>
+                )
+              }
+
+              const a = entry.item
               const out = a.direction === 'OUTBOUND'
               return (
-                <li key={a.id} className="flex gap-3 px-3 py-2.5">
-                  <span
-                    className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: out ? 'var(--viz-series-1)' : 'var(--viz-series-2)' }}
-                    aria-hidden
-                  />
+                <li key={entry.key} className="flex gap-3 px-3 py-2.5">
+                  {dot(out ? 'var(--viz-series-1)' : 'var(--viz-series-2)')}
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
                       <span className="text-xs font-medium text-muted-foreground">{out ? 'You →' : 'From'}</span>
                       {a.people.length === 0 && <span>Unknown</span>}
-                      {a.people.slice(0, 3).map((p, i) => (
-                        <span key={p.id} className="inline-flex items-baseline gap-1">
-                          {i > 0 && <span className="text-muted-foreground">,</span>}
-                          <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
-                          {p.priority && (
-                            <span className={`rounded px-1 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
-                              {p.priority}
-                            </span>
-                          )}
-                        </span>
-                      ))}
+                      {a.people.slice(0, 3).map(person)}
                       {a.people.length > 3 && (
                         <span className="text-xs text-muted-foreground">+{a.people.length - 3} more</span>
                       )}
@@ -466,9 +576,7 @@ export default async function CrmHomePage({
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">{snippet(a.body)}</p>
                     )}
                   </div>
-                  <time dateTime={a.occurredAt.toISOString()} className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {when(a.occurredAt)}
-                  </time>
+                  {time}
                 </li>
               )
             })}

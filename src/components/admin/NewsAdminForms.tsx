@@ -129,7 +129,7 @@ export function AddLinkForm() {
 }
 
 export function EditNewsItemForm({ item }: {
-  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[] }
+  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[]; take: string | null }
 }) {
   const [state, formAction] = useActionState(updateNewsItem, undefined)
   const isPost = item.kind === 'instagram' || item.kind === 'linkedin'
@@ -161,6 +161,14 @@ export function EditNewsItemForm({ item }: {
       <div>
         <label htmlFor={`source-${item.id}`} className="text-sm text-muted-foreground">{isPost ? 'Posted by' : 'Source'}</label>
         <input id={`source-${item.id}`} name="source" defaultValue={item.source ?? ''} maxLength={80} className={`${INPUT} h-9`} />
+      </div>
+      <div className="sm:col-span-2">
+        <label htmlFor={`take-${item.id}`} className="text-sm text-muted-foreground">Our take (optional)</label>
+        <p className="text-xs text-muted-foreground">
+          Your own paragraph or two on why this matters to someone searching for a job. Saving one gives the item its own
+          page on the site, which is what search engines can rank; the card then links there first.
+        </p>
+        <textarea id={`take-${item.id}`} name="take" defaultValue={item.take ?? ''} rows={4} maxLength={4000} className={`${INPUT} py-2`} />
       </div>
       <div className="sm:col-span-2">
         <TagCheckboxes idPrefix={`edit-${item.id}`} selected={item.tags} />

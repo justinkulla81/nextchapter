@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
 import { Play } from 'lucide-react'
 import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, youtubeId, type NewsKind } from '@/lib/news/kind'
@@ -38,6 +39,14 @@ function Tags({ tags }: { tags: NewsTagKey[] }) {
   )
 }
 
+/** Beside a card's link out: the way to our own page on the item, when it has one. */
+function TakeLink({ item }: { item: NewsItemView }) {
+  if (!item.slug) return null
+  return (
+    <Link href={`/news/${item.slug}`} className="ml-4 text-primary hover:underline">Read our take →</Link>
+  )
+}
+
 /** A publisher's picture, hotlinked. One that fails to load takes its space with it. */
 function Picture({ src, className }: { src: string; className: string }) {
   const [broken, setBroken] = useState(false)
@@ -59,11 +68,9 @@ function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: New
   const lines = item.title
     ? (item.imageUrl ? 'line-clamp-2' : 'line-clamp-6')
     : (item.imageUrl ? 'line-clamp-6' : 'line-clamp-[14]')
-  return (
-    <a
-      href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}
-      className={`${CARD} group transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`}
-    >
+  const className = `${CARD} group transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`
+  const body = (
+    <>
       {item.imageUrl && <Picture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
       <div className={BODY}>
         <Meta item={item} />
@@ -78,11 +85,16 @@ function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: New
         )}
         <div className="mt-auto pt-3">
           <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
-          <p className="mt-3 text-sm font-medium text-primary">{cta}</p>
+          <p className="mt-3 text-sm font-medium text-primary">{item.slug ? 'Read our take →' : cta}</p>
         </div>
       </div>
-    </a>
+    </>
   )
+  // An item with our take opens its own page here first; that page carries
+  // the link out. Everything else goes straight to the source.
+  return item.slug
+    ? <Link href={`/news/${item.slug}`} onClick={onOpen} className={className}>{body}</Link>
+    : <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className={className}>{body}</a>
 }
 
 const videoHost = (url: string) => (youtubeId(url) ? 'YouTube' : 'Vimeo')
@@ -126,6 +138,7 @@ function VideoCard({ item, onOpen, onPlay }: { item: NewsItemView; onOpen: () =>
             <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
               Watch on {videoHost(item.url)} →
             </a>
+            <TakeLink item={item} />
           </p>
         </div>
       </div>
@@ -161,6 +174,7 @@ function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
             <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
               Listen on {embed.host} →
             </a>
+            <TakeLink item={item} />
           </p>
         </div>
       </div>
@@ -176,6 +190,7 @@ function EmbedFooter({ item, onOpen, href, label }: { item: NewsItemView; onOpen
       <div className="[&>ul]:mt-2"><Tags tags={item.tags} /></div>
       <p className="mt-2 text-sm font-medium">
         <a href={href} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">{label}</a>
+        <TakeLink item={item} />
       </p>
     </div>
   )

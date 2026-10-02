@@ -168,3 +168,74 @@ describe('stripSourceSuffix', () => {
     expect(stripSourceSuffix(null, 'CNN')).toBeNull()
   })
 })
+
+import { newsSlug, newsDisplayTitle } from '@/lib/news/slug'
+import { cleanEmployer, readableType } from '@/lib/warn/public-tracker'
+
+describe('newsSlug', () => {
+  it('makes a readable address ending in part of the id', () => {
+    expect(newsSlug('The US economy added just 29,000 jobs last month — and it’s worse than it looks', 'article', 'cmur3eaey0000m406eagu5tky'))
+      .toBe('the-us-economy-added-just-29-000-jobs-last-month-gu5tky')
+  })
+  it('falls back when there is no headline', () => {
+    expect(newsSlug(null, 'linkedin Gary Vaynerchuk', 'cmur4i8gl0000jt043jl50n1g')).toBe('linkedin-gary-vaynerchuk-l50n1g')
+    expect(newsSlug('', '', 'abc123456')).toBe('item-123456')
+  })
+})
+
+describe('newsDisplayTitle', () => {
+  it('names a post by its author when it has no headline', () => {
+    expect(newsDisplayTitle({ title: null, kind: 'linkedin', source: 'Gary Vaynerchuk' })).toBe('LinkedIn post by Gary Vaynerchuk')
+    expect(newsDisplayTitle({ title: null, kind: 'instagram', source: 'Instagram' })).toBe('Instagram post')
+    expect(newsDisplayTitle({ title: 'A headline', kind: 'article', source: 'CNN' })).toBe('A headline')
+  })
+})
+
+describe('cleanEmployer', () => {
+  it('drops a site address filed in the same cell as the name', () => {
+    expect(cleanEmployer('Saddle Creek Corporation 771 S. County Line Road PLANT CITY, FL, 33566', 'Saddle Creek Corporation')).toBe('Saddle Creek Corporation')
+    expect(cleanEmployer('Health First Inc., and Health First Shared Services, Inc. 6450 US Highway 1 ROCKLEDGE, FL, 32955', null))
+      .toBe('Health First Inc., and Health First Shared Services, Inc.')
+  })
+  it('drops a trailing city, state and zip when there is no street number to cut at', () => {
+    expect(cleanEmployer('Amentum Space Commerce Way, Merritt Island Kennedy Space Center MERRITT ISLAND, FL, 32899', null))
+      .toBe('Amentum Space Commerce Way, Merritt Island Kennedy Space Center')
+  })
+  it('leaves an ordinary name alone, digits and all', () => {
+    expect(cleanEmployer('Capstone Delivery Inc.', 'Capstone Delivery Inc.')).toBe('Capstone Delivery Inc.')
+    expect(cleanEmployer('3M Company', null)).toBe('3M Company')
+    expect(cleanEmployer('Kaiser (1840 California Ave.)', null)).toBe('Kaiser (1840 California Ave.)')
+  })
+})
+
+describe('readableType', () => {
+  it('keeps words and drops codes', () => {
+    expect(readableType('Closure Permanent')).toBe('Closure Permanent')
+    expect(readableType('CL')).toBeNull()
+    expect(readableType(null)).toBeNull()
+  })
+})
+
+import { parseTexasWorkbook } from '@/lib/warn/sources'
+
+describe('parseTexasWorkbook', () => {
+  const sheet = (rows: string[][]) => [{ name: 'Sheet1', rows }]
+  const HEADER = ['NOTICE_DATE', 'JOB_SITE_NAME', 'COUNTY_NAME', 'WDA_NAME', 'TOTAL_LAYOFF_NUMBER', 'LayOff_Date', 'WFDD_RECEIVED_DATE', 'CITY_NAME']
+
+  it('reads a notice, turning Excel day numbers into dates', () => {
+    const rows = parseTexasWorkbook(sheet([HEADER, ['46295', 'Charter Next Generation', 'Dallas', 'Dallas County WDA', '56', '46356', '46295', 'Grand Prairie']]))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ state: 'TX', employer: 'Charter Next Generation', county: 'Dallas', address: 'Grand Prairie', employees: 56, industry: null })
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-09-30')
+    expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-11-30')
+  })
+  it('skips blank rows and tolerates a missing headcount', () => {
+    const rows = parseTexasWorkbook(sheet([HEADER, ['', '', '', '', '', '', '', ''], ['46290', 'Acme', 'Collin', 'x', '', '', '46290', 'Plano']]))
+    expect(rows).toHaveLength(1)
+    expect(rows[0].employees).toBeNull()
+    expect(rows[0].effectiveDate).toBeNull()
+  })
+  it('fails loudly when the state renames its columns', () => {
+    expect(() => parseTexasWorkbook(sheet([['Date', 'Company'], ['46290', 'Acme']]))).toThrow(/NOTICE_DATE/)
+  })
+})
