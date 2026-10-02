@@ -1,39 +1,100 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
+import posthog from 'posthog-js'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { addNewsItem, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
+import { addNewsItem, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
+import { NEWS_TAGS } from '@/lib/news/tags'
+import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 
 const INPUT = 'mt-1 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand'
+
+function TagCheckboxes({ idPrefix, selected = [] }: { idPrefix: string; selected?: string[] }) {
+  return (
+    <fieldset>
+      <legend className="text-sm text-muted-foreground">Topics (any that apply)</legend>
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+        {NEWS_TAGS.map((t) => (
+          <label key={t.key} htmlFor={`${idPrefix}-${t.key}`} className="flex items-center gap-1.5 text-sm">
+            <input id={`${idPrefix}-${t.key}`} type="checkbox" name="tags" value={t.key}
+              defaultChecked={selected.includes(t.key)} className="size-3.5" />
+            {t.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
+/**
+ * Copies a caption and opens the company page, where it is pasted into a
+ * new post.
+ *
+ * LinkedIn only lets an approved app post as a company page, so this is the
+ * hand-off that works without one: the text is on the clipboard and the
+ * page is open.
+ */
+export function LinkedInShareButton({ itemId, caption, compact = false }: { itemId: string; caption: string; compact?: boolean }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  async function share() {
+    posthog.capture('news_linkedin_share_clicked', { itemId })
+    try {
+      await navigator.clipboard.writeText(caption)
+      setState('copied')
+    } catch {
+      setState('failed')
+    }
+    window.open(`${COMPANY_LINKEDIN_URL}admin/page-posts/published/?share=true`, '_blank', 'noopener')
+  }
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <button type="button" onClick={share}
+        className={compact ? 'text-sm text-primary underline underline-offset-4' : 'rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted'}>
+        Post to the LinkedIn page
+      </button>
+      {state === 'copied' && <span role="status" className="text-xs text-muted-foreground">Caption copied — paste it into the new post.</span>}
+      {state === 'failed' && <span role="status" className="text-xs text-muted-foreground">Could not copy — copy the link from the list.</span>}
+    </span>
+  )
+}
 
 export function AddNewsItemForm() {
   const [state, formAction] = useActionState(addNewsItem, undefined)
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-3">
-      <div className="min-w-64 flex-1">
-        <label htmlFor="news-url" className="text-sm text-muted-foreground">
-          Link to an article, a YouTube or Vimeo video, or an Instagram post
-        </label>
-        <input id="news-url" name="url" type="url" required placeholder="https://…" className={`${INPUT} h-9`} />
+    <form action={formAction} className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-64 flex-1">
+          <label htmlFor="news-url" className="text-sm text-muted-foreground">
+            Link to an article, a YouTube or Vimeo video, a Spotify or Apple podcast, or a LinkedIn or Instagram post
+          </label>
+          <input id="news-url" name="url" type="url" required placeholder="https://…" className={`${INPUT} h-9`} />
+        </div>
+        <SubmitButton pendingLabel="Fetching preview…" savedLabel="Done">Add to News</SubmitButton>
       </div>
-      <SubmitButton pendingLabel="Fetching preview…" savedLabel="Done">Add to News</SubmitButton>
-      {state?.error && <p role="alert" className="w-full text-sm text-destructive">{state.error}</p>}
-      {state?.message && <p role="status" className="w-full text-sm text-primary">{state.message}</p>}
+      <TagCheckboxes idPrefix="new" />
+      {state?.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
+      {state?.message && <p role="status" className="text-sm text-primary">{state.message}</p>}
+      {state?.share && (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span>Post this to the NextChapter LinkedIn page too?</span>
+          <LinkedInShareButton itemId={state.share.itemId} caption={state.share.caption} />
+        </div>
+      )}
     </form>
   )
 }
 
 export function EditNewsItemForm({ item }: {
-  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null }
+  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[] }
 }) {
   const [state, formAction] = useActionState(updateNewsItem, undefined)
-  const instagram = item.kind === 'instagram'
+  const drawsItself = item.kind === 'instagram' || item.kind === 'linkedin'
   return (
     <form action={formAction} className="mt-3 grid gap-3 sm:grid-cols-2">
       <input type="hidden" name="id" value={item.id} />
-      {instagram ? (
+      {drawsItself ? (
         <p className="text-sm text-muted-foreground sm:col-span-2">
-          Instagram draws this post itself, picture and caption included, so there is nothing to edit here.
+          {item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'} draws this post itself, picture and text included, so only its topics are set here.
         </p>
       ) : (
         <>
@@ -53,13 +114,71 @@ export function EditNewsItemForm({ item }: {
             <label htmlFor={`source-${item.id}`} className="text-sm text-muted-foreground">Source</label>
             <input id={`source-${item.id}`} name="source" defaultValue={item.source ?? ''} maxLength={80} className={`${INPUT} h-9`} />
           </div>
-          <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-            <SubmitButton pendingLabel="Saving…">Save changes</SubmitButton>
-            {state?.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
-            {state?.message && <p role="status" className="text-sm text-primary">{state.message}</p>}
-          </div>
         </>
       )}
+      <div className="sm:col-span-2">
+        <TagCheckboxes idPrefix={`edit-${item.id}`} selected={item.tags} />
+      </div>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+        <SubmitButton pendingLabel="Saving…">Save changes</SubmitButton>
+        {state?.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
+        {state?.message && <p role="status" className="text-sm text-primary">{state.message}</p>}
+      </div>
+    </form>
+  )
+}
+
+/**
+ * Every link on one line each, on the clipboard.
+ *
+ * NotebookLM has no way for another program to add sources, but its
+ * "Website" source box takes a pasted list — so this is the whole hand-off.
+ */
+export function CopyLinksButton({ urls, label }: { urls: string[]; label: string }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  async function copy() {
+    posthog.capture('news_links_copied', { count: urls.length })
+    try {
+      await navigator.clipboard.writeText(urls.join('\n'))
+      setState('copied')
+    } catch {
+      setState('failed')
+    }
+  }
+  if (urls.length === 0) return null
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <button type="button" onClick={copy} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+        {label}
+      </button>
+      {state === 'copied' && (
+        <span role="status" className="text-xs text-muted-foreground">
+          {urls.length} {urls.length === 1 ? 'link' : 'links'} copied — in NotebookLM choose Add source, Website, and paste.
+        </span>
+      )}
+      {state === 'failed' && <span role="status" className="text-xs text-destructive">Your browser blocked the copy. Try again.</span>}
+    </span>
+  )
+}
+
+export function FindArticlesForm({ topics }: { topics: string[] }) {
+  const [state, formAction] = useActionState(runNewsDiscoveryNow, undefined)
+  return (
+    <form action={formAction} className="rounded-lg border border-border p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Topic search</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Every morning Market Pulse searches the news for {topics.length} topics and adds up to three new links each to the table below.
+          </p>
+        </div>
+        <SubmitButton variant="outline" pendingLabel="Searching…" savedLabel="Done">Find new articles now</SubmitButton>
+      </div>
+      <details className="mt-2 text-sm">
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Show the topics</summary>
+        <p className="mt-1 text-muted-foreground">{topics.join(' · ')}</p>
+      </details>
+      {state?.message && <p role="status" className="mt-2 text-sm text-primary">{state.message}</p>}
     </form>
   )
 }

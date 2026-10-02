@@ -322,7 +322,7 @@ export default async function Home() {
               <div>
                 <h2 id="news-heading" className="text-3xl font-bold tracking-tight text-navy">News</h2>
                 <p className="mt-2 max-w-xl text-muted-foreground">
-                  Articles, videos and posts on the job market and the mid-career search.
+                  Articles, videos, podcasts and posts on the job market and searching for a job.
                 </p>
               </div>
               <Link href="/news" className="text-sm font-medium text-primary underline underline-offset-4">

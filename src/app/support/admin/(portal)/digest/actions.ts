@@ -8,7 +8,9 @@ import { prisma } from '@/lib/prisma'
 import { ingestResearchUrl } from '@/lib/research/ingest'
 import { sendProductPositioningFlagEmail } from '@/lib/email/send-product-positioning-flag'
 import { fetchNewsMetadata, isReadyToPublish } from '@/lib/news/metadata'
-import { safeImageUrl } from '@/lib/news/kind'
+import { embedsItself, safeImageUrl } from '@/lib/news/kind'
+import { cleanNewsTags } from '@/lib/news/tags'
+import { runNewsDiscovery } from '@/lib/news/discover'
 
 export async function markResearchItemStatus(id: string, status: 'reviewed' | 'actioned' | 'dismissed') {
   const admin = await requireAdmin()
@@ -91,6 +93,8 @@ function revalidateNews() {
 export interface NewsFormState {
   error?: string
   message?: string
+  /** Set when something just went live: what to offer for the LinkedIn page. */
+  share?: { itemId: string; url: string; caption: string }
 }
 
 /**
@@ -117,7 +121,7 @@ export async function addNewsItem(_prev: NewsFormState | undefined, formData: Fo
     newsImageUrl: meta.imageUrl, newsSource: meta.source,
   }
   const publish = isReadyToPublish({ ...news, url })
-  const data = { ...news, newsPublishedAt: publish ? new Date() : null }
+  const data = { ...news, newsTags: cleanNewsTags(formData.getAll('tags')), newsPublishedAt: publish ? new Date() : null }
 
   const item = existing
     ? await prisma.researchLibraryItem.update({ where: { id: existing.id }, data })
@@ -131,18 +135,29 @@ export async function addNewsItem(_prev: NewsFormState | undefined, formData: Fo
     message: publish
       ? 'Added and live on the homepage.'
       : 'Added as a draft — the page would not share a headline. Add one below, then publish.',
+    ...(publish ? { share: { itemId: item.id, url, caption: [meta.title, url].filter(Boolean).join('\n\n') } } : {}),
   }
 }
 
 /** The same, for a row already sitting in the Market Pulse table. */
 export async function addExistingItemToNews(id: string) {
   const admin = await requireAdmin()
-  const item = await prisma.researchLibraryItem.findUniqueOrThrow({ where: { id }, select: { url: true, newsKind: true } })
+  const item = await prisma.researchLibraryItem.findUniqueOrThrow({
+    where: { id },
+    select: { url: true, newsKind: true, title: true, summary: true, ingestionSource: true, newsSource: true },
+  })
   if (item.newsKind) return
   const meta = await fetchNewsMetadata(item.url)
+  // A link the topic search found already carries the publisher's own
+  // headline and snippet, which covers a publisher that blocks the fetch.
+  // Only for those rows: on every other row `summary` is our internal note.
+  const found = item.ingestionSource === 'discovery'
   const news = {
-    newsKind: meta.kind, newsTitle: meta.title, newsBlurb: meta.blurb,
-    newsImageUrl: meta.imageUrl, newsSource: meta.source,
+    newsKind: meta.kind,
+    newsTitle: meta.title ?? item.title,
+    newsBlurb: meta.blurb ?? (found ? item.summary?.slice(0, 280) ?? null : null),
+    newsImageUrl: meta.imageUrl,
+    newsSource: (found ? item.newsSource : null) ?? meta.source,
   }
   // A draft, not live: this row came from an alert, and nobody has looked at
   // how it will read in public yet.
@@ -161,15 +176,20 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
 
   const current = await prisma.researchLibraryItem.findUnique({ where: { id }, select: { url: true, newsKind: true, newsPublishedAt: true } })
   if (!current?.newsKind) return { error: 'That item is no longer in News.' }
-  const title = text('title')
-  if (current.newsPublishedAt && !isReadyToPublish({ newsKind: current.newsKind, newsTitle: title, url: current.url })) {
-    return { error: 'A live item needs a headline. Add one, or unpublish it first.' }
+  const newsTags = cleanNewsTags(formData.getAll('tags'))
+  // A post that draws itself has no headline or picture to edit — only its topics.
+  if (current.newsKind === 'instagram' || current.newsKind === 'linkedin') {
+    await prisma.researchLibraryItem.update({ where: { id }, data: { newsTags } })
+  } else {
+    const title = text('title')
+    if (current.newsPublishedAt && !embedsItself(current.newsKind, current.url) && !title) {
+      return { error: 'A live item needs a headline. Add one, or unpublish it first.' }
+    }
+    await prisma.researchLibraryItem.update({
+      where: { id },
+      data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags },
+    })
   }
-
-  await prisma.researchLibraryItem.update({
-    where: { id },
-    data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source') },
-  })
   captureServerEvent(admin?.email ?? 'admin', 'news_item_updated', { itemId: id })
   revalidateNews()
   return { message: 'Saved.' }
@@ -186,4 +206,18 @@ export async function setNewsPublished(id: string, publish: boolean) {
   await prisma.researchLibraryItem.update({ where: { id }, data: { newsPublishedAt: publish ? new Date() : null } })
   captureServerEvent(admin?.email ?? 'admin', publish ? 'news_item_published' : 'news_item_unpublished', { itemId: id, kind: item.newsKind })
   revalidateNews()
+}
+
+/** The daily topic search, on demand — same run the cron does. */
+export async function runNewsDiscoveryNow(_prev: NewsFormState | undefined): Promise<NewsFormState> {
+  const admin = await requireAdmin()
+  const result = await runNewsDiscovery()
+  captureServerEvent(admin?.email ?? 'admin', 'news_discovery_run', { trigger: 'manual', created: result.created, failed: result.failed.length })
+  revalidatePath('/support/admin/digest')
+  const failed = result.failed.length > 0 ? ` The search did not answer for: ${result.failed.join(', ')}.` : ''
+  return {
+    message: (result.created > 0
+      ? `Found ${result.created} new ${result.created === 1 ? 'article' : 'articles'} — they are in the table below.`
+      : 'Nothing new since the last search.') + failed,
+  }
 }

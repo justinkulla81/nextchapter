@@ -70,3 +70,86 @@ describe('sourceFromUrl', () => {
     expect(sourceFromUrl('https://www.inc.com/a/b')).toBe('inc.com')
   })
 })
+
+import { linkedinEmbedUrl, podcastEmbed, embedsItself } from '@/lib/news/kind'
+import { cleanNewsTags } from '@/lib/news/tags'
+
+describe('linkedinEmbedUrl', () => {
+  it('reads the id from a copied share link and from a feed link', () => {
+    expect(linkedinEmbedUrl('https://www.linkedin.com/posts/justinkulla_nextchapter-hiring-activity-7245678901234567890-AbCd?utm_source=share'))
+      .toBe('https://www.linkedin.com/embed/feed/update/urn:li:activity:7245678901234567890')
+    expect(linkedinEmbedUrl('https://www.linkedin.com/feed/update/urn:li:share:7245678901234567890/'))
+      .toBe('https://www.linkedin.com/embed/feed/update/urn:li:share:7245678901234567890')
+    expect(linkedinEmbedUrl('https://www.linkedin.com/feed/update/urn%3Ali%3AugcPost%3A7245678901234567890'))
+      .toBe('https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7245678901234567890')
+  })
+  it('leaves an article, a profile and a company page as plain links', () => {
+    expect(linkedinEmbedUrl('https://www.linkedin.com/pulse/some-article-justin-kulla/')).toBeNull()
+    expect(linkedinEmbedUrl('https://www.linkedin.com/in/justinkulla/')).toBeNull()
+    expect(linkedinEmbedUrl('https://www.linkedin.com/company/launchyournextchapter/')).toBeNull()
+    expect(detectNewsKind('https://www.linkedin.com/pulse/some-article-justin-kulla/')).toBe('article')
+  })
+})
+
+describe('podcastEmbed', () => {
+  it('builds the Spotify player for an episode and a show', () => {
+    expect(podcastEmbed('https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk?si=abc'))
+      .toEqual({ src: 'https://open.spotify.com/embed/episode/4rOoJ6Egrf8K2IrywzwOMk', height: 152, host: 'Spotify' })
+    expect(podcastEmbed('https://open.spotify.com/intl-de/show/2MAi0BvDc6GTFvKFPXnkCL')?.height).toBe(352)
+    // Music is not a podcast.
+    expect(podcastEmbed('https://open.spotify.com/track/4rOoJ6Egrf8K2IrywzwOMk')).toBeNull()
+  })
+  it('builds the Apple player, keeping the episode and dropping tracking', () => {
+    expect(podcastEmbed('https://podcasts.apple.com/us/podcast/the-daily/id1200361736?i=1000123456789&uo=4'))
+      .toEqual({ src: 'https://embed.podcasts.apple.com/us/podcast/the-daily/id1200361736?i=1000123456789', height: 175, host: 'Apple Podcasts' })
+    expect(podcastEmbed('https://podcasts.apple.com/us/podcast/the-daily/id1200361736')?.height).toBe(175)
+    expect(podcastEmbed('https://music.apple.com/us/album/x/123')).toBeNull()
+  })
+  it('makes podcast and LinkedIn links their own kinds', () => {
+    expect(detectNewsKind('https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk')).toBe('podcast')
+    expect(detectNewsKind('https://www.linkedin.com/feed/update/urn:li:activity:7245678901234567890')).toBe('linkedin')
+    expect(embedsItself('linkedin', 'https://www.linkedin.com/in/justinkulla/')).toBe(false)
+    expect(embedsItself('podcast', 'https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk')).toBe(true)
+    expect(embedsItself('article', 'https://www.inc.com/x')).toBe(false)
+  })
+})
+
+describe('cleanNewsTags', () => {
+  it('keeps known tags in list order and drops the rest', () => {
+    expect(cleanNewsTags(['motivation', 'bogus', 'news', 'news', 42])).toEqual(['news', 'motivation'])
+    expect(cleanNewsTags([])).toEqual([])
+  })
+})
+
+import { parseFeed, unwrapFeedLink } from '@/lib/news/discover'
+
+describe('unwrapFeedLink', () => {
+  it('returns the publisher address from a tracking redirect, without tracking parameters', () => {
+    expect(unwrapFeedLink('http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=abc&url=https%3a%2f%2fwww.forbes.com%2fsites%2fx%2fstory%2f%3futm_source%3dbing%26id%3d7&c=1&mkt=en-us'))
+      .toBe('https://www.forbes.com/sites/x/story/?id=7')
+  })
+  it('refuses a redirect with nothing inside it', () => {
+    expect(unwrapFeedLink('http://www.bing.com/news/apiclick.aspx?ref=FexRss')).toBeNull()
+    expect(unwrapFeedLink('not a link')).toBeNull()
+  })
+})
+
+describe('parseFeed', () => {
+  it('reads headline, source, snippet and date from each item', () => {
+    const xml = `<?xml version="1.0"?><rss xmlns:News="https://www.bing.com/news/search?format=rss"><channel>
+      <item><title>Long-term unemployment hits a high</title>
+        <link>http://www.bing.com/news/apiclick.aspx?url=https%3a%2f%2fexample.com%2fa&amp;c=1</link>
+        <description>The share of the jobless out six months or more rose.</description>
+        <pubDate>Wed, 16 Sep 2026 10:27:00 GMT</pubDate><News:Source>Example News</News:Source>
+        <News:Image>https://www.bing.com/th?id=ABC&amp;pid=News</News:Image></item>
+      <item><title></title><link>http://www.bing.com/news/apiclick.aspx?url=https%3a%2f%2fexample.com%2fb</link></item>
+    </channel></rss>`
+    const items = parseFeed(xml)
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      url: 'https://example.com/a', title: 'Long-term unemployment hits a high',
+      source: 'Example News', description: 'The share of the jobless out six months or more rose.',
+    })
+    expect(items[0].publishedAt?.toISOString()).toBe('2026-09-16T10:27:00.000Z')
+  })
+})

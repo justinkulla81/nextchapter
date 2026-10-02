@@ -67,7 +67,7 @@ export async function fileContactInCrm(sub: ContactSubmission): Promise<string |
         type: 'NOTE',
         direction: 'INBOUND',
         personId: person.id,
-        subject: `Contact form · ${CONTACT_AUDIENCE_SHORT[sub.audience]}`,
+        subject: sub.source === 'why-stuck' ? 'Job search question · Why you’re stuck page' : `Contact form · ${CONTACT_AUDIENCE_SHORT[sub.audience]}`,
         body: sub.message,
         isAutoLogged: true,
         sourceRef: `contact:${sub.id}`,
@@ -97,10 +97,14 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
     [sub.audience === 'JOB_APPLICANT' ? 'Interested in' : 'Role', sub.role],
     ['LinkedIn', sub.linkedinUrl],
   ]
+  const asked = sub.source === 'why-stuck'
+  const heading = asked
+    ? 'New job search question from launchyournextchapter.com/why-stuck'
+    : 'New message from launchyournextchapter.com/contact'
   const crmLink = crmPersonId ? `https://admin.launchyournextchapter.com/support/admin/crm/people/${crmPersonId}` : null
   const html = `
     <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#0f1b2b;line-height:1.5">
-      <p style="margin:0 0 12px;font-size:17px;font-weight:600">New message from launchyournextchapter.com/contact</p>
+      <p style="margin:0 0 12px;font-size:17px;font-weight:600">${heading}</p>
       <table style="border-collapse:collapse;margin:0 0 16px">
         ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:2px 12px 2px 0;color:#55606e">${k}</td><td style="padding:2px 0">${escapeHtml(v!)}</td></tr>`).join('')}
       </table>
@@ -108,7 +112,7 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
       <p style="margin:0;color:#55606e;font-size:13px">Reply to this email to answer ${escapeHtml(sub.fullName.split(' ')[0] || 'them')} directly.${crmLink ? ` <a href="${crmLink}">Open in the CRM</a>.` : ''}</p>
     </div>`
   const text = [
-    'New message from launchyournextchapter.com/contact',
+    heading,
     '',
     ...rows.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
     '',
@@ -123,7 +127,9 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: FORWARD_TO,
       replyTo: sub.email,
-      subject: sub.audience === 'JOB_APPLICANT'
+      subject: asked
+        ? `Job search question: ${sub.fullName}`
+        : sub.audience === 'JOB_APPLICANT'
         ? `Job application: ${sub.fullName}${sub.role ? ` · ${sub.role}` : ''}`
         : `Contact form: ${sub.fullName}${sub.organization ? ` (${sub.organization})` : ''} · ${CONTACT_AUDIENCE_SHORT[sub.audience]}`,
       html,

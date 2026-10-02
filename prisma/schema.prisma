@@ -5573,7 +5573,7 @@ model ResearchLibraryItem {
   id              String   @id @default(cuid())
   url             String
   dateFound       DateTime @default(now())
-  // 'inbox' | 'manual'
+  // 'inbox' | 'manual' | 'discovery'
   ingestionSource String
 
   title          String?
@@ -5626,14 +5626,21 @@ model ResearchLibraryItem {
   // site unless an admin adds it to News, and what shows there is these
   // fields only. newsKind non-null means "in News"; newsPublishedAt
   // non-null means "live on the homepage and /news".
-  // 'article' | 'video' | 'instagram'
+  // 'article' | 'video' | 'podcast' | 'linkedin' | 'instagram'
   newsKind        String?
   newsTitle       String?
   newsBlurb       String?   @db.Text
   newsImageUrl    String?
   newsSource      String?
   newsPublishedAt DateTime?
+  // Keys from NEWS_TAGS (src/lib/news/tags.ts) — a fixed list, any number per item.
+  newsTags        String[]  @default([])
 
+  // Set when the daily topic search found this link (ingestionSource
+  // 'discovery'): the label of the topic it was found under.
+  discoveryTopic String?
+
+  @@index([url])
   @@index([bucket, status])
   @@index([needsReview])
   @@index([digestAudiences])
@@ -9947,6 +9954,9 @@ model ContactSubmission {
   /// Job applicants' LinkedIn profile.
   linkedinUrl  String?
   message      String          @db.Text
+  /// Which form it came through when not /contact itself — 'why-stuck' is
+  /// the "ask us about your search" form on that page.
+  source       String?
   ip           String?
   userAgent    String?
   /// The CRM person this message was filed under (created if new).

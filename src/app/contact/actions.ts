@@ -15,6 +15,9 @@ export type ContactFormState =
 
 const AUDIENCES = new Set<ContactAudience>(['CANDIDATE', 'ORGANIZATION', 'COACH_RECRUITER', 'JOB_APPLICANT', 'OTHER'])
 const MAX_PER_HOUR_PER_IP = 5
+// Forms on other pages that post here. An allowlist: the value is stored
+// and shown to admins, so it is never whatever the browser sent.
+const SOURCES = new Set(['why-stuck'])
 
 export async function submitContactForm(_prev: ContactFormState, formData: FormData): Promise<ContactFormState> {
   const text = (k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)
@@ -33,6 +36,8 @@ export async function submitContactForm(_prev: ContactFormState, formData: FormD
   // "linkedin.com/in/x" typed without a scheme is still a profile link.
   const linkedinUrl = linkedinRaw ? (/^https?:\/\//i.test(linkedinRaw) ? linkedinRaw : `https://${linkedinRaw}`) : null
   const message = text('message', 5000)
+  const sourceRaw = text('source', 40)
+  const source = SOURCES.has(sourceRaw) ? sourceRaw : null
 
   // React resets a form after its action runs; handing the typed values
   // back lets the fields come back filled in when there's an error.
@@ -43,7 +48,9 @@ export async function submitContactForm(_prev: ContactFormState, formData: FormD
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Enter a valid email address so we can reply.')
   if (audience === 'ORGANIZATION' && !organization) return fail('Enter your organization’s name.')
   if (audience === 'JOB_APPLICANT' && !(linkedinUrl && /linkedin\.com\//i.test(linkedinUrl))) return fail('Add your LinkedIn profile link, like linkedin.com/in/yourname.')
-  if (message.length < 10) return fail('Add a sentence or two about how we can help.')
+  if (message.length < 10) {
+    return fail(source === 'why-stuck' ? 'Add a sentence or two about what you’re running into.' : 'Add a sentence or two about how we can help.')
+  }
 
   const ip = await getClientIp()
   if (ip) {
@@ -57,7 +64,7 @@ export async function submitContactForm(_prev: ContactFormState, formData: FormD
 
   const userAgent = (await headers()).get('user-agent')?.slice(0, 300) ?? null
   const sub = await prisma.contactSubmission.create({
-    data: { audience, fullName, email, organization, role, linkedinUrl, message, ip, userAgent },
+    data: { audience, fullName, email, organization, role, linkedinUrl, message, source, ip, userAgent },
   })
 
   const crmPersonId = await fileContactInCrm(sub)
@@ -67,8 +74,8 @@ export async function submitContactForm(_prev: ContactFormState, formData: FormD
     data: { crmPersonId, emailedAt: emailed ? new Date() : null },
   })
 
-  captureServerEvent(email.toLowerCase(), 'contact_form_submitted', {
-    submissionId: sub.id, audience, hasOrganization: !!organization, emailed,
+  captureServerEvent(email.toLowerCase(), source === 'why-stuck' ? 'search_question_submitted' : 'contact_form_submitted', {
+    submissionId: sub.id, audience, source, hasOrganization: !!organization, emailed, messageLength: message.length,
   })
 
   return { sent: true, name: fullName.split(' ')[0], email }

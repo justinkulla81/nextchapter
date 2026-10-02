@@ -1,6 +1,6 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
-import { detectNewsKind, instagramPermalink, safeImageUrl, sourceFromUrl, vimeoId, youtubeId, type NewsKind } from './kind'
+import { detectNewsKind, embedsItself, podcastEmbed, safeImageUrl, sourceFromUrl, vimeoId, youtubeId, type NewsKind } from './kind'
 
 export interface NewsMetadata {
   kind: NewsKind
@@ -41,13 +41,39 @@ async function getJson<T>(url: string): Promise<T | null> {
 
 interface OEmbed { title?: string; author_name?: string; thumbnail_url?: string; description?: string }
 
+/** What a page says about itself in its Open Graph tags; nulls when it won't say. */
+async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> {
+  const fallback = { title: null, blurb: null, imageUrl: null, source: sourceFromUrl(url) }
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: BROWSER_HEADERS })
+    if (!res.ok) return fallback
+    const $ = cheerio.load(await res.text())
+    const meta = (...names: string[]) => {
+      for (const n of names) {
+        const v = $(`meta[property="${n}"]`).attr('content') ?? $(`meta[name="${n}"]`).attr('content')
+        if (v?.trim()) return v
+      }
+      return null
+    }
+    return {
+      title: clean(meta('og:title', 'twitter:title') ?? $('title').first().text(), TITLE_MAX),
+      blurb: clean(meta('og:description', 'twitter:description', 'description'), BLURB_MAX),
+      imageUrl: safeImageUrl(meta('og:image:secure_url', 'og:image', 'twitter:image'), res.url || url),
+      source: clean(meta('og:site_name'), 80) ?? fallback.source,
+    }
+  } catch {
+    return fallback
+  }
+}
+
 /**
  * The headline, summary and picture a link offers about itself.
  *
- * No model call and nothing paid: videos answer through their host's public
- * oEmbed endpoint, articles through the Open Graph tags every publisher
- * sets for link previews. Instagram is not fetched at all — it refuses
- * anonymous requests, and its own embed draws the post on the page instead.
+ * No model call and nothing paid: videos and Spotify answer through their
+ * public oEmbed endpoints, articles and Apple Podcasts through the Open
+ * Graph tags every publisher sets for link previews. Instagram and LinkedIn
+ * are not fetched at all — both refuse anonymous requests, and their own
+ * embeds draw the post on the page instead.
  *
  * Never throws. A publisher that blocks the request (several do) comes back
  * with nulls, and the admin fills the headline in by hand.
@@ -55,8 +81,17 @@ interface OEmbed { title?: string; author_name?: string; thumbnail_url?: string;
 export async function fetchNewsMetadata(url: string): Promise<NewsMetadata> {
   const kind = detectNewsKind(url)
 
-  if (kind === 'instagram') {
-    return { kind, title: null, blurb: null, imageUrl: null, source: 'Instagram' }
+  if (kind === 'instagram') return { kind, title: null, blurb: null, imageUrl: null, source: 'Instagram' }
+  if (kind === 'linkedin') return { kind, title: null, blurb: null, imageUrl: null, source: 'LinkedIn' }
+
+  if (kind === 'podcast') {
+    const host = podcastEmbed(url)!.host
+    if (host === 'Spotify') {
+      const data = await getJson<OEmbed>(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
+      return { kind, title: clean(data?.title, TITLE_MAX), blurb: null, imageUrl: safeImageUrl(data?.thumbnail_url), source: host }
+    }
+    const og = await fetchOpenGraph(url)
+    return { kind, ...og, source: host }
   }
 
   if (kind === 'video') {
@@ -76,32 +111,13 @@ export async function fetchNewsMetadata(url: string): Promise<NewsMetadata> {
     }
   }
 
-  const fallback: NewsMetadata = { kind, title: null, blurb: null, imageUrl: null, source: sourceFromUrl(url) }
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: BROWSER_HEADERS })
-    if (!res.ok) return fallback
-    const $ = cheerio.load(await res.text())
-    const meta = (...names: string[]) => {
-      for (const n of names) {
-        const v = $(`meta[property="${n}"]`).attr('content') ?? $(`meta[name="${n}"]`).attr('content')
-        if (v?.trim()) return v
-      }
-      return null
-    }
-    return {
-      kind,
-      title: clean(meta('og:title', 'twitter:title') ?? $('title').first().text(), TITLE_MAX),
-      blurb: clean(meta('og:description', 'twitter:description', 'description'), BLURB_MAX),
-      imageUrl: safeImageUrl(meta('og:image:secure_url', 'og:image', 'twitter:image'), res.url || url),
-      source: clean(meta('og:site_name'), 80) ?? fallback.source,
-    }
-  } catch {
-    return fallback
-  }
+  return { kind, ...(await fetchOpenGraph(url)) }
 }
 
-/** Instagram needs nothing but a valid post link; everything else needs a headline. */
+/** A post or player that draws itself needs only a link that embeds; everything else needs a headline. */
 export function isReadyToPublish(item: { newsKind: string | null; newsTitle: string | null; url: string }): boolean {
-  if (item.newsKind === 'instagram') return instagramPermalink(item.url) !== null
+  if (item.newsKind === 'instagram' || item.newsKind === 'linkedin' || item.newsKind === 'podcast') {
+    return embedsItself(item.newsKind, item.url)
+  }
   return !!item.newsTitle?.trim()
 }

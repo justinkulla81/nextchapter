@@ -15,6 +15,8 @@ import {
   resolveDigestRecipientName,
 } from '@/lib/admin/digest-composer'
 import { NewsAdminPanel } from '@/components/admin/NewsAdminPanel'
+import { FindArticlesForm } from '@/components/admin/NewsAdminForms'
+import { DISCOVERY_TOPIC_LABELS } from '@/lib/news/discovery-topics'
 import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox, addExistingItemToNews } from './actions'
 
 export const maxDuration = 30
@@ -83,6 +85,7 @@ export default async function AdminDigestPage({
   const statusFilter = params.status ?? ''
   const credibilityFilter = params.credibility ?? ''
   const digestAudienceFilter = params.digestAudience ?? ''
+  const topicFilter = params.topic ?? ''
   const q = (params.q ?? '').toLowerCase().trim()
 
   const [googleConnection, allItems, queuedForDigest, digestHistory, sentItems, recentClicks] = await Promise.all([
@@ -103,6 +106,7 @@ export default async function AdminDigestPage({
   if (bucketFilter) rows = rows.filter((r) => r.bucket === bucketFilter)
   if (statusFilter) rows = rows.filter((r) => r.status === statusFilter)
   if (credibilityFilter) rows = rows.filter((r) => r.credibilityTier === credibilityFilter)
+  if (topicFilter) rows = rows.filter((r) => r.discoveryTopic === topicFilter)
   if (q) {
     rows = rows.filter(
       (r) => r.title?.toLowerCase().includes(q) || r.url.toLowerCase().includes(q) || r.summary?.toLowerCase().includes(q)
@@ -157,7 +161,16 @@ export default async function AdminDigestPage({
       render: (r) => (r.confidenceScore != null ? `${Math.round(r.confidenceScore * 100)}%` : '—'),
     },
     { header: 'Credibility', render: (r) => r.credibilityTier ?? '—' },
-    { header: 'Source', render: (r) => (r.ingestionSource === 'inbox' ? 'Inbox' : 'Manual') },
+    {
+      header: 'Source',
+      render: (r) =>
+        r.ingestionSource === 'discovery' ? (
+          <span>
+            Topic search
+            {r.discoveryTopic && <span className="block text-xs text-muted-foreground">{r.discoveryTopic}</span>}
+          </span>
+        ) : r.ingestionSource === 'inbox' ? 'Inbox' : 'Manual',
+    },
     {
       header: 'Digest audiences',
       render: (r) => <DigestAudienceCheckboxes itemId={r.id} current={r.digestAudiences} />,
@@ -323,6 +336,8 @@ export default async function AdminDigestPage({
 
       <NewsAdminPanel />
 
+      <FindArticlesForm topics={DISCOVERY_TOPIC_LABELS} />
+
       <AddResearchItemForm />
 
       {contradicting.length > 0 && (
@@ -365,6 +380,12 @@ export default async function AdminDigestPage({
               { value: 'actioned', label: 'Actioned' },
               { value: 'dismissed', label: 'Dismissed' },
             ],
+          },
+          {
+            key: 'topic',
+            label: 'Topic',
+            value: topicFilter,
+            options: DISCOVERY_TOPIC_LABELS.map((t) => ({ value: t, label: t })),
           },
           {
             key: 'credibility',

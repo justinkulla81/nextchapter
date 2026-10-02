@@ -5,6 +5,8 @@ import { X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { ByTheNumbers } from '@/components/home/ByTheNumbers'
 import { SituationalButtons } from '@/components/home/SituationalButtons'
+import { SearchQuestionForm } from '@/components/marketing/SearchQuestionForm'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 export const metadata: Metadata = {
   title: "Why You're Stuck — NextChapter",
@@ -50,6 +52,16 @@ export default function WhyStuckPage() {
             You&apos;re not imagining it. Unemployment is unpleasant and the search process is
             genuinely hard.
           </p>
+          <div className="mt-8">
+            <TrackedLink
+              href="#ask"
+              event="why_stuck_ask_clicked"
+              properties={{ placement: 'hero' }}
+              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+            >
+              Ask us about your search
+            </TrackedLink>
+          </div>
         </div>
       </section>
 
@@ -133,6 +145,18 @@ export default function WhyStuckPage() {
 
       <section className="bg-white px-6 py-16">
         <SituationalButtons />
+      </section>
+
+      <section id="ask" className="scroll-mt-6 bg-off-white px-6 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-navy">Tell us what you&apos;re running into</h2>
+          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
+            A question, a worry, the thing that keeps not working. No account needed.
+          </p>
+          <div className="mt-8 rounded-xl border border-light-gray bg-white p-6 shadow-sm">
+            <SearchQuestionForm />
+          </div>
+        </div>
       </section>
     </div>
   )

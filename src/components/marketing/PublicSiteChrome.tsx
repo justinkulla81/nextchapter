@@ -10,7 +10,7 @@ const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-fo
  * The public site's top navigation — the homepage uses this same component,
  * so every public page shows identical links.
  */
-export function SiteNav({ current }: { current?: 'about' }) {
+export function SiteNav({ current }: { current?: 'about' | 'news' }) {
   return (
     <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
       <Link href="/" aria-label="NextChapter home">
@@ -25,6 +25,9 @@ export function SiteNav({ current }: { current?: 'about' }) {
         </Link>
         <Link href="/coaches" className={`${NAV_LINK} lg:inline-block`}>
           For coaches
+        </Link>
+        <Link href="/news" aria-current={current === 'news' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
+          News
         </Link>
         <Link href="/about" aria-current={current === 'about' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
           About
@@ -41,10 +44,10 @@ export function SiteNav({ current }: { current?: 'about' }) {
 }
 
 /** The homepage's header, for public pages that stand on their own (About, Contact). */
-export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' }) {
+export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 'news' }) {
   return (
     <header className="bg-white">
-      <SiteNav current={current === 'about' ? 'about' : undefined} />
+      <SiteNav current={current === 'about' || current === 'news' ? current : undefined} />
     </header>
   )
 }

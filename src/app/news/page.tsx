@@ -5,7 +5,7 @@ import { getPublishedNews } from '@/lib/news/published'
 
 export const metadata: Metadata = {
   title: 'News — NextChapter',
-  description: 'Articles, videos and posts on the job market and the mid-career search, picked by NextChapter.',
+  description: 'Articles, videos, podcasts and posts on the job market and searching for a job, picked by NextChapter.',
   alternates: { canonical: '/news' },
 }
 
@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function NewsPage() {
-  const items = await getPublishedNews(60)
+  const items = await getPublishedNews(200)
   return (
     <div className="flex flex-1 flex-col">
-      <PublicSiteHeader />
+      <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-16">
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-4xl font-bold tracking-tight text-navy">News</h1>
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-            Articles, videos and posts on the job market and the mid-career search.
+            Articles, videos, podcasts and posts on the job market and searching for a job.
           </p>
           <div className="mt-10">
             {items.length === 0 ? (
@@ -30,7 +30,7 @@ export default async function NewsPage() {
                 Nothing posted yet. Check back soon.
               </p>
             ) : (
-              <NewsFeed items={items} placement="news" />
+              <NewsFeed items={items} placement="news" filterable />
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { NewsKind } from './kind'
+import { cleanNewsTags, type NewsTagKey } from './tags'
 
 /** What the public cards are given — nothing internal to Market Pulse. */
 export interface NewsItemView {
@@ -11,6 +12,7 @@ export interface NewsItemView {
   blurb: string | null
   imageUrl: string | null
   source: string
+  tags: NewsTagKey[]
   /** Formatted on the server, so the page and the browser can't disagree on the day. */
   dateLabel: string
   publishedAt: string
@@ -33,7 +35,7 @@ export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
       take: limit,
       select: {
         id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true,
-        newsImageUrl: true, newsSource: true, newsPublishedAt: true,
+        newsImageUrl: true, newsSource: true, newsPublishedAt: true, newsTags: true,
       },
     })
     return rows.map((r) => ({
@@ -44,6 +46,7 @@ export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
       blurb: r.newsBlurb,
       imageUrl: r.newsImageUrl,
       source: r.newsSource ?? '',
+      tags: cleanNewsTags(r.newsTags),
       dateLabel: dateLabel(r.newsPublishedAt!),
       publishedAt: r.newsPublishedAt!.toISOString(),
     }))

@@ -3,9 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { isReadyToPublish } from '@/lib/news/metadata'
 import { setNewsPublished } from '@/app/support/admin/(portal)/digest/actions'
-import { AddNewsItemForm, EditNewsItemForm } from './NewsAdminForms'
+import { NEWS_KINDS } from '@/lib/news/kind'
+import { newsTagLabel } from '@/lib/news/tags'
+import { AddNewsItemForm, CopyLinksButton, EditNewsItemForm, LinkedInShareButton } from './NewsAdminForms'
 
-const KIND_LABEL: Record<string, string> = { article: 'Article', video: 'Video', instagram: 'Instagram' }
+const KIND_LABEL: Record<string, string> = Object.fromEntries(NEWS_KINDS.map((k) => [k.key, k.label]))
 
 /**
  * What is on the homepage's News section, and the one place to change it.
@@ -22,7 +24,7 @@ export async function NewsAdminPanel() {
     take: 100,
     select: {
       id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true,
-      newsImageUrl: true, newsSource: true, newsPublishedAt: true,
+      newsImageUrl: true, newsSource: true, newsPublishedAt: true, newsTags: true,
     },
   })
   const live = items.filter((i) => i.newsPublishedAt).length
@@ -36,9 +38,12 @@ export async function NewsAdminPanel() {
             {live} live. The homepage shows the newest six; the rest are on the News page.
           </p>
         </div>
-        <Link href="/news" target="_blank" className="text-sm text-primary underline underline-offset-4">
-          View the News page
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <CopyLinksButton urls={items.filter((i) => i.newsKind === 'article').map((i) => i.url)} label="Copy article links for NotebookLM" />
+          <Link href="/news" target="_blank" className="text-sm text-primary underline underline-offset-4">
+            View the News page
+          </Link>
+        </div>
       </div>
 
       <AddNewsItemForm />
@@ -61,7 +66,7 @@ export async function NewsAdminPanel() {
                       className="h-14 w-24 shrink-0 rounded object-cover" />
                   ) : (
                     <div className="flex h-14 w-24 shrink-0 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
-                      {i.newsKind === 'instagram' ? 'Embed' : 'No picture'}
+                      {i.newsKind === 'instagram' || i.newsKind === 'linkedin' ? 'Embed' : 'No picture'}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
@@ -77,6 +82,14 @@ export async function NewsAdminPanel() {
                       {i.newsTitle || i.url}
                     </a>
                     {i.newsBlurb && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{i.newsBlurb}</p>}
+                    {i.newsTags.length > 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground">{i.newsTags.map(newsTagLabel).join(' · ')}</p>
+                    )}
+                    {isLive && (
+                      <p className="mt-1">
+                        <LinkedInShareButton compact itemId={i.id} caption={[i.newsTitle, i.url].filter(Boolean).join('\n\n')} />
+                      </p>
+                    )}
                   </div>
                   <form action={setNewsPublished.bind(null, i.id, !isLive)} className="flex flex-col items-end gap-1">
                     <SubmitButton
@@ -87,18 +100,18 @@ export async function NewsAdminPanel() {
                     </SubmitButton>
                     {!isLive && !ready && (
                       <p className="max-w-48 text-right text-xs text-muted-foreground">
-                        {i.newsKind === 'instagram'
-                          ? 'This is not a post or reel link, so Instagram cannot embed it.'
-                          : 'Add a headline under Edit details to publish.'}
+                        {i.newsKind === 'article' || i.newsKind === 'video'
+                          ? 'Add a headline under Edit details to publish.'
+                          : 'This link cannot be embedded. Use the link to a single post or episode.'}
                       </p>
                     )}
                   </form>
                 </div>
-                <details className="mt-2" open={!isLive && !ready && i.newsKind !== 'instagram'}>
+                <details className="mt-2" open={!isLive && !ready && (i.newsKind === 'article' || i.newsKind === 'video')}>
                   <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">Edit details</summary>
                   <EditNewsItemForm item={{
                     id: i.id, kind: i.newsKind ?? 'article', title: i.newsTitle, blurb: i.newsBlurb,
-                    imageUrl: i.newsImageUrl, source: i.newsSource,
+                    imageUrl: i.newsImageUrl, source: i.newsSource, tags: i.newsTags,
                   }} />
                 </details>
               </li>
