@@ -9929,6 +9929,26 @@ enum CrmPriorityTier {
 }
 
 /// One row per WARN fetch, so the sync is debuggable without reading logs.
+/// A news headline that announced a layoff, read by the daily layoff news
+/// check. Kept so a layoff can be confirmed by a second, independent
+/// publisher on a later day — one headline alone is never added to the
+/// tracker. noticeId is set once the mentions were turned into a notice.
+model LayoffNewsMention {
+  id          String    @id @default(cuid())
+  /// normalizeOrgName of the company as the headline gave it.
+  companyKey  String
+  company     String
+  headline    String
+  url         String    @unique
+  publisher   String?
+  employees   Int?
+  publishedAt DateTime?
+  noticeId    String?
+  createdAt   DateTime  @default(now())
+
+  @@index([companyKey, publishedAt])
+}
+
 model WarnSyncRun {
   id         String    @id @default(cuid())
   state      String

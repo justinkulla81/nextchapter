@@ -239,3 +239,38 @@ describe('parseTexasWorkbook', () => {
     expect(() => parseTexasWorkbook(sheet([['Date', 'Company'], ['46290', 'Acme']]))).toThrow(/NOTICE_DATE/)
   })
 })
+
+import { readLayoffHeadline, publisherKey, sameEmployer } from '@/lib/warn/news-headline'
+
+describe('readLayoffHeadline', () => {
+  it('reads the company and headcount from the usual shapes', () => {
+    expect(readLayoffHeadline("Disney lays off around 300 employees as D'Amaro pushes cost cuts")).toMatchObject({ company: 'Disney', employees: 300 })
+    expect(readLayoffHeadline('BioMarin laying off 119 employees')).toMatchObject({ company: 'BioMarin', employees: 119 })
+    expect(readLayoffHeadline('Workday layoffs to impact over 140 Bay Area workers')).toMatchObject({ company: 'Workday', employees: 140 })
+    expect(readLayoffHeadline('Intel to cut 15,000 jobs')).toMatchObject({ company: 'Intel', employees: 15000 })
+    expect(readLayoffHeadline('Amazon cuts 14k corporate jobs')).toMatchObject({ company: 'Amazon', employees: 14000 })
+    expect(readLayoffHeadline('Nike Announces Layoffs, Operating Changes as Q1 Sales Fall Further')).toMatchObject({ company: 'Nike', employees: null })
+  })
+  it('skips a subject that is a description, not a name', () => {
+    expect(readLayoffHeadline('Global banking firm trims 75 jobs in N.J.')).toBeNull()
+    expect(readLayoffHeadline('Banking giant plans to cut 75 jobs in N.J.')).toBeNull()
+    expect(readLayoffHeadline('Health giant announces mass layoffs across California')).toBeNull()
+    expect(readLayoffHeadline('Layoffs announced at 3 Central Florida companies')).toBeNull()
+    expect(readLayoffHeadline('CDC staffing drops 30% as layoffs reshape agency')).toBeNull()
+  })
+  it('does not take a year for a headcount', () => {
+    expect(readLayoffHeadline('Acme layoffs continue into 2026 workers say')?.employees ?? null).toBeNull()
+  })
+})
+
+describe('publisherKey and sameEmployer', () => {
+  it('treats a syndicated copy as the same publisher', () => {
+    expect(publisherKey('CNBC on MSN')).toBe(publisherKey('CNBC'))
+  })
+  it('matches a company named with and without its full name, whole words only', () => {
+    expect(sameEmployer('disney', 'walt disney')).toBe(true)
+    expect(sameEmployer('nike', 'nike')).toBe(true)
+    expect(sameEmployer('meta', 'metadata systems')).toBe(false)
+    expect(sameEmployer('ibm', 'ibm corp')).toBe(false)
+  })
+})

@@ -15,12 +15,18 @@ export interface TrackerRow {
   /** Where the row came from: a state's filing, or a layoff reported elsewhere. */
   origin: 'state' | 'reported'
   sourceLabel: string
+  /** A state filing that the press or layoffs.fyi also reported — two sources agree. */
+  alsoReported: boolean
 }
 
 export interface LayoffTrackerData {
   rows: TrackerRow[]
+  /** This calendar year so far. */
+  year: { year: number; layoffs: number; workers: number; states: number }
   last30: { notices: number; workers: number; states: number }
   total: { notices: number; states: number; since: string }
+  /** States whose own filings we read, out of the 50 plus DC. */
+  statesCovered: number
   updatedLabel: string
 }
 
@@ -89,16 +95,44 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
     const rows = await prisma.$queryRaw<{
       state: string | null; employer: string; company: string | null; county: string | null
       workers: number | null; sites: number; notice_date: Date; effective_date: Date | null
-      type: string | null; source_url: string | null; key: string; reported: boolean
+      type: string | null; source_url: string | null; key: string; reported: boolean; also_reported: boolean
     }[]>`
       WITH base AS (
         SELECT w.*,
-               (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported
+               (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported,
+               -- The employer as a grouping key: lower case, without a site
+               -- address in brackets ("Kaiser (1840 California Ave.)"), after
+               -- a dash ("Key Energy Services - Ventura Location") or written
+               -- straight after the name, as Florida does ("Grunt Style, LLC
+               -- 2300 Grand Cypress Dr …"),
+               -- punctuation, or a trailing "LLC"/"Inc." — so one employer's
+               -- sites, and its name spelled two ways, land on one line.
+               -- POSIX classes rather than backslashes: inside this template
+               -- a backslash is dropped before the query is sent, which once
+               -- made the pattern match nothing and listed 28 sites of one
+               -- employer as 28 lines.
+               regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(lower(w.employer),
+                 '[[:space:]][0-9]{2,}[[:space:]].*$', ''),
+                 '[[:space:]]*[(][^)]*[)][[:space:]]*$', ''),
+                 '[[:space:]]+-[[:space:]]+.*$', ''),
+                 '[^a-z0-9 ]', '', 'g'),
+                 '[[:space:]]+(llc|inc|incorporated|corp|corporation|co|company|ltd|lp|llp)$', '') AS gkey
         FROM "WarnNotice" w
         WHERE w."dismissedAt" IS NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
       ),
       kept AS (
-        SELECT b.* FROM base b
+        SELECT b.*,
+               -- A filing the press or layoffs.fyi also reported: two sources agree.
+               (NOT b.reported AND (EXISTS (
+                 SELECT 1 FROM base r
+                 WHERE r.reported AND r."normalizedEmployer" = b."normalizedEmployer"
+                   AND r."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
+               ) OR EXISTS (
+                 SELECT 1 FROM "LayoffNewsMention" m
+                 WHERE m."companyKey" = b."normalizedEmployer"
+                   AND m."publishedAt" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
+               ))) AS also_reported
+        FROM base b
         WHERE NOT b.reported
            OR NOT EXISTS (
              SELECT 1 FROM base f
@@ -112,31 +146,60 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
              CASE WHEN COUNT(DISTINCT k.county) = 1 THEN MIN(k.county) END AS county,
              SUM(k.employees)::int AS workers,
              COUNT(*)::int AS sites,
-             k."noticeDate" AS notice_date,
+             MIN(k."noticeDate") AS notice_date,
              MIN(k."effectiveDate") AS effective_date,
              CASE WHEN COUNT(DISTINCT k."layoffType") = 1 THEN MIN(k."layoffType") END AS type,
              MIN(k."sourceUrl") AS source_url,
              MIN(k.id) AS key,
-             k.reported
+             k.reported,
+             BOOL_OR(k.also_reported) AS also_reported
       FROM kept k
       LEFT JOIN "Company" c ON c.id = k."companyId"
-      -- A site address in brackets after the name ("Kaiser (1840 California
-      -- Ave.)") is the same employer, so it is left out of the grouping.
-      GROUP BY k.state, regexp_replace(lower(k.employer), '\s*\([^)]*\)\s*$', ''), k."noticeDate", k.reported
-      ORDER BY k."noticeDate" DESC, SUM(k.employees) DESC NULLS LAST
+      GROUP BY k.state, k.gkey, k."noticeDate"::date, k.reported
+      ORDER BY MIN(k."noticeDate") DESC, SUM(k.employees) DESC NULLS LAST
       LIMIT ${limit}`
 
+    const yearStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1))
     const [stats] = await prisma.$queryRaw<{
-      n30: number; w30: number | null; s30: number; n: number; s: number; since: Date | null; fetched: Date | null
+      n30: number; w30: number | null; s30: number; ny: number; wy: number | null; sy: number
+      n: number; s: number; since: Date | null; fetched: Date | null; covered: number
     }[]>`
       WITH base AS (
         SELECT w.*,
-               (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported
+               (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported,
+               -- The employer as a grouping key: lower case, without a site
+               -- address in brackets ("Kaiser (1840 California Ave.)"), after
+               -- a dash ("Key Energy Services - Ventura Location") or written
+               -- straight after the name, as Florida does ("Grunt Style, LLC
+               -- 2300 Grand Cypress Dr …"),
+               -- punctuation, or a trailing "LLC"/"Inc." — so one employer's
+               -- sites, and its name spelled two ways, land on one line.
+               -- POSIX classes rather than backslashes: inside this template
+               -- a backslash is dropped before the query is sent, which once
+               -- made the pattern match nothing and listed 28 sites of one
+               -- employer as 28 lines.
+               regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(lower(w.employer),
+                 '[[:space:]][0-9]{2,}[[:space:]].*$', ''),
+                 '[[:space:]]*[(][^)]*[)][[:space:]]*$', ''),
+                 '[[:space:]]+-[[:space:]]+.*$', ''),
+                 '[^a-z0-9 ]', '', 'g'),
+                 '[[:space:]]+(llc|inc|incorporated|corp|corporation|co|company|ltd|lp|llp)$', '') AS gkey
         FROM "WarnNotice" w
         WHERE w."dismissedAt" IS NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
       ),
       kept AS (
-        SELECT b.* FROM base b
+        SELECT b.*,
+               -- A filing the press or layoffs.fyi also reported: two sources agree.
+               (NOT b.reported AND (EXISTS (
+                 SELECT 1 FROM base r
+                 WHERE r.reported AND r."normalizedEmployer" = b."normalizedEmployer"
+                   AND r."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
+               ) OR EXISTS (
+                 SELECT 1 FROM "LayoffNewsMention" m
+                 WHERE m."companyKey" = b."normalizedEmployer"
+                   AND m."publishedAt" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
+               ))) AS also_reported
+        FROM base b
         WHERE NOT b.reported
            OR NOT EXISTS (
              SELECT 1 FROM base f
@@ -144,12 +207,28 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
                AND f."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
            )
       )
+      -- Counted the way the table lists them: one per employer, state and
+      -- date, however many sites the state filed it as.
+      , grouped AS (
+        SELECT k.state, MIN(k."noticeDate") AS "noticeDate", SUM(k.employees) AS employees, MAX(k."fetchedAt") AS "fetchedAt"
+        FROM kept k
+        GROUP BY k.state, k.gkey, k."noticeDate"::date, k.reported
+      )
       SELECT COUNT(*) FILTER (WHERE "noticeDate" > NOW() - INTERVAL '30 days')::int AS n30,
              SUM(employees) FILTER (WHERE "noticeDate" > NOW() - INTERVAL '30 days')::int AS w30,
              COUNT(DISTINCT state) FILTER (WHERE "noticeDate" > NOW() - INTERVAL '30 days')::int AS s30,
+             COUNT(*) FILTER (WHERE "noticeDate" >= ${yearStart})::int AS ny,
+             SUM(employees) FILTER (WHERE "noticeDate" >= ${yearStart})::int AS wy,
+             COUNT(DISTINCT state) FILTER (WHERE "noticeDate" >= ${yearStart})::int AS sy,
              COUNT(*)::int AS n, COUNT(DISTINCT state)::int AS s,
-             MIN("noticeDate") AS since, MAX("fetchedAt") AS fetched
-      FROM kept`
+             MIN("noticeDate") AS since, MAX("fetchedAt") AS fetched,
+             -- A state counts as covered when its own record was read
+             -- successfully in the last two weeks, whether or not it had
+             -- anything new.
+             (SELECT COUNT(DISTINCT state)::int FROM "WarnSyncRun"
+               WHERE state ~ '^[A-Z]{2}$' AND error IS NULL AND "finishedAt" IS NOT NULL
+                 AND "startedAt" > NOW() - INTERVAL '14 days') AS covered
+      FROM grouped`
 
     if (!stats || rows.length === 0) return null
     return {
@@ -157,7 +236,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         key: r.key,
         // Several sites under one name: the bracketed address of whichever
         // row sorted first would describe only one of them.
-        employer: cleanEmployer(r.sites > 1 ? r.employer.replace(/\s*\([^)]*\)\s*$/, '') : r.employer, r.company),
+        employer: cleanEmployer(r.sites > 1 ? r.employer.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+-\s+.*$/, '') : r.employer, r.company),
         state: r.state ?? 'US',
         county: r.county?.replace(/\s+County$/i, '') ?? null,
         workers: r.workers,
@@ -170,9 +249,12 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         sourceUrl: r.source_url && /^https:\/\//.test(r.source_url) ? r.source_url : null,
         origin: r.reported ? 'reported' as const : 'state' as const,
         sourceLabel: r.reported ? reportedLabel(r.source_url) : 'State record',
+        alsoReported: !!r.also_reported,
       })),
+      year: { year: yearStart.getUTCFullYear(), layoffs: stats.ny, workers: stats.wy ?? 0, states: stats.sy },
       last30: { notices: stats.n30, workers: stats.w30 ?? 0, states: stats.s30 },
       total: { notices: stats.n, states: stats.s, since: stats.since ? stats.since.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: TZ }) : '' },
+      statesCovered: stats.covered,
       updatedLabel: stats.fetched ? day(stats.fetched) : '',
     }
   } catch (e) {

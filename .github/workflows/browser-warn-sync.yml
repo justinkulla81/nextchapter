@@ -1,4 +1,4 @@
-# Weekly import of the WARN sources that need a real browser.
+# Daily import of the WARN sources that need a real browser.
 #
 # This runs here rather than on the Vercel cron because a serverless function
 # has no browser. Two things need one: the layoffs.fyi tracker, which serves
@@ -9,9 +9,10 @@ name: Browser WARN sync
 
 on:
   schedule:
-    # Mondays at 08:00 UTC, an hour after the state WARN sync, so the two do
-    # not compete for the same rows.
-    - cron: '0 8 * * 1'
+    # Daily at 08:00 UTC, an hour after the state WARN sync, so the two do
+    # not compete for the same rows. (Weekly until October 2026; the public
+    # layoff tracker made a week-old Texas or layoffs.fyi feed too stale.)
+    - cron: '0 8 * * *'
   workflow_dispatch: {}
 
 jobs:

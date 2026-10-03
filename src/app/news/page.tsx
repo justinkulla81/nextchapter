@@ -5,6 +5,7 @@ import { getPublishedNews } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
+import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function NewsPage() {
-  const [items, tracker] = await Promise.all([getPublishedNews(200), getLayoffTracker()])
+  const [items, tracker, national] = await Promise.all([getPublishedNews(200), getLayoffTracker(), getNationalLaborData()])
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={{
@@ -64,7 +65,7 @@ export default async function NewsPage() {
 
           {tracker && (
             <div className="mt-20 border-t border-border pt-16">
-              <LayoffTracker data={tracker} />
+              <LayoffTracker data={tracker} national={national} />
             </div>
           )}
         </div>

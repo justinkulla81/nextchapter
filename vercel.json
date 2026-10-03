@@ -102,7 +102,7 @@
     },
     {
       "path": "/api/cron/warn-sync",
-      "schedule": "0 7 * * 1"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/gmail-sync",

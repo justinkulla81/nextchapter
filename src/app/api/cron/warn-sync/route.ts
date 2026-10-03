@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { syncAllWarnStates } from '@/lib/warn/sync'
+import { runLayoffNewsCheck } from '@/lib/warn/news-check'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 300
 
 /**
- * Weekly WARN sync — outplacement leads from official state filings.
+ * Daily WARN sync — outplacement leads from official state filings — then the
+ * layoff news check, which adds a layoff reported by two publishers that no
+ * filing covers.
  *
- * Weekly rather than daily because WARN is a legal filing process measured in
- * weeks: a notice must precede the layoff by 60 days, so nothing is lost by
- * checking on Mondays, and a daily fetch of the same 216-row file would be
- * pure waste.
+ * Daily since October 2026. It was weekly, on the reasoning that a WARN notice
+ * precedes its layoff by 60 days; but the tracker is now public, and a filing
+ * that appears on a Tuesday should not wait until the next Monday. The sync
+ * takes about half a minute now that it no longer re-asks the database about
+ * every notice it has already seen.
+ *
+ * The news check runs after the filings so it can see what they already cover.
  */
 export async function GET(request: NextRequest) {
   if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -17,9 +24,19 @@ export async function GET(request: NextRequest) {
   }
   // ?promote=0 stages notices without creating leads, for a dry look.
   const promote = request.nextUrl.searchParams.get('promote') !== '0'
+  let results: Awaited<ReturnType<typeof syncAllWarnStates>> | { error: string }
   try {
-    return NextResponse.json({ results: await syncAllWarnStates(promote) })
+    results = await syncAllWarnStates(promote)
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
+    results = { error: e instanceof Error ? e.message : String(e) }
   }
+  // Independent of the filings: a state that failed does not stop the news.
+  let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
+  try {
+    news = await runLayoffNewsCheck()
+    captureServerEvent('cron', 'layoff_news_check_run', { mentions: news.mentions, added: news.added.length, covered: news.covered })
+  } catch (e) {
+    news = { error: e instanceof Error ? e.message : String(e) }
+  }
+  return NextResponse.json({ results, news })
 }
