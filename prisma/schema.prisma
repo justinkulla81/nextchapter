@@ -1645,6 +1645,9 @@ model CandidateProfile {
   // Higher Ed module (Prisma-virtual back-relation; adds no column).
   institutionMemberships InstitutionMember[]
 
+  // NextChapter Talent: set once this person claims an intake profile.
+  intakeCandidate IntakeCandidate?
+
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
@@ -5153,6 +5156,28 @@ model Recruiter {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmPersonLinks CrmPerson[]
+
+  // NextChapter Talent (recruiter intake) -- spec: Claude Doc "NextChapter
+  // Talent — Recruiter Product Spec" F1. All nullable/defaulted so every
+  // existing recruiter is unaffected until they set up Talent.
+  // Null = not a member of a firm's Talent setup (an independent recruiter
+  // still gets a one-person firm when they set up Talent).
+  firmRole                   RecruiterFirmRole?
+  // Personal Inbound page slug, unique within the firm (/in/<firm>/<slug>).
+  intakeSlug                 String?
+  intakeBio                  String?            @db.Text
+  // Recruiter's own reply wording; used only when the firm allows
+  // recruiters to edit templates. Null = firm default.
+  intakeNicheReplyTemplate   String?            @db.Text
+  intakeOutsideReplyTemplate String?            @db.Text
+  // Round-robin cursor: the recruiter assigned least recently goes next.
+  lastIntakeAssignedAt       DateTime?
+
+  intakeSpecialties RecruiterIntakeSpecialty[]
+  intakeSearches    IntakeSearch[]
+  intakeConnections IntakeConnection[]
+
+  @@unique([recruiterFirmId, intakeSlug])
 }
 
 enum SourcedCandidateStatus {
@@ -7272,6 +7297,346 @@ model RecruiterFirm {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+
+  // NextChapter Talent (recruiter intake), spec F1/F3a/F4. Inbound pages
+  // only go live once the firm is VERIFIED (existing admin verification).
+  // Firm Inbound page slug (/in/<slug>) and forwarding address local part.
+  slug                             String?           @unique
+  accentColor                      String?
+  intakeRoutingMode                IntakeRoutingMode @default(SUGGEST)
+  // Firm admins see every candidate connected to the firm.
+  intakeAdminSeesAll               Boolean           @default(true)
+  intakeRecruitersCanEditTemplates Boolean           @default(true)
+  // Firm-wide out-of-scope rule: below this level (one of
+  // HIGHEST_LEVEL_OPTIONS) a resume is tagged Outside. Null = no floor.
+  intakeMinLevel                   String?
+  intakeNicheReplyTemplate         String?           @db.Text
+  intakeOutsideReplyTemplate       String?           @db.Text
+  // Approved metered-cost guard (2026-10-05): resumes parsed per firm per
+  // UTC day; anything over the cap stays QUEUED for the next day's cron.
+  intakeDailyParseCap              Int               @default(200)
+
+  intakeInvites     RecruiterFirmInvite[]
+  intakeSpecialties IntakeSpecialty[]
+  intakeSearches    IntakeSearch[]
+  intakeConnections IntakeConnection[]
+  intakeResumes     IntakeResume[]
+}
+
+// ── NextChapter Talent (recruiter intake) ───────────────────────────────────
+// Spec: Claude Doc "NextChapter Talent — Recruiter Product Spec" (2026-10-05).
+// "Intake" in code; "NextChapter Talent" is the product name in copy only --
+// src/lib/talent and /talent belong to the hiring-team portal.
+
+enum RecruiterFirmRole {
+  ADMIN
+  RECRUITER
+  COORDINATOR
+}
+
+enum IntakeRoutingMode {
+  AUTO
+  SUGGEST
+  ROUND_ROBIN
+}
+
+enum IntakeSpecialtyType {
+  FUNCTION
+  INDUSTRY
+  LEVEL
+  GEO
+  TAG
+}
+
+enum IntakeSpecialtyWeight {
+  PRIMARY
+  SECONDARY
+}
+
+enum IntakeSearchStatus {
+  OPEN
+  CLOSED
+}
+
+enum IntakeSource {
+  PAGE
+  NOT_FIT_LINK
+  FORWARD
+}
+
+enum IntakeEntryPoint {
+  FIRM_PAGE
+  PERSONAL_PAGE
+  FIRM_ADDRESS
+  PERSONAL_ADDRESS
+}
+
+enum IntakeTag {
+  FIT
+  NICHE
+  OUTSIDE
+}
+
+enum IntakeParseStatus {
+  QUEUED
+  PARSED
+  FAILED
+  NOT_A_RESUME
+}
+
+enum IntakeReplyKind {
+  NICHE
+  OUTSIDE
+}
+
+enum IntakeReplyStatus {
+  DRAFT
+  APPROVED
+  SENT
+  CANCELLED
+}
+
+// Firm admin invites a recruiter by email; accepted in finishRecruiterSignup
+// (or immediately when that email already has a Recruiter row).
+model RecruiterFirmInvite {
+  id          String            @id @default(cuid())
+  firmId      String
+  firm        RecruiterFirm     @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  email       String
+  role        RecruiterFirmRole @default(RECRUITER)
+  token       String            @unique @default(cuid())
+  invitedById String
+  acceptedAt  DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@unique([firmId, email])
+}
+
+// The firm's controlled specialty list; recruiters pick from it so routing
+// can match resumes to people (spec F1).
+model IntakeSpecialty {
+  id        String              @id @default(cuid())
+  firmId    String
+  firm      RecruiterFirm       @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  type      IntakeSpecialtyType
+  name      String
+  createdAt DateTime            @default(now())
+
+  recruiters RecruiterIntakeSpecialty[]
+
+  @@unique([firmId, type, name])
+}
+
+model RecruiterIntakeSpecialty {
+  recruiterId String
+  recruiter   Recruiter             @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  specialtyId String
+  specialty   IntakeSpecialty       @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  weight      IntakeSpecialtyWeight @default(PRIMARY)
+
+  @@id([recruiterId, specialtyId])
+}
+
+// A recruiter's open search; pre-scan tags resumes Fit against these.
+model IntakeSearch {
+  id           String             @id @default(cuid())
+  firmId       String
+  firm         RecruiterFirm      @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  recruiterId  String
+  recruiter    Recruiter          @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  title        String
+  clientName   String?
+  // Never shown to candidates either way; hidden also keeps it out of the
+  // reasons text a coordinator sees.
+  clientHidden Boolean            @default(true)
+  location     String?
+  // Values from PRIMARY_FUNCTION_OPTIONS / HIGHEST_LEVEL_OPTIONS.
+  functions    String[]
+  levels       String[]
+  mustHaves    String[]
+  status       IntakeSearchStatus @default(OPEN)
+  createdAt    DateTime           @default(now())
+  closedAt     DateTime?
+
+  connections IntakeConnection[]
+
+  @@index([firmId, status])
+}
+
+// A person who came in through Talent. Deliberately separate from
+// CandidateProfile: an unclaimed person is not a NextChapter user, never
+// shows up in product queries or analytics, and is purged at purgeAt.
+// candidateId links them once they claim (or when their email already
+// belongs to a NextChapter account -- connections still need their consent).
+model IntakeCandidate {
+  id                String            @id @default(cuid())
+  // Lowercased. The only automatic dedup key; LinkedIn/name matches are
+  // flagged on the connection (possibleDuplicateOfId), never merged.
+  email             String            @unique
+  fullName          String
+  linkedinUrl       String?
+  phone             String?
+  location          String?
+  candidateId       String?           @unique
+  candidate         CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  claimToken        String            @unique @default(cuid())
+  claimedAt         DateTime?
+  claimInvitesSent  Int               @default(0)
+  lastClaimInviteAt DateTime?
+  // Set from the unsubscribe link in any Talent email: no further claim
+  // reminders or replies go to this address.
+  emailOptedOutAt   DateTime?
+  // Unclaimed profiles are deleted at purgeAt (default 60 days); cleared on claim.
+  purgeAt           DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  resumes       IntakeResume[]
+  connections   IntakeConnection[]
+  consentEvents IntakeConsentEvent[]
+
+  @@index([purgeAt])
+}
+
+model IntakeResume {
+  id                String            @id @default(cuid())
+  intakeCandidateId String
+  intakeCandidate   IntakeCandidate   @relation(fields: [intakeCandidateId], references: [id], onDelete: Cascade)
+  // The firm it was submitted to; only that firm can read it.
+  firmId            String
+  firm              RecruiterFirm     @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  // Path in the private `resumes` bucket (intake/<firmId>/<uuid>.<ext>).
+  filePath          String
+  fileName          String
+  fileType          String
+  extractedText     String?           @db.Text
+  parseStatus       IntakeParseStatus @default(QUEUED)
+  parsedJson        Json?
+  parseError        String?
+  parsedAt          DateTime?
+  createdAt         DateTime          @default(now())
+
+  @@index([firmId, parseStatus])
+}
+
+// One row per firm x person: the hopper entry, the tag, and the candidate's
+// consent scopes. Consent is granted to the FIRM (2026-10-05 decision), so
+// it covers whichever recruiter is assigned and survives reassignment.
+model IntakeConnection {
+  id                    String           @id @default(cuid())
+  firmId                String
+  firm                  RecruiterFirm    @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  intakeCandidateId     String
+  intakeCandidate       IntakeCandidate  @relation(fields: [intakeCandidateId], references: [id], onDelete: Cascade)
+  // Null = the firm's general hopper (unassigned, or a Suggest-mode
+  // suggestion awaiting a coordinator).
+  recruiterId           String?
+  recruiter             Recruiter?       @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  suggestedRecruiterId  String?
+  source                IntakeSource
+  entryPoint            IntakeEntryPoint
+  tag                   IntakeTag?
+  tagReasons            String[]
+  tagOverridden         Boolean          @default(false)
+  // Partly matches an open search: never gets an Outside reply.
+  partialSearchMatch    Boolean          @default(false)
+  searchId              String?
+  search                IntakeSearch?    @relation(fields: [searchId], references: [id], onDelete: SetNull)
+  summary               String?          @db.Text
+  candidateNote         String?          @db.Text
+  // Values from INTAKE_CONSENT_SCOPES (src/lib/recruiter/intake/consent.ts).
+  consentScopes         String[]
+  possibleDuplicateOfId String?
+  assignedById          String?
+  assignedAt            DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  disconnectedAt        DateTime?
+
+  consentEvents    IntakeConsentEvent[]
+  routingDecisions IntakeRoutingDecision[]
+  replies          IntakeReply[]
+
+  @@unique([firmId, intakeCandidateId])
+  @@index([firmId, recruiterId])
+}
+
+// Append-only consent ledger.
+model IntakeConsentEvent {
+  id                String           @id @default(cuid())
+  connectionId      String
+  connection        IntakeConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  intakeCandidateId String
+  intakeCandidate   IntakeCandidate  @relation(fields: [intakeCandidateId], references: [id], onDelete: Cascade)
+  firmId            String
+  scope             String
+  granted           Boolean
+  ip                String?
+  createdAt         DateTime         @default(now())
+
+  @@index([connectionId])
+}
+
+// Append-only routing audit trail (suggestions, confirmations, reassigns).
+model IntakeRoutingDecision {
+  id                   String            @id @default(cuid())
+  connectionId         String
+  connection           IntakeConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  mode                 IntakeRoutingMode
+  suggestedRecruiterId String?
+  assignedRecruiterId  String?
+  reassignedFromId     String?
+  reasons              String[]
+  // Recruiter id, or "system".
+  decidedBy            String
+  createdAt            DateTime          @default(now())
+
+  @@index([connectionId])
+}
+
+// Replies to Niche/Outside candidates. Never sent by default: a recruiter
+// approves them (daily email or queue), and sending additionally requires
+// RecruiterSettings.intakeAutoRepliesEnabled (off until counsel clears NYC
+// Local Law 144).
+model IntakeReply {
+  id            String            @id @default(cuid())
+  connectionId  String
+  connection    IntakeConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  kind          IntakeReplyKind
+  subject       String
+  body          String            @db.Text
+  status        IntakeReplyStatus @default(DRAFT)
+  approvedById  String?
+  approvedAt    DateTime?
+  cancelledById String?
+  cancelledAt   DateTime?
+  sentAt        DateTime?
+  sendError     String?
+  createdAt     DateTime          @default(now())
+
+  @@index([status])
+}
+
+model IntakeParseUsage {
+  firmId String
+  day    DateTime @db.Date
+  count  Int      @default(0)
+
+  @@id([firmId, day])
+}
+
+// Inbound forwarded-email log; providerEmailId makes webhook retries idempotent.
+model IntakeInboundEmail {
+  id              String   @id @default(cuid())
+  providerEmailId String   @unique
+  toAddress       String
+  fromAddress     String
+  subject         String?
+  firmId          String?
+  recruiterId     String?
+  status          String
+  attachmentCount Int      @default(0)
+  createdAt       DateTime @default(now())
 }
 
 enum RecruiterFeeArrangementType {
@@ -7308,6 +7673,11 @@ model RecruiterSettings {
   // suspension when feedbackSlaEnforcement = SUSPEND. Not yet consumed by
   // any enforcement job -- recorded policy, no automation built this phase.
   feedbackNonResponseSuspendThreshold Int                          @default(3)
+
+  // NextChapter Talent: master switch for SENDING approved Niche/Outside
+  // replies. Off until counsel confirms NYC Local Law 144 treatment of
+  // pre-scan (spec open question). Approvals still record while off.
+  intakeAutoRepliesEnabled Boolean @default(false)
 
   updatedAt DateTime @updatedAt
   updatedBy String?
@@ -9909,8 +10279,8 @@ model WarnNotice {
   fetchedAt DateTime @default(now())
 
   /// Set once this has been turned into an outplacement lead.
-  promotedAt    DateTime?
-  promotedOrgId String?
+  promotedAt       DateTime?
+  promotedOrgId    String?
   /// The local workforce board for where the layoff is, and how it was
   /// found: 'county' (the filing named it), 'city' (via the Census), or
   /// 'statewide'. boardCheckedAt is set even when none was found.
@@ -9918,8 +10288,8 @@ model WarnNotice {
   boardMatch       String?
   boardCheckedAt   DateTime?
   /// Set when reviewed and deliberately not promoted.
-  dismissedAt   DateTime?
-  dismissReason String?
+  dismissedAt      DateTime?
+  dismissReason    String?
 
   /// The employer's Company record — auto-matched on a strict normalized-name
   /// key, auto-created when nothing exists, or left null with a status of

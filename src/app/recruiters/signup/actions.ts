@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
+import { slugify } from '@/lib/recruiter/intake/slug'
 
 export type CompleteRecruiterSignupState = { error?: string } | undefined
 
@@ -25,7 +26,30 @@ async function finishRecruiterSignup(
 
   await grantRoleIfMissing(userId, 'recruiter')
 
-  captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id })
+  // NextChapter Talent: a firm admin invited this email — join that firm.
+  // Never moves someone already on a firm's Talent team.
+  const invite = recruiter.firmRole
+    ? null
+    : await prisma.recruiterFirmInvite.findFirst({
+        where: { email: workEmail.toLowerCase(), acceptedAt: null },
+        include: { firm: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+      })
+  if (invite) {
+    await prisma.recruiter.update({
+      where: { id: recruiter.id },
+      data: {
+        recruiterFirmId: invite.firmId,
+        firmRole: invite.role,
+        firmName: invite.firm.name,
+        intakeSlug: recruiter.intakeSlug ?? (slugify(fullName) || null),
+      },
+    })
+    await prisma.recruiterFirmInvite.update({ where: { id: invite.id }, data: { acceptedAt: new Date() } })
+    captureServerEvent(recruiter.id, 'talent_firm_invite_accepted', { recruiterId: recruiter.id, firmId: invite.firmId, role: invite.role })
+  }
+
+  captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id, joinedFirmViaInvite: !!invite })
   return recruiter
 }
 

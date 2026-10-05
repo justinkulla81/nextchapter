@@ -37,8 +37,8 @@ export function RecruiterDatabaseOptIn({
       <p className="font-medium text-foreground">Recruiter database</p>
       <p className="mt-1 text-sm text-muted-foreground">
         {optedIn
-          ? "You're opted in. Employers using NextChapter's Talent tools can find and match against your profile for roles you fit."
-          : "Not listed by default. Employers using NextChapter's Talent tools can only match you against open roles if you opt in here — this is separate from your privacy tier above."}
+          ? "You're opted in. Employers using NextChapter's hiring tools can find and match against your profile for roles you fit."
+          : "Not listed by default. Employers using NextChapter's hiring tools can only match you against open roles if you opt in here — this is separate from your privacy tier above."}
       </p>
       {optedIn && (
         <p className="mt-1 text-sm text-muted-foreground">

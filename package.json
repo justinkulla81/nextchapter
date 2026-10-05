@@ -51,7 +51,8 @@
     "crm:purge-precutoff": "tsx --env-file=.env.local scripts/crm/purge-precutoff-activities.ts",
     "crm:nextchapter-filter": "tsx --env-file=.env.local scripts/crm/apply-nextchapter-filter.ts",
     "he:rls": "tsx --env-file=.env.local scripts/higher-ed/apply-rls.ts",
-    "verify:he-rls": "tsx --env-file=.env.local scripts/higher-ed/verify-rls.ts"
+    "verify:he-rls": "tsx --env-file=.env.local scripts/higher-ed/verify-rls.ts",
+    "verify:talent-intake": "node --env-file=.env.local --conditions=react-server --import tsx scripts/verify-talent-intake.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

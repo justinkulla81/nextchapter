@@ -17,18 +17,27 @@ import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
 
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
-  const [dossierStatus, coach] = await Promise.all([
+  const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
       : Promise.resolve(null),
+    // NextChapter Talent: firms this candidate is connected to through a
+    // recruiter's Inbound page or forwarded resume.
+    prisma.intakeConnection.findMany({
+      where: { disconnectedAt: null, intakeCandidate: { candidateId: profile.id } },
+      include: { firm: { select: { name: true } }, recruiter: { select: { fullName: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
   ])
+  const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
   return (
     <div className="space-y-8">
@@ -63,10 +72,10 @@ export default async function PrivacyPage() {
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>
-          <h2 className="text-lg font-semibold">Talent &amp; recruiter matching</h2>
+          <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Separate from your privacy tier above — this controls whether employers using
-            NextChapter&apos;s Talent tools can match you against open roles at all.
+            NextChapter&apos;s hiring tools can match you against open roles at all.
           </p>
         </div>
         <RecruiterDatabaseOptIn
@@ -76,6 +85,27 @@ export default async function PrivacyPage() {
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
+
+      {intakeConnections.length > 0 && (
+        <div id="my-recruiters" className="space-y-3 border-t border-border pt-8">
+          <div>
+            <h2 className="text-lg font-semibold">My recruiters</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Search firms you&apos;re connected to through NextChapter. You choose what each one sees, and you can
+              disconnect anytime. You&apos;re never charged anything because of a recruiter connection.
+            </p>
+          </div>
+          <MyRecruitersSection
+            connections={intakeConnections.map((c) => ({
+              id: c.id,
+              firmName: c.firm.name,
+              recruiterName: c.recruiter?.fullName ?? null,
+              source: SOURCE_LABEL[c.source],
+              scopes: c.consentScopes,
+            }))}
+          />
+        </div>
+      )}
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

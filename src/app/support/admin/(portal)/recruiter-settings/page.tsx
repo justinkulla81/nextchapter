@@ -2,7 +2,8 @@ import { ChevronDown } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
-import { saveRecruiterSettings, createRecruiterFirm, updateRecruiterFirm } from './actions'
+import { saveRecruiterSettings, createRecruiterFirm, updateRecruiterFirm, setIntakeAutoRepliesEnabled } from './actions'
+import { ConfirmingActionButton } from '@/components/recruiter/talent/TalentForms'
 import { RecruiterSettingsForm } from '@/components/admin/RecruiterSettingsForm'
 import { RecruiterFirmForm } from '@/components/admin/RecruiterFirmForm'
 import { Card, CardContent } from '@/components/ui/card'
@@ -39,6 +40,25 @@ export default async function RecruiterSettingsAdminPage() {
       <div className="space-y-3">
         <h2 className="text-base font-semibold tracking-tight">Global settings</h2>
         <RecruiterSettingsForm action={saveRecruiterSettings} existing={settings} />
+      </div>
+
+      <div className="space-y-3 rounded-lg border border-border p-5">
+        <h2 className="text-base font-semibold tracking-tight">NextChapter Talent replies</h2>
+        <p className="text-sm text-muted-foreground">
+          {settings.intakeAutoRepliesEnabled
+            ? 'On: replies recruiters approve are emailed to candidates.'
+            : 'Off: recruiters can approve replies, but nothing is emailed. Keep this off until counsel confirms how NYC Local Law 144 applies to pre-scan, and INTAKE_POSTAL_ADDRESS is set.'}
+        </p>
+        <ConfirmingActionButton
+          label={settings.intakeAutoRepliesEnabled ? 'Turn sending off' : 'Turn sending on'}
+          variant={settings.intakeAutoRepliesEnabled ? 'outline' : 'default'}
+          confirmText={
+            settings.intakeAutoRepliesEnabled
+              ? 'Stop sending Talent replies? Approved replies will wait.'
+              : 'Start sending Talent replies? Every reply recruiters have already approved goes out on the next daily run. Confirm counsel has signed off.'
+          }
+          onAction={setIntakeAutoRepliesEnabled.bind(null, !settings.intakeAutoRepliesEnabled)}
+        />
       </div>
 
       <div className="space-y-4">

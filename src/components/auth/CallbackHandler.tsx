@@ -15,6 +15,7 @@ import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actio
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
 import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
+import { finishTalentClaim } from '@/app/in/claim/[token]/actions'
 import { finishAcceptingOutplacementSeat } from '@/app/employer/seats/accept/[token]/actions'
 import { finishAcceptingOutplacementOrgInvite } from '@/app/employer/invite/accept/[token]/actions'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
@@ -45,6 +46,9 @@ export function CallbackHandler() {
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
   const nextIsRecruiterSource = searchParams.get('next') === 'recruiter-source'
+  // NextChapter Talent: a candidate opening the free profile a recruiter's
+  // intake created for them. Candidate account, default cookie.
+  const nextIsTalentClaim = searchParams.get('next') === 'talent-claim'
   const nextIsOutplacementSeat = searchParams.get('next') === 'outplacement-seat'
   const nextIsOutplacementOrgInvite = searchParams.get('next') === 'outplacement-org-invite'
   const inviteToken = searchParams.get('inviteToken')
@@ -192,6 +196,23 @@ export function CallbackHandler() {
       const result = await finishAcceptingCoachInvite(inviteToken)
       if (result.error) {
         console.error('finishAcceptingCoachInvite error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('secure-account')
+      return
+    }
+    if (nextIsTalentClaim) {
+      // Same shape as nextIsRecruiterSource: admin-generated magic link, so
+      // they set a password next, then continue into onboarding for their
+      // free Market Reality read.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishTalentClaim(inviteToken)
+      if (result.error) {
+        console.error('finishTalentClaim error:', result.error)
         setStatus('error')
         return
       }

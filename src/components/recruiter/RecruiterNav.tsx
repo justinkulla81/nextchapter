@@ -32,9 +32,10 @@ interface NavLink {
 
 // Job Board submit/submissions and Search Calibration are accessToken-gated
 // URLs, same pre-Supabase-auth wrinkle as the Coach portal.
-function buildLinks(accessToken: string, messagesUnreadCount: number, actionCount: number): NavLink[] {
+function buildLinks(accessToken: string, messagesUnreadCount: number, actionCount: number, talentDraftCount: number): NavLink[] {
   return [
     { href: '/recruiters/dashboard', label: 'Home' },
+    { href: '/recruiters/talent', label: 'Talent', badge: talentDraftCount > 0 ? String(talentDraftCount) : undefined },
     { href: '/recruiters/search', label: 'Candidate Search' },
     {
       href: '/recruiters/candidates',
@@ -98,14 +99,17 @@ export function RecruiterNav({
   accessToken,
   messagesUnreadCount = 0,
   actionCount = 0,
+  talentDraftCount = 0,
 }: {
   accessToken: string
   messagesUnreadCount?: number
   actionCount?: number
+  // NextChapter Talent replies waiting for this recruiter's approval.
+  talentDraftCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const links = buildLinks(accessToken, messagesUnreadCount, actionCount)
+  const links = buildLinks(accessToken, messagesUnreadCount, actionCount, talentDraftCount)
   const current = links.find((link) =>
     link.href === '/recruiters/dashboard'
       ? pathname === link.href

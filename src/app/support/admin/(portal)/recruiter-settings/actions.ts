@@ -119,3 +119,14 @@ export async function updateRecruiterFirm(firmId: string, _prevState: FormState,
 
   revalidatePath('/support/admin/recruiter-settings')
 }
+
+// NextChapter Talent master switch for sending recruiter-approved replies.
+// Off until counsel confirms NYC Local Law 144 treatment of pre-scan; the
+// change goes through updateRecruiterSettings so it lands in the change log.
+export async function setIntakeAutoRepliesEnabled(enabled: boolean): Promise<void> {
+  const admin = await requireAdmin()
+  const actor = admin?.email ?? 'admin'
+  await updateRecruiterSettings({ intakeAutoRepliesEnabled: enabled }, actor)
+  captureServerEvent(actor, 'talent_reply_sending_toggled', { enabled })
+  revalidatePath('/support/admin/recruiter-settings')
+}

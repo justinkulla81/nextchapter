@@ -48,6 +48,11 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     // company's departing employees relaunch, not helping a company hire).
     // This tab is the Talent portal (post a role, hire NextChapter
     // candidates directly) — see /hire/page.tsx.
+    // `audience` is the value stored on waitlist rows, not shown to anyone;
+    // kept as 'Talent' so existing signups still group together. The
+    // product name "NextChapter Talent" now belongs to the recruiter
+    // intake product (2026-10-05); this portal is "NextChapter for Hiring
+    // Teams" everywhere it's shown.
     id: 'talent',
     audience: 'Talent',
     eyebrow: 'For Hiring Teams',

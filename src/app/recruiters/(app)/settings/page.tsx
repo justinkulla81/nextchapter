@@ -52,7 +52,7 @@ export default async function RecruiterSettingsPage() {
           <div>
             <h2 className="text-lg font-semibold">Firm logo</h2>
             <p className="text-sm text-muted-foreground">
-              Used to brand submission packets you generate for {firm.name} — never shown to candidates.
+              Used on submission packets you generate for {firm.name}, and on your firm&apos;s NextChapter Talent pages that candidates see.
             </p>
           </div>
           <AvatarUploadForm

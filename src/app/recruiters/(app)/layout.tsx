@@ -12,9 +12,16 @@ export const metadata: Metadata = {
 export default async function RecruiterAppLayout({ children }: { children: React.ReactNode }) {
   const recruiter = await getCurrentRecruiter()
 
-  const [messagesUnreadCount, addedNotYetInvited] = await Promise.all([
+  const [messagesUnreadCount, addedNotYetInvited, talentDraftCount] = await Promise.all([
     getRecruiterUnreadCount(recruiter.id),
     prisma.sourcedCandidate.count({ where: { recruiterId: recruiter.id, status: 'ADDED' } }),
+    // Badge only counts replies on candidates assigned to this recruiter;
+    // the general hopper is surfaced on the Talent page itself.
+    recruiter.firmRole
+      ? prisma.intakeReply.count({
+          where: { status: 'DRAFT', connection: { recruiterId: recruiter.id, disconnectedAt: null } },
+        })
+      : Promise.resolve(0),
   ])
 
   return (
@@ -23,6 +30,7 @@ export default async function RecruiterAppLayout({ children }: { children: React
         accessToken={recruiter.accessToken}
         messagesUnreadCount={messagesUnreadCount}
         actionCount={addedNotYetInvited}
+        talentDraftCount={talentDraftCount}
       />
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an
