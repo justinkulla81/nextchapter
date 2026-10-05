@@ -1,21 +1,12 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
 import { prisma } from '@/lib/prisma'
-import { countyKey } from './places'
+import { countyKey, STATE_NAMES } from './places'
 
 const BASE = 'https://www.careeronestop.org/LocalHelp/WorkforceDevelopment'
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36'
 
-export const STATE_NAMES: Record<string, string> = {
-  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut',
-  DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
-  IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
-  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana',
-  NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
-  NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
-  RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah',
-  VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
-}
+export { STATE_NAMES } from './places'
 
 async function getHtml(url: string): Promise<string> {
   const res = await fetch(url, { signal: AbortSignal.timeout(20_000), headers: { 'User-Agent': UA } })
@@ -29,6 +20,8 @@ export interface BoardDetails {
   directorName: string | null; directorTitle: string | null; directorEmail: string | null; directorPhone: string | null
   chairName: string | null; chairEmail: string | null; chairPhone: string | null
 }
+
+const PLACE_PREFIX = /^(cities|city|towns?|townships?|municipalities|boroughs?):/i
 
 const clean = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim() || null
 
@@ -55,13 +48,15 @@ export function parseBoardDetails(id: string, html: string): BoardDetails | null
   const zip = addressLines.at(-1)?.match(/\b(\d{5})(?:-\d{4})?\s*$/)?.[1] ?? null
   const website = board.find('.wrapurl a[href^="http"]').first().attr('href') ?? null
 
-  // "Service Area:" is counties, sometimes followed by a "City:" line for a
-  // board that covers one city inside a county another board also serves.
+  // "Service Area:" is counties, or places where a state draws its areas by
+  // town (Massachusetts: "Towns: Abington, Avon, …"), or both — a county
+  // line then a "City:" line for a board that serves one city inside it.
   const areaCell = board.find('td').filter((_, td) => $(td).text().includes('Service Area:')).first()
   const areaLines = brLines(areaCell.find('span.notranslate').first())
-  const countyLines = areaLines.filter((l) => !/^city:/i.test(l))
-  const cityLines = areaLines.filter((l) => /^city:/i.test(l)).map((l) => l.replace(/^city:\s*/i, ''))
-  const serviceArea = [countyLines.join(', '), ...cityLines.map((c) => `City: ${c}`)].filter(Boolean).join('; ') || null
+  const isPlaces = (l: string) => PLACE_PREFIX.test(l)
+  const countyLines = areaLines.filter((l) => !isPlaces(l)).map((l) => l.replace(/^(counties|county|parishes|parish):\s*/i, ''))
+  const placeLines = areaLines.filter(isPlaces).map((l) => l.replace(/:\s+/, ': '))
+  const serviceArea = [countyLines.join(', '), ...placeLines].filter(Boolean).join('; ') || null
 
   type Contact = { title: string; name: string | null; email: string | null; phone: string | null }
   const contacts: Contact[] = []

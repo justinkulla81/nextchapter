@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { cityFromAddress, countyKey, placeKey } from '@/lib/workforce/places'
+import { areaPlaces, cityFromAddress, countyKey, placeKey, placeKeys, trailingStreetAddress } from '@/lib/workforce/places'
 import { parseBoardDetails } from '@/lib/workforce/directory'
-import { pickBoard } from '@/lib/workforce/match'
+import { boardFromNamedArea, pickBoard } from '@/lib/workforce/match'
 
 describe('placeKey / countyKey', () => {
   it('matches a Census place name to how a filing writes it', () => {
@@ -27,9 +27,30 @@ describe('cityFromAddress', () => {
     expect(cityFromAddress('Chattanooga, TN', 'OR')).toBeNull()
     expect(cityFromAddress('100 Main St Austin TX 78701', 'CA')).toBeNull()
   })
+  it('reads a spelled-out state', () => {
+    expect(cityFromAddress('9713 Key West Avenue, Rockville Maryland 20850', 'MD')).toBe('Rockville')
+  })
+  it('takes "City, ST" in its own state', () => {
+    expect(cityFromAddress('Cambridge, MA', 'MA')).toBe('Cambridge')
+  })
   it('takes a bare city, not filler', () => {
     expect(cityFromAddress('Jersey City', 'NJ')).toBe('Jersey City')
     expect(cityFromAddress('Remote', 'NJ')).toBeNull()
+  })
+})
+
+describe('place helpers', () => {
+  it('tries a city with and without its suffix', () => {
+    expect(placeKeys('PLANT CITY')).toEqual(['plant', 'plant city'])
+  })
+  it('reads the towns and cities a service area names', () => {
+    expect(areaPlaces('Towns: Abington, Barnstable Town, Brockton')).toEqual(['abington', 'barnstable', 'brockton'])
+    expect(areaPlaces('Tarrant; City: City of Fort Worth')).toEqual(['fort worth'])
+    expect(areaPlaces('Collin, Denton')).toEqual([])
+  })
+  it('finds the street address Florida files inside the employer', () => {
+    expect(trailingStreetAddress('Saddle Creek Corporation 771 S. County Line Road PLANT CITY, FL, 33566')).toBe('771 S. County Line Road PLANT CITY, FL, 33566')
+    expect(trailingStreetAddress('Acme Corp')).toBeNull()
   })
 })
 
@@ -61,6 +82,13 @@ describe('parseBoardDetails', () => {
     })
   })
 
+  it('keeps a town-drawn area as places, not counties', () => {
+    const towns = html.replace('Collin, Denton, Palo Pinto<br>City:  City of Fort Worth', 'Towns: Abington, Avon')
+    const b = parseBoardDetails('290', towns)!
+    expect(b.counties).toEqual([])
+    expect(b.serviceArea).toBe('Towns: Abington, Avon')
+  })
+
   it('returns null for a page without a board', () => {
     expect(parseBoardDetails('1', '<html><body>Not found</body></html>')).toBeNull()
   })
@@ -88,6 +116,15 @@ describe('pickBoard', () => {
     expect(pickBoard(boards, null, 'Fort Worth')?.id).toBe('fw')
   })
 
+  it('gives a town to the board that lists it', () => {
+    const boards = [
+      board('boston', [], { serviceArea: 'Town: Boston' }),
+      board('metro-north', [], { serviceArea: 'Towns: Arlington, Cambridge, Somerville' }),
+    ]
+    expect(pickBoard(boards, 'Middlesex County', 'Cambridge')?.id).toBe('metro-north')
+    expect(pickBoard(boards, null, 'Boston')?.id).toBe('boston')
+  })
+
   it('falls back to a single-area state’s only board', () => {
     expect(pickBoard([board('vt', ['vermont'], { statewide: true })], null, null)?.id).toBe('vt')
     expect(pickBoard([board('state', [], { statewide: true }), board('only', ['x'])], null, null)?.id).toBe('only')
@@ -95,5 +132,20 @@ describe('pickBoard', () => {
 
   it('gives up rather than guess between several boards', () => {
     expect(pickBoard([board('a', ['x']), board('b', ['y'])], null, 'Somewhere')).toBeNull()
+  })
+})
+
+describe('boardFromNamedArea', () => {
+  const boards = [
+    { id: 'adams', name: 'Adams County Workforce Development Board', counties: ['adams'], serviceArea: 'Adams', statewide: false },
+    { id: 'pp', name: "Pike's Peak Workforce Development Board", counties: ['el paso', 'teller'], serviceArea: 'El Paso, Teller', statewide: false },
+    { id: 'rural', name: 'Workforce Colorado Rural Alliance Workforce Development Board', counties: ['pueblo', 'montrose'], serviceArea: 'Pueblo, Montrose', statewide: false },
+    { id: 'co', name: 'Colorado Workforce Development Council', counties: ['colorado'], serviceArea: 'Colorado', statewide: true },
+  ]
+  it('reads a county or a board named where the address goes', () => {
+    expect(boardFromNamedArea(boards, 'Denver/Adams')?.id).toBe('adams')
+    expect(boardFromNamedArea(boards, 'Pikes Peak')?.id).toBe('pp')
+    expect(boardFromNamedArea(boards, 'Rural Allaince (Montrose)')?.id).toBe('rural')
+    expect(boardFromNamedArea(boards, 'Statewide')).toBeNull()
   })
 })

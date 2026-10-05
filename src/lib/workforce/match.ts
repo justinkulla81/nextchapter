@@ -1,21 +1,32 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { cityFromAddress, countyKey, placeKey } from './places'
+import { areaPlaces, cityFromAddress, countyKey, placeKey, placeKeys, trailingStreetAddress } from './places'
 
 const MAX_AGE_DAYS = 540
+const GEOCODER = 'https://geocoding.geo.census.gov/geocoder/geographies'
+const LAYERS = 'benchmark=Public_AR_Current&vintage=Current_Current&layers=Counties&format=json'
+
+type CountyResult = { NAME?: string }[] | undefined
 
 /** The county a coordinate sits in, from the Census Bureau's free geocoder. */
 async function countyAt(lat: number, lon: number): Promise<string | null> {
-  const url = `https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=${lon}&y=${lat}&benchmark=Public_AR_Current&vintage=Current_Current&layers=Counties&format=json`
-  const res = await fetch(url, { signal: AbortSignal.timeout(15_000) })
+  const res = await fetch(`${GEOCODER}/coordinates?x=${lon}&y=${lat}&${LAYERS}`, { signal: AbortSignal.timeout(15_000) })
   if (!res.ok) return null
-  const data = (await res.json()) as { result?: { geographies?: { Counties?: { NAME?: string }[] } } }
+  const data = (await res.json()) as { result?: { geographies?: { Counties?: CountyResult } } }
   return data.result?.geographies?.Counties?.[0]?.NAME ?? null
+}
+
+/** The county a street address is in — for places too small for the Census place list. */
+async function countyAtAddress(address: string): Promise<string | null> {
+  const res = await fetch(`${GEOCODER}/onelineaddress?address=${encodeURIComponent(address)}&${LAYERS}`, { signal: AbortSignal.timeout(15_000) })
+  if (!res.ok) return null
+  const data = (await res.json()) as { result?: { addressMatches?: { geographies?: { Counties?: CountyResult } }[] } }
+  return data.result?.addressMatches?.[0]?.geographies?.Counties?.[0]?.NAME ?? null
 }
 
 /** The county a city is in: from the Census place list, then the geocoder, kept once found. */
 async function countyForCity(city: string, state: string): Promise<string | null> {
-  const places = await prisma.geoPlace.findMany({ where: { state, nameKey: placeKey(city) }, orderBy: { population: 'desc' }, take: 1 })
+  const places = await prisma.geoPlace.findMany({ where: { state, nameKey: { in: placeKeys(city) } }, orderBy: { population: 'desc' }, take: 1 })
   const place = places[0]
   if (!place) return null
   if (place.countyCheckedAt) return place.county
@@ -27,18 +38,16 @@ async function countyForCity(city: string, state: string): Promise<string | null
 type Board = { id: string; name: string; counties: string[]; serviceArea: string | null; statewide: boolean }
 
 /**
- * The board for a county: the one whose service area lists it. Where
- * several do — Los Angeles County has a county board and several city ones —
- * a board whose area names the notice's city wins, then one that is not a
- * single city's.
+ * The board for a place. A city or town a board names in its service area
+ * is that board's — Los Angeles, Oakland, Phoenix and Denver have their own
+ * boards inside a county another board serves, and Massachusetts draws every
+ * area by town. Otherwise the board whose area lists the county; where
+ * several do, one that is not a single city's.
  */
 export function pickBoard(boards: Board[], county: string | null, city: string | null): Board | null {
-  // A city with its own board (Los Angeles, Oakland, Phoenix, Denver) is
-  // served by it, whatever county board also covers the ground around it.
-  const cities = (b: Board) => [...(b.serviceArea ?? '').matchAll(/City:\s*([^;]+)/gi)].map((m) => placeKey(m[1].replace(/^city of\s+/i, '')))
-  const c = city ? placeKey(city) : null
-  if (c) {
-    const own = boards.find((b) => !b.statewide && cities(b).includes(c))
+  if (city) {
+    const keys = placeKeys(city)
+    const own = boards.find((b) => !b.statewide && areaPlaces(b.serviceArea).some((p) => keys.includes(p)))
     if (own) return own
   }
   if (county) {
@@ -46,7 +55,7 @@ export function pickBoard(boards: Board[], county: string | null, city: string |
     const covering = boards.filter((b) => !b.statewide && b.counties.includes(key))
     if (covering.length === 1) return covering[0]
     if (covering.length > 1) {
-      return covering.find((b) => cities(b).length === 0 && !/^city of\b/i.test(b.name)) ?? covering[0]
+      return covering.find((b) => areaPlaces(b.serviceArea).length === 0 && !/^city of\b/i.test(b.name)) ?? covering[0]
     }
   }
   // A state run as one workforce area has one board for everywhere.
@@ -57,14 +66,37 @@ export function pickBoard(boards: Board[], county: string | null, city: string |
 }
 
 /**
+ * Some states put the workforce area itself where the address goes —
+ * Colorado writes "Adams", "Denver/Adams", "Pikes Peak", "Pueblo (Rural
+ * Alliance)". A part that is a county one board serves, or that names one
+ * board, settles it.
+ */
+export function boardFromNamedArea(boards: Board[], text: string | null): Board | null {
+  if (!text) return null
+  const parts = text.split(/[/,()]|\band\b/i).map((p) => p.trim()).filter((p) => p.length >= 4 && !/^(statewide|remote|multiple|various)/i.test(p))
+  const local = boards.filter((b) => !b.statewide)
+  for (const part of parts) {
+    const byCounty = local.filter((b) => b.counties.includes(countyKey(part)))
+    if (byCounty.length === 1) return byCounty[0]
+  }
+  for (const part of parts) {
+    const k = placeKey(part)
+    const byName = local.filter((b) => placeKey(b.name).includes(k))
+    if (byName.length === 1) return byName[0]
+  }
+  return null
+}
+
+/**
  * Finds the local workforce board for notices that have not been checked,
  * newest first, until the time budget is spent.
  *
  * The county comes from the filing when the state publishes one (California,
  * Texas, Iowa, Mississippi); otherwise from the city in the address, through
- * the Census place list and geocoder. A notice whose place cannot be pinned
- * down — "Remote", a headquarters in another state — is marked checked with
- * no board, and shows the state's board list instead.
+ * the Census place list, or the street address through the Census geocoder.
+ * A notice whose place cannot be pinned down — "SF Bay Area", a
+ * headquarters in another state — is marked checked with no board, and
+ * shows the state's board list instead.
  */
 export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked: number; matched: number }> {
   const started = Date.now()
@@ -78,26 +110,39 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
     // state's boards arrive would otherwise be marked "no board" for good.
     where: { boardCheckedAt: null, dismissedAt: null, state: { in: [...boardsByState.keys()] }, noticeDate: { gte: new Date(Date.now() - MAX_AGE_DAYS * 86_400_000) } },
     orderBy: { noticeDate: 'desc' },
-    select: { id: true, state: true, county: true, address: true },
+    select: { id: true, state: true, county: true, address: true, employer: true },
     take: 2000,
   })
   let checked = 0
   let matched = 0
-  const countyCache = new Map<string, string | null>()
+  const cache = new Map<string, string | null>()
+  const cached = async (key: string, find: () => Promise<string | null>) => {
+    if (!cache.has(key)) cache.set(key, await find().catch(() => null))
+    return cache.get(key) ?? null
+  }
   for (const n of notices) {
     if (Date.now() - started > budgetMs) break
-    const boards = boardsByState.get(n.state!) ?? []
-    const city = cityFromAddress(n.address, n.state)
+    const state = n.state!
+    const boards = boardsByState.get(state) ?? []
+    // Florida files the address inside the employer name.
+    const street = trailingStreetAddress(n.address) ?? (n.address ? null : trailingStreetAddress(n.employer))
+    const city = cityFromAddress(n.address, state) ?? (street ? cityFromAddress(street, state) : null)
     let county = n.county
-    let how: 'county' | 'city' | 'statewide' | null = county ? 'county' : null
+    let how: string | null = county ? 'county' : null
     if (!county && city) {
-      const k = `${n.state}|${placeKey(city)}`
-      if (!countyCache.has(k)) countyCache.set(k, await countyForCity(city, n.state!).catch(() => null))
-      county = countyCache.get(k) ?? null
+      county = await cached(`${state}|${placeKey(city)}`, () => countyForCity(city, state))
       if (county) how = 'city'
     }
-    const board = pickBoard(boards, county, city)
-    if (board && !how) how = 'statewide'
+    if (!county && street && cityFromAddress(street, state)) {
+      county = await cached(`addr|${street}`, () => countyAtAddress(street))
+      if (county) how = 'address'
+    }
+    let board = pickBoard(boards, county, city)
+    if (board && !how) how = city && areaPlaces(board.serviceArea).length ? 'city' : 'statewide'
+    if (!board) {
+      board = boardFromNamedArea(boards, n.address)
+      if (board) how = 'area'
+    }
     await prisma.warnNotice.update({
       where: { id: n.id },
       data: { boardCheckedAt: new Date(), workforceBoardId: board?.id ?? null, boardMatch: board ? how : null },
