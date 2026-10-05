@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { syncAllWarnStates, promoteNoticesForKnownOrgs } from '@/lib/warn/sync'
 import { runLayoffNewsCheck } from '@/lib/warn/news-check'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { matchNoticesToBoards } from '@/lib/workforce/match'
 
 export const maxDuration = 300
 
@@ -17,11 +18,13 @@ export const maxDuration = 300
  * every notice it has already seen.
  *
  * The news check runs after the filings so it can see what they already cover.
+ * Last, new notices get their local workforce board, in whatever time is left.
  */
 export async function GET(request: NextRequest) {
   if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const started = Date.now()
   // ?promote=0 stages notices without creating leads, for a dry look.
   const promote = request.nextUrl.searchParams.get('promote') !== '0'
   let results: Awaited<ReturnType<typeof syncAllWarnStates>> | { error: string }
@@ -47,5 +50,11 @@ export async function GET(request: NextRequest) {
   } catch (e) {
     news = { error: e instanceof Error ? e.message : String(e) }
   }
-  return NextResponse.json({ results, known, news })
+  let boards: Awaited<ReturnType<typeof matchNoticesToBoards>> | { error: string }
+  try {
+    boards = await matchNoticesToBoards(Math.max(0, 270_000 - (Date.now() - started)))
+  } catch (e) {
+    boards = { error: e instanceof Error ? e.message : String(e) }
+  }
+  return NextResponse.json({ results, known, news, boards })
 }

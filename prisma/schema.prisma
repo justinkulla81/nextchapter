@@ -9883,6 +9883,12 @@ model WarnNotice {
   /// Set once this has been turned into an outplacement lead.
   promotedAt    DateTime?
   promotedOrgId String?
+  /// The local workforce board for where the layoff is, and how it was
+  /// found: 'county' (the filing named it), 'city' (via the Census), or
+  /// 'statewide'. boardCheckedAt is set even when none was found.
+  workforceBoardId String?
+  boardMatch       String?
+  boardCheckedAt   DateTime?
   /// Set when reviewed and deliberately not promoted.
   dismissedAt   DateTime?
   dismissReason String?
@@ -9947,6 +9953,54 @@ model LayoffNewsMention {
   createdAt   DateTime  @default(now())
 
   @@index([companyKey, publishedAt])
+}
+
+/// A local workforce development board (the WIOA board for an area), from
+/// the U.S. Department of Labor's CareerOneStop directory. The board runs
+/// the American Job Centers and Rapid Response for layoffs in its counties,
+/// which makes it the public partner for any WARN notice there.
+model WorkforceBoard {
+  /// CareerOneStop's own id for the board.
+  id            String   @id
+  state         String
+  name          String
+  address       String?
+  zip           String?
+  website       String?
+  /// Service-area counties, lower case, without "County"/"Parish".
+  counties      String[] @default([])
+  serviceArea   String?
+  /// Covers the whole state (a state board, or a single-area state).
+  statewide     Boolean  @default(false)
+  directorName  String?
+  directorTitle String?
+  directorEmail String?
+  directorPhone String?
+  chairName     String?
+  chairEmail    String?
+  chairPhone    String?
+  detailsUrl    String?
+  updatedAt     DateTime @default(now())
+
+  @@index([state])
+}
+
+/// A Census place (city, town, CDP) and where it is, for finding the county
+/// a WARN notice's city sits in. County is looked up from the coordinates
+/// the first time a place is needed, then kept.
+model GeoPlace {
+  id              String    @id
+  state           String
+  name            String
+  nameKey         String
+  lat             Float
+  lon             Float
+  /// Land area — the tie-breaker when a state has two places of one name.
+  population      Int?
+  county          String?
+  countyCheckedAt DateTime?
+
+  @@index([state, nameKey])
 }
 
 model WarnSyncRun {

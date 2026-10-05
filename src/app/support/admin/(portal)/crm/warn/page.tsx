@@ -11,6 +11,7 @@ import { WarnAddManualForm } from '@/components/admin/WarnAddManualForm'
 import { WarnCompanyReviewRow } from '@/components/admin/WarnCompanyReviewRow'
 import { WarnMonthlyBarChart, type WarnMonthlyBar } from '@/components/admin/WarnMonthlyBarChart'
 import { CompanyPriorityAndChro } from '@/components/admin/CompanyPriorityAndChro'
+import { WarnWorkforceBoard } from '@/components/admin/WarnWorkforceBoard'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { formatDate } from '@/lib/crm/labels'
@@ -96,6 +97,18 @@ export default async function WarnReviewPage({
       prisma.warnNotice.findMany({ where: { noticeDate: { gte: chartStart } }, select: { noticeDate: true, employees: true } }),
       prisma.company.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
     ])
+  const boardIds = [...new Set(rows.map((r) => r.workforceBoardId).filter((id): id is string => !!id))]
+  const boards = boardIds.length
+    ? await prisma.workforceBoard.findMany({
+        where: { id: { in: boardIds } },
+        select: {
+          id: true, name: true, website: true, zip: true, detailsUrl: true,
+          directorName: true, directorTitle: true, directorEmail: true, directorPhone: true,
+          chairName: true, chairEmail: true, chairPhone: true,
+        },
+      })
+    : []
+  const boardById = new Map(boards.map((b) => [b.id, b]))
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const params = {
     q, state, status, industry, effAfter, effBefore,
@@ -131,7 +144,7 @@ export default async function WarnReviewPage({
           <h1 className="text-2xl font-semibold">Layoff notices</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
             WARN filings from state labor departments — the legally required notice before a mass layoff.
-            Eighteen states, synced every Monday. Four of them (California, Colorado, Florida, Maryland)
+            Synced every morning, and each notice shows its local workforce board. Four of them (California, Colorado, Florida, Maryland)
             publish an industry sector, so their knowledge-work filings become leads on their own. The rest
             publish a headcount but no sector, and there is no way to tell a software reduction from a
             cannery closure without one — so those wait here for you. Most real announcements never file a
@@ -260,6 +273,7 @@ export default async function WarnReviewPage({
                       <SortHeader label="Roles" sortKey="employees" current={sort} basePath="/support/admin/crm/warn" params={sortParams} defaultDir="desc" className="px-2 py-1.5 font-medium" />
                       <SortHeader label="State" sortKey="state" current={sort} basePath="/support/admin/crm/warn" params={sortParams} className="px-2 py-1.5 font-medium" />
                       <th className="px-2 py-1.5 font-medium">Where</th>
+                      <th className="px-2 py-1.5 font-medium" title="The local WIOA workforce development board — it runs rapid response for this layoff">Workforce board</th>
                       <SortHeader label="Industry" sortKey="industry" current={sort} basePath="/support/admin/crm/warn" params={sortParams} className="px-2 py-1.5 font-medium" />
                       <SortHeader label="Filed" sortKey="noticeDate" current={sort} basePath="/support/admin/crm/warn" params={sortParams} defaultDir="desc" className="px-2 py-1.5 font-medium" />
                       <SortHeader label="Effective" sortKey="effectiveDate" current={sort} basePath="/support/admin/crm/warn" params={sortParams} defaultDir="desc" className="px-2 py-1.5 font-medium" />
@@ -302,6 +316,14 @@ export default async function WarnReviewPage({
                         <td className="px-2 py-1.5 tabular-nums">{n.employees ?? <span className="text-muted-foreground">—</span>}</td>
                         <td className="px-2 py-1.5 text-xs">{n.state ?? '—'}</td>
                         <td className="px-2 py-1.5 text-xs text-muted-foreground">{n.county ?? '—'}</td>
+                        <td className="px-2 py-1.5 align-top">
+                          <WarnWorkforceBoard
+                            board={n.workforceBoardId ? boardById.get(n.workforceBoardId) ?? null : null}
+                            match={n.boardMatch}
+                            state={n.state}
+                            noticeZip={n.address?.match(/\b(\d{5})(?:-\d{4})?\s*$/)?.[1] ?? null}
+                          />
+                        </td>
                         <td className="px-2 py-1.5 text-xs text-muted-foreground">
                           {n.industry ?? <span title="This state does not publish a sector">not published</span>}
                         </td>
