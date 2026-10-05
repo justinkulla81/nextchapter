@@ -95,6 +95,9 @@ export function parseBoardDetails(id: string, html: string): BoardDetails | null
 export async function syncBoardsForState(state: string): Promise<number> {
   const list = await getHtml(`${BASE}/find-workforce-development-boards.aspx?location=${state}&curPage=1&pagesize=500`)
   const ids = [...new Set([...list.matchAll(/find-workforce-development-boards-details\.aspx\?[^"]*?id=([A-Za-z0-9]+)/g)].map((m) => m[1]))]
+  // Every state has at least one board; an empty list means CareerOneStop
+  // has started turning requests away, which it does after a few hundred.
+  if (ids.length === 0) throw new Error(`No boards listed for ${state} — CareerOneStop may be throttling`)
   const stateName = STATE_NAMES[state]
   let saved = 0
   for (const id of ids) {
@@ -132,6 +135,8 @@ export async function syncWorkforceBoards(budgetMs = 240_000, states = Object.ke
     } catch (e) {
       console.error('Workforce boards could not be listed for', state, e)
       done[state] = -1
+      // The rest would fail the same way; they are first in line next time.
+      break
     }
   }
   return done
