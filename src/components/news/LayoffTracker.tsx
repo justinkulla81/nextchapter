@@ -104,15 +104,17 @@ export function LayoffTracker({ data, national }: { data: LayoffTrackerData; nat
         states&apos; own public records, plus layoffs reported elsewhere where no state filing covers them.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {stat(data.year.workers.toLocaleString(), `workers in layoffs filed or reported in ${data.year.year}`)}
         {stat(data.year.layoffs.toLocaleString(), `layoffs filed or reported in ${data.year.year}, in ${data.year.states} states`)}
-        {stat(`${data.statesCovered} of 51`, 'states (with DC) whose own WARN filings we read every day')}
+        <div className="rounded-xl border border-border bg-white p-5 sm:col-span-2">
+          <p className="text-sm text-muted-foreground">Last 30 days</p>
+          <p className="mt-1 text-2xl font-bold text-navy">
+            <span className="tabular-nums">{data.last30.notices.toLocaleString()}</span> layoffs naming{' '}
+            <span className="tabular-nums">{data.last30.workers.toLocaleString()}</span> workers
+          </p>
+        </div>
       </div>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Last 30 days: {data.last30.notices.toLocaleString()} layoffs naming {data.last30.workers.toLocaleString()} workers.
-        Layoffs happen in every state; a state appears here when it publishes its notices or a layoff there is reported.
-      </p>
 
       <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[40rem] text-left text-sm">

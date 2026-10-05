@@ -6,6 +6,7 @@ import { matchOrCreateCompanyForEmployer, loadCompanyIndex, type CompanyIndex } 
 import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
 import { TABLE_SPECS, makeTableParser } from './states'
+import { cleanEmployer } from './public-tracker'
 
 /** Recorded as the "state" on sync runs so the tracker shows up in history. */
 export const LAYOFFS_FYI_SOURCE = 'layoffs.fyi'
@@ -193,8 +194,10 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
   return true
 }
 
+type OrgIndex = { id: string; name: string; orgTypes: string[]; goals?: string[] }[]
+
 /** Turns a staged notice into an organization, a profile and an opportunity. */
-async function promoteNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
+async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): Promise<boolean> {
   const notice = await prisma.warnNotice.findFirst({
     where: {
       state: row.state, normalizedEmployer: row.normalizedEmployer,
@@ -207,7 +210,7 @@ async function promoteNotice(row: WarnRow, sourceUrl: string): Promise<boolean> 
   // key the importer and dedupe share — otherwise a WARN filing for "Genentech,
   // Inc." creates a second Genentech next to the one already on file.
   const strict = strictOrgKey(row.employer, normalizeOrgName)
-  const all = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true } })
+  const all = orgs ?? await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
   const match = all.find((o) => strictOrgKey(o.name, normalizeOrgName) === strict)
 
   const org = match
@@ -216,8 +219,9 @@ async function promoteNotice(row: WarnRow, sourceUrl: string): Promise<boolean> 
         data: {
           usState: row.state,
           ...(match.orgTypes.includes('OUTPLACEMENT_LEAD') ? {} : { orgTypes: { push: 'OUTPLACEMENT_LEAD' } }),
-          ...(match.orgTypes.includes('EMPLOYER') ? {} : {}),
-          goals: { push: 'SALES' },
+          // Pushed only when missing: every promotion used to add another
+          // "SALES" to an organization that already had it.
+          ...(match.goals?.includes('SALES') ? {} : { goals: { push: 'SALES' } }),
         },
       })
     : await prisma.crmOrganization.create({
@@ -487,4 +491,61 @@ export async function importFileState(state: string, file: Buffer, fileUrl: stri
     await prisma.warnSyncRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), error: message } })
     return { ...result, error: message }
   }
+}
+
+/**
+ * Promotes waiting notices whose employer is already an organization in the
+ * Ecosystem — the layoff is attached to a company you already track, and
+ * nothing new is created.
+ *
+ * Most states publish no sector, so their filings cannot be sorted into
+ * leads and non-leads automatically and wait for review. For an employer you
+ * already have, that question is answered: it is someone you chose to know.
+ * Runs after every daily sync, so a notice also gets attached when its
+ * employer is added to the Ecosystem later.
+ */
+export async function promoteNoticesForKnownOrgs(budgetMs = 120_000): Promise<{ checked: number; promoted: number; unfinished?: boolean }> {
+  const started = Date.now()
+  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
+  // An organization whose name carries a bracketed note ("Polaris (formerly
+  // Polaris Project)") is matched on its whole name only. The loose key drops
+  // the bracket, and attached a Polaris Inc. layoff to a nonprofit.
+  const known = new Set(
+    orgs.filter((o) => !o.name.includes('(')).map((o) => strictOrgKey(o.name, normalizeOrgName)).filter(Boolean)
+  )
+  const waiting = await prisma.warnNotice.findMany({
+    where: {
+      promotedAt: null, dismissedAt: null,
+      noticeDate: { gte: new Date(Date.now() - MAX_AGE_DAYS * 86_400_000) },
+    },
+  })
+  let promoted = 0
+  for (const n of waiting) {
+    // Each promotion is several writes. A first run over a year of waiting
+    // notices took eight minutes, past the daily job's limit, so a long run
+    // stops here and the next day carries on where it left off.
+    if (Date.now() - started > budgetMs) return { checked: waiting.length, promoted, unfinished: true }
+    // Florida writes the site's street address into the name ("Grunt Style,
+    // LLC 2300 Grand Cypress Dr …"); the name without it is tried too, and
+    // used for the match so the address never becomes an organization.
+    const employer = [n.employer, cleanEmployer(n.employer, null)]
+      .find((name) => known.has(strictOrgKey(name, normalizeOrgName)))
+    if (!employer) continue
+    const key = strictOrgKey(employer, normalizeOrgName)
+    const row: WarnRow = {
+      state: n.state, employer, normalizedEmployer: n.normalizedEmployer,
+      noticeDate: n.noticeDate, effectiveDate: n.effectiveDate, employees: n.employees,
+      layoffType: n.layoffType, county: n.county, address: n.address, industry: n.industry,
+    }
+    if (await promoteNotice(row, n.sourceUrl ?? '', orgs.filter((o) => !o.name.includes('(')))) {
+      promoted++
+      // promoteNotice may have added the lead type and goal; keep the index current.
+      const o = orgs.find((x) => strictOrgKey(x.name, normalizeOrgName) === key)
+      if (o) {
+        if (!o.orgTypes.includes('OUTPLACEMENT_LEAD')) o.orgTypes.push('OUTPLACEMENT_LEAD')
+        if (!o.goals.includes('SALES')) o.goals.push('SALES')
+      }
+    }
+  }
+  return { checked: waiting.length, promoted }
 }

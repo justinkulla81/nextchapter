@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { syncAllWarnStates } from '@/lib/warn/sync'
+import { syncAllWarnStates, promoteNoticesForKnownOrgs } from '@/lib/warn/sync'
 import { runLayoffNewsCheck } from '@/lib/warn/news-check'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -30,6 +30,15 @@ export async function GET(request: NextRequest) {
   } catch (e) {
     results = { error: e instanceof Error ? e.message : String(e) }
   }
+  // Waiting notices whose employer is already in the Ecosystem become leads.
+  let known: Awaited<ReturnType<typeof promoteNoticesForKnownOrgs>> | { error: string } = { checked: 0, promoted: 0 }
+  if (promote) {
+    try {
+      known = await promoteNoticesForKnownOrgs()
+    } catch (e) {
+      known = { error: e instanceof Error ? e.message : String(e) }
+    }
+  }
   // Independent of the filings: a state that failed does not stop the news.
   let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
   try {
@@ -38,5 +47,5 @@ export async function GET(request: NextRequest) {
   } catch (e) {
     news = { error: e instanceof Error ? e.message : String(e) }
   }
-  return NextResponse.json({ results, news })
+  return NextResponse.json({ results, known, news })
 }
