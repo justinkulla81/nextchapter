@@ -549,7 +549,7 @@ model CandidateProfile {
   // Recruiter's own isSampleData fields. These exist for data/testing
   // purposes only and must never receive a real candidate email or be
   // surfaced to a real recruiter/employer as an actual match.
-  isSampleData Boolean @default(false)
+  isSampleData           Boolean                  @default(false)
   classificationFeedback ClassificationFeedback[]
 
   // How this candidate found NextChapter. Guessed once at registration from
@@ -1642,6 +1642,9 @@ model CandidateProfile {
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmPersonLinks CrmPerson[] @relation("CrmPersonCandidate")
 
+  // Higher Ed module (Prisma-virtual back-relation; adds no column).
+  institutionMemberships InstitutionMember[]
+
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
@@ -2579,6 +2582,9 @@ model EmployerProfile {
   seats                 EmployerSeat[]
   messageThreads        MessageThread[]
   conflictFlags         HiringConflictFlag[]
+
+  // Higher Ed: institutions this employer is linked to (Prisma-virtual).
+  institutionLinks InstitutionEmployer[]
 
   @@index([subscriptionTier, subscriptionStatus])
 }
@@ -4616,9 +4622,15 @@ model ExclusiveJobPosting {
 
   introRequests JobBoardIntroRequest[]
 
+  // Higher Ed: an employer post visible only to this institution's members.
+  // Null for every ordinary job-board posting.
+  institutionScopeId String?
+  institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
+
   @@index([archivedAt, createdAt])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
+  @@index([institutionScopeId])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -4885,7 +4897,13 @@ model CoachSession {
   candidateRating  Int?
   candidateRatedAt DateTime?
 
+  // Higher Ed: set when a college's counselor session is attributed to that
+  // institution. Null for every ordinary coaching session.
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
   @@index([candidateId, occurredAt])
+  @@index([institutionId])
 }
 
 enum CoachSessionType {
@@ -6522,6 +6540,9 @@ model Company {
   // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
   warnNotices      WarnNotice[]
 
+  // Higher Ed back-relation (Prisma-virtual; adds no column).
+  institutionLayoffMatches LayoffMatch[]
+
   @@index([industry])
 }
 
@@ -6593,6 +6614,10 @@ model MemberEmployment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Higher Ed back-relations (Prisma-virtual; add no columns).
+  outcomeReports OutcomeReport[]
+  prospectFlags  ProspectFlag[]
 
   @@unique([candidateId, companyId])
   @@index([companyId])
@@ -7462,6 +7487,9 @@ model PlanCatalogEntry {
   active        Boolean             @default(true)
   createdBy     String
   createdAt     DateTime            @default(now())
+
+  // Higher Ed back-relation (Prisma-virtual; adds no column).
+  institutionPurchases InstitutionPurchase[]
 
   @@index([planKey, effectiveDate])
 }
@@ -8633,7 +8661,7 @@ model CrmPerson {
   /// record with this set is a duplicate, not a person you took out — the
   /// Removed page shows where it went instead of offering to restore it.
   mergedIntoId String?
-  phone  String?
+  phone        String?
 
   // Fallback dedup key, "normalized name|normalized org". Nullable because
   // Postgres treats each NULL as distinct in a unique index, so rows without
@@ -8660,7 +8688,7 @@ model CrmPerson {
   // Set by quick add when a record was created from a slug without the
   // profile being completed. Drives the "Needs completion" queue — the dry
   // run projects 82 such rows at import, small enough to actually clear.
-  needsCompletion Boolean @default(false)
+  needsCompletion     Boolean   @default(false)
   /// When needsCompletion last flipped from true to false — a human
   /// confirming this record belongs in the CRM (filling in a title,
   /// merging a duplicate, editing them on the Review List). Null for
@@ -8741,8 +8769,8 @@ model CrmPerson {
   /// name or email resembles an invited person is flagged for review on
   /// Identity Matches; confirming links the two and sets the candidate's
   /// lead source to the admin's referral.
-  candidateInvitedAt    DateTime?
-  candidateInvitedBy    String?
+  candidateInvitedAt DateTime?
+  candidateInvitedBy String?
 
   coachId String?
   coach   Coach?  @relation(fields: [coachId], references: [id], onDelete: SetNull)
@@ -9908,6 +9936,10 @@ model WarnNotice {
 
   /// A notice is identified by employer, state and notice date. Re-running the
   /// fetch must not create a second copy of the same filing.
+
+  /// Higher Ed: alumni whose employer matches this notice.
+  institutionLayoffMatches LayoffMatch[]
+
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])
@@ -10075,4 +10107,711 @@ model ContactSubmission {
 
   @@index([createdAt])
   @@index([ip, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Higher Ed module V1 — HE-01 (docs/specs/NextChapter_Higher_Ed_V1_Build_Spec.md). An Institution
+// (a college) is the tenant. Copies the OutplacementEmployerOrg pattern:
+// org → staff users with roles → seats.
+//
+// Who reaches what:
+//   - Staff hold workspace roles through InstitutionUser (one row per role).
+//   - Alumni, students and parents are InstitutionMember rows, linked to a
+//     CandidateProfile once claimed. One candidate can belong to several
+//     institutions; each sees only what the candidate consented to share
+//     with it (InstitutionConsent).
+//   - Employers reach an institution through InstitutionEmployer (a link to
+//     an existing EmployerProfile) plus their existing EmployerSeat.
+//
+// RLS: every table here has RLS on, with policies in
+// prisma/sql/higher-ed-rls.sql (Prisma can't express policies). The app
+// itself reads through Prisma on the server, which bypasses RLS, so the
+// policies are defense in depth for any direct Supabase client read. Staff
+// get no direct access to candidate-owned tables; they read candidate data
+// only through the consent-applying views added in HE-02.
+//
+// Every row the demo seed writes sets isSampleData = true.
+// ─────────────────────────────────────────────────────────────────────────
+
+enum InstitutionTier {
+  CAREER
+  ADVANCEMENT
+  INSTITUTION
+}
+
+enum InstitutionUserRole {
+  INSTITUTION_ADMIN // all V1 workspaces + Settings
+  ALUMNI_RELATIONS
+  DEVELOPMENT
+  CAREER_SERVICES
+  EMPLOYER_RELATIONS // Career Services, Employers tab only
+  VIEWER // assigned workspace, read-only
+}
+
+enum InstitutionAffiliation {
+  ALUM
+  STUDENT
+  PARENT
+  STAFF_ALUM
+}
+
+enum InstitutionMemberMatchMethod {
+  ROSTER_EMAIL
+  EDUCATION_ENTRY // suggested from EducationEntry; takes effect only after the candidate confirms
+  SSO
+  MANUAL
+}
+
+enum InstitutionMemberStatus {
+  IMPORTED
+  INVITED
+  CLAIMED
+  ACTIVE
+  OPTED_OUT
+}
+
+enum InstitutionConsentScope {
+  SHARE_ENGAGEMENT // default on
+  SHARE_OUTCOME // default on
+  SHARE_SEARCH_DETAIL_WITH_CAREER // default off
+  SHARE_DOSSIER_WITH_EMPLOYERS // default off
+}
+
+enum TransitionFlagState {
+  IN_TRANSITION
+  PLACED_GRACE
+  CLEARED
+}
+
+enum TransitionFlagSource {
+  SELF_REPORTED
+  LAYOFF_MATCH // only after the member confirms they were affected; never on the WARN match alone
+  COUNSELOR
+  CHECK_IN
+  IMPORT
+}
+
+enum LayoffOutreachStatus {
+  NEW
+  SENT
+  SKIPPED
+}
+
+enum OutreachCampaignType {
+  LAYOFF
+  WELCOME
+  CHECK_IN
+  GRATITUDE
+  MENTOR_INVITE
+  CUSTOM
+}
+
+// Extensible on purpose (V2 adds program events) — add values, never repurpose.
+enum EngagementEventType {
+  LOGIN
+  TOOL_USE
+  MENTOR_CALL
+  EVENT
+  COACHING_SESSION
+  MILESTONE_SHARED
+  GIFT_PROMPT_CLICK
+  OUTREACH_CLICK
+  GIFT
+}
+
+// CASE (Council for Advancement and Support of Education) engagement categories.
+enum CaseEngagementCategory {
+  VOLUNTEER
+  EXPERIENTIAL
+  PHILANTHROPIC
+  COMMUNICATION
+}
+
+enum MentorRequestStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+enum CrmExchangeDirection {
+  IMPORT_ROSTER
+  IMPORT_GIFTS
+  EXPORT_UPDATES
+}
+
+enum CrmExchangeStatus {
+  RUNNING
+  SUCCEEDED
+  PARTIAL // finished, some rows errored (see errorsJson)
+  FAILED
+}
+
+enum GratitudeStatus {
+  NONE
+  PENDING
+  APPROVED
+  SENT
+  CLICKED
+  DISMISSED
+}
+
+enum ProspectFlagType {
+  PROMOTION_VP_PLUS
+  EXIT
+  NEW_EMPLOYER_MATCHING_GIFT
+}
+
+enum FundAwardType {
+  COACHING_PACKAGE
+  PREMIUM_SEAT
+}
+
+enum FundAwardStatus {
+  AWARDED // shows as prepaid to the member
+  REDEEMED
+  REVOKED
+}
+
+enum CheckInKind {
+  M6
+  M18
+  M24
+  CUSTOM
+}
+
+enum CheckInStatus {
+  SCHEDULED
+  SENT
+  RESPONDED
+  SKIPPED
+}
+
+enum InstitutionEmployerStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InstitutionEmployerPackageTier {
+  BASIC
+  FEATURED // posts pin to the top while featuredUntil is in the future
+}
+
+model Institution {
+  id               String          @id @default(cuid())
+  slug             String          @unique // /i/[slug]
+  name             String
+  programBrandName String?
+  logoUrl          String?
+  accentColor      String?
+  // Email domains that identify this institution's people (SSO and
+  // roster matching), e.g. ["washjeff.edu"].
+  domains          String[]        @default([])
+  ssoProvider      String? // 'google' | 'microsoft' | 'saml'
+  ssoConfig        Json?
+  tier             InstitutionTier @default(CAREER)
+  alumniCount      Int?
+  includedSeats    Int             @default(0)
+  licenseStartAt   DateTime?
+  licenseEndAt     DateTime?
+  // graceDays (60), fiscalYearStartMonth (7 = July), engagementWeights
+  // (empty = the §7 defaults in code), wioa (V2, off). Readers merge this
+  // over the code defaults, so a missing key never breaks anything.
+  enabledFeatures  Json            @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
+  givingUrl        String?
+  isDemo           Boolean         @default(false)
+  isSampleData     Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  users             InstitutionUser[]
+  members           InstitutionMember[]
+  layoffMatches     LayoffMatch[]
+  outreachCampaigns OutreachCampaign[]
+  engagementEvents  EngagementEvent[]
+  mentors           InstitutionMentor[]
+  gifts             InstitutionGift[]
+  crmExchangeRuns   CrmExchangeRun[]
+  prospectFlags     ProspectFlag[]
+  resilienceFunds   ResilienceFund[]
+  caseloads         CaseloadAssignment[]
+  employers         InstitutionEmployer[]
+  purchases         InstitutionPurchase[]
+  coachSessions     CoachSession[]
+  scopedJobPostings ExclusiveJobPosting[]
+}
+
+// Same shape as OutplacementOrgUser, but one row per (person, role): a
+// staff member with two roles has two rows, and revoking one leaves the
+// other. userId is set when the invite is accepted.
+model InstitutionUser {
+  id            String              @id @default(cuid())
+  institutionId String
+  institution   Institution         @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  userId        String? // Supabase auth.users id
+  invitedEmail  String
+  fullName      String?
+  role          InstitutionUserRole
+  inviteToken   String              @unique @default(cuid())
+  invitedAt     DateTime            @default(now())
+  acceptedAt    DateTime?
+  revokedAt     DateTime?
+  isSampleData  Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  caseloadAssignments CaseloadAssignment[]
+
+  @@unique([institutionId, invitedEmail, role])
+  @@index([userId, revokedAt])
+  @@index([institutionId, role])
+}
+
+model InstitutionMember {
+  id            String                        @id @default(cuid())
+  institutionId String
+  institution   Institution                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  // Null until claimed. A candidate can be a member of several institutions.
+  candidateId   String?
+  candidate     CandidateProfile?             @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  externalId    String? // the college CRM's constituent id; the roster upsert key
+  email         String
+  firstName     String?
+  lastName      String?
+  affiliation   InstitutionAffiliation        @default(ALUM)
+  classYear     Int?
+  degree        String?
+  major         String?
+  matchMethod   InstitutionMemberMatchMethod?
+  status        InstitutionMemberStatus       @default(IMPORTED)
+  claimedAt     DateTime? // §7 metrics count gifts and tool use after this date
+  doNotContact  Boolean                       @default(false) // imported, never emailed
+
+  lastKnownEmployer           String?
+  // normalizeOrgName(lastKnownEmployer) — what the layoff-match job compares
+  // against WarnNotice.normalizedEmployer when there's no MemberEmployment.
+  lastKnownEmployerNormalized String?
+  lastKnownTitle              String?
+
+  // Set once the member completes a Market Reality Grade or creates a
+  // Search Action Plan in the license year; counts against includedSeats.
+  isActiveSeat    Boolean   @default(false)
+  seatActivatedAt DateTime?
+
+  isSampleData Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  consents            InstitutionConsent[]
+  transitionFlags     TransitionFlag[]
+  layoffMatches       LayoffMatch[]
+  outreachSends       OutreachSend[]
+  engagementEvents    EngagementEvent[]
+  mentorProfile       InstitutionMentor?
+  mentorRequests      MentorRequest[]
+  gifts               InstitutionGift[]
+  outcomeReports      OutcomeReport[]
+  prospectFlags       ProspectFlag[]
+  fundAwards          FundAward[]
+  caseloadAssignments CaseloadAssignment[]
+  checkIns            CheckIn[]
+  purchases           InstitutionPurchase[]
+
+  @@unique([institutionId, externalId])
+  @@unique([institutionId, email])
+  @@index([candidateId])
+  @@index([institutionId, status])
+  @@index([institutionId, classYear])
+  @@index([institutionId, lastName, firstName])
+  @@index([institutionId, lastKnownEmployerNormalized])
+}
+
+// Append-only history: a toggle writes a new row, never updates an old one.
+// The current value for a scope is the newest row; with no row, the default
+// applies (engagement and outcome on, search detail and Dossier off).
+// Written by the member only.
+model InstitutionConsent {
+  id           String                  @id @default(cuid())
+  memberId     String
+  member       InstitutionMember       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  scope        InstitutionConsentScope
+  granted      Boolean
+  changedAt    DateTime                @default(now())
+  source       String // 'MEMBER' | 'CLAIM' | 'DEFAULT'
+  isSampleData Boolean                 @default(false)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@index([memberId, scope, changedAt(sort: Desc)])
+}
+
+// At most one open (non-CLEARED) flag per member, enforced by
+// openFlagMemberId: set to memberId while open, null once CLEARED. Postgres
+// treats nulls as distinct, so a member can have any number of cleared
+// flags but only one open one.
+model TransitionFlag {
+  id               String               @id @default(cuid())
+  memberId         String
+  member           InstitutionMember    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  openFlagMemberId String?              @unique
+  state            TransitionFlagState  @default(IN_TRANSITION)
+  doNotSolicit     Boolean              @default(true)
+  source           TransitionFlagSource
+  reason           String?              @db.Text // never shown to Development
+  startedAt        DateTime             @default(now())
+  placedAt         DateTime?
+  graceEndsAt      DateTime?
+  clearedAt        DateTime?
+  isSampleData     Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([memberId, state])
+  @@index([state, graceEndsAt])
+}
+
+// A WARN notice matched to a member's employer. Never opens a
+// TransitionFlag on its own; the member has to confirm they were affected.
+model LayoffMatch {
+  id             String               @id @default(cuid())
+  institutionId  String
+  institution    Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  warnNoticeId   String
+  warnNotice     WarnNotice           @relation(fields: [warnNoticeId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         InstitutionMember    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  companyId      String?
+  company        Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  matchedAt      DateTime             @default(now())
+  outreachStatus LayoffOutreachStatus @default(NEW)
+  outreachSendId String?              @unique
+  outreachSend   OutreachSend?        @relation(fields: [outreachSendId], references: [id], onDelete: SetNull)
+  isSampleData   Boolean              @default(false)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([warnNoticeId, memberId])
+  @@index([institutionId, outreachStatus])
+  @@index([memberId])
+}
+
+model OutreachCampaign {
+  id            String               @id @default(cuid())
+  institutionId String
+  institution   Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  type          OutreachCampaignType
+  subject       String
+  body          String               @db.Text // merge fields like {{firstName}}, {{institutionName}}, {{claimUrl}}
+  createdBy     String // Supabase auth.users id
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  isSampleData  Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  sends OutreachSend[]
+
+  @@index([institutionId, type, createdAt])
+}
+
+model OutreachSend {
+  id                String             @id @default(cuid())
+  campaignId        String
+  campaign          OutreachCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // Null only for a staff test send to self.
+  memberId          String?
+  member            InstitutionMember? @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  email             String
+  // The email provider's message id; delivery webhooks find the row by it.
+  providerMessageId String?            @unique
+  sentAt            DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  // Set when the member creates or claims an account from this send.
+  claimedAt         DateTime?
+  claimToken        String             @unique @default(cuid())
+  isSampleData      Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  layoffMatch LayoffMatch?
+
+  @@index([campaignId])
+  @@index([memberId])
+}
+
+// Engagement-score input. Idempotent on (sourceTable, sourceId, memberId,
+// type): rerunning a writer over the same source rows adds nothing. The
+// same mentor call writes one row for the mentor and one for the requester.
+model EngagementEvent {
+  id            String                 @id @default(cuid())
+  institutionId String
+  institution   Institution            @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  type          EngagementEventType
+  caseCategory  CaseEngagementCategory
+  points        Int
+  occurredAt    DateTime
+  sourceTable   String
+  sourceId      String
+  isSampleData  Boolean                @default(false)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([sourceTable, sourceId, memberId, type])
+  @@index([institutionId, occurredAt])
+  @@index([memberId, occurredAt])
+}
+
+model InstitutionMentor {
+  id               String            @id @default(cuid())
+  institutionId    String
+  institution      Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId         String            @unique
+  member           InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  industries       String[]          @default([])
+  functions        String[]          @default([])
+  maxCallsPerMonth Int               @default(2)
+  isActive         Boolean           @default(true)
+  isSampleData     Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  requests MentorRequest[]
+
+  @@index([institutionId, isActive])
+}
+
+model MentorRequest {
+  id                String              @id @default(cuid())
+  mentorId          String
+  mentor            InstitutionMentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  requesterMemberId String
+  requester         InstitutionMember   @relation(fields: [requesterMemberId], references: [id], onDelete: Cascade)
+  note              String?             @db.Text
+  status            MentorRequestStatus @default(REQUESTED)
+  requestedAt       DateTime            @default(now())
+  respondedAt       DateTime?
+  completedAt       DateTime?
+  isSampleData      Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([mentorId, status])
+  @@index([requesterMemberId])
+}
+
+// Imported from the college's CRM, read-only. The gift file has no gift id,
+// so dedupeKey (a hash of constituent, date, amount, fund and appeal) is what
+// makes a rerun of the same file add nothing.
+model InstitutionGift {
+  id                    String             @id @default(cuid())
+  institutionId         String
+  institution           Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId              String?
+  member                InstitutionMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  externalConstituentId String
+  amountCents           Int
+  giftDate              DateTime
+  fund                  String?
+  appeal                String?
+  dedupeKey             String
+  importRunId           String?
+  importRun             CrmExchangeRun?    @relation(fields: [importRunId], references: [id], onDelete: SetNull)
+  isSampleData          Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@unique([institutionId, dedupeKey])
+  @@index([institutionId, giftDate])
+  @@index([memberId, giftDate])
+  @@index([institutionId, externalConstituentId])
+}
+
+// One CSV import or export. Same start/end/row-count logging as WarnSyncRun.
+model CrmExchangeRun {
+  id            String               @id @default(cuid())
+  institutionId String
+  institution   Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  direction     CrmExchangeDirection
+  fileName      String?
+  rowCount      Int                  @default(0)
+  errorCount    Int                  @default(0)
+  status        CrmExchangeStatus    @default(RUNNING)
+  errorsJson    Json? // [{ row, column?, message }]
+  createdBy     String // Supabase auth.users id
+  startedAt     DateTime             @default(now())
+  completedAt   DateTime?
+  isSampleData  Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  gifts InstitutionGift[]
+
+  @@index([institutionId, direction, startedAt(sort: Desc)])
+}
+
+// "I got a job." Candidate-owned: staff never read this table directly.
+model OutcomeReport {
+  id                  String            @id @default(cuid())
+  memberId            String
+  member              InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberEmploymentId  String?
+  memberEmployment    MemberEmployment? @relation(fields: [memberEmploymentId], references: [id], onDelete: SetNull)
+  reportedAt          DateTime          @default(now())
+  helpedByInstitution Boolean?
+  shareMilestone      Boolean           @default(false)
+  gratitudeStatus     GratitudeStatus   @default(NONE)
+  isSampleData        Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([memberId, reportedAt])
+  @@index([gratitudeStatus])
+}
+
+// Unique on (member, type, source employment) so the nightly job can rerun.
+model ProspectFlag {
+  id                       String            @id @default(cuid())
+  institutionId            String
+  institution              Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId                 String
+  member                   InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  type                     ProspectFlagType
+  sourceMemberEmploymentId String?
+  sourceMemberEmployment   MemberEmployment? @relation(fields: [sourceMemberEmploymentId], references: [id], onDelete: SetNull)
+  detectedAt               DateTime          @default(now())
+  approvedAt               DateTime?
+  exportedAt               DateTime?
+  dismissedAt              DateTime?
+  isSampleData             Boolean           @default(false)
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+
+  @@unique([memberId, type, sourceMemberEmploymentId])
+  @@index([institutionId, dismissedAt, exportedAt])
+}
+
+model ResilienceFund {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?     @db.Text
+  goalCents     Int         @default(0)
+  raisedCents   Int         @default(0) // entered by hand or imported in V1
+  isActive      Boolean     @default(true)
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  awards FundAward[]
+
+  @@index([institutionId, isActive])
+}
+
+model FundAward {
+  id           String            @id @default(cuid())
+  fundId       String
+  fund         ResilienceFund    @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  awardType    FundAwardType
+  valueCents   Int
+  status       FundAwardStatus   @default(AWARDED)
+  awardedBy    String // Supabase auth.users id
+  awardedAt    DateTime          @default(now())
+  redeemedAt   DateTime?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([fundId])
+  @@index([memberId, status])
+}
+
+// Open while endedAt is null. Counselors see only their own open rows; the
+// Career Services director (INSTITUTION_ADMIN) sees all.
+model CaseloadAssignment {
+  id            String            @id @default(cuid())
+  institutionId String
+  institution   Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  counselorId   String
+  counselor     InstitutionUser   @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  assignedAt    DateTime          @default(now())
+  endedAt       DateTime?
+  isSampleData  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([counselorId, endedAt])
+  @@index([memberId, endedAt])
+  @@index([institutionId, endedAt])
+}
+
+// Scheduled from classYear (graduation assumed May unless known). Unique on
+// (member, kind, dueAt) so the scheduler can rerun.
+model CheckIn {
+  id           String            @id @default(cuid())
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  kind         CheckInKind
+  dueAt        DateTime
+  status       CheckInStatus     @default(SCHEDULED)
+  sentAt       DateTime?
+  respondedAt  DateTime?
+  responseJson Json?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([memberId, kind, dueAt])
+  @@index([status, dueAt])
+}
+
+// Links an existing EmployerProfile to an institution. APPROVED lets that
+// employer's EmployerSeats into the Employer workspace.
+model InstitutionEmployer {
+  id                String                         @id @default(cuid())
+  institutionId     String
+  institution       Institution                    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  employerProfileId String
+  employerProfile   EmployerProfile                @relation(fields: [employerProfileId], references: [id], onDelete: Cascade)
+  status            InstitutionEmployerStatus      @default(PENDING)
+  packageTier       InstitutionEmployerPackageTier @default(BASIC)
+  featuredUntil     DateTime?
+  approvedBy        String? // Supabase auth.users id
+  approvedAt        DateTime?
+  isSampleData      Boolean                        @default(false)
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+
+  @@unique([institutionId, employerProfileId])
+  @@index([employerProfileId, status])
+}
+
+// Premium coaching and spouse seats bought through Stripe Checkout
+// (metadata.institutionId). revenueShareBps is locked in at purchase time.
+model InstitutionPurchase {
+  id                    String            @id @default(cuid())
+  institutionId         String
+  institution           Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId              String
+  member                InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  planCatalogEntryId    String
+  planCatalogEntry      PlanCatalogEntry  @relation(fields: [planCatalogEntryId], references: [id])
+  stripePaymentIntentId String?           @unique
+  amountCents           Int
+  revenueShareBps       Int               @default(0)
+  purchasedAt           DateTime          @default(now())
+  isSampleData          Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([institutionId, purchasedAt])
+  @@index([memberId])
 }

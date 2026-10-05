@@ -93,3 +93,7 @@ Some house rules that apply schema-wide, worth knowing before you read anything 
 ## Enums worth knowing
 
 `PrivacyTier` (LOCKED → PUBLIC, 5 levels), `EmploymentSituation` (~20 values — the "why you left" taxonomy used across onboarding/reports), `Mood` (STUCK/GETTING_THERE/MOVING/FIRED_UP), `ReferenceType`, `ContactCategory` (the 5x5 builder's 5 categories), `JobReactionType`/`NotInterestedReason`, `EmployerTier` (CHARTER/STANDARD/PRO), `ThreadPartnerType`/`MessageSenderRole` — full list and values are at the top of `schema.prisma`.
+
+## Higher Ed (institutions)
+
+21 models at the end of `schema.prisma` (`Institution`, `InstitutionUser`, `InstitutionMember`, `InstitutionConsent`, `TransitionFlag`, …): a college is the tenant, staff hold workspace roles, alumni/students are members linked to a `CandidateProfile` once claimed. Spec and implementation notes: `docs/specs/NextChapter_Higher_Ed_V1_Build_Spec.md`. Unlike the rest of the schema, these tables carry RLS policies, kept in `prisma/sql/higher-ed-rls.sql` (rerun with `npm run he:rls` after any `db push` touching them; test with `npm run verify:he-rls`).
