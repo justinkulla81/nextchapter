@@ -92,8 +92,8 @@ export function boardFromNamedArea(boards: Board[], text: string | null): Board 
  * newest first, until the time budget is spent.
  *
  * The county comes from the filing when the state publishes one (California,
- * Texas, Iowa, Mississippi); otherwise from the city in the address, through
- * the Census place list, or the street address through the Census geocoder.
+ * Texas, Iowa, Mississippi); otherwise from the street address through the
+ * Census geocoder, or the city through the Census place list.
  * A notice whose place cannot be pinned down — "SF Bay Area", a
  * headquarters in another state — is marked checked with no board, and
  * shows the state's board list instead.
@@ -129,13 +129,15 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
     const city = cityFromAddress(n.address, state) ?? (street ? cityFromAddress(street, state) : null)
     let county = n.county
     let how: string | null = county ? 'county' : null
-    if (!county && city) {
-      county = await cached(`${state}|${placeKey(city)}`, () => countyForCity(city, state))
-      if (county) how = 'city'
-    }
+    // A street address first: the city in it is the post office's, which is
+    // often not the county's — "Baltimore, MD 21227" is Baltimore County.
     if (!county && street && cityFromAddress(street, state)) {
       county = await cached(`addr|${street}`, () => countyAtAddress(street))
       if (county) how = 'address'
+    }
+    if (!county && city) {
+      county = await cached(`${state}|${placeKey(city)}`, () => countyForCity(city, state))
+      if (county) how = 'city'
     }
     let board = pickBoard(boards, county, city)
     if (board && !how) how = city && areaPlaces(board.serviceArea).length ? 'city' : 'statewide'
