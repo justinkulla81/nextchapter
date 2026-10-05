@@ -71,9 +71,17 @@ export function pickBoard(boards: Board[], county: string | null, city: string |
  * Alliance)". A part that is a county one board serves, or that names one
  * board, settles it.
  */
+/** The pieces of a field that may each name a place: "Rural Alliance: Pueblo" → ["Rural Alliance", "Pueblo"]. */
+export function addressParts(text: string): string[] {
+  return text
+    .split(/[/,():&]|\band\b/i)
+    .map((p) => p.trim())
+    .filter((p) => p.length >= 4 && !/^[A-Z]{2}$/.test(p) && !/^(statewide|remote|multiple|various|united states)/i.test(p))
+}
+
 export function boardFromNamedArea(boards: Board[], text: string | null): Board | null {
   if (!text) return null
-  const parts = text.split(/[/,()]|\band\b/i).map((p) => p.trim()).filter((p) => p.length >= 4 && !/^(statewide|remote|multiple|various)/i.test(p))
+  const parts = addressParts(text)
   const local = boards.filter((b) => !b.statewide)
   for (const part of parts) {
     const byCounty = local.filter((b) => b.counties.includes(countyKey(part)))
@@ -126,7 +134,7 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
     const boards = boardsByState.get(state) ?? []
     // Florida files the address inside the employer name.
     const street = trailingStreetAddress(n.address) ?? (n.address ? null : trailingStreetAddress(n.employer))
-    const city = cityFromAddress(n.address, state) ?? (street ? cityFromAddress(street, state) : null)
+    const city = cityFromAddress(n.address, state) ?? cityFromAddress(street ?? (n.address ? null : n.employer), state)
     let county = n.county
     let how: string | null = county ? 'county' : null
     // A street address first: the city in it is the post office's, which is
@@ -144,6 +152,15 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
     if (!board) {
       board = boardFromNamedArea(boards, n.address)
       if (board) how = 'area'
+    }
+    // Several places in one field — "Worcester and Leominster, MA",
+    // "ADW (Littleton)": the first that is a city with a board.
+    if (!board && n.address) {
+      for (const part of addressParts(n.address)) {
+        const partCounty = await cached(`${state}|${placeKey(part)}`, () => countyForCity(part, state))
+        board = pickBoard(boards, partCounty, part)
+        if (board) { how = 'city'; break }
+      }
     }
     await prisma.warnNotice.update({
       where: { id: n.id },

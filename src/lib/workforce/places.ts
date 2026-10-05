@@ -9,14 +9,22 @@ export const STATE_NAMES: Record<string, string> = {
   VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
 }
 
+const PLACE_SUFFIX = /\s+(city and borough|city|town|village|cdp|borough|municipality|township|twp\.?|plantation|comunidad|zona urbana)$/
+
 /**
  * Names, normalised the same way on both sides of a lookup: a Census place
  * ("Port St. Lucie city") and what a WARN filing says ("Port Saint Lucie").
  */
 export function placeKey(raw: string): string {
+  // "Indianapolis city (balance)", "Louisville/Jefferson County metro
+  // government (balance)": the qualifiers first, then one ordinary suffix —
+  // only one, or "Plant City city" would end up as "plant".
   return raw
     .toLowerCase()
-    .replace(/\s+(city and borough|consolidated government \(balance\)|metro(?:politan)? government \(balance\)|unified government \(balance\)|\(balance\)|city|town|village|cdp|borough|municipality|township|plantation|comunidad|zona urbana)$/g, '')
+    .trim()
+    .replace(/\s+\(balance\)$/, '')
+    .replace(/\s+(consolidated|metro(?:politan)?|unified) government$/, '')
+    .replace(PLACE_SUFFIX, '')
     .replace(/\bsaint\b/g, 'st')
     .replace(/\bst\.\s*/g, 'st ')
     .replace(/[^a-z0-9 ]/g, '')
@@ -85,7 +93,10 @@ export function cityFromAddress(address: string | null | undefined, state: strin
   if (full) {
     if (full[2] !== state) return null
     // The city is the trailing words before the state; drop a street part.
-    const words = full[1].trim().split(' ')
+    // Florida writes the city in capitals after the site's name:
+    // "Kennedy Space Center MERRITT ISLAND, FL, 32899".
+    const caps = full[1].trim().match(/(?:^|\s)((?:[A-Z][A-Z.'-]+\s?)+)$/)?.[1]?.trim()
+    const words = (caps && caps !== full[1].trim() ? caps : full[1].trim()).split(' ')
     const street = words.findIndex((w) => /^(st|street|ave|avenue|rd|road|dr|drive|blvd|boulevard|way|ln|lane|pkwy|parkway|hwy|highway|ct|court|pl|place|suite|ste|floor|fl)\.?$/i.test(w))
     return (street >= 0 ? words.slice(street + 1) : words).join(' ').trim() || null
   }

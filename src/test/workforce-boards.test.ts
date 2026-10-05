@@ -4,12 +4,15 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
 import { areaPlaces, cityFromAddress, countyKey, placeKey, placeKeys, trailingStreetAddress } from '@/lib/workforce/places'
 import { parseBoardDetails } from '@/lib/workforce/directory'
-import { boardFromNamedArea, pickBoard } from '@/lib/workforce/match'
+import { addressParts, boardFromNamedArea, pickBoard } from '@/lib/workforce/match'
 
 describe('placeKey / countyKey', () => {
   it('matches a Census place name to how a filing writes it', () => {
     expect(placeKey('Port St. Lucie city')).toBe(placeKey('Port Saint Lucie'))
     expect(placeKey('Nashville-Davidson metropolitan government (balance)')).toBe('nashvilledavidson')
+    expect(placeKey('Indianapolis city (balance)')).toBe('indianapolis')
+    expect(placeKey('Plant City city')).toBe('plant city')
+    expect(placeKey('Lawrence Twp')).toBe(placeKey('Lawrence township'))
   })
   it('drops County / Parish', () => {
     expect(countyKey('Harris County')).toBe('harris')
@@ -32,6 +35,10 @@ describe('cityFromAddress', () => {
   })
   it('takes "City, ST" in its own state', () => {
     expect(cityFromAddress('Cambridge, MA', 'MA')).toBe('Cambridge')
+  })
+  it('reads the capitalised city after a site name', () => {
+    expect(cityFromAddress('Amentum Space Commerce Way, Merritt Island Kennedy Space Center MERRITT ISLAND, FL, 32899', 'FL')).toBe('MERRITT ISLAND')
+    expect(cityFromAddress('Conduent 100 Campus Drive, Suite 200 Florham Park, NJ 07932 APOPKA, FL, 32703', 'FL')).toBe('APOPKA')
   })
   it('takes a bare city, not filler', () => {
     expect(cityFromAddress('Jersey City', 'NJ')).toBe('Jersey City')
@@ -147,5 +154,13 @@ describe('boardFromNamedArea', () => {
     expect(boardFromNamedArea(boards, 'Pikes Peak')?.id).toBe('pp')
     expect(boardFromNamedArea(boards, 'Rural Allaince (Montrose)')?.id).toBe('rural')
     expect(boardFromNamedArea(boards, 'Statewide')).toBeNull()
+  })
+})
+
+describe('addressParts', () => {
+  it('splits a field that names several places', () => {
+    expect(addressParts('Worcester and Leominster, MA')).toEqual(['Worcester', 'Leominster'])
+    expect(addressParts('Rural Alliance: Pueblo')).toEqual(['Rural Alliance', 'Pueblo'])
+    expect(addressParts('ADW (Littleton)')).toEqual(['Littleton'])
   })
 })
