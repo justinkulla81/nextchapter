@@ -153,6 +153,7 @@ export default async function WarnReviewPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link href="/support/admin/crm/workforce-boards" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Workforce boards</Link>
           <WarnAddManualForm companyNames={companyNames.map((c) => c.name)} />
           <WarnSyncNowButton />
         </div>
