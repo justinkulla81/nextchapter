@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { defaultAreaForKind } from '@/lib/vision/labels'
+import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
   ProductFeedbackSource, ProductCompetitorOverlap, CrmPortfolioOverlap,
@@ -280,7 +281,9 @@ export async function markFeedbackAddressed(feedbackId: string, formData: FormDa
       responseNote: String(formData.get('responseNote') ?? '').trim() || null,
     },
   })
-  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_addressed', { feedbackId })
+  // In-app ideas and feedback: tell the candidate what happened, when there's a note.
+  const notified = await notifyCandidateFeedbackAddressed(feedbackId)
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_addressed', { feedbackId, candidateNotified: notified })
   revalidatePath(`${V}/feedback`)
 }
 

@@ -38,6 +38,7 @@ import {
   Lock,
   Landmark,
   School,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -95,7 +96,8 @@ function buildSections(
   linkedInConnected: boolean,
   skillsAssessmentCompleted: boolean,
   isEarlyCareer: boolean | null,
-  isActiveMember: boolean
+  isActiveMember: boolean,
+  helpRepliesWaiting: number
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -236,6 +238,12 @@ function buildSections(
         { href: '/dashboard/benefits-network', label: 'Alumni Career Services and Benefit', icon: Gift },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
         { href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
+        {
+          href: '/dashboard/help',
+          label: 'Help & feedback',
+          icon: MessageSquare,
+          badge: helpRepliesWaiting > 0 ? String(helpRepliesWaiting) : undefined,
+        },
         { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
         { href: '/faq', label: 'FAQ', icon: HelpCircle },
       ],
@@ -256,6 +264,7 @@ function NavContent({
   skillsAssessmentCompleted,
   isEarlyCareer,
   isActiveMember,
+  helpRepliesWaiting,
   collapsedSections,
   onToggleSection,
 }: {
@@ -271,6 +280,7 @@ function NavContent({
   skillsAssessmentCompleted: boolean
   isEarlyCareer: boolean | null
   isActiveMember: boolean
+  helpRepliesWaiting: number
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -285,7 +295,8 @@ function NavContent({
     linkedInConnected,
     skillsAssessmentCompleted,
     isEarlyCareer,
-    isActiveMember
+    isActiveMember,
+    helpRepliesWaiting
   )
 
   return (
@@ -426,6 +437,7 @@ export function DashboardNav({
   skillsAssessmentCompleted = false,
   isEarlyCareer = null,
   isActiveMember = false,
+  helpRepliesWaiting = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -437,6 +449,7 @@ export function DashboardNav({
   skillsAssessmentCompleted?: boolean
   isEarlyCareer?: boolean | null
   isActiveMember?: boolean
+  helpRepliesWaiting?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -483,6 +496,7 @@ export function DashboardNav({
           skillsAssessmentCompleted={skillsAssessmentCompleted}
           isEarlyCareer={isEarlyCareer}
           isActiveMember={isActiveMember}
+            helpRepliesWaiting={helpRepliesWaiting}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -588,6 +602,7 @@ export function DashboardNav({
               skillsAssessmentCompleted={skillsAssessmentCompleted}
               isEarlyCareer={isEarlyCareer}
               isActiveMember={isActiveMember}
+            helpRepliesWaiting={helpRepliesWaiting}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

@@ -156,6 +156,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Candidates',
       links: [
         { href: '/support/admin/candidates', label: 'Candidates' },
+        { href: '/support/admin/help', label: 'Help inbox', badge: badgeFor('helpNeedsReply') },
         { href: '/support/admin/candidates/declined-commitment', label: 'Declined Commitment' },
         { href: '/support/admin/performance', label: 'Performance' },
         { href: '/support/admin/pacing', label: 'Pacing' },

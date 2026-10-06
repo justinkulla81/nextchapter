@@ -16,6 +16,8 @@ import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { isActiveMember } from '@/lib/membership/subscription'
 import { HardGateGate } from '@/components/dashboard/HardGateGate'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
+import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
+import { getHelpRepliesWaiting } from '@/lib/help/unread'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -50,6 +52,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     gmailConnected,
     latestSeniorityBand,
     activeMember,
+    helpRepliesWaiting,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -62,6 +65,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     isGmailConnected(profileId),
     getLatestSeniorityBand(profileId),
     isActiveMember(profileId),
+    getHelpRepliesWaiting(profileId),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
@@ -93,6 +97,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   }).filter((a) => a.done).length
 
   return (
+    <>
     <DashboardNav
       portfolioAssetCount={portfolioAssetCount}
       supportNetworkUnreadCount={supportNetworkUnreadCount}
@@ -104,7 +109,11 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
       isEarlyCareer={isEarlyCareer}
       isActiveMember={activeMember}
+      helpRepliesWaiting={helpRepliesWaiting}
     />
+    {/* Help & feedback, in the corner of every portal page. */}
+    <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
+    </>
   )
 }
 

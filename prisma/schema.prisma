@@ -10072,7 +10072,9 @@ model ProductFeedback {
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
   rawText String  @db.Text
-  channel String? // 'call' | 'email' | 'in person' | 'survey' | ...
+  channel String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
+  /// The portal page a candidate was on when they sent it in-app.
+  contextPath String?
 
   /// When they SAID it, distinct from when you logged it. Those differ, and
   /// the gap is worth seeing.
@@ -11190,4 +11192,63 @@ model InstitutionPurchase {
 
   @@index([institutionId, purchasedAt])
   @@index([memberId])
+}
+
+
+/// What a candidate asked for through Help & feedback in the portal.
+enum HelpRequestKind {
+  HELP // a question or a request for help
+  PROBLEM // something broken or wrong
+}
+
+enum HelpRequestStatus {
+  OPEN
+  RESOLVED
+}
+
+/// A candidate's help request or problem report, and the conversation that
+/// follows (HelpMessage). Ideas and feedback don't come here: they go to
+/// ProductFeedback (Vision → Feedback). Answered from the admin Help inbox.
+model HelpRequest {
+  id             String            @id @default(cuid())
+  /// Plain id, like CoachClientInvite.candidateId: no relation, so the
+  /// candidate model needn't change.
+  candidateId    String
+  kind           HelpRequestKind
+  status         HelpRequestStatus @default(OPEN)
+  /// The first line of the first message, for lists.
+  subject        String
+  /// Where they were when they asked: the portal path and page title.
+  contextPath    String?
+  contextTitle   String?
+  userAgent      String?
+  /// Storage path in the help-screenshots bucket (problem reports).
+  screenshotPath String?
+  /// The message used crisis language; shown to the admin first.
+  flaggedCrisis  Boolean           @default(false)
+
+  lastMessageAt        DateTime  @default(now())
+  /// True when the newest message is the admin's (nothing waiting on us).
+  lastMessageFromAdmin Boolean   @default(false)
+  /// Drives the candidate's "reply waiting" badge.
+  candidateLastReadAt  DateTime  @default(now())
+  resolvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+
+  messages HelpMessage[]
+
+  @@index([candidateId, lastMessageAt])
+  @@index([status, lastMessageAt])
+}
+
+model HelpMessage {
+  id          String      @id @default(cuid())
+  requestId   String
+  request     HelpRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  fromAdmin   Boolean     @default(false)
+  authorEmail String?
+  body        String      @db.Text
+  createdAt   DateTime    @default(now())
+
+  @@index([requestId, createdAt])
 }
