@@ -91,10 +91,11 @@ function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: New
     </>
   )
   // An item with our take opens its own page here first; that page carries
-  // the link out. Everything else goes straight to the source.
-  return item.slug
-    ? <Link href={`/news/${item.slug}`} onClick={onOpen} className={className}>{body}</Link>
-    : <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className={className}>{body}</a>
+  // the link out. A NextChapter report is our own page too, so it opens in the
+  // same tab. Everything else goes straight to the source in a new tab.
+  if (item.slug) return <Link href={`/news/${item.slug}`} onClick={onOpen} className={className}>{body}</Link>
+  if (item.kind === 'report') return <a href={item.url} onClick={onOpen} className={className}>{body}</a>
+  return <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className={className}>{body}</a>
 }
 
 const videoHost = (url: string) => (youtubeId(url) ? 'YouTube' : 'Vimeo')
@@ -361,6 +362,7 @@ export function NewsFeed({ items, placement, filterable = false }: { items: News
             if (item.kind === 'video') {
               return <VideoCard key={item.id} item={item} onOpen={onOpen} onPlay={() => posthog?.capture('news_video_played', props(item))} />
             }
+            if (item.kind === 'report') return <ArticleCard key={item.id} item={item} onOpen={onOpen} cta="Read the report →" />
             return <ArticleCard key={item.id} item={item} onOpen={onOpen} />
           })}
         </div>

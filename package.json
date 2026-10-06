@@ -52,7 +52,11 @@
     "crm:nextchapter-filter": "tsx --env-file=.env.local scripts/crm/apply-nextchapter-filter.ts",
     "he:rls": "tsx --env-file=.env.local scripts/higher-ed/apply-rls.ts",
     "verify:he-rls": "tsx --env-file=.env.local scripts/higher-ed/verify-rls.ts",
-    "verify:talent-intake": "node --env-file=.env.local --conditions=react-server --import tsx scripts/verify-talent-intake.ts"
+    "verify:talent-intake": "node --env-file=.env.local --conditions=react-server --import tsx scripts/verify-talent-intake.ts",
+    "report:index": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_white_collar_index.py --start 2015-01 --out public/reports/wc-index.csv",
+    "report:companions": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_openings_and_aiwashing.py --db $HOME/nextchapter-jobs/data/jobs.db",
+    "report:news": "tsx --env-file=.env.local scripts/displacement/add-news-item.ts",
+    "report:indexnow": "tsx --env-file=.env.local scripts/displacement/indexnow.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

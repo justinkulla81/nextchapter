@@ -47,7 +47,11 @@ export default async function NewsPage() {
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-4xl font-bold tracking-tight text-navy">News</h1>
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-            Articles, videos, podcasts and posts on the job market and searching for a job.
+            Articles, videos, podcasts and posts on the job market and searching for a job. For our own data, read the
+            monthly{' '}
+            <a href="/reports/latest" className="text-primary underline underline-offset-4">NextChapter Displacement Report</a>{' '}
+            and the{' '}
+            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Displacement Index</a>.
           </p>
           <div className="mt-10">
             {items.length === 0 ? (

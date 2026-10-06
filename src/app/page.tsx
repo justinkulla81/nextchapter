@@ -420,6 +420,10 @@ export default async function Home() {
               News
             </Link>
             {' · '}
+            <Link href="/reports/latest" className="underline underline-offset-4">
+              Displacement Report
+            </Link>
+            {' · '}
             <Link href="/faq" className="underline underline-offset-4">
               FAQ
             </Link>

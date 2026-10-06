@@ -6,10 +6,14 @@
  * embeddable form of each is. Anything not recognised here is an article —
  * a link out with a headline and, where the page offers one, a picture.
  */
-export type NewsKind = 'article' | 'video' | 'podcast' | 'linkedin' | 'instagram'
+// 'report' is a first-party kind: a NextChapter research report on our own
+// site. It is never detected from a URL (see detectNewsKind) — it is set by
+// hand when a report edition is added to News, and it links to our own page.
+export type NewsKind = 'article' | 'video' | 'podcast' | 'linkedin' | 'instagram' | 'report'
 
 /** Every kind, in the order the News page lists them, with its plural for the filter. */
 export const NEWS_KINDS: { key: NewsKind; label: string; plural: string }[] = [
+  { key: 'report', label: 'NextChapter Report', plural: 'NextChapter Reports' },
   { key: 'article', label: 'Article', plural: 'Articles' },
   { key: 'video', label: 'Video', plural: 'Videos' },
   { key: 'podcast', label: 'Podcast', plural: 'Podcasts' },

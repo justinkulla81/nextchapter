@@ -21,6 +21,7 @@ export function newsSlug(title: string | null | undefined, fallback: string, id:
 export function newsDisplayTitle(item: { title: string | null; kind: string; source: string }): string {
   if (item.title) return item.title
   const what = item.kind === 'linkedin' ? 'LinkedIn post' : item.kind === 'instagram' ? 'Instagram post'
-    : item.kind === 'podcast' ? 'Podcast' : item.kind === 'video' ? 'Video' : 'Article'
+    : item.kind === 'podcast' ? 'Podcast' : item.kind === 'video' ? 'Video'
+    : item.kind === 'report' ? 'NextChapter Report' : 'Article'
   return item.source && !/^(linkedin|instagram)$/i.test(item.source) ? `${what} by ${item.source}` : what
 }

@@ -4,6 +4,10 @@ import { GuideEmailGate } from '@/components/guides/GuideEmailGate'
 import type { GuideLandingContent } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
+// Guides whose readers (just laid off, benefits, a long search) are the exact
+// audience for the labor-market data. These get a "Related research" link.
+const REPORT_LINK_SLUGS = new Set(['unemployed', '72-hours', 'bridge-income', 'cobra-aca'])
+
 export function GuideLandingPageTemplate({ content }: { content: GuideLandingContent }) {
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -64,6 +68,16 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {REPORT_LINK_SLUGS.has(content.slug) && (
+          <div className="mt-12 rounded-xl border border-light-gray bg-off-white p-5 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Related research:</span> see how long white-collar searches
+            are running in the monthly{' '}
+            <Link href="/reports/latest" className="text-brand underline underline-offset-4">NextChapter Displacement Report</Link>{' '}
+            and the{' '}
+            <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Displacement Index</Link>.
           </div>
         )}
 

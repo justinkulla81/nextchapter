@@ -9,7 +9,7 @@ import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/ac
  * `source` records which page's box was used. The copy says what arrives and
  * how often, because that is the whole decision someone is making here.
  */
-export function NewsletterSignup({ source }: { source: 'home' | 'how-it-works' | 'why-stuck' }) {
+export function NewsletterSignup({ source }: { source: 'home' | 'how-it-works' | 'why-stuck' | 'displacement-report' }) {
   const [state, action, pending] = useActionState<NewsletterState, FormData>(subscribeToNewsletter, undefined)
   const id = `newsletter-${source}`
 
