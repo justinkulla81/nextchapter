@@ -92,7 +92,8 @@ export default async function WorkforceBoardPage({
     }),
     prisma.localCollege.findMany({
       where: { state: board.state, ...(keys === 'all' ? {} : { countyKey: inArea }) },
-      orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
+      // Best pilot partners first (see the Colleges page for how they are ranked).
+      orderBy: [{ rank: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
     }),
     prisma.workforceBoardNews.findMany({
       where: { boardId: board.id },
@@ -315,6 +316,7 @@ export default async function WorkforceBoardPage({
                   <tr key={c.id} className="border-b border-border align-top last:border-0">
                     <td className="px-3 py-1.5">
                       {c.website ? <a href={c.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">{c.name}</a> : c.name}
+                      {c.tier && <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground" title={`Rank ${c.rank} of all colleges`}>Tier {c.tier}</span>}
                       <span className="block text-xs text-muted-foreground">{c.city}</span>
                     </td>
                     <td className="px-2 py-1.5 text-xs text-muted-foreground">{c.sector ? COLLEGE_SECTORS[c.sector] : '—'}</td>

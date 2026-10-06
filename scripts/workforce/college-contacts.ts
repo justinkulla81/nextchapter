@@ -4,14 +4,18 @@
  * education — read from each college's own website and extracted with
  * Claude Haiku 4.5 through the Batch API (half price, results within a day).
  *
- *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit]
+ *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit] [areas|all4yr]
+ *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts signals <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts submit <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts collect <batchId> <pages.jsonl>
  *
- * Scope: public and private nonprofit colleges (IPEDS sectors 1, 2, 4) in
- * the counties of boards with a WARN filing in the last year, not checked
- * before. Cost is metered per college — about half a cent each — so widen
- * the scope only with sign-off.
+ * Scope 'areas' (the first run): public and private nonprofit colleges
+ * (IPEDS sectors 1, 2, 4) in the counties of boards with a WARN filing in
+ * the last year. Scope 'all4yr': every public and nonprofit four-year
+ * college, no community colleges (by Carnegie class, since some community
+ * colleges are filed as four-year). Only colleges not checked before. Cost
+ * is metered per college — about a quarter of a cent each — so widen the
+ * scope only with sign-off.
  */
 import { appendFileSync, readFileSync, writeFileSync } from 'fs'
 import Anthropic from '@anthropic-ai/sdk'
@@ -19,12 +23,20 @@ import { PrismaClient } from '@prisma/client'
 import { readCollegePages, type PageText } from '../../src/lib/workforce/college-pages'
 import { buildContactsRequest, CONTACTS_MODEL, verifiedContacts } from '../../src/lib/workforce/college-contacts'
 import { boardCountyKeys } from '../../src/lib/workforce/board-area'
+import { interestSignals, isCommunityCollege } from '../../src/lib/workforce/college-score'
 
 type Crawled = { collegeId: string; name: string; pages: PageText[] }
 
 const prisma = new PrismaClient()
 
-async function targets(limit: number) {
+async function targets(limit: number, scope: string) {
+  if (scope === 'all4yr') {
+    const colleges = await prisma.localCollege.findMany({
+      where: { sector: { in: [1, 2] }, website: { not: null }, contactsCheckedAt: null },
+      orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
+    })
+    return colleges.filter((c) => !isCommunityCollege(c)).slice(0, limit)
+  }
   const active = await prisma.warnNotice.groupBy({
     by: ['workforceBoardId'],
     where: { workforceBoardId: { not: null }, dismissedAt: null, noticeDate: { gte: new Date(Date.now() - 365 * 86_400_000) } },
@@ -42,8 +54,8 @@ async function targets(limit: number) {
   return inArea.slice(0, limit)
 }
 
-async function crawl(file: string, limit: number) {
-  const list = await targets(limit)
+async function crawl(file: string, limit: number, scope: string) {
+  const list = await targets(limit, scope)
   console.log(`${list.length} colleges to read`)
   writeFileSync(file, '')
   let done = 0
@@ -53,6 +65,9 @@ async function crawl(file: string, limit: number) {
     for (let c = queue.shift(); c; c = queue.shift()) {
       const pages = await readCollegePages(c.website!).catch(() => [])
       appendFileSync(file, JSON.stringify({ collegeId: c.id, name: c.name, pages } satisfies Crawled) + '\n')
+      if (pages.length) {
+        await prisma.localCollege.update({ where: { id: c.id }, data: { interestSignals: interestSignals(pages.map((p) => p.text)) } })
+      }
       done++
       if (pages.length) withPages++
       if (done % 50 === 0) console.log(`${done}/${list.length} read, ${withPages} with pages`)
@@ -122,8 +137,20 @@ async function collect(batchId: string, file: string) {
   console.log(JSON.stringify({ model: CONTACTS_MODEL, collegesWithContacts: colleges, people, officeLines: offices, inputTokens: inTok, outputTokens: outTok, costUsd: Math.round(cost * 100) / 100 }))
 }
 
-const [cmd, a, b] = process.argv.slice(2)
-const run = cmd === 'crawl' ? crawl(a, Number(b ?? 100_000))
+/** Interest themes for colleges crawled before the crawl recorded them. */
+async function signals(file: string) {
+  let n = 0
+  for (const r of load(file)) {
+    if (!r.pages.length) continue
+    await prisma.localCollege.update({ where: { id: r.collegeId }, data: { interestSignals: interestSignals(r.pages.map((p) => p.text)) } })
+    n++
+  }
+  console.log(`${n} colleges' interest signals saved`)
+}
+
+const [cmd, a, b, c] = process.argv.slice(2)
+const run = cmd === 'crawl' ? crawl(a, Number(b ?? 100_000), c ?? 'areas')
+  : cmd === 'signals' ? signals(a)
   : cmd === 'submit' ? submit(a)
   : cmd === 'collect' ? collect(a, b)
   : Promise.reject(new Error('usage: crawl <file> [limit] | submit <file> | collect <batchId> <file>'))

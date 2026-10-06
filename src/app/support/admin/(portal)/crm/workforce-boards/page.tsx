@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
+import { LinkButtonGroup } from '@/components/admin/LinkButtonGroup'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 import { BoardContact } from '@/components/admin/WarnWorkforceBoard'
 import { WorkforceBoardsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
@@ -29,23 +30,6 @@ function daysAgo(days: number): Date {
   return new Date(Date.now() - days * 86_400_000)
 }
 
-function ButtonGroup({ label, items }: { label: string; items: { href: string; label: string; active: boolean }[] }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1 text-xs" role="group" aria-label={label}>
-      <span className="mr-1 text-muted-foreground">{label}</span>
-      {items.map((i) => (
-        <Link
-          key={i.label}
-          href={i.href}
-          aria-current={i.active ? 'true' : undefined}
-          className={`rounded-md border px-2.5 py-1 ${i.active ? 'border-brand bg-brand/10 text-foreground' : 'border-border text-muted-foreground hover:bg-muted'}`}
-        >
-          {i.label}
-        </Link>
-      ))}
-    </div>
-  )
-}
 
 export default async function WorkforceBoardsPage({
   searchParams,
@@ -157,7 +141,7 @@ export default async function WorkforceBoardsPage({
       />
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <ButtonGroup
+        <LinkButtonGroup
           label="Sort by"
           items={SORTS.map((s) => {
             const active = s.key === sort
@@ -165,8 +149,8 @@ export default async function WorkforceBoardsPage({
             return { label: `${s.label}${arrow}`, active, href: href({ sort: s.key, dir: active ? (dir === 'asc' ? 'desc' : 'asc') : s.defaultDir }) }
           })}
         />
-        <ButtonGroup label="Filed" items={WINDOWS.map((w) => ({ label: w.label, active: w.key === windowKey, href: href({ window: w.key }) }))} />
-        <ButtonGroup
+        <LinkButtonGroup label="Filed" items={WINDOWS.map((w) => ({ label: w.label, active: w.key === windowKey, href: href({ window: w.key }) }))} />
+        <LinkButtonGroup
           label="Boards"
           items={[
             { label: 'With layoffs', active: !includeEmpty, href: href({ empty: '' }) },

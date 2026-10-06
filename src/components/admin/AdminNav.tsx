@@ -95,6 +95,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
+        { href: '/support/admin/crm/colleges', label: 'Colleges' },
       ],
     },
     {

@@ -10485,8 +10485,24 @@ model LocalCollege {
   /// When its website was last read for department contacts, and how many pages were read.
   contactsCheckedAt DateTime?
   contactsPagesRead Int?
+  /// IPEDS 2021 Carnegie basic classification (15 R1 … 20 Master's small,
+  /// 21–23 baccalaureate, 24–33 special focus, 1–14 associate's).
+  carnegie       Int?
+  /// Share of applicants admitted (IPEDS admissions), the "is this Harvard"
+  /// signal: very selective schools run their own alumni career programs.
+  admitRate      Float?
+  /// Themes its own pages raise: 'ai', 'reskilling', 'alumniCareers',
+  /// 'lifelong', 'execEd'.
+  interestSignals String[] @default([])
+  /// 0–100 fit for a pilot, its parts, its tier (A/B/C) and its rank.
+  score      Float?
+  scoreParts Json?
+  tier       String?
+  rank       Int?
+  scoredAt   DateTime?
 
   @@index([state, countyKey])
+  @@index([rank])
 }
 
 /// A department head at a college — career services, alumni relations,
@@ -10505,6 +10521,8 @@ model CollegeContact {
   phone     String?
   sourceUrl String
   foundAt   DateTime @default(now())
+  /// The CRM person this contact was added as, so a re-run never adds them twice.
+  crmPersonId String?
 
   @@unique([collegeId, role])
   @@index([collegeId])

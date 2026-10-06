@@ -77,6 +77,19 @@ const LEADER_TITLE = /\b(director|dean|vice president|vice chancellor|vice provo
 /** Titles of one program inside an office, which the model sometimes offers as its head. */
 const SUB_PROGRAM = /\b(donor services|annual (giving|fund)|volunteer|events?|stewardship|employer relations|prospect research|gift (processing|planning)|data|operations|communications|marketing|records|student engagement|reunion|chapters?|board (member|chair)|trustee)\b/i
 
+/** The words a title uses for each office, so a director of something else is not taken for its head. */
+const ROLE_TITLE: Record<string, RegExp> = {
+  career: /\b(career|employ|internship|experiential)/i,
+  alumni: /\b(alumni|alumnae|engagement|advancement)/i,
+  development: /\b(advancement|development|philanthrop|giving|foundation|fundrais|external relations|institutional relations)/i,
+  execEd: /\b(continuing|professional (education|studies|development|learning)|executive education|workforce|lifelong|extended (education|studies|campus)|corporate (education|training|partnerships)|non-?credit|adult)/i,
+}
+
+/** A leader's title that names the office it leads. */
+export function titleLeadsRole(title: string | null, role: string): boolean {
+  return isLeaderTitle(title) && !!ROLE_TITLE[role]?.test(title ?? '')
+}
+
 export function isLeaderTitle(title: string | null): boolean {
   return !!title && LEADER_TITLE.test(title) && !SUB_PROGRAM.test(title)
 }
