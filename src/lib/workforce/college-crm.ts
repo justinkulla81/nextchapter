@@ -18,6 +18,49 @@ export function cleanPersonName(raw: string): string {
     .trim()
 }
 
+type OrgRef = { id: string; name: string; orgTypes: string[] }
+
+export async function orgsByKey(): Promise<Map<string, OrgRef>> {
+  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true } })
+  return new Map(orgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o]))
+}
+
+/**
+ * The college's organization in the CRM: the one it is linked to, else one
+ * with the same name (marked a university if it was not), else a new one.
+ * The link is kept on the college.
+ */
+export async function ensureCollegeOrg(
+  college: { id: string; name: string; website: string | null; city: string | null; state: string },
+  byKey?: Map<string, OrgRef>,
+): Promise<OrgRef> {
+  const linked = await prisma.localCollege.findUnique({ where: { id: college.id }, select: { crmOrgId: true } })
+  let org: OrgRef | null | undefined = linked?.crmOrgId
+    ? await prisma.crmOrganization.findUnique({ where: { id: linked.crmOrgId }, select: { id: true, name: true, orgTypes: true } })
+    : null
+  const key = strictOrgKey(college.name, normalizeOrgName)
+  if (!org) org = (byKey ?? await orgsByKey()).get(key)
+  if (!org) {
+    const canonical = normalizeOrgName(college.name)
+    org = await prisma.crmOrganization.upsert({
+      where: { canonicalNameNormalized: canonical },
+      update: {},
+      create: {
+        name: college.name, canonicalNameNormalized: canonical, orgTypes: ['UNIVERSITY'],
+        website: college.website, hqCity: college.city, hqRegion: college.state, usState: college.state,
+      },
+      select: { id: true, name: true, orgTypes: true },
+    })
+    byKey?.set(key, org)
+  }
+  if (!org.orgTypes.includes('UNIVERSITY')) {
+    await prisma.crmOrganization.update({ where: { id: org.id }, data: { orgTypes: { push: 'UNIVERSITY' } } })
+    org.orgTypes.push('UNIVERSITY')
+  }
+  if (linked?.crmOrgId !== org.id) await prisma.localCollege.update({ where: { id: college.id }, data: { crmOrgId: org.id } })
+  return org
+}
+
 /**
  * Which college contacts belong in the CRM: a named leader with a leader's
  * title and their own email (not careers@, giving@ or advancementvp@), at a
@@ -45,8 +88,7 @@ export async function addCollegeContactsToCrm(): Promise<{ added: number; matche
   })).map((c) => [c.id, c]))
   const worthy = contacts.filter((c) => crmWorthy(c, colleges.get(c.collegeId)?.tier ?? null))
 
-  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true } })
-  const orgByKey = new Map(orgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o]))
+  const orgByKey = await orgsByKey()
   const roles = ['ALUMNI_OFFICE'] as const
   let added = 0
   let matched = 0
@@ -58,27 +100,7 @@ export async function addCollegeContactsToCrm(): Promise<{ added: number; matche
     const name = cleanPersonName(c.name!)
     const title = c.title ?? COLLEGE_ROLES[c.role as CollegeRole]?.label ?? null
 
-    // The college as an organization.
-    const key = strictOrgKey(college.name, normalizeOrgName)
-    let org = orgByKey.get(key)
-    if (!org) {
-      const canonical = normalizeOrgName(college.name)
-      org = await prisma.crmOrganization.upsert({
-        where: { canonicalNameNormalized: canonical },
-        update: {},
-        create: {
-          name: college.name, canonicalNameNormalized: canonical, orgTypes: ['UNIVERSITY'],
-          website: college.website, hqCity: college.city, hqRegion: college.state, usState: college.state,
-        },
-        select: { id: true, name: true, orgTypes: true },
-      })
-      orgByKey.set(key, org)
-    }
-    if (!org.orgTypes.includes('UNIVERSITY')) {
-      await prisma.crmOrganization.update({ where: { id: org.id }, data: { orgTypes: { push: 'UNIVERSITY' } } })
-      org.orgTypes.push('UNIVERSITY')
-    }
-
+    const org = await ensureCollegeOrg(college, orgByKey)
     const note = `${title ?? 'Leader'} at ${college.name} (college rank ${college.rank}, tier ${college.tier}). From the college's own website: ${c.sourceUrl}`
     const owner = await findEmailOwner(c.email, { includeDeleted: true })
     let personId: string

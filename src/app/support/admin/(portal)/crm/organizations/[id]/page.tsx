@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
+import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -50,6 +51,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             {QUALITY_LABELS[org.leadQuality]}
           </span>
           <CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} />
+          <span className="ml-2 text-xs">Deal</span>
+          <CrmDealStatusSelect orgId={org.id} value={org.dealStatus} />
+          {org.dealStatusAt && <span className="text-xs">since {org.dealStatusAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
         </p>
         <p className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
           {org.hqRegion && <span>{org.hqRegion}</span>}

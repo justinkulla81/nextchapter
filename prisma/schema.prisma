@@ -8974,6 +8974,10 @@ model CrmOrganization {
   priorityOverride   Int? // 0-100; wins over the computed score when set
   priorityComputedAt DateTime?
 
+  /// Where a deal with this organization stands, and when it was last set.
+  dealStatus   CrmDealStatus?
+  dealStatusAt DateTime?
+
   // "X" in the Outreach queue — hides this org from queue bands until a
   // newer driving date (a fresher promise, deadline, or reminder) appears
   // after this timestamp, at which point it resurfaces on its own. Separate
@@ -10338,6 +10342,19 @@ enum WarnNoticeSource {
 
 /// Shared across CrmPerson and Company — a manual "how much does this
 /// matter" tier, replacing what used to be a plain star/pin boolean.
+/// Where a deal with an organization stands — set by hand, on colleges and
+/// companies alike. Null = no deal yet.
+enum CrmDealStatus {
+  PROSPECT
+  CONTACTED
+  IN_CONVERSATION
+  PROPOSAL
+  PILOT
+  CUSTOMER
+  ON_HOLD
+  LOST
+}
+
 enum CrmPriorityTier {
   P0 /// Immediate
   P1 /// High
@@ -10494,6 +10511,11 @@ model LocalCollege {
   /// Themes its own pages raise: 'ai', 'reskilling', 'alumniCareers',
   /// 'lifelong', 'execEd'.
   interestSignals String[] @default([])
+  /// The college's organization in the CRM, once linked (by name, or made
+  /// when a deal status is set or a contact is added).
+  crmOrgId     String?
+  /// The highest priority of anyone in the CRM at this college (P0/P1/P2).
+  relationship String?
   /// 0–100 fit for a pilot, its parts, its tier (A/B/C) and its rank.
   score      Float?
   scoreParts Json?

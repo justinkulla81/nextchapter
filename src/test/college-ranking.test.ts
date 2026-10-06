@@ -5,6 +5,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 import { interestSignals, isCommunityCollege, isPersonalEmail, scoreCollege, type ScoreInput } from '@/lib/workforce/college-score'
 import { titleLeadsRole } from '@/lib/workforce/college-contacts'
 import { cleanPersonName, crmWorthy } from '@/lib/workforce/college-crm'
+import { relationshipLevel, siteDomain } from '@/lib/workforce/college-rank'
 
 describe('interest signals', () => {
   it('finds listed themes on a college’s own pages', () => {
@@ -79,5 +80,31 @@ describe('scoring', () => {
   })
   it('keeps community colleges in tier C whatever they score', () => {
     expect(scoreCollege({ ...base, carnegie: 14, contacts: [leader('career'), leader('alumni')], interestSignals: ['ai', 'reskilling', 'alumniCareers'] }).tier).toBe('C')
+  })
+})
+
+describe('relationships', () => {
+  const base: ScoreInput = { sector: 2, carnegie: 21, size: 2, admitRate: 0.8, interestSignals: [], contacts: [], areaJobsLost: 0 }
+  it('put a college with a P0 or P1 contact in tier A, P2 in B at least', () => {
+    expect(scoreCollege(base).tier).toBe('C')
+    expect(scoreCollege({ ...base, relationship: 'P0' })).toMatchObject({ tier: 'A', parts: { relationship: 40 } })
+    expect(scoreCollege({ ...base, relationship: 'P1' }).tier).toBe('A')
+    expect(scoreCollege({ ...base, relationship: 'P2' }).tier).toBe('B')
+  })
+  it('count a live deal like a P1, a customer like a P0', () => {
+    expect(scoreCollege({ ...base, dealStatus: 'IN_CONVERSATION' })).toMatchObject({ tier: 'A', parts: { relationship: 30 } })
+    expect(scoreCollege({ ...base, dealStatus: 'CUSTOMER' }).parts.relationship).toBe(40)
+    expect(scoreCollege({ ...base, dealStatus: 'LOST' }).parts.relationship).toBe(0)
+  })
+  it('lift even a community college you chose', () => {
+    expect(scoreCollege({ ...base, carnegie: 14, relationship: 'P1' }).tier).toBe('A')
+  })
+  it('order P0 and pilots first, then P1 and live deals, then P2', () => {
+    expect([40, 30, 15, 5, 0].map(relationshipLevel)).toEqual([0, 1, 2, 3, 3])
+  })
+  it('read a college’s email domain from its website', () => {
+    expect(siteDomain('https://www.washjeff.edu/')).toBe('washjeff.edu')
+    expect(siteDomain('https://alumni.cmu.edu/x')).toBe('cmu.edu')
+    expect(siteDomain(null)).toBeNull()
   })
 })

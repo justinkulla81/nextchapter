@@ -66,6 +66,10 @@ export interface ScoreInput {
   contacts: { role: string; name: string | null; title: string | null; email: string | null }[]
   /** WARN-filed jobs lost in the last year across the boards that serve the college's county. */
   areaJobsLost: number
+  /** The highest priority of anyone in the CRM at the college. */
+  relationship?: 'P0' | 'P1' | 'P2' | null
+  /** The college's deal status in the CRM. */
+  dealStatus?: string | null
 }
 
 export interface ScoreParts {
@@ -73,6 +77,8 @@ export interface ScoreParts {
   fit: number
   size: number
   interest: number
+  /** Added for an existing relationship or deal, outside the 100. */
+  relationship: number
   notes: string[]
 }
 
@@ -117,7 +123,19 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   const weights: Record<string, number> = { ai: 6, reskilling: 5, alumniCareers: 5, lifelong: 2, execEd: 2 }
   const interest = Math.min(20, c.interestSignals.reduce((s, t) => s + (weights[t] ?? 0), 0))
 
-  const score = Math.round((contacts + fit + size + interest) * 10) / 10
-  const tier = isCommunityCollege(c) ? 'C' : score >= 60 ? 'A' : score >= 45 ? 'B' : 'C'
-  return { score, parts: { contacts, fit, size, interest, notes }, tier }
+  // Relationship: someone you have already prioritized there, or a live
+  // deal, outranks anything the public data says. P0 and P1 contacts and
+  // live deals put the college in tier A; a P2 contact or first contact, in B
+  // at least — community colleges included, since you chose them.
+  const byPriority: Record<string, number> = { P0: 40, P1: 30, P2: 15 }
+  const byDeal: Record<string, number> = { CUSTOMER: 40, PILOT: 40, PROPOSAL: 30, IN_CONVERSATION: 30, CONTACTED: 15, PROSPECT: 5 }
+  const relationship = Math.max(c.relationship ? byPriority[c.relationship] ?? 0 : 0, c.dealStatus ? byDeal[c.dealStatus] ?? 0 : 0)
+  if (c.relationship) notes.push(`${c.relationship} contact in the CRM`)
+  if (c.dealStatus) notes.push(`Deal: ${c.dealStatus.toLowerCase().replace(/_/g, ' ')}`)
+
+  const score = Math.round((contacts + fit + size + interest + relationship) * 10) / 10
+  const base = isCommunityCollege(c) ? 'C' : score >= 60 ? 'A' : score >= 45 ? 'B' : 'C'
+  const floor = relationship >= 30 ? 'A' : relationship >= 15 ? 'B' : 'C'
+  const tier = (base < floor ? base : floor) as 'A' | 'B' | 'C'
+  return { score, parts: { contacts, fit, size, interest, relationship, notes }, tier }
 }

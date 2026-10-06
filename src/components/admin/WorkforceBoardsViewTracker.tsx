@@ -27,10 +27,10 @@ export function WorkforceBoardOpenedTracker({ boardId, state, window }: { boardI
 }
 
 /** The ranked colleges list, per search, filter or sort. */
-export function CollegesViewTracker(props: { q: string; state: string; tier: string; sort: string; contacts: string; theme: string; results: number }) {
-  const { q, state, tier, sort, contacts, theme, results } = props
+export function CollegesViewTracker(props: { q: string; state: string; tier: string; sort: string; contacts: string; theme: string; rel: string; results: number }) {
+  const { q, state, tier, sort, contacts, theme, rel, results } = props
   useEffect(() => {
-    posthog.capture('colleges_ranked_viewed', { q: q || null, state: state || null, tier, sort, contacts: contacts || null, theme: theme || null, results })
-  }, [q, state, tier, sort, contacts, theme, results])
+    posthog.capture('colleges_ranked_viewed', { q: q || null, state: state || null, tier, sort, contacts: contacts || null, theme: theme || null, relationship: rel || null, results })
+  }, [q, state, tier, sort, contacts, theme, rel, results])
   return null
 }

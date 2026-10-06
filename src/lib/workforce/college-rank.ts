@@ -3,6 +3,27 @@ import { prisma } from '@/lib/prisma'
 import { boardCountyKeys } from './board-area'
 import { isCompanyWide } from './board-report'
 import { scoreCollege } from './college-score'
+import { strictOrgKey } from '@/lib/crm/normalize'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
+
+/** "https://www.washjeff.edu/" → "washjeff.edu". */
+export function siteDomain(website: string | null): string | null {
+  if (!website) return null
+  try {
+    const host = new URL(website).hostname.toLowerCase().replace(/^www\./, '')
+    return host.split('.').slice(-2).join('.')
+  } catch { return null }
+}
+
+/** 0 for P0 or a pilot/customer, 1 for P1 or a live deal, 2 for P2 or first contact, 3 for none. */
+export function relationshipLevel(points: number): number {
+  return points >= 40 ? 0 : points >= 30 ? 1 : points >= 15 ? 2 : 3
+}
+
+const PRIORITY_ORDER = ['P0', 'P1', 'P2'] as const
+type Priority = (typeof PRIORITY_ORDER)[number]
+const better = (a: Priority | null, b: Priority | null): Priority | null =>
+  !a ? b : !b ? a : PRIORITY_ORDER.indexOf(a) <= PRIORITY_ORDER.indexOf(b) ? a : b
 
 /**
  * Scores and ranks every college (see college-score.ts), writing score,
@@ -11,9 +32,12 @@ import { scoreCollege } from './college-score'
  */
 export async function rankColleges(): Promise<{ ranked: number; tiers: Record<string, number> }> {
   const since = new Date(Date.now() - 365 * 86_400_000)
-  const [colleges, contacts, boards, notices] = await Promise.all([
+  const [colleges, contacts, boards, notices, orgs, affiliations, prioritized] = await Promise.all([
     prisma.localCollege.findMany({
-      select: { id: true, state: true, countyKey: true, sector: true, carnegie: true, size: true, admitRate: true, interestSignals: true },
+      select: {
+        id: true, name: true, website: true, crmOrgId: true,
+        state: true, countyKey: true, sector: true, carnegie: true, size: true, admitRate: true, interestSignals: true,
+      },
     }),
     prisma.collegeContact.findMany({ select: { collegeId: true, role: true, name: true, title: true, email: true } }),
     prisma.workforceBoard.findMany({ select: { id: true, state: true, counties: true, placeCounties: true, statewide: true } }),
@@ -21,7 +45,29 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
       where: { workforceBoardId: { not: null }, dismissedAt: null, noticeDate: { gte: since } },
       select: { workforceBoardId: true, employees: true, source: true, sourceUrl: true },
     }),
+    prisma.crmOrganization.findMany({ select: { id: true, name: true, dealStatus: true } }),
+    prisma.crmAffiliation.findMany({
+      where: { isCurrent: true, person: { deletedAt: null, priority: { not: null } } },
+      select: { orgId: true, person: { select: { priority: true } } },
+    }),
+    prisma.crmPerson.findMany({
+      where: { deletedAt: null, priority: { not: null } },
+      select: { priority: true, email: true, emails: true },
+    }),
   ])
+  // The college's organization in the CRM: the one it is linked to, or one of the same name.
+  const orgById = new Map(orgs.map((o) => [o.id, o]))
+  const orgByKey = new Map(orgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o]))
+  const bestByOrg = new Map<string, Priority | null>()
+  for (const a of affiliations) bestByOrg.set(a.orgId, better(bestByOrg.get(a.orgId) ?? null, a.person.priority as Priority))
+  // Anyone prioritized whose address is on a college's own domain works there.
+  const bestByDomain = new Map<string, Priority | null>()
+  for (const p of prioritized) {
+    for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {
+      const domain = e.split('@')[1]?.toLowerCase().split('.').slice(-2).join('.')
+      if (domain && domain.endsWith('.edu')) bestByDomain.set(domain, better(bestByDomain.get(domain) ?? null, p.priority as Priority))
+    }
+  }
   // Jobs in state filings per board — company-wide counts are not local.
   const jobsByBoard = new Map<string, number>()
   for (const n of notices) {
@@ -42,9 +88,17 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
         return keys === 'all' ? !hasLocal : !!c.countyKey && keys.includes(c.countyKey)
       })
       .map((b) => jobsByBoard.get(b.id) ?? 0))
-    return { id: c.id, ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost }) }
-  // Tier first, so a community college held to C never ranks above a four-year B.
-  }).sort((a, b) => a.tier.localeCompare(b.tier) || b.score - a.score)
+    const org = (c.crmOrgId ? orgById.get(c.crmOrgId) : undefined) ?? orgByKey.get(strictOrgKey(c.name, normalizeOrgName))
+    const domain = siteDomain(c.website)
+    const relationship = better(org ? bestByOrg.get(org.id) ?? null : null, domain ? bestByDomain.get(domain) ?? null : null)
+    return {
+      id: c.id, crmOrgId: org?.id ?? null, relationship,
+      ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null }),
+    }
+  // Relationships first — a P0 contact or a pilot/customer, then P1 or a live
+  // deal, then P2 or first contact — then tier, so a community college held
+  // to C never ranks above a four-year B, then score.
+  }).sort((a, b) => relationshipLevel(a.parts.relationship) - relationshipLevel(b.parts.relationship) || a.tier.localeCompare(b.tier) || b.score - a.score)
 
   const now = new Date()
   const tiers: Record<string, number> = {}
@@ -52,12 +106,15 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
   for (let i = 0; i < scored.length; i += 500) {
     const chunk = scored.slice(i, i + 500)
     await prisma.$executeRaw`
-      UPDATE "LocalCollege" c SET "score" = v.score, "scoreParts" = v.parts::jsonb, "tier" = v.tier, "rank" = v.rank, "scoredAt" = ${now}
+      UPDATE "LocalCollege" c SET "score" = v.score, "scoreParts" = v.parts::jsonb, "tier" = v.tier, "rank" = v.rank, "scoredAt" = ${now},
+        "crmOrgId" = v.org, "relationship" = v.rel
       FROM (SELECT unnest(${chunk.map((s) => s.id)}::text[]) AS id,
                    unnest(${chunk.map((s) => s.score)}::float8[]) AS score,
                    unnest(${chunk.map((s) => JSON.stringify(s.parts))}::text[]) AS parts,
                    unnest(${chunk.map((s) => s.tier)}::text[]) AS tier,
-                   unnest(${chunk.map((_, j) => i + j + 1)}::int[]) AS rank) v
+                   unnest(${chunk.map((_, j) => i + j + 1)}::int[]) AS rank,
+                   unnest(${chunk.map((s) => s.crmOrgId)}::text[]) AS org,
+                   unnest(${chunk.map((s) => s.relationship)}::text[]) AS rel) v
       WHERE c.id = v.id`
   }
   for (const s of scored) tiers[s.tier] = (tiers[s.tier] ?? 0) + 1

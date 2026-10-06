@@ -21,6 +21,7 @@ import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { isDealStatus } from '@/lib/crm/deal-status'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
@@ -509,6 +510,23 @@ export async function updateOrgQuality(orgId: string, value: string) {
   captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { orgId, field: 'leadQuality', surface: 'record' })
   revalidatePath(`${CRM}/organizations/${orgId}`)
   revalidatePath(`${CRM}/organizations`)
+}
+
+/**
+ * Sets where a deal with an organization stands (or clears it with ''),
+ * from its record page or the Organizations list.
+ */
+export async function setOrgDealStatus(orgId: string, value: string, surface: 'record' | 'list') {
+  const admin = await requireAdmin()
+  if (value && !isDealStatus(value)) throw new Error(`Unknown deal status: ${value}`)
+  await prisma.crmOrganization.update({
+    where: { id: orgId },
+    data: { dealStatus: value && isDealStatus(value) ? value : null, dealStatusAt: new Date() },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_deal_status_set', { orgId, status: value || null, surface })
+  revalidatePath(`${CRM}/organizations/${orgId}`)
+  revalidatePath(`${CRM}/organizations`)
+  revalidatePath(`${CRM}/colleges`)
 }
 
 /** Inline edit of a person's primary organization from a list row. */

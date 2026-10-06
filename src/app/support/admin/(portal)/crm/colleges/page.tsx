@@ -7,6 +7,7 @@ import { LinkButtonGroup } from '@/components/admin/LinkButtonGroup'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 import { CollegesViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 import { COLLEGE_SECTORS, COLLEGE_SIZES, boardCountyKeys } from '@/lib/workforce/board-area'
+import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { COLLEGE_ROLES, type CollegeRole } from '@/lib/workforce/college-pages'
 import { INTEREST_THEMES, isPersonalEmail, type InterestTheme, type ScoreParts } from '@/lib/workforce/college-score'
 
@@ -24,6 +25,11 @@ const TIERS = [
   { key: 'A', label: 'A' },
   { key: 'B', label: 'B' },
   { key: 'all', label: 'All' },
+] as const
+const RELATIONSHIP_FILTERS = [
+  { key: '', label: 'Any' },
+  { key: 'crm', label: 'P0–P2 contact' },
+  { key: 'deal', label: 'Has a deal' },
 ] as const
 const CONTACT_FILTERS = [
   { key: '', label: 'Any' },
@@ -55,6 +61,9 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
   const sort = SORTS.some((s) => s.key === sp.sort) ? sp.sort! : 'rank'
   const contactsFilter = CONTACT_FILTERS.some((c) => c.key === sp.contacts) ? sp.contacts! : ''
   const theme = sp.theme && sp.theme in INTEREST_THEMES ? (sp.theme as InterestTheme) : ''
+  const rel = RELATIONSHIP_FILTERS.some((r) => r.key === sp.rel) ? sp.rel! : ''
+  // Colleges whose CRM organization has a deal, for the filter and the column.
+  const dealOrgs = await prisma.crmOrganization.findMany({ where: { dealStatus: { not: null } }, select: { id: true } })
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
@@ -63,6 +72,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
     ...(tier === 'AB' ? { tier: { in: ['A', 'B'] } } : tier === 'all' ? {} : { tier }),
     ...(state ? { state } : {}),
     ...(theme ? { interestSignals: { has: theme } } : {}),
+    ...(rel === 'crm' ? { relationship: { not: null } } : rel === 'deal' ? { crmOrgId: { in: dealOrgs.map((o) => o.id) } } : {}),
     ...(q ? {
       OR: [
         { name: { contains: q, mode: 'insensitive' } },
@@ -111,7 +121,13 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
     })
   }
 
-  const params: Record<string, string> = { q, state, tier, sort, contacts: contactsFilter, theme, per: String(perPage) }
+  const orgs = await prisma.crmOrganization.findMany({
+    where: { id: { in: pageRows.map((c) => c.crmOrgId).filter((id): id is string => !!id) } },
+    select: { id: true, dealStatus: true },
+  })
+  const dealByOrg = new Map(orgs.map((o) => [o.id, o.dealStatus]))
+
+  const params: Record<string, string> = { q, state, tier, sort, contacts: contactsFilter, theme, rel, per: String(perPage) }
   const href = (over: Record<string, string>) => {
     const qs = new URLSearchParams()
     for (const [k, v] of Object.entries({ ...params, page: '1', ...over })) if (v) qs.set(k, v)
@@ -121,7 +137,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-4">
-      <CollegesViewTracker q={q} state={state} tier={tier} sort={sort} contacts={contactsFilter} theme={theme} results={total} />
+      <CollegesViewTracker q={q} state={state} tier={tier} sort={sort} contacts={contactsFilter} theme={theme} rel={rel} results={total} />
       <header>
         <h1 className="text-2xl font-semibold">Colleges</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
@@ -130,8 +146,10 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
           development and executive education; fit (30) — four-year colleges whose alumni are white-collar professionals,
           plus layoffs filed nearby; size (20) — 5,000–20,000 students is best, very selective schools lose most of it
           because they run their own alumni programs; interest (20) — what the college&apos;s own pages say about AI,
-          reskilling, alumni career help, lifelong learning and executive education. Community colleges stay in tier C.
-          Re-ranked weekly.
+          reskilling, alumni career help, lifelong learning and executive education. On top of that, a relationship: a P0
+          or P1 contact in the CRM, or a live deal, adds up to 40 and puts the college in tier A; a P2 contact or a first
+          contact puts it in tier B at least. Community colleges otherwise stay in tier C. Re-ranked weekly, and at once
+          when a deal status is set here.
         </p>
       </header>
 
@@ -149,6 +167,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
       />
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <LinkButtonGroup label="Tier" items={TIERS.map((t) => ({ label: t.label, active: t.key === tier, href: href({ tier: t.key }) }))} />
+        <LinkButtonGroup label="Relationship" items={RELATIONSHIP_FILTERS.map((r) => ({ label: r.label, active: r.key === rel, href: href({ rel: r.key }) }))} />
         <LinkButtonGroup label="Contacts" items={CONTACT_FILTERS.map((c) => ({ label: c.label, active: c.key === contactsFilter, href: href({ contacts: c.key }) }))} />
         <LinkButtonGroup label="Sort by" items={SORTS.map((s) => ({ label: s.label, active: s.key === sort, href: href({ sort: s.key }) }))} />
       </div>
@@ -169,7 +188,8 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="px-2 py-1.5 text-right font-medium">#</th>
                 <th className="px-3 py-1.5 font-medium">College</th>
-                <th className="px-2 py-1.5 text-right font-medium" title="Contacts / fit / size / interest">Score</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Contacts / fit / size / interest, + relationship">Score</th>
+                <th className="px-2 py-1.5 font-medium">Deal</th>
                 <th className="px-2 py-1.5 font-medium">Interest</th>
                 <th className="px-2 py-1.5 font-medium">Contacts</th>
               </tr>
@@ -186,6 +206,11 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
                       <p className="font-medium">
                         {c.website ? <a href={c.website} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-4">{c.name}</a> : c.name}
                         <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground">Tier {c.tier}</span>
+                        {c.relationship && (
+                          <span className="ml-1 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand" title="Highest priority of anyone you have in the CRM here">
+                            {c.relationship} contact
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {[c.city && `${c.city}, ${c.state}`, carnegieLabel(c.carnegie) ?? (c.sector ? COLLEGE_SECTORS[c.sector] : null),
@@ -202,9 +227,16 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-right">
                       <span className="font-semibold tabular-nums">{c.score?.toFixed(0)}</span>
-                      <span className="block text-[11px] tabular-nums text-muted-foreground" title="Contacts / fit / size / interest">
+                      <span className="block text-[11px] tabular-nums text-muted-foreground" title="Contacts / fit / size / interest, + relationship">
                         {[p.contacts, p.fit, p.size, p.interest].map((v) => Math.round(v ?? 0)).join(' / ')}
+                        {p.relationship ? ` + ${Math.round(p.relationship)}` : ''}
                       </span>
+                    </td>
+                    <td className="px-2 py-2">
+                      <CrmDealStatusSelect collegeId={c.id} value={c.crmOrgId ? dealByOrg.get(c.crmOrgId) ?? null : null} />
+                      {c.crmOrgId && (
+                        <Link href={`/support/admin/crm/organizations/${c.crmOrgId}`} className="mt-1 block text-[11px] text-primary hover:underline">In the CRM</Link>
+                      )}
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex max-w-48 flex-wrap gap-1">

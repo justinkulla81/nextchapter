@@ -9,6 +9,8 @@ import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { CrmOrgBulkBar } from '@/components/admin/CrmOrgBulkBar'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
+import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
+import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
 const PAGE_SIZES = [50, 100, 200, 1500] as const
@@ -24,6 +26,7 @@ export default async function CrmOrganizationsPage({
   const q = (sp.q ?? '').trim()
   const type = sp.type ?? ''
   const goal = sp.goal ?? ''
+  const deal = sp.deal ?? ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
@@ -38,6 +41,7 @@ export default async function CrmOrganizationsPage({
     ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
     ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
+    ...(deal === 'any' ? { dealStatus: { not: null } } : deal && isDealStatus(deal) ? { dealStatus: deal } : {}),
   }
 
   const [total, rows] = await Promise.all([
@@ -48,7 +52,7 @@ export default async function CrmOrganizationsPage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, name: true, orgTypes: true, goals: true, hqRegion: true,
+        id: true, name: true, orgTypes: true, goals: true, hqRegion: true, dealStatus: true,
         investorProfile: { select: { checkSizeNote: true } },
         _count: { select: { affiliations: true, opportunities: true } },
       },
@@ -57,7 +61,7 @@ export default async function CrmOrganizationsPage({
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, goal, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, goal, deal, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
@@ -83,6 +87,7 @@ export default async function CrmOrganizationsPage({
         filters={[
           { key: 'type', label: 'Type', value: type, options: [{ value: '', label: 'Any type' }, ...ORG_TYPES.map((t) => ({ value: t, label: ORG_TYPE_LABELS[t] }))] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
+          { key: 'deal', label: 'Deal', value: deal, options: [{ value: '', label: 'Any deal status' }, { value: 'any', label: 'Has a deal' }, ...DEAL_STATUSES.map((d) => ({ value: d, label: DEAL_STATUS_LABELS[d] }))] },
         ]}
       />
 
@@ -112,10 +117,11 @@ export default async function CrmOrganizationsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
-                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, per: String(perPage) }} />
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, deal, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
-                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, per: String(perPage) }} defaultDir="desc" />
+                <th className="px-3 py-2 font-medium">Deal</th>
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, deal, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium">Check size</th>
               </tr>
@@ -136,6 +142,12 @@ export default async function CrmOrganizationsPage({
                         <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
                       ))}
                     </span>
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {o.goals.length ? o.goals.map((g) => GOAL_LABELS[g]).join(', ') : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="px-3 py-2">
+                    <CrmDealStatusSelect orgId={o.id} value={o.dealStatus} surface="list" />
                   </td>
                   <td className="px-3 py-2">
                     {o._count.affiliations > 0 ? (
