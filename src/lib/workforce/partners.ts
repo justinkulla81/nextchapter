@@ -77,6 +77,8 @@ export async function syncBoardPartners(budgetMs = 60_000): Promise<{ boards: nu
   const byState = new Map<string, BoardRef[]>()
   for (const b of all) byState.set(b.state, [...(byState.get(b.state) ?? []), b])
   const cache = new Map<string, string | null>()
+  // Neighbouring boards' searches return many of the same centers.
+  const legalCache = new Map<string, string | null>()
   let boards = 0
   let centers = 0
   for (const board of all) {
@@ -105,7 +107,8 @@ export async function syncBoardPartners(budgetMs = 60_000): Promise<{ boards: nu
       let city: string | null = c.city
       const namesCityBoard = candidates.some((b) => areaPlaces(b.serviceArea).includes(placeKey(c.city!)))
       if (namesCityBoard && c.address) {
-        const legal = await incorporatedPlaceAt(c.address).catch(() => null)
+        if (!legalCache.has(c.address)) legalCache.set(c.address, await incorporatedPlaceAt(c.address).catch(() => null))
+        const legal = legalCache.get(c.address) ?? null
         if (legal !== null) city = legal || null
       }
       if (pickBoard(candidates, cache.get(key) ?? null, city)?.id === board.id) mine.push(c)
