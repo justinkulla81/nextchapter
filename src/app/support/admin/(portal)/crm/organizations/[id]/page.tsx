@@ -6,6 +6,7 @@ import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
+import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -130,6 +131,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </ul>
         )}
       </section>
+
+      <CrmOrgBackgroundSections
+        org={{ id: org.id, name: org.name, canonicalNameNormalized: org.canonicalNameNormalized, companyId: org.companyId }}
+      />
 
       {org.deadlines.length > 0 && (
         <section>
