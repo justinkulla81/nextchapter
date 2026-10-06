@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -46,6 +45,11 @@ async function storeScreenshot(candidateId: string, file: File): Promise<string 
   return path
 }
 
+// No revalidatePath in these actions: revalidating re-renders the page the
+// form was sent from (the whole dashboard, from the corner panel), which made
+// sending take seconds. /dashboard/help is dynamic, so it is fresh on every
+// visit; when the form is used on that page, it refreshes itself.
+
 /**
  * The portal's Help & feedback form. Help and problems open a conversation
  * in the admin Help inbox; ideas and feedback become ProductFeedback for
@@ -74,8 +78,7 @@ export async function submitHelpForm(_prev: HelpFormState, formData: FormData): 
     // After the response: the candidate shouldn't wait on the CRM.
     after(() => logHelpOnCrm(profile.id, kind === 'idea' ? 'Shared an idea' : 'Gave feedback', message, `help-feedback:${fb.id}`))
     captureServerEvent(profile.id, 'product_feedback_submitted', { feedbackId: fb.id, kind, page: contextPath, crisis })
-    revalidatePath('/dashboard/help')
-    return { sent: true, kind }
+      return { sent: true, kind }
   }
 
   let screenshotPath: string | null = null
@@ -105,7 +108,6 @@ export async function submitHelpForm(_prev: HelpFormState, formData: FormData): 
   captureServerEvent(profile.id, 'help_request_submitted', {
     requestId: request.id, type: kind, page: contextPath, hasScreenshot: !!screenshotPath, crisis,
   })
-  revalidatePath('/dashboard/help')
   return { sent: true, kind, requestId: request.id }
 }
 
@@ -132,7 +134,6 @@ export async function replyToHelpRequest(requestId: string, _prev: HelpFormState
   })
   after(() => notifyAdminOfHelp(requestId, message, true))
   captureServerEvent(profile.id, 'help_reply_sent', { requestId, from: 'candidate', crisis })
-  revalidatePath('/dashboard/help')
   return { sent: true }
 }
 

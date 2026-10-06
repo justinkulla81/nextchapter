@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { submitHelpForm, type HelpFormState } from '@/app/dashboard/help/actions'
 import { HELP_FORM_KINDS, isConversationKind, mentionsCrisis, type HelpFormKind } from '@/lib/help/constants'
@@ -23,6 +24,13 @@ export function HelpFeedbackForm({
   const [text, setText] = useState('')
   const [formKey, setFormKey] = useState(0)
   const [state, action, pending] = useActionState<HelpFormState, FormData>(submitHelpForm, undefined)
+  const router = useRouter()
+  const pathname = usePathname()
+  // On /dashboard/help the lists below the form should show what was just
+  // sent; elsewhere (the corner panel) nothing on the page depends on it.
+  useEffect(() => {
+    if (state?.sent && pathname?.startsWith('/dashboard/help')) router.refresh()
+  }, [state, pathname, router])
   const current = HELP_FORM_KINDS.find((k) => k.value === kind)!
   const crisis = mentionsCrisis(text)
 

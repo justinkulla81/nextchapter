@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { markHelpRequestRead, replyToHelpRequest, type HelpFormState } from '@/app/dashboard/help/actions'
 
@@ -19,6 +20,10 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
   const posthog = usePostHog()
   const [open, setOpen] = useState(defaultOpen)
   const [state, action, pending] = useActionState<HelpFormState, FormData>(replyToHelpRequest.bind(null, request.id), undefined)
+
+  const router = useRouter()
+  // Show the reply just sent in the thread.
+  useEffect(() => { if (state?.sent) router.refresh() }, [state, router])
 
   // Opening a conversation with a reply in it clears the badge.
   useEffect(() => {
