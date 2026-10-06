@@ -482,7 +482,7 @@ export const REPORT_BODY_HTML = `<header class="cover">
   <h3>Other NextChapter calculations</h3>
   <p>Year-to-date and over-the-year payroll changes are calculated from FRED levels as of October 2, 2026, and will change with revisions. Openings per unemployed person divides JOLTS openings by CPS unemployment. State percent changes use BLS levels. The SEC comparison counts distinct filings returned by EDGAR full-text search and is described in the note to Exhibit 8.</p>
   <h3>Revisions and corrections</h3>
-  <p>Government data are revised. Each edition reflects data available on its "data through" date. Errors are corrected in the online edition with a dated note below, and the data files are updated to match. Send corrections to justin.kulla@consequentialcapital.com.</p>
+  <p>Government data are revised. Each edition reflects data available on its "data through" date. Errors are corrected in the online edition with a dated note below, and the data files are updated to match. Send corrections to hello@launchyournextchapter.com.</p>
   <div class="exhibit">
     <span class="ex-label">Version log</span>
     <div class="tbl"><table>

@@ -22,8 +22,6 @@ const UPDATED = '2026-10-06'
 const H2 = 'mt-12 text-xl font-semibold tracking-tight text-navy'
 const LINK = 'text-brand underline underline-offset-4'
 
-// TODO(Justin): nothing on the site says yet whether or how AI tools are used
-// to draft or check content. Add a short section here once you decide the policy.
 export default function EditorialStandardsPage() {
   const report = latestReport()
   const methodHref = report ? `${reportPath(report)}#method` : '/reports'
@@ -80,7 +78,28 @@ export default function EditorialStandardsPage() {
           </li>
           <li>In the Displacement Report, NextChapter’s own services appear only in the closing “About NextChapter” section.</li>
           <li>We do not publish employer rankings or “worst employer” lists, and we never publish information about individual workers.</li>
-          {/* TODO(Justin): if true, add "We do not accept payment for coverage or run sponsored placements." */}
+          <li>We do not accept payment for coverage, and there are no paid or sponsored placements.</li>
+        </ul>
+
+        <h2 className={H2}>How we use AI</h2>
+        <p className="mt-4">
+          NextChapter is an AI company, and we use AI in our own research and writing the way we encourage job seekers to
+          use it: to work faster and more thoroughly, with a person accountable for the result.
+        </p>
+        <ul className="mt-4 list-disc space-y-2 pl-5">
+          <li>
+            AI tools help us gather and read sources, analyze public data, draft text and check our work against the
+            sources we cite.
+          </li>
+          <li>
+            Every figure comes from a named source or a published NextChapter calculation. AI is never the source of a
+            number, a quote or a fact.
+          </li>
+          <li>
+            The named author reviews every page before it is published and is responsible for it, whatever tools were
+            used to produce it.
+          </li>
+          <li>Where AI does something readers should know about, such as producing a chart or a summary, we say so.</li>
         </ul>
 
         <h2 className={H2}>Bylines and review</h2>

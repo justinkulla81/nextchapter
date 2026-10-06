@@ -225,7 +225,7 @@ export default function AboutPage() {
                   </p>
                   <p>
                     He holds an MBA from MIT, a Master of Public Administration from Harvard and a master’s in
-                    Information Systems Management from Carnegie Mellon.
+                    Information Systems Management from Carnegie Mellon, and is a lecturer at Stanford and MIT.
                   </p>
                 </div>
 

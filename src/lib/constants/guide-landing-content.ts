@@ -26,6 +26,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Evidence-based guidance for experienced professionals navigating unemployment — what to do in week one, and what actually moves a search forward through month three.',
     excerpt: [
+      "In your first week, stabilize before you apply: file for unemployment insurance on day one, note your 60-day COBRA election deadline, and lock in references while those relationships are warm.",
       "The instinct after a layoff or resignation is to start applying immediately, everywhere. That's usually the wrong first move. The first week matters more for stabilizing than for applying: filing for unemployment insurance on day one (not weeks later, since most states only pay from your filing date forward), making COBRA/ACA decisions on a real deadline, and getting your references locked in while the relationship is still warm.",
       "Most job searches fail quietly in the middle, not the start — candidates apply hard for two weeks, get discouraged by silence, and drift into passive scrolling. The professionals who land roles faster tend to split their time deliberately: roughly a third on applications, a third on direct outreach to people who can actually open a door, and a third on staying visible (LinkedIn activity, informational conversations) so opportunities find them too. Applications alone, without a network layer, is the single most common reason a strong candidate's search stalls past month two.",
     ],
@@ -61,6 +62,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'The first 72 hours after a layoff — what to do, in what order, before the shock wears off and the deadlines start.',
     excerpt: [
+      "In the first 72 hours after a layoff, save your own contacts, work samples and performance reviews while you still have access, confirm your last paycheck and PTO payout, and note your severance review and revocation deadlines.",
       "The first 72 hours after a layoff are disorienting, and that's exactly when several real deadlines start their clock — which makes this the worst possible moment to be operating on instinct instead of a checklist. Before anything else: confirm your last paycheck date and any accrued PTO payout, get a personal copy of your severance agreement and note its review/revocation windows, and export your own contacts and work samples while you still have system access.",
       "After the logistics, the next 72 hours are about not going quiet. Tell a small circle of people — not a mass LinkedIn post yet, just the 10-15 people who'd actually help — that you're in transition and what you're looking for next. Waiting until you \"have it together\" to tell anyone is the single most common early mistake; the people most likely to help you land your next role are the ones who hear from you now, not three months from now.",
     ],
@@ -91,6 +93,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Whether you\'re planning a departure or bracing for one — the window to secure references, your own data, and clarity on what you can and can\'t take is now, not after your last day.',
     excerpt: [
+      "Before your last day, ask for references while the work is recent, and save your own contacts, work samples and performance data while you still have access. You can generally take the relationships you built, but not company-owned data like a CRM record or a client list.",
       "Most people treat their last day as a finish line. It's actually a deadline — the access you have today, to your files, your contacts, your performance data, your references, disappears the moment you're out, and a few hours of preparation now protects years of work. The single highest-leverage thing to do before you go: ask for references while the relationship is active and the work is recent, not months later when you actually need them and the ask feels transactional.",
       "There's also a real, specific line between what's yours to keep and what isn't. Your own contacts, your own performance reviews, and your own written work are generally yours. Proprietary company data, client lists you didn't personally build, and source code are not — and \"if unsure, don't take it\" is the right default, since the liability is real and your accomplishments and relationships are enough on their own. Beyond that: know your non-compete and IP-assignment terms before you're negotiating a competing offer, not after.",
     ],
@@ -156,6 +159,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Ways to bring in income while you search for your next role, without derailing the search itself — fractional work, interim roles, and how to weigh the tradeoffs.',
     excerpt: [
+      "Fractional or interim work won’t hurt your search if it’s capped at a set number of hours a week with a clear end date. Done that way, it keeps your resume current and sometimes turns into the full-time offer.",
       "Taking on income-generating work during a search is often framed as a distraction from finding a full-time role. In practice, the opposite is usually true: a well-chosen fractional or interim engagement keeps you sharp, keeps your resume current instead of showing a growing gap, and often becomes a source of the next full-time offer itself, since interim work regularly converts once a company sees the fit. The key word is well-chosen — bridge work should be scoped tightly enough (hours per week, defined end date) that it doesn't consume the time you need for your actual search.",
       "The options span a real range: fractional leadership roles (part-time executive-level work across one or more companies), interim placements (full-time but explicitly temporary), consulting engagements scoped to a specific project, and lower-commitment gig work that simply bridges income without much resume relevance at all. Which one makes sense depends on how much search-time you can protect, how much income pressure you're under, and whether the work itself is worth having on a resume — not every bridge option needs to advance your story, but the best ones do both at once.",
     ],
@@ -186,6 +190,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'How recruiters, ATS resume screeners, and hiring managers actually work — and what it takes to get from an application in a queue to an actual interview.',
     excerpt: [
+      "Most applications are parsed and ranked by an applicant tracking system before a recruiter sees them. To get through, use plain, standard formatting and mirror the posting’s exact keywords and job titles in real bullets, not a keyword list.",
       "Most job applications never reach a human. Applicant Tracking Systems (ATS) parse resumes into structured fields and rank or filter candidates before a recruiter ever opens the file — which means a resume formatted for a human reader (creative layouts, tables, headers in the wrong place) can get misread or dropped entirely by the software reading it first. The practical fix isn't to write worse, more robotic bullets — it's to make sure the parsed version of your resume actually contains the specific keywords and job-title language the posting uses, in plain, standard formatting the software can reliably extract.",
       "Once a resume clears the ATS, the recruiter screen is a different filter entirely — usually 15-20 minutes, screening for basic fit and a handful of disqualifiers, not a deep evaluation. The candidates who get through consistently do two things: they mirror the language of the actual job posting (not a generic version of their background), and they lead with the most relevant accomplishment for that specific role in the first line a recruiter reads, rather than making them dig for it.",
     ],
@@ -216,6 +221,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Total comp breakdown, negotiation scripts, and the red flags to catch before you sign — everything an offer letter isn\'t telling you outright.',
     excerpt: [
+      "Before you respond to an offer, price the total compensation, not just the salary: base, bonus target and whether it’s guaranteed, equity and its vesting schedule, and benefits. Most employers expect a counter, and a reasonable, professional one rarely gets an offer rescinded.",
       "An offer letter's headline salary number is rarely the full picture. Total compensation includes base, bonus target (and whether it's guaranteed in year one or fully discretionary), equity (and its actual vesting schedule, not just the headline grant size), and benefits — and two offers with the same base salary can differ by tens of thousands of dollars once all of that is priced in. Before responding to any offer, build out the full number, not just the one printed at the top.",
       "Negotiation is also more normal, and more low-risk, than it feels in the moment — most employers expect a counter and have room to move, particularly on start date, sign-on bonus, and PTO, even when base salary is genuinely fixed. The failure mode isn't asking; it's asking vaguely (\"is there any flexibility?\") instead of asking specifically (a number, tied to a reason). And before signing anything: read the full agreement for a non-compete, arbitration clause, or IP assignment language that's broader than you expected — these are far easier to negotiate before you sign than after.",
     ],
@@ -246,6 +252,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'A workshop for building the one story you tell about your career — the version that works consistently across resumes, interviews, and networking conversations.',
     excerpt: [
+      "A core narrative is the one consistent version of your career story — what you’ve done, why you’re moving, and what you want next — built once and reused on your resume, LinkedIn and in interviews.",
       "Most professionals have a dozen different, slightly inconsistent versions of their own career story, told differently depending on who's asking. That inconsistency is quietly costly — a hiring manager who hears one framing from your resume, a different one in the interview, and a third in a reference call reads it as a lack of self-awareness, even when every individual fact is true. A core narrative is the single, tight version of your story — what you've done, why you're moving, and what you're looking for next — built once and reused everywhere, so every touchpoint reinforces the same picture instead of competing with it.",
       "Building one starts with naming the actual throughline in your career, not a generic summary of your resume. What's the pattern across your roles — the kind of problem you keep getting pulled into, the kind of environment you do your best work in? That throughline, stated in two or three sentences, becomes the spine for your resume summary, your LinkedIn headline, your interview opening answer, and how you introduce yourself in a networking conversation — the same story, sized differently for each format.",
     ],
@@ -276,6 +283,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'How to turn your existing contacts into real conversations — without it feeling like you\'re only reaching out when you need something.',
     excerpt: [
+      "To activate your network, ask for a conversation, information or an introduction instead of a job. Those asks are lower-stakes, and in practice more likely to lead somewhere than asking whether someone knows of openings.",
       "Most job searches under-use the network the person already has, not because they don't know anyone, but because reaching out feels transactional — like the relationship only matters now that there's a favor attached. The reframe that actually helps: activating your network isn't asking for a job, it's asking for a conversation, information, or an introduction — three things that are far lower-stakes to ask for and, in practice, more likely to lead somewhere real than a direct \"do you know of any openings.\"",
       "The other common mistake is going broad and generic — a mass message to 200 connections gets a low response rate and reads as impersonal to everyone who gets it. A short list of 15-25 people, contacted individually with a specific, personalized reason for reaching out to each one, consistently outperforms a wide blast. Starting with the warmest relationships first — people who'd genuinely be glad to hear from you regardless of the ask — also builds momentum and confidence before moving to colder outreach.",
     ],
@@ -306,6 +314,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Why asking for help works, and how to do it without it feeling awkward — the reframe that makes outreach easier before you send a single message.',
     excerpt: [
+      "Most people you know reasonably well are glad to be asked for help during a job search and willing to help in a small way. The discomfort is usually stronger in your head than it is for the person you ask.",
       "Asking for help during a job search triggers a specific kind of discomfort — a fear of being a burden, of seeming desperate, or of admitting something isn't going well. That discomfort is almost always more intense in your own head than it registers to the person you're asking. Most people, when someone they know reasonably well reaches out during a transition, feel genuinely glad to be thought of and willing to help in whatever small way they can — the awkwardness is rarely mutual, even when it feels that way before you hit send.",
       "The other thing worth naming honestly: asking for help is not optional in a real search — it's one of the highest-leverage things you can do, and avoiding it because it feels uncomfortable is a common, quiet reason searches stall. The people most likely to help aren't strangers with job openings; they're people who already know your work and are one specific, well-framed ask away from making an introduction or passing your name along. Making the ask specific — not \"let me know if you hear of anything,\" but a named role, company, or type of introduction — makes it easier for them to actually help, not just sympathize.",
     ],
@@ -336,6 +345,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'Scripts for every kind of outreach — cold, warm, and everything between — so you\'re never starting a message from a blank page.',
     excerpt: [
+      "A good networking message opens with something specific you share with the person, gives a clear, low-pressure reason for reaching out, and closes with an ask they can answer in thirty seconds.",
       "The hardest part of networking outreach is usually the first line, not the ask itself — staring at a blank message to someone you haven't spoken to in three years, unsure how to open without it feeling stiff or overly familiar. Having a small set of real, adaptable scripts removes that friction: an opener that's specific to your actual shared history with that person, a clear and low-pressure reason for reaching out, and a close that makes it easy for them to respond in thirty seconds if they're busy.",
       "The right script also depends on the relationship's warmth. A close former colleague can get a short, casual, direct message. Someone you met once at a conference needs a warmer reintroduction before any ask. A cold connection — someone you don't know at all but want to reach — needs the most context and the lowest-pressure ask of the three, since you haven't yet earned the benefit of the doubt a warmer relationship gives you.",
     ],
@@ -366,6 +376,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'How to prepare for interviews at every stage, from the phone screen through the final round — what actually changes as you move through the process.',
     excerpt: [
+      "Prepare differently for each interview stage: a phone screen checks basic fit like pay range, location and must-haves; a hiring-manager round tests whether you can do the job; a panel or final round tests team fit and how you handle pushback. Three or four well-developed, adaptable stories cover most questions.",
       "Interview stages test genuinely different things, and preparing the same way for all of them is a common mistake. A phone screen is mostly a basic-fit and disqualifier filter — the recruiter is checking comp range, location, and a handful of must-haves, not evaluating your deepest technical expertise. A hiring-manager round goes deeper into whether you can actually do the job. A panel or final round is often testing team fit and how you handle real-time pushback, not just your prepared answers.",
       "The single highest-leverage prep move at any stage is building 3-4 specific stories, in a structured format (situation, action, result), that you can adapt to multiple question types — rather than trying to have a perfectly memorized answer for every possible question. Interviewers remember specific numbers and specific outcomes far more than they remember polished but generic language, so the stories worth preparing are the ones with a real, quantifiable result attached.",
     ],
@@ -396,6 +407,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'What to do in the 24-48 hours after an interview — the thank-you note that actually stands out, and how to handle the wait afterward.',
     excerpt: [
+      "Send a thank-you note within 24 hours that mentions something specific from the conversation, such as a project or challenge the interviewer described. Specific beats long.",
       "A generic thank-you email — \"thank you for taking the time to speak with me\" — is easy to write and easy to forget just as fast. A note that actually stands out references something specific from the conversation: a project the interviewer mentioned, a challenge they described the team is working through, a detail that proves you were genuinely listening rather than sending a template. Sending it within 24 hours, while the conversation is still fresh for both of you, matters more than making it long or elaborate.",
       "After the note, the harder part is the wait — and most candidates handle it badly, either going silent and passive or following up so frequently it reads as anxious. One well-timed follow-up, roughly a week after the stated timeline passes with no update, is appropriate and expected. Beyond that, the better use of the waiting period is continuing your search actively rather than pausing it to wait on one outcome — a strong process elsewhere is also the best leverage if you do get a competing offer to negotiate with.",
     ],
@@ -426,6 +438,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'How to write and share thought leadership content that actually gets noticed — without it feeling like self-promotion.',
     excerpt: [
+      "Post short, concrete stories about real problems you’ve solved; you don’t need a bold opinion. Direct experience reads as more credible than industry commentary, and it’s easier to write.",
       "The instinct to avoid posting publicly during a job search — \"who am I to have opinions about this\" — is common and usually backwards. A public presence doesn't need to be a bold, contrarian take to work; it needs to be specific and genuinely useful, drawing on something you actually know well from direct experience. A short, concrete post about a real problem you solved reads as far more credible than a generic industry-trends commentary, and it's also easier to write, since you're not inventing an opinion, just describing something real.",
       "Consistency matters more than any single post going viral. A modest, steady cadence — even once every couple of weeks — builds a visible track record over a few months that a single high-effort post can't replicate, and it's what a hiring manager or recruiter actually sees when they look you up before a call. The goal isn't influence for its own sake; it's making sure that when someone searches your name mid-process, what they find reinforces the story you're already telling them directly.",
     ],
@@ -456,6 +469,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     metaDescription:
       'How to start strong in a new role — what to prioritize in the first month, and the mistakes that quietly cost people in their first quarter.',
     excerpt: [
+      "In your first 90 days, spend the first 30 listening — how decisions actually get made, who the informal influencers are, and what’s already been tried — before you propose changes.",
       "The most common mistake in a new role's first 90 days is trying to prove value too fast — proposing changes before understanding why things are the way they are. The first 30 days are better spent listening: understanding how decisions actually get made, who the informal (not just organizational-chart) influencers are, and what's already been tried before you arrived. Contributing real, visible value matters, but it should follow genuine understanding, not precede it.",
       "By day 60-90, the priorities shift toward building a track record of small, real wins and establishing the working relationships that will matter for the next two years, not just the first quarter. The single highest-leverage habit in this window: proactively communicating progress to your manager before they have to ask — a new hire who over-communicates in the first 90 days builds trust far faster than one who does excellent work silently and waits to be noticed.",
     ],

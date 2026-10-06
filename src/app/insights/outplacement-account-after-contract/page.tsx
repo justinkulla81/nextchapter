@@ -59,6 +59,9 @@ export default function OutplacementAccountAfterContractArticlePage() {
         <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
+          <p className="font-medium">
+            In many outplacement programs, the participant&apos;s account, resume drafts and coaching notes end when the employer&apos;s contract term ends. Ask what participants keep afterward before you sign.
+          </p>
           <p>
             Outplacement is typically purchased on a term — six months, twelve months, tied to the employer&apos;s
             contract. What isn&apos;t always clear going in is what happens to the participant&apos;s account,

@@ -27,8 +27,7 @@ export const FACTS = {
     linkedIn: FOUNDER_LINKEDIN_URL,
     authorPath: '/authors/justin-kulla',
   },
-  /** TODO(Justin): founding year isn't stated anywhere on the site yet. */
-  foundingYear: null as number | null,
+  foundingYear: 2026 as number | null,
   contactEmail: CONTACT_EMAIL,
   linkedIn: COMPANY_LINKEDIN_URL,
   logo: `${SITE_URL}/icon.png`,

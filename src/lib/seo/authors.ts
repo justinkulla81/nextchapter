@@ -26,10 +26,7 @@ export const AUTHORS: Record<string, Author> = {
       'Justin Kulla is the founder of NextChapter. He has spent nearly 20 years as an investor, founder and operator in education technology.',
       'He founded BusinessBlocks, a venture-backed education company for small businesses, and led it as CEO through a successful exit to AmTrust Financial, a Fortune 500 company. At AmTrust he became SVP and Head of Global M&A and Venture Investments.',
       'He is a Partner at TZP Group, where he leads impact and education investments. He was a founding member of Weld North, where he invested in Imagine Learning, The Learning House and Performance Matters, and served as CTO of Edgenuity. He started his career in technology at Credit Suisse and Google.',
-      'He holds an MBA from MIT, a Master of Public Administration from Harvard and a master’s in Information Systems Management from Carnegie Mellon.',
-      // TODO(Justin): the Displacement Report's author box calls you "a lecturer
-      // at Stanford and MIT", but /about doesn't say so. Add it here (and on
-      // /about) once confirmed, or remove it from the report.
+      'He holds an MBA from MIT, a Master of Public Administration from Harvard and a master’s in Information Systems Management from Carnegie Mellon, and is a lecturer at Stanford and MIT.',
     ],
     image: '/images/team/justin-kulla.jpg',
     linkedIn: FOUNDER_LINKEDIN_URL,

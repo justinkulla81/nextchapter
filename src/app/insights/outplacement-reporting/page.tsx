@@ -62,6 +62,9 @@ export default function OutplacementReportingArticlePage() {
         <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
+          <p className="font-medium">
+            Most outplacement reports measure utilization — logins and sessions completed — not what participants produced. Ask your provider to report outcomes instead: a resume that passes an applicant tracking system, references ready to speak, and a clear list of target companies.
+          </p>
           <p>
             Most outplacement reporting measures utilization: how many participants logged in, how many
             sessions they completed, how many resources they opened. Utilization is easy to measure and easy
