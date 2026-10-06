@@ -30,7 +30,10 @@ export function HelpFeedbackLauncher({ repliesWaiting = 0 }: { repliesWaiting?: 
   if (pathname.startsWith('/dashboard/help')) return null
 
   function openPanel() {
-    setTitle(document.title.replace(/\s*[|–—-]\s*NextChapter\s*$/i, '').trim())
+    // The page's own heading ("Success Dashboard", "Find a Full-time Job")
+    // names it better than the tab title, which is a tagline on some pages.
+    const heading = document.querySelector('main h1')?.textContent?.trim()
+    setTitle(heading || document.title.replace(/^\s*NextChapter\s*[|–—-]\s*/i, '').replace(/\s*[|–—-]\s*NextChapter\s*$/i, '').trim())
     setOpen(true)
     posthog?.capture('help_launcher_opened', { page: pathname })
   }

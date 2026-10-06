@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -70,7 +71,8 @@ export async function submitHelpForm(_prev: HelpFormState, formData: FormData): 
         channel: kind === 'idea' ? 'in-app idea' : 'in-app feedback', contextPath, receivedAt: new Date(),
       },
     })
-    await logHelpOnCrm(profile.id, kind === 'idea' ? 'Shared an idea' : 'Gave feedback', message, `help-feedback:${fb.id}`)
+    // After the response: the candidate shouldn't wait on the CRM.
+    after(() => logHelpOnCrm(profile.id, kind === 'idea' ? 'Shared an idea' : 'Gave feedback', message, `help-feedback:${fb.id}`))
     captureServerEvent(profile.id, 'product_feedback_submitted', { feedbackId: fb.id, kind, page: contextPath, crisis })
     revalidatePath('/dashboard/help')
     return { sent: true, kind }
@@ -94,8 +96,12 @@ export async function submitHelpForm(_prev: HelpFormState, formData: FormData): 
       messages: { create: { body: message } },
     },
   })
-  await logHelpOnCrm(profile.id, kind === 'problem' ? `Reported a problem: ${subject}` : `Asked for help: ${subject}`, message, `help:${request.id}`)
-  await notifyAdminOfHelp(request.id, message, false)
+  // The CRM note and the email to the admin run after the response, so the
+  // candidate sees "Sent" right away.
+  after(async () => {
+    await logHelpOnCrm(profile.id, kind === 'problem' ? `Reported a problem: ${subject}` : `Asked for help: ${subject}`, message, `help:${request.id}`)
+    await notifyAdminOfHelp(request.id, message, false)
+  })
   captureServerEvent(profile.id, 'help_request_submitted', {
     requestId: request.id, type: kind, page: contextPath, hasScreenshot: !!screenshotPath, crisis,
   })
@@ -124,7 +130,7 @@ export async function replyToHelpRequest(requestId: string, _prev: HelpFormState
       flaggedCrisis: request.flaggedCrisis || crisis,
     },
   })
-  await notifyAdminOfHelp(requestId, message, true)
+  after(() => notifyAdminOfHelp(requestId, message, true))
   captureServerEvent(profile.id, 'help_reply_sent', { requestId, from: 'candidate', crisis })
   revalidatePath('/dashboard/help')
   return { sent: true }
@@ -134,6 +140,7 @@ export async function replyToHelpRequest(requestId: string, _prev: HelpFormState
 export async function markHelpRequestRead(requestId: string): Promise<void> {
   const profile = await currentCandidate()
   if (!profile) return
+  // No revalidation: refreshing the portal here flashed its loading screen.
+  // The badges are recomputed on the next page the candidate opens.
   await prisma.helpRequest.updateMany({ where: { id: requestId, candidateId: profile.id }, data: { candidateLastReadAt: new Date() } })
-  revalidatePath('/dashboard', 'layout')
 }
