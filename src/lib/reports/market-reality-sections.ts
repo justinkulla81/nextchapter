@@ -24,7 +24,7 @@ import { NETWORKING_WEIGHT } from '@/lib/scoring/market-reality/attempts'
 // ── Section 1: "Where you stand" ────────────────────────────────────────
 //
 // `grade` below is `probabilityGrade` (see scoring/market-reality/
-// probability.ts) — the one candidate-facing Market Reality Grade. The old
+// probability.ts) — the one candidate-facing Market Reality Assessment. The old
 // composite grade (`startingBand`) still renders, but only as the
 // "starting point before your real attempts count" context, never as a
 // second headline.

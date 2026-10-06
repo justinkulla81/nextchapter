@@ -33,7 +33,7 @@ export default async function WelcomePage() {
             prep, networking — done consistently, not in bursts. NextChapter turns that into a{' '}
             <strong>Search Sprint</strong>{' '}
             you commit to before each week starts, and tracks your progress as your{' '}
-            <strong>Current Market Reality</strong>{' '}
+            <strong>Market Reality Assessment</strong>{' '}
             — how competitive you look to employers right now. Connect Gmail and Calendar and it
             runs as your own networking and job application CRM, automatically logging outreach,
             replies, and interviews so you never have to enter them by hand.

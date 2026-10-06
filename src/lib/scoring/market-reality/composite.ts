@@ -1,4 +1,4 @@
-// Composite grade — the Market Reality Grade is a day-one artifact: what's
+// Composite grade — the Market Reality Assessment is a day-one artifact: what's
 // true about your resume and experience right now, not a measure of
 // platform activity.
 //   - Two weighted components: Experience and Resume — weighted per §3.4's

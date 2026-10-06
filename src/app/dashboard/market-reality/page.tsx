@@ -483,7 +483,7 @@ export default async function MarketRealityReportPage() {
             <SectionHeading>Where you stand</SectionHeading>
             {!whereYouStand ? (
               <p className="mt-3 text-sm text-muted-foreground">
-                Not enough data yet for your Market Reality Grade — upload a resume to get your
+                Not enough data yet for your Market Reality Assessment — upload a resume to get your
                 first read.
               </p>
             ) : (

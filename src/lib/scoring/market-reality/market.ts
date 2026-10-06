@@ -155,7 +155,7 @@ async function geographyLeg(candidateId: string, candidate: {
   return { score, drivers }
 }
 
-// Industry-narrowed leg — Market Reality Grade recalibration: the user
+// Industry-narrowed leg — Market Reality Assessment recalibration: the user
 // asked for "small size of their target industry/function" to penalize
 // specifically, and the codebase already computes exactly this number
 // (getMarketConditions's adzunaIdealCount, role+industry+geo) — it was just

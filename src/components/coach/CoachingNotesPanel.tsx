@@ -82,7 +82,7 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Current Market Reality trend</p>
+          <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment trend</p>
           <div className="mt-2">
             <MarketRealityTrendChart snapshots={notes.marketRealityTrend} />
           </div>

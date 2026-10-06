@@ -24,7 +24,7 @@ export interface MarketConditionsInput {
   // Level-synonym breadth for the Adzuna query (level-groups.ts) — optional,
   // same backward-compatible convention as targetIndustries above. Omitting
   // this preserves every existing caller's exact current behavior; only
-  // market.ts (Market Reality Grade) passes it today.
+  // market.ts (Market Reality Assessment) passes it today.
   levelGroup?: 'SENIOR_LEADERSHIP' | 'DIRECTOR' | 'MANAGER' | null
   // Words to exclude from the title match — used for a bare ambiguous
   // level word like "Partner" (level-groups.ts), to filter out staff-

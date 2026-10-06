@@ -107,7 +107,7 @@ export function selfCheckResumeAnalysis(input: SelfCheckInput): SelfCheckResult 
 
   // The prestige cap can move Resume's band at most two steps on its own
   // (widened from one step when RESUME_GRADE_PRESTIGE_CAP grew from 6 to 10
-  // for the Market Reality Grade recalibration — a bare one-step tolerance
+  // for the Market Reality Assessment recalibration — a bare one-step tolerance
   // at the old cap would fail closed on exactly the elite candidates the
   // wider cap exists to reward) — check by re-deriving the band with
   // prestige zeroed.

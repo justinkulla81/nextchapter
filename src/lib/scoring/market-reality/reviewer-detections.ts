@@ -1,4 +1,4 @@
-// Reviewer-detection surfacing — Market Reality Grade 2.0 Phase 4. The
+// Reviewer-detection surfacing — Market Reality Assessment 2.0 Phase 4. The
 // detections themselves are computed and persisted in Phase 2
 // (resume-analysis/reviewer-questions.ts + compute.ts, on ResumeAnalysis
 // create). This module is the read/resolve surface Phase 6/7 will build the

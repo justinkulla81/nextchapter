@@ -314,7 +314,7 @@ function scoreIndustryCoherence(facts: ResumeAnalysisFacts): { score: number; fi
   return { score: clamp(score), findings: [] } // informational only — never narrated as a deficiency (spec §17: never imply a candidate's background is insufficient)
 }
 
-// ── Employment Gaps — NEW, Market Reality Grade recalibration ────────────
+// ── Employment Gaps — NEW, Market Reality Assessment recalibration ────────────
 // Ports the same facts.roles-based gap detection reviewer-questions.ts's
 // detectReviewerQuestions() already computes (the correct, resume-analysis-
 // native data source), but turns it into a score instead of a candidate
@@ -389,7 +389,7 @@ function scoreEmploymentGaps(facts: ResumeAnalysisFacts): { score: number; findi
   return { score: Math.max(40, Math.round(100 - penalty)), findings }
 }
 
-// ── Function Track Consistency — NEW, Market Reality Grade recalibration ─
+// ── Function Track Consistency — NEW, Market Reality Assessment recalibration ─
 // Mirrors scoreIndustryCoherence's exact shape (recency-weighted plurality
 // share) but keyed on per-role function family instead of industry — a
 // candidate whose roles cluster tightly in one function reads as coherent;

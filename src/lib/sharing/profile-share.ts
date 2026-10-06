@@ -141,8 +141,8 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
       wouldHireAgain: r.wouldHireAgain,
     }))
 
-  // Hiring Manager and Recruiter views never include the Current Market Reality
-  // or Current Market Reality — those stay internal-only, never shown to an
+  // Hiring Manager and Recruiter views never include the Market Reality Assessment
+  // or Market Reality Assessment — those stay internal-only, never shown to an
   // external viewer.
   if (share.recipientType === 'HIRING_MANAGER') {
     return {
@@ -169,7 +169,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     }
   }
 
-  // Coach — full profile, including the live Current Market Reality grade.
+  // Coach — full profile, including the live Market Reality Assessment grade.
   // Private Victoria chat history is never included.
   const composite = await computeMarketRealityCompositeGrade(candidate.id)
   return {

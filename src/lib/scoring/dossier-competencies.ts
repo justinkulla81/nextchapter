@@ -1,4 +1,4 @@
-// Scoring Model 2.0 — one Current Market Reality, built from six categories:
+// Scoring Model 2.0 — one Market Reality Assessment, built from six categories:
 //
 //   Target Fit                      — real hiring demand + how well matched
 //                                      and focused the candidate's target is.
@@ -412,7 +412,7 @@ export async function computeCategoryGrades(
   // includeFlexibilitySignal=false (used only by the displayed Current
   // Market Reality path, via computeDossierCompetencies) holds the self-report
   // at a neutral midpoint instead — candidates shouldn't be able to move
-  // their Current Market Reality by how flexible they say they are on
+  // their Market Reality Assessment by how flexible they say they are on
   // comp/level/location/pivoting. The archival snapshot, Coaching Notes,
   // and the Dossier's self-awareness read all keep the real signal via the
   // default.

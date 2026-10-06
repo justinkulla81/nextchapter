@@ -50,7 +50,7 @@ export default async function PreSessionBriefPage({
 
       <div className="space-y-5">
         <div className="rounded-lg border border-border p-4">
-          <p className="text-sm font-medium text-muted-foreground">Current Market Reality</p>
+          <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {brief.executionGrade ? (
               <>

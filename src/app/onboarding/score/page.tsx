@@ -21,7 +21,7 @@ export default async function ScorePage() {
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">
-        {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Current Market Reality'}
+        {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Market Reality Assessment'}
       </h1>
 
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>

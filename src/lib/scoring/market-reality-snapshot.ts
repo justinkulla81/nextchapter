@@ -4,7 +4,7 @@ import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probabilit
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 
-// Generates and archives this week's Current Market Reality + named-reasons
+// Generates and archives this week's Market Reality Assessment + named-reasons
 // snapshot for one candidate. Idempotent per (candidateId, weekStartDate) —
 // safe to re-run the cron without creating duplicate weeks. Never
 // overwrites a prior week's snapshot; only ever creates the current week's

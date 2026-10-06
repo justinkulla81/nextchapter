@@ -54,11 +54,11 @@ export default function NewsletterWeeklyEmail({
         More articles, videos and posts are on the <a href={newsUrl}>News page</a>.
       </p>
       <p>
-        Searching for a job yourself? NextChapter is free for candidates: a Market Reality Grade, a resume tested against
+        Searching for a job yourself? NextChapter is free for candidates: a Market Reality Assessment, a resume tested against
         the systems that read it, and a plan for the week.
       </p>
       <a href={signupUrl} style={button}>
-        Get your Market Reality Grade →
+        Get your Market Reality Assessment →
       </a>
       <p style={footer}>
         You signed up for this email at launchyournextchapter.com. <a href={unsubscribeUrl}>Unsubscribe</a>

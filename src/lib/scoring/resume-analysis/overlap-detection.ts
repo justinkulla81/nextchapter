@@ -1,9 +1,9 @@
 // Shared "do these two roles overlap in a way that's actually a problem"
 // primitive — was independently reimplemented, identically, in both
-// modifiers.ts's computeReconciliation (feeds the Market Reality Grade's
+// modifiers.ts's computeReconciliation (feeds the Market Reality Assessment's
 // overlapping_full_time penalty) and reviewer-questions.ts's OVERLAPPING_ROLES
 // detection (feeds the Guided Resume Walkthrough). Both now call this one
-// function so the Market Reality Grade and the Guided Walkthrough can never
+// function so the Market Reality Assessment and the Guided Walkthrough can never
 // silently drift apart on which overlaps count.
 //
 // A concurrent board seat, advisor, or non-employee director role next to a

@@ -23,7 +23,7 @@ export function SampleMarketRealityReport() {
 
       <p className={cn('text-5xl font-bold tabular-nums', GRADE_TEXT_COLOR[grade])}>
         {grade}
-        <span className="ml-2 align-middle text-base font-medium text-muted-foreground">Market Reality Grade</span>
+        <span className="ml-2 align-middle text-base font-medium text-muted-foreground">Market Reality Assessment</span>
       </p>
       <p className="mt-2 text-sm text-foreground">
         {strongestLine} {constraintLine}

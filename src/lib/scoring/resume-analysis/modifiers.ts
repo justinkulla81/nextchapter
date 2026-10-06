@@ -16,7 +16,7 @@ import type { SeniorityBand } from './types'
 import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
 
 // ── Prestige (spec §4.13) — 0 to +10 on the Record composite (raised from 6
-// as part of the Market Reality Grade recalibration: elite-pedigree
+// as part of the Market Reality Assessment recalibration: elite-pedigree
 // candidates need real headroom to reach an A), 0 to +10 on First Glance.
 // Never negative, never displayed, logged to PrestigeAudit. Reuses the same
 // admin-curated EliteInstitution/PrestigeEmployer tables as the legacy

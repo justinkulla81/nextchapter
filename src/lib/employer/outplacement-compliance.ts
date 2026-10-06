@@ -29,7 +29,7 @@ export { formatCompliancePackText } from '@/lib/employer/format-compliance-pack'
 // benefit was delivered" (enrollment date, activation date, contract term,
 // tier, current status) — a service-delivery fact the employer is legally
 // entitled to (they signed a separation agreement naming this person).
-// It never includes job-search activity, Market Reality Grade, detections,
+// It never includes job-search activity, Market Reality Assessment, detections,
 // mood/sentiment, or anything else CandidateProfile-derived — see
 // buildCompliancePack below, which reads ONLY OutplacementSeat/
 // OutplacementContract/OutplacementEmployerOrg columns, the same

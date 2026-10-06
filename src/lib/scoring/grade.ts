@@ -1,4 +1,4 @@
-// Pure types/values for the single Current Market Reality — no server-only
+// Pure types/values for the single Market Reality Assessment — no server-only
 // dependencies, so client components (e.g. the animated score-reveal ring)
 // can import these directly without pulling in the Prisma/market-data
 // computation in dossier-competencies.ts.
@@ -10,7 +10,7 @@
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
-// Recalibrated for the Market Reality Grade recalibration: real data (38
+// Recalibrated for the Market Reality Assessment recalibration: real data (38
 // weekly MarketRealitySnapshot rows) showed the OLD cutoffs below collapsing
 // 37/38 candidates onto exactly C — a wide, discouraging C-zone rather than
 // the intended "most candidates land here, but a genuinely strong resume

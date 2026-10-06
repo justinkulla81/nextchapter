@@ -98,7 +98,7 @@ async function getGoodNewsTriggers(candidateId: string, gradeTrend: Trend): Prom
       type: 'GOOD_NEWS',
       key: 'grade_improving',
       label: 'Grade improving',
-      detail: 'Market Reality grade moved up since the last report.',
+      detail: 'Market Reality Assessment moved up since the last report.',
     })
   }
 

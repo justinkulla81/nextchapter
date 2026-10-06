@@ -13,6 +13,7 @@ import { NewsFeed } from '@/components/news/NewsFeed'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
 import { canonical } from '@/lib/seo/canonical'
+import { organizationJsonLd, organizationRef } from '@/lib/seo/jsonld'
 
 // The page is otherwise static. Publishing News in the admin clears it at
 // once; the timer is the fallback.
@@ -45,7 +46,7 @@ const heroStats = [
 const THREE_BEATS = [
   {
     title: 'Know where you stand.',
-    body: 'A Market Reality Grade that tells you how hard this search will be and which of the five things driving it are in your control. Not a judgment of your career — an estimate of the work ahead.',
+    body: 'A Market Reality Assessment that tells you how hard this search will be and which of the five things driving it are in your control. Not a judgment of your career — an estimate of the work ahead.',
     href: '/why-stuck',
     cta: 'See the full picture →',
   },
@@ -64,7 +65,7 @@ const THREE_BEATS = [
 ]
 
 const HOW_IT_WORKS_STEPS = [
-  { title: 'Current Market Reality', description: 'A clearer view of where you stand and what to do next.' },
+  { title: 'Market Reality Assessment', description: 'A clearer view of where you stand and what to do next.' },
   { title: 'Search Sprint', description: 'A clear weekly plan, not a guessing game.' },
   { title: 'Weekly Search Score', description: 'Momentum you can actually see, points that never feel abstract.' },
   { title: 'Executive Dossier', description: 'Helps employers see what your résumé leaves out.' },
@@ -76,12 +77,8 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'A resume is the least complete thing about you. NextChapter turns a job search into verified evidence — a Market Reality Grade, a Resume Studio, and an Executive Dossier corroborated by the people who worked with you. Free for candidates, always.',
-  publisher: {
-    '@type': 'Organization',
-    name: 'NextChapter',
-    url: 'https://launchyournextchapter.com',
-  },
+    'A resume is the least complete thing about you. NextChapter turns a job search into verified evidence — a Market Reality Assessment, a Resume Studio, and an Executive Dossier corroborated by the people who worked with you. Free for candidates, always.',
+  publisher: organizationRef(),
 }
 
 export default async function Home() {
@@ -89,6 +86,7 @@ export default async function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
+      <StructuredData data={organizationJsonLd()} />
 
       {/* 1 — Hero (§C3.1.1) */}
       <section className="relative bg-white">
@@ -110,12 +108,12 @@ export default async function Home() {
               className="h-14 px-8 text-base"
               render={<Link href="/onboarding/desire" />}
             >
-              Get Your Market Reality Grade
+              Get Your Market Reality Assessment
             </Button>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
             Upload your resume and understand how hiring managers will evaluate it with your
-            NextChapter Market Reality Grade. Then get an action plan to increase your
+            NextChapter Market Reality Assessment. Then get an action plan to increase your
             marketability.
           </p>
           <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
@@ -273,7 +271,7 @@ export default async function Home() {
           <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
             <Image
               src="/marketing/success-dashboard.png"
-              alt="NextChapter Success Dashboard showing a Current Market Reality of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
+              alt="NextChapter Success Dashboard showing a Market Reality Assessment of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
               width={1040}
               height={815}
               className="w-full"
@@ -387,7 +385,7 @@ export default async function Home() {
               nativeButton={false}
               render={<Link href="/onboarding/desire" />}
             >
-              Get your Market Reality Grade and then action plan to start your next chapter
+              Get your Market Reality Assessment and then action plan to start your next chapter
             </Button>
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">

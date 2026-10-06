@@ -77,7 +77,7 @@ export default function SecurityPage() {
               candidate account. No &quot;already registered&quot; errors, no search that returns a hit.
             </li>
             <li>
-              The Market Reality Grade, component grades, and detections never leave the candidate and
+              The Market Reality Assessment, component grades, and detections never leave the candidate and
               their coach — no recruiter, employer, or admin query returns them.
             </li>
           </ul>

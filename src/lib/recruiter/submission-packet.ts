@@ -4,7 +4,7 @@ import { getDossierSections } from '@/lib/reports/dossier-sections'
 import { isCandidateConsentedForRecruiter } from '@/lib/recruiter/introductions'
 
 // Recruiter portal §A6.2 — "branded submission packet ... generated with
-// the recruiter's own logo ... Never includes: Market Reality Grade,
+// the recruiter's own logo ... Never includes: Market Reality Assessment,
 // component grades, detections, badges, application history, or other
 // candidates." Built as an ALLOWLIST: every field on SubmissionPacketData
 // below is individually and explicitly assigned from a known-safe source —

@@ -135,7 +135,7 @@ function joinResumeFeedback(feedback: Prisma.JsonValue[]): string {
 
 const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
-You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, the Market Reality Grade (A-F) — a day-one read on their resume and real work experience, capped by how many similar roles actually exist in the market. It does NOT reflect references, networking, or other ongoing platform activity — that builds a separate thing, their Dossier, over time, and is out of scope for this report. Reference the grade by name where relevant instead of a single generic "score."
+You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, the Market Reality Assessment (A-F) — a day-one read on their resume and real work experience, capped by how many similar roles actually exist in the market. It does NOT reflect references, networking, or other ongoing platform activity — that builds a separate thing, their Dossier, over time, and is out of scope for this report. Reference the grade by name where relevant instead of a single generic "score."
 
 HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, hillToClimb, gapAnalysis, marketConditions, or the executive summary. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
 
@@ -154,7 +154,7 @@ Write:
    - HARD REQUIREMENT: if "Management/IC preference vs. goals conflict" below is YES, name this tension as one of the weaknesses (or fold it into the gap analysis). Trust that they genuinely want to be an individual contributor — never suggest they secretly want to manage — but be direct that their team-management history and/or their stated target role point toward a more senior/managerial track, and they'll need to either retarget their search toward true IC-track roles (which may mean a different title or level than they wrote down) or consciously plan for the trade-off a more senior title actually requires (less hands-on work, more people management, even if that's not their preference).
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses or hill-to-climb narrative — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
    - HARD REQUIREMENT — for an A/B-band candidate, weaknesses must still be genuinely substantive, not manufactured-easy: name real, specific challenges from their actual data below (market scarcity for their target, a resume gap, unproven skills for a pivot, a self-report contradiction) rather than softened or omitted ones. A strong grade must never read as "nothing to say here" — find the real, honest friction even for a candidate who is doing everything right.
-3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Market Reality Grade, experience, market conditions, job search intensity, self-awareness signals, resume completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what real work on their resume, positioning, and target does to improve their odds. Never imply the grade guarantees an outcome.
+3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Market Reality Assessment, experience, market conditions, job search intensity, self-awareness signals, resume completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what real work on their resume, positioning, and target does to improve their odds. Never imply the grade guarantees an outcome.
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, the tone and narrative must reflect that pivoting is a harder path than a lateral move (see the weaknesses instruction above) — never pick "very_positive" on the strength of a lateral candidate's profile alone if they're pivoting. Still end on what's in their control: the transferable-skills story they build, the networking they do, and the specificity of the target they pick all move the needle even on a pivot.
    - HARD REQUIREMENT: a "very_positive" tone still requires naming at least 2 sentences of real friction (a market condition, a resume gap, an unproven claim) — encouragement alone, with nothing honest to push against, is not a complete hill-to-climb narrative.
 4. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
@@ -293,7 +293,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     // prompt instructions above rather than fabricating a comparison.
     prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
     prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
-    // MRG §11 — refresh the 5-component Market Reality Grade composite
+    // MRG §11 — refresh the 5-component Market Reality Assessment composite
     // (MarketRealityComponentScore) in the same pass as everything else,
     // so report generation is the one designated "recompute moment."
     // Non-fatal — the rest of the report must still generate even if a
@@ -310,7 +310,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
         const newGradeHeadline = await buildMarketRealityHeadline(candidateId)
         return { probabilityResult, newGradeHeadline }
       } catch (error) {
-        console.error('Failed to refresh Market Reality Grade for report generation:', error)
+        console.error('Failed to refresh Market Reality Assessment for report generation:', error)
         return { probabilityResult: null, newGradeHeadline: null }
       }
     })(),
@@ -389,7 +389,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}
 
-Market Reality Grade: ${
+Market Reality Assessment: ${
     newGradeHeadline
       ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
       : 'not enough data yet to compute'

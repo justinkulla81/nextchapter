@@ -169,7 +169,7 @@ export async function getCurrentWeekSprint(candidateId: string) {
   return { ...sprint, committedActions: committedActions as unknown as Prisma.JsonValue }
 }
 
-// Current Market Reality is graded from real weekly follow-through — until a
+// Market Reality Assessment is graded from real weekly follow-through — until a
 // candidate has committed to at least one Search Sprint, there's nothing
 // to grade yet, so every surface should show "N/A, starting line" instead
 // of a computed letter grade.

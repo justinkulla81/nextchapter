@@ -35,7 +35,7 @@ export async function sendGradeCalibratedUpEmail(
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to: email,
-    subject: 'Your Market Reality grade just moved up',
+    subject: 'Your Market Reality Assessment just moved up',
     react: GradeCalibratedUpEmail({
       firstName: candidate.firstName,
       previousGrade,

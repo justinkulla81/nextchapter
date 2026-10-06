@@ -14,7 +14,7 @@ import { prisma } from '@/lib/prisma'
 // so the two don't quietly drift apart. Deliberately QUALITATIVE only: a
 // CompetencyGap never carries the underlying numeric score or letter grade,
 // only whether reference/assessment evidence exists — §A8/§E4.1's "never
-// Market Reality Grade, component grades, detections, or badges" rule
+// Market Reality Assessment, component grades, detections, or badges" rule
 // applies to every employer-facing surface this feeds, so the boundary is
 // enforced right here at the source rather than trusted to every caller
 // downstream.

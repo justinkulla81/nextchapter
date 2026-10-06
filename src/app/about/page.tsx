@@ -8,10 +8,11 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { AboutContactForm } from '@/components/marketing/SearchQuestionForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
+import { FACTS } from '@/lib/seo/facts'
+import { organizationJsonLd, personJsonLd } from '@/lib/seo/jsonld'
 
 const TITLE = 'About: the AI platform for career transitions'
-const DESCRIPTION =
-  'NextChapter is the AI platform for career transitions. Founded by Justin Kulla, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.'
+const DESCRIPTION = `${FACTS.name} is ${FACTS.tagline.charAt(0).toLowerCase()}${FACTS.tagline.slice(1)} Founded by ${FACTS.founder.name}, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.`
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -25,37 +26,18 @@ export const metadata: Metadata = {
 const PHOTO_PATH = '/images/team/justin-kulla.jpg'
 const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', PHOTO_PATH))
 
-const founderJsonLd = {
-  '@type': 'Person',
-  name: 'Justin Kulla',
-  jobTitle: 'Founder & CEO',
-  url: FOUNDER_LINKEDIN_URL,
-  sameAs: [FOUNDER_LINKEDIN_URL],
-  alumniOf: [
-    { '@type': 'CollegeOrUniversity', name: 'Massachusetts Institute of Technology' },
-    { '@type': 'CollegeOrUniversity', name: 'Harvard University' },
-    { '@type': 'CollegeOrUniversity', name: 'Carnegie Mellon University' },
-  ],
-}
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'NextChapter',
-  url: 'https://launchyournextchapter.com',
-  description: 'The AI platform for career transitions.',
-  sameAs: [COMPANY_LINKEDIN_URL],
-  founder: founderJsonLd,
+const jsonLd = organizationJsonLd({
+  founder: personJsonLd(),
   knowsAbout: [
     'AI job search', 'Career transitions', 'Career exploration', 'Career pathways',
     'Education technology', 'Retraining', 'Workforce development', 'AI displacement',
     'Long-term unemployment', 'Age-related unemployment', 'Parental and family leave',
   ],
-}
+})
 
 const PILLARS = [
   { kicker: 'AI job search', title: 'AI agents run the search', body: 'They find matching roles, track every application, response and rejection, and tell you what to do next.' },
-  { kicker: 'Career exploration', title: 'Know which jobs you can get', body: 'The Market Reality Grade shows how employers read your background and which roles and titles fit.' },
+  { kicker: 'Career exploration', title: 'Know which jobs you can get', body: 'The Market Reality Assessment shows how employers read your background and which roles and titles fit.' },
   { kicker: 'Education & retraining', title: 'Train only where it pays off', body: 'Career pathways that show the skills and credentials employers are hiring for, and nothing extra.' },
   { kicker: 'Workforce development', title: 'Move people into jobs at scale', body: 'Outplacement firms, workforce boards, nonprofits and employers manage cohorts and report placement results.' },
 ]

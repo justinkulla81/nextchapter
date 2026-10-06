@@ -68,7 +68,7 @@ export interface GradeMovement {
   toGrade: Grade
 }
 
-// Whether (and how) the single Market Reality Grade moved since the prior
+// Whether (and how) the single Market Reality Assessment moved since the prior
 // snapshot — replaces the old per-category "what moved this week" list now
 // that there's one grade, not six. Snapshots must be sorted oldest to newest.
 export function computeGradeMovement(snapshots: MarketRealitySnapshotLike[]): GradeMovement | null {

@@ -68,7 +68,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             properties={{ cta: 'footer_get_grade', page }}
             className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
           >
-            Get your Market Reality Grade
+            Get your Market Reality Assessment
           </TrackedLink>
           <TrackedLink
             href="/contact"

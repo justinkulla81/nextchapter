@@ -154,7 +154,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.auth.getUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
-    // The one candidate-facing Market Reality Grade — computeProbabilityGrade
+    // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
     // is the single orchestrator (scoring/market-reality/probability.ts);
     // never call computeMarketRealityCompositeGrade directly here, that
     // would be a second, parallel computation of the starting-band input.

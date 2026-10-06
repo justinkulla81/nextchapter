@@ -129,7 +129,7 @@ export type IssueCode =
   | 'missing_linkedin'
   | 'name_email_mismatch'
   | 'missing_location' // not yet triggered as a Finding — same as missing_phone
-  | 'placeholder_contact_info' // NEW — Market Reality Grade: candidateName reads as an unfilled template placeholder ("First Last", "Your Name", etc.), a confirmed real case
+  | 'placeholder_contact_info' // NEW — Market Reality Assessment: candidateName reads as an unfilled template placeholder ("First Last", "Your Name", etc.), a confirmed real case
 
   // reconciliation
   | 'years_experience_mismatch'
@@ -150,7 +150,7 @@ export type IssueCode =
   | 'stagnation'
   | 'title_inflation'
   | 'portfolio_career_read'
-  // NEW — Market Reality Grade recalibration: functionTrackConsistency (a
+  // NEW — Market Reality Assessment recalibration: functionTrackConsistency (a
   // new dimensions.ts dimension) has no existing code to reuse, unlike
   // employmentGaps, which reuses unexplained_gap/current_gap above.
   | 'inconsistent_job_function'

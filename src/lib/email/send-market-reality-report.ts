@@ -54,8 +54,8 @@ export async function sendMarketRealityReportEmail(candidateId: string, options?
       replyTo: 'support@launchyournextchapter.com',
       to: email,
       subject: options?.justEarnedBadge
-        ? `You earned a badge, and your Market Reality Grade is ready, ${firstName}`
-        : `Your Market Reality Grade is ready, ${firstName}`,
+        ? `You earned a badge, and your Market Reality Assessment is ready, ${firstName}`
+        : `Your Market Reality Assessment is ready, ${firstName}`,
       react: MarketRealityReportEmail({
         candidateName: firstName,
         reportUrl: `${appUrl}/dashboard/market-reality`,

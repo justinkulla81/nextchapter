@@ -81,7 +81,7 @@ export default async function PricingPage() {
             ))}
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Resume-only candidates still receive the Market Reality Grade — Your Evidence and Your Effort
+            Resume-only candidates still receive the Market Reality Assessment — Your Evidence and Your Effort
             are visible but locked until you go further.
           </p>
         </section>

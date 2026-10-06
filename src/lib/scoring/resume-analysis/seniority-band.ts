@@ -98,7 +98,7 @@ export function detectSeniorityBand(facts: ResumeAnalysisFacts): SeniorityBand {
   else if (SENIOR_TITLE_PATTERN.test(titleText)) titleScore = 2
   else if (MID_TITLE_PATTERN.test(titleText)) titleScore = 1
   // A bare "Partner" title matches none of the three patterns above (real
-  // bug, fixed here per the Market Reality Grade recalibration): without
+  // bug, fixed here per the Market Reality Assessment recalibration): without
   // this, a genuine 20-year Partner with no stated budget/headcount number
   // fell all the way to titleScore=0, dragging a senior candidate down to
   // MID band since years-of-experience alone (weighted 1x against title's

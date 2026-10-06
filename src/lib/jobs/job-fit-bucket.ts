@@ -472,7 +472,7 @@ export interface PendingJobMatchCount {
 // Provisional thresholds on % of the whole candidate pool that's a plausible
 // fit — this is an admin-only comparative signal (not the candidate-facing
 // Grade scale in lib/scoring/grade.ts, which is calibrated against a single
-// candidate's own Market Reality Grade). Reuses the same A-F type and color tokens
+// candidate's own Market Reality Assessment). Reuses the same A-F type and color tokens
 // purely for visual consistency; revisit these cutoffs once there's a real
 // posting volume to calibrate against.
 function fitRatioToGrade(matched: number, total: number): Grade {

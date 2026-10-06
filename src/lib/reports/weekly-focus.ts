@@ -104,8 +104,8 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
       .join('\n') || 'None flagged right now.'
   const strengthLines = topStrengths.map((s) => `- ${s.text}`).join('\n') || 'None flagged right now.'
   const moverLines = gradeMovement
-    ? `Market Reality Grade moved ${gradeMovement.direction} from ${gradeMovement.fromGrade} to ${gradeMovement.toGrade}`
-    : 'No Market Reality Grade change since last week.'
+    ? `Market Reality Assessment moved ${gradeMovement.direction} from ${gradeMovement.fromGrade} to ${gradeMovement.toGrade}`
+    : 'No Market Reality Assessment change since last week.'
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
@@ -134,7 +134,7 @@ Real outcomes this week:
 - Calendar meetings (networking calls/interviews): ${outcomes.calendarMeetingsCount}
 - People currently owed a follow-up (not new this week, an ongoing count): ${outcomes.followUpsPendingCount}
 
-Current Market Reality — what moved since last week: ${moverLines}
+Market Reality Assessment — what moved since last week: ${moverLines}
 Current top gaps (what a recruiter/hiring manager would notice is missing):
 ${gapLines}
 Current top strengths (what's genuinely working):

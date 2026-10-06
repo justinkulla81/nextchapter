@@ -104,7 +104,7 @@ export function detectReviewerQuestions(facts: ResumeAnalysisFacts, band: Senior
   }
 
   // Overlapping roles — same detector modifiers.ts's computeReconciliation
-  // uses for the Market Reality Grade's overlapping_full_time penalty, so
+  // uses for the Market Reality Assessment's overlapping_full_time penalty, so
   // this and that never disagree on which overlaps actually count (a board
   // seat/advisor/non-employee-director role concurrent with a primary job
   // is excluded — see overlap-detection.ts).

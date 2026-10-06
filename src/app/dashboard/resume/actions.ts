@@ -222,7 +222,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
     ])
     captureServerEvent(profile.id, 'resume_analyzed')
 
-    // Refresh the live Market Reality Grade composite (MarketRealityComponentScore)
+    // Refresh the live Market Reality Assessment composite (MarketRealityComponentScore)
     // right after a new ResumeAnalysis exists — Experience/Resume are read
     // from the latest ResumeAnalysis row (see market-reality/compute.ts), so
     // this is the natural trigger point. Evidence/Effort/Market are also
@@ -234,7 +234,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
         await computeMarketRealityComponents(profile.id)
         await computeMarketRealityCompositeGrade(profile.id)
       } catch (error) {
-        console.error('Failed to refresh Market Reality Grade composite after resume upload:', error)
+        console.error('Failed to refresh Market Reality Assessment composite after resume upload:', error)
       }
     }
 

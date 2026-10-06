@@ -26,7 +26,7 @@ const STEPS: Step[] = [
     eyebrow: 'Step 1',
     title: 'Market Reality Assessment',
     description:
-      "We analyze your resume, experience, and how your target market is actually hiring right now, and give you an honest Current Market Reality — exactly where you stand today, before you change anything.",
+      "We analyze your resume, experience, and how your target market is actually hiring right now, and give you an honest Market Reality Assessment — exactly where you stand today, before you change anything.",
   },
   {
     icon: ClipboardList,
@@ -83,7 +83,7 @@ export default function HowItWorksPage() {
         <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Current Market Reality of B, an A Weekly Search Score, a streak, and completed Search Actions with their point values"
+            alt="NextChapter Success Dashboard showing a Market Reality Assessment of B, an A Weekly Search Score, a streak, and completed Search Actions with their point values"
             width={1040}
             height={815}
             className="w-full"

@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 // the candidate alone.
 //
 // `hideGradeSignals` is a second, narrower gate — recruiter-facing views
-// only (Partners Master Build Script §A6.2: "Never: Market Reality Grade,
+// only (Partners Master Build Script §A6.2: "Never: Market Reality Assessment,
 // component grades, detections, badges, application history, other
 // candidates"). It suppresses howIOperate.gritStatText, which reads "N of M
 // weeks at an A" — a real, literal read of MarketRealitySnapshot.grade

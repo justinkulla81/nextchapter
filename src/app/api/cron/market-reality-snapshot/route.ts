@@ -8,7 +8,7 @@ import type { Grade } from '@/lib/scoring/grade'
 
 // Fires Monday afternoon (see vercel.json) — well after auto-assign-sprint's
 // ~5am ET run, so every candidate already has this week's Search Actions
-// auto-assigned before this week's Current Market Reality snapshot is
+// auto-assigned before this week's Market Reality Assessment snapshot is
 // generated and archived. Idempotent per (candidateId, weekStartDate).
 //
 // Piggybacks the calibration loop (calibration.ts) directly onto this same

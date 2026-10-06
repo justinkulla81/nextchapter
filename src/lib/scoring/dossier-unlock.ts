@@ -203,7 +203,7 @@ export async function hasAlternateUnlockPath(candidateId: string): Promise<Alter
     gradeMet,
     streakMet,
     reason: gradeMet
-      ? 'Unlocked — your Market Reality Grade is a B or better.'
+      ? 'Unlocked — your Market Reality Assessment is a B or better.'
       : streakMet
         ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.`
         : 'not yet met',

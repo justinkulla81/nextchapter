@@ -1,4 +1,4 @@
-// Guards the one landmine the Market Reality Grade recalibration explicitly
+// Guards the one landmine the Market Reality Assessment recalibration explicitly
 // found and fixed: market-reality/blend.ts's GRADE_MAX_SCORE table is a
 // hand-authored mirror of grade.ts's scoreToGrade cutoffs (used for the
 // market-cap math), and the two used to be two separately-maintained copies

@@ -48,7 +48,7 @@ export default function MarketRealityReportEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {candidateName},</p>
       {justEarnedBadge && <p>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</p>}
-      <p>We have your Market Reality Grade.</p>
+      <p>We have your Market Reality Assessment.</p>
       <p>Find out how employers will actually read your resume — what&apos;s working, what to fix first.</p>
       <a href={reportUrl} style={button}>
         See your grade

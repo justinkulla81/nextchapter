@@ -59,7 +59,7 @@ export default function GradeCalibratedUpEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        Your Market Reality grade just moved up.
+        Your Market Reality Assessment just moved up.
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}

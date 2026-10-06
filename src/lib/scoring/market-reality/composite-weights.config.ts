@@ -1,4 +1,4 @@
-// Component weights for the Market Reality Grade composite — Master Build
+// Component weights for the Market Reality Assessment composite — Master Build
 // Script §3.4: "Store weights in config, not code. These are uncalibrated."
 // Recalibrate later by regressing time-to-offer on component scores, once
 // there's a real scored population to fit against. Market is deliberately
@@ -6,7 +6,7 @@
 // in composite.ts instead).
 //
 // Evidence and Effort are deliberately NOT weighted components here — the
-// Market Reality Grade is a day-one artifact (what's true about your resume
+// Market Reality Assessment is a day-one artifact (what's true about your resume
 // and experience right now), not a measure of platform activity. Evidence/
 // Effort still get computed (evidence.ts/effort.ts) and stored on
 // MarketRealityComponentScore for population analytics and for the "what

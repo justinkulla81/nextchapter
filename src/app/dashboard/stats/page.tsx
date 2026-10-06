@@ -175,7 +175,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Everything behind your dashboard summary, in one place: your streak and badges, your
-          Market Reality grade and what&apos;s driving it, this week&apos;s effort, how you&apos;ve
+          Market Reality Assessment and what&apos;s driving it, this week&apos;s effort, how you&apos;ve
           been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
@@ -202,7 +202,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
             icon={TrendingUp}
             value={whereYouStand?.grade ?? '—'}
             valueClassName={whereYouStand ? GRADE_TEXT_COLOR[whereYouStand.grade] : undefined}
-            label="Market Reality grade"
+            label="Market Reality Assessment"
             accent={whereYouStand ? gradeAccent(whereYouStand.grade) : 'brand'}
             href="#market-reality"
           />
@@ -253,7 +253,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Weekly, reset every Monday — except Lifetime Action Score, which adds up your whole search.
-            Points are activity, not your Market Reality Grade — the two never blend.
+            Points are activity, not your Market Reality Assessment — the two never blend.
           </p>
           <LeaderboardFilters band={seniorityBand ?? null} fn={fnParam ?? null} />
           {!profile.leaderboardOptIn && !profile.confidentialSearchMode && (
@@ -308,7 +308,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <CardContent className="space-y-4">
           {!whereYouStand ? (
             <p className="text-sm text-muted-foreground">
-              Not enough data yet for your Market Reality Grade — upload a resume to get your first read.
+              Not enough data yet for your Market Reality Assessment — upload a resume to get your first read.
             </p>
           ) : (
             <>
@@ -354,7 +354,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
                       <span className={movement.direction === 'up' ? 'text-success' : 'text-error'}>
                         {movement.direction === 'up' ? '↑' : '↓'}
                       </span>{' '}
-                      Market Reality Grade moved {movement.fromGrade} → {movement.toGrade} this week
+                      Market Reality Assessment moved {movement.fromGrade} → {movement.toGrade} this week
                     </p>
                   )
                 )

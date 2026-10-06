@@ -12,7 +12,7 @@ const CACHE_TTL_MS = 48 * 60 * 60 * 1000
 // after() throws "called outside a request scope" when getMarketConditions
 // runs from anywhere that isn't a real Next.js request (a standalone script,
 // a backfill) — a real, pre-existing gap surfaced while spot-checking the
-// Market Reality Grade recalibration against real candidates from a script.
+// Market Reality Assessment recalibration against real candidates from a script.
 // The background refresh is a pure optimization (stale-while-revalidate);
 // skipping it outside a request context just means the cache refreshes on
 // the next real request instead, which is correct, not a silent bug.

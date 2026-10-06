@@ -14,6 +14,27 @@ export function organizationRef() {
   return { '@type': 'Organization', '@id': ORGANIZATION_ID, name: FACTS.name, url: SITE_URL, logo: FACTS.logo }
 }
 
+/**
+ * The full Organization node, from FACTS. On the homepage and /about; every
+ * other page refers to it by @id through organizationRef().
+ */
+export function organizationJsonLd(extra: Record<string, unknown> = {}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': ORGANIZATION_ID,
+    name: FACTS.name,
+    url: SITE_URL,
+    logo: FACTS.logo,
+    description: FACTS.tagline,
+    email: FACTS.contactEmail,
+    sameAs: [FACTS.linkedIn],
+    ...(FACTS.foundingYear ? { foundingDate: String(FACTS.foundingYear) } : {}),
+    founder: personRef(),
+    ...extra,
+  }
+}
+
 /** The full Person node, for the author's own page. */
 export function personJsonLd(a: Author = DEFAULT_AUTHOR) {
   return {

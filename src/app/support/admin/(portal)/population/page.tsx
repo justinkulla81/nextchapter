@@ -271,7 +271,7 @@ function GradesSection({ weekStartDate, allRow }: { weekStartDate: Date; allRow:
   return (
     <SectionCard title="Grades" csvHref={`/api/admin/population/export?section=grades&segmentType=all&week=${weekStartDate.toISOString()}`}>
       <p className="text-sm text-muted-foreground">
-        Composite Market Reality Grade and its 5 components (Experience, Resume, Evidence, Effort, Market — Market is
+        Composite Market Reality Assessment and its 5 components (Experience, Resume, Evidence, Effort, Market — Market is
         never weighted directly, it caps the composite one band). Grade distribution and component averages are read
         from this week&apos;s composite score. Week-over-week movement is computed from the older, weekly-archived
         six-category Market Reality Snapshot instead — the composite score itself has no persisted weekly history in

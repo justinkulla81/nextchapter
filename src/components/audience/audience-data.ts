@@ -158,7 +158,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     ],
     contrastLabel: 'What you never see:',
     contrastBody:
-      "the Market Reality Grade, component grades, detections, badges, application history, or any other candidate — recruiter access is per-introduction, consented, and revocable.",
+      "the Market Reality Assessment, component grades, detections, badges, application history, or any other candidate — recruiter access is per-introduction, consented, and revocable.",
     formHeading: 'Questions before you request access?',
     formSubtext: "Tell us about your firm and we'll follow up.",
     fields: [
@@ -245,7 +245,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     points: [
       {
         lead: 'Real help for your members.',
-        body: 'Every participant gets a free Current Market Reality, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
+        body: 'Every participant gets a free Market Reality Assessment, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
       },
       {
         lead: 'Built for the people programs usually leave behind.',

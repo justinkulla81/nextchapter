@@ -105,7 +105,7 @@ export default async function OnboardingResumePage() {
         <li>
           •{' '}
           <span className="font-semibold text-foreground">
-            An honest resume review with your Current Market Reality
+            An honest resume review with your Market Reality Assessment
           </span>{' '}
           — see exactly what&apos;s holding you back.
         </li>

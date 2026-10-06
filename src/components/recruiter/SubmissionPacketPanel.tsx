@@ -11,7 +11,7 @@ const DESTINATION_LABEL: Record<(typeof EXPORT_DESTINATIONS)[number], string> = 
 // links to the two download API routes (src/app/api/recruiters/
 // submission-packet and .../ats-export) — a real file download, no client
 // JS needed, matching how "View resume" is already handled on this same
-// page. Never includes Market Reality Grade/component grades/detections/
+// page. Never includes Market Reality Assessment/component grades/detections/
 // badges/application history — see submission-packet.ts's allowlist.
 export function SubmissionPacketPanel({
   candidateId,
@@ -23,7 +23,7 @@ export function SubmissionPacketPanel({
   return (
     <div className="rounded-lg border border-border p-4">
       <p className="text-sm text-muted-foreground">
-        A branded PDF built only from the Dossier content above — never Market Reality Grade, component grades,
+        A branded PDF built only from the Dossier content above — never Market Reality Assessment, component grades,
         detections, badges, or application history.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">

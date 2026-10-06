@@ -469,7 +469,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
     ),
     row(
       'avgMarketPositionGrade',
-      'Average Current Market Reality',
+      'Average Market Reality Assessment',
       cur.avgMarketPositionGrade ? `${cur.avgMarketPositionGrade} (${GRADE_LABEL[cur.avgMarketPositionGrade]})` : null,
       null,
       'grade',

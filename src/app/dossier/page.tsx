@@ -64,7 +64,7 @@ export default function DossierPage() {
             <p className="font-semibold text-navy">Who sees it</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               You control it. You choose when to share it with a recruiter or a hiring manager. It never
-              includes your Market Reality Grade, detections, or anything from a coaching conversation —
+              includes your Market Reality Assessment, detections, or anything from a coaching conversation —
               those stay with you and your coach, always.
             </p>
           </div>

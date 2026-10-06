@@ -39,7 +39,7 @@ export async function DashboardTopStrip({
 }: {
   candidateId: string
   weeklyProgress: WeeklyProgress
-  // The day-one Market Reality Grade (resume + experience, plus the market
+  // The day-one Market Reality Assessment (resume + experience, plus the market
   // cap) — null until a resume has been analyzed.
   marketRealityGrade: Grade | null
   searchExecutionAvailable: boolean
@@ -124,7 +124,7 @@ export async function DashboardTopStrip({
 
           <StatTile
             value={marketRealityGrade ?? 'N/A'}
-            label="Current Market Reality"
+            label="Market Reality Assessment"
             accent={marketRealityGrade ? gradeAccent(marketRealityGrade) : 'neutral'}
             icon={TrendingUp}
             title="How the market currently sees you, based on your resume and experience."

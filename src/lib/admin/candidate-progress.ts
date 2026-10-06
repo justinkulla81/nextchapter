@@ -355,7 +355,7 @@ const GATE_TOTAL = 3
  * list and the detail page cannot disagree.
  *
  * It does not evaluate the sprint-streak alternate path, which needs a
- * per-candidate walk of weekly sprints; the Market Reality grade half of that
+ * per-candidate walk of weekly sprints; the Market Reality Assessment half of that
  * path is included, being a single column.
  */
 export async function getDossierGateSummaries(candidateIds: string[]): Promise<Map<string, DossierGateSummary>> {

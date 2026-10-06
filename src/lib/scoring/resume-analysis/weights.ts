@@ -23,7 +23,7 @@ export const EXPERIENCE_DIMENSION_WEIGHTS: Record<string, number> = {
   tenurePattern: 8,
   relevanceRecency: 5,
   industryCoherence: 6,
-  // Added for the Market Reality Grade recalibration (gaps and inconsistent
+  // Added for the Market Reality Assessment recalibration (gaps and inconsistent
   // job function are two signals the user asked to penalize that had no
   // dimension at all until now) — weighted comparably to tenurePattern/
   // industryCoherence, the existing dimensions closest in kind.

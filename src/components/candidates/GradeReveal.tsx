@@ -85,7 +85,7 @@ function GradeRing({ grade, calculating }: { grade: Grade | null; calculating?: 
           )}
         </div>
       </div>
-      <p className="text-sm font-medium text-muted-foreground">Current Market Reality</p>
+      <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment</p>
     </div>
   )
 }
