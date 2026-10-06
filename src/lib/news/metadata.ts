@@ -8,6 +8,8 @@ export interface NewsMetadata {
   blurb: string | null
   imageUrl: string | null
   source: string
+  /** When the publisher released it, when the page says. */
+  publishedAt: Date | null
 }
 
 const BLURB_MAX = 280
@@ -43,9 +45,74 @@ async function getJson<T>(url: string): Promise<T | null> {
 
 interface OEmbed { title?: string; author_name?: string; thumbnail_url?: string; description?: string }
 
+/** A date a page claims, if it's a real one: parseable, not before 1995, not in the future. */
+function plausibleDate(v: string | null | undefined): Date | null {
+  if (!v?.trim()) return null
+  const d = new Date(v.trim())
+  if (isNaN(d.getTime())) return null
+  if (d.getUTCFullYear() < 1995 || d.getTime() > Date.now() + 2 * 86_400_000) return null
+  return d
+}
+
+/**
+ * The publication date a page states about itself, from the places
+ * publishers put it: article/Open Graph tags, the common news-CMS meta
+ * names, schema.org JSON-LD, then a <time datetime> in the article.
+ */
+function pagePublishedAt($: cheerio.CheerioAPI): Date | null {
+  const metaNames = [
+    'article:published_time', 'og:article:published_time', 'article:published', 'og:published_time',
+    'datePublished', 'uploadDate', 'pubdate', 'publishdate', 'publish-date', 'publish_date', 'date',
+    'parsely-pub-date', 'sailthru.date', 'dc.date', 'DC.date.issued', 'dcterms.created', 'music:release_date',
+  ]
+  for (const n of metaNames) {
+    const v = $(`meta[property="${n}"]`).attr('content') ?? $(`meta[name="${n}"]`).attr('content') ?? $(`meta[itemprop="${n}"]`).attr('content')
+    const d = plausibleDate(v)
+    if (d) return d
+  }
+  for (const el of $('script[type="application/ld+json"]').toArray()) {
+    try {
+      const stack: unknown[] = [JSON.parse($(el).contents().text())]
+      while (stack.length) {
+        const node = stack.pop()
+        if (Array.isArray(node)) { stack.push(...node); continue }
+        if (node && typeof node === 'object') {
+          const o = node as Record<string, unknown>
+          const d = plausibleDate(typeof o.datePublished === 'string' ? o.datePublished : typeof o.uploadDate === 'string' ? o.uploadDate : null)
+          if (d) return d
+          for (const v of Object.values(o)) if (v && typeof v === 'object') stack.push(v)
+        }
+      }
+    } catch { /* malformed block */ }
+  }
+  return plausibleDate($('article time[datetime], time[datetime]').first().attr('datetime'))
+}
+
+/** A LinkedIn post's time, from its activity id: the top bits are a millisecond timestamp. */
+function linkedinPostDate(url: string): Date | null {
+  const m = url.match(/(?:activity|share|ugcPost)[:-](\d{18,20})/)
+  if (!m) return null
+  try {
+    return plausibleDate(new Date(Number(BigInt(m[1]) >> BigInt(22))).toISOString())
+  } catch {
+    return null
+  }
+}
+
+/** A YouTube video's publish date, from the watch page (oEmbed doesn't carry one). */
+async function youtubePublishedAt(id: string): Promise<Date | null> {
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${id}`, { signal: AbortSignal.timeout(8000), headers: BROWSER_HEADERS })
+    if (!res.ok) return null
+    return pagePublishedAt(cheerio.load(await res.text()))
+  } catch {
+    return null
+  }
+}
+
 /** What a page says about itself in its Open Graph tags; nulls when it won't say. */
 async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> {
-  const fallback = { title: null, blurb: null, imageUrl: null, source: sourceFromUrl(url) }
+  const fallback = { title: null, blurb: null, imageUrl: null, source: sourceFromUrl(url), publishedAt: null }
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: BROWSER_HEADERS })
     if (!res.ok) return fallback
@@ -63,6 +130,7 @@ async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> 
       blurb: clean(meta('og:description', 'twitter:description', 'description'), BLURB_MAX),
       imageUrl: safeImageUrl(meta('og:image:secure_url', 'og:image', 'twitter:image'), res.url || url),
       source,
+      publishedAt: pagePublishedAt($),
     }
   } catch {
     return fallback
@@ -79,7 +147,7 @@ async function fetchOpenGraph(url: string): Promise<Omit<NewsMetadata, 'kind'>> 
  * LinkedIn's own embed.
  */
 async function fetchLinkedInPost(url: string): Promise<Omit<NewsMetadata, 'kind'>> {
-  const fallback = { title: null, blurb: null, imageUrl: null, source: 'LinkedIn' }
+  const fallback = { title: null, blurb: null, imageUrl: null, source: 'LinkedIn', publishedAt: linkedinPostDate(url) }
   const embed = linkedinEmbedUrl(url)
   if (!embed) return fallback
   try {
@@ -100,6 +168,7 @@ async function fetchLinkedInPost(url: string): Promise<Omit<NewsMetadata, 'kind'
       blurb: clean(description.replace(/\s*\|\s*[\d,]+ comments? on LinkedIn\s*$/i, ''), CAPTION_MAX),
       imageUrl: safeImageUrl(candidates.find(isPostMedia)),
       source: clean(author, 80) ?? 'LinkedIn',
+      publishedAt: linkedinPostDate(url),
     }
   } catch {
     return fallback
@@ -122,14 +191,16 @@ async function fetchLinkedInPost(url: string): Promise<Omit<NewsMetadata, 'kind'
 export async function fetchNewsMetadata(url: string): Promise<NewsMetadata> {
   const kind = detectNewsKind(url)
 
-  if (kind === 'instagram') return { kind, title: null, blurb: null, imageUrl: null, source: 'Instagram' }
+  if (kind === 'instagram') return { kind, title: null, blurb: null, imageUrl: null, source: 'Instagram', publishedAt: null }
   if (kind === 'linkedin') return { kind, ...(await fetchLinkedInPost(url)) }
 
   if (kind === 'podcast') {
     const host = podcastEmbed(url)!.host
     if (host === 'Spotify') {
       const data = await getJson<OEmbed>(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
-      return { kind, title: clean(data?.title, TITLE_MAX), blurb: null, imageUrl: safeImageUrl(data?.thumbnail_url), source: host }
+      // Spotify's oEmbed carries no date; the episode page's metadata may.
+      const og = await fetchOpenGraph(url)
+      return { kind, title: clean(data?.title, TITLE_MAX), blurb: null, imageUrl: safeImageUrl(data?.thumbnail_url), source: host, publishedAt: og.publishedAt }
     }
     const og = await fetchOpenGraph(url)
     return { kind, ...og, source: host }
@@ -149,6 +220,7 @@ export async function fetchNewsMetadata(url: string): Promise<NewsMetadata> {
       // refused oEmbed call still leaves the card with its picture.
       imageUrl: safeImageUrl(data?.thumbnail_url) ?? (yt ? `https://i.ytimg.com/vi/${yt}/hqdefault.jpg` : null),
       source: clean(data?.author_name, 80) ?? (yt ? 'YouTube' : 'Vimeo'),
+      publishedAt: yt ? await youtubePublishedAt(yt) : (await fetchOpenGraph(url)).publishedAt,
     }
   }
 

@@ -25,21 +25,24 @@ const dateLabel = (d: Date) =>
   d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' })
 
 /**
- * Published News, newest first.
+ * Published News, newest article first (by the publisher's date).
  *
  * Returns [] rather than throwing: this runs inside the homepage, and a
  * database hiccup should cost the page its News section, not the page.
  */
 const SELECT = {
   id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true, newsImageUrl: true,
-  newsSource: true, newsPublishedAt: true, newsTags: true, newsTake: true, newsSlug: true,
+  newsSource: true, newsPublishedAt: true, newsArticleDate: true, newsTags: true, newsTake: true, newsSlug: true,
 } as const
 
 type Row = {
   id: string; url: string; newsKind: string | null; newsTitle: string | null; newsBlurb: string | null
-  newsImageUrl: string | null; newsSource: string | null; newsPublishedAt: Date | null; newsTags: string[]
+  newsImageUrl: string | null; newsSource: string | null; newsPublishedAt: Date | null; newsArticleDate: Date | null; newsTags: string[]
   newsTake: string | null; newsSlug: string | null
 }
+
+/** The date News sorts and shows by: the article's own, else when it went live. */
+const shownDate = (r: Pick<Row, 'newsArticleDate' | 'newsPublishedAt'>) => r.newsArticleDate ?? r.newsPublishedAt!
 
 function toView(r: Row): NewsItemView {
   return {
@@ -54,20 +57,26 @@ function toView(r: Row): NewsItemView {
     // A page exists only where there is a take to put on it.
     take: r.newsTake,
     slug: r.newsTake && r.newsSlug ? r.newsSlug : null,
-    dateLabel: dateLabel(r.newsPublishedAt!),
-    publishedAt: r.newsPublishedAt!.toISOString(),
+    dateLabel: dateLabel(shownDate(r)),
+    publishedAt: shownDate(r).toISOString(),
   }
 }
 
 export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
   try {
+    // Newest article first, by the publisher's date, not by when it was
+    // added here. The fallback to the go-live date can't be expressed as a
+    // database sort, so every live item is read (a few hundred at most) and
+    // sorted here.
     const rows = await prisma.researchLibraryItem.findMany({
       where: { newsPublishedAt: { not: null }, newsKind: { not: null } },
-      orderBy: { newsPublishedAt: 'desc' },
-      take: limit,
+      take: 1000,
       select: SELECT,
     })
-    return rows.map(toView)
+    return rows
+      .sort((a, b) => shownDate(b).getTime() - shownDate(a).getTime())
+      .slice(0, limit)
+      .map(toView)
   } catch (e) {
     console.error('News could not be loaded', e)
     return []

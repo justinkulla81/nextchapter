@@ -116,6 +116,7 @@ export async function addLink(_prev: NewsFormState | undefined, formData: FormDa
     ? {
         newsKind: meta.kind, newsTitle: meta.title, newsBlurb: meta.blurb, newsImageUrl: meta.imageUrl,
         newsSource: meta.source, newsTags, newsPublishedAt: publish ? new Date() : null,
+        newsArticleDate: meta.publishedAt,
       }
     : {}
 
@@ -196,6 +197,7 @@ export async function addExistingItemToNews(id: string) {
     newsBlurb: meta.blurb ?? (found ? item.summary?.slice(0, 280) ?? null : null),
     newsImageUrl: meta.imageUrl,
     newsSource: (found ? item.newsSource : null) ?? meta.source,
+    newsArticleDate: meta.publishedAt,
   }
   // A draft, not live: this row came from an alert, and nobody has looked at
   // how it will read in public yet.
@@ -217,6 +219,13 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
   })
   if (!current?.newsKind) return { error: 'That item is no longer in News.' }
   const newsTags = cleanNewsTags(formData.getAll('tags'))
+  // "YYYY-MM-DD" from the date field, kept at midday Eastern so the day
+  // shown never slips across a time zone. Blank clears it (the go-live date
+  // is used instead).
+  const rawDate = String(formData.get('articleDate') ?? '').trim()
+  if (rawDate && !/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) return { error: 'Enter the published date as a full date.' }
+  const newsArticleDate = rawDate ? new Date(`${rawDate}T16:00:00Z`) : null
+  if (newsArticleDate && newsArticleDate.getTime() > Date.now() + 2 * 86_400_000) return { error: 'The published date can’t be in the future.' }
   // Our take keeps its paragraphs, unlike the single-line fields.
   const take = String(formData.get('take') ?? '').replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, 4000) || null
   // The page address is fixed the first time a take is saved, and kept after
@@ -231,7 +240,7 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
   if (current.newsKind === 'instagram' || current.newsKind === 'linkedin') {
     await prisma.researchLibraryItem.update({
       where: { id },
-      data: { newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, ...slugData },
+      data: { newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, newsArticleDate, ...slugData },
     })
   } else {
     const title = text('title')
@@ -240,7 +249,7 @@ export async function updateNewsItem(_prev: NewsFormState | undefined, formData:
     }
     await prisma.researchLibraryItem.update({
       where: { id },
-      data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, ...slugData },
+      data: { newsTitle: title, newsBlurb: text('blurb'), newsImageUrl: imageUrl, newsSource: text('source'), newsTags, newsTake: take, newsArticleDate, ...slugData },
     })
   }
   captureServerEvent(admin?.email ?? 'admin', 'news_item_updated', { itemId: id })

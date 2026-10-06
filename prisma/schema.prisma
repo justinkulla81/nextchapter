@@ -5676,6 +5676,11 @@ model ResearchLibraryItem {
   newsImageUrl    String?
   newsSource      String?
   newsPublishedAt DateTime?
+  // When the publisher released it (read from the page's metadata, or set by
+  // an admin). News is ordered by this, falling back to newsPublishedAt when
+  // a page doesn't say — so the order follows the articles, not when they
+  // were added.
+  newsArticleDate DateTime?
   // Keys from NEWS_TAGS (src/lib/news/tags.ts) — a fixed list, any number per item.
   newsTags        String[]  @default([])
   // Our own paragraph on why the item matters. Having one is what gives an
@@ -5694,6 +5699,7 @@ model ResearchLibraryItem {
   @@index([digestAudiences])
   @@index([sentAt])
   @@index([newsPublishedAt])
+  @@index([newsArticleDate])
 }
 
 // One company-owned Gmail inbox (research@...), connected via OAuth by an

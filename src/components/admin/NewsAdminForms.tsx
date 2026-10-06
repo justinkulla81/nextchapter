@@ -129,7 +129,7 @@ export function AddLinkForm() {
 }
 
 export function EditNewsItemForm({ item }: {
-  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[]; take: string | null }
+  item: { id: string; kind: string; title: string | null; blurb: string | null; imageUrl: string | null; source: string | null; tags: string[]; take: string | null; articleDate: string }
 }) {
   const [state, formAction] = useActionState(updateNewsItem, undefined)
   const isPost = item.kind === 'instagram' || item.kind === 'linkedin'
@@ -161,6 +161,11 @@ export function EditNewsItemForm({ item }: {
       <div>
         <label htmlFor={`source-${item.id}`} className="text-sm text-muted-foreground">{isPost ? 'Posted by' : 'Source'}</label>
         <input id={`source-${item.id}`} name="source" defaultValue={item.source ?? ''} maxLength={80} className={`${INPUT} h-9`} />
+      </div>
+      <div>
+        <label htmlFor={`date-${item.id}`} className="text-sm text-muted-foreground">Published date</label>
+        <input id={`date-${item.id}`} name="articleDate" type="date" defaultValue={item.articleDate} className={`${INPUT} h-9`} />
+        <p className="text-xs text-muted-foreground">When the publisher released it. News is ordered by this.</p>
       </div>
       <div className="sm:col-span-2">
         <label htmlFor={`take-${item.id}`} className="text-sm text-muted-foreground">Our take (optional)</label>

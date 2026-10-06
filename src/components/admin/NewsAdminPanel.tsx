@@ -17,16 +17,23 @@ const KIND_LABEL: Record<string, string> = Object.fromEntries(NEWS_KINDS.map((k)
  * until it is added here.
  */
 export async function NewsAdminPanel() {
-  const items = await prisma.researchLibraryItem.findMany({
+  const rows = await prisma.researchLibraryItem.findMany({
     where: { newsKind: { not: null } },
-    // Drafts first — they are the ones waiting on you.
     orderBy: [{ newsPublishedAt: { sort: 'desc', nulls: 'first' } }, { createdAt: 'desc' }],
-    take: 100,
+    take: 300,
     select: {
-      id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true,
+      id: true, url: true, newsKind: true, newsTitle: true, newsBlurb: true, newsArticleDate: true,
       newsImageUrl: true, newsSource: true, newsPublishedAt: true, newsTags: true, newsTake: true, newsSlug: true,
     },
   })
+  // Drafts first (they're waiting on you), then live items in the order the
+  // public page shows them: newest article first by the publisher's date.
+  const shown = (i: (typeof rows)[number]) => (i.newsArticleDate ?? i.newsPublishedAt ?? new Date(0)).getTime()
+  const items = [
+    ...rows.filter((i) => !i.newsPublishedAt),
+    ...rows.filter((i) => i.newsPublishedAt).sort((a, b) => shown(b) - shown(a)),
+  ].slice(0, 100)
+  const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' })
   const live = items.filter((i) => i.newsPublishedAt).length
 
   return (
@@ -35,7 +42,7 @@ export async function NewsAdminPanel() {
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Homepage News</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {live} live. The homepage shows the newest six; the rest are on the News page.
+            {live} live. The homepage shows the six most recently published articles; the rest are on the News page.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -71,6 +78,8 @@ export async function NewsAdminPanel() {
                     <p className="text-xs text-muted-foreground">
                       {KIND_LABEL[i.newsKind ?? ''] ?? i.newsKind}
                       {i.newsSource ? ` · ${i.newsSource}` : ''}
+                      {' · '}
+                      {i.newsArticleDate ? `Published ${day(i.newsArticleDate)}` : 'Published date unknown'}
                       {' · '}
                       {isLive
                         ? `Live since ${i.newsPublishedAt!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })}`
@@ -117,6 +126,8 @@ export async function NewsAdminPanel() {
                   <EditNewsItemForm item={{
                     id: i.id, kind: i.newsKind ?? 'article', title: i.newsTitle, blurb: i.newsBlurb,
                     imageUrl: i.newsImageUrl, source: i.newsSource, tags: i.newsTags, take: i.newsTake,
+                    // The date field's value, as the Eastern calendar day.
+                    articleDate: i.newsArticleDate ? i.newsArticleDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) : '',
                   }} />
                 </details>
               </li>
