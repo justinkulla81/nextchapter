@@ -9,6 +9,7 @@ import { boardCountyKeys, COLLEGE_SECTORS, COLLEGE_SIZES } from '@/lib/workforce
 import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
 import { boardLabor } from '@/lib/workforce/labor'
 import { SECTOR_LABELS } from '@/lib/workforce/sector'
+import { COLLEGE_ROLES, type CollegeRole } from '@/lib/workforce/college-pages'
 import { getNationalLaborData, monthLabel } from '@/lib/market/bls-national'
 import { formatDate } from '@/lib/crm/labels'
 
@@ -100,6 +101,13 @@ export default async function WorkforceBoardPage({
     }),
     getNationalLaborData(),
   ])
+
+  const contacts = colleges.length
+    ? await prisma.collegeContact.findMany({ where: { collegeId: { in: colleges.map((c) => c.id) } } })
+    : []
+  const contactsByCollege = new Map<string, typeof contacts>()
+  for (const c of contacts) contactsByCollege.set(c.collegeId, [...(contactsByCollege.get(c.collegeId) ?? []), c])
+  const roleOrder = Object.keys(COLLEGE_ROLES) as CollegeRole[]
 
   const [report] = buildBoardReport([board], notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { includeEmpty: true })
   const area = boardLabor(labor)
@@ -282,8 +290,10 @@ export default async function WorkforceBoardPage({
 
       <Section title="Colleges" summary={`${colleges.length} degree-granting colleges in the area`}>
         <p className="text-xs text-muted-foreground">
-          From the Department of Education&apos;s IPEDS directory, which lists each college&apos;s chief executive and main line.
-          Department heads (career services, alumni relations, development, executive education) are not in any public directory.
+          Colleges, chief executives and main lines from the Department of Education&apos;s IPEDS directory. Department
+          contacts (career services, alumni relations, development, executive and continuing education) are read from each
+          college&apos;s own website and kept only when the name and email appear on the page linked; where a site names no
+          leader, the office&apos;s general line is shown. Public and nonprofit colleges in areas with layoffs are covered.
         </p>
         {colleges.length === 0 ? (
           <Empty>No degree-granting colleges are listed in this board&apos;s counties.</Empty>
@@ -297,6 +307,7 @@ export default async function WorkforceBoardPage({
                   <th className="px-2 py-1.5 font-medium">Students</th>
                   <th className="px-2 py-1.5 font-medium">Chief executive</th>
                   <th className="px-2 py-1.5 font-medium">Main phone</th>
+                  <th className="px-2 py-1.5 font-medium">Department contacts</th>
                 </tr>
               </thead>
               <tbody>
@@ -310,6 +321,31 @@ export default async function WorkforceBoardPage({
                     <td className="whitespace-nowrap px-2 py-1.5 text-xs text-muted-foreground">{c.size ? COLLEGE_SIZES[c.size] : '—'}</td>
                     <td className="px-2 py-1.5 text-xs">{c.chiefName ?? '—'}{c.chiefTitle && <span className="block text-muted-foreground">{c.chiefTitle}</span>}</td>
                     <td className="whitespace-nowrap px-2 py-1.5 text-xs">{c.phone ? <a href={`tel:${c.phone}`} className="hover:underline">{c.phone}</a> : '—'}</td>
+                    <td className="min-w-72 px-2 py-1.5 text-xs">
+                      {(() => {
+                        const list = (contactsByCollege.get(c.id) ?? []).sort((a, b) => roleOrder.indexOf(a.role as CollegeRole) - roleOrder.indexOf(b.role as CollegeRole))
+                        if (!list.length) {
+                          return <span className="text-muted-foreground">{c.contactsCheckedAt ? (c.contactsPagesRead ? 'None named on its site' : 'Site could not be read') : '—'}</span>
+                        }
+                        return (
+                          <ul className="space-y-1">
+                            {list.map((p) => (
+                              <li key={p.id}>
+                                <span className="text-muted-foreground">{COLLEGE_ROLES[p.role as CollegeRole]?.label ?? p.role}: </span>
+                                {p.name ? (
+                                  <a href={p.sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">{p.name}</a>
+                                ) : (
+                                  <a href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline">office</a>
+                                )}
+                                {p.title && <span className="text-muted-foreground">, {p.title}</span>}
+                                {p.email && <> · <a href={`mailto:${p.email}`} className="hover:underline">{p.email}</a></>}
+                                {p.phone && <> · <a href={`tel:${p.phone}`} className="whitespace-nowrap hover:underline">{p.phone}</a></>}
+                              </li>
+                            ))}
+                          </ul>
+                        )
+                      })()}
+                    </td>
                   </tr>
                 ))}
               </tbody>

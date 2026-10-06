@@ -10482,8 +10482,32 @@ model LocalCollege {
   /// IPEDS INSTSIZE: 1 under 1,000 … 5 over 20,000 students.
   size       Int?
   updatedAt  DateTime @default(now())
+  /// When its website was last read for department contacts, and how many pages were read.
+  contactsCheckedAt DateTime?
+  contactsPagesRead Int?
 
   @@index([state, countyKey])
+}
+
+/// A department head at a college — career services, alumni relations,
+/// development, executive or continuing education — read from the college's
+/// own website. Kept only when the name (and email, if any) appear verbatim
+/// on the page it came from.
+model CollegeContact {
+  id        String   @id @default(cuid())
+  collegeId String
+  /// 'career' | 'alumni' | 'development' | 'execEd'
+  role      String
+  /// null for the office's general line when the site names no leader.
+  name      String?
+  title     String?
+  email     String?
+  phone     String?
+  sourceUrl String
+  foundAt   DateTime @default(now())
+
+  @@unique([collegeId, role])
+  @@index([collegeId])
 }
 
 /// A Census place (city, town, CDP) and where it is, for finding the county
