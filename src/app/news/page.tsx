@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { getPublishedNews } from '@/lib/news/published'
@@ -70,6 +71,11 @@ export default async function NewsPage() {
           {tracker && (
             <div className="mt-20 border-t border-border pt-16">
               <LayoffTracker data={tracker} national={national} />
+              <p className="mt-6 text-sm">
+                <Link href="/layoffs" className="font-semibold text-brand hover:underline">
+                  See the full layoff tracker, with a page for every state and employer →
+                </Link>
+              </p>
             </div>
           )}
         </div>

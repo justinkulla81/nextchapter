@@ -50,6 +50,18 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
         </div>
       </div>
 
+      {persona.slug === 'laid-off' && (
+        <div className="mx-auto w-full max-w-2xl px-6 pb-12">
+          <div className="rounded-xl border border-light-gray bg-off-white p-5 text-left text-sm">
+            <p className="font-medium text-foreground">Practical first steps</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+              <li><Link href="/unemployment-benefits" className="text-brand underline underline-offset-4">Unemployment benefits by state: weekly amounts, weeks and how to file</Link></li>
+              <li><Link href="/layoffs" className="text-brand underline underline-offset-4">Layoff tracker: WARN notices by state and employer</Link></li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-2xl px-6 pb-16">
         <p className="text-center text-sm text-muted-foreground">Not quite you?</p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-3">

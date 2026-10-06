@@ -13,7 +13,7 @@ export function GET() {
   const report = latestReport()
   const body = `# ${FACTS.name}
 
-> ${FACTS.summary} ${FACTS.candidatePrice}
+> ${FACTS.summary} Free for candidates, always.
 
 ## For job seekers
 
@@ -34,7 +34,8 @@ export function GET() {
 
 - [NextChapter Displacement Report](${u('/reports')}): a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution and the safety net, with methods and data files published.
 - [White-Collar Displacement Index](${u('/reports/white-collar-index')}): monthly long-term unemployment among U.S. managers and professionals, 2019 = 100, from Census CPS microdata; history downloadable as CSV.
-${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/news#layoff-tracker')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context.
+${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/layoffs')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context, with a page for each state and employer.
+- [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
 
 ## Guides

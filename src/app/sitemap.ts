@@ -7,6 +7,9 @@ import { REPORT_EDITIONS, latestReport } from '@/lib/reports'
 import { AUTHORS } from '@/lib/seo/authors'
 import { SITE_URL } from '@/lib/seo/facts'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
+import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
+import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -57,7 +60,12 @@ const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), da
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // News items that have their own page — the ones with our take.
-  const news = await getPublishedNews(500)
+  const [news, layoffStates, companies] = await Promise.all([
+    getPublishedNews(500),
+    getStateSummaries().catch(() => []),
+    getCompanies().catch(() => new Map()),
+  ])
+  const newestNotice = layoffStates.length ? latestOf(layoffStates.map((s) => s.latest.toISOString())) : null
   const newsPages = news.filter((i) => i.slug)
   const newestNews = news.length ? latestOf(news.map((i) => i.liveAt)) : null
   const newestReport = latestReport()?.publishedAt ?? null
@@ -101,6 +109,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // News: the hub and every item with our take.
     ...(newestNews ? [entry('/news', newestNews, 'daily', 0.6)] : []),
     ...newsPages.map((i) => entry(`/news/${i.slug}`, i.liveAt, 'monthly', 0.5)),
+
+    // The layoff tracker: hub, states with a notice in the last 12 months, and
+    // every employer whose newest notice is under two years old (older ones
+    // are noindex). Each dated by its newest notice.
+    ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
+    ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
+    ...[...companies.values()]
+      .filter((c) => Date.now() - c.latest.getTime() <= TWENTY_FOUR_MONTHS_MS)
+      .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
+
+    // Unemployment benefits: dated by the last verification against sources.
+    entry('/unemployment-benefits', UI_LAST_VERIFIED, 'monthly', 0.7),
+    ...ALL_STATE_CODES.map((c) => entry(`/unemployment-benefits/${stateSlug(c)}`, UI_LAST_VERIFIED, 'monthly', 0.6)),
 
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),

@@ -22,6 +22,7 @@ export function htmlToPlainText(html: string): string {
       .replace(/<\/(h[1-6])>/gi, '\n')
       .replace(/<li[^>]*>/gi, '\n- ')
       .replace(/<\/(td|th)>/gi, ' | ')
+      .replace(/<\/(span|b|strong|em|dt|dd)>/gi, ' ')
       .replace(/<(br|\/p|\/tr|\/div|\/section|\/figcaption|\/blockquote|\/ul|\/ol|\/table)[^>]*>/gi, '\n')
       .replace(/<[^>]+>/g, ''),
   )

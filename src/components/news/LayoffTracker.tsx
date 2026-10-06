@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import type { LayoffTrackerData } from '@/lib/warn/public-tracker'
 import { monthLabel, type NationalLaborData } from '@/lib/market/bls-national'
@@ -35,7 +36,8 @@ function change(now: number, then: number | undefined, unit: 'pct' | 'pts' = 'pc
  * states that publish nothing. The BLS figures say how small, and the
  * long-term unemployment numbers say what happens next.
  */
-function NationalPicture({ national, trackedWorkers, year }: { national: NationalLaborData; trackedWorkers: number; year: number }) {
+function NationalPicture({ national, trackedWorkers, year, headingLevel }: { national: NationalLaborData; trackedWorkers: number; year: number; headingLevel: 'h2' | 'h3' }) {
+  const Heading = headingLevel
   const { layoffs, longTerm, longTermShare, medianWeeks, rate } = national
   const ytd = layoffs?.thisYear.filter((p) => p.year === year).reduce((sum, p) => sum + p.value, 0) ?? 0
   const lastYtdMonth = layoffs?.thisYear.filter((p) => p.year === year).at(-1)
@@ -49,7 +51,7 @@ function NationalPicture({ national, trackedWorkers, year }: { national: Nationa
   )
   return (
     <div className="mt-12">
-      <h3 className="text-xl font-bold tracking-tight text-navy">The national picture</h3>
+      <Heading className="text-xl font-bold tracking-tight text-navy">The national picture</Heading>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         From the Bureau of Labor Statistics, which estimates every layoff and every unemployed person in the country each
         month from its own surveys.
@@ -77,7 +79,8 @@ function NationalPicture({ national, trackedWorkers, year }: { national: Nationa
   )
 }
 
-export function LayoffTracker({ data, national }: { data: LayoffTrackerData; national?: NationalLaborData | null }) {
+export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: LayoffTrackerData; national?: NationalLaborData | null; headingLevel?: 'h1' | 'h2' }) {
+  const Heading = headingLevel
   const stat = (value: string, label: string) => (
     <div className="rounded-xl border border-border bg-white p-5">
       <p className="text-3xl font-bold tabular-nums text-navy">{value}</p>
@@ -91,14 +94,14 @@ export function LayoffTracker({ data, national }: { data: LayoffTrackerData; nat
         '@type': 'Dataset',
         name: 'NextChapter Layoff Tracker: WARN notices by state',
         description: `Layoff and plant-closing notices filed under the WARN Act with US state labor departments, collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
-        url: `${SITE}/news#layoff-tracker`,
+        url: `${SITE}/layoffs`,
         creator: { '@type': 'Organization', name: 'NextChapter', url: SITE },
         isAccessibleForFree: true,
         spatialCoverage: 'United States',
         keywords: ['layoffs', 'WARN notices', 'WARN Act', 'mass layoffs', 'plant closings'],
       }} />
 
-      <h2 id="layoff-tracker-heading" className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</h2>
+      <Heading id="layoff-tracker-heading" className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</Heading>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Layoff notices employers have filed with state labor departments under the WARN Act, collected each day from the
         states&apos; own public records, plus layoffs reported elsewhere where no state filing covers them.
@@ -134,7 +137,7 @@ export function LayoffTracker({ data, national }: { data: LayoffTrackerData; nat
               <tr key={r.key}>
                 <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">{r.noticeDate}</td>
                 <th scope="row" className="px-4 py-3 font-medium text-navy">
-                  {r.employer}
+                  {r.companySlug ? <Link href={`/layoffs/company/${r.companySlug}`} className="hover:text-brand hover:underline">{r.employer}</Link> : r.employer}
                   {r.alsoReported && (
                     <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">Also reported</span>
                   )}
@@ -178,11 +181,11 @@ export function LayoffTracker({ data, national }: { data: LayoffTrackerData; nat
           added only once two different publishers have reported them.
         </p>
         <p>
-          Free to cite with a link to <span className="font-medium text-foreground">launchyournextchapter.com/news#layoff-tracker</span>.
+          Free to cite with a link to <span className="font-medium text-foreground">launchyournextchapter.com/layoffs</span>.
         </p>
       </div>
 
-      {national && <NationalPicture national={national} trackedWorkers={data.year.workers} year={data.year.year} />}
+      {national && <NationalPicture national={national} trackedWorkers={data.year.workers} year={data.year.year} headingLevel={headingLevel === 'h1' ? 'h2' : 'h3'} />}
     </section>
   )
 }

@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { employerSlug } from './layoff-pages'
 
 export interface TrackerRow {
   key: string
@@ -17,6 +18,8 @@ export interface TrackerRow {
   sourceLabel: string
   /** A state filing that the press or layoffs.fyi also reported — two sources agree. */
   alsoReported: boolean
+  /** /layoffs/company/<slug>, for state filings only. */
+  companySlug: string | null
 }
 
 export interface LayoffTrackerData {
@@ -250,6 +253,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         origin: r.reported ? 'reported' as const : 'state' as const,
         sourceLabel: r.reported ? reportedLabel(r.source_url) : 'State record',
         alsoReported: !!r.also_reported,
+        companySlug: r.reported ? null : employerSlug(r.employer, r.company) || null,
       })),
       year: { year: yearStart.getUTCFullYear(), layoffs: stats.ny, workers: stats.wy ?? 0, states: stats.sy },
       last30: { notices: stats.n30, workers: stats.w30 ?? 0, states: stats.s30 },

@@ -42,6 +42,45 @@ export function generateMetadata(): Metadata {
   }
 }
 
+const CHANGE = YEAR_AGO_INDEX !== null ? LATEST_INDEX - YEAR_AGO_INDEX : null
+// The one-sentence answer the page opens with, and the first FAQ answer.
+const LEAD =
+  CHANGE === null
+    ? `The NextChapter White-Collar Displacement Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100).`
+    : `The NextChapter White-Collar Displacement Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), ${CHANGE === 0 ? 'unchanged from' : `${CHANGE > 0 ? 'up' : 'down'} ${Math.abs(CHANGE)} points from`} ${YEAR_AGO_INDEX} a year earlier.`
+
+// Answered from the text on this page: the opening paragraph and the methodology.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is the White-Collar Displacement Index?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `A measure of long-term unemployment among U.S. managers and professionals: people whose current or most recent job was in a management, business, financial or professional occupation and who have been unemployed 27 weeks or more, as a share of that labor force. ${LEAD}`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is the White-Collar Displacement Index calculated?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'From U.S. Census Bureau Current Population Survey microdata: white-collar workers unemployed 27 weeks or more as a share of the white-collar labor force, weighted with the composite weight BLS uses, seasonally adjusted, shown as a 3-month moving average, divided by its 2019 average and multiplied by 100.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How often is the White-Collar Displacement Index updated?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Monthly. It is built from the Current Population Survey’s monthly microdata and refreshed with each monthly NextChapter Displacement Report. October 2025 is missing because the survey was not collected that month.',
+      },
+    },
+  ],
+}
+
 const datasetJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
@@ -165,6 +204,7 @@ export default function WhiteCollarIndexPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={datasetJsonLd} />
+      <StructuredData data={faqJsonLd} />
       <StructuredData
         data={breadcrumbJsonLd([
           { name: 'Displacement Report', path: '/reports' },
@@ -183,6 +223,7 @@ export default function WhiteCollarIndexPage() {
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           NextChapter White-Collar Displacement Index
         </h1>
+        <p className="mt-3 max-w-2xl text-lg text-foreground">{LEAD}</p>
         {/* The index is refreshed with each monthly edition. */}
         {latestReport() && <AuthorByline updated={latestReport()!.publishedAt} />}
 

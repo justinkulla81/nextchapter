@@ -1,0 +1,3016 @@
+{
+ "_meta": {
+  "generated": "2026-10-06",
+  "sources": {
+   "significantProvisions": {
+    "title": "DOL ETA Significant Provisions of State UI Laws, Effective July 2026",
+    "url": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+    "asOf": "2026-07-01"
+   },
+   "comparison": {
+    "title": "DOL Comparison of State UI Laws 2023 (latest edition published; laws as of Jan 1, 2023), Chapter 3 Monetary Entitlement",
+    "url": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+    "asOf": "2023-01-01"
+   },
+   "triggerNotice": {
+    "title": "DOL Trigger Notice No. 2026-38, effective October 4, 2026",
+    "url": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+    "asOf": "2026-10-04"
+   },
+   "stateSites": "Each state UI agency's own site, accessed 2026-10-06"
+  },
+  "rules": "WBA values are from DOL Sig. Provisions July 2026 (without dependents); 'confirmedBy' = state site states the same figure. Null where official sources disagree for the same period. Weeks are regular-program weeks only."
+ },
+ "AL": {
+  "name": "Alabama",
+  "agencyName": {
+   "value": "Alabama Department of Workforce",
+   "source": "https://adol.alabama.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://workforce.alabama.gov/unemployment/",
+   "source": "https://workforce.alabama.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 275,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforce.alabama.gov/unemployment/faq/",
+   "stateEffective": "January 1, 2020 (as stated on site)"
+  },
+  "minWeeklyBenefit": {
+   "value": 45,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforce.alabama.gov/unemployment/faq/"
+  },
+  "maxWeeks": {
+   "value": 14,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "DOL lists 14 weeks with footnote 5 (weeks depend on BPW and state unemployment rate). Alabama's FAQ says 14-20 weeks based on the unemployment rate but does not state the current maximum."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://workforce.alabama.gov/unemployment/faq/",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "14-20 weeks depending on the state unemployment rate (state FAQ); DOL July 2026 lists 14",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://workforce.alabama.gov/unemployment/faq/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The waiting week was implemented by legislation effective July 2008, as an unpaid period for all unemployment compensation recipients. In the 2012 Alabama legislative session, the waiting week was moved from the 14th payable week to the 1st payable week for all new claims effective on or after August 1, 2012.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "AK": {
+  "name": "Alaska",
+  "agencyName": {
+   "value": "Alaska Department of Labor and Workforce Development",
+   "source": "https://labor.alaska.gov/unemployment/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.alaska.gov/unemployment/",
+   "source": "https://labor.alaska.gov/unemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 370,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.alaska.gov/unemployment/faq.htm",
+   "stateEffective": null
+  },
+  "minWeeklyBenefit": {
+   "value": 56,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.alaska.gov/unemployment/faq.htm"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.alaska.gov/unemployment/ui-handbook.html"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "16-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://labor.alaska.gov/unemployment/faq.htm",
+   "asOf": "accessed 2026-10-06",
+   "quote": "All new claims are subject to a \"waiting week.\" The \"waiting week\" is the first week in which you were eligible to receive benefits. You will not receive payment for this week, however you must claim for this week to receive your \"waiting week\" credit.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $442, min $128 (DOL; $24 per dependent child up to 3 per Alaska DOLWD)."
+ },
+ "AZ": {
+  "name": "Arizona",
+  "agencyName": {
+   "value": "Arizona Department of Economic Security",
+   "source": "https://des.az.gov/services/employment/unemployment-individual",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://des.az.gov/services/employment/unemployment-individual/apply-ui-benefits",
+   "source": "https://des.az.gov/services/employment/unemployment-individual",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 320,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://des.az.gov/content/ui-benefit-claims-determining-eligibility",
+   "stateEffective": "Max $320 for claims opened on/after July 3, 2022 (per important-changes page); min $236 page gives no effective date"
+  },
+  "minWeeklyBenefit": {
+   "value": 236,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://des.az.gov/content/ui-benefit-claims-determining-eligibility"
+  },
+  "maxWeeks": {
+   "value": 24,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://des.az.gov/services/employment/unemployment-individual/important-changes-july-1-2022"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (max benefit calculation column) ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "Up to 26 weeks, or 24 weeks if the unemployment rate in the prior calendar quarter is less than 5% (DOL); DOL July 2026 range 8-24",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://des.az.gov/services/employment/unemployment-individual/unemployment-insurance-benefits-definitions-waiting-week",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week of unemployment during which you meet all eligibility requirements is the waiting week. ... The waiting week is not a payable week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "An older DES page (important-changes-july-1-2022) still says new claims get 'between $200 and $320'; the current DES eligibility page and DOL both say minimum $236."
+ },
+ "AR": {
+  "name": "Arkansas",
+  "agencyName": {
+   "value": "Arkansas Division of Workforce Services",
+   "source": "https://dws.arkansas.gov/workforce-services/unemployment/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dws.arkansas.gov/workforce-services/unemployment/",
+   "source": "https://dws.arkansas.gov/workforce-services/unemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 451,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.arkansas.gov/wp-content/uploads/UI-Handbook-2026-Final.pdf ; min: https://www.dws.arkansas.gov/wp-content/uploads/DWS-ARK-500.1-Benefit-and-Earnings-Table-1_.pdf",
+   "stateEffective": "Max $451 stated in UI Handbook dated January 2026; min $81 from benefit table: 'Starting July 1,2012, the min. WBA will be frozen at $81 and the max. WBA at $451'"
+  },
+  "minWeeklyBenefit": {
+   "value": 81,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.arkansas.gov/wp-content/uploads/UI-Handbook-2026-Final.pdf ; min: https://www.dws.arkansas.gov/wp-content/uploads/DWS-ARK-500.1-Benefit-and-Earnings-Table-1_.pdf"
+  },
+  "maxWeeks": {
+   "value": 12,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.arkansas.gov/wp-content/uploads/UI-Handbook-2026-Final.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "9-12 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dws.arkansas.gov/wp-content/uploads/UI-Handbook-2026-Final.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first eligible week on your claim is considered your waiting week. You must still meet the eligibility requirements for the week, but you will not be paid for this week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Agency naming is inconsistent on the state site: site title 'Division of Workforce Services'; January 2026 UI Handbook cover says 'Arkansas Division of Reemployment'. Arkansas site blocks scripted access (Cloudflare) but loads in a browser."
+ },
+ "CA": {
+  "name": "California",
+  "agencyName": {
+   "value": "Employment Development Department",
+   "source": "https://edd.ca.gov/en/unemployment/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://edd.ca.gov/en/unemployment/step-2-apply/",
+   "source": "https://edd.ca.gov/en/unemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 450,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://edd.ca.gov/en/unemployment/eligibility/",
+   "stateEffective": null
+  },
+  "minWeeklyBenefit": {
+   "value": 40,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://edd.ca.gov/en/unemployment/eligibility/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://edd.ca.gov/siteassets/files/unemployment/pdf/benefit-flowchart.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "14-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://edd.ca.gov/en/unemployment/eligibility/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Note: You must serve a one-week unpaid waiting period on your claim before getting paid.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "CO": {
+  "name": "Colorado",
+  "agencyName": {
+   "value": "Colorado Department of Labor and Employment",
+   "source": "https://cdle.colorado.gov/ui/claimants/claimant-guide/applying-for-benefits",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://cdle.colorado.gov/ui/claimants/start-a-claim",
+   "source": "https://cdle.colorado.gov/ui/claimants",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 884,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://uibestimator.coworkforce.com/",
+   "stateEffective": "Site: 'The maximum weekly benefit amount may be adjusted annually, effective July 1 of each year for new claims filed after that date.' Exact effective date of $804/$884 not stated."
+  },
+  "minWeeklyBenefit": {
+   "value": 25,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://uibestimator.coworkforce.com/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://uibestimator.coworkforce.com/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "13-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (1 week); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "DOL shows max '$804 or $884': $804 under the high-quarter-wage formula, $884 under the total base-period-wage formula. $884 is the highest possible WBA; confirmed on CDLE's benefit estimator (uibestimator.coworkforce.com, non-.gov CDLE tool) and CDLE FAQ."
+ },
+ "CT": {
+  "name": "Connecticut",
+  "agencyName": {
+   "value": "Connecticut Department of Labor",
+   "source": "https://portal.ct.gov/dol",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://portal.ct.gov/dol/unemployment-benefits",
+   "source": "https://portal.ct.gov/dol",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 721,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://portal.ct.gov/dol/divisions/unemployment-insurance-tax/information-on-unemployment-tax-rate-for-calendar-year-2026",
+   "stateEffective": "Frozen: 'In light of the public acts' freezing of the maximum weekly UI benefit during the four years from October 2024 through October 2028, the maximum WBR remains at $721.'"
+  },
+  "minWeeklyBenefit": {
+   "value": 44,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://portal.ct.gov/dolui/reemployct-claimantfaqs"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $796, min $88 (DOL; $15 per dependent up to 5). CT max frozen at $721 from October 2024 through October 2028 per CTDOL."
+ },
+ "DE": {
+  "name": "Delaware",
+  "agencyName": {
+   "value": "Delaware Department of Labor, Division of Unemployment Insurance",
+   "source": "https://labor.delaware.gov/divisions/unemployment-insurance/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.delaware.gov/divisions/unemployment-insurance/file-an-unemployment-claim/",
+   "source": "https://labor.delaware.gov/divisions/unemployment-insurance/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 450,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.delaware.gov/divisions/unemployment-insurance/claimant-faqs/",
+   "stateEffective": null
+  },
+  "minWeeklyBenefit": {
+   "value": 20,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.delaware.gov/divisions/unemployment-insurance/claimant-faqs/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.delaware.gov/divisions/unemployment-insurance/claimant-faqs/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "24-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": null,
+   "reason": "DOL Comparison 2023 Table 3-7 lists Delaware as 'No waiting period', but a Delaware DOL FAQ PDF (https://laborfiles.delaware.gov/main/dui/One%20Week%20Waiting%20Period%20FAQ.pdf, undated, appears to be c.2014) says a one-week waiting period must be served. Sources disagree.",
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "DC": {
+  "name": "District of Columbia",
+  "agencyName": {
+   "value": "Department of Employment Services",
+   "source": "https://unemployment.dc.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://unemployment.dc.gov/page/apply-benefits",
+   "source": "https://unemployment.dc.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 444,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://unemployment.dc.gov/page/information-claimants",
+   "stateEffective": null
+  },
+  "minWeeklyBenefit": {
+   "value": 50,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://unemployment.dc.gov/page/information-claimants"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://unemployment.dc.gov/page/information-claimants",
+   "asOf": "accessed 2026-10-06",
+   "quote": "As of September 5, 2021, under District law, there is a one-week waiting period before benefits are paid. ... No payment is made during the waiting period.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Claim is filed on does.dcnetworks.org, linked from the unemployment.dc.gov apply page."
+ },
+ "FL": {
+  "name": "Florida",
+  "agencyName": {
+   "value": "Florida Department of Commerce (FloridaCommerce)",
+   "source": "https://floridajobs.org/workforce-resources/reemployment-assistance",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://floridajobs.org/workforce-resources/reemployment-assistance/claimants/apply-for-benefits",
+   "source": "https://floridajobs.org/workforce-resources/reemployment-assistance",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 275,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://floridajobs.org/workforce-resources/reemployment-assistance/claimants/claimant-faq ; min: https://www.floridajobs.org/docs/default-source/reemployment-assistance-center/unemployment/guides/20240523_guide_en_reviewmondet.pdf",
+   "stateEffective": "No effective date stated. Min from May 2024 guide: 'Minimum WBA is $32; Maximum WBA is $275'"
+  },
+  "minWeeklyBenefit": {
+   "value": 32,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://floridajobs.org/workforce-resources/reemployment-assistance/claimants/claimant-faq ; min: https://www.floridajobs.org/docs/default-source/reemployment-assistance-center/unemployment/guides/20240523_guide_en_reviewmondet.pdf"
+  },
+  "maxWeeks": {
+   "value": 12,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://floridajobs.org/workforce-resources/reemployment-assistance/claimants/claimant-faq (\"2025 and 2026 claim maximums: 12 weeks\")"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12: 12-23 by rate)",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "9-12 weeks for current claims; number of weeks depends on base-period wages and the state unemployment rate (DOL footnote 5)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://floridajobs.org/workforce-resources/reemployment-assistance/claimants/claimant-faq",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Will I be paid for my waiting week? No. You will not be sent benefit money for your waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Program is called Reemployment Assistance. Agency site floridajobs.org is not a .gov domain but is FloridaCommerce's official site."
+ },
+ "GA": {
+  "name": "Georgia",
+  "agencyName": {
+   "value": "Georgia Department of Labor",
+   "source": "https://dol.georgia.gov/individuals",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dol.georgia.gov/get-unemployment-assistance",
+   "source": "https://dol.georgia.gov/individuals",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 365,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.georgia.gov/faqs-individuals/individuals-faqs-unemployment-insurance",
+   "stateEffective": "Not dated on FAQ; claimant handbook PDF (modified 2026-06-23) says 'currently $55 and the maximum is $365'"
+  },
+  "minWeeklyBenefit": {
+   "value": 55,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.georgia.gov/faqs-individuals/individuals-faqs-unemployment-insurance"
+  },
+  "maxWeeks": {
+   "value": null,
+   "reason": "DOL lists 6-26 weeks (footnote 5: depends on BPW and state unemployment rate), which is the statutory range, not the current maximum. Georgia DOL's FAQ gives only the rate-to-weeks chart (<=4.5% -> 14 weeks ... >=10% -> 26 weeks) and does not state which bracket applies to current claims.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://dol.georgia.gov/faqs-individuals/individuals-faqs-unemployment-insurance",
+   "asOf": "2026-07-01"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://dol.georgia.gov/faqs-individuals/individuals-faqs-unemployment-insurance",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "14 to 26 weeks depending on the state unemployment rate (Georgia DOL chart); DOL July 2026 lists 6-26",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://dol.georgia.gov/faqs-individuals/individuals-faqs-unemployment-insurance",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "HI": {
+  "name": "Hawaii",
+  "agencyName": {
+   "value": "Hawaii Department of Labor and Industrial Relations, Unemployment Insurance Division",
+   "source": "https://labor.hawaii.gov/ui/how-unemployment-insurance-works/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.hawaii.gov/ui/information-about-filing-online/",
+   "source": "https://labor.hawaii.gov/ui/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 868,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.hawaii.gov/ui/tax-rate-schedule-and-weekly-benefit-amount/ (max); https://labor.hawaii.gov/ui/faq/ (min)",
+   "stateEffective": "Max $868 for calendar year 2026 (table column '2026'); min 'set by law at $5 a week'"
+  },
+  "minWeeklyBenefit": {
+   "value": 5,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.hawaii.gov/ui/tax-rate-schedule-and-weekly-benefit-amount/ (max); https://labor.hawaii.gov/ui/faq/ (min)"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.hawaii.gov/ui/faq/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://labor.hawaii.gov/ui/faq/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Everyone must serve a waiting week, which is usually the first week of your benefit year. You must file a weekly claim request and meet all eligibility requirements for the waiting week, but you will not be paid.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "ID": {
+  "name": "Idaho",
+  "agencyName": {
+   "value": "Idaho Department of Labor",
+   "source": "https://www.labor.idaho.gov/unemployment-benefits/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.labor.idaho.gov/unemployment-benefits/",
+   "source": "https://www.labor.idaho.gov/unemployment-benefits/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 624,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.labor.idaho.gov/wp-content/uploads/2024/12/AO.683.pdf (max); https://www.labor.idaho.gov/wp-content/uploads/publications/Admin/AO-648-Min-WBA-Memo-Final.pdf (min)",
+   "stateEffective": "Max $624 for new claims filed in the first full week of January 2026 until the first full week of January 2027 (Administrative Order No. 683, Nov. 6, 2025); min $72 per Administrative Order No. 648 (effective Dec 30, 2020)"
+  },
+  "minWeeklyBenefit": {
+   "value": 72,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.labor.idaho.gov/wp-content/uploads/2024/12/AO.683.pdf (max); https://www.labor.idaho.gov/wp-content/uploads/publications/Admin/AO-648-Min-WBA-Memo-Final.pdf (min)"
+  },
+  "maxWeeks": {
+   "value": null,
+   "reason": "DOL lists 10-26 weeks (footnote 5: depends on BPW and state unemployment rate). Idaho DOL's own pages disagree with each other (monetary-eligibility page: 10-26 weeks; 'UI facts' PDF of March 2026: 10-20 weeks depending on the rate) and give no dated current maximum.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://www.labor.idaho.gov/unemployment-benefits/monetary-eligibility/",
+   "asOf": "2026-07-01"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "10-26 weeks; maximum depends on the state unemployment rate (DOL footnote 5)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://www.labor.idaho.gov/unemployment-benefits/monetary-eligibility/",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.labor.idaho.gov/unemployment-benefits/weekly-reports/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "A waiting week is an unpaid benefit week every claimant must serve each benefit year. You must serve a waiting week before you can get unemployment benefits.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "IL": {
+  "name": "Illinois",
+  "agencyName": {
+   "value": "Illinois Department of Employment Security",
+   "source": "https://ides.illinois.gov/content/dam/soi/en/web/ides/ides_forms_and_publications/CLI110L.pdf",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://ides.illinois.gov/unemployment/file-a-claim.html",
+   "source": "https://ides.illinois.gov/unemployment.html",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 628,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://ides.illinois.gov/content/dam/soi/en/web/ides/ides_forms_and_publications/CLI110L.pdf",
+   "stateEffective": "Table 1 of Weekly Benefit Amounts: 'Applies only to benefit years and weeks of unemployment beginning on or after 1/1/2026.' Max individual $628, w/ spouse $748, w/ child $859; lowest WBA row $51 (total $66 w/ spouse, $77 w/ child)"
+  },
+  "minWeeklyBenefit": {
+   "value": 51,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://ides.illinois.gov/content/dam/soi/en/web/ides/ides_forms_and_publications/CLI110L.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://ides.illinois.gov/unemployment/insurance.html"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://ides.illinois.gov/unemployment/resources/unemployment-insurance-benefit-handbook/ui-benefit-handbook----eligibility.html",
+   "asOf": "accessed 2026-10-06",
+   "quote": "You have served one “waiting week.” The “waiting week” is a qualifying period required by law. Benefits are not paid for this week. It is usually the first week for which you file your claim.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $859 (with a dependent child; $748 with a non-working spouse only), min $77 (DOL / IDES Table 1 for benefit years beginning on/after 1/1/2026)."
+ },
+ "IN": {
+  "name": "Indiana",
+  "agencyName": {
+   "value": "Indiana Department of Workforce Development",
+   "source": "https://www.in.gov/dwd/indiana-unemployment/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.in.gov/dwd/indiana-unemployment/file",
+   "source": "https://www.in.gov/dwd/indiana-unemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 390,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.in.gov/dwd/indiana-unemployment/individuals/unemployment-insurance-faq",
+   "stateEffective": "No effective date given; 'The maximum weekly benefit amount is $390.00. This amount is set by Indiana law.' (Claimant Handbook, early July 2026)"
+  },
+  "minWeeklyBenefit": {
+   "value": 37,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.in.gov/dwd/files/Claimant_Handbook%20early%20July%202026.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "Up to 26 weeks",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.in.gov/dwd/indiana-unemployment/individuals/unemployment-insurance-faq",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Indiana law requires a one waiting period week, which means you do not receive a check for the first week of your claim if you meet eligibility requirements.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "IA": {
+  "name": "Iowa",
+  "agencyName": {
+   "value": "Iowa Workforce Development",
+   "source": "https://workforce.iowa.gov/unemployment",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://workforce.iowa.gov/unemployment/initial-claim",
+   "source": "https://workforce.iowa.gov/unemployment",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 644,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforce.iowa.gov/announcement/2026-06-30/iowans-unemployment-benefits-increase-starting-july-5",
+   "stateEffective": "New claims with an effective date of July 5, 2026 or later: 0 deps $96-$644; 1 dep $100-$668; 2 deps $105-$692; 3 deps $110-$729; 4+ deps $116-$790"
+  },
+  "minWeeklyBenefit": {
+   "value": 96,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforce.iowa.gov/announcement/2026-06-30/iowans-unemployment-benefits-increase-starting-july-5"
+  },
+  "maxWeeks": {
+   "value": 16,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforce.iowa.gov/unemployment/ui-faq"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "10-16 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents (4+): max $790, min $116, for claims effective July 5, 2026 or later (DOL and IWD announcement)."
+ },
+ "KS": {
+  "name": "Kansas",
+  "agencyName": {
+   "value": "Kansas Department of Labor",
+   "source": "https://www.dol.ks.gov/unemployment/overview",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://kansasui.gov/cp/landing",
+   "source": "https://www.dol.ks.gov/unemployment/overview",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 663,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dol.ks.gov/unemployment/overview",
+   "stateEffective": "Benefit Year July 1, 2026-June 30, 2027 (FAQ: 'weekly benefits will be between $165 to $663 for claims filed between July 1, 2026, and June 30, 2027')"
+  },
+  "minWeeklyBenefit": {
+   "value": 165,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dol.ks.gov/unemployment/overview"
+  },
+  "maxWeeks": {
+   "value": 16,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dol.ks.gov/home/showpublisheddocument/1723/639209267075730000 (Claimant Handbook K-BEN-P 500 (05-26): 'current maximum number of weeks (16)')"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12, 'Weeks Based on BPW and Unemployment Rate': KS 10 / 16-26)",
+   "asOf": "2023-01-01",
+   "note": "The July 2026 Significant Provisions does not put footnote 5 on Kansas, and the Kansas DOL site defines an 'Average Kansas Rate' but does not spell out the indexing; the 'true' value rests on DOL Comparison 2023."
+  },
+  "durationNote": {
+   "value": "10-16 weeks currently (DOL July 2026); the maximum (16 to 26 weeks) is tied to the average Kansas unemployment rate per DOL Comparison 2023 Table 3-12",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.dol.ks.gov/unemployment/eligibility",
+   "asOf": "accessed 2026-10-06",
+   "quote": "NOTE: In most cases, you must serve a one-week unpaid waiting period, called the waiting week. This is usually the first week you file a weekly certification after submitting your initial application.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Kansas DOL site blocks scripted access; read in a browser. 'Apply for Benefits' redirects to kansasui.gov (KDOL portal)."
+ },
+ "KY": {
+  "name": "Kentucky",
+  "agencyName": {
+   "value": "Kentucky Education and Labor Cabinet, Office of Unemployment Insurance",
+   "source": "https://kcc.ky.gov/career/Documents/PAM400.pdf",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://kcc.ky.gov/career/individuals/Pages/File-A-Claim-or-Request-Benefits-Online.aspx",
+   "source": "https://kcc.ky.gov/Pages/index.aspx",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": null,
+   "reason": "DOL Sig. Provisions (July 2026, unchanged from Jan 2026 edition) shows max $720; Kentucky's own UI FAQ and claimant handbook PAM-UI-400 (Rev. 07/26) show max $746 for claims filed on/after July 5, 2026 ($720 for claims filed before July 5, 2026). Sources disagree -> null. Source for $746: https://kcc.ky.gov/career/resources/Pages/UI-FAQ-Guide.aspx",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "minWeeklyBenefit": {
+   "value": 39,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 16,
+   "source": "https://kcc.ky.gov/career/Documents/PAM400.pdf",
+   "asOf": "2026-07-05",
+   "note": "Kentucky claimant handbook PAM-UI-400 (Rev. 07/26): 16 weeks for claims filed on/after July 5, 2026 (up to 24 weeks for claimants in approved training). DOL July 2026 lists 16-24 with footnote 5."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://kcc.ky.gov/career/Documents/PAM400.pdf",
+   "asOf": "2026-07-01"
+  },
+  "durationNote": {
+   "value": "16 weeks for claims filed on/after July 5, 2026; Kentucky's chart ranges from 16 weeks (state average unemployment rate <=6.5%) up to 24 weeks (<=10.5%)",
+   "source": "https://kcc.ky.gov/career/Documents/PAM400.pdf",
+   "asOf": "2026-07-05"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://kcc.ky.gov/career/resources/Pages/UI-FAQ-Guide.aspx",
+   "asOf": "accessed 2026-10-06",
+   "quote": "In Kentucky, all initial claims must serve a “Waiting Week”. This means that benefits are not paid for the first week that you are eligible.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "LA": {
+  "name": "Louisiana",
+  "agencyName": {
+   "value": "Louisiana Works",
+   "source": "https://www.laworks.net/Downloads/UI/UIBenefitRightsInformation.pdf",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.louisianaworks.net/hire/",
+   "source": "https://www.laworks.net/UnemploymentInsurance/UI_Claimants.asp",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 282,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.laworks.net/Downloads/UI/UIBenefitRightsInformation.pdf",
+   "stateEffective": "Benefit Rights Information, Rev. 08/2026: 'Your weekly benefit amount depends on your past wages and will be between $35 and $282.' No other effective date given."
+  },
+  "minWeeklyBenefit": {
+   "value": 35,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.laworks.net/Downloads/UI/UIBenefitRightsInformation.pdf"
+  },
+  "maxWeeks": {
+   "value": 12,
+   "source": "https://www.laworks.net/Downloads/UI/UI_InstructionMemo.pdf",
+   "asOf": "2026-07-01",
+   "note": "Louisiana Works instruction memo: 12 weeks maximum for claims filed July-December 2026 (rate 4.4%). DOL July 2026 lists 12-20 without footnote 5."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://www.laworks.net/Downloads/UI/UI_InstructionMemo.pdf",
+   "asOf": "2026-07-01",
+   "note": "DOL July 2026 Significant Provisions shows LA 12-20 weeks but does not mark it with footnote 5; the 'true' value rests on the Louisiana Works memo."
+  },
+  "durationNote": {
+   "value": "12-20 weeks depending on the state unemployment rate, updated each January and July; 12 weeks for claims filed July-December 2026",
+   "source": "https://www.laworks.net/Downloads/UI/UI_InstructionMemo.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.laworks.net/Downloads/UI/UIBenefitRightsInformation.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week after the effective date of your new claim is usually your waiting week. You must file, but you will not be paid.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Louisiana Works FAQ page (last updated March 18, 2026) still says max $275; the newer Benefit Rights Information (Rev. 08/2026) and DOL (Jan and July 2026) both say $282, so $282 is used. Agency domains laworks.net / louisianaworks.net are not .gov."
+ },
+ "ME": {
+  "name": "Maine",
+  "agencyName": {
+   "value": "Maine Department of Labor, Bureau of Unemployment Compensation",
+   "source": "https://www.maine.gov/unemployment/newtoui/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.maine.gov/unemployment/newtoui/",
+   "source": "https://www.maine.gov/unemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 649,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.maine.gov/unemployment/claimsfaq/",
+   "stateEffective": "New initial claims filed on or after June 1, 2026 to May 31, 2027: 'the minimum is $113.00 and the maximum is $649.00 (plus $25 per dependent per week, and can total no more than seventy-five percent [75%] of the WBA)'"
+  },
+  "minWeeklyBenefit": {
+   "value": 113,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.maine.gov/unemployment/claimsfaq/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.maine.gov/unemployment/claimsfaq/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "15-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.maine.gov/unemployment/claimsfaq/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first eligible week claimed is a Waiting Period week, and no payment is made for that week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $1,135, min $197 (DOL; $25 per dependent, capped at 75% of WBA per Maine DOL)."
+ },
+ "MD": {
+  "name": "Maryland",
+  "agencyName": {
+   "value": "Maryland Department of Labor, Division of Unemployment Insurance",
+   "source": "https://labor.maryland.gov/unemployment-insurance/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.maryland.gov/unemployment-insurance/claimants/",
+   "source": "https://labor.maryland.gov/unemployment-insurance/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 430,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.maryland.gov/unemployment-insurance/claimants/",
+   "stateEffective": "No effective date given; pages say 'current'"
+  },
+  "minWeeklyBenefit": {
+   "value": 50,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.maryland.gov/unemployment-insurance/claimants/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.maryland.gov/unemployment-insurance/claimants/do-i-qualify.shtml"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: min $90 (DOL; $8 per dependent child up to 5, max stays $430)."
+ },
+ "MA": {
+  "name": "Massachusetts",
+  "agencyName": {
+   "value": "Department of Unemployment Assistance",
+   "source": "https://www.mass.gov/orgs/department-of-unemployment-assistance",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.mass.gov/how-to/apply-for-unemployment-insurance-benefits",
+   "source": "https://www.mass.gov/orgs/department-of-unemployment-assistance",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 1105,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.mass.gov/info-details/how-unemployment-insurance-benefits-are-determined",
+   "stateEffective": "As of October 5, 2025"
+  },
+  "minWeeklyBenefit": {
+   "value": 60,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 30,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.mass.gov/info-details/how-unemployment-insurance-benefits-are-determined (states 30 weeks)"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5) ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Tables 3-11, 3-12)",
+   "asOf": "2026-07-01",
+   "note": "mass.gov does not mention the reduction to 26 weeks."
+  },
+  "durationNote": {
+   "value": "Up to 30 weeks; reduced to 26 weeks during periods of low unemployment (DOL Comparison 2023 Table 3-11/3-12). DOL July 2026 range 10-30",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.mass.gov/info-details/faqs-about-unemployment-insurance-for-workers",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week that you file a weekly claim for benefits is a waiting week. You will not get paid for that week. Your first payment will be for the second week you claim benefits.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Dependents' allowance is uncapped (DOL; up to $25 per child). mass.gov still shows max $1,105 'as of October 5, 2025' on 2026-10-06; MA usually adjusts the max in early October, so re-check for an October 2026 change."
+ },
+ "MI": {
+  "name": "Michigan",
+  "agencyName": {
+   "value": "Unemployment Insurance Agency (Michigan Department of Labor and Economic Opportunity)",
+   "source": "https://www.michigan.gov/leo/bureaus-agencies/uia/uia-resources-for-claimants/about-uia-and-unemployment-insurance-in-michigan",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.michigan.gov/leo/bureaus-agencies/uia/tools/claimant-roadmap",
+   "source": "https://www.michigan.gov/leo/bureaus-agencies/uia/uia-resources-for-claimants/starting-ui-journey",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 530,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.michigan.gov/leo/bureaus-agencies/uia/tools/publications/eligibility-requirements",
+   "stateEffective": "2026 (site: '2026 maximum weekly benefit rate of $530 (up from $446 in 2025)')"
+  },
+  "minWeeklyBenefit": {
+   "value": 218,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.michigan.gov/leo/bureaus-agencies/uia/tools/publications/eligibility-requirements"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "14-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: min $315 (DOL; $19.33 per dependent up to 5; max stays $530)."
+ },
+ "MN": {
+  "name": "Minnesota",
+  "agencyName": {
+   "value": "Minnesota Department of Employment and Economic Development (Unemployment Insurance Program)",
+   "source": "https://www.uimn.org/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.uimn.org/applicants/howapply/index.jsp",
+   "source": "https://www.uimn.org/applicants/index.jsp",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 948,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.uimn.org/assets/22c_tcm1068-193111.pdf",
+   "stateEffective": "Information Handbook covers 'October 26, 2025 through October 24, 2026' (DEED-22A Rev. 3/2026)"
+  },
+  "minWeeklyBenefit": {
+   "value": 37,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Minnesota UI site does not state a maximum number of weeks; value from DOL only."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "9-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.uimn.org/applicants/howapply/first-payment/index.jsp",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week you are eligible for unemployment benefits is your nonpayable week. Minnesota law requires a nonpayable week before you can be paid benefits.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)",
+   "stateNote": "MN calls it a 'nonpayable week'. The site says nothing about paying it later."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "DOL shows max '$611 or $948': $611 under the high-quarter formula, $948 under the base-period formula; $948 is the highest possible WBA. Agency site uimn.org is not .gov. MN handbook covers Oct 26 2025-Oct 24 2026, so a new max may apply to claims starting 2026-10-25."
+ },
+ "MS": {
+  "name": "Mississippi",
+  "agencyName": {
+   "value": "Mississippi Department of Employment Security",
+   "source": "https://mdes.ms.gov/unemployment-claims/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://mdes.ms.gov/unemployment-claims/",
+   "source": "https://mdes.ms.gov/unemployment-claims/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 235,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mdes.ms.gov/unemployment-claims/benefit-information/benefit-eligibility-requirements/",
+   "stateEffective": "'at this time' (no date given)"
+  },
+  "minWeeklyBenefit": {
+   "value": 30,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mdes.ms.gov/unemployment-claims/benefit-information/benefit-eligibility-requirements/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mdes.ms.gov/unemployment-claims/benefit-information/benefit-eligibility-requirements/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "13-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://mdes.ms.gov/unemployment-claims/benefit-information/benefit-eligibility-requirements/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Serve a one-week waiting period (benefits cannot be paid for this week)",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "MO": {
+  "name": "Missouri",
+  "agencyName": {
+   "value": "Missouri Department of Labor and Industrial Relations, Division of Employment Security",
+   "source": "https://labor.mo.gov/unemployment",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.mo.gov/des/how-to-file",
+   "source": "https://labor.mo.gov/unemployed-workers",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 320,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.mo.gov/faqs/knowledge-base/how-are-my-benefits-figured",
+   "stateEffective": "No date given (also in worker pamphlet MODES-INF-170-11 (03-26))"
+  },
+  "minWeeklyBenefit": {
+   "value": 35,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 20,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.mo.gov/faqs/knowledge-base/how-are-my-benefits-figured"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12. Missouri DES states 20 weeks as a flat maximum with no rate link (https://labor.mo.gov/faqs/knowledge-base/how-are-my-benefits-figured)."
+  },
+  "durationNote": {
+   "value": "8-20 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://labor.mo.gov/faqs/knowledge-base/what-waiting-week",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The waiting week is the first week of your claim for which you are eligible for unemployment benefits but not paid these benefits. ... You may receive compensation for the waiting week as the last payment on your regular unemployment claim.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)",
+   "stateNote": "Unpaid at first. May be paid later as the last payment on the claim ('may'; no conditions given)."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Waiting week may be paid as the last payment on the claim (Missouri DES)."
+ },
+ "MT": {
+  "name": "Montana",
+  "agencyName": {
+   "value": "Montana Department of Labor & Industry, Unemployment Insurance Division",
+   "source": "https://uid.dli.mt.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://uid.dli.mt.gov/claimants/",
+   "source": "https://uid.dli.mt.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": null,
+   "reason": "DOL Sig. Provisions (July 2026, unchanged from Jan 2026 edition) shows max $767 / min $227; the Montana UI Division's Benefits Estimator script (https://uid.dli.mt.gov/_files/js/benefits-estimator-calculator.js) uses max $805 / min $238 under a '2026 UPDATES' comment with the DOL figures commented out as '2025 UPDATES'. No dated readable Montana page states either figure. Sources disagree -> null.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "minWeeklyBenefit": {
+   "value": null,
+   "reason": "See maxWeeklyBenefit note: DOL $227 vs Montana estimator $238.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "maxWeeks": {
+   "value": 24,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://uid.dli.mt.gov/_docs/claims-processing/claimant-handbook.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "8-24 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://uid.dli.mt.gov/_docs/claims-processing/claimant-handbook.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week you are eligible is called your Waiting Week. You must file a payment request and meet all eligibility requirements. You will not be paid for the Waiting Week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)",
+   "stateNote": "Handbook PDF modified 2026-02-26. Glossary: 'This week will not be paid'."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "NE": {
+  "name": "Nebraska",
+  "agencyName": {
+   "value": "Nebraska Department of Labor",
+   "source": "https://dol.nebraska.gov/UIBenefits",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dol.nebraska.gov/UIBenefits",
+   "source": "https://dol.nebraska.gov/UIBenefits",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 582,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.nebraska.gov/UIBenefits/UIBenefitsOverview/BenefitAmounts",
+   "stateEffective": "2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 70,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.nebraska.gov/UIBenefits/UIBenefitsOverview/BenefitAmounts"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "10-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dol.nebraska.gov/UIBenefits/UIBenefitsOverview/ExpectationsAfterFiling",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week after you file an initial claim is called the waiting week. You must file a weekly claim for this week, but you will not get a benefit payment. This is required by Nebraska state law.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "NV": {
+  "name": "Nevada",
+  "agencyName": {
+   "value": "Nevada Department of Employment, Training and Rehabilitation, Employment Security Division",
+   "source": "https://detr.nv.gov/Page/Employment_Security_Division",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://detr.nv.gov/Page/Unemployment_Insurance_Benefits",
+   "source": "https://detr.nv.gov/Page/Employment_Security_Division",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 657,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://nevadaworkforce.com/_docs/EDS_Wage-Benefit/MWB-Statewide-2026.pdf",
+   "stateEffective": "July 1, 2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 16,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Nevada DETR site does not state a maximum number of weeks; value from DOL only."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "8-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (1 week); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Max $657 confirmed by a DETR Research & Analysis memo on nevadaworkforce.com (DETR labor-market site, not .gov), effective July 1, 2026."
+ },
+ "NH": {
+  "name": "New Hampshire",
+  "agencyName": {
+   "value": "New Hampshire Employment Security",
+   "source": "https://www.nhes.nh.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.nhes.nh.gov/individuals/file-unemployment-benefits",
+   "source": "https://www.nhes.nh.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 427,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mm.nh.gov/files/uploads/nhes/documents/nhes0177.pdf",
+   "stateEffective": "Benefit Amount Schedule: 'Effective for all new claims filed on 7/1/07 and thereafter' (NHES 0177 R 7-11)"
+  },
+  "minWeeklyBenefit": {
+   "value": 32,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mm.nh.gov/files/uploads/nhes/documents/nhes0177.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://mm.nh.gov/files/uploads/nhes/documents/nhes0188.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://mm.nh.gov/files/uploads/nhes/documents/nhes0188.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "A waiting week is the first week determined to be payable for any initial unemployment claim and will not be paid.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)",
+   "stateNote": "From 'Unemployment Insurance: A Guide to Collecting Benefits in the State of New Hampshire' (NHES 0188, N-10/16). It adds: 'This waiting week will not reduce your total available benefits.'"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "NJ": {
+  "name": "New Jersey",
+  "agencyName": {
+   "value": "New Jersey Department of Labor and Workforce Development, Division of Unemployment Insurance",
+   "source": "https://www.nj.gov/labor/myunemployment/assets/pdfs/PR-94.pdf",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.nj.gov/labor/myunemployment/before/about/howtoapply/applyonline.shtml",
+   "source": "https://www.nj.gov/labor/myunemployment/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 905,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.nj.gov/labor/myunemployment/before/about/calculator/",
+   "stateEffective": "2026 (calendar year; site: 'For 2026, the maximum weekly benefit rate is $905.')"
+  },
+  "minWeeklyBenefit": {
+   "value": 186,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.nj.gov/labor/myunemployment/before/about/calculator/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "20-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "DOL lists min $186 ($213 with dependents); NJ max $905 applies with or without dependents."
+ },
+ "NM": {
+  "name": "New Mexico",
+  "agencyName": {
+   "value": "New Mexico Department of Workforce Solutions",
+   "source": "https://www.dws.nm.gov/en-us/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.dws.nm.gov/MyWorkforceConnection",
+   "source": "https://www.dws.nm.gov/UI-FAQs",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 624,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "minWeeklyBenefit": {
+   "value": 116,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dws.nm.gov/portals/0/dm/ui/unemployment_insurance.pdf",
+   "note": "Only dated (2009/2016) documents on dws.nm.gov state 26 weeks; value from DOL."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "14-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.dws.nm.gov/Portals/0/UI_Quick_Facts_11.14.2023_EN_ES.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Please note: The first eligible week of any new claim is a “waiting week”. You will not receive benefits for this week and it is not included in your weeks of payment.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "NMDWS site publishes no current benefit amounts; WBA values from DOL only. With dependents: max $674, min $166 (DOL)."
+ },
+ "NY": {
+  "name": "New York",
+  "agencyName": {
+   "value": "New York State Department of Labor",
+   "source": "https://dol.ny.gov/unemployment/unemployment-insurance-assistance",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dol.ny.gov/unemployment-claimant-benefit-process-0",
+   "source": "https://dol.ny.gov/unemployment/unemployment-insurance-assistance",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 869,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.ny.gov/system/files/documents/2026/03/p832-how-your-weekly-ui-benefits-are-calculated-2-26.pdf",
+   "stateEffective": "Max $869 effective the first Monday of October 2025 (Oct 6, 2025); min $140 'as of January 2026'"
+  },
+  "minWeeklyBenefit": {
+   "value": 140,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.ny.gov/system/files/documents/2026/03/p832-how-your-weekly-ui-benefits-are-calculated-2-26.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dol.ny.gov/unemployment-claimant-benefit-process-0"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dol.ny.gov/glossary-unemployment-terms-claimants",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first full week you claim benefits is a waiting period or week. You will not receive Unemployment Insurance benefits for this week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "No October 2026 change to the max is published on dol.ny.gov as of 2026-10-06 ($869 effective Oct 6, 2025)."
+ },
+ "NC": {
+  "name": "North Carolina",
+  "agencyName": {
+   "value": "North Carolina Division of Employment Security",
+   "source": "https://www.des.nc.gov/individuals/apply-ui",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.des.nc.gov/individuals/apply-ui",
+   "source": "https://www.des.nc.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 350,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.des.nc.gov/need-help/faqs/ui",
+   "stateEffective": "No effective date given ('according to North Carolina law')"
+  },
+  "minWeeklyBenefit": {
+   "value": 15,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.des.nc.gov/need-help/faqs/ui"
+  },
+  "maxWeeks": {
+   "value": 12,
+   "source": "https://www.des.nc.gov/need-help/faqs/ui",
+   "asOf": "accessed 2026-10-06",
+   "note": "NC DES: 'you may get up to $350 a week in unemployment benefits for up to 12 weeks.' No effective period stated. DOL July 2026 lists 12-20."
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://www.des.nc.gov/need-help/faqs/ui ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12, footnote 4)",
+   "asOf": "accessed 2026-10-06",
+   "note": "DOL July 2026 Significant Provisions does not put footnote 5 on NC."
+  },
+  "durationNote": {
+   "value": "12-20 weeks depending on the state unemployment rate (recalculated January 1 and July 1); currently up to 12 weeks per NC DES",
+   "source": "https://www.des.nc.gov/need-help/faqs/ui",
+   "asOf": "accessed 2026-10-06"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.des.nc.gov/need-help/faqs/ui",
+   "asOf": "accessed 2026-10-06",
+   "quote": "North Carolina law requires you to serve an unpaid waiting week before you can be paid unemployment benefits. The first week you are eligible for unemployment benefits is your unpaid waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "ND": {
+  "name": "North Dakota",
+  "agencyName": {
+   "value": "Job Service North Dakota",
+   "source": "https://www.jobsnd.com/unemployment-individuals",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.jobsnd.com/unemployment-individuals/file-claim",
+   "source": "https://www.jobsnd.com/unemployment-individuals",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": null,
+   "reason": "DOL Sig. Provisions (July 2026, unchanged from Jan 2026 edition) shows max $815; Job Service ND's benefit chart 'Benefit Schedule 7/5/2026 - 7/3/2027' (https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/2026%20WBA%20Benefit%20Chart.pdf) and its July 5 2026 benefit estimator show max $800. Sources disagree -> null.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "minWeeklyBenefit": {
+   "value": 43,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/UI/uiclaimantguidejsnd4003_0824%202026.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "12-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/UI/uiclaimantguidejsnd4003_0824%202026.pdf",
+   "asOf": "accessed 2026-10-06",
+   "quote": "You will serve only one waiting week in your benefit year and you will never receive benefits for your waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Agency domain jobsnd.com is not .gov."
+ },
+ "OH": {
+  "name": "Ohio",
+  "agencyName": {
+   "value": "Ohio Department of Job and Family Services",
+   "source": "https://jfs.ohio.gov/unemployment-services/for-workers/how-unemployment-insurance-works",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://jfs.ohio.gov/unemployment-services/for-workers/how-to-apply-for-unemployment-benefits-resource",
+   "source": "https://jfs.ohio.gov/unemployment-services/for-workers",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 624,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://jfs.ohio.gov/unemployment-services/for-workers/resources/how-ui-benefits-are-calculated",
+   "stateEffective": "2026 ('The 2026 maximums for each dependency classification')"
+  },
+  "minWeeklyBenefit": {
+   "value": 176,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://jfs.ohio.gov/unemployment-services/for-workers/resources/how-ui-benefits-are-calculated"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://jfs.ohio.gov/unemployment-services/for-workers/how-unemployment-insurance-works"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "20-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://jfs.ohio.gov/unemployment-services/for-workers/how-unemployment-insurance-works",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Waiting Week - The first week that you are eligible for unemployment benefits after applying. You will not get a benefit payment for this week, but you should still file a claim for this week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $842 (3+ dependents; $757 with 1-2) for 2026 (ODJFS)."
+ },
+ "OK": {
+  "name": "Oklahoma",
+  "agencyName": {
+   "value": "Oklahoma Employment Security Commission",
+   "source": "https://oklahoma.gov/oesc/individuals/unemployment.html",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://oklahoma.gov/oesc/individuals/unemployment.html",
+   "source": "https://oklahoma.gov/oesc.html",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 649,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://oklahoma.gov/content/dam/ok/en/oesc/documents/forms/OES-339.pdf",
+   "stateEffective": "2026 ('For 2026, the maximum WBA is capped at $649.00.') - Claimant Handbook OES-339 Rev. 06-3-2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 16,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 16,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://oklahoma.gov/content/dam/ok/en/oesc/documents/forms/OES-339.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12. (DOL Comparison 2023 listed OK as 16-26 by BPW; current law is 16 weeks.)"
+  },
+  "durationNote": {
+   "value": "Up to 16 weeks",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://oklahoma.gov/oesc/individuals/unemployment.html",
+   "asOf": "accessed 2026-10-06",
+   "quote": "You are required to serve a one week waiting period per Oklahoma law (Title 40 Section 2-206) if you are filing for unemployment. The first week when you file a weekly certification during which all eligibility requirements are met, will be considered the waiting period, during which no payments will be issued.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "OR": {
+  "name": "Oregon",
+  "agencyName": {
+   "value": "Oregon Employment Department",
+   "source": "https://unemployment.oregon.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://unemployment.oregon.gov/file-a-claim",
+   "source": "https://unemployment.oregon.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 902,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.oregon.gov/employ/NewsAndMedia/Documents/2026-05-29-Minimum-Maximum-Weekly-Benefit-Amounts.pdf",
+   "stateEffective": "New UI claims filed on or after June 28, 2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 211,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.oregon.gov/employ/NewsAndMedia/Documents/2026-05-29-Minimum-Maximum-Weekly-Benefit-Amounts.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://unemployment.oregon.gov/uploads/docs/UIPUB350-EN.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "1-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://unemployment.oregon.gov/glossary",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The waiting week is the first week you file a weekly claim and meet all eligibility requirements. Before you can start receiving benefits, Oregon law requires one waiting week per claim. You won’t be paid any money for the week, but claiming the week is required to receive credit for it as a waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "PA": {
+  "name": "Pennsylvania",
+  "agencyName": {
+   "value": "Pennsylvania Department of Labor & Industry, Office of Unemployment Compensation",
+   "source": "https://www.pa.gov/agencies/dli/programs-services/unemployment",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.pa.gov/services/dli/apply-for-unemployment-compensation-benefits",
+   "source": "https://www.pa.gov/agencies/dli/programs-services/unemployment",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 605,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.pa.gov/agencies/dli/resources/for-claimants-workers/benefits-information/benefit-guide/eligibility-information",
+   "stateEffective": "Max $605 for claims first effective after January 1, 2023 (Weekly Benefit Rate FAQ). The Rate and Amount of Benefits chart (min $68 at HQW $1,688-$1,712; $605 at HQW $15,388 or more) has no stated effective date; its page data shows a modify date of 2024-10-09."
+  },
+  "minWeeklyBenefit": {
+   "value": 68,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.pa.gov/agencies/dli/resources/for-claimants-workers/benefits-information/benefit-guide/eligibility-information"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.pa.gov/agencies/dli/programs-services/unemployment"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "18-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.pa.gov/services/dli/apply-for-unemployment-compensation-benefits",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week of the benefit year that you are unemployed and otherwise eligible for benefits is called the \"waiting week.\" Benefits are not payable for the waiting week, but you must file a weekly certification for that week in order to be paid benefits for any claim weeks after your waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $613, min $76 (DOL; dependents allowance up to $8/week)."
+ },
+ "RI": {
+  "name": "Rhode Island",
+  "agencyName": {
+   "value": "Rhode Island Department of Labor and Training",
+   "source": "https://dlt.ri.gov/individuals/unemployment-insurance",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dlt.ri.gov/individuals/unemployment-insurance/apply-unemployment-benefits",
+   "source": "https://dlt.ri.gov/individuals/unemployment-insurance",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 777,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlt.ri.gov/sites/g/files/xkgbur571/files/2026-06/7.1.26%20UI%20%26%20TDI%20Quick%20Reference.pdf",
+   "stateEffective": "Effective July 1, 2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 82,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlt.ri.gov/sites/g/files/xkgbur571/files/2026-06/7.1.26%20UI%20%26%20TDI%20Quick%20Reference.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlt.ri.gov/individuals/unemployment-insurance/unemployment-insurance-faq"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "17-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dlt.ri.gov/individuals/unemployment-insurance/unemployment-insurance-faq",
+   "asOf": "accessed 2026-10-06",
+   "quote": "You must serve a 7-day unpaid waiting period at the start of your new claim. The 7-day period is a Sunday through Saturday in which your earnings are less than your Benefit Rate.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "With dependents: max $971 (5 dependents), min $132 (DOL; max with dependents confirmed by DLT Quick Reference effective July 1, 2026). DLT site blocks scripted access; read in a browser."
+ },
+ "SC": {
+  "name": "South Carolina",
+  "agencyName": {
+   "value": "South Carolina Department of Employment and Workforce",
+   "source": "https://dew.sc.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dew.sc.gov/individuals/applying-benefits",
+   "source": "https://dew.sc.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 350,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dew.sc.gov/individuals/how-unemployment-insurance-works/weekly-benefit-amount",
+   "stateEffective": "No effective date stated; page says range is $42-$350 (claimant handbook 'As of 9.3.2025' says max 'is currently $350')"
+  },
+  "minWeeklyBenefit": {
+   "value": 42,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dew.sc.gov/individuals/how-unemployment-insurance-works/weekly-benefit-amount"
+  },
+  "maxWeeks": {
+   "value": 20,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.dew.sc.gov/individuals/how-unemployment-insurance-works/weekly-benefit-amount"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12. SC DEW site also shows no rate link; a pending 2025-26 bill (H.3477) would add one but is not presented as law."
+  },
+  "durationNote": {
+   "value": "13-20 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dew.sc.gov/individuals/how-unemployment-insurance-works",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Before any benefits can be paid, an unpaid waiting period equivalent to one full week of unemployment benefits must be served.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "SD": {
+  "name": "South Dakota",
+  "agencyName": {
+   "value": "South Dakota Department of Labor and Regulation, Division of Reemployment Assistance",
+   "source": "https://dlr.sd.gov/ra/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dlr.sd.gov/ra/individuals/file_claim.aspx",
+   "source": "https://dlr.sd.gov/ra/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 575,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlr.sd.gov/ra/individuals/wage_requirements.aspx",
+   "stateEffective": "July 5, 2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 28,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlr.sd.gov/ra/individuals/wage_requirements.aspx"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dlr.sd.gov/ra/individuals/wage_requirements.aspx"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "15-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dlr.sd.gov/ra/individuals/file_claim.aspx",
+   "asOf": "accessed 2026-10-06",
+   "quote": "If you are deemed eligible, the first weekly request for payment you file will be used as your non-paid waiting week. Everyone serves one waiting week per benefit year.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Program is called Reemployment Assistance (formerly Unemployment Insurance). $28-$575 effective July 5, 2026."
+ },
+ "TN": {
+  "name": "Tennessee",
+  "agencyName": {
+   "value": "Tennessee Department of Labor and Workforce Development",
+   "source": "https://www.tn.gov/content/tn/workforce/unemployment/apply-for-benefits-redirect-2/do-i-qualify.html",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.tn.gov/workforce/unemployment/apply-for-benefits.html",
+   "source": "https://www.tn.gov/workforce",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 325,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.tn.gov/workforce/unemployment/apply-for-benefits.html",
+   "stateEffective": "No effective date stated"
+  },
+  "minWeeklyBenefit": {
+   "value": 55,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 12,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.tn.gov/workforce/unemployment/apply-for-benefits.html ('The maximum number of weeks you can draw unemployment in Tennessee is 12 weeks.')"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": true,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf (footnote 5)",
+   "asOf": "2026-07-01",
+   "note": "TN's own do-i-qualify page carries a rate table running up to 24 weeks, which conflicts with DOL's 20-week ceiling and with TN's own statement that 12 weeks applies at or below 5.5%; the current maximum of 12 is consistent across DOL and TN."
+  },
+  "durationNote": {
+   "value": "12-20 weeks depending on the state unemployment rate (DOL footnote 5); currently 12 weeks per TN DLWD",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.tn.gov/workforce/unemployment/apply-for-benefits-redirect-2/what-to-expect-after-you-file.html",
+   "asOf": "accessed 2026-10-06",
+   "quote": "If your claim is approved, the first week you certified for will serve as a waiting week. This Agency does not pay you for this week unless you certify for, and are eligible for four consecutive weeks. On the fourth consecutive week, you will receive a double payment; it will be a combination of your waiting week and fourth week of benefits.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Waiting week is paid as a double payment in the 4th consecutive eligible week."
+ },
+ "TX": {
+  "name": "Texas",
+  "agencyName": {
+   "value": "Texas Workforce Commission",
+   "source": "https://www.twc.texas.gov/programs/unemployment-benefits",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.twc.texas.gov/services/apply-benefits",
+   "source": "https://www.twc.texas.gov/programs/unemployment-benefits",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 605,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.twc.texas.gov/programs/unemployment-benefits/eligibility-benefit-amounts",
+   "stateEffective": "October 5, 2025 (latest row in the site's table)"
+  },
+  "minWeeklyBenefit": {
+   "value": 75,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.twc.texas.gov/programs/unemployment-benefits/eligibility-benefit-amounts"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.twc.texas.gov/programs/unemployment-benefits/eligibility-benefit-amounts"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "10-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.twc.texas.gov/programs/unemployment-benefits/request-benefit-payments",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Texas law requires us to hold the payment for the first payable week, known as the \"waiting week,\" until you are paid two times your weekly benefit amount and you:",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "TWC's amounts table's latest row is effective October 5, 2025; TX typically resets amounts in October, so re-check for an October 2026 update. Waiting week is paid after the claimant has been paid 2x WBA and meets further conditions."
+ },
+ "UT": {
+  "name": "Utah",
+  "agencyName": {
+   "value": "Utah Department of Workforce Services",
+   "source": "https://jobs.utah.gov/ui/jobseeker/claimguide.html",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://jobs.utah.gov/ui/claimant.html",
+   "source": "https://jobs.utah.gov/ui/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": null,
+   "reason": "DOL Sig. Provisions (July 2026) and Utah's 2026 Benefit Schedule PDF (https://jobs.utah.gov/ui/UIShared/PDFs/BenefitCalculation.pdf, effective Jan 1-Dec 31 2026) show max $806, but Utah's UI FAQ (https://jobs.utah.gov/ui/FAQ.html) says 'up to $801 for new claims effective on or after January 1, 2026'. Official sources disagree for the same period -> null.",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "minWeeklyBenefit": {
+   "value": 47,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://jobs.utah.gov/ui/FAQ.html"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "10-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://jobs.utah.gov/ui/jobseeker/claimguide.html",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Utah law requires that you will not be paid for the first eligible week claimed. This week is referred to as the waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Utah's FAQ 'file a new claim' link returned 404; fileUrl is the claimant overview page where the portal is linked."
+ },
+ "VT": {
+  "name": "Vermont",
+  "agencyName": {
+   "value": "Vermont Department of Labor",
+   "source": "https://labor.vermont.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://labor.vermont.gov/unemployment-insurance/ui-claimants/establishing-unemployment-claim",
+   "source": "https://labor.vermont.gov/unemployment-insurance/ui-claimants",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 751,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.vermont.gov/unemployment-insurance/ui-claimants/calculating-your-ui-benefits",
+   "stateEffective": "No date given ('The current maximum weekly benefit amount is $751.')"
+  },
+  "minWeeklyBenefit": {
+   "value": 96,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "note": "Not stated on the state agency site; DOL value only."
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://labor.vermont.gov/unemployment-insurance/ui-claimants/calculating-your-ui-benefits"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "23-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": null,
+   "reason": "Vermont DOL pages contradict each other: 'There is no hold back week' (establishing-a-claim page) vs 'The first eligible week of any claim is a waiting period week for which you are not paid' (federal-worker page). DOL Comparison 2023 lists VT as 1 week.",
+   "source": "https://labor.vermont.gov/unemployment-insurance/ui-claimants/establishing-unemployment-claim",
+   "asOf": "accessed 2026-10-06"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "A Vermont federal-worker page cites a $757 max; that equals DOL's January 2026 figure, while DOL July 2026 and VT's 'calculating your benefits' page say $751, so $751 is used."
+ },
+ "VA": {
+  "name": "Virginia",
+  "agencyName": {
+   "value": "Virginia Employment Commission",
+   "source": "https://www.vec.virginia.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://www.vec.virginia.gov/apply-unemployment-benefits",
+   "source": "https://www.vec.virginia.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 478,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.vec.virginia.gov/unemployed/benefits-information",
+   "stateEffective": "New claims filed on or after July 5, 2026 (claims filed before then: max $430, min $112)"
+  },
+  "minWeeklyBenefit": {
+   "value": 160,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.vec.virginia.gov/unemployed/benefits-information"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://www.vec.virginia.gov/sites/default/files/bentable.pdf"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "12-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://www.vec.virginia.gov/benefits-eligibility",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week you meet the weekly eligibility requirements will be your waiting period week. You will not receive a benefit payment for the waiting period week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "$160-$478 applies to claims filed on/after July 5, 2026 (earlier claims: $112-$430)."
+ },
+ "WA": {
+  "name": "Washington",
+  "agencyName": {
+   "value": "Washington State Employment Security Department",
+   "source": "https://esd.wa.gov/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://esd.wa.gov/get-financial-help/unemployment-benefits/applying-unemployment-benefits/how-apply-unemployment-benefits",
+   "source": "https://esd.wa.gov/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 1208,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://esd.wa.gov/get-financial-help/unemployment-benefits/estimate-your-benefit",
+   "stateEffective": "No effective date stated on the page"
+  },
+  "minWeeklyBenefit": {
+   "value": 383,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://esd.wa.gov/get-financial-help/unemployment-benefits/estimate-your-benefit"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://esd.wa.gov/get-financial-help/unemployment-benefits/estimate-your-benefit"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "1-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://esd.wa.gov/get-financial-help/unemployment-benefits/applying-unemployment-benefits/how-apply-unemployment-benefits",
+   "asOf": "accessed 2026-10-06",
+   "quote": "The first week you file for benefits and meet the weekly requirements is your waiting week. You do not get paid for your waiting week.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Minimum is the lesser of $383 or the claimant's average weekly wage (ESD), so some claimants receive less than $383."
+ },
+ "WV": {
+  "name": "West Virginia",
+  "agencyName": {
+   "value": "WorkForce West Virginia",
+   "source": "https://workforcewv.org/unemployment-insurance-benefits/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://uc.workforcewv.org/consumer/?lang=en",
+   "source": "https://workforcewv.org/unemployment-insurance-benefits/my-unemployment-claim/file-a-claim/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 662,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforcewv.org/wp-content/uploads/2024/07/Benefit-Rate-Table-Rev.-5.23.pdf",
+   "stateEffective": "Benefit table 'Rev. 5.23'; claimant handbook (March 2026) still says 'The maximum amount of benefits you can receive per week in the state of West Virginia in 2023 is $662.00.'"
+  },
+  "minWeeklyBenefit": {
+   "value": 24,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforcewv.org/wp-content/uploads/2024/07/Benefit-Rate-Table-Rev.-5.23.pdf"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://workforcewv.org/unemployment-insurance-benefits/unemployment-resources/unemployment-basics/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "26 weeks for all eligible claimants (uniform duration)",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://workforcewv.org/unemployment-insurance-benefits/unemployment-resources/frequently-asked-questions/",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Yes, there is a one-week unpaid waiting period per claim year.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": "Agency domain workforcewv.org is not .gov; fileUrl is the claim portal uc.workforcewv.org. WV benefit table is Rev. 5.23 (amounts unchanged since 2023)."
+ },
+ "WI": {
+  "name": "Wisconsin",
+  "agencyName": {
+   "value": "Wisconsin Department of Workforce Development",
+   "source": "https://dwd.wisconsin.gov/uiben/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dwd.wisconsin.gov/uiben/apply/",
+   "source": "https://dwd.wisconsin.gov/uiben/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 370,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dwd.wisconsin.gov/uiben/qualifying-wages.htm",
+   "stateEffective": "No effective date stated"
+  },
+  "minWeeklyBenefit": {
+   "value": 54,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dwd.wisconsin.gov/uiben/qualifying-wages.htm"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dwd.wisconsin.gov/uiben/qualifying-wages.htm"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "14-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": true,
+   "source": "https://dwd.wisconsin.gov/uiben/handbook/payments.htm",
+   "asOf": "accessed 2026-10-06",
+   "quote": "Wisconsin has a waiting week for UI. For every new benefit year, no UI is payable for the first week you would otherwise be eligible for UI.",
+   "confirmedBy": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-7, as of 2023-01-01)"
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ },
+ "WY": {
+  "name": "Wyoming",
+  "agencyName": {
+   "value": "Wyoming Department of Workforce Services",
+   "source": "https://dws.wyo.gov/dws-division/unemployment-insurance/",
+   "asOf": "accessed 2026-10-06"
+  },
+  "fileUrl": {
+   "value": "https://dws.wyo.gov/dws-division/unemployment-insurance/wyui/",
+   "source": "https://dws.wyo.gov/individuals/i-lost-my-job/",
+   "asOf": "accessed 2026-10-06",
+   "verifiedLoads": true
+  },
+  "maxWeeklyBenefit": {
+   "value": 671,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.wyo.gov/dws-division/unemployment-insurance/claimants/faq2/",
+   "stateEffective": "July 5, 2026"
+  },
+  "minWeeklyBenefit": {
+   "value": 48,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.wyo.gov/dws-division/unemployment-insurance/claimants/faq2/"
+  },
+  "maxWeeks": {
+   "value": 26,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01",
+   "confirmedBy": "https://dws.wyo.gov/dws-division/unemployment-insurance/claimants/faq2/"
+  },
+  "durationVariesWithUnemploymentRate": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf ; https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf (Table 3-12)",
+   "asOf": "2026-07-01",
+   "note": "Not marked as rate-dependent in DOL Significant Provisions July 2026 (footnote 5) and not listed under 'Weeks Based on BPW and Unemployment Rate' in DOL Comparison 2023 Table 3-12."
+  },
+  "durationNote": {
+   "value": "11-26 weeks depending on base-period wages",
+   "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
+   "asOf": "2026-07-01"
+  },
+  "waitingWeek": {
+   "value": false,
+   "source": "https://oui.doleta.gov/unemploy/pdf/uilawcompar/2023/monetary.pdf",
+   "asOf": "2023-01-01",
+   "note": "From DOL Comparison of State UI Laws 2023, Table 3-7 (No waiting period); the most recent Comparison edition DOL publishes. The state agency site does not state whether there is a waiting week, so this could not be re-confirmed for 2026."
+  },
+  "extendedBenefitsStatus": {
+   "value": "off",
+   "noticeDate": "2026-10-04",
+   "source": "https://oui.doleta.gov/unemploy/trigger/2026/trig_100426.html",
+   "asOf": "2026-10-04",
+   "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
+  },
+  "notes": ""
+ }
+}
