@@ -10391,9 +10391,129 @@ model WorkforceBoard {
   chairPhone    String?
   detailsUrl    String?
   updatedAt     DateTime @default(now())
+  /// Counties a board drawn by city or town covers, found from its places —
+  /// so its unemployment and colleges can be looked up by county too.
+  placeCounties     String[]  @default([])
+  partnersCheckedAt DateTime?
+  newsCheckedAt     DateTime?
 
   @@index([state])
 }
+
+/// A county's labor force and unemployment from the BLS Local Area
+/// Unemployment Statistics (not seasonally adjusted, about two months
+/// behind). Long-term unemployment is not published below the national level.
+model CountyLabor {
+  /// Five-digit county FIPS code.
+  fips        String   @id
+  state       String
+  name        String
+  /// countyKey(name): lower case, without "County"/"Parish".
+  nameKey     String
+  laborForce  Int?
+  unemployed  Int?
+  rate        Float?
+  rateYearAgo Float?
+  /// The month the figures are for, "2026-08".
+  period      String?
+  updatedAt   DateTime @default(now())
+
+  @@index([state, nameKey])
+}
+
+/// An American Job Center near a board — its WIOA partners on the ground —
+/// from CareerOneStop's job center finder.
+model WorkforceBoardPartner {
+  id            String   @id @default(cuid())
+  boardId       String
+  name          String
+  /// "Comprehensive" or "Affiliate" American Job Center.
+  kind          String?
+  address       String?
+  phone         String?
+  /// The center's general inbox.
+  email         String?
+  /// Its business services contact — the one to reach about a layoff.
+  businessEmail String?
+  hours         String?
+  website       String?
+  distanceMiles Float?
+  updatedAt     DateTime @default(now())
+
+  @@index([boardId])
+}
+
+/// A news article about layoffs, or about AI and jobs, in a board's area.
+model WorkforceBoardNews {
+  id          String    @id @default(cuid())
+  boardId     String
+  /// 'layoffs' | 'ai'
+  topic       String
+  title       String
+  url         String
+  publisher   String?
+  publishedAt DateTime?
+  foundAt     DateTime  @default(now())
+
+  @@unique([boardId, url])
+  @@index([boardId, publishedAt])
+}
+
+/// A college from the Department of Education's IPEDS directory, placed by
+/// county so each workforce board can list the colleges in its area.
+model LocalCollege {
+  /// IPEDS UNITID.
+  id         String   @id
+  name       String
+  state      String
+  city       String?
+  address    String?
+  zip        String?
+  countyFips String?
+  countyKey  String?
+  phone      String?
+  website    String?
+  /// The chief executive IPEDS lists (president or chancellor).
+  chiefName  String?
+  chiefTitle String?
+  /// IPEDS SECTOR: 1 public 4-year, 2 private nonprofit 4-year, 3 for-profit
+  /// 4-year, 4 public 2-year, 5 nonprofit 2-year, 6 for-profit 2-year, …
+  sector     Int?
+  /// IPEDS INSTSIZE: 1 under 1,000 … 5 over 20,000 students.
+  size       Int?
+  updatedAt  DateTime @default(now())
+  /// When its website was last read for department contacts, and how many pages were read.
+  contactsCheckedAt DateTime?
+  contactsPagesRead Int?
+
+  @@index([state, countyKey])
+}
+
+/// A department head at a college — career services, alumni relations,
+/// development, executive or continuing education — read from the college's
+/// own website. Kept only when the name (and email, if any) appear verbatim
+/// on the page it came from.
+model CollegeContact {
+  id        String   @id @default(cuid())
+  collegeId String
+  /// 'career' | 'alumni' | 'development' | 'execEd'
+  role      String
+  /// null for the office's general line when the site names no leader.
+  name      String?
+  title     String?
+  email     String?
+  phone     String?
+  sourceUrl String
+  foundAt   DateTime @default(now())
+
+  @@unique([collegeId, role])
+  @@index([collegeId])
+}
+
+/// A Census place (city, town, CDP) and where it is, for finding the county
+/// a WARN notice's city sits in. County is looked up from the coordinates
+/// the first time a place is needed, then kept.
+
 
 /// A Census place (city, town, CDP) and where it is, for finding the county
 /// a WARN notice's city sits in. County is looked up from the coordinates

@@ -17,3 +17,11 @@ export function WorkforceBoardsViewTracker(props: {
   }, [q, state, sort, dir, window, results])
   return null
 }
+
+/** One board's page opened — which boards get looked at, and in what window. */
+export function WorkforceBoardOpenedTracker({ boardId, state, window }: { boardId: string; state: string; window: string }) {
+  useEffect(() => {
+    posthog.capture('workforce_board_opened', { boardId, state, window })
+  }, [boardId, state, window])
+  return null
+}

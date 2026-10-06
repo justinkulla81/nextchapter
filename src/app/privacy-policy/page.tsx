@@ -233,8 +233,8 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-navy">13. Contact Us</h2>
           <p>
             Questions about this Policy or your data? Email{' '}
-            <a href="mailto:hello@launchyournextchapter.com" className="text-primary underline underline-offset-4">
-              hello@launchyournextchapter.com
+            <a href="mailto:contact@launchyournextchapter.com" className="text-primary underline underline-offset-4">
+              contact@launchyournextchapter.com
             </a>
             .
           </p>
