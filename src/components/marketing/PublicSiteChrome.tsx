@@ -10,7 +10,7 @@ const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-fo
  * The public site's top navigation — the homepage uses this same component,
  * so every public page shows identical links.
  */
-export function SiteNav({ current }: { current?: 'about' | 'news' }) {
+export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' }) {
   return (
     <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
       <Link href="/" aria-label="NextChapter home">
@@ -44,16 +44,16 @@ export function SiteNav({ current }: { current?: 'about' | 'news' }) {
 }
 
 /** The homepage's header, for public pages that stand on their own (About, Contact). */
-export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 'news' }) {
+export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 'news' | 'reports' }) {
   return (
     <header className="bg-white">
-      <SiteNav current={current === 'about' || current === 'news' ? current : undefined} />
+      <SiteNav current={current === 'about' || current === 'news' || current === 'reports' ? current : undefined} />
     </header>
   )
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
@@ -86,6 +86,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
+          {' · '}<Link href="/reports/latest" className="underline underline-offset-4">Displacement Report</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
           {' · '}

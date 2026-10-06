@@ -215,6 +215,8 @@ export default function AboutPage() {
                 )}
               </div>
               <div className="min-w-0">
+                {/* Deep-link target used by the Displacement Report author box. */}
+                <span id="justin-kulla" className="block scroll-mt-24" aria-hidden="true" />
                 <h2 id="founder" className="text-2xl font-bold tracking-tight text-navy">Justin Kulla</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Founder &amp; CEO, NextChapter</p>
                 <TrackedLink

@@ -62,6 +62,21 @@ function toView(r: Row): NewsItemView {
   }
 }
 
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
+/**
+ * Pins a NextChapter report published in the last 30 days to the top, then
+ * everything else newest-first. Done here on the server (not in the client
+ * card component, where calling the clock during render is disallowed). Sort
+ * is stable, so the non-report order is untouched.
+ */
+function pinRecentReports(items: NewsItemView[]): NewsItemView[] {
+  const now = Date.now()
+  const pinned = (i: NewsItemView) =>
+    i.kind === 'report' && now - new Date(i.publishedAt).getTime() < THIRTY_DAYS_MS
+  return [...items].sort((a, b) => (pinned(b) ? 1 : 0) - (pinned(a) ? 1 : 0))
+}
+
 export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
   try {
     // Newest article first, by the publisher's date, not by when it was
@@ -73,10 +88,12 @@ export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
       take: 1000,
       select: SELECT,
     })
-    return rows
-      .sort((a, b) => shownDate(b).getTime() - shownDate(a).getTime())
-      .slice(0, limit)
-      .map(toView)
+    return pinRecentReports(
+      rows
+        .sort((a, b) => shownDate(b).getTime() - shownDate(a).getTime())
+        .slice(0, limit)
+        .map(toView),
+    )
   } catch (e) {
     console.error('News could not be loaded', e)
     return []

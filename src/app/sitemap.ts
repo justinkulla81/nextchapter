@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
 import { getPublishedNews } from '@/lib/news/published'
+import { REPORT_EDITIONS } from '@/lib/reports'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -173,6 +174,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(content.lastUpdated),
       changeFrequency: 'yearly' as const,
       priority: 0.6,
+    })),
+    // The Displacement Report: hub, the evergreen index, and every edition.
+    {
+      url: `${siteUrl}/reports`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/reports/white-collar-index`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    ...REPORT_EDITIONS.map((e) => ({
+      url: `${siteUrl}/reports/${e.slug}`,
+      lastModified: new Date(e.publishedAt),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
     })),
   ]
 }

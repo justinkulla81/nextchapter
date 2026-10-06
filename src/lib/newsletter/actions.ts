@@ -8,7 +8,7 @@ export type NewsletterState = { error?: string; subscribed?: boolean; email?: st
 
 // Pages with a signup box. An allowlist: the value is stored, so it is never
 // whatever the browser sent.
-const SOURCES = new Set(['home', 'how-it-works', 'why-stuck'])
+const SOURCES = new Set(['home', 'how-it-works', 'why-stuck', 'displacement-report'])
 const MAX_PER_HOUR_PER_IP = 5
 
 export async function subscribeToNewsletter(_prev: NewsletterState, formData: FormData): Promise<NewsletterState> {

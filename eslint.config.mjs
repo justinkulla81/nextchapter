@@ -31,6 +31,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scratch drop folder for incoming report assets — not app code.
+    "incoming-report/**",
   ]),
 ]);
 

@@ -106,6 +106,12 @@ export default async function OutplacementPage() {
               Your departing employees get a verified Executive Dossier and real coaching. You get live
               reporting, compliance documentation, and a bill that&apos;s 35% smaller.
             </p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              See the labor-market backdrop your cohorts are entering in our monthly{' '}
+              <Link href="/reports/latest" className="text-brand underline underline-offset-4">Displacement Report</Link>{' '}
+              and the{' '}
+              <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Displacement Index</Link>.
+            </p>
           </div>
 
           <Card className="h-fit border-brand/20 bg-off-white" id="walkthrough">
