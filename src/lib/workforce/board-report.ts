@@ -1,3 +1,5 @@
+import { isKnowledgeWork, naicsSector } from './sector'
+
 /**
  * The workforce board view: each local board with the layoffs filed in its
  * area — which companies, how many jobs, when — for outreach to the board
@@ -26,6 +28,8 @@ export interface ReportNotice {
   /** A company-wide count (layoffs.fyi, a press announcement) placed at the
    * headquarters city, not a filing for jobs in this board's area. */
   companyWide: boolean
+  /** As the state publishes it ("54 Professional …"); null in most states. */
+  industry?: string | null
 }
 
 /** layoffs.fyi rows and announcements count the whole company, not one site. */
@@ -47,6 +51,8 @@ export interface ReportCompany {
   sourceUrl: string | null
   /** Every notice for it is a company-wide report rather than a state filing. */
   companyWide: boolean
+  /** Two-digit NAICS sector, where the state publishes one. */
+  sector: string | null
 }
 
 export interface ReportRow<B extends ReportBoard> {
@@ -57,6 +63,9 @@ export interface ReportRow<B extends ReportBoard> {
   jobs: number
   /** Company-wide counts reported for companies headquartered here — kept apart, since they are not local. */
   reportedJobs: number
+  /** Filed jobs whose sector the state published, and how many of those are white collar. */
+  sectorJobs: number
+  knowledgeJobs: number
   latestFiled: Date | null
   /** The soonest effective date still ahead — when the next people leave. */
   nextEffective: Date | null
@@ -94,8 +103,9 @@ export function buildBoardReport<B extends ReportBoard>(
       const key = n.companyId ?? n.normalizedEmployer
       const c = companies.get(key) ?? {
         key, employer: n.employer, companyId: n.companyId, notices: 0, jobs: 0, jobsUnknown: false,
-        latestFiled: null, firstEffective: null, lastEffective: null, sourceUrl: n.sourceUrl, companyWide: true,
+        latestFiled: null, firstEffective: null, lastEffective: null, sourceUrl: n.sourceUrl, companyWide: true, sector: null,
       }
+      c.sector ??= naicsSector(n.industry)
       if (!n.companyWide) c.companyWide = false
       c.notices++
       if (n.employees == null) c.jobsUnknown = true
@@ -117,6 +127,8 @@ export function buildBoardReport<B extends ReportBoard>(
       notices: list.length,
       jobs: list.reduce((s, n) => s + (n.companyWide ? 0 : n.employees ?? 0), 0),
       reportedJobs: list.reduce((s, n) => s + (n.companyWide ? n.employees ?? 0 : 0), 0),
+      sectorJobs: list.reduce((s, n) => s + (!n.companyWide && naicsSector(n.industry) ? n.employees ?? 0 : 0), 0),
+      knowledgeJobs: list.reduce((s, n) => s + (!n.companyWide && isKnowledgeWork(n.industry) ? n.employees ?? 0 : 0), 0),
       latestFiled: companyList.reduce<Date | null>((d, c) => later(d, c.latestFiled), null),
       nextEffective: list.reduce<Date | null>((d, n) => (n.effectiveDate && n.effectiveDate >= now ? earlier(d, n.effectiveDate) : d), null),
       matchedCompany: !boardHit && companyHit,

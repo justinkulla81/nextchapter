@@ -6,7 +6,9 @@ import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 import { BoardContact } from '@/components/admin/WarnWorkforceBoard'
 import { WorkforceBoardsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 import { buildBoardReport, isCompanyWide, type ReportSort } from '@/lib/workforce/board-report'
-import { jobCentersUrl } from '@/lib/workforce/directory'
+import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
+import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
+import { boardLabor } from '@/lib/workforce/labor'
 import { formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 60
@@ -63,9 +65,9 @@ export default async function WorkforceBoardsPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  const [boards, notices, states] = await Promise.all([
+  const [allBoards, notices, states, labor] = await Promise.all([
     prisma.workforceBoard.findMany({
-      where: { statewide: false, ...(state ? { state } : {}) },
+      where: state ? { state } : {},
       orderBy: { name: 'asc' },
     }),
     prisma.warnNotice.findMany({
@@ -78,11 +80,24 @@ export default async function WorkforceBoardsPage({
       },
       select: {
         id: true, workforceBoardId: true, employer: true, normalizedEmployer: true, employees: true,
-        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true,
+        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true,
       },
     }),
-    prisma.workforceBoard.groupBy({ by: ['state'], where: { statewide: false }, orderBy: { state: 'asc' } }),
+    prisma.workforceBoard.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
+    prisma.countyLabor.findMany({
+      where: state ? { state } : {},
+      select: { state: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
+    }),
   ])
+  // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
+  const boards = visibleBoards(allBoards)
+  const laborByState = new Map<string, typeof labor>()
+  for (const l of labor) laborByState.set(l.state, [...(laborByState.get(l.state) ?? []), l])
+  const laborFor = (b: (typeof boards)[number]) => {
+    const keys = boardCountyKeys(b)
+    const rows = laborByState.get(b.state) ?? []
+    return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(r.nameKey)))
+  }
 
   const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort, dir, includeEmpty })
   const totals = rows.reduce((t, r) => ({ jobs: t.jobs + r.jobs, companies: t.companies + r.companies.length }), { jobs: 0, companies: 0 })
@@ -112,7 +127,8 @@ export default async function WorkforceBoardsPage({
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           Every local workforce development board (WIOA) and the layoffs filed in its area: which companies,
           how many jobs, and when. The board runs Rapid Response for those layoffs, so it is the public partner
-          to call. Contacts come from the Department of Labor&apos;s CareerOneStop directory, refreshed weekly.
+          to call. Contacts come from the Department of Labor&apos;s CareerOneStop directory, refreshed weekly. Open a board for its
+          job centers, the colleges in its area, county unemployment and local news on layoffs and AI.
         </p>
       </header>
 
@@ -185,6 +201,8 @@ export default async function WorkforceBoardsPage({
                   </th>
                 )}
                 <th className="px-2 py-1.5 text-right font-medium">Companies</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Share of filed jobs in white-collar sectors (Information, Finance, Professional and technical, Management), where the state publishes a sector">White collar</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="County unemployment from BLS, latest month, not seasonally adjusted; arrow compares the same month a year earlier">Unemployment</th>
                 <th className="px-2 py-1.5 font-medium">Latest filing</th>
                 <th className="px-2 py-1.5 font-medium" title="The soonest effective date still ahead">Next effective</th>
               </tr>
@@ -197,11 +215,12 @@ export default async function WorkforceBoardsPage({
                   <tr key={b.id} className="border-b border-border align-top last:border-0">
                     <td className="max-w-md px-3 py-2">
                       <p className="font-medium">
-                        {site ? <a href={site} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-4">{b.name}</a> : b.name}
+                        <Link href={`${BASE}/${encodeURIComponent(b.id)}`} className="text-primary underline underline-offset-4">{b.name}</Link>
                         <span className="ml-1.5 text-xs font-normal text-muted-foreground">{b.state}</span>
                       </p>
                       {b.serviceArea && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground" title={b.serviceArea}>{b.serviceArea}</p>}
                       <p className="mt-1 flex flex-wrap gap-x-3 text-xs">
+                        {site && <a href={site} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website</a>}
                         <a href={jobCentersUrl(b.zip, b.state)} target="_blank" rel="noreferrer" className="text-primary hover:underline">Job centers (partners)</a>
                         {b.detailsUrl && <a href={b.detailsUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline">Directory listing</a>}
                         {b.address && <span className="text-muted-foreground">{b.address}</span>}
@@ -265,6 +284,30 @@ export default async function WorkforceBoardsPage({
                       <td className="px-2 py-2 text-right text-xs text-muted-foreground tabular-nums">{r.reportedJobs ? r.reportedJobs.toLocaleString() : '—'}</td>
                     )}
                     <td className="px-2 py-2 text-right tabular-nums">{r.companies.length}</td>
+                    <td className="px-2 py-2 text-right text-xs tabular-nums">
+                      {r.sectorJobs > 0 ? (
+                        <span title={`${r.knowledgeJobs.toLocaleString()} of ${r.sectorJobs.toLocaleString()} jobs with a published sector`}>
+                          {Math.round((r.knowledgeJobs / r.sectorJobs) * 100)}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground" title={`${STATE_NAMES[b.state] ?? b.state} does not publish an industry with its WARN filings`}>—</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums">
+                      {(() => {
+                        const l = laborFor(b)
+                        if (!l) return <span className="text-muted-foreground">—</span>
+                        const change = l.rateYearAgo != null ? Math.round((l.rate - l.rateYearAgo) * 10) / 10 : null
+                        return (
+                          <span title={`${l.unemployed.toLocaleString()} unemployed of ${l.laborForce.toLocaleString()} (${l.period}); a year earlier ${l.rateYearAgo ?? '—'}%`}>
+                            {l.rate.toFixed(1)}%
+                            {change != null && change !== 0 && (
+                              <span className="ml-1 text-muted-foreground">{change > 0 ? '▲' : '▼'}{Math.abs(change).toFixed(1)}</span>
+                            )}
+                          </span>
+                        )
+                      })()}
+                    </td>
                     <td className="whitespace-nowrap px-2 py-2 text-xs">{r.latestFiled ? formatDate(r.latestFiled) : '—'}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-xs">{r.nextEffective ? formatDate(r.nextEffective) : '—'}</td>
                   </tr>

@@ -25,7 +25,7 @@ async function countyAtAddress(address: string): Promise<string | null> {
 }
 
 /** The county a city is in: from the Census place list, then the geocoder, kept once found. */
-async function countyForCity(city: string, state: string): Promise<string | null> {
+export async function countyForCity(city: string, state: string): Promise<string | null> {
   const places = await prisma.geoPlace.findMany({ where: { state, nameKey: { in: placeKeys(city) } }, orderBy: { population: 'desc' }, take: 1 })
   const place = places[0]
   if (!place) return null
@@ -33,6 +33,22 @@ async function countyForCity(city: string, state: string): Promise<string | null
   const county = await countyAt(place.lat, place.lon).catch(() => null)
   await prisma.geoPlace.update({ where: { id: place.id }, data: { county, countyCheckedAt: new Date() } })
   return county
+}
+
+/**
+ * The city an address is legally inside, from the Census geocoder: '' when it
+ * is unincorporated, null when the geocoder cannot place it. A "Los Angeles,
+ * CA 90022" mailing address is East Los Angeles, which the City of Los
+ * Angeles board does not serve.
+ */
+export async function incorporatedPlaceAt(address: string): Promise<string | null> {
+  const url = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(address)}&benchmark=Public_AR_Current&vintage=Current_Current&layers=Incorporated+Places&format=json`
+  const res = await fetch(url, { signal: AbortSignal.timeout(15_000) }).catch(() => null)
+  if (!res?.ok) return null
+  const data = (await res.json()) as { result?: { addressMatches?: { geographies?: Record<string, { NAME?: string }[]> }[] } }
+  const match = data.result?.addressMatches?.[0]
+  if (!match) return null
+  return match.geographies?.['Incorporated Places']?.[0]?.NAME ?? ''
 }
 
 type Board = { id: string; name: string; counties: string[]; serviceArea: string | null; statewide: boolean }
@@ -147,7 +163,14 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
       county = await cached(`${state}|${placeKey(city)}`, () => countyForCity(city, state))
       if (county) how = 'city'
     }
-    let board = pickBoard(boards, county, city)
+    // A mailing city that is also a city board's city ("Los Angeles, CA
+    // 90022") may be outside the city limits; the geocoder says which.
+    let legalCity = city
+    if (city && street && boards.some((b) => areaPlaces(b.serviceArea).includes(placeKey(city)))) {
+      const legal = await cached(`inc|${street}`, () => incorporatedPlaceAt(street))
+      if (legal !== null) legalCity = legal || null
+    }
+    let board = pickBoard(boards, county, legalCity)
     if (board && !how) how = city && areaPlaces(board.serviceArea).length ? 'city' : 'statewide'
     if (!board) {
       board = boardFromNamedArea(boards, n.address)
@@ -170,4 +193,30 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
     if (board) matched++
   }
   return { checked, matched }
+}
+
+/**
+ * Counties for boards drawn by city or town (Massachusetts, Connecticut,
+ * California's city boards), from each place's county — so their
+ * unemployment and colleges can be looked up like any county board's.
+ */
+export async function derivePlaceCounties(budgetMs = 60_000): Promise<{ boards: number }> {
+  const started = Date.now()
+  const boards = await prisma.workforceBoard.findMany({
+    where: { placeCounties: { isEmpty: true }, serviceArea: { contains: ':' } },
+    select: { id: true, state: true, serviceArea: true },
+  })
+  let done = 0
+  for (const b of boards) {
+    if (Date.now() - started > budgetMs) break
+    const counties = new Set<string>()
+    for (const place of areaPlaces(b.serviceArea)) {
+      const county = await countyForCity(place, b.state).catch(() => null)
+      if (county) counties.add(countyKey(county))
+    }
+    // Marked even when none were found, so the board is not retried every run.
+    await prisma.workforceBoard.update({ where: { id: b.id }, data: { placeCounties: counties.size ? [...counties] : ['-'] } })
+    done++
+  }
+  return { boards: done }
 }
