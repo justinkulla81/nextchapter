@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { canonical } from '@/lib/seo/canonical'
 
 export const metadata = {
-  title: 'Security & Privacy — NextChapter',
+  ...canonical('/security'),
+  title: 'Security & Privacy',
   description: 'How NextChapter handles data, the employer/candidate boundary, subprocessors, retention, and our current state on SOC 2.',
 }
 

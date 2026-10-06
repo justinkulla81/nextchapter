@@ -8,6 +8,8 @@ import { getNewsItemBySlug } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { NEWS_KINDS } from '@/lib/news/kind'
 import { newsTagLabel } from '@/lib/news/tags'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export const revalidate = 300
 
@@ -24,7 +26,7 @@ function linkOutLabel(kind: string, source: string): string {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const item = await getNewsItemBySlug(slug)
-  if (!item) return { title: 'News — NextChapter' }
+  if (!item) return { title: 'News' }
   const title = newsDisplayTitle(item)
   const description = (item.take ?? '').replace(/\s+/g, ' ').slice(0, 155)
   return {
@@ -56,18 +58,18 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={{
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: title.slice(0, 110),
-        description: paragraphs[0]?.slice(0, 300),
-        datePublished: item.publishedAt,
-        mainEntityOfPage: `${SITE}/news/${slug}`,
-        author: { '@type': 'Organization', name: 'NextChapter', url: SITE },
-        publisher: { '@type': 'Organization', name: 'NextChapter', url: SITE },
-        ...(item.imageUrl ? { image: item.imageUrl } : {}),
+        ...articleJsonLd({
+          headline: title,
+          path: `/news/${slug}`,
+          description: paragraphs[0]?.slice(0, 300),
+          datePublished: item.liveAt,
+          dateModified: item.liveAt,
+          image: item.imageUrl ?? undefined,
+        }),
         // What the take is about, credited to where it lives.
         citation: { '@type': 'CreativeWork', name: title, url: item.url, ...(item.source ? { publisher: { '@type': 'Organization', name: item.source } } : {}) },
       }} />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'News', path: '/news' }, { name: title, path: `/news/${slug}` }])} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-12">
         <article className="mx-auto max-w-2xl px-6">
@@ -79,6 +81,7 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
             <span className="font-normal normal-case tracking-normal"> · {item.dateLabel}</span>
           </p>
           <h1 className="mt-2 text-3xl leading-tight font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
+          <AuthorByline updated={item.liveAt} />
 
           {item.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- remote publisher image, any host

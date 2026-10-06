@@ -1,6 +1,9 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default function ResetPasswordPage() {
   return (

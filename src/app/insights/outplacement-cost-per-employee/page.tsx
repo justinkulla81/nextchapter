@@ -2,11 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { insight } from '@/lib/seo/insights'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { CostCalculator } from '@/components/marketing/CostCalculator'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 
 export const metadata: Metadata = {
-  title: 'What outplacement actually costs, and what you get — NextChapter',
+  title: 'What outplacement costs, and what you get',
   description:
     'Outplacement cost per employee, broken down by tier — plus an interactive calculator comparing published NextChapter pricing against typical incumbent ranges.',
   alternates: { canonical: '/insights/outplacement-cost-per-employee' },
@@ -18,7 +21,7 @@ export const metadata: Metadata = {
   },
 }
 
-const LAST_UPDATED = '2026-08-15'
+const ARTICLE = insight('outplacement-cost-per-employee')
 
 // Partners Master Build Script §D2.7's first category-narrative piece,
 // carrying the §D2.4 cost calculator (seats × tier → real price via
@@ -31,19 +34,21 @@ export default async function OutplacementCostArticlePage() {
     getCurrentPlan('outplacement_premium'),
   ])
 
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'What outplacement actually costs, and what you get',
-    dateModified: LAST_UPDATED,
-    author: { '@type': 'Organization', name: 'NextChapter' },
-    publisher: { '@type': 'Organization', name: 'NextChapter' },
-    mainEntityOfPage: 'https://launchyournextchapter.com/insights/outplacement-cost-per-employee',
-  }
+  const jsonLd = articleJsonLd({
+    headline: ARTICLE.title,
+    path: '/insights/outplacement-cost-per-employee',
+    description: ARTICLE.description,
+    dateModified: ARTICLE.lastUpdated,
+  })
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Insights', path: '/insights' },
+    { name: ARTICLE.title, path: '/insights/outplacement-cost-per-employee' },
+  ])
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd} />
+      <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbs} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
           <Link href="/" className="shrink-0">
@@ -59,7 +64,7 @@ export default async function OutplacementCostArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           What outplacement actually costs, and what you get
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {LAST_UPDATED}</p>
+        <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p>

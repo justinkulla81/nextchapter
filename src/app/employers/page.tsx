@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 
 // This used to be the outplacement pitch itself, which conflated two
 // different products under one confusing name — "Employers" here meant
@@ -8,5 +8,5 @@ import { redirect } from 'next/navigation'
 // (see /outplacement/page.tsx); this now just forwards anyone with an old
 // link or bookmark.
 export default function EmployersRedirectPage() {
-  redirect('/outplacement')
+  permanentRedirect('/outplacement')
 }

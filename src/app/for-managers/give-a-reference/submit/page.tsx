@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 import { EmployerReferenceForm } from './EmployerReferenceForm'
+import { NOINDEX } from '@/lib/seo/canonical'
 
 export const metadata = {
-  title: 'Give a Reference | NextChapter',
+  ...NOINDEX,
+  title: 'Give a Reference',
 }
 
 // Same BARS-anchor fetch pattern as /ref/[token]/page.tsx — one shared

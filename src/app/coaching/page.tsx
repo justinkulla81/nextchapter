@@ -20,7 +20,7 @@ const SUGGESTED_QUESTIONS = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Executive Coach — A Real Human Coach, When You Want One | NextChapter',
+  title: 'A Real Human Executive Coach, When You Want One',
   description:
     'NextChapter gives everyone Victoria, our free AI coach. Executive Coach adds a real human career coach on top, for candidates who want it — waitlist open now.',
   alternates: { canonical: '/coaching' },

@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 // NextChapter for Employers is a contract-sold outplacement benefit, not a
 // self-serve sign-up product — an organization has to sign an outplacement

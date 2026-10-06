@@ -6,7 +6,7 @@ import { RfpDownloadButton } from '@/components/marketing/RfpDownloadButton'
 import { RFP_QUESTIONS, SCORECARD_CRITERIA } from '@/lib/marketing/rfp-template-content'
 
 export const metadata: Metadata = {
-  title: 'Outplacement RFP Template & Vendor Evaluation Scorecard — NextChapter',
+  title: 'Outplacement RFP Template & Vendor Scorecard',
   description:
     'A free, vendor-neutral RFP template and scorecard for evaluating any outplacement provider — eight questions that separate a real evaluation from a sales pitch.',
   alternates: { canonical: '/rfp-template' },

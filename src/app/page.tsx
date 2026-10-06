@@ -12,10 +12,13 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
+import { canonical } from '@/lib/seo/canonical'
 
 // The page is otherwise static. Publishing News in the admin clears it at
 // once; the timer is the fallback.
 export const revalidate = 300
+
+export const metadata = canonical('/')
 
 const HOMEPAGE_NEWS_COUNT = 6
 
@@ -118,7 +121,9 @@ export default async function Home() {
           <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
             <video
               controls
-              preload="metadata"
+              // "none": "metadata" still pulled ~360 KB on load, delaying the
+              // hero text (LCP) on mobile. The video loads when played.
+              preload="none"
               className="w-full"
               src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/homepage-explainer.mp4"
             >
@@ -430,6 +435,10 @@ export default async function Home() {
             {' · '}
             <Link href="/resources" className="underline underline-offset-4">
               Resources
+            </Link>
+            {' · '}
+            <Link href="/editorial-standards" className="underline underline-offset-4">
+              Editorial standards
             </Link>
             {' · '}
             <Link href="/privacy-policy" className="underline underline-offset-4">

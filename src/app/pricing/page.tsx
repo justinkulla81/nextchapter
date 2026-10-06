@@ -2,13 +2,15 @@ import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { canonical } from '@/lib/seo/canonical'
 
 function formatUsd(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 }
 
 export const metadata = {
-  title: 'Pricing — NextChapter',
+  ...canonical('/pricing'),
+  title: 'Pricing',
   description: 'Real prices, published — candidate plans, membership, and outplacement list pricing.',
 }
 

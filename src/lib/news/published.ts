@@ -19,6 +19,8 @@ export interface NewsItemView {
   /** Formatted on the server, so the page and the browser can't disagree on the day. */
   dateLabel: string
   publishedAt: string
+  /** When it went live here — the date of our take, for its byline and JSON-LD. */
+  liveAt: string
 }
 
 const dateLabel = (d: Date) =>
@@ -59,6 +61,7 @@ function toView(r: Row): NewsItemView {
     slug: r.newsTake && r.newsSlug ? r.newsSlug : null,
     dateLabel: dateLabel(shownDate(r)),
     publishedAt: shownDate(r).toISOString(),
+    liveAt: r.newsPublishedAt!.toISOString(),
   }
 }
 

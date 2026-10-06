@@ -3,41 +3,21 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 
 export const metadata: Metadata = {
-  title: 'Outplacement insights — NextChapter',
+  title: 'Outplacement insights',
   description:
     'What outplacement actually costs, the questions to ask a vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
   alternates: { canonical: '/insights' },
 }
 
-const ARTICLES = [
-  {
-    href: '/insights/outplacement-cost-per-employee',
-    title: 'What outplacement actually costs, and what you get',
-    description: 'Cost per employee by tier, plus a live calculator against published NextChapter pricing.',
-  },
-  {
-    href: '/insights/outplacement-vendor-questions',
-    title: 'The questions to ask an outplacement vendor',
-    description: 'Eight questions that separate a real evaluation from a sales pitch.',
-  },
-  {
-    href: '/insights/outplacement-reporting',
-    title: 'Why your outplacement report says nothing',
-    description: 'Utilization isn’t outcome. What to ask your provider to report instead.',
-  },
-  {
-    href: '/insights/outplacement-account-after-contract',
-    title: 'What happens to your outplacement account when the contract ends',
-    description: 'What to ask before you sign, and how a permanent alumni account changes the calculus.',
-  },
-]
+const ARTICLES = INSIGHT_ARTICLES.map((a) => ({ href: `/insights/${a.slug}`, title: a.title, description: a.description }))
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  name: 'Outplacement insights — NextChapter',
+  name: 'Outplacement insights',
 }
 
 export default function InsightsIndexPage() {

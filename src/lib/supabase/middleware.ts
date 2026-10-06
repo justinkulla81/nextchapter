@@ -140,9 +140,15 @@ export async function updateSession(request: NextRequest) {
     '/support/admin/login',
     '/support/admin/forgot-password',
   ]
+  // Public marketing pages that sit exactly on a protected portal prefix.
+  // Matched exactly, so the portal's own subroutes stay gated. /recruiters
+  // was redirecting logged-out visitors (and Googlebot) to /recruiters/login
+  // even though it is the recruiter landing page listed in the sitemap.
+  const publicExactPaths = ['/recruiters']
   const isProtected =
     protectedPaths.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
-    !publicExceptions.some((path) => pathStartsWith(request.nextUrl.pathname, path))
+    !publicExceptions.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
+    !publicExactPaths.includes(request.nextUrl.pathname)
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()

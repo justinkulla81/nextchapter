@@ -9,7 +9,7 @@ import { wcIndexSummary, monthLabel } from '@/lib/reports-wc-index'
 const URL = `${SITE_URL}/reports`
 
 export const metadata: Metadata = {
-  title: { absolute: 'NextChapter Displacement Report: Monthly White-Collar Labor Market Data' },
+  title: { absolute: 'Displacement Report: White-Collar Labor Data | NextChapter' },
   description:
     'The NextChapter Displacement Report is a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution, the safety net, and the White-Collar Displacement Index.',
   alternates: { canonical: '/reports' },

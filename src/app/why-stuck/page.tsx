@@ -9,7 +9,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
-  title: "Why You're Stuck — NextChapter",
+  title: "Why You're Stuck",
   description:
     "You're not imagining it. Job searching is genuinely hard right now, and most of it happens before a human ever sees your name.",
   alternates: { canonical: '/why-stuck' },

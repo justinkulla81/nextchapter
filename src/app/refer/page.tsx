@@ -4,7 +4,7 @@ import { ReferralShareBox } from '@/components/marketing/ReferralShareBox'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
-  title: 'Refer Someone — NextChapter',
+  title: 'Refer Someone',
   description: 'Someone you care about is going through a career transition. Give them a head start.',
   alternates: { canonical: '/refer' },
 }

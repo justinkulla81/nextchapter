@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CrucibleLandingTracker } from '@/components/crucible/CrucibleLandingTracker'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
+import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = {
+  ...canonical('/noexperience'),
   // absolute, not a plain string — bypasses the root layout's "%s |
   // NextChapter" title template so the browser tab reads as its own brand.
   title: { absolute: 'noexperienceneeded.ai — Prove you\'re hireable' },

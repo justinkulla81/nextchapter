@@ -1,4 +1,7 @@
 import { CoachSignupForm } from '@/components/coach/CoachSignupForm'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default function CoachSignupPage() {
   return (

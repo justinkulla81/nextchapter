@@ -2,6 +2,9 @@ import { Suspense } from 'react'
 import { HeartHandshake } from 'lucide-react'
 import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default function CoachForgotPasswordPage() {
   return (

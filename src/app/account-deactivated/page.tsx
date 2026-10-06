@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
+import { NOINDEX } from '@/lib/seo/canonical'
 
-export const metadata: Metadata = { title: 'Account Deactivated — NextChapter' }
+export const metadata: Metadata = { ...NOINDEX, title: 'Account Deactivated' }
 
 export default function AccountDeactivatedPage() {
   return (

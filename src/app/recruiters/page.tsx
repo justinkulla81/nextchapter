@@ -7,7 +7,7 @@ import { SubmissionPacketMockup } from '@/components/marketing/SubmissionPacketM
 const tab = AUDIENCE_TABS.find((t) => t.id === 'recruiters')!
 
 export const metadata: Metadata = {
-  title: 'Candidates Who Arrive With References Already Done — NextChapter for Recruiters',
+  title: 'Candidates With References Already Done',
   description:
     'Every NextChapter candidate comes with five structured references, two validated assessments, and a Dossier you can put in front of a client under your own brand. Consented candidates only.',
   alternates: { canonical: '/recruiters' },

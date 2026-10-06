@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { EqOverIqLandingTracker } from '@/components/eqoveriq/EqOverIqLandingTracker'
 import { EqOverIqWordmark } from '@/components/eqoveriq/EqOverIqWordmark'
+import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = {
+  ...canonical('/eqoveriq'),
   // absolute, not a plain string — bypasses the root layout's "%s |
   // NextChapter" title template so the browser tab reads as its own brand.
   title: { absolute: 'EQoverIQ — Fractional AI work for people who\'ve already proven it' },

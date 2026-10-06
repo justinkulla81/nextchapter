@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { canonical } from '@/lib/seo/canonical'
 import Link from 'next/link'
 import { CrucibleTestFlow } from '@/components/crucible/CrucibleTestFlow'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 import type { CrucibleSource } from '@prisma/client'
 
-export const metadata: Metadata = { title: { absolute: 'noexperienceneeded.ai Challenge' } }
+export const metadata: Metadata = { ...canonical('/noexperience/test'), title: { absolute: 'noexperienceneeded.ai Challenge' } }
 
 function resolveSource(src: string | undefined): CrucibleSource {
   if (src === 'nc_newgrad') return 'NC_NEWGRAD'

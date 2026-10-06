@@ -1,4 +1,7 @@
 import { confirmBenefitsNetworkVerification } from '@/lib/benefits-network/verification'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 function StatusMessage({ title, children }: { title: string; children: React.ReactNode }) {
   return (

@@ -6,9 +6,11 @@ import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistForm } from '@/components/audience/WaitlistForm'
 import type { AudienceTab } from '@/components/audience/audience-data'
+import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = {
-  title: 'The White-Label Coach Platform — NextChapter',
+  ...canonical('/coach-platform'),
+  title: 'The White-Label Coach Platform',
   description:
     'Put your brand on the client tools you already run sessions around — full client view, session notes and directives, your logo and colors.',
 }

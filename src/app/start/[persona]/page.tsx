@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import { PersonaOnboardingCta } from '@/components/start/PersonaOnboardingCta'
 import { PERSONAS, getPersona } from '@/lib/constants/personas'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { StructuredData } from '@/components/StructuredData'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
   return PERSONAS.map((p) => ({ persona: p.slug }))
@@ -18,7 +20,7 @@ export async function generateMetadata({
   const persona = getPersona(slug)
   if (!persona) return {}
   return {
-    title: `${persona.headline} — NextChapter`,
+    title: persona.headline,
     description: persona.hook,
     alternates: { canonical: `/start/${persona.slug}` },
   }
@@ -31,6 +33,8 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
 
   return (
     <div className="flex flex-1 flex-col">
+      {/* /start has no page of its own, so the trail is Home › this page. */}
+      <StructuredData data={breadcrumbJsonLd([{ name: persona.headline, path: `/start/${persona.slug}` }])} />
       <PublicSiteHeader />
 
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">

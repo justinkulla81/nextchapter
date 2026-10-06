@@ -3,6 +3,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { GuideEmailGate } from '@/components/guides/GuideEmailGate'
 import type { GuideLandingContent } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { AuthorByline } from '@/components/seo/AuthorByline'
 
 // Guides whose readers (just laid off, benefits, a long search) are the exact
 // audience for the labor-market data. These get a "Related research" link.
@@ -29,7 +30,7 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{content.title}</h1>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {content.lastUpdated}</p>
+        <AuthorByline updated={content.lastUpdated} reviewedBy={content.reviewedBy} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           {content.excerpt.map((paragraph, i) => (

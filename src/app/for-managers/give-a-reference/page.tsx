@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { canonical } from '@/lib/seo/canonical'
+import { StructuredData } from '@/components/StructuredData'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export const metadata = {
-  title: 'Give a Reference | NextChapter',
+  ...canonical('/for-managers/give-a-reference'),
+  title: 'Give a Reference',
   description: 'Leave a reference for someone you just let go, while it’s still fresh.',
 }
 
@@ -12,6 +16,7 @@ export const metadata = {
 export default function GiveAReferenceLandingPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-20">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Give a reference', path: '/for-managers/give-a-reference' }])} />
       <p className="text-sm font-medium text-muted-foreground">NextChapter for managers</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         You just let someone great go. Help them land well.

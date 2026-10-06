@@ -3,6 +3,9 @@ import { Users } from 'lucide-react'
 import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { redirectIfAuthenticated } from '@/lib/auth/redirect-if-authenticated'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default async function RecruiterLoginPage() {
   await redirectIfAuthenticated('/recruiters/dashboard', 'recruiter')

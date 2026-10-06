@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: 'For Organizations — NextChapter',
+  title: 'For Organizations',
   description:
     'Whether you hire, recruit, place, fund, or serve jobseekers, NextChapter partners with employers, agencies, and institutions. See how we work together.',
   alternates: { canonical: '/for-organizations' },

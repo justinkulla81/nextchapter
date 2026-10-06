@@ -4,13 +4,15 @@ import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { canonical } from '@/lib/seo/canonical'
 
 function formatUsd(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 }
 
 export const metadata = {
-  title: 'Alumni & Membership — NextChapter',
+  ...canonical('/membership'),
+  title: 'Alumni & Membership',
   description: 'Your Dossier stays alive after you land. Membership keeps your evidence current for the next time.',
 }
 

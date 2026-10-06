@@ -2,10 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { insight } from '@/lib/seo/insights'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { SeatUtilizationMockup } from '@/components/marketing/SeatUtilizationMockup'
 
 export const metadata: Metadata = {
-  title: 'Why your outplacement report says nothing — NextChapter',
+  title: 'Why your outplacement report says nothing',
   description:
     'Outplacement is usually measured by utilization — logins, sessions completed — not by what a participant actually produced. Here is why that gap matters, and what to ask for instead.',
   alternates: { canonical: '/insights/outplacement-reporting' },
@@ -17,7 +20,7 @@ export const metadata: Metadata = {
   },
 }
 
-const LAST_UPDATED = '2026-08-15'
+const ARTICLE = insight('outplacement-reporting')
 
 // Partners Master Build Script §D2.7's third category-narrative piece,
 // carrying the argument named there: "outplacement is measured wrong...
@@ -26,19 +29,21 @@ const LAST_UPDATED = '2026-08-15'
 // anywhere in this file — §C1.3 / §D3 boundary — see the phase report's
 // grep check.
 export default function OutplacementReportingArticlePage() {
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'Why your outplacement report says nothing',
-    dateModified: LAST_UPDATED,
-    author: { '@type': 'Organization', name: 'NextChapter' },
-    publisher: { '@type': 'Organization', name: 'NextChapter' },
-    mainEntityOfPage: 'https://launchyournextchapter.com/insights/outplacement-reporting',
-  }
+  const jsonLd = articleJsonLd({
+    headline: ARTICLE.title,
+    path: '/insights/outplacement-reporting',
+    description: ARTICLE.description,
+    dateModified: ARTICLE.lastUpdated,
+  })
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Insights', path: '/insights' },
+    { name: ARTICLE.title, path: '/insights/outplacement-reporting' },
+  ])
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd} />
+      <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbs} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
           <Link href="/" className="shrink-0">
@@ -54,7 +59,7 @@ export default function OutplacementReportingArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           Why your outplacement report says nothing
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {LAST_UPDATED}</p>
+        <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p>

@@ -2,10 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { insight } from '@/lib/seo/insights'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { RFP_QUESTIONS } from '@/lib/marketing/rfp-template-content'
 
 export const metadata: Metadata = {
-  title: 'The questions to ask an outplacement vendor — NextChapter',
+  title: 'The questions to ask an outplacement vendor',
   description:
     'Eight questions that separate a real outplacement evaluation from a sales pitch — deliverable retention, reporting latency, reference completion, and more.',
   alternates: { canonical: '/insights/outplacement-vendor-questions' },
@@ -17,25 +20,27 @@ export const metadata: Metadata = {
   },
 }
 
-const LAST_UPDATED = '2026-08-15'
+const ARTICLE = insight('outplacement-vendor-questions')
 
 // Partners Master Build Script §D2.7's second category-narrative piece,
 // built directly from the §D2.2 RFP question set so the two assets
 // reinforce each other rather than duplicating separate content.
 export default function OutplacementVendorQuestionsArticlePage() {
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'The questions to ask an outplacement vendor',
-    dateModified: LAST_UPDATED,
-    author: { '@type': 'Organization', name: 'NextChapter' },
-    publisher: { '@type': 'Organization', name: 'NextChapter' },
-    mainEntityOfPage: 'https://launchyournextchapter.com/insights/outplacement-vendor-questions',
-  }
+  const jsonLd = articleJsonLd({
+    headline: ARTICLE.title,
+    path: '/insights/outplacement-vendor-questions',
+    description: ARTICLE.description,
+    dateModified: ARTICLE.lastUpdated,
+  })
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Insights', path: '/insights' },
+    { name: ARTICLE.title, path: '/insights/outplacement-vendor-questions' },
+  ])
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd} />
+      <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbs} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
           <Link href="/" className="shrink-0">
@@ -51,7 +56,7 @@ export default function OutplacementVendorQuestionsArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           The questions to ask an outplacement vendor
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {LAST_UPDATED}</p>
+        <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p>

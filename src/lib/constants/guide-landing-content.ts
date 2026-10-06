@@ -15,6 +15,8 @@ export interface GuideLandingContent {
   /** 3-5 public Q&As. */
   faq: GuideFaqItem[]
   lastUpdated: string
+  /** A named expert who reviewed this guide. Set only for a real review — never invent one. */
+  reviewedBy?: { name: string; credential: string }
 }
 
 export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [

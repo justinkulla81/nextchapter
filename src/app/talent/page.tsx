@@ -6,7 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 const tab = AUDIENCE_TABS.find((t) => t.id === 'talent')!
 
 export const metadata: Metadata = {
-  title: 'Hire Verified, Motivated Candidates — NextChapter for Hiring Teams',
+  title: 'Hire Verified, Motivated Candidates',
   description:
     'Post a role free and see candidates who completed a structured How They Work Best assessment and gathered verified references before you ever see their profile.',
   alternates: { canonical: '/talent' },

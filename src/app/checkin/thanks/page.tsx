@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 const MESSAGES: Record<string, { title: string; body: React.ReactNode }> = {
   still_searching: {

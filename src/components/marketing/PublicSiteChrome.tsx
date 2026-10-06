@@ -53,7 +53,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
@@ -88,6 +88,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">Displacement Report</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
+          {' · '}<Link href="/editorial-standards" className="underline underline-offset-4">Editorial standards</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
           {' · '}
           <TrackedLink href={COMPANY_LINKEDIN_URL} event="company_linkedin_clicked" properties={{ page, placement: 'footer' }} className="underline underline-offset-4">

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import { canonical } from '@/lib/seo/canonical'
 import Link from 'next/link'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 
-export const metadata: Metadata = { title: { absolute: 'The noexperienceneeded.ai Lesson' } }
+export const metadata: Metadata = { ...canonical('/noexperience/lesson'), title: { absolute: 'The noexperienceneeded.ai Lesson' } }
 
 export default function CrucibleLessonPage() {
   return (

@@ -4,7 +4,7 @@ import { ResumeSubmissionForm } from '@/components/resume-submission/ResumeSubmi
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
 export const metadata: Metadata = {
-  title: 'Submit Your Resume — NextChapter',
+  title: 'Submit Your Resume',
   description:
     'Send your resume to NextChapter and we\'ll pass strong matches along to recruiters in our network — no cost, no obligation.',
   alternates: { canonical: '/submit-resume' },

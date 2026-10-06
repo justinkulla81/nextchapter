@@ -31,7 +31,7 @@ const TIER_ROWS: { label: string; core: string; plus: string; premium: string }[
 ]
 
 export const metadata: Metadata = {
-  title: 'Outplacement That Relaunches Careers — NextChapter',
+  title: 'Outplacement That Relaunches Careers',
   description:
     'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — 35-40% less than incumbent outplacement providers.',
   alternates: { canonical: '/outplacement' },

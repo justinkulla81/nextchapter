@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { acceptEmployerReference, declineEmployerReference } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 // Prompt 65 section 6 — getDashboardData() both requires the visitor to be
 // signed in (redirects to /auth/login otherwise) and gives us their real

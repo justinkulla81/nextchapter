@@ -6,7 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 const tab = AUDIENCE_TABS.find((t) => t.id === 'nonprofits')!
 
 export const metadata: Metadata = {
-  title: 'Partnerships, Funding & Research — NextChapter for Nonprofits & Academia',
+  title: 'Partnerships, Funding & Research for Nonprofits',
   description:
     'Serve your community at no cost to them, and partner on consent-based research into what actually gets people back to work. Grants, pilots, and co-design. Join the waitlist.',
   alternates: { canonical: '/nonprofits' },

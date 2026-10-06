@@ -1,5 +1,8 @@
 import { getPanelistByToken } from '@/lib/talent/scorecards'
 import { ScorecardSubmitForm } from '@/components/talent/ScorecardSubmitForm'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 // Relocated from src/app/hiring/scorecard/[token]/page.tsx to this
 // portal-neutral top-level route as part of the /hiring -> /talent

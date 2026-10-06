@@ -5,8 +5,10 @@ import { CrucibleLeaderboardTrackSelect } from '@/components/crucible/CrucibleLe
 import { getCrucibleLeaderboard } from '@/lib/crucible/leaderboard'
 import { CRUCIBLE_JOB_INTENT_LABEL, type CrucibleJobIntentKey } from '@/lib/crucible/variants'
 import { cn } from '@/lib/utils'
+import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = {
+  ...canonical('/noexperience/leaderboard'),
   title: { absolute: 'noexperienceneeded.ai — Leaderboard' },
 }
 

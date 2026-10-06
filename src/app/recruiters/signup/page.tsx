@@ -1,4 +1,7 @@
 import { RecruiterSignupForm } from '@/components/recruiter/RecruiterSignupForm'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default function RecruiterSignupPage() {
   return (

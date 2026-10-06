@@ -1,7 +1,9 @@
 import { ShareToLinkedIn } from '@/components/ShareToLinkedIn'
+import { NOINDEX } from '@/lib/seo/canonical'
 
 export const metadata = {
-  title: 'Thank you | NextChapter',
+  ...NOINDEX,
+  title: 'Thank you',
 }
 
 // Prompt 65 section 7 — a real recognition moment, not a bare confirmation

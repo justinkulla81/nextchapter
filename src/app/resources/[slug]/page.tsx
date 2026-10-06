@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { StructuredData } from '@/components/StructuredData'
 import { GuideLandingPageTemplate } from '@/components/guides/GuideLandingPageTemplate'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
   return GUIDE_LANDING_CONTENT.map((content) => ({ slug: content.slug }))
@@ -40,21 +41,19 @@ export default async function GuideResourcePage({
   const content = GUIDE_LANDING_CONTENT.find((c) => c.slug === slug)
   if (!content) notFound()
 
-  const url = `https://launchyournextchapter.com/resources/${slug}`
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: content.title,
-    description: content.metaDescription,
-    dateModified: content.lastUpdated,
-    author: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
-    publisher: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
-    mainEntityOfPage: url,
-  }
+  const path = `/resources/${slug}`
 
   return (
     <>
-      <StructuredData data={articleJsonLd} />
+      <StructuredData
+        data={articleJsonLd({
+          headline: content.title,
+          path,
+          description: content.metaDescription,
+          dateModified: content.lastUpdated,
+        })}
+      />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Resources', path: '/resources' }, { name: content.title, path }])} />
       <GuideLandingPageTemplate content={content} />
     </>
   )

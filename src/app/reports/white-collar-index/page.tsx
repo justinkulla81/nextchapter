@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
-import { SITE_URL } from '@/lib/reports'
+import { SITE_URL, latestReport } from '@/lib/reports'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
 
 const SLUG = 'white-collar-index'
@@ -24,7 +26,7 @@ export function generateMetadata(): Metadata {
     : `The NextChapter White-Collar Displacement Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
   return {
     title: {
-      absolute: 'White-Collar Displacement Index: Long-Term Unemployment for Professionals | NextChapter',
+      absolute: 'White-Collar Displacement Index | NextChapter',
     },
     description,
     alternates: { canonical: `/reports/${SLUG}` },
@@ -163,6 +165,12 @@ export default function WhiteCollarIndexPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={datasetJsonLd} />
+      <StructuredData
+        data={breadcrumbJsonLd([
+          { name: 'Displacement Report', path: '/reports' },
+          { name: 'White-Collar Index', path: `/reports/${SLUG}` },
+        ])}
+      />
       <PublicSiteHeader current="reports" />
 
       <main className="mx-auto w-full max-w-4xl px-6 py-14">
@@ -175,6 +183,8 @@ export default function WhiteCollarIndexPage() {
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           NextChapter White-Collar Displacement Index
         </h1>
+        {/* The index is refreshed with each monthly edition. */}
+        {latestReport() && <AuthorByline updated={latestReport()!.publishedAt} />}
 
         {/* Latest value + year change */}
         <div className="mt-6 flex flex-wrap items-end gap-x-10 gap-y-4">

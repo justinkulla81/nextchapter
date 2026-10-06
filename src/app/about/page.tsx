@@ -72,8 +72,8 @@ const ORGANIZATIONS: { label: string; href: string }[] = [
   { label: 'Outplacement and career transition firms', href: '/outplacement' },
   { label: 'Government workforce boards', href: '/government-workforce' },
   { label: 'Nonprofits and training providers', href: '/nonprofits' },
-  { label: 'Employers and HR teams', href: '/employers' },
-  { label: 'Career coaches and recruiters', href: '/for-coaches' },
+  { label: 'Employers and HR teams', href: '/outplacement' },
+  { label: 'Career coaches and recruiters', href: '/coaches' },
 ]
 
 function LinkedInIcon() {

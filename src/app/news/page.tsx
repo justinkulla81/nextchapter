@@ -11,7 +11,7 @@ import { StructuredData } from '@/components/StructuredData'
 const SITE = 'https://launchyournextchapter.com'
 
 export const metadata: Metadata = {
-  title: 'News — NextChapter',
+  title: 'News',
   description: 'Articles, videos, podcasts and posts on the job market and searching for a job, picked by NextChapter.',
   alternates: { canonical: '/news', types: { 'application/rss+xml': '/news/feed.xml' } },
 }

@@ -5,7 +5,8 @@ import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { SITE_URL } from '@/lib/reports'
-import { FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { organizationRef, personRef } from '@/lib/seo/jsonld'
 import { REPORT_CSS } from './report-styles'
 import { REPORT_BODY_HTML } from './report-body'
 
@@ -18,7 +19,7 @@ const MODIFIED = '2026-10-05'
 export const metadata: Metadata = {
   title: {
     absolute:
-      'September 2026 White-Collar Jobs & Layoffs Report: AI, Long-Term Unemployment | NextChapter',
+      'September 2026 White-Collar Jobs & Layoffs Report | NextChapter',
   },
   description:
     'Monthly white-collar displacement report: 27.1% of the unemployed out 27+ weeks, AI cited in 21% of 2026 layoffs vs ~5% of SEC filings, senior openings down 20%, plus WIOA, benefits and age trends.',
@@ -57,8 +58,8 @@ const jsonLd = {
       url: URL,
       mainEntityOfPage: URL,
       image: OG_IMAGE,
-      author: { '@type': 'Person', name: 'Justin Kulla', url: `${SITE_URL}/about#justin-kulla`, sameAs: [FOUNDER_LINKEDIN_URL] },
-      publisher: { '@type': 'Organization', name: 'NextChapter', url: SITE_URL },
+      author: personRef(),
+      publisher: organizationRef(),
       about: ['white-collar unemployment', 'long-term unemployment', 'layoffs', 'AI and jobs', 'workforce policy'],
       description:
         'Monthly report on U.S. white-collar job displacement: the White-Collar Displacement Index, jobs and hiring, layoffs and AI attribution, long-term unemployment by occupation and age, applications and AI in hiring, skills, states and policy, September 2026.',
@@ -146,11 +147,12 @@ export default function DisplacementReportSeptember2026() {
       {/* Author box — site styles, outside the scoped report CSS. */}
       <section className="border-t border-light-gray bg-white">
         <div className="mx-auto w-full max-w-3xl px-6 py-10">
+          <AuthorByline updated={MODIFIED} className="mb-6" />
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">About the author</p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <span className="font-semibold text-navy">Justin Kulla</span> is the founder of NextChapter; a former CTO
             and private-equity investor; and a lecturer at Stanford and MIT.{' '}
-            <Link href="/about#justin-kulla" className="text-brand underline underline-offset-4">
+            <Link href="/authors/justin-kulla" className="text-brand underline underline-offset-4">
               More about Justin
             </Link>
             .

@@ -2,9 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { AuthorByline } from '@/components/seo/AuthorByline'
+import { insight } from '@/lib/seo/insights'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export const metadata: Metadata = {
-  title: 'What happens to your outplacement account when the contract ends — NextChapter',
+  title: 'Outplacement accounts after the contract ends',
   description:
     'Most outplacement portal access ends when the employer contract ends. Here is what to ask before you sign, and how a permanent alumni account changes the calculus.',
   alternates: { canonical: '/insights/outplacement-account-after-contract' },
@@ -16,26 +19,28 @@ export const metadata: Metadata = {
   },
 }
 
-const LAST_UPDATED = '2026-08-15'
+const ARTICLE = insight('outplacement-account-after-contract')
 
 // Partners Master Build Script §D2.7's fourth category-narrative piece.
 // Ties directly to a real, shipped capability (Phase 8's free, permanent
 // Alumni tier — Dossier stays live, references stay collected) rather than
 // asserting anything about a specific competitor's data-retention practice.
 export default function OutplacementAccountAfterContractArticlePage() {
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'What happens to your outplacement account when the contract ends',
-    dateModified: LAST_UPDATED,
-    author: { '@type': 'Organization', name: 'NextChapter' },
-    publisher: { '@type': 'Organization', name: 'NextChapter' },
-    mainEntityOfPage: 'https://launchyournextchapter.com/insights/outplacement-account-after-contract',
-  }
+  const jsonLd = articleJsonLd({
+    headline: ARTICLE.title,
+    path: '/insights/outplacement-account-after-contract',
+    description: ARTICLE.description,
+    dateModified: ARTICLE.lastUpdated,
+  })
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Insights', path: '/insights' },
+    { name: ARTICLE.title, path: '/insights/outplacement-account-after-contract' },
+  ])
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd} />
+      <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbs} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
           <Link href="/" className="shrink-0">
@@ -51,7 +56,7 @@ export default function OutplacementAccountAfterContractArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           What happens to your outplacement account when the contract ends
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {LAST_UPDATED}</p>
+        <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p>

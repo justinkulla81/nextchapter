@@ -4,6 +4,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { ComparisonPageTemplate } from '@/components/marketing/ComparisonPageTemplate'
 import { COMPETITOR_COMPARISONS, getComparison } from '@/lib/marketing/competitor-comparisons'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
   return COMPETITOR_COMPARISONS.map((c) => ({ competitor: c.slug }))
@@ -20,7 +21,8 @@ export async function generateMetadata({
 
   const url = `https://launchyournextchapter.com/vs/${comparison.slug}`
   return {
-    title: comparison.metaTitle,
+    // Absolute: metaTitle already leads with the brand.
+    title: { absolute: comparison.metaTitle },
     description: comparison.metaDescription,
     alternates: { canonical: `/vs/${comparison.slug}` },
     openGraph: {
@@ -62,6 +64,7 @@ export default async function ComparisonPage({
   return (
     <>
       <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Compare', path: '/vs' }, { name: `vs. ${comparison.name}`, path: `/vs/${comparison.slug}` }])} />
       <ComparisonPageTemplate
         comparison={comparison}
         ourPricing={{

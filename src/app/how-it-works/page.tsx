@@ -7,7 +7,7 @@ import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 
 export const metadata: Metadata = {
-  title: 'How It Works — NextChapter',
+  title: 'How It Works',
   description:
     "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, on NextChapter's free job transition platform.",
   alternates: { canonical: '/how-it-works' },

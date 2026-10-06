@@ -16,6 +16,10 @@ const inter = Inter({
 const sourceSerif4 = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin"],
+  // Only the candidate dashboard's headings use it, so don't make every
+  // public page download it up front (it competed with the hero text for
+  // bandwidth and pushed out LCP on mobile).
+  preload: false,
 });
 
 const siteUrl = "https://launchyournextchapter.com";
@@ -47,12 +51,11 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
-  alternates: {
-    canonical: "/",
-  },
+  // No root canonical: Next.js copies it into every page without its own,
+  // which made /pricing and others declare the homepage as their canonical.
+  // Each public page sets its own via canonical() in src/lib/seo/canonical.ts.
   openGraph: {
     type: "website",
-    url: siteUrl,
     siteName: "NextChapter",
     title,
     description,

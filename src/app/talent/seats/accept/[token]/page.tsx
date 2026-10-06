@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { AcceptSeatForm } from '@/components/talent/AcceptSeatForm'
 import { AcceptSeatButton } from '@/components/talent/AcceptSeatButton'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 export default async function AcceptSeatInvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params

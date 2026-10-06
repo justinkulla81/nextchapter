@@ -6,7 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 const tab = AUDIENCE_TABS.find((t) => t.id === 'government')!
 
 export const metadata: Metadata = {
-  title: 'Workforce & WIOA Partnerships — NextChapter for Agencies',
+  title: 'Workforce & WIOA Partnerships for Agencies',
   description:
     'Help the people you serve get back to work faster — free to every jobseeker, with the placement data your programs report on. Built for WIOA and workforce agencies. Join the waitlist.',
   alternates: { canonical: '/government-workforce' },

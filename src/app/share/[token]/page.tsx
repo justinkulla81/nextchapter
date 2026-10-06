@@ -1,5 +1,8 @@
 import { getSharedProfileView } from '@/lib/sharing/profile-share'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { NOINDEX } from '@/lib/seo/canonical'
+
+export const metadata = NOINDEX
 
 const RECIPIENT_LABEL: Record<string, string> = {
   HIRING_MANAGER: 'hiring manager',
