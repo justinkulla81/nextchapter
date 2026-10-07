@@ -76,6 +76,36 @@ export function displayNameFrom(raw: string | null | undefined): string | null {
   return name && name.includes('@') === false ? name : null
 }
 
+const NAME_CREDENTIALS = new Set(['jr', 'sr', 'ii', 'iii', 'iv', 'esq', 'phd', 'md', 'mba', 'cpa', 'cfa', 'jd', 'pmp', 'ms', 'ma', 'mpa', 'mph', 'rn', 'pe', 'shrm', 'cpc'])
+
+/**
+ * A display name as a person's name, "First Last". Directory-style senders
+ * put the surname first and an org tag after it ("Stockton, Taylor C -
+ * ETA" from the Department of Labor), which read literally as a new person
+ * named "Stockton". A comma followed by a credential ("Jane Doe, MBA") is
+ * not a surname-first name and keeps its order. A trailing " - Org",
+ * " (Org)" or " | Org" tag is dropped either way.
+ */
+export function personNameFromDisplay(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  let s = String(raw).replace(/["“”]/g, '').replace(/\s+/g, ' ').trim()
+  // An org tag after the name: "Name - ETA", "Name (DOL)", "Name | Acme".
+  s = s.replace(/\s+[-–—|]\s+.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim()
+  const comma = s.match(/^([^,]+),\s*(.+)$/)
+  if (comma) {
+    const after = comma[2].trim()
+    const firstAfter = after.split(/[\s,]+/)[0].replace(/\./g, '').toLowerCase()
+    if (NAME_CREDENTIALS.has(firstAfter)) {
+      s = comma[1].trim()
+    } else {
+      // "Stockton, Taylor C" → "Taylor Stockton" (a lone middle initial dropped).
+      const given = after.split(' ').filter((w, i) => i === 0 || !/^[A-Za-z]\.?$/.test(w)).join(' ')
+      s = `${given} ${comma[1].trim()}`
+    }
+  }
+  return s || null
+}
+
 /**
  * Gmail ignores dots and anything after a "+" in the local part, so
  * justin.kulla@gmail.com, justinkulla@gmail.com and justin.kulla+3@gmail.com

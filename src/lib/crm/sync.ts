@@ -6,7 +6,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
-  normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
+  normalizeEmail, displayNameFrom, personNameFromDisplay, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
   type SweepContext,
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
@@ -14,6 +14,7 @@ import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { looksLikeNotAPerson } from './person-plausibility'
 import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 import { canonicalEmail, findEmailOwner } from './email-owner'
+import { namesLookAlike } from '@/lib/text/person-name-match'
 
 const DAY = 86_400_000
 
@@ -246,8 +247,28 @@ async function getOrCreatePerson(
     return existing.deleted ? null : { id: existing.id, created: false }
   }
 
-  const name = rawName && !isPlaceholderName(rawName) ? rawName : null
+  const normalized = personNameFromDisplay(rawName)
+  const name = normalized && !isPlaceholderName(normalized) ? normalized : null
   const fullName = name ?? email.split('@')[0]
+
+  // Someone already in the CRM by name but with no email on file (added
+  // from LinkedIn, say) is this person: give that record the address
+  // instead of creating a second one. Only when exactly one such record
+  // looks alike; two or more is a guess, so the new row is created and the
+  // Review List's duplicate check puts the pair in front of a human.
+  if (name) {
+    const surname = name.split(' ').pop()!
+    const sameName = (await prisma.crmPerson.findMany({
+      where: { deletedAt: null, email: null, emails: { isEmpty: true }, fullName: { contains: surname, mode: 'insensitive' } },
+      select: { id: true, fullName: true },
+      take: 50,
+    })).filter((p) => namesLookAlike(p.fullName, name))
+    if (sameName.length === 1) {
+      await prisma.crmPerson.update({ where: { id: sameName[0].id }, data: { email, emails: [email] } })
+      cache.set(email, sameName[0].id)
+      return { id: sameName[0].id, created: false }
+    }
+  }
 
   // Same detector Needs Completion uses to flag an existing row — applied
   // here too so "CVS Pharmacy" or "Manhattan Soccer Club" never becomes a
