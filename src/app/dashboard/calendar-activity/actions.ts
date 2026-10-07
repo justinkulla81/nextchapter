@@ -6,6 +6,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { revokeGoogleGrantIfFullyDisconnected } from '@/lib/google/candidate-revoke'
 
 async function getProfile() {
   const supabase = await createClient()
@@ -27,8 +28,10 @@ export async function disconnectCalendar(): Promise<void> {
     where: { candidateId: profile.id, disconnectedAt: null },
     data: { disconnectedAt: new Date() },
   })
-  captureServerEvent(profile.id, 'calendar_disconnected')
+  const grantRevoked = await revokeGoogleGrantIfFullyDisconnected(profile.id)
+  captureServerEvent(profile.id, 'calendar_disconnected', { grantRevoked })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/privacy')
 }
 
 export async function syncCalendarNowAction(): Promise<{ error?: string }> {

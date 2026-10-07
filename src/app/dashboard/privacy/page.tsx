@@ -18,12 +18,41 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
+import { ConnectedAccountsSettings, type ConnectionState } from '@/components/dashboard/ConnectedAccountsSettings'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
 
-export default async function PrivacyPage() {
+// What a failed Google connect came back with (see google-connect/callback).
+const CONNECT_ERROR: Record<string, string> = {
+  denied: 'Google sign-in was cancelled, so nothing was connected. Try again when you’re ready.',
+  no_refresh_token: 'Google didn’t grant lasting access. Try again, and approve every permission Google asks about.',
+  corporate_domain_blocked: 'That looks like a work account your employer controls. Connect a personal Google account instead.',
+  not_a_tester: 'Google connection is in limited testing and isn’t open to your account yet. We’ll let you know when it is.',
+  not_logged_in: 'Your session ended during sign-in. Log in again, then reconnect.',
+  exchange_failed: 'Something went wrong finishing the connection. Try again in a minute.',
+}
+
+const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
+
+export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardData()
+  const params = await searchParams
+  const [emailConn, calendarConn] = await Promise.all([
+    prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
+    prisma.calendarConnection.findUnique({ where: { candidateId: profile.id }, select: { connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
+  ])
+  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
+    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
+      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
+  // One Google sign-in creates both connections, so the calendar belongs to
+  // the same account as Gmail when they were connected together.
+  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
+    ? emailConn.connectedEmail : null
+  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
+  const calendarState = stateOf(calendarConn, calendarAccount)
+  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
@@ -45,6 +74,22 @@ export default async function PrivacyPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Privacy</h1>
         <PageHeaderBoxes pageKey="privacy" candidateId={profile.id} />
       </div>
+
+      <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="space-y-3">
+        <div>
+          <h2 id="connected-accounts-h" className="text-lg font-semibold">Connected accounts</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Choose what NextChapter can read to count your search activity for you.</p>
+        </div>
+        {params.gmailConnected && !connectError && (
+          <p role="status" className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">Gmail and Calendar connected. Your activity will start counting automatically.</p>
+        )}
+        {connectError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{connectError}</p>}
+        <ConnectedAccountsSettings
+          gmail={gmailState}
+          calendar={calendarState}
+          connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')}
+        />
+      </section>
       <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
 
       <div className="space-y-3 border-t border-border pt-8">

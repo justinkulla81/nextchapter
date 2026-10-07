@@ -6,6 +6,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { revokeGoogleGrantIfFullyDisconnected } from '@/lib/google/candidate-revoke'
 
 async function getProfile() {
   const supabase = await createClient()
@@ -27,8 +28,10 @@ export async function disconnectGmail(): Promise<void> {
     where: { candidateId: profile.id, disconnectedAt: null },
     data: { disconnectedAt: new Date() },
   })
-  captureServerEvent(profile.id, 'gmail_disconnected')
+  const grantRevoked = await revokeGoogleGrantIfFullyDisconnected(profile.id)
+  captureServerEvent(profile.id, 'gmail_disconnected', { grantRevoked })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/privacy')
 }
 
 // The candidate is telling us the auto-detected classification was wrong —
