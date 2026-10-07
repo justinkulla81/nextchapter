@@ -52,13 +52,20 @@ const card: React.CSSProperties = {
   padding: '24px',
 }
 
-const hello: React.CSSProperties = { fontSize: '22px', fontWeight: 700, margin: 0, color: ink }
+const hello: React.CSSProperties = { fontSize: '20px', fontWeight: 600, margin: 0, color: ink }
 const sub: React.CSSProperties = { color: muted, margin: '4px 0 0' }
 
-const label: React.CSSProperties = { fontSize: '15px', fontWeight: 700, color: ink, margin: '24px 0 4px' }
+const label: React.CSSProperties = {
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: muted,
+  margin: '24px 0 4px',
+}
 const list: React.CSSProperties = { margin: 0, paddingLeft: '20px' }
 const li: React.CSSProperties = { margin: '4px 0' }
-const itemLink: React.CSSProperties = { color: ink, fontWeight: 600, textDecoration: 'none' }
+const itemLink: React.CSSProperties = { color: ink, textDecoration: 'underline', textDecorationColor: '#c9ced6' }
 const tail: React.CSSProperties = { color: muted }
 const more: React.CSSProperties = { color: muted, fontSize: '14px', margin: '4px 0 0 20px' }
 
@@ -86,10 +93,10 @@ const quoteStyle: React.CSSProperties = {
 const footer: React.CSSProperties = { textAlign: 'center', color: muted, fontSize: '12px', margin: '16px 0 0' }
 
 const STATUS: Record<ScoreStatus, { text: string; color: string }> = {
-  locked: { text: '🎉 A locked in', color: '#2f855a' },
-  onTrack: { text: '💪 On track for an A', color: '#2f855a' },
-  behind: { text: '⏳ A little behind. Today catches you up', color: '#b7791f' },
-  atRisk: { text: '🚩 Behind pace. Start with one to-do', color: '#c53030' },
+  locked: { text: 'A locked in', color: '#2f855a' },
+  onTrack: { text: 'On track for an A', color: '#2f855a' },
+  behind: { text: 'A little behind. Today catches you up', color: '#b7791f' },
+  atRisk: { text: 'Behind pace. Start with one to-do', color: '#c53030' },
 }
 
 const BAR: Record<ScoreStatus, string> = {
@@ -107,7 +114,7 @@ function Bullet({ item }: { item: DailyItem }) {
           {item.title}
         </a>
       ) : (
-        <strong>{item.title}</strong>
+        item.title
       )}
       {item.detail && <span style={tail}> · {item.detail}</span>}
     </li>
@@ -149,19 +156,17 @@ export default function JobSearchDailyEmail({
       </p>
 
       <div style={card}>
-        <p style={hello}>Hi {content.firstName || 'there'}!</p>
+        <p style={hello}>Good morning, {content.firstName || 'there'}</p>
         <p style={sub}>
           Here&apos;s your {weekday}
           {content.dayNumber ? ` · Day ${content.dayNumber}` : ''}
-          {content.streak >= 2 ? ` · 🔥 ${content.streak}-day streak` : ''}
+          {content.streak >= 2 ? ` · ${content.streak}-day streak` : ''}
         </p>
 
         {score && (
           <div style={{ marginTop: '16px' }}>
             <p style={{ margin: 0 }}>
-              <strong>
-                Weekly Search Score {score.earned}/{score.target}
-              </strong>{' '}
+              Weekly Search Score {score.earned}/{score.target}{' '}
               <span style={{ color: STATUS[score.status].color, fontWeight: 600 }}>{STATUS[score.status].text}</span>
             </p>
             <div style={{ height: '8px', backgroundColor: '#eceef1', borderRadius: '4px', marginTop: '8px' }}>
@@ -174,7 +179,7 @@ export default function JobSearchDailyEmail({
 
         {todos.length > 0 && (
           <>
-            <p style={label}>✅ To do today</p>
+            <p style={label}>To do today</p>
             <ul style={list}>
               {todos.map((t, i) => (
                 <li key={i} style={li}>
@@ -185,10 +190,10 @@ export default function JobSearchDailyEmail({
           </>
         )}
 
-        <Section title={`📬 Follow up on applications (${applications.length})`} items={applications} />
+        <Section title={`Follow up on applications (${applications.length})`} items={applications} />
 
         <Section
-          title={`🤝 Follow up with people (${networking.length + content.networkingMoreCount})`}
+          title={`Follow up with people (${networking.length + content.networkingMoreCount})`}
           items={networking}
           footerNote={
             content.networkingMoreCount > 0 && (
@@ -202,7 +207,7 @@ export default function JobSearchDailyEmail({
         />
 
         <Section
-          title="✨ New for you"
+          title="New for you"
           items={newForYou}
           footerNote={
             jobs.lockedCount > 0 && (
@@ -215,7 +220,7 @@ export default function JobSearchDailyEmail({
           }
         />
 
-        {unlock && <Section title="🔓 Unlock next" items={[{ ...unlock, detail: null }]} />}
+        {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}
 
         <a href={action.href} style={button}>
           {action.label} →

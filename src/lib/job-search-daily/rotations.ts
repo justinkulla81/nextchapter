@@ -12,6 +12,9 @@ export interface RotationContext {
   trackedCompanyCount: number
   checkedInToday: boolean
   hasOpenTodos: boolean
+  topTodo: string | null
+  followUpCount: number
+  newJobCount: number
 }
 
 export interface UnlockNudge {
@@ -30,85 +33,85 @@ export const UNLOCK_REPEAT_DAYS = 14
 export const UNLOCK_NUDGES: UnlockNudge[] = [
   {
     id: 'skills-inventory',
-    title: 'Take the Skills Inventory',
+    title: 'Take the Skills Inventory to sharpen your job matches',
     detail: 'About 10 minutes. It sharpens which roles we match you to and shows where you stand out.',
     path: '/dashboard/skills-assessment',
     done: (c) => c.skillsAssessmentDone,
   },
   {
     id: 'learn-ai',
-    title: 'Learn something new this week',
+    title: 'Add AI skills to your resume with one short course',
     detail: 'Working AI fluency is fast becoming table stakes in every function. Pick one short course.',
     path: '/dashboard/learning',
   },
   {
     id: 'interim-work',
-    title: 'Look at interim and fractional work',
+    title: 'See interim and fractional roles that pay while you search',
     detail: 'Fractional and interim roles keep your skills current, add income, and often turn into full-time offers.',
     path: '/dashboard/interim-work',
   },
   {
     id: 'board-roles',
-    title: 'Explore board and advisory roles',
+    title: 'Find a board seat to build experience and widen your network',
     detail: 'A board seat builds new experience and widens your network while you search.',
     path: '/dashboard/interim-work',
   },
   {
     id: 'references',
-    title: 'Request a reference',
+    title: 'Request a reference to raise your Market Reality Grade',
     detail: 'Even one or two real references raise your Market Reality Grade and help unlock your Executive Dossier.',
     path: '/dashboard/references',
     done: (c) => c.referencesMet,
   },
   {
     id: 'dossier',
-    title: 'Unlock your Certified Executive Dossier',
+    title: 'Unlock your Executive Dossier to open the A-list job board',
     detail: 'It opens the A-list job board and gives recruiters a verified picture of you.',
     path: '/dashboard/recruiter-report',
     done: (c) => c.dossierUnlocked,
   },
   {
     id: 'gmail',
-    title: 'Connect your email',
+    title: 'Connect your email so we track every reply for you',
     detail: 'We track replies and follow-ups for you, so nobody falls through the cracks.',
     path: '/dashboard/network',
     done: (c) => c.gmailConnected,
   },
   {
     id: 'recruiter-db',
-    title: 'Get seen by recruiters',
+    title: 'Opt in so search firms can find you',
     detail: 'Opt into the recruiter database. Once you hold an A, search firms can find you.',
     path: '/dashboard/privacy',
     done: (c) => c.recruiterDatabaseOptIn,
   },
   {
     id: 'company-tracker',
-    title: 'Add your target companies',
+    title: 'Track 5 target companies to get alerts when they hire',
     detail: "Track 5 companies and we'll tell you the moment they post a role or their hiring changes.",
     path: '/dashboard/company-tracker',
     done: (c) => c.trackedCompanyCount >= 5,
   },
   {
     id: 'interview-prep',
-    title: 'Practice one interview answer',
+    title: 'Practice one interview answer before your next call',
     detail: 'Five minutes of practice beats an hour of reading. Record one answer today.',
     path: '/dashboard/interview-prep',
   },
   {
     id: 'work-samples',
-    title: 'Add a work sample',
+    title: 'Add a work sample to make introductions easier',
     detail: 'One concrete example of your work makes every introduction easier.',
     path: '/dashboard/work-samples',
   },
   {
     id: 'track-record',
-    title: 'Fill in your Track Record',
+    title: 'Put your wins in numbers to strengthen your Dossier',
     detail: 'Your wins, in numbers. It feeds your Dossier and makes your story easy to repeat.',
     path: '/dashboard/track-record',
   },
   {
     id: 'webinars',
-    title: 'Join a live session',
+    title: 'Join a live session on searching at your level',
     detail: 'Short, practical sessions on searching at your level. Bring a question.',
     path: '/dashboard/webinars',
   },
@@ -116,22 +119,58 @@ export const UNLOCK_NUDGES: UnlockNudge[] = [
 
 export interface ActionButton {
   id: string
-  label: string
+  label: (ctx: RotationContext) => string
   path: string
   relevant?: (ctx: RotationContext) => boolean
 }
 
-// The email's one big button. Rotates daily among the ones that make sense
-// today; check-in leads whenever they haven't checked in yet.
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+// The email's one big button — always a specific action with a clear
+// payoff, built from the candidate's own data where possible. Check-in
+// leads whenever they haven't checked in yet; otherwise it rotates daily
+// among the ones that apply today.
 export const ACTION_BUTTONS: ActionButton[] = [
-  { id: 'check-in', label: 'Check in for today', path: '/dashboard', relevant: (c) => !c.checkedInToday },
-  { id: 'sprint', label: "Start today's first action", path: '/dashboard/sprint', relevant: (c) => c.hasOpenTodos },
-  { id: 'follow-ups', label: 'Clear my follow-ups', path: '/dashboard/network/follow-ups' },
-  { id: 'jobs', label: 'Review new jobs', path: '/dashboard/find-my-job' },
-  { id: 'log-conversation', label: 'Log a conversation', path: '/dashboard/network' },
-  { id: 'add-company', label: 'Add a target company', path: '/dashboard/company-tracker' },
-  { id: 'practice', label: 'Practice an interview answer', path: '/dashboard/interview-prep' },
-  { id: 'learn', label: 'Learn something in 10 minutes', path: '/dashboard/learning' },
+  {
+    id: 'check-in',
+    label: () => 'Check in to keep your streak going',
+    path: '/dashboard',
+    relevant: (c) => !c.checkedInToday,
+  },
+  {
+    id: 'top-todo',
+    label: (c) => `Start now: ${c.topTodo}`,
+    path: '/dashboard/sprint',
+    relevant: (c) => !!c.topTodo,
+  },
+  {
+    id: 'follow-ups',
+    label: (c) => `Clear your ${plural(c.followUpCount, 'follow-up')}`,
+    path: '/dashboard/network/follow-ups',
+    relevant: (c) => c.followUpCount > 0,
+  },
+  {
+    id: 'jobs',
+    label: (c) => `See ${plural(c.newJobCount, 'new role')} that fit you`,
+    path: '/dashboard/find-my-job',
+    relevant: (c) => c.newJobCount > 0,
+  },
+  {
+    id: 'log-conversation',
+    label: () => 'Log a conversation to raise your Weekly Search Score',
+    path: '/dashboard/network',
+  },
+  {
+    id: 'add-company',
+    label: () => 'Add target companies to get hiring alerts',
+    path: '/dashboard/company-tracker',
+    relevant: (c) => c.trackedCompanyCount < 5,
+  },
+  {
+    id: 'practice',
+    label: () => 'Practice one answer before your next interview',
+    path: '/dashboard/interview-prep',
+  },
 ]
 
 export interface Quote {

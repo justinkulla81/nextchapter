@@ -343,6 +343,10 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     trackedCompanyCount: watchlist.length,
     checkedInToday: !!candidate.lastCheckInAt && candidate.lastCheckInAt >= todayStart,
     hasOpenTodos: todos.length > 0,
+    topTodo: todos[0]?.text ?? null,
+    // Owed follow-ups only — counting every stale contact makes the button a chore.
+    followUpCount: applications.length + repliesOwed.length + starred.length,
+    newJobCount: jobItems.length,
   }
   const dateSeed = `${candidate.id}:${now.toISOString().slice(0, 10)}`
   const pickFrom = <T>(pool: T[], salt: string): T | null =>
@@ -367,7 +371,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const relevantButtons = ACTION_BUTTONS.filter((b) => b.relevant?.(ctx) ?? true)
   const dayIndex = Math.floor(now.getTime() / DAY_MS)
   const button = relevantButtons.find((b) => b.id === 'check-in') ?? relevantButtons[dayIndex % relevantButtons.length]
-  const action = { label: button.label, href: withSrc(button.path) }
+  const action = { label: button.label(ctx), href: withSrc(button.path) }
 
   const recentQuotes = recentlyShown('quote:', QUOTE_REPEAT_DAYS)
   const quote =

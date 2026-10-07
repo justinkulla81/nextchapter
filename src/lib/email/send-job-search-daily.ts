@@ -22,12 +22,12 @@ function buildSubject(content: JobSearchDailyContent): string {
   const jobs = content.jobs.items.length
   const move = content.companyMoves[0]
   const owed = content.applications.length + content.networking.length
-  if (jobs > 0 && move) return `🎯 ${jobs} new role${jobs === 1 ? '' : 's'} for you, and ${lowerFirst(move.title)}`
-  if (jobs > 0) return `🎯 ${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
-  if (move) return `📈 ${move.title}`
-  if (content.score?.status === 'locked') return "🎉 A locked in. Here's today"
-  if (owed > 0) return `📬 ${owed} follow-up${owed === 1 ? '' : 's'} for today`
-  if (content.todos.length > 0) return '✅ Your to-dos for today'
+  if (jobs > 0 && move) return `${jobs} new role${jobs === 1 ? '' : 's'} for you, and ${lowerFirst(move.title)}`
+  if (jobs > 0) return `${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
+  if (move) return move.title
+  if (content.score?.status === 'locked') return "Your A is locked in. Here's today"
+  if (owed > 0) return `${owed} follow-up${owed === 1 ? '' : 's'} for today`
+  if (content.todos.length > 0) return 'Your to-dos for today'
   return 'Your day, in one minute'
 }
 
