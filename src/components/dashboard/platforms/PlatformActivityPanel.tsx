@@ -42,14 +42,17 @@ export function PlatformActivityPanel({
         <p className="text-sm text-muted-foreground">{copy.intro}</p>
       </CardHeader>
       <CardContent>
-        {!gmailConnected ? (
-          <p className="text-sm text-muted-foreground">
+        {!gmailConnected && (
+          <p className={rows.length > 0 ? 'mb-3 text-sm text-muted-foreground' : 'text-sm text-muted-foreground'}>
             <Link href="/dashboard/privacy" className="font-medium text-primary underline underline-offset-4">
               Connect Gmail
             </Link>{' '}
-            and this fills in on its own. We only read mail from the platforms themselves, and we keep the platform, stage, date and subject line, never the email itself.
+            {rows.length > 0
+              ? 'to keep this up to date. It stopped updating when Gmail was disconnected.'
+              : 'and this fills in on its own. We only read mail from the platforms themselves, and we keep the platform, stage, date and subject line, never the email itself.'}
           </p>
-        ) : rows.length === 0 ? (
+        )}
+        {!gmailConnected && rows.length === 0 ? null : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">{copy.empty}</p>
         ) : (
           <ul className="divide-y divide-border">

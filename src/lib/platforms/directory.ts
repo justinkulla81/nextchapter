@@ -223,6 +223,7 @@ export const PLATFORM_DIRECTORY: PlatformEntry[] = [
     ['open-university', 'OpenLearn', 'open.ac.uk'],
     ['toastmasters', 'Toastmasters', 'toastmasters.org'],
     ['dale-carnegie', 'Dale Carnegie', 'dalecarnegie.com'],
+    ['success-coaching', 'Success Coaching', 'successcoaching.co'],
     ['franklin-covey', 'FranklinCovey', 'franklincovey.com'],
     ['amanet', 'American Management Association', 'amanet.org'],
     ['noodle', 'Noodle', 'noodle.com'],
@@ -306,6 +307,9 @@ export const PLATFORM_DIRECTORY: PlatformEntry[] = [
     ['atd', 'ATD (talent development)', 'td.org'],
     ['ama-marketing', 'American Marketing Association', 'ama.org'],
     ['peoplecert', 'PeopleCert / AXELOS (PRINCE2, ITIL)', 'axelos.com, peoplecert.org'],
+    ['cncf', 'CNCF (Kubernetes certifications)', 'cncf.io'],
+    ['scce', 'SCCE & HCCA (compliance)', 'corporatecompliance.org, hcca-info.org'],
+    ['iaap', 'IAAP (administrative professionals)', 'iaap-hq.org'],
   ]),
   ...group('CREDENTIAL_SERVICE', [
     ['pearson-vue', 'Pearson VUE', 'pearsonvue.com, pearson.com', /exam|test|appointment|certification|score/i],
