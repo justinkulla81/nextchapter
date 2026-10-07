@@ -442,6 +442,10 @@ export default async function Home() {
             <Link href="/privacy-policy" className="underline underline-offset-4">
               Privacy Policy
             </Link>
+            {' · '}
+            <Link href="/terms" className="underline underline-offset-4">
+              Terms of Service
+            </Link>
           </p>
         </div>
       </footer>

@@ -90,6 +90,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/editorial-standards" className="underline underline-offset-4">Editorial standards</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
+          {' · '}<Link href="/terms" className="underline underline-offset-4">Terms of Service</Link>
           {' · '}
           <TrackedLink href={COMPANY_LINKEDIN_URL} event="company_linkedin_clicked" properties={{ page, placement: 'footer' }} className="underline underline-offset-4">
             LinkedIn
