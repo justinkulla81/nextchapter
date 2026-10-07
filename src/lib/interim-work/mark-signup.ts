@@ -14,7 +14,10 @@ import type { InterimSignupSource } from '@prisma/client'
 export async function markInterimMarketplaceSignupCore(
   candidateId: string,
   listingId: string,
-  source: InterimSignupSource
+  source: InterimSignupSource,
+  // False for an email found in a history backfill — the checkbox still
+  // gets ticked, but old mail never earns this week's points.
+  { awardPoints = true }: { awardPoints?: boolean } = {}
 ): Promise<void> {
   const listing = await prisma.interimListing.findUnique({ where: { id: listingId } })
   if (!listing) return
@@ -26,7 +29,7 @@ export async function markInterimMarketplaceSignupCore(
 
   // Only award points/log the action the first time — skipDuplicates means
   // a repeat call here did nothing, so don't double-count it.
-  if (result.count > 0) {
+  if (result.count > 0 && awardPoints) {
     const effort = estimateActionEffort({ actionType: 'INTERIM_PROFILE_CREATED' })
     await logCatalogAction(candidateId, {
       text: `Created a profile on ${listing.name}`,

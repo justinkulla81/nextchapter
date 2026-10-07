@@ -1,4 +1,5 @@
 import 'server-only'
+import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
@@ -66,7 +67,7 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
     return cached
   }
 
-  const [weekNumber, sprint, outcomes, levelRank, recentSnapshotsDesc] = await Promise.all([
+  const [weekNumber, sprint, outcomes, levelRank, recentSnapshotsDesc, platformActivity] = await Promise.all([
     getCandidateWeekNumber(candidateId, weekStartDate),
     getCurrentWeekSprint(candidateId),
     getWeeklyOutcomes(candidateId, weekStartDate),
@@ -76,6 +77,7 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
       orderBy: { weekStartDate: 'desc' },
       take: 8,
     }),
+    getPlatformActivity(candidateId).then((rows) => rows.filter((r) => !r.dismissed)),
   ])
 
   // Nothing to reflect on yet — the candidate hasn't started a Search
@@ -107,6 +109,12 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
     ? `Market Reality Assessment moved ${gradeMovement.direction} from ${gradeMovement.fromGrade} to ${gradeMovement.toGrade}`
     : 'No Market Reality Assessment change since last week.'
 
+  const platformLines =
+    platformActivity
+      .slice(0, 10)
+      .map((p) => `${p.name} (${p.kind === 'WORK' ? 'work' : 'learning'}): ${p.label}${p.healthLabel ? `, ${p.healthLabel.toLowerCase()}` : ''}${p.courseTitle ? `, ${p.courseTitle}` : ''}`)
+      .join('; ') || 'none detected'
+
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
@@ -122,6 +130,7 @@ Target company stage: ${candidate.targetCompanyStage ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}
 Open to fractional/interim consulting while searching: ${candidate.interimConsultingInterest ? 'yes' : 'no'}
 Application volume goal (per week): ${candidate.applicationVolumeGoal ?? 'not specified'} (baseline is 15/week)
+Fractional work platforms and learning they've started (read from those platforms' own emails; stage, then any warning): ${platformLines}
 
 This week's Search Sprint pace (internal signal — informs your judgment only; the exact numbers are shown live elsewhere on the dashboard and will be stale by the time this is read later in the week, so never quote them): ${pointsAchieved} of ${pointsTarget} points earned so far${pointsAchieved >= pointsTarget ? ' (already at or past target)' : ` (${pointsTarget - pointsAchieved} points short of target)`}.
 Actions committed to this week that are NOT yet done: ${incompleteActions.length > 0 ? incompleteActions.join('; ') : 'everything committed to is done'}

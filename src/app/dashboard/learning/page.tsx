@@ -20,6 +20,8 @@ import { badgeCountToTier } from '@/lib/learning/badge-count-tier'
 import { computeBadgeTypeMix } from '@/lib/learning/badge-type-mix'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
 import { SkillsInventoryGateCard } from '@/components/dashboard/learning/SkillsInventoryGateCard'
+import { getPlatformActivity } from '@/lib/platforms/candidate-view'
+import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -66,7 +68,7 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 export default async function LearningPage() {
   const profile = await getDashboardData()
   const weekStart = getMondayOfWeek(new Date())
-  const [plan, badges, courseActivity, learningEvents, assessmentResponseCount] = await Promise.all([
+  const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
       where: { candidateId: profile.id },
@@ -81,6 +83,8 @@ export default async function LearningPage() {
       select: { startTime: true, durationMinutes: true },
     }),
     prisma.candidateAssessmentResponse.count({ where: { candidateId: profile.id } }),
+    getPlatformActivity(profile.id, 'LEARNING'),
+    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
   ])
   const hasTakenAssessment = assessmentResponseCount > 0
   const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
@@ -140,6 +144,8 @@ export default async function LearningPage() {
           ]}
         />
       )}
+
+      <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
 
       <LearningSection
         title="AI Training"

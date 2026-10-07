@@ -162,6 +162,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/candidates/declined-commitment', label: 'Declined Commitment' },
         { href: '/support/admin/performance', label: 'Performance' },
         { href: '/support/admin/pacing', label: 'Pacing' },
+        { href: '/support/admin/platform-engagement', label: 'Work & Learning' },
         { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts' },
         { href: '/support/admin/weekly-recognition', label: 'Weekly Recognition Archive' },
         { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },

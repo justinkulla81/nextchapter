@@ -3,11 +3,15 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { markInterimMarketplaceSignup } from '@/app/dashboard/interim-work/actions'
 import type { InterimListing, InterimSignupSource } from '@prisma/client'
+import type { PlatformStatus } from '@/lib/platforms/candidate-view'
+import { PlatformStagePill } from '@/components/dashboard/platforms/PlatformStagePill'
 
 interface InterimListingCarouselProps {
   listings: InterimListing[]
   signedUpIds: Map<string, InterimSignupSource>
   showSignupCheckbox?: boolean
+  // Stage read from the platform's own email (src/lib/platforms/).
+  platformStatuses?: Map<string, PlatformStatus>
 }
 
 // Same content/logic as InterimListingGrid, laid out as a horizontal
@@ -15,7 +19,7 @@ interface InterimListingCarouselProps {
 // the app's other logo carousels (AlumniNetworkCarousel, CuratedVideoCard on
 // Videos and Webinars). A listing with no logoUrl on file yet falls back to
 // an initial-letter badge rather than a blank/broken image.
-export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckbox = false }: InterimListingCarouselProps) {
+export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckbox = false, platformStatuses }: InterimListingCarouselProps) {
   if (listings.length === 0) return null
 
   return (
@@ -23,6 +27,7 @@ export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckb
       {listings.map((listing) => {
         const signupSource = signedUpIds.get(listing.id)
         const signedUp = signupSource !== undefined
+        const platformStatus = platformStatuses?.get(listing.id)
         return (
           <div
             key={listing.id}
@@ -58,6 +63,7 @@ export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckb
                   {listing.designation === 'PARTNER' ? 'Partner' : 'Included for quality'}
                 </span>
               </div>
+              {platformStatus && <PlatformStagePill status={platformStatus} className="self-start" />}
               <p className="line-clamp-3 text-xs text-muted-foreground">{listing.description}</p>
               {listing.designationNote && (
                 <p className="text-xs text-muted-foreground italic">{listing.designationNote}</p>

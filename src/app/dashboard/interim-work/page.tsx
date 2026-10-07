@@ -26,6 +26,8 @@ import { getMatchedRolesForCandidate } from '@/lib/matching/candidate-role-match
 import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
+import { getPlatformActivity, statusByListing } from '@/lib/platforms/candidate-view'
+import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
@@ -56,7 +58,7 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs, dossierStatus] =
+  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs, dossierStatus, platformRows, gmailConnection] =
     await Promise.all([
       getInterimLaunchPlan(profile),
       getActiveListings(marketplaceCategories),
@@ -89,7 +91,10 @@ export default async function InterimWorkPage() {
         distinct: ['partnerName'],
       }),
       isDossierUnlocked(profile.id),
+      getPlatformActivity(profile.id, 'WORK'),
+      prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
     ])
+  const platformStatuses = statusByListing([...marketplaceListings, ...expertNetworkListings, ...allBoardListings], platformRows)
   const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
   const matchedBoardRoles = dossierStatus.unlocked
     ? await getMatchedRolesForCandidate(profile.id, ['BOARD_PAID', 'BOARD_UNPAID', 'CONSULTING_PAID', 'CONSULTING_UNPAID'])
@@ -114,6 +119,8 @@ export default async function InterimWorkPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Interim Work</h1>
         <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
       </div>
+
+      <PlatformActivityPanel kind="WORK" rows={platformRows} gmailConnected={!!gmailConnection} />
 
       {/* Second chance at the Board Advisory Work willingness question —
           shown only until answered yes here or on Search Strategy (a "no"
@@ -287,7 +294,7 @@ export default async function InterimWorkPage() {
                 arrangement.
               </p>
             </div>
-            <InterimListingCarousel listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox />
+            <InterimListingCarousel listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox platformStatuses={platformStatuses} />
           </section>
 
           {/* Section 3 — Expert Networks */}
@@ -307,7 +314,7 @@ export default async function InterimWorkPage() {
                 with your coach before signing up.
               </p>
             )}
-            <InterimListingCarousel listings={expertNetworkListings} signedUpIds={signedUpIds} />
+            <InterimListingCarousel listings={expertNetworkListings} signedUpIds={signedUpIds} platformStatuses={platformStatuses} />
           </section>
 
           {/* Section 4 — Board & Advisory (Phase 8, §A2.4 — a Membership perk) */}
@@ -358,7 +365,7 @@ export default async function InterimWorkPage() {
                     </div>
                   </div>
                 )}
-                <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
+                <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} platformStatuses={platformStatuses} />
               </>
             )}
           </section>

@@ -8,6 +8,7 @@ import {
   fetchGoogleAccountEmail,
 } from '@/lib/email-tracking/gmail-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { scanPlatformHistory } from '@/lib/platforms/backfill'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
@@ -110,7 +111,11 @@ export async function GET(request: NextRequest) {
     // is still a fallback.
     after(() =>
       Promise.all([
-        syncGmailConnection(emailConnection.id).catch((error) => console.error('Initial Gmail sync failed:', error)),
+        syncGmailConnection(emailConnection.id)
+          .catch((error) => console.error('Initial Gmail sync failed:', error))
+          // Then a year of fractional-work and learning platform mail
+          // (src/lib/platforms/) so their progress there shows up right away.
+          .then(() => scanPlatformHistory(profile.id, emailConnection.id)),
         syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
           console.error('Initial Calendar sync failed:', error)
         ),

@@ -35,7 +35,7 @@ export function streakFromActiveDays(activeDays: Set<number>, now: Date = new Da
  */
 export async function getActiveDays(candidateId: string, now: Date = new Date()): Promise<Set<number>> {
   const since = new Date(now.getTime() - LOOKBACK_DAYS * DAY)
-  const [checkIns, applications, outreach, emails, meetings, sprints] = await Promise.all([
+  const [checkIns, applications, outreach, emails, meetings, sprints, platformEvents, dismissedPlatforms] = await Promise.all([
     prisma.dailyCheckIn.findMany({ where: { candidateId, checkedInAt: { gte: since } }, select: { checkedInAt: true } }),
     prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { gte: since, lte: now } }, select: { appliedAt: true } }),
     prisma.outreachLog.findMany({ where: { candidateId, loggedAt: { gte: since } }, select: { loggedAt: true } }),
@@ -48,6 +48,14 @@ export async function getActiveDays(candidateId: string, now: Date = new Date())
       select: { startTime: true },
     }),
     prisma.weeklySprint.findMany({ where: { candidateId, weekStartDate: { gte: new Date(since.getTime() - 7 * DAY) } }, select: { committedActions: true } }),
+    // A platform's own email about progress (graded assignment, project,
+    // payout, enrollment) — a day spent working or learning. Not plain
+    // sign-ups or "we miss you" nudges.
+    prisma.candidatePlatformEvent.findMany({
+      where: { candidateId, stage: { notIn: ['SIGNED_UP'] }, signal: null, emailAt: { gte: since, lte: now } },
+      select: { emailAt: true, platformKey: true },
+    }),
+    prisma.candidatePlatformActivity.findMany({ where: { candidateId, dismissedAt: { not: null } }, select: { platformKey: true } }),
   ])
 
   const days = new Set<number>()
@@ -57,6 +65,8 @@ export async function getActiveDays(candidateId: string, now: Date = new Date())
   outreach.forEach((r) => add(r.loggedAt))
   emails.forEach((r) => add(r.detectedAt))
   meetings.forEach((r) => add(r.startTime))
+  const dismissed = new Set(dismissedPlatforms.map((p) => p.platformKey))
+  platformEvents.forEach((r) => { if (!dismissed.has(r.platformKey)) add(r.emailAt) })
   for (const s of sprints) {
     const actions = Array.isArray(s.committedActions) ? (s.committedActions as { completed?: boolean; completedAt?: string | null }[]) : []
     for (const a of actions) if (a?.completed && a.completedAt) add(new Date(a.completedAt))

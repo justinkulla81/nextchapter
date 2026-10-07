@@ -1396,6 +1396,8 @@ model CandidateProfile {
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
   courseActivity                 CandidateCourseActivity[]
+  platformActivity               CandidatePlatformActivity[]
+  platformEvents                 CandidatePlatformEvent[]
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
@@ -11455,4 +11457,80 @@ model CheckInPrompt {
   answeredAt  DateTime?
 
   @@index([candidateId, shownAt])
+}
+
+// Fractional work platforms and learning providers tracked from a
+// candidate's own inbox — see src/lib/platforms/ (directory.ts lists every
+// platform and its sender domains; stages.ts reads an email's stage). One
+// summary row per (candidate, platform), plus one event row per detected
+// email. Only the platform, stage, date and subject line are stored, never
+// the email body.
+enum PlatformKind {
+  WORK
+  LEARNING
+}
+
+enum PlatformStage {
+  SIGNED_UP
+  IN_VETTING
+  ACCEPTED
+  WORKING
+  EARNING
+  ENROLLED
+  LEARNING
+  EXAM_BOOKED
+  COMPLETED
+}
+
+enum PlatformHealth {
+  ACTIVE
+  FALLING_BEHIND // a learning platform's own "you're behind / deadline missed" email
+  GONE_QUIET // the platform's own "we miss you" email; also computed at read time from lastProgressAt
+  NOT_ACCEPTED // a work platform's rejection email
+}
+
+model CandidatePlatformActivity {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  platformKey    String // PLATFORM_DIRECTORY key
+  kind           PlatformKind
+  stage          PlatformStage // furthest stage proven — only ever moves forward
+  stageAt        DateTime
+  health         PlatformHealth @default(ACTIVE)
+  healthAt       DateTime?
+  firstSeenAt    DateTime
+  lastEmailAt    DateTime
+  // Last email that showed real progress (any stage match) — "gone quiet"
+  // is computed from this, so a stream of marketing mail never looks active.
+  lastProgressAt DateTime?
+  emailCount     Int            @default(0)
+  lastSubject    String?
+  courseTitle    String? // latest course/credential name read from a subject, learning only
+  // Candidate said this detection is wrong. Kept (not deleted) so the next
+  // sync doesn't re-create it; cleared if they add it back.
+  dismissedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([candidateId, platformKey])
+  @@index([platformKey, stage])
+}
+
+model CandidatePlatformEvent {
+  id                String           @id @default(cuid())
+  candidateId       String
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  platformKey       String
+  stage             PlatformStage?
+  signal            PlatformHealth?
+  emailAt           DateTime
+  subject           String
+  externalMessageId String
+  createdAt         DateTime         @default(now())
+
+  @@unique([candidateId, externalMessageId])
+  @@index([candidateId, emailAt])
+  @@index([platformKey])
 }

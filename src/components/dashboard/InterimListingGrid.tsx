@@ -4,20 +4,24 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { markInterimMarketplaceSignup } from '@/app/dashboard/interim-work/actions'
 import type { InterimListing, InterimSignupSource } from '@prisma/client'
+import type { PlatformStatus } from '@/lib/platforms/candidate-view'
+import { PlatformStagePill } from '@/components/dashboard/platforms/PlatformStagePill'
 
 interface InterimListingGridProps {
   listings: InterimListing[]
   signedUpIds: Map<string, InterimSignupSource>
   showSignupCheckbox?: boolean
+  platformStatuses?: Map<string, PlatformStatus>
 }
 
-export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox = false }: InterimListingGridProps) {
+export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox = false, platformStatuses }: InterimListingGridProps) {
   if (listings.length === 0) return null
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {listings.map((listing) => {
         const signedUp = signedUpIds.has(listing.id)
+        const platformStatus = platformStatuses?.get(listing.id)
         return (
           <Card key={listing.id}>
             <CardHeader>
@@ -42,6 +46,7 @@ export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox =
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              {platformStatus && <PlatformStagePill status={platformStatus} />}
               <p className="text-sm text-muted-foreground">{listing.description}</p>
               {listing.designationNote && (
                 <p className="text-xs text-muted-foreground italic">{listing.designationNote}</p>
