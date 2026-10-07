@@ -14,13 +14,13 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
-import { pickVicLine, seededRandom, LINE_REPEAT_DAYS, type LineMood } from './lines'
 import {
   UNLOCK_NUDGES,
   UNLOCK_REPEAT_DAYS,
   ACTION_BUTTONS,
   QUOTES,
   QUOTE_REPEAT_DAYS,
+  seededRandom,
   type RotationContext,
   type Quote,
 } from './rotations'
@@ -32,15 +32,13 @@ import {
 // than padded. No LLM call anywhere in here (founder decision, 2026-10-07).
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const QUIET_THRESHOLD_DAYS = 3
 const MAX_TODOS = 3
 const MAX_JOBS = 3
 const JOB_LOOKBACK_DAYS = 7 // first send, or a candidate returning after a gap
-const LAYOFF_LOOKBACK_DAYS = 3
-const LAYOFF_MIN_EMPLOYEES = 200
 const ARTICLE_LOOKBACK_DAYS = 21
-const COMPANY_MOVE_MIN_DELTA = 3 // open roles up or down by at least this many over 4 weeks…
-const COMPANY_MOVE_MIN_SHARE = 0.15 // …and by at least this share, so 594 → 580 at a giant isn't "news"
+const COMPANY_MOVE_MIN_DELTA = 3 // open roles up by at least this many over 4 weeks…
+const COMPANY_MOVE_MIN_SHARE = 0.15 // …and by at least this share, so a small swing at a giant isn't "news"
+const MAX_STALE_SHOWN = 3
 
 export interface DailyTodo {
   text: string
@@ -54,23 +52,25 @@ export interface DailyItem {
   href: string | null
 }
 
+export type ScoreStatus = 'locked' | 'onTrack' | 'behind' | 'atRisk'
+
 export interface JobSearchDailyContent {
+  firstName: string | null
+  streak: number // consecutive check-in days
   dayNumber: number | null
-  line: { key: string; text: string }
-  score: { earned: number; target: number } | null
+  score: { earned: number; target: number; status: ScoreStatus } | null
   todos: DailyTodo[]
+  applications: DailyItem[] // every application waiting on a reply — tasks, so never deduped
+  networking: DailyItem[] // replies owed, starred people due a note, a contact at a hiring company, a few stale contacts
+  networkingMoreCount: number // stale contacts beyond the few shown
   jobs: { items: DailyItem[]; lockedCount: number }
   companyMoves: DailyItem[]
-  layoff: DailyItem | null
   reconnect: DailyItem | null
   article: DailyItem | null
-  followUps: DailyItem[] // every reply owed and unanswered application — tasks, not news, so never deduped
-  stale: DailyItem[] // contacts not reached in a while (full list; the email shows the top few)
-  starred: DailyItem[] // starred contacts due for outreach
   unlock: DailyItem | null
   action: { label: string; href: string }
   quote: Quote | null
-  freshCount: number // new items beyond the line, todos and score — 0 means there's nothing new to say today
+  freshCount: number // new items (jobs, company moves, contact, article) — 0 means nothing new today
 }
 
 type Candidate = CandidateProfile
@@ -126,7 +126,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     )
   const knowLine = (companyName: string) => {
     const n = contactsAt(companyName).length
-    return n === 0 ? null : n === 1 ? 'You know 1 person there.' : `You know ${n} people there.`
+    return n === 0 ? null : `you know ${n}`
   }
 
   // ── Score + today's 3 ─────────────────────────────────────────────────
@@ -140,7 +140,13 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .sort((a, b) => b.points - a.points)
     .slice(0, MAX_TODOS)
     .map((a) => ({ text: a.text, points: a.points }))
-  const score = sprint ? { earned: engines.weeklyPoints, target: engines.weeklyPointsTarget } : null
+  const score = sprint
+    ? {
+        earned: engines.weeklyPoints,
+        target: engines.weeklyPointsTarget,
+        status: scoreStatus(engines.weeklyPoints, engines.weeklyPointsTarget, now),
+      }
+    : null
 
   // ── New roles that fit ───────────────────────────────────────────────
   const jobsSince = lastSend ? lastSend.sentAt : new Date(now.getTime() - JOB_LOOKBACK_DAYS * DAY_MS)
@@ -181,128 +187,31 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const weekStart = getMondayOfWeek(now)
   const companyMoves: DailyItem[] = []
   if (trackedNames.length > 0) {
-    const [signals, warns] = await Promise.all([
-      prisma.companySignal.findMany({
-        where: { weekStartDate: weekStart },
-        include: { company: { select: { id: true, name: true } } },
-      }),
-      prisma.warnNotice.findMany({
-        where: {
-          fetchedAt: { gte: new Date(now.getTime() - 14 * DAY_MS) },
-          dismissedAt: null,
-        },
-        select: {
-          id: true,
-          employer: true,
-          employees: true,
-          state: true,
-          noticeDate: true,
-        },
-      }),
-    ])
+    const signals = await prisma.companySignal.findMany({
+      where: { weekStartDate: weekStart },
+      include: { company: { select: { id: true, name: true } } },
+    })
     for (const name of trackedNames) {
-      const warn = warns.find((w) => orgNamesMatch(w.employer, name) && !shownKeys.has(`warn:${w.id}`))
-      if (warn) {
-        companyMoves.push({
-          key: `warn:${warn.id}`,
-          title: `${name} filed a layoff notice`,
-          detail: [
-            warn.employees ? `${warn.employees} roles affected` : null,
-            warn.state ? `in ${warn.state}` : null,
-            'Worth a check before your next conversation there.',
-          ]
-            .filter(Boolean)
-            .join(' '),
-          href: null,
-        })
-        continue
-      }
       const signal = signals.find((s) => orgNamesMatch(s.company.name, name))
       const key = signal ? `co:${signal.company.id}:${weekStart.toISOString().slice(0, 10)}` : null
       if (!signal || !key || shownKeys.has(key)) continue
       const before = signal.openRolesTotal - signal.rolesDelta4wk
-      const delta = Math.abs(signal.rolesDelta4wk)
-      if (delta < COMPANY_MOVE_MIN_DELTA || delta < Math.max(before, 1) * COMPANY_MOVE_MIN_SHARE) continue
-      const up = signal.rolesDelta4wk > 0
+      // Only growth — a company pulling back isn't a reason to act today.
+      if (
+        signal.rolesDelta4wk < COMPANY_MOVE_MIN_DELTA ||
+        signal.rolesDelta4wk < Math.max(before, 1) * COMPANY_MOVE_MIN_SHARE
+      )
+        continue
       // The Company record's name, not however the candidate typed it.
       const display = signal.company.name
       companyMoves.push({
         key,
-        title: up ? `${display} is hiring more` : `${display} is hiring less`,
-        detail: [
-          `Open roles ${up ? 'up' : 'down'} from ${before} to ${signal.openRolesTotal} in four weeks.`,
-          knowLine(name),
-        ]
-          .filter(Boolean)
-          .join(' '),
+        title: `${display} is hiring more`,
+        detail: [`${before} → ${signal.openRolesTotal} open roles`, knowLine(display)].filter(Boolean).join(' · '),
         href: jobsUrl,
       })
     }
   }
-
-  // ── One layoff headline worth knowing about ───────────────────────────
-  const layoffNews = await prisma.layoffNewsMention.findMany({
-    where: {
-      createdAt: {
-        gte: new Date(now.getTime() - LAYOFF_LOOKBACK_DAYS * DAY_MS),
-      },
-      employees: { gte: LAYOFF_MIN_EMPLOYEES },
-    },
-    orderBy: { employees: 'desc' },
-    take: 20,
-  })
-  // Only headlines tied to a US WARN filing (a notice with a state) — the
-  // news feed also picks up overseas layoffs that mean nothing to a US search.
-  const usNoticeIds = new Set(
-    (
-      await prisma.warnNotice.findMany({
-        where: {
-          id: { in: layoffNews.map((n) => n.noticeId).filter((id): id is string => !!id) },
-          state: { not: null },
-        },
-        select: { id: true },
-      })
-    ).map((w) => w.id)
-  )
-  const layoffRow = layoffNews.find(
-    (n) =>
-      !!n.noticeId &&
-      usNoticeIds.has(n.noticeId) &&
-      !shownKeys.has(`layoff:${n.id}`) &&
-      !companyMoves.some((m) => orgNamesMatch(m.title.split(' ')[0], n.company))
-  )
-  // No US headline today → fall back to a large US WARN filing itself.
-  const warnRow = layoffRow
-    ? null
-    : (
-        await prisma.warnNotice.findMany({
-          where: {
-            fetchedAt: { gte: new Date(now.getTime() - LAYOFF_LOOKBACK_DAYS * DAY_MS) },
-            employees: { gte: LAYOFF_MIN_EMPLOYEES },
-            state: { not: null },
-            dismissedAt: null,
-          },
-          orderBy: { employees: 'desc' },
-          take: 10,
-          select: { id: true, employer: true, employees: true, state: true, sourceUrl: true },
-        })
-      ).find((w) => !shownKeys.has(`warn:${w.id}`) && !companyMoves.some((m) => m.key === `warn:${w.id}`))
-  const layoffDetail = 'More people in the market means more competition, and more experienced people worth knowing.'
-  const layoff: DailyItem | null = layoffRow
-    ? {
-        key: `layoff:${layoffRow.id}`,
-        title: `${layoffRow.company} is cutting ${layoffRow.employees} roles`,
-        detail: layoffDetail,
-        href: layoffRow.url,
-      }
-    : warnRow
-      ? {
-          key: `warn:${warnRow.id}`,
-          title: `${warnRow.employer} filed notice for ${warnRow.employees} layoffs in ${warnRow.state}`,
-          detail: layoffDetail,
-          href: warnRow.sourceUrl,
-        }
-      : null
 
   // ── Someone in your network at a company that's hiring ────────────────
   // Only companies with an open role this candidate fits, or a tracked
@@ -321,10 +230,8 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     if (candidates[0]) {
       reconnect = {
         key: `contact:${candidates[0].id}`,
-        title: `Reach out to ${candidates[0].name}`,
-        detail: `${candidates[0].name} is at ${company}, which ${
-          fitCompanies.has(company) ? 'just posted a role that fits you' : 'is hiring more right now'
-        }. A short note asking how the team is doing is enough.`,
+        title: `${candidates[0].name}, ${company}`,
+        detail: fitCompanies.has(company) ? 'just posted a role that fits you' : 'hiring more right now',
         href: networkUrl,
       }
       break
@@ -343,6 +250,13 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
       // NextChapter's own report editions (and their correction notices)
       // live on the News page, but they aren't candidate reading.
       OR: [{ newsKind: null }, { newsKind: { not: 'report' } }],
+      // Layoff stories are demotivating in a morning email (founder call).
+      NOT: [
+        { newsTitle: { contains: 'laid off', mode: 'insensitive' } },
+        { newsTitle: { contains: 'layoff', mode: 'insensitive' } },
+        { title: { contains: 'laid off', mode: 'insensitive' } },
+        { title: { contains: 'layoff', mode: 'insensitive' } },
+      ],
       id: {
         notIn: [...shownKeys].filter((k) => k.startsWith('article:')).map((k) => k.slice('article:'.length)),
       },
@@ -361,7 +275,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
       ? {
           key: `article:${articleRow.id}`,
           title: (articleRow.newsTitle ?? articleRow.title)!,
-          detail: articleRow.newsBlurb ?? articleRow.newsSource ?? null,
+          detail: articleRow.newsSource ?? null,
           href: digestClickUrl('candidate', candidate.id, articleRow.id),
         }
       : null
@@ -370,23 +284,42 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const withSrc = (href: string) =>
     href.startsWith('http') ? href : `${appUrl}${href}${href.includes('?') ? '&' : '?'}src=job_search_daily`
   const followUpRows = await getUnifiedFollowUps(candidate.id, 50)
-  const toItem = (f: (typeof followUpRows)[number]): DailyItem => ({
+  const toItem = (f: (typeof followUpRows)[number], detail: string | null): DailyItem => ({
     key: `fu:${f.kind}:${f.id}`,
     title: f.title,
-    detail: f.subtitle,
+    detail,
     href: withSrc(f.href),
   })
-  const followUps = followUpRows
-    .filter((f) => f.kind === 'needs-follow-up' || f.kind === 'unanswered-application')
-    .map(toItem)
+  const applications = followUpRows
+    .filter((f) => f.kind === 'unanswered-application')
+    .map((f) => {
+      // subtitle is "<company> — applied <date>, no word yet"
+      const company = f.subtitle.split(' — applied ')[0]
+      const applied = f.date
+        ? `applied ${f.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+        : null
+      // Untitled applications read better as the company name.
+      return toItem(
+        { ...f, title: f.title === 'Application' ? company : f.title },
+        f.title === 'Application' ? applied : [company, applied].filter(Boolean).join(', ')
+      )
+    })
+  const repliesOwed = followUpRows.filter((f) => f.kind === 'needs-follow-up').map((f) => toItem(f, f.subtitle))
+  const starred = followUpRows
+    .filter((f) => f.kind === 'starred-contact')
+    .map((f) =>
+      toItem(
+        { ...f, title: `★ ${f.title}` },
+        f.subtitle.replace(/^Starred — /, '').replace(/^Starred contact$/, '') || null
+      )
+    )
   // Synced contacts include automated senders ("LinkedIn Job Alerts") —
   // never tell someone to reconnect with a mailing list.
   const stale = followUpRows
     .filter((f) => f.kind === 'stale-contact' && !/\b(alerts?|no-?reply|notifications?|newsletter)\b/i.test(f.title))
-    .map(toItem)
-  const starred = followUpRows
-    .filter((f) => f.kind === 'starred-contact')
-    .map((f) => ({ ...toItem(f), detail: f.subtitle.replace(/^Starred — /, '') || null }))
+    .map((f) => toItem(f, f.subtitle.replace(/^Haven't connected in a while( — )?/, '') || null))
+  const networking = [...repliesOwed, ...starred, ...(reconnect ? [reconnect] : []), ...stale.slice(0, MAX_STALE_SHOWN)]
+  const networkingMoreCount = Math.max(0, stale.length - MAX_STALE_SHOWN)
 
   // ── Rotations: unlock nudge, action button, quote ─────────────────────
   const recentlyShown = (prefix: string, days: number) => {
@@ -443,44 +376,25 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
       'quote'
     ) ?? pickFrom(QUOTES, 'quote')
 
-  // ── Vic's line ────────────────────────────────────────────────────────
-  const daysQuiet = candidate.lastCheckInAt ? (now.getTime() - candidate.lastCheckInAt.getTime()) / DAY_MS : Infinity
-  const moods: LineMood[] = []
-  if (daysQuiet >= QUIET_THRESHOLD_DAYS && candidate.lastCheckInAt) moods.push('quiet')
-  else if (weekNumber <= 1) moods.push('firstWeek')
-  else if (score && score.earned >= score.target) moods.push('ahead')
-  else if (score && score.earned >= expectedPointsByToday(score.target, now)) moods.push('onPace')
-  else if (score) moods.push('behind')
-  const weekday = now.getUTCDay()
-  if (weekday === 1) moods.push('monday')
-  if (weekday === 5) moods.push('friday')
-  const lineCutoff = now.getTime() - LINE_REPEAT_DAYS * DAY_MS
-  const recentLineIds = new Set(
-    shown
-      .filter((s) => s.itemKey.startsWith('line:') && s.shownAt.getTime() >= lineCutoff)
-      .map((s) => s.itemKey.slice(5))
-  )
-  const vicLine = pickVicLine(moods, recentLineIds, `${candidate.id}:${now.toISOString().slice(0, 10)}`)
-
   const dayNumber = candidate.registrationCompletedAt
     ? Math.floor((now.getTime() - candidate.registrationCompletedAt.getTime()) / DAY_MS) + 1
     : null
 
-  const freshCount = jobItems.length + companyMoves.length + (layoff ? 1 : 0) + (reconnect ? 1 : 0) + (article ? 1 : 0)
+  const freshCount = jobItems.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
+    firstName: candidate.firstName,
+    streak: candidate.currentStreak,
     dayNumber,
-    line: { key: `line:${vicLine.id}`, text: vicLine.text },
     score,
     todos,
+    applications,
+    networking,
+    networkingMoreCount,
     jobs: { items: jobItems, lockedCount },
     companyMoves,
-    layoff,
     reconnect,
     article,
-    followUps,
-    stale,
-    starred,
     unlock,
     action,
     quote,
@@ -489,28 +403,22 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
 }
 
 // Every item key in the content — logged after a successful send so none of
-// these ever show again.
+// these ever show again. Follow-ups aren't logged: they're tasks that stay
+// until done.
 export function shownItemKeys(content: JobSearchDailyContent): string[] {
   return [
-    content.line.key,
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
-    ...[content.layoff, content.reconnect, content.article, content.unlock]
-      .filter((i): i is DailyItem => !!i)
-      .map((i) => i.key),
+    ...[content.reconnect, content.article, content.unlock].filter((i): i is DailyItem => !!i).map((i) => i.key),
     ...(content.quote ? [`quote:${content.quote.id}`] : []),
   ]
 }
 
-// Keys that come back around after a repeat window (line, unlock nudge,
-// quote) — their existing row's shownAt gets bumped on each showing so the
-// window restarts.
+// Keys that come back around after a repeat window (unlock nudge, quote) —
+// their existing row's shownAt gets bumped on each showing so the window
+// restarts.
 export function rotatingItemKeys(content: JobSearchDailyContent): string[] {
-  return [
-    content.line.key,
-    ...(content.unlock ? [content.unlock.key] : []),
-    ...(content.quote ? [`quote:${content.quote.id}`] : []),
-  ]
+  return [...(content.unlock ? [content.unlock.key] : []), ...(content.quote ? [`quote:${content.quote.id}`] : [])]
 }
 
 // Whether there's anything worth sending today: something new, or
@@ -519,10 +427,17 @@ export function hasSomethingToSay(content: JobSearchDailyContent): boolean {
   return (
     content.freshCount > 0 ||
     content.todos.length > 0 ||
-    content.followUps.length > 0 ||
-    content.starred.length > 0 ||
-    content.stale.length > 0
+    content.applications.length > 0 ||
+    content.networking.length > 0
   )
+}
+
+// Where this week's points stand against an even pace to an A by Sunday.
+function scoreStatus(earned: number, target: number, now: Date): ScoreStatus {
+  if (earned >= target) return 'locked'
+  const expected = expectedPointsByToday(target, now)
+  if (earned >= expected) return 'onTrack'
+  return earned >= expected / 2 ? 'behind' : 'atRisk'
 }
 
 // Points a candidate "should" have by this point in the week to be on pace

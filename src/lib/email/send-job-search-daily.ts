@@ -2,7 +2,6 @@ import 'server-only'
 import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getVictoriaName } from '@/lib/victoria'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -22,16 +21,14 @@ type SendResult = { sent: true } | { sent: false; reason: string }
 function buildSubject(content: JobSearchDailyContent): string {
   const jobs = content.jobs.items.length
   const move = content.companyMoves[0]
-  if (jobs > 0 && move) return `${jobs} new role${jobs === 1 ? '' : 's'} that fit, and ${lowerFirst(move.title)}`
-  if (jobs > 0) return `${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
-  if (move) return move.title
-  if (content.reconnect) return `${content.reconnect.title} today`
-  const owed = content.followUps.length
-  if (owed > 0) return `${owed} follow-up${owed === 1 ? '' : 's'} waiting on you`
-  if (content.todos.length > 0) return `Your ${content.todos.length} for today`
-  // Someone else's layoffs never lead when there's something to do.
-  if (content.layoff) return content.layoff.title
-  return 'Your daily update'
+  const owed = content.applications.length + content.networking.length
+  if (jobs > 0 && move) return `🎯 ${jobs} new role${jobs === 1 ? '' : 's'} for you, and ${lowerFirst(move.title)}`
+  if (jobs > 0) return `🎯 ${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
+  if (move) return `📈 ${move.title}`
+  if (content.score?.status === 'locked') return "🎉 A locked in. Here's today"
+  if (owed > 0) return `📬 ${owed} follow-up${owed === 1 ? '' : 's'} for today`
+  if (content.todos.length > 0) return '✅ Your to-dos for today'
+  return 'Your day, in one minute'
 }
 
 function lowerFirst(s: string): string {
@@ -71,12 +68,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   if (!to) return { sent: false, reason: 'no email' } as SendResult
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const dateLabel = now.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'America/New_York',
-  })
+  const weekday = now.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })
 
   // Claim the day before sending (same idempotency as the weekday
   // rotation) — a test send to an override address doesn't claim it.
@@ -93,8 +85,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
     react: JobSearchDailyEmail({
       content,
       masthead: candidate.confidentialSearchMode ? 'NextChapter Daily' : 'Job Search Daily',
-      dateLabel,
-      victoriaName: getVictoriaName('daily-email'),
+      weekday,
       appUrl,
       unsubscribeUrl: `${appUrl}/api/unsubscribe/${candidate.id}?type=jobSearchDaily`,
     }),
@@ -123,7 +114,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       data: keys.map((itemKey) => ({ candidateId, itemKey })),
       skipDuplicates: true,
     })
-    // Lines, unlock nudges and quotes come back around after their repeat
+    // Unlock nudges and quotes come back around after their repeat
     // window, so their row already exists the second time — bump shownAt
     // to restart the window.
     await prisma.jobSearchDailyItem.updateMany({
@@ -131,21 +122,19 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       data: { shownAt: now },
     })
     captureServerEvent(candidateId, 'job_search_daily_sent', {
-      lineId: content.line.key,
+      scoreStatus: content.score?.status ?? null,
       todoCount: content.todos.length,
+      applicationFollowUpCount: content.applications.length,
+      networkingFollowUpCount: content.networking.length,
       jobCount: content.jobs.items.length,
       lockedJobCount: content.jobs.lockedCount,
       companyMoveCount: content.companyMoves.length,
-      hasLayoff: !!content.layoff,
       hasReconnect: !!content.reconnect,
       hasArticle: !!content.article,
-      freshCount: content.freshCount,
-      followUpCount: content.followUps.length,
-      starredCount: content.starred.length,
-      staleCount: content.stale.length,
       unlockId: content.unlock?.key ?? null,
       actionLabel: content.action.label,
       quoteId: content.quote?.id ?? null,
+      freshCount: content.freshCount,
     })
   }
 
