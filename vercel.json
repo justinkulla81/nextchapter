@@ -5,6 +5,10 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/job-search-daily",
+      "schedule": "0 12 * * *"
+    },
+    {
       "path": "/api/cron/candidate-email-dispatch",
       "schedule": "0 13 * * *"
     },

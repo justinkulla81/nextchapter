@@ -1191,6 +1191,7 @@ model CandidateProfile {
   weeklyReportOptedOut     Boolean          @default(false) // opt-out for the Friday gap nudge + Community & Coaching digest (the "Sunday Night Report" this was originally named for was retired before it ever shipped — this field was repurposed rather than left dead)
   sprintGoalEmailsOptedOut Boolean          @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
   marketDigestOptedOut     Boolean          @default(false) // the new Weekly Market Digest — own flag, deliberately not folded into weeklyReportOptedOut above
+  jobSearchDailyOptedOut   Boolean          @default(false) // Job Search Daily — sent on top of the weekday rotation, so its own flag rather than dailyEmailOptedOut
   notificationTier         NotificationTier @default(FULL)
 
   // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
@@ -1564,6 +1565,7 @@ model CandidateProfile {
   resumeSubmissionLeads ResumeSubmissionLead[]
   pageBoxDismissals     PageBoxDismissal[]
   emailSendLogs         CandidateEmailSendLog[]
+  jobSearchDailyItems   JobSearchDailyItem[]
   searchCheckIns        CandidateSearchCheckIn[]
 
   // Support Network nav badge — "how many new things since I last opened
@@ -5293,6 +5295,7 @@ enum CandidateEmailKey {
   COMMUNITY_DIGEST
   SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
+  JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
@@ -5433,6 +5436,22 @@ model CandidateEmailSendLog {
   sentAt      DateTime          @default(now())
 
   @@unique([candidateId, emailKey, sentForDate])
+}
+
+// Every item Job Search Daily has shown a candidate — a job, a company
+// move, a layoff filing, an article, a contact, a line from Vic. The
+// unique key is what keeps the email from repeating itself: the builder
+// only picks items with no row here (or, for the line bank, none in the
+// last 60 days). itemKey is "<kind>:<id>", e.g. "job:clx…", "line:grind-07".
+model JobSearchDailyItem {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  itemKey     String
+  shownAt     DateTime         @default(now())
+
+  @@unique([candidateId, itemKey])
+  @@index([candidateId, shownAt])
 }
 
 // Admin-managed AI Training catalog — replaces the static
