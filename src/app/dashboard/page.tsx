@@ -12,7 +12,7 @@ import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-re
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
+import { getCheckInSummary } from '@/lib/daily/mood'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
@@ -26,7 +26,6 @@ import {
   type CommittedAction,
 } from '@/lib/weekly/sprint'
 import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
-import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
@@ -54,8 +53,6 @@ import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrateg
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
-import { getMotivationalVideos } from '@/lib/content/curated-content'
-import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
 import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 // Resolves the candidate's latest report, generating it on demand if the
@@ -131,14 +128,12 @@ export default async function DashboardPage() {
     },
     weeklyProgress,
     marketRealityGrade,
-    todaysMood,
     checkInSummary,
     currentSprint,
     suggestedActions,
     searchExecutionAvailable,
     existingBountyClaimCount,
     hasCoachingFormResponse,
-    sentimentAlert,
     profileChecklistItems,
     emailConnection,
     calendarConnection,
@@ -149,8 +144,6 @@ export default async function DashboardPage() {
     dossierCompleteness,
     dossierStatus,
     resumeFixes,
-    motivationalVideos,
-    contentLikeKeys,
   ] = await Promise.all([
     supabase.auth.getUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -159,7 +152,6 @@ export default async function DashboardPage() {
     // never call computeMarketRealityCompositeGrade directly here, that
     // would be a second, parallel computation of the starting-band input.
     computeProbabilityGrade(profile.id),
-    getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),
     getSuggestedActions(profile.id, weekNumber),
@@ -172,7 +164,6 @@ export default async function DashboardPage() {
     profile.coachId && profile.coachDossierConsentedAt
       ? hasSubmittedCoachingOnboardingForm(profile.id)
       : Promise.resolve(true),
-    getSentimentAlert(profile.id),
     getProfileChecklistItems(profile.id),
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
@@ -194,9 +185,6 @@ export default async function DashboardPage() {
     // resume-fix items the Market Reality Report itself shows (see
     // getResumeFixes), not a separate invented list.
     getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
-    // Check In card's motivation carousel.
-    getMotivationalVideos(profile.id),
-    getCandidateContentLikeKeys(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -244,9 +232,6 @@ export default async function DashboardPage() {
   const dayNumber = Math.floor(daysSinceRegistration) + 1
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
-
-  const moodCardDismissedToday =
-    profile.moodCardDismissedAt !== null && profile.moodCardDismissedAt >= startOfUTCDay()
 
   // The Get Started gate — same signal SuccessSprintCard's own Get Started
   // group unlocks on. Victoria's weekly focus is grounded in real Gmail/
@@ -313,20 +298,9 @@ export default async function DashboardPage() {
       <PortfolioAccessRequestSection candidateId={profile.id} />
 
       <div className="space-y-3">
-        <MoodCheckInCard
-          todaysMood={todaysMood}
-          checkInsLast7Days={checkInSummary.checkInsLast7Days}
-          firstName={profile.firstName}
-          dismissedToday={moodCardDismissedToday}
-          lowSentiment={sentimentAlert.lowSentiment}
-          hasCoach={!!profile.coachId}
-          motivationalVideos={motivationalVideos}
-          likedVideoIds={motivationalVideos
-            .filter((v) => contentLikeKeys.has(contentLikeKey('CURATED_VIDEO', v.id)))
-            .map((v) => v.id)}
-        />
 
-        {/* Below Check In, per user request — Victoria's advice is real
+        {/* The mood check-in moved to the app-open pop-up (CheckInPrompt).
+            Victoria's advice is real
             output grounded in Gmail/Calendar/LinkedIn-derived activity, so
             it stays locked (orange lock, non-expandable) until the Get
             Started gate clears. */}

@@ -11412,3 +11412,28 @@ model HelpMessage {
 
   @@index([requestId, createdAt])
 }
+
+/// What the app-open check-in pop-up asked.
+enum CheckInPromptKind {
+  MOOD // "How are you feeling?"
+  APPLY_COMMIT // "You've applied to X jobs this week. Can you apply to Y today?"
+  NETWORK_COMMIT // "You've reached out to X people this week. Can you reach out to Y more today?"
+}
+
+/// One showing of the app-open check-in pop-up and the candidate's answer.
+/// Also what limits it to a few times a week (see lib/daily/check-in-prompt).
+model CheckInPrompt {
+  id          String            @id @default(cuid())
+  candidateId String
+  kind        CheckInPromptKind
+  shownAt     DateTime          @default(now())
+  /// The week-to-date count quoted in the question (applications or outreach).
+  countShown  Int?
+  /// How many the candidate was asked to do today.
+  askedCount  Int?
+  /// 'YES' | 'NOT_TODAY' | 'DISMISSED' | a Mood value for MOOD prompts.
+  response    String?
+  answeredAt  DateTime?
+
+  @@index([candidateId, shownAt])
+}

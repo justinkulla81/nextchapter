@@ -2,6 +2,7 @@ import 'server-only'
 import type { Mood } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { MOOD_SCORE } from '@/lib/daily/mood-labels'
+import { refreshActivityStreak } from '@/lib/daily/activity-streak'
 
 // Shared daily-reset boundary — also used by dashboard message and mood-card
 // dismissal so "resets the next day" means the same thing everywhere.
@@ -29,26 +30,12 @@ export async function recordMoodCheckIn(
     return { streak: candidate.currentStreak, alreadyCheckedInToday: true }
   }
 
-  const yesterdayStart = new Date(todayStart)
-  yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1)
-  const checkedInYesterday =
-    candidate.lastCheckInAt !== null &&
-    candidate.lastCheckInAt >= yesterdayStart &&
-    candidate.lastCheckInAt < todayStart
-
-  const newStreak = checkedInYesterday ? candidate.currentStreak + 1 : 1
-
   await prisma.dailyCheckIn.create({ data: { candidateId, mood } })
-  await prisma.candidateProfile.update({
-    where: { id: candidateId },
-    data: {
-      lastCheckInAt: now,
-      currentStreak: newStreak,
-      longestStreak: Math.max(newStreak, candidate.longestStreak),
-    },
-  })
-
-  return { streak: newStreak, alreadyCheckedInToday: false }
+  await prisma.candidateProfile.update({ where: { id: candidateId }, data: { lastCheckInAt: now } })
+  // The streak counts days with any real search activity, not just
+  // check-ins (activity-streak.ts); a check-in is one of those.
+  const streak = await refreshActivityStreak(candidateId)
+  return { streak, alreadyCheckedInToday: false }
 }
 
 export async function getTodaysMood(candidateId: string): Promise<Mood | null> {
@@ -66,10 +53,9 @@ export async function getTodaysMood(candidateId: string): Promise<Mood | null> {
 export async function getCheckInSummary(
   candidateId: string
 ): Promise<{ streak: number; checkInsLast7Days: number; isConsecutive: boolean }> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    select: { currentStreak: true },
-  })
+  // Recomputed from activity on read: a stored streak only changed when
+  // something wrote it, so a candidate who stopped kept showing an old count.
+  const streak = await refreshActivityStreak(candidateId)
 
   const sevenDaysAgo = startOfUTCDay(new Date())
   sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6)
@@ -81,9 +67,9 @@ export async function getCheckInSummary(
   const distinctDays = new Set(recentCheckIns.map((c) => startOfUTCDay(c.checkedInAt).getTime()))
 
   return {
-    streak: candidate.currentStreak,
+    streak,
     checkInsLast7Days: distinctDays.size,
-    isConsecutive: distinctDays.size <= candidate.currentStreak,
+    isConsecutive: distinctDays.size <= streak,
   }
 }
 

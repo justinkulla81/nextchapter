@@ -4,6 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
+import { formatFocusText } from '@/lib/reports/weekly-focus-format'
+
+// Numbers as numerals with the key ones bold (weekly-focus-format.ts) —
+// also corrects advice cached before the prompt asked for numerals.
+function FocusText({ text }: { text: string }) {
+  return (
+    <>
+      {formatFocusText(text).map((seg, i) =>
+        seg.bold ? <strong key={i} className="font-semibold text-navy">{seg.text}</strong> : <span key={i}>{seg.text}</span>,
+      )}
+    </>
+  )
+}
 
 const FOCUS_SECTIONS: { key: keyof WeeklyFocus; label: string; color: string }[] = [
   { key: 'increase', label: 'Do more of', color: 'text-success' },
@@ -82,16 +95,31 @@ export async function WeeklyFocusCard({
             </div>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="space-y-4 px-5 pb-5">
-          {FOCUS_SECTIONS.map((section) => (
-            <div key={section.key}>
-              <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
-              <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-foreground">
-                <li>{focus[section.key].text}</li>
-                <li>{focus[section.key].recommendation}</li>
-              </ul>
-            </div>
-          ))}
+        <AccordionContent className="space-y-5 px-5 pb-5">
+          {/* Observations first (what the week shows), then the actions that
+              follow from them, each tagged with its category. */}
+          <section aria-labelledby="focus-observations">
+            <h3 id="focus-observations" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Observations</h3>
+            <ul className="mt-2 space-y-2 text-sm text-foreground">
+              {FOCUS_SECTIONS.map((section) => (
+                <li key={section.key} className="flex gap-2">
+                  <span className={`mt-0.5 w-24 shrink-0 text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</span>
+                  <span className="min-w-0"><FocusText text={focus[section.key].text} /></span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section aria-labelledby="focus-actions">
+            <h3 id="focus-actions" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Next steps</h3>
+            <ol className="mt-2 space-y-2 text-sm text-foreground">
+              {FOCUS_SECTIONS.map((section, i) => (
+                <li key={section.key} className="flex gap-2 rounded-lg border border-border bg-white px-3 py-2">
+                  <span className="mt-0.5 w-24 shrink-0 text-xs font-semibold tracking-wide text-success uppercase">Action {i + 1}</span>
+                  <span className="min-w-0"><FocusText text={focus[section.key].recommendation} /></span>
+                </li>
+              ))}
+            </ol>
+          </section>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

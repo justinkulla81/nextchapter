@@ -157,6 +157,8 @@ Each of the four keys has two parts:
 - maintain.text/recommendation: what's genuinely working and should keep going as-is — citing a real strength, a category that moved up, or a real outcome count that's on pace.
 - startNew.text/recommendation: one concrete new thing worth starting — grounded in a real gap or an unused lever from the data below (e.g. calendar meetings at zero, follow-ups piling up, application volume below goal).
 
+Write every number as a numeral (0, 2, 10, 15), never spelled out ("zero", "ten"). Write each recommendation as an action: start with a verb and name the specific thing to do.
+
 Never state a numeric score, never use the words "level rank," "calibrated," or "tier." Be specific — cite the real number or fact, never generic career-advice filler. Exception: never state the specific Sprint points-earned number or points-remaining number in any section's text — that number changes throughout the week and this response is cached, so a quoted number here would go stale and visibly disagree with the live count shown elsewhere on the same page. Describe Sprint pace qualitatively instead (e.g. "you're already past this week's target" or "you're behind pace this week") — never a specific point count.
 
 Candidate data:

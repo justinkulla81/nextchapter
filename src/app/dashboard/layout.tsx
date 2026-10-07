@@ -16,6 +16,8 @@ import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { isActiveMember } from '@/lib/membership/subscription'
 import { HardGateGate } from '@/components/dashboard/HardGateGate'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
+import { CheckInPromptDialog } from '@/components/dashboard/CheckInPromptDialog'
+import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 
@@ -140,6 +142,13 @@ async function getLatestSeniorityBand(profileId: string): Promise<string | null>
   return analysis?.seniorityBand ?? null
 }
 
+// The check-in pop-up that opens with the app (a few times a week). Its own
+// Suspense boundary, so the schedule check never holds up the page.
+async function CheckInPromptLoader({ profileId }: { profileId: string }) {
+  const prompt = await getCheckInPrompt(profileId).catch(() => null)
+  return prompt ? <CheckInPromptDialog {...prompt} /> : null
+}
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardData()
 
@@ -183,6 +192,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       >
         <DashboardNavWithBadges profileId={profile.id} />
       </Suspense>
+      {/* Not over the Search Strategy gate: that screen has one job. */}
+      {hardGateStatus !== 'search_strategy_required' && (
+        <Suspense fallback={null}>
+          <CheckInPromptLoader profileId={profile.id} />
+        </Suspense>
+      )}
       {/* pb-24 clears the fixed mobile bottom tab bar (Prompt 83) — lg:pb-12
           reverts to the normal bottom spacing once that bar is hidden.
           min-h-screen keeps this white all the way to the bottom of the
