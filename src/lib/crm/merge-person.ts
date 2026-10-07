@@ -34,15 +34,15 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
     const to = `:${targetId}`
     await tx.$executeRaw`
       DELETE FROM "CrmActivity" s
-      WHERE s."personId" = ${sourceId} AND right(s."sourceRef", ${from.length}) = ${from}
+      WHERE s."personId" = ${sourceId} AND right(s."sourceRef", ${from.length}::int) = ${from}
         AND EXISTS (
           SELECT 1 FROM "CrmActivity" t
           WHERE t.type = s.type
-            AND t."sourceRef" = left(s."sourceRef", length(s."sourceRef") - ${from.length}) || ${to}
+            AND t."sourceRef" = left(s."sourceRef", length(s."sourceRef") - ${from.length}::int) || ${to}
         )`
     await tx.$executeRaw`
-      UPDATE "CrmActivity" SET "sourceRef" = left("sourceRef", length("sourceRef") - ${from.length}) || ${to}
-      WHERE "personId" = ${sourceId} AND right("sourceRef", ${from.length}) = ${from}`
+      UPDATE "CrmActivity" SET "sourceRef" = left("sourceRef", length("sourceRef") - ${from.length}::int) || ${to}
+      WHERE "personId" = ${sourceId} AND right("sourceRef", ${from.length}::int) = ${from}`
     await tx.crmActivity.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmTask.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmSourceRecord.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
