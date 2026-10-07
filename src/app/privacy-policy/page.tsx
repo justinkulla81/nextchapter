@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'September 4, 2026'
+const EFFECTIVE_DATE = 'October 7, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -81,6 +81,23 @@ export default function PrivacyPolicyPage() {
               activity.
             </li>
           </ul>
+          <p>
+            NextChapter&apos;s use and transfer to any other app of information received from
+            Google APIs will adhere to the{' '}
+            <a
+              href="https://developers.google.com/terms/api-services-user-data-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4"
+            >
+              Google API Services User Data Policy
+            </a>
+            , including the Limited Use requirements. We use Google user data only to provide and
+            improve the user-facing job search features described above. We do not sell it, use
+            it for advertising, or use it to train generalized AI models, and no person at
+            NextChapter reads it unless you give us permission, it is needed for security or to
+            comply with the law, or it has been aggregated and anonymized for internal operations.
+          </p>
         </section>
 
         <section className="space-y-3">
