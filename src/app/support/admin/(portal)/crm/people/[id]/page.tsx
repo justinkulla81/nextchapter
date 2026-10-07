@@ -13,6 +13,7 @@ import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
+import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -286,6 +287,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           owns it after.
         </p>
         <CrmGraduatePerson personId={person.id} coachId={person.coachId} recruiterId={person.recruiterId} />
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-lg font-semibold">Mailing lists and reports</h2>
+        <PersonMailingSection personId={person.id} email={person.email} />
       </section>
 
       <section>

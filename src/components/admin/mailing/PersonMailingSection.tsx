@@ -1,0 +1,47 @@
+import { prisma } from '@/lib/prisma'
+import { activeLists, suggestionsFor } from '@/lib/mailing/lists'
+import { PersonMailingPanel } from './PersonMailingPanel'
+
+/** The person page's "Mailing lists and reports" section; loads its own data. */
+export async function PersonMailingSection({ personId, email }: { personId: string; email: string | null }) {
+  const e = email?.toLowerCase() ?? null
+  const [memberships, lists, suggestions, sends, editions, suppression] = await Promise.all([
+    prisma.mailingListMember.findMany({
+      where: { OR: [{ personId }, ...(e ? [{ email: e }] : [])] },
+      include: { list: { select: { name: true, sortOrder: true } } },
+      orderBy: { list: { sortOrder: 'asc' } },
+    }),
+    activeLists(),
+    suggestionsFor([personId]),
+    prisma.crmReportSend.findMany({ where: { personId }, orderBy: { editionKey: 'desc' } }),
+    prisma.mailingEdition.findMany({ where: { isReport: true, reportKey: { not: null } }, select: { reportKey: true }, distinct: ['reportKey'], orderBy: { reportKey: 'desc' }, take: 12 }),
+    e ? prisma.mailingSuppression.findUnique({ where: { email: e } }) : null,
+  ])
+  // One row per list: an address can only be on a list once, but the person
+  // link and the address can each match a row.
+  const byList = new Map(memberships.map((m) => [m.listId, m]))
+  const now = new Date()
+  const recentKeys = Array.from({ length: 4 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
+  const reportKeys = [...new Set([...editions.map((x) => x.reportKey!), ...recentKeys])].sort().reverse()
+
+  return (
+    <PersonMailingPanel
+      personId={personId}
+      hasEmail={!!e}
+      memberships={[...byList.values()].map((m) => ({
+        listId: m.listId, listName: m.list.name, status: m.status, addedVia: m.addedVia, addedAt: m.addedAt.toISOString(), consentNote: m.consentNote,
+      }))}
+      lists={lists.map((l) => ({ id: l.id, key: l.key, name: l.name, audience: l.audience }))}
+      suggested={suggestions.get(personId) ?? ['monthly_update']}
+      reportSends={sends.map((s) => ({
+        editionKey: s.editionKey, method: s.method, channel: s.channel, sentAt: s.sentAt.toISOString(),
+        openedAt: s.openedAt?.toISOString() ?? null, clickedAt: s.clickedAt?.toISOString() ?? null, repliedAt: s.repliedAt?.toISOString() ?? null,
+      }))}
+      reportKeys={reportKeys}
+      suppressed={suppression?.reason ?? null}
+    />
+  )
+}

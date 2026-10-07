@@ -1,6 +1,6 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
-import { extractEmailBody, type GmailMessage as GmailFullMessage } from './gmail-body'
+import { extractEmailBody, getAttachmentFilenames, type GmailMessage as GmailFullMessage } from './gmail-body'
 import { googleErrorReason } from './error-reason'
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -360,13 +360,25 @@ export async function getMessageHeaders(
 // every other message gets, so this stays opt-in per message rather than
 // the default.
 export async function getMessageBody(accessToken: string, id: string, maxChars = 20_000): Promise<string | null> {
+  return (await getMessageContent(accessToken, id, maxChars)).body
+}
+
+/**
+ * The body plus attachment filenames, from the same format=full fetch —
+ * filenames come free with it, so knowing a report was attached costs no
+ * extra Gmail call.
+ */
+export async function getMessageContent(
+  accessToken: string,
+  id: string,
+  maxChars = 20_000,
+): Promise<{ body: string | null; attachmentNames: string[] }> {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`)
   url.searchParams.set('format', 'full')
   const res = await fetchWithRetry(url, accessToken)
-  if (!res.ok) return null
+  if (!res.ok) return { body: null, attachmentNames: [] }
   const data = (await res.json()) as GmailFullMessage
-  const body = extractEmailBody(data.payload, maxChars)
-  return body || null
+  return { body: extractEmailBody(data.payload, maxChars) || null, attachmentNames: getAttachmentFilenames(data.payload) }
 }
 
 function toBase64Url(input: string): string {

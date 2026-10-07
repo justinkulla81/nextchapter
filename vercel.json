@@ -135,6 +135,10 @@
     {
       "path": "/api/cron/activity-streaks",
       "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/mailing-send",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

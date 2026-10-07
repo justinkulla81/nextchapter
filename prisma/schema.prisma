@@ -9197,8 +9197,12 @@ model CrmPerson {
   segmentMembers        CrmSegmentMember[]
   broadcastRecipients   CrmBroadcastRecipient[]
   productFeedback       ProductFeedback[]
-  introPathsAsTarget    CrmIntroPath[]          @relation("CrmIntroPathTarget")
-  introPathsAsConnector CrmIntroPath[]          @relation("CrmIntroPathConnector")
+  introPathsAsTarget    CrmIntroPath[]            @relation("CrmIntroPathTarget")
+  introPathsAsConnector CrmIntroPath[]            @relation("CrmIntroPathConnector")
+  mailingMemberships    MailingListMember[]
+  mailingPrompt         MailingListPrompt?
+  editionRecipients     MailingEditionRecipient[]
+  reportSends           CrmReportSend[]
 
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
@@ -9371,6 +9375,7 @@ model CrmActivity {
 
   createdAt        DateTime             @default(now())
   outreachTracking CrmOutreachTracking?
+  reportSends      CrmReportSend[]
 
   @@unique([type, sourceRef])
   @@index([personId, occurredAt(sort: Desc)])
@@ -10096,8 +10101,8 @@ model ProductFeedback {
   candidateId String?
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
-  rawText String  @db.Text
-  channel String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
+  rawText     String  @db.Text
+  channel     String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
   /// The portal page a candidate was on when they sent it in-app.
   contextPath String?
 
@@ -10409,26 +10414,26 @@ model LayoffNewsMention {
 /// which makes it the public partner for any WARN notice there.
 model WorkforceBoard {
   /// CareerOneStop's own id for the board.
-  id            String   @id
-  state         String
-  name          String
-  address       String?
-  zip           String?
-  website       String?
+  id                String    @id
+  state             String
+  name              String
+  address           String?
+  zip               String?
+  website           String?
   /// Service-area counties, lower case, without "County"/"Parish".
-  counties      String[] @default([])
-  serviceArea   String?
+  counties          String[]  @default([])
+  serviceArea       String?
   /// Covers the whole state (a state board, or a single-area state).
-  statewide     Boolean  @default(false)
-  directorName  String?
-  directorTitle String?
-  directorEmail String?
-  directorPhone String?
-  chairName     String?
-  chairEmail    String?
-  chairPhone    String?
-  detailsUrl    String?
-  updatedAt     DateTime @default(now())
+  statewide         Boolean   @default(false)
+  directorName      String?
+  directorTitle     String?
+  directorEmail     String?
+  directorPhone     String?
+  chairName         String?
+  chairEmail        String?
+  chairPhone        String?
+  detailsUrl        String?
+  updatedAt         DateTime  @default(now())
   /// Counties a board drawn by city or town covers, found from its places —
   /// so its unemployment and colleges can be looked up by county too.
   placeCounties     String[]  @default([])
@@ -10501,48 +10506,48 @@ model WorkforceBoardNews {
 /// county so each workforce board can list the colleges in its area.
 model LocalCollege {
   /// IPEDS UNITID.
-  id         String   @id
-  name       String
-  state      String
-  city       String?
-  address    String?
-  zip        String?
-  countyFips String?
-  countyKey  String?
-  phone      String?
-  website    String?
+  id                String    @id
+  name              String
+  state             String
+  city              String?
+  address           String?
+  zip               String?
+  countyFips        String?
+  countyKey         String?
+  phone             String?
+  website           String?
   /// The chief executive IPEDS lists (president or chancellor).
-  chiefName  String?
-  chiefTitle String?
+  chiefName         String?
+  chiefTitle        String?
   /// IPEDS SECTOR: 1 public 4-year, 2 private nonprofit 4-year, 3 for-profit
   /// 4-year, 4 public 2-year, 5 nonprofit 2-year, 6 for-profit 2-year, …
-  sector     Int?
+  sector            Int?
   /// IPEDS INSTSIZE: 1 under 1,000 … 5 over 20,000 students.
-  size       Int?
-  updatedAt  DateTime @default(now())
+  size              Int?
+  updatedAt         DateTime  @default(now())
   /// When its website was last read for department contacts, and how many pages were read.
   contactsCheckedAt DateTime?
   contactsPagesRead Int?
   /// IPEDS 2021 Carnegie basic classification (15 R1 … 20 Master's small,
   /// 21–23 baccalaureate, 24–33 special focus, 1–14 associate's).
-  carnegie       Int?
+  carnegie          Int?
   /// Share of applicants admitted (IPEDS admissions), the "is this Harvard"
   /// signal: very selective schools run their own alumni career programs.
-  admitRate      Float?
+  admitRate         Float?
   /// Themes its own pages raise: 'ai', 'reskilling', 'alumniCareers',
   /// 'lifelong', 'execEd'.
-  interestSignals String[] @default([])
+  interestSignals   String[]  @default([])
   /// The college's organization in the CRM, once linked (by name, or made
   /// when a deal status is set or a contact is added).
-  crmOrgId     String?
+  crmOrgId          String?
   /// The highest priority of anyone in the CRM at this college (P0/P1/P2).
-  relationship String?
+  relationship      String?
   /// 0–100 fit for a pilot, its parts, its tier (A/B/C) and its rank.
-  score      Float?
-  scoreParts Json?
-  tier       String?
-  rank       Int?
-  scoredAt   DateTime?
+  score             Float?
+  scoreParts        Json?
+  tier              String?
+  rank              Int?
+  scoredAt          DateTime?
 
   @@index([state, countyKey])
   @@index([rank])
@@ -10553,17 +10558,17 @@ model LocalCollege {
 /// own website. Kept only when the name (and email, if any) appear verbatim
 /// on the page it came from.
 model CollegeContact {
-  id        String   @id @default(cuid())
-  collegeId String
+  id          String   @id @default(cuid())
+  collegeId   String
   /// 'career' | 'alumni' | 'development' | 'execEd'
-  role      String
+  role        String
   /// null for the office's general line when the site names no leader.
-  name      String?
-  title     String?
-  email     String?
-  phone     String?
-  sourceUrl String
-  foundAt   DateTime @default(now())
+  name        String?
+  title       String?
+  email       String?
+  phone       String?
+  sourceUrl   String
+  foundAt     DateTime @default(now())
   /// The CRM person this contact was added as, so a re-run never adds them twice.
   crmPersonId String?
 
@@ -10574,7 +10579,6 @@ model CollegeContact {
 /// A Census place (city, town, CDP) and where it is, for finding the county
 /// a WARN notice's city sits in. County is looked up from the coordinates
 /// the first time a place is needed, then kept.
-
 
 /// A Census place (city, town, CDP) and where it is, for finding the county
 /// a WARN notice's city sits in. County is looked up from the coordinates
@@ -11375,7 +11379,6 @@ model InstitutionPurchase {
   @@index([memberId])
 }
 
-
 /// What a candidate asked for through Help & feedback in the portal.
 enum HelpRequestKind {
   HELP // a question or a request for help
@@ -11533,4 +11536,277 @@ model CandidatePlatformEvent {
   @@unique([candidateId, externalMessageId])
   @@index([candidateId, emailAt])
   @@index([platformKey])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAILING LISTS AND UPDATES — the Monthly Update and every other list email
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum MailingMemberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum MailingAddedVia {
+  WEBSITE_SIGNUP
+  ADDED_BY_ADMIN
+  REPLIED_YES
+  IMPORT
+}
+
+enum MailingEditionStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+}
+
+enum MailingRecipientSource {
+  BASE
+  ADDED_THIS_EDITION
+}
+
+enum CrmReportSendMethod {
+  AUTOMATED
+  MANUAL
+}
+
+enum CrmReportSendChannel {
+  EMAIL
+  LINKEDIN
+  IN_PERSON
+  OTHER
+}
+
+/// A list people can be on — the Monthly Update, investor updates, and so
+/// on. A person can be on several; unsubscribing is per list. Edited in
+/// Admin → CRM → Mailing lists; `key` is what code refers to and never changes.
+model MailingList {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  name            String
+  description     String?
+  /// Who this list is for, in plain words, shown when choosing lists.
+  audience        String?
+  defaultFromName String?
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  members  MailingListMember[]
+  editions MailingEditionList[]
+}
+
+/// One address on one list. Never deleted: an unsubscribe, bounce or
+/// complaint is a status, so nobody is quietly re-added by an import, a
+/// signup box or the "Add to a mailing list?" card.
+model MailingListMember {
+  id           String              @id @default(cuid())
+  listId       String
+  list         MailingList         @relation(fields: [listId], references: [id], onDelete: Cascade)
+  personId     String?
+  person       CrmPerson?          @relation(fields: [personId], references: [id], onDelete: SetNull)
+  /// Lowercased.
+  email        String
+  status       MailingMemberStatus @default(ACTIVE)
+  addedVia     MailingAddedVia
+  consentNote  String?             @db.Text
+  addedByEmail String?
+  addedAt      DateTime            @default(now())
+  /// When status last changed away from ACTIVE (or back to it).
+  statusAt     DateTime?
+
+  @@unique([listId, email])
+  @@index([email])
+  @@index([personId])
+  @@index([listId, status])
+}
+
+/// An address that must never be mailed again on any list: it hard-bounced
+/// or its owner marked a list email as spam. Kept apart from list membership
+/// because it applies to lists the address isn't on yet.
+model MailingSuppression {
+  email     String   @id
+  /// 'BOUNCED' | 'COMPLAINED'
+  reason    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+/// The "Add to a mailing list?" card for one person, raised when the Gmail
+/// sync logs an email you sent them. One row per person; answering it
+/// changes the row rather than deleting it, so "Never" sticks.
+model MailingListPrompt {
+  id              String    @id @default(cuid())
+  personId        String    @unique
+  person          CrmPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// 'PENDING' | 'SNOOZED' | 'NEVER' | 'DONE'
+  status          String    @default("PENDING")
+  snoozedUntil    DateTime?
+  /// List keys suggested when the card was raised (re-derived on display).
+  suggestedKeys   String[]  @default([])
+  lastActivityId  String?
+  lastEmailedAt   DateTime?
+  answeredAt      DateTime?
+  answeredByEmail String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, lastEmailedAt(sort: Desc)])
+}
+
+/// Sender settings for list email. One row (id 'singleton'); the code
+/// defaults apply until it exists.
+model MailingSettings {
+  id            String   @id @default("singleton")
+  fromName      String   @default("Justin Kulla")
+  fromEmail     String   @default("justin@updates.launchyournextchapter.com")
+  replyTo       String   @default("justin@launchyournextchapter.com")
+  testEmail     String   @default("justin@launchyournextchapter.com")
+  ratePerHour   Int      @default(50)
+  /// The small grey line under every email. [text] becomes the unsubscribe
+  /// link and {{postalAddress}} the address below.
+  footerText    String   @default("Not useful? Reply 'unsubscribe' or [click here] and I'll take you off. NextChapter · {{postalAddress}}") @db.Text
+  /// Required by CAN-SPAM; sends (not tests) are blocked while empty.
+  postalAddress String   @default("")
+  updatedAt     DateTime @updatedAt
+}
+
+/// One email sent to one or more lists — a Monthly Update, a quarterly
+/// investor update, a product note. Someone on two targeted lists gets it
+/// once. `isReport` + `reportKey` ('2026-10') tie it to CrmReportSend.
+model MailingEdition {
+  id              String               @id @default(cuid())
+  key             String               @unique
+  title           String
+  isReport        Boolean              @default(false)
+  reportKey       String?
+  subject         String               @default("")
+  previewText     String?
+  /// Sanitized HTML from the composer: p, br, b, u, i, ul, ol, li, a only.
+  bodyHtml        String               @default("") @db.Text
+  /// Supabase Storage path in the mailing-files bucket.
+  attachmentPath  String?
+  attachmentName  String?
+  attachmentBytes Int?
+  /// Attach the file itself as well as linking to it.
+  attachFile      Boolean              @default(false)
+  /// The link to the report in the email; defaults to the uploaded file.
+  reportUrl       String?
+  status          MailingEditionStatus @default(DRAFT)
+  scheduledAt     DateTime?
+  sendStartedAt   DateTime?
+  sentAt          DateTime?
+  createdByEmail  String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  lists      MailingEditionList[]
+  recipients MailingEditionRecipient[]
+
+  @@index([status, scheduledAt])
+  @@index([reportKey])
+}
+
+model MailingEditionList {
+  editionId String
+  edition   MailingEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  listId    String
+  list      MailingList    @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@id([editionId, listId])
+  @@index([listId])
+}
+
+/// The roster for one edition, and what happened to each email. BASE rows
+/// mirror the target lists' ACTIVE members until sending starts; `excluded`
+/// is this edition only and never touches the list.
+model MailingEditionRecipient {
+  id               String                 @id @default(cuid())
+  editionId        String
+  edition          MailingEdition         @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  personId         String?
+  person           CrmPerson?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  /// Lowercased.
+  email            String
+  source           MailingRecipientSource @default(BASE)
+  excluded         Boolean                @default(false)
+  /// Why it was excluded automatically, e.g. 'already_sent_manually'.
+  excludedReason   String?
+  /// The list keys this address came from (badges in the roster).
+  fromListKeys     String[]               @default([])
+  /// For ADDED_THIS_EDITION: lists to add them to once it is sent.
+  alsoAddToListIds String[]               @default([])
+
+  /// 'PENDING' | 'SENT' | 'FAILED' | 'SKIPPED'
+  status         String    @default("PENDING")
+  attempts       Int       @default(0)
+  error          String?
+  resendEmailId  String?   @unique
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  delayedAt      DateTime?
+  openedAt       DateTime?
+  openCount      Int       @default(0)
+  clickedAt      DateTime?
+  clickCount     Int       @default(0)
+  bouncedAt      DateTime?
+  bounceDetail   String?
+  complainedAt   DateTime?
+  unsubscribedAt DateTime?
+  repliedAt      DateTime?
+
+  @@unique([editionId, email])
+  @@index([editionId, status])
+  @@index([personId])
+}
+
+/// Who received which report edition, and how — sent by the composer
+/// (AUTOMATED) or by Justin himself from Gmail, LinkedIn or in person
+/// (MANUAL). One row per person per edition; an AUTOMATED row is never
+/// downgraded to MANUAL.
+model CrmReportSend {
+  id                 String               @id @default(cuid())
+  personId           String
+  person             CrmPerson            @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// The report's month, 'YYYY-MM'.
+  editionKey         String
+  method             CrmReportSendMethod
+  channel            CrmReportSendChannel @default(EMAIL)
+  sentAt             DateTime
+  activityId         String?
+  activity           CrmActivity?         @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  editionRecipientId String?
+  /// For a MANUAL email: its subject, so a reply can be recognised.
+  subject            String?
+  openedAt           DateTime?
+  clickedAt          DateTime?
+  repliedAt          DateTime?
+  markedByEmail      String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([personId, editionKey])
+  @@index([editionKey, method])
+}
+
+/// A reply asking to be taken off ("unsubscribe", "remove me"), found by the
+/// Gmail sync. Cleared from the Process unsubscribes queue; must be applied
+/// within 10 business days.
+model MailingUnsubscribeRequest {
+  id             String    @id @default(cuid())
+  email          String
+  personId       String?
+  gmailMessageId String    @unique
+  subject        String?
+  snippet        String?
+  receivedAt     DateTime
+  processedAt    DateTime?
+  processedBy    String?
+  createdAt      DateTime  @default(now())
+
+  @@index([processedAt, receivedAt])
 }

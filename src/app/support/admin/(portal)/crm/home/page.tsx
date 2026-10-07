@@ -9,6 +9,8 @@ import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { CrmEmailChart, type EmailDay } from '@/components/admin/CrmEmailChart'
 import { priorityTierClass } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
+import { loadPromptCards } from '@/lib/mailing/prompt-cards'
+import { MailingPromptQueue } from '@/components/admin/mailing/MailingPromptQueue'
 
 export const maxDuration = 30
 
@@ -390,6 +392,9 @@ export default async function CrmHomePage({
     select: { sourceRecordId: true, matchedName: true },
   })
 
+  // The newest few "Add to a mailing list?" cards; the full queue has the rest.
+  const mailingPrompts = await loadPromptCards(5).catch(() => null)
+
   return (
     <div className="space-y-6">
       <CrmPeekPanel />
@@ -436,6 +441,20 @@ export default async function CrmHomePage({
           </span>
           <span className="ml-auto font-medium text-orange">Review →</span>
         </Link>
+      )}
+
+      {mailingPrompts && mailingPrompts.cards.length > 0 && (
+        <section className="space-y-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-base font-semibold">
+              Add to a mailing list? <span className="text-sm font-normal text-muted-foreground">{mailingPrompts.total}</span>
+            </h2>
+            <Link href="/support/admin/crm/mailing/queue" className="text-sm font-medium text-brand hover:underline">
+              See all{mailingPrompts.total > mailingPrompts.cards.length ? ` ${mailingPrompts.total}` : ''} and answer several at once →
+            </Link>
+          </div>
+          <MailingPromptQueue cards={mailingPrompts.cards} lists={mailingPrompts.lists} compact />
+        </section>
       )}
 
       <section className="rounded-lg border border-border bg-card p-4">
