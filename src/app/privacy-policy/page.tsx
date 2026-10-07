@@ -59,41 +59,55 @@ export default function PrivacyPolicyPage() {
             one by hand. These connections are optional, and every one of them can be disconnected
             at any time from Dashboard → Settings.
           </p>
+          <h3 className="text-lg font-semibold text-navy">Google permissions we request</h3>
+          <p>
+            Depending on how you use NextChapter, we may ask Google for the permissions
+            (&quot;scopes&quot;) below. Google shows you exactly which ones are being requested
+            before you agree, and you can revoke access at any time from Dashboard → Settings or
+            your Google Account&apos;s security settings.
+          </p>
           <ul className="list-disc space-y-2 pl-6">
             <li>
-              <strong>Member Gmail and Calendar connections are read-only.</strong>{' '}
-              When you connect your account as a NextChapter member, we request the
-              &quot;gmail.readonly&quot; and &quot;calendar.events.readonly&quot; scopes from
-              Google, plus your basic identity (name and email address) to confirm which account is
-              connected. These scopes do not allow NextChapter to send, reply to, edit, or delete
-              anything in your Gmail or Calendar. We process your messages and events
-              automatically to identify outreach, application replies, interview invites, calls,
-              and contacts related to your job search, and we do not use unrelated messages or
-              events for any other purpose.
+              <strong>openid</strong> — lets you sign in to NextChapter with your Google account,
+              and lets us confirm which Google account is connected.
             </li>
             <li>
-              <strong>NextChapter staff tools use broader scopes.</strong>{' '}
-              Our internal tools, which are available only to authorized NextChapter team members
-              connecting their own NextChapter work accounts, also request the
-              &quot;gmail.send&quot; scope (to send outreach and follow-up emails that a team
-              member writes and chooses to send) and the &quot;calendar.events&quot; scope (to
-              create and manage meetings and webinars, including video conferencing links). These
-              scopes are never requested from members, and they do not give NextChapter access
-              to any member&apos;s Gmail or Calendar.
+              <strong>email</strong> — reads your Google account&apos;s email address so we can
+              create or match your NextChapter account, send you service emails, and show which
+              address is connected.
             </li>
             <li>
-              <strong>LinkedIn connections are imported by you, not accessed by us.</strong>{' '}
-              To build your networking list, you export your own connections file from LinkedIn and
-              upload it to NextChapter — we never log into your LinkedIn account or access it
-              directly. If you separately choose to connect LinkedIn to publish posts through
-              NextChapter, that connection only allows us to publish content you write and submit
-              yourself — it does not grant access to read your LinkedIn messages, connections, or
-              activity.
+              <strong>profile</strong> — reads your name and profile picture to set up and display
+              your NextChapter profile.
+            </li>
+            <li>
+              <strong>gmail.readonly</strong> — reads your Gmail messages so we can automatically
+              find job search activity, such as outreach you send, application replies, interview
+              invites, and recruiter emails, and log it in your application and networking tracker.
+              This permission cannot send, edit, or delete email. Unrelated messages are not used
+              for any other purpose.
+            </li>
+            <li>
+              <strong>calendar.events.readonly</strong> — reads your calendar events so we can
+              automatically log interviews, networking calls, and coaching sessions in your
+              tracker. This permission cannot create, change, or delete events.
+            </li>
+            <li>
+              <strong>gmail.send</strong> — used only by NextChapter team members, on their own
+              NextChapter work accounts, to send outreach and follow-up emails they write and
+              choose to send from our internal tools. We never request this permission from
+              members, and it gives no access to any member&apos;s Gmail.
+            </li>
+            <li>
+              <strong>calendar.events</strong> — used only by NextChapter team members, on their
+              own NextChapter work accounts, to create and manage meetings and webinars, including
+              video conferencing links. We never request this permission from members, and it
+              gives no access to any member&apos;s Calendar.
             </li>
           </ul>
           <p>
-            NextChapter&apos;s use and transfer to any other app of information received from
-            Google APIs will adhere to the{' '}
+            NextChapter&apos;s use and transfer of information received from Google APIs will
+            adhere to the{' '}
             <a
               href="https://developers.google.com/terms/api-services-user-data-policy"
               target="_blank"
@@ -102,19 +116,27 @@ export default function PrivacyPolicyPage() {
             >
               Google API Services User Data Policy
             </a>
-            , including the Limited Use requirements. We use Google user data only to provide and
-            improve the features described above, and we share it only with service providers
-            that process it on our behalf to deliver those features, as needed for security, to
-            comply with the law, or as part of a merger, acquisition, or sale of assets (with
-            your consent where required). We do not sell it, use it for advertising, or use it to
-            train generalized AI models, and no person at NextChapter reads it unless you give us
-            permission, it is needed for security or to comply with the law, or it has been
-            aggregated and anonymized for internal operations.
+            , including the Limited Use requirements.
           </p>
           <p>
-            We request only the Google permissions needed for the features you use. If we add
-            features that need additional permissions, Google will ask for your consent before
-            they are granted, and we will update this Policy.
+            We use Google user data only to provide and improve the features described above, and
+            we share it only with service providers that process it on our behalf to deliver those
+            features, as needed for security, to comply with the law, or as part of a merger,
+            acquisition, or sale of assets (with your consent where required). We do not sell it,
+            use it for advertising, or use it to train generalized AI models, and no person at
+            NextChapter reads it unless you give us permission, it is needed for security or to
+            comply with the law, or it has been aggregated and anonymized for internal operations.
+            If we add features that need additional Google permissions, Google will ask for your
+            consent before they are granted, and we will update this Policy.
+          </p>
+          <h3 className="text-lg font-semibold text-navy">LinkedIn</h3>
+          <p>
+            LinkedIn connections are imported by you, not accessed by us. To build your networking
+            list, you export your own connections file from LinkedIn and upload it to NextChapter —
+            we never log into your LinkedIn account or access it directly. If you separately choose
+            to connect LinkedIn to publish posts through NextChapter, that connection only allows
+            us to publish content you write and submit yourself — it does not grant access to read
+            your LinkedIn messages, connections, or activity.
           </p>
         </section>
 
