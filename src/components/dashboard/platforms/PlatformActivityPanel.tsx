@@ -3,7 +3,7 @@ import { Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { PlatformActivityRow } from '@/lib/platforms/candidate-view'
 import { PlatformStagePill } from './PlatformStagePill'
-import { PlatformDetectionToggle } from './PlatformDetectionToggle'
+import { PlatformActivityItem } from './PlatformActivityItem'
 
 const COPY = {
   WORK: {
@@ -57,23 +57,21 @@ export function PlatformActivityPanel({
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((row) => (
-              <li key={row.platformKey} className={row.dismissed ? 'flex flex-wrap items-center gap-x-3 gap-y-1 py-3 opacity-60' : 'flex flex-wrap items-center gap-x-3 gap-y-1 py-3'}>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">{row.name}</span>
-                    {!row.dismissed && <PlatformStagePill status={row} />}
-                    {row.dismissed && <span className="text-xs text-muted-foreground">Removed</span>}
-                  </div>
-                  <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    <Mail className="size-3 shrink-0" />
-                    <span className="truncate">
-                      {row.courseTitle ? `${row.courseTitle} · ` : ''}
-                      {row.category} · last email {formatDate(row.lastEmailAt)}
-                    </span>
-                  </p>
-                </div>
-                <PlatformDetectionToggle platformKey={row.platformKey} name={row.name} dismissed={row.dismissed} />
-              </li>
+              <PlatformActivityItem
+                key={row.platformKey}
+                platformKey={row.platformKey}
+                name={row.name}
+                initiallyDismissed={row.dismissed}
+                pill={<PlatformStagePill status={row} />}
+              >
+                <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                  <Mail className="size-3 shrink-0" />
+                  <span className="truncate">
+                    {row.courseTitle ? `${row.courseTitle} · ` : ''}
+                    {row.category} · last email {formatDate(row.lastEmailAt)}
+                  </span>
+                </p>
+              </PlatformActivityItem>
             ))}
           </ul>
         )}

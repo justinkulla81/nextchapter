@@ -1,11 +1,9 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { getPlatform } from '@/lib/platforms/directory'
 
 async function currentCandidateId(): Promise<string | null> {
   const supabase = await createClient()
@@ -16,13 +14,11 @@ async function currentCandidateId(): Promise<string | null> {
   return (await getOrCreateCandidateProfile(user.id)).id
 }
 
-function revalidateFor(platformKey: string) {
-  revalidatePath(getPlatform(platformKey)?.kind === 'LEARNING' ? '/dashboard/learning' : '/dashboard/interim-work')
-}
-
 // "This isn't right" on a detected platform. The row stays (marked
 // dismissed) so the next inbox sync doesn't re-create it; badges already
 // earned stay too, the platform just stops showing and stops earning.
+// The row updates in place on the client (PlatformActivityItem); no
+// revalidatePath, which re-rendered the whole page and took ~5s.
 export async function dismissPlatformDetection(platformKey: string): Promise<{ ok: boolean }> {
   const candidateId = await currentCandidateId()
   if (!candidateId) return { ok: false }
@@ -37,7 +33,6 @@ export async function dismissPlatformDetection(platformKey: string): Promise<{ o
     })
     captureServerEvent(candidateId, 'platform_detection_removed', { platform: platformKey, stage: activity?.stage ?? null })
   }
-  revalidateFor(platformKey)
   return { ok: true }
 }
 
@@ -49,6 +44,5 @@ export async function restorePlatformDetection(platformKey: string): Promise<{ o
     data: { dismissedAt: null },
   })
   if (row.count > 0) captureServerEvent(candidateId, 'platform_detection_restored', { platform: platformKey })
-  revalidateFor(platformKey)
   return { ok: true }
 }
