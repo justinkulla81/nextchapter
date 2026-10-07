@@ -68,11 +68,6 @@ const label: React.CSSProperties = {
 
 const todoList: React.CSSProperties = { paddingLeft: '20px', margin: 0 }
 const todoItem: React.CSSProperties = { marginTop: '8px' }
-const points: React.CSSProperties = {
-  ...emailStyles.muted,
-  fontWeight: 600,
-  whiteSpace: 'nowrap',
-}
 
 const itemRow: React.CSSProperties = {
   borderTop: '1px solid #e5e7eb',
@@ -97,6 +92,17 @@ const button: React.CSSProperties = {
 }
 
 const footer: React.CSSProperties = { ...emailStyles.muted, marginTop: '32px' }
+
+const quoteBlock: React.CSSProperties = {
+  fontFamily: 'Georgia, "Times New Roman", serif',
+  fontStyle: 'italic',
+  color: '#4a5568',
+  margin: '32px 0 0',
+  paddingTop: '16px',
+  borderTop: '1px solid #e5e7eb',
+}
+
+const MAX_STALE_SHOWN = 5
 
 function Item({ item }: { item: DailyItem }) {
   return (
@@ -123,7 +129,21 @@ export default function JobSearchDailyEmail({
   appUrl,
   unsubscribeUrl,
 }: JobSearchDailyEmailProps) {
-  const { score, todos, jobs, companyMoves, layoff, reconnect, article } = content
+  const {
+    score,
+    todos,
+    jobs,
+    companyMoves,
+    layoff,
+    reconnect,
+    article,
+    followUps,
+    stale,
+    starred,
+    unlock,
+    action,
+    quote,
+  } = content
   const newItems: DailyItem[] = [...companyMoves, ...(layoff ? [layoff] : []), ...(reconnect ? [reconnect] : [])]
   const pct = score && score.target > 0 ? Math.min(100, Math.round((score.earned / score.target) * 100)) : 0
   const toGo = score ? Math.max(0, score.target - score.earned) : 0
@@ -170,10 +190,45 @@ export default function JobSearchDailyEmail({
           <ol style={todoList}>
             {todos.map((t, i) => (
               <li key={i} style={todoItem}>
-                {t.text} <span style={points}>+{t.points}</span>
+                {t.text}
               </li>
             ))}
           </ol>
+        </>
+      )}
+
+      {followUps.length > 0 && (
+        <>
+          <p style={label}>Follow-ups ({followUps.length})</p>
+          {followUps.map((item) => (
+            <Item key={item.key} item={item} />
+          ))}
+        </>
+      )}
+
+      {starred.length > 0 && (
+        <>
+          <p style={label}>Your starred people</p>
+          <p style={itemDetail}>You starred them for a reason. Each one is due for a note.</p>
+          {starred.map((item) => (
+            <Item key={item.key} item={item} />
+          ))}
+        </>
+      )}
+
+      {stale.length > 0 && (
+        <>
+          <p style={label}>Haven&apos;t talked in a while</p>
+          {stale.slice(0, MAX_STALE_SHOWN).map((item) => (
+            <Item key={item.key} item={item} />
+          ))}
+          {stale.length > MAX_STALE_SHOWN && (
+            <p style={itemDetail}>
+              <a href={`${appUrl}/dashboard/network/follow-ups?src=job_search_daily`} style={link}>
+                See all {stale.length}
+              </a>
+            </p>
+          )}
         </>
       )}
 
@@ -205,14 +260,35 @@ export default function JobSearchDailyEmail({
 
       {article && (
         <>
-          <p style={label}>Worth 3 minutes</p>
+          <p style={label}>Worth a read · from NextChapter News</p>
           <Item item={article} />
         </>
       )}
 
-      <a href={`${appUrl}/dashboard?src=job_search_daily`} style={button}>
-        Open my dashboard
+      {unlock && (
+        <>
+          <p style={label}>Unlock next</p>
+          <Item item={unlock} />
+        </>
+      )}
+
+      <a href={action.href} style={button}>
+        {action.label}
       </a>
+      <p style={{ ...emailStyles.muted, margin: '8px 0 0' }}>
+        or{' '}
+        <a href={`${appUrl}/dashboard?src=job_search_daily`} style={link}>
+          open my dashboard
+        </a>
+      </p>
+
+      {quote && (
+        <p style={quoteBlock}>
+          &ldquo;{quote.text}&rdquo;
+          <br />
+          <span style={{ fontStyle: 'normal', fontSize: '14px' }}>— {quote.author}</span>
+        </p>
+      )}
 
       <p style={footer}>
         You get this every morning during an active search.{' '}

@@ -6,7 +6,13 @@ import { getVictoriaName } from '@/lib/victoria'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { buildJobSearchDaily, shownItemKeys, type JobSearchDailyContent } from '@/lib/job-search-daily/build'
+import {
+  buildJobSearchDaily,
+  shownItemKeys,
+  rotatingItemKeys,
+  hasSomethingToSay,
+  type JobSearchDailyContent,
+} from '@/lib/job-search-daily/build'
 import JobSearchDailyEmail from '@/emails/job-search-daily'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
@@ -20,6 +26,8 @@ function buildSubject(content: JobSearchDailyContent): string {
   if (jobs > 0) return `${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
   if (move) return move.title
   if (content.reconnect) return `${content.reconnect.title} today`
+  const owed = content.followUps.length
+  if (owed > 0) return `${owed} follow-up${owed === 1 ? '' : 's'} waiting on you`
   if (content.todos.length > 0) return `Your ${content.todos.length} for today`
   // Someone else's layoffs never lead when there's something to do.
   if (content.layoff) return content.layoff.title
@@ -40,7 +48,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
 
   // No fluff: with nothing new and nothing to do, skip the day rather than
   // send a line and a score.
-  if (content.freshCount === 0 && content.todos.length === 0) {
+  if (!hasSomethingToSay(content)) {
     return { sent: false, reason: 'nothing new', content } as SendResult & {
       content: JobSearchDailyContent
     }
@@ -115,10 +123,11 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       data: keys.map((itemKey) => ({ candidateId, itemKey })),
       skipDuplicates: true,
     })
-    // Lines come back around after LINE_REPEAT_DAYS, so a line's row already
-    // exists the second time — bump its shownAt to restart the window.
+    // Lines, unlock nudges and quotes come back around after their repeat
+    // window, so their row already exists the second time — bump shownAt
+    // to restart the window.
     await prisma.jobSearchDailyItem.updateMany({
-      where: { candidateId, itemKey: content.line.key },
+      where: { candidateId, itemKey: { in: rotatingItemKeys(content) } },
       data: { shownAt: now },
     })
     captureServerEvent(candidateId, 'job_search_daily_sent', {
@@ -131,6 +140,12 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       hasReconnect: !!content.reconnect,
       hasArticle: !!content.article,
       freshCount: content.freshCount,
+      followUpCount: content.followUps.length,
+      starredCount: content.starred.length,
+      staleCount: content.stale.length,
+      unlockId: content.unlock?.key ?? null,
+      actionLabel: content.action.label,
+      quoteId: content.quote?.id ?? null,
     })
   }
 

@@ -13,7 +13,17 @@ import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
-import { pickVicLine, LINE_REPEAT_DAYS, type LineMood } from './lines'
+import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
+import { pickVicLine, seededRandom, LINE_REPEAT_DAYS, type LineMood } from './lines'
+import {
+  UNLOCK_NUDGES,
+  UNLOCK_REPEAT_DAYS,
+  ACTION_BUTTONS,
+  QUOTES,
+  QUOTE_REPEAT_DAYS,
+  type RotationContext,
+  type Quote,
+} from './rotations'
 
 // Job Search Daily — one short email a day, built from things that are
 // actually new for this candidate since the last one. Every item shown is
@@ -54,6 +64,12 @@ export interface JobSearchDailyContent {
   layoff: DailyItem | null
   reconnect: DailyItem | null
   article: DailyItem | null
+  followUps: DailyItem[] // every reply owed and unanswered application — tasks, not news, so never deduped
+  stale: DailyItem[] // contacts not reached in a while (full list; the email shows the top few)
+  starred: DailyItem[] // starred contacts due for outreach
+  unlock: DailyItem | null
+  action: { label: string; href: string }
+  quote: Quote | null
   freshCount: number // new items beyond the line, todos and score — 0 means there's nothing new to say today
 }
 
@@ -350,6 +366,83 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
         }
       : null
 
+  // ── Follow-ups and starred people ─────────────────────────────────────
+  const withSrc = (href: string) =>
+    href.startsWith('http') ? href : `${appUrl}${href}${href.includes('?') ? '&' : '?'}src=job_search_daily`
+  const followUpRows = await getUnifiedFollowUps(candidate.id, 50)
+  const toItem = (f: (typeof followUpRows)[number]): DailyItem => ({
+    key: `fu:${f.kind}:${f.id}`,
+    title: f.title,
+    detail: f.subtitle,
+    href: withSrc(f.href),
+  })
+  const followUps = followUpRows
+    .filter((f) => f.kind === 'needs-follow-up' || f.kind === 'unanswered-application')
+    .map(toItem)
+  // Synced contacts include automated senders ("LinkedIn Job Alerts") —
+  // never tell someone to reconnect with a mailing list.
+  const stale = followUpRows
+    .filter((f) => f.kind === 'stale-contact' && !/\b(alerts?|no-?reply|notifications?|newsletter)\b/i.test(f.title))
+    .map(toItem)
+  const starred = followUpRows
+    .filter((f) => f.kind === 'starred-contact')
+    .map((f) => ({ ...toItem(f), detail: f.subtitle.replace(/^Starred — /, '') || null }))
+
+  // ── Rotations: unlock nudge, action button, quote ─────────────────────
+  const recentlyShown = (prefix: string, days: number) => {
+    const cutoff = now.getTime() - days * DAY_MS
+    return new Set(
+      shown
+        .filter((s) => s.itemKey.startsWith(prefix) && s.shownAt.getTime() >= cutoff)
+        .map((s) => s.itemKey.slice(prefix.length))
+    )
+  }
+  const todayStart = new Date(now)
+  todayStart.setUTCHours(0, 0, 0, 0)
+  const gmailConnected =
+    (await prisma.emailConnection.count({ where: { candidateId: candidate.id, disconnectedAt: null } })) > 0
+  const ctx: RotationContext = {
+    skillsAssessmentDone: !!candidate.skillsAssessmentCompletedAt,
+    dossierUnlocked: dossier.unlocked,
+    referencesMet: dossier.referencesMet,
+    gmailConnected,
+    recruiterDatabaseOptIn: candidate.recruiterDatabaseOptIn,
+    trackedCompanyCount: watchlist.length,
+    checkedInToday: !!candidate.lastCheckInAt && candidate.lastCheckInAt >= todayStart,
+    hasOpenTodos: todos.length > 0,
+  }
+  const dateSeed = `${candidate.id}:${now.toISOString().slice(0, 10)}`
+  const pickFrom = <T>(pool: T[], salt: string): T | null =>
+    pool.length === 0 ? null : pool[Math.floor(seededRandom(`${dateSeed}:${salt}`)() * pool.length)]
+
+  const recentUnlocks = recentlyShown('unlock:', UNLOCK_REPEAT_DAYS)
+  const unlockPick = pickFrom(
+    UNLOCK_NUDGES.filter((n) => !n.done?.(ctx) && !recentUnlocks.has(n.id)),
+    'unlock'
+  )
+  const unlock: DailyItem | null = unlockPick
+    ? {
+        key: `unlock:${unlockPick.id}`,
+        title: unlockPick.title,
+        detail: unlockPick.detail,
+        href: withSrc(unlockPick.path),
+      }
+    : null
+
+  // Check-in leads whenever they haven't checked in today; otherwise the
+  // button walks through the rest in order, one per day.
+  const relevantButtons = ACTION_BUTTONS.filter((b) => b.relevant?.(ctx) ?? true)
+  const dayIndex = Math.floor(now.getTime() / DAY_MS)
+  const button = relevantButtons.find((b) => b.id === 'check-in') ?? relevantButtons[dayIndex % relevantButtons.length]
+  const action = { label: button.label, href: withSrc(button.path) }
+
+  const recentQuotes = recentlyShown('quote:', QUOTE_REPEAT_DAYS)
+  const quote =
+    pickFrom(
+      QUOTES.filter((q) => !recentQuotes.has(q.id)),
+      'quote'
+    ) ?? pickFrom(QUOTES, 'quote')
+
   // ── Vic's line ────────────────────────────────────────────────────────
   const daysQuiet = candidate.lastCheckInAt ? (now.getTime() - candidate.lastCheckInAt.getTime()) / DAY_MS : Infinity
   const moods: LineMood[] = []
@@ -385,6 +478,12 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     layoff,
     reconnect,
     article,
+    followUps,
+    stale,
+    starred,
+    unlock,
+    action,
+    quote,
     freshCount,
   }
 }
@@ -396,8 +495,34 @@ export function shownItemKeys(content: JobSearchDailyContent): string[] {
     content.line.key,
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
-    ...[content.layoff, content.reconnect, content.article].filter((i): i is DailyItem => !!i).map((i) => i.key),
+    ...[content.layoff, content.reconnect, content.article, content.unlock]
+      .filter((i): i is DailyItem => !!i)
+      .map((i) => i.key),
+    ...(content.quote ? [`quote:${content.quote.id}`] : []),
   ]
+}
+
+// Keys that come back around after a repeat window (line, unlock nudge,
+// quote) — their existing row's shownAt gets bumped on each showing so the
+// window restarts.
+export function rotatingItemKeys(content: JobSearchDailyContent): string[] {
+  return [
+    content.line.key,
+    ...(content.unlock ? [content.unlock.key] : []),
+    ...(content.quote ? [`quote:${content.quote.id}`] : []),
+  ]
+}
+
+// Whether there's anything worth sending today: something new, or
+// something to do.
+export function hasSomethingToSay(content: JobSearchDailyContent): boolean {
+  return (
+    content.freshCount > 0 ||
+    content.todos.length > 0 ||
+    content.followUps.length > 0 ||
+    content.starred.length > 0 ||
+    content.stale.length > 0
+  )
 }
 
 // Points a candidate "should" have by this point in the week to be on pace
