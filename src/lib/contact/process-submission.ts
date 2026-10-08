@@ -7,7 +7,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { CONTACT_AUDIENCE_SHORT } from '@/lib/contact/constants'
 
 /** Where /contact messages are emailed. Override with CONTACT_FORWARD_TO. */
-const FORWARD_TO = process.env.CONTACT_FORWARD_TO || 'contact@launchyournextchapter.com'
+const FORWARD_TO = process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
 
 const ROLE_FOR: Record<ContactAudience, CrmPersonRole | null> = {
   CANDIDATE: 'JOB_SEEKER',
