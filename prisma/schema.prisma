@@ -9060,6 +9060,13 @@ model CrmPerson {
   email  String?
   emails String[] @default([])
 
+  /// An address worked out from the format others at the same organization
+  /// use (e.g. first.last@tulane.edu) — never written into email, so
+  /// matching and sending keep using only real addresses. Cleared once a
+  /// real email is known. The basis says how it was reached.
+  guessedEmail      String?
+  guessedEmailBasis String?
+
   /// Set when this record was absorbed into another by a merge. A removed
   /// record with this set is a duplicate, not a person you took out — the
   /// Removed page shows where it went instead of offering to restore it.
@@ -10612,6 +10619,10 @@ model CollegeContact {
   foundAt     DateTime @default(now())
   /// The CRM person this contact was added as, so a re-run never adds them twice.
   crmPersonId String?
+  /// For a named leader with no email on the page: the college's address
+  /// format applied to their name, and how that format was worked out.
+  guessedEmail      String?
+  guessedEmailBasis String?
 
   @@unique([collegeId, role])
   @@index([collegeId])

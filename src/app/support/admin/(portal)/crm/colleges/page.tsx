@@ -266,6 +266,9 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
                               )}
                               {k.title && <span className="text-muted-foreground">, {k.title}</span>}
                               {k.email && <> · <a href={`mailto:${k.email}`} className="hover:underline">{k.email}</a></>}
+                              {!k.email && k.guessedEmail && (
+                                <> · <a href={`mailto:${k.guessedEmail}`} className="hover:underline" title={`Guessed from the college's address format: ${k.guessedEmailBasis ?? ''}. Not confirmed.`}>{k.guessedEmail}</a> <span className="text-muted-foreground">(guessed)</span></>
+                              )}
                               {k.phone && <> · <span className="whitespace-nowrap">{k.phone}</span></>}
                             </li>
                           ))}

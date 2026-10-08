@@ -138,6 +138,12 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))]}
             />
             {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
+            {!person.email && person.guessedEmail && (
+              <span title={`Guessed from the format others there use: ${person.guessedEmailBasis ?? ''}. Not confirmed.`}>
+                <a href={`mailto:${person.guessedEmail}`} className="underline">{person.guessedEmail}</a>
+                <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">guessed</span>
+              </span>
+            )}
             {person.linkedinUrl && (
               <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>
             )}
