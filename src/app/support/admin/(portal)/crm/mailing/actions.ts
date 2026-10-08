@@ -18,7 +18,7 @@ import { PLACEHOLDER_RE } from '@/lib/mailing/prefill'
 import { isCadence } from '@/lib/mailing/cadence'
 import {
   ATTACH_WARN_BYTES, MAILING_BUCKET, editionCounts, ensureBucket, runSendBatch,
-  sendTestEmail, startSending, syncEditionRoster,
+  sendTestEmail, startSending, syncEditionRoster, earlierVersionSends,
 } from '@/lib/mailing/editions'
 
 const BASE = '/support/admin/crm/mailing'
@@ -536,7 +536,7 @@ async function audiencePeople(filter: AudienceFilter) {
  * history, with the other choices kept). Everyone counted has an email
  * address and isn't marked Do not email.
  */
-export async function previewAudience(filter: AudienceFilter) {
+export async function previewAudience(filter: AudienceFilter, ctx: { editionId?: string | null; skipEarlierVersions?: boolean } = {}) {
   await admin()
   const dne = [...(await doNotEmailPeople()).personIds]
   // ~hundreds of emailable people: load them once and count every option in
@@ -562,12 +562,20 @@ export async function previewAudience(filter: AudienceFilter) {
     emailCount: p._count.activities,
   }))
   const facets = audienceFacets(people, filter, PERSON_ROLES, PRIORITY_TIERS)
-  if (isEmptyAudience(filter)) return { facets, total: 0, doNotEmail: 0, sample: [] as { name: string; detail: string | null }[] }
+  if (isEmptyAudience(filter)) return { facets, total: 0, doNotEmail: 0, earlierVersion: 0, sample: [] as { name: string; detail: string | null }[] }
   const [matched, withDne] = await Promise.all([audiencePeople(filter), prisma.crmPerson.count({ where: audienceWhere(filter) })])
+  // With "leave out anyone an earlier version reached" on, they're counted apart.
+  let earlierVersion = 0
+  if (ctx.editionId && ctx.skipEarlierVersions) {
+    const e = await prisma.mailingEdition.findUnique({ where: { id: ctx.editionId }, select: { versionOfId: true } })
+    const reached = e ? await earlierVersionSends(ctx.editionId, e.versionOfId) : new Map()
+    earlierVersion = matched.filter((p) => { const em = normalizeListEmail(p.email); return em ? reached.has(em) : false }).length
+  }
   return {
     facets,
     total: matched.length,
     doNotEmail: withDne - matched.length,
+    earlierVersion,
     sample: matched.slice(0, 12).map((p) => ({
       name: p.fullName,
       detail: [p.affiliations[0]?.title, p.affiliations[0]?.org.name].filter(Boolean).join(' at ') || null,
@@ -594,6 +602,7 @@ export async function applyAudience(input: {
   editionId?: string | null
   listIds?: string[]
   expected: number
+  skipEarlierVersions?: boolean
 }): Promise<{ ok: boolean; message: string }> {
   const by = await admin()
   const { filter, op } = input
@@ -613,15 +622,25 @@ export async function applyAudience(input: {
     if (op === 'add_send') {
       const withEmail = people.filter((p): p is typeof p & { email: string } => !!p.email)
       const suppressed = new Set((await prisma.mailingSuppression.findMany({ where: { email: { in: withEmail.map((p) => p.email) } }, select: { email: true } })).map((s) => s.email))
+      // Anyone an earlier version already reached is put on the roster
+      // unchecked (visible, one click to include) while that box is ticked.
+      const ed = await prisma.mailingEdition.findUniqueOrThrow({ where: { id: editionId }, select: { versionOfId: true } })
+      const reached = input.skipEarlierVersions ? await earlierVersionSends(editionId, ed.versionOfId) : new Map<string, Date>()
       const fresh = withEmail.filter((p) => !byEmail.has(p.email) && !suppressed.has(p.email))
-      const rechecked = withEmail.filter((p) => byEmail.get(p.email)?.excluded && byEmail.get(p.email)?.status === 'PENDING' && !suppressed.has(p.email)).map((p) => byEmail.get(p.email)!.id)
+      const rechecked = withEmail
+        .filter((p) => byEmail.get(p.email)?.excluded && byEmail.get(p.email)?.status === 'PENDING' && !suppressed.has(p.email) && !reached.has(p.email))
+        .map((p) => byEmail.get(p.email)!.id)
       await prisma.mailingEditionRecipient.createMany({
-        data: fresh.map((p) => ({ editionId, email: p.email, personId: p.personId, source: 'ADDED_THIS_EDITION' as const })),
+        data: fresh.map((p) => ({
+          editionId, email: p.email, personId: p.personId, source: 'ADDED_THIS_EDITION' as const,
+          ...(reached.has(p.email) ? { excluded: true, excludedReason: 'already_got_version' } : {}),
+        })),
         skipDuplicates: true,
       })
+      const skippedEarlier = fresh.filter((p) => reached.has(p.email)).length
       if (rechecked.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: rechecked } }, data: { excluded: false, excludedReason: null } })
       const noEmail = people.length - withEmail.length
-      message = `Added ${fresh.length}${rechecked.length ? `, re-checked ${rechecked.length}` : ''} for this send.${noEmail ? ` ${noEmail} have no email address.` : ''}${suppressed.size ? ` ${suppressed.size} bounced or complained before and were skipped.` : ''}`
+      message = `Added ${fresh.length - skippedEarlier}${rechecked.length ? `, re-checked ${rechecked.length}` : ''} for this send.${skippedEarlier ? ` ${skippedEarlier} already got an earlier version and are on the roster unchecked.` : ''}${noEmail ? ` ${noEmail} have no email address.` : ''}${suppressed.size ? ` ${suppressed.size} bounced or complained before and were skipped.` : ''}`
     } else {
       const ids = new Set(people.map((p) => p.personId))
       const emails = new Set(people.map((p) => p.email).filter(Boolean))
@@ -658,4 +677,30 @@ export async function applyAudience(input: {
     roles: filter.roles.length, priorities: filter.priorities.length, hasOrg: !!filter.orgs.trim(), hasTitle: !!filter.titles.trim(),
   })
   return { ok: true, message }
+}
+
+/**
+ * "Leave out anyone an earlier version already emailed": ticking it
+ * unchecks everyone on this roster another version reached; unticking
+ * checks them back in. Returns the new counts.
+ */
+export async function setSkipEarlierVersions(editionId: string, on: boolean) {
+  const by = await admin()
+  const ed = await prisma.mailingEdition.findUniqueOrThrow({ where: { id: editionId }, select: { versionOfId: true, status: true } })
+  if (ed.status !== 'DRAFT' && ed.status !== 'SCHEDULED') return editionCounts(editionId)
+  const reached = [...(await earlierVersionSends(editionId, ed.versionOfId)).keys()]
+  if (on) {
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { editionId, status: 'PENDING', email: { in: reached }, excluded: false },
+      data: { excluded: true, excludedReason: 'already_got_version' },
+    })
+  } else {
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { editionId, status: 'PENDING', excludedReason: 'already_got_version' },
+      data: { excluded: false, excludedReason: null },
+    })
+  }
+  captureServerEvent(by, 'mailing_skip_earlier_versions_toggled', { editionId, on, reached: reached.length })
+  revalidatePath(`${BASE}/editions/${editionId}`)
+  return editionCounts(editionId)
 }

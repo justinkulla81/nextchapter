@@ -9,7 +9,7 @@ import { rosterCounts } from '@/lib/mailing/roster'
 import {
   saveEdition, createAttachmentUpload, confirmAttachment, removeAttachment, setRecipientsExcluded,
   searchPeopleForEdition, addEditionRecipient, removeAddedRecipient, sendTest, sendNow, scheduleSend,
-  cancelSchedule, deleteDraftEdition, refreshRoster, type EditionDraft,
+  cancelSchedule, deleteDraftEdition, refreshRoster, setSkipEarlierVersions, type EditionDraft,
 } from '@/app/support/admin/(portal)/crm/mailing/actions'
 import { MailingEditor } from './MailingEditor'
 import { MailingListChecklist, type ListOption } from './MailingListChecklist'
@@ -58,12 +58,15 @@ export function MailingComposer({
   recipients: initialRecipients,
   settings,
   fileUrl,
+  earlierVersion = null,
 }: {
   edition: ComposerEdition
   lists: ListOption[]
   recipients: ComposerRecipient[]
   settings: { fromName: string; fromEmail: string; testEmail: string; footerText: string; postalAddress: string; ratePerHour: number }
   fileUrl: string
+  /** Set on version 2 onward: who earlier versions already reached. */
+  earlierVersion?: { reachedEmails: string[] } | null
 }) {
   const router = useRouter()
   const locked = edition.status !== 'DRAFT'
@@ -90,6 +93,20 @@ export function MailingComposer({
   const update = <K extends keyof EditionDraft>(k: K, v: EditionDraft[K]) => {
     setDraft((d) => ({ ...d, [k]: v }))
     setDirty(true)
+  }
+
+  // Ticked unless someone an earlier version reached is checked on this roster.
+  const reached = useMemo(() => new Set(earlierVersion?.reachedEmails ?? []), [earlierVersion])
+  const reachedOnRoster = recipients.filter((r) => reached.has(r.email))
+  const skipEarlier = reachedOnRoster.every((r) => r.excluded)
+  const toggleSkipEarlier = (on: boolean) => {
+    setRecipients((rs) => rs.map((r) => {
+      if (on && reached.has(r.email) && !r.excluded) return { ...r, excluded: true, excludedReason: 'already_got_version' }
+      if (!on && r.excludedReason === 'already_got_version') return { ...r, excluded: false, excludedReason: null }
+      return r
+    }))
+    posthog.capture('mailing_skip_earlier_versions_clicked', { editionId: edition.id, on })
+    run(async () => { await setSkipEarlierVersions(edition.id, on) })
   }
 
   const counts = useMemo(() => rosterCounts(recipients.map((r) => ({ ...r, personId: null, alsoAddToListIds: [], status: 'PENDING' }))), [recipients])
@@ -286,7 +303,19 @@ export function MailingComposer({
           )}
         </div>
 
-        {!locked && <MailingGroupBuilder editionId={edition.id} lists={lists} defaultListIds={draft.listIds} />}
+        {earlierVersion && (
+          <label className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${skipEarlier ? 'border-brand/40 bg-brand/5' : 'border-border'}`}>
+            <input type="checkbox" checked={skipEarlier} disabled={locked} onChange={(e) => toggleSkipEarlier(e.target.checked)} />
+            <span className="font-medium">Leave out anyone an earlier version already emailed</span>
+            <span className="text-xs text-muted-foreground">
+              {reached.size === 0
+                ? 'No earlier version has gone out yet.'
+                : `${reached.size} reached by earlier versions · ${reachedOnRoster.length} of them on this roster${skipEarlier ? ', unchecked' : ', checked'}`}
+            </span>
+          </label>
+        )}
+
+        {!locked && <MailingGroupBuilder editionId={edition.id} lists={lists} defaultListIds={draft.listIds} skipEarlierVersions={!!earlierVersion && skipEarlier} />}
 
         {!locked && <AddPerson editionId={edition.id} lists={lists} targetListIds={draft.listIds} onAdded={() => router.refresh()} onMessage={setMessage} />}
 

@@ -103,6 +103,8 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
           }))}
           settings={{ fromName: settings.fromName, fromEmail: settings.fromEmail, testEmail: settings.testEmail, footerText: settings.footerText, postalAddress: settings.postalAddress, ratePerHour: settings.ratePerHour }}
           fileUrl={fileUrlFor(edition.key)}
+          // Version 2 onward: the "leave out anyone an earlier version emailed" box.
+          earlierVersion={edition.versionOfId ? { reachedEmails: [...earlier.keys()] } : null}
         />
         {versions}
       </div>

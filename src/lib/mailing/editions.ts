@@ -21,6 +21,19 @@ export function appUrl(): string {
 export const MAILING_REF_PREFIX = 'mailing:'
 export const mailingSourceRef = (recipientId: string) => `${MAILING_REF_PREFIX}${recipientId}`
 
+/**
+ * Everyone another version of this email (its original or any copy) has
+ * already been sent to: address → when. Empty for an email with no versions.
+ */
+export async function earlierVersionSends(editionId: string, versionOfId: string | null): Promise<Map<string, Date>> {
+  const rootId = versionOfId ?? editionId
+  const rows = await prisma.mailingEditionRecipient.findMany({
+    where: { status: 'SENT', editionId: { not: editionId }, edition: { OR: [{ id: rootId }, { versionOfId: rootId }] } },
+    select: { email: true, sentAt: true },
+  })
+  return new Map(rows.map((r) => [r.email, r.sentAt!]))
+}
+
 /** The link to an edition's uploaded file, on the site. */
 export function fileUrlFor(editionKey: string): string {
   return `${appUrl()}/reports/files/${encodeURIComponent(editionKey)}`
@@ -66,18 +79,14 @@ export async function syncEditionRoster(editionId: string) {
     ? await prisma.crmReportSend.findMany({ where: { editionKey: edition.reportKey, method: 'MANUAL' }, select: { personId: true, sentAt: true } })
     : []
 
-  const rootId = edition.versionOfId ?? edition.id
-  const earlier = await prisma.mailingEditionRecipient.findMany({
-    where: { status: 'SENT', editionId: { not: edition.id }, edition: { OR: [{ id: rootId }, { versionOfId: rootId }] } },
-    select: { email: true, sentAt: true },
-  })
+  const earlierSends = await earlierVersionSends(edition.id, edition.versionOfId)
 
   const next = computeRoster({
     members: members.map((m) => ({ email: m.email, personId: m.personId, listKey: keyById.get(m.listId)!, status: m.status })),
     existing: edition.recipients.map(toRow),
     suppressed,
     manualSends: new Map(manual.map((m) => [m.personId, m.sentAt])),
-    versionSends: new Map(earlier.map((r) => [r.email, r.sentAt!])),
+    versionSends: earlierSends,
   })
 
   const nextEmails = new Set(next.map((r) => r.email))

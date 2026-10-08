@@ -28,11 +28,14 @@ export function MailingGroupBuilder({
   editionId,
   lists,
   defaultListIds,
+  skipEarlierVersions = false,
 }: {
   /** Set inside the composer; without it only list changes are offered. */
   editionId?: string
   lists: ListOption[]
   defaultListIds: string[]
+  /** Version 2 onward with the box ticked: people an earlier version reached go on unchecked. */
+  skipEarlierVersions?: boolean
 }) {
   const router = useRouter()
   const [filter, setFilter] = useState<AudienceFilter>(EMPTY_AUDIENCE)
@@ -51,11 +54,11 @@ export function MailingGroupBuilder({
     let live = true
     const t = setTimeout(async () => {
       setLoading(true)
-      const p = await previewAudience(filter)
+      const p = await previewAudience(filter, { editionId, skipEarlierVersions })
       if (live) { setPreview(p); setLoading(false) }
     }, 300)
     return () => { live = false; clearTimeout(t) }
-  }, [filter])
+  }, [filter, editionId, skipEarlierVersions])
 
   useEffect(() => {
     if (!rolesOpen) return
@@ -74,17 +77,20 @@ export function MailingGroupBuilder({
   const empty = isEmptyAudience(filter)
   const facets = preview?.facets
   const n = empty ? 0 : preview?.total ?? 0
+  // Only this send is affected by earlier versions; the lists take everyone.
+  const leftOutEarlier = scope === 'send' && skipEarlierVersions ? preview?.earlierVersion ?? 0 : 0
+  const toAdd = n - leftOutEarlier
 
   const run = (op: AudienceOp) => start(async () => {
-    const r = await applyAudience({ filter, op, editionId: editionId ?? null, listIds, expected: n })
+    const r = await applyAudience({ filter, op, editionId: editionId ?? null, listIds, expected: n, skipEarlierVersions })
     posthog.capture('mailing_group_clicked', { op, people: n, editionId: editionId ?? null, history: filter.history })
     setMessage({ ok: r.ok, text: r.message })
     setConfirm(null)
-    if (r.ok) { router.refresh(); setPreview(await previewAudience(filter)) }
+    if (r.ok) { router.refresh(); setPreview(await previewAudience(filter, { editionId, skipEarlierVersions })) }
   })
 
   const verb: Record<AudienceOp, string> = {
-    add_send: `Add ${n} to this send`,
+    add_send: `Add ${toAdd} to this send`,
     remove_send: `Uncheck ${n} for this send`,
     add_lists: `Add ${n} to the ticked lists`,
     remove_lists: `Take ${n} off the ticked lists`,
@@ -178,6 +184,7 @@ export function MailingGroupBuilder({
         <div className="space-y-2">
           <p className="text-sm">
             <span className="font-semibold">{n.toLocaleString()} {n === 1 ? 'person' : 'people'} with an email address</span>
+            {leftOutEarlier > 0 && <span className="text-muted-foreground"> · {leftOutEarlier} already got an earlier version and go on unchecked</span>}
             {preview.doNotEmail > 0 && <span className="text-muted-foreground"> · {preview.doNotEmail} marked Do not email left out</span>}
             {loading && <span className="text-muted-foreground"> · updating…</span>}
           </p>
@@ -197,7 +204,7 @@ export function MailingGroupBuilder({
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" disabled={n === 0 || (scope === 'lists' && listIds.length === 0)} onClick={() => setConfirm(addOp)}
+              <button type="button" disabled={(addOp === 'add_send' ? toAdd : n) === 0 || (scope === 'lists' && listIds.length === 0)} onClick={() => setConfirm(addOp)}
                 className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
                 {verb[addOp]}
               </button>
