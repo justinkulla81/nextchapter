@@ -61,7 +61,13 @@ jobs:
         # From the repository rather than the last release: it carries scrapers
         # (North Dakota) and fixes the release does not. pyquery, lxml and
         # html5lib are used by some state scrapers but not declared by the package.
-        run: pip install --quiet "git+https://github.com/biglocalnews/warn-scraper.git@main" warn-transformer pyquery lxml html5lib
+        # Its setup script needs jinja2 to build; if the repository build fails
+        # anyway, the last release is installed so the other states still run.
+        run: |
+          pip install --quiet jinja2 setuptools wheel pyquery lxml html5lib warn-transformer
+          pip install --quiet --no-build-isolation "git+https://github.com/biglocalnews/warn-scraper.git@main" \
+            || pip install --quiet warn-scraper
+          warn-scraper --help > /dev/null
 
       - name: Import scraped states
         # Each state imports on its own; one state's broken site fails only that state.
