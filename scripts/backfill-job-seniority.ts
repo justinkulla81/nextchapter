@@ -1,6 +1,7 @@
 /**
  * Levels every live automated job (ATS feed + ncrawl) with job-seniority.ts
  * and archives the ones below the floor (entry-level, hourly/frontline).
+ * Also tidies crawled company names ("HOME DEPOT, INC." -> "Home Depot").
  * Jobs posted by employers or recruiters are left alone.
  *
  *   npx tsx --env-file=.env.local scripts/backfill-job-seniority.ts          # dry run
@@ -8,14 +9,18 @@
  */
 import { prisma } from '@/lib/prisma'
 import { classifyTitleRung, MANAGER_FLOOR, seniorityGroupOf } from '@/lib/jobs/job-seniority'
+import { displayCompanyName } from '@/lib/text/org-name-match'
 
 async function main() {
   const write = process.argv.includes('--write')
   const rows = await prisma.exclusiveJobPosting.findMany({
     where: { archivedAt: null, addedBy: { in: ['ats_feed', 'ncrawl'] } },
-    select: { id: true, title: true, level: true },
+    select: { id: true, title: true, level: true, companyName: true, addedBy: true },
   })
 
+  const renames = rows
+    .filter((r) => r.addedBy === 'ncrawl' && displayCompanyName(r.companyName) !== r.companyName)
+    .map((r) => ({ id: r.id, companyName: displayCompanyName(r.companyName) }))
   const byLevel = new Map<string, string[]>()
   const below: string[] = []
   const counts = new Map<string, number>()
@@ -32,6 +37,7 @@ async function main() {
   console.log(`${rows.length} live automated jobs`)
   console.log(`  keep ${rows.length - below.length}:`, Object.fromEntries(counts))
   console.log(`  archive ${below.length} below the floor`)
+  console.log(`  tidy ${renames.length} company names`)
   if (!write) return console.log('dry run — pass --write to apply')
 
   for (const [level, ids] of byLevel) {
@@ -44,6 +50,11 @@ async function main() {
       where: { id: { in: below.slice(i, i + 1000) } },
       data: { archivedAt: new Date(), rejectionReason: 'below seniority floor (manager and up, plus senior individual roles)' },
     })
+  }
+  for (let i = 0; i < renames.length; i += 100) {
+    await prisma.$transaction(
+      renames.slice(i, i + 100).map((r) => prisma.exclusiveJobPosting.update({ where: { id: r.id }, data: { companyName: r.companyName } }))
+    )
   }
   console.log('done')
 }

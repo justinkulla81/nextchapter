@@ -98,5 +98,41 @@ export function fixAllCapsCompanyName(name: string): string {
   const hasLetter = /[a-zA-Z]/.test(trimmed)
   const isAllCaps = hasLetter && trimmed === trimmed.toUpperCase() && trimmed !== trimmed.toLowerCase()
   if (!isAllCaps) return trimmed
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+  // A lone short word is a ticker-style name (IBM, QAD, SAP).
+  if (/^[A-Z]{2,4}$/.test(trimmed)) return trimmed
+  return trimmed
+    .split(/(\s+)/)
+    .map((word, i) => {
+      if (/^\s+$/.test(word)) return word
+      const lower = word.toLowerCase()
+      // Acronyms stay as they are: anything with & or a digit (AT&T, 3M),
+      // and short words with no vowel (IBM, CVS, TD).
+      if (/[&\d]/.test(word) || (word.replace(/[^A-Z]/g, '').length <= 4 && !/[AEIOUY]/.test(word))) return word
+      // Other short words are initials (FHI 360, SAP SE) unless they're words.
+      if (/^[A-Z]{2,3}$/.test(word) && !SHORT_WORDS.has(lower)) return word
+      if (i > 0 && SMALL_WORDS.has(lower)) return lower
+      // Capitalize after hyphens and apostrophe-free word starts (Coca-Cola).
+      return lower.replace(/(^|[-/(])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
+    })
+    .join('')
+}
+
+const SHORT_WORDS = new Set([
+  'new', 'oil', 'gas', 'bay', 'red', 'big', 'one', 'two', 'air', 'sun', 'sea', 'art', 'car', 'old', 'all', 'way',
+  'top', 'key', 'pro', 'bio', 'eco', 'net', 'web', 'app', 'lab', 'box', 'hub', 'go', 'my', 'us', 'we', 'by', 'or',
+  'and', 'of', 'the', 'for', 'in', 'at', 'on', 'to', 'an', 'de', 'co', 'inc', 'ltd', 'llc', 'corp', 'bank', 'blue',
+  'gold', 'east', 'west', 'home', 'life', 'care', 'farm', 'food', 'auto', 'tech', 'data', 'land', 'star', 'fox', 'dow', 'ford', 'kroger',
+])
+const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'in', 'at', 'on', 'to', 'a', 'an', 'de'])
+
+// Legal-form and SEC filing suffixes that read as noise on a job card:
+// "BANK OF AMERICA CORP /DE/" -> "Bank of America", "Elevance Health, Inc."
+// -> "Elevance Health". Only a trailing suffix is removed, never a name
+// that is itself one of these words.
+const LEGAL_SUFFIX = /(?:[\s,]+(?:&\s*co\.?|\/[a-z]{2,4}\/|inc\.?|incorporated|corp\.?|corporation|co\.?|llc|l\.l\.c\.|ltd\.?|limited|plc|lp|llp|n\.?a\.?|s\.?a\.?|ag|nv|se))+\s*$/i
+
+export function displayCompanyName(name: string): string {
+  const fixed = fixAllCapsCompanyName(name)
+  const stripped = fixed.replace(LEGAL_SUFFIX, '').trim()
+  return stripped.length >= 2 ? stripped : fixed
 }

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { displayCompanyName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
 import { isUsLocation } from '@/lib/jobs/us-location'
 
@@ -92,7 +92,7 @@ function screen(jobs: unknown[]) {
 function rowData({ job, level }: Screened) {
   return {
     title: job.title.trim(),
-    companyName: fixAllCapsCompanyName(job.companyName.trim()),
+    companyName: displayCompanyName(job.companyName.trim()),
     location: job.location?.trim() || null,
     description: job.description?.trim() || null,
     level,

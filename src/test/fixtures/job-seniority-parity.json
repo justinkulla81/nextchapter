@@ -1766,8 +1766,8 @@
 ],
 [
 "Field Marketing Manager, Third Party & Partner Events",
-"PARTNER",
-78
+"MANAGER",
+40
 ],
 [
 "Staff Software Engineer - Customer Engagement & Docs Platform",
@@ -2751,8 +2751,8 @@
 ],
 [
 "Deputy CISO and Cybersecurity Architect",
-"C_SUITE",
-100
+"OTHER",
+0
 ],
 [
 "Systems Engineer (Data Intelligence & Analytics Team)",
@@ -3576,8 +3576,8 @@
 ],
 [
 "Senior Talent Acquisition Partner",
-"PARTNER",
-78
+"SENIOR_IC",
+45
 ],
 [
 "Director, Supply Chain Strategy and Excellence",
@@ -5071,8 +5071,8 @@
 ],
 [
 "Sr. Partner Marketing Manager, AWS & AI Partners",
-"MANAGER",
-40
+"SENIOR_IC",
+45
 ],
 [
 "Director, Product Marketing",
@@ -5861,8 +5861,8 @@
 ],
 [
 "Accounting Partner Growth Manager",
-"PARTNER",
-78
+"MANAGER",
+40
 ],
 [
 "Regional Director, Forward Deployed Engineering - India",
@@ -6386,8 +6386,8 @@
 ],
 [
 "Assistant Dean - Graduate Medical Education (GME)",
-"C_SUITE",
-100
+"DIRECTOR",
+68
 ],
 [
 "Software Engineer, Privacy",
@@ -7581,8 +7581,8 @@
 ],
 [
 "Associate Dean, Strategic Initiatives & Development - School of Nursing",
-"C_SUITE",
-100
+"DIRECTOR",
+68
 ],
 [
 "Senior Product Marketing Manager, Platform",
@@ -8591,8 +8591,8 @@
 ],
 [
 "Manager, CIO Advisory",
-"C_SUITE",
-100
+"MANAGER",
+40
 ],
 [
 "Senior Software Engineer: Platform",
@@ -9481,8 +9481,8 @@
 ],
 [
 "Senior Software Engineer, Backend (Merchant & Partner Lifecycle)",
-"PARTNER",
-78
+"SENIOR_IC",
+45
 ],
 [
 "Principal Software Engineer - Content Platform",
@@ -10136,8 +10136,8 @@
 ],
 [
 "Senior Connectivity Partner Manager - Seoul, South Korea",
-"MANAGER",
-40
+"SENIOR_IC",
+45
 ],
 [
 "Staff Machine Learning Engineer, Programmatic Ads",
@@ -10281,6 +10281,71 @@
 ],
 [
 "Software Engineering Intern",
+"OTHER",
+0
+],
+[
+"Senior Talent Acquisition Partner",
+"SENIOR_IC",
+45
+],
+[
+"Partner Sales Manager",
+"MANAGER",
+40
+],
+[
+"Audit Partner, Private Equity",
+"PARTNER",
+78
+],
+[
+"Associate Vice Chancellor, Financial Planning & Analysis",
+"VP",
+80
+],
+[
+"Assistant Superintendent",
+"DIRECTOR",
+68
+],
+[
+"Associate Dean of Students",
+"DIRECTOR",
+68
+],
+[
+"Managing Partner",
+"C_SUITE",
+100
+],
+[
+"General Partner",
+"PARTNER",
+78
+],
+[
+"Account Executive Director, Federal",
+"DIRECTOR",
+65
+],
+[
+"Senior Product Marketing Manager - CIO & Technology Partnerships",
+"MANAGER",
+40
+],
+[
+"VP & CFO",
+"C_SUITE",
+100
+],
+[
+"President & CEO",
+"C_SUITE",
+100
+],
+[
+"CEO Office Strategy Associate",
 "OTHER",
 0
 ]

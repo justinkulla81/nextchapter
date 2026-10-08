@@ -105,6 +105,23 @@ export function levelsInGroup(group: SeniorityGroup): RungName[] {
 }
 
 /**
+ * A stored level (rung) on the candidate-level scale (level-rank.ts's
+ * IC / Manager / Director / VP / C-Suite), so a job's seniority can be
+ * compared with a candidate's.
+ */
+export function candidateScaleLevel(level: string | null | undefined): string | null {
+  switch (seniorityGroupOf(level)) {
+    case 'EXECUTIVE': return 'C-Suite'
+    case 'VP': return 'VP'
+    case 'DIRECTOR': return 'Director'
+    case 'SENIOR_MANAGER':
+    case 'MANAGER': return 'Manager'
+    case 'SENIOR_IC': return 'IC'
+    default: return null
+  }
+}
+
+/**
  * The verdict an automated feed applies: the level to store, or why the job
  * is screened out.
  */
