@@ -11,6 +11,13 @@ const MAX_LEADS = 100
 // ncrawl job import: both are local scheduled jobs posting into the admin CRM.
 // Re-posting a lead is harmless: each one is keyed on (source link, org,
 // person) and a repeat comes back as alreadyLogged without writing anything.
+// What this endpoint accepts, so the digest can check before sending fields
+// an older deploy would silently ignore (an ignored p0: false would tier the
+// contact P0). Bump on any change to the payload.
+export function GET() {
+  return NextResponse.json({ version: 2, accepts: ['phone', 'p0'] })
+}
+
 export async function POST(request: NextRequest) {
   if (!process.env.NC_ATS_API_KEY || request.headers.get('authorization') !== `Bearer ${process.env.NC_ATS_API_KEY}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

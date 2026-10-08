@@ -37,7 +37,15 @@ export interface P0Lead {
     email: string | null
     role: CrmPersonRole | null
     quote: string | null
+    /** As the contact shared it, digits checked. Never inferred. */
+    phone: string | null
   } | null
+  /**
+   * False records the contact (a shared phone number, a new title) without
+   * tiering them P0 or setting a follow-up — for an existing relationship that
+   * already has its own tier and next step.
+   */
+  p0: boolean
   /** One line: why this organization should hear from us about this trigger. */
   why: string
 }
@@ -52,6 +60,13 @@ const date = (v: unknown): Date | null => {
   if (!s) return null
   const d = new Date(s)
   return Number.isNaN(d.getTime()) ? null : d
+}
+
+const phone = (v: unknown): string | null => {
+  const s = str(v, 40)
+  if (!s) return null
+  const digits = s.replace(/\D/g, '')
+  return digits.length >= 7 && digits.length <= 15 && /^[+\d\s().-]+(\s*(x|ext\.?)\s*\d+)?$/i.test(s) ? s : null
 }
 
 const state = (v: unknown): string | null => {
@@ -99,7 +114,9 @@ export function parseP0Leads(body: unknown): ParseResult {
         linkedinUrl: str(p.linkedinUrl, 300),
         email: str(p.email, 200),
         quote: str(p.quote, 500),
+        phone: phone(p.phone),
       }
+      if (p.phone && !person.phone) return errors.push({ index, error: 'person.phone is not a phone number' })
     }
 
     const employees = Number(t.employees)
@@ -116,6 +133,7 @@ export function parseP0Leads(body: unknown): ParseResult {
       },
       org: { name: orgName, type: orgType, website: str(o.website, 300), city: str(o.city, 80), state: state(o.state) },
       person,
+      p0: r.p0 !== false,
       why: str(r.why, 500) ?? '',
     })
   })
