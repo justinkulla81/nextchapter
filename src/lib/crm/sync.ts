@@ -2,7 +2,7 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
-import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
+import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getMessageContent, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -15,6 +15,9 @@ import { looksLikeNotAPerson } from './person-plausibility'
 import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 import { canonicalEmail, findEmailOwner } from './email-owner'
 import { namesLookAlike } from '@/lib/text/person-name-match'
+import { detectReportEdition } from '@/lib/mailing/edition-parser'
+import { buildMailingSweepContext, markReportManual, onInboundMessage, type MailingSweepContext } from '@/lib/mailing/tracking'
+import { raiseListPrompt } from '@/lib/mailing/lists'
 
 const DAY = 86_400_000
 
@@ -296,6 +299,27 @@ async function getOrCreatePerson(
   return { id: created.id, created: true }
 }
 
+/**
+ * After an email you sent is logged: a Displacement Report attachment or
+ * link marks that person as having received that month's report (MANUAL),
+ * and anyone not yet on the lists that fit them gets an "Add to a mailing
+ * list?" card. Mail that doesn't mention NextChapter (needsReview) raises
+ * no card — personal mail shouldn't fill the queue.
+ */
+async function onOutboundEmail(input: {
+  personId: string; activityId: string; at: Date; subject: string | null
+  body: string | null | undefined; attachmentNames: string[]; needsReview: boolean
+}) {
+  const editionKey = detectReportEdition({ attachmentNames: input.attachmentNames, body: input.body })
+  if (editionKey) {
+    await markReportManual({
+      personId: input.personId, editionKey, channel: 'EMAIL', sentAt: input.at,
+      activityId: input.activityId, subject: input.subject,
+    })
+  }
+  if (!input.needsReview || editionKey) await raiseListPrompt(input.personId, input.activityId, input.at)
+}
+
 export interface SweepResult {
   source: 'gmail' | 'calendar'
   scanned: number
@@ -416,7 +440,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         const k = classifyParticipant(e, ctx).kind
         return k !== 'internal' && k !== 'self' && k !== 'automated'
       })
-    const bodies = new Map<string, string | null>()
+    const bodies = new Map<string, { body: string | null; attachmentNames: string[] }>()
     const needBodies = ids.filter((id, i) => {
       const m = headers[i]
       if (!m || !isAfterCrmCutoff(m.internalDate) || logged.has(id) || !wantsBody(m)) return false
@@ -427,7 +451,12 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       if (direction === 'INBOUND' && !mentionsNextChapter(m.subject, m.snippet)) return false
       return true
     })
-    await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageBody(token, id)) })
+    await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageContent(token, id)) })
+
+    // Mailing lists: unsubscribe replies and replies to a report. Never
+    // allowed to fail the sweep — the CRM log matters more.
+    let mailingCtx: MailingSweepContext | null = null
+    try { mailingCtx = await buildMailingSweepContext() } catch (e) { console.error('Mailing sweep context failed', e) }
 
     for (const [i, id] of ids.entries()) {
       const msg = headers[i]
@@ -443,6 +472,10 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       const booking = appointmentBooker(msg.subject)
       const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
       const relevant = booking ? true : mentionsNextChapter(msg.subject, msg.snippet)
+      if (direction === 'INBOUND' && mailingCtx && fromEmail && !booking) {
+        await onInboundMessage(mailingCtx, { id, fromEmail, subject: msg.subject, snippet: msg.snippet, at: msg.internalDate })
+          .catch((e) => console.error('Mailing inbound hook failed', id, e))
+      }
       // Inbound mail that never mentions NextChapter is never added to the
       // CRM at all — no activity, no new person from it, by direct
       // instruction. Outbound mail that doesn't mention it is still logged
@@ -457,6 +490,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       // newly-created) person is actually on it — every purely internal or
       // automated message never pays for the extra format=full round trip.
       let fullBody: string | null | undefined
+      let attachmentNames: string[] = []
 
       for (const raw of participants) {
         const email = normalizeEmail(raw)
@@ -490,7 +524,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         // including when someone else on it already does, as when an address
         // is added to a contact after the message was first swept.
         if (fullBody === undefined) {
-          fullBody = bodies.has(id) ? bodies.get(id)! : await getMessageBody(token, id)
+          const content = bodies.get(id) ?? await getMessageContent(token, id)
+          fullBody = content.body
+          attachmentNames = content.attachmentNames
         }
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
@@ -511,10 +547,16 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             needsReview: direction === 'OUTBOUND' && !relevant,
           },
           update: {},
-          select: { createdAt: true },
+          select: { id: true, createdAt: true },
         })
         // upsert gives no "was created" flag; a fresh row is one written now.
         if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
+        if (direction === 'OUTBOUND' && !booking) {
+          await onOutboundEmail({
+            personId, activityId: created.id, at: msg.internalDate, subject: msg.subject,
+            body: fullBody, attachmentNames, needsReview: !relevant,
+          }).catch((e) => console.error('Mailing outbound hook failed', id, e))
+        }
         if (isNewPerson) result.suggested++
         touched.add(personId)
         loggedForThisMessage = true

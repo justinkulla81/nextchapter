@@ -65,10 +65,6 @@
       "schedule": "0 18 * * 3"
     },
     {
-      "path": "/api/cron/homepage-visitor-digest",
-      "schedule": "0 4 * * *"
-    },
-    {
       "path": "/api/cron/refresh-youtube-content",
       "schedule": "30 11 */2 * *"
     },
@@ -135,6 +131,14 @@
     {
       "path": "/api/cron/activity-streaks",
       "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/mailing-send",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/mailing-drafts",
+      "schedule": "0 11 * * *"
     }
   ]
 }

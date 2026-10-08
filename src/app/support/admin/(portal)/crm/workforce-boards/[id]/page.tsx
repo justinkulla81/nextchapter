@@ -341,6 +341,9 @@ export default async function WorkforceBoardPage({
                                 )}
                                 {p.title && <span className="text-muted-foreground">, {p.title}</span>}
                                 {p.email && <> · <a href={`mailto:${p.email}`} className="hover:underline">{p.email}</a></>}
+                              {!p.email && p.guessedEmail && (
+                                <> · <a href={`mailto:${p.guessedEmail}`} className="hover:underline" title={`Guessed from the college's address format: ${p.guessedEmailBasis ?? ''}. Not confirmed.`}>{p.guessedEmail}</a> <span className="text-muted-foreground">(guessed)</span></>
+                              )}
                                 {p.phone && <> · <a href={`tel:${p.phone}`} className="whitespace-nowrap hover:underline">{p.phone}</a></>}
                               </li>
                             ))}

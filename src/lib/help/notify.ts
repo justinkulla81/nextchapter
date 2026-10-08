@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 
 /** Where new help requests are emailed. Override with HELP_FORWARD_TO. */
-const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin.kulla@consequentialcapital.com'
+const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const ADMIN_URL = 'https://admin.launchyournextchapter.com'

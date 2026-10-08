@@ -5,6 +5,11 @@
 # its data only to its own rendered embed, and the states that either build
 # their list client-side or refuse scripted requests (mass.gov returns 403 to
 # everything that is not a browser). Every other state still syncs on Vercel.
+#
+# A third kind needs neither a browser nor our own parser: twenty states whose
+# lists are PDFs, dashboards or search forms are read by Big Local News's
+# open-source warn-scraper and standardized by warn-transformer (both Apache
+# 2.0, Stanford), then posted to /api/admin/warn/import-rows.
 name: Browser WARN sync
 
 on:
@@ -18,7 +23,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -45,3 +50,29 @@ jobs:
           NEXTCHAPTER_URL: ${{ secrets.NEXTCHAPTER_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: npx tsx scripts/warn/render-states.ts
+
+      - uses: actions/setup-python@v5
+        if: always()
+        with:
+          python-version: '3.12'
+
+      - name: Install the WARN scrapers
+        if: always()
+        # From the repository rather than the last release: it carries scrapers
+        # (North Dakota) and fixes the release does not. pyquery, lxml and
+        # html5lib are used by some state scrapers but not declared by the package.
+        # Its setup script needs jinja2 to build; if the repository build fails
+        # anyway, the last release is installed so the other states still run.
+        run: |
+          pip install --quiet jinja2 setuptools wheel pyquery lxml html5lib warn-transformer
+          pip install --quiet --no-build-isolation "git+https://github.com/biglocalnews/warn-scraper.git@main" \
+            || pip install --quiet warn-scraper
+          warn-scraper --help > /dev/null
+
+      - name: Import scraped states
+        # Each state imports on its own; one state's broken site fails only that state.
+        if: always()
+        env:
+          NEXTCHAPTER_URL: ${{ secrets.NEXTCHAPTER_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: python scripts/warn/scraped_states.py

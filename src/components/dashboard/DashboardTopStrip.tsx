@@ -12,6 +12,7 @@ import { getPendingBadgeNotices } from '@/lib/badges/badge-notifications'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewedOnMount'
 import { BadgeEarnedDialog, type BadgeNotice } from '@/components/dashboard/BadgeEarnedDialog'
+import { platformBadgeLabel, platformBadgeDescription } from '@/lib/platforms/badges'
 
 // The grade color tokens (text-success/text-brand/text-warning/text-error)
 // double as StatTile accent keys — stripping the "text-" prefix reuses the
@@ -80,8 +81,10 @@ export async function DashboardTopStrip({
       id: n.id,
       source: 'milestone' as const,
       badgeKey: n.badgeKey,
-      label: MILESTONE_BADGE_LABEL[n.badgeKey as MilestoneBadgeKey] ?? n.badgeKey,
-      description: MILESTONE_BADGE_DESCRIPTION[n.badgeKey as MilestoneBadgeKey] ?? '',
+      // Platform milestones (signed up on micro1, completed on Coursera)
+      // use "PLATFORM:<key>:<milestone>" keys — see lib/platforms/badges.ts.
+      label: MILESTONE_BADGE_LABEL[n.badgeKey as MilestoneBadgeKey] ?? platformBadgeLabel(n.badgeKey) ?? n.badgeKey,
+      description: MILESTONE_BADGE_DESCRIPTION[n.badgeKey as MilestoneBadgeKey] ?? platformBadgeDescription(n.badgeKey),
     })),
   ]
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length

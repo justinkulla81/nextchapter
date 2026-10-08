@@ -11,7 +11,7 @@ const URL = `${SITE_URL}/reports`
 export const metadata: Metadata = {
   title: { absolute: 'Displacement Report: White-Collar Labor Data | NextChapter' },
   description:
-    'The NextChapter Displacement Report is a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution, the safety net, and the White-Collar Displacement Index.',
+    'The NextChapter Displacement Report is a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution, the safety net, and the White-Collar Long-Term Unemployment Index.',
   alternates: { canonical: '/reports' },
   openGraph: {
     type: 'website',
@@ -46,7 +46,7 @@ export default function ReportsHubPage() {
     name: 'NextChapter Displacement Report',
     url: URL,
     description:
-      'Monthly, independent data on the U.S. white-collar labor market: layoffs, long-term unemployment, AI attribution and the White-Collar Displacement Index.',
+      'Monthly, independent data on the U.S. white-collar labor market: layoffs, long-term unemployment, AI attribution and the White-Collar Long-Term Unemployment Index.',
     isPartOf: { '@type': 'WebSite', name: 'NextChapter', url: SITE_URL },
   }
 
@@ -69,7 +69,7 @@ export default function ReportsHubPage() {
             href="/reports/white-collar-index"
             className="group rounded-xl border border-light-gray bg-white p-6 transition-colors hover:border-brand"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand">White-Collar Displacement Index</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand">White-Collar Long-Term Unemployment Index</p>
             <div className="mt-3 text-5xl font-bold tracking-tight text-navy tabular-nums">{latestIndex}</div>
             <p className="mt-2 text-sm text-muted-foreground">
               {monthLabel(idx.month)} · 2019 = 100. Long-term unemployment among managers and professionals.

@@ -1,0 +1,327 @@
+import 'server-only'
+import type { MailingAddedVia, MailingMemberStatus, Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail, type SuppressionReason } from './rules'
+import { suggestListKeys } from './suggest'
+
+export const SETTINGS_DEFAULTS = {
+  fromName: 'Justin Kulla',
+  fromEmail: 'justin@updates.launchyournextchapter.com',
+  replyTo: 'justin@launchyournextchapter.com',
+  testEmail: 'justin@launchyournextchapter.com',
+  ratePerHour: 50,
+  footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
+  postalAddress: '',
+}
+
+export async function getMailingSettings() {
+  const row = await prisma.mailingSettings.findUnique({ where: { id: 'singleton' } })
+  return row ?? { id: 'singleton', ...SETTINGS_DEFAULTS, updatedAt: new Date(0) }
+}
+
+export async function activeLists() {
+  return prisma.mailingList.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] })
+}
+
+export interface AddResult {
+  added: { listId: string; listName: string }[]
+  blocked: { listId: string; listName: string; reason: string }[]
+}
+
+/**
+ * Adds one address to several lists, applying the never-re-add rule to
+ * each. Returns what was added and, for anything refused, why — the UI
+ * shows those as warnings instead of failing the whole save.
+ */
+export async function addToLists(input: {
+  email: string
+  personId: string | null
+  listIds: string[]
+  addedVia: MailingAddedVia
+  consentNote?: string | null
+  addedByEmail?: string | null
+}): Promise<AddResult> {
+  const result: AddResult = { added: [], blocked: [] }
+  const email = normalizeListEmail(input.email)
+  const lists = await prisma.mailingList.findMany({ where: { id: { in: input.listIds } } })
+  if (!email) {
+    for (const l of lists) result.blocked.push({ listId: l.id, listName: l.name, reason: 'no valid email address' })
+    return result
+  }
+  const [existing, suppression] = await Promise.all([
+    prisma.mailingListMember.findMany({ where: { email, listId: { in: input.listIds } } }),
+    prisma.mailingSuppression.findUnique({ where: { email } }),
+  ])
+  const statusByList = new Map(existing.map((m) => [m.listId, m.status]))
+  for (const list of lists) {
+    const verdict = canAddToList(statusByList.get(list.id) ?? null, (suppression?.reason as SuppressionReason | undefined) ?? null)
+    if (!verdict.ok) {
+      // Already there is not a problem worth warning about, but the person
+      // link is worth filling in if it was missing.
+      if (verdict.reason === 'already_active' && input.personId) {
+        await prisma.mailingListMember.updateMany({ where: { listId: list.id, email, personId: null }, data: { personId: input.personId } })
+      }
+      if (verdict.reason !== 'already_active') result.blocked.push({ listId: list.id, listName: list.name, reason: ADD_BLOCKED_MESSAGE[verdict.reason] })
+      continue
+    }
+    await prisma.mailingListMember.create({
+      data: {
+        listId: list.id, email, personId: input.personId, status: 'ACTIVE', addedVia: input.addedVia,
+        consentNote: input.consentNote?.trim() || null, addedByEmail: input.addedByEmail ?? null,
+      },
+    })
+    result.added.push({ listId: list.id, listName: list.name })
+  }
+  return result
+}
+
+/** An admin taking someone off a list. Recorded as UNSUBSCRIBED, so it sticks. */
+export async function setMemberStatus(listId: string, email: string, status: MailingMemberStatus) {
+  await prisma.mailingListMember.updateMany({ where: { listId, email: email.toLowerCase() }, data: { status, statusAt: new Date() } })
+}
+
+/**
+ * Unsubscribes an address from the given lists (or every list) and logs it
+ * on the person's CRM history.
+ */
+export async function unsubscribe(email: string, listIds: string[] | 'all', via: string): Promise<number> {
+  const e = email.toLowerCase()
+  const where = { email: e, status: 'ACTIVE' as const, ...(listIds === 'all' ? {} : { listId: { in: listIds } }) }
+  const rows = await prisma.mailingListMember.findMany({ where, include: { list: { select: { name: true } } } })
+  if (rows.length === 0) return 0
+  await prisma.mailingListMember.updateMany({ where: { id: { in: rows.map((r) => r.id) } }, data: { status: 'UNSUBSCRIBED', statusAt: new Date() } })
+  // Anyone still waiting for an unsent edition of these lists comes off it too.
+  await prisma.mailingEditionRecipient.updateMany({
+    where: { email: e, status: 'PENDING', source: 'BASE', edition: { status: { in: ['DRAFT', 'SCHEDULED', 'SENDING'] }, lists: { some: { listId: { in: rows.map((r) => r.listId) } } } } },
+    data: { excluded: true, excludedReason: 'unsubscribed' },
+  })
+  const personId = rows.find((r) => r.personId)?.personId ?? (await personIdForEmail(e))
+  if (personId) {
+    await prisma.crmActivity.create({
+      data: {
+        type: 'FIELD_CHANGED', direction: 'INBOUND', personId, isAutoLogged: true,
+        subject: `Unsubscribed from ${rows.map((r) => r.list.name).join(', ')}`,
+        body: `Via ${via}.`,
+      },
+    })
+  }
+  return rows.length
+}
+
+/** A hard bounce or a spam complaint: every list, and never again. */
+export async function suppress(email: string, reason: 'BOUNCED' | 'COMPLAINED', detail?: string | null) {
+  const e = email.toLowerCase()
+  const existing = await prisma.mailingSuppression.findUnique({ where: { email: e } })
+  // A complaint outranks a bounce; never downgrade, and a Do not email
+  // marking stays as it is (it already stops everything).
+  if (!existing || (existing.reason === 'BOUNCED' && reason === 'COMPLAINED')) {
+    await prisma.mailingSuppression.upsert({
+      where: { email: e }, create: { email: e, reason, detail: detail ?? null }, update: { reason, detail: detail ?? null },
+    })
+  }
+  await prisma.mailingListMember.updateMany({
+    where: { email: e, status: { in: reason === 'COMPLAINED' ? ['ACTIVE', 'UNSUBSCRIBED', 'BOUNCED'] : ['ACTIVE'] } },
+    data: { status: reason, statusAt: new Date() },
+  })
+  await prisma.mailingEditionRecipient.updateMany({
+    where: { email: e, status: 'PENDING' }, data: { excluded: true, excludedReason: 'suppressed' },
+  })
+}
+
+export async function personIdForEmail(email: string): Promise<string | null> {
+  const p = await prisma.crmPerson.findFirst({
+    where: { deletedAt: null, OR: [{ email: { equals: email, mode: 'insensitive' } }, { emails: { has: email } }] },
+    select: { id: true },
+  })
+  return p?.id ?? null
+}
+
+const WORKFORCE_ORG = /\bworkforce\b|careersource|american job center|job center/i
+
+/** Suggested list keys for each person, from roles, pipelines and orgs. */
+export async function suggestionsFor(personIds: string[]): Promise<Map<string, string[]>> {
+  const people = await prisma.crmPerson.findMany({
+    where: { id: { in: personIds } },
+    select: {
+      id: true, roles: true,
+      opportunities: { where: { stage: { isLost: false } }, select: { pipeline: { select: { key: true } } } },
+      affiliations: { where: { isCurrent: true }, select: { org: { select: { name: true, dealStatus: true } } } },
+    },
+  })
+  return new Map(people.map((p) => [p.id, suggestListKeys({
+    roles: p.roles,
+    pipelineKeys: p.opportunities.map((o) => o.pipeline.key),
+    isCustomer: p.affiliations.some((a) => a.org.dealStatus === 'CUSTOMER'),
+    isWorkforceBoard: p.affiliations.some((a) => WORKFORCE_ORG.test(a.org.name)),
+  })]))
+}
+
+
+/**
+ * Raises (or refreshes) the "Add to a mailing list?" card after an email
+ * you sent someone. Skipped when they're already on every list that fits,
+ * when you said Never, while a snooze runs, or when the address can't be
+ * mailed at all.
+ */
+export async function raiseListPrompt(personId: string, activityId: string, emailedAt: Date): Promise<boolean> {
+  const person = await prisma.crmPerson.findUnique({
+    where: { id: personId },
+    select: { email: true, deletedAt: true, mailingPrompt: true, mailingMemberships: { select: { list: { select: { key: true } } } } },
+  })
+  const email = normalizeListEmail(person?.email)
+  if (!person || person.deletedAt || !email) return false
+  const prompt = person.mailingPrompt
+  if (prompt?.status === 'NEVER') return false
+  if (prompt?.status === 'SNOOZED' && prompt.snoozedUntil && prompt.snoozedUntil > new Date()) return false
+  if (await prisma.mailingSuppression.findUnique({ where: { email } })) return false
+
+  const suggested = (await suggestionsFor([personId])).get(personId) ?? ['monthly_update']
+  const activeKeys = new Set((await activeLists()).map((l) => l.key))
+  const onAny = new Set(person.mailingMemberships.map((m) => m.list.key))
+  // Any membership, whatever its status, counts as "already decided" — an
+  // unsubscribed list is never suggested again.
+  const missing = suggested.filter((k) => activeKeys.has(k) && !onAny.has(k))
+  if (missing.length === 0) return false
+  if (prompt?.status === 'PENDING' && prompt.lastEmailedAt && prompt.lastEmailedAt >= emailedAt) return true
+
+  await prisma.mailingListPrompt.upsert({
+    where: { personId },
+    create: { personId, status: 'PENDING', suggestedKeys: missing, lastActivityId: activityId, lastEmailedAt: emailedAt },
+    update: { status: 'PENDING', snoozedUntil: null, suggestedKeys: missing, lastActivityId: activityId, lastEmailedAt: emailedAt },
+  })
+  return true
+}
+
+/**
+ * Website signups that reached NewsletterSubscriber but not the Monthly
+ * Update yet. The signup form writes NewsletterSubscriber; this keeps the
+ * list in step (run before every roster build and by the send cron), so
+ * nothing about the signup boxes has to change. An unsubscribe recorded
+ * there carries over.
+ */
+export async function syncWebsiteSignups(): Promise<number> {
+  const list = await prisma.mailingList.findUnique({ where: { key: 'monthly_update' } })
+  if (!list) return 0
+  const known = new Set((await prisma.mailingListMember.findMany({ where: { listId: list.id }, select: { email: true } })).map((m) => m.email))
+  const subs = await prisma.newsletterSubscriber.findMany({ select: { email: true, source: true, createdAt: true, unsubscribedAt: true } })
+  let added = 0
+  for (const s of subs) {
+    const email = normalizeListEmail(s.email)
+    if (!email) continue
+    if (known.has(email)) {
+      if (s.unsubscribedAt) {
+        await prisma.mailingListMember.updateMany({
+          where: { listId: list.id, email, status: 'ACTIVE', addedVia: 'WEBSITE_SIGNUP' },
+          data: { status: 'UNSUBSCRIBED', statusAt: s.unsubscribedAt },
+        })
+      }
+      continue
+    }
+    const suppressed = await prisma.mailingSuppression.findUnique({ where: { email } })
+    await prisma.mailingListMember.create({
+      data: {
+        listId: list.id, email, personId: await personIdForEmail(email),
+        status: s.unsubscribedAt ? 'UNSUBSCRIBED' : suppressed ? (suppressed.reason as MailingMemberStatus) : 'ACTIVE',
+        addedVia: 'WEBSITE_SIGNUP', consentNote: `Signed up on the site (${s.source ?? 'unknown page'})`,
+        addedAt: s.createdAt, statusAt: s.unsubscribedAt,
+      },
+    }).catch(() => {})
+    added++
+  }
+  return added
+}
+
+/**
+ * addToLists for many people at once — the same never-re-add rule, but
+ * reading memberships and suppressions in bulk, so a group of thousands
+ * takes a few queries instead of thousands.
+ */
+export async function addManyToLists(input: {
+  people: { personId: string; email: string }[]
+  listIds: string[]
+  addedVia: MailingAddedVia
+  consentNote?: string | null
+  addedByEmail?: string | null
+}): Promise<{ added: number; alreadyOn: number; blocked: number }> {
+  const people = input.people
+    .map((p) => ({ personId: p.personId, email: normalizeListEmail(p.email) }))
+    .filter((p): p is { personId: string; email: string } => !!p.email)
+  const emails = [...new Set(people.map((p) => p.email))]
+  const [existing, suppressed] = await Promise.all([
+    prisma.mailingListMember.findMany({ where: { listId: { in: input.listIds }, email: { in: emails } }, select: { listId: true, email: true, status: true } }),
+    prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true, reason: true } }),
+  ])
+  const statusOf = new Map(existing.map((m) => [`${m.listId}|${m.email}`, m.status]))
+  const suppressionOf = new Map(suppressed.map((s) => [s.email, s.reason as SuppressionReason]))
+  let alreadyOn = 0
+  let blocked = 0
+  const rows: Prisma.MailingListMemberCreateManyInput[] = []
+  const seen = new Set<string>()
+  for (const listId of input.listIds) {
+    for (const p of people) {
+      const k = `${listId}|${p.email}`
+      if (seen.has(k)) continue
+      seen.add(k)
+      const v = canAddToList(statusOf.get(k) ?? null, suppressionOf.get(p.email) ?? null)
+      if (v.ok) {
+        rows.push({ listId, email: p.email, personId: p.personId, status: 'ACTIVE', addedVia: input.addedVia, consentNote: input.consentNote ?? null, addedByEmail: input.addedByEmail ?? null })
+      } else if (v.reason === 'already_active') alreadyOn++
+      else blocked++
+    }
+  }
+  const { count } = await prisma.mailingListMember.createMany({ data: rows, skipDuplicates: true })
+  return { added: count, alreadyOn, blocked }
+}
+
+// ── Do not email ─────────────────────────────────────────────────────────────
+
+/** Every address on a person's record, lowercased. */
+function addressesOf(p: { email: string | null; emails: string[] }): string[] {
+  return [...new Set([p.email, ...p.emails].map((e) => normalizeListEmail(e)).filter((e): e is string => !!e))]
+}
+
+/**
+ * "Do not email, ever" on a CRM record. Stored as a suppression on each of
+ * their addresses, so every send, list add and "Add to a mailing list?"
+ * card already respects it; switching it off removes only those rows,
+ * never a bounce or a complaint.
+ */
+export async function setDoNotEmail(personId: string, on: boolean, by: string) {
+  const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true, emails: true } })
+  const emails = addressesOf(person)
+  if (on) {
+    for (const email of emails) {
+      const existing = await prisma.mailingSuppression.findUnique({ where: { email } })
+      if (!existing) await prisma.mailingSuppression.create({ data: { email, reason: 'DO_NOT_EMAIL', detail: `Marked on the CRM record by ${by}` } })
+    }
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { status: 'PENDING', OR: [{ personId }, { email: { in: emails } }] },
+      data: { excluded: true, excludedReason: 'do_not_email' },
+    })
+    await prisma.mailingListPrompt.updateMany({ where: { personId, status: 'PENDING' }, data: { status: 'NEVER', answeredAt: new Date(), answeredByEmail: by } })
+  } else {
+    await prisma.mailingSuppression.deleteMany({ where: { email: { in: emails }, reason: 'DO_NOT_EMAIL' } })
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { status: 'PENDING', excludedReason: 'do_not_email', OR: [{ personId }, { email: { in: emails } }] },
+      data: { excluded: false, excludedReason: null },
+    })
+  }
+}
+
+/**
+ * Everyone marked Do not email, and all their addresses — including any
+ * added to the record after it was marked, which carry no suppression row
+ * of their own yet.
+ */
+export async function doNotEmailPeople(): Promise<{ personIds: Set<string>; emails: Set<string> }> {
+  const marked = (await prisma.mailingSuppression.findMany({ where: { reason: 'DO_NOT_EMAIL' }, select: { email: true } })).map((s) => s.email)
+  if (marked.length === 0) return { personIds: new Set(), emails: new Set() }
+  const people = await prisma.crmPerson.findMany({
+    where: { OR: [{ email: { in: marked, mode: 'insensitive' } }, { emails: { hasSome: marked } }] },
+    select: { id: true, email: true, emails: true },
+  })
+  return {
+    personIds: new Set(people.map((p) => p.id)),
+    emails: new Set([...marked, ...people.flatMap(addressesOf)]),
+  }
+}

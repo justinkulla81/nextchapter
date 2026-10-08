@@ -3,14 +3,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parseCsv } from '@/lib/warn/csv'
 
-// Reads the published White-Collar Displacement Index history at build time.
+// Reads the published White-Collar Long-Term Unemployment Index history at build time.
 // The CSV in public/reports is the same file linked for download, so the page
 // and the download can never disagree.
 
 export interface WcIndexPoint {
   /** "YYYY-MM". */
   month: string
-  /** White-Collar Displacement Index, 2019 average = 100 (seasonally adjusted, 3-month average). */
+  /** White-Collar Long-Term Unemployment Index, 2019 average = 100 (seasonally adjusted, 3-month average). */
   index: number
   /** WC unemployment rate, %, not seasonally adjusted. */
   unemploymentRate: number

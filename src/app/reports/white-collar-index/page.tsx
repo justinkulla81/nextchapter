@@ -22,23 +22,23 @@ const LATEST_MONTH = monthLabel(latest.month)
 
 export function generateMetadata(): Metadata {
   const description = YEAR_AGO_INDEX
-    ? `The NextChapter White-Collar Displacement Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), up from ${YEAR_AGO_INDEX} a year earlier. A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
-    : `The NextChapter White-Collar Displacement Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
+    ? `The NextChapter White-Collar Long-Term Unemployment Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), up from ${YEAR_AGO_INDEX} a year earlier. A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
+    : `The NextChapter White-Collar Long-Term Unemployment Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
   return {
     title: {
-      absolute: 'White-Collar Displacement Index | NextChapter',
+      absolute: 'White-Collar Long-Term Unemployment Index | NextChapter',
     },
     description,
     alternates: { canonical: `/reports/${SLUG}` },
     openGraph: {
       type: 'article',
-      title: 'NextChapter White-Collar Displacement Index',
+      title: 'NextChapter White-Collar Long-Term Unemployment Index',
       description,
       url: URL,
       siteName: 'NextChapter',
       images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png`, width: 1200, height: 630 }],
     },
-    twitter: { card: 'summary_large_image', title: 'NextChapter White-Collar Displacement Index', description },
+    twitter: { card: 'summary_large_image', title: 'NextChapter White-Collar Long-Term Unemployment Index', description },
   }
 }
 
@@ -46,8 +46,8 @@ const CHANGE = YEAR_AGO_INDEX !== null ? LATEST_INDEX - YEAR_AGO_INDEX : null
 // The one-sentence answer the page opens with, and the first FAQ answer.
 const LEAD =
   CHANGE === null
-    ? `The NextChapter White-Collar Displacement Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100).`
-    : `The NextChapter White-Collar Displacement Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), ${CHANGE === 0 ? 'unchanged from' : `${CHANGE > 0 ? 'up' : 'down'} ${Math.abs(CHANGE)} points from`} ${YEAR_AGO_INDEX} a year earlier.`
+    ? `The NextChapter White-Collar Long-Term Unemployment Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100).`
+    : `The NextChapter White-Collar Long-Term Unemployment Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), ${CHANGE === 0 ? 'unchanged from' : `${CHANGE > 0 ? 'up' : 'down'} ${Math.abs(CHANGE)} points from`} ${YEAR_AGO_INDEX} a year earlier.`
 
 // Answered from the text on this page: the opening paragraph and the methodology.
 const faqJsonLd = {
@@ -56,7 +56,7 @@ const faqJsonLd = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'What is the White-Collar Displacement Index?',
+      name: 'What is the White-Collar Long-Term Unemployment Index?',
       acceptedAnswer: {
         '@type': 'Answer',
         text: `A measure of long-term unemployment among U.S. managers and professionals: people whose current or most recent job was in a management, business, financial or professional occupation and who have been unemployed 27 weeks or more, as a share of that labor force. ${LEAD}`,
@@ -64,7 +64,7 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: 'How is the White-Collar Displacement Index calculated?',
+      name: 'How is the White-Collar Long-Term Unemployment Index calculated?',
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'From U.S. Census Bureau Current Population Survey microdata: white-collar workers unemployed 27 weeks or more as a share of the white-collar labor force, weighted with the composite weight BLS uses, seasonally adjusted, shown as a 3-month moving average, divided by its 2019 average and multiplied by 100.',
@@ -72,7 +72,7 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: 'How often is the White-Collar Displacement Index updated?',
+      name: 'How often is the White-Collar Long-Term Unemployment Index updated?',
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'Monthly. It is built from the Current Population Survey’s monthly microdata and refreshed with each monthly NextChapter Displacement Report. October 2025 is missing because the survey was not collected that month.',
@@ -84,13 +84,13 @@ const faqJsonLd = {
 const datasetJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
-  name: 'NextChapter White-Collar Displacement Index',
+  name: 'NextChapter White-Collar Long-Term Unemployment Index',
   description:
     'Monthly long-term unemployment (27+ weeks) among management, business, financial and professional workers as a share of that labor force, seasonally adjusted 3-month average, 2019 = 100, from U.S. Census Bureau Current Population Survey microdata.',
   url: URL,
   temporalCoverage: '2015-01/latest',
   variableMeasured: [
-    'White-Collar Displacement Index (2019 = 100)',
+    'White-Collar Long-Term Unemployment Index (2019 = 100)',
     'White-collar long-term unemployment rate',
     'White-collar unemployment rate',
     'Long-term share of unemployed white-collar workers',
@@ -155,7 +155,7 @@ function IndexChart({ series }: { series: WcIndexPoint[] }) {
     <svg
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`White-Collar Displacement Index, January 2015 to ${monthShort(last.month)}, 2019 average = 100. ${LATEST_INDEX} in ${monthShort(last.month)}.`}
+      aria-label={`White-Collar Long-Term Unemployment Index, January 2015 to ${monthShort(last.month)}, 2019 average = 100. ${LATEST_INDEX} in ${monthShort(last.month)}.`}
       className="h-auto w-full"
     >
       {/* gridlines + y labels */}
@@ -221,7 +221,7 @@ export default function WhiteCollarIndexPage() {
         </nav>
 
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          NextChapter White-Collar Displacement Index
+          NextChapter White-Collar Long-Term Unemployment Index
         </h1>
         <p className="mt-3 max-w-2xl text-lg text-foreground">{LEAD}</p>
         {/* The index is refreshed with each monthly edition. */}
@@ -245,7 +245,7 @@ export default function WhiteCollarIndexPage() {
         </div>
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-foreground">
-          The White-Collar Displacement Index tracks long-term unemployment among managers and professionals:
+          The White-Collar Long-Term Unemployment Index tracks long-term unemployment among managers and professionals:
           people whose current or most recent job was in a management, business, financial or professional occupation
           and who have been unemployed 27 weeks or more, measured as a share of that labor force. It is seasonally
           adjusted, averaged over three months, and set so the 2019 average equals 100. A reading of {LATEST_INDEX}{' '}
@@ -255,7 +255,7 @@ export default function WhiteCollarIndexPage() {
         {/* Chart */}
         <figure className="mt-10 rounded-xl border border-light-gray bg-white p-5">
           <figcaption className="text-sm font-semibold text-navy">
-            White-Collar Displacement Index, January 2015 – {monthLabel(latest.month)} (2019 average = 100)
+            White-Collar Long-Term Unemployment Index, January 2015 – {monthLabel(latest.month)} (2019 average = 100)
           </figcaption>
           <div className="mt-3">
             <IndexChart series={series} />
@@ -343,7 +343,7 @@ export default function WhiteCollarIndexPage() {
         <section className="mt-12 rounded-xl border border-light-gray bg-off-white p-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">How to cite</p>
           <p className="mt-2 text-sm leading-relaxed text-foreground">
-            NextChapter. <em>White-Collar Displacement Index</em> (2019 = 100). Retrieved from {URL}. Data and charts
+            NextChapter. <em>White-Collar Long-Term Unemployment Index</em> (2019 = 100). Retrieved from {URL}. Data and charts
             may be republished with attribution under{' '}
             <a href={LICENSE} className="text-brand underline underline-offset-4" rel="license">CC BY 4.0</a>.
           </p>

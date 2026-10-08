@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 
 const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-foreground'
@@ -56,6 +57,11 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' }) {
   return (
     <footer className="bg-navy text-white">
+      <div className="border-b border-white/10">
+        <div className="mx-auto max-w-4xl px-6 py-8">
+          <NewsletterSignup source="site-footer" variant="compact" />
+        </div>
+      </div>
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
         <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
         <p className="mx-auto mt-4 max-w-xl text-light-blue">

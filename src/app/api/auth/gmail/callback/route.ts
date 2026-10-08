@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, isGmailTrackingTester, fetchGoogleAccountEmail } from '@/lib/email-tracking/gmail-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { scanPlatformHistory } from '@/lib/platforms/backfill'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -96,7 +97,13 @@ export async function GET(request: NextRequest) {
     // redirect long enough to hit the platform's function timeout (504
     // FUNCTION_INVOCATION_TIMEOUT). Best-effort either way — the manual
     // Sync now button is still a fallback.
-    after(() => syncGmailConnection(connection.id).catch((error) => console.error('Initial Gmail sync failed:', error)))
+    // Then a year of fractional-work and learning platform mail
+    // (src/lib/platforms/) so their progress there shows up right away.
+    after(() =>
+      syncGmailConnection(connection.id)
+        .catch((error) => console.error('Initial Gmail sync failed:', error))
+        .then(() => scanPlatformHistory(profile.id, connection.id)),
+    )
 
     // One-time connection bonus — awarded once ever per candidate, not on
     // every reconnect. A genuine reconnect (clearing a real expiry) earns

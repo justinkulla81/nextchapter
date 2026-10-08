@@ -4,7 +4,7 @@
  * education — read from each college's own website and extracted with
  * Claude Haiku 4.5 through the Batch API (half price, results within a day).
  *
- *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit] [areas|all4yr]
+ *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit] [areas|all4yr|unreadable]
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts signals <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts submit <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts collect <batchId> <pages.jsonl>
@@ -20,7 +20,7 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'fs'
 import Anthropic from '@anthropic-ai/sdk'
 import { PrismaClient } from '@prisma/client'
-import { readCollegePages, type PageText } from '../../src/lib/workforce/college-pages'
+import { readCollegePages, type PageFetcher, type PageText } from '../../src/lib/workforce/college-pages'
 import { buildContactsRequest, CONTACTS_MODEL, verifiedContacts } from '../../src/lib/workforce/college-contacts'
 import { boardCountyKeys } from '../../src/lib/workforce/board-area'
 import { interestSignals, isCommunityCollege } from '../../src/lib/workforce/college-score'
@@ -30,6 +30,14 @@ type Crawled = { collegeId: string; name: string; pages: PageText[] }
 const prisma = new PrismaClient()
 
 async function targets(limit: number, scope: string) {
+  // Colleges whose sites a plain request could not read — retried in a real browser.
+  if (scope === 'unreadable') {
+    const colleges = await prisma.localCollege.findMany({
+      where: { contactsPagesRead: 0, website: { not: null } },
+      orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
+    })
+    return colleges.filter((c) => !isCommunityCollege(c)).slice(0, limit)
+  }
   if (scope === 'all4yr') {
     const colleges = await prisma.localCollege.findMany({
       where: { sector: { in: [1, 2] }, website: { not: null }, contactsCheckedAt: null },
@@ -54,8 +62,40 @@ async function targets(limit: number, scope: string) {
   return inArea.slice(0, limit)
 }
 
+/**
+ * A page fetcher that renders in Chromium, for sites that build their pages
+ * with JavaScript or turn away plain requests. Six tabs share one browser.
+ */
+async function browserFetcher() {
+  const { chromium } = await import('playwright')
+  const browser = await chromium.launch({ headless: true })
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',
+  })
+  let open = 0
+  const fetchPage: PageFetcher = async (url, timeoutMs = 25_000) => {
+    while (open >= 6) await new Promise((r) => setTimeout(r, 200))
+    open++
+    const page = await context.newPage()
+    try {
+      const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+      if (!res || res.status() >= 400) return null
+      // Give client-rendered content a moment to arrive.
+      await page.waitForLoadState('networkidle', { timeout: 6_000 }).catch(() => {})
+      return { html: await page.content(), url: page.url() }
+    } catch {
+      return null
+    } finally {
+      open--
+      await page.close().catch(() => {})
+    }
+  }
+  return { fetchPage, close: () => browser.close() }
+}
+
 async function crawl(file: string, limit: number, scope: string) {
   const list = await targets(limit, scope)
+  const browser = scope === 'unreadable' ? await browserFetcher() : null
   console.log(`${list.length} colleges to read`)
   writeFileSync(file, '')
   let done = 0
@@ -63,7 +103,7 @@ async function crawl(file: string, limit: number, scope: string) {
   const queue = [...list]
   const worker = async () => {
     for (let c = queue.shift(); c; c = queue.shift()) {
-      const pages = await readCollegePages(c.website!).catch(() => [])
+      const pages = await readCollegePages(c.website!, browser?.fetchPage).catch(() => [])
       appendFileSync(file, JSON.stringify({ collegeId: c.id, name: c.name, pages } satisfies Crawled) + '\n')
       if (pages.length) {
         await prisma.localCollege.update({ where: { id: c.id }, data: { interestSignals: interestSignals(pages.map((p) => p.text)) } })
@@ -73,7 +113,8 @@ async function crawl(file: string, limit: number, scope: string) {
       if (done % 50 === 0) console.log(`${done}/${list.length} read, ${withPages} with pages`)
     }
   }
-  await Promise.all(Array.from({ length: 16 }, worker))
+  await Promise.all(Array.from({ length: browser ? 6 : 16 }, worker))
+  await browser?.close()
   console.log(`done: ${done} read, ${withPages} with pages`)
 }
 

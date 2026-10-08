@@ -11,6 +11,15 @@ import {
   COLORADO_PAGE,
   resolveColoradoSheet,
   parseColoradoWarn,
+  northCarolinaPage,
+  ohioWarnFile,
+  parseOhioWarn,
+  MICHIGAN_SEARCH,
+  parseMichiganWarn,
+  dcWarnPage,
+  parseDcWarn,
+  resolveNorthCarolinaFile,
+  parseNorthCarolinaWarn,
   IOWA_PAGE,
   resolveIowaFile,
   parseIowaWarn,
@@ -286,6 +295,74 @@ const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD', 'IN'])
  * job renders them and posts the HTML to /api/admin/warn/import-html, which
  * runs the same column-mapped parser these sources use.
  */
+/**
+ * States read by Big Local News's open-source WARN scrapers (warn-scraper,
+ * Apache 2.0, Stanford) in the daily browser job, standardized by its
+ * warn-transformer, and posted to /api/admin/warn/import-rows. Each maps to
+ * the state's own WARN page, recorded as the notice's source — the data is
+ * the state's public record; the scraper only reads it.
+ *
+ * These are the states whose pages are PDFs, dashboards or search forms that
+ * our own fetchers could not read.
+ */
+export const SCRAPED_STATES: Record<string, string> = {
+  CT: 'https://dolpublicdocumentlibrary.ct.gov/CsblrCategory?prefix=%2Frapid_response%2Fwarn_documents',
+  GA: 'https://www.tcsg.edu/warn-public-view/',
+  HI: 'https://labor.hawaii.gov/wdc/real-time-warn-updates/',
+  IL: 'https://www2.illinois.gov/dceo/WorkforceDevelopment/warn/Pages/default.aspx',
+  KY: 'https://kcc.ky.gov/employer/Pages/Business-Downsizing-Assistance---WARN.aspx',
+  LA: 'https://www.laworks.net/Downloads/Downloads_WFD.asp',
+  MO: 'https://jobs.mo.gov/warn/',
+  MT: 'https://wsd.dli.mt.gov/wioa/related-links/warn-notice-page',
+  ND: 'https://www.jobsnd.com/documents',
+  NM: 'https://www.dws.state.nm.us/Rapid-Response',
+  NY: 'https://dol.ny.gov/warn-notices',
+  OK: 'https://www.employoklahoma.gov/Participants/s/warnnotices',
+  PA: 'https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices',
+  SC: 'https://scworks.org/employer/employer-programs/risk-closing/layoff-notification-reports',
+  TN: 'https://www.tn.gov/workforce/general-resources/major-publications0/major-publications-redirect/reports.html',
+  VA: 'https://www.vec.virginia.gov/warn-notices',
+  WA: 'https://esd.wa.gov/about-employees/WARN',
+}
+
+/** One notice as warn-transformer standardizes it. */
+export interface ScrapedNotice {
+  company: string | null
+  location: string | null
+  notice_date: string | null
+  effective_date: string | null
+  jobs: number | null
+  is_closure?: boolean | null
+  is_temporary?: boolean | null
+  is_amendment?: boolean | null
+}
+
+const isoDate = (v: string | null | undefined): Date | null => {
+  const m = v?.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : null
+}
+
+/** The standardized notices for one state as our rows. Amendments repeat a notice already filed, so they are left out. */
+export function parseScrapedNotices(state: string, notices: ScrapedNotice[]): WarnRow[] {
+  return notices
+    .filter((n) => n.company?.trim() && !n.is_amendment)
+    .map((n) => {
+      const employer = n.company!.replace(/\s+/g, ' ').trim()
+      return {
+        state,
+        employer,
+        normalizedEmployer: normalizeOrgName(employer),
+        noticeDate: isoDate(n.notice_date),
+        effectiveDate: isoDate(n.effective_date),
+        employees: typeof n.jobs === 'number' && Number.isFinite(n.jobs) && n.jobs >= 0 ? Math.round(n.jobs) : null,
+        layoffType: n.is_closure === true ? 'Closure' : n.is_closure === false ? (n.is_temporary ? 'Temporary layoff' : 'Layoff') : null,
+        county: null,
+        address: n.location?.replace(/\s+/g, ' ').trim() || null,
+        industry: null,
+      }
+    })
+}
+
 export const RENDERED_STATES: Record<string, string> = {
   MA: 'https://www.mass.gov/info-details/worker-adjustment-and-retraining-notification-act-warn-layoff-and-closure-updates',
   WI: 'https://dwd.wisconsin.gov/dislocatedworker/warn/',
@@ -413,6 +490,40 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: parseColoradoWarn,
     hasIndustry: true,
+  },
+  {
+    state: 'OH',
+    url: () => ohioWarnFile(),
+    format: 'html', // fetched as text; it is a CSV
+    parse: (buf: Buffer) => parseOhioWarn(buf),
+    hasIndustry: false,
+  },
+  {
+    state: 'MI',
+    url: MICHIGAN_SEARCH,
+    format: 'json',
+    parse: (buf: Buffer) => parseMichiganWarn(buf),
+    hasIndustry: false,
+  },
+  {
+    state: 'DC',
+    url: () => dcWarnPage(),
+    format: 'html',
+    parse: (buf: Buffer) => parseDcWarn(buf),
+    hasIndustry: false,
+  },
+  {
+    state: 'NC',
+    url: () => northCarolinaPage(),
+    format: 'html', // fetched as text; it is a CSV
+    resolve: async () => {
+      const html = await fetchText(northCarolinaPage())
+      const file = resolveNorthCarolinaFile(html)
+      if (!file) throw new Error('NC: no WARN CSV linked on this year\'s summary page')
+      return file
+    },
+    parse: (buf: Buffer) => parseNorthCarolinaWarn(buf),
+    hasIndustry: false,
   },
   {
     state: 'IA',

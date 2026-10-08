@@ -28,6 +28,9 @@ export { parseP0Leads, type P0Lead }
  * activity on a person counts as a touch (see REAL_TOUCH), and a lead nobody
  * has contacted must not read as "last contacted today".
  *
+ * With p0: false the same path only records the contact — a phone number
+ * someone shared, a title — and leaves their tier and next step alone.
+ *
  * A person is reused only on a hard key (LinkedIn slug, email) or the same
  * name at the same organization. The same name somewhere else is created as
  * a new person, which puts the pair on the CRM Review List's Duplicates tab
@@ -112,11 +115,12 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
     if (!match) orgs.push({ id: org.id, name: org.name, orgTypes: org.orgTypes, goals: org.goals })
 
     const headline = `${trigger.kind.replace('_', ' ').toLowerCase()}: ${trigger.headline}`
+    const label = lead.p0 ? 'P0 rapid response' : 'CRM update'
     await prisma.crmActivity.create({
       data: {
         type: 'NOTE', direction: 'INTERNAL', orgId: org.id, isAutoLogged: true, sourceRef,
         occurredAt: trigger.publishedAt ?? new Date(),
-        subject: `P0 rapid response — ${headline}`.slice(0, 300),
+        subject: `${label} — ${headline}`.slice(0, 300),
         body: [lead.why, trigger.summary, trigger.employees ? `${trigger.employees} workers affected.` : null,
           [trigger.city, trigger.county && `${trigger.county} County`, trigger.state].filter(Boolean).join(', ') || null,
           trigger.sourceUrl, lead.person ? `Contact: ${lead.person.fullName}${lead.person.title ? `, ${lead.person.title}` : ''}` : null,
@@ -137,14 +141,14 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
     // The employer's Company row carries its own tier, shown on the Layoff
     // notices page next to its filings. Only an existing row is tiered —
     // creating Company records is the WARN matcher's job.
-    if (lead.org.type === 'EMPLOYER' || lead.org.type === 'OUTPLACEMENT_LEAD') {
+    if (lead.p0 && (lead.org.type === 'EMPLOYER' || lead.org.type === 'OUTPLACEMENT_LEAD')) {
       await prisma.company.updateMany({ where: { canonicalNameNormalized: canonical }, data: { priority: 'P0' } })
     }
 
     // ── person ──
     let person: P0LeadResult['person'] = null
     let taskId: string | null = null
-    const followUpNote = `P0 rapid response — ${headline}${lead.why ? `. ${lead.why}` : ''}`.slice(0, 1000)
+    const followUpNote = `${label} — ${headline}${lead.why ? `. ${lead.why}` : ''}`.slice(0, 1000)
 
     if (lead.person) {
       const p = lead.person
@@ -167,14 +171,24 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
       if (existing && !existing.deletedAt) {
         const roles = existing.roles.includes(role) ? existing.roles : [...existing.roles, role]
         const keepEarlier = existing.nextFollowUpAt && existing.nextFollowUpAt <= new Date()
+        // A shared number fills an empty field; a different one is kept in the
+        // notes rather than overwriting what a human may have entered.
+        const samePhone = (a: string | null, b: string) => (a ?? '').replace(/\D/g, '').endsWith(b.replace(/\D/g, '').slice(-10))
+        const phoneData = !p.phone ? {}
+          : !existing.phone ? { phone: p.phone }
+          : samePhone(existing.phone, p.phone) ? {}
+          : { notes: [existing.notes, `Also shared phone ${p.phone} (${day(trigger.publishedAt ?? new Date())}) — ${trigger.sourceUrl}`].filter(Boolean).join('\n') }
         await prisma.crmPerson.update({
           where: { id: existing.id },
           data: {
-            priority: 'P0',
-            roles,
-            goals: [...new Set([...existing.goals, ...goalsForRoles(roles)])],
-            ...(keepEarlier ? {} : { nextFollowUpAt: new Date(), nextFollowUpNote: followUpNote }),
-            queueSnoozedAt: null,
+            ...(lead.p0 ? {
+              priority: 'P0',
+              roles,
+              goals: [...new Set([...existing.goals, ...goalsForRoles(roles)])],
+              ...(keepEarlier ? {} : { nextFollowUpAt: new Date(), nextFollowUpNote: followUpNote }),
+              queueSnoozedAt: null,
+            } : {}),
+            ...phoneData,
           },
         })
         const linked = await prisma.crmAffiliation.findFirst({ where: { personId: existing.id, orgId: org.id } })
@@ -193,13 +207,12 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
             linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : null,
             email,
             emails: email ? [email] : [],
+            phone: p.phone,
             normalizedKey: sameOrgKey,
             roles: [role],
             goals: goalsForRoles([role]),
             location: [trigger.city, trigger.state].filter(Boolean).join(', ') || null,
-            priority: 'P0',
-            nextFollowUpAt: new Date(),
-            nextFollowUpNote: followUpNote,
+            ...(lead.p0 ? { priority: 'P0' as const, nextFollowUpAt: new Date(), nextFollowUpNote: followUpNote } : {}),
             needsCompletion: !p.title || !isRealOrgName(org.name),
             notes: p.quote ? `Quoted ${day(trigger.publishedAt)}: "${p.quote}" — ${trigger.sourceUrl}` : null,
           },
@@ -213,7 +226,7 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
         })
         person = { id: created.id, fullName: created.fullName, created: true, possibleDuplicate: sameName > 0 }
       }
-    } else {
+    } else if (lead.p0) {
       const open = await prisma.crmTask.findFirst({ where: { orgId: org.id, status: 'OPEN', title: { startsWith: 'Find a contact' } } })
       taskId = open?.id ?? (await prisma.crmTask.create({
         data: {

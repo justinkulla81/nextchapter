@@ -18,6 +18,8 @@ export interface ReportEdition {
   dek: string
   /** ISO date (YYYY-MM-DD) the edition was published. */
   publishedAt: string
+  /** ISO date of the latest revised version, when the edition has been updated since. */
+  updatedAt?: string
   /** 1200×630 share image under /public. */
   ogImage: string
 }
@@ -30,6 +32,7 @@ export const REPORT_EDITIONS: ReportEdition[] = [
     title: 'Fewer layoffs, longer searches',
     dek: 'Hiring stalled and announced layoffs fell in September 2026, but long-term unemployment among managers and professionals rose about a third from a year earlier. The monthly read on white-collar job loss, AI, and the safety net.',
     publishedAt: '2026-10-05',
+    updatedAt: '2026-10-06',
     ogImage: '/reports/displacement-report-2026-09-og.png',
   },
 ]

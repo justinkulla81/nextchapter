@@ -9,7 +9,7 @@ import { CrmRolePicker } from './CrmRolePicker'
 // Wraps the results table so the row checkboxes and this bar share one form.
 // Bulk edit is what makes a list of thousands workable: twenty rows, one
 // action, one entry in each person's history.
-export function CrmBulkBar({ children, count }: { children: React.ReactNode; count: number }) {
+export function CrmBulkBar({ children, count, extra }: { children: React.ReactNode; count: number; extra?: React.ReactNode }) {
   const [selected, setSelected] = useState(0)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [result, setResult] = useState<string | null>(null)
@@ -79,6 +79,8 @@ export function CrmBulkBar({ children, count }: { children: React.ReactNode; cou
               Apply to selected
             </SubmitButton>
           </div>
+
+          {extra && <div className="border-t border-border pt-2">{extra}</div>}
 
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
               {/* Destructive, so it takes a second explicit step and is never

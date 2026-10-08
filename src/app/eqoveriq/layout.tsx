@@ -1,4 +1,4 @@
-import { Fraunces, Manrope, IBM_Plex_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 
 // Scoped to /eqoveriq only, not the root layout — same technical pattern
 // as CrucibleLayout (src/app/noexperience/layout.tsx): this product runs
@@ -10,9 +10,17 @@ import { Fraunces, Manrope, IBM_Plex_Mono } from 'next/font/google'
 // professional body/UI sans, and Plex Mono is reserved for small technical
 // labels only (e.g. interest-area tags), matching Mercor/Micro1's
 // understated, credibility-first tone rather than NEN's high-energy one.
-const fraunces = Fraunces({ variable: '--font-fraunces', subsets: ['latin'], weight: ['500', '600'] })
-const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] })
-const plexMono = IBM_Plex_Mono({ variable: '--font-plex-mono', subsets: ['latin'], weight: ['400', '500'] })
+// Self-hosted (fontsource), not next/font/google: a Google Fonts hiccup at build time was failing production deploys.
+const fraunces = localFont({ src: '../../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2', variable: '--font-fraunces', weight: '100 900', display: 'swap' })
+const manrope = localFont({ src: '../../../node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2', variable: '--font-manrope', weight: '200 800', display: 'swap' })
+const plexMono = localFont({
+  src: [
+    { path: '../../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2', weight: '400' },
+    { path: '../../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2', weight: '500' },
+  ],
+  variable: '--font-plex-mono',
+  display: 'swap',
+})
 
 export default function EqOverIqLayout({ children }: { children: React.ReactNode }) {
   return (

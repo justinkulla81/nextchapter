@@ -24,7 +24,7 @@ import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
 
-// What a failed Google connect came back with (see google-connect/callback).
+// What a failed Google connect came back with (see google-connect/start and /callback).
 const CONNECT_ERROR: Record<string, string> = {
   denied: 'Google sign-in was cancelled, so nothing was connected. Try again when you’re ready.',
   no_refresh_token: 'Google didn’t grant lasting access. Try again, and approve every permission Google asks about.',
@@ -32,6 +32,7 @@ const CONNECT_ERROR: Record<string, string> = {
   not_a_tester: 'Google connection is in limited testing and isn’t open to your account yet. We’ll let you know when it is.',
   not_logged_in: 'Your session ended during sign-in. Log in again, then reconnect.',
   exchange_failed: 'Something went wrong finishing the connection. Try again in a minute.',
+  not_configured: 'Google connection isn’t available right now. Try again later.',
 }
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const LINK = 'text-brand underline underline-offset-4'
 
 export default async function LayoffsHubPage() {
-  const [tracker, national, states] = await Promise.all([getLayoffTracker(60), getNationalLaborData(), getStateSummaries()])
+  const [tracker, national, states] = await Promise.all([getLayoffTracker(60), getNationalLaborData(), getStateSummaries().catch(() => [])])
   const withNotices = new Set(states.map((s) => s.state))
   const without = ALL_STATE_CODES.filter((c) => !withNotices.has(c))
   const byName = [...states].sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)))

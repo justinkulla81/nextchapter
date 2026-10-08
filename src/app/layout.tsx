@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
 
-const inter = Inter({
+// Self-hosted (fontsource) rather than next/font/google: a Google Fonts
+// hiccup at build time was failing production deploys.
+const inter = localFont({
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
 });
 
 // Partners Master Build Script §B3.3 — candidate-side section headings
 // only (scoped via the `.theme-candidate` CSS class in globals.css, not
 // applied here). Partner side stays Inter-only by intent.
-const sourceSerif4 = Source_Serif_4({
+const sourceSerif4 = localFont({
+  src: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2",
   variable: "--font-source-serif",
-  subsets: ["latin"],
+  weight: "200 900",
+  display: "swap",
   // Only the candidate dashboard's headings use it, so don't make every
   // public page download it up front (it competed with the hero text for
   // bandwidth and pushed out LCP on mobile).

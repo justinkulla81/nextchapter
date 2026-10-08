@@ -24,14 +24,16 @@ const PERSON_ROLE_OPTIONS = [
 
 const PRIORITY_OPTIONS = [['', 'Default (P2)'], ['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']]
 
+const PERSON_PAGE_FACTS = ['location', 'email', 'phone', 'linkedinUrl']
+
 const KINDS = {
   person: [
     { id: 'name', label: 'Name', type: 'text' },
     { id: 'company', label: 'Company', type: 'text' },
     { id: 'jobTitle', label: 'Title', type: 'text' },
-    { id: 'email', label: 'Email', type: 'text' },
-    { id: 'phone', label: 'Phone', type: 'text' },
-    { id: 'location', label: 'Location', type: 'text' },
+    // Location, email and phone have no fields: they're read off the page,
+    // shown on the info line at the top, and sent as read — rarely worth
+    // editing, and three rows of mostly-empty inputs cost the space.
     { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
     // LinkedIn can never log itself — this is the only way a DM you just sent
@@ -40,7 +42,7 @@ const KINDS = {
     // Flags them so that when someone with a similar name or the same email
     // signs up, the admin is asked to confirm it's them — and the candidate's
     // lead source becomes this referral.
-    { id: 'invitedAsCandidate', label: 'I invited them to join NextChapter as a candidate', type: 'toggle' },
+    { id: 'invitedAsCandidate', label: 'I invited them to NextChapter as a candidate', type: 'toggle' },
     // No LinkedIn field here — it costs a whole row for something that's
     // already sent every time as `payload.url` (see the save handler below)
     // and rarely needs a second look once you're already on the profile.
@@ -195,16 +197,26 @@ async function readPage() {
     // The first Experience entry, only if it's current ("… – Present").
     // Grouped entries (several roles at one company) lead with the company;
     // single roles lead with the title, then "Company · Full-time".
-    const currentExperienceCompany = () => {
-      const li = expSection?.querySelector('li')
-      if (!li || !/\bpresent\b/i.test(li.textContent || '')) return ''
-      const logo = li.querySelector('img[alt$=" logo" i]')?.getAttribute('alt')?.replace(/\s+logo$/i, '').trim()
-      if (logo) return logo
+    const entryLines = (li) => {
       const spans = Array.from(li.querySelectorAll('span[aria-hidden="true"], p'))
         .map((el) => (el.textContent || '').trim()).filter(Boolean)
       const lines = spans.filter((t, i) => spans.indexOf(t) === i)
+      return lines.length > 0
+        ? lines
+        : (li.innerText || '').split('\n').map((t) => t.trim()).filter((t, i, a) => t && a.indexOf(t) === i)
+    }
+    const logoName = (li) => li.querySelector('img[alt$=" logo" i]')?.getAttribute('alt')?.replace(/\s+logo$/i, '').trim() || ''
+    const experienceCompanyOf = (li) => {
+      const logo = logoName(li)
+      if (logo) return logo
+      const lines = entryLines(li)
       const grouped = !!li.querySelector('ul li')
       return ((grouped ? lines[0] : lines[1]) || '').split('·')[0].trim()
+    }
+    const currentExperienceCompany = () => {
+      const li = expSection?.querySelector('li')
+      if (!li || !/\bpresent\b/i.test(li.textContent || '')) return ''
+      return experienceCompanyOf(li)
     }
     // The badges beside the name (current company, school). LinkedIn
     // renders them as links or buttons depending on the layout, with
@@ -227,6 +239,10 @@ async function readPage() {
         const label = el.getAttribute('aria-label') || ''
         badges.push({
           text,
+          // Strict: only LinkedIn's own school link or label. The looser
+          // name test below is fine for steering the employer pick, but
+          // "Khan Academy" on someone's card is usually where they work.
+          schoolLink: /\/school\//.test(href) || /education/i.test(label),
           school: /\/school\//.test(href) || /education/i.test(label) ||
             /\b(university|college|school|academy|institute of technology|polytechnic)\b/i.test(text),
         })
@@ -258,8 +274,76 @@ async function readPage() {
     // a company name.
     const JOB_SEEKING = /^(actively\s+)?(looking|seeking|searching)\s+(for|a|an|my|new|next|opportunit\w*|roles?|positions?|employment|work)\b|\bopen to (work|new|opportunit)|\b(new|next) (opportunit|role|challenge)|\bin transition\b|\bbetween (roles|jobs|opportunities)\b|\bcareer (break|transition)\b/i
     const CARD_TEXT = /\bfollowers?\b|\d{1,3}(,\d{3})+/i
+    // Schools and, once they've left it, the last employer — for the
+    // university alumni lists and company former-employee lists in the CRM.
+    // Both come from the Education/Experience sections, which LinkedIn only
+    // renders once they scroll into view, so they're scrolled through once
+    // (and the page put back where it was) when they aren't there yet.
+    const sectionTitled = (re) => {
+      for (const h of scope.querySelectorAll('h2, h3')) {
+        if (re.test((h.textContent || '').trim())) return h.closest('section') || h.parentElement?.parentElement || null
+      }
+      return null
+    }
+    let eduSection = document.getElementById('education')?.closest('section') || sectionTitled(/^education$/i)
+    let laterExpSection = expSection || sectionTitled(/^experience$/i)
+    if (!eduSection || !laterExpSection) {
+      const scroller = document.getElementById('workspace') || document.scrollingElement
+      const start = scroller.scrollTop
+      for (let i = 0; i < 10 && !(eduSection && laterExpSection); i++) {
+        scroller.scrollTop += Math.max(400, scroller.clientHeight)
+        await new Promise((r) => setTimeout(r, 250))
+        eduSection = eduSection || sectionTitled(/^education$/i)
+        laterExpSection = laterExpSection || sectionTitled(/^experience$/i)
+      }
+      scroller.scrollTop = start
+    }
+    // Both sections are read as their visible lines of text, in order.
+    // LinkedIn's markup here keeps shifting (2026: no <li> per entry, logos
+    // only for organizations with a LinkedIn page, the "Education" heading
+    // and every entry inside one shared block), but what's displayed has
+    // been stable: an entry is a name, then its degree or title, then a
+    // date line. A logo's alt text confirms a name; nothing depends on it.
+    const visibleLines = (sec) => {
+      if (!sec) return []
+      const out2 = []
+      for (const el of sec.querySelectorAll('p, span[aria-hidden="true"]')) {
+        if (el.querySelector('p') || el.closest('h2, h3')) continue
+        if (typeof el.checkVisibility === 'function' && !el.checkVisibility()) continue
+        const t = (el.textContent || '').replace(/\s+/g, ' ').trim()
+        if (!t || /^(show all|see more|… ?more)\b/i.test(t) || t === out2[out2.length - 1]) continue
+        out2.push(t)
+      }
+      return out2
+    }
+    const logoNames = (sec) => new Set(Array.from(sec?.querySelectorAll('img[alt$=" logo" i]') || [])
+      .map((img) => img.getAttribute('alt').replace(/\s+logo$/i, '').trim()))
+    // "2004 – 2008", "Sep 2010 - May 2012 · 1 yr 8 mos", "2019 - Present"
+    const MON = '(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\w*\\.?\\s+'
+    const DATE_LINE = new RegExp(`^(${MON})?\\d{4}(\\s*[-–]\\s*((${MON})?\\d{4}|present))?(\\s*·.*)?$`, 'i')
+    const DURATION = /^(\d+\s+yrs?)?\s*(\d+\s+mos?)?$/i
+
+
+    // The current role, from the first Experience entry when it says
+    // Present: a single role reads title, "Company · Full-time", dates; a
+    // company with several reads company, "4 yrs 2 mos", then each role.
+    // LinkedIn's own record of the job, so it beats anything parsed out of
+    // a headline — "AI Implementation Partner | Building AI Systems, …" had
+    // filed "Building AI Systems" as the company of the President of Nova
+    // Buzz Inc.
+    const currentRole = (() => {
+      const lines2 = visibleLines(laterExpSection)
+      const firstDate = lines2.slice(0, 7).findIndex((t) => DATE_LINE.test(t))
+      if (firstDate < 1 || !/\bpresent\b/i.test(lines2[firstDate])) return null
+      const grouped = DURATION.test(lines2[1] || '') && /\d/.test(lines2[1] || '')
+      const company = (grouped ? lines2[0] : lines2[1] || '').split('·')[0].trim()
+      const title = grouped ? (lines2[2] || '') : lines2[0]
+      if (!company || DATE_LINE.test(company) || CARD_TEXT.test(company) || JOB_SEEKING.test(company)) return null
+      return { company, title: DATE_LINE.test(title) || title === company ? '' : title }
+    })()
     out.company = ''
     for (const source of [
+      () => currentRole?.company,
       currentCompanyLabel,
       badgeInHeadline,
       () => (companyLine ? companyLine.split('·')[0].trim() : ''),
@@ -275,6 +359,7 @@ async function readPage() {
       out.company = t
       break
     }
+    if (currentRole && out.company === currentRole.company && currentRole.title) out.jobTitle = currentRole.title
     // Structure-free fallback: the headline's org segment ("Co-Founder &
     // Managing Partner, Magnify Ventures" → "Magnify Ventures") that also
     // shows up as its own line of text on the page — the company badge,
@@ -314,16 +399,74 @@ async function readPage() {
     }
     out.location = locationLine.split('·')[0].trim()
 
+    out.schools = []
+    const eduLogos = logoNames(eduSection)
+    // Each school's name is the entry's bold line (LinkedIn sets it at 600
+    // weight; degree, dates and free-text description are regular), so a
+    // description like "University Park, PA" after the dates is never read
+    // as another school. Without any bold line — an older layout — an entry
+    // falls back to starting after a date line.
+    const eduLines = []
+    for (const el of eduSection?.querySelectorAll('p, span[aria-hidden="true"]') || []) {
+      if (el.querySelector('p') || el.closest('h2, h3')) continue
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility()) continue
+      const t = (el.textContent || '').replace(/\s+/g, ' ').trim()
+      if (!t || /^(show all|see more|… ?more)\b/i.test(t) || t === eduLines[eduLines.length - 1]?.t) continue
+      eduLines.push({ t, bold: Number(getComputedStyle(el).fontWeight) >= 600 })
+    }
+    const byWeight = eduLines.some((l) => l.bold)
+    let current = null
+    let dated = false
+    for (const { t, bold } of eduLines) {
+      if (DATE_LINE.test(t)) { if (current) dated = true; continue }
+      if (/^(activities and societies|grade)\b/i.test(t) || t.length > 160) continue
+      const starts = byWeight ? bold : (!current || dated || eduLogos.has(t))
+      if (starts) {
+        current = { name: t, detail: '' }
+        out.schools.push(current)
+        dated = false
+      } else if (current && !current.detail && !dated) {
+        current.detail = t
+      }
+    }
+    out.schools = out.schools.filter((sc, i, a) => !CARD_TEXT.test(sc.name) && a.findIndex((x) => x.name === sc.name) === i).slice(0, 6)
+    if (out.schools.length === 0) {
+      for (const b of topCardBadges()) if (b.schoolLink) out.schools.push({ name: b.text, detail: '' })
+    }
+
+    // The last employer, only for someone with no current role at all —
+    // any "Present" in Experience means they're working, and their current
+    // employer is already their organization. The first entry is either a
+    // single role (title, "Company · Full-time", dates) or a company with
+    // several (company, "12 yrs 2 mos", then each role).
+    const expLines = visibleLines(laterExpSection)
+    if (expLines.length > 1 && !expLines.some((t) => /\bpresent\b/i.test(t))) {
+      const grouped = DURATION.test(expLines[1]) && /\d/.test(expLines[1])
+      const company = (grouped ? expLines[0] : expLines[1]).split('·')[0].trim()
+      const title = grouped ? (expLines[2] || '') : expLines[0]
+      if (company && !DATE_LINE.test(company) && !CARD_TEXT.test(company) && !JOB_SEEKING.test(company)) {
+        out.formerEmployer = { name: company, title: title === company || DATE_LINE.test(title) ? '' : title }
+      }
+    }
+
     // The connection-degree badge ("· 1st" / "· 2nd" / "· 3rd") sits right
     // next to the name — deliberately excluded from collectSiblingLines
     // above since it isn't a headline/company/location line, but it's the
     // one reliable signal for how warm this contact actually is. Matched as
     // a full-string pattern (not a substring) so a job title that happens to
     // contain an ordinal, e.g. "1st Lieutenant", can't be mistaken for it.
+    //
+    // Read from the top card only. Searched across all of <main>, the first
+    // "· 1st" was often someone else's — a mutual connection under "People
+    // who can introduce you", or a poster in Activity — and a 2nd-degree
+    // stranger was saved as a HOT 1st.
     out.connectionDegree =
-      Array.from(scope.querySelectorAll('p'))
+      // Visible only: the header also carries a hidden, zero-width "· 1st"
+      // ahead of the real badge, and that's what made a 2nd read as 1st.
+      Array.from((topCard || nameEl?.parentElement || scope).querySelectorAll('p, span'))
+        .filter((el) => typeof el.checkVisibility !== 'function' || el.checkVisibility())
         .map((p) => p.textContent.trim())
-        .find((t) => /^·\s*(1st|2nd|3rd)$/i.test(t))
+        .find((t) => /^·\s*(1st|2nd|3rd\+?)$/i.test(t))
         ?.replace('·', '')
         .trim() || ''
     // <title> rarely changes format even when the page markup does, but the
@@ -370,6 +513,15 @@ async function readPage() {
       titleParts.slice(1).find((p2) => p2.toLowerCase() !== person.name.toLowerCase() && !/^(home|directory|about|profile|people|staff|faculty)$/i.test(p2)) ||
       meta('og:site_name') || ''
 
+    // Their LinkedIn, when the page links exactly one profile — a team page
+    // listing many people links several, and guessing would cross-wire two
+    // records. Sent so this capture lands on the same record as a LinkedIn
+    // capture of the same person, instead of a duplicate.
+    const profileSlugs = [...new Set(Array.from(document.querySelectorAll('a[href*="linkedin.com/in/" i]'))
+      .map((a) => (a.getAttribute('href').match(/linkedin\.com\/in\/([^/?#\s]+)/i) || [])[1]?.toLowerCase())
+      .filter(Boolean))]
+    if (profileSlugs.length === 1) person.linkedinUrl = `https://www.linkedin.com/in/${profileSlugs[0]}`
+
     const mail = document.querySelector('a[href^="mailto:" i]')
     person.email = mail
       ? decodeURIComponent(mail.getAttribute('href').replace(/^mailto:/i, '').split('?')[0]).trim()
@@ -386,12 +538,26 @@ async function readPage() {
     // its own <strong> or is a bare line before a <br>. Menus and footers are
     // skipped — "Vice President for Admissions" in a nav is a link, not a role.
     const ROLE = /\b(president|vice president|vp|chief|ceo|cfo|coo|cto|cio|chair(?:man|woman|person)?|director|dean|provost|chancellor|professor|lecturer|principal|partner|founder|co-?founder|managing|head of|manager|officer|executive|superintendent|commissioner|secretary|treasurer|trustee|fellow|counsel|advisor|adviser)\b/i
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT)
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    // A labelled field beats any guess: "TITLE" / "Position" / "Role" with
+    // the value right after it, as directory pages lay it out.
+    const LABEL = /^(job\s+)?(title|position|role)s?:?$/i
+    for (const el of scope.querySelectorAll('dt, th, span, div, p, h2, h3, h4, strong, b, label')) {
+      if (el.children.length > 0 || !LABEL.test(clean(el.textContent))) continue
+      const value = ((el.nextElementSibling || el.parentElement?.nextElementSibling)?.innerText || '').split('\n').map(clean).find(Boolean) || ''
+      if (value && value.length <= 160 && !LABEL.test(value)) { person.jobTitle = value; break }
+    }
+    const walker = person.jobTitle ? null : document.createTreeWalker(scope, NodeFilter.SHOW_TEXT)
+    for (let node = walker?.nextNode(); node; node = walker.nextNode()) {
       const t = clean(node.textContent)
       if (t.length < 3 || t.length > 90 || !ROLE.test(t)) continue
       if (h1 && !(h1.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) continue
-      if (node.parentElement?.closest('nav, header, footer, aside, script, style, [role="navigation"]')) continue
+      if (node.parentElement?.closest('nav, footer, aside, script, style, [role="navigation"]')) continue
+      // A <header> is skipped only when it's the site banner. Profile pages
+      // often wrap the person's own name and title in one too (MIT Sloan's
+      // faculty pages do), and skipping that read "Senior lecturer" out of
+      // the bio instead of the full title.
+      const hdr = node.parentElement?.closest('header')
+      if (hdr && !(h1 && hdr.contains(h1))) continue
       // A sentence that happens to contain "president", not a role line.
       if (t.split(' ').length > 10 || /[a-z]\.\s+[A-Z]/.test(t)) continue
       person.jobTitle = t
@@ -435,7 +601,18 @@ async function readPage() {
   return out
 }
 
+// A value read off the page. A non-LinkedIn page has its own person read
+// (see readPage) that takes over for the shared field ids.
+function scrapedValue(id) {
+  const v = (kind === 'person' && page.scraped.person ? page.scraped.person[id] : undefined) ?? page.scraped[id]
+  return typeof v === 'string' ? v.trim() : v
+}
+
 function renderFields() {
+  // No note on a person — never used, and it pushed Save below the fold.
+  // Layoff, research and product still use it (product's note is the idea).
+  $('note').hidden = kind === 'person'
+  document.querySelector('label[for="note"]').hidden = kind === 'person'
   document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.kind === kind)))
   const host = $('fields')
   host.innerHTML = ''
@@ -496,6 +673,27 @@ function renderFields() {
     else if (f.id === 'title') input.value = page.title
     host.append(input)
   }
+
+  // What the page told us that has no field of its own — shown so a wrong
+  // read is visible before it's saved, not discovered on the record later.
+  // At the top: below the checkboxes it sat out of sight, under the fold.
+  if (kind === 'person') {
+    const facts = [
+      page.scraped.connectionDegree && `LinkedIn: ${page.scraped.connectionDegree}`,
+      ...PERSON_PAGE_FACTS.map((id) => {
+        const v = scrapedValue(id)
+        return id === 'linkedinUrl' && v ? `LinkedIn: ${v.replace(/^https:\/\/www\./, '')}` : v
+      }),
+      page.scraped.schools?.length && `Schools: ${page.scraped.schools.map((s) => s.name).join(', ')}`,
+      page.scraped.formerEmployer && `Last employer: ${page.scraped.formerEmployer.name}`,
+    ].filter(Boolean)
+    if (facts.length > 0) {
+      const p = document.createElement('p')
+      p.className = 'muted facts'
+      p.textContent = facts.join(' · ')
+      host.prepend(p)
+    }
+  }
 }
 
 async function init() {
@@ -513,6 +711,9 @@ async function init() {
   page.url = tab?.url ?? ''
   $('page-title').textContent = page.title || 'This page'
   $('page-url').textContent = page.url
+  // On a profile the title already says whose it is; the URL line was a
+  // row of space that pushed Save below the popup's 600px limit.
+  $('page-url').hidden = page.url.includes('linkedin.com/in/')
 
   try {
     const [{ result }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: readPage })
@@ -620,10 +821,20 @@ $('save').addEventListener('click', async () => {
   msg.className = 'msg'
 
   const { base, token } = await chrome.storage.local.get(['base', 'token'])
-  const payload = { kind, url: page.url, note: $('note').value.trim(), selection: page.selection }
+  const payload = { kind, url: page.url, note: kind === 'person' ? '' : $('note').value.trim(), selection: page.selection }
+  if (kind === 'person') {
+    for (const id of PERSON_PAGE_FACTS) {
+      const v = scrapedValue(id)
+      if (v) payload[id] = v
+    }
+  }
   // Not a field you'd hand-edit — it's a fact read off the page, used
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
+  // Same: read off the page, not typed — they put this person on their
+  // schools' alumni lists and their last employer's former-employee list.
+  if (kind === 'person' && page.scraped.schools?.length) payload.schools = page.scraped.schools
+  if (kind === 'person' && page.scraped.formerEmployer) payload.formerEmployer = page.scraped.formerEmployer
   for (const f of KINDS[kind]) {
     if (f.type === 'toggle') {
       if ($(`f-${f.id}`)?.checked) payload[f.id] = true

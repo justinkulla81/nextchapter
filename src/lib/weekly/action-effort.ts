@@ -109,6 +109,15 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // REFERENCE_ADDED/WORKING_STYLE_QUIZ since it's self-reported with no
   // verification, same reasoning as the other self-report action types.
   INTERIM_PROFILE_CREATED: { minutes: 10, points: 10 },
+  // Detected from the platform's own email (src/lib/platforms/), once per
+  // platform each: passing a marketplace's vetting, landing the first
+  // project there, getting the first payout. Enrolling in a course earns
+  // the same as creating a marketplace profile — the first step; finishing
+  // one earns LEARNING_CERTIFICATE.
+  PLATFORM_ACCEPTED: { minutes: 20, points: 20 },
+  PLATFORM_FIRST_PROJECT: { minutes: 30, points: 30 },
+  PLATFORM_FIRST_PAYOUT: { minutes: 20, points: 20 },
+  COURSE_ENROLLED: { minutes: 10, points: 10 },
 
   // Prompt 70 — observability retrofit. A tracked click-through to an
   // outbound partner link (Interim Work, job board recommendations) is
@@ -331,6 +340,10 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WORK_AUTHORIZATION: 'effort',
   ANSWER_OPTIONAL_QUESTIONS: 'effort',
   INTERIM_PROFILE_CREATED: 'connecting',
+  PLATFORM_ACCEPTED: 'effort',
+  PLATFORM_FIRST_PROJECT: 'effort',
+  PLATFORM_FIRST_PAYOUT: 'effort',
+  COURSE_ENROLLED: 'learning',
   PARTNER_CLICK_THROUGH: 'connecting',
   WATCHLIST_ADD: 'connecting',
   WATCHLIST_POSTING_VIEWED: 'connecting',

@@ -46,4 +46,20 @@ describe('parseP0Leads', () => {
   it('reports a missing leads array', () => {
     expect(parseP0Leads({}).errors[0].index).toBe(-1)
   })
+
+  it('keeps a shared phone and defaults to P0', () => {
+    const { leads } = parseP0Leads({ leads: [{ ...base, person: { fullName: 'Rob Lalka', phone: '(504) 555-0142' } }] })
+    expect(leads[0].person?.phone).toBe('(504) 555-0142')
+    expect(leads[0].p0).toBe(true)
+  })
+
+  it('rejects text that is not a phone number', () => {
+    const { errors } = parseP0Leads({ leads: [{ ...base, person: { fullName: 'Rob Lalka', phone: 'call me' } }] })
+    expect(errors[0].error).toMatch(/phone/)
+  })
+
+  it('lets a contact update skip the P0 tier', () => {
+    const { leads } = parseP0Leads({ leads: [{ ...base, p0: false }] })
+    expect(leads[0].p0).toBe(false)
+  })
 })

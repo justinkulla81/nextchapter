@@ -18,6 +18,7 @@ export interface GmailPart {
 export interface GmailMessage {
   id: string
   threadId?: string
+  internalDate?: string // epoch ms, as a string
   payload?: { headers?: GmailHeader[] } & GmailPart
 }
 

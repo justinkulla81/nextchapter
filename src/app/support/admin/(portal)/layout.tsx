@@ -15,6 +15,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
   const [
     { approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue,
     peopleTotal, orgsTotal, removedTotal, warnPending, activityReview, contactUnhandled, helpNeedsReply,
+    mailingAttention,
   ] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
@@ -64,6 +65,14 @@ export default async function AdminPortalLayout({ children }: { children: React.
     prisma.crmActivity.count({ where: { needsReview: true, person: { deletedAt: null } } }),
     prisma.contactSubmission.count({ where: { handledAt: null } }),
     prisma.helpRequest.count({ where: { status: 'OPEN', lastMessageFromAdmin: false } }),
+    // Mailing lists: drafts waiting for approval, "Add to a mailing list?"
+    // cards, and unsubscribe replies still to apply. Never allowed to break
+    // the admin shell.
+    Promise.all([
+      prisma.mailingListPrompt.count({ where: { status: 'PENDING', person: { deletedAt: null } } }),
+      prisma.mailingUnsubscribeRequest.count({ where: { processedAt: null } }),
+      prisma.mailingEdition.count({ where: { status: 'DRAFT', cadenceListId: { not: null } } }),
+    ]).then(([a, b, c]) => a + b + c).catch(() => 0),
   ])
 
   const badges = {
@@ -84,6 +93,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     activityReview,
     helpNeedsReply,
     contactUnhandled,
+    mailingAttention,
     // Job Board listings are their own review queue (shown on the Job Board
     // nav item above) and never appear as rows on the Requests page itself —
     // counting them here would double them into a badge for a list they

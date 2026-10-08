@@ -5,6 +5,8 @@ import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
+import { getPlatformActivity } from '@/lib/platforms/candidate-view'
+import { PlatformStagePill } from '@/components/dashboard/platforms/PlatformStagePill'
 import {
   SESSION_DIMENSION_LABEL,
   SESSION_DIMENSION_STATUS_LABEL,
@@ -31,7 +33,11 @@ export default async function PreSessionBriefPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const brief = await getPreSessionBrief(candidate.id)
+  const [brief, platformActivity] = await Promise.all([
+    getPreSessionBrief(candidate.id),
+    // Same consent as the rest of this brief (getCoachClient above).
+    getPlatformActivity(candidate.id).then((rows) => rows.filter((r) => !r.dismissed)),
+  ])
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -125,6 +131,24 @@ export default async function PreSessionBriefPage({
               Has committed to &ldquo;{brief.avoidancePattern.actionType}&rdquo; actions {brief.avoidancePattern.weeksAvoided}{' '}
               weeks running without completing one, while completing other action types.
             </p>
+          </div>
+        )}
+
+        {platformActivity.length > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">Fractional work and learning</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Read from the platforms&apos; own emails in their connected Gmail.</p>
+            <ul className="mt-2 space-y-1.5">
+              {platformActivity.slice(0, 12).map((p) => (
+                <li key={p.platformKey} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-foreground">
+                    {p.name}
+                    {p.courseTitle && <span className="text-muted-foreground"> · {p.courseTitle}</span>}
+                  </span>
+                  <PlatformStagePill status={p} />
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

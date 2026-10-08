@@ -3,7 +3,7 @@ import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibili
 // Human labels for the CRM enums. Sentence case per design-principles.md.
 //
 // Category-prefixed on purpose (F: funding-side, BD: business development,
-// NC: network/contact, GTM: go-to-market) — with 19 contact types, a flat
+// NC: network/contact, GTM: go-to-market, FF: friends and family) — with 20 contact types, a flat
 // list stopped being scannable, and the prefix groups related ones visually
 // even though PERSON_ROLES (below) sorts the actual list alphabetically by
 // this label text, not by category.
@@ -27,6 +27,7 @@ export const PERSON_ROLE_LABELS: Record<CrmPersonRole, string> = {
   OTHER: 'NC: Other',
   PRESS: 'GTM: Press/Media',
   GTM_PARTNER: 'GTM: Partner',
+  FRIENDS_FAMILY: 'FF: Friends and family',
 }
 
 export const ORG_TYPE_LABELS: Record<CrmOrgType, string> = {

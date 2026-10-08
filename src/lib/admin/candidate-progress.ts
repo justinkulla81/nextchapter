@@ -1,4 +1,5 @@
 import 'server-only'
+import { platformBadgeLabel } from '@/lib/platforms/badges'
 import { prisma } from '@/lib/prisma'
 import {
   computeDossierCompleteness,
@@ -270,7 +271,7 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
 
   const badges: EarnedBadge[] = [
     ...milestoneBadges.map((b) => ({
-      key: b.badgeKey, label: humanizeKey(b.badgeKey), earnedAt: b.earnedAt, source: 'milestone' as const, detail: null,
+      key: b.badgeKey, label: platformBadgeLabel(b.badgeKey) ?? humanizeKey(b.badgeKey), earnedAt: b.earnedAt, source: 'milestone' as const, detail: null,
     })),
     ...weeklyBadges.map((b) => ({
       key: b.badgeKey, label: humanizeKey(b.badgeKey), earnedAt: b.earnedAt, source: 'weekly' as const,

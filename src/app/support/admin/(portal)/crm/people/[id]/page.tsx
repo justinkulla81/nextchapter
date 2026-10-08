@@ -13,6 +13,8 @@ import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
+import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
+import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -30,6 +32,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       affiliations: { include: { org: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
+      backgrounds: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ kind: 'asc' }, { createdAt: 'asc' }] },
       // Only what happened since the CRM began — see CRM_ACTIVITY_CUTOFF.
       // Pre-cutoff rows stay in the table (nothing is deleted) but a decade
       // of pre-company mail is not this person's outreach history.
@@ -65,6 +68,17 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   }
   const saveRoles = updatePersonRoles.bind(null, id)
   const sources = [...new Set(person.sourceRecords.map((s) => s.sourceFile))]
+  // List emails on the history: what each person did with them lives on the recipient row.
+  const mailingIds = person.activities.flatMap((a) => (a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? [a.sourceRef.slice(MAILING_REF_PREFIX.length)] : []))
+  const mailingRecipients = new Map(
+    (mailingIds.length
+      ? await prisma.mailingEditionRecipient.findMany({
+          where: { id: { in: mailingIds } },
+          select: { id: true, editionId: true, deliveredAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true },
+        })
+      : []
+    ).map((r) => [r.id, r]),
+  )
   const needsReview = person.activities.filter((a) => a.needsReview)
   const confirmedActivities = person.activities.filter((a) => !a.needsReview)
   // Surfaced as a banner rather than buried in a list: walking into a meeting
@@ -104,6 +118,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             {/* Labeled rather than bare — "Hot" on its own reads as a stray
                 word; "Warmth: Hot" says what it is without a hover or click. */}
             <span className="ml-2 text-muted-foreground">Warmth: {WARMTH_LABELS[person.warmth]}</span>
+            {person.linkedinDegree && (
+              <span
+                className="text-muted-foreground"
+                title={person.linkedinDegreeSeenAt ? `Seen on their LinkedIn profile ${formatDate(person.linkedinDegreeSeenAt)}` : undefined}
+              >
+                · LinkedIn {person.linkedinDegree}
+              </span>
+            )}
             {/* Priority lived on the People list row and nowhere else — the
                 one place you're actually looking at someone had no way to
                 set it. Same inline-select, same P0/P1/P2 color coding. */}
@@ -116,6 +138,12 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))]}
             />
             {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
+            {!person.email && person.guessedEmail && (
+              <span title={`Guessed from the format others there use: ${person.guessedEmailBasis ?? ''}. Not confirmed.`}>
+                <a href={`mailto:${person.guessedEmail}`} className="underline">{person.guessedEmail}</a>
+                <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">guessed</span>
+              </span>
+            )}
             {person.linkedinUrl && (
               <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>
             )}
@@ -186,6 +214,23 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                   {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
                 </span>
                 <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {person.backgrounds.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">Background</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.backgrounds.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
+                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
               </li>
             ))}
           </ul>
@@ -289,6 +334,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </section>
 
       <section>
+        <h2 className="mb-2 text-lg font-semibold">Mailing lists and reports</h2>
+        <PersonMailingSection personId={person.id} email={person.email} />
+      </section>
+
+      <section>
         <h2 className="mb-2 text-lg font-semibold">Send outreach</h2>
         <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
       </section>
@@ -332,6 +382,22 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 <span>
                   <span className="font-medium">{a.subject ?? a.type}</span>
                   {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
+                  {(() => {
+                    const m = a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? mailingRecipients.get(a.sourceRef.slice(MAILING_REF_PREFIX.length)) : undefined
+                    if (!m) return null
+                    const bits = [
+                      m.bouncedAt ? 'Bounced' : m.deliveredAt ? 'Delivered' : 'Not delivered yet',
+                      m.openCount > 0 ? `opened ${m.openCount}× (approx.)` : 'not opened',
+                      m.clickCount > 0 ? `${m.clickCount} ${m.clickCount === 1 ? 'click' : 'clicks'}` : null,
+                      m.repliedAt ? 'replied' : null,
+                      m.unsubscribedAt ? 'unsubscribed' : null,
+                    ].filter(Boolean)
+                    return (
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {bits.join(' · ')} · <Link href={`/support/admin/crm/mailing/editions/${m.editionId}`} className="underline">open the send</Link>
+                      </span>
+                    )
+                  })()}
                   {a.outreachTracking && (
                     <span className="mt-1 block text-xs">
                       <span className={a.outreachTracking.openCount > 0 ? 'text-success' : 'text-muted-foreground'}>

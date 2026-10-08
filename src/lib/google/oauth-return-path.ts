@@ -16,6 +16,22 @@ function isSafeReturnPath(path: string | null | undefined): path is string {
   return !!path && path.startsWith('/dashboard')
 }
 
+// Where a /api/auth/*/start route sends the candidate when it stops before
+// reaching Google (not logged in, not on the tester allow-list, OAuth not
+// configured) — back to the page they clicked from, with the error param
+// that page renders, instead of always /dashboard/network.
+export function startErrorRedirectUrl(
+  requestReturnTo: string | null,
+  fallback: string,
+  param: 'gmailError' | 'calendarError',
+  code: string,
+  base: string,
+): URL {
+  const url = new URL(isSafeReturnPath(requestReturnTo) ? requestReturnTo : fallback, base)
+  url.searchParams.set(param, code)
+  return url
+}
+
 interface StoredOAuthReturnState {
   nonce: string
   returnTo: string

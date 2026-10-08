@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -8,8 +9,24 @@ export type NewsletterState = { error?: string; subscribed?: boolean; email?: st
 
 // Pages with a signup box. An allowlist: the value is stored, so it is never
 // whatever the browser sent.
-const SOURCES = new Set(['home', 'how-it-works', 'why-stuck', 'displacement-report'])
+const SOURCES = new Set([
+  'home', 'how-it-works', 'why-stuck', 'news', 'resources',
+  'displacement-report', 'displacement-report-popup', 'displacement-report-pdf', 'site-footer',
+])
 const MAX_PER_HOUR_PER_IP = 5
+
+// A non-HttpOnly cookie the pop-up and PDF gate read to tell who has already
+// subscribed, so we never nag or gate them again. One year; not a secret.
+const SUBSCRIBED_COOKIE = 'nc_sub'
+async function markSubscribed() {
+  try {
+    ;(await cookies()).set(SUBSCRIBED_COOKIE, '1', {
+      maxAge: 60 * 60 * 24 * 365, path: '/', sameSite: 'lax', httpOnly: false,
+    })
+  } catch {
+    // cookies() can be read-only in some rendering contexts; non-fatal.
+  }
+}
 
 export async function subscribeToNewsletter(_prev: NewsletterState, formData: FormData): Promise<NewsletterState> {
   const text = (k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)
@@ -41,6 +58,7 @@ export async function subscribeToNewsletter(_prev: NewsletterState, formData: Fo
     await prisma.newsletterSubscriber.create({ data: { email, source, ip } })
   }
 
+  await markSubscribed()
   captureServerEvent(email, 'newsletter_subscribed', { source, returning: !!existing })
   return { subscribed: true, email }
 }

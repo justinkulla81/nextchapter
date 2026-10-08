@@ -57,6 +57,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
 
+// /reports/replication mirrors the replication repository's README.
+const REPLICATION_UPDATED = '2026-10-07'
+
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -90,7 +93,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(newestReport
       ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7)]
       : []),
-    ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.publishedAt, 'monthly', 0.7)),
+    ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
+    entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
 
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),

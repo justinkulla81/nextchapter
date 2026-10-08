@@ -1,11 +1,11 @@
-// The report's own stylesheet, scoped under .ncr so it styles only the report
-// document and never the site header, footer or nav. Ported from the authored
-// HTML's <style> block: every selector is prefixed with .ncr, :root/body/* are
-// folded onto the wrapper, and the two font tokens point at the site's
-// next/font variables (with the original family names as a fallback) so no
-// external font request is needed. Single light theme by design.
-export const REPORT_CSS = `
+// AUTO-SCOPED from the authored report HTML's <style> blocks: every selector
+// prefixed with .ncr so the report's CSS styles only the report document and
+// never the site chrome. :root/body/* fold onto .ncr; the two font tokens
+// point at the site's next/font variables. Regenerate with
+// scripts/displacement/port-report.mjs.
+export const REPORT_CSS = `/* Layout: industry research report — cover band, disclosure, executive summary, numbered chapters with labeled exhibits, appendix; sticky contents rail on wide screens; print/PDF styles. */
 .ncr{
+  /* NextChapter brand tokens (from launchyournextchapter.com globals.css). Single light theme by design. */
   --bg:#f7f9fa; --paper:#ffffff; --fg:#0a0a0a; --navy:#0b2545; --muted:#4a5568; --line:#e2e8f0;
   --accent:#1d4e89; --accent-soft:#eaf1f8; --light-blue:#2980d4; --cta:#2e7d5b; --cta-hover:#3f9b72;
   --neg:#c4574a; --neg-soft:#f8e9e7; --pos:#2e7d5b; --pos-soft:#e6f2ec; --ink-band:#ffffff; --on-band:#0b2545;
@@ -13,9 +13,9 @@ export const REPORT_CSS = `
   --body:var(--font-inter),"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:var(--font-inter),"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
-  background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;
 }
 .ncr *{box-sizing:border-box}
+.ncr{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
 .ncr a{color:var(--accent);text-underline-offset:2px}
 .ncr a:focus-visible,.ncr button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ncr h1,.ncr h2,.ncr h3{font-family:var(--display);font-weight:600;text-wrap:balance;line-height:1.2;margin:0;color:var(--navy)}
@@ -30,6 +30,10 @@ export const REPORT_CSS = `
 .ncr .cover-in{max-width:1160px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 .ncr .cover-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px;align-items:center}
 .ncr .brand{font-family:var(--mono);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase}
+.ncr .brand-wrap{display:flex;align-items:baseline;gap:10px}
+.ncr .wordmark{font-family:var(--body);font-weight:700;letter-spacing:-.02em;color:var(--navy);font-size:1.9rem;line-height:1}
+.ncr .brand-sub{font-family:var(--body);font-size:1.05rem;color:var(--muted);font-weight:500}
+.ncr .newsbox{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--cta);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 .ncr .brand b{color:var(--accent);font-weight:600}
 .ncr .cover .eyebrow{color:var(--muted)}
 .ncr .cover h1{font-size:clamp(2.1rem,5vw,3.4rem);max-width:20ch;letter-spacing:-.01em;color:var(--navy)}
@@ -44,6 +48,7 @@ export const REPORT_CSS = `
 .ncr .btn:hover{background:var(--cta-hover);border-color:var(--cta-hover)}
 .ncr .btn.ghost{background:var(--paper);color:var(--navy);border-color:var(--line);font-weight:500}
 .ncr .btn.ghost:hover{background:var(--bg)}
+
 .ncr .btn svg{width:16px;height:16px}
 .ncr .status{font-size:.8rem;color:var(--muted);min-height:1.2em}
 
@@ -145,6 +150,9 @@ export const REPORT_CSS = `
   .ncr .toc,.ncr .actions,.ncr .status,.ncr .no-print{display:none!important}
   .ncr .cover{padding:0 0 18pt;break-after:page;min-height:9.4in;display:flex;flex-direction:column;justify-content:space-between}
   .ncr .cover-in{gap:16pt}
+  .ncr .wordmark{font-size:30pt}
+  .ncr .brand-sub{font-size:14pt}
+  .ncr .newsbox .btn{display:none}
   .ncr .cover-stats{grid-template-columns:repeat(2,1fr)}
   .ncr .cover h1{font-size:40pt}
   .ncr .wrap{padding:0;max-width:none}
@@ -159,4 +167,5 @@ export const REPORT_CSS = `
   .ncr .tbl{overflow:visible}
   .ncr th,.ncr td{padding:4pt 6pt}
 }
-`
+.ncr table.txt td,.ncr table.txt th{white-space:normal;text-align:left;vertical-align:top}.ncr table.txt td:first-child{min-width:130px}@media print{.ncr table.txt{font-size:7.6pt}}@media print{.ncr thead th{white-space:normal!important;word-break:normal}}.ncr .lbl{display:inline-block;font-family:var(--body);font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;vertical-align:middle;line-height:1.6}.ncr .lbl.m{background:#e7eef7;color:#0b2545}.ncr .lbl.o{background:#eef1f4;color:#4a5568}.ncr .lbl.i{background:#e6f2ec;color:#2e7d5b}.ncr .lbl-row{margin:-4px 0 -6px}.ncr .src{font-size:.72rem;color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted);margin-left:4px;white-space:nowrap}
+.ncr,.ncr{margin:0}`

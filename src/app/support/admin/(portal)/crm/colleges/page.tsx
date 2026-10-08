@@ -141,15 +141,16 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
       <header>
         <h1 className="text-2xl font-semibold">Colleges</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-          Every degree-granting college, ranked as a pilot partner for mid-career alumni facing layoffs and AI. The score
+          Every four-year college (community colleges are not included), ranked as a pilot partner for mid-career alumni facing layoffs and AI. The score
           (out of 100) adds four parts: contacts (30) — a named leader with their own email for career services, alumni,
           development and executive education; fit (30) — four-year colleges whose alumni are white-collar professionals,
           plus layoffs filed nearby; size (20) — 5,000–20,000 students is best, very selective schools lose most of it
           because they run their own alumni programs; interest (20) — what the college&apos;s own pages say about AI,
           reskilling, alumni career help, lifelong learning and executive education. On top of that, a relationship: a P0
-          or P1 contact in the CRM, or a live deal, adds up to 40 and puts the college in tier A; a P2 contact or a first
-          contact puts it in tier B at least. Community colleges otherwise stay in tier C. Re-ranked weekly, and at once
-          when a deal status is set here.
+          or P1 alumni-office or partnership contact in the CRM, or a live deal, adds up to 40 and puts the college in
+          tier A; a P2 contact or a first contact puts it in tier B at least. A contact counts when they are affiliated
+          with the college or their email is on its own campus domain. Re-ranked weekly, and at once when a deal status
+          is set here.
         </p>
       </header>
 
@@ -265,6 +266,9 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
                               )}
                               {k.title && <span className="text-muted-foreground">, {k.title}</span>}
                               {k.email && <> · <a href={`mailto:${k.email}`} className="hover:underline">{k.email}</a></>}
+                              {!k.email && k.guessedEmail && (
+                                <> · <a href={`mailto:${k.guessedEmail}`} className="hover:underline" title={`Guessed from the college's address format: ${k.guessedEmailBasis ?? ''}. Not confirmed.`}>{k.guessedEmail}</a> <span className="text-muted-foreground">(guessed)</span></>
+                              )}
                               {k.phone && <> · <span className="whitespace-nowrap">{k.phone}</span></>}
                             </li>
                           ))}

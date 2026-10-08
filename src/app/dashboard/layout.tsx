@@ -20,6 +20,7 @@ import { CheckInPromptDialog } from '@/components/dashboard/CheckInPromptDialog'
 import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
+import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -207,6 +208,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">
           <HardGateGate subjectToHardGate={profile.subjectToHardGate} status={hardGateStatus}>
+            <Suspense fallback={null}>
+              <GoogleConnectResultBanner />
+            </Suspense>
             {children}
           </HardGateGate>
         </div>

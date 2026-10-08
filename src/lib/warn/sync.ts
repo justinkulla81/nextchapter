@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { matchOrCreateCompanyForEmployer, loadCompanyIndex, type CompanyIndex } from './company-match'
-import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
+import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, SCRAPED_STATES, parseScrapedNotices, sourceUrl, isKnowledgeSector, type WarnRow, type ScrapedNotice } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
 import { TABLE_SPECS, makeTableParser } from './states'
 import { cleanEmployer } from './public-tracker'
@@ -457,6 +457,47 @@ export async function importRenderedState(state: string, html: string): Promise<
  * requests (Texas). Same recency cutoff and staging as every other state;
  * only the fetching differs.
  */
+/**
+ * Stores one state's notices from the daily scraper job (see
+ * SCRAPED_STATES): the same staging, duplicate checks and age limit as every
+ * other state. None of these publishes a sector, so all wait for review.
+ */
+export async function importScrapedState(state: string, notices: ScrapedNotice[]): Promise<WarnSyncResult> {
+  const url = SCRAPED_STATES[state]
+  const result: WarnSyncResult = {
+    state, fetched: 0, created: 0, promoted: 0,
+    skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0,
+  }
+  if (!url) return { ...result, error: 'not_a_scraped_state' }
+
+  const run = await prisma.warnSyncRun.create({ data: { state } })
+  try {
+    const rows = parseScrapedNotices(state, notices)
+    result.fetched = rows.length
+    if (!rows.length) throw new Error(`${state}: the scraper produced no notices — its source has changed`)
+
+    const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    const [companies, known] = await Promise.all([loadCompanyIndex(), loadNoticeIndex()])
+    for (const row of rows) {
+      if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
+      // Undated notices from a whole-history file cannot be placed in time; only dated ones are kept.
+      if (!row.noticeDate && !row.effectiveDate) { result.skippedOld++; continue }
+      if (await stageNotice(row, url, companies, known)) result.created++
+      result.needsReview++
+    }
+
+    await prisma.warnSyncRun.update({
+      where: { id: run.id },
+      data: { finishedAt: new Date(), fetched: result.fetched, created: result.created, promoted: result.promoted },
+    })
+    return result
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    await prisma.warnSyncRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), error: message } })
+    return { ...result, error: message }
+  }
+}
+
 export async function importFileState(state: string, file: Buffer, fileUrl: string): Promise<WarnSyncResult> {
   const spec = FILE_STATES[state]
   const result: WarnSyncResult = {

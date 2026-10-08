@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NextChapter White-Collar Displacement Index
+NextChapter White-Collar Long-Term Unemployment Index
 -------------------------------------------
 Builds monthly white-collar labor-market measures from the Census Bureau's
 Current Population Survey (CPS) basic monthly public-use microdata.

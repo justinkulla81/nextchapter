@@ -26,6 +26,7 @@ import {
 } from '@/lib/crm/labels'
 import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal, CrmPriorityTier } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
+import { MailingBulkControls } from '@/components/admin/mailing/MailingBulkControls'
 
 export const maxDuration = 30
 
@@ -125,6 +126,11 @@ export default async function CrmPeoplePage({
   const goal = sp.goal ?? ''
   const priority = sp.priority ?? ''
   const minScore = parseInt(sp.minScore ?? '', 10)
+  // Mailing lists: "list=investors" is on it, "list=!investors" is not.
+  const list = sp.list ?? ''
+  // Report editions: "report=2026-09" received it, "report=!2026-09" didn't.
+  const report = sp.report ?? ''
+  const method = sp.method === 'AUTOMATED' || sp.method === 'MANUAL' ? sp.method : ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   // Organization is not sortable: it lives on a to-many affiliation, which
   // Prisma cannot order by. Offering a column that silently did nothing would
@@ -144,6 +150,16 @@ export default async function CrmPeoplePage({
 
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
+
+  const [mailingLists, reportKeyRows] = await Promise.all([
+    prisma.mailingList.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, key: true, name: true, audience: true } }),
+    prisma.crmReportSend.findMany({ distinct: ['editionKey'], orderBy: { editionKey: 'desc' }, take: 6, select: { editionKey: true } }),
+  ])
+  const reportKeys = reportKeyRows.map((r) => r.editionKey)
+  const listKey = list.replace(/^!/, '')
+  const reportKey = report.replace(/^!/, '')
+  // The Report column shows the filtered edition, else the newest one.
+  const shownReport = reportKey || reportKeys[0] || ''
 
   const where: Prisma.CrmPersonWhereInput = {
     deletedAt: null,
@@ -177,6 +193,16 @@ export default async function CrmPeoplePage({
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
+    ...(listKey
+      ? list.startsWith('!')
+        ? { NOT: { mailingMemberships: { some: { status: 'ACTIVE', list: { key: listKey } } } } }
+        : { mailingMemberships: { some: { status: 'ACTIVE', list: { key: listKey } } } }
+      : {}),
+    ...(reportKey
+      ? report.startsWith('!')
+        ? { NOT: { reportSends: { some: { editionKey: reportKey } } } }
+        : { reportSends: { some: { editionKey: reportKey, ...(method ? { method } : {}) } } }
+      : method ? { reportSends: { some: { method } } } : {}),
   }
 
   const [total, rows, needsCompletion, removedCount, orgNames] = await Promise.all([
@@ -190,6 +216,8 @@ export default async function CrmPeoplePage({
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
         lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
+        mailingMemberships: { where: { status: 'ACTIVE' }, select: { list: { select: { key: true, name: true } } } },
+        reportSends: { where: { editionKey: shownReport || '-' }, select: { method: true, channel: true, sentAt: true, clickedAt: true, repliedAt: true } },
         affiliations: {
           where: { isPrimary: true }, take: 1,
           select: { title: true, org: { select: { id: true, name: true } } },
@@ -217,6 +245,9 @@ export default async function CrmPeoplePage({
         goal && `goal ${GOAL_LABELS[goal as CrmGoal]}`,
         priority && `priority ${priority}`,
         Number.isFinite(minScore) && `score ${minScore}+`,
+        listKey && `${list.startsWith('!') ? 'not on' : 'on'} ${mailingLists.find((l) => l.key === listKey)?.name ?? listKey}`,
+        reportKey && `${report.startsWith('!') ? 'did not receive' : 'received'} report ${reportKey}`,
+        method && `${method === 'MANUAL' ? 'sent by hand' : 'sent by the system'}`,
       ].filter((x): x is string => Boolean(x))
     : []
 
@@ -224,7 +255,7 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, waiting, invited, goal, priority,
+    q, role, quality, warmth, touched, waiting, invited, goal, priority, list, report, method,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
@@ -339,6 +370,9 @@ export default async function CrmPeoplePage({
     // (banner reads these back below — see restoredSummary)
           // This one filters the computed score, not the tier — two dropdowns
           // both reading "Priority: All" was just ambiguous.
+          { key: 'list', label: 'Mailing list', value: list, options: [{ value: '', label: 'Any list' }, ...mailingLists.flatMap((l) => [{ value: l.key, label: `On ${l.name}` }, { value: `!${l.key}`, label: `Not on ${l.name}` }])] },
+          { key: 'report', label: 'Report', value: report, options: [{ value: '', label: 'Any report' }, ...reportKeys.flatMap((k) => [{ value: k, label: `Received ${k}` }, { value: `!${k}`, label: `Not received ${k}` }])] },
+          { key: 'method', label: 'Report sent', value: method, options: [{ value: '', label: 'By anyone' }, { value: 'AUTOMATED', label: '✉︎ By the system' }, { value: 'MANUAL', label: '✋ By hand' }] },
           { key: 'minScore', label: 'Score', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any score' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
         ]}
       />
@@ -346,7 +380,7 @@ export default async function CrmPeoplePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-          {q || role || quality || warmth || touched || waiting || invited ? ' matching these filters' : ''}
+          {q || role || quality || warmth || touched || waiting || invited || list || report || method ? ' matching these filters' : ''}
         </p>
         {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
         <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
@@ -390,7 +424,10 @@ export default async function CrmPeoplePage({
           </Link>
         </div>
       ) : (
-        <CrmBulkBar count={rows.length}>
+        <CrmBulkBar
+          count={rows.length}
+          extra={<MailingBulkControls lists={mailingLists} reportKeys={[...new Set([shownReport, ...reportKeys].filter(Boolean))]} />}
+        >
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead>
@@ -405,6 +442,8 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
                   <th className="px-3 py-2 font-medium">Deal status</th>
+                  <th className="px-3 py-2 font-medium">Lists</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">{shownReport ? `Report ${shownReport}` : 'Report'}</th>
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
@@ -483,6 +522,22 @@ export default async function CrmPeoplePage({
                         personId={p.id} note={p.nextFollowUpNote} dueAt={p.nextFollowUpAt}
                         awaitingDays={daysSince(p.awaitingReplySince)} passed={p.passedAt !== null} keepInTouch={p.keepInTouchAt !== null}
                       />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <span className="flex max-w-40 flex-wrap gap-1">
+                        {p.mailingMemberships.map((m) => (
+                          <span key={m.list.key} title={m.list.name} className="rounded-full bg-muted px-1.5 py-0.5 text-[11px]">{m.list.name.split(/[ (]/)[0]}</span>
+                        ))}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-1.5 text-xs">
+                      {p.reportSends[0] ? (
+                        <span title={`${p.reportSends[0].method === 'AUTOMATED' ? 'Sent by the system' : `Sent by hand (${p.reportSends[0].channel.toLowerCase().replace('_', ' ')})`} on ${p.reportSends[0].sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${p.reportSends[0].clickedAt ? ', clicked' : ''}${p.reportSends[0].repliedAt ? ', replied' : ''}`}>
+                          <span aria-label="Received">☑</span> {p.reportSends[0].method === 'AUTOMATED' ? '✉︎' : '✋'}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground" aria-label="Not received">☐</span>
+                      )}
                     </td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
                   </tr>

@@ -44,8 +44,8 @@ industry,Information over-the-year,2025-09..2026-09,-120,thousands,BLS/FRED
 industry,Financial activities over-the-year,2025-09..2026-09,-107,thousands,BLS/FRED
 industry,Federal government over-the-year,2025-09..2026-09,-232,thousands,BLS/FRED
 industry,Health care over-the-year,2025-09..2026-09,371.8,thousands,BLS
-wc_index,White-Collar Displacement Index (2019=100),2026-08,163.1,index,NextChapter calc from Census CPS
-wc_index,White-Collar Displacement Index (2019=100),2025-08,130.8,index,NextChapter calc from Census CPS
+wc_index,White-Collar Long-Term Unemployment Index (2019=100; formerly Displacement Index),2026-08,161.6,index,NextChapter calc from Census CPS
+wc_index,White-Collar Long-Term Unemployment Index (2019=100; formerly Displacement Index),2025-08,128.2,index,NextChapter calc from Census CPS
 long-term,LTU share out 1-2 years (all),2026-01..2026-08,40.9,percent,NextChapter calc from Census CPS
 long-term,LTU share out 2+ years (all),2026-01..2026-08,24.5,percent,NextChapter calc from Census CPS
 long-term,White-collar long-term unemployed (avg),2026-01..2026-08,546,thousands,NextChapter calc from Census CPS
@@ -58,3 +58,152 @@ occupation,Computer & math share out 27+ weeks,2025-01..2025-08,27.5,percent,Nex
 industry,White-collar in Information share out 27+ weeks,2026-01..2026-08,35.4,percent,NextChapter calc from Census CPS
 applications,Applications per job (North America),2025,244,applications,Greenhouse
 applications,Applications per hire,2026,300,applications (300+),Ashby
+older,Labor force participation ages 55+ (NSA),2026-01..2026-08,37.1,percent,NextChapter calc from Census CPS (v1.6: decline is compositional; see age-sex adjusted row)
+older,Labor force participation ages 55+ (NSA),2025-01..2025-08,38.1,percent,NextChapter calc from Census CPS (v1.6: decline is compositional; see age-sex adjusted row)
+older,Labor force participation ages 55+ (NSA),2019-01..2019-08,40.2,percent,NextChapter calc from Census CPS (v1.6: decline is compositional; see age-sex adjusted row)
+older,Labor force participation ages 65+ (NSA),2026-01..2026-08,18.6,percent,NextChapter calc from Census CPS
+older,White-collar 50+ unemployed out 27+ weeks,2026-01..2026-08,37.1,percent,NextChapter calc from Census CPS
+older,White-collar 50+ unemployed out 27+ weeks,2025-01..2025-08,29.6,percent,NextChapter calc from Census CPS
+older,Long-tenured displaced workers re-employed ages 55-64,2026-01,57.3,percent,BLS Displaced Worker Survey
+older,Long-tenured displaced workers re-employed ages 25-54,2026-01,72.9,percent,BLS Displaced Worker Survey
+grads,Unemployment ages 22-27 bachelor's+ (NSA),2026-01..2026-08,5.47,percent,NextChapter calc from Census CPS
+grads,Unemployment ages 22-27 bachelor's+ (NSA),2019-01..2019-08,3.94,percent,NextChapter calc from Census CPS
+grads,Unemployment ages 22-27 high school only (NSA),2026-01..2026-08,7.73,percent,NextChapter calc from Census CPS
+bluecollar,Blue-collar unemployment rate (NSA),2026-01..2026-08,5.03,percent,NextChapter calc from Census CPS
+bluecollar,Blue-collar unemployed out 27+ weeks,2026-01..2026-08,22.6,percent,NextChapter calc from Census CPS
+bluecollar,Construction pay production/nonsupervisory change,2025-09..2026-09,4.3,percent,BLS B-8 (NextChapter calc)
+newbiz,Business applications (SA),2026-08,531728,applications,Census BFS via FRED
+newbiz,High-propensity business applications (SA),2026-08,145387,applications,Census BFS via FRED
+newbiz,Self-employed share of employed (NSA),2026-01..2026-08,10.1,percent,NextChapter calc from Census CPS
+newbiz,Self-employed share of employed (NSA),2019-01..2019-08,9.9,percent,NextChapter calc from Census CPS
+jobs,AI-related share of US job postings,2026-08-31,6.74,percent,Indeed Hiring Lab AI tracker
+jobs,Office and administrative support projected change,2025..2035,-4.0,percent,BLS Employment Projections
+layoffs,SEC 8-K filings referencing Item 2.05,2026-01..2026-09,170,filings,SEC EDGAR; NextChapter count
+layoffs,Item 2.05 filings mentioning AI/automation/ML anywhere (excl. false matches),2026-01..2026-09,24,filings,NextChapter hand-coded (v1.2 corrected)
+layoffs,Item 2.05 filings citing AI in restructuring section,2026-01..2026-09,16,filings,NextChapter hand-coded (v1.2 corrected; v1.0-1.1 reported 2)
+layoffs,...of which AI changing how work is done,2026-01..2026-09,10,filings,NextChapter hand-coded
+layoffs,...of which cutting to reinvest in AI,2026-01..2026-09,6,filings,NextChapter hand-coded
+q3,Item 2.05 filings,2026-Q1,53,filings,SEC EDGAR; NextChapter count
+q3,Item 2.05 filings,2026-Q2,57,filings,SEC EDGAR; NextChapter count
+q3,Item 2.05 filings,2026-Q3,60,filings,SEC EDGAR; NextChapter count
+q3,Item 2.05 filings citing AI in restructuring section,2026-Q1,4,filings,NextChapter hand-coded
+q3,Item 2.05 filings citing AI in restructuring section,2026-Q2,9,filings,NextChapter hand-coded
+q3,Item 2.05 filings citing AI in restructuring section,2026-Q3,3,filings,NextChapter hand-coded
+q3,Announced job cuts,2026-Q3,129591,people,Challenger
+q3,Announced job cuts,2026-Q2,226242,people,Challenger
+q3,Announced job cuts,2025-Q3,202118,people,Challenger; summed by NextChapter
+q3,AI-attributed cuts,2026-Q3,18393,people,Challenger; summed by NextChapter
+q3,"Labor share, nonfarm business",2026-Q2,52.8,percent,BLS
+q3,"Revenue, 27 large white-collar employers",FY2022,2331.9,USD billions,10-K XBRL; NextChapter calculation
+q3,"Revenue, 27 large white-collar employers",latest FY,3273.3,USD billions,10-K XBRL; NextChapter calculation
+q3,"Employees, 27 large white-collar employers",FY2022,3013792,people,10-K; NextChapter calculation
+q3,"Employees, 27 large white-collar employers",latest FY,2983416,people,10-K; NextChapter calculation
+q3,"Revenue per employee, 27 companies combined",FY2022,773743,USD,NextChapter calculation
+q3,"Revenue per employee, 27 companies combined",latest FY,1097158,USD,NextChapter calculation
+q3,Displaced long-tenured workers reemployed (displaced 2023-25),2026-01,66.1,percent,BLS Displaced Worker Survey
+q3,CFO Survey median expected employment growth 2026,2026-Q3,1.7,percent,The CFO Survey
+q3,CFO Survey median expected revenue growth 2026,2026-Q3,5.0,percent,The CFO Survey
+q3,Employment services jobs (NAICS 5613),2026-09,3181.6,thousands,BLS
+q3,"Employment services revenue (QSS, NSA)",2026-Q2,107.0,USD billions,Census QSS via FRED
+remote,"Teleworked, all workers",2026-09,21.9,percent,BLS CPS table A-42
+remote,"Teleworked, management and professional",2026-09,35.4,percent,BLS CPS
+wc_index,WC long-term unemployed job losers (% of WC labor force),2026-01..2026-08,0.40,percent,NextChapter calc from Census CPS (PRUNTYPE 1-3)
+wc_index,WC long-term unemployed job losers (% of WC labor force),2025-01..2025-08,0.31,percent,NextChapter calc from Census CPS (PRUNTYPE 1-3)
+wc_index,WC long-term unemployed job losers (% of WC labor force),2019-01..2019-08,0.23,percent,NextChapter calc from Census CPS (PRUNTYPE 1-3)
+wc_index,Index Aug 2026 - X-13ARIMA-SEATS (2019=100),2026-08,153.2,index,NextChapter calc
+wc_index,Index Aug 2026 - STL (2019=100),2026-08,157.7,index,NextChapter calc
+wc_index,Index Aug 2026 - unadjusted 12-month average (2019=100),2026-08,154.5,index,NextChapter calc
+moe,90% MOE WC long-term rate change 2026 vs 2025 (BLS GVF method),2026-01..2026-08,0.08,percentage points,NextChapter calc using BLS parameters
+hiring,Hires per job opening (annual avg),2026-01..2026-08,0.73,ratio,NextChapter calc from BLS JOLTS (FRED JTSHIL/JTSJOL)
+hiring,Hires per job opening (annual avg),2019,0.82,ratio,NextChapter calc from BLS JOLTS
+hiring,Hires per job opening - professional & business services,2026-01..2026-08,0.79,ratio,NextChapter calc from BLS JOLTS
+q3,Productivity gain value (illustrative),2025Q2..2026Q2,550,USD billions,NextChapter estimate (BLS productivity x ~77% of BEA GDP)
+q3,Output forgone by additional WC long-term unemployed (illustrative),2026-01..2026-08,25-50,USD billions,NextChapter estimate
+q3_industry,WC long-term share - information (2019 / 2026),2019 vs 2026-01..08,25.8 / 35.4,percent,NextChapter calc from Census CPS
+q3_industry,WC long-term share - professional & business services (2019 / 2026),2019 vs 2026-01..08,26.9 / 31.7,percent,NextChapter calc from Census CPS
+q3_industry,WC long-term share - financial activities (2019 / 2026),2019 vs 2026-01..08,30.4 / 31.1,percent,NextChapter calc from Census CPS
+q3_industry,WC long-term share - manufacturing (2019 / 2026),2019 vs 2026-01..08,27.0 / 35.5,percent,NextChapter calc from Census CPS
+q3_industry,WC long-term share - education & health (2019 / 2026),2019 vs 2026-01..08,17.0 / 22.5,percent,NextChapter calc from Census CPS
+q3_industry,TFP growth 2019-24 - information (NAICS 51),2019-2024,1.8,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - professional & technical services (54),2019-2024,2.5,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - management of companies (55),2019-2024,3.0,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - administrative & waste services (56),2019-2024,0.9,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - finance & insurance (52),2019-2024,-0.4,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - real estate (53),2019-2024,1.3,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - manufacturing (31-33),2019-2024,-0.1,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - educational services (61),2019-2024,0.1,percent per year,BLS TFP major industries Table 3
+q3_industry,TFP growth 2019-24 - health care & social assistance (62),2019-2024,0.7,percent per year,BLS TFP major industries Table 3
+retraining,WIOA Dislocated Worker appropriation incl. national reserve,FY2026,1396.4,USD millions,Federal Register PY2026 allotments
+retraining,WIOA Dislocated Worker participants served,PY2024,187108,people,DOL ETA PY2024 performance summary
+retraining,WIOA Dislocated Worker participants trained,PY2024,37119,people,DOL ETA PY2024 performance summary
+retraining,WIOA Dislocated Worker training cost per trainee,PY2024,7285,USD,DOL ETA PY2024 performance summary
+retraining,WIOA Dislocated Worker employment rate Q2 after exit,PY2024,69.0,percent,DOL ETA PY2024 performance summary
+retraining,WIOA Dislocated Worker median quarterly earnings Q2 after exit,PY2024,9897,USD,DOL ETA PY2024 performance summary
+retraining,Workforce Pell programs federally approved,2026-09-28,21,programs,Opportunity Data tracker
+careers,Gusto promotion rate (small businesses),2025-05,10.3,percent,Gusto
+careers,Mid-career professionals stalled 5+ years,2026,24.2,percent,Burning Glass Institute and NYU SPS via CBS News
+ld,Training spending per learner (Training magazine),2025,874,USD,Training magazine 2025 Training Industry Report
+ld,Direct learning expenditure per employee (ATD),2025,846,USD,ATD 2026 State of the Industry
+colleges,Institutions awarding AI bachelor's degrees (IPEDS 11.0102),2025,23,institutions,CRA
+older,Labor force participation 55+ at 2025 age-sex mix (standardized),2026-01..2026-08,38.08,percent,NextChapter calc from Census CPS (5-yr age x sex cells)
+older,Labor force participation 55+ unadjusted,2025-01..2025-08,38.12,percent,NextChapter calc from Census CPS
+nativity,WC long-term unemployed % of LF - US-born,2026-01..2026-08,0.73,percent,NextChapter calc from Census CPS (PRCITSHP 1-3)
+nativity,WC long-term unemployed % of LF - US-born,2025-01..2025-08,0.52,percent,NextChapter calc from Census CPS
+nativity,WC long-term unemployed % of LF - US-born,2019-01..2019-08,0.45,percent,NextChapter calc from Census CPS
+nativity,WC long-term unemployed % of LF - naturalized,2026-01..2026-08,0.83,percent,NextChapter calc from Census CPS (PRCITSHP 4)
+nativity,WC long-term unemployed % of LF - naturalized,2025-01..2025-08,0.84,percent,NextChapter calc from Census CPS
+nativity,WC long-term unemployed % of LF - noncitizen,2026-01..2026-08,0.89,percent,NextChapter calc from Census CPS (PRCITSHP 5)
+nativity,WC long-term unemployed % of LF - noncitizen,2025-01..2025-08,0.70,percent,NextChapter calc from Census CPS
+nativity,Noncitizen share of WC labor force,2026-01..2026-08,6.3,percent,NextChapter calc from Census CPS
+nativity,Noncitizen share of WC labor force,2025-01..2025-08,6.3,percent,NextChapter calc from Census CPS
+nativity,Noncitizen share of WC labor force,2019-01..2019-08,5.7,percent,NextChapter calc from Census CPS
+immigration,H-1B cap registrations,FY2027,211600,registrations,USCIS via Fragomen
+immigration,H-1B cap registrations,FY2026,343981,registrations,USCIS via Fragomen
+usecase,Motion picture and sound recording employment (CES5051200001),2026-08,328.7,thousands SA,BLS CES via FRED
+usecase,Business support services employment (CES6056140001),2026-08,622.4,thousands SA,BLS CES via FRED
+usecase,Computer systems design employment (CES6054150001),2026-08,2359.8,thousands SA,BLS CES via FRED
+usecase,Legal services employment (CES6054110001),2026-08,1247.0,thousands SA,BLS CES via FRED
+hidden,WC part time for economic reasons (% of employed WC),2026-01..2026-08,1.37,percent,NextChapter calc from Census CPS (PRWKSTAT 3 or 6)
+hidden,WC part time for economic reasons (% of employed WC),2025-01..2025-08,1.39,percent,NextChapter calc from Census CPS
+hidden,WC part time for economic reasons (% of employed WC),2019-01..2019-08,1.49,percent,NextChapter calc from Census CPS
+hidden,WC multiple jobholders (% of employed WC),2026-01..2026-08,6.19,percent,NextChapter calc from Census CPS (PEMJOT)
+hidden,WC multiple jobholders (% of employed WC),2025-01..2025-08,6.50,percent,NextChapter calc from Census CPS
+hidden,WC multiple jobholders (% of employed WC),2019-01..2019-08,6.05,percent,NextChapter calc from Census CPS
+hidden,WC self-employed incl. incorporated (% of employed WC),2026-01..2026-08,11.29,percent,NextChapter calc from Census CPS (PEIO1COW 6-7)
+hidden,WC self-employed incl. incorporated (% of employed WC),2025-01..2025-08,11.33,percent,NextChapter calc from Census CPS
+hidden,WC self-employed incl. incorporated (% of employed WC),2019-01..2019-08,11.74,percent,NextChapter calc from Census CPS
+hidden,WC average actual hours all jobs (at work),2026-01..2026-08,39.55,hours,NextChapter calc from Census CPS (PEHRACTT)
+hidden,WC average actual hours all jobs (at work),2025-01..2025-08,39.54,hours,NextChapter calc from Census CPS
+hidden,WC average actual hours all jobs (at work),2019-01..2019-08,40.40,hours,NextChapter calc from Census CPS
+adoption,Share of all work hours saved by generative AI,2026-Q2,2.2,percent,St. Louis Fed Real-Time Population Survey via FRED Blog (Aug 27 2026)
+adoption,Share of all work hours saved by generative AI,2024-Q3,1.6,percent,St. Louis Fed Real-Time Population Survey
+adoption,Workers who used generative AI for work last week,2026-Q2,39.2,percent,St. Louis Fed Real-Time Population Survey
+exposure,LTU rate high-AI-exposure occupations (% of LF),2022-01..2022-08,0.58,percent,NextChapter calc (CPS; Eloundou et al. 2024 exposure; OEWS 2022 weights)
+exposure,LTU rate high-AI-exposure occupations (% of LF),2026-01..2026-08,0.90,percent,NextChapter calc
+exposure,LTU rate low-AI-exposure occupations (% of LF),2022-01..2022-08,1.13,percent,NextChapter calc
+exposure,LTU rate low-AI-exposure occupations (% of LF),2026-01..2026-08,1.21,percent,NextChapter calc
+exposure,High-minus-low change in LTU rate since 2022 (pts),2022 vs 2026,0.24,percentage points (90% MOE 0.16),NextChapter calc
+exposure,High-minus-low change in LTU rate since 2019 (pts),2019 vs 2026,-0.04,percentage points (90% MOE 0.15),NextChapter calc
+exposure,Correlation exposure vs change in young (22-27) employment share since 2019 (22 groups),2019 vs 2026,-0.60,correlation,NextChapter calc
+turing,Customer service representatives employed,2026-01..2026-08,2447,thousands,NextChapter calc from CPS (occ 5240)
+turing,Customer service representatives employed,2025-01..2025-08,2653,thousands,NextChapter calc from CPS (occ 5240)
+turing,Receptionists employed,2026-01..2026-08,1275,thousands,NextChapter calc from CPS (occ 5400)
+education,Employed ages 22+ with bachelor's or higher,2026-01..2026-08,68.1,millions,NextChapter calc from CPS
+education,Employed ages 22+ with bachelor's or higher,2022-01..2022-08,63.6,millions,NextChapter calc from CPS
+education,LTU rate bachelor's or higher ages 22+ (% of LF),2026-01..2026-08,0.88,percent,NextChapter calc from CPS
+education,LTU rate bachelor's or higher ages 22+ (% of LF),2022-01..2022-08,0.57,percent,NextChapter calc from CPS
+education,LTU rate master's ages 22+ (% of LF),2026-01..2026-08,0.83,percent,NextChapter calc from CPS
+education,LTU rate master's ages 22+ (% of LF),2025-01..2025-08,0.57,percent,NextChapter calc from CPS
+education,LTU rate BA+ with 25+ yrs potential experience (% of LF),2026-01..2026-08,1.02,percent,NextChapter calc from CPS
+education,Unemployment rate BA+ with 0-4 yrs potential experience,2026-01..2026-08,5.31,percent,NextChapter calc from CPS
+debt,Student loan balance 90+ days delinquent (share of balance),2026-Q2,10.6,percent,NY Fed Household Debt and Credit (Aug 11 2026)
+debt,Federal student loan borrowers in default,2026-06-30,9.3,millions,Federal Student Aid (Sep 22 2026)
+debt,Average debt bachelor's graduates who borrowed,2023-24,29560,USD,College Board (Nov 2025)
+debt,Six-year college completion rate (fall 2019 cohort),2025,61.1,percent,National Student Clearinghouse (Dec 2025)
+tfp,Business-sector output per hour growth,2025,2.48,percent (log),SF Fed quarterly TFP series (Sep 3 2026)
+tfp,TFP growth,2025,0.97,percent (log),SF Fed
+tfp,Utilization-adjusted TFP growth,2025,0.31,percent (log),SF Fed
+tfp,Utilization-adjusted TFP growth (4 quarters to 2026Q2),2025Q3..2026Q2,-0.34,percent annualized,SF Fed
+tfp,Capital deepening contribution to output per hour,2025,1.05,percentage points,NextChapter calc from SF Fed file
+tfp,Hours worked growth (business sector),2025,0.16,percent (log),SF Fed
+tfp,Capital services growth,2025,2.77,percent (log),SF Fed

@@ -7,13 +7,16 @@ import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { STATE_FIGURES, STATE_FIGURES_EDITION } from '@/lib/report-state-figures'
 import { canonical } from '@/lib/seo/canonical'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
-import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
-import { TWELVE_MONTHS_MS, getPublicNotices, getStateSummaries, noticeDay } from '@/lib/warn/layoff-pages'
+import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 
 export const revalidate = 86400
 
-export async function generateStaticParams() {
-  return (await getStateSummaries()).map((s) => ({ state: stateSlug(s.state) }))
+// Rendered on first visit, then refreshed daily, so a database blip during a
+// deploy can't fail the build.
+export const dynamicParams = true
+export function generateStaticParams() {
+  return []
 }
 
 async function load(slug: string) {

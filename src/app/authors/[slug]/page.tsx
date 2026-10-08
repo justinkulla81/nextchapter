@@ -94,7 +94,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
               </li>
             ))}
             <li>
-              <Link href="/reports/white-collar-index" className={ITEM_LINK}>NextChapter White-Collar Displacement Index</Link>
+              <Link href="/reports/white-collar-index" className={ITEM_LINK}>NextChapter White-Collar Long-Term Unemployment Index</Link>
               <span className="text-sm text-muted-foreground"> · updated monthly</span>
             </li>
           </ul>

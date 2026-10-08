@@ -17,6 +17,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { outreachCountToTier } from '@/lib/network/outreach-count-tier'
 import { computeOutreachRelationshipMix } from '@/lib/network/outreach-relationship-mix'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
+import { googleConnectErrorMessage } from '@/lib/google/connect-error-copy'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
@@ -55,22 +56,7 @@ const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
 
 
 function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' }) {
-  const label = kind === 'gmail' ? 'Gmail' : 'Calendar'
-  const message =
-    code === 'not_a_tester'
-      ? `We just requested ${label} access for your account — this app is still in Google's testing mode, so it takes us a few minutes to approve new accounts by hand. Try again shortly.`
-      : code === 'not_logged_in'
-        ? 'Please log in first.'
-        : code === 'no_refresh_token' || code === 'exchange_failed'
-          ? 'Something went wrong connecting — please try again.'
-          : code === 'not_configured'
-            ? `${label} connection is not available right now.`
-            : code === 'denied'
-              ? "Connection wasn't completed."
-              : code === 'corporate_domain_blocked'
-                ? // §4.6 — spec's exact copy.
-                  "Use a personal account. Connecting your work email would put your job search inside your employer's systems, where they can see it. We'll only connect a personal account while Confidential Search Mode is on."
-                : null
+  const message = googleConnectErrorMessage(code, kind)
   if (!message) return null
   return (
     <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{message}</p>

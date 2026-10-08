@@ -1,8 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
-import { matchResumeShared, matchCourseCompletion, matchCourseEnrollment, isLikelyBulkOrPromotional } from './ats-patterns'
+import { matchResumeShared, isLikelyBulkOrPromotional } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName, extractDomain, normalizeMailboxIdentity } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
@@ -11,14 +10,14 @@ import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
-import { getAllCourseTitles } from '@/lib/learning/courses'
 import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
 import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
-import { extractEmailBody, getAttachmentFilenames, getHeader, type GmailMessage } from '@/lib/google/gmail-body'
+import { trackPlatformEmail } from '@/lib/platforms/track'
+import { GMAIL_API, ensureFreshAccessToken, isRetryable, fetchMessages, extractBodyPreview, type FetchedMessage } from './gmail-api'
+import { platformsForSenderDomain } from '@/lib/platforms/directory'
+import { getAttachmentFilenames, getHeader } from '@/lib/google/gmail-body'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
-const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
 // messages.list without a `q` filter returns each label's most recent N —
 // so on an active inbox, an old message can get pushed out of that window
@@ -47,114 +46,6 @@ const FIRST_SYNC_BACKFILL_MS = 90 * 24 * 60 * 60 * 1000 // 90 days
 // the per-message dedup (existingIds check below) skips anything already
 // tracked.
 const QUERY_OVERLAP_MS = 24 * 60 * 60 * 1000
-// Body text is only used for regex keyword matching, never stored — cap it
-// well past any realistic phrase-matching need so a huge email can't blow
-// up regex evaluation time.
-const BODY_PREVIEW_MAX_CHARS = 4000
-
-// Course platforms whose own "congratulations, you completed X" emails are
-// safe to trust — deliberately narrow (just the two platforms this app's
-// catalog actually links out to) rather than reusing the broader
-// ATS_AND_JOB_BOARD_DOMAINS set, which serves a different purpose.
-const LEARNING_PLATFORM_DOMAINS = new Set(['coursera.org', 'edx.org'])
-
-// Course titles are admin-editable now (the Course table), so this always
-// re-fetches rather than caching across the module's lifetime — this only
-// runs for the rare inbound email that already matched course-completion
-// or course-enrollment phrasing from a known learning-platform domain, so
-// the extra query is cheap relative to how infrequently it's called.
-async function findCatalogTitleInText(text: string): Promise<string | null> {
-  const catalogTitles = await getAllCourseTitles()
-  const lower = text.toLowerCase()
-  return catalogTitles.find((title) => lower.includes(title.toLowerCase())) ?? null
-}
-
-// The Learning page reads this to show a card's "Enrolled"/"Course
-// Complete" status pill — separate from LearningBadge below, which only
-// ever represents a finished achievement, never an in-progress one.
-// Upserted (not created) so a later completion email can move an existing
-// ENROLLED row to COMPLETED instead of leaving two conflicting rows.
-async function upsertCourseActivityFromEmail(
-  candidateId: string,
-  title: string,
-  provider: string,
-  status: 'ENROLLED' | 'COMPLETED'
-): Promise<void> {
-  await prisma.candidateCourseActivity.upsert({
-    where: { candidateId_courseTitle: { candidateId, courseTitle: title } },
-    create: { candidateId, courseTitle: title, provider, status },
-    // Never downgrade an already-COMPLETED row back to ENROLLED — a
-    // completion email for a course also implies its enrollment email (if
-    // any) is now stale information.
-    update: status === 'COMPLETED' ? { status: 'COMPLETED', provider, detectedAt: new Date() } : {},
-  })
-}
-
-// Creates the same LearningBadge shape a candidate's own "Mark done" click
-// used to (that button is gone now — this email detection is the only path
-// left), including the downstream rewrite call. Guards against duplicate
-// badges since nothing upstream de-dupes.
-async function markCourseCompletedFromEmail(candidateId: string, title: string, provider: string): Promise<void> {
-  await upsertCourseActivityFromEmail(candidateId, title, provider, 'COMPLETED')
-
-  const existing = await prisma.learningBadge.findFirst({
-    where: { candidateId, title, badgeType: 'course_completed' },
-  })
-  if (existing) return
-
-  await prisma.learningBadge.create({
-    data: { candidateId, title, provider, badgeType: 'course_completed', completedAt: new Date() },
-  })
-  captureServerEvent(candidateId, 'learning_recommendation_completed', { title, provider, source: 'email' })
-  try {
-    await applyLearningClosesBarrierRewrite(candidateId)
-  } catch (error) {
-    console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
-  }
-}
-
-// No LearningBadge/points here — enrolling isn't an achievement, just a
-// status the card surfaces so a candidate can see which recommendations
-// they've already started.
-async function markCourseEnrolledFromEmail(candidateId: string, title: string, provider: string): Promise<void> {
-  await upsertCourseActivityFromEmail(candidateId, title, provider, 'ENROLLED')
-  captureServerEvent(candidateId, 'learning_course_enrolled', { title, provider, source: 'email' })
-}
-
-// MIME-walking helpers (findPartByMimeType, stripHtml, extractEmailBody,
-// getAttachmentFilenames, getHeader, and the Gmail*  types) live in
-// @/lib/google/gmail-body — shared with the admin-side sweep, which reads
-// the same API shape under a different OAuth connection.
-function extractBodyPreview(part: Parameters<typeof extractEmailBody>[0]): string {
-  return extractEmailBody(part, BODY_PREVIEW_MAX_CHARS)
-}
-
-// Testing-mode refresh tokens expire ~7 days after issue — a refresh
-// failure here is expected, not a bug. Turns into a candidate-facing
-// reconnect prompt (needsReconnectAt), never a silent failure.
-async function ensureFreshAccessToken(connection: EmailConnection): Promise<string | null> {
-  const bufferMs = 2 * 60 * 1000
-  if (connection.expiresAt.getTime() - bufferMs > Date.now()) {
-    return connection.accessToken
-  }
-  try {
-    const tokens = await refreshAccessToken(connection.refreshToken)
-    const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
-    await prisma.emailConnection.update({
-      where: { id: connection.id },
-      data: { accessToken: tokens.access_token, expiresAt, needsReconnectAt: null },
-    })
-    return tokens.access_token
-  } catch (error) {
-    console.error('Gmail token refresh failed — flagging for reconnect:', error)
-    await prisma.emailConnection.update({
-      where: { id: connection.id },
-      data: { needsReconnectAt: new Date() },
-    })
-    return null
-  }
-}
-
 async function listMessageIds(
   accessToken: string,
   labelId: 'INBOX' | 'SENT',
@@ -187,98 +78,6 @@ async function listMessageIds(
     pageToken = data.nextPageToken
   } while (pageToken)
   return ids
-}
-
-// Gmail returns 403 for several unrelated reasons — a genuinely
-// insufficient-scope token (`PERMISSION_DENIED` with no rate-limit
-// reason), but also `rateLimitExceeded`/`userRateLimitExceeded`/
-// `dailyLimitExceeded` for an ordinary per-user quota hit, most likely on
-// exactly the sync that's most likely to trip it: a brand-new
-// connection's first pass over a real inbox, fetching many messages at
-// MESSAGE_FETCH_CONCURRENCY. Real bug, not hypothetical — a fresh
-// connection was being flagged needsReconnectAt (see the scopeInsufficient
-// block below) within minutes of connecting, on a token that was never
-// actually missing any scope. Only the reasons that genuinely mean "this
-// token can't do format=full" count as insufficientScope; anything else
-// is a transient failure, same treatment as any other non-403 error.
-const RATE_LIMIT_REASONS = new Set(['rateLimitExceeded', 'userRateLimitExceeded', 'dailyLimitExceeded', 'quotaExceeded'])
-
-async function isRetryable(response: Response): Promise<boolean> {
-  if (response.status === 429 || response.status >= 500) return true
-  if (response.status !== 403) return false
-  try {
-    const body = (await response.clone().json()) as { error?: { errors?: { reason?: string }[] } }
-    const reason = body.error?.errors?.[0]?.reason
-    return !!reason && RATE_LIMIT_REASONS.has(reason)
-  } catch {
-    return false
-  }
-}
-
-async function isInsufficientScopeError(response: Response): Promise<boolean> {
-  try {
-    const body = (await response.clone().json()) as { error?: { errors?: { reason?: string }[] } }
-    const reason = body.error?.errors?.[0]?.reason
-    if (reason && RATE_LIMIT_REASONS.has(reason)) return false
-  } catch {
-    // Non-JSON or unparseable body — fall through to treating this 403 as
-    // a real scope failure, the safer of the two wrong guesses (a false
-    // reconnect prompt is recoverable; silently never reconnecting a truly
-    // dead token isn't).
-  }
-  return true
-}
-
-// format=full (not metadata) so classification can read the body and check
-// for attachments — see gmail-oauth.ts for the gmail.readonly scope this
-// requires. insufficientScope distinguishes "this token predates the scope
-// upgrade" (needs a real reconnect) from an ordinary transient failure.
-async function getFullMessage(
-  accessToken: string,
-  id: string
-): Promise<FetchedMessage> {
-  const url = `${GMAIL_API}/messages/${id}?format=full`
-  // Gmail rate-limits bursts (429) and has transient 5xx — a message that
-  // failed once was previously dropped for good. Retry with backoff.
-  // Gmail's per-user quota comes back as a 403 (not a 429) — it used to be
-  // treated as a permanent failure, dropping every message fetched during a
-  // burst. Waits are long enough to let the per-minute window roll over.
-  let response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  for (let attempt = 1; attempt <= 4 && (await isRetryable(response)); attempt++) {
-    await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
-    response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  }
-  // Still rate-limited or erroring after the retries: worth another try next
-  // run. Anything else (a message deleted since it was listed) never will be.
-  if (await isRetryable(response)) return { message: null, insufficientScope: false, temporary: true }
-  if (response.status === 403) return { message: null, insufficientScope: await isInsufficientScopeError(response), temporary: false }
-  if (!response.ok) return { message: null, insufficientScope: false, temporary: false }
-  return { message: await response.json(), insufficientScope: false, temporary: false }
-}
-
-type FetchedMessage = { message: GmailMessage | null; insufficientScope: boolean; temporary?: boolean }
-
-// Fetching each message is a standalone network round trip with no shared
-// state — unlike the classify+persist step below (kept sequential because it
-// writes the sprint's committedActions JSON), there's no correctness reason
-// to fetch one at a time. A candidate returning after several days away
-// could have 50-100+ new messages, and doing those fetches strictly
-// sequentially was most of what made a sync feel "slow" — this bounds
-// concurrency instead of firing them all at once, which would risk Gmail's
-// per-user rate limit.
-const MESSAGE_FETCH_CONCURRENCY = 4
-
-async function fetchMessages(accessToken: string, ids: string[]): Promise<Map<string, FetchedMessage>> {
-  const results = new Map<string, FetchedMessage>()
-  let nextIndex = 0
-  async function worker() {
-    while (nextIndex < ids.length) {
-      const id = ids[nextIndex++]
-      results.set(id, await getFullMessage(accessToken, id))
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(MESSAGE_FETCH_CONCURRENCY, ids.length) }, worker))
-  return results
 }
 
 const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
@@ -472,42 +271,29 @@ async function processMessage(
     }
   }
 
-  // Course-completion/enrollment detection — independent of the primary
-  // classification above (neither fits any of those categories). Gated to
-  // mail from the platforms' own domains so "congratulations, you
-  // completed X" / "you're enrolled" phrasing is never guessed from an
-  // arbitrary sender. Completion checked first: a completion email that
-  // happens to also mention "enrolled" somewhere should never be read as a
-  // fresh enrollment.
-  const senderPlatformDomain = direction === 'INBOUND' ? senderRootDomain : null
-  if (senderPlatformDomain && LEARNING_PLATFORM_DOMAINS.has(senderPlatformDomain)) {
-    if (matchCourseCompletion(subject, bodyPreview)) {
-      const completedTitle = await findCatalogTitleInText(`${subject} ${bodyPreview}`)
-      if (completedTitle) {
-        await markCourseCompletedFromEmail(connection.candidateId, completedTitle, senderPlatformDomain)
-      }
-    } else if (matchCourseEnrollment(subject, bodyPreview)) {
-      const enrolledTitle = await findCatalogTitleInText(`${subject} ${bodyPreview}`)
-      if (enrolledTitle) {
-        await markCourseEnrolledFromEmail(connection.candidateId, enrolledTitle, senderPlatformDomain)
-      }
-    }
-  }
+  // Fractional work platforms and learning providers (src/lib/platforms/):
+  // mail from a directory platform's own domain moves the candidate to the
+  // furthest stage it proves — signed up, accepted, working, enrolled,
+  // completed — and awards that milestone's badge and points once.
+  // Independent of the primary classification above.
+  const senderDomain = direction === 'INBOUND' ? extractDomain(from)?.toLowerCase() ?? null : null
+  if (senderDomain) {
+    await trackPlatformEmail(
+      connection.candidateId,
+      { messageId, senderDomain, from, subject, body: bodyPreview, hasListUnsubscribe: !!listUnsubscribe, emailDate },
+      {
+        awardPoints,
+        notify: awardPoints,
+        interimListingDomainMap,
+        ownDomain: connection.connectedEmail ? extractDomain(connection.connectedEmail)?.toLowerCase() ?? null : null,
+      },
+    ).catch((error) => console.error('Failed to track platform email:', error))
 
-  // Interim Work marketplace registration detection — any inbound mail from
-  // a listing's own domain (a welcome email, a "confirm your account" link,
-  // a workforce-invite notification) is real evidence the candidate signed
-  // up there, no subject/body keyword matching needed since receiving mail
-  // from the domain at all is already the signal. Same
-  // markInterimMarketplaceSignupCore the manual "I created a profile"
-  // button calls, tagged GMAIL_DETECTED so the UI can show how it was
-  // found. Only ever runs for candidates who completed the (currently
-  // testing-mode-only) Gmail connection — everyone else keeps using the
-  // manual button, which this never replaces.
-  if (senderPlatformDomain) {
-    const matchedListing = interimListingDomainMap.get(senderPlatformDomain)
-    if (matchedListing) {
-      await markInterimMarketplaceSignupCore(connection.candidateId, matchedListing.id, 'GMAIL_DETECTED')
+    // A listing an admin added whose domain isn't in the directory yet:
+    // any mail from it still ticks "I created a profile".
+    const matchedListing = senderRootDomain ? interimListingDomainMap.get(senderRootDomain) : undefined
+    if (matchedListing && platformsForSenderDomain(senderDomain).length === 0) {
+      await markInterimMarketplaceSignupCore(connection.candidateId, matchedListing.id, 'GMAIL_DETECTED', { awardPoints })
     }
   }
 
