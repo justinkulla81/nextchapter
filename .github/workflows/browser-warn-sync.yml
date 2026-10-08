@@ -61,18 +61,28 @@ jobs:
         # From the repository rather than the last release: it carries scrapers
         # (North Dakota) and fixes the release does not. pyquery, lxml and
         # html5lib are used by some state scrapers but not declared by the package.
-        # Its setup script imports jinja2 and us to build (without us the build
-        # failed every run and the old release was silently used instead); if the repository build fails
-        # anyway, the last release is installed so the other states still run.
-        # Both packages are pinned to versions that ran clean (warn-scraper main
-        # as of 2026-10-08, warn-transformer 1.3.413) so an upstream push cannot
-        # break the daily run overnight; bump them deliberately. Each install is
-        # tried up to three times because GitHub and PyPI fail transiently.
+        # Its setup.py runs `import warn`, so building it needs jinja2 and us, the
+        # scraper's own runtime libraries, and its folder on the import path; that
+        # is why it is cloned and built here rather than installed from a git URL
+        # (which failed every run and silently fell back to the old release).
+        # If the repository build still fails, the last release is installed so
+        # the other states run. Both packages are pinned to versions that ran
+        # clean (warn-scraper at f937fea, 2026-10-08; warn-transformer 1.3.413)
+        # so an upstream push cannot break the daily run; bump them deliberately.
+        # Network installs retry up to three times for transient failures.
         run: |
           retry() { for i in 1 2 3; do "$@" && return 0; echo "attempt $i failed: $*"; sleep $((i * 15)); done; return 1; }
-          retry pip install --quiet jinja2 us setuptools wheel pyquery lxml html5lib warn-transformer==1.3.413
-          retry pip install --quiet --no-build-isolation "git+https://github.com/biglocalnews/warn-scraper.git@f937fea034adf6401f443ec8c5213859c946f279" \
-            || retry pip install --quiet warn-scraper
+          retry pip install --quiet jinja2 us pyquery lxml html5lib warn-transformer==1.3.413
+          install_from_repo() {
+            retry pip install --quiet "setuptools>=80" "setuptools-scm[toml]>=10" wheel \
+              bln click beautifulsoup4 pdfplumber requests openpyxl pyopenssl retry2 selenium stealthenium tenacity xlrd xvfbwrapper webdriver-manager
+            rm -rf /tmp/warn-scraper
+            retry git clone --quiet https://github.com/biglocalnews/warn-scraper.git /tmp/warn-scraper
+            git -C /tmp/warn-scraper checkout --quiet f937fea034adf6401f443ec8c5213859c946f279
+            (cd /tmp/warn-scraper && PYTHONPATH="$PWD" SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0 \
+              pip install --quiet --no-build-isolation --no-deps .)
+          }
+          install_from_repo || retry pip install --quiet warn-scraper
           warn-scraper --help > /dev/null
 
       - name: Import scraped states
