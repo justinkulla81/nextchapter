@@ -90,7 +90,8 @@ export async function trackPlatformEmail(
       candidateId,
       platformKey: platform.key,
       stage: stage as PlatformStage | null,
-      signal: reading.signal as PlatformHealth | null,
+      // A "we miss you" nudge is stored as the health it implies.
+      signal: (reading.signal === 'NUDGE' ? 'GONE_QUIET' : reading.signal) as PlatformHealth | null,
       emailAt: email.emailDate,
       subject,
       externalMessageId: email.messageId,
