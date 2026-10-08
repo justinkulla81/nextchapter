@@ -352,48 +352,63 @@ async function readPage() {
       }
       scroller.scrollTop = start
     }
-    // One element per school / employer. The 2026 layout has no <li> at
-    // the top level: each entry is a logo link (<a><img alt="X logo">)
-    // beside a block of <p> lines, and the only <li>s are the individual
-    // roles inside a company with several — reading those as entries took
-    // an old Facebook role as the latest job of someone who's still at
-    // their current one. The older <li> layout is the fallback.
-    const topEntries = (sec) => {
+    // Both sections are read as their visible lines of text, in order.
+    // LinkedIn's markup here keeps shifting (2026: no <li> per entry, logos
+    // only for organizations with a LinkedIn page, the "Education" heading
+    // and every entry inside one shared block), but what's displayed has
+    // been stable: an entry is a name, then its degree or title, then a
+    // date line. A logo's alt text confirms a name; nothing depends on it.
+    const visibleLines = (sec) => {
       if (!sec) return []
-      const logoLinks = (el) => Array.from(el.querySelectorAll('a')).filter((a) => a.querySelector('img') && !a.closest('li'))
-      const byLogo = []
-      for (const a of logoLinks(sec)) {
-        // Widen to the whole block for this one logo, so a company's
-        // grouped roles (and their "Present") belong to its entry.
-        let entry = a.parentElement
-        while (entry?.parentElement && entry.parentElement !== sec && logoLinks(entry.parentElement).length === 1) entry = entry.parentElement
-        if (entry && !byLogo.includes(entry) && (entry.innerText || '').trim()) byLogo.push(entry)
+      const out2 = []
+      for (const el of sec.querySelectorAll('p, span[aria-hidden="true"]')) {
+        if (el.querySelector('p') || el.closest('h2, h3')) continue
+        if (typeof el.checkVisibility === 'function' && !el.checkVisibility()) continue
+        const t = (el.textContent || '').replace(/\s+/g, ' ').trim()
+        if (!t || /^(show all|see more|… ?more)\b/i.test(t) || t === out2[out2.length - 1]) continue
+        out2.push(t)
       }
-      if (byLogo.length > 0) return byLogo
-      return Array.from(sec.querySelectorAll('li')).filter((li) => !li.parentElement.closest('li') && (li.innerText || '').trim())
+      return out2
     }
-    // A date line ("2004 – 2008", "Sep 2010 - May 2012") is not a degree.
-    const DATE_LINE = /^((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?\d{4}(\s*[-–]\s*((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?(\d{4}|present))?$/i
+    const logoNames = (sec) => new Set(Array.from(sec?.querySelectorAll('img[alt$=" logo" i]') || [])
+      .map((img) => img.getAttribute('alt').replace(/\s+logo$/i, '').trim()))
+    // "2004 – 2008", "Sep 2010 - May 2012 · 1 yr 8 mos", "2019 - Present"
+    const MON = '(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\w*\\.?\\s+'
+    const DATE_LINE = new RegExp(`^(${MON})?\\d{4}(\\s*[-–]\\s*((${MON})?\\d{4}|present))?(\\s*·.*)?$`, 'i')
+    const DURATION = /^(\d+\s+yrs?)?\s*(\d+\s+mos?)?$/i
+
     out.schools = []
-    for (const li of topEntries(eduSection)) {
-      const lines = entryLines(li).filter((t) => !/^(show all|see more|… ?more)\b/i.test(t) && t !== logoName(li))
-      const name = logoName(li) || lines[0] || ''
-      if (!name || CARD_TEXT.test(name)) continue
-      const detail = lines.filter((t) => t !== name).find((t) => !DATE_LINE.test(t) && t.length <= 160) || ''
-      if (!out.schools.some((s) => s.name === name)) out.schools.push({ name, detail })
+    const eduLogos = logoNames(eduSection)
+    let current = null
+    let dated = false
+    for (const t of visibleLines(eduSection)) {
+      if (DATE_LINE.test(t)) { if (current) dated = true; continue }
+      if (/^(activities and societies|grade)\b/i.test(t) || t.length > 160) continue
+      if (!current || dated || eduLogos.has(t)) {
+        current = { name: t, detail: '' }
+        out.schools.push(current)
+        dated = false
+      } else if (!current.detail) {
+        current.detail = t
+      }
     }
+    out.schools = out.schools.filter((sc, i, a) => !CARD_TEXT.test(sc.name) && a.findIndex((x) => x.name === sc.name) === i).slice(0, 6)
     if (out.schools.length === 0) {
       for (const b of topCardBadges()) if (b.schoolLink) out.schools.push({ name: b.text, detail: '' })
     }
-    // The most recent role, only when it has ended. A current job is
-    // already the person's organization; this is where they were before.
-    const latest = topEntries(laterExpSection)[0]
-    if (latest && !/\bpresent\b/i.test(latest.textContent || '')) {
-      const company = experienceCompanyOf(latest)
-      const nested = latest.querySelector('li')
-      const title = (nested ? entryLines(nested)[0] : entryLines(latest)[0]) || ''
-      if (company && !CARD_TEXT.test(company) && !JOB_SEEKING.test(company)) {
-        out.formerEmployer = { name: company, title: title === company ? '' : title }
+
+    // The last employer, only for someone with no current role at all —
+    // any "Present" in Experience means they're working, and their current
+    // employer is already their organization. The first entry is either a
+    // single role (title, "Company · Full-time", dates) or a company with
+    // several (company, "12 yrs 2 mos", then each role).
+    const expLines = visibleLines(laterExpSection)
+    if (expLines.length > 1 && !expLines.some((t) => /\bpresent\b/i.test(t))) {
+      const grouped = DURATION.test(expLines[1]) && /\d/.test(expLines[1])
+      const company = (grouped ? expLines[0] : expLines[1]).split('·')[0].trim()
+      const title = grouped ? (expLines[2] || '') : expLines[0]
+      if (company && !DATE_LINE.test(company) && !CARD_TEXT.test(company) && !JOB_SEEKING.test(company)) {
+        out.formerEmployer = { name: company, title: title === company || DATE_LINE.test(title) ? '' : title }
       }
     }
 
@@ -403,10 +418,18 @@ async function readPage() {
     // one reliable signal for how warm this contact actually is. Matched as
     // a full-string pattern (not a substring) so a job title that happens to
     // contain an ordinal, e.g. "1st Lieutenant", can't be mistaken for it.
+    //
+    // Read from the top card only. Searched across all of <main>, the first
+    // "· 1st" was often someone else's — a mutual connection under "People
+    // who can introduce you", or a poster in Activity — and a 2nd-degree
+    // stranger was saved as a HOT 1st.
     out.connectionDegree =
-      Array.from(scope.querySelectorAll('p'))
+      // Visible only: the header also carries a hidden, zero-width "· 1st"
+      // ahead of the real badge, and that's what made a 2nd read as 1st.
+      Array.from((topCard || nameEl?.parentElement || scope).querySelectorAll('p, span'))
+        .filter((el) => typeof el.checkVisibility !== 'function' || el.checkVisibility())
         .map((p) => p.textContent.trim())
-        .find((t) => /^·\s*(1st|2nd|3rd)$/i.test(t))
+        .find((t) => /^·\s*(1st|2nd|3rd\+?)$/i.test(t))
         ?.replace('·', '')
         .trim() || ''
     // <title> rarely changes format even when the page markup does, but the
@@ -582,6 +605,7 @@ function renderFields() {
 
   // What the page told us that has no field of its own — shown so a wrong
   // read is visible before it's saved, not discovered on the record later.
+  // At the top: below the checkboxes it sat out of sight, under the fold.
   if (kind === 'person') {
     const facts = [
       page.scraped.connectionDegree && `LinkedIn: ${page.scraped.connectionDegree}`,
@@ -592,7 +616,7 @@ function renderFields() {
       const p = document.createElement('p')
       p.className = 'muted'
       p.textContent = facts.join(' · ')
-      host.append(p)
+      host.prepend(p)
     }
   }
 }
