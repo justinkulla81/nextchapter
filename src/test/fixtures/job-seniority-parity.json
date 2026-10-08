@@ -1026,8 +1026,8 @@
 ],
 [
 "Product Marketing Manager, International",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "Product Manager, Relevance and Personalization",
@@ -3936,8 +3936,8 @@
 ],
 [
 "Engineering Manager, Cooperative Systems",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "Software Engineer II (Backend, Hardware Accelerate)",
@@ -4736,8 +4736,8 @@
 ],
 [
 "Engineering Manager, International",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "Staff security engineer, application security",
@@ -8941,8 +8941,8 @@
 ],
 [
 "Engineering Manager, International Expansion",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "B2B Product Marketing - Productions Growth",
@@ -10253,5 +10253,35 @@
 "Staff Software Engineer",
 "SENIOR_IC",
 45
+],
+[
+"VP Internal Audit",
+"VP",
+80
+],
+[
+"Director of Internal Communications",
+"DIRECTOR",
+65
+],
+[
+"Executive Director of Student Housing",
+"C_SUITE",
+100
+],
+[
+"Student Success Manager",
+"MANAGER",
+40
+],
+[
+"Student Worker",
+"OTHER",
+0
+],
+[
+"Software Engineering Intern",
+"OTHER",
+0
 ]
 ]
