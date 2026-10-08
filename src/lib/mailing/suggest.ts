@@ -15,6 +15,7 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   OUTPLACEMENT_BUYER: 'leads',
   COACH_PROSPECT: 'ecosystem',
   RECRUITER_PROSPECT: 'ecosystem',
+  FRIENDS_FAMILY: 'friends_family',
 }
 
 const PIPELINE_LISTS: Record<string, string> = {

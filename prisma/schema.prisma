@@ -8800,6 +8800,7 @@ enum CrmPersonRole {
   CONNECTOR // valuable mainly for who they can introduce
   PRESS
   GTM_PARTNER
+  FRIENDS_FAMILY // personal friends and family, not a business contact
   OTHER
 }
 
