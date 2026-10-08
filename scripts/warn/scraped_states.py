@@ -82,11 +82,20 @@ def raw_fallback(state, data_dir):
     if not rows:
         return []
     header = list(rows[0].keys())
-    c_company = pick(header, "company", "employer", "business", "organization", "name")
-    c_notice = pick(header, "notice date", "date of notice", "received", "warn date", "date posted", "notice")
-    c_effective = pick(header, "effective", "separation", "layoff date", "closure date", "start", "impact date")
+    c_company = pick(header, "company", "employer", "business name", "legal name", "organization", "business")
+    if not c_company:
+        # A bare "name" column, but never a county, city, notice or contact name.
+        c_company = next((h for h in header if "name" in (h or "").lower()
+                          and not any(x in (h or "").lower() for x in ("county", "city", "notice", "contact", "lwda", "lwia", "region"))), None)
+    c_notice = pick(header, "notice date", "date of notice", "received", "warn date", "date posted", "date filed", "notice")
+    c_effective = pick(header, "effective", "separation", "layoff date", "closure date", "impact date", "start")
+    if not c_notice and not c_effective:
+        c_notice = next((h for h in header if "date" in (h or "").lower()), None)
     c_jobs = pick(header, "affected", "employees", "workers", "jobs", "number", "total")
     c_city = pick(header, "city", "location", "address", "site")
+    # Shown in the job log, so a wrong pick is visible rather than silent.
+    print(f"{state}: raw columns {header}; using company={c_company!r} notice={c_notice!r} "
+          f"effective={c_effective!r} jobs={c_jobs!r} place={c_city!r}", file=sys.stderr, flush=True)
     out = []
     for r in rows:
         try:
