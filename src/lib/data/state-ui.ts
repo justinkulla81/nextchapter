@@ -1116,16 +1116,15 @@ export const STATE_UI: Record<string, StateUI> = {
       "asOf": "2026-10-06"
     },
     "maxWeeklyBenefit": {
-      "value": null,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01",
-      "note": "DOL Sig. Provisions (July 2026, unchanged from Jan 2026 edition) shows max $720; Kentucky's own UI FAQ and claimant handbook PAM-UI-400 (Rev. 07/26) show max $746 for claims filed on/after July 5, 2026 ($720 for claims filed before July 5, 2026). Sources disagree -> null. Source for $746: https://kcc.ky.gov/career/resources/Pages/UI-FAQ-Guide.aspx"
+      "value": 746,
+      "source": "https://kcc.ky.gov/career/Pages/Claimant-FAQs.aspx",
+      "asOf": "2026-07-05",
+      "note": "For claims filed on or after July 5, 2026; $720 for claims filed before."
     },
     "minWeeklyBenefit": {
       "value": 39,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01",
-      "note": "Not stated on the state agency site; DOL value only."
+      "source": "https://kcc.ky.gov/career/Documents/PAM400.pdf",
+      "asOf": "2026-07-05"
     },
     "maxWeeks": {
       "value": 16,
@@ -1376,9 +1375,9 @@ export const STATE_UI: Record<string, StateUI> = {
       "asOf": "2026-10-06"
     },
     "maxWeeklyBenefit": {
-      "value": 1105,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01"
+      "value": 1154,
+      "source": "https://www.mass.gov/info-details/how-unemployment-insurance-benefits-are-determined",
+      "asOf": "2026-10-04"
     },
     "minWeeklyBenefit": {
       "value": 60,
@@ -2226,16 +2225,15 @@ export const STATE_UI: Record<string, StateUI> = {
       "asOf": "2026-10-06"
     },
     "maxWeeklyBenefit": {
-      "value": null,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01",
-      "note": "DOL Sig. Provisions (July 2026, unchanged from Jan 2026 edition) shows max $815; Job Service ND's benefit chart 'Benefit Schedule 7/5/2026 - 7/3/2027' (https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/2026%20WBA%20Benefit%20Chart.pdf) and its July 5 2026 benefit estimator show max $800. Sources disagree -> null."
+      "value": 800,
+      "source": "https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/2026%20WBA%20Benefit%20Chart.pdf",
+      "asOf": "2026-07-05",
+      "note": "Benefit schedule 7/5/2026 – 7/3/2027."
     },
     "minWeeklyBenefit": {
       "value": 43,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01",
-      "note": "Not stated on the state agency site; DOL value only."
+      "source": "https://www.jobsnd.com/sites/default/files/documents/jsnd-documents/2026%20WBA%20Benefit%20Chart.pdf",
+      "asOf": "2026-07-05"
     },
     "maxWeeks": {
       "value": 26,
@@ -2806,14 +2804,14 @@ export const STATE_UI: Record<string, StateUI> = {
       "asOf": "2026-10-06"
     },
     "maxWeeklyBenefit": {
-      "value": 605,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01"
+      "value": 619,
+      "source": "https://www.twc.texas.gov/programs/unemployment-benefits/eligibility-benefit-amounts",
+      "asOf": "2026-10-04"
     },
     "minWeeklyBenefit": {
-      "value": 75,
-      "source": "https://oui.doleta.gov/unemploy/content/sigpros/2020-2029/July2026.pdf",
-      "asOf": "2026-07-01"
+      "value": 76,
+      "source": "https://www.twc.texas.gov/programs/unemployment-benefits/eligibility-benefit-amounts",
+      "asOf": "2026-10-04"
     },
     "maxWeeks": {
       "value": 26,
