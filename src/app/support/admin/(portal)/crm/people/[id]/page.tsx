@@ -7,6 +7,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
 import { CrmInviteToggle } from '@/components/admin/CrmInviteToggle'
 import { CrmNextChapterAccount } from '@/components/admin/CrmNextChapterAccount'
+import { CrmReferrals } from '@/components/admin/CrmReferrals'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
@@ -165,6 +166,8 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
       </section>
+
+      <CrmReferrals personId={person.id} />
 
       <CrmNextChapterAccount
         info={{

@@ -7,6 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { findIdentityMatchesForCandidate } from '@/lib/onboarding/identity-match'
 import { findCrmInviteMatches, inferLeadSource } from '@/lib/candidates/lead-source'
+import { applyReferralCookie } from '@/lib/candidates/referral'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -97,9 +98,11 @@ export async function syncRegistrationCompletion(
 
   // Someone the admin invited from the CRM, and how this person found us —
   // both best-effort, neither may block registration.
+  // A referral link's cookie is read here, in the request, before the deferred work runs.
+  const referralApplied = await applyReferralCookie(updated.id)
   after(async () => {
     await findCrmInviteMatches(updated.id).catch((error) => console.error('Failed to check CRM invites:', error))
-    await inferLeadSource(updated.id).catch((error) => console.error('Failed to infer lead source:', error))
+    if (!referralApplied) await inferLeadSource(updated.id).catch((error) => console.error('Failed to infer lead source:', error))
   })
 
   return { profile: updated, justRegistered: true }

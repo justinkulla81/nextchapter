@@ -1,3 +1,4 @@
+import { REFERRER_KINDS, REFERRER_KIND_LABELS } from '@/lib/candidates/referral'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -86,7 +87,7 @@ export const maxDuration = 30
 
 async function loadIpAndResume(candidateId: string) {
   const [profile, resume] = await Promise.all([
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { signupIp: true, leadSource: true, leadSourceDetail: true, leadSourceSetBy: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { signupIp: true, leadSource: true, leadSourceDetail: true, leadSourceSetBy: true, referral: { select: { kind: true, referrerName: true, channel: true, referrerCrmPerson: { select: { id: true, fullName: true } } } } } }),
     prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' } }),
   ])
 
@@ -102,6 +103,7 @@ async function loadIpAndResume(candidateId: string) {
     leadSource: profile?.leadSource ?? null,
     leadSourceDetail: profile?.leadSourceDetail ?? null,
     leadSourceSetBy: profile?.leadSourceSetBy ?? null,
+    referral: profile?.referral ?? null,
     resumeFileName: resume?.fileName ?? null,
     resumeSignedUrl,
     looksLikeResume: resume?.looksLikeResume ?? null,
@@ -264,6 +266,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         <p className="mt-1 text-sm text-muted-foreground">
           Signup IP: {ipAndResume.signupIp ?? 'unknown'}
         </p>
+        {ipAndResume.referral?.referrerCrmPerson && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Recommended by <Link href={`/support/admin/crm/people/${ipAndResume.referral.referrerCrmPerson.id}`} className="text-primary underline underline-offset-4">{ipAndResume.referral.referrerCrmPerson.fullName}</Link>
+          </p>
+        )}
         <form action={updateCandidateLeadSource.bind(null, id)} className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <label htmlFor="leadSource" className="font-medium">Lead source</label>
           <select
@@ -277,6 +284,19 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
             name="leadSourceDetail" defaultValue={ipAndResume.leadSourceDetail ?? ''}
             placeholder="Who referred them / which campaign" aria-label="Lead source detail"
             className="h-8 w-64 rounded-md border border-input bg-transparent px-2 text-sm"
+          />
+          <label htmlFor="referrerKind" className="ml-2 font-medium">Recommended by</label>
+          <select
+            id="referrerKind" name="referrerKind" defaultValue={ipAndResume.referral?.kind ?? ''}
+            className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
+          >
+            <option value="">No one / unknown</option>
+            {REFERRER_KINDS.map((k) => <option key={k} value={k}>{REFERRER_KIND_LABELS[k]}</option>)}
+          </select>
+          <input
+            name="referrerName" defaultValue={ipAndResume.referral?.referrerName ?? ''}
+            placeholder="Their name (links to CRM if exact)" aria-label="Recommender name"
+            className="h-8 w-56 rounded-md border border-input bg-transparent px-2 text-sm"
           />
           <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">Save</SubmitButton>
           {ipAndResume.leadSourceSetBy && (

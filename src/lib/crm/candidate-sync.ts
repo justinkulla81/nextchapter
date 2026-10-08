@@ -1,4 +1,5 @@
 import 'server-only'
+import { recordReferral } from '@/lib/candidates/referral'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
@@ -62,6 +63,7 @@ export async function syncCandidateToCrm(candidateId: string): Promise<Candidate
       where: { id: candidate.id, OR: [{ leadSource: null }, { leadSourceSetBy: 'auto' }] },
       data: { leadSource: 'REFERRAL_ADMIN', leadSourceDetail: person.candidateInvitedBy ?? 'Invited from the CRM', leadSourceSetBy: 'invite', leadSourceSetAt: new Date() },
     })
+    await recordReferral({ candidateId: candidate.id, kind: 'FOUNDER', channel: 'CRM_INVITE', setBy: 'invite', referrerName: person.candidateInvitedBy ?? 'Justin' })
   } else if (!person) {
     // The name is usually only known after the resume is read — which is
     // when this runs — so this is the reliable moment to look for invites.

@@ -1,11 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { AdminNudgeType, CandidateLeadSource, CandidateStakeholderType } from '@prisma/client'
+import type { AdminNudgeType, CandidateLeadSource, CandidateStakeholderType, ReferrerKind } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { recordReferral } from '@/lib/candidates/referral'
 import { buildNudgeDraft, type NudgeDraft } from '@/lib/admin/nudge-content'
 import { sendAdminNudgeEmail } from '@/lib/email/send-admin-nudge'
 import { addStakeholderNote } from '@/lib/admin/stakeholder-relationships'
@@ -107,7 +108,7 @@ export async function sendCandidateNudgeEmail(
   return undefined
 }
 
-/** Admin sets or corrects how this candidate found NextChapter — always wins over a guess. */
+/** Admin sets or corrects how this candidate found NextChapter — always wins over a guess. Also records who recommended them. */
 export async function updateCandidateLeadSource(candidateId: string, formData: FormData) {
   const admin = await requireAdmin()
   const raw = String(formData.get('leadSource') ?? '')
@@ -117,7 +118,27 @@ export async function updateCandidateLeadSource(candidateId: string, formData: F
     where: { id: candidateId },
     data: { leadSource, leadSourceDetail: detail, leadSourceSetBy: admin.email ?? 'admin', leadSourceSetAt: new Date() },
   })
-  captureServerEvent(admin.email ?? 'admin', 'candidate_lead_source_set', { candidateId, leadSource })
+
+  // Who recommended them. A name that matches exactly one CRM person is linked to
+  // that person; anything else is kept as a name for the Review List rather than guessed.
+  const kind = String(formData.get('referrerKind') ?? '')
+  const referrerName = String(formData.get('referrerName') ?? '').trim() || null
+  if (kind) {
+    let crmPersonId: string | null = null
+    if (referrerName) {
+      const matches = await prisma.crmPerson.findMany({
+        where: { deletedAt: null, fullName: { equals: referrerName, mode: 'insensitive' } }, select: { id: true }, take: 2,
+      })
+      if (matches.length === 1) crmPersonId = matches[0].id
+    }
+    await recordReferral({
+      candidateId, kind: kind as ReferrerKind, channel: 'ADMIN', setBy: admin.email ?? 'admin',
+      referrerName, referrerCrmPersonId: crmPersonId,
+    })
+  } else {
+    await prisma.candidateReferral.deleteMany({ where: { candidateId } })
+  }
+  captureServerEvent(admin.email ?? 'admin', 'candidate_lead_source_set', { candidateId, leadSource, referrerKind: kind || null })
   revalidatePath(`/support/admin/candidates/${candidateId}`)
   revalidatePath('/support/admin/candidates')
 }

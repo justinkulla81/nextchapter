@@ -1,4 +1,5 @@
 import 'server-only'
+import { recordReferral } from '@/lib/candidates/referral'
 import { prisma } from '@/lib/prisma'
 import { mergePersonRecords } from '@/lib/crm/merge-person'
 import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
@@ -74,6 +75,7 @@ export async function linkInvitedCrmPerson(invitedPersonId: string, candidateId:
       leadSourceSetAt: new Date(),
     },
   })
+  if (invited.candidateInvitedAt) await recordReferral({ candidateId, kind: 'FOUNDER', channel: 'CRM_INVITE', setBy: 'invite', referrerName: invited.candidateInvitedBy ?? 'Justin' })
 
   await syncCandidateToCrm(candidateId)
 }

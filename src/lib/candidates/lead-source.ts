@@ -3,6 +3,7 @@ import type { CandidateLeadSource } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { namesLookAlike } from '@/lib/text/person-name-match'
+import { recordReferral } from '@/lib/candidates/referral'
 
 export const LEAD_SOURCE_LABELS: Record<CandidateLeadSource, string> = {
   REFERRAL_ADMIN: 'Referral — you',
@@ -15,6 +16,9 @@ export const LEAD_SOURCE_LABELS: Record<CandidateLeadSource, string> = {
   RECRUITER: 'Recruiter invite',
   OUTPLACEMENT: 'Outplacement seat',
   ORGANIC: 'Organic / direct',
+  HIGHER_ED: 'Higher-ed referral',
+  CONTACT_FORM: 'Contact form',
+  INVITE_LINK: 'Referral link',
   OTHER: 'Other',
 }
 export const LEAD_SOURCES = Object.keys(LEAD_SOURCE_LABELS) as CandidateLeadSource[]
@@ -40,24 +44,30 @@ export async function inferLeadSource(candidateId: string): Promise<void> {
     where: { id: candidateId },
     select: {
       leadSource: true, signupIp: true, createdAt: true, registrationCompletedAt: true,
-      sourcedCandidate: { select: { recruiter: { select: { fullName: true } } } },
+      email: true,
+      sourcedCandidate: { select: { recruiterId: true, recruiter: { select: { fullName: true } } } },
       outplacementSeats: { take: 1, select: { contract: { select: { org: { select: { name: true } } } } } },
     },
   })
   if (!candidate || candidate.leadSource) return
   // CoachClientInvite.candidateId is a bare id (no relation), so it's a separate lookup.
   const coachInvite = await prisma.coachClientInvite.findUnique({
-    where: { candidateId }, select: { coach: { select: { fullName: true } } },
+    where: { candidateId }, select: { coachId: true, coach: { select: { fullName: true } } },
   })
 
   let source: CandidateLeadSource | null = null
   let detail: string | null = null
   if (coachInvite) {
     source = 'COACH'; detail = coachInvite.coach.fullName
+    await recordReferral({ candidateId, kind: 'COACH', channel: 'INVITE_LINK', setBy: 'auto', referrerName: detail, referrerCoachId: coachInvite.coachId })
   } else if (candidate.sourcedCandidate) {
     source = 'RECRUITER'; detail = candidate.sourcedCandidate.recruiter.fullName
+    await recordReferral({ candidateId, kind: 'RECRUITER', channel: 'INVITE_LINK', setBy: 'auto', referrerName: detail, referrerRecruiterId: candidate.sourcedCandidate.recruiterId })
   } else if (candidate.outplacementSeats[0]) {
     source = 'OUTPLACEMENT'; detail = candidate.outplacementSeats[0].contract.org.name
+  } else if (candidate.email && (await prisma.contactSubmission.findFirst({ where: { email: { equals: candidate.email, mode: 'insensitive' } }, select: { id: true } }))) {
+    // They wrote to us through the contact form before signing up.
+    source = 'CONTACT_FORM'
   } else {
     // First marketing-site visit from this person before they signed up —
     // matched by their own session when they were logged in, otherwise by

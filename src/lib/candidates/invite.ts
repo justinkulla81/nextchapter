@@ -1,4 +1,5 @@
 import 'server-only'
+import { recordReferral } from '@/lib/candidates/referral'
 import { prisma } from '@/lib/prisma'
 import { findSignupsForInvitedPerson } from '@/lib/candidates/lead-source'
 
@@ -45,5 +46,6 @@ export async function markInvitedAsCandidate(personId: string, invitedBy: string
     where: { id: person.candidateId, OR: [{ leadSource: null }, { leadSourceSetBy: { in: ['auto', 'invite'] } }] },
     data: { leadSource: 'REFERRAL_ADMIN', leadSourceDetail: invitedBy, leadSourceSetBy: 'invite', leadSourceSetAt: new Date() },
   })
+  if (person.candidateId) await recordReferral({ candidateId: person.candidateId, kind: 'FOUNDER', channel: 'CRM_INVITE', setBy: 'invite', referrerName: invitedBy })
   return { alreadyMember: !!person.candidateId }
 }

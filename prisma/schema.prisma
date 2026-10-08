@@ -1569,6 +1569,7 @@ model CandidateProfile {
   emailSendLogs         CandidateEmailSendLog[]
   jobSearchDailyItems   JobSearchDailyItem[]
   jobSearchDailySends   JobSearchDailySend[]
+  referral              CandidateReferral?
   searchCheckIns        CandidateSearchCheckIn[]
 
   // Support Network nav badge — "how many new things since I last opened
@@ -4028,6 +4029,9 @@ enum CandidateLeadSource {
   RECRUITER // a recruiter's sourced-candidate invite
   OUTPLACEMENT // an employer's outplacement seat
   ORGANIC // came directly, no referrer
+  HIGHER_ED // recommended by a university / career-services contact
+  CONTACT_FORM // reached us through the website contact form first
+  INVITE_LINK // a shared referral link (ReferralLink) with no more specific type
   OTHER
 }
 
@@ -5455,6 +5459,72 @@ model JobSearchDailyItem {
 
   @@unique([candidateId, itemKey])
   @@index([candidateId, shownAt])
+}
+
+// Who recommended a candidate to NextChapter, and through which channel —
+// so "who recommended whom" is answerable for every source (a university
+// contact, a recruiter, a coach, the founder, another candidate). One row
+// per candidate. referrerCrmPersonId links a CRM person when the
+// recommender is someone in the CRM (the usual case for higher-ed and
+// network referrals); coach/recruiter/candidate ids are bare (no relation)
+// like CoachClientInvite.candidateId. channel records how we learned it.
+enum ReferrerKind {
+  FOUNDER
+  COACH
+  RECRUITER
+  HIGHER_ED
+  EMPLOYER
+  CANDIDATE
+  OTHER
+}
+
+enum ReferralChannel {
+  INVITE_LINK // clicked a ReferralLink or a coach/recruiter invite
+  SIGNUP_QUESTION // told us in the "how did you hear about us" question
+  CONTACT_FORM // came through the website contact form
+  CRM_INVITE // invited from the CRM by the founder
+  ADMIN // entered or corrected by an admin
+}
+
+model CandidateReferral {
+  id                  String           @id @default(cuid())
+  candidateId         String           @unique
+  candidate           CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind                ReferrerKind
+  channel             ReferralChannel
+  referrerName        String? // as given or resolved ("Rob Lalka", "Justin")
+  referrerCrmPersonId String?
+  referrerCrmPerson   CrmPerson?       @relation(fields: [referrerCrmPersonId], references: [id], onDelete: SetNull)
+  referrerCoachId     String?
+  referrerRecruiterId String?
+  referrerCandidateId String?
+  referralLinkId      String?
+  note                String?
+  setBy               String // "auto" | "self" | "invite" | admin email
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([referrerCrmPersonId])
+  @@index([kind, createdAt])
+}
+
+// A shareable link (/api/r/<code>) that tags whoever signs up through it
+// with its owner. Stored in the nc_ref cookie for 30 days and consumed at
+// registration (see applyReferralCookie).
+model ReferralLink {
+  id               String       @id @default(cuid())
+  code             String       @unique
+  label            String
+  kind             ReferrerKind
+  ownerCrmPersonId String?
+  ownerCrmPerson   CrmPerson?   @relation(fields: [ownerCrmPersonId], references: [id], onDelete: SetNull)
+  ownerCoachId     String?
+  ownerRecruiterId String?
+  ownerCandidateId String?
+  isActive         Boolean      @default(true)
+  clickCount       Int          @default(0)
+  createdBy        String?
+  createdAt        DateTime     @default(now())
 }
 
 // One row per Job Search Daily email actually sent, keyed by Resend's email
@@ -9102,6 +9172,8 @@ model CrmOrganization {
 
 model CrmPerson {
   id        String  @id @default(cuid())
+  referredCandidates CandidateReferral[]
+  referralLinks      ReferralLink[]
   firstName String?
   lastName  String?
   fullName  String // always populated; the other two are best-effort splits

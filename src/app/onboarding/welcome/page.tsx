@@ -3,6 +3,8 @@ import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { submitIntroCommitment } from '@/app/onboarding/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Card, CardContent } from '@/components/ui/card'
+import { HowHeardCard } from '@/components/onboarding/HowHeardCard'
+import { prisma } from '@/lib/prisma'
 import { INTRO_WELCOME_BONUS_POINTS } from '@/lib/weekly/sprint'
 
 export default async function WelcomePage() {
@@ -14,6 +16,10 @@ export default async function WelcomePage() {
   // should bounce to wherever the candidate actually belongs.
   if (!profile.registrationCompletedAt) redirect('/onboarding')
   if (profile.introCommittedAt) redirect('/dashboard')
+
+  // Ask only when we don't already know: no invite/link/CRM source and no earlier answer.
+  const referral = await prisma.candidateReferral.findUnique({ where: { candidateId: profile.id }, select: { setBy: true } })
+  const showHowHeard = !referral && (!profile.leadSource || profile.leadSourceSetBy === 'auto')
 
   const name = profile.firstName ? `, ${profile.firstName}` : ''
 
@@ -56,6 +62,8 @@ export default async function WelcomePage() {
           </p>
         </CardContent>
       </Card>
+
+      {showHowHeard && <HowHeardCard />}
 
       <div className="rounded-lg border-2 border-success bg-success/5 p-6 text-center">
         <p className="text-sm font-medium text-foreground">
