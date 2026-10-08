@@ -85,7 +85,14 @@ export default async function MailingHomePage() {
 
       <section className="space-y-4">
         {lists.map((list) => {
-          const own = editions.filter((e) => e.lists.some((l) => l.listId === list.id))
+          const mine = editions.filter((e) => e.lists.some((l) => l.listId === list.id))
+          // Copies sit under their original, oldest first; the six newest groups show.
+          const groups = new Map<string, typeof mine>()
+          for (const e of mine) {
+            const root = e.versionOfId && mine.some((x) => x.id === e.versionOfId) ? e.versionOfId : e.id
+            groups.set(root, [...(groups.get(root) ?? []), e])
+          }
+          const own = [...groups.values()].slice(0, 6).flatMap((g) => g.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()))
           return (
             <div key={list.id} className="rounded-lg border border-border">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
@@ -110,8 +117,9 @@ export default async function MailingHomePage() {
                 <p className="px-4 py-3 text-sm text-muted-foreground">Nothing sent to this list yet.</p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {own.slice(0, 6).map((e) => (
-                    <li key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-2 text-sm">
+                  {own.map((e) => (
+                    <li key={e.id} className={`flex flex-wrap items-center gap-3 py-2 pr-4 text-sm ${e.versionOfId && groups.has(e.versionOfId) ? 'pl-9' : 'pl-4'}`}>
+                      {e.versionOfId && groups.has(e.versionOfId) && <span aria-hidden className="-ml-5 text-muted-foreground">↳</span>}
                       <Link href={`/support/admin/crm/mailing/editions/${e.id}`} className="font-medium text-brand hover:underline">{e.title}</Link>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_CLASS[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                       {e.lists.length > 1 && <span className="text-xs text-muted-foreground">+{e.lists.length - 1} more {e.lists.length === 2 ? 'list' : 'lists'}</span>}

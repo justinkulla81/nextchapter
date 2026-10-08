@@ -334,6 +334,7 @@ export function MailingComposer({
                       </td>
                       <td className="px-3 py-1.5 text-xs">
                         {manual && r.manualSentAt ? `Already sent manually on ${fmtDate(r.manualSentAt)}` : manual ? 'Already sent manually' : ''}
+                        {r.excludedReason === 'already_got_version' && (r.manualSentAt ? `Got another version on ${fmtDate(r.manualSentAt)}` : 'Got another version')}
                         {r.excludedReason === 'unsubscribed' && 'Unsubscribed'}
                         {r.excludedReason === 'suppressed' && 'Address bounced or complained'}
                         {r.source === 'ADDED_THIS_EDITION' && !locked && (

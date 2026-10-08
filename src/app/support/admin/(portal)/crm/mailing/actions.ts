@@ -106,6 +106,55 @@ export async function saveEdition(id: string, d: EditionDraft): Promise<{ ok: bo
   return { ok: true, message: 'Saved.' }
 }
 
+/**
+ * "Make a copy": a new draft with the same text, report, file and lists, to
+ * edit and send to other people. It joins the original's group of versions,
+ * and anyone a version already reached starts unchecked.
+ */
+export async function duplicateEdition(id: string) {
+  const by = await admin()
+  const src = await prisma.mailingEdition.findUniqueOrThrow({ where: { id }, include: { lists: { select: { listId: true } } } })
+  const rootId = src.versionOfId ?? src.id
+  const root = rootId === src.id ? src : await prisma.mailingEdition.findUniqueOrThrow({ where: { id: rootId } })
+  const n = (await prisma.mailingEdition.count({ where: { OR: [{ id: rootId }, { versionOfId: rootId }] } })) + 1
+
+  let key = `${root.key}-v${n}`
+  for (let i = n + 1; await prisma.mailingEdition.findUnique({ where: { key } }); i++) key = `${root.key}-v${i}`
+
+  // Its own copy of the file: removing an attachment or deleting a draft
+  // deletes the stored file, which must never take the original's with it.
+  let attachmentPath: string | null = null
+  if (src.attachmentPath) {
+    const storage = (await ensureBucket()).storage.from(MAILING_BUCKET)
+    const to = `editions/${key}/${Date.now()}-${(src.attachmentName ?? 'report.pdf').replace(/[^a-zA-Z0-9._-]+/g, '-')}`
+    const { error } = await storage.copy(src.attachmentPath, to)
+    if (!error) attachmentPath = to
+  }
+
+  const copy = await prisma.mailingEdition.create({
+    data: {
+      key,
+      title: `${root.title} — version ${n}`,
+      isReport: src.isReport,
+      reportKey: src.reportKey,
+      subject: src.subject,
+      previewText: src.previewText,
+      bodyHtml: src.bodyHtml,
+      attachmentPath,
+      attachmentName: attachmentPath ? src.attachmentName : null,
+      attachmentBytes: attachmentPath ? src.attachmentBytes : null,
+      attachFile: attachmentPath ? src.attachFile : false,
+      reportUrl: src.reportUrl,
+      versionOfId: rootId,
+      createdByEmail: by,
+      lists: { create: src.lists.map((l) => ({ listId: l.listId })) },
+    },
+  })
+  await syncEditionRoster(copy.id)
+  captureServerEvent(by, 'mailing_edition_duplicated', { editionId: copy.id, sourceId: src.id, rootId, version: n, fileCopied: !!attachmentPath || !src.attachmentPath })
+  redirect(`${BASE}/editions/${copy.id}`)
+}
+
 export async function deleteDraftEdition(id: string) {
   const by = await admin()
   const e = await prisma.mailingEdition.findUniqueOrThrow({ where: { id }, select: { status: true, attachmentPath: true } })

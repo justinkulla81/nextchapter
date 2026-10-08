@@ -94,6 +94,12 @@ describe('roster math', () => {
     expect(computeRoster({ ...base, manualSends: new Map([['p1', new Date()]]), existing: rechecked, members: [m('a@x.com', 'monthly_update', 'ACTIVE', 'p1')] })[0].excluded).toBe(false)
   })
 
+  it('starts people another version already reached unchecked', () => {
+    const rows = computeRoster({ ...base, versionSends: new Map([['a@x.com', new Date('2026-10-08')]]), members: [m('a@x.com', 'monthly_update', 'ACTIVE', 'p1'), m('b@x.com', 'monthly_update', 'ACTIVE', 'p2')] })
+    expect(rows.find((r) => r.email === 'a@x.com')).toMatchObject({ excluded: true, excludedReason: 'already_got_version' })
+    expect(rows.find((r) => r.email === 'b@x.com')!.excluded).toBe(false)
+  })
+
   it('keeps sent rows as history even after they leave the list', () => {
     const sent: RosterRow = { email: 'a@x.com', personId: null, source: 'BASE', excluded: false, excludedReason: null, fromListKeys: ['monthly_update'], alsoAddToListIds: [], status: 'SENT' }
     expect(computeRoster({ ...base, existing: [sent], members: [] })).toHaveLength(1)

@@ -32,6 +32,8 @@ export interface RosterInput {
   suppressed: Set<string>
   /** personId → when they already got this report by hand. */
   manualSends: Map<string, Date>
+  /** email → when another version of this edition reached them. */
+  versionSends?: Map<string, Date>
 }
 
 export interface RosterCounts {
@@ -41,7 +43,7 @@ export interface RosterCounts {
   total: number
 }
 
-export function computeRoster({ members, existing, suppressed, manualSends }: RosterInput): RosterRow[] {
+export function computeRoster({ members, existing, suppressed, manualSends, versionSends = new Map() }: RosterInput): RosterRow[] {
   const base = new Map<string, { personId: string | null; lists: Set<string> }>()
   for (const m of members) {
     if (m.status !== 'ACTIVE' || suppressed.has(m.email)) continue
@@ -57,14 +59,16 @@ export function computeRoster({ members, existing, suppressed, manualSends }: Ro
   for (const [email, b] of base) {
     const prev = byEmail.get(email)
     const manual = b.personId ? manualSends.get(b.personId) : undefined
+    const earlier = versionSends.get(email)
     out.push({
       email,
       personId: b.personId ?? prev?.personId ?? null,
       source: 'BASE',
       // A choice already made in the composer stands; a newcomer who already
-      // got this report by hand starts unchecked, so nobody gets it twice.
-      excluded: prev ? prev.excluded : !!manual,
-      excludedReason: prev ? prev.excludedReason : manual ? 'already_sent_manually' : null,
+      // got this report by hand, or another version of this email, starts
+      // unchecked, so nobody gets it twice.
+      excluded: prev ? prev.excluded : !!(manual || earlier),
+      excludedReason: prev ? prev.excludedReason : manual ? 'already_sent_manually' : earlier ? 'already_got_version' : null,
       fromListKeys: [...b.lists].sort(),
       alsoAddToListIds: prev?.alsoAddToListIds ?? [],
       status: prev?.status ?? 'PENDING',

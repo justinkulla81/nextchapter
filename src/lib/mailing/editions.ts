@@ -64,11 +64,18 @@ export async function syncEditionRoster(editionId: string) {
     ? await prisma.crmReportSend.findMany({ where: { editionKey: edition.reportKey, method: 'MANUAL' }, select: { personId: true, sentAt: true } })
     : []
 
+  const rootId = edition.versionOfId ?? edition.id
+  const earlier = await prisma.mailingEditionRecipient.findMany({
+    where: { status: 'SENT', editionId: { not: edition.id }, edition: { OR: [{ id: rootId }, { versionOfId: rootId }] } },
+    select: { email: true, sentAt: true },
+  })
+
   const next = computeRoster({
     members: members.map((m) => ({ email: m.email, personId: m.personId, listKey: keyById.get(m.listId)!, status: m.status })),
     existing: edition.recipients.map(toRow),
     suppressed,
     manualSends: new Map(manual.map((m) => [m.personId, m.sentAt])),
+    versionSends: new Map(earlier.map((r) => [r.email, r.sentAt!])),
   })
 
   const nextEmails = new Set(next.map((r) => r.email))

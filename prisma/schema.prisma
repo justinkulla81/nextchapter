@@ -11721,6 +11721,11 @@ model MailingEdition {
   periodKey       String?
   /// When the "ready for your approval" email went out for this draft.
   approvalRequestedAt DateTime?
+  /// Set on a copy ("Make a copy"): the first edition of the group. Versions
+  /// share it so their sends can be read together and one at a time.
+  versionOfId     String?
+  versionOf       MailingEdition?      @relation("EditionVersions", fields: [versionOfId], references: [id], onDelete: SetNull)
+  versions        MailingEdition[]     @relation("EditionVersions")
   scheduledAt     DateTime?
   sendStartedAt   DateTime?
   sentAt          DateTime?
@@ -11734,6 +11739,7 @@ model MailingEdition {
   @@unique([cadenceListId, periodKey])
   @@index([status, scheduledAt])
   @@index([reportKey])
+  @@index([versionOfId])
 }
 
 model MailingEditionList {

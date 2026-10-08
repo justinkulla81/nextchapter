@@ -7,6 +7,9 @@ import { fileUrlFor, syncEditionRoster } from '@/lib/mailing/editions'
 import { sanitizeBodyHtml } from '@/lib/mailing/render'
 import { MailingComposer } from '@/components/admin/mailing/MailingComposer'
 import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipientsTable'
+import { EditionVersions } from '@/components/admin/mailing/EditionVersions'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { duplicateEdition } from '../../actions'
 
 export const maxDuration = 60
 
@@ -45,16 +48,30 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
     ? new Map((await prisma.crmReportSend.findMany({ where: { editionKey: edition.reportKey, method: 'MANUAL' }, select: { personId: true, sentAt: true } })).map((m) => [m.personId, m.sentAt]))
     : new Map<string, Date>()
 
+  // Who another version already reached, so their row says why it starts unchecked.
+  const rootId = edition.versionOfId ?? edition.id
+  const earlier = new Map((await prisma.mailingEditionRecipient.findMany({
+    where: { status: 'SENT', editionId: { not: edition.id }, edition: { OR: [{ id: rootId }, { versionOfId: rootId }] } },
+    select: { email: true, sentAt: true },
+  })).map((r) => [r.email, r.sentAt!]))
+
   const header = (
-    <header className="space-y-1">
-      <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Mailing lists</Link>
-      <h1 className="text-2xl font-semibold">{edition.title}</h1>
-      <p className="text-sm text-muted-foreground">
-        {edition.lists.map((l) => l.list.name).join(' + ')}
-        {edition.isReport && edition.reportKey ? ` · Report ${edition.reportKey}` : ''} · {edition.key}
-      </p>
+    <header className="flex flex-wrap items-start justify-between gap-3">
+      <div className="space-y-1">
+        <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Mailing lists</Link>
+        <h1 className="text-2xl font-semibold">{edition.title}</h1>
+        <p className="text-sm text-muted-foreground">
+          {edition.lists.map((l) => l.list.name).join(' + ')}
+          {edition.isReport && edition.reportKey ? ` · Report ${edition.reportKey}` : ''} · {edition.key}
+        </p>
+      </div>
+      <form action={duplicateEdition.bind(null, edition.id)} className="text-right">
+        <SubmitButton variant="outline" size="sm" pendingLabel="Copying…">Make a copy</SubmitButton>
+        <p className="mt-1 max-w-56 text-xs text-muted-foreground">A new draft with this text and report, to edit and send to other people.</p>
+      </form>
     </header>
   )
+  const versions = <EditionVersions editionId={edition.id} rootId={rootId} />
 
   if (edition.status === 'DRAFT' || edition.status === 'SCHEDULED') {
     // Archived lists the edition already targets still need to show.
@@ -82,11 +99,12 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
             firstName: r.person?.firstName || r.person?.fullName.split(/\s+/)[0] || null,
             orgName: r.person?.affiliations[0]?.org.name ?? null,
             source: r.source, excluded: r.excluded, excludedReason: r.excludedReason, fromListKeys: r.fromListKeys,
-            manualSentAt: r.personId && manual.get(r.personId) ? manual.get(r.personId)!.toISOString() : null,
+            manualSentAt: r.personId && manual.get(r.personId) ? manual.get(r.personId)!.toISOString() : earlier.get(r.email)?.toISOString() ?? null,
           }))}
           settings={{ fromName: settings.fromName, fromEmail: settings.fromEmail, testEmail: settings.testEmail, footerText: settings.footerText, postalAddress: settings.postalAddress, ratePerHour: settings.ratePerHour }}
           fileUrl={fileUrlFor(edition.key)}
         />
+        {versions}
       </div>
     )
   }
@@ -131,6 +149,8 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
           </div>
         ))}
       </section>
+
+      {versions}
 
       <EditionRecipientsTable
         editionId={edition.id}
