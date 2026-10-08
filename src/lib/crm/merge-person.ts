@@ -67,6 +67,27 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
     }
     await tx.crmBroadcastRecipient.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
 
+    // Mailing lists and reports. A report edition is one row per person:
+    // where both have it, the system-sent (AUTOMATED) row wins, then the
+    // survivor's. List memberships and edition rosters are keyed by address,
+    // so they simply follow; the "Add to a mailing list?" card is one per
+    // person, so the survivor's own card wins.
+    const targetSends = await tx.crmReportSend.findMany({ where: { personId: targetId }, select: { id: true, editionKey: true, method: true } })
+    for (const t of targetSends) {
+      const s = await tx.crmReportSend.findUnique({ where: { personId_editionKey: { personId: sourceId, editionKey: t.editionKey } } })
+      if (!s) continue
+      if (s.method === 'AUTOMATED' && t.method === 'MANUAL') await tx.crmReportSend.delete({ where: { id: t.id } })
+      else await tx.crmReportSend.delete({ where: { id: s.id } })
+    }
+    await tx.crmReportSend.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.mailingListMember.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.mailingEditionRecipient.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    if (await tx.mailingListPrompt.findUnique({ where: { personId: targetId } })) {
+      await tx.mailingListPrompt.deleteMany({ where: { personId: sourceId } })
+    } else {
+      await tx.mailingListPrompt.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    }
+
     // A suggestion that was previously promoted into the source should point
     // at the surviving record, or accepting it again would recreate the
     // person this merge just folded away.
