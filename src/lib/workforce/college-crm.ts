@@ -1,7 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { findEmailOwner } from '@/lib/crm/email-owner'
-import { goalsForRoles } from '@/lib/crm/goals'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { COLLEGE_ROLES, type CollegeRole } from './college-pages'
@@ -17,6 +16,12 @@ export function cleanPersonName(raw: string): string {
     .replace(/\s+/g, ' ')
     .trim()
 }
+
+/**
+ * A college leader is a partnership prospect — business development — not
+ * the user acquisition the alumni office role maps to by default.
+ */
+const COLLEGE_GOALS = ['BD'] as const
 
 type OrgRef = { id: string; name: string; orgTypes: string[] }
 
@@ -115,7 +120,7 @@ export async function addCollegeContactsToCrm(): Promise<{ added: number; matche
         where: { id: owner.id },
         data: {
           roles: nextRoles,
-          goals: [...new Set([...p.goals, ...goalsForRoles([...roles])])],
+          goals: [...new Set([...p.goals, ...COLLEGE_GOALS])],
           ...(p.priority ? {} : { priority: 'P2' }),
         },
       })
@@ -136,7 +141,7 @@ export async function addCollegeContactsToCrm(): Promise<{ added: number; matche
           emails: [c.email!],
           phone: c.phone,
           roles: [...roles],
-          goals: goalsForRoles([...roles]),
+          goals: [...COLLEGE_GOALS],
           priority: 'P2',
           normalizedKey: `${name.toLowerCase()}|${normalizeOrgName(college.name)}`,
           notes: sameName ? `${note}\n\nSomeone named ${name} is already in the CRM (${sameName.id}) — same person? Merge or clear on the Review List.` : note,

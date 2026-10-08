@@ -5,7 +5,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 import { interestSignals, isCommunityCollege, isPersonalEmail, scoreCollege, type ScoreInput } from '@/lib/workforce/college-score'
 import { titleLeadsRole } from '@/lib/workforce/college-contacts'
 import { cleanPersonName, crmWorthy } from '@/lib/workforce/college-crm'
-import { relationshipLevel, siteDomain } from '@/lib/workforce/college-rank'
+import { emailAtCollege, relationshipLevel, siteDomain } from '@/lib/workforce/college-rank'
 
 describe('interest signals', () => {
   it('finds listed themes on a college’s own pages', () => {
@@ -104,7 +104,14 @@ describe('relationships', () => {
   })
   it('read a college’s email domain from its website', () => {
     expect(siteDomain('https://www.washjeff.edu/')).toBe('washjeff.edu')
-    expect(siteDomain('https://alumni.cmu.edu/x')).toBe('cmu.edu')
+    expect(siteDomain('https://www.york.cuny.edu/')).toBe('york.cuny.edu')
     expect(siteDomain(null)).toBeNull()
+  })
+  it('match a person to a college by their own campus domain, not a shared system one', () => {
+    expect(emailAtCollege('rdelfine@andrew.cmu.edu', 'cmu.edu')).toBe(true)
+    expect(emailAtCollege('njackson@washjeff.edu', 'washjeff.edu')).toBe(true)
+    expect(emailAtCollege('Nhowell1@york.cuny.edu', 'york.cuny.edu')).toBe(true)
+    expect(emailAtCollege('Nhowell1@york.cuny.edu', 'qcc.cuny.edu')).toBe(false)
+    expect(emailAtCollege('x@notcmu.edu', 'cmu.edu')).toBe(false)
   })
 })
