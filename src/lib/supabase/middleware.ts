@@ -129,6 +129,7 @@ export async function updateSession(request: NextRequest) {
     '/recruiters/signup',
     '/recruiters/login',
     '/recruiters/forgot-password',
+    '/recruiters/start', // shareable firm registration link: must open while logged out
     '/support/coach/signup',
     '/support/coach/login',
     '/support/coach/forgot-password',
