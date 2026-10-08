@@ -107,6 +107,9 @@ export function pageText(html: string): string {
   return main.text().replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').replace(/\n{2,}/g, '\n').trim().slice(0, PAGE_CHARS)
 }
 
+/** Fetches one page; the default is a plain request, a browser can be passed in instead. */
+export type PageFetcher = (url: string, timeoutMs?: number) => Promise<{ html: string; url: string } | null>
+
 async function getPage(url: string, timeoutMs = 15_000): Promise<{ html: string; url: string } | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow' })
@@ -122,8 +125,8 @@ async function getPage(url: string, timeoutMs = 15_000): Promise<{ html: string;
  * that page's staff page if it links one. At most nine pages; a site that
  * renders everything with JavaScript yields little, and that is accepted.
  */
-export async function readCollegePages(website: string): Promise<PageText[]> {
-  const home = await getPage(website)
+export async function readCollegePages(website: string, fetchPage: PageFetcher = getPage): Promise<PageText[]> {
+  const home = await fetchPage(website)
   if (!home) return []
   const homeLinks = pageLinks(home.html, home.url)
   const seen = new Set<string>([home.url])
@@ -133,7 +136,7 @@ export async function readCollegePages(website: string): Promise<PageText[]> {
     const linked = pickRoleLink(homeLinks, role, home.url)
     if (linked && !seen.has(linked)) {
       seen.add(linked)
-      dept = await getPage(linked)
+      dept = await fetchPage(linked)
     }
     // Not linked from the homepage (or the link failed): try where it usually is,
     // keeping a page only if it is about the office. Guesses get a short wait.
@@ -141,7 +144,7 @@ export async function readCollegePages(website: string): Promise<PageText[]> {
       for (const guess of usualPlaces(role, home.url)) {
         if (seen.has(guess)) continue
         seen.add(guess)
-        const page = await getPage(guess, 6_000)
+        const page = await fetchPage(guess, 6_000)
         if (page && !seen.has(page.url) && COLLEGE_ROLES[role].link.test(pageText(page.html).slice(0, 3000))) { dept = page; break }
       }
     }
@@ -151,7 +154,7 @@ export async function readCollegePages(website: string): Promise<PageText[]> {
     const staffUrl = pickStaffLink(pageLinks(dept.html, dept.url), dept.url)
     if (staffUrl && !seen.has(staffUrl)) {
       seen.add(staffUrl)
-      const staff = await getPage(staffUrl)
+      const staff = await fetchPage(staffUrl)
       if (staff) out.push({ url: staff.url, role, text: pageText(staff.html) })
     }
     return out
