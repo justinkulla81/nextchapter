@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { extractResumeText } from '@/lib/resume/extract-text'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { emitFirmWebhook } from '@/lib/recruiter/webhooks'
 import { sendIntakeFitAlert, sendIntakeSubmissionConfirmation } from '@/lib/email/send-intake'
 import { INTAKE_PURGE_DAYS, isIntakeConsentScope } from './constants'
 import { normalizeLinkedinUrl } from './slug'
@@ -191,6 +192,17 @@ export async function ingestIntake({
     isNewPerson: !existing,
     consentScopeCount: scopes.length,
     possibleDuplicate: !!possibleDuplicate,
+  })
+
+  emitFirmWebhook(firm.id, 'lead.created', {
+    leadId: connection.id,
+    source,
+    entryPoint,
+    receivedAt: new Date().toISOString(),
+    candidate: { name: intakeCandidate.fullName, email: intakeCandidate.email, linkedinUrl: intakeCandidate.linkedinUrl ?? null },
+    recruiter: recruiter ? { id: recruiter.id, name: recruiter.fullName } : null,
+    resume: { fileName: file.fileName, fileType },
+    consentScopes: scopes,
   })
 
   return { ok: true, connectionId: connection.id, intakeCandidateId: intakeCandidate.id, claimToken: intakeCandidate.claimToken, resumeId: resume.id }
@@ -401,6 +413,15 @@ export async function processIntakeResume(resumeId: string): Promise<'done' | 'q
     partialSearchMatch: result.partialSearchMatch,
     routed: !!recruiterId && !connection.recruiterId,
     suggested: !!suggestedRecruiterId,
+  })
+
+  emitFirmWebhook(resume.firmId, 'lead.tagged', {
+    leadId: connection.id,
+    tag: updated.tag,
+    reasons: updated.tagReasons,
+    recruiter: updated.recruiter ? { id: updated.recruiter.id, name: updated.recruiter.fullName } : null,
+    search: updated.search ? { id: updated.search.id, title: updated.search.title } : null,
+    candidate: { name: updated.intakeCandidate.fullName, email: updated.intakeCandidate.email },
   })
 
   if (updated.tag === 'NICHE' || updated.tag === 'OUTSIDE') {

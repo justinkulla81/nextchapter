@@ -7465,6 +7465,21 @@ model RecruiterFirm {
   // UTC day; anything over the cap stays QUEUED for the next day's cron.
   intakeDailyParseCap              Int               @default(200)
 
+  // White-label setup (onboarding wizard). brandFont: editorial | modern |
+  // classic. brandTone: cream | white. website is the firm's own site, used
+  // for the header link and the setup instructions. onboardingToken is the
+  // shareable registration link an admin sends to a firm (/recruiters/start/<token>);
+  // it only works while the firm has no members.
+  website                String?
+  brandFont              String?
+  brandTone              String?
+  brandHeroUrl           String?
+  onboardingToken        String?   @unique
+  onboardingContactEmail String?
+  onboardingCompletedAt  DateTime?
+
+  webhookEndpoints FirmWebhookEndpoint[]
+
   intakeInvites     RecruiterFirmInvite[]
   intakeSpecialties IntakeSpecialty[]
   intakeSearches    IntakeSearch[]
@@ -7563,6 +7578,43 @@ model RecruiterFirmInvite {
 
 // The firm's controlled specialty list; recruiters pick from it so routing
 // can match resumes to people (spec F1).
+// Outbound webhooks: a firm points NextChapter at its own system (ATS, CRM,
+// Zapier) and receives signed JSON when a lead arrives or is tagged. The
+// secret signs every delivery (NextChapter-Signature header) and is shown to
+// the admin once, on create and on rotate.
+model FirmWebhookEndpoint {
+  id            String    @id @default(cuid())
+  firmId        String
+  firm          RecruiterFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  url           String
+  secret        String
+  events        String[]
+  isActive      Boolean   @default(true)
+  lastSuccessAt DateTime?
+  lastFailureAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  deliveries FirmWebhookDelivery[]
+
+  @@index([firmId])
+}
+
+model FirmWebhookDelivery {
+  id             String              @id @default(cuid())
+  endpointId     String
+  endpoint       FirmWebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event          String
+  payload        Json
+  status         String // PENDING | SUCCESS | FAILED
+  attempts       Int                 @default(0)
+  responseStatus Int?
+  error          String?
+  createdAt      DateTime            @default(now())
+  deliveredAt    DateTime?
+
+  @@index([endpointId, createdAt])
+}
+
 model IntakeSpecialty {
   id        String              @id @default(cuid())
   firmId    String

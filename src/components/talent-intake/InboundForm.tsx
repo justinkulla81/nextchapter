@@ -16,12 +16,16 @@ export function InboundForm({
   notFit,
   firmName,
   who,
+  accent,
+  onAccent,
 }: {
   firmSlug: string
   recruiterSlug: string | null
   notFit: boolean
   firmName: string
   who: string
+  accent?: string
+  onAccent?: string
 }) {
   const [state, formAction, pending] = useActionState(submitInbound, undefined)
 
@@ -97,7 +101,11 @@ export function InboundForm({
         </p>
       )}
 
-      <SubmitButton className="w-full sm:w-auto" pendingLabel="Sending…">
+      <SubmitButton
+        className="w-full sm:w-auto"
+        pendingLabel="Sending…"
+        style={accent ? { backgroundColor: accent, color: onAccent } : undefined}
+      >
         {notFit ? 'Send and get free support' : 'Submit my resume'}
       </SubmitButton>
       <p className="text-xs text-muted-foreground">
