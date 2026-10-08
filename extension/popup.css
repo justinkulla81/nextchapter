@@ -59,3 +59,7 @@ button:disabled { cursor: progress; opacity: .6; }
   margin-top: 12px;
   font-weight: 600;
 }
+/* label/textarea set display above, which would otherwise beat the attribute. */
+[hidden] { display: none !important; }
+/* The read-off-the-page line: wrap at spaces, not mid-word like the URL. */
+.facts { word-break: normal; overflow-wrap: anywhere; }

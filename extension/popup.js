@@ -24,14 +24,16 @@ const PERSON_ROLE_OPTIONS = [
 
 const PRIORITY_OPTIONS = [['', 'Default (P2)'], ['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']]
 
+const PERSON_PAGE_FACTS = ['location', 'email', 'phone']
+
 const KINDS = {
   person: [
     { id: 'name', label: 'Name', type: 'text' },
     { id: 'company', label: 'Company', type: 'text' },
     { id: 'jobTitle', label: 'Title', type: 'text' },
-    { id: 'email', label: 'Email', type: 'text' },
-    { id: 'phone', label: 'Phone', type: 'text' },
-    { id: 'location', label: 'Location', type: 'text' },
+    // Location, email and phone have no fields: they're read off the page,
+    // shown on the info line at the top, and sent as read — rarely worth
+    // editing, and three rows of mostly-empty inputs cost the space.
     { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
     // LinkedIn can never log itself — this is the only way a DM you just sent
@@ -541,7 +543,18 @@ async function readPage() {
   return out
 }
 
+// A value read off the page. A non-LinkedIn page has its own person read
+// (see readPage) that takes over for the shared field ids.
+function scrapedValue(id) {
+  const v = (kind === 'person' && page.scraped.person ? page.scraped.person[id] : undefined) ?? page.scraped[id]
+  return typeof v === 'string' ? v.trim() : v
+}
+
 function renderFields() {
+  // No note on a person — never used, and it pushed Save below the fold.
+  // Layoff, research and product still use it (product's note is the idea).
+  $('note').hidden = kind === 'person'
+  document.querySelector('label[for="note"]').hidden = kind === 'person'
   document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.kind === kind)))
   const host = $('fields')
   host.innerHTML = ''
@@ -609,12 +622,13 @@ function renderFields() {
   if (kind === 'person') {
     const facts = [
       page.scraped.connectionDegree && `LinkedIn: ${page.scraped.connectionDegree}`,
+      ...PERSON_PAGE_FACTS.map(scrapedValue),
       page.scraped.schools?.length && `Schools: ${page.scraped.schools.map((s) => s.name).join(', ')}`,
       page.scraped.formerEmployer && `Last employer: ${page.scraped.formerEmployer.name}`,
     ].filter(Boolean)
     if (facts.length > 0) {
       const p = document.createElement('p')
-      p.className = 'muted'
+      p.className = 'muted facts'
       p.textContent = facts.join(' · ')
       host.prepend(p)
     }
@@ -743,7 +757,13 @@ $('save').addEventListener('click', async () => {
   msg.className = 'msg'
 
   const { base, token } = await chrome.storage.local.get(['base', 'token'])
-  const payload = { kind, url: page.url, note: $('note').value.trim(), selection: page.selection }
+  const payload = { kind, url: page.url, note: kind === 'person' ? '' : $('note').value.trim(), selection: page.selection }
+  if (kind === 'person') {
+    for (const id of PERSON_PAGE_FACTS) {
+      const v = scrapedValue(id)
+      if (v) payload[id] = v
+    }
+  }
   // Not a field you'd hand-edit — it's a fact read off the page, used
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
