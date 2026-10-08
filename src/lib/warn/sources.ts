@@ -11,6 +11,9 @@ import {
   COLORADO_PAGE,
   resolveColoradoSheet,
   parseColoradoWarn,
+  northCarolinaPage,
+  resolveNorthCarolinaFile,
+  parseNorthCarolinaWarn,
   IOWA_PAGE,
   resolveIowaFile,
   parseIowaWarn,
@@ -484,6 +487,19 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: parseColoradoWarn,
     hasIndustry: true,
+  },
+  {
+    state: 'NC',
+    url: () => northCarolinaPage(),
+    format: 'html', // fetched as text; it is a CSV
+    resolve: async () => {
+      const html = await fetchText(northCarolinaPage())
+      const file = resolveNorthCarolinaFile(html)
+      if (!file) throw new Error('NC: no WARN CSV linked on this year\'s summary page')
+      return file
+    },
+    parse: (buf: Buffer) => parseNorthCarolinaWarn(buf),
+    hasIndustry: false,
   },
   {
     state: 'IA',

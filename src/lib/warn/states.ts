@@ -346,6 +346,55 @@ export function parseColoradoWarn(buf: Buffer): WarnRow[] {
 }
 
 /**
+ * North Carolina posts the year's notices as a CSV on its Commerce
+ * department's site. The file name and version change with each update, so
+ * the link is read off the year's summary page.
+ */
+export const northCarolinaPage = (year = new Date().getFullYear()) =>
+  `https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports/report-workforce-warn-summary-list-${year}`
+
+export function resolveNorthCarolinaFile(pageHtml: string): string | null {
+  const href = pageHtml.match(/href="([^"]*files\.nc\.gov\/commerce\/[^"]+\.csv[^"]*)"/i)?.[1]
+  return href ? href.replace(/&amp;/g, '&') : null
+}
+
+export function parseNorthCarolinaWarn(buf: Buffer): WarnRow[] {
+  const rows = parseCsv(buf.toString('utf8').replace(/^\uFEFF/, ''))
+  if (rows.length < 2) return []
+  const header = rows[0]
+  const iCompany = columnOf(header, 'Notice Name', 'Employer')
+  const iDate = columnOf(header, 'Date of Notice')
+  const iEffective = columnOf(header, 'Effective Date')
+  const iCount = columnOf(header, 'Number affected')
+  const iCounty = columnOf(header, 'County')
+  const iAddress = columnOf(header, 'Address 1')
+  const iCity = columnOf(header, 'City')
+  const iType = columnOf(header, 'notice type')
+  if (iCompany === -1) return []
+
+  const out: WarnRow[] = []
+  for (const row of rows.slice(1)) {
+    const employer = row[iCompany]?.trim()
+    if (!employer || HEADER_WORDS.has(employer.toLowerCase())) continue
+    const city = iCity >= 0 ? row[iCity]?.trim() : ''
+    const street = iAddress >= 0 ? row[iAddress]?.trim() : ''
+    out.push({
+      state: 'NC',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: parseDate(iDate >= 0 ? row[iDate] : null),
+      effectiveDate: parseDate(iEffective >= 0 ? row[iEffective] : null),
+      employees: parseCount(iCount >= 0 ? row[iCount] : null),
+      layoffType: iType >= 0 ? (row[iType]?.trim() || null) : null,
+      county: iCounty >= 0 ? (row[iCounty]?.trim() || null) : null,
+      address: [street, city && `${city}, NC`].filter(Boolean).join(', ') || null,
+      industry: null,
+    })
+  }
+  return out
+}
+
+/**
  * Rhode Island posts a spreadsheet whose URL carries the month it was uploaded,
  * so the link is read off the page rather than hard-coded. The workbook holds
  * one sheet per year; only the newest is read.
