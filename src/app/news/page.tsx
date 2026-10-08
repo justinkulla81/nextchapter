@@ -52,7 +52,7 @@ export default async function NewsPage() {
             monthly{' '}
             <a href="/reports/latest" className="text-primary underline underline-offset-4">NextChapter Displacement Report</a>{' '}
             and the{' '}
-            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Displacement Index</a>.
+            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Term Unemployment Index</a>.
           </p>
           <div className="mt-10">
             {items.length === 0 ? (

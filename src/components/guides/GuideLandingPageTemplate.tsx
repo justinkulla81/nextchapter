@@ -87,7 +87,7 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
             are running in the monthly{' '}
             <Link href="/reports/latest" className="text-brand underline underline-offset-4">NextChapter Displacement Report</Link>{' '}
             and the{' '}
-            <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Displacement Index</Link>.
+            <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Term Unemployment Index</Link>.
           </div>
         )}
 
