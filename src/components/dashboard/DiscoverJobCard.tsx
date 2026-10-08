@@ -41,6 +41,13 @@ function SeniorityBadge({ level }: { level: string | null }) {
   return <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">{label}</span>
 }
 
+// Jobs found through an aggregator (Himalayas, The Muse, Remote OK…) carry
+// a "Listed on X" badge from the import; their terms ask us to name them,
+// and "View posting" links to their listing.
+function attributionOf(posting: Pick<ExclusiveJobPosting, 'badges'>): string | null {
+  return posting.badges.find((b) => b.startsWith('Listed on ')) ?? null
+}
+
 function NewBadge() {
   return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
 }
@@ -128,7 +135,7 @@ export function DiscoverJobCard({
       </summary>
       <div className="space-y-3 px-4 pb-4">
         <p className="text-sm text-muted-foreground">
-          {posting.postingType && POSTING_TYPE_LABEL[posting.postingType]}
+          {attributionOf(posting) ?? (posting.postingType && POSTING_TYPE_LABEL[posting.postingType])}
           {posting.location && ` · ${posting.location}`}
           {posting.salaryMin && posting.salaryMax &&
             ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}

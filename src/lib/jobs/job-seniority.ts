@@ -9,6 +9,7 @@ import {
   NEGATIVE,
   REPORTING_REF_GLOBAL,
   RUNG_VETO,
+  STAFF_ENTRY,
   UNDER_DIRECTOR,
   type RungName,
 } from './job-seniority-rules.generated'
@@ -44,6 +45,8 @@ export function classifyTitleRung(rawTitle: string | null | undefined): { rung: 
   if (BOARD.test(title)) return { rung: 'BOARD', rank: 95 }
   if (NEGATIVE.test(title)) return { rung: 'OTHER', rank: 0 }
   if (FRONTLINE.test(title) || JUNIOR_PREFIX.test(title)) return { rung: 'OTHER', rank: 0 }
+  // In accounting, audit and nursing "Staff" is the entry grade.
+  if (STAFF_ENTRY.test(title)) return { rung: 'OTHER', rank: 0 }
   if (UNDER_DIRECTOR.test(title) && !JUNIOR_EXEMPT.test(title)) return { rung: 'SR_MANAGER', rank: 52 }
   // A senior-prefixed professional title ("Senior Financial Analyst") is a
   // senior individual role even though its bare noun reads entry-level.
