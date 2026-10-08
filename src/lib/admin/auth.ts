@@ -2,6 +2,9 @@ import 'server-only'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
+// Where every admin-bound notification (digests, alerts, rap sheets) lands.
+export const ADMIN_NOTIFICATION_EMAIL = 'justin@launchyournextchapter.com'
+
 function adminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? '')
     .split(',')
@@ -46,19 +49,19 @@ export async function requireAdmin() {
 // admin. No "Victoria/Dossier copy owner" role exists yet, so this is the
 // practical stand-in until one does.
 export function getResearchLibraryAlertEmail(): string | null {
-  return process.env.RESEARCH_LIBRARY_ALERT_EMAIL ?? adminEmails()[0] ?? null
+  return process.env.RESEARCH_LIBRARY_ALERT_EMAIL ?? ADMIN_NOTIFICATION_EMAIL
 }
 
 // Target for the daily recruiter-database digest (a summary of every
 // candidate who unlocked recruiter visibility that day) — same
 // dedicated-env-var-or-first-admin fallback as getResearchLibraryAlertEmail.
 export function getRecruiterDigestAdminEmail(): string | null {
-  return process.env.RECRUITER_DIGEST_ADMIN_EMAIL ?? adminEmails()[0] ?? null
+  return process.env.RECRUITER_DIGEST_ADMIN_EMAIL ?? ADMIN_NOTIFICATION_EMAIL
 }
 
 // Target for real-time account-activity alerts (new candidate account
 // created, resume uploaded) — same dedicated-env-var-or-first-admin
 // fallback as the other admin targets above.
 export function getAccountActivityAdminEmail(): string | null {
-  return process.env.ACCOUNT_ACTIVITY_ADMIN_EMAIL ?? adminEmails()[0] ?? null
+  return process.env.ACCOUNT_ACTIVITY_ADMIN_EMAIL ?? ADMIN_NOTIFICATION_EMAIL
 }

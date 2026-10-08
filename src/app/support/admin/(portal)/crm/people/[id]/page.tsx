@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -14,6 +15,7 @@ import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
+import { RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { updatePersonRoles, updatePersonField } from '../../actions'
@@ -44,6 +46,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
+      rapSheets: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 1, select: { id: true, generatedAt: true, meetingTitle: true } },
       introPathsAsTarget: {
         include: { connectorPerson: { select: { id: true, fullName: true } } },
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
@@ -336,6 +339,17 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           owns it after.
         </p>
         <CrmGraduatePerson personId={person.id} coachId={person.coachId} recruiterId={person.recruiterId} />
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-lg font-semibold">Rap sheet</h2>
+        <p className="mb-2 text-sm text-muted-foreground">
+          Local layoffs, initiatives, white-collar metrics, and a tailored pitch, emailed to you. Costs about $0.30–1.00 per build.
+          {person.rapSheets[0]?.generatedAt && (
+            <> Last built {formatDate(person.rapSheets[0].generatedAt)}. <Link href={`/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`} className="underline">View it</Link>.</>
+          )}
+        </p>
+        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild rap sheet and email me' : 'Build rap sheet now and email me'} />
       </section>
 
       <section>
