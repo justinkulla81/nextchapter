@@ -82,7 +82,7 @@ def raw_fallback(state, data_dir):
     if not rows:
         return []
     header = list(rows[0].keys())
-    c_company = pick(header, "company", "employer", "business name", "legal name", "organization", "business")
+    c_company = pick(header, "company", "employer", "business name", "legal name", "organization", "business", "title")
     if not c_company:
         # A bare "name" column, but never a county, city, notice or contact name.
         c_company = next((h for h in header if "name" in (h or "").lower()
