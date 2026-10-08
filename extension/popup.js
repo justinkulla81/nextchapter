@@ -24,7 +24,7 @@ const PERSON_ROLE_OPTIONS = [
 
 const PRIORITY_OPTIONS = [['', 'Default (P2)'], ['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']]
 
-const PERSON_PAGE_FACTS = ['location', 'email', 'phone']
+const PERSON_PAGE_FACTS = ['location', 'email', 'phone', 'linkedinUrl']
 
 const KINDS = {
   person: [
@@ -498,6 +498,15 @@ async function readPage() {
       titleParts.slice(1).find((p2) => p2.toLowerCase() !== person.name.toLowerCase() && !/^(home|directory|about|profile|people|staff|faculty)$/i.test(p2)) ||
       meta('og:site_name') || ''
 
+    // Their LinkedIn, when the page links exactly one profile — a team page
+    // listing many people links several, and guessing would cross-wire two
+    // records. Sent so this capture lands on the same record as a LinkedIn
+    // capture of the same person, instead of a duplicate.
+    const profileSlugs = [...new Set(Array.from(document.querySelectorAll('a[href*="linkedin.com/in/" i]'))
+      .map((a) => (a.getAttribute('href').match(/linkedin\.com\/in\/([^/?#\s]+)/i) || [])[1]?.toLowerCase())
+      .filter(Boolean))]
+    if (profileSlugs.length === 1) person.linkedinUrl = `https://www.linkedin.com/in/${profileSlugs[0]}`
+
     const mail = document.querySelector('a[href^="mailto:" i]')
     person.email = mail
       ? decodeURIComponent(mail.getAttribute('href').replace(/^mailto:/i, '').split('?')[0]).trim()
@@ -514,12 +523,26 @@ async function readPage() {
     // its own <strong> or is a bare line before a <br>. Menus and footers are
     // skipped — "Vice President for Admissions" in a nav is a link, not a role.
     const ROLE = /\b(president|vice president|vp|chief|ceo|cfo|coo|cto|cio|chair(?:man|woman|person)?|director|dean|provost|chancellor|professor|lecturer|principal|partner|founder|co-?founder|managing|head of|manager|officer|executive|superintendent|commissioner|secretary|treasurer|trustee|fellow|counsel|advisor|adviser)\b/i
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT)
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    // A labelled field beats any guess: "TITLE" / "Position" / "Role" with
+    // the value right after it, as directory pages lay it out.
+    const LABEL = /^(job\s+)?(title|position|role)s?:?$/i
+    for (const el of scope.querySelectorAll('dt, th, span, div, p, h2, h3, h4, strong, b, label')) {
+      if (el.children.length > 0 || !LABEL.test(clean(el.textContent))) continue
+      const value = ((el.nextElementSibling || el.parentElement?.nextElementSibling)?.innerText || '').split('\n').map(clean).find(Boolean) || ''
+      if (value && value.length <= 160 && !LABEL.test(value)) { person.jobTitle = value; break }
+    }
+    const walker = person.jobTitle ? null : document.createTreeWalker(scope, NodeFilter.SHOW_TEXT)
+    for (let node = walker?.nextNode(); node; node = walker.nextNode()) {
       const t = clean(node.textContent)
       if (t.length < 3 || t.length > 90 || !ROLE.test(t)) continue
       if (h1 && !(h1.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) continue
-      if (node.parentElement?.closest('nav, header, footer, aside, script, style, [role="navigation"]')) continue
+      if (node.parentElement?.closest('nav, footer, aside, script, style, [role="navigation"]')) continue
+      // A <header> is skipped only when it's the site banner. Profile pages
+      // often wrap the person's own name and title in one too (MIT Sloan's
+      // faculty pages do), and skipping that read "Senior lecturer" out of
+      // the bio instead of the full title.
+      const hdr = node.parentElement?.closest('header')
+      if (hdr && !(h1 && hdr.contains(h1))) continue
       // A sentence that happens to contain "president", not a role line.
       if (t.split(' ').length > 10 || /[a-z]\.\s+[A-Z]/.test(t)) continue
       person.jobTitle = t
@@ -642,7 +665,10 @@ function renderFields() {
   if (kind === 'person') {
     const facts = [
       page.scraped.connectionDegree && `LinkedIn: ${page.scraped.connectionDegree}`,
-      ...PERSON_PAGE_FACTS.map(scrapedValue),
+      ...PERSON_PAGE_FACTS.map((id) => {
+        const v = scrapedValue(id)
+        return id === 'linkedinUrl' && v ? `LinkedIn: ${v.replace(/^https:\/\/www\./, '')}` : v
+      }),
       page.scraped.schools?.length && `Schools: ${page.scraped.schools.map((s) => s.name).join(', ')}`,
       page.scraped.formerEmployer && `Last employer: ${page.scraped.formerEmployer.name}`,
     ].filter(Boolean)

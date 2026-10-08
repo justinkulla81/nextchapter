@@ -50,6 +50,8 @@ interface CapturePayload {
   email?: string
   phone?: string
   connectionDegree?: string
+  /** A bio or directory page's link to the person's own LinkedIn profile. */
+  linkedinUrl?: string
   /** "I messaged them on LinkedIn today" — logs a LinkedIn message, dated now. */
   messagedToday?: boolean
   /** "I invited them to join NextChapter as a candidate." */
@@ -132,6 +134,7 @@ async function fillBlanks(
     phone: string | null
     notes: string | null
     linkedinUrl: string | null
+    linkedinSlug: string | null
     priority: CrmPriorityTier | null
     warmth: CrmWarmth
     linkedinDegree: string | null
@@ -159,7 +162,13 @@ async function fillBlanks(
   const note = body.note?.trim()
   if (note && !existing.notes) { data.notes = note; filled.push('note') }
 
-  if (!existing.linkedinUrl && slugOf(body.url)) { data.linkedinUrl = body.url; filled.push('LinkedIn URL') }
+  const pageSlug = slugOf(body.url) ?? slugOf(body.linkedinUrl)
+  if (!existing.linkedinUrl && pageSlug) { data.linkedinUrl = `https://www.linkedin.com/in/${pageSlug}`; filled.push('LinkedIn URL') }
+  // Only when no other record holds that profile — that would be a
+  // duplicate for the Review List, not something to resolve here.
+  if (!existing.linkedinSlug && pageSlug && !(await prisma.crmPerson.findUnique({ where: { linkedinSlug: pageSlug }, select: { id: true } }))) {
+    data.linkedinSlug = pageSlug
+  }
 
   // A staff-directory or bio page is often the only place an address or a
   // direct line is published. Fill only what's missing; the record's own
@@ -271,7 +280,9 @@ export async function POST(req: NextRequest) {
 
   try {
     if (body.kind === 'person') {
-      const slug = slugOf(body.url)
+      // The page itself, or — on a bio or directory page — the one LinkedIn
+      // profile it links to, so both captures land on the same record.
+      const slug = slugOf(body.url) ?? slugOf(body.linkedinUrl)
       const name = (body.name ?? '').trim()
       if (!name && !slug) {
         return NextResponse.json({ error: 'Need a name or a LinkedIn URL.' }, { status: 400, headers: CORS })
