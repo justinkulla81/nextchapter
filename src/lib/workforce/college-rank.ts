@@ -6,14 +6,26 @@ import { scoreCollege } from './college-score'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 
-/** "https://www.washjeff.edu/" → "washjeff.edu". */
+/** "https://www.washjeff.edu/" → "washjeff.edu"; "https://www.york.cuny.edu" → "york.cuny.edu". */
 export function siteDomain(website: string | null): string | null {
   if (!website) return null
   try {
-    const host = new URL(website).hostname.toLowerCase().replace(/^www\./, '')
-    return host.split('.').slice(-2).join('.')
+    return new URL(website).hostname.toLowerCase().replace(/^(www\d?|home|web)\./, '')
   } catch { return null }
 }
+
+/**
+ * Whether an email address is the college's own: its domain is the
+ * college's, or a subdomain of it (rdelfine@andrew.cmu.edu at cmu.edu). A
+ * system domain shared by many campuses (cuny.edu) is not any one campus's.
+ */
+export function emailAtCollege(email: string, domain: string): boolean {
+  const d = email.split('@')[1]?.toLowerCase().trim()
+  return !!d && (d === domain || d.endsWith(`.${domain}`))
+}
+
+/** Contacts whose priority says something about a college as a partner — listed, not inferred. */
+export const RELATIONSHIP_ROLES = ['ALUMNI_OFFICE', 'BD_PARTNER'] as const
 
 /** 0 for P0 or a pilot/customer, 1 for P1 or a live deal, 2 for P2 or first contact, 3 for none. */
 export function relationshipLevel(points: number): number {
@@ -47,11 +59,11 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
     }),
     prisma.crmOrganization.findMany({ select: { id: true, name: true, dealStatus: true } }),
     prisma.crmAffiliation.findMany({
-      where: { isCurrent: true, person: { deletedAt: null, priority: { not: null } } },
+      where: { isCurrent: true, person: { deletedAt: null, priority: { not: null }, roles: { hasSome: [...RELATIONSHIP_ROLES] } } },
       select: { orgId: true, person: { select: { priority: true } } },
     }),
     prisma.crmPerson.findMany({
-      where: { deletedAt: null, priority: { not: null } },
+      where: { deletedAt: null, priority: { not: null }, roles: { hasSome: [...RELATIONSHIP_ROLES] } },
       select: { priority: true, email: true, emails: true },
     }),
   ])
@@ -61,13 +73,11 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
   const bestByOrg = new Map<string, Priority | null>()
   for (const a of affiliations) bestByOrg.set(a.orgId, better(bestByOrg.get(a.orgId) ?? null, a.person.priority as Priority))
   // Anyone prioritized whose address is on a college's own domain works there.
-  const bestByDomain = new Map<string, Priority | null>()
-  for (const p of prioritized) {
-    for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {
-      const domain = e.split('@')[1]?.toLowerCase().split('.').slice(-2).join('.')
-      if (domain && domain.endsWith('.edu')) bestByDomain.set(domain, better(bestByDomain.get(domain) ?? null, p.priority as Priority))
-    }
-  }
+  const eduPeople = prioritized
+    .map((p) => ({ priority: p.priority as Priority, emails: [...new Set([p.email, ...p.emails].filter(Boolean) as string[])] }))
+    .filter((p) => p.emails.some((e) => /\.edu$/i.test(e.trim())))
+  const bestAtDomain = (domain: string): Priority | null =>
+    eduPeople.reduce<Priority | null>((best, p) => (p.emails.some((e) => emailAtCollege(e, domain)) ? better(best, p.priority) : best), null)
   // Jobs in state filings per board — company-wide counts are not local.
   const jobsByBoard = new Map<string, number>()
   for (const n of notices) {
@@ -90,7 +100,7 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
       .map((b) => jobsByBoard.get(b.id) ?? 0))
     const org = (c.crmOrgId ? orgById.get(c.crmOrgId) : undefined) ?? orgByKey.get(strictOrgKey(c.name, normalizeOrgName))
     const domain = siteDomain(c.website)
-    const relationship = better(org ? bestByOrg.get(org.id) ?? null : null, domain ? bestByDomain.get(domain) ?? null : null)
+    const relationship = better(org ? bestByOrg.get(org.id) ?? null : null, domain ? bestAtDomain(domain) : null)
     return {
       id: c.id, crmOrgId: org?.id ?? null, relationship,
       ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null }),

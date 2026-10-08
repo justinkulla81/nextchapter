@@ -1,5 +1,5 @@
 /**
- * Loads every active, degree-granting college from the Department of
+ * Loads every active, degree-granting four-year college from the Department of
  * Education's IPEDS institutional directory into LocalCollege, placed by
  * county so each workforce board can list the colleges in its area. Run
  * once a year when IPEDS publishes a new directory:
@@ -45,8 +45,12 @@ async function main() {
   const text = new TextDecoder('windows-1252').decode(bytes).replace(/^(﻿|ï»¿)/, '')
   const [header, ...lines] = text.split(/\r?\n/).filter((l) => l.trim())
   const col = Object.fromEntries(csvFields(header).map((h, i) => [h.trim().toUpperCase(), i]))
+  // Four-year colleges only: no two-year sectors, and no associate's-dominant
+  // colleges filed as four-year (Carnegie 1–14) — community colleges are out
+  // of scope for pilots.
   const rows = lines.map(csvFields).filter((c) =>
-    c[col.CYACTIVE] === '1' && c[col.DEGGRANT] === '1' && ['1', '2', '3', '4', '5', '6'].includes(c[col.SECTOR]),
+    c[col.CYACTIVE] === '1' && c[col.DEGGRANT] === '1' && ['1', '2', '3'].includes(c[col.SECTOR])
+    && !(Number(c[col.C21BASIC]) >= 1 && Number(c[col.C21BASIC]) <= 14),
   ).map((c) => {
     const fips = c[col.COUNTYCD]?.trim()
     return {
@@ -58,6 +62,7 @@ async function main() {
       chiefName: c[col.CHFNM]?.trim() || null, chiefTitle: c[col.CHFTITLE]?.trim() || null,
       sector: Number(c[col.SECTOR]) || null,
       size: Number(c[col.INSTSIZE]) > 0 ? Number(c[col.INSTSIZE]) : null,
+      carnegie: Number(c[col.C21BASIC]) > 0 ? Number(c[col.C21BASIC]) : null,
       updatedAt: new Date(),
     }
   })

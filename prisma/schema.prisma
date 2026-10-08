@@ -9021,6 +9021,7 @@ model CrmOrganization {
   updatedAt DateTime @updatedAt
 
   affiliations        CrmAffiliation[]
+  backgrounds         CrmBackground[]
   opportunities       CrmOpportunity[]
   activities          CrmActivity[]
   tasks               CrmTask[]
@@ -9077,6 +9078,14 @@ model CrmPerson {
   warmth   CrmWarmth       @default(UNKNOWN)
   notes    String?         @db.Text
   location String?
+
+  /// LinkedIn network distance ("1st" / "2nd" / "3rd") as last read off
+  /// their profile by the capture extension, and when. Kept apart from
+  /// warmth: warmth is your judgement, this is the fact it started from —
+  /// and it's how a later capture knows whether warmth is still the
+  /// extension's own guess (safe to raise) or a value you set by hand.
+  linkedinDegree       String?
+  linkedinDegreeSeenAt DateTime?
 
   // The real LinkedIn connection date from the export, distinct from
   // createdAt (when the row reached this table, often years later).
@@ -9189,6 +9198,7 @@ model CrmPerson {
   updatedAt DateTime @updatedAt
 
   affiliations          CrmAffiliation[]
+  backgrounds           CrmBackground[]
   opportunities         CrmOpportunity[]
   activities            CrmActivity[]
   tasks                 CrmTask[]
@@ -9218,6 +9228,36 @@ model CrmPerson {
 // "who do I know at Owl Ventures" answerable — the source sheets store company
 // as free text on the contact, so the question can't be asked at all today.
 // Also preserves job history instead of overwriting it when someone moves.
+// Where someone studied, and where they last worked once they've left —
+// kept out of CrmAffiliation on purpose. Across the CRM an affiliation means
+// "where they are now" (lists, peeks and exports read affiliations[0] as the
+// employer), so a school or a past job stored there would show up as their
+// current job. This is what puts them on a university's alumni list and a
+// company's former-employee list.
+enum CrmBackgroundKind {
+  SCHOOL
+  FORMER_EMPLOYER
+}
+
+model CrmBackground {
+  id       String            @id @default(cuid())
+  personId String
+  person   CrmPerson         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  orgId    String
+  org      CrmOrganization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  kind     CrmBackgroundKind
+  /// The degree for a school ("MBA, Finance"), the last title for a former
+  /// employer — as shown on the page, never inferred.
+  detail   String?
+  source   String            @default("CHROME_EXTENSION")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([personId, orgId, kind])
+  @@index([orgId, kind])
+}
+
 model CrmAffiliation {
   id       String          @id @default(cuid())
   personId String

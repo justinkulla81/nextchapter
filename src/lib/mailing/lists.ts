@@ -1,7 +1,7 @@
 import 'server-only'
 import type { MailingAddedVia, MailingMemberStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail } from './rules'
+import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail, type SuppressionReason } from './rules'
 import { suggestListKeys } from './suggest'
 
 export const SETTINGS_DEFAULTS = {
@@ -54,7 +54,7 @@ export async function addToLists(input: {
   ])
   const statusByList = new Map(existing.map((m) => [m.listId, m.status]))
   for (const list of lists) {
-    const verdict = canAddToList(statusByList.get(list.id) ?? null, (suppression?.reason as 'BOUNCED' | 'COMPLAINED' | undefined) ?? null)
+    const verdict = canAddToList(statusByList.get(list.id) ?? null, (suppression?.reason as SuppressionReason | undefined) ?? null)
     if (!verdict.ok) {
       // Already there is not a problem worth warning about, but the person
       // link is worth filling in if it was missing.
@@ -112,7 +112,8 @@ export async function unsubscribe(email: string, listIds: string[] | 'all', via:
 export async function suppress(email: string, reason: 'BOUNCED' | 'COMPLAINED', detail?: string | null) {
   const e = email.toLowerCase()
   const existing = await prisma.mailingSuppression.findUnique({ where: { email: e } })
-  // A complaint outranks a bounce; never downgrade.
+  // A complaint outranks a bounce; never downgrade, and a Do not email
+  // marking stays as it is (it already stops everything).
   if (!existing || (existing.reason === 'BOUNCED' && reason === 'COMPLAINED')) {
     await prisma.mailingSuppression.upsert({
       where: { email: e }, create: { email: e, reason, detail: detail ?? null }, update: { reason, detail: detail ?? null },
@@ -251,7 +252,7 @@ export async function addManyToLists(input: {
     prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true, reason: true } }),
   ])
   const statusOf = new Map(existing.map((m) => [`${m.listId}|${m.email}`, m.status]))
-  const suppressionOf = new Map(suppressed.map((s) => [s.email, s.reason as 'BOUNCED' | 'COMPLAINED']))
+  const suppressionOf = new Map(suppressed.map((s) => [s.email, s.reason as SuppressionReason]))
   let alreadyOn = 0
   let blocked = 0
   const rows: Prisma.MailingListMemberCreateManyInput[] = []
@@ -270,4 +271,57 @@ export async function addManyToLists(input: {
   }
   const { count } = await prisma.mailingListMember.createMany({ data: rows, skipDuplicates: true })
   return { added: count, alreadyOn, blocked }
+}
+
+// ── Do not email ─────────────────────────────────────────────────────────────
+
+/** Every address on a person's record, lowercased. */
+function addressesOf(p: { email: string | null; emails: string[] }): string[] {
+  return [...new Set([p.email, ...p.emails].map((e) => normalizeListEmail(e)).filter((e): e is string => !!e))]
+}
+
+/**
+ * "Do not email, ever" on a CRM record. Stored as a suppression on each of
+ * their addresses, so every send, list add and "Add to a mailing list?"
+ * card already respects it; switching it off removes only those rows,
+ * never a bounce or a complaint.
+ */
+export async function setDoNotEmail(personId: string, on: boolean, by: string) {
+  const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true, emails: true } })
+  const emails = addressesOf(person)
+  if (on) {
+    for (const email of emails) {
+      const existing = await prisma.mailingSuppression.findUnique({ where: { email } })
+      if (!existing) await prisma.mailingSuppression.create({ data: { email, reason: 'DO_NOT_EMAIL', detail: `Marked on the CRM record by ${by}` } })
+    }
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { status: 'PENDING', OR: [{ personId }, { email: { in: emails } }] },
+      data: { excluded: true, excludedReason: 'do_not_email' },
+    })
+    await prisma.mailingListPrompt.updateMany({ where: { personId, status: 'PENDING' }, data: { status: 'NEVER', answeredAt: new Date(), answeredByEmail: by } })
+  } else {
+    await prisma.mailingSuppression.deleteMany({ where: { email: { in: emails }, reason: 'DO_NOT_EMAIL' } })
+    await prisma.mailingEditionRecipient.updateMany({
+      where: { status: 'PENDING', excludedReason: 'do_not_email', OR: [{ personId }, { email: { in: emails } }] },
+      data: { excluded: false, excludedReason: null },
+    })
+  }
+}
+
+/**
+ * Everyone marked Do not email, and all their addresses — including any
+ * added to the record after it was marked, which carry no suppression row
+ * of their own yet.
+ */
+export async function doNotEmailPeople(): Promise<{ personIds: Set<string>; emails: Set<string> }> {
+  const marked = (await prisma.mailingSuppression.findMany({ where: { reason: 'DO_NOT_EMAIL' }, select: { email: true } })).map((s) => s.email)
+  if (marked.length === 0) return { personIds: new Set(), emails: new Set() }
+  const people = await prisma.crmPerson.findMany({
+    where: { OR: [{ email: { in: marked, mode: 'insensitive' } }, { emails: { hasSome: marked } }] },
+    select: { id: true, email: true, emails: true },
+  })
+  return {
+    personIds: new Set(people.map((p) => p.id)),
+    emails: new Set([...marked, ...people.flatMap(addressesOf)]),
+  }
 }

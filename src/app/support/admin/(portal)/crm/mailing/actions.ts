@@ -9,9 +9,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sanitizeBodyHtml } from '@/lib/mailing/render'
 import { normalizeListEmail } from '@/lib/mailing/rules'
-import { addManyToLists, addToLists, getMailingSettings, unsubscribe, type AddResult } from '@/lib/mailing/lists'
-import { audienceWhere, describeAudience, isEmptyAudience, type AudienceFilter } from '@/lib/mailing/audience'
-import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { addManyToLists, addToLists, getMailingSettings, unsubscribe, type AddResult, doNotEmailPeople, setDoNotEmail } from '@/lib/mailing/lists'
+import { audienceFacets, audienceWhere, describeAudience, isEmptyAudience, EMPTY_AUDIENCE, type AudienceFilter } from '@/lib/mailing/audience'
+import { PERSON_ROLES, PERSON_ROLE_LABELS, PRIORITY_TIERS } from '@/lib/crm/labels'
 import { markReportManual } from '@/lib/mailing/tracking'
 import { createEditionDraft } from '@/lib/mailing/drafts'
 import { PLACEHOLDER_RE } from '@/lib/mailing/prefill'
@@ -216,7 +216,7 @@ export async function searchPeopleForEdition(q: string) {
   if (query.length < 2) return []
   const people = await prisma.crmPerson.findMany({
     where: {
-      deletedAt: null, email: { not: null },
+      deletedAt: null, email: { not: null }, id: { notIn: [...(await doNotEmailPeople()).personIds] },
       OR: [
         { fullName: { contains: query, mode: 'insensitive' } },
         { email: { contains: query, mode: 'insensitive' } },
@@ -240,6 +240,9 @@ export async function addEditionRecipient(editionId: string, personId: string, a
   const email = normalizeListEmail(person.email)
   if (!email) return { ok: false, message: `${person.fullName} has no email address on file. Add one on their page first.` }
   const suppressed = await prisma.mailingSuppression.findUnique({ where: { email } })
+  if (suppressed?.reason === 'DO_NOT_EMAIL' || (await doNotEmailPeople()).personIds.has(personId)) {
+    return { ok: false, message: `${person.fullName} is marked Do not email on their CRM record.` }
+  }
   if (suppressed) return { ok: false, message: `${person.fullName}'s address ${suppressed.reason === 'COMPLAINED' ? 'marked an email as spam' : 'bounced'}, so it is never mailed again.` }
   const existing = await prisma.mailingEditionRecipient.findUnique({ where: { editionId_email: { editionId, email } } })
   if (existing) {
@@ -519,27 +522,65 @@ export async function dismissUnsubscribeRequest(id: string) {
 export type AudienceOp = 'add_send' | 'remove_send' | 'add_lists' | 'remove_lists'
 
 async function audiencePeople(filter: AudienceFilter) {
+  const dne = await doNotEmailPeople()
   return prisma.crmPerson.findMany({
-    where: audienceWhere(filter),
+    where: audienceWhere(filter, [...dne.personIds]),
     select: { id: true, fullName: true, email: true, affiliations: { where: { isPrimary: true }, take: 1, select: { title: true, org: { select: { name: true } } } } },
     orderBy: [{ priority: { sort: 'asc', nulls: 'last' } }, { priorityScore: 'desc' }],
   })
 }
 
-/** Live count and a sample, so you see who a group is before acting on it. */
+/**
+ * Who a group is, before acting on it: the count and a sample, plus how
+ * many each option would give (each contact type, priority and email
+ * history, with the other choices kept). Everyone counted has an email
+ * address and isn't marked Do not email.
+ */
 export async function previewAudience(filter: AudienceFilter) {
   await admin()
-  if (isEmptyAudience(filter)) return { total: 0, withEmail: 0, sample: [] as { name: string; detail: string | null; hasEmail: boolean }[] }
-  const people = await audiencePeople(filter)
+  const dne = [...(await doNotEmailPeople()).personIds]
+  // ~hundreds of emailable people: load them once and count every option in
+  // memory, rather than a query per option.
+  const rows = await prisma.crmPerson.findMany({
+    where: audienceWhere(EMPTY_AUDIENCE, dne),
+    select: {
+      roles: true, priority: true,
+      affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true } } } },
+      _count: {
+        select: {
+          activities: { where: { type: 'EMAIL' } },
+        },
+      },
+      activities: { where: { type: 'EMAIL', OR: [{ direction: 'INBOUND' }, { direction: 'OUTBOUND', needsReview: false }] }, select: { direction: true } },
+    },
+  })
+  const people = rows.map((p) => ({
+    roles: p.roles, priority: p.priority,
+    orgs: p.affiliations.map((a) => a.org.name), titles: p.affiliations.map((a) => a.title ?? '').filter(Boolean),
+    sent: p.activities.filter((a) => a.direction === 'OUTBOUND').length,
+    received: p.activities.filter((a) => a.direction === 'INBOUND').length,
+    emailCount: p._count.activities,
+  }))
+  const facets = audienceFacets(people, filter, PERSON_ROLES, PRIORITY_TIERS)
+  if (isEmptyAudience(filter)) return { facets, total: 0, doNotEmail: 0, sample: [] as { name: string; detail: string | null }[] }
+  const [matched, withDne] = await Promise.all([audiencePeople(filter), prisma.crmPerson.count({ where: audienceWhere(filter) })])
   return {
-    total: people.length,
-    withEmail: people.filter((p) => normalizeListEmail(p.email)).length,
-    sample: people.slice(0, 12).map((p) => ({
+    facets,
+    total: matched.length,
+    doNotEmail: withDne - matched.length,
+    sample: matched.slice(0, 12).map((p) => ({
       name: p.fullName,
       detail: [p.affiliations[0]?.title, p.affiliations[0]?.org.name].filter(Boolean).join(' at ') || null,
-      hasEmail: !!normalizeListEmail(p.email),
     })),
   }
+}
+
+/** The "Do not email, ever" switch on a CRM record. */
+export async function setPersonDoNotEmail(personId: string, on: boolean) {
+  const by = await admin()
+  await setDoNotEmail(personId, on, by)
+  captureServerEvent(by, on ? 'crm_do_not_email_set' : 'crm_do_not_email_cleared', { personId })
+  revalidatePath(`/support/admin/crm/people/${personId}`)
 }
 
 /**
@@ -556,7 +597,7 @@ export async function applyAudience(input: {
 }): Promise<{ ok: boolean; message: string }> {
   const by = await admin()
   const { filter, op } = input
-  if (isEmptyAudience(filter)) return { ok: false, message: 'Choose at least one contact type, priority, organization or title first.' }
+  if (isEmptyAudience(filter)) return { ok: false, message: 'Choose at least one contact type, priority, email history, organization or title first.' }
   const people = (await audiencePeople(filter)).map((p) => ({ personId: p.id, name: p.fullName, email: normalizeListEmail(p.email) }))
   if (people.length !== input.expected) return { ok: false, message: `The group is now ${people.length} people, not ${input.expected}. Check it and try again.` }
   const label = describeAudience(filter, (r) => PERSON_ROLE_LABELS[r])

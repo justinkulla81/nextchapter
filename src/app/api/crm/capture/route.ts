@@ -13,6 +13,10 @@ import { logManualContact } from '@/lib/crm/log-contact'
 import { completionUpdate } from '@/lib/crm/completion'
 import { markInvitedAsCandidate } from '@/lib/candidates/invite'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
+import {
+  warmthFromConnectionDegree, nextWarmth, previousConnectionDegree,
+  schoolsFrom, formerEmployerFrom, recordBackground,
+} from '@/lib/crm/background'
 
 export const maxDuration = 30
 
@@ -50,22 +54,13 @@ interface CapturePayload {
   messagedToday?: boolean
   /** "I invited them to join NextChapter as a candidate." */
   invitedAsCandidate?: boolean
+  /** From the profile's Education section: [{ name, detail }] — detail is the degree line. */
+  schools?: { name?: string; detail?: string }[]
+  /** The most recent Experience entry when it has ended: { name, title }. */
+  formerEmployer?: { name?: string; title?: string }
 }
 
 const VALID_PRIORITIES = new Set(['P0', 'P1', 'P2'])
-
-// LinkedIn network distance, read off the profile page, doubles as a
-// starting warmth: someone already 1st-degree is a genuinely warmer lead
-// than someone you've never interacted with. Only ever narrows to this on a
-// real signal — no signal (not LinkedIn, scrape failed) leaves `warmth`
-// unset so the schema's own UNKNOWN default applies instead of a false COLD.
-function warmthFromConnectionDegree(degree: string | undefined): CrmWarmth | null {
-  if (!degree) return null
-  const d = degree.toLowerCase()
-  if (d.includes('1st')) return 'HOT'
-  if (d.includes('2nd')) return 'WARM'
-  return 'COLD' // 3rd-degree, or any other value LinkedIn ever sends here
-}
 
 async function logLinkedInMessage(personId: string) {
   // Same path as logging from the People list, so the date, touch count and
@@ -139,6 +134,7 @@ async function fillBlanks(
     linkedinUrl: string | null
     priority: CrmPriorityTier | null
     warmth: CrmWarmth
+    linkedinDegree: string | null
     roles: CrmPersonRole[]
     needsCompletion: boolean
     affiliations: { id: string; title: string | null; orgId: string }[]
@@ -181,8 +177,15 @@ async function fillBlanks(
     filled.push('priority')
   }
 
-  const warmth = warmthFromConnectionDegree(body.connectionDegree)
-  if (warmth && existing.warmth === 'UNKNOWN') { data.warmth = warmth; filled.push('warmth') }
+  // The degree is a fact about today and is always refreshed; warmth only
+  // follows it while it's still the extension's own guess (see nextWarmth).
+  const degree = typeof body.connectionDegree === 'string' ? body.connectionDegree.trim() : ''
+  if (degree) {
+    const warmth = nextWarmth(existing.warmth, await previousConnectionDegree(existing), degree)
+    if (warmth) { data.warmth = warmth; filled.push(`warmth (${degree} → ${warmth.toLowerCase()})`) }
+    data.linkedinDegree = degree
+    data.linkedinDegreeSeenAt = new Date()
+  }
 
   const newRoles = parsed.roles.filter((r) => !existing.roles.includes(r))
   if (newRoles.length > 0) { data.roles = { push: newRoles }; filled.push('contact type') }
@@ -210,6 +213,12 @@ async function fillBlanks(
   if (Object.keys(data).length > 0) {
     await prisma.crmPerson.update({ where: { id: existing.id }, data })
   }
+  const background = await recordBackground(existing.id, {
+    schools: schoolsFrom(body.schools),
+    formerEmployer: formerEmployerFrom(body.formerEmployer),
+    currentOrgId: primary?.orgId ?? parsed.orgId,
+  })
+  if (background.length > 0) filled.push(background.join(', '))
   if (filled.length > 0) {
     await prisma.crmSourceRecord.create({
       data: {
@@ -222,6 +231,7 @@ async function fillBlanks(
   }
   captureServerEvent('extension', 'crm_capture_filled', {
     personId: existing.id, fields: filled.length, filled,
+    connectionDegree: degree || null, backgroundAdded: background.length,
   })
 
   const who = (data.fullName as string | undefined) ?? existing.fullName
@@ -403,21 +413,31 @@ export async function POST(req: NextRequest) {
           priorityScore,
           priorityComputedAt: now,
           ...(warmth ? { warmth } : {}),
+          ...(body.connectionDegree ? { linkedinDegree: body.connectionDegree.trim(), linkedinDegreeSeenAt: now } : {}),
         },
       })
       if (orgId) {
         await prisma.crmAffiliation.create({ data: { personId: person.id, orgId, title: body.jobTitle?.trim() || '' } })
       }
+      const background = await recordBackground(person.id, {
+        schools: schoolsFrom(body.schools),
+        formerEmployer: formerEmployerFrom(body.formerEmployer),
+        currentOrgId: orgId,
+      })
       await prisma.crmSourceRecord.create({
         data: { sourceFile: 'CHROME_EXTENSION', rawJson: { ...body, via: 'extension' }, personId: person.id, matchTier: 'CREATE' },
       })
-      captureServerEvent('extension', 'crm_captured', { kind: 'person', personId: person.id })
+      captureServerEvent('extension', 'crm_captured', {
+        kind: 'person', personId: person.id,
+        connectionDegree: body.connectionDegree ?? null, backgroundAdded: background.length,
+      })
       if (body.messagedToday) await logLinkedInMessage(person.id)
       if (body.invitedAsCandidate) {
         await markInvitedAsCandidate(person.id, 'You — invited via the capture extension')
         captureServerEvent('extension', 'crm_candidate_invited', { personId: person.id, alreadyMember: false })
       }
       const extras = [
+        background.length > 0 && `added ${background.join(', ')}`,
         body.messagedToday && 'logged your LinkedIn message today',
         body.invitedAsCandidate && 'marked as invited to NextChapter',
       ].filter(Boolean)

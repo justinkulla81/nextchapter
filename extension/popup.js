@@ -195,16 +195,26 @@ async function readPage() {
     // The first Experience entry, only if it's current ("… – Present").
     // Grouped entries (several roles at one company) lead with the company;
     // single roles lead with the title, then "Company · Full-time".
-    const currentExperienceCompany = () => {
-      const li = expSection?.querySelector('li')
-      if (!li || !/\bpresent\b/i.test(li.textContent || '')) return ''
-      const logo = li.querySelector('img[alt$=" logo" i]')?.getAttribute('alt')?.replace(/\s+logo$/i, '').trim()
-      if (logo) return logo
+    const entryLines = (li) => {
       const spans = Array.from(li.querySelectorAll('span[aria-hidden="true"], p'))
         .map((el) => (el.textContent || '').trim()).filter(Boolean)
       const lines = spans.filter((t, i) => spans.indexOf(t) === i)
+      return lines.length > 0
+        ? lines
+        : (li.innerText || '').split('\n').map((t) => t.trim()).filter((t, i, a) => t && a.indexOf(t) === i)
+    }
+    const logoName = (li) => li.querySelector('img[alt$=" logo" i]')?.getAttribute('alt')?.replace(/\s+logo$/i, '').trim() || ''
+    const experienceCompanyOf = (li) => {
+      const logo = logoName(li)
+      if (logo) return logo
+      const lines = entryLines(li)
       const grouped = !!li.querySelector('ul li')
       return ((grouped ? lines[0] : lines[1]) || '').split('·')[0].trim()
+    }
+    const currentExperienceCompany = () => {
+      const li = expSection?.querySelector('li')
+      if (!li || !/\bpresent\b/i.test(li.textContent || '')) return ''
+      return experienceCompanyOf(li)
     }
     // The badges beside the name (current company, school). LinkedIn
     // renders them as links or buttons depending on the layout, with
@@ -227,6 +237,10 @@ async function readPage() {
         const label = el.getAttribute('aria-label') || ''
         badges.push({
           text,
+          // Strict: only LinkedIn's own school link or label. The looser
+          // name test below is fine for steering the employer pick, but
+          // "Khan Academy" on someone's card is usually where they work.
+          schoolLink: /\/school\//.test(href) || /education/i.test(label),
           school: /\/school\//.test(href) || /education/i.test(label) ||
             /\b(university|college|school|academy|institute of technology|polytechnic)\b/i.test(text),
         })
@@ -313,6 +327,75 @@ async function readPage() {
       if (stripped && stripped !== out.jobTitle) out.jobTitle = stripped
     }
     out.location = locationLine.split('·')[0].trim()
+
+    // Schools and, once they've left it, the last employer — for the
+    // university alumni lists and company former-employee lists in the CRM.
+    // Both come from the Education/Experience sections, which LinkedIn only
+    // renders once they scroll into view, so they're scrolled through once
+    // (and the page put back where it was) when they aren't there yet.
+    const sectionTitled = (re) => {
+      for (const h of scope.querySelectorAll('h2, h3')) {
+        if (re.test((h.textContent || '').trim())) return h.closest('section') || h.parentElement?.parentElement || null
+      }
+      return null
+    }
+    let eduSection = document.getElementById('education')?.closest('section') || sectionTitled(/^education$/i)
+    let laterExpSection = expSection || sectionTitled(/^experience$/i)
+    if (!eduSection || !laterExpSection) {
+      const scroller = document.getElementById('workspace') || document.scrollingElement
+      const start = scroller.scrollTop
+      for (let i = 0; i < 10 && !(eduSection && laterExpSection); i++) {
+        scroller.scrollTop += Math.max(400, scroller.clientHeight)
+        await new Promise((r) => setTimeout(r, 250))
+        eduSection = eduSection || sectionTitled(/^education$/i)
+        laterExpSection = laterExpSection || sectionTitled(/^experience$/i)
+      }
+      scroller.scrollTop = start
+    }
+    // One element per school / employer. The 2026 layout has no <li> at
+    // the top level: each entry is a logo link (<a><img alt="X logo">)
+    // beside a block of <p> lines, and the only <li>s are the individual
+    // roles inside a company with several — reading those as entries took
+    // an old Facebook role as the latest job of someone who's still at
+    // their current one. The older <li> layout is the fallback.
+    const topEntries = (sec) => {
+      if (!sec) return []
+      const logoLinks = (el) => Array.from(el.querySelectorAll('a')).filter((a) => a.querySelector('img') && !a.closest('li'))
+      const byLogo = []
+      for (const a of logoLinks(sec)) {
+        // Widen to the whole block for this one logo, so a company's
+        // grouped roles (and their "Present") belong to its entry.
+        let entry = a.parentElement
+        while (entry?.parentElement && entry.parentElement !== sec && logoLinks(entry.parentElement).length === 1) entry = entry.parentElement
+        if (entry && !byLogo.includes(entry) && (entry.innerText || '').trim()) byLogo.push(entry)
+      }
+      if (byLogo.length > 0) return byLogo
+      return Array.from(sec.querySelectorAll('li')).filter((li) => !li.parentElement.closest('li') && (li.innerText || '').trim())
+    }
+    // A date line ("2004 – 2008", "Sep 2010 - May 2012") is not a degree.
+    const DATE_LINE = /^((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?\d{4}(\s*[-–]\s*((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?(\d{4}|present))?$/i
+    out.schools = []
+    for (const li of topEntries(eduSection)) {
+      const lines = entryLines(li).filter((t) => !/^(show all|see more|… ?more)\b/i.test(t) && t !== logoName(li))
+      const name = logoName(li) || lines[0] || ''
+      if (!name || CARD_TEXT.test(name)) continue
+      const detail = lines.filter((t) => t !== name).find((t) => !DATE_LINE.test(t) && t.length <= 160) || ''
+      if (!out.schools.some((s) => s.name === name)) out.schools.push({ name, detail })
+    }
+    if (out.schools.length === 0) {
+      for (const b of topCardBadges()) if (b.schoolLink) out.schools.push({ name: b.text, detail: '' })
+    }
+    // The most recent role, only when it has ended. A current job is
+    // already the person's organization; this is where they were before.
+    const latest = topEntries(laterExpSection)[0]
+    if (latest && !/\bpresent\b/i.test(latest.textContent || '')) {
+      const company = experienceCompanyOf(latest)
+      const nested = latest.querySelector('li')
+      const title = (nested ? entryLines(nested)[0] : entryLines(latest)[0]) || ''
+      if (company && !CARD_TEXT.test(company) && !JOB_SEEKING.test(company)) {
+        out.formerEmployer = { name: company, title: title === company ? '' : title }
+      }
+    }
 
     // The connection-degree badge ("· 1st" / "· 2nd" / "· 3rd") sits right
     // next to the name — deliberately excluded from collectSiblingLines
@@ -496,6 +579,22 @@ function renderFields() {
     else if (f.id === 'title') input.value = page.title
     host.append(input)
   }
+
+  // What the page told us that has no field of its own — shown so a wrong
+  // read is visible before it's saved, not discovered on the record later.
+  if (kind === 'person') {
+    const facts = [
+      page.scraped.connectionDegree && `LinkedIn: ${page.scraped.connectionDegree}`,
+      page.scraped.schools?.length && `Schools: ${page.scraped.schools.map((s) => s.name).join(', ')}`,
+      page.scraped.formerEmployer && `Last employer: ${page.scraped.formerEmployer.name}`,
+    ].filter(Boolean)
+    if (facts.length > 0) {
+      const p = document.createElement('p')
+      p.className = 'muted'
+      p.textContent = facts.join(' · ')
+      host.append(p)
+    }
+  }
 }
 
 async function init() {
@@ -624,6 +723,10 @@ $('save').addEventListener('click', async () => {
   // Not a field you'd hand-edit — it's a fact read off the page, used
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
+  // Same: read off the page, not typed — they put this person on their
+  // schools' alumni lists and their last employer's former-employee list.
+  if (kind === 'person' && page.scraped.schools?.length) payload.schools = page.scraped.schools
+  if (kind === 'person' && page.scraped.formerEmployer) payload.formerEmployer = page.scraped.formerEmployer
   for (const f of KINDS[kind]) {
     if (f.type === 'toggle') {
       if ($(`f-${f.id}`)?.checked) payload[f.id] = true

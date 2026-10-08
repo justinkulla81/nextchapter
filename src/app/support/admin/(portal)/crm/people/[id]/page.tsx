@@ -32,6 +32,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       affiliations: { include: { org: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
+      backgrounds: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ kind: 'asc' }, { createdAt: 'asc' }] },
       // Only what happened since the CRM began — see CRM_ACTIVITY_CUTOFF.
       // Pre-cutoff rows stay in the table (nothing is deleted) but a decade
       // of pre-company mail is not this person's outreach history.
@@ -117,6 +118,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             {/* Labeled rather than bare — "Hot" on its own reads as a stray
                 word; "Warmth: Hot" says what it is without a hover or click. */}
             <span className="ml-2 text-muted-foreground">Warmth: {WARMTH_LABELS[person.warmth]}</span>
+            {person.linkedinDegree && (
+              <span
+                className="text-muted-foreground"
+                title={person.linkedinDegreeSeenAt ? `Seen on their LinkedIn profile ${formatDate(person.linkedinDegreeSeenAt)}` : undefined}
+              >
+                · LinkedIn {person.linkedinDegree}
+              </span>
+            )}
             {/* Priority lived on the People list row and nowhere else — the
                 one place you're actually looking at someone had no way to
                 set it. Same inline-select, same P0/P1/P2 color coding. */}
@@ -199,6 +208,23 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                   {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
                 </span>
                 <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {person.backgrounds.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">Background</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.backgrounds.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
+                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
               </li>
             ))}
           </ul>
