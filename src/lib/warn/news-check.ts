@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { searchTopic } from '@/lib/news/discover'
 import { readLayoffHeadline, publisherKey, sameEmployer } from './news-headline'
+import { findLayoffContacts } from './layoff-contacts-run'
 
 const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']
 
@@ -9,13 +10,18 @@ const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts annou
 const WINDOW_DAYS = 7
 /** A filing or notice already on file this close covers the layoff. */
 const COVERED_DAYS = 45
+/** Contact lookups (one small model call each) per run, so a burst of layoffs cannot run up a bill. */
+const MAX_CONTACT_LOOKUPS = 10
 
 export interface NewsCheckResult {
   headlines: number
   mentions: number
-  added: { company: string; employees: number | null; publishers: number }[]
+  added: { company: string; employees: number | null; publishers: number; contacts: number }[]
   covered: number
   waiting: number
+  /** Contact lookups made (one small model call each) and people found across them. */
+  lookups: number
+  contacts: number
 }
 
 /**
@@ -29,12 +35,32 @@ export interface NewsCheckResult {
  * WARN filing, a layoffs.fyi row, an earlier report — within 45 days is not
  * added again; the mention is kept so the filing shows as also reported.
  *
+ * Each added layoff then looks for a real named contact in its coverage
+ * (see layoff-contacts-run.ts): a spokesperson, HR lead, the executive who
+ * announced it, not only a CHRO.
+ *
  * Added rows are announcements, not filings: no state unless the reports
  * gave one, labelled with the publisher, and listed on the Layoff notices
  * admin page where one can be dismissed if it is wrong.
  */
+/** Contacts found for one layoff, 0 if the lookup is off, over its cap, or fails. */
+async function lookUpContacts(
+  company: string, employees: number | null, date: Date, orgId: string | null | undefined, urls: string[], result: NewsCheckResult,
+): Promise<number> {
+  if (!process.env.ANTHROPIC_API_KEY || result.lookups >= MAX_CONTACT_LOOKUPS) return 0
+  result.lookups++
+  try {
+    const r = await findLayoffContacts({ employer: company, employees, date, orgId, urls })
+    result.contacts += r.found
+    return r.found
+  } catch (e) {
+    console.error('Layoff contact lookup failed for', company, e)
+    return 0
+  }
+}
+
 export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
-  const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0 }
+  const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0, lookups: 0, contacts: 0 }
 
   // 1. Read the headlines, keep the ones that name a layoff.
   const seen = new Set<string>()
@@ -79,7 +105,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
 
   const recent = await prisma.warnNotice.findMany({
     where: { dismissedAt: null, noticeDate: { gte: new Date(Date.now() - (COVERED_DAYS + WINDOW_DAYS) * 86_400_000) } },
-    select: { normalizedEmployer: true, noticeDate: true },
+    select: { id: true, normalizedEmployer: true, noticeDate: true, employees: true, promotedOrgId: true },
   })
 
   for (const [key, mentions] of byCompany) {
@@ -87,10 +113,19 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     const first = mentions[0]
     const when = first.publishedAt ?? first.createdAt
 
-    const covered = recent.some((n) => sameEmployer(n.normalizedEmployer, key)
+    const covering = recent.find((n) => sameEmployer(n.normalizedEmployer, key)
       && n.noticeDate && Math.abs(n.noticeDate.getTime() - when.getTime()) <= COVERED_DAYS * 86_400_000)
-    if (covered) {
+    if (covering) {
       result.covered++
+      // Two publishers, like an added layoff: the story is real and the
+      // contact lookup is worth its call. Linking the mentions to the filing
+      // marks them done, so the check does not look again tomorrow, and a
+      // filing that already has reports linked was looked up on an earlier day.
+      if (publishers.size >= 2) {
+        const looked = (await prisma.layoffNewsMention.count({ where: { noticeId: covering.id } })) > 0
+        await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: covering.id } })
+        if (!looked) await lookUpContacts(mentions[0].company, covering.employees, when, covering.promotedOrgId, mentions.map((m) => m.url), result)
+      }
       continue
     }
     if (publishers.size < 2) {
@@ -121,7 +156,10 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
       select: { id: true },
     })
     await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: notice.id } })
-    result.added.push({ company, employees, publishers: publishers.size })
+    // The rule: every layoff we add looks for a real named contact in its own
+    // coverage, once, here. A failure never blocks the layoff.
+    const contacts = await lookUpContacts(company, employees, when, null, mentions.map((m) => m.url), result)
+    result.added.push({ company, employees, publishers: publishers.size, contacts })
   }
   return result
 }

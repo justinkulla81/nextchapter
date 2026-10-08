@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
   try {
     news = await runLayoffNewsCheck()
-    captureServerEvent('cron', 'layoff_news_check_run', { mentions: news.mentions, added: news.added.length, covered: news.covered })
+    captureServerEvent('cron', 'layoff_news_check_run', { mentions: news.mentions, added: news.added.length, covered: news.covered, lookups: news.lookups, contacts: news.contacts })
   } catch (e) {
     news = { error: e instanceof Error ? e.message : String(e) }
   }
