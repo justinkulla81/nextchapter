@@ -82,12 +82,34 @@ export default async function AdminCandidatesPage({
     }),
   }
 
+  // Sorting by Dossier progress cannot be done in the database — it is derived
+  // from six other tables — so that one sort resolves the whole filtered set
+  // first and pages on the result. Every other view keeps the cheap path.
+  const sortKey = rawParams.sort ?? ''
+  const sortDir: 'asc' | 'desc' = rawParams.dir === 'asc' ? 'asc' : 'desc'
+  const sortingByDossier = sortKey === 'dossier'
+
+  let dossierPageIds: string[] | null = null
+  let dossierAll: Map<string, DossierGateSummary> | null = null
+  if (sortingByDossier) {
+    const allIds = (await prisma.candidateProfile.findMany({ where, select: { id: true } })).map((c) => c.id)
+    dossierAll = await getDossierGateSummaries(allIds)
+    const ranked = allIds.sort((a, b) => {
+      const ga = dossierAll!.get(a)
+      const gb = dossierAll!.get(b)
+      // Unlocked ranks above any partial count, since it is the end state.
+      const score = (g?: DossierGateSummary) => (g ? (g.unlocked ? g.total + 1 : g.met) : -1)
+      return sortDir === 'asc' ? score(ga) - score(gb) : score(gb) - score(ga)
+    })
+    dossierPageIds = ranked.slice(params.skip, params.skip + params.take)
+  }
+
   const [candidates, total, authUsers] = await Promise.all([
     prisma.candidateProfile.findMany({
-      where,
+      where: dossierPageIds ? { id: { in: dossierPageIds } } : where,
       orderBy: { createdAt: 'desc' },
-      skip: params.skip,
-      take: params.take,
+      skip: dossierPageIds ? undefined : params.skip,
+      take: dossierPageIds ? undefined : params.take,
       select: {
         id: true,
         userId: true,
@@ -117,15 +139,21 @@ export default async function AdminCandidatesPage({
     listAllAuthUsers(),
   ])
 
-  const candidateIds = candidates.map((c) => c.id)
+  // A findMany with `id: { in: [...] }` ignores the ranking, so the page is
+  // put back into sorted order here.
+  const ordered = dossierPageIds
+    ? dossierPageIds.map((id) => candidates.find((c) => c.id === id)).filter((c) => c !== undefined)
+    : candidates
+
+  const candidateIds = ordered.map((c) => c.id)
   const [resumeLinksByCandidateId, dossierGates] = await Promise.all([
     loadResumeLinks(candidateIds),
     // Batched — the per-candidate version runs six queries and would be
-    // ruinous across a full page of rows.
-    getDossierGateSummaries(candidateIds),
+    // ruinous across a full page of rows. Reused when already computed above.
+    dossierAll ? Promise.resolve(dossierAll) : getDossierGateSummaries(candidateIds),
   ])
 
-  const rows: Row[] = candidates.map((c) => {
+  const rows: Row[] = ordered.map((c) => {
     const grade = c.marketRealitySnapshots[0]?.grade ?? null
     return {
       id: c.id,
@@ -177,6 +205,7 @@ export default async function AdminCandidatesPage({
     { header: 'Grade', render: (r) => r.grade ?? 'Not graded' },
     {
       header: 'Dossier',
+      sortKey: 'dossier',
       render: (r) =>
         !r.dossier ? (
           '—'
@@ -244,12 +273,18 @@ export default async function AdminCandidatesPage({
         rows={result.rows}
         rowKey={(r) => r.id}
         emptyMessage="No candidates match."
+        sorting={{
+          currentKey: sortKey,
+          currentDir: sortDir,
+          basePath: '/support/admin/candidates',
+          baseParams: { q: params.q, ...params.filters },
+        }}
         pagination={{
           page: result.page,
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/candidates',
-          baseParams: { q: params.q, ...params.filters },
+          baseParams: { q: params.q, ...params.filters, ...(sortKey && { sort: sortKey, dir: sortDir }) },
         }}
       />
     </div>
