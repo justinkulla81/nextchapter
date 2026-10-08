@@ -1,136 +1,131 @@
-import type {
-  JobSearchDailyContent,
-  DailyItem,
-  ScoreStatus,
-} from "@/lib/job-search-daily/build";
+import type { JobSearchDailyContent, DailyItem, ScoreStatus } from '@/lib/job-search-daily/build'
 
 interface JobSearchDailyEmailProps {
-  content: JobSearchDailyContent;
-  masthead: string; // "Job Search Daily", or a neutral name for Confidential Search Mode
-  weekday: string; // "Wednesday"
-  appUrl: string;
-  unsubscribeUrl: string;
+  content: JobSearchDailyContent
+  masthead: string // "Job Search Daily", or a neutral name for Confidential Search Mode
+  weekday: string // "Wednesday"
+  appUrl: string
+  unsubscribeUrl: string
 }
 
 // Layout borrowed from the best daily-digest emails: wordmark above a white
 // card, a one-line greeting, bold-first bullets, and one colored button as
 // the only pop of color. Short enough to read on a phone before coffee.
 
-const sans =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
-const ink = "#0b2545";
-const muted = "#5a6472";
-const accent = "#2e7d5b"; // the action button only
+const sans = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
+const ink = '#0b2545'
+const muted = '#5a6472'
+const accent = '#2e7d5b' // the action button only
 
 const page: React.CSSProperties = {
-  backgroundColor: "#f3f4f6",
-  padding: "24px 12px",
+  backgroundColor: '#f3f4f6',
+  padding: '24px 12px',
   fontFamily: sans,
-  color: "#111827",
-  fontSize: "15px",
-  lineHeight: "1.5",
-};
+  color: '#111827',
+  fontSize: '15px',
+  lineHeight: '1.5',
+}
 
 const wordmark: React.CSSProperties = {
-  textAlign: "center",
-  margin: "0 0 16px",
-  fontSize: "22px",
+  textAlign: 'center',
+  margin: '0 0 16px',
+  fontSize: '22px',
   fontWeight: 800,
   color: ink,
-  letterSpacing: "-0.02em",
-};
+  letterSpacing: '-0.02em',
+}
 
 const wordmarkSub: React.CSSProperties = {
-  display: "block",
-  fontSize: "12px",
+  display: 'block',
+  fontSize: '12px',
   fontWeight: 600,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   color: muted,
-};
+}
 
 const card: React.CSSProperties = {
-  maxWidth: "640px",
-  margin: "0 auto",
-  backgroundColor: "#ffffff",
-  borderRadius: "16px",
-  padding: "24px",
-};
+  maxWidth: '640px',
+  margin: '0 auto',
+  backgroundColor: '#ffffff',
+  borderRadius: '16px',
+  padding: '24px',
+}
 
 const hello: React.CSSProperties = {
-  fontSize: "20px",
+  fontSize: '20px',
   fontWeight: 600,
   margin: 0,
   color: ink,
-};
-const sub: React.CSSProperties = { color: muted, margin: "4px 0 0" };
+}
+const sub: React.CSSProperties = { color: muted, margin: '4px 0 0' }
 
 const label: React.CSSProperties = {
-  fontSize: "12px",
+  fontSize: '12px',
   fontWeight: 600,
-  letterSpacing: "0.06em",
-  textTransform: "uppercase",
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
   color: muted,
-  margin: "24px 0 4px",
-};
-const list: React.CSSProperties = { margin: 0, paddingLeft: "20px" };
-const li: React.CSSProperties = { margin: "4px 0" };
+  margin: '24px 0 4px',
+}
+const list: React.CSSProperties = { margin: 0, paddingLeft: '20px' }
+const li: React.CSSProperties = { margin: '4px 0' }
 const itemLink: React.CSSProperties = {
   color: ink,
-  textDecoration: "underline",
-  textDecorationColor: "#c9ced6",
-};
-const tail: React.CSSProperties = { color: muted };
+  textDecoration: 'underline',
+  textDecorationColor: '#c9ced6',
+}
+const tail: React.CSSProperties = { color: muted }
 const more: React.CSSProperties = {
   color: muted,
-  fontSize: "14px",
-  margin: "4px 0 0 20px",
-};
+  fontSize: '14px',
+  margin: '4px 0 0 20px',
+}
 
 const button: React.CSSProperties = {
-  display: "inline-block",
+  display: 'inline-block',
   backgroundColor: accent,
-  color: "#ffffff",
-  textDecoration: "none",
-  padding: "12px 24px",
-  borderRadius: "999px",
+  color: '#ffffff',
+  textDecoration: 'none',
+  padding: '12px 24px',
+  borderRadius: '999px',
   fontWeight: 700,
-  fontSize: "16px",
-  marginTop: "24px",
-};
+  fontSize: '16px',
+  marginTop: '24px',
+}
 
 const quoteStyle: React.CSSProperties = {
-  margin: "24px 0 0",
-  paddingTop: "16px",
-  borderTop: "1px solid #eceef1",
+  margin: '24px 0 0',
+  paddingTop: '16px',
+  borderTop: '1px solid #eceef1',
   color: muted,
-  fontStyle: "italic",
-  fontSize: "14px",
-};
+  fontStyle: 'italic',
+  fontSize: '14px',
+}
 
 const footer: React.CSSProperties = {
-  textAlign: "center",
+  textAlign: 'center',
   color: muted,
-  fontSize: "12px",
-  margin: "16px 0 0",
-};
+  fontSize: '12px',
+  margin: '16px 0 0',
+}
 
 const STATUS: Record<ScoreStatus, { text: string; color: string }> = {
   locked: {
-    text: "A locked in. Anything else today is a bonus",
-    color: "#2f855a",
+    text: 'A locked in. Anything else today is a bonus',
+    color: '#2f855a',
   },
-  onTrack: { text: "On track for an A", color: "#2f855a" },
-  behind: { text: "A little behind. Today catches you up", color: "#b7791f" },
-  atRisk: { text: "Behind pace. Start with one to-do", color: "#c53030" },
-};
+  onTrack: { text: 'On track for an A', color: '#2f855a' },
+  behind: { text: 'A little behind. Today catches you up', color: '#b7791f' },
+  atRisk: { text: 'Behind pace. Start with one to-do', color: '#c53030' },
+}
 
 const BAR: Record<ScoreStatus, string> = {
-  locked: "#48bb78",
-  onTrack: "#48bb78",
-  behind: "#ecc94b",
-  atRisk: "#f56565",
-};
+  locked: '#48bb78',
+  onTrack: '#48bb78',
+  behind: '#ecc94b',
+  atRisk: '#f56565',
+}
 
 function Bullet({ item }: { item: DailyItem }) {
   return (
@@ -144,19 +139,11 @@ function Bullet({ item }: { item: DailyItem }) {
       )}
       {item.detail && <span style={tail}> · {item.detail}</span>}
     </li>
-  );
+  )
 }
 
-function Section({
-  title,
-  items,
-  footerNote,
-}: {
-  title: string;
-  items: DailyItem[];
-  footerNote?: React.ReactNode;
-}) {
-  if (items.length === 0) return null;
+function Section({ title, items, footerNote }: { title: string; items: DailyItem[]; footerNote?: React.ReactNode }) {
+  if (items.length === 0) return null
   return (
     <>
       <p style={label}>{title}</p>
@@ -167,7 +154,7 @@ function Section({
       </ul>
       {footerNote}
     </>
-  );
+  )
 }
 
 export default function JobSearchDailyEmail({
@@ -177,29 +164,11 @@ export default function JobSearchDailyEmail({
   appUrl,
   unsubscribeUrl,
 }: JobSearchDailyEmailProps) {
-  const {
-    score,
-    priorities,
-    todos,
-    applications,
-    networking,
-    jobs,
-    companyMoves,
-    article,
-    unlock,
-    action,
-    quote,
-  } = content;
-  const pct =
-    score && score.target > 0
-      ? Math.min(100, Math.round((score.earned / score.target) * 100))
-      : 0;
-  const newForYou = [
-    ...jobs.items,
-    ...companyMoves,
-    ...(article ? [article] : []),
-  ];
-  const followUpsUrl = `${appUrl}/dashboard/network/follow-ups?src=job_search_daily`;
+  const { score, priorities, todos, applications, networking, jobs, companyMoves, article, unlock, action, quote } =
+    content
+  const pct = score && score.target > 0 ? Math.min(100, Math.round((score.earned / score.target) * 100)) : 0
+  const newForYou = [...jobs.items, ...companyMoves, ...(article ? [article] : [])]
+  const followUpsUrl = `${appUrl}/dashboard/network/follow-ups?src=job_search_daily`
 
   return (
     <div style={page}>
@@ -209,37 +178,33 @@ export default function JobSearchDailyEmail({
       </p>
 
       <div style={card}>
-        <p style={hello}>Good morning, {content.firstName || "there"}</p>
+        <p style={hello}>Good morning, {content.firstName || 'there'}</p>
         <p style={sub}>
           Here&apos;s your {weekday}
-          {content.dayNumber ? ` · Day ${content.dayNumber}` : ""}
-          {content.streak >= 2 ? ` · ${content.streak}-day streak` : ""}
+          {content.dayNumber ? ` · Day ${content.dayNumber}` : ''}
+          {content.streak >= 2 ? ` · ${content.streak}-day streak` : ''}
         </p>
 
         {score && (
-          <div style={{ marginTop: "16px" }}>
+          <div style={{ marginTop: '16px' }}>
             <p style={{ margin: 0 }}>
-              Weekly Search Score {score.earned}/{score.target}{" "}
-              <span
-                style={{ color: STATUS[score.status].color, fontWeight: 600 }}
-              >
-                {STATUS[score.status].text}
-              </span>
+              Weekly Search Score {score.earned}/{score.target}{' '}
+              <span style={{ color: STATUS[score.status].color, fontWeight: 600 }}>{STATUS[score.status].text}</span>
             </p>
             <div
               style={{
-                height: "8px",
-                backgroundColor: "#eceef1",
-                borderRadius: "4px",
-                marginTop: "8px",
+                height: '8px',
+                backgroundColor: '#eceef1',
+                borderRadius: '4px',
+                marginTop: '8px',
               }}
             >
               <div
                 style={{
-                  height: "8px",
+                  height: '8px',
                   width: `${pct}%`,
                   backgroundColor: BAR[score.status],
-                  borderRadius: "4px",
+                  borderRadius: '4px',
                 }}
               />
             </div>
@@ -252,7 +217,7 @@ export default function JobSearchDailyEmail({
             <ul style={list}>
               {priorities.map((p) => (
                 <li key={p.key} style={li}>
-                  <strong>{p.lead}</strong>{" "}
+                  <strong>{p.lead}</strong>{' '}
                   <a href={p.href} style={itemLink}>
                     {p.text}
                   </a>
@@ -264,9 +229,7 @@ export default function JobSearchDailyEmail({
 
         {todos.length > 0 && (
           <>
-            <p style={label}>
-              {priorities.length > 0 ? "Also to do" : "To do today"}
-            </p>
+            <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>
             <ul style={list}>
               {todos.map((t, i) => (
                 <li key={i} style={li}>
@@ -278,26 +241,18 @@ export default function JobSearchDailyEmail({
         )}
 
         <Section
-          title={`Follow up on applications (${applications.length + content.applicationsMoreCount})`}
+          title="Follow up on applications"
           items={applications}
           footerNote={
-            (content.applicationsMoreCount > 0 ||
-              content.staleApplicationCount > 0) && (
+            (content.applicationsMoreCount > 0 || content.staleApplicationCount > 0) && (
               <p style={more}>
-                <a
-                  href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`}
-                  style={{ color: muted }}
-                >
+                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
                   {[
-                    content.applicationsMoreCount > 0
-                      ? `+${content.applicationsMoreCount} more`
-                      : null,
-                    content.staleApplicationCount > 0
-                      ? `${content.staleApplicationCount} older with no reply. Close them out`
-                      : null,
+                    content.applicationsMoreCount > 0 ? 'See all' : null,
+                    content.staleApplicationCount > 0 ? 'Mark older applications closed to keep your list clean' : null,
                   ]
                     .filter(Boolean)
-                    .join(" · ")}
+                    .join(' · ')}
                 </a>
               </p>
             )
@@ -305,13 +260,13 @@ export default function JobSearchDailyEmail({
         />
 
         <Section
-          title={`Follow up with people (${networking.length + content.networkingMoreCount})`}
+          title="Follow up with people"
           items={networking}
           footerNote={
             content.networkingMoreCount > 0 && (
               <p style={more}>
                 <a href={followUpsUrl} style={{ color: muted }}>
-                  +{content.networkingMoreCount} more
+                  See everyone
                 </a>
               </p>
             )
@@ -324,20 +279,15 @@ export default function JobSearchDailyEmail({
           footerNote={
             jobs.lockedCount > 0 && (
               <p style={more}>
-                <a
-                  href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`}
-                  style={{ color: muted }}
-                >
-                  +{jobs.lockedCount} more on the A-list board
+                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
+                  More roles on the A-list board
                 </a>
               </p>
             )
           }
         />
 
-        {unlock && (
-          <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />
-        )}
+        {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}
 
         <a href={action.href} style={button}>
           {action.label} →
@@ -345,8 +295,7 @@ export default function JobSearchDailyEmail({
 
         {quote && (
           <p style={quoteStyle}>
-            &ldquo;{quote.text}&rdquo;{" "}
-            <span style={{ fontStyle: "normal" }}>— {quote.author}</span>
+            &ldquo;{quote.text}&rdquo; <span style={{ fontStyle: 'normal' }}>— {quote.author}</span>
           </p>
         )}
       </div>
@@ -357,5 +306,5 @@ export default function JobSearchDailyEmail({
         </a>
       </p>
     </div>
-  );
+  )
 }

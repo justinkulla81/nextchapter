@@ -1,23 +1,23 @@
-import "server-only";
-import { prisma } from "@/lib/prisma";
-import { gmailComposeHref } from "@/lib/email/gmail-compose-href";
-import { formatDisplayName } from "@/lib/format-name";
-import { isKnownBulkSenderAddress } from "@/lib/email-tracking/ats-patterns";
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
+import { formatDisplayName } from '@/lib/format-name'
+import { isKnownBulkSenderAddress } from '@/lib/email-tracking/ats-patterns'
 
 // How far back a meeting/inbound email still counts as "needs a follow-up"
 // — older than this and surfacing it would read as nagging about something
 // too stale to act on naturally.
-const MEETING_LOOKBACK_DAYS = 21;
-const INBOUND_LOOKBACK_DAYS = 14;
+const MEETING_LOOKBACK_DAYS = 21
+const INBOUND_LOOKBACK_DAYS = 14
 // A message you sent to a known contact that's gone unanswered this long
 // earns its own nudge — long enough that silence is a real signal, not just
 // someone being slow to check email.
-const OUTBOUND_LOOKBACK_DAYS = 7;
+const OUTBOUND_LOOKBACK_DAYS = 7
 // A freshly-landed interview is worth prepping for regardless of whether
 // any email/calendar signal exists yet — same window as the inbound-email
 // lookback, since after this it reads as stale nagging rather than a timely
 // nudge.
-const INTERVIEW_LOOKBACK_DAYS = 14;
+const INTERVIEW_LOOKBACK_DAYS = 14
 
 // trackedEmailActivity.fromAddress stores the raw RFC 5322 header value
 // (sync-gmail.ts writes `from`/`to` straight from the parsed message), which
@@ -29,49 +29,56 @@ const INTERVIEW_LOOKBACK_DAYS = 14;
 // still unmatched falls back to a clean parsed name instead of raw header
 // soup.
 export function parseAddress(raw: string): {
-  name: string | null;
-  email: string;
+  name: string | null
+  email: string
 } {
-  const match = raw.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/);
+  const match = raw.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/)
   if (match) {
-    const name = match[1].trim().replace(/^['"]|['"]$/g, "");
-    return { name: name || null, email: match[2].trim().toLowerCase() };
+    const name = match[1].trim().replace(/^['"]|['"]$/g, '')
+    return { name: name || null, email: match[2].trim().toLowerCase() }
   }
-  return { name: null, email: raw.trim().toLowerCase() };
+  return { name: null, email: raw.trim().toLowerCase() }
 }
 
 // Calendar auto-replies ("Accepted: Coffee chat") land in the inbox as inbound
 // mail from a contact, but there's nothing to answer — never a follow-up.
 const CALENDAR_RESPONSE_SUBJECT =
-  /^\s*(re:\s*)*(accepted|declined|tentatively accepted|tentative|invitation|updated invitation|canceled event|cancelled event)\s*:/i;
+  /^\s*(re:\s*)*(accepted|declined|tentatively accepted|tentative|invitation|updated invitation|canceled event|cancelled event)\s*:/i
 
-export function isCalendarResponseSubject(
-  subject: string | null | undefined,
-): boolean {
-  return !!subject && CALENDAR_RESPONSE_SUBJECT.test(subject);
+// Mass mail from a saved contact or a recruiter list — a newsletter isn't
+// someone waiting on you.
+const BULK_SUBJECT =
+  /\b(newsletter|digest|unsubscribe|view in browser|weekly update|monthly update|webinar|new deals for you)\b/i
+
+export function isBulkSubject(subject: string | null | undefined): boolean {
+  return !!subject && BULK_SUBJECT.test(subject)
+}
+
+export function isCalendarResponseSubject(subject: string | null | undefined): boolean {
+  return !!subject && CALENDAR_RESPONSE_SUBJECT.test(subject)
 }
 
 export interface NeedsFollowUpItem {
-  kind: "meeting" | "inbound-email" | "unanswered-outbound" | "interview";
-  sourceId: string;
-  contactName: string;
+  kind: 'meeting' | 'inbound-email' | 'unanswered-outbound' | 'interview'
+  sourceId: string
+  contactName: string
   // Synthetic (`job:${jobPostingId}`) for 'interview' items, which have no
   // real counterpart address — this field is only ever used as a dedup key
   // and to build gmailHref, never displayed.
-  contactEmail: string;
+  contactEmail: string
   // Set only when this signal matches a real SupportNetworkContact row (by
   // email) — links to their profile page. Null for a cold/unmatched sender
   // (e.g. a recruiter who's emailed but was never added to the network) and
   // always null for 'interview' items.
-  contactId: string | null;
-  date: Date;
-  subject: string;
-  gmailHref: string;
+  contactId: string | null
+  date: Date
+  subject: string
+  gmailHref: string
   // Best-effort match against a connected calendar's INTERVIEW-type events
   // (see buildInterviewItems) — set only for 'interview' items where a
   // scheduled time was actually found, so the card can say when it really
   // is rather than just when the candidate said they landed it.
-  scheduledTime?: Date;
+  scheduledTime?: Date
 }
 
 // Best-effort match: a landed interview has no real foreign key to a
@@ -81,47 +88,41 @@ export interface NeedsFollowUpItem {
 // only signal available without asking the candidate to link them by hand.
 function findScheduledInterviewTime(
   posting: { companyName: string | null },
-  events: { eventType: string; title: string | null; startTime: Date }[],
+  events: { eventType: string; title: string | null; startTime: Date }[]
 ): Date | null {
-  if (!posting.companyName) return null;
-  const needle = posting.companyName.toLowerCase();
-  const match = events.find(
-    (e) =>
-      e.eventType === "INTERVIEW" && e.title?.toLowerCase().includes(needle),
-  );
-  return match?.startTime ?? null;
+  if (!posting.companyName) return null
+  const needle = posting.companyName.toLowerCase()
+  const match = events.find((e) => e.eventType === 'INTERVIEW' && e.title?.toLowerCase().includes(needle))
+  return match?.startTime ?? null
 }
 
 function buildInterviewItems(
   landedInterviews: {
-    id: string;
-    title: string | null;
-    companyName: string | null;
-    interviewLandedAt: Date | null;
+    id: string
+    title: string | null
+    companyName: string | null
+    interviewLandedAt: Date | null
   }[],
   calendarEvents: {
-    eventType: string;
-    title: string | null;
-    startTime: Date;
-  }[],
+    eventType: string
+    title: string | null
+    startTime: Date
+  }[]
 ): NeedsFollowUpItem[] {
   return landedInterviews.map((posting) => {
-    const label =
-      [posting.title, posting.companyName].filter(Boolean).join(" at ") ||
-      "Your interview";
+    const label = [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'Your interview'
     return {
-      kind: "interview" as const,
+      kind: 'interview' as const,
       sourceId: posting.id,
       contactName: label,
       contactEmail: `job:${posting.id}`,
       contactId: null,
       date: posting.interviewLandedAt!,
       subject: label,
-      gmailHref: "/dashboard/interview-prep",
-      scheduledTime:
-        findScheduledInterviewTime(posting, calendarEvents) ?? undefined,
-    };
-  });
+      gmailHref: '/dashboard/interview-prep',
+      scheduledTime: findScheduledInterviewTime(posting, calendarEvents) ?? undefined,
+    }
+  })
 }
 
 // Four real, verifiable "you owe someone (or yourself) something" signals,
@@ -141,27 +142,17 @@ function buildInterviewItems(
 // list never awards points itself; the points still only come from Gmail/
 // Calendar actually detecting the real thank-you/follow-up/reply (see
 // AUTO_DETECTED_ACTION_TYPES) once the candidate acts on it.
-export async function getNeedsFollowUpList(
-  candidateId: string,
-): Promise<NeedsFollowUpItem[]> {
+export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFollowUpItem[]> {
   const [calendarConnection, emailConnection] = await Promise.all([
     prisma.calendarConnection.findUnique({ where: { candidateId } }),
     prisma.emailConnection.findUnique({ where: { candidateId } }),
-  ]);
+  ])
 
-  const now = Date.now();
-  const meetingCutoff = new Date(
-    now - MEETING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
-  );
-  const inboundCutoff = new Date(
-    now - INBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
-  );
-  const outboundCutoff = new Date(
-    now - OUTBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
-  );
-  const interviewCutoff = new Date(
-    now - INTERVIEW_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
-  );
+  const now = Date.now()
+  const meetingCutoff = new Date(now - MEETING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const inboundCutoff = new Date(now - INBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const outboundCutoff = new Date(now - OUTBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const interviewCutoff = new Date(now - INTERVIEW_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
 
   // Doesn't depend on either connection — a candidate who marked an
   // interview should see the prep nudge even if they've never connected
@@ -173,17 +164,17 @@ export async function getNeedsFollowUpList(
       declinedAt: null,
       offerReceivedAt: null,
     },
-    orderBy: { interviewLandedAt: "desc" },
+    orderBy: { interviewLandedAt: 'desc' },
     select: {
       id: true,
       title: true,
       companyName: true,
       interviewLandedAt: true,
     },
-  });
+  })
 
   if (!calendarConnection && !emailConnection) {
-    return buildInterviewItems(landedInterviews, []).slice(0, 10);
+    return buildInterviewItems(landedInterviews, []).slice(0, 10)
   }
 
   const [meetings, emailActivities, contacts] = await Promise.all([
@@ -191,37 +182,31 @@ export async function getNeedsFollowUpList(
       ? prisma.trackedCalendarEvent.findMany({
           where: {
             candidateId,
-            eventType: { in: ["NETWORKING_CALL", "INTERVIEW"] },
-            confidence: "high",
+            eventType: { in: ['NETWORKING_CALL', 'INTERVIEW'] },
+            confidence: 'high',
             counterpartEmail: { not: null },
             startTime: { gte: meetingCutoff },
             dismissedAt: null,
           },
-          orderBy: { startTime: "desc" },
+          orderBy: { startTime: 'desc' },
         })
       : Promise.resolve([]),
     emailConnection && !emailConnection.disconnectedAt
       ? prisma.trackedEmailActivity.findMany({
           where: { candidateId, dismissedAt: null },
-          orderBy: { detectedAt: "desc" },
+          orderBy: { detectedAt: 'desc' },
         })
       : Promise.resolve([]),
     prisma.supportNetworkContact.findMany({
       where: { candidateId, email: { not: null } },
       select: { id: true, name: true, email: true },
     }),
-  ]);
+  ])
 
-  const interviewItems = buildInterviewItems(landedInterviews, meetings);
+  const interviewItems = buildInterviewItems(landedInterviews, meetings)
 
-  const contactNameByEmail = new Map(
-    contacts
-      .filter((c) => c.email)
-      .map((c) => [c.email!.toLowerCase(), c.name]),
-  );
-  const contactIdByEmail = new Map(
-    contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]),
-  );
+  const contactNameByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.name]))
+  const contactIdByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]))
 
   // fromAddress is the counterpart's address for BOTH directions — see
   // sync-gmail.ts, which deliberately stores `to` there for OUTBOUND rows.
@@ -229,41 +214,36 @@ export async function getNeedsFollowUpList(
   // whether the stored value is a raw "Name <email>" header or already
   // clean — the inbound side below does the same parse, so both sides of
   // the "already replied?" check land on the same key space.
-  const latestOutboundByAddress = new Map<string, Date>();
+  const latestOutboundByAddress = new Map<string, Date>()
   for (const activity of emailActivities) {
-    if (activity.direction !== "OUTBOUND" || !activity.fromAddress) continue;
-    const address = parseAddress(activity.fromAddress).email;
-    const existing = latestOutboundByAddress.get(address);
-    if (!existing || activity.detectedAt > existing)
-      latestOutboundByAddress.set(address, activity.detectedAt);
+    if (activity.direction !== 'OUTBOUND' || !activity.fromAddress) continue
+    const address = parseAddress(activity.fromAddress).email
+    const existing = latestOutboundByAddress.get(address)
+    if (!existing || activity.detectedAt > existing) latestOutboundByAddress.set(address, activity.detectedAt)
   }
 
   // Mirror of the map above for the other direction — "did they reply after
   // I sent?" for the unanswered-outbound branch below.
-  const latestInboundByAddress = new Map<string, Date>();
+  const latestInboundByAddress = new Map<string, Date>()
   for (const activity of emailActivities) {
-    if (activity.direction !== "INBOUND" || !activity.fromAddress) continue;
-    const address = parseAddress(activity.fromAddress).email;
-    const existing = latestInboundByAddress.get(address);
-    if (!existing || activity.detectedAt > existing)
-      latestInboundByAddress.set(address, activity.detectedAt);
+    if (activity.direction !== 'INBOUND' || !activity.fromAddress) continue
+    const address = parseAddress(activity.fromAddress).email
+    const existing = latestInboundByAddress.get(address)
+    if (!existing || activity.detectedAt > existing) latestInboundByAddress.set(address, activity.detectedAt)
   }
 
   const meetingItems: NeedsFollowUpItem[] = meetings
     .filter((meeting) => {
-      const address = meeting.counterpartEmail!.toLowerCase();
-      const lastFollowUp = latestOutboundByAddress.get(address);
-      return !lastFollowUp || lastFollowUp < meeting.startTime;
+      const address = meeting.counterpartEmail!.toLowerCase()
+      const lastFollowUp = latestOutboundByAddress.get(address)
+      return !lastFollowUp || lastFollowUp < meeting.startTime
     })
     .map((meeting) => {
-      const address = meeting.counterpartEmail!.toLowerCase();
-      const subject =
-        meeting.title ||
-        (meeting.eventType === "INTERVIEW" ? "Interview" : "Networking call");
-      const rawName =
-        contactNameByEmail.get(address) ?? meeting.counterpartName ?? address;
+      const address = meeting.counterpartEmail!.toLowerCase()
+      const subject = meeting.title || (meeting.eventType === 'INTERVIEW' ? 'Interview' : 'Networking call')
+      const rawName = contactNameByEmail.get(address) ?? meeting.counterpartName ?? address
       return {
-        kind: "meeting" as const,
+        kind: 'meeting' as const,
         sourceId: meeting.id,
         contactName: formatDisplayName(rawName),
         contactEmail: address,
@@ -271,8 +251,8 @@ export async function getNeedsFollowUpList(
         date: meeting.startTime,
         subject,
         gmailHref: gmailComposeHref(address, `Re: Thank you — ${subject}`),
-      };
-    });
+      }
+    })
 
   // Recruiter/hiring-manager/coach-flagged senders OR anyone already on the
   // candidate's own contact list — broadened beyond just recruiters so a
@@ -286,38 +266,34 @@ export async function getNeedsFollowUpList(
   const inboundItems: NeedsFollowUpItem[] = emailActivities
     .filter(
       (activity) =>
-        activity.direction === "INBOUND" &&
+        activity.direction === 'INBOUND' &&
         activity.fromAddress &&
         activity.detectedAt >= inboundCutoff &&
         !isKnownBulkSenderAddress(activity.fromAddress) &&
         !isCalendarResponseSubject(activity.subject) &&
-        (activity.isRecruiterContact ||
-          contactNameByEmail.has(parseAddress(activity.fromAddress).email)),
+        !isBulkSubject(activity.subject) &&
+        (activity.isRecruiterContact || contactNameByEmail.has(parseAddress(activity.fromAddress).email))
     )
     .filter((activity) => {
-      const address = parseAddress(activity.fromAddress!).email;
-      const lastReply = latestOutboundByAddress.get(address);
-      return !lastReply || lastReply < activity.detectedAt;
+      const address = parseAddress(activity.fromAddress!).email
+      const lastReply = latestOutboundByAddress.get(address)
+      return !lastReply || lastReply < activity.detectedAt
     })
     .map((activity) => {
-      const parsed = parseAddress(activity.fromAddress!);
-      const subject = activity.subject || "their email";
-      const rawName =
-        contactNameByEmail.get(parsed.email) ?? parsed.name ?? parsed.email;
+      const parsed = parseAddress(activity.fromAddress!)
+      const subject = activity.subject || 'their email'
+      const rawName = contactNameByEmail.get(parsed.email) ?? parsed.name ?? parsed.email
       return {
-        kind: "inbound-email" as const,
+        kind: 'inbound-email' as const,
         sourceId: activity.id,
         contactName: formatDisplayName(rawName),
         contactEmail: parsed.email,
         contactId: contactIdByEmail.get(parsed.email) ?? null,
         date: activity.detectedAt,
         subject,
-        gmailHref: gmailComposeHref(
-          parsed.email,
-          subject.startsWith("Re:") ? subject : `Re: ${subject}`,
-        ),
-      };
-    });
+        gmailHref: gmailComposeHref(parsed.email, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
+      }
+    })
 
   // A message sent to a known contact that's gone unanswered for a week —
   // scoped to contacts already on the candidate's list (never a cold-outreach
@@ -326,49 +302,40 @@ export async function getNeedsFollowUpList(
   // out to, belongs here instead" flow described on toggleContactPriority.
   const unansweredOutboundItems: NeedsFollowUpItem[] = emailActivities
     .filter(
-      (activity) =>
-        activity.direction === "OUTBOUND" &&
-        activity.fromAddress &&
-        activity.detectedAt <= outboundCutoff,
+      (activity) => activity.direction === 'OUTBOUND' && activity.fromAddress && activity.detectedAt <= outboundCutoff
     )
     .filter((activity) => {
-      const address = parseAddress(activity.fromAddress!).email;
-      if (!contactNameByEmail.has(address)) return false;
-      const reply = latestInboundByAddress.get(address);
-      return !reply || reply < activity.detectedAt;
+      const address = parseAddress(activity.fromAddress!).email
+      if (!contactNameByEmail.has(address)) return false
+      const reply = latestInboundByAddress.get(address)
+      return !reply || reply < activity.detectedAt
     })
     .map((activity) => {
-      const address = parseAddress(activity.fromAddress!).email;
-      const subject = activity.subject || "your message";
-      const rawName = contactNameByEmail.get(address) ?? address;
+      const address = parseAddress(activity.fromAddress!).email
+      const subject = activity.subject || 'your message'
+      const rawName = contactNameByEmail.get(address) ?? address
       return {
-        kind: "unanswered-outbound" as const,
+        kind: 'unanswered-outbound' as const,
         sourceId: activity.id,
         contactName: formatDisplayName(rawName),
         contactEmail: address,
         contactId: contactIdByEmail.get(address) ?? null,
         date: activity.detectedAt,
         subject,
-        gmailHref: gmailComposeHref(
-          address,
-          subject.startsWith("Re:") ? subject : `Re: ${subject}`,
-        ),
-      };
-    });
+        gmailHref: gmailComposeHref(address, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
+      }
+    })
 
   // One row per person — someone who both met with you AND emailed you
   // should only show once, keyed to whichever signal is more recent.
-  const seen = new Set<string>();
-  const deduped: NeedsFollowUpItem[] = [];
-  for (const item of [
-    ...interviewItems,
-    ...meetingItems,
-    ...inboundItems,
-    ...unansweredOutboundItems,
-  ].sort((a, b) => b.date.getTime() - a.date.getTime())) {
-    if (seen.has(item.contactEmail)) continue;
-    seen.add(item.contactEmail);
-    deduped.push(item);
+  const seen = new Set<string>()
+  const deduped: NeedsFollowUpItem[] = []
+  for (const item of [...interviewItems, ...meetingItems, ...inboundItems, ...unansweredOutboundItems].sort(
+    (a, b) => b.date.getTime() - a.date.getTime()
+  )) {
+    if (seen.has(item.contactEmail)) continue
+    seen.add(item.contactEmail)
+    deduped.push(item)
   }
-  return deduped.slice(0, 10);
+  return deduped.slice(0, 10)
 }
