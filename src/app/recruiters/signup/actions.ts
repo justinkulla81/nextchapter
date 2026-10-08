@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 import { slugify } from '@/lib/recruiter/intake/slug'
+import { claimFirmWithToken } from '@/lib/recruiter/firm-invite'
 
 export type CompleteRecruiterSignupState = { error?: string } | undefined
 
@@ -14,7 +15,8 @@ async function finishRecruiterSignup(
   fullName: string,
   workEmail: string,
   firmName: string | null,
-  specialty: string | null
+  specialty: string | null,
+  firmToken: string | null = null
 ) {
   // A recruiter who ran the old (pre-login) P0-lite flow may already have a
   // token-only row under this same work email — link this new login to it
@@ -49,8 +51,11 @@ async function finishRecruiterSignup(
     captureServerEvent(recruiter.id, 'talent_firm_invite_accepted', { recruiterId: recruiter.id, firmId: invite.firmId, role: invite.role })
   }
 
-  captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id, joinedFirmViaInvite: !!invite })
-  return recruiter
+  // A registration link an admin sent: this person builds the firm.
+  const claimed = firmToken ? await claimFirmWithToken({ id: recruiter.id, fullName: recruiter.fullName, firmRole: invite ? invite.role : recruiter.firmRole }, firmToken) : null
+
+  captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id, joinedFirmViaInvite: !!invite, claimedFirm: !!claimed })
+  return { recruiter, claimedFirm: claimed }
 }
 
 export async function completeRecruiterSignup(
@@ -60,6 +65,7 @@ export async function completeRecruiterSignup(
   const fullName = (formData.get('fullName') as string | null)?.trim()
   const firmName = (formData.get('firmName') as string | null)?.trim() || null
   const specialty = (formData.get('specialty') as string | null)?.trim() || null
+  const firmToken = (formData.get('firmToken') as string | null)?.trim() || null
 
   if (!fullName) {
     return { error: 'Please fill in your name.' }
@@ -74,15 +80,15 @@ export async function completeRecruiterSignup(
     return { error: 'Something went wrong starting your session. Please try again.' }
   }
 
-  await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty)
+  const done = await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty, firmToken)
 
-  redirect('/recruiters/dashboard')
+  redirect(done.claimedFirm ? '/recruiters/talent/onboarding' : '/recruiters/dashboard')
 }
 
 // Called from CallbackHandler once a fresh recruiter signUp's confirmation
 // email is clicked and a session is established — mirrors
 // completeEmployerSignupFromSession (see src/app/talent/signup/actions.ts).
-export async function completeRecruiterSignupFromSession(): Promise<{ error?: string }> {
+export async function completeRecruiterSignupFromSession(): Promise<{ error?: string; redirectTo?: string }> {
   const supabase = await createClient('recruiter')
   const {
     data: { user },
@@ -98,6 +104,7 @@ export async function completeRecruiterSignupFromSession(): Promise<{ error?: st
     return { error: 'Missing signup details — please try creating your account again.' }
   }
 
-  await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty)
-  return {}
+  const firmToken = ((user.user_metadata?.firm_invite_token as string | undefined)?.trim() || null) as string | null
+  const done = await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty, firmToken)
+  return done.claimedFirm ? { redirectTo: '/recruiters/talent/onboarding' } : {}
 }

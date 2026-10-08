@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { canManageFirm, getTalentContext, visibleConnectionsWhere } from '@/lib/recruiter/intake/access'
@@ -66,6 +67,12 @@ export default async function TalentSetupPage() {
         <p className="text-sm font-medium text-muted-foreground">{TALENT_PRODUCT_NAME} · {firm.name}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Setup</h1>
         <p className="mt-1 text-muted-foreground">About 10 minutes, once. After that there&apos;s nothing to maintain.</p>
+        {isAdmin && (
+          <p className="mt-1 text-sm">
+            <Link href="/recruiters/talent/onboarding" className="text-brand underline underline-offset-4">Open the setup wizard</Link>
+            <span className="text-muted-foreground"> for logo, colors, website button and connections.</span>
+          </p>
+        )}
       </div>
       <TalentSubnav active="/recruiters/talent/setup" draftCount={draftCount} />
 

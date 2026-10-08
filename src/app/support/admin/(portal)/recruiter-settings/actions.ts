@@ -7,8 +7,12 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { updateRecruiterSettings } from '@/lib/admin/recruiter-settings'
 import { EXPORT_DESTINATIONS } from '@/lib/constants/recruiter-export-destinations'
+import { randomBytes } from 'crypto'
+import { slugify } from '@/lib/recruiter/intake/slug'
+import { normalizeWebsite } from '@/lib/recruiter/brand'
 
 export type FormState = { error?: string } | undefined
+export type InviteFirmState = { error?: string; link?: string; firmName?: string } | undefined
 
 const ENFORCEMENT_MODES: RecruiterFeedbackEnforcement[] = ['NONE', 'WARN', 'SUSPEND']
 const FIRM_STATUSES: RecruiterFirmStatus[] = ['PENDING', 'VERIFIED', 'SUSPENDED', 'REMOVED']
@@ -129,4 +133,45 @@ export async function setIntakeAutoRepliesEnabled(enabled: boolean): Promise<voi
   await updateRecruiterSettings({ intakeAutoRepliesEnabled: enabled }, actor)
   captureServerEvent(actor, 'talent_reply_sending_toggled', { enabled })
   revalidatePath('/support/admin/recruiter-settings')
+}
+
+// A shareable registration link for one firm. Creates the firm (or reuses an
+// empty one with the same name), keeps a one-time token on it, and returns
+// /recruiters/start/<token>. Whoever opens it first and signs up becomes the
+// firm's admin and lands in the setup wizard. The token stops working once
+// the firm has a member.
+export async function inviteFirmToRegister(_prev: InviteFirmState, formData: FormData): Promise<InviteFirmState> {
+  const admin = await requireAdmin()
+  const name = (formData.get('name') as string | null)?.trim() ?? ''
+  if (!name) return { error: 'Enter the firm name.' }
+  const site = normalizeWebsite((formData.get('website') as string | null) ?? '')
+  if (!site.ok) return { error: site.message }
+  const contact = ((formData.get('contactEmail') as string | null) ?? '').trim().toLowerCase() || null
+  if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return { error: 'Enter a valid contact email, or leave it blank.' }
+  const verified = formData.get('verified') === 'on'
+
+  const existing = await prisma.recruiterFirm.findUnique({ where: { name }, include: { _count: { select: { recruiters: true } } } })
+  if (existing && existing._count.recruiters > 0) return { error: 'That firm already has members. Invite people from inside the firm instead.' }
+
+  let slug = slugify(name) || 'firm'
+  if (!existing || existing.slug !== slug) {
+    let n = 1
+    const base = slug
+    while (await prisma.recruiterFirm.findUnique({ where: { slug } })) slug = `${base}-${++n}`
+  }
+  const token = randomBytes(18).toString('base64url')
+  const data = {
+    website: site.url,
+    onboardingToken: token,
+    onboardingContactEmail: contact,
+    ...(verified ? { status: 'VERIFIED' as RecruiterFirmStatus, verifiedAt: new Date(), verifiedBy: admin?.email ?? 'admin' } : {}),
+  }
+  const firm = existing
+    ? await prisma.recruiterFirm.update({ where: { id: existing.id }, data: { ...data, slug: existing.slug ?? slug } })
+    : await prisma.recruiterFirm.create({ data: { name, slug, ...data } })
+
+  captureServerEvent(admin?.email ?? 'admin', 'recruiter_firm_invited_to_register', { firmId: firm.id, verified })
+  revalidatePath('/support/admin/recruiter-settings')
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
+  return { link: `${base}/recruiters/start/${token}`, firmName: name }
 }

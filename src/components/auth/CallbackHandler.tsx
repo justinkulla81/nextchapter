@@ -131,7 +131,7 @@ export function CallbackHandler() {
         return
       }
       setStatus('redirecting')
-      router.replace('/recruiters/dashboard')
+      router.replace(result.redirectTo ?? '/recruiters/dashboard')
       return
     }
     if (nextIsCoach) {

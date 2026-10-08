@@ -98,6 +98,16 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
       </div>
       <TalentSubnav active="/recruiters/talent" draftCount={draftCount} />
 
+      {ctx.role === 'ADMIN' && !ctx.firm.onboardingCompletedAt && (
+        <div className="rounded-lg border border-border p-4 text-sm">
+          <p className="font-medium">Finish setting up {ctx.firm.name}</p>
+          <p className="text-muted-foreground">
+            Add your logo, colors and website button, and connect your tools.{' '}
+            <Link href="/recruiters/talent/onboarding" className="font-medium text-brand underline underline-offset-4">Continue setup</Link>
+          </p>
+        </div>
+      )}
+
       {ctx.firm.status !== 'VERIFIED' && (
         <div className="rounded-lg border border-orange/40 bg-orange/5 p-4 text-sm">
           <p className="font-medium">Your firm is waiting for NextChapter to verify it.</p>

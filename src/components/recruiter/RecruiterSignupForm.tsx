@@ -10,9 +10,9 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { setPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
-export function RecruiterSignupForm() {
+export function RecruiterSignupForm({ firmToken, invitedFirmName }: { firmToken?: string; invitedFirmName?: string } = {}) {
   const [fullName, setFullName] = useState('')
-  const [firmName, setFirmName] = useState('')
+  const [firmName, setFirmName] = useState(invitedFirmName ?? '')
   const [specialty, setSpecialty] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,7 +32,7 @@ export function RecruiterSignupForm() {
       email,
       password,
       options: {
-        data: { full_name: fullName, account_type: 'recruiter', firm_name: firmName, specialty },
+        data: { full_name: fullName, account_type: 'recruiter', firm_name: firmName, specialty, ...(firmToken ? { firm_invite_token: firmToken } : {}) },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=recruiter`,
       },
     })
@@ -68,6 +68,7 @@ export function RecruiterSignupForm() {
     form.set('fullName', fullName)
     form.set('firmName', firmName)
     form.set('specialty', specialty)
+    if (firmToken) form.set('firmToken', firmToken)
 
     const result = await completeRecruiterSignup(undefined, form)
     if (result?.error) {
@@ -134,8 +135,8 @@ export function RecruiterSignupForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="recruiter-firm">Firm name (optional)</Label>
-        <Input id="recruiter-firm" value={firmName} onChange={(e) => setFirmName(e.target.value)} />
+        <Label htmlFor="recruiter-firm">{invitedFirmName ? 'Your firm' : 'Firm name (optional)'}</Label>
+        <Input id="recruiter-firm" value={firmName} readOnly={!!invitedFirmName} onChange={(e) => setFirmName(e.target.value)} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="recruiter-specialty">What do you recruit for? (optional)</Label>

@@ -6,6 +6,7 @@ import { saveRecruiterSettings, createRecruiterFirm, updateRecruiterFirm, setInt
 import { ConfirmingActionButton } from '@/components/recruiter/talent/TalentForms'
 import { RecruiterSettingsForm } from '@/components/admin/RecruiterSettingsForm'
 import { RecruiterFirmForm } from '@/components/admin/RecruiterFirmForm'
+import { FirmInviteForm } from '@/components/admin/FirmInviteForm'
 import { Card, CardContent } from '@/components/ui/card'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -63,6 +64,29 @@ export default async function RecruiterSettingsAdminPage() {
 
       <div className="space-y-4">
         <h2 className="text-base font-semibold tracking-tight">Firms ({firms.length})</h2>
+        <details className="group" open={firms.some((f) => f.onboardingToken) || undefined}>
+          <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-brand">
+            Invite a firm to register
+            <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Makes a link you can send. They register, then set up their logo, colors, website button and connections
+              themselves.
+            </p>
+            <FirmInviteForm />
+            {firms.filter((f) => f.onboardingToken).length > 0 && (
+              <ul className="space-y-1 text-sm">
+                {firms.filter((f) => f.onboardingToken).map((f) => (
+                  <li key={f.id} className="text-muted-foreground">
+                    Waiting: <span className="text-foreground">{f.name}</span> ·{' '}
+                    <code className="text-xs">/recruiters/start/{f.onboardingToken}</code>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
         <details className="group">
           <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-brand">
             Add a firm
