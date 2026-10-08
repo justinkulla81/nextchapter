@@ -1,7 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { findEmailOwner } from './email-owner'
-import { applyTemplate, describePattern, learnPatterns } from './email-pattern'
+import { applyTemplate, describePattern, learnPatterns, type DomainPattern } from './email-pattern'
+import { isHrLeaderTitle, lookupDomain, receivesMail } from './org-domains'
 import { isPersonalEmail } from '@/lib/workforce/college-score'
 import { siteDomain } from '@/lib/workforce/college-rank'
 
@@ -109,4 +110,95 @@ export async function guessUniversityEmails(): Promise<{ people: number; college
   }
 
   return { people, collegeContacts, cleared, domains: patterns.size }
+}
+
+const PERSONAL_DOMAINS = /^(gmail|googlemail|yahoo|hotmail|outlook|live|icloud|me|aol|proton|protonmail|msn|comcast)\./i
+
+/**
+ * Guesses addresses for HR leaders (CHROs, chief people officers, VPs of
+ * HR…) who have none. Their company's domain is found once and kept on the
+ * organization: from colleagues' real addresses, its website, or a name
+ * lookup checked against our name and against the domain receiving mail.
+ * The format is the domain's own when we know addresses there; otherwise
+ * the most common format across the companies we do know — and the basis
+ * says which.
+ */
+export async function guessHrLeaderEmails(maxLookups = 150): Promise<{ people: number; lookedUp: number; domainsFound: number; noDomain: number }> {
+  const known = (await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { fullName: true, email: true } }))
+    .map((p) => ({ name: p.fullName, email: p.email! }))
+    .filter((k) => isPersonalEmail(k.email, k.name) && !PERSONAL_DOMAINS.test(domainOf(k.email)) && !domainOf(k.email).endsWith('.edu'))
+  const patterns = learnPatterns(known)
+  // The format most companies we know use, by number of companies.
+  const byTemplate = new Map<string, number>()
+  for (const p of patterns.values()) byTemplate.set(p.template, (byTemplate.get(p.template) ?? 0) + 1)
+  const [commonTemplate, commonCount] = [...byTemplate.entries()].sort((a, b) => b[1] - a[1])[0] ?? ['first.last', 0]
+  const common: DomainPattern = { template: commonTemplate as DomainPattern['template'], examples: 0, matching: 0 }
+
+  const leaders = await prisma.crmPerson.findMany({
+    where: { deletedAt: null, email: null, guessedEmail: null },
+    select: {
+      id: true, fullName: true,
+      affiliations: {
+        where: { isCurrent: true },
+        select: {
+          title: true,
+          org: {
+            select: {
+              id: true, name: true, website: true, emailDomain: true, emailDomainCheckedAt: true,
+              affiliations: { where: { isCurrent: true }, select: { person: { select: { fullName: true, email: true } } } },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  let people = 0
+  let lookedUp = 0
+  let domainsFound = 0
+  let noDomain = 0
+  const recheckBefore = new Date(Date.now() - 90 * 86_400_000)
+  for (const p of leaders) {
+    const aff = p.affiliations.find((a) => isHrLeaderTitle(a.title))
+    if (!aff) continue
+    const org = aff.org
+    let domain = org.emailDomain
+    if (!domain && (!org.emailDomainCheckedAt || org.emailDomainCheckedAt < recheckBefore)) {
+      let source: string | null = null
+      // Colleagues' real addresses first.
+      const counts = new Map<string, number>()
+      for (const a of org.affiliations) {
+        const e = a.person.email
+        if (e && isPersonalEmail(e, a.person.fullName) && !PERSONAL_DOMAINS.test(domainOf(e))) counts.set(domainOf(e), (counts.get(domainOf(e)) ?? 0) + 1)
+      }
+      domain = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+      if (domain) source = 'people'
+      if (!domain && org.website) {
+        domain = siteDomain(org.website)
+        if (domain) source = 'website'
+      }
+      if (!domain && lookedUp < maxLookups) {
+        lookedUp++
+        const found = await lookupDomain(org.name).catch(() => null)
+        if (found && (await receivesMail(found))) { domain = found; source = 'lookup' }
+      }
+      await prisma.crmOrganization.update({
+        where: { id: org.id },
+        data: { emailDomain: domain, emailDomainSource: source, emailDomainCheckedAt: new Date() },
+      })
+      if (domain) domainsFound++
+    }
+    if (!domain) { noDomain++; continue }
+
+    const own = patterns.get(domain)
+    const pattern = own ?? common
+    const guess = applyTemplate(pattern.template, p.fullName, domain)
+    if (!guess || (await findEmailOwner(guess, { includeDeleted: true }))) continue
+    const basis = own
+      ? `${describePattern(domain, own)} (${org.name})`
+      : `${pattern.template} — no addresses known at ${domain} yet; it is the most common format across ${commonCount} companies we have addresses for (${org.name})`
+    await prisma.crmPerson.update({ where: { id: p.id }, data: { guessedEmail: guess, guessedEmailBasis: basis } })
+    people++
+  }
+  return { people, lookedUp, domainsFound, noDomain }
 }

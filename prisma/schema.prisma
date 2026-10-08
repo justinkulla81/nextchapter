@@ -9000,6 +9000,13 @@ model CrmOrganization {
   dealStatus   CrmDealStatus?
   dealStatusAt DateTime?
 
+  /// The domain its people's email is at, how it was found ('people' —
+  /// their real addresses, 'website', or 'lookup' — a name-to-domain lookup
+  /// whose returned name matched and whose domain receives mail), and when.
+  emailDomain          String?
+  emailDomainSource    String?
+  emailDomainCheckedAt DateTime?
+
   // "X" in the Outreach queue — hides this org from queue bands until a
   // newer driving date (a fresher promise, deadline, or reminder) appears
   // after this timestamp, at which point it resurfaces on its own. Separate
