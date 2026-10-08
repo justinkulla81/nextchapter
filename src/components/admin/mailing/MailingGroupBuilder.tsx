@@ -114,7 +114,7 @@ export function MailingGroupBuilder({
         </p>
       </div>
 
-      {/* Email history: four options, so adjacent buttons. */}
+      {/* Email history: five options, kept as adjacent buttons rather than a dropdown (design-principles says 5+ → dropdown) so every count shows at a glance. */}
       <div className="text-xs">
         <span className="mb-1 block font-medium">Email history with you</span>
         <div role="group" aria-label="Email history" className="flex flex-wrap gap-1">
