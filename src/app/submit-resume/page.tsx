@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ResumeSubmissionForm } from '@/components/resume-submission/ResumeSubmissionForm'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { ReferredByBanner } from '@/components/marketing/ReferredByBanner'
 
 export const metadata: Metadata = {
   title: 'Submit Your Resume',
@@ -14,6 +15,7 @@ export default function SubmitResumePage() {
   return (
     <div className="flex flex-1 flex-col">
       <PublicSiteHeader />
+      <ReferredByBanner />
 
       <div className="mx-auto max-w-2xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
