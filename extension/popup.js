@@ -42,7 +42,7 @@ const KINDS = {
     // Flags them so that when someone with a similar name or the same email
     // signs up, the admin is asked to confirm it's them — and the candidate's
     // lead source becomes this referral.
-    { id: 'invitedAsCandidate', label: 'I invited them to join NextChapter as a candidate', type: 'toggle' },
+    { id: 'invitedAsCandidate', label: 'I invited them to NextChapter as a candidate', type: 'toggle' },
     // No LinkedIn field here — it costs a whole row for something that's
     // already sent every time as `payload.url` (see the save handler below)
     // and rarely needs a second look once you're already on the profile.
@@ -274,62 +274,6 @@ async function readPage() {
     // a company name.
     const JOB_SEEKING = /^(actively\s+)?(looking|seeking|searching)\s+(for|a|an|my|new|next|opportunit\w*|roles?|positions?|employment|work)\b|\bopen to (work|new|opportunit)|\b(new|next) (opportunit|role|challenge)|\bin transition\b|\bbetween (roles|jobs|opportunities)\b|\bcareer (break|transition)\b/i
     const CARD_TEXT = /\bfollowers?\b|\d{1,3}(,\d{3})+/i
-    out.company = ''
-    for (const source of [
-      currentCompanyLabel,
-      badgeInHeadline,
-      () => (companyLine ? companyLine.split('·')[0].trim() : ''),
-      () => pick('[aria-label^="Current company"]'),
-      firstCompanyBadge,
-      currentExperienceCompany,
-    ]) {
-      const t = (source() || '').replace(/\s+/g, ' ').trim()
-      if (!t || CARD_TEXT.test(t)) continue
-      // Saved under the "- Unemployed" placeholder, so their headline is
-      // kept (a title needs an organization to hang on).
-      if (JOB_SEEKING.test(t)) { out.company = '- Unemployed'; break }
-      out.company = t
-      break
-    }
-    // Structure-free fallback: the headline's org segment ("Co-Founder &
-    // Managing Partner, Magnify Ventures" → "Magnify Ventures") that also
-    // shows up as its own line of text on the page — the company badge,
-    // whatever elements LinkedIn wraps it in this week. Where LinkedIn puts
-    // the badges relative to the name changes between layouts; the text
-    // doesn't.
-    if (!out.company) {
-      const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().toLowerCase()
-      const pageLines = new Set([
-        ...(scope.innerText || '').split('\n').map(clean),
-        ...Array.from(scope.querySelectorAll('span, p, a, button, div, h3, h4'))
-          .filter((el) => el.children.length === 0 || [...el.children].every((c) => c.tagName === 'SPAN' && !c.children.length))
-          .map((el) => clean(el.textContent)),
-      ].filter(Boolean))
-      const segs = (lines[0] || out.jobTitle || '')
-        .split(/\s*(?:,|\||·|\bat\b|@|\s[-–—]\s)\s*/i)
-        .slice(1).map((t) => t.trim()).filter((t) => t.length >= 2)
-      const ORG_WORD = /\b(ventures|capital|partners|group|inc|llc|ltd|labs|fund|funds|foundation|institute|university|college|bank|holdings|technologies|systems|solutions|consulting|advisors|associates|company|corp|corporation|health|network|alliance|collective|studio|agency)\b/i
-      const hit = segs.find((t) => pageLines.has(t.toLowerCase()) && !JOB_SEEKING.test(t) && !CARD_TEXT.test(t))
-        // Not on the page as a line, but reads as an organization name.
-        ?? segs.find((t) => ORG_WORD.test(t) && !JOB_SEEKING.test(t) && t.split(' ').length <= 6)
-      if (hit) out.company = hit
-    }
-    // "Senior Technical Writer at Oracle": the headline names the employer
-    // when nothing else on the card does.
-    const atMatch = !out.company && out.jobTitle.match(/^(.{3,80}?)\s+(?:at|@)\s+([^|,·]{2,60})$/i)
-    if (atMatch && !JOB_SEEKING.test(atMatch[2])) {
-      out.jobTitle = atMatch[1].trim()
-      out.company = atMatch[2].trim()
-    }
-    // The title is the role, not "role + employer": "Co-founder, NextLadder
-    // Ventures" / "VP at Acme" / "CFO | Acme" → "Co-founder" / "VP" / "CFO".
-    if (out.company && out.company !== '- Unemployed') {
-      const esc = out.company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const stripped = out.jobTitle.replace(new RegExp(`\\s*(?:,|\\bat\\b|@|\\||-|–|—)\\s*${esc}\\s*$`, 'i'), '').trim()
-      if (stripped && stripped !== out.jobTitle) out.jobTitle = stripped
-    }
-    out.location = locationLine.split('·')[0].trim()
-
     // Schools and, once they've left it, the last employer — for the
     // university alumni lists and company former-employee lists in the CRM.
     // Both come from the Education/Experience sections, which LinkedIn only
@@ -378,6 +322,82 @@ async function readPage() {
     const MON = '(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\w*\\.?\\s+'
     const DATE_LINE = new RegExp(`^(${MON})?\\d{4}(\\s*[-–]\\s*((${MON})?\\d{4}|present))?(\\s*·.*)?$`, 'i')
     const DURATION = /^(\d+\s+yrs?)?\s*(\d+\s+mos?)?$/i
+
+
+    // The current role, from the first Experience entry when it says
+    // Present: a single role reads title, "Company · Full-time", dates; a
+    // company with several reads company, "4 yrs 2 mos", then each role.
+    // LinkedIn's own record of the job, so it beats anything parsed out of
+    // a headline — "AI Implementation Partner | Building AI Systems, …" had
+    // filed "Building AI Systems" as the company of the President of Nova
+    // Buzz Inc.
+    const currentRole = (() => {
+      const lines2 = visibleLines(laterExpSection)
+      const firstDate = lines2.slice(0, 7).findIndex((t) => DATE_LINE.test(t))
+      if (firstDate < 1 || !/\bpresent\b/i.test(lines2[firstDate])) return null
+      const grouped = DURATION.test(lines2[1] || '') && /\d/.test(lines2[1] || '')
+      const company = (grouped ? lines2[0] : lines2[1] || '').split('·')[0].trim()
+      const title = grouped ? (lines2[2] || '') : lines2[0]
+      if (!company || DATE_LINE.test(company) || CARD_TEXT.test(company) || JOB_SEEKING.test(company)) return null
+      return { company, title: DATE_LINE.test(title) || title === company ? '' : title }
+    })()
+    out.company = ''
+    for (const source of [
+      () => currentRole?.company,
+      currentCompanyLabel,
+      badgeInHeadline,
+      () => (companyLine ? companyLine.split('·')[0].trim() : ''),
+      () => pick('[aria-label^="Current company"]'),
+      firstCompanyBadge,
+      currentExperienceCompany,
+    ]) {
+      const t = (source() || '').replace(/\s+/g, ' ').trim()
+      if (!t || CARD_TEXT.test(t)) continue
+      // Saved under the "- Unemployed" placeholder, so their headline is
+      // kept (a title needs an organization to hang on).
+      if (JOB_SEEKING.test(t)) { out.company = '- Unemployed'; break }
+      out.company = t
+      break
+    }
+    if (currentRole && out.company === currentRole.company && currentRole.title) out.jobTitle = currentRole.title
+    // Structure-free fallback: the headline's org segment ("Co-Founder &
+    // Managing Partner, Magnify Ventures" → "Magnify Ventures") that also
+    // shows up as its own line of text on the page — the company badge,
+    // whatever elements LinkedIn wraps it in this week. Where LinkedIn puts
+    // the badges relative to the name changes between layouts; the text
+    // doesn't.
+    if (!out.company) {
+      const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().toLowerCase()
+      const pageLines = new Set([
+        ...(scope.innerText || '').split('\n').map(clean),
+        ...Array.from(scope.querySelectorAll('span, p, a, button, div, h3, h4'))
+          .filter((el) => el.children.length === 0 || [...el.children].every((c) => c.tagName === 'SPAN' && !c.children.length))
+          .map((el) => clean(el.textContent)),
+      ].filter(Boolean))
+      const segs = (lines[0] || out.jobTitle || '')
+        .split(/\s*(?:,|\||·|\bat\b|@|\s[-–—]\s)\s*/i)
+        .slice(1).map((t) => t.trim()).filter((t) => t.length >= 2)
+      const ORG_WORD = /\b(ventures|capital|partners|group|inc|llc|ltd|labs|fund|funds|foundation|institute|university|college|bank|holdings|technologies|systems|solutions|consulting|advisors|associates|company|corp|corporation|health|network|alliance|collective|studio|agency)\b/i
+      const hit = segs.find((t) => pageLines.has(t.toLowerCase()) && !JOB_SEEKING.test(t) && !CARD_TEXT.test(t))
+        // Not on the page as a line, but reads as an organization name.
+        ?? segs.find((t) => ORG_WORD.test(t) && !JOB_SEEKING.test(t) && t.split(' ').length <= 6)
+      if (hit) out.company = hit
+    }
+    // "Senior Technical Writer at Oracle": the headline names the employer
+    // when nothing else on the card does.
+    const atMatch = !out.company && out.jobTitle.match(/^(.{3,80}?)\s+(?:at|@)\s+([^|,·]{2,60})$/i)
+    if (atMatch && !JOB_SEEKING.test(atMatch[2])) {
+      out.jobTitle = atMatch[1].trim()
+      out.company = atMatch[2].trim()
+    }
+    // The title is the role, not "role + employer": "Co-founder, NextLadder
+    // Ventures" / "VP at Acme" / "CFO | Acme" → "Co-founder" / "VP" / "CFO".
+    if (out.company && out.company !== '- Unemployed') {
+      const esc = out.company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const stripped = out.jobTitle.replace(new RegExp(`\\s*(?:,|\\bat\\b|@|\\||-|–|—)\\s*${esc}\\s*$`, 'i'), '').trim()
+      if (stripped && stripped !== out.jobTitle) out.jobTitle = stripped
+    }
+    out.location = locationLine.split('·')[0].trim()
 
     out.schools = []
     const eduLogos = logoNames(eduSection)
@@ -650,6 +670,9 @@ async function init() {
   page.url = tab?.url ?? ''
   $('page-title').textContent = page.title || 'This page'
   $('page-url').textContent = page.url
+  // On a profile the title already says whose it is; the URL line was a
+  // row of space that pushed Save below the popup's 600px limit.
+  $('page-url').hidden = page.url.includes('linkedin.com/in/')
 
   try {
     const [{ result }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: readPage })
