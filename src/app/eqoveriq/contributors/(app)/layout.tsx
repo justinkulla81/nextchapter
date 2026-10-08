@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { getEqOverIqContributorDashboardData } from '@/lib/eqoveriq/contributors/get-contributor-dashboard-data'
 import { ContributorNav } from '@/components/eqoveriq/contributors/ContributorNav'
 
@@ -11,6 +12,7 @@ export default async function EqOverIqContributorAppLayout({ children }: { child
 
   return (
     <div className="min-h-screen bg-off-white">
+      <PortalActivityTracker portal="EQOVERIQ_CONTRIBUTOR" />
       <ContributorNav />
       <main className="mx-auto max-w-3xl px-6 py-10">{children}</main>
     </div>

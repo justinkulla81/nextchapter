@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getCurrentCoach } from '@/lib/coach/current-coach'
 import { getCoachUnreadCount } from '@/lib/messaging/threads'
@@ -25,6 +26,7 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
 
   return (
     <div className="theme-partner min-h-screen">
+      <PortalActivityTracker portal="COACH" />
       <CoachNav accessToken={coach.accessToken} messagesUnreadCount={messagesUnreadCount} actionCount={attentionNeededCount} />
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an

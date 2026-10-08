@@ -1568,6 +1568,7 @@ model CandidateProfile {
   pageBoxDismissals     PageBoxDismissal[]
   emailSendLogs         CandidateEmailSendLog[]
   jobSearchDailyItems   JobSearchDailyItem[]
+  jobSearchDailySends   JobSearchDailySend[]
   searchCheckIns        CandidateSearchCheckIn[]
 
   // Support Network nav badge — "how many new things since I last opened
@@ -5454,6 +5455,57 @@ model JobSearchDailyItem {
 
   @@unique([candidateId, itemKey])
   @@index([candidateId, shownAt])
+}
+
+// One row per Job Search Daily email actually sent, keyed by Resend's email
+// id so the Resend webhook (api/webhooks/resend → applyResendEvent) can
+// record delivery, opens and clicks against the candidate. Counts are
+// approximate: Resend's open tracking is a pixel, so Apple Mail privacy
+// prefetch can inflate opens; clicks are the reliable signal.
+model JobSearchDailySend {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resendEmailId String           @unique
+  sentAt        DateTime         @default(now())
+  deliveredAt   DateTime?
+  openedAt      DateTime?
+  openCount     Int              @default(0)
+  clickedAt     DateTime?
+  clickCount    Int              @default(0)
+  lastClickLink String?
+  bouncedAt     DateTime?
+
+  @@index([candidateId, sentAt])
+  @@index([sentAt])
+}
+
+// Which authenticated partner portal a PortalPageActivityEvent came from.
+enum PortalKind {
+  COACH
+  RECRUITER
+  EMPLOYER // outplacement employer portal (/employer)
+  TALENT // hiring-employer portal (/talent)
+  CRUCIBLE_EMPLOYER // /noexperience/employers
+  EQOVERIQ_CONTRIBUTOR // /eqoveriq/contributors
+}
+
+// Page-view and link-click activity for every partner portal — the
+// counterpart to CandidatePageActivityEvent, written by the client
+// PortalActivityTracker via api/track/portal-activity. Keyed by the
+// Supabase auth user id (join to Coach/Recruiter/etc. by userId to name
+// the person) so one table serves every portal.
+model PortalPageActivityEvent {
+  id        String                 @id @default(cuid())
+  portal    PortalKind
+  userId    String
+  eventType HomepageVisitEventType
+  path      String? // PAGE_VIEW only
+  href      String? // LINK_CLICK only
+  createdAt DateTime               @default(now())
+
+  @@index([portal, createdAt])
+  @@index([userId, createdAt])
 }
 
 // Admin-managed AI Training catalog — replaces the static

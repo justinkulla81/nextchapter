@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { getCrucibleEmployerDashboardData } from '@/lib/crucible/employers/get-employer-dashboard-data'
 import { CrucibleEmployerNav } from '@/components/crucible/employers/CrucibleEmployerNav'
 
@@ -11,6 +12,7 @@ export default async function CrucibleEmployerAppLayout({ children }: { children
 
   return (
     <div className="min-h-screen bg-off-white">
+      <PortalActivityTracker portal="CRUCIBLE_EMPLOYER" />
       <CrucibleEmployerNav />
       <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
     </div>

@@ -77,7 +77,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const { error } = await resend.emails.send({
+  const { data: sendData, error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to,
@@ -109,6 +109,13 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   }
 
   if (!options.toOverride) {
+    // Keyed by Resend's email id so the webhook can attribute delivery,
+    // opens and clicks to this candidate (see applyResendEvent).
+    if (sendData?.id) {
+      await prisma.jobSearchDailySend
+        .create({ data: { candidateId, resendEmailId: sendData.id } })
+        .catch((e) => console.error('Failed to record Job Search Daily send:', e))
+    }
     const keys = shownItemKeys(content)
     await prisma.jobSearchDailyItem.createMany({
       data: keys.map((itemKey) => ({ candidateId, itemKey })),
