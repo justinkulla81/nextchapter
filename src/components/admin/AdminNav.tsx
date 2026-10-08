@@ -72,31 +72,33 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
   // rather than a gray "0".
   const countFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
 
+  // Grouped by the job you came to do, not by when each page was built.
+  // Anything with an orange badge (waiting on you) sits in "To do"; email has
+  // one home so "where do I send from" has one answer.
   return [
     {
       title: 'Overview',
       links: [{ href: '/support/admin/crm/home', label: 'Home' }],
     },
     {
-      title: 'Work the list',
+      title: 'To do',
       links: [
         // "Org queue"/"People queue" — same idea (what's overdue right now:
         // a broken promise, a missed next step), split by whether the
         // opportunity's overdue item belongs to a company or to a person.
-        { href: '/support/admin/crm/queue', label: 'Org queue', badge: badgeFor('crmQueue') },
-        { href: '/support/admin/crm/queue/people', label: 'People queue', badge: badgeFor('crmPeopleQueue') },
-        { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
-        { href: '/support/admin/crm/needs-review', label: 'Needs review', badge: badgeFor('activityReview') },
+        { href: '/support/admin/crm/queue', label: 'Org follow-ups', badge: badgeFor('crmQueue') },
+        { href: '/support/admin/crm/queue/people', label: 'People follow-ups', badge: badgeFor('crmPeopleQueue') },
         { href: '/support/admin/crm/contact-messages', label: 'Contact messages', badge: badgeFor('contactUnhandled') },
-        { href: '/support/admin/crm/mailing', label: 'Monthly Update', badge: badgeFor('mailingAttention') },
+        { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
+        { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
+      ],
+    },
+    {
+      title: 'Pipeline',
+      links: [
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
-        // Pending == not yet promoted to a lead or dismissed — the one
-        // state on this page that is actually waiting on you.
-        { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
-        { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
-        { href: '/support/admin/crm/colleges', label: 'Colleges' },
       ],
     },
     {
@@ -109,13 +111,32 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
-      title: 'Data in and out',
+      title: 'Email',
+      links: [
+        // The bulk-send surface: write an edition, tick lists, send.
+        { href: '/support/admin/crm/mailing', label: 'Send to mailing lists', badge: badgeFor('mailingAttention') },
+        { href: '/support/admin/crm/mailing/lists', label: 'Lists and sender settings' },
+        { href: '/support/admin/crm/mailing/unsubscribes', label: 'Unsubscribes' },
+        { href: '/support/admin/crm/segments', label: 'One-off segment emails' },
+      ],
+    },
+    {
+      title: 'Lead sources',
+      links: [
+        // Pending == not yet promoted to a lead or dismissed — the one
+        // state on this page that is actually waiting on you.
+        { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
+        { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
+        { href: '/support/admin/crm/colleges', label: 'Colleges' },
+        { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
+      ],
+    },
+    {
+      title: 'Import and sync',
       links: [
         { href: '/support/admin/crm/import', label: 'Upload CSV' },
         { href: '/support/admin/crm/sync', label: 'Activity sync' },
-        { href: '/support/admin/crm/segments', label: 'Segments and updates' },
         { href: '/support/admin/crm/capture-tokens', label: 'Capture tokens' },
-        { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
       ],
     },
   ]
@@ -277,9 +298,17 @@ function NavContent({
   const EXACT_MATCH_ROOTS = new Set([
     '/support/admin', '/support/admin/candidates', '/support/admin/crm', '/support/admin/vision',
   ])
-  const isActive = (href: string) => (EXACT_MATCH_ROOTS.has(href) ? pathname === href : pathname.startsWith(href))
+  const matches = (href: string) =>
+    EXACT_MATCH_ROOTS.has(href) ? pathname === href : pathname === href || pathname.startsWith(href + '/')
   const area = areaForPath(pathname)
   const sections = buildSectionsForArea(area, badges)
+  // Only the most specific match lights up, so /crm/mailing/lists highlights
+  // "Lists and sender settings" alone, not "Send to mailing lists" too.
+  const activeHref = sections
+    .flatMap((s) => s.links.map((l) => l.href))
+    .filter(matches)
+    .sort((a, b) => b.length - a.length)[0]
+  const isActive = (href: string) => href === activeHref
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -383,7 +412,7 @@ function readCollapsed() {
 export function AdminNav({ badges = {} }: { badges?: Record<string, number> }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const sections = buildSections(badges)
+  const sections = buildSectionsForArea(areaForPath(pathname), badges)
   // Remembered per browser. Read through useSyncExternalStore so the server
   // render (always expanded) and the first client render agree, then it flips.
   const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false)
@@ -399,7 +428,10 @@ export function AdminNav({ badges = {} }: { badges?: Record<string, number> }) {
     try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '0' : '1') } catch { /* not persisted */ }
     window.dispatchEvent(new Event(COLLAPSED_EVENT))
   }
-  const current = sections.flatMap((s) => s.links).find((link) => pathname.startsWith(link.href))
+  const current = sections
+    .flatMap((s) => s.links)
+    .filter((link) => pathname.startsWith(link.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]
 
   return (
     <>
