@@ -63,10 +63,15 @@ jobs:
         # html5lib are used by some state scrapers but not declared by the package.
         # Its setup script needs jinja2 to build; if the repository build fails
         # anyway, the last release is installed so the other states still run.
+        # Both packages are pinned to versions that ran clean (warn-scraper main
+        # as of 2026-10-08, warn-transformer 1.3.413) so an upstream push cannot
+        # break the daily run overnight; bump them deliberately. Each install is
+        # tried up to three times because GitHub and PyPI fail transiently.
         run: |
-          pip install --quiet jinja2 setuptools wheel pyquery lxml html5lib warn-transformer
-          pip install --quiet --no-build-isolation "git+https://github.com/biglocalnews/warn-scraper.git@main" \
-            || pip install --quiet warn-scraper
+          retry() { for i in 1 2 3; do "$@" && return 0; echo "attempt $i failed: $*"; sleep $((i * 15)); done; return 1; }
+          retry pip install --quiet jinja2 setuptools wheel pyquery lxml html5lib warn-transformer==1.3.413
+          retry pip install --quiet --no-build-isolation "git+https://github.com/biglocalnews/warn-scraper.git@f937fea034adf6401f443ec8c5213859c946f279" \
+            || retry pip install --quiet warn-scraper
           warn-scraper --help > /dev/null
 
       - name: Import scraped states
