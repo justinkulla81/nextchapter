@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { cookies } from 'next/headers'
+import { REFERRAL_COOKIE } from '@/lib/candidates/referral'
 import { sendResumeLeadConfirmationEmail } from '@/lib/email/send-resume-lead-confirmation'
 
 export type ResumeLeadFormState = { error?: string; sent?: boolean } | undefined
@@ -59,13 +61,18 @@ export async function submitResumeLead(
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null
   const candidateId = profile?.id ?? null
 
+  // A recruiter's or contact's referral link (nc_ref cookie) credits the submission to them.
+  const refCode = (await cookies()).get(REFERRAL_COOKIE)?.value
+  const refLink = refCode ? await prisma.referralLink.findUnique({ where: { code: refCode }, select: { label: true, kind: true, isActive: true } }) : null
+  const source = refLink?.isActive ? `referral:${refLink.kind}:${refLink.label}`.slice(0, 120) : 'homepage'
+
   await prisma.resumeSubmissionLead.create({
-    data: { candidateId, fullName, email, targetRole, filePath, fileName, source: 'homepage' },
+    data: { candidateId, fullName, email, targetRole, filePath, fileName, source },
   })
 
   await sendResumeLeadConfirmationEmail(email, fullName, profile?.confidentialSearchMode ?? false)
 
-  captureServerEvent(candidateId ?? email, 'resume_lead_submitted', { hasFile: !!filePath })
+  captureServerEvent(candidateId ?? email, 'resume_lead_submitted', { hasFile: !!filePath, source })
 
   return { sent: true }
 }
