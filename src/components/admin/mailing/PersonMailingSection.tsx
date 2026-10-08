@@ -5,7 +5,7 @@ import { PersonMailingPanel } from './PersonMailingPanel'
 /** The person page's "Mailing lists and reports" section; loads its own data. */
 export async function PersonMailingSection({ personId, email }: { personId: string; email: string | null }) {
   const e = email?.toLowerCase() ?? null
-  const [memberships, lists, suggestions, sends, editions, suppression] = await Promise.all([
+  const [memberships, lists, suggestions, sends, editions, suppression, emails] = await Promise.all([
     prisma.mailingListMember.findMany({
       where: { OR: [{ personId }, ...(e ? [{ email: e }] : [])] },
       include: { list: { select: { name: true, sortOrder: true } } },
@@ -16,6 +16,11 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
     prisma.crmReportSend.findMany({ where: { personId }, orderBy: { editionKey: 'desc' } }),
     prisma.mailingEdition.findMany({ where: { isReport: true, reportKey: { not: null } }, select: { reportKey: true }, distinct: ['reportKey'], orderBy: { reportKey: 'desc' }, take: 12 }),
     e ? prisma.mailingSuppression.findUnique({ where: { email: e } }) : null,
+    prisma.mailingEditionRecipient.findMany({
+      where: { status: { in: ['SENT', 'FAILED'] }, OR: [{ personId }, ...(e ? [{ email: e }] : [])] },
+      include: { edition: { select: { id: true, title: true, subject: true } } },
+      orderBy: { sentAt: 'desc' },
+    }),
   ])
   // One row per list: an address can only be on a list once, but the person
   // link and the address can each match a row.
@@ -42,6 +47,12 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
       }))}
       reportKeys={reportKeys}
       suppressed={suppression?.reason ?? null}
+      listEmails={emails.map((r) => ({
+        id: r.id, editionId: r.edition.id, title: r.edition.title, subject: r.edition.subject, email: r.email, failed: r.status === 'FAILED',
+        sentAt: r.sentAt?.toISOString() ?? null, deliveredAt: r.deliveredAt?.toISOString() ?? null,
+        openCount: r.openCount, clickCount: r.clickCount, repliedAt: r.repliedAt?.toISOString() ?? null,
+        bouncedAt: r.bouncedAt?.toISOString() ?? null, unsubscribedAt: r.unsubscribedAt?.toISOString() ?? null,
+      }))}
     />
   )
 }

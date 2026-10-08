@@ -14,6 +14,7 @@ import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
+import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -66,6 +67,17 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   }
   const saveRoles = updatePersonRoles.bind(null, id)
   const sources = [...new Set(person.sourceRecords.map((s) => s.sourceFile))]
+  // List emails on the history: what each person did with them lives on the recipient row.
+  const mailingIds = person.activities.flatMap((a) => (a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? [a.sourceRef.slice(MAILING_REF_PREFIX.length)] : []))
+  const mailingRecipients = new Map(
+    (mailingIds.length
+      ? await prisma.mailingEditionRecipient.findMany({
+          where: { id: { in: mailingIds } },
+          select: { id: true, editionId: true, deliveredAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true },
+        })
+      : []
+    ).map((r) => [r.id, r]),
+  )
   const needsReview = person.activities.filter((a) => a.needsReview)
   const confirmedActivities = person.activities.filter((a) => !a.needsReview)
   // Surfaced as a banner rather than buried in a list: walking into a meeting
@@ -338,6 +350,22 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 <span>
                   <span className="font-medium">{a.subject ?? a.type}</span>
                   {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
+                  {(() => {
+                    const m = a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? mailingRecipients.get(a.sourceRef.slice(MAILING_REF_PREFIX.length)) : undefined
+                    if (!m) return null
+                    const bits = [
+                      m.bouncedAt ? 'Bounced' : m.deliveredAt ? 'Delivered' : 'Not delivered yet',
+                      m.openCount > 0 ? `opened ${m.openCount}× (approx.)` : 'not opened',
+                      m.clickCount > 0 ? `${m.clickCount} ${m.clickCount === 1 ? 'click' : 'clicks'}` : null,
+                      m.repliedAt ? 'replied' : null,
+                      m.unsubscribedAt ? 'unsubscribed' : null,
+                    ].filter(Boolean)
+                    return (
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {bits.join(' · ')} · <Link href={`/support/admin/crm/mailing/editions/${m.editionId}`} className="underline">open the send</Link>
+                      </span>
+                    )
+                  })()}
                   {a.outreachTracking && (
                     <span className="mt-1 block text-xs">
                       <span className={a.outreachTracking.openCount > 0 ? 'text-success' : 'text-muted-foreground'}>

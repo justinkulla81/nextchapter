@@ -17,6 +17,10 @@ export function appUrl(): string {
   return (process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').replace(/\/$/, '')
 }
 
+/** CrmActivity.sourceRef for a mailing send: points back at the recipient row. */
+export const MAILING_REF_PREFIX = 'mailing:'
+export const mailingSourceRef = (recipientId: string) => `${MAILING_REF_PREFIX}${recipientId}`
+
 /** The link to an edition's uploaded file, on the site. */
 export function fileUrlFor(editionKey: string): string {
   return `${appUrl()}/reports/files/${encodeURIComponent(editionKey)}`
@@ -257,6 +261,22 @@ async function recordSent(edition: EditionForSend, recipientId: string, resendEm
   // Added for this send with "also add to list(s)": joined once it went out.
   if (r.source === 'ADDED_THIS_EDITION' && r.alsoAddToListIds.length) {
     await addToLists({ email: r.email, personId: r.personId, listIds: r.alsoAddToListIds, addedVia: 'ADDED_BY_ADMIN', consentNote: `Added with ${edition.title}`, addedByEmail: edition.createdByEmail })
+  }
+  // On the person's CRM history like a segment broadcast, so what they were
+  // sent sits beside one-to-one mail and last-contacted stays honest. Opens,
+  // clicks and replies are read off the recipient row (see mailingSourceRef).
+  if (r.personId) {
+    const existing = await prisma.crmActivity.findUnique({ where: { type_sourceRef: { type: 'BROADCAST_SENT', sourceRef: mailingSourceRef(r.id) } }, select: { id: true } })
+    if (!existing) {
+      await prisma.crmActivity.create({
+        data: {
+          type: 'BROADCAST_SENT', direction: 'OUTBOUND', personId: r.personId, occurredAt: r.sentAt!,
+          subject: edition.subject, body: edition.title, isAutoLogged: true,
+          sourceRef: mailingSourceRef(r.id), loggedByEmail: edition.createdByEmail,
+        },
+      })
+      await prisma.crmPerson.update({ where: { id: r.personId }, data: { lastTouchedAt: r.sentAt!, touchCount: { increment: 1 } } })
+    }
   }
   if (edition.isReport && edition.reportKey && r.personId) {
     await prisma.crmReportSend.upsert({

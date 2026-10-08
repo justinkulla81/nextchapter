@@ -6,10 +6,11 @@ import { activeLists, getMailingSettings } from '@/lib/mailing/lists'
 import { fileUrlFor, syncEditionRoster } from '@/lib/mailing/editions'
 import { sanitizeBodyHtml } from '@/lib/mailing/render'
 import { MailingComposer } from '@/components/admin/mailing/MailingComposer'
+import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipientsTable'
 
 export const maxDuration = 60
 
-const when = (d: Date | null) => (d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '')
+const iso = (d: Date | null) => d?.toISOString() ?? null
 
 export default async function EditionPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -94,11 +95,14 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
   const sendable = edition.recipients.filter((r) => !r.excluded)
   const total = (pick: (r: (typeof sendable)[number]) => unknown) => sendable.filter((r) => pick(r)).length
   const sent = total((r) => r.status === 'SENT')
+  const sum = (pick: (r: (typeof sendable)[number]) => number) => sendable.reduce((n, r) => n + pick(r), 0)
+  const opens = sum((r) => r.openCount)
+  const clicks = sum((r) => r.clickCount)
   const stats = [
     { label: 'Sent', value: sent, of: sendable.length },
     { label: 'Delivered', value: total((r) => r.deliveredAt) },
-    { label: 'Opened (approximate)', value: total((r) => r.openedAt), note: 'Apple Mail opens many emails automatically, so this runs high. Clicks and replies are the real signal.' },
-    { label: 'Clicked', value: total((r) => r.clickedAt) },
+    { label: 'Opened (approximate)', value: total((r) => r.openedAt), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Apple Mail opens many emails automatically, so this runs high. Clicks and replies are the real signal.' },
+    { label: 'Clicked', value: total((r) => r.clickedAt), extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'} in all` },
     { label: 'Replied', value: total((r) => r.repliedAt) },
     { label: 'Bounced', value: total((r) => r.bouncedAt) },
     { label: 'Unsubscribed', value: total((r) => r.unsubscribedAt) },
@@ -122,48 +126,21 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
               {s.of !== undefined && <span className="text-sm font-normal text-muted-foreground"> / {s.of}</span>}
               {s.of === undefined && sent > 0 && <span className="ml-1 text-sm font-normal text-muted-foreground">{Math.round((s.value / sent) * 100)}%</span>}
             </p>
+            {s.extra && <p className="text-xs text-muted-foreground">{s.extra}</p>}
             {s.note && <p className="mt-1 text-[11px] leading-tight text-muted-foreground">{s.note}</p>}
           </div>
         ))}
       </section>
 
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recipients</h2>
-          <Link href={`/support/admin/crm/mailing/editions/${edition.id}/export`} prefetch={false} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-            Download CSV
-          </Link>
-        </div>
-        <div className="max-h-[40rem] overflow-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted text-left">
-              <tr>
-                {['Name', 'Email', 'Sent', 'Delivered', 'Opened (approx.)', 'Clicked', 'Bounced', 'Unsubscribed', 'Replied'].map((h) => (
-                  <th key={h} className="whitespace-nowrap px-3 py-2 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sendable.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="px-3 py-1.5">
-                    {r.personId ? <Link href={`/support/admin/crm/people/${r.personId}`} className="hover:underline">{r.person?.fullName ?? '—'}</Link> : '—'}
-                    {r.source === 'ADDED_THIS_EDITION' && <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-[11px] text-brand">added</span>}
-                  </td>
-                  <td className="px-3 py-1.5">{r.email}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{r.status === 'SENT' ? when(r.sentAt) : r.status === 'FAILED' ? <span className="text-destructive" title={r.error ?? ''}>Failed</span> : r.status === 'SKIPPED' ? 'Skipped' : 'Waiting'}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{when(r.deliveredAt)}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{r.openedAt ? `${when(r.openedAt)}${r.openCount > 1 ? ` (${r.openCount}×)` : ''}` : ''}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{r.clickedAt ? `${when(r.clickedAt)}${r.clickCount > 1 ? ` (${r.clickCount}×)` : ''}` : ''}</td>
-                  <td className="px-3 py-1.5 text-xs" title={r.bounceDetail ?? ''}>{when(r.bouncedAt)}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{when(r.unsubscribedAt)}</td>
-                  <td className="whitespace-nowrap px-3 py-1.5">{when(r.repliedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <EditionRecipientsTable
+        editionId={edition.id}
+        rows={sendable.map((r) => ({
+          id: r.id, personId: r.personId, name: r.person?.fullName ?? null, email: r.email, added: r.source === 'ADDED_THIS_EDITION',
+          status: r.status, error: r.error, sentAt: iso(r.sentAt), deliveredAt: iso(r.deliveredAt), openedAt: iso(r.openedAt),
+          openCount: r.openCount, clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
+          bounceDetail: r.bounceDetail, unsubscribedAt: iso(r.unsubscribedAt), repliedAt: iso(r.repliedAt),
+        }))}
+      />
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">What was sent</h2>

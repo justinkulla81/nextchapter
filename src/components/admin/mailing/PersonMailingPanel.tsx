@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import posthog from 'posthog-js'
 import { addPersonToLists, removePersonFromList, markReportReceived, unmarkReportReceived } from '@/app/support/admin/(portal)/crm/mailing/actions'
@@ -22,8 +23,14 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 
 export interface PersonMembership { listId: string; listName: string; status: string; addedVia: string; addedAt: string; consentNote: string | null }
 export interface PersonReportSend { editionKey: string; method: 'AUTOMATED' | 'MANUAL'; channel: string; sentAt: string; openedAt: string | null; clickedAt: string | null; repliedAt: string | null }
 
+export interface PersonListEmail {
+  id: string; editionId: string; title: string; subject: string; email: string; failed: boolean
+  sentAt: string | null; deliveredAt: string | null; openCount: number; clickCount: number
+  repliedAt: string | null; bouncedAt: string | null; unsubscribedAt: string | null
+}
+
 export function PersonMailingPanel({
-  personId, hasEmail, memberships, lists, suggested, reportSends, reportKeys, suppressed,
+  personId, hasEmail, memberships, lists, suggested, reportSends, reportKeys, suppressed, listEmails,
 }: {
   personId: string
   hasEmail: boolean
@@ -34,6 +41,7 @@ export function PersonMailingPanel({
   /** Recent report months to offer, newest first. */
   reportKeys: string[]
   suppressed: string | null
+  listEmails: PersonListEmail[]
 }) {
   const router = useRouter()
   const [adding, setAdding] = useState(false)
@@ -145,6 +153,71 @@ export function PersonMailingPanel({
           <button type="button" onClick={() => setMarking(true)} className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted">Mark as received…</button>
         )}
       </div>
+
+      <ListEmails rows={listEmails} />
+    </div>
+  )
+}
+
+/** Every list email this person was sent, with what they did with each, and the totals. */
+function ListEmails({ rows }: { rows: PersonListEmail[] }) {
+  const sent = rows.filter((r) => !r.failed)
+  const count = (pick: (r: PersonListEmail) => unknown) => sent.filter((r) => pick(r)).length
+  const opens = sent.reduce((n, r) => n + r.openCount, 0)
+  const clicks = sent.reduce((n, r) => n + r.clickCount, 0)
+  const totals = [
+    { label: 'Emails sent', value: `${sent.length}` },
+    { label: 'Delivered', value: `${count((r) => r.deliveredAt)}` },
+    { label: 'Opened (approx.)', value: `${count((r) => r.openCount > 0)}`, extra: `${opens} ${opens === 1 ? 'open' : 'opens'}` },
+    { label: 'Clicked', value: `${count((r) => r.clickCount > 0)}`, extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'}` },
+    { label: 'Replied', value: `${count((r) => r.repliedAt)}` },
+  ]
+  return (
+    <div className="space-y-2 lg:col-span-2">
+      <h3 className="text-sm font-semibold">List emails</h3>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No list emails sent yet.</p>
+      ) : (
+        <>
+          <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            {totals.map((t) => (
+              <div key={t.label}>
+                <dt className="text-xs text-muted-foreground">{t.label}</dt>
+                <dd className="font-semibold tabular-nums">{t.value}{t.extra && <span className="ml-1 text-xs font-normal text-muted-foreground">· {t.extra}</span>}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted text-left text-xs">
+                <tr>
+                  {['Sent', 'Email', 'Delivered', 'Opens (approx.)', 'Clicks', 'Replied', 'Note'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-1.5 font-medium">{h}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-t border-border">
+                    <td className="whitespace-nowrap px-3 py-1.5">{r.sentAt ? fmt(r.sentAt) : '—'}</td>
+                    <td className="px-3 py-1.5">
+                      <Link href={`/support/admin/crm/mailing/editions/${r.editionId}`} className="font-medium hover:underline">{r.title}</Link>
+                      <span className="block text-xs text-muted-foreground">{r.subject}</span>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-1.5">{r.deliveredAt ? fmt(r.deliveredAt) : ''}</td>
+                    <td className="px-3 py-1.5 tabular-nums">{r.openCount || ''}</td>
+                    <td className="px-3 py-1.5 tabular-nums">{r.clickCount || ''}</td>
+                    <td className="whitespace-nowrap px-3 py-1.5">{r.repliedAt ? fmt(r.repliedAt) : ''}</td>
+                    <td className="px-3 py-1.5 text-xs">
+                      {r.failed && <span className="text-destructive">Failed to send</span>}
+                      {r.bouncedAt && <span className="text-destructive">Bounced</span>}
+                      {r.unsubscribedAt && `Unsubscribed ${fmt(r.unsubscribedAt)}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   )
 }
