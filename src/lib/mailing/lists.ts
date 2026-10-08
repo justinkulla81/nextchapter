@@ -10,7 +10,7 @@ export const SETTINGS_DEFAULTS = {
   replyTo: 'justin@launchyournextchapter.com',
   testEmail: 'justin@launchyournextchapter.com',
   ratePerHour: 50,
-  footerText: "Not useful? Reply 'unsubscribe' or [click here] and I'll take you off. NextChapter · {{postalAddress}}",
+  footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
   postalAddress: '',
 }
 

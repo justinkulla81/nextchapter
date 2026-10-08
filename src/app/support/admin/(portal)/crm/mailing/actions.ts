@@ -324,7 +324,7 @@ export async function saveSettings(formData: FormData) {
     replyTo: text('replyTo') || 'justin@launchyournextchapter.com',
     testEmail: text('testEmail') || 'justin@launchyournextchapter.com',
     ratePerHour: rate,
-    footerText: text('footerText') || "Not useful? Reply 'unsubscribe' or [click here] and I'll take you off. NextChapter · {{postalAddress}}",
+    footerText: text('footerText') || "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
     postalAddress: text('postalAddress'),
   }
   await prisma.mailingSettings.upsert({ where: { id: 'singleton' }, create: { id: 'singleton', ...data }, update: data })

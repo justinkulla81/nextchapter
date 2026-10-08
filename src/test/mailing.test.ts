@@ -181,7 +181,7 @@ describe('rendering', () => {
     const { html, text } = renderEmail({
       bodyHtml: '<p>Hi {{firstName}},</p><p>The report is out.</p>', reportUrl: 'https://launchyournextchapter.com/reports/files/monthly-2026-10',
       merge: { firstName: 'Jane', orgName: null, reportUrl: null },
-      footerText: "Not useful? Reply 'unsubscribe' or [click here] and I'll take you off. NextChapter · {{postalAddress}}",
+      footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
       postalAddress: '1 Main St, Boston MA', unsubscribeUrl: 'https://launchyournextchapter.com/updates/unsubscribe/t',
     })
     expect(html).toContain('Hi Jane,')
