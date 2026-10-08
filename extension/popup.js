@@ -352,14 +352,31 @@ async function readPage() {
       }
       scroller.scrollTop = start
     }
-    const topEntries = (sec) => sec
-      ? Array.from(sec.querySelectorAll('li')).filter((li) => !li.parentElement.closest('li') && (li.innerText || '').trim())
-      : []
+    // One element per school / employer. The 2026 layout has no <li> at
+    // the top level: each entry is a logo link (<a><img alt="X logo">)
+    // beside a block of <p> lines, and the only <li>s are the individual
+    // roles inside a company with several — reading those as entries took
+    // an old Facebook role as the latest job of someone who's still at
+    // their current one. The older <li> layout is the fallback.
+    const topEntries = (sec) => {
+      if (!sec) return []
+      const logoLinks = (el) => Array.from(el.querySelectorAll('a')).filter((a) => a.querySelector('img') && !a.closest('li'))
+      const byLogo = []
+      for (const a of logoLinks(sec)) {
+        // Widen to the whole block for this one logo, so a company's
+        // grouped roles (and their "Present") belong to its entry.
+        let entry = a.parentElement
+        while (entry?.parentElement && entry.parentElement !== sec && logoLinks(entry.parentElement).length === 1) entry = entry.parentElement
+        if (entry && !byLogo.includes(entry) && (entry.innerText || '').trim()) byLogo.push(entry)
+      }
+      if (byLogo.length > 0) return byLogo
+      return Array.from(sec.querySelectorAll('li')).filter((li) => !li.parentElement.closest('li') && (li.innerText || '').trim())
+    }
     // A date line ("2004 – 2008", "Sep 2010 - May 2012") is not a degree.
     const DATE_LINE = /^((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?\d{4}(\s*[-–]\s*((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+)?(\d{4}|present))?$/i
     out.schools = []
     for (const li of topEntries(eduSection)) {
-      const lines = entryLines(li).filter((t) => !/^(show all|see more|… ?more)\b/i.test(t))
+      const lines = entryLines(li).filter((t) => !/^(show all|see more|… ?more)\b/i.test(t) && t !== logoName(li))
       const name = logoName(li) || lines[0] || ''
       if (!name || CARD_TEXT.test(name)) continue
       const detail = lines.filter((t) => t !== name).find((t) => !DATE_LINE.test(t) && t.length <= 160) || ''
@@ -373,7 +390,7 @@ async function readPage() {
     const latest = topEntries(laterExpSection)[0]
     if (latest && !/\bpresent\b/i.test(latest.textContent || '')) {
       const company = experienceCompanyOf(latest)
-      const nested = latest.querySelector('ul li')
+      const nested = latest.querySelector('li')
       const title = (nested ? entryLines(nested)[0] : entryLines(latest)[0]) || ''
       if (company && !CARD_TEXT.test(company) && !JOB_SEEKING.test(company)) {
         out.formerEmployer = { name: company, title: title === company ? '' : title }
