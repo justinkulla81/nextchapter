@@ -29,6 +29,17 @@ export function MailingEditor({
 
   const emit = () => ref.current && onChange(ref.current.innerHTML)
 
+  // Leaving the box drops the blank paragraphs that Enter-twice creates — the
+  // email spaces paragraphs itself and drops them too, so the two match.
+  const tidy = () => {
+    const root = ref.current
+    if (!root) return
+    for (const el of Array.from(root.querySelectorAll('p, div'))) {
+      if (root.children.length > 1 && !el.textContent?.replace(/\u00a0/g, '').trim() && !el.querySelector('a, li')) el.remove()
+    }
+    emit()
+  }
+
   const exec = (command: string, value?: string) => {
     ref.current?.focus()
     document.execCommand(command, false, value)
@@ -97,13 +108,13 @@ export function MailingEditor({
         contentEditable={!disabled}
         suppressContentEditableWarning
         onInput={emit}
-        onBlur={emit}
+        onBlur={tidy}
         onPaste={(e) => {
           e.preventDefault()
           document.execCommand('insertText', false, e.clipboardData.getData('text/plain'))
           emit()
         }}
-        className="min-h-64 px-3 py-2 text-[15px] leading-relaxed outline-none [&_a]:text-brand [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-3"
+        className="min-h-64 px-3 py-2 text-[15px] leading-relaxed outline-none [&_a]:text-brand [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:mb-3 [&_ol]:mb-3 [&_li]:mb-1.5 [&_p]:mb-3"
       />
     </div>
   )

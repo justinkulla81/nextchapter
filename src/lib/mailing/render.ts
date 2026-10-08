@@ -39,7 +39,26 @@ export function sanitizeBodyHtml(input: string): string {
     return tag === 'br' ? '<br>' : `<${tag}>`
   })
   // Any stray angle bracket left is text, not markup.
-  return s.replace(/<(?![/a-z])/gi, '&lt;').trim()
+  s = s.replace(/<(?![/a-z])/gi, '&lt;')
+  // Paragraph spacing comes from margins, so the blank paragraphs the editor
+  // leaves behind (Enter twice) would only double the gap.
+  return s.replace(/<(p|div)>(?:\s|&nbsp;|<br>)*<\/\1>/gi, '').trim()
+}
+
+/**
+ * Gmail and Outlook ignore stylesheets, and the admin preview sits under
+ * Tailwind's reset, so spacing and bullets are written onto each tag. The
+ * preview renders this same HTML, so what Justin sees is what lands.
+ */
+const INLINE: Record<string, string> = {
+  p: 'margin:0 0 12px 0',
+  ul: 'list-style-type:disc;padding-left:24px;margin:0 0 12px 0',
+  ol: 'list-style-type:decimal;padding-left:24px;margin:0 0 12px 0',
+  li: 'margin:0 0 6px 0',
+}
+
+function inlineStyles(html: string): string {
+  return html.replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
 }
 
 /** Plain text for the text/plain part and for previews. */
@@ -100,6 +119,7 @@ export function renderEmail(input: RenderInput): { html: string; text: string } 
   const bodyText = htmlToText(body)
   const signed = /justin\s*$/i.test(bodyText)
   if (!signed) body += '<p>Justin</p>'
+  body = inlineStyles(body)
 
   const preview = input.previewText
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(input.previewText)}</div>`

@@ -185,7 +185,7 @@ describe('rendering', () => {
       postalAddress: '1 Main St, Boston MA', unsubscribeUrl: 'https://launchyournextchapter.com/updates/unsubscribe/t',
     })
     expect(html).toContain('Hi Jane,')
-    expect(html).toContain('<p>Justin</p>')
+    expect(html).toContain('<p style="margin:0 0 12px 0">Justin</p>')
     expect(html).toContain('href="https://launchyournextchapter.com/updates/unsubscribe/t"')
     expect(html).toContain('1 Main St, Boston MA')
     expect(html).toContain('href="https://launchyournextchapter.com/reports/files/monthly-2026-10"')
@@ -199,6 +199,16 @@ describe('rendering', () => {
     })
     expect(html).toContain('Hi there,')
     expect(html.match(/Justin/g)).toHaveLength(1)
+  })
+  it('drops blank paragraphs and inlines bullet and spacing styles for email clients', () => {
+    expect(sanitizeBodyHtml('<p>One</p><p><br></p><p>&nbsp;</p><p></p><div><br></div><p>Two</p>')).toBe('<p>One</p><p>Two</p>')
+    const { html } = renderEmail({
+      bodyHtml: '<p>Hi</p><ul><li>a</li><li>b</li></ul><ol><li>c</li></ol>', merge: { firstName: null, orgName: null, reportUrl: null },
+      footerText: '[Unsubscribe]', postalAddress: 'x', unsubscribeUrl: 'u',
+    })
+    expect(html).toContain('<ul style="list-style-type:disc;padding-left:24px;margin:0 0 12px 0"><li style="margin:0 0 6px 0">a</li>')
+    expect(html).toContain('<ol style="list-style-type:decimal;')
+    expect(html).not.toMatch(/<(p|ul|ol|li)>/)
   })
 })
 
