@@ -62,6 +62,10 @@ export interface CompanyFitResult {
   missingSkills: string[]
 }
 
+function longestWord(name: string): string {
+  return name.split(/\s+/).reduce((a, b) => (b.length > a.length ? b : a), '')
+}
+
 export async function computeCompanyFitForCandidate(
   candidateId: string,
   canonicalNameNormalized: string,
@@ -70,7 +74,10 @@ export async function computeCompanyFitForCandidate(
   const [candidate, openPostings] = await Promise.all([
     prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: FIT_CANDIDATE_SELECT }),
     prisma.exclusiveJobPosting.findMany({
-      where: { archivedAt: null },
+      // Narrowed in the database to names containing the company's longest
+      // word (the board holds tens of thousands of jobs); the exact
+      // normalized-name match below decides.
+      where: { archivedAt: null, companyName: { contains: longestWord(canonicalNameNormalized), mode: 'insensitive' } },
       select: {
         title: true,
         description: true,

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 
 export interface CoachJobsSnapshot {
@@ -21,17 +22,8 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
     where: { id: candidateId },
   })
 
-  const [dossierStatus, boardPostings, unreactedSurfacedJobs] = await Promise.all([
+  const [dossierStatus, unreactedSurfacedJobs] = await Promise.all([
     isDossierUnlocked(candidateId),
-    prisma.exclusiveJobPosting.findMany({
-      where: {
-        status: 'approved',
-        archivedAt: null,
-        distribution: { not: 'EXCLUDED' },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
-      orderBy: { createdAt: 'desc' },
-    }),
     prisma.surfacedJob.findMany({
       where: { candidateId, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -40,8 +32,10 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
   ])
 
   const isCandidatePlus = dossierStatus.unlocked
-  const eligible = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isCandidatePlus)
-  const lockedCount = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isCandidatePlus).length
+  // Best-fitting jobs only — the board is tens of thousands of rows (see board-shortlist.ts).
+  const board = await loadBoardShortlist({ candidate, isCandidatePlus })
+  const eligible = board.open
+  const lockedCount = board.lockedTotal
 
   const openPostings = eligible
     .map((p) => ({ ...p, fitBucket: computeBoardListingFitBucket(candidate, p) }))

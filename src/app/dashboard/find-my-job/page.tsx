@@ -26,6 +26,7 @@ import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
+import { loadBoardShortlist, type BoardShortlist } from '@/lib/jobs/board-shortlist'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -229,14 +230,14 @@ async function JobRecommendationsSection({
   profile,
   isCandidatePlus,
   dossierReason,
-  boardPostings,
+  board,
   contacts,
   seniorityGroup,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   isCandidatePlus: boolean
   dossierReason: string
-  boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
+  board: BoardShortlist
   seniorityGroup: SeniorityGroup | null
   contacts: {
     id: string
@@ -300,8 +301,10 @@ async function JobRecommendationsSection({
   // list.
   const visibleSurfacedJobs = isCandidatePlus ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
   const lockedSurfacedCount = isCandidatePlus ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
-  const openBoardPostings = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isCandidatePlus)
-  const lockedBoardPostings = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isCandidatePlus)
+  // The board's best-fitting jobs (see board-shortlist.ts) — the full
+  // board is tens of thousands of rows; totals still count all of them.
+  const openBoardPostings = board.open
+  const lockedBoardPostings = board.locked
 
   // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
   // (called inline in the JSX below), but resolveCompanySizeBand isn't —
@@ -417,7 +420,7 @@ async function JobRecommendationsSection({
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockCandidatePlusCallout
               reason={dossierReason}
-              lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
+              lockedCount={board.lockedTotal + lockedSurfacedCount + board.openTotal + board.lockedTotal}
             />
           )}
         </div>
@@ -517,18 +520,8 @@ async function FindMyJobBody({
   // LLM call for any company name seen for the first time) — both live
   // entirely inside JobRecommendationsSection below now, wrapped in
   // Suspense, so the rest of the page never blocks on them.
-  const [dossierStatus, boardPostings, latestReport] = await Promise.all([
+  const [dossierStatus, latestReport] = await Promise.all([
     isDossierUnlocked(profile.id),
-    prisma.exclusiveJobPosting.findMany({
-      where: {
-        status: 'approved',
-        archivedAt: null,
-        distribution: { not: 'EXCLUDED' },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-        ...(seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {}),
-      },
-      orderBy: { createdAt: 'desc' },
-    }),
     // Reads the same application-trends breakdown the Market Reality Report
     // shows, computed once at report-generation time — never recomputed
     // live here, since computeApplicationTrends calls resolveCompanyIndustry
@@ -545,6 +538,11 @@ async function FindMyJobBody({
       ?.applicationTrends ?? null
 
   const isCandidatePlus = dossierStatus.unlocked
+  const board = await loadBoardShortlist({
+    candidate: profile,
+    isCandidatePlus,
+    where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
+  })
   const matchedFullTimeRoles = isCandidatePlus ? await getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : []
   // Scoped to just the companies already-applied-to postings mention — the
   // separate, larger set of companies from board/surfaced listings is
@@ -624,12 +622,7 @@ async function FindMyJobBody({
   // Open board postings per company, keyed by normalized name — surfaced
   // next to each application so a candidate sees "3 open roles at Foo in
   // our job board" right where they're tracking that application.
-  const boardPostingCountByCompany = new Map<string, number>()
-  for (const p of boardPostings) {
-    if (!p.companyName) continue
-    const key = normalizeOrgName(p.companyName)
-    boardPostingCountByCompany.set(key, (boardPostingCountByCompany.get(key) ?? 0) + 1)
-  }
+  const boardPostingCountByCompany = board.countByCompany
   const boardPostingCountFor = (companyName: string | null) =>
     companyName ? (boardPostingCountByCompany.get(normalizeOrgName(companyName)) ?? 0) : 0
 
@@ -803,7 +796,7 @@ async function FindMyJobBody({
                 profile={profile}
                 isCandidatePlus={isCandidatePlus}
                 dossierReason={dossierStatus.reason}
-                boardPostings={boardPostings}
+                board={board}
                 contacts={contacts}
                 seniorityGroup={seniorityGroup}
               />

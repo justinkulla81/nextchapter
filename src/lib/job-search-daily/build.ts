@@ -1,6 +1,7 @@
 import 'server-only'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import {
   getCurrentWeekSprint,
@@ -166,20 +167,17 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
 
   // ── New roles that fit ───────────────────────────────────────────────
   const jobsSince = lastSend ? lastSend.sentAt : new Date(now.getTime() - JOB_LOOKBACK_DAYS * DAY_MS)
-  const [postings, dossier] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({
-      where: {
-        status: 'approved',
-        archivedAt: null,
-        distribution: { not: 'EXCLUDED' },
-        createdAt: { gte: jobsSince },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 500,
-    }),
-    isDossierUnlocked(candidate.id),
-  ])
+  // New jobs ranked by fit first (board-shortlist.ts): one import can add
+  // tens of thousands at once, so "the newest 500" would be an arbitrary
+  // slice rather than the ones that fit.
+  const dossier = await isDossierUnlocked(candidate.id)
+  const shortlist = await loadBoardShortlist({
+    candidate,
+    isCandidatePlus: dossier.unlocked,
+    where: { createdAt: { gte: jobsSince } },
+    size: 200,
+  })
+  const postings = [...shortlist.open, ...shortlist.locked]
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
     const bucket = computeBoardListingFitBucket(candidate, p)

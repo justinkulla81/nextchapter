@@ -1,5 +1,6 @@
 import { SENIORITY_GROUPS, seniorityGroupOf } from '@/lib/jobs/job-seniority'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -154,34 +155,92 @@ function PostingCard({
   )
 }
 
+const ARCHIVED_SHOWN = 500
+const COVERAGE_SAMPLE = 5000
+
 async function loadPageData() {
-  const [postings, candidates] = await Promise.all([
+  const live = { status: 'approved', archivedAt: null } as const
+  const archivedWhere = { OR: [{ archivedAt: { not: null } }, { status: 'rejected' }] }
+  const [pending, activeManaged, activeByLevel, archivedTotal, archived, candidates] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({ where: { status: 'pending', archivedAt: null }, orderBy: { createdAt: 'desc' } }),
+    // ATS-fed rows never need a person to Archive/"still open — confirm"
+    // them individually — the feeds reconfirm or archive them on every run
+    // (ats-job-board-feed.ts, the ncrawl import). They're also nearly all
+    // of the board (tens of thousands of rows), so they're only counted;
+    // genuinely admin-managed rows get a Card.
+    prisma.exclusiveJobPosting.findMany({ where: { ...live, source: { not: 'ats_feed' } }, orderBy: { createdAt: 'desc' } }),
+    prisma.exclusiveJobPosting.groupBy({ by: ['source', 'level'], where: live, _count: { _all: true } }),
+    prisma.exclusiveJobPosting.count({ where: archivedWhere }),
     prisma.exclusiveJobPosting.findMany({
+      where: archivedWhere,
       orderBy: { createdAt: 'desc' },
+      take: ARCHIVED_SHOWN,
+      select: { id: true, title: true, companyName: true, status: true, rejectionReason: true },
     }),
     loadAdminFitCandidates(),
   ])
-  const pending = postings.filter((p) => p.status === 'pending' && !p.archivedAt)
-  const active = postings.filter((p) => p.status === 'approved' && !p.archivedAt)
-  // ATS-fed rows never need a person to Archive/"still open — confirm" them
-  // individually — the feed itself reconfirms or archives them on every run
-  // (see ats-job-board-feed.ts). They're also the overwhelming majority of
-  // `active` (thousands, vs. a handful of real employer/recruiter
-  // submissions), so rendering one Card per row here — as this section did
-  // when "active" meant "the small number of admin-trusted postings" — blew
-  // past this route's response size/time budget as soon as the ATS feed's
-  // volume landed in the same status. Only genuinely admin-managed rows get
-  // a Card; the feed-managed rest are just counted.
-  const activeManaged = active.filter((p) => p.source !== 'ats_feed')
-  const activeAtsFeedCount = active.length - activeManaged.length
-  const archived = postings.filter((p) => p.archivedAt || p.status === 'rejected')
-  return { pending, active, activeManaged, activeAtsFeedCount, archived, candidates }
+  const activeTotal = activeByLevel.reduce((n, g) => n + g._count._all, 0)
+  const atsFeedByLevel = activeByLevel.filter((g) => g.source === 'ats_feed')
+  const activeAtsFeedCount = atsFeedByLevel.reduce((n, g) => n + g._count._all, 0)
+  return { pending, activeTotal, activeManaged, activeAtsFeedCount, atsFeedByLevel, archived, archivedTotal, candidates }
+}
+
+// Who has the fewest good-fit options — scored against the newest
+// COVERAGE_SAMPLE live jobs on their light fields (no description), since
+// every candidate x every job is millions of comparisons at board scale.
+// Streamed in its own Suspense boundary so the queue above never waits.
+async function CandidateCoverage({ candidates }: { candidates: Awaited<ReturnType<typeof loadAdminFitCandidates>> }) {
+  const postings = await prisma.exclusiveJobPosting.findMany({
+    where: { status: 'approved', archivedAt: null, distribution: { not: 'EXCLUDED' } },
+    orderBy: { createdAt: 'desc' },
+    take: COVERAGE_SAMPLE,
+    select: {
+      id: true, title: true, targetFunction: true, targetLevel: true, targetRemotePolicy: true, targetLocation: true,
+      location: true, salaryMin: true, salaryMax: true, companyName: true,
+    },
+  })
+  const candidatesNeedingOptions = rankCandidatesByFitCoverage(
+    candidates,
+    postings.map((p) => ({ ...p, description: null }))
+  ).slice(0, 10)
+  return candidatesNeedingOptions.length === 0 ? (
+    <p className="text-sm text-muted-foreground">No candidates yet.</p>
+  ) : (
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/50 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <tr>
+            <th className="px-3 py-2">Candidate</th>
+            <th className="px-3 py-2">Good-fit listings (newest {COVERAGE_SAMPLE.toLocaleString()})</th>
+          </tr>
+        </thead>
+        <tbody>
+          {candidatesNeedingOptions.map(({ candidate, goodFitCount, totalPostings }) => (
+            <tr key={candidate.id} className="border-t border-border">
+              <td className="px-3 py-2">
+                <Link
+                  href={`/support/admin/candidates/${candidate.id}`}
+                  className="text-primary underline underline-offset-4"
+                >
+                  {[candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || candidate.email || candidate.id}
+                </Link>
+              </td>
+              <td className="px-3 py-2 font-medium text-foreground tabular-nums">
+                {goodFitCount} of {totalPostings}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 export default async function ExclusiveJobsAdminPage() {
   await requireAdmin()
 
-  const { pending, active, activeManaged, activeAtsFeedCount, archived, candidates } = await loadPageData()
+  const { pending, activeTotal, activeManaged, activeAtsFeedCount, atsFeedByLevel, archived, archivedTotal, candidates } =
+    await loadPageData()
 
   // Computed once, reused by both the "by company" and "by fit" views below
   // so a posting's match count is never recalculated twice per render.
@@ -219,8 +278,6 @@ export default async function ExclusiveJobsAdminPage() {
   // Excludes EXCLUDED-distribution rows (private candidate job-fit-check
   // mirrors) — those were never a real option available to anyone, so
   // counting them here would understate how underserved a candidate is.
-  const activeAvailablePostings = active.filter((p) => p.distribution !== 'EXCLUDED')
-  const candidatesNeedingOptions = rankCandidatesByFitCoverage(candidates, activeAvailablePostings).slice(0, 10)
 
   const archivedByCompany = new Map<string, typeof archived>()
   for (const posting of archived) {
@@ -411,7 +468,7 @@ export default async function ExclusiveJobsAdminPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Active ({active.length})</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">Active ({activeTotal.toLocaleString()})</h2>
         {activeAtsFeedCount > 0 && (
           <p className="text-sm text-muted-foreground">
             {activeAtsFeedCount.toLocaleString()} of those are ATS-fed listings, managed automatically by the daily
@@ -422,7 +479,13 @@ export default async function ExclusiveJobsAdminPage() {
         {activeAtsFeedCount > 0 && (
           <p className="text-sm text-muted-foreground">
             By seniority:{' '}
-            {SENIORITY_GROUPS.map((g) => `${g.label} ${active.filter((p) => p.source === 'ats_feed' && seniorityGroupOf(p.level) === g.key).length.toLocaleString()}`).join(' · ')}
+            {SENIORITY_GROUPS.map(
+              (g) =>
+                `${g.label} ${atsFeedByLevel
+                  .filter((row) => seniorityGroupOf(row.level) === g.key)
+                  .reduce((n, row) => n + row._count._all, 0)
+                  .toLocaleString()}`
+            ).join(' · ')}
             . Jobs below manager level (entry-level, hourly, frontline) are screened out before they get here.
           </p>
         )}
@@ -483,42 +546,17 @@ export default async function ExclusiveJobsAdminPage() {
             it&apos;s clear who most needs manual sourcing attention.
           </p>
         </div>
-        {candidatesNeedingOptions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No candidates yet.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                <tr>
-                  <th className="px-3 py-2">Candidate</th>
-                  <th className="px-3 py-2">Good-fit active listings</th>
-                </tr>
-              </thead>
-              <tbody>
-                {candidatesNeedingOptions.map(({ candidate, goodFitCount, totalPostings }) => (
-                  <tr key={candidate.id} className="border-t border-border">
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/support/admin/candidates/${candidate.id}`}
-                        className="text-primary underline underline-offset-4"
-                      >
-                        {[candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || candidate.email || candidate.id}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 font-medium text-foreground tabular-nums">
-                      {goodFitCount} of {totalPostings}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Scoring candidates against the board…</p>}>
+          <CandidateCoverage candidates={candidates} />
+        </Suspense>
       </div>
 
       {archived.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Archived / rejected ({archived.length})</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Archived / rejected ({archivedTotal.toLocaleString()}
+            {archivedTotal > archived.length ? `; newest ${archived.length.toLocaleString()} shown` : ''})
+          </h2>
           {archivedCompanies.map(([companyName, companyPostings]) => (
             <details key={companyName} className="group rounded-lg border border-border">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
