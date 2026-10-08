@@ -10883,6 +10883,11 @@ model Institution {
   // over the code defaults, so a missing key never breaks anything.
   enabledFeatures  Json            @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
   givingUrl        String?
+  // Public, sourced facts shown in the portal: the college profile (photos,
+  // published outcomes), its region (unemployment, top employers, the WIOA
+  // board, local news). Every figure carries its source and period — see
+  // InstitutionProfile in src/lib/higher-ed/profile.ts. Never member data.
+  profile          Json?
   isDemo           Boolean         @default(false)
   isSampleData     Boolean         @default(false)
   createdAt        DateTime        @default(now())
