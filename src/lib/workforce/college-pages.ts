@@ -110,7 +110,7 @@ export function pageText(html: string): string {
 /** Fetches one page; the default is a plain request, a browser can be passed in instead. */
 export type PageFetcher = (url: string, timeoutMs?: number) => Promise<{ html: string; url: string } | null>
 
-async function getPage(url: string, timeoutMs = 15_000): Promise<{ html: string; url: string } | null> {
+export async function getPage(url: string, timeoutMs = 15_000): Promise<{ html: string; url: string } | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow' })
     if (!res.ok || !(res.headers.get('content-type') ?? '').includes('html')) return null

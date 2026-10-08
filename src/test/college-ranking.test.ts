@@ -50,10 +50,10 @@ describe('leader titles', () => {
 
 describe('the CRM gate', () => {
   const c = { role: 'career', name: 'Jeremy Fisher, MBA, PHRS', title: 'Senior Director of the John P. Fahey Career Center', email: 'jfisher@creighton.edu' }
-  it('admits a named office leader with their own email at an A or B college', () => {
-    expect(crmWorthy(c, 'A')).toBe(true)
-    expect(crmWorthy(c, 'C')).toBe(false)
-    expect(crmWorthy({ ...c, email: 'careers@creighton.edu' }, 'A')).toBe(false)
+  it('admits a named office leader with their own email, at any ranked college', () => {
+    expect(crmWorthy(c)).toBe(true)
+    expect(crmWorthy({ ...c, email: 'careers@creighton.edu' })).toBe(false)
+    expect(crmWorthy({ ...c, email: null, guessedEmail: 'jfisher@creighton.edu' })).toBe(true)
   })
   it('stores the name without honorifics, credentials or class years', () => {
     expect(cleanPersonName('Dr. Chad Warren')).toBe('Chad Warren')

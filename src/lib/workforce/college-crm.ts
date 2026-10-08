@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { findEmailOwner } from '@/lib/crm/email-owner'
+import { addContactToCrm } from '@/lib/crm/add-contact'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { COLLEGE_ROLES, type CollegeRole } from './college-pages'
@@ -68,11 +68,13 @@ export async function ensureCollegeOrg(
 
 /**
  * Which college contacts belong in the CRM: a named leader with a leader's
- * title and their own email (not careers@, giving@ or advancementvp@), at a
- * college ranked A or B. Everything else stays on the Colleges page only.
+ * title and their own address (not careers@, giving@ or advancementvp@) — a
+ * real one, or one worked out from the college's email format. Every ranked
+ * four-year college counts; a college ranked A or B is P2, the rest carry no
+ * priority.
  */
-export function crmWorthy(c: { role: string; name: string | null; title: string | null; email: string | null }, tier: string | null): boolean {
-  return !!c.name && titleLeadsRole(c.title, c.role) && isPersonalEmail(c.email, c.name) && (tier === 'A' || tier === 'B')
+export function crmWorthy(c: { role: string; name: string | null; title: string | null; email: string | null; guessedEmail?: string | null }): boolean {
+  return !!c.name && titleLeadsRole(c.title, c.role) && (isPersonalEmail(c.email, c.name) || (!c.email && isPersonalEmail(c.guessedEmail ?? null, c.name)))
 }
 
 /**
@@ -85,81 +87,47 @@ export function crmWorthy(c: { role: string; name: string | null; title: string 
  * name matches someone already in the CRM is added flagged for the Review
  * List, so a merge is decided by a person, not guessed.
  */
-export async function addCollegeContactsToCrm(): Promise<{ added: number; matched: number; review: number; skippedRemoved: number }> {
-  const contacts = await prisma.collegeContact.findMany({ where: { crmPersonId: null, name: { not: null }, email: { not: null } } })
+export async function addCollegeContactsToCrm(budgetMs = 120_000): Promise<{ added: number; matched: number; review: number; skippedRemoved: number }> {
+  const started = Date.now()
+  const contacts = await prisma.collegeContact.findMany({
+    where: { crmPersonId: null, name: { not: null }, OR: [{ email: { not: null } }, { guessedEmail: { not: null } }] },
+  })
   const colleges = new Map((await prisma.localCollege.findMany({
     where: { id: { in: [...new Set(contacts.map((c) => c.collegeId))] } },
     select: { id: true, name: true, tier: true, rank: true, website: true, city: true, state: true },
   })).map((c) => [c.id, c]))
-  const worthy = contacts.filter((c) => crmWorthy(c, colleges.get(c.collegeId)?.tier ?? null))
+  const worthy = contacts.filter((c) => crmWorthy(c))
+    // Ranked colleges first, so a short budget covers the ones that matter.
+    .sort((a, b) => (colleges.get(a.collegeId)?.rank ?? 1e9) - (colleges.get(b.collegeId)?.rank ?? 1e9))
 
   const orgByKey = await orgsByKey()
-  const roles = ['ALUMNI_OFFICE'] as const
-  let added = 0
-  let matched = 0
-  let review = 0
-  let skippedRemoved = 0
-
+  const out = { added: 0, matched: 0, review: 0, skippedRemoved: 0 }
   for (const c of worthy) {
+    if (Date.now() - started > budgetMs) break
     const college = colleges.get(c.collegeId)!
     const name = cleanPersonName(c.name!)
     const title = c.title ?? COLLEGE_ROLES[c.role as CollegeRole]?.label ?? null
-
     const org = await ensureCollegeOrg(college, orgByKey)
-    const note = `${title ?? 'Leader'} at ${college.name} (college rank ${college.rank}, tier ${college.tier}). From the college's own website: ${c.sourceUrl}`
-    const owner = await findEmailOwner(c.email, { includeDeleted: true })
-    let personId: string
-    if (owner?.deleted) {
-      // Taken out of the CRM on purpose — do not bring them back.
-      skippedRemoved++
-      continue
-    } else if (owner) {
-      const p = await prisma.crmPerson.findUniqueOrThrow({ where: { id: owner.id }, select: { roles: true, goals: true, priority: true } })
-      const nextRoles = [...new Set([...p.roles, ...roles])]
-      await prisma.crmPerson.update({
-        where: { id: owner.id },
-        data: {
-          roles: nextRoles,
-          goals: [...new Set([...p.goals, ...COLLEGE_GOALS])],
-          ...(p.priority ? {} : { priority: 'P2' }),
-        },
-      })
-      personId = owner.id
-      matched++
-    } else {
-      const sameName = await prisma.crmPerson.findFirst({
-        where: { fullName: { equals: name, mode: 'insensitive' }, deletedAt: null },
-        select: { id: true },
-      })
-      const [firstName, ...rest] = name.split(' ')
-      const person = await prisma.crmPerson.create({
-        data: {
-          fullName: name,
-          firstName,
-          lastName: rest.length ? rest[rest.length - 1] : null,
-          email: c.email,
-          emails: [c.email!],
-          phone: c.phone,
-          roles: [...roles],
-          goals: [...COLLEGE_GOALS],
-          priority: 'P2',
-          normalizedKey: `${name.toLowerCase()}|${normalizeOrgName(college.name)}`,
-          notes: sameName ? `${note}\n\nSomeone named ${name} is already in the CRM (${sameName.id}) — same person? Merge or clear on the Review List.` : note,
-          // An unsure match goes to the Review List rather than being merged by guess.
-          needsCompletion: !!sameName,
-        },
-      })
-      personId = person.id
-      if (sameName) review++
-      else added++
-    }
-
-    await prisma.crmAffiliation.upsert({
-      where: { personId_orgId_title: { personId, orgId: org.id, title: title ?? '' } },
-      update: { isCurrent: true },
-      create: { personId, orgId: org.id, title, isPrimary: true, isCurrent: true },
+    const guessed = !c.email
+    const r = await addContactToCrm({
+      fullName: name,
+      title,
+      email: c.email,
+      guessedEmail: c.guessedEmail,
+      guessedEmailBasis: c.guessedEmailBasis,
+      phone: c.phone,
+      orgId: org.id,
+      orgName: college.name,
+      roles: ['ALUMNI_OFFICE'],
+      goals: [...COLLEGE_GOALS],
+      priority: college.tier === 'A' || college.tier === 'B' ? 'P2' : null,
+      note: `${title ?? 'Leader'} at ${college.name}${college.rank ? ` (college rank ${college.rank}, tier ${college.tier})` : ''}. From the college's own website: ${c.sourceUrl}${guessed ? ' No address was published; the email shown is a guess from the college\'s format.' : ''}`,
     })
-    await prisma.collegeContact.update({ where: { id: c.id }, data: { crmPersonId: personId } })
+    if (r.outcome === 'removed') { out.skippedRemoved++; continue }
+    if (r.outcome === 'added') out.added++
+    else if (r.outcome === 'matched') out.matched++
+    else out.review++
+    await prisma.collegeContact.update({ where: { id: c.id }, data: { crmPersonId: r.personId } })
   }
-  return { added, matched, review, skippedRemoved }
+  return out
 }
