@@ -1,6 +1,7 @@
 import 'server-only'
 import type { CrmReportSendChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
 
@@ -20,7 +21,7 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
   const emailId = event.data?.email_id
   if (!emailId) return 'ignored'
   const r = await prisma.mailingEditionRecipient.findUnique({ where: { resendEmailId: emailId } })
-  if (!r) return 'ignored'
+  if (!r) return applyJobSearchDailyEvent(event, emailId)
   const at = event.created_at ? new Date(event.created_at) : new Date()
   const reportSend = r.personId ? { editionRecipientId: r.id } : null
 
@@ -161,4 +162,44 @@ export async function onInboundMessage(
     }
     if (s.reportSendId) await prisma.crmReportSend.updateMany({ where: { id: s.reportSendId, repliedAt: null }, data: { repliedAt: msg.at } })
   }
+}
+
+/**
+ * Job Search Daily is candidate mail, not an edition, so its Resend events
+ * land on JobSearchDailySend. Unknown ids are still ignored. Opens and
+ * clicks also go to PostHog (low volume) so they show in funnels.
+ */
+async function applyJobSearchDailyEvent(event: ResendEvent, emailId: string): Promise<'applied' | 'ignored'> {
+  const send = await prisma.jobSearchDailySend.findUnique({ where: { resendEmailId: emailId } })
+  if (!send) return 'ignored'
+  const at = event.created_at ? new Date(event.created_at) : new Date()
+
+  switch (event.type) {
+    case 'email.delivered':
+      await prisma.jobSearchDailySend.update({ where: { id: send.id }, data: { deliveredAt: send.deliveredAt ?? at } })
+      break
+    case 'email.opened':
+      await prisma.jobSearchDailySend.update({
+        where: { id: send.id }, data: { openedAt: send.openedAt ?? at, openCount: { increment: 1 } },
+      })
+      if (!send.openedAt) captureServerEvent(send.candidateId, 'job_search_daily_opened', { sendId: send.id })
+      break
+    case 'email.clicked': {
+      // The unsubscribe link is a click too, but not engagement.
+      const link = event.data.click?.link ?? null
+      if (link?.includes('/api/unsubscribe/')) break
+      await prisma.jobSearchDailySend.update({
+        where: { id: send.id },
+        data: { clickedAt: send.clickedAt ?? at, clickCount: { increment: 1 }, lastClickLink: link?.slice(0, 500) ?? null },
+      })
+      captureServerEvent(send.candidateId, 'job_search_daily_clicked', { sendId: send.id, link })
+      break
+    }
+    case 'email.bounced':
+      await prisma.jobSearchDailySend.update({ where: { id: send.id }, data: { bouncedAt: at } })
+      break
+    default:
+      return 'ignored'
+  }
+  return 'applied'
 }

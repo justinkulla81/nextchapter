@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import type { RoleGrantRole } from '@prisma/client'
 import { EmployerNav } from '@/components/employer/EmployerNav'
 import { getCurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
@@ -23,6 +24,7 @@ export default async function EmployerAppLayout({ children }: { children: React.
 
   return (
     <div className="theme-partner min-h-screen">
+      <PortalActivityTracker portal="EMPLOYER" />
       <EmployerNav role={orgUser.role} />
       {/* pt-14 clears the fixed top bar — see RecruiterAppLayout's identical comment. */}
       <div className="pt-14">

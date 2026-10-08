@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { TalentNav } from '@/components/talent/TalentNav'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerUnreadCount } from '@/lib/messaging/threads'
@@ -13,6 +14,7 @@ export default async function TalentLayout({ children }: { children: React.React
 
   return (
     <div className="theme-partner min-h-screen">
+      <PortalActivityTracker portal="TALENT" />
       <TalentNav messagesUnreadCount={messagesUnreadCount} />
       {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
       <div className="pt-14">

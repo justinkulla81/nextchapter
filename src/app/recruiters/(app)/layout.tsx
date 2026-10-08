@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { RecruiterNav } from '@/components/recruiter/RecruiterNav'
 import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
 import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
@@ -26,6 +27,7 @@ export default async function RecruiterAppLayout({ children }: { children: React
 
   return (
     <div className="theme-partner min-h-screen">
+      <PortalActivityTracker portal="RECRUITER" />
       <RecruiterNav
         accessToken={recruiter.accessToken}
         messagesUnreadCount={messagesUnreadCount}
