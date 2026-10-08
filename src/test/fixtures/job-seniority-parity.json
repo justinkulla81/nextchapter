@@ -1,0 +1,10242 @@
+[
+[
+"Senior Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager",
+"MANAGER",
+40
+],
+[
+"Account Executive",
+"OTHER",
+0
+],
+[
+"Enterprise Account Executive",
+"SENIOR_IC",
+45
+],
+[
+"Store Manager",
+"OTHER",
+0
+],
+[
+"Assistant Store Manager",
+"OTHER",
+0
+],
+[
+"Director of Store Operations",
+"DIRECTOR",
+65
+],
+[
+"Warehouse Associate",
+"OTHER",
+0
+],
+[
+"VP, Warehouse Operations",
+"VP",
+80
+],
+[
+"Truck Driver",
+"OTHER",
+0
+],
+[
+"Assistant Vice President, Credit Risk",
+"SR_MANAGER",
+52
+],
+[
+"Associate Director, Clinical Operations",
+"SR_MANAGER",
+52
+],
+[
+"Marketing Coordinator",
+"OTHER",
+0
+],
+[
+"Financial Analyst",
+"OTHER",
+0
+],
+[
+"Senior Financial Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Registered Nurse",
+"OTHER",
+0
+],
+[
+"Nurse Manager",
+"MANAGER",
+40
+],
+[
+"Shift Supervisor",
+"OTHER",
+0
+],
+[
+"Shift Lead",
+"OTHER",
+0
+],
+[
+"Sales Associate",
+"OTHER",
+0
+],
+[
+"Senior HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"HR Business Partner",
+"OTHER",
+0
+],
+[
+"Executive Assistant to the CEO",
+"OTHER",
+0
+],
+[
+"Chief of Staff to the CEO",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Associate General Counsel",
+"DIRECTOR",
+68
+],
+[
+"Restaurant General Manager",
+"OTHER",
+0
+],
+[
+"General Manager, Payments",
+"C_SUITE",
+100
+],
+[
+"Junior Product Manager",
+"OTHER",
+0
+],
+[
+"Associate Product Manager",
+"OTHER",
+0
+],
+[
+"Principal, Growth Equity",
+"PRINCIPAL",
+70
+],
+[
+"Principal Engineer",
+"SR_MANAGER",
+52
+],
+[
+"Managing Partner",
+"C_SUITE",
+100
+],
+[
+"Board Member",
+"BOARD",
+95
+],
+[
+"Vice President of Finance",
+"VP",
+80
+],
+[
+"Senior Vice President, Sales",
+"EVP_SVP",
+90
+],
+[
+"Head of People",
+"HEAD",
+72
+],
+[
+"Executive Director",
+"C_SUITE",
+100
+],
+[
+"Superintendent of Schools",
+"C_SUITE",
+100
+],
+[
+"Elementary School Principal",
+"SCHOOL_LEADER",
+68
+],
+[
+"Interim CFO",
+"C_SUITE",
+100
+],
+[
+"Product Lead, AI",
+"SENIOR_IC",
+45
+],
+[
+"Team Lead, Support",
+"MANAGER",
+40
+],
+[
+"Maintenance Technician",
+"OTHER",
+0
+],
+[
+"Cashier",
+"OTHER",
+0
+],
+[
+"Customer Service Representative",
+"OTHER",
+0
+],
+[
+"Senior Customer Service Representative",
+"OTHER",
+0
+],
+[
+"Multigres Engineer",
+"OTHER",
+0
+],
+[
+"Engineering Manager II, Media Rendering",
+"MANAGER",
+40
+],
+[
+"Product Marketing Lead, ChatGPT Work",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - Edge",
+"OTHER",
+0
+],
+[
+"Applied Legal Researcher",
+"OTHER",
+0
+],
+[
+"Business Technology Engineer II",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Cloud Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Pre-Sales Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Counsel, Litigation",
+"MANAGER",
+40
+],
+[
+"Principal Software Engineer, Data Infrastructure",
+"SR_MANAGER",
+52
+],
+[
+"Senior Software Engineer- Tokyo",
+"SENIOR_IC",
+45
+],
+[
+"B2B Marketing Lead Nordics",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, Ads Content Understanding",
+"SENIOR_IC",
+45
+],
+[
+"Fraud Operations Manager (Mandarin-speaking)",
+"MANAGER",
+40
+],
+[
+"AI Solutions Engineer",
+"OTHER",
+0
+],
+[
+"Compliance Engineer - North America",
+"OTHER",
+0
+],
+[
+"Scaled Outcomes Architect, Dublin, Russian-Speaking",
+"OTHER",
+0
+],
+[
+"Revenue Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Business Lead, Revenue Strategy & Operations",
+"SENIOR_IC",
+45
+],
+[
+"Head of Data Center Logistics Practice",
+"HEAD",
+72
+],
+[
+"Core Enterprise Account Executive South East",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Marketing Manager - Observability Pipelines",
+"MANAGER",
+40
+],
+[
+"Sales Engineer (Presales)",
+"OTHER",
+0
+],
+[
+"Backend Engineer, Consumer Devices",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Foundation Model Inference",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Account Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Developer Community Growth",
+"OTHER",
+0
+],
+[
+"Fund Controller",
+"MANAGER",
+40
+],
+[
+"Senior Staff Software Engineer, Money Group",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Software Engineer- Networking",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer- User Behavior",
+"SENIOR_IC",
+45
+],
+[
+"Backend Software Engineer, Airports",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer (Backend) - AI/ML Environments",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, AI Platform",
+"SENIOR_IC",
+45
+],
+[
+"Product Marketing Manager, Audience and Messaging",
+"MANAGER",
+40
+],
+[
+"Assistant General Counsel, Credit Cards",
+"C_SUITE",
+100
+],
+[
+"Full Stack Software Engineer, Sales Platform",
+"OTHER",
+0
+],
+[
+"Anti Abuse Engineer",
+"OTHER",
+0
+],
+[
+"Senior Risk Operations Specialist | Underwriting (UK)",
+"SENIOR_IC",
+45
+],
+[
+"Support Content Engineer",
+"OTHER",
+0
+],
+[
+"Director, Ads Product Legal",
+"DIRECTOR",
+65
+],
+[
+"Manager, AI Deployment Engineering - Codex",
+"MANAGER",
+40
+],
+[
+"Risk and Compliance Specialist - Global Trade",
+"OTHER",
+0
+],
+[
+"Electrical Test Engineering Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, AAA/Enterprise Growth",
+"SENIOR_IC",
+45
+],
+[
+"Datadog for Startups - Forward Deployed Engineering Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Identity & Access Management",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Media Strategist, International (Contract)",
+"OTHER",
+0
+],
+[
+"Senior Salesforce Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, AI Tools",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Cyber Frontier",
+"OTHER",
+0
+],
+[
+"Enterprise Marketing Lead, Japan",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Manager, Ads Solutions (Seattle)",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer II, DevEx, OPX",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Infrastructure and Tools",
+"SENIOR_IC",
+45
+],
+[
+"Senior Territory Account Executive - South China",
+"SENIOR_IC",
+45
+],
+[
+"Equity and Reporting Accountant",
+"OTHER",
+0
+],
+[
+"Product Engineer Intern",
+"OTHER",
+0
+],
+[
+"Customer Engineer, Digital Native Business, Indonesia",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Money Movement",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Traffic",
+"OTHER",
+0
+],
+[
+"BDR Outbound (Korean Speaking)",
+"OTHER",
+0
+],
+[
+"Senior Site Reliability Engineer, Compute",
+"SENIOR_IC",
+45
+],
+[
+"Backend Engineer, Developer & End-user Experience Platform",
+"OTHER",
+0
+],
+[
+"Senior Solutions Architect, Growth (Central)",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer, Perplexity Computer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Frontend Software Engineer - Marketplace",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Consumer Revenue",
+"OTHER",
+0
+],
+[
+"Senior Paralegal, Contracts",
+"OTHER",
+0
+],
+[
+"Sales Manager, Digital Native (ASEAN)",
+"MANAGER",
+40
+],
+[
+"Staff Designated Support Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Member of Technical Staff (Golang Engineer, Search)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Curriculum Developer & Instructor",
+"SENIOR_IC",
+45
+],
+[
+"VP of Operations Medical Group -Tertiary Care",
+"VP",
+80
+],
+[
+"Senior Applications Engineer, Corporate Systems",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Operations Manager",
+"PRINCIPAL",
+70
+],
+[
+"Manager, Revenue Accounting & Analytics",
+"MANAGER",
+40
+],
+[
+"Inbound Compliance Analyst (KYC)",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Cards Monetization",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Customer Support Specialist",
+"OTHER",
+0
+],
+[
+"Software Engineer, ML Data Systems",
+"OTHER",
+0
+],
+[
+"Staff Engineer, Observability",
+"SR_MANAGER",
+50
+],
+[
+"Head of Marketing Technology (MarTech)",
+"HEAD",
+72
+],
+[
+"Commercial Account Executive UKI/Nordics",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer - Safety Platform",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Site Reliability Engineering - Storage Layer Service",
+"MANAGER",
+40
+],
+[
+"Senior Named Account Executive (Majors), Melbourne",
+"SENIOR_IC",
+45
+],
+[
+"Senior Forward Deployed Engineer (DevOps)",
+"SENIOR_IC",
+45
+],
+[
+"Technical Support Engineer 3, Premier - US-West",
+"OTHER",
+0
+],
+[
+"People Partner - Product and Product Design",
+"OTHER",
+0
+],
+[
+"Solutions Engineer, Digital Natives",
+"OTHER",
+0
+],
+[
+"Senior AI Product Manager, Leaderboard",
+"SENIOR_IC",
+45
+],
+[
+"Manager II, Premier Support Engineering - EMEA",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Prime",
+"SENIOR_IC",
+45
+],
+[
+"CEO Executive Search for Purpose-Led Organizations",
+"C_SUITE",
+100
+],
+[
+"Deal Operations Administrator",
+"OTHER",
+0
+],
+[
+"Senior Majors Account Executive - Dallas",
+"SENIOR_IC",
+45
+],
+[
+"Web Design Engineer",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Search Storage",
+"MANAGER",
+40
+],
+[
+"Sr. Security Engineer - Enterprise Security",
+"SENIOR_IC",
+45
+],
+[
+"People Data Analytics Lead",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Agentic Apps",
+"MANAGER",
+40
+],
+[
+"Senior Engineering Manager, Consumption Based Billing & Licensing",
+"MANAGER",
+40
+],
+[
+"Sales Development Representative (SDR), EMEA",
+"OTHER",
+0
+],
+[
+"AI Support Engineer - Singapore",
+"OTHER",
+0
+],
+[
+"Software Engineer, Agent (Korean Speaking)",
+"OTHER",
+0
+],
+[
+"Client Account Executive, EMEA",
+"OTHER",
+0
+],
+[
+"Sr. Solutions Engineer, Retail - CPG",
+"SENIOR_IC",
+45
+],
+[
+"Senior Sales Engineer - Key Accounts (Central)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Orchestration",
+"SENIOR_IC",
+45
+],
+[
+"Staff Partner Engineer, Azure",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Backend (Lake Analytics Platform)",
+"SENIOR_IC",
+45
+],
+[
+"Member of Technical Staff (Data Scientist/Engineer, Online Metrics)",
+"SENIOR_IC",
+45
+],
+[
+"Partnerships Manager, Accounting Channel",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Infrastructure - Analytics Platform",
+"OTHER",
+0
+],
+[
+"Pre-sales Senior Technical Solutions Engineer (AI/ML - Digital Native Business) x2",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Consumer Revenue",
+"SENIOR_IC",
+45
+],
+[
+"Senior Frontend Software Engineer, Consumer Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer I - Agent Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Manager, Games Ecosystem",
+"SENIOR_IC",
+45
+],
+[
+"Senior Battery Cell Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Representative, EMEA",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer: Platform",
+"SENIOR_IC",
+45
+],
+[
+"Counsel II, Vendor",
+"MANAGER",
+40
+],
+[
+"Lead, Technical Accounting (Compute Infrastructure)",
+"OTHER",
+0
+],
+[
+"Senior Data Engineer - Revenue Data Platform",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Internal Identity",
+"OTHER",
+0
+],
+[
+"Software Engineer Internship, Android",
+"OTHER",
+0
+],
+[
+"Business Development (Embedded Finance) Lead",
+"OTHER",
+0
+],
+[
+"Backend Engineer, Privy",
+"OTHER",
+0
+],
+[
+"Solutions Integration Engineer III",
+"OTHER",
+0
+],
+[
+"Software Engineer, Network Firewall",
+"OTHER",
+0
+],
+[
+"Marketing Programs Manager",
+"MANAGER",
+40
+],
+[
+"SMB Account Executive",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer (EAA)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Creator",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Compute Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Account Executive, Startups (Denver)",
+"SENIOR_IC",
+45
+],
+[
+"Manager I, Engineering - Code Coverage",
+"MANAGER",
+40
+],
+[
+"Software Engineering Manager (Client Platform)",
+"MANAGER",
+40
+],
+[
+"Product Manager, Discounts & Promotions",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Agent (Thai Speaking)",
+"OTHER",
+0
+],
+[
+"PhD University Grad Data Scientist 2027 (USA)",
+"OTHER",
+0
+],
+[
+"Account Executive, Product (Link and Financial Connections)",
+"OTHER",
+0
+],
+[
+"Senior Compliance Associate",
+"OTHER",
+0
+],
+[
+"Principal Developer Advocate, AI",
+"SR_MANAGER",
+52
+],
+[
+"Enterprise Account Executive",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Reliability Experience Team",
+"SENIOR_IC",
+45
+],
+[
+"Database Reliability Engineer - Core Team",
+"OTHER",
+0
+],
+[
+"Senior Executive IT Support Engineer, Tech Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Backend Engineer, AI Security",
+"OTHER",
+0
+],
+[
+"Full Stack Engineer, Link",
+"OTHER",
+0
+],
+[
+"Sr. Staff Software Engineer, Product ML Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Manager II, Escalation Operations",
+"MANAGER",
+40
+],
+[
+"Director of Critical Care",
+"DIRECTOR",
+65
+],
+[
+"Sr. AI Enablement Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Human Resources Manager",
+"MANAGER",
+40
+],
+[
+"Product Marketing Manager, International",
+"OTHER",
+0
+],
+[
+"Product Manager, Relevance and Personalization",
+"MANAGER",
+40
+],
+[
+"Senior Frontend Software Engineer, Ads Experience",
+"SENIOR_IC",
+45
+],
+[
+"Commercial Account Executive - LATAM (Spanish Speaking) - Boston",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Startup Products",
+"MANAGER",
+40
+],
+[
+"Senior AI Security Research Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Product Security Engineer II",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Shopping Experiences",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer",
+"OTHER",
+0
+],
+[
+"Director, Machine Learning Engineering, Ads Quality",
+"DIRECTOR",
+65
+],
+[
+"Staff Software Engineer, Backend Platform",
+"SENIOR_IC",
+45
+],
+[
+"Sales Manager, Startups - Hunter",
+"MANAGER",
+40
+],
+[
+"Systems Engineering Manager",
+"MANAGER",
+40
+],
+[
+"Senior Product Manager, User Life Cycle: Engagement",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer II (Underwriting ML)",
+"OTHER",
+0
+],
+[
+"Software Engineer, Product Velocity",
+"OTHER",
+0
+],
+[
+"Research Engineer, Post-Training",
+"OTHER",
+0
+],
+[
+"Principal Machine Learning Infrastructure Engineer, Ads & Discovery",
+"PRINCIPAL",
+70
+],
+[
+"Software Engineer, Data Loading Infrastructure",
+"OTHER",
+0
+],
+[
+"Product Manager, Agent Development - Financial Services",
+"MANAGER",
+40
+],
+[
+"Growth Account Executive - Washington D.C.",
+"OTHER",
+0
+],
+[
+"Engineering Manager of Managers, Service Infrastructure",
+"MANAGER",
+40
+],
+[
+"Commercial Customer Success Manager (DACH; German-speaking)",
+"MANAGER",
+40
+],
+[
+"Enterprise Accounts Associate",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Ads Experience",
+"MANAGER",
+40
+],
+[
+"Growth Marketing Manager - Web & Organic, SMB Ads",
+"MANAGER",
+40
+],
+[
+"Software Engineer II (Money Movement & Card Ledger)",
+"OTHER",
+0
+],
+[
+"Growth Recruiter, High Volume - Contract",
+"OTHER",
+0
+],
+[
+"Account Executive | Strategic",
+"OTHER",
+0
+],
+[
+"Senior Enablement Program Manager, Support Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Metrics and Logging",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Backend - Platform (Core AI Automation)",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Sales Director , Retail",
+"DIRECTOR",
+65
+],
+[
+"Lead Advanced Analyst, Integrated Marketing",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Systems Engineer, Ads ML Platform",
+"OTHER",
+0
+],
+[
+"Software Engineer II, Autonomous Freight Systems",
+"OTHER",
+0
+],
+[
+"Employment Counsel - AMER",
+"MANAGER",
+40
+],
+[
+"Risk and Compliance Senior Associate",
+"OTHER",
+0
+],
+[
+"Senior Platform Engineer, Growth Product Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Privacy and Civil Liberties Software Engineer, Internship",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Productivity",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Autonomous Systems",
+"SENIOR_IC",
+45
+],
+[
+"Mid Market Account Executive - DACH",
+"OTHER",
+0
+],
+[
+"Developer Marketer - Sales",
+"OTHER",
+0
+],
+[
+"Software Engineer, Fulfillment Core Services",
+"OTHER",
+0
+],
+[
+"Support Engineer (APAC)",
+"OTHER",
+0
+],
+[
+"Senior Manager, Developer Success",
+"SR_MANAGER",
+50
+],
+[
+"Senior Solutions Architect (Large Retail Account)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer 3, Customer Observability",
+"OTHER",
+0
+],
+[
+"Software Engineer, CDN Configuration Group",
+"OTHER",
+0
+],
+[
+"Sr. Data Ops Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Associate Product Counsel",
+"OTHER",
+0
+],
+[
+"Senior brand manager",
+"MANAGER",
+40
+],
+[
+"Staff Engineer, Payments",
+"SR_MANAGER",
+50
+],
+[
+"Software Engineer, Cooperative AI",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Lyft AI Platform & Marketplace Applications",
+"SENIOR_IC",
+45
+],
+[
+"Senior Sales Manager",
+"MANAGER",
+40
+],
+[
+"Product Manager, Statsig",
+"MANAGER",
+40
+],
+[
+"Product Marketing Manager, IT Admin and Governance",
+"MANAGER",
+40
+],
+[
+"Product Marketing Manager, Research & Safety",
+"MANAGER",
+40
+],
+[
+"Product Marketing - Agents",
+"OTHER",
+0
+],
+[
+"Customer Success Manager, Growth",
+"MANAGER",
+40
+],
+[
+"Senior Developer Educator",
+"SENIOR_IC",
+45
+],
+[
+"Senior Systems Engineer Tech Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Product Program Manager, Roadmap Planning & Program Management",
+"MANAGER",
+40
+],
+[
+"Backend Software Engineer, ChatGPT ImageGen",
+"OTHER",
+0
+],
+[
+"Executive Engagement Marketing Manager, Americas",
+"MANAGER",
+40
+],
+[
+"Business Development Representative - Danish, Norwegian or Swedish Speaking",
+"OTHER",
+0
+],
+[
+"Forward Deployed Software Engineer - Edge Autonomous Systems",
+"OTHER",
+0
+],
+[
+"Security Specialist Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Payments",
+"MANAGER",
+40
+],
+[
+"Data Engineer, Hardware & Consumer Devices",
+"OTHER",
+0
+],
+[
+"Partnership Sales Manager",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Fulfillment",
+"SENIOR_IC",
+45
+],
+[
+"Associate General Counsel, Commercial (Infrastructure)",
+"DIRECTOR",
+68
+],
+[
+"Customer Success Manager II",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Back-end, (Repayment Scheduling)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Bazel Tools",
+"SENIOR_IC",
+45
+],
+[
+"Tech Lead, Finance & Supply Chain Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Senior Privacy Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Manager - Key Accounts",
+"MANAGER",
+40
+],
+[
+"Principal Software Engineer - Creator Collaboration",
+"SR_MANAGER",
+52
+],
+[
+"Senior Software Engineer, Storage Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, SMB",
+"OTHER",
+0
+],
+[
+"Business Operations Manager",
+"MANAGER",
+40
+],
+[
+"Forward Deployed Product Manager, Enterprise",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Streaming Platform",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager - Revenue Tools",
+"MANAGER",
+40
+],
+[
+"Engineering Manager - Customer Experience AI",
+"MANAGER",
+40
+],
+[
+"Senior Systems Engineer, AI Gateway",
+"SENIOR_IC",
+45
+],
+[
+"Integrated Marketing Lead, Brand & Policy",
+"SENIOR_IC",
+45
+],
+[
+"Physical Design Engineer, Forward Deployed Engineering",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, GenAI",
+"SENIOR_IC",
+45
+],
+[
+"Principal Software Engineer - Postgres",
+"SR_MANAGER",
+52
+],
+[
+"Senior Data Engineer II",
+"SENIOR_IC",
+45
+],
+[
+"Design Tools Application Engineer III",
+"OTHER",
+0
+],
+[
+"Data Scientist, Inference Capacity Optimization",
+"OTHER",
+0
+],
+[
+"Strategic Account Executive, Enterprise - Thailand",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineering Manager, AI Platform",
+"MANAGER",
+40
+],
+[
+"Senior Customer Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Design Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Distributed Systems Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Mechanical Engineer, Sensing",
+"OTHER",
+0
+],
+[
+"Compliance Engineer - EU",
+"OTHER",
+0
+],
+[
+"Electrical Engineering Lead",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Manager (Spanish speaking)",
+"MANAGER",
+40
+],
+[
+"Sr. Manager, Field Engineering - Digital Native Business",
+"SR_MANAGER",
+50
+],
+[
+"People Operations Generalist",
+"OTHER",
+0
+],
+[
+"Sr. Data Scientist, Monetization",
+"SENIOR_IC",
+45
+],
+[
+"Lead Forward Deployed Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Scientist, CX Analytics",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Identity & Access Management",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Graphics & Media",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Multimodal (API)",
+"MANAGER",
+40
+],
+[
+"Senior Manager, FP&A",
+"SR_MANAGER",
+50
+],
+[
+"Account Executive, Product Sales - Currency Management",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer, Gov",
+"SENIOR_IC",
+45
+],
+[
+"Senior Named Account Executive, New York",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Operations Manager, Benefits",
+"PRINCIPAL",
+70
+],
+[
+"Engineer Manager, HR Applications",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Frontend, Ramp Revenue",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Cloud",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Strategic Platform Partnerships",
+"OTHER",
+0
+],
+[
+"Sr. Software Engineer - Performance",
+"SENIOR_IC",
+45
+],
+[
+"Senior Named Account Executive, Mumbai",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Outcome Architects",
+"MANAGER",
+40
+],
+[
+"Senior/Principal Product Manager, Video Generation (Roblox Reality)",
+"SR_MANAGER",
+52
+],
+[
+"Core Software Engineer (C++) - Remote",
+"OTHER",
+0
+],
+[
+"Software Engineer, Instant Loans",
+"OTHER",
+0
+],
+[
+"Strategic Account Executive - Italy",
+"SENIOR_IC",
+45
+],
+[
+"Junior Paralegal, Contracts",
+"OTHER",
+0
+],
+[
+"Senior Manager, Recruiting Operations",
+"SR_MANAGER",
+50
+],
+[
+"Principal Software Engineer, Physics",
+"SR_MANAGER",
+52
+],
+[
+"Engineering Manager, Web Infrastructure",
+"MANAGER",
+40
+],
+[
+"Principal Engineer - Cloudforce One",
+"SR_MANAGER",
+52
+],
+[
+"Staff Android Engineer (Clients Platform)",
+"SENIOR_IC",
+45
+],
+[
+"Fullstack Engineer, Safety Engineering",
+"OTHER",
+0
+],
+[
+"Senior Partner Solutions Engineer - Pacific Time",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, AI Agents",
+"SENIOR_IC",
+45
+],
+[
+"Staff Engineer, Agentic Commerce",
+"SR_MANAGER",
+50
+],
+[
+"Senior Infrastructure Engineer, Trading",
+"SENIOR_IC",
+45
+],
+[
+"Operations Analyst - US Government",
+"OTHER",
+0
+],
+[
+"Senior Technical Customer Support Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Fullstack Software Engineer, Notifications Lifecycle",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Site Reliability Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer (Platform - Financial Engineering)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Machine Learning Systems Engineer, Embeddings Platform",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Software Engineer II - IAM",
+"SENIOR_IC",
+45
+],
+[
+"Field Marketing Manager, Third Party & Partner Events",
+"PARTNER",
+78
+],
+[
+"Staff Software Engineer - Customer Engagement & Docs Platform",
+"SENIOR_IC",
+45
+],
+[
+"Head of Ads Enterprise Marketing",
+"HEAD",
+72
+],
+[
+"Technical Support Engineer 1, Premier - USA",
+"OTHER",
+0
+],
+[
+"Product Recruiter",
+"OTHER",
+0
+],
+[
+"Sr. Data Scientist, Core",
+"SENIOR_IC",
+45
+],
+[
+"Staff Security Field Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Global People Operations - Systems Administrator",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Manager, Procurement Operations - Hardware",
+"SR_MANAGER",
+50
+],
+[
+"Senior Enterprise Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Principal Engine Programmer - Systems (C++)",
+"PRINCIPAL",
+70
+],
+[
+"Solutions Integration Engineer II",
+"OTHER",
+0
+],
+[
+"Accounting Manager, GL Operations & Intercompany",
+"MANAGER",
+40
+],
+[
+"Accountant Partnerships Manager",
+"MANAGER",
+40
+],
+[
+"Staff Product Line Architect",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer, Capital Underwriting",
+"OTHER",
+0
+],
+[
+"Senior Customer Engineer, Strategic Pursuits, APAC (Based in Singapore)",
+"SENIOR_IC",
+45
+],
+[
+"IT Infrastructure Engineer",
+"OTHER",
+0
+],
+[
+"Field Engineering, AI/ML Product Specialist",
+"OTHER",
+0
+],
+[
+"Software Engineer, Growth and Monetization",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Machine Learning (Ads)",
+"SENIOR_IC",
+45
+],
+[
+"People Partner, Europe",
+"OTHER",
+0
+],
+[
+"Senior Accountant, Technical Revenue",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Multi Cloud Efficiency",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect - Strategic High Tech",
+"SENIOR_IC",
+45
+],
+[
+"Power Land Developer, Development & Power Projects",
+"OTHER",
+0
+],
+[
+"Principal Software Engineer, Ads Experience",
+"SR_MANAGER",
+52
+],
+[
+"Commercial Account Executive - LATAM (Portuguese Speaking) - Denver",
+"OTHER",
+0
+],
+[
+"Full Stack Software Engineer, Growth",
+"OTHER",
+0
+],
+[
+"Customer Success Manager (Greater China)",
+"MANAGER",
+40
+],
+[
+"Global PubSec Transaction Attorney",
+"OTHER",
+0
+],
+[
+"Senior Customer Engineer, Majors, San Francisco",
+"SENIOR_IC",
+45
+],
+[
+"Finance Operations & COE Manager",
+"MANAGER",
+40
+],
+[
+"Partner Solutions Architect - AWS",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer (FDE), Healthcare - Seattle",
+"SENIOR_IC",
+45
+],
+[
+"Senior Director, Business Development",
+"DIRECTOR",
+65
+],
+[
+"Senior Staff Machine Learning Engineer, Guest & Host",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, R2 Gateway",
+"SENIOR_IC",
+45
+],
+[
+"Staff Solutions Architect, Growth - West",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Senior Data Scientist, Guest & Host",
+"OTHER",
+0
+],
+[
+"Software Engineer - Salesforce Platform (EAA)",
+"OTHER",
+0
+],
+[
+"People Partner, APJ",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Retail Media & Audiences",
+"SENIOR_IC",
+45
+],
+[
+"Senior/Staff Analytics Engineer - Monetization",
+"SENIOR_IC",
+45
+],
+[
+"Communications Compliance Senior Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Replication Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II, Backend, tvScientific",
+"OTHER",
+0
+],
+[
+"Delivery Solutions Architect - Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Hospital Solutions",
+"MANAGER",
+40
+],
+[
+"Staff Full Stack Engineer, Reservations and Additional Products",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, System Enablement",
+"OTHER",
+0
+],
+[
+"Sr. Manager, Field Engineering - Lakebase",
+"SR_MANAGER",
+50
+],
+[
+"Forward Deployed Architect",
+"OTHER",
+0
+],
+[
+"Senior Data Scientist, Causal Inference + Experimentation",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"SDC Operations Manager, Financial Crimes (AML)",
+"MANAGER",
+40
+],
+[
+"Technical Support Engineer 2",
+"OTHER",
+0
+],
+[
+"Senior Talent Acquisition Business Partner - French Speaking",
+"SENIOR_IC",
+45
+],
+[
+"Operations Recruiter",
+"OTHER",
+0
+],
+[
+"Compliance Manager, Card",
+"MANAGER",
+40
+],
+[
+"Staff Product Manager, Trucking Tech",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect - Melbourne",
+"SENIOR_IC",
+45
+],
+[
+"Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Senior Corporate Counsel",
+"SENIOR_IC",
+45
+],
+[
+"Product Security Engineer",
+"OTHER",
+0
+],
+[
+"Sr. Field Technical Program Manager, Forward Deployed Engineering - Canada",
+"SENIOR_IC",
+45
+],
+[
+"Community Support Forecasting and Demand Planning Analyst",
+"OTHER",
+0
+],
+[
+"Solutions Architect, (Italian fluency)",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Identity & Access Platform",
+"MANAGER",
+40
+],
+[
+"Enterprise Account Executive - New England",
+"SENIOR_IC",
+45
+],
+[
+"DevOps Engineer, Infrastructure & Security",
+"OTHER",
+0
+],
+[
+"Account Executive, YC",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Abuse Control Engineering",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Backend (Online Storage)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Counsel, Shareholder Litigation",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Databases",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer I",
+"OTHER",
+0
+],
+[
+"Engineer 3 - GTM Tech",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Search Platform",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Financial Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Creator Collaboration",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Engineer II, Finance",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II (Backend, Enterprise)",
+"OTHER",
+0
+],
+[
+"Pre-Sales Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, CustomerLake Profile Agents",
+"MANAGER",
+40
+],
+[
+"Senior Product Manager, Roblox Conversational Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Project & Task Experience",
+"SENIOR_IC",
+45
+],
+[
+"Director of Growth and Acquisition Marketing",
+"DIRECTOR",
+65
+],
+[
+"Account Executive, Platforms (New Business)",
+"OTHER",
+0
+],
+[
+"Account Executive, Commercial",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Programmatic Ads",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect, Metronome (Startups)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - Backend",
+"OTHER",
+0
+],
+[
+"Customer Success Manager, Ads Solutions",
+"MANAGER",
+40
+],
+[
+"Senior Named Account Executive, FedCiv",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Engineering \u2013 Delivery Serving Infrastructure",
+"SR_MANAGER",
+50
+],
+[
+"Director, Security Engineering & Operations",
+"DIRECTOR",
+65
+],
+[
+"Scaled Outcomes Architect, New York",
+"OTHER",
+0
+],
+[
+"Field Marketing Manager, SMB and Mid-Market - EMEA",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, Enterprise Platform",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Software Engineer - UK Government",
+"OTHER",
+0
+],
+[
+"Accounting Channel Partner Manager",
+"MANAGER",
+40
+],
+[
+"Inside Sales Representative (Chicago)",
+"OTHER",
+0
+],
+[
+"Forward Deployed Software Engineer, Public Sector",
+"OTHER",
+0
+],
+[
+"Manager, Delivery Solutions Architects - Public Sector",
+"MANAGER",
+40
+],
+[
+"Senior GTM Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Head of Customer Success, Mid-Market - Americas",
+"HEAD",
+72
+],
+[
+"Sr. Solutions Engineer - FSI",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, App Analysis & Modelling",
+"SENIOR_IC",
+45
+],
+[
+"Network Engineer II",
+"OTHER",
+0
+],
+[
+"IT Logistics Lead, Singapore",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Customer Care AI",
+"SENIOR_IC",
+45
+],
+[
+"Systems Software Engineer - Game Engine Network (C++)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Production Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Technical Services Engineer, 2nd Shift",
+"OTHER",
+0
+],
+[
+"Backend Engineer/API, Payments and Risk",
+"OTHER",
+0
+],
+[
+"Strategic Account Executive, Retail",
+"SENIOR_IC",
+45
+],
+[
+"Principal Architect",
+"SR_MANAGER",
+52
+],
+[
+"Senior Business Operations and Growth Lead",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer III, Content AI",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, 3D Engine Scalability",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, AI Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Senior Manager, Legal Technology, Operations & AI Enablement",
+"SR_MANAGER",
+50
+],
+[
+"Rosalind Life Sciences Product Manager",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, Fraud",
+"SENIOR_IC",
+45
+],
+[
+"Senior Hardware Product Manager",
+"SENIOR_IC",
+45
+],
+[
+"Director of Food & Beverage",
+"DIRECTOR",
+65
+],
+[
+"Senior Partner Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Agent Oversight",
+"MANAGER",
+40
+],
+[
+"Senior Mid Market Account Executive - San Francisco",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, User Behavior",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Growth -Scale (East)",
+"OTHER",
+0
+],
+[
+"Security Risk Engineer",
+"OTHER",
+0
+],
+[
+"Staff Data Scientist, Marketing",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Sales Engineer - Nordics",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Platform Reliability",
+"SENIOR_IC",
+45
+],
+[
+"Social Content Strategist",
+"OTHER",
+0
+],
+[
+"Staff Data Scientist, Finance & Business Ops",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Manager, Physical AI Data & Robotics",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager \u2013 Data Platform, Lakehouse Foundation",
+"MANAGER",
+40
+],
+[
+"Enterprise account executive (West)",
+"SENIOR_IC",
+45
+],
+[
+"Distinguished Engineer, Machine Learning Systems \u2013 Economy",
+"SR_MANAGER",
+50
+],
+[
+"Senior Data Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Senior Solutions Architect, Majors (West)",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect, Commercial, UK",
+"SENIOR_IC",
+45
+],
+[
+"Delivery Solutions Architect - Public Sector (Federal, SLED)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Revenue Accountant",
+"SENIOR_IC",
+45
+],
+[
+"Backend Software Engineer (Evals)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Solana Staking Protocol",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Data Engineering",
+"OTHER",
+0
+],
+[
+"Strategic Enterprise Account Executive - CMEG",
+"SENIOR_IC",
+45
+],
+[
+"Senior OIC and OPA Developer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Regulatory Operations Lead - Regulatory Products",
+"SENIOR_IC",
+45
+],
+[
+"Senior Director of Engineering, New Subjects",
+"DIRECTOR",
+65
+],
+[
+"Staff Machine Learning Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Data Analyst Intern (Summer 2027)",
+"OTHER",
+0
+],
+[
+"Vice President of People & Culture",
+"VP",
+80
+],
+[
+"AWS Partner Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Trade Marketing Manager - France & Southern Europe",
+"MANAGER",
+40
+],
+[
+"Facilities Engineer",
+"OTHER",
+0
+],
+[
+"Litigation and E-Discovery Counsel",
+"MANAGER",
+40
+],
+[
+"Analytics Engineer, GTM",
+"OTHER",
+0
+],
+[
+"Staff Android Engineer, Pick & Deliver",
+"SENIOR_IC",
+45
+],
+[
+"Customer Engineer, Korean Specialist",
+"OTHER",
+0
+],
+[
+"Senior Machine Learning Engineer, AI Infra",
+"SENIOR_IC",
+45
+],
+[
+"Senior Android Engineer, Crypto Expansion",
+"SENIOR_IC",
+45
+],
+[
+"Senior Security Engineer, Enterprise Security",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive, Federal Sales \u2014 Civilian",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Brand Marketing",
+"OTHER",
+0
+],
+[
+"Senior Account Executive, Enterprise",
+"SENIOR_IC",
+45
+],
+[
+"Network Deployment Engineer",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Service Mesh",
+"SENIOR_IC",
+45
+],
+[
+"Senior Lead, Product Marketing - Accessories & Apparel",
+"SR_MANAGER",
+50
+],
+[
+"Senior Software Engineer, Membership",
+"SENIOR_IC",
+45
+],
+[
+"Senior Majors Account Executive - Minnesota",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Architect, Industry Solutions",
+"OTHER",
+0
+],
+[
+"Software Engineer, Growth Infrastructure",
+"OTHER",
+0
+],
+[
+"Litigation Paralegal",
+"OTHER",
+0
+],
+[
+"Senior Android Engineer, Design System",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, Core Algorithms",
+"SENIOR_IC",
+45
+],
+[
+"Senior Performance Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer - GenAI Performance and Kernel",
+"SENIOR_IC",
+45
+],
+[
+"Startups Sales Manager, Platform Partnerships",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, Machine Learning Platform",
+"SENIOR_IC",
+45
+],
+[
+"Technical Director, Frontend Architecture",
+"DIRECTOR",
+65
+],
+[
+"Software Engineer, ML Infrastructure",
+"OTHER",
+0
+],
+[
+"Senior Mechanical Engineer, Packaging",
+"SENIOR_IC",
+45
+],
+[
+"IT Operations Analyst",
+"OTHER",
+0
+],
+[
+"Senior Sales Manager, AI",
+"MANAGER",
+40
+],
+[
+"Forward Deployed Engineer - Stockholm",
+"SENIOR_IC",
+45
+],
+[
+"Senior AI Data & Analytics Engineer II",
+"OTHER",
+0
+],
+[
+"Director, Marketing - Figma Weave (New York, United States)",
+"DIRECTOR",
+65
+],
+[
+"Response Engineer - CMDC",
+"OTHER",
+0
+],
+[
+"Deputy CISO and Cybersecurity Architect",
+"C_SUITE",
+100
+],
+[
+"Systems Engineer (Data Intelligence & Analytics Team)",
+"OTHER",
+0
+],
+[
+"Senior ABM Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Member of Technical Staff (Software Engineer, API Platform)",
+"SENIOR_IC",
+45
+],
+[
+"Camera Software Engineer, Consumer Devices",
+"OTHER",
+0
+],
+[
+"Software Engineer, AI Platforms",
+"OTHER",
+0
+],
+[
+"Web Application Developer - Defense",
+"OTHER",
+0
+],
+[
+"Sales Manager, Enterprise Growth",
+"MANAGER",
+40
+],
+[
+"Territory Account Executive (Based in Melbourne)",
+"OTHER",
+0
+],
+[
+"Forward Deployed Software Engineer, New Grad - US Government",
+"OTHER",
+0
+],
+[
+"Software Engineer, Agent Productivity",
+"OTHER",
+0
+],
+[
+"Manager, Solutions Architecture (Pre-Sales)",
+"MANAGER",
+40
+],
+[
+"Staff iOS Engineer, Media Foundation",
+"SENIOR_IC",
+45
+],
+[
+"Design Engineer (Web & Brand)",
+"OTHER",
+0
+],
+[
+"Staff Data Scientist, Security",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Cloud Infrastructure",
+"MANAGER",
+40
+],
+[
+"Software Engineering Internship - San Fransisco",
+"OTHER",
+0
+],
+[
+"Senior/Staff Infrastructure Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II, Backend (Streaming)",
+"OTHER",
+0
+],
+[
+"Principal Software Engineer, Game Safety",
+"SR_MANAGER",
+52
+],
+[
+"Edge Functions Engineer",
+"OTHER",
+0
+],
+[
+"Integrated Marketing Manager, Hardware",
+"MANAGER",
+40
+],
+[
+"Director, Marketing Strategy and AI Transformation",
+"DIRECTOR",
+65
+],
+[
+"Senior Customer Engineer, Digital Native Enterprise - New York",
+"SENIOR_IC",
+45
+],
+[
+"Full Stack Software Engineer, Agent Enablement",
+"OTHER",
+0
+],
+[
+"Sr. Machine Learning Engineer, Applied Science",
+"SENIOR_IC",
+45
+],
+[
+"Workload Porting & Performance Engineer",
+"OTHER",
+0
+],
+[
+"Product Marketing Manager, Marketplace",
+"MANAGER",
+40
+],
+[
+"Senior Engineering Manager, Acquisition",
+"MANAGER",
+40
+],
+[
+"Engineering Manager, Prediction Markets",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Agent (Dutch speaking)",
+"OTHER",
+0
+],
+[
+"General Manager & VP, Asana for Services Management",
+"C_SUITE",
+100
+],
+[
+"Strategic Medical Director, Diagnostic Imaging",
+"DIRECTOR",
+65
+],
+[
+"Technical Accounting Manager, New Product",
+"MANAGER",
+40
+],
+[
+"Sales Systems Engineer, Enterprise Operations",
+"OTHER",
+0
+],
+[
+"Senior Manager, Engineering",
+"SR_MANAGER",
+50
+],
+[
+"Program Manager, Community Support",
+"MANAGER",
+40
+],
+[
+"Partner Solutions Architect (Pan-EMEA GSI)",
+"SENIOR_IC",
+45
+],
+[
+"Safety Specialist",
+"OTHER",
+0
+],
+[
+"Field Security Specialist (Cyber Security Solutions Engineer)",
+"OTHER",
+0
+],
+[
+"Principal Engineer, iOS Performance",
+"SR_MANAGER",
+52
+],
+[
+"Mid Market Account Executive",
+"OTHER",
+0
+],
+[
+"Corporate Counsel",
+"MANAGER",
+40
+],
+[
+"Solutions Architect - Pacific Northwest",
+"SENIOR_IC",
+45
+],
+[
+"Principal Software Engineer, Engineering Acceleration",
+"SR_MANAGER",
+52
+],
+[
+"Account Executive, Mid Market (Hunter)",
+"OTHER",
+0
+],
+[
+"Partner Solutions Architect - India",
+"SENIOR_IC",
+45
+],
+[
+"Senior Project Manager / Economic Development Director",
+"DIRECTOR",
+65
+],
+[
+"Senior Business Recruiter G&A",
+"SENIOR_IC",
+45
+],
+[
+"Security Software Engineer, Infrastructure Security (Staff or Senior)",
+"OTHER",
+0
+],
+[
+"Software Engineer, OpenAI Presence",
+"OTHER",
+0
+],
+[
+"Account Executive, Geo Enterprise - ANZ",
+"OTHER",
+0
+],
+[
+"Product Manager, Command",
+"MANAGER",
+40
+],
+[
+"Operations Manager, Bermuda",
+"MANAGER",
+40
+],
+[
+"Senior Manager, Performance Marketing",
+"SR_MANAGER",
+50
+],
+[
+"Senior Staff Machine Learning Engineer, Growth Platform Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Forward Deployed Engineering - London",
+"MANAGER",
+40
+],
+[
+"Senior Majors Account Executive - New Jersey",
+"SENIOR_IC",
+45
+],
+[
+"Business Analyst II (Lifecycle Marketing)",
+"OTHER",
+0
+],
+[
+"Data Scientist, Analytics",
+"OTHER",
+0
+],
+[
+"Strategic Core Account Executive - Banking, m/f/d",
+"OTHER",
+0
+],
+[
+"Group Product Manager II, Creative Tech - tvScientific",
+"MANAGER",
+40
+],
+[
+"Customer Success Strategy & Operations Manager",
+"MANAGER",
+40
+],
+[
+"Commercial Sales Engineer (Dublin)",
+"OTHER",
+0
+],
+[
+"Lead Product Analyst, Lifecycle Marketing",
+"SENIOR_IC",
+45
+],
+[
+"Legal Engineer (Law Firm, Litigation/Regulatory)",
+"OTHER",
+0
+],
+[
+"AI Support Engineer, Biosciences - San Francisco",
+"OTHER",
+0
+],
+[
+"Staff Engineer, Ads Business Manager",
+"SR_MANAGER",
+50
+],
+[
+"Enterprise Sales Director - Majors, Consumer Business Insights",
+"DIRECTOR",
+65
+],
+[
+"Legal Contract Manager, Public Sector",
+"MANAGER",
+40
+],
+[
+"Sr. Product Quality Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Director of Dementia Research",
+"DIRECTOR",
+65
+],
+[
+"Sales Director - Retail",
+"DIRECTOR",
+65
+],
+[
+"Software Engineer, C++",
+"OTHER",
+0
+],
+[
+"IT Engineer",
+"OTHER",
+0
+],
+[
+"Public Policy Manager, UK",
+"MANAGER",
+40
+],
+[
+"Engineering Manager - Streaming",
+"MANAGER",
+40
+],
+[
+"Support Engineer (EMEA - Weekends)",
+"OTHER",
+0
+],
+[
+"Senior Manager, Corporate Accounting",
+"SR_MANAGER",
+50
+],
+[
+"Senior Software Engineer - Game Engine Network (C++)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Financial Crimes Compliance Controls Strategist",
+"OTHER",
+0
+],
+[
+"Software Engineer, Model Routing & Inference",
+"OTHER",
+0
+],
+[
+"NPI Hardware Quality Engineer II, Accessories",
+"OTHER",
+0
+],
+[
+"Context Engineer",
+"OTHER",
+0
+],
+[
+"Machine Learning Engineer, Ads Optimization",
+"OTHER",
+0
+],
+[
+"B2B Marketing - Spanish Latam Growth Lead",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive - Netherlands",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Financial Engineering",
+"OTHER",
+0
+],
+[
+"Enterprise Sales Engineer - Paris",
+"OTHER",
+0
+],
+[
+"Sales Engineer II, SE Desk - TOLA",
+"OTHER",
+0
+],
+[
+"Workplace Operations Specialist",
+"OTHER",
+0
+],
+[
+"Lead, Corporate Technical Accounting and Strategic Transactions",
+"OTHER",
+0
+],
+[
+"Account Executive, Enterprise Platforms, Hunter",
+"OTHER",
+0
+],
+[
+"Supply Chain Operations Program Manager, AI Infrastructure",
+"MANAGER",
+40
+],
+[
+"Consumer Product Lead",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Mobile Engineer, Business Money",
+"SENIOR_IC",
+45
+],
+[
+"IT Support Engineer",
+"OTHER",
+0
+],
+[
+"Commercial Sales Engineer (AMER - West)",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Payments Platform",
+"SENIOR_IC",
+45
+],
+[
+"Full-Stack Software Engineer, Applied Foundations",
+"OTHER",
+0
+],
+[
+"Business Development Manager, Enterprise",
+"MANAGER",
+40
+],
+[
+"Lead Engineer, Internal Engineering",
+"SENIOR_IC",
+45
+],
+[
+"VP, Revenue Cycle Strategy & Operations",
+"VP",
+80
+],
+[
+"Senior Associate Inbound Compliance Analyst (KYC)",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive , APAC",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Convert",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Solutions Architect - Autonomous Incident Response",
+"SENIOR_IC",
+45
+],
+[
+"Revenue Accounting Manager",
+"MANAGER",
+40
+],
+[
+"Lead, Advanced Analytics",
+"OTHER",
+0
+],
+[
+"Senior Staff Backline Engineer - Data & AI",
+"SENIOR_IC",
+45
+],
+[
+"Director of Clinical and Ancillary Applications",
+"DIRECTOR",
+65
+],
+[
+"Analytics Lead, Market Insights",
+"SENIOR_IC",
+45
+],
+[
+"Senior Named Account Executive, Houston",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Search Infrastructure",
+"OTHER",
+0
+],
+[
+"Hardware Operations Engineer",
+"OTHER",
+0
+],
+[
+"Data Engineer Intern",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Core Reliability",
+"SENIOR_IC",
+45
+],
+[
+"LA General Superintendent",
+"C_SUITE",
+100
+],
+[
+"Assistant Manager, Air Operations (Gurugram)",
+"OTHER",
+0
+],
+[
+"Enterprise Paid Digital Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Forward Deployed Engineer - Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Mechanical Engineer, Soft Goods Design",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer, Engineering Acceleration | Consumer Devices",
+"SENIOR_IC",
+45
+],
+[
+"Manufacturing Engineering Manager (NPI)",
+"MANAGER",
+40
+],
+[
+"Senior Oracle Fusion Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Software Engineer, Data Analytics Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer, Industry Solutions",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Analytics Engineering",
+"MANAGER",
+40
+],
+[
+"Senior Account Executive, Startups (San Francisco)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Governance, Risk, & Compliance Program Manager",
+"MANAGER",
+40
+],
+[
+"Software Engineer, API Enterprise Controls",
+"OTHER",
+0
+],
+[
+"Enterprise Core Sales Engineer - TOLA",
+"OTHER",
+0
+],
+[
+"Legal Counsel - US Government",
+"MANAGER",
+40
+],
+[
+"Technical Program Manager, Developer Experience",
+"MANAGER",
+40
+],
+[
+"Staff Security Software Engineer, AI Security",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Business Money",
+"SENIOR_IC",
+45
+],
+[
+"Infrastructure engineer (UK)",
+"OTHER",
+0
+],
+[
+"AI Risk & Compliance Analyst",
+"OTHER",
+0
+],
+[
+"Account Executive, Commercial Hunter (Japanese Fluency)",
+"OTHER",
+0
+],
+[
+"Account Executive, Growth",
+"OTHER",
+0
+],
+[
+"Specialist Solutions Architect - Data Warehousing (Healthcare & Life Sciences)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Leadership Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Vulnerability Defense Software Engineer, Cloudforce One",
+"OTHER",
+0
+],
+[
+"Executive Director, Center for Law and Education",
+"C_SUITE",
+100
+],
+[
+"Senior Manager, Agentic Strategy & Operations",
+"SR_MANAGER",
+50
+],
+[
+"Senior Data Engineer, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Head of Technical Accounting and Reporting",
+"HEAD",
+72
+],
+[
+"Senior Accountant, Corporate Accounting",
+"SENIOR_IC",
+45
+],
+[
+"Data Analyst, Credit Risk",
+"OTHER",
+0
+],
+[
+"Software Engineer II (Full Stack, Platform)",
+"OTHER",
+0
+],
+[
+"Software Engineer - Data Aquisition (systems)",
+"OTHER",
+0
+],
+[
+"Salesforce Engineer",
+"OTHER",
+0
+],
+[
+"Software Engineer I, Backend",
+"OTHER",
+0
+],
+[
+"Territory Account Executive, Indonesia",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Gold Growth",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Voice",
+"MANAGER",
+40
+],
+[
+"Senior Machine Learning Engineer - Notifications/Feed",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Manager, Europe",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Enterprise Controls",
+"OTHER",
+0
+],
+[
+"Frontend Engineer",
+"OTHER",
+0
+],
+[
+"Group Product Manager, Financial Engineering",
+"MANAGER",
+40
+],
+[
+"People Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Firmware Test Engineer",
+"OTHER",
+0
+],
+[
+"Software Engineer, Productivity - Model Performance",
+"OTHER",
+0
+],
+[
+"Solutions Engineer, Benelux",
+"OTHER",
+0
+],
+[
+"Senior Talent Acquisition Partner",
+"PARTNER",
+78
+],
+[
+"Director, Supply Chain Strategy and Excellence",
+"DIRECTOR",
+65
+],
+[
+"Program Manager, Sales Operations and Training",
+"MANAGER",
+40
+],
+[
+"Physical Security Systems Engineer - APAC",
+"OTHER",
+0
+],
+[
+"Associate Product Manager (New Grad)",
+"OTHER",
+0
+],
+[
+"Director of Development Marketing",
+"DIRECTOR",
+65
+],
+[
+"Staff Software Engineer, Workflow Platform",
+"SENIOR_IC",
+45
+],
+[
+"Business Operations Manager, Technical Support Ops",
+"MANAGER",
+40
+],
+[
+"Senior Staff Product Marketing Engineer, Core and SDKs",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Delivery Solutions Architect - Digital Native Business",
+"SENIOR_IC",
+45
+],
+[
+"Internal Audit Analytics Associate",
+"OTHER",
+0
+],
+[
+"Sales Operations Intern, Italy",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Product & Business",
+"MANAGER",
+40
+],
+[
+"Associate Sales Engineer, UK&I",
+"OTHER",
+0
+],
+[
+"Commercial Sales Manager, Japan",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Account Authentication",
+"OTHER",
+0
+],
+[
+"Product Manager, Agent Development (Arabic speaking)",
+"MANAGER",
+40
+],
+[
+"Senior Legal Counsel",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, AI Enablement",
+"OTHER",
+0
+],
+[
+"Systems Software Engineer, Silicon Bringup",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Docs Product",
+"SENIOR_IC",
+45
+],
+[
+"Head of Field and Partner Marketing",
+"HEAD",
+72
+],
+[
+"Staff Software Engineer, Identity & Authorization",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Delivery Solutions Architects - Toronto, ON",
+"MANAGER",
+40
+],
+[
+"Android Engineer, ChatGPT Library Team",
+"OTHER",
+0
+],
+[
+"Senior CIAM Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Solutions Engineer - ANZ",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Forward Deployed (Privy)",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, AI Search",
+"SENIOR_IC",
+45
+],
+[
+"Senior Account Executive, Startups (SoCal)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Full-Stack \u2013 Scale GP",
+"SENIOR_IC",
+45
+],
+[
+"Lead Commercial Counsel",
+"SENIOR_IC",
+45
+],
+[
+"Supervisor, Fraud Investigations",
+"OTHER",
+0
+],
+[
+"Operating Partner, Healthcare Private Equity",
+"PARTNER",
+78
+],
+[
+"Senior Product Manager, In-Store Tasks",
+"SENIOR_IC",
+45
+],
+[
+"MPC Superintendent",
+"C_SUITE",
+100
+],
+[
+"Head of People Partners, R&D",
+"HEAD",
+72
+],
+[
+"AI Engineer - FDE (Forward Deployed Engineer)",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Programs and Analytics Intern (Fall 2026)",
+"OTHER",
+0
+],
+[
+"Full Stack Engineer, Expansion",
+"OTHER",
+0
+],
+[
+"Technical Program Manager, Safety Systems Engineering",
+"MANAGER",
+40
+],
+[
+"Enterprise Sales Engineer - Brazil",
+"OTHER",
+0
+],
+[
+"AI Product Manager, Professional Services",
+"MANAGER",
+40
+],
+[
+"Partner Marketing Leader, Alliances & Channel",
+"OTHER",
+0
+],
+[
+"Product Manager, Agent SDK",
+"MANAGER",
+40
+],
+[
+"Commercial Sales Engineer (Amsterdam)",
+"OTHER",
+0
+],
+[
+"Senior Data Engineer, Growth Acquisition (Growth & Marketing Data)",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer III",
+"OTHER",
+0
+],
+[
+"Strategic Core Account Executive - Telco",
+"OTHER",
+0
+],
+[
+"Software Engineer I - New Grad, SF",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer - Mixed Reality",
+"SENIOR_IC",
+45
+],
+[
+"Implementation Director",
+"DIRECTOR",
+65
+],
+[
+"Senior iOS Tooling Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Data Scientist, Finance Analytics",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software, Engineering \u2013 Analytics Engineering, Core Data Science",
+"OTHER",
+0
+],
+[
+"Core Enterprise Account Executive TOLA",
+"SENIOR_IC",
+45
+],
+[
+"Lead Engagement Manager, Forward Deployed Engineering - Digital Native Business",
+"MANAGER",
+40
+],
+[
+"Contract Solutions Counsel",
+"MANAGER",
+40
+],
+[
+"Electrical Engineer, Robotics",
+"OTHER",
+0
+],
+[
+"Product Marketing, Industry Marketing",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Application Migration",
+"SENIOR_IC",
+45
+],
+[
+"Analytics Engineer",
+"OTHER",
+0
+],
+[
+"Product Manufacturing Engineer - PCBA",
+"OTHER",
+0
+],
+[
+"Technical Program Manager, AI Accelerator Software",
+"MANAGER",
+40
+],
+[
+"Manager, Revenue Accounting",
+"MANAGER",
+40
+],
+[
+"Managing Director, Conservation Nation",
+"DIRECTOR",
+65
+],
+[
+"Senior Staff Software Engineer, Host Pricing & Settings",
+"OTHER",
+0
+],
+[
+"Growth Marketing Senior Manager",
+"SR_MANAGER",
+50
+],
+[
+"Staff Software Engineer - AI Platform (NYC)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, AI Productivity",
+"SENIOR_IC",
+45
+],
+[
+"Senior Named Account Executive, Spain",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Field Engineering - Strat Media",
+"SR_MANAGER",
+50
+],
+[
+"Engineering Manager, Cooperative Systems",
+"OTHER",
+0
+],
+[
+"Software Engineer II (Backend, Hardware Accelerate)",
+"OTHER",
+0
+],
+[
+"Software Engineering Intern, Web (Summer 2027)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, DevX (Developer Infrastructure)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Data Enablement Platform",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Legal",
+"MANAGER",
+40
+],
+[
+"Sr. Solutions Engineer (Indonesia)",
+"SENIOR_IC",
+45
+],
+[
+"Network Hardware Engineer",
+"OTHER",
+0
+],
+[
+"Solutions Architect - Financial Services (Professional Services)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Financial Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager - Subscriptions",
+"MANAGER",
+40
+],
+[
+"Manager I, Engineering - Applied AI - Natural Language & Conversational Interfaces",
+"MANAGER",
+40
+],
+[
+"Solutions architect (pre-sales) (West)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Solutions Architect, EMEA",
+"SENIOR_IC",
+45
+],
+[
+"Senior/Staff Design Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Embedded QA Engineering Manager (Hardware Accelerate)",
+"MANAGER",
+40
+],
+[
+"Analytics Manager, Growth",
+"MANAGER",
+40
+],
+[
+"Software Engineering Intern (Winter)",
+"OTHER",
+0
+],
+[
+"Senior Majors Account Executive, New York",
+"SENIOR_IC",
+45
+],
+[
+"VP, AI Engineering & Agent Platforms",
+"VP",
+80
+],
+[
+"Sales Manager, Mid-Market - UK",
+"MANAGER",
+40
+],
+[
+"Specialist Solutions Architect, Data",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Money Movement",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Integrations",
+"SENIOR_IC",
+45
+],
+[
+"Director, SMB Sales (London, United Kingdom)",
+"DIRECTOR",
+65
+],
+[
+"Senior ML & AI Technical Solutions Engineer",
+"OTHER",
+0
+],
+[
+"Sr. People Operations and Systems Generalist",
+"OTHER",
+0
+],
+[
+"Senior iOS Engineer, Passport & Commerce",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Data Access",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Enterprise (Grower)",
+"OTHER",
+0
+],
+[
+"Software Engineer, Economy Platform",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Ads Platform",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Stripe Tax",
+"OTHER",
+0
+],
+[
+"Software Engineer, Data Orchestration",
+"OTHER",
+0
+],
+[
+"Software Engineer, Hardware",
+"OTHER",
+0
+],
+[
+"Strategic Enterprise Account Executive - TTH",
+"SENIOR_IC",
+45
+],
+[
+"Group Product Manager, Verticals",
+"MANAGER",
+40
+],
+[
+"Compensation Operations Manager",
+"MANAGER",
+40
+],
+[
+"Agent Engineer, TLM",
+"OTHER",
+0
+],
+[
+"Analytics Engineer II",
+"OTHER",
+0
+],
+[
+"Vice President, Human Resources",
+"VP",
+80
+],
+[
+"Senior Technical Product Marketing Manager - Security",
+"MANAGER",
+40
+],
+[
+"Principal Product Manager, Partner Integrations",
+"SR_MANAGER",
+52
+],
+[
+"Customer Support Associate",
+"OTHER",
+0
+],
+[
+"Product Manager - Trust and Safety",
+"MANAGER",
+40
+],
+[
+"Senior Analytics Engineer, Airbnb.org",
+"SENIOR_IC",
+45
+],
+[
+"Senior Sales Engineer - Majors (UK/Nordics/Netherlands)",
+"SENIOR_IC",
+45
+],
+[
+"Associate Commercial Counsel",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer, Benefits",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Growth, Upmarket",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer - Blockchain Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Oracle Technical Architect",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Core Infrastructure",
+"OTHER",
+0
+],
+[
+"Head of Product Education Engineering",
+"HEAD",
+72
+],
+[
+"Senior Engineering Manager, Defense",
+"MANAGER",
+40
+],
+[
+"Lead Counsel, UK & Europe",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, Payments",
+"SENIOR_IC",
+45
+],
+[
+"Senior Business Analyst (Growth Marketing)",
+"SENIOR_IC",
+45
+],
+[
+"Business Operations and Growth Lead",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Capacity Engineering",
+"SR_MANAGER",
+50
+],
+[
+"Senior Infrastructure Software Engineer, Storage Core",
+"SENIOR_IC",
+45
+],
+[
+"Senior Platform Manager, Payment Platform Accounts",
+"MANAGER",
+40
+],
+[
+"Corporate Business Development Manager, Data",
+"MANAGER",
+40
+],
+[
+"Software Engineer II, Backend (Capital Orchestration)",
+"OTHER",
+0
+],
+[
+"Senior Named Account Executive, Boston",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Manager I",
+"MANAGER",
+40
+],
+[
+"Sr. Hardware Product Manager",
+"SENIOR_IC",
+45
+],
+[
+"Sr Software Engineer, Agentic Applications",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Analyst, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Integrated Campaigns Manager, Treasury",
+"MANAGER",
+40
+],
+[
+"Chief Development Officer",
+"C_SUITE",
+100
+],
+[
+"Staff Software Engineer, Backend (Search)",
+"SENIOR_IC",
+45
+],
+[
+"GTM Marketing Programs Manager",
+"MANAGER",
+40
+],
+[
+"Solutions Engineer, Core Enterprise",
+"OTHER",
+0
+],
+[
+"Sr. Recruiter, Tech [12-month FTC]",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Financial Analyst, Revenue",
+"OTHER",
+0
+],
+[
+"Technical Account Executive (SF/U.S. West Coast)",
+"OTHER",
+0
+],
+[
+"Systems Engineer, Endpoint",
+"OTHER",
+0
+],
+[
+"Software Engineer - Core Interfaces",
+"OTHER",
+0
+],
+[
+"Senior Cloud Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Executive Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, AI Platform",
+"MANAGER",
+40
+],
+[
+"Chief Operating Officer",
+"C_SUITE",
+100
+],
+[
+"Senior Data Scientist, Finance & Strategy",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Data Product Platform",
+"OTHER",
+0
+],
+[
+"Manager II, Engineering, Ads Serving Infrastructure",
+"MANAGER",
+40
+],
+[
+"Sr. Staff Software Engineer \u2014 Observability, Insights & Governance",
+"SENIOR_IC",
+45
+],
+[
+"APAC Executive Marketing",
+"OTHER",
+0
+],
+[
+"Senior Solutions Architect - Lakebase",
+"SENIOR_IC",
+45
+],
+[
+"Senior Supply Chain Manager",
+"MANAGER",
+40
+],
+[
+"Senior/Principal Product Manager, Engine Systems Foundations",
+"SR_MANAGER",
+52
+],
+[
+"Firmware Engineer Co-Op",
+"OTHER",
+0
+],
+[
+"ClickHouse Operations Engineer",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Enterprise Build",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Lead, Web Platform",
+"SENIOR_IC",
+45
+],
+[
+"Operations Manager, Product & Engineering",
+"MANAGER",
+40
+],
+[
+"Integration Engineer (Global)",
+"OTHER",
+0
+],
+[
+"Software Engineer - Full Stack",
+"OTHER",
+0
+],
+[
+"Sr. Field Technical Program Manager, Forward Deployed Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, GTM Platform",
+"OTHER",
+0
+],
+[
+"Managing Director, Healthcare & Life Sciences Practice -Life Sciences",
+"DIRECTOR",
+65
+],
+[
+"Senior Specialist, Premium Support (Italian/English)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Consoles",
+"SENIOR_IC",
+45
+],
+[
+"Director, Analytics Engineering",
+"DIRECTOR",
+65
+],
+[
+"Account Executive Lead - North America - Mid-Market",
+"OTHER",
+0
+],
+[
+"Senior Director of Engineering, Math",
+"DIRECTOR",
+65
+],
+[
+"Backend Engineer, Payments Experiences",
+"OTHER",
+0
+],
+[
+"Senior Engineering Manager",
+"MANAGER",
+40
+],
+[
+"Lead, Chime Enterprise Compliance",
+"OTHER",
+0
+],
+[
+"Software Engineer, API Agents",
+"OTHER",
+0
+],
+[
+"Customer Success & Enterprise Support Lead, APAC",
+"OTHER",
+0
+],
+[
+"Software Engineer, Growth",
+"OTHER",
+0
+],
+[
+"Full Stack Engineer, Enterprise Engineering",
+"OTHER",
+0
+],
+[
+"Software Engineer, Bugbot",
+"OTHER",
+0
+],
+[
+"Senior Engineering Manager, Enterprise Foundations",
+"MANAGER",
+40
+],
+[
+"Manager, Business Recruiting - Enterprise Sales",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Robotics & Autonomous Systems",
+"OTHER",
+0
+],
+[
+"Senior Manager, HR Compliance - Americas",
+"SR_MANAGER",
+50
+],
+[
+"Manager I, Engineering - Onboarding Growth",
+"MANAGER",
+40
+],
+[
+"Senior Counsel, Commercial & Partnerships",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer - Nashville",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Staff Software Engineer, Ads Measurement",
+"SENIOR_IC",
+45
+],
+[
+"Dean and Chief Academic Officer",
+"C_SUITE",
+100
+],
+[
+"Senior Product Manager, Self-hosting and Hybrid",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive",
+"SENIOR_IC",
+45
+],
+[
+"Mechanical Engineer, Hardware Systems",
+"OTHER",
+0
+],
+[
+"Strategy & Operations Business Partner, Solution Architecture",
+"OTHER",
+0
+],
+[
+"Senior Customer Engineer,Indonesia",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Financial Services, Grower",
+"OTHER",
+0
+],
+[
+"Vice President, Global Corporate Controller",
+"VP",
+80
+],
+[
+"Senior Business Recruiter, High Volume",
+"SENIOR_IC",
+45
+],
+[
+"Chief of Staff, Head of Legal Ops",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Staff Software Engineer - Integrated Network Strategy",
+"SENIOR_IC",
+45
+],
+[
+"Senior AI/ML Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Lead, Bus Sys Engineering - PS + CSM + TS",
+"OTHER",
+0
+],
+[
+"Product Manager, Enterprise Core Platform",
+"MANAGER",
+40
+],
+[
+"Forward Deployed Software Engineer - London",
+"OTHER",
+0
+],
+[
+"Forward Deployed Software Engineer - Spain",
+"OTHER",
+0
+],
+[
+"Chief Development Officer, Peggy Notebaert Nature Museum",
+"C_SUITE",
+100
+],
+[
+"Senior Software Engineer II, DevEx",
+"SENIOR_IC",
+45
+],
+[
+"Core Account Executive, Nordics (Digital Natives)",
+"OTHER",
+0
+],
+[
+"Distributed Systems Engineer - Data Platform - Analytics and Alerts",
+"OTHER",
+0
+],
+[
+"Sr. Manager \u2013 Data & AI Support Engineering",
+"SR_MANAGER",
+50
+],
+[
+"Senior Mobile Engineer",
+"SENIOR_IC",
+45
+],
+[
+"KYB/KYC Operations Associate, Bridge (CDMX)",
+"OTHER",
+0
+],
+[
+"Principal Product Manager",
+"SR_MANAGER",
+52
+],
+[
+"Director of Security Engineering",
+"DIRECTOR",
+65
+],
+[
+"Senior Software Engineer, Home Experience",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Software Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, GenAI Data",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer, Core Experimentation",
+"OTHER",
+0
+],
+[
+"Data Scientist, Algorithms",
+"OTHER",
+0
+],
+[
+"Software Engineer, Optimized Checkout & Link",
+"OTHER",
+0
+],
+[
+"Principal Software Engineer, Codex Cyber",
+"SR_MANAGER",
+52
+],
+[
+"Growth Marketing Lead, Japan",
+"SENIOR_IC",
+45
+],
+[
+"Senior Full Stack Software Engineer - ClickPipes Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineering Manager - Cloudforce One",
+"MANAGER",
+40
+],
+[
+"Systems Engineer",
+"OTHER",
+0
+],
+[
+"Account Executive, Product Sales, Metronome",
+"OTHER",
+0
+],
+[
+"Engineering Manager, International",
+"OTHER",
+0
+],
+[
+"Staff security engineer, application security",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineering Manager, Security",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Credit",
+"OTHER",
+0
+],
+[
+"Senior Analyst, SEC Reporting & Technical Accounting",
+"SENIOR_IC",
+45
+],
+[
+"Protection Scientist Engineer, Integrity",
+"OTHER",
+0
+],
+[
+"Manager, Software Engineering (Marketplace Performance)",
+"MANAGER",
+40
+],
+[
+"Solutions Architect, Retail - CPG",
+"SENIOR_IC",
+45
+],
+[
+"Director, Trade Marketing",
+"DIRECTOR",
+65
+],
+[
+"Resource Manager, Business Marketing",
+"MANAGER",
+40
+],
+[
+"People Partner, Agent Development",
+"OTHER",
+0
+],
+[
+"Product Manager - Realtime",
+"MANAGER",
+40
+],
+[
+"Member of Technical Staff (Software Engineer, Applied AI)",
+"SENIOR_IC",
+45
+],
+[
+"Demand Generation Lead",
+"OTHER",
+0
+],
+[
+"Operations Manager",
+"MANAGER",
+40
+],
+[
+"Delivery Solutions Architect - Public Sector (DHS, Intelligence Community)",
+"SENIOR_IC",
+45
+],
+[
+"Named Core Account Executive - DNB",
+"OTHER",
+0
+],
+[
+"Sr. Manager, Field Engineering Qatar&Africa",
+"SR_MANAGER",
+50
+],
+[
+"Partner Solutions Architect (AUNZ)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Data Engineering Solutions",
+"SENIOR_IC",
+45
+],
+[
+"Delivery Solutions Architect - Public Sector (Defense, DIBS)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Compute Platform (Routing)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Vulnerability Management",
+"OTHER",
+0
+],
+[
+"Account Executive | Commercial",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Secure Execution",
+"SENIOR_IC",
+45
+],
+[
+"Manager, AI Deployment Engineering - Enterprise",
+"MANAGER",
+40
+],
+[
+"Integrated Marketing Manager, Product & Model Launches",
+"MANAGER",
+40
+],
+[
+"Product Engineer",
+"OTHER",
+0
+],
+[
+"Technical Senior Revenue Accountant",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Trust & Safety",
+"MANAGER",
+40
+],
+[
+"Product Manager, New Grad (2026) - Belgrade",
+"OTHER",
+0
+],
+[
+"Talent Operations",
+"OTHER",
+0
+],
+[
+"Chief of Staff, Data Centers",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Staff Product Manager, AI",
+"SENIOR_IC",
+45
+],
+[
+"Sales Manager, Enterprise - Hunter",
+"MANAGER",
+40
+],
+[
+"Sr. Product Marketing Manager, Trust & Safety",
+"MANAGER",
+40
+],
+[
+"Legal Operations Team Lead",
+"MANAGER",
+40
+],
+[
+"Workplace Strategy & Operations Manager",
+"MANAGER",
+40
+],
+[
+"Machine Learning Engineer, Monetization AI/ML",
+"OTHER",
+0
+],
+[
+"Customer Success Manager - Portfolio Accounts",
+"MANAGER",
+40
+],
+[
+"Associate Customer Success Manager",
+"OTHER",
+0
+],
+[
+"Software Engineer II, Open Source Server",
+"OTHER",
+0
+],
+[
+"Staff Hardware Test Engineer (Manufacturing)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Systems Engineer, Identity & Access Management",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager - Identity and Access Management (IAM)",
+"MANAGER",
+40
+],
+[
+"Inference Engineering and Product Lead",
+"SENIOR_IC",
+45
+],
+[
+"Lead product manager",
+"SENIOR_IC",
+45
+],
+[
+"Security Engineer II - Vulnerability Management",
+"OTHER",
+0
+],
+[
+"Senior Machine Learning Infrastructure Engineer, Embedding Platform",
+"SENIOR_IC",
+45
+],
+[
+"Member of Technical Staff (Software Engineer, Acceleration)",
+"SENIOR_IC",
+45
+],
+[
+"Executive Director, Kalamazoo Defender",
+"C_SUITE",
+100
+],
+[
+"Product Engineer, Product Platform (Frontend)",
+"OTHER",
+0
+],
+[
+"Sales Manager, Enterprise",
+"MANAGER",
+40
+],
+[
+"Strategic Account Executive, Federal Sales \u2014 DoW",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Solutions Architect - Public Sector (SLED)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Software Engineer, Onboarding and Activation",
+"SENIOR_IC",
+45
+],
+[
+"Product Operations Specialist | Bill Pay",
+"OTHER",
+0
+],
+[
+"Senior Public Sector Counsel",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Sensing",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer \u2013 AI Revenue Agents",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect - Digital Native Business (Fintech)",
+"SENIOR_IC",
+45
+],
+[
+"Technical Deployment Lead, Forward Deployed Engineering - Zurich",
+"OTHER",
+0
+],
+[
+"Assistant General Counsel, Bankruptcy",
+"C_SUITE",
+100
+],
+[
+"Specialist Solutions Architect - Cloud Platform & Infrastructure (Azure)",
+"SENIOR_IC",
+45
+],
+[
+"Recruiting Scheduler (Fixed Term Contract)",
+"OTHER",
+0
+],
+[
+"Senior Analyst, Treasury Operations",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, UGC Validation",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Partner Marketing Manager, AWS & AI Partners",
+"MANAGER",
+40
+],
+[
+"Director, Product Marketing",
+"DIRECTOR",
+65
+],
+[
+"Signal Integrity Engineer",
+"OTHER",
+0
+],
+[
+"Manager I, Technical Support Engineering",
+"MANAGER",
+40
+],
+[
+"Senior Engineer - GTM Tech",
+"SENIOR_IC",
+45
+],
+[
+"Asset Compliance Program Lead, Hardware",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, UI Ecosystems",
+"SENIOR_IC",
+45
+],
+[
+"Digital Customer Engineer",
+"OTHER",
+0
+],
+[
+"Enterprise Account Executive - Retail",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive, Enterprise - East",
+"SENIOR_IC",
+45
+],
+[
+"Research Engineer, AI for Chip Design",
+"OTHER",
+0
+],
+[
+"People Partner Lead, CX",
+"OTHER",
+0
+],
+[
+"Machine Learning Solutions Engineer \u2013 Robotics",
+"OTHER",
+0
+],
+[
+"Manager, Office of the Vice President for Institutional Advancement",
+"VP",
+80
+],
+[
+"Internal Audit Data Analytics Lead",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Counsel, Commercial",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Analyst, Sales Operations",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - Platforms & Productivity",
+"OTHER",
+0
+],
+[
+"IT Service Desk Engineer",
+"OTHER",
+0
+],
+[
+"QA Engineer - Core Database (remote)",
+"OTHER",
+0
+],
+[
+"Software Engineer \u2160",
+"OTHER",
+0
+],
+[
+"Hardware Program Manager, Terminal Logistics",
+"MANAGER",
+40
+],
+[
+"Manager, Software Engineering - Growth Platform",
+"MANAGER",
+40
+],
+[
+"Senior Director, Media Analytics, Commercial Strategy & Acceleration",
+"DIRECTOR",
+65
+],
+[
+"Senior Sales Engineer - Bay Area",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Agent Builder",
+"OTHER",
+0
+],
+[
+"Product Marketing Director, Command by Asana",
+"DIRECTOR",
+65
+],
+[
+"Delivery Solutions Architect - High-Tech & Manufacturing",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Productivity Engineer",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Domains Growth",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Notifications Platform",
+"MANAGER",
+40
+],
+[
+"Chief Executive Officer, Epilepsy Alliance Florida",
+"C_SUITE",
+100
+],
+[
+"Forward Deployed Product Manager",
+"MANAGER",
+40
+],
+[
+"Senior Growth Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Senior Frontier Agents Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Verifications",
+"SENIOR_IC",
+45
+],
+[
+"Full Stack Software Engineer, Codex",
+"OTHER",
+0
+],
+[
+"Senior Application Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Optical Interconnect System Engineer",
+"OTHER",
+0
+],
+[
+"Sr. Software Engineer, Cloud Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Analyst, Advanced Analytics - Gurugram",
+"SENIOR_IC",
+45
+],
+[
+"Sales Manager, Commercial Grower (Healthcare)",
+"MANAGER",
+40
+],
+[
+"Director, solutions architecture",
+"DIRECTOR",
+65
+],
+[
+"University Recruiter, Contract",
+"OTHER",
+0
+],
+[
+"Field Engineer",
+"OTHER",
+0
+],
+[
+"Thailand Compliance Officer & Money Laundering Reporting Officer",
+"OTHER",
+0
+],
+[
+"Vulnerability Management Engineer",
+"OTHER",
+0
+],
+[
+"Enterprise Account Executive, Growth (Digital Native)",
+"SENIOR_IC",
+45
+],
+[
+"People Business Partner Director, Engineering",
+"DIRECTOR",
+65
+],
+[
+"Senior Reliability Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Corporate Account Executive",
+"OTHER",
+0
+],
+[
+"Mid-Market Account Executive - Boston",
+"OTHER",
+0
+],
+[
+"Hardware Tools Engineer",
+"OTHER",
+0
+],
+[
+"Principal Technical Program Manager, Developer Productivity",
+"PRINCIPAL",
+70
+],
+[
+"IT Controls Data Engineer",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer - Egress (Go/Rust)",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer - Software Engineer - India",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Mid Market (TOLA)",
+"OTHER",
+0
+],
+[
+"Strategic Sourcing Manager, Engineering Technology & Software",
+"MANAGER",
+40
+],
+[
+"Regional Vice President, Business Development EMEA",
+"VP",
+80
+],
+[
+"Product Manager, API Infrastructure",
+"MANAGER",
+40
+],
+[
+"Research Engineer / Research Scientist - Personal AGI, Memory",
+"OTHER",
+0
+],
+[
+"Staff PLM & Engineering Applications Engineer, Consumer Devices",
+"OTHER",
+0
+],
+[
+"Staff Engineer, Revenue and Financial Management",
+"SR_MANAGER",
+50
+],
+[
+"Forward Deployed Software Engineer - NATO",
+"OTHER",
+0
+],
+[
+"Product Manager (ex-founder or ex-product engineer)",
+"MANAGER",
+40
+],
+[
+"Legal & Compliance Tech IT Product Manager",
+"MANAGER",
+40
+],
+[
+"Partner Solutions Architect (ANZ)",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Marketing Operations Manager - Global Lead Flow",
+"MANAGER",
+40
+],
+[
+"Backend Software Engineer, Applied Foundations",
+"OTHER",
+0
+],
+[
+"Senior Full-Stack Engineer, App Journey (GraphQL)",
+"SENIOR_IC",
+45
+],
+[
+"M&A and Accounting Policy Manager",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer - Safety Experience",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Manager, Compliance & Security",
+"SR_MANAGER",
+52
+],
+[
+"Developer Relations",
+"OTHER",
+0
+],
+[
+"Software Engineer, Engine Scalability",
+"OTHER",
+0
+],
+[
+"Senior iOS Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Manager, Model Lifecycle & Management",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Software Engineer, Growth Onboarding",
+"SENIOR_IC",
+45
+],
+[
+"Frontend Full Stack Staff Software Engineer, AI Platform Experiences",
+"SENIOR_IC",
+45
+],
+[
+"Corporate IT engineer (UK)",
+"OTHER",
+0
+],
+[
+"Legal Director, Privacy",
+"DIRECTOR",
+65
+],
+[
+"Staff Software Engineer, Middle Office",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Connect",
+"MANAGER",
+40
+],
+[
+"Product Operations and Strategy Manager",
+"MANAGER",
+40
+],
+[
+"Site Reliability Engineer (US - Central/Eastern time)",
+"OTHER",
+0
+],
+[
+"Staff Security Engineer, Detection & Response",
+"SENIOR_IC",
+45
+],
+[
+"Salesforce Applications Engineer",
+"OTHER",
+0
+],
+[
+"Media Analytics Manager, Measurement & Attribution",
+"MANAGER",
+40
+],
+[
+"Account Executive, Product - Issuing & Treasury (Hunter)",
+"OTHER",
+0
+],
+[
+"Sr. Technical Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"AI deployment engineer (East)",
+"OTHER",
+0
+],
+[
+"Sales Engineer II, SE Desk - Southeast",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Data Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Assistant Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineering Manager, Global Growth",
+"MANAGER",
+40
+],
+[
+"Support Engineer I (NYC, Weekend Shift)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Enterprise Apps",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Search",
+"MANAGER",
+40
+],
+[
+"Senior Named Account Executive, Minneapolis",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer, Hong Kong (Pre-sales)",
+"SENIOR_IC",
+45
+],
+[
+"Senior AI Research Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Solutions Architect - AI Natives Business",
+"SENIOR_IC",
+45
+],
+[
+"Data Engineer",
+"OTHER",
+0
+],
+[
+"General Manager | Busy Fast Food Restaurant",
+"C_SUITE",
+100
+],
+[
+"Engineering Manager, Cloud & Data Security",
+"MANAGER",
+40
+],
+[
+"Technical Threat Investigator, Threat Intel Engineering",
+"OTHER",
+0
+],
+[
+"Senior Marketing Operations Manager, Product-Led Growth",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Data Access",
+"OTHER",
+0
+],
+[
+"Data Center Research & Development Engineer, Mechanical - Industrial Compute",
+"OTHER",
+0
+],
+[
+"Solutions Architect - Media",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Monetization Product & Platform",
+"OTHER",
+0
+],
+[
+"SMB Account Executive - French speaking",
+"OTHER",
+0
+],
+[
+"Senior Business Development Associate, Ocean Consolidations",
+"OTHER",
+0
+],
+[
+"Company Strategy & Operations",
+"OTHER",
+0
+],
+[
+"Senior Product Marketing Manager, Instacart+",
+"MANAGER",
+40
+],
+[
+"AI Support Engineer - Toronto (Weekend Shift)",
+"OTHER",
+0
+],
+[
+"Business Development Representative (BDR), LATAM Portuguese Speaking",
+"OTHER",
+0
+],
+[
+"Developer Marketing Lead, APAC",
+"SENIOR_IC",
+45
+],
+[
+"Growth Marketing Manager, Programmatic",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer - Distributed Data Systems",
+"SENIOR_IC",
+45
+],
+[
+"WFM Capacity & Analytics Planner",
+"OTHER",
+0
+],
+[
+"Site Reliability Engineer (Senior or Staff), Infrastructure Security",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, CX Automation",
+"SENIOR_IC",
+45
+],
+[
+"Manager, WFM Compliance Operations",
+"MANAGER",
+40
+],
+[
+"Director - Interior Design",
+"DIRECTOR",
+65
+],
+[
+"Senior Staff Software Engineer - Enzyme",
+"SENIOR_IC",
+45
+],
+[
+"Inside Sales Representative - Early Career (2026)",
+"OTHER",
+0
+],
+[
+"Strategic Finance, International & Marketing",
+"OTHER",
+0
+],
+[
+"Senior Technical Accountant",
+"SENIOR_IC",
+45
+],
+[
+"Security Engineer, Detection and Response - EMEA",
+"OTHER",
+0
+],
+[
+"Software Engineer, Machine Learning",
+"OTHER",
+0
+],
+[
+"Data Scientist - Search",
+"OTHER",
+0
+],
+[
+"Customer Success - Southern Europe",
+"OTHER",
+0
+],
+[
+"Support Engineer",
+"OTHER",
+0
+],
+[
+"Manager, Software Engineering - AI Product",
+"MANAGER",
+40
+],
+[
+"Senior Named Account Executive - High Tech (NY Metro)",
+"SENIOR_IC",
+45
+],
+[
+"VP Real Estate Regional Manager",
+"VP",
+80
+],
+[
+"Facing Forward to End Homelessness, Executive Director",
+"C_SUITE",
+100
+],
+[
+"Product Manager, Growth AI Outreach Motion",
+"MANAGER",
+40
+],
+[
+"Japan Regulatory Compliance & Money Laundering Reporting Officer (RC & MLRO)",
+"OTHER",
+0
+],
+[
+"General Manager",
+"C_SUITE",
+100
+],
+[
+"Senior Software Engineer, Full Stack - NYC",
+"SENIOR_IC",
+45
+],
+[
+"Bank Compliance Technology Analyst",
+"OTHER",
+0
+],
+[
+"Account Executive - North America - Mid-Market",
+"OTHER",
+0
+],
+[
+"Senior Product Engineer, Product Foundry",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Software Engineering (App Experiences)",
+"MANAGER",
+40
+],
+[
+"Senior Cloud Security Engineer - K8s",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer II, Core Engineering",
+"OTHER",
+0
+],
+[
+"Member of Technical Staff (Software Engineer, Cloud Infrastructure)",
+"SENIOR_IC",
+45
+],
+[
+"Simulation Infrastructure Engineer",
+"OTHER",
+0
+],
+[
+"Head of Field Marketing and Events, Gen AI",
+"HEAD",
+72
+],
+[
+"Senior Data Product Manager, Product Telemetry",
+"SENIOR_IC",
+45
+],
+[
+"Senior Named Account Executive, Digital Natives",
+"SENIOR_IC",
+45
+],
+[
+"Startup Account Executive",
+"OTHER",
+0
+],
+[
+"Staff Research Engineer, Data Agents",
+"SENIOR_IC",
+45
+],
+[
+"HR Generalist",
+"OTHER",
+0
+],
+[
+"Accounting Partner Growth Manager",
+"PARTNER",
+78
+],
+[
+"Regional Director, Forward Deployed Engineering - India",
+"DIRECTOR",
+65
+],
+[
+"Software Engineer, Platform Systems",
+"OTHER",
+0
+],
+[
+"Software Engineer - Auth",
+"OTHER",
+0
+],
+[
+"Marketing Financial Operations Manager",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer - AI Platform Team",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Software Engineer, Content AI",
+"SENIOR_IC",
+45
+],
+[
+"Field Marketing Manager - France, Middle East & Africa",
+"MANAGER",
+40
+],
+[
+"Senior Full-Stack Software Engineer, (Forward Deployed), GPS",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Backend (Product)",
+"OTHER",
+0
+],
+[
+"Technical Recruiter (Fixed Term Contract)",
+"OTHER",
+0
+],
+[
+"Risk Operations, Collections",
+"OTHER",
+0
+],
+[
+"Commercial Account Executive (German speaking)",
+"OTHER",
+0
+],
+[
+"iOS Engineer III",
+"OTHER",
+0
+],
+[
+"Greenfield Sales Manager, Startups",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Agent - Travel & Hospitality",
+"OTHER",
+0
+],
+[
+"Sales Engineer (German speaking)",
+"OTHER",
+0
+],
+[
+"Product & Customer Experience Director",
+"DIRECTOR",
+65
+],
+[
+"Strategic Account Executive, Life Sciences",
+"SENIOR_IC",
+45
+],
+[
+"Senior Enterprise Engineer",
+"SENIOR_IC",
+45
+],
+[
+"AI Deployment Engineer, Startups",
+"OTHER",
+0
+],
+[
+"Software Engineer, Infrastructure, Consumer Devices",
+"OTHER",
+0
+],
+[
+"Partner Solutions Architect - LatAm",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Routing",
+"SENIOR_IC",
+45
+],
+[
+"Principal Security Engineer, Infrastructure Security",
+"PRINCIPAL",
+70
+],
+[
+"Software Engineer, Data Infrastructure - Research",
+"OTHER",
+0
+],
+[
+"Product Marketing Manager, Advertising",
+"MANAGER",
+40
+],
+[
+"FinOps Engineer",
+"OTHER",
+0
+],
+[
+"Account Executive",
+"OTHER",
+0
+],
+[
+"Manager, Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Sr. Staff Technical Architect, Unified Trading",
+"SENIOR_IC",
+45
+],
+[
+"Senior IT Automation Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Representative - Dutch Speaking",
+"OTHER",
+0
+],
+[
+"Staff Network Engineer, App Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Frontend Engineer, Community Builders",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer - Emerging Enterprise & DNB",
+"SENIOR_IC",
+45
+],
+[
+"Staff Fullstack Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Field Marketing & Events Lead, Public Sector",
+"OTHER",
+0
+],
+[
+"Staff MLE - Supply Chain",
+"OTHER",
+0
+],
+[
+"Senior Counsel, Product",
+"SENIOR_IC",
+45
+],
+[
+"Full-stack Engineer - Creative Agents",
+"OTHER",
+0
+],
+[
+"Lead GTM Enablement & Scale Architect, Product Enablement",
+"OTHER",
+0
+],
+[
+"Manager, Forward Deployed Engineer - Tokyo",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Sales Manager, Retail",
+"MANAGER",
+40
+],
+[
+"Senior Staff Machine Learning Engineer, Data & Eval",
+"SENIOR_IC",
+45
+],
+[
+"Senior Frontend Engineer, Discovery UX",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Solutions Engineer, Service Management",
+"OTHER",
+0
+],
+[
+"GCC Marketing Sr. Lead",
+"OTHER",
+0
+],
+[
+"Senior Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Restaurant General Manager",
+"OTHER",
+0
+],
+[
+"Software Engineer, Accounting",
+"OTHER",
+0
+],
+[
+"AV & Events Engineer",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Content Suitability",
+"SENIOR_IC",
+45
+],
+[
+"Engineer Manager, Billing",
+"MANAGER",
+40
+],
+[
+"Product Manager, Youth",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer - Data Platform",
+"SENIOR_IC",
+45
+],
+[
+"Founding Account Executive (Brazil)",
+"OTHER",
+0
+],
+[
+"Account Executive, Product Sales - Tax",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Creator Experience",
+"SENIOR_IC",
+45
+],
+[
+"Distributed Systems Engineer - Data Platform - Logs and Audit Logs",
+"OTHER",
+0
+],
+[
+"Technical Accounting Manager",
+"MANAGER",
+40
+],
+[
+"Associate Director of Electrical Engineering",
+"SR_MANAGER",
+52
+],
+[
+"Software Engineer, Security",
+"OTHER",
+0
+],
+[
+"Backend Engineer, Link (US)",
+"OTHER",
+0
+],
+[
+"Enterprise Sales Engineer (Spanish speaking)",
+"OTHER",
+0
+],
+[
+"Product Manager, Work Intake",
+"MANAGER",
+40
+],
+[
+"Senior Analyst - Workforce Management, Manila",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Tokenization",
+"OTHER",
+0
+],
+[
+"Treasury Finance AI and Quantitative Analytics, Americas",
+"OTHER",
+0
+],
+[
+"Specialist Solutions Architect - Data Engineering & Warehousing (Digital Native Business)",
+"SENIOR_IC",
+45
+],
+[
+"Data Scientist, Business",
+"OTHER",
+0
+],
+[
+"CMO Executive Recruitment for Growth-Focused Brands",
+"C_SUITE",
+100
+],
+[
+"Engineering Manager, Site Defense",
+"MANAGER",
+40
+],
+[
+"Operating Systems Engineer, Linux Kernel | Consumer Devices",
+"OTHER",
+0
+],
+[
+"Executive Escalations Senior Associate",
+"OTHER",
+0
+],
+[
+"Enterprise Solutions Engineer - Belgium",
+"OTHER",
+0
+],
+[
+"Software Engineer - New Grad",
+"OTHER",
+0
+],
+[
+"Senior Named Account Executive (Austin/Houston)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer, Digital Native Enterprise - Bay Area",
+"SENIOR_IC",
+45
+],
+[
+"AI Deployment Engineer - Startups",
+"OTHER",
+0
+],
+[
+"Strategy & Operations Lead, Strategic Enablement, MC2",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer-",
+"OTHER",
+0
+],
+[
+"Solutions Architect, Enterprise (French Speaking)",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager II, AI & Data Security",
+"MANAGER",
+40
+],
+[
+"Product Lead, AI/ML (Evals)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Machine Learning Engineer, CustomerLake (ML/LLM)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Account Based Marketing Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive - Hunter (New Logo)",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Growth Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Partner Solutions Architect",
+"SENIOR_IC",
+45
+],
+[
+"Client Success Manager, Pharma",
+"MANAGER",
+40
+],
+[
+"Machine Learning Engineer, CX Intelligence",
+"OTHER",
+0
+],
+[
+"Commercial Account Executive - Sao Paulo (Portuguese Speaking)",
+"OTHER",
+0
+],
+[
+"Presales Customer Engineer, Enterprise (based in Melbourne)",
+"OTHER",
+0
+],
+[
+"Risk Strategist, Onboarding and Compliance",
+"OTHER",
+0
+],
+[
+"Developer Advocate - Service Management",
+"OTHER",
+0
+],
+[
+"Senior Security Engineer, AI Security",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Infrastructure Engineer, Internship - US Government",
+"OTHER",
+0
+],
+[
+"Product Manager, Agent Development",
+"MANAGER",
+40
+],
+[
+"Staff Product Owner, Collaboration & Productivity",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Operations",
+"OTHER",
+0
+],
+[
+"Salesforce Technical Architect",
+"OTHER",
+0
+],
+[
+"Component Engineer",
+"OTHER",
+0
+],
+[
+"Assistant Dean - Graduate Medical Education (GME)",
+"C_SUITE",
+100
+],
+[
+"Software Engineer, Privacy",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Payments Compliance",
+"SENIOR_IC",
+45
+],
+[
+"Staff Data Scientist, Causal Inference & Experimentation",
+"SENIOR_IC",
+45
+],
+[
+"Product Engineer, GTM Growth Engineering",
+"OTHER",
+0
+],
+[
+"Strategic Core Account Executive, Mexico City",
+"OTHER",
+0
+],
+[
+"Senior Account Executive, Strategic Pursuits, Aviation APAC (Based in Singapore)",
+"SENIOR_IC",
+45
+],
+[
+"Field Engineer, Healthcare & SLED",
+"OTHER",
+0
+],
+[
+"Money Management Demand Generation Manager, Americas",
+"MANAGER",
+40
+],
+[
+"Staff RF Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Engineer, Economy",
+"SENIOR_IC",
+45
+],
+[
+"Ads Conversion Modeling, Machine Learning Engineering Manager",
+"MANAGER",
+40
+],
+[
+"Staff Engineer, Issuing",
+"SR_MANAGER",
+50
+],
+[
+"Staff Advanced Analytics, Community Blueprint & Quality",
+"OTHER",
+0
+],
+[
+"IAM Security Engineer",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer - CAM",
+"SENIOR_IC",
+45
+],
+[
+"Staff System Engineer, BizTech",
+"SENIOR_IC",
+45
+],
+[
+"Americas Field Marketing, AI",
+"OTHER",
+0
+],
+[
+"Product Manager - Developer Experience, Bridge",
+"MANAGER",
+40
+],
+[
+"AI Engineer, Community Support Engineering",
+"OTHER",
+0
+],
+[
+"Senior Counsel, AI Product (Enterprise/API)",
+"SENIOR_IC",
+45
+],
+[
+"Backend/API Engineer, Money as a Service",
+"OTHER",
+0
+],
+[
+"Backend Software Engineer, API Enterprise Controls",
+"OTHER",
+0
+],
+[
+"iOS Engineer II (AI Experiences)",
+"OTHER",
+0
+],
+[
+"Field Marketing Manager, Sponsorship & Experiential \u2014 United Kingdom",
+"MANAGER",
+40
+],
+[
+"University Recruiter",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Marketing Enablement & Technology",
+"SENIOR_IC",
+45
+],
+[
+"Partner Solutions Architect (India GSI)",
+"SENIOR_IC",
+45
+],
+[
+"Principal Software Engineer",
+"SR_MANAGER",
+52
+],
+[
+"Legal Engineer Manager, Product Specialist, EMEA",
+"MANAGER",
+40
+],
+[
+"Partner Development Representative | Accounting",
+"OTHER",
+0
+],
+[
+"Staff Machine Learning Engineer, Radar",
+"SENIOR_IC",
+45
+],
+[
+"Analytics Lead, Strategic Insights (Compliance)",
+"SENIOR_IC",
+45
+],
+[
+"Langfuse - DevRel Engineer, Events & Community (AMER)",
+"OTHER",
+0
+],
+[
+"Technical Program Manager, Finance Systems & Compliance",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Frontend",
+"OTHER",
+0
+],
+[
+"Member of Technical Staff (Software Engineer, Computer Growth)",
+"SENIOR_IC",
+45
+],
+[
+"Legal Ops Associate, OC Management",
+"OTHER",
+0
+],
+[
+"Manager, Machine Learning Engineering (Repayment & Recovery)",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Data Enablement Platform",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect - Manufacturing",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Core Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Systems Engineer - Application Security",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Intern (Fall 2026)",
+"OTHER",
+0
+],
+[
+"Account Executive, Product Sales (Tax)",
+"OTHER",
+0
+],
+[
+"GTM Business Operations Manager",
+"MANAGER",
+40
+],
+[
+"Data Analyst, People Analytics",
+"OTHER",
+0
+],
+[
+"Senior Data Product Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineering Intern, Backend (Summer 2027)",
+"OTHER",
+0
+],
+[
+"Senior Customer Enablement Architect",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager, Ecosystem Risk",
+"MANAGER",
+40
+],
+[
+"Infrastructure Software Engineer",
+"OTHER",
+0
+],
+[
+"Sales Manager, Small Business",
+"MANAGER",
+40
+],
+[
+"Senior Enterprise Systems Developer - Procurement Systems",
+"SENIOR_IC",
+45
+],
+[
+"Director of Talent Acquisition, APJC",
+"DIRECTOR",
+65
+],
+[
+"Technical Deployment Lead, Forward Deployed Engineering (FDE) - NYC",
+"OTHER",
+0
+],
+[
+"Staff Product Operations Manager",
+"MANAGER",
+40
+],
+[
+"Account Executive - Enterprise",
+"OTHER",
+0
+],
+[
+"Manager, Strategy and Business Operations",
+"MANAGER",
+40
+],
+[
+"Strategic Medical Director, General Medicine",
+"DIRECTOR",
+65
+],
+[
+"Support Engineer (EMEA)",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Network On-Ramps",
+"SENIOR_IC",
+45
+],
+[
+"GTM Recruiter, AMER (Fixed Term)",
+"OTHER",
+0
+],
+[
+"Office Manager, Berlin",
+"MANAGER",
+40
+],
+[
+"Mid-Market Account Executive - France",
+"OTHER",
+0
+],
+[
+"Senior Cloud Software Engineer - Efficiency Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Principal Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, CorpSec",
+"SENIOR_IC",
+45
+],
+[
+"Cloud Operations Engineer (2nd Shift, Weekend)",
+"OTHER",
+0
+],
+[
+"Territory Account Executive - Digital Native Start Ups",
+"OTHER",
+0
+],
+[
+"Financial Connections TechOps Integration Reliability Engineer",
+"OTHER",
+0
+],
+[
+"Product Manager, Sensitive Deployments",
+"MANAGER",
+40
+],
+[
+"Engineering Manager, Machine Learning Platform",
+"MANAGER",
+40
+],
+[
+"HRBP, Core Business",
+"OTHER",
+0
+],
+[
+"Recruiter II, G&A",
+"OTHER",
+0
+],
+[
+"Business Controller Intern",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, ML Foundations and GenAI",
+"SENIOR_IC",
+45
+],
+[
+"AI Deployment Engineer, Messenger Integrations",
+"OTHER",
+0
+],
+[
+"Senior Digital Native Named Account Executive (SF)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Data Visualization",
+"SENIOR_IC",
+45
+],
+[
+"Network Deployment Engineer - APJC",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Mobile AI",
+"MANAGER",
+40
+],
+[
+"Sales Manager",
+"MANAGER",
+40
+],
+[
+"Customer Support Specialist",
+"OTHER",
+0
+],
+[
+"Business Systems Engineer, Oracle STP",
+"OTHER",
+0
+],
+[
+"Lead Generation Strategy and Operations",
+"OTHER",
+0
+],
+[
+"Senior Staff Machine Learning Engineer, Trust",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Backend (Trust and Safety)",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Security Engineer",
+"OTHER",
+0
+],
+[
+"Crypto Product Accounting",
+"OTHER",
+0
+],
+[
+"Safety Engineer",
+"OTHER",
+0
+],
+[
+"Senior Full-Stack Software Engineer, Ads",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Secure Development Engineering",
+"OTHER",
+0
+],
+[
+"Senior Accountant, Capital Markets",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive, Command",
+"SENIOR_IC",
+45
+],
+[
+"GTM Contract Recruiter",
+"OTHER",
+0
+],
+[
+"Director of the Institute for LGBTQIA+ Community Engagement and Public Hist",
+"DIRECTOR",
+65
+],
+[
+"Response Engineer (Application & Network Security)",
+"OTHER",
+0
+],
+[
+"Senior Commercial Account Executive",
+"SENIOR_IC",
+45
+],
+[
+"Senior Solutions Engineer, French Speaking Africa",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Backend (Consumer - Risk)",
+"OTHER",
+0
+],
+[
+"GTM Operations",
+"OTHER",
+0
+],
+[
+"Senior Product Manager - Data Agent",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer with Systems Depth",
+"OTHER",
+0
+],
+[
+"Demand Generation Marketing Manager, Private Equity",
+"MANAGER",
+40
+],
+[
+"Manager, Field Engineering",
+"MANAGER",
+40
+],
+[
+"Manager, Enterprise Customer Success - Select",
+"MANAGER",
+40
+],
+[
+"Strategy and Operations Lead, Deal Pricing",
+"SENIOR_IC",
+45
+],
+[
+"Support Engineer I (FC, Weekend Shift)",
+"OTHER",
+0
+],
+[
+"Lead Thermal Simulation Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Product Engineer, New Products",
+"OTHER",
+0
+],
+[
+"Integration Engineer, Metronome",
+"OTHER",
+0
+],
+[
+"IT Software Architect, SaaS Enablement and Governance",
+"OTHER",
+0
+],
+[
+"Forward Deployed AI Engineer",
+"OTHER",
+0
+],
+[
+"Security GRC Engineer",
+"OTHER",
+0
+],
+[
+"HRBP, GTM",
+"OTHER",
+0
+],
+[
+"Enterprise Solutions Engineer - France",
+"OTHER",
+0
+],
+[
+"Head of Sales Recruiting, AMER",
+"HEAD",
+72
+],
+[
+"GTM Operations, Agent Development Enablement",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Billing",
+"MANAGER",
+40
+],
+[
+"Machine Learning Engineering Manager - Fraud Detection",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer (Full Stack), Ads User Experience",
+"SENIOR_IC",
+45
+],
+[
+"Event Marketing Manager - Global Sponsorships (NAMER/LATAM)",
+"MANAGER",
+40
+],
+[
+"Network Operations Engineer, Network Activation",
+"OTHER",
+0
+],
+[
+"Solutions Engineer, Central & Eastern Europe - Hebrew Speaking",
+"OTHER",
+0
+],
+[
+"Product Marketing Manager - Incident Response",
+"MANAGER",
+40
+],
+[
+"Inside Sales Manager, Account Development",
+"MANAGER",
+40
+],
+[
+"Head of Technical Revenue Accounting",
+"HEAD",
+72
+],
+[
+"Workday Developer - People Tech",
+"OTHER",
+0
+],
+[
+"Sr. Manager, Machine Learning Engineering, Ads Measurement Products",
+"SR_MANAGER",
+50
+],
+[
+"Staff Software Engineer, Backend (Online Storage)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Frontend",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Lead - Western Europe",
+"OTHER",
+0
+],
+[
+"Software Engineer (Machine Learning) Intern (Summer 2027)",
+"OTHER",
+0
+],
+[
+"Senior Counsel, AI Product",
+"SENIOR_IC",
+45
+],
+[
+"AI Security Research & Red Team Engineer",
+"OTHER",
+0
+],
+[
+"Support Engineer, AI Infrastructure",
+"OTHER",
+0
+],
+[
+"Staff Product Manager - Bits Release",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Security Agent",
+"SENIOR_IC",
+45
+],
+[
+"Growth Marketing - Consumer App Channels",
+"OTHER",
+0
+],
+[
+"Senior AI Product Manager, Code",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Data Scientist, Performance Marketing",
+"SENIOR_IC",
+45
+],
+[
+"Air Operations Associate",
+"OTHER",
+0
+],
+[
+"Manager, Engineering - AI/BI",
+"MANAGER",
+40
+],
+[
+"Staff Product Manager, New Verticals",
+"SENIOR_IC",
+45
+],
+[
+"Delivery Solutions Architect - Communications, Media, Entertainment & Games",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer- Search Quality",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Security Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Frontend (Consumer - Payments)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, (Python, Java, GenAI)",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Field Engineering - High Tech and MFG",
+"SR_MANAGER",
+50
+],
+[
+"Sr. Staff Production Engineer - Data Platform",
+"SENIOR_IC",
+45
+],
+[
+"Staff Data Scientist (Quantitative Researcher)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Majors Account Executive - St. Louis, MO",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Core Sales Engineer - Southeast",
+"OTHER",
+0
+],
+[
+"Technical Deployment Lead, Forward Deployed Engineering - Paris",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Growth Enablement",
+"SENIOR_IC",
+45
+],
+[
+"IT Ops Engineer",
+"OTHER",
+0
+],
+[
+"Software Engineer- Fullstack- Tokyo",
+"OTHER",
+0
+],
+[
+"3P Systems Architect",
+"OTHER",
+0
+],
+[
+"Data Analyst",
+"OTHER",
+0
+],
+[
+"Senior Technical Recruiter, Engineering Leadership",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Field Technical Program Manager, Forward Deployed Engineering - Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Secrets Infrastructure",
+"OTHER",
+0
+],
+[
+"Senior Solutions Engineer, Cloudflare One (SASE/SSE)",
+"SENIOR_IC",
+45
+],
+[
+"Pre-Sales Customer Engineer, Digital Native",
+"OTHER",
+0
+],
+[
+"Full Stack Engineer, Enterprise & Ecosystem",
+"OTHER",
+0
+],
+[
+"AI Solutions Developer",
+"OTHER",
+0
+],
+[
+"Principal, Strategic Finance & Analytics, Incubations",
+"PRINCIPAL",
+70
+],
+[
+"Support Operations Engineer",
+"OTHER",
+0
+],
+[
+"Distinguished Engineer, Machine Learning - Discovery",
+"SR_MANAGER",
+50
+],
+[
+"Android Engineer II (Healthcare)",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer (FDE) - Seattle",
+"SENIOR_IC",
+45
+],
+[
+"Interim Chief Executive Officer",
+"C_SUITE",
+100
+],
+[
+"AI Success Engineer - EDU",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Engineering Acceleration",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - Fullstack",
+"OTHER",
+0
+],
+[
+"Staff AI Solutions Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive - Tech",
+"OTHER",
+0
+],
+[
+"Nursing Director, Med Surg",
+"DIRECTOR",
+65
+],
+[
+"Recruiting Coordinator",
+"OTHER",
+0
+],
+[
+"Software Engineer, Codex Enterprise",
+"OTHER",
+0
+],
+[
+"Product Designer, Engineering Acceleration",
+"OTHER",
+0
+],
+[
+"Enterprise Sales Manager, Energy",
+"MANAGER",
+40
+],
+[
+"Senior Specialist, Luxe",
+"SENIOR_IC",
+45
+],
+[
+"Medical Director of Neuro-Oncology",
+"DIRECTOR",
+65
+],
+[
+"Client Success Lead",
+"OTHER",
+0
+],
+[
+"Software Engineering Manager - Payments",
+"MANAGER",
+40
+],
+[
+"AI Adoption Engineer",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Data Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Payments",
+"SENIOR_IC",
+45
+],
+[
+"Senior Director, Product & Solution Marketing",
+"DIRECTOR",
+65
+],
+[
+"Billing Operations Manager",
+"MANAGER",
+40
+],
+[
+"Recruiter, AI/ML Research EMEA",
+"OTHER",
+0
+],
+[
+"Customer Success Manager - Denver",
+"MANAGER",
+40
+],
+[
+"Product Marketing Lead, Lines of Business & Industries",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer Intern, Mobile (Winter 2027)",
+"OTHER",
+0
+],
+[
+"Sr. Technical Support Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Cloudflare Network Interconnect",
+"MANAGER",
+40
+],
+[
+"Senior Territory Account Executive (NY)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Platform Architect - West",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Solutions Engineer - Public Sector (Defense Industrial Base)",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive - Netherlands - Government, Healthcare & Utilities",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Query Integration",
+"MANAGER",
+40
+],
+[
+"Product Marketing Manager, Growth",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Infrastructure - Core Experimentation",
+"OTHER",
+0
+],
+[
+"Legal Engineer - Custom Solutions",
+"OTHER",
+0
+],
+[
+"Recruiting Coordinator, Contract",
+"OTHER",
+0
+],
+[
+"Manager Data Center Operations",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, Dashboard",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Staff Software Engineer, Affirm Bank",
+"SENIOR_IC",
+45
+],
+[
+"Associate Counsel, Employment",
+"OTHER",
+0
+],
+[
+"Member of Data Staff (Analytics Engineer)",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer - Avatar Personalization",
+"SENIOR_IC",
+45
+],
+[
+"Principal Enterprise Security Engineer",
+"PRINCIPAL",
+70
+],
+[
+"Research Engineer / Research Scientist - Personal AGI, Personalization",
+"OTHER",
+0
+],
+[
+"Responsable, offre Airbnb Luxe",
+"OTHER",
+0
+],
+[
+"Account Executive, Geo Enterprise - New York",
+"OTHER",
+0
+],
+[
+"Principal Software Engineer - Economy ML (Data Systems)",
+"SR_MANAGER",
+52
+],
+[
+"Sr.Staff Software Engineer- Network Platform",
+"SENIOR_IC",
+45
+],
+[
+"Financial Analyst, Business F&S",
+"OTHER",
+0
+],
+[
+"Product Manager, Platform",
+"MANAGER",
+40
+],
+[
+"Programmatic Account Executive",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer (FDE) - NYC",
+"SENIOR_IC",
+45
+],
+[
+"[TEMPLATE] Integration Engineer (Metronome)",
+"OTHER",
+0
+],
+[
+"SDK Engineer - JavaScript",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Desktop",
+"MANAGER",
+40
+],
+[
+"Sales Engineer - Mid Market - West",
+"OTHER",
+0
+],
+[
+"Data Scientist, Core Experimentation",
+"OTHER",
+0
+],
+[
+"Core Engine Developer - Systems (C++)",
+"OTHER",
+0
+],
+[
+"Sr. Staff Software Engineer, Notifications & Growth Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer (Chicago)",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive (Rome - Italy)",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect, Enterprise Hunter",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Platform Reliability",
+"MANAGER",
+40
+],
+[
+"Director of Engineering \u2013 Studio Systems",
+"DIRECTOR",
+65
+],
+[
+"Account Executive, Commercial (Grower)",
+"OTHER",
+0
+],
+[
+"Associate Dean, Strategic Initiatives & Development - School of Nursing",
+"C_SUITE",
+100
+],
+[
+"Senior Product Marketing Manager, Platform",
+"MANAGER",
+40
+],
+[
+"Division Director, Gynecologic Oncology",
+"DIRECTOR",
+65
+],
+[
+"Senior Territory Account Executive, Taiwan",
+"SENIOR_IC",
+45
+],
+[
+"VP of Finance",
+"VP",
+80
+],
+[
+"Content Marketing Manager, Mumbai",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer - NPC Behavior",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Data Scientist, Guest & Host Marketplace AI",
+"OTHER",
+0
+],
+[
+"Product Compliance and Enablement Advisor",
+"OTHER",
+0
+],
+[
+"Senior iOS Software Engineer, Consumer Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive (Financial Services)",
+"SENIOR_IC",
+45
+],
+[
+"Enablement Designer, Recruiting and People \u2013 Contractor (12-Month Engagement)",
+"OTHER",
+0
+],
+[
+"Platform Engineer II",
+"OTHER",
+0
+],
+[
+"Software Engineer, User Database Infrastructure",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Observability Infrastructure",
+"MANAGER",
+40
+],
+[
+"Senior Marketing Analytics Manager - BI & Data Architecture",
+"MANAGER",
+40
+],
+[
+"Enterprise Account Executive (Healthcare & Life Sciences)",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Representative - Arabic Speaking",
+"OTHER",
+0
+],
+[
+"Data Center Physical Security Systems Engineer",
+"OTHER",
+0
+],
+[
+"Product Manager, ChatGPT Sites",
+"MANAGER",
+40
+],
+[
+"Senior Engineering Manager, Media Foundation",
+"MANAGER",
+40
+],
+[
+"Solutions Engineer, Digital Natives (Strategics)",
+"OTHER",
+0
+],
+[
+"Sr. Mechanical Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Development Director",
+"DIRECTOR",
+65
+],
+[
+"Analytics Lead, SCC",
+"SENIOR_IC",
+45
+],
+[
+"Senior Director, Clinical Service",
+"DIRECTOR",
+65
+],
+[
+"Member of Technical Staff (Machine Learning Engineer, Search & Agents)",
+"SENIOR_IC",
+45
+],
+[
+"Associate Growth Marketing Manager",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Nexus Server",
+"OTHER",
+0
+],
+[
+"Strategic Core Account Executive - Insurance, m/f/d",
+"OTHER",
+0
+],
+[
+"Product Manager, Global Payouts \u2013 Cross-Border & Enterprise Capabilities",
+"MANAGER",
+40
+],
+[
+"Compliance Lead, Servicing Advisory",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect, Enterprise (Presales)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Anti-Abuse & Security",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager, Marketing Technology - Segmentation Platform & Insights Platform",
+"MANAGER",
+40
+],
+[
+"Senior Territory Account Executive, Korea",
+"SENIOR_IC",
+45
+],
+[
+"Full-Stack Engineer, Human Agent Tooling",
+"OTHER",
+0
+],
+[
+"Specialist Solutions Architect - Cloud Platform & Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Program Manager, Product Legal",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Trust",
+"SENIOR_IC",
+45
+],
+[
+"Field Technical Program Manager, Forward Deployed Engineering - LATAM",
+"MANAGER",
+40
+],
+[
+"Strategic Account Executive - Chicago",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Integration Engineer IV",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer - Money Team",
+"SENIOR_IC",
+45
+],
+[
+"Full Stack Engineer, Intelligence Systems",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Platform Operations",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Link - Bank Connections",
+"SENIOR_IC",
+45
+],
+[
+"Senior Manager, Public Policy, Texas",
+"SR_MANAGER",
+50
+],
+[
+"Engineering Manager, Deals and Offers",
+"MANAGER",
+40
+],
+[
+"Product Manager, ChatGPT and Codex App Ecosystem",
+"MANAGER",
+40
+],
+[
+"Principal Partner Solutions Engineer, SAARC (Based in Bangalore)",
+"SENIOR_IC",
+45
+],
+[
+"Detection & Mitigation Engineer",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Expenses",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Finance & Strategy - Marketing",
+"SR_MANAGER",
+50
+],
+[
+"Field Engineer - ANZ",
+"OTHER",
+0
+],
+[
+"Analyst II, Full Stack (Revenue Analytics)",
+"OTHER",
+0
+],
+[
+"Senior Security Operations Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, API Frontiers",
+"OTHER",
+0
+],
+[
+"AI Success Engineer - AMER",
+"OTHER",
+0
+],
+[
+"Software Engineer, Agent (French speaking)",
+"OTHER",
+0
+],
+[
+"Named Account Executive, Public Sector & Enterprise",
+"OTHER",
+0
+],
+[
+"Vice President, Advancement and Philanthropic Engagement, Institute for Women's Policy Research",
+"VP",
+80
+],
+[
+"Product Manager, Link - Local Payment Methods",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Engineering Acceleration Foundations",
+"SENIOR_IC",
+45
+],
+[
+"Senior Backend Software Engineer - Application Development",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Workload Enablement",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer - Security Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Counsel",
+"MANAGER",
+40
+],
+[
+"Software Engineer - AI Developer Workflows",
+"OTHER",
+0
+],
+[
+"Risk Strategist, Card Network Compliance",
+"OTHER",
+0
+],
+[
+"Marketing Manager, MENAT",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer- Networking",
+"SENIOR_IC",
+45
+],
+[
+"Inference Engineer, Robotics",
+"OTHER",
+0
+],
+[
+"Sales Engineer, Enterprise",
+"OTHER",
+0
+],
+[
+"Product Manager, IT",
+"MANAGER",
+40
+],
+[
+"Software Engineer II, Android",
+"OTHER",
+0
+],
+[
+"Principal Solutions Architect",
+"PRINCIPAL",
+70
+],
+[
+"Senior Accountant, Brokerage and Derivatives",
+"SENIOR_IC",
+45
+],
+[
+"Senior iOS Engineer (Healthcare)",
+"SENIOR_IC",
+45
+],
+[
+"Security Engineer, Infrastructure",
+"OTHER",
+0
+],
+[
+"Enterprise Customer Success Manager - Denver",
+"MANAGER",
+40
+],
+[
+"Account Executive, Product Sales - Money Management ASEAN",
+"OTHER",
+0
+],
+[
+"Senior Product Manager, Order Quality",
+"SENIOR_IC",
+45
+],
+[
+"Senior Solutions Architect, Growth - East",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineering Manager, Developer Productivity",
+"MANAGER",
+40
+],
+[
+"Senior Counsel, Risk",
+"SENIOR_IC",
+45
+],
+[
+"GTM Operations Manager - New Products",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Mobile",
+"OTHER",
+0
+],
+[
+"Senior Solutions Architect, Commercial - SF",
+"SENIOR_IC",
+45
+],
+[
+"Senior Business Operations and Growth Lead, Ticketing",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Customer Success Manager, Japan",
+"MANAGER",
+40
+],
+[
+"Senior Customer Reliability Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Product Owner, Revenue Technology",
+"OTHER",
+0
+],
+[
+"Data Analyst, Payments",
+"OTHER",
+0
+],
+[
+"Software Engineer, Productivity - Networking",
+"OTHER",
+0
+],
+[
+"Director of Accounting",
+"DIRECTOR",
+65
+],
+[
+"Principal Machine Learning Engineer, Content Safety",
+"PRINCIPAL",
+70
+],
+[
+"Sales Operations Analyst",
+"OTHER",
+0
+],
+[
+"Principal Software Engineer, Compute Fleet Management",
+"SR_MANAGER",
+52
+],
+[
+"Corporate Accounting Manager",
+"MANAGER",
+40
+],
+[
+"Senior / Staff Software Engineer, Developer Experience",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Manager, Community Builders",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, Safety",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II (Backend, AI Experiences & AI Platform)",
+"OTHER",
+0
+],
+[
+"Sr Production Engineer- Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Enterprise Account Executive - Insurance",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Privacy Engineering",
+"OTHER",
+0
+],
+[
+"Director of Engineering, Core Product",
+"DIRECTOR",
+65
+],
+[
+"Commercial Counsel",
+"MANAGER",
+40
+],
+[
+"Technical Support Engineer 1 - 2",
+"OTHER",
+0
+],
+[
+"Senior Machine Learning Systems Engineer, Ads ML Experience Platform",
+"SENIOR_IC",
+45
+],
+[
+"Commercial Account Executive - Boston",
+"OTHER",
+0
+],
+[
+"Associate Product Manager",
+"OTHER",
+0
+],
+[
+"Senior iOS Engineer, Global Markets",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager 2 \u2013 IaC Detection",
+"MANAGER",
+40
+],
+[
+"Sr. Staff Software Engineer, Pinterest Assistant",
+"SENIOR_IC",
+45
+],
+[
+"Director, GTM & Growth Marketing",
+"DIRECTOR",
+65
+],
+[
+"Account Executive, SMB (New Business)",
+"OTHER",
+0
+],
+[
+"Business Development Manager, AI Discoverability and Scheduling Partnerships",
+"MANAGER",
+40
+],
+[
+"Vice President, Property Management",
+"VP",
+80
+],
+[
+"Strategic Account Executive-TELCO",
+"SENIOR_IC",
+45
+],
+[
+"Data Engineer Intern (2027)",
+"OTHER",
+0
+],
+[
+"Strategic Account Executive, DACH",
+"SENIOR_IC",
+45
+],
+[
+"Director of Interior Design",
+"DIRECTOR",
+65
+],
+[
+"Senior Engineering Manager, Unified Embeddings Platform",
+"MANAGER",
+40
+],
+[
+"Territory Account Executive, Digital Native (Hong Kong)",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Sensitive Deployments",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Early Career (AI)",
+"OTHER",
+0
+],
+[
+"VoidZero Engineer",
+"OTHER",
+0
+],
+[
+"Business Development Lead - Americas",
+"OTHER",
+0
+],
+[
+"Premium Support Engineer (Foster City, Weekend Shift)",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, R2 Metadata",
+"SENIOR_IC",
+45
+],
+[
+"Supply Chain Manager, Industrial Compute",
+"MANAGER",
+40
+],
+[
+"Engineering Manager, Home Infrastructure",
+"MANAGER",
+40
+],
+[
+"Year at Palantir - Software Engineer, Internship",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Storage",
+"SENIOR_IC",
+45
+],
+[
+"Legal Operations Project Manager",
+"MANAGER",
+40
+],
+[
+"Senior Battery Systems Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Electrical Engineer III",
+"OTHER",
+0
+],
+[
+"Integration Engineer, Professional Services",
+"OTHER",
+0
+],
+[
+"Senior Influencer Manager",
+"MANAGER",
+40
+],
+[
+"Senior Data Scientist, Trust (Inference)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Developer Advocate - Leadership",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Caper AI",
+"SENIOR_IC",
+45
+],
+[
+"Lead Advanced Analytics, Guest Product",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer: Data Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Legal Counsel, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"GTM Strategy and Operations Associate",
+"OTHER",
+0
+],
+[
+"Mid-Market Account Executive - French Fluent",
+"OTHER",
+0
+],
+[
+"Solutions Architect - Digital Native Business",
+"SENIOR_IC",
+45
+],
+[
+"AI Research Engineer - Datadog AI Research (DAIR)",
+"OTHER",
+0
+],
+[
+"Fleet Operations Lead (Swing)",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Sales Director - Strategic, Healthcare",
+"DIRECTOR",
+65
+],
+[
+"Program Director, Doctor Nurse Anesthesia Practice",
+"DIRECTOR",
+65
+],
+[
+"Engineering Manager, Model Infrastructure",
+"MANAGER",
+40
+],
+[
+"Senior Technical Customer Support Engineer - Australia",
+"SENIOR_IC",
+45
+],
+[
+"Machine Learning Engineer (AI/ML)",
+"OTHER",
+0
+],
+[
+"Software Engineer, Compute Foundations Systems",
+"OTHER",
+0
+],
+[
+"Solutions Engineer, Pre-Sales - Tokyo",
+"OTHER",
+0
+],
+[
+"Sr. Solutions Architect (Lakebase)",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive - CPG",
+"SENIOR_IC",
+45
+],
+[
+"Lead Engagement Manager, Forward Deployed Engineering - Healthcare & Life Sciences",
+"MANAGER",
+40
+],
+[
+"Data Scientist, GTM Intelligence",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Observability",
+"SENIOR_IC",
+45
+],
+[
+"Area Director of Finance",
+"DIRECTOR",
+65
+],
+[
+"Sr. Product Manager, Databricks Repos",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Manager - Ecosystems & Connectors",
+"SR_MANAGER",
+52
+],
+[
+"Senior Application Security Engineer (Remote)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Recruiting Manager",
+"MANAGER",
+40
+],
+[
+"Senior Marketing Decision Scientist II",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer I - Route Execution",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Manager, Revenue Suite",
+"MANAGER",
+40
+],
+[
+"Insider Threat Engineer",
+"OTHER",
+0
+],
+[
+"Senior Policy Economist",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Software Engineer, Identity",
+"SENIOR_IC",
+45
+],
+[
+"Product Marketing Director, Asana Service Management",
+"DIRECTOR",
+65
+],
+[
+"Product Data Analyst",
+"OTHER",
+0
+],
+[
+"Strategic Operations Lead, User Safety & Risk Operations",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager - Interfaces",
+"MANAGER",
+40
+],
+[
+"Privacy & Civil Liberties Engineer - New Grad",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer (Backend), Communications",
+"SENIOR_IC",
+45
+],
+[
+"Staff Solutions Architect, Public Sector",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Manager, Customer Onboarding",
+"SR_MANAGER",
+52
+],
+[
+"Operations Associate, New Grad (Mexico)",
+"OTHER",
+0
+],
+[
+"Commercial Account Executive (Indonesia Market)",
+"OTHER",
+0
+],
+[
+"Senior Account Based Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Group Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Enterprise Business Development Representative",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Workers Runtime",
+"SENIOR_IC",
+45
+],
+[
+"Staff Data Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Guest Services",
+"MANAGER",
+40
+],
+[
+"Senior Manager, Forward Deployed Engineering",
+"SR_MANAGER",
+50
+],
+[
+"Integration Engineer (Chicago)",
+"OTHER",
+0
+],
+[
+"Marketing Strategy & Operations Manager",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Web3 Backend",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, AI Retrieval",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer Intern, Backend (Summer 2027)",
+"OTHER",
+0
+],
+[
+"Member of Technical Staff (AI Inference Engineer)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Model Serving",
+"SENIOR_IC",
+45
+],
+[
+"AI Deployment Engineer, Gov",
+"OTHER",
+0
+],
+[
+"Full-Stack Engineer (Back-End Leaning)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Backend (Capacity Modeling)",
+"SENIOR_IC",
+45
+],
+[
+"Manager, CIO Advisory",
+"C_SUITE",
+100
+],
+[
+"Senior Software Engineer: Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Security Engineer, Security Operations",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Money Team",
+"SENIOR_IC",
+45
+],
+[
+"Revenue Accounting",
+"OTHER",
+0
+],
+[
+"Solutions Architect - Communications, Media, Entertainment and Games",
+"SENIOR_IC",
+45
+],
+[
+"Principal Software Engineer - Pay Group Engineering",
+"SR_MANAGER",
+52
+],
+[
+"Applied AI Engineer, Fullstack",
+"OTHER",
+0
+],
+[
+"Director of Product, Logistics",
+"DIRECTOR",
+65
+],
+[
+"Senior Engineering Manager, AI Safety Platform",
+"MANAGER",
+40
+],
+[
+"Governance, Risk & Compliance Analyst",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Invoicing and Billing",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - Smart Contract, Bridge",
+"OTHER",
+0
+],
+[
+"Android Engineer, Government Products",
+"OTHER",
+0
+],
+[
+"Account Executive, Product - Terminal",
+"OTHER",
+0
+],
+[
+"Sr. Forward Deployed Engineer - National Security Professional Services",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Executive Experiences & Operations",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer - Bot Defense",
+"SENIOR_IC",
+45
+],
+[
+"Principal Data Scientist, Detection",
+"SR_MANAGER",
+52
+],
+[
+"Sr. Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Data Analyst, Financial Data Engineering",
+"OTHER",
+0
+],
+[
+"Senior Mechanical Engineer (NPI)",
+"SENIOR_IC",
+45
+],
+[
+"Principal Engineer, Studio Builder Tools",
+"SR_MANAGER",
+52
+],
+[
+"Senior Platform Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Geo Core Account Executive - Digital Natives",
+"OTHER",
+0
+],
+[
+"Release Engineer | Consumer Devices",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Account Management",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Software Engineering - Payload",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Backend - Payments Platform",
+"SENIOR_IC",
+45
+],
+[
+"Director, Associate General Counsel, Privacy, Cybersecurity, and AI",
+"DIRECTOR",
+68
+],
+[
+"Forward Deployed Engineer (FDE), Financial Services- NYC",
+"SENIOR_IC",
+45
+],
+[
+"Principal Software Engineer, GPU Compute",
+"SR_MANAGER",
+52
+],
+[
+"Staff Software Engineer, Brokerage Infra",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Engineering, Payments",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Guest & Host (Host Listings & Quality)",
+"OTHER",
+0
+],
+[
+"Director, Corporate (Global Head of M&A Legal)",
+"HEAD",
+72
+],
+[
+"Account Executive, Bridge",
+"OTHER",
+0
+],
+[
+"Head of Marketing - Japan",
+"HEAD",
+72
+],
+[
+"Software Engineer, Developer Experience",
+"OTHER",
+0
+],
+[
+"Staff Advanced Analyst, Guest Engagement",
+"SENIOR_IC",
+45
+],
+[
+"Credit Risk Strategy and Analytics",
+"OTHER",
+0
+],
+[
+"Brand Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Senior Territory Account Executive",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Manager, Developer Lifecycle & Tooling",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Ad Formats",
+"OTHER",
+0
+],
+[
+"Lead, Revenue Accounting, Technical",
+"OTHER",
+0
+],
+[
+"Product Security Engineer, Server",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, SAP",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Agentic AI",
+"SENIOR_IC",
+45
+],
+[
+"Automation Engineer I",
+"OTHER",
+0
+],
+[
+"Site Reliability Engineer - ClickHouse",
+"OTHER",
+0
+],
+[
+"Software Engineer, New Grad - Production Infrastructure",
+"OTHER",
+0
+],
+[
+"Pre-sales Senior Technical Solutions Engineer (Data and AI)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Content Platform",
+"SENIOR_IC",
+45
+],
+[
+"Site Reliability Engineer (Senior or Staff), Storage Layer Services (SLS)",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer (Full Stack), Global Actions",
+"SENIOR_IC",
+45
+],
+[
+"Senior Account Executive, Hotels (London-based)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Game Engine",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive, High Tech",
+"SENIOR_IC",
+45
+],
+[
+"Senior Enterprise Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Sr. Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Healthcare",
+"OTHER",
+0
+],
+[
+"Account Executive | Mid-Market",
+"OTHER",
+0
+],
+[
+"Android Engineer",
+"OTHER",
+0
+],
+[
+"Backend Software Engineer - Infrastructure, Foundations",
+"OTHER",
+0
+],
+[
+"Senior paid marketing manager",
+"MANAGER",
+40
+],
+[
+"Account Executive, Small Business",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Backend (Communications Platform)",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Solutions Engineer - Brazil",
+"OTHER",
+0
+],
+[
+"GTM Systems Architect",
+"OTHER",
+0
+],
+[
+"Engineering Manager, International Expansion",
+"OTHER",
+0
+],
+[
+"B2B Product Marketing - Productions Growth",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Agentic Platform",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive Lead - North America - Government",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Service Tools",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Marketing Manager - New Products",
+"MANAGER",
+40
+],
+[
+"Software Engineer II",
+"OTHER",
+0
+],
+[
+"Software Engineer, Stablecoin",
+"OTHER",
+0
+],
+[
+"Distributed Training Engineer, Sora",
+"OTHER",
+0
+],
+[
+"Release Engineer",
+"OTHER",
+0
+],
+[
+"Forward Deployed Architect, Japan",
+"OTHER",
+0
+],
+[
+"Senior Manager, Recruiting",
+"SR_MANAGER",
+50
+],
+[
+"Senior Software Engineer, Payment Platform",
+"SENIOR_IC",
+45
+],
+[
+"Senior/Principal Platform Engineer, ML Platform",
+"PRINCIPAL",
+70
+],
+[
+"Senior Machine Learning Engineer II, Ads Response Prediction",
+"SENIOR_IC",
+45
+],
+[
+"SMB Demand Generation Marketing Manager, Japan (Contract)",
+"MANAGER",
+40
+],
+[
+"Senior Vice President Chief Nursing Officer",
+"C_SUITE",
+100
+],
+[
+"Research Engineer, Frontier Evals & Environments",
+"OTHER",
+0
+],
+[
+"Strategic Core Account Executive - CPG",
+"OTHER",
+0
+],
+[
+"Enterprise Account Executive, Growth (Defence & MHA)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Machine Learning Engineer, Economist",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Program Manager",
+"MANAGER",
+40
+],
+[
+"Breast Cancer Center Program Director",
+"DIRECTOR",
+65
+],
+[
+"Territory Account Executive, Qatar",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Forward Deployed",
+"OTHER",
+0
+],
+[
+"Senior Data Scientist, Causal Inference",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager - Bits Agent Builder",
+"SENIOR_IC",
+45
+],
+[
+"3PL Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Product Manager - Auth",
+"MANAGER",
+40
+],
+[
+"Security engineer, application security (UK)",
+"OTHER",
+0
+],
+[
+"Sr. Product Manager, Databricks AI",
+"SENIOR_IC",
+45
+],
+[
+"Strategic Account Executive (Iberia)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer 3, Search Systems Replication & Routing",
+"OTHER",
+0
+],
+[
+"Senior Android Engineer, iRAD",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive, Juno",
+"SENIOR_IC",
+45
+],
+[
+"Global Law Enforcement Operations Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Customer Support Specialist, Health Insurance Benefits",
+"OTHER",
+0
+],
+[
+"Junior Software Engineer, Luxury",
+"OTHER",
+0
+],
+[
+"Growth Marketing Manager, EMEA",
+"MANAGER",
+40
+],
+[
+"Senior/Staff Product Manager, Vault",
+"SENIOR_IC",
+45
+],
+[
+"AI Success Engineer, Government",
+"OTHER",
+0
+],
+[
+"Detection & Response Security Engineer",
+"OTHER",
+0
+],
+[
+"Partner Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Staff Security Assurance Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Support Engineering Manager (APAC)",
+"MANAGER",
+40
+],
+[
+"Lead Product Manager, Enterprise Services Management",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Distributed Data Systems",
+"SENIOR_IC",
+45
+],
+[
+"Senior Program Manager I - Customer Success Programs",
+"SENIOR_IC",
+45
+],
+[
+"Security Engineer 2 - Cyber Threat Intelligence",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Full Stack - NYC",
+"SENIOR_IC",
+45
+],
+[
+"Lead Machine Learning Engineer - ML Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Forward Deployed Engineering - Manufacturing",
+"MANAGER",
+40
+],
+[
+"Senior, Majors Account Executive",
+"OTHER",
+0
+],
+[
+"Full Stack Engineer - Internal Audit",
+"OTHER",
+0
+],
+[
+"Compliance Advisory Lead",
+"OTHER",
+0
+],
+[
+"Solutions Architect - Public Sector (SLED)",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, Commercial Grower (Japanese Fluency)",
+"OTHER",
+0
+],
+[
+"Enterprise Account Executive - Minnesota",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect (Presales)",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Engineer, Privy",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer - Sydney",
+"SENIOR_IC",
+45
+],
+[
+"Staff IT Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Network Security Support Engineer",
+"OTHER",
+0
+],
+[
+"Federal Compliance Manager",
+"MANAGER",
+40
+],
+[
+"Product Manager, Identity & Access Management",
+"MANAGER",
+40
+],
+[
+"Office Manager, Tokyo",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Full Stack (Zero to One Labs)",
+"SENIOR_IC",
+45
+],
+[
+"Harness Engineer",
+"OTHER",
+0
+],
+[
+"Product Manager II, Workspace and Multi-User",
+"MANAGER",
+40
+],
+[
+"VP, AI Marketing Strategy",
+"VP",
+80
+],
+[
+"Staff Software Engineer - Agent Quality",
+"SENIOR_IC",
+45
+],
+[
+"Senior Privacy and AI Counsel",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer, Majors - Southwest",
+"SENIOR_IC",
+45
+],
+[
+"Senior Customer Engineer, Strategic Pursuits, APAC (Based in India)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Offensive Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, New Grad - Infrastructure",
+"OTHER",
+0
+],
+[
+"Account Executive, Startups (Grower)",
+"OTHER",
+0
+],
+[
+"Security engineer, detection and response",
+"OTHER",
+0
+],
+[
+"Specialist Solutions Architect - Data Engineering & Warehousing",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Full Stack Internal Tooling (Build and Deployment Platform)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer - Ingestion Platform",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Software Engineer, Internship - France",
+"OTHER",
+0
+],
+[
+"Strategic Enterprise Account Executive, Healthcare",
+"SENIOR_IC",
+45
+],
+[
+"Senior Staff Engineer, AI",
+"SR_MANAGER",
+50
+],
+[
+"Senior Software Engineer, AI Operations, GPS",
+"SENIOR_IC",
+45
+],
+[
+"Client Platform Security Engineer",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer - Application Traffic team",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive (Cyber)",
+"SENIOR_IC",
+45
+],
+[
+"Embedded Legal Engineer",
+"OTHER",
+0
+],
+[
+"AI Deployment Engineer, Codex | India",
+"OTHER",
+0
+],
+[
+"Account Executive, Strategic",
+"OTHER",
+0
+],
+[
+"Data Scientist - Inference, Community Support",
+"OTHER",
+0
+],
+[
+"Data Analyst, Intern",
+"OTHER",
+0
+],
+[
+"Senior Staff Data Scientist - Consumer Experimentation",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Public Sector - New Grad",
+"OTHER",
+0
+],
+[
+"People Strategy & Operations, Early Career",
+"OTHER",
+0
+],
+[
+"Staff Engineer, Search Systems",
+"SR_MANAGER",
+50
+],
+[
+"Accounting Manager",
+"MANAGER",
+40
+],
+[
+"AEO and GEO Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Passport & Commerce, Android",
+"OTHER",
+0
+],
+[
+"Director, Procurement",
+"DIRECTOR",
+65
+],
+[
+"Staff Software Engineer, Developer Infrastructure",
+"SENIOR_IC",
+45
+],
+[
+"Senior Systems Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Analytics Lead, Deposit Fraud Risk",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Representative - Hebrew Speaking",
+"OTHER",
+0
+],
+[
+"Staff Machine Learning Engineer, Relevance and Personalization",
+"SENIOR_IC",
+45
+],
+[
+"Business Development Lead, Compute Strategy",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Backend (Merchant & Partner Lifecycle)",
+"PARTNER",
+78
+],
+[
+"Principal Software Engineer - Content Platform",
+"SR_MANAGER",
+52
+],
+[
+"Staff Fullstack Engineer, Agentic Applications",
+"SENIOR_IC",
+45
+],
+[
+"Senior Performance Marketing Manager, Paid Social",
+"MANAGER",
+40
+],
+[
+"Business Development Manager",
+"MANAGER",
+40
+],
+[
+"Product Manager, Cloudflare Network Interconnect",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Internship - Defense Tech",
+"OTHER",
+0
+],
+[
+"Host Systems Software Engineer",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer, Hebrew speaker",
+"SENIOR_IC",
+45
+],
+[
+"Forward Deployed Engineer - UAE",
+"SENIOR_IC",
+45
+],
+[
+"Data Scientist - Product Analytics",
+"OTHER",
+0
+],
+[
+"Solutions Engineer, Ads Solutions - San Francisco",
+"OTHER",
+0
+],
+[
+"Staff Product Security Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Systems Engineer (Identity and Access)",
+"SENIOR_IC",
+45
+],
+[
+"Compliance, Trade Surveillance Associate",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer, Trust",
+"SENIOR_IC",
+45
+],
+[
+"Senior Strategic Accounts Director",
+"DIRECTOR",
+65
+],
+[
+"Technical Escalations Engineer 2 (Logs) - US-East",
+"OTHER",
+0
+],
+[
+"Senior Data Scientist II - Ads Optimization",
+"SENIOR_IC",
+45
+],
+[
+"Customer Success Associate - Commercial Accounts",
+"OTHER",
+0
+],
+[
+"Systems Engineer, Data Intelligence & Analytics Team",
+"OTHER",
+0
+],
+[
+"Customer Engineer, Turkish or Arabic Speaking",
+"OTHER",
+0
+],
+[
+"Site Reliability Engineer II, tvScientific",
+"OTHER",
+0
+],
+[
+"Forward Deployed Engineer, Compliance [Office of the CTO]",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Field Engineering France - Specialist Solutions Architects",
+"MANAGER",
+40
+],
+[
+"Mid-Market Account Executive - (Turkey)",
+"OTHER",
+0
+],
+[
+"Partner Marketing Operations Manager",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Security Observability",
+"OTHER",
+0
+],
+[
+"Strategic Enterprise Account Executive - CMEG",
+"SENIOR_IC",
+45
+],
+[
+"Account Executive, New Logo - Chicago",
+"OTHER",
+0
+],
+[
+"Software Engineer, Guest & Host - Notifications",
+"OTHER",
+0
+],
+[
+"Inventory and Cost Accounting Lead",
+"OTHER",
+0
+],
+[
+"Manager - Legal Entity Controller",
+"MANAGER",
+40
+],
+[
+"Applied Risk Standards Architect",
+"OTHER",
+0
+],
+[
+"Principal Strategy Manager, Developer GTM Growth",
+"PRINCIPAL",
+70
+],
+[
+"Mid-Market Customer Success Manager",
+"MANAGER",
+40
+],
+[
+"Senior Software Engineer, Game Engine Systems",
+"SENIOR_IC",
+45
+],
+[
+"Senior iOS Engineer, Community Builders",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Scientist - Family Experience",
+"SENIOR_IC",
+45
+],
+[
+"Manager II, Machine Learning Engineering, Core Engineering",
+"MANAGER",
+40
+],
+[
+"Senior Solutions Architect, APJC (Developer Platform) - Hindi Speaking",
+"SENIOR_IC",
+45
+],
+[
+"Affiliate Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Regional Workplace Operations Manager",
+"MANAGER",
+40
+],
+[
+"Staff Product Manager, AI Safety",
+"SENIOR_IC",
+45
+],
+[
+"Security engineer, application security",
+"OTHER",
+0
+],
+[
+"Senior Manager, Revenue Accounting - Strategic Deals",
+"SR_MANAGER",
+50
+],
+[
+"Customer Marketing Manager, Enterprise and Digital Natives",
+"MANAGER",
+40
+],
+[
+"PhD Data Scientist, Intern",
+"OTHER",
+0
+],
+[
+"Senior Customer Engineer, Majors - Bentoville, AR",
+"SENIOR_IC",
+45
+],
+[
+"Applied AI Specialist, Commercial Customer Success",
+"OTHER",
+0
+],
+[
+"Senior Product Manager - Ad Fraud and Identity Solutions",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - AI Platform Team",
+"SENIOR_IC",
+45
+],
+[
+"Frontier Agents Engineer",
+"OTHER",
+0
+],
+[
+"Staff Product Manager, Search",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer - Safety Processing",
+"SENIOR_IC",
+45
+],
+[
+"Manager II, Engineering- Analytics Engineering, Core Data Science",
+"MANAGER",
+40
+],
+[
+"Enterprise Account Executive - Qatar",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Agents",
+"OTHER",
+0
+],
+[
+"Business Development Representative (BDR)",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Retirement AI",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Solutions Engineer - Digital Native Business (Strategic Accounts)",
+"SENIOR_IC",
+45
+],
+[
+"Manager II, Technical Escalations Engineering",
+"MANAGER",
+40
+],
+[
+"Systems Engineer, Email Service",
+"OTHER",
+0
+],
+[
+"Staff Infrastructure Engineer, Trading",
+"SENIOR_IC",
+45
+],
+[
+"Platform Engineer - Identity Infrastructure",
+"OTHER",
+0
+],
+[
+"Senior Engineering Manager, Mortgage",
+"MANAGER",
+40
+],
+[
+"Credit Risk Operations Associate (CDMX)",
+"OTHER",
+0
+],
+[
+"Senior Engineering Manager, Search and Discovery",
+"MANAGER",
+40
+],
+[
+"Enterprise Sales Engineer, Healthcare",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Backend - NYC",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Cloud Integration",
+"SENIOR_IC",
+45
+],
+[
+"Physical Design Engineer",
+"OTHER",
+0
+],
+[
+"Senior Manager, Data Engineering",
+"SR_MANAGER",
+50
+],
+[
+"Staff Software Engineer, AI Foundations (Agent Optimization)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer (Frontend, Growth)",
+"SENIOR_IC",
+45
+],
+[
+"Staff Technical Product Manager, Ads ML Platform",
+"SENIOR_IC",
+45
+],
+[
+"Manager I, Engineering - AI Platform - Training & Serving",
+"MANAGER",
+40
+],
+[
+"Wireless Regulatory Engineer - SAR",
+"OTHER",
+0
+],
+[
+"Growth Marketing Lead, Programmatic & Video",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Manager, Field Engineering - Healthcare and Life Sciences (Healthcare Providers)",
+"SR_MANAGER",
+50
+],
+[
+"Engineering Manager, Site Reliability Engineering",
+"MANAGER",
+40
+],
+[
+"Support Operations Manager",
+"MANAGER",
+40
+],
+[
+"Software Engineer, Frontend, Growth",
+"OTHER",
+0
+],
+[
+"Commercial Account Executive - UK",
+"OTHER",
+0
+],
+[
+"Senior Engineering Manager, Machine Learning Platform",
+"MANAGER",
+40
+],
+[
+"Senior Security Engineer, Detection & Response",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Enterprise Verticals",
+"OTHER",
+0
+],
+[
+"Senior Staff Software Engineer, Configuration & Coordination",
+"SENIOR_IC",
+45
+],
+[
+"Network Security Engineer",
+"OTHER",
+0
+],
+[
+"Strategic Customer Success Manager - US Public Sector",
+"MANAGER",
+40
+],
+[
+"Creative Operations Lead, Business Marketing",
+"SENIOR_IC",
+45
+],
+[
+"Product Security Engineer",
+"OTHER",
+0
+],
+[
+"Product Marketing Lead",
+"SENIOR_IC",
+45
+],
+[
+"Compliance Lead, Canada",
+"SENIOR_IC",
+45
+],
+[
+"Sales Director - Healthcare",
+"DIRECTOR",
+65
+],
+[
+"Sr. Software Engineer, Web",
+"SENIOR_IC",
+45
+],
+[
+"Systems Engineer, Growth Engineering",
+"OTHER",
+0
+],
+[
+"Product Engagement Manager, User Operations",
+"MANAGER",
+40
+],
+[
+"Forward Deployed Engineer, Privy",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Startups Account Executives - Existing Business",
+"MANAGER",
+40
+],
+[
+"Software Engineer, AI Capture",
+"OTHER",
+0
+],
+[
+"Staff Data Engineer, Market Data",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Manager, Developer Productivity",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Storage Services",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive - Texas",
+"SENIOR_IC",
+45
+],
+[
+"Product Manager II, Search Experience",
+"MANAGER",
+40
+],
+[
+"Senior Staff Software Engineer, Native Mobile",
+"SENIOR_IC",
+45
+],
+[
+"GTM Applications Engineer",
+"OTHER",
+0
+],
+[
+"Software Engineer, Scaled Abuse",
+"OTHER",
+0
+],
+[
+"DevOps Engineer",
+"OTHER",
+0
+],
+[
+"Software Engineer, CDP - Foundations",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Computer Graphics",
+"SENIOR_IC",
+45
+],
+[
+"Senior Software Engineer, Machine Learning (Safety)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer II, Backend (PMI Integrations)",
+"OTHER",
+0
+],
+[
+"Software Engineer II, Full Stack",
+"OTHER",
+0
+],
+[
+"Platform Engineer, Forward Deployed Engineering (FDE) - NYC",
+"OTHER",
+0
+],
+[
+"Vice President Nursing/CNO - ARMC (Days) FT",
+"VP",
+80
+],
+[
+"Network Security Engineer",
+"OTHER",
+0
+],
+[
+"Senior Marketing Manager, Growth",
+"MANAGER",
+40
+],
+[
+"Engineering Manager, Core Experimentation",
+"MANAGER",
+40
+],
+[
+"Senior Analyst, Commercial Analytics (Wholesale)",
+"SENIOR_IC",
+45
+],
+[
+"Software engineer, agents (UK)",
+"OTHER",
+0
+],
+[
+"Sr Software Engineer, Monetization Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Account Executive - Manufacturing",
+"SENIOR_IC",
+45
+],
+[
+"Staff Web Automation Engineer, Quality Engineering",
+"SENIOR_IC",
+45
+],
+[
+"Security Engineer, Privy",
+"OTHER",
+0
+],
+[
+"Sr. Manager, Engineering - Search",
+"SR_MANAGER",
+50
+],
+[
+"Senior Software Engineer (Money)",
+"SENIOR_IC",
+45
+],
+[
+"Growth Engineer",
+"OTHER",
+0
+],
+[
+"Developer Relations Engineer",
+"OTHER",
+0
+],
+[
+"Paralegal, Compliance",
+"OTHER",
+0
+],
+[
+"Senior Connectivity Partner Manager - Seoul, South Korea",
+"MANAGER",
+40
+],
+[
+"Staff Machine Learning Engineer, Programmatic Ads",
+"SENIOR_IC",
+45
+],
+[
+"Hardware / Software CoDesign Engineer - 3P",
+"OTHER",
+0
+],
+[
+"Staff Software Engineer, Global Markets (Backend)",
+"SENIOR_IC",
+45
+],
+[
+"Facilities Operations Manager",
+"MANAGER",
+40
+],
+[
+"Lead Technical Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Manager, Software Engineering (Account Management)",
+"MANAGER",
+40
+],
+[
+"Senior Solutions Architect (DS/ML/GenAI/LLM)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer, Workers Deploy & Config",
+"OTHER",
+0
+],
+[
+"Strategic Account Executive - Saudi Arabia",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer, Fullstack - AI Product (NYC)",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer - GenAI inference",
+"OTHER",
+0
+],
+[
+"Senior Software Engineer, Growth",
+"SENIOR_IC",
+45
+],
+[
+"Senior Marketing Operations Manager",
+"MANAGER",
+40
+],
+[
+"Platform Engineer, Forward Deployed Engineering (FDE) -SF",
+"OTHER",
+0
+],
+[
+"Engineering Manager, Model Flywheel",
+"MANAGER",
+40
+],
+[
+"GTM Recruiting Manager",
+"MANAGER",
+40
+],
+[
+"Office Manager, Montreal",
+"MANAGER",
+40
+],
+[
+"Executive Director of External Relations and Engagement (0457U), School of Social Welfare #88417",
+"C_SUITE",
+100
+],
+[
+"IT Engineer, Internal AI Infrastructure",
+"OTHER",
+0
+],
+[
+"Staff Corporate Security Engineer",
+"SENIOR_IC",
+45
+]
+]

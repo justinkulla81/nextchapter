@@ -9,6 +9,7 @@ import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick } from '@/
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
+import { seniorityLabel } from '@/lib/jobs/job-seniority'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -29,6 +30,15 @@ function FitBadge({ bucket }: { bucket: FitBucket }) {
       {FIT_BUCKET_LABEL[bucket]}
     </span>
   )
+}
+
+// Seniority of the role, from its title (job-seniority.ts) — e.g.
+// "Director", "Senior individual". Absent for postings with no level
+// (employer and recruiter submissions aren't levelled).
+function SeniorityBadge({ level }: { level: string | null }) {
+  const label = seniorityLabel(level)
+  if (!label) return null
+  return <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">{label}</span>
 }
 
 function NewBadge() {
@@ -54,7 +64,7 @@ export function LockedDiscoverJobCard({
   posting,
   fitBucket,
 }: {
-  posting: Pick<ExclusiveJobPosting, 'title' | 'location'>
+  posting: Pick<ExclusiveJobPosting, 'title' | 'location' | 'level'>
   // Optional — omitted for the (now rare) locked posting a fit bucket
   // couldn't be computed for. Same FitBadge as the unlocked cards, so
   // "why does this one deserve unlocking" reads the same way in both states.
@@ -66,6 +76,7 @@ export function LockedDiscoverJobCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
+          <SeniorityBadge level={posting.level} />
           {fitBucket && <FitBadge bucket={fitBucket} />}
         </div>
         {posting.location && <p className="truncate text-sm text-muted-foreground">{posting.location}</p>}
@@ -109,6 +120,7 @@ export function DiscoverJobCard({
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(posting.createdAt) && <NewBadge />}
+          <SeniorityBadge level={posting.level} />
           {idealMatch && <IdealMatchBadge />}
           <FitBadge bucket={fitBucket} />
           <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />

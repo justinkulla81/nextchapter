@@ -25,6 +25,8 @@ import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
+import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
+import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -229,11 +231,13 @@ async function JobRecommendationsSection({
   dossierReason,
   boardPostings,
   contacts,
+  seniorityGroup,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   isCandidatePlus: boolean
   dossierReason: string
   boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
+  seniorityGroup: SeniorityGroup | null
   contacts: {
     id: string
     name: string
@@ -266,7 +270,7 @@ async function JobRecommendationsSection({
     await surfaceNewJobs(profile.id, SURFACED_JOB_POOL_TARGET - unreactedCount)
   }
 
-  const [surfacedJobs, totalUnreactedCount, interestedJobs] = await Promise.all([
+  const [allSurfacedJobs, totalUnreactedCount, interestedJobs] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -282,6 +286,12 @@ async function JobRecommendationsSection({
       orderBy: { reactedAt: 'desc' },
     }),
   ])
+
+  // Partner-search jobs carry no stored level, so the seniority filter
+  // classifies their titles the same way the board's jobs were levelled.
+  const surfacedJobs = seniorityGroup
+    ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
+    : allSurfacedJobs
 
   // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
   // matches — the rest stay locked until the Dossier unlocks, folded into
@@ -418,8 +428,10 @@ async function JobRecommendationsSection({
   )
 }
 
-export default async function JobFitPage() {
+export default async function JobFitPage({ searchParams }: { searchParams: Promise<{ seniority?: string }> }) {
   const profile = await getDashboardData()
+  const { seniority } = await searchParams
+  const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
 
   return (
     <div className="space-y-10">
@@ -432,7 +444,7 @@ export default async function JobFitPage() {
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       <Suspense fallback={<FindMyJobBodySkeleton />}>
-        <FindMyJobBody profile={profile} />
+        <FindMyJobBody profile={profile} seniorityGroup={seniorityGroup} />
       </Suspense>
     </div>
   )
@@ -455,8 +467,10 @@ function FindMyJobBodySkeleton() {
 // blocking on this every single visit.
 async function FindMyJobBody({
   profile,
+  seniorityGroup,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  seniorityGroup: SeniorityGroup | null
 }) {
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
@@ -511,6 +525,7 @@ async function FindMyJobBody({
         archivedAt: null,
         distribution: { not: 'EXCLUDED' },
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        ...(seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {}),
       },
       orderBy: { createdAt: 'desc' },
     }),
@@ -778,6 +793,9 @@ async function FindMyJobBody({
             <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
               +{applicationPoints} pts
             </span>
+            <div className="ml-auto">
+              <SeniorityFilter surface="find_my_job" />
+            </div>
           </div>
           <div className="mt-3">
             <Suspense fallback={<JobRecommendationsSkeleton />}>
@@ -787,6 +805,7 @@ async function FindMyJobBody({
                 dossierReason={dossierStatus.reason}
                 boardPostings={boardPostings}
                 contacts={contacts}
+                seniorityGroup={seniorityGroup}
               />
             </Suspense>
           </div>

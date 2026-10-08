@@ -20,15 +20,17 @@ export interface AudienceFilter {
 /**
  * - emailed: you've sent them at least one email
  * - exchanged: you've emailed them and they've emailed you
+ * - no_reply: you've emailed them and they haven't emailed you
  * - never: no one-to-one email either way
  * List sends (Monthly Update etc.) don't count — only real correspondence.
  */
-export type EmailHistory = 'any' | 'emailed' | 'exchanged' | 'never'
-export const EMAIL_HISTORIES: EmailHistory[] = ['any', 'emailed', 'exchanged', 'never']
+export type EmailHistory = 'any' | 'emailed' | 'exchanged' | 'no_reply' | 'never'
+export const EMAIL_HISTORIES: EmailHistory[] = ['any', 'emailed', 'exchanged', 'no_reply', 'never']
 export const EMAIL_HISTORY_LABELS: Record<EmailHistory, string> = {
   any: 'Anyone',
   emailed: 'I’ve emailed them',
   exchanged: 'We’ve emailed both ways',
+  no_reply: 'Sent, no reply yet',
   never: 'Never emailed',
 }
 
@@ -46,6 +48,7 @@ const RECEIVED: Prisma.CrmActivityWhereInput = { type: 'EMAIL', direction: 'INBO
 export function historyWhere(h: EmailHistory): Prisma.CrmPersonWhereInput[] {
   if (h === 'emailed') return [{ activities: { some: SENT } }]
   if (h === 'exchanged') return [{ activities: { some: SENT } }, { activities: { some: RECEIVED } }]
+  if (h === 'no_reply') return [{ activities: { some: SENT } }, { activities: { none: RECEIVED } }]
   if (h === 'never') return [{ activities: { none: { type: 'EMAIL' } } }]
   return []
 }
@@ -104,6 +107,7 @@ export function matchesAudience(p: AudienceCandidate, f: AudienceFilter): boolea
   const h = f.history ?? 'any'
   if (h === 'emailed' && p.sent === 0) return false
   if (h === 'exchanged' && (p.sent === 0 || p.received === 0)) return false
+  if (h === 'no_reply' && (p.sent === 0 || p.received > 0)) return false
   if (h === 'never' && p.emailCount > 0) return false
   return true
 }
