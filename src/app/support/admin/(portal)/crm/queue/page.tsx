@@ -63,6 +63,7 @@ export default async function CrmQueuePage({
           select: {
             id: true, name: true, queueSnoozedAt: true,
             outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
+            affiliations: { where: { person: { deletedAt: null } }, select: { person: { select: { id: true, fullName: true } } } },
           },
         },
       },
@@ -79,6 +80,7 @@ export default async function CrmQueuePage({
           select: {
             id: true, name: true, queueSnoozedAt: true,
             outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
+            affiliations: { where: { person: { deletedAt: null } }, select: { person: { select: { id: true, fullName: true } } } },
           },
         },
       },
@@ -194,6 +196,7 @@ export default async function CrmQueuePage({
             key={o.id}
             orgId={o.org?.id}
             opportunityId={o.id}
+            people={o.org?.affiliations.map((a) => a.person)}
             title={o.org?.name ?? o.title}
             quality={o.leadQuality}
             score={o.priorityOverride ?? o.priorityScore}
@@ -217,6 +220,7 @@ export default async function CrmQueuePage({
             key={o.id}
             orgId={o.org?.id}
             opportunityId={o.id}
+            people={o.org?.affiliations.map((a) => a.person)}
             title={o.org?.name ?? o.title}
             quality={o.leadQuality}
             score={o.priorityOverride ?? o.priorityScore}
@@ -350,10 +354,11 @@ const CHIP = {
 } as const
 
 function Row({
-  orgId, opportunityId, title, quality, score, meta, chip, chipTone, detail,
+  orgId, opportunityId, people, title, quality, score, meta, chip, chipTone, detail,
 }: {
   orgId?: string
   opportunityId?: string
+  people?: { id: string; fullName: string }[]
   title: string
   quality?: string
   score: number | null
@@ -377,7 +382,7 @@ function Row({
               <span className={`rounded px-1 py-0.5 font-semibold ${qualityClass(quality as 'A')}`}>{quality}</span>
             )}
           </p>
-          {detail && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{detail}</p>}
+          {detail && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{linkNames(detail, people)}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${CHIP[chipTone]}`}>{chip}</span>
@@ -389,4 +394,18 @@ function Row({
       </div>
     </li>
   )
+}
+
+// Free-text next steps ("Follow up with Rob Lalka") name people as plain
+// strings; turn any name matching one of the org's people into a peek link.
+function linkNames(text: string, people?: { id: string; fullName: string }[]): React.ReactNode {
+  const named = (people ?? []).filter((p) => p.fullName && text.includes(p.fullName))
+  if (named.length === 0) return text
+  const escaped = named.map((p) => p.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  return text.split(new RegExp(`(${escaped.join('|')})`)).map((part, i) => {
+    const person = named.find((p) => p.fullName === part)
+    return person
+      ? <CrmPeekButton key={i} id={person.id} kind="person" className="font-medium text-foreground hover:underline">{part}</CrmPeekButton>
+      : part
+  })
 }
