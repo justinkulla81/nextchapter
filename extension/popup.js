@@ -401,16 +401,31 @@ async function readPage() {
 
     out.schools = []
     const eduLogos = logoNames(eduSection)
+    // Each school's name is the entry's bold line (LinkedIn sets it at 600
+    // weight; degree, dates and free-text description are regular), so a
+    // description like "University Park, PA" after the dates is never read
+    // as another school. Without any bold line — an older layout — an entry
+    // falls back to starting after a date line.
+    const eduLines = []
+    for (const el of eduSection?.querySelectorAll('p, span[aria-hidden="true"]') || []) {
+      if (el.querySelector('p') || el.closest('h2, h3')) continue
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility()) continue
+      const t = (el.textContent || '').replace(/\s+/g, ' ').trim()
+      if (!t || /^(show all|see more|… ?more)\b/i.test(t) || t === eduLines[eduLines.length - 1]?.t) continue
+      eduLines.push({ t, bold: Number(getComputedStyle(el).fontWeight) >= 600 })
+    }
+    const byWeight = eduLines.some((l) => l.bold)
     let current = null
     let dated = false
-    for (const t of visibleLines(eduSection)) {
+    for (const { t, bold } of eduLines) {
       if (DATE_LINE.test(t)) { if (current) dated = true; continue }
       if (/^(activities and societies|grade)\b/i.test(t) || t.length > 160) continue
-      if (!current || dated || eduLogos.has(t)) {
+      const starts = byWeight ? bold : (!current || dated || eduLogos.has(t))
+      if (starts) {
         current = { name: t, detail: '' }
         out.schools.push(current)
         dated = false
-      } else if (!current.detail) {
+      } else if (current && !current.detail && !dated) {
         current.detail = t
       }
     }
