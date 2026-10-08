@@ -24,7 +24,7 @@ describe('scraped states', () => {
     expect(rows[0]).toMatchObject({ employer: 'A Corp', employees: null, noticeDate: null, layoffType: 'Closure' })
   })
 
-  it('cover the twenty states our own fetchers could not read', () => {
-    expect(Object.keys(SCRAPED_STATES).sort()).toEqual(['CT', 'DC', 'GA', 'HI', 'IL', 'KY', 'LA', 'MI', 'MO', 'MT', 'ND', 'NM', 'NY', 'OH', 'OK', 'PA', 'SC', 'TN', 'VA', 'WA'])
+  it('cover the states our own fetchers do not read', () => {
+    expect(Object.keys(SCRAPED_STATES).sort()).toEqual(['CT', 'GA', 'HI', 'IL', 'KY', 'LA', 'MO', 'MT', 'ND', 'NM', 'NY', 'OK', 'PA', 'SC', 'TN', 'VA', 'WA'])
   })
 })

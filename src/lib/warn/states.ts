@@ -346,6 +346,136 @@ export function parseColoradoWarn(buf: Buffer): WarnRow[] {
 }
 
 /**
+ * Ohio publishes the year's notices as a CSV behind a page that builds its
+ * table in the browser; the file sits at a predictable address per year.
+ * Two filler rows come before the header. "City/County" holds both.
+ */
+export const ohioWarnFile = (year = new Date().getFullYear()) =>
+  `https://dam.assets.ohio.gov/raw/upload/jfs.ohio.gov/${year}/${year}-warn-notice.csv`
+export const OHIO_PAGE =
+  'https://jfs.ohio.gov/job-workforce-services/job-programs-and-services/submit-a-warn-notice/current-public-notices-of-layoffs-and-closures'
+
+export function parseOhioWarn(buf: Buffer): WarnRow[] {
+  const rows = parseCsv(buf.toString('utf8').replace(/^\uFEFF/, ''))
+  const h = rows.findIndex((r) => r.some((c) => c.trim().toLowerCase() === 'company'))
+  if (h === -1) return []
+  const header = rows[h]
+  const iCompany = columnOf(header, 'Company')
+  const iDate = columnOf(header, 'Date Received')
+  const iPlace = columnOf(header, 'City/County', 'City')
+  const iType = columnOf(header, 'Layoff/Closure')
+  const iCount = columnOf(header, 'Number Affected')
+  const iLayoff = columnOf(header, 'Layoff Date')
+  const out: WarnRow[] = []
+  for (const row of rows.slice(h + 1)) {
+    const employer = row[iCompany]?.trim()
+    if (!employer || HEADER_WORDS.has(employer.toLowerCase())) continue
+    const [city, county] = (iPlace >= 0 ? row[iPlace] ?? '' : '').split('/').map((x) => x.trim())
+    out.push({
+      state: 'OH',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: parseDate(iDate >= 0 ? row[iDate] : null),
+      effectiveDate: parseDate(iLayoff >= 0 ? row[iLayoff] : null),
+      employees: parseCount(iCount >= 0 ? row[iCount] : null),
+      layoffType: iType >= 0 ? (row[iType]?.trim() || null) : null,
+      county: county || null,
+      address: city ? `${city}, OH` : null,
+      industry: null,
+    })
+  }
+  return out
+}
+
+/**
+ * Michigan lists notices through its site search, which returns each notice
+ * as an HTML fragment: the company in an <h3>, then labelled lines. A notice
+ * covering several sites has "Site addresses:" with a nested list. The
+ * notice date is only in the path the search stores it under.
+ */
+export const MICHIGAN_PAGE = 'https://www.michigan.gov/leo/bureaus-agencies/wd/data-public-notices/warn-notices'
+export const MICHIGAN_SEARCH =
+  'https://www.michigan.gov/leo/sxa/search/results/?s=%7B8E97AB1D-D2D4-47F8-8CC4-3F1039C8854F%7D&itemid=%7BBE81F7C2-36A8-4FDE-853C-B05B6E090055%7D&v=%7B1FFFCC21-5151-4A2B-ABFC-F7FE4E5C9783%7D&p=500&o=Created%20Date%20sort%2CDescending'
+
+export function parseMichiganWarn(buf: Buffer): WarnRow[] {
+  let data: { Results?: { Path?: string; Html?: string }[] }
+  try { data = JSON.parse(buf.toString('utf8')) } catch { return [] }
+  const out: WarnRow[] = []
+  for (const r of data.Results ?? []) {
+    const html = r.Html ?? ''
+    const employer = stripTags(html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1] ?? '').trim()
+    if (!employer) continue
+    // label → the text after it, up to the end of its list item.
+    const field = (label: RegExp) => {
+      const m = html.match(new RegExp(`<strong>\\s*${label.source}\\s*:?\\s*<\\/strong>([\\s\\S]*?)<\\/li>`, 'i'))
+      return m ? stripTags(m[1]).replace(/\s+/g, ' ').trim() || null : null
+    }
+    // Several sites: the first one (the nested list's first item).
+    const multi = html.match(/Site addresses[\s\S]*?<li[^>]*>([\s\S]*?)<\/li>/i)?.[1]
+    const address = (multi ? stripTags(multi) : field(/Site address/))?.replace(/\s+/g, ' ').trim() || null
+    const posted = r.Path?.match(/SearchData\/(\d{4})\/(\d{2})\/(\d{2})/i)
+    out.push({
+      state: 'MI',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: posted ? new Date(Date.UTC(Number(posted[1]), Number(posted[2]) - 1, Number(posted[3]))) : null,
+      effectiveDate: parseDate(field(/Layoff date/)),
+      employees: parseCount(field(/Number of jobs impacted/)),
+      layoffType: field(/Type of company action/),
+      county: field(/County/),
+      address,
+      industry: null,
+    })
+  }
+  return out
+}
+
+/**
+ * DC posts each year's notices as a table on its own page. Effective dates
+ * can be a range ("May 19 - June 2, 2026"); the first day is used. Code 1 is
+ * a layoff, 2 a permanent closure.
+ */
+export const dcWarnPage = (year = new Date().getFullYear()) =>
+  `https://does.dc.gov/page/industry-closings-and-layoffs-warn-notifications-${year}`
+
+export function firstDayOfRange(raw: string | null | undefined): Date | null {
+  const s = (raw ?? '').trim()
+  const range = s.match(/^([A-Za-z]+\.? \d{1,2})\s*[-–]\s*.*?(\d{4})$/)
+  return parseDate(range ? `${range[1]}, ${range[2]}` : s)
+}
+
+export function parseDcWarn(buf: Buffer): WarnRow[] {
+  const out: WarnRow[] = []
+  for (const table of readTables(buf.toString('utf8'))) {
+    const header = table[0] ?? []
+    const iName = columnOf(header, 'Organization Name', 'Company')
+    if (iName === -1) continue
+    const iDate = columnOf(header, 'Notice Date')
+    const iCount = columnOf(header, 'Employees Affected', 'Number')
+    const iEffective = columnOf(header, 'Effective')
+    const iCode = columnOf(header, 'Code')
+    for (const row of table.slice(1)) {
+      const employer = row[iName]?.trim()
+      if (!employer || HEADER_WORDS.has(employer.toLowerCase())) continue
+      const code = iCode >= 0 ? row[iCode]?.trim() : ''
+      out.push({
+        state: 'DC',
+        employer,
+        normalizedEmployer: normalizeOrgName(employer),
+        noticeDate: parseDate(iDate >= 0 ? row[iDate] : null),
+        effectiveDate: firstDayOfRange(iEffective >= 0 ? row[iEffective] : null),
+        employees: parseCount(iCount >= 0 ? row[iCount] : null),
+        layoffType: code === '2' ? 'Closure' : code === '1' ? 'Layoff' : null,
+        county: null,
+        address: 'Washington, DC',
+        industry: null,
+      })
+    }
+  }
+  return out
+}
+
+/**
  * North Carolina posts the year's notices as a CSV on its Commerce
  * department's site. The file name and version change with each update, so
  * the link is read off the year's summary page.

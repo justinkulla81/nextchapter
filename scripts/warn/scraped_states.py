@@ -24,7 +24,7 @@ import urllib.request
 from importlib import import_module
 from pathlib import Path
 
-STATES = ["CT", "DC", "GA", "HI", "IL", "KY", "LA", "MI", "MO", "MT", "ND", "NM", "NY", "OH", "OK", "PA", "SC", "TN", "VA", "WA"]
+STATES = ["CT", "GA", "HI", "IL", "KY", "LA", "MO", "MT", "ND", "NM", "NY", "OK", "PA", "SC", "TN", "VA", "WA"]
 # Matches MAX_AGE_DAYS in src/lib/warn/sync.ts — older notices would be skipped there anyway.
 MAX_AGE_DAYS = 540
 
