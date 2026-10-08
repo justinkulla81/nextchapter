@@ -210,3 +210,26 @@ describe('list suggestions', () => {
     expect(suggestListKeys({ roles: ['PRESS'], pipelineKeys: ['hiring_managers'], isCustomer: false })).toEqual(['monthly_update'])
   })
 })
+
+import { audienceWhere, describeAudience, isEmptyAudience, EMPTY_AUDIENCE } from '@/lib/mailing/audience'
+
+describe('group filter', () => {
+  it('is empty until something is chosen', () => {
+    expect(isEmptyAudience(EMPTY_AUDIENCE)).toBe(true)
+    expect(isEmptyAudience({ ...EMPTY_AUDIENCE, orgs: ' , ' })).toBe(true)
+    expect(isEmptyAudience({ ...EMPTY_AUDIENCE, priorities: ['P0'] })).toBe(false)
+  })
+  it('ORs within a field and ANDs across fields', () => {
+    const w = audienceWhere({ roles: ['INVESTOR_VC', 'INVESTOR_ANGEL'], priorities: ['P0', 'P1'], orgs: 'Google, Microsoft', titles: '' })
+    expect(w.deletedAt).toBeNull()
+    const and = w.AND as object[]
+    expect(and).toHaveLength(3)
+    expect(and[0]).toEqual({ roles: { hasSome: ['INVESTOR_VC', 'INVESTOR_ANGEL'] } })
+    expect(and[1]).toEqual({ priority: { in: ['P0', 'P1'] } })
+    expect(JSON.stringify(and[2])).toContain('"Google"')
+    expect(JSON.stringify(and[2])).toContain('"Microsoft"')
+  })
+  it('describes the group in words', () => {
+    expect(describeAudience({ roles: ['PRESS'], priorities: ['P0'], orgs: 'NYT', titles: 'editor' }, (r) => r.toLowerCase())).toBe('press · P0 · at NYT · titled editor')
+  })
+})

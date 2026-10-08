@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getMailingSettings } from '@/lib/mailing/lists'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { saveList, saveSettings, setListActive } from '../actions'
+import { MailingGroupBuilder } from '@/components/admin/mailing/MailingGroupBuilder'
 
 const input = 'h-8 w-full rounded border border-input bg-transparent px-2 text-sm'
 
@@ -61,6 +62,14 @@ export default async function MailingListsPage() {
           <div className="flex items-end"><SubmitButton size="sm" pendingLabel="Adding…">Add list</SubmitButton></div>
         </form>
         <p className="text-xs text-muted-foreground">Archiving a list hides it everywhere but keeps who was on it and everything sent to it.</p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Add or remove people in bulk</h2>
+        <MailingGroupBuilder
+          lists={lists.filter((l) => l.isActive).map((l) => ({ id: l.id, key: l.key, name: l.name, audience: l.audience }))}
+          defaultListIds={lists.filter((l) => l.key === 'monthly_update').map((l) => l.id)}
+        />
       </section>
 
       <section className="space-y-3">

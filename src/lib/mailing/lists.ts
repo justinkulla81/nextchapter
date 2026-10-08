@@ -1,5 +1,5 @@
 import 'server-only'
-import type { MailingAddedVia, MailingMemberStatus } from '@prisma/client'
+import type { MailingAddedVia, MailingMemberStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail } from './rules'
 import { suggestListKeys } from './suggest'
@@ -228,4 +228,46 @@ export async function syncWebsiteSignups(): Promise<number> {
     added++
   }
   return added
+}
+
+/**
+ * addToLists for many people at once — the same never-re-add rule, but
+ * reading memberships and suppressions in bulk, so a group of thousands
+ * takes a few queries instead of thousands.
+ */
+export async function addManyToLists(input: {
+  people: { personId: string; email: string }[]
+  listIds: string[]
+  addedVia: MailingAddedVia
+  consentNote?: string | null
+  addedByEmail?: string | null
+}): Promise<{ added: number; alreadyOn: number; blocked: number }> {
+  const people = input.people
+    .map((p) => ({ personId: p.personId, email: normalizeListEmail(p.email) }))
+    .filter((p): p is { personId: string; email: string } => !!p.email)
+  const emails = [...new Set(people.map((p) => p.email))]
+  const [existing, suppressed] = await Promise.all([
+    prisma.mailingListMember.findMany({ where: { listId: { in: input.listIds }, email: { in: emails } }, select: { listId: true, email: true, status: true } }),
+    prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true, reason: true } }),
+  ])
+  const statusOf = new Map(existing.map((m) => [`${m.listId}|${m.email}`, m.status]))
+  const suppressionOf = new Map(suppressed.map((s) => [s.email, s.reason as 'BOUNCED' | 'COMPLAINED']))
+  let alreadyOn = 0
+  let blocked = 0
+  const rows: Prisma.MailingListMemberCreateManyInput[] = []
+  const seen = new Set<string>()
+  for (const listId of input.listIds) {
+    for (const p of people) {
+      const k = `${listId}|${p.email}`
+      if (seen.has(k)) continue
+      seen.add(k)
+      const v = canAddToList(statusOf.get(k) ?? null, suppressionOf.get(p.email) ?? null)
+      if (v.ok) {
+        rows.push({ listId, email: p.email, personId: p.personId, status: 'ACTIVE', addedVia: input.addedVia, consentNote: input.consentNote ?? null, addedByEmail: input.addedByEmail ?? null })
+      } else if (v.reason === 'already_active') alreadyOn++
+      else blocked++
+    }
+  }
+  const { count } = await prisma.mailingListMember.createMany({ data: rows, skipDuplicates: true })
+  return { added: count, alreadyOn, blocked }
 }

@@ -9,7 +9,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sanitizeBodyHtml } from '@/lib/mailing/render'
 import { normalizeListEmail } from '@/lib/mailing/rules'
-import { addToLists, getMailingSettings, unsubscribe, type AddResult } from '@/lib/mailing/lists'
+import { addManyToLists, addToLists, getMailingSettings, unsubscribe, type AddResult } from '@/lib/mailing/lists'
+import { audienceWhere, describeAudience, isEmptyAudience, type AudienceFilter } from '@/lib/mailing/audience'
+import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import { markReportManual } from '@/lib/mailing/tracking'
 import {
   ATTACH_WARN_BYTES, MAILING_BUCKET, editionCounts, ensureBucket, runSendBatch,
@@ -468,4 +470,109 @@ export async function dismissUnsubscribeRequest(id: string) {
   const by = await admin()
   await prisma.mailingUnsubscribeRequest.update({ where: { id }, data: { processedAt: new Date(), processedBy: `${by} (not an unsubscribe)` } })
   revalidatePath(`${BASE}/unsubscribes`)
+}
+
+// ── Groups: add or remove people by type, priority, organization, title ─────
+
+export type AudienceOp = 'add_send' | 'remove_send' | 'add_lists' | 'remove_lists'
+
+async function audiencePeople(filter: AudienceFilter) {
+  return prisma.crmPerson.findMany({
+    where: audienceWhere(filter),
+    select: { id: true, fullName: true, email: true, affiliations: { where: { isPrimary: true }, take: 1, select: { title: true, org: { select: { name: true } } } } },
+    orderBy: [{ priority: { sort: 'asc', nulls: 'last' } }, { priorityScore: 'desc' }],
+  })
+}
+
+/** Live count and a sample, so you see who a group is before acting on it. */
+export async function previewAudience(filter: AudienceFilter) {
+  await admin()
+  if (isEmptyAudience(filter)) return { total: 0, withEmail: 0, sample: [] as { name: string; detail: string | null; hasEmail: boolean }[] }
+  const people = await audiencePeople(filter)
+  return {
+    total: people.length,
+    withEmail: people.filter((p) => normalizeListEmail(p.email)).length,
+    sample: people.slice(0, 12).map((p) => ({
+      name: p.fullName,
+      detail: [p.affiliations[0]?.title, p.affiliations[0]?.org.name].filter(Boolean).join(' at ') || null,
+      hasEmail: !!normalizeListEmail(p.email),
+    })),
+  }
+}
+
+/**
+ * Applies a group to this edition only (add_send / remove_send) or to lists
+ * (add_lists / remove_lists). `expected` is the count the person confirmed;
+ * if the group changed size meanwhile, nothing happens.
+ */
+export async function applyAudience(input: {
+  filter: AudienceFilter
+  op: AudienceOp
+  editionId?: string | null
+  listIds?: string[]
+  expected: number
+}): Promise<{ ok: boolean; message: string }> {
+  const by = await admin()
+  const { filter, op } = input
+  if (isEmptyAudience(filter)) return { ok: false, message: 'Choose at least one contact type, priority, organization or title first.' }
+  const people = (await audiencePeople(filter)).map((p) => ({ personId: p.id, name: p.fullName, email: normalizeListEmail(p.email) }))
+  if (people.length !== input.expected) return { ok: false, message: `The group is now ${people.length} people, not ${input.expected}. Check it and try again.` }
+  const label = describeAudience(filter, (r) => PERSON_ROLE_LABELS[r])
+  let message = ''
+
+  if (op === 'add_send' || op === 'remove_send') {
+    const editionId = input.editionId
+    if (!editionId) return { ok: false, message: 'No edition to change.' }
+    const edition = await prisma.mailingEdition.findUniqueOrThrow({ where: { id: editionId }, select: { status: true } })
+    if (edition.status !== 'DRAFT' && edition.status !== 'SCHEDULED') return { ok: false, message: 'This edition has already gone out.' }
+    const existing = await prisma.mailingEditionRecipient.findMany({ where: { editionId }, select: { id: true, email: true, personId: true, excluded: true, status: true } })
+    const byEmail = new Map(existing.map((r) => [r.email, r]))
+    if (op === 'add_send') {
+      const withEmail = people.filter((p): p is typeof p & { email: string } => !!p.email)
+      const suppressed = new Set((await prisma.mailingSuppression.findMany({ where: { email: { in: withEmail.map((p) => p.email) } }, select: { email: true } })).map((s) => s.email))
+      const fresh = withEmail.filter((p) => !byEmail.has(p.email) && !suppressed.has(p.email))
+      const rechecked = withEmail.filter((p) => byEmail.get(p.email)?.excluded && byEmail.get(p.email)?.status === 'PENDING' && !suppressed.has(p.email)).map((p) => byEmail.get(p.email)!.id)
+      await prisma.mailingEditionRecipient.createMany({
+        data: fresh.map((p) => ({ editionId, email: p.email, personId: p.personId, source: 'ADDED_THIS_EDITION' as const })),
+        skipDuplicates: true,
+      })
+      if (rechecked.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: rechecked } }, data: { excluded: false, excludedReason: null } })
+      const noEmail = people.length - withEmail.length
+      message = `Added ${fresh.length}${rechecked.length ? `, re-checked ${rechecked.length}` : ''} for this send.${noEmail ? ` ${noEmail} have no email address.` : ''}${suppressed.size ? ` ${suppressed.size} bounced or complained before and were skipped.` : ''}`
+    } else {
+      const ids = new Set(people.map((p) => p.personId))
+      const emails = new Set(people.map((p) => p.email).filter(Boolean))
+      const hit = existing.filter((r) => r.status === 'PENDING' && !r.excluded && ((r.personId && ids.has(r.personId)) || emails.has(r.email))).map((r) => r.id)
+      if (hit.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: hit } }, data: { excluded: true, excludedReason: 'unchecked' } })
+      message = `Unchecked ${hit.length} for this send. They stay on their lists.`
+    }
+    revalidatePath(`${BASE}/editions/${editionId}`)
+  } else {
+    const listIds = input.listIds ?? []
+    if (listIds.length === 0) return { ok: false, message: 'Tick at least one list.' }
+    if (op === 'add_lists') {
+      const r = await addManyToLists({
+        people: people.filter((p) => p.email).map((p) => ({ personId: p.personId, email: p.email! })),
+        listIds, addedVia: 'ADDED_BY_ADMIN', consentNote: `Added as a group: ${label}`, addedByEmail: by,
+      })
+      const noEmail = people.filter((p) => !p.email).length
+      message = `Added ${r.added}.${r.alreadyOn ? ` ${r.alreadyOn} were already on.` : ''}${r.blocked ? ` ${r.blocked} not added — they unsubscribed, bounced or complained before.` : ''}${noEmail ? ` ${noEmail} have no email address.` : ''}`
+    } else {
+      const { count } = await prisma.mailingListMember.deleteMany({
+        where: {
+          listId: { in: listIds }, status: 'ACTIVE',
+          OR: [{ personId: { in: people.map((p) => p.personId) } }, { email: { in: people.map((p) => p.email).filter((e): e is string => !!e) } }],
+        },
+      })
+      message = `Took ${count} ${count === 1 ? 'membership' : 'memberships'} off. Anyone who unsubscribed stays recorded as unsubscribed.`
+    }
+    revalidatePath(`${BASE}/lists`)
+    revalidatePath(BASE)
+    if (input.editionId) revalidatePath(`${BASE}/editions/${input.editionId}`)
+  }
+  captureServerEvent(by, 'mailing_group_applied', {
+    op, people: people.length, editionId: input.editionId ?? null, lists: input.listIds?.length ?? 0,
+    roles: filter.roles.length, priorities: filter.priorities.length, hasOrg: !!filter.orgs.trim(), hasTitle: !!filter.titles.trim(),
+  })
+  return { ok: true, message }
 }

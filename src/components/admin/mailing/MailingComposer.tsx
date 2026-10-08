@@ -13,6 +13,7 @@ import {
 } from '@/app/support/admin/(portal)/crm/mailing/actions'
 import { MailingEditor } from './MailingEditor'
 import { MailingListChecklist, type ListOption } from './MailingListChecklist'
+import { MailingGroupBuilder } from './MailingGroupBuilder'
 
 const WARN_BYTES = 5 * 1024 * 1024
 const BUCKET = 'mailing-files'
@@ -285,6 +286,8 @@ export function MailingComposer({
           )}
         </div>
 
+        {!locked && <MailingGroupBuilder editionId={edition.id} lists={lists} defaultListIds={draft.listIds} />}
+
         {!locked && <AddPerson editionId={edition.id} lists={lists} targetListIds={draft.listIds} onAdded={() => router.refresh()} onMessage={setMessage} />}
 
         <div className="flex flex-wrap items-center gap-2">
@@ -380,15 +383,15 @@ export function MailingComposer({
               <button
                 type="button" disabled={pending || counts.total === 0}
                 onClick={() => setConfirming('now')}
-                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                 title={counts.total === 0 ? 'Nobody is on the roster yet' : undefined}
               >
                 Send now to {counts.total}
               </button>
-              <button type="button" disabled={pending || counts.total === 0} onClick={() => setConfirming('schedule')} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">
+              <button type="button" disabled={pending || counts.total === 0} onClick={() => setConfirming('schedule')} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
                 Schedule…
               </button>
-              {counts.total === 0 && <span className="text-xs text-muted-foreground">Nobody is on the roster yet.</span>}
+              {counts.total === 0 && <span className="text-xs text-muted-foreground">Nobody is on the roster yet — add a group or people above.</span>}
             </div>
             {confirming && (
               <div role="dialog" aria-label="Confirm send" className="space-y-2 rounded-lg border border-brand/40 bg-brand/5 p-3 text-sm">
