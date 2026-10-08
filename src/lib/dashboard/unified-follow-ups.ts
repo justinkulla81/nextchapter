@@ -29,6 +29,7 @@ export interface UnifiedFollowUpItem {
   // for a landed interview, when the calendar says it is.
   needsKind?: NeedsFollowUpItem['kind']
   scheduledTime?: Date
+  meetingEventType?: string
 }
 
 export interface UnifiedFollowUpOptions {
@@ -93,6 +94,7 @@ export async function getUnifiedFollowUps(
       date: f.date,
       needsKind: f.kind,
       scheduledTime: f.scheduledTime,
+      meetingEventType: f.eventType,
     })),
     ...starred.map((r) => ({
       kind: 'starred-contact' as const,

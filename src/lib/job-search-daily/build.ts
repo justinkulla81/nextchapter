@@ -340,13 +340,18 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const networkingMoreCount = Math.max(0, stale.length - MAX_STALE_SHOWN)
 
   // ── Interviews: tie the generic to-dos to something real ──────────────
-  const upcomingInterview = followUpRows.find(
-    (f) =>
-      f.needsKind === 'interview' &&
-      f.scheduledTime &&
-      f.scheduledTime.getTime() >= now.getTime() &&
-      f.scheduledTime.getTime() <= now.getTime() + INTERVIEW_SOON_DAYS * DAY_MS
-  )
+  // Only interviews for a job the candidate told us about (they marked "I got
+  // an interview"), never a calendar guess — a school or press "interview" on
+  // the calendar must not trigger prep. A booked time wins over an invite
+  // with no time yet.
+  const interviewRows = followUpRows.filter((f) => f.needsKind === 'interview')
+  const upcomingInterview =
+    interviewRows.find(
+      (f) =>
+        f.scheduledTime &&
+        f.scheduledTime.getTime() >= now.getTime() &&
+        f.scheduledTime.getTime() <= now.getTime() + INTERVIEW_SOON_DAYS * DAY_MS
+    ) ?? interviewRows.find((f) => !f.scheduledTime)
   const interviewCompany = upcomingInterview ? (upcomingInterview.title.split(' at ')[1] ?? null) : null
   const interviewWhen = upcomingInterview?.scheduledTime ? relativeDay(upcomingInterview.scheduledTime, now) : null
   const todosForToday: DailyTodo[] =
@@ -371,7 +376,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   if (upcomingInterview) {
     candidatesForTop.push({
       key: `fu:${upcomingInterview.kind}:${upcomingInterview.id}`,
-      lead: interviewWhen ? `${capitalize(interviewWhen)}:` : 'Coming up:',
+      lead: interviewWhen ? `${capitalize(interviewWhen)}:` : 'Interview coming up:',
       text: `Prep for your ${upcomingInterview.title} interview`,
       href: topHref(withSrc(upcomingInterview.href)),
     })
@@ -380,6 +385,13 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     if (f.kind !== 'needs-follow-up' || f.needsKind === 'interview') continue
     const age = daysSince(f.date)
     if (f.needsKind === 'meeting') {
+      // A calendar "interview" is a keyword guess — only a thank-you for a job
+      // we know about (the event names one of their companies) goes in Top 3.
+      const title = f.subtitle.toLowerCase()
+      const isJobInterview = appliedCompanies.some(
+        (j) => j.companyName && j.companyName.length >= 3 && title.includes(j.companyName.toLowerCase())
+      )
+      if (f.meetingEventType === 'INTERVIEW' && !isJobInterview) continue
       candidatesForTop.push({
         key: `fu:${f.kind}:${f.id}`,
         lead: age !== null && age >= 2 ? 'Overdue:' : 'Today:',

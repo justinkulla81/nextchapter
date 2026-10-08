@@ -79,6 +79,9 @@ export interface NeedsFollowUpItem {
   // scheduled time was actually found, so the card can say when it really
   // is rather than just when the candidate said they landed it.
   scheduledTime?: Date
+  // Only for 'meeting' items: the calendar classifier's guess. An INTERVIEW guess is
+  // keyword-based and can't tell a job interview from a school or press one.
+  eventType?: string
 }
 
 // Best-effort match: a landed interview has no real foreign key to a
@@ -251,6 +254,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         date: meeting.startTime,
         subject,
         gmailHref: gmailComposeHref(address, `Re: Thank you — ${subject}`),
+        eventType: meeting.eventType,
       }
     })
 
