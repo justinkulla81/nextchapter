@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { getMailingSettings } from '@/lib/mailing/lists'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { CADENCES } from '@/lib/mailing/cadence'
 import { saveList, saveSettings, setListActive } from '../actions'
 import { MailingGroupBuilder } from '@/components/admin/mailing/MailingGroupBuilder'
 
@@ -20,14 +21,14 @@ export default async function MailingListsPage() {
   return (
     <div className="space-y-8">
       <header>
-        <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Monthly Update and mailing lists</Link>
+        <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Mailing lists</Link>
         <h1 className="text-2xl font-semibold">Lists and sender settings</h1>
       </header>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Lists</h2>
         {lists.map((l) => (
-          <form key={l.id} action={saveList} className={`grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_auto] ${l.isActive ? '' : 'opacity-60'}`}>
+          <form key={l.id} action={saveList} className={`grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_9rem_auto] ${l.isActive ? '' : 'opacity-60'}`}>
             <input type="hidden" name="id" value={l.id} />
             <label className="text-xs">
               <span className="mb-1 block font-medium">Name</span>
@@ -47,7 +48,9 @@ export default async function MailingListsPage() {
               <input name="description" defaultValue={l.description ?? ''} className={input} />
               <input type="hidden" name="defaultFromName" value={l.defaultFromName ?? ''} />
             </label>
+            <CadenceSelect value={l.cadence} />
             <div className="flex items-end gap-2">
+              <Link href={`/support/admin/crm/mailing/lists/${l.id}`} className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted">Readership</Link>
               <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">Save</SubmitButton>
               <SubmitButton size="sm" variant="ghost" formAction={setListActive.bind(null, l.id, !l.isActive)} pendingLabel="…">
                 {l.isActive ? 'Archive' : 'Restore'}
@@ -55,13 +58,17 @@ export default async function MailingListsPage() {
             </div>
           </form>
         ))}
-        <form action={saveList} className="grid gap-3 rounded-lg border border-dashed border-border p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+        <form action={saveList} className="grid gap-3 rounded-lg border border-dashed border-border p-3 sm:grid-cols-[1fr_1fr_1fr_9rem_auto]">
           <label className="text-xs"><span className="mb-1 block font-medium">New list name</span><input name="name" required className={input} /></label>
           <label className="text-xs"><span className="mb-1 block font-medium">Who it&apos;s for</span><input name="audience" className={input} /></label>
           <label className="text-xs"><span className="mb-1 block font-medium">Description</span><input name="description" className={input} /></label>
+          <CadenceSelect value="AD_HOC" />
           <div className="flex items-end"><SubmitButton size="sm" pendingLabel="Adding…">Add list</SubmitButton></div>
         </form>
-        <p className="text-xs text-muted-foreground">Archiving a list hides it everywhere but keeps who was on it and everything sent to it.</p>
+        <p className="text-xs text-muted-foreground">
+          Archiving a list hides it everywhere but keeps who was on it and everything sent to it. A list with a cadence gets a
+          prefilled draft each period and an email asking you to approve it; nothing sends until you do.
+        </p>
       </section>
 
       <section className="space-y-3">
@@ -97,5 +104,17 @@ export default async function MailingListsPage() {
         </form>
       </section>
     </div>
+  )
+}
+
+/** Six options, so a dropdown rather than buttons (design-principles.md). */
+function CadenceSelect({ value }: { value: string }) {
+  return (
+    <label className="text-xs">
+      <span className="mb-1 block font-medium">Cadence</span>
+      <select name="cadence" defaultValue={value} className={input}>
+        {CADENCES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+      </select>
+    </label>
   )
 }

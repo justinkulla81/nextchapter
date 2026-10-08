@@ -113,8 +113,9 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     {
       title: 'Email',
       links: [
-        // The bulk-send surface: write an edition, tick lists, send.
-        { href: '/support/admin/crm/mailing', label: 'Send to mailing lists', badge: badgeFor('mailingAttention') },
+        // The bulk-send surface. Each list has a cadence; due sends are
+        // drafted for you and wait here for approval.
+        { href: '/support/admin/crm/mailing', label: 'Mailing lists', badge: badgeFor('mailingAttention') },
         { href: '/support/admin/crm/mailing/lists', label: 'Lists and sender settings' },
         { href: '/support/admin/crm/mailing/unsubscribes', label: 'Unsubscribes' },
         { href: '/support/admin/crm/segments', label: 'One-off segment emails' },
@@ -303,7 +304,7 @@ function NavContent({
   const area = areaForPath(pathname)
   const sections = buildSectionsForArea(area, badges)
   // Only the most specific match lights up, so /crm/mailing/lists highlights
-  // "Lists and sender settings" alone, not "Send to mailing lists" too.
+  // "Lists and sender settings" alone, not "Mailing lists" too.
   const activeHref = sections
     .flatMap((s) => s.links.map((l) => l.href))
     .filter(matches)

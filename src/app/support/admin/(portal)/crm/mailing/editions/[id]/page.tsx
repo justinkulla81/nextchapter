@@ -46,7 +46,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
 
   const header = (
     <header className="space-y-1">
-      <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Monthly Update and mailing lists</Link>
+      <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Mailing lists</Link>
       <h1 className="text-2xl font-semibold">{edition.title}</h1>
       <p className="text-sm text-muted-foreground">
         {edition.lists.map((l) => l.list.name).join(' + ')}
@@ -61,6 +61,13 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
     return (
       <div className="space-y-6">
         {header}
+        {edition.status === 'DRAFT' && (
+          <p className="rounded-lg border border-orange/40 bg-orange/5 px-3 py-2 text-sm">
+            {edition.cadenceListId ? 'Drafted automatically for this period and waiting for your approval. ' : 'Draft — '}
+            Check the text, add or remove people for this send below, then approve. Nothing goes out until you do.
+            {/\[\[[^\]]*\]\]/.test(edition.bodyHtml + edition.subject) && <span className="font-medium"> Replace the [[Write: …]] notes first.</span>}
+          </p>
+        )}
         <MailingComposer
           edition={{
             id: edition.id, key: edition.key, title: edition.title, isReport: edition.isReport, reportKey: edition.reportKey,

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
-import type { CrmReportSendChannel, MailingAddedVia } from '@prisma/client'
+import type { CrmReportSendChannel, MailingAddedVia, MailingCadence } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -13,6 +13,9 @@ import { addManyToLists, addToLists, getMailingSettings, unsubscribe, type AddRe
 import { audienceWhere, describeAudience, isEmptyAudience, type AudienceFilter } from '@/lib/mailing/audience'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import { markReportManual } from '@/lib/mailing/tracking'
+import { createEditionDraft } from '@/lib/mailing/drafts'
+import { PLACEHOLDER_RE } from '@/lib/mailing/prefill'
+import { isCadence } from '@/lib/mailing/cadence'
 import {
   ATTACH_WARN_BYTES, MAILING_BUCKET, editionCounts, ensureBucket, runSendBatch,
   sendTestEmail, startSending, syncEditionRoster,
@@ -20,7 +23,6 @@ import {
 
 const BASE = '/support/admin/crm/mailing'
 const CHANNELS: CrmReportSendChannel[] = ['EMAIL', 'LINKEDIN', 'IN_PERSON', 'OTHER']
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 async function admin() {
   const user = await requireAdmin()
@@ -37,44 +39,15 @@ function summarize(r: AddResult): string {
 // ── Editions ─────────────────────────────────────────────────────────────────
 
 /**
- * "New edition" on a list: starts from that list's last email (subject and
- * body), with this month's key filled in. For the Monthly Update it's
- * flagged as a report, keyed YYYY-MM.
+ * "New edition" on a list: a prefilled draft (see lib/mailing/prefill) whose
+ * roster is the lists' members, ready to tailor and approve.
  */
 export async function createEdition(formData: FormData) {
   const by = await admin()
   const listIds = formData.getAll('listId').map(String).filter(Boolean)
   if (listIds.length === 0) return
-  const lists = await prisma.mailingList.findMany({ where: { id: { in: listIds } } })
-  const primary = lists.find((l) => l.id === listIds[0]) ?? lists[0]
-
-  const now = new Date()
-  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  const isReport = primary.key === 'monthly_update'
-  const last = await prisma.mailingEdition.findFirst({
-    where: { lists: { some: { listId: primary.id } } }, orderBy: { createdAt: 'desc' },
-  })
-  // A key that's free: "monthly-2026-10", then "-2", "-3" for a second one.
-  const stem = `${primary.key === 'monthly_update' ? 'monthly' : primary.key.replace(/_/g, '-')}-${ym}`
-  let key = stem
-  for (let i = 2; await prisma.mailingEdition.findUnique({ where: { key } }); i++) key = `${stem}-${i}`
-
-  const edition = await prisma.mailingEdition.create({
-    data: {
-      key,
-      title: `${MONTHS[now.getMonth()]} ${now.getFullYear()} ${primary.name}`,
-      isReport,
-      reportKey: isReport ? ym : null,
-      subject: last?.subject ?? '',
-      previewText: last?.previewText ?? null,
-      bodyHtml: last?.bodyHtml ?? '<p>Hi {{firstName}},</p><p></p>',
-      createdByEmail: by,
-      lists: { create: listIds.map((listId) => ({ listId })) },
-    },
-  })
-  await syncEditionRoster(edition.id)
-  captureServerEvent(by, 'mailing_edition_created', { editionId: edition.id, key, lists: lists.map((l) => l.key), copiedFrom: last?.id ?? null })
-  redirect(`${BASE}/editions/${edition.id}`)
+  const id = await createEditionDraft({ listIds, by })
+  redirect(`${BASE}/editions/${id}`)
 }
 
 export interface EditionDraft {
@@ -260,6 +233,9 @@ async function readyToSend(editionId: string, confirmCount: number) {
   ])
   if (edition.status === 'SENDING' || edition.status === 'SENT') return 'This edition has already gone out.'
   if (!edition.subject.trim() || !edition.bodyHtml.trim()) return 'Add a subject and a message first.'
+  if (PLACEHOLDER_RE.test(edition.subject) || PLACEHOLDER_RE.test(edition.bodyHtml)) {
+    return 'The draft still has a [[Write: …]] note in it. Replace it with your own words, save, then approve.'
+  }
   if (!settings.postalAddress.trim()) return 'Add your postal address in Mailing lists → Sender settings first. The law requires one in every list email.'
   if (!process.env.RESEND_API_KEY) return 'RESEND_API_KEY is not set, so nothing can be sent.'
   await syncEditionRoster(editionId)
@@ -311,9 +287,14 @@ export async function saveList(formData: FormData) {
     description: String(formData.get('description') ?? '').trim() || null,
     audience: String(formData.get('audience') ?? '').trim() || null,
     defaultFromName: String(formData.get('defaultFromName') ?? '').trim() || null,
+    ...(isCadence(String(formData.get('cadence') ?? '')) ? { cadence: String(formData.get('cadence')) as MailingCadence } : {}),
   }
   if (id) {
+    const before = await prisma.mailingList.findUnique({ where: { id }, select: { cadence: true, key: true } })
     await prisma.mailingList.update({ where: { id }, data })
+    if (data.cadence && before && before.cadence !== data.cadence) {
+      captureServerEvent(by, 'mailing_list_cadence_changed', { listId: id, key: before.key, from: before.cadence, to: data.cadence })
+    }
   } else {
     const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'list'
     let key = base
@@ -323,6 +304,7 @@ export async function saveList(formData: FormData) {
     captureServerEvent(by, 'mailing_list_created', { key })
   }
   revalidatePath(`${BASE}/lists`)
+  revalidatePath(BASE)
 }
 
 export async function setListActive(id: string, isActive: boolean) {
@@ -359,6 +341,7 @@ export async function addPersonToLists(personId: string, listIds: string[], opts
   const r = await addToLists({ email: person.email, personId, listIds, addedVia, consentNote: opts.note, addedByEmail: by })
   captureServerEvent(by, 'mailing_person_added', { personId, added: r.added.length, blocked: r.blocked.length, addedVia })
   revalidatePath(`/support/admin/crm/people/${personId}`)
+  for (const listId of listIds) revalidatePath(`${BASE}/lists/${listId}`)
   return { ok: r.added.length > 0 || r.blocked.length === 0, message: summarize(r) }
 }
 
@@ -375,6 +358,16 @@ export async function removePersonFromList(personId: string, listId: string) {
   })
   captureServerEvent(by, 'mailing_person_removed', { personId, listId })
   revalidatePath(`/support/admin/crm/people/${personId}`)
+}
+
+/** Readership page: take one ACTIVE address off a list (it may not be linked to a person). */
+export async function removeListMember(memberId: string) {
+  const by = await admin()
+  const m = await prisma.mailingListMember.findUnique({ where: { id: memberId }, select: { listId: true, personId: true, status: true } })
+  if (!m || m.status !== 'ACTIVE') return
+  await prisma.mailingListMember.delete({ where: { id: memberId } })
+  captureServerEvent(by, 'mailing_person_removed', { personId: m.personId, listId: m.listId, from: 'readership' })
+  revalidatePath(`${BASE}/lists/${m.listId}`)
 }
 
 // ── "Add to a mailing list?" cards ───────────────────────────────────────────

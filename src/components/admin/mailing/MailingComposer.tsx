@@ -386,7 +386,7 @@ export function MailingComposer({
                 className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                 title={counts.total === 0 ? 'Nobody is on the roster yet' : undefined}
               >
-                Send now to {counts.total}
+                Review and approve ({counts.total})
               </button>
               <button type="button" disabled={pending || counts.total === 0} onClick={() => setConfirming('schedule')} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">
                 Schedule…
@@ -395,9 +395,14 @@ export function MailingComposer({
             </div>
             {confirming && (
               <div role="dialog" aria-label="Confirm send" className="space-y-2 rounded-lg border border-brand/40 bg-brand/5 p-3 text-sm">
-                <p className="font-medium">
-                  {confirming === 'now' ? `Send “${draft.subject || 'untitled'}” to ${counts.total} ${counts.total === 1 ? 'person' : 'people'} now?` : `Schedule “${draft.subject || 'untitled'}” for ${counts.total} ${counts.total === 1 ? 'person' : 'people'}?`}
-                </p>
+                <p className="font-medium">Approve this send</p>
+                <dl className="grid grid-cols-[6rem_1fr] gap-x-3 gap-y-1 text-xs">
+                  <dt className="text-muted-foreground">Subject</dt><dd>{draft.subject || 'untitled'}</dd>
+                  <dt className="text-muted-foreground">Lists</dt><dd>{lists.filter((l) => draft.listIds.includes(l.id)).map((l) => l.name).join(', ') || 'none'}</dd>
+                  <dt className="text-muted-foreground">Readership</dt>
+                  <dd>{counts.base} on the lists − {counts.excluded} left out + {counts.added} added = <b>{counts.total} {counts.total === 1 ? 'person' : 'people'}</b></dd>
+                  <dt className="text-muted-foreground">When</dt><dd>{confirming === 'now' ? 'Now' : 'At the time below'}</dd>
+                </dl>
                 {confirming === 'schedule' && (
                   <label className="block text-xs">
                     <span className="mb-1 block font-medium">When</span>
@@ -417,7 +422,7 @@ export function MailingComposer({
                     })}
                     className="rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-white"
                   >
-                    {pending ? 'Working…' : confirming === 'now' ? `Yes, send to ${counts.total}` : 'Yes, schedule it'}
+                    {pending ? 'Working…' : confirming === 'now' ? `Approve and send to ${counts.total}` : 'Approve and schedule'}
                   </button>
                   <button type="button" onClick={() => setConfirming(null)} className="rounded-md border border-border px-3 py-1.5 text-sm">Cancel</button>
                 </div>

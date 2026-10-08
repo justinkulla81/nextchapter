@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { CADENCE_LABEL } from '@/lib/mailing/cadence'
 import { createEdition } from './actions'
 
 export const maxDuration = 30
@@ -16,7 +17,7 @@ const STATUS_CLASS = {
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000)
 
-/** Admin → CRM → Monthly Update: every list, its editions, and what needs doing. */
+/** Admin → CRM → Mailing lists: every list, its sends, and what needs doing. */
 export default async function MailingHomePage() {
   await requireAdmin()
   const fiveDaysAgo = daysAgo(5)
@@ -33,14 +34,17 @@ export default async function MailingHomePage() {
     prisma.mailingUnsubscribeRequest.count({ where: { processedAt: null } }),
     prisma.mailingUnsubscribeRequest.count({ where: { processedAt: null, receivedAt: { lt: fiveDaysAgo } } }),
   ])
+  // Drafts the cadence job made that haven't been approved yet.
+  const awaiting = editions.filter((e) => e.status === 'DRAFT' && e.cadenceListId)
 
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Monthly Update and mailing lists</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Write an update, choose the lists, send. Each person gets one personal-looking email from you, however many of the lists they&apos;re on.
+          <h1 className="text-2xl font-semibold">Mailing lists</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Each list has a cadence and a default readership. When a send is due a prefilled draft appears here and you get an email;
+            tailor who gets it, check the text, and approve. Nothing goes out without your approval.
           </p>
         </div>
         <nav className="flex flex-wrap gap-2 text-sm">
@@ -63,6 +67,22 @@ export default async function MailingHomePage() {
         </p>
       )}
 
+      {awaiting.length > 0 && (
+        <section className="space-y-2 rounded-lg border border-orange/40 bg-orange/5 p-4">
+          <h2 className="font-semibold">Waiting for your approval ({awaiting.length})</h2>
+          <p className="text-xs text-muted-foreground">Prefilled from the last send and this period&apos;s data. Open one to check the text and the readership, then approve it.</p>
+          <ul className="divide-y divide-border text-sm">
+            {awaiting.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center gap-3 py-2">
+                <Link href={`/support/admin/crm/mailing/editions/${e.id}`} className="font-medium text-brand hover:underline">{e.title}</Link>
+                <span className="text-xs text-muted-foreground">{e.subject || 'No subject yet'}</span>
+                <span className="ml-auto text-xs text-muted-foreground">Drafted {e.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="space-y-4">
         {lists.map((list) => {
           const own = editions.filter((e) => e.lists.some((l) => l.listId === list.id))
@@ -72,14 +92,17 @@ export default async function MailingHomePage() {
                 <div>
                   <h2 className="font-semibold">{list.name}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {list._count.members.toLocaleString()} {list._count.members === 1 ? 'person' : 'people'} subscribed
+                    {CADENCE_LABEL[list.cadence]} ·{' '}
+                    <Link href={`/support/admin/crm/mailing/lists/${list.id}`} className="hover:underline">
+                      {list._count.members.toLocaleString()} {list._count.members === 1 ? 'person' : 'people'} on the default readership
+                    </Link>
                     {list.audience ? ` · ${list.audience}` : ''}
                   </p>
                 </div>
                 <form action={createEdition}>
                   <input type="hidden" name="listId" value={list.id} />
-                  <SubmitButton size="sm" pendingLabel="Starting…" variant={list.key === 'monthly_update' ? 'default' : 'outline'}>
-                    New edition
+                  <SubmitButton size="sm" pendingLabel="Drafting…" variant="outline">
+                    Draft a send now
                   </SubmitButton>
                 </form>
               </div>
@@ -119,7 +142,7 @@ export default async function MailingHomePage() {
                 </label>
               ))}
             </div>
-            <SubmitButton size="sm" variant="outline" pendingLabel="Starting…">New edition for the ticked lists</SubmitButton>
+            <SubmitButton size="sm" variant="outline" pendingLabel="Starting…">Draft a send to the ticked lists</SubmitButton>
           </form>
         </section>
       )}

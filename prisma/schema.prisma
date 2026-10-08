@@ -11563,6 +11563,17 @@ enum MailingEditionStatus {
   SENT
 }
 
+/// How often a list goes out. Anything but AD_HOC gets a draft made for
+/// each period and an approval email; nothing sends until it's approved.
+enum MailingCadence {
+  DAILY
+  WEEKDAYS
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+  AD_HOC
+}
+
 enum MailingRecipientSource {
   BASE
   ADDED_THIS_EDITION
@@ -11591,6 +11602,7 @@ model MailingList {
   /// Who this list is for, in plain words, shown when choosing lists.
   audience        String?
   defaultFromName String?
+  cadence         MailingCadence @default(AD_HOC)
   isActive        Boolean  @default(true)
   sortOrder       Int      @default(0)
   createdAt       DateTime @default(now())
@@ -11697,6 +11709,12 @@ model MailingEdition {
   /// The link to the report in the email; defaults to the uploaded file.
   reportUrl       String?
   status          MailingEditionStatus @default(DRAFT)
+  /// Set on drafts the cadence job made: the list it was made for and the
+  /// period ('2026-10', '2026-Q4', '2026-10-07'), so each period gets one.
+  cadenceListId   String?
+  periodKey       String?
+  /// When the "ready for your approval" email went out for this draft.
+  approvalRequestedAt DateTime?
   scheduledAt     DateTime?
   sendStartedAt   DateTime?
   sentAt          DateTime?
@@ -11707,6 +11725,7 @@ model MailingEdition {
   lists      MailingEditionList[]
   recipients MailingEditionRecipient[]
 
+  @@unique([cadenceListId, periodKey])
   @@index([status, scheduledAt])
   @@index([reportKey])
 }
