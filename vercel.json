@@ -65,10 +65,6 @@
       "schedule": "0 18 * * 3"
     },
     {
-      "path": "/api/cron/homepage-visitor-digest",
-      "schedule": "0 4 * * *"
-    },
-    {
       "path": "/api/cron/refresh-youtube-content",
       "schedule": "30 11 */2 * *"
     },
