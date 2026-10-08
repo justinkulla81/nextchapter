@@ -17,6 +17,20 @@ import {
 import { computeProbabilityGrade, type ProbabilityGradeResult } from '@/lib/scoring/market-reality/probability'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { getLeaderboardBadgeHistory, type LeaderboardBadgeHistoryEntry } from '@/lib/leaderboard/badges'
+import {
+  TRACK_RECORD_SIZE_BAND_LABELS,
+  TRACK_RECORD_DOLLAR_BAND_LABELS,
+  TRACK_RECORD_TENURE_BAND_LABELS,
+  TRACK_RECORD_PNL_LABELS,
+  TRACK_RECORD_REPORTED_TO_LABELS,
+} from '@/lib/constants/track-record'
+import type {
+  TrackRecordSizeBand,
+  TrackRecordDollarBand,
+  TrackRecordTenureBand,
+  TrackRecordPnlAccountability,
+  TrackRecordReportedToLevel,
+} from '@prisma/client'
 
 /**
  * Everything one candidate has done, in a single read.
@@ -62,6 +76,15 @@ export interface EarnedBadge {
   detail: string | null
 }
 
+export interface InterviewAnswer {
+  id: string
+  question: string
+  answer: string | null
+  responseType: string
+  signalScore: number | null
+  answeredAt: Date
+}
+
 export interface CandidateProgress {
   /** How likely they are to land, on the same model the candidate sees. */
   likelihood: ProbabilityGradeResult | null
@@ -80,6 +103,8 @@ export interface CandidateProgress {
   assessments: AssessmentStatus[]
   activity: ActivityCount[]
   badges: EarnedBadge[]
+  /** The interview prep questions and what they actually wrote. */
+  interviewAnswers: InterviewAnswer[]
 }
 
 /** Weekly badge keys are stored as strings so the table does not churn. */
@@ -137,7 +162,7 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     assessmentResults,
     trackRecord,
     whatINeed,
-    interviewResponses,
+    interviewRows,
     courseActivity,
     walkthroughs,
     outreach,
@@ -170,7 +195,11 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     prisma.assessmentResult.findMany({ where: { candidateId }, orderBy: { completedAt: 'desc' } }),
     prisma.trackRecordResponse.findFirst({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
     prisma.whatINeedResponse.findFirst({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
-    prisma.interviewResponse.count({ where: { candidateId } }),
+    prisma.interviewResponse.findMany({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, questionText: true, responseText: true, responseType: true, aiSignalScore: true, createdAt: true },
+    }),
     prisma.candidateCourseActivity.findMany({ where: { candidateId }, orderBy: { detectedAt: 'desc' }, take: 1 }),
     prisma.resumeWalkthroughSession.findMany({ where: { candidateId }, orderBy: { startedAt: 'desc' }, take: 1 }),
     prisma.outreachLog.findMany({ where: { candidateId }, orderBy: { loggedAt: 'desc' }, take: 1 }),
@@ -189,6 +218,20 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     prisma.candidateCourseActivity.count({ where: { candidateId } }),
     prisma.resumeWalkthroughSession.count({ where: { candidateId } }),
   ])
+
+  // Nothing in the app writes an InterviewResponse today — /dashboard/
+  // interview-prep has no save path — so this is always empty in practice.
+  // Kept because the read is correct the moment a writer exists, and an empty
+  // list is itself the honest answer to "what did they answer".
+  const interviewAnswers: InterviewAnswer[] = interviewRows.map((r) => ({
+    id: r.id,
+    question: r.questionText,
+    // Audio and video answers have no text to show; the type says why.
+    answer: r.responseText,
+    responseType: r.responseType,
+    signalScore: r.aiSignalScore,
+    answeredAt: r.createdAt,
+  }))
 
   const checklist = computeSearchStrategyChecklist(profile)
   const SEARCH_STRATEGY_FIELD_COUNT = 6 // the fields computeSearchStrategyChecklist inspects
@@ -211,7 +254,9 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
       key: 'personality',
       label: 'Personality Profile',
       completedAt: personalityProfile?.completedAt ?? null,
-      summary: null,
+      summary: personalityProfile
+        ? `Execution ${personalityProfile.executionScore.toFixed(1)} · Judgment ${personalityProfile.judgmentScore.toFixed(1)} · Composure ${personalityProfile.composureScore.toFixed(1)} · Influence ${personalityProfile.influenceScore.toFixed(1)} · Integrity ${personalityProfile.integrityScore.toFixed(1)}`
+        : null,
       flag: null,
     },
     {
@@ -231,15 +276,17 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     {
       key: 'track-record',
       label: 'Track record',
-      completedAt: trackRecord?.createdAt ?? null,
-      summary: null,
+      completedAt: trackRecord?.completedAt ?? trackRecord?.createdAt ?? null,
+      summary: trackRecord ? describeTrackRecord(trackRecord) : null,
       flag: null,
     },
     {
       key: 'what-i-need',
       label: 'What I need',
-      completedAt: whatINeed?.createdAt ?? null,
-      summary: null,
+      completedAt: whatINeed?.completedAt ?? whatINeed?.createdAt ?? null,
+      summary: whatINeed?.domainRank.length
+        ? `Ranked: ${whatINeed.domainRank.slice(0, 5).map(humanizeKey).join(' > ')}`
+        : null,
       flag: null,
     },
   ]
@@ -264,7 +311,7 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
       lastAt: references.find((r) => r.status === 'COMPLETED')?.completedAt ?? null,
     },
     { key: 'sprints', label: 'Weekly sprints with a completed action', count: completedSprints.length, lastAt: completedSprints[0]?.weekStartDate ?? null },
-    { key: 'interview-prep', label: 'Interview prep answers', count: interviewResponses, lastAt: null },
+    { key: 'interview-prep', label: 'Interview prep answers', count: interviewAnswers.length, lastAt: interviewAnswers[0]?.answeredAt ?? null },
     { key: 'courses', label: 'Course activity', count: courseCount, lastAt: courseActivity[0]?.detectedAt ?? null },
     { key: 'walkthroughs', label: 'Resume walkthroughs', count: walkthroughCount, lastAt: walkthroughs[0]?.startedAt ?? null },
   ]
@@ -311,7 +358,34 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     assessments,
     activity,
     badges,
+    interviewAnswers,
   }
+}
+
+/**
+ * The track record answers worth reading at a glance.
+ *
+ * This is the closest thing the product has to a structured record of what
+ * someone has actually run — team size, budget, hiring, P&L — which is half of
+ * what "do I believe this person can land the role" rests on.
+ */
+export function describeTrackRecord(row: {
+  largestTeamManaged: string | null
+  budgetOwned: string | null
+  peopleHiredDirectly: string | null
+  pnlAccountability: string | null
+  reportedToLevel: string | null
+  longestTenure: string | null
+}): string | null {
+  const parts = [
+    row.largestTeamManaged && `Team ${TRACK_RECORD_SIZE_BAND_LABELS[row.largestTeamManaged as TrackRecordSizeBand]}`,
+    row.budgetOwned && `Budget ${TRACK_RECORD_DOLLAR_BAND_LABELS[row.budgetOwned as TrackRecordDollarBand]}`,
+    row.peopleHiredDirectly && `Hired ${TRACK_RECORD_SIZE_BAND_LABELS[row.peopleHiredDirectly as TrackRecordSizeBand]}`,
+    row.pnlAccountability && TRACK_RECORD_PNL_LABELS[row.pnlAccountability as TrackRecordPnlAccountability],
+    row.reportedToLevel && `Reported to ${TRACK_RECORD_REPORTED_TO_LABELS[row.reportedToLevel as TrackRecordReportedToLevel]}`,
+    row.longestTenure && `Longest tenure ${TRACK_RECORD_TENURE_BAND_LABELS[row.longestTenure as TrackRecordTenureBand]}`,
+  ].filter(Boolean)
+  return parts.length ? parts.join(' · ') : null
 }
 
 /** Turns the Operating Profile's dimension vector into a readable line. */

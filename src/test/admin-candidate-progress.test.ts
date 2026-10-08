@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { describeConnection, humanizeKey, describeVectors } from '@/lib/admin/candidate-progress'
+import { describeConnection, humanizeKey, describeVectors, describeTrackRecord } from '@/lib/admin/candidate-progress'
 
 describe('describeConnection', () => {
   const connectedAt = new Date('2026-03-01T00:00:00Z')
@@ -70,5 +70,24 @@ describe('describeVectors', () => {
     expect(describeVectors(null)).toBeNull()
     expect(describeVectors({})).toBeNull()
     expect(describeVectors({ note: 'not a number' })).toBeNull()
+  })
+})
+
+describe('describeTrackRecord', () => {
+  const empty = {
+    largestTeamManaged: null, budgetOwned: null, peopleHiredDirectly: null,
+    pnlAccountability: null, reportedToLevel: null, longestTenure: null,
+  }
+
+  it('reads the background facts a recruiter would ask about', () => {
+    const s = describeTrackRecord({ ...empty, largestTeamManaged: 'SIZE_11_50', budgetOwned: 'DOLLARS_1M_10M' })
+    expect(s).toContain('Team')
+    expect(s).toContain('Budget')
+    expect(s).toContain('·')
+  })
+
+  it('returns null rather than an empty string when nothing was answered', () => {
+    // A started-but-blank response must not render as a stray separator.
+    expect(describeTrackRecord(empty)).toBeNull()
   })
 })

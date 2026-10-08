@@ -35,7 +35,8 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
 }
 
 export function CandidateProgressPanel({ progress }: { progress: CandidateProgress }) {
-  const { likelihood, dossier, connections, searchStrategy, assessments, activity, badges, moduleGates } = progress
+  const { likelihood, dossier, connections, searchStrategy, assessments, activity, badges, moduleGates, interviewAnswers } =
+    progress
   const met = dossier.completeness.metCount
   const total = dossier.completeness.totalCount
   const assessmentsDone = assessments.filter((a) => a.completedAt).length
@@ -269,6 +270,34 @@ export function CandidateProgressPanel({ progress }: { progress: CandidateProgre
           </CardContent>
         </Card>
       </div>
+
+      {interviewAnswers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Interview prep answers ({interviewAnswers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {interviewAnswers.map((a) => (
+                <li key={a.id}>
+                  <p className="text-sm font-medium">{a.question}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {a.answer ?? (
+                      // Audio and video answers are stored as files, so there
+                      // is no transcript to read here.
+                      <span className="italic">Answered by {a.responseType} — no text to show</span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {when(a.answeredAt)}
+                    {a.signalScore !== null && ` · signal ${a.signalScore}/100`}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {moduleGates.length > 0 && (
         <Card>
