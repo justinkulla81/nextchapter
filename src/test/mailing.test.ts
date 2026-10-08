@@ -111,6 +111,10 @@ describe('never re-add', () => {
     expect(canAddToList('UNSUBSCRIBED', null)).toEqual({ ok: false, reason: 'unsubscribed' })
     expect(canAddToList('COMPLAINED', null)).toEqual({ ok: false, reason: 'complained' })
   })
+  it('refuses everything for someone marked Do not email', () => {
+    expect(canAddToList(null, 'DO_NOT_EMAIL')).toEqual({ ok: false, reason: 'do_not_email' })
+    expect(canAddToList('ACTIVE', 'DO_NOT_EMAIL')).toEqual({ ok: false, reason: 'do_not_email' })
+  })
   it('refuses every list after a complaint or bounce', () => {
     expect(canAddToList(null, 'COMPLAINED')).toEqual({ ok: false, reason: 'complained' })
     expect(canAddToList(null, 'BOUNCED')).toEqual({ ok: false, reason: 'bounced' })
@@ -236,16 +240,48 @@ describe('group filter', () => {
     expect(isEmptyAudience({ ...EMPTY_AUDIENCE, priorities: ['P0'] })).toBe(false)
   })
   it('ORs within a field and ANDs across fields', () => {
-    const w = audienceWhere({ roles: ['INVESTOR_VC', 'INVESTOR_ANGEL'], priorities: ['P0', 'P1'], orgs: 'Google, Microsoft', titles: '' })
+    const w = audienceWhere({ roles: ['INVESTOR_VC', 'INVESTOR_ANGEL'], priorities: ['P0', 'P1'], orgs: 'Google, Microsoft', titles: '', history: 'any' })
     expect(w.deletedAt).toBeNull()
     const and = w.AND as object[]
-    expect(and).toHaveLength(3)
-    expect(and[0]).toEqual({ roles: { hasSome: ['INVESTOR_VC', 'INVESTOR_ANGEL'] } })
-    expect(and[1]).toEqual({ priority: { in: ['P0', 'P1'] } })
-    expect(JSON.stringify(and[2])).toContain('"Google"')
-    expect(JSON.stringify(and[2])).toContain('"Microsoft"')
+    expect(and).toHaveLength(4)
+    expect(and[0]).toEqual({ email: { not: null } })
+    expect(and[1]).toEqual({ roles: { hasSome: ['INVESTOR_VC', 'INVESTOR_ANGEL'] } })
+    expect(and[2]).toEqual({ priority: { in: ['P0', 'P1'] } })
+    expect(JSON.stringify(and[3])).toContain('"Google"')
+    expect(JSON.stringify(and[3])).toContain('"Microsoft"')
+  })
+  it('only counts people with an email, leaves out Do not email, and reads email history', () => {
+    const w = audienceWhere({ ...EMPTY_AUDIENCE, history: 'exchanged' }, ['dne1'])
+    const and = w.AND as object[]
+    expect(and).toContainEqual({ email: { not: null } })
+    expect(and).toContainEqual({ id: { notIn: ['dne1'] } })
+    expect(JSON.stringify(and)).toContain('"OUTBOUND"')
+    expect(JSON.stringify(and)).toContain('"INBOUND"')
+    expect(isEmptyAudience({ ...EMPTY_AUDIENCE, history: 'never' })).toBe(false)
   })
   it('describes the group in words', () => {
-    expect(describeAudience({ roles: ['PRESS'], priorities: ['P0'], orgs: 'NYT', titles: 'editor' }, (r) => r.toLowerCase())).toBe('press · P0 · at NYT · titled editor')
+    expect(describeAudience({ roles: ['PRESS'], priorities: ['P0'], orgs: 'NYT', titles: 'editor', history: 'exchanged' }, (r) => r.toLowerCase())).toBe('press · P0 · at NYT · titled editor · we’ve emailed both ways')
+  })
+})
+
+import { matchesAudience, audienceFacets } from '@/lib/mailing/audience'
+
+describe('option counts', () => {
+  const people = [
+    { roles: ['INVESTOR_VC'], priority: 'P0', orgs: ['Acme Ventures'], titles: ['Partner'], sent: 2, received: 1, emailCount: 3 },
+    { roles: ['INVESTOR_VC', 'ADVISOR'], priority: 'P2', orgs: ['Beta'], titles: ['Director'], sent: 1, received: 0, emailCount: 1 },
+    { roles: ['JOB_SEEKER'], priority: null, orgs: [], titles: [], sent: 0, received: 0, emailCount: 0 },
+  ] as Parameters<typeof matchesAudience>[0][]
+  it('matches the way the database filter does', () => {
+    expect(people.filter((p) => matchesAudience(p, { ...EMPTY_AUDIENCE, history: 'exchanged' }))).toHaveLength(1)
+    expect(people.filter((p) => matchesAudience(p, { ...EMPTY_AUDIENCE, history: 'emailed' }))).toHaveLength(2)
+    expect(people.filter((p) => matchesAudience(p, { ...EMPTY_AUDIENCE, history: 'never' }))).toHaveLength(1)
+    expect(people.filter((p) => matchesAudience(p, { ...EMPTY_AUDIENCE, orgs: 'acme, gamma' }))).toHaveLength(1)
+  })
+  it('counts each option with the other choices kept', () => {
+    const f = audienceFacets(people, { ...EMPTY_AUDIENCE, roles: ['INVESTOR_VC'] }, ['INVESTOR_VC', 'JOB_SEEKER'], ['P0', 'P1', 'P2'])
+    expect(f.roles).toEqual({ INVESTOR_VC: 2, JOB_SEEKER: 1 })
+    expect(f.priorities).toEqual({ P0: 1, P1: 0, P2: 1 })
+    expect(f.history).toEqual({ any: 2, emailed: 2, exchanged: 1, never: 0 })
   })
 })

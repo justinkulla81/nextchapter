@@ -7,7 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { makeUnsubscribeToken } from './unsubscribe-token'
-import { addToLists, getMailingSettings, syncWebsiteSignups } from './lists'
+import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
 
 export const MAILING_BUCKET = 'mailing-files'
 export const ATTACH_WARN_BYTES = 5 * 1024 * 1024
@@ -60,6 +60,8 @@ export async function syncEditionRoster(editionId: string) {
     ? await prisma.mailingListMember.findMany({ where: { listId: { in: listIds } }, select: { email: true, personId: true, listId: true, status: true } })
     : []
   const suppressed = new Set((await prisma.mailingSuppression.findMany({ select: { email: true } })).map((s) => s.email))
+  // Do not email covers every address on the record, including newer ones.
+  for (const e of (await doNotEmailPeople()).emails) suppressed.add(e)
   const manual = edition.isReport && edition.reportKey
     ? await prisma.crmReportSend.findMany({ where: { editionKey: edition.reportKey, method: 'MANUAL' }, select: { personId: true, sentAt: true } })
     : []
@@ -213,6 +215,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   const resend = new Resend(process.env.RESEND_API_KEY)
   let sent = 0
   let failed = 0
+  const dne = await doNotEmailPeople()
   for (const edition of editions) {
     const attachments = budget > 0 ? await attachmentFor(edition) : undefined
     while (budget > 0) {
@@ -220,7 +223,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
       })
       if (!next) break
-      const suppressed = await prisma.mailingSuppression.findUnique({ where: { email: next.email } })
+      const suppressed = (await prisma.mailingSuppression.findUnique({ where: { email: next.email } })) || (next.personId && dne.personIds.has(next.personId))
       if (suppressed) {
         await prisma.mailingEditionRecipient.update({ where: { id: next.id }, data: { status: 'SKIPPED', excluded: true, excludedReason: 'suppressed' } })
         continue

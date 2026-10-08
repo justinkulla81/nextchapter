@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { activeLists, suggestionsFor } from '@/lib/mailing/lists'
 import { PersonMailingPanel } from './PersonMailingPanel'
+import { DoNotEmailToggle } from './DoNotEmailToggle'
+import { doNotEmailPeople } from '@/lib/mailing/lists'
 
 /** The person page's "Mailing lists and reports" section; loads its own data. */
 export async function PersonMailingSection({ personId, email }: { personId: string; email: string | null }) {
@@ -32,7 +34,11 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
   })
   const reportKeys = [...new Set([...editions.map((x) => x.reportKey!), ...recentKeys])].sort().reverse()
 
+  const doNotEmail = (await doNotEmailPeople()).personIds.has(personId)
+
   return (
+    <div className="space-y-4">
+    <DoNotEmailToggle personId={personId} on={doNotEmail} hasEmail={!!e} />
     <PersonMailingPanel
       personId={personId}
       hasEmail={!!e}
@@ -54,5 +60,6 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
         bouncedAt: r.bouncedAt?.toISOString() ?? null, unsubscribedAt: r.unsubscribedAt?.toISOString() ?? null,
       }))}
     />
+    </div>
   )
 }
