@@ -48,17 +48,19 @@ export function MailingGroupBuilder({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [pending, start] = useTransition()
   const rolesRef = useRef<HTMLDivElement>(null)
+  // Earlier versions only matter for this send; the lists take everyone.
+  const skipEarlier = skipEarlierVersions && scope === 'send'
 
   // Re-count shortly after the filter stops changing (and once on open, for the option counts).
   useEffect(() => {
     let live = true
     const t = setTimeout(async () => {
       setLoading(true)
-      const p = await previewAudience(filter, { editionId, skipEarlierVersions })
+      const p = await previewAudience(filter, { editionId, skipEarlierVersions: skipEarlier })
       if (live) { setPreview(p); setLoading(false) }
     }, 300)
     return () => { live = false; clearTimeout(t) }
-  }, [filter, editionId, skipEarlierVersions])
+  }, [filter, editionId, skipEarlier])
 
   useEffect(() => {
     if (!rolesOpen) return
@@ -77,20 +79,21 @@ export function MailingGroupBuilder({
   const empty = isEmptyAudience(filter)
   const facets = preview?.facets
   const n = empty ? 0 : preview?.total ?? 0
-  // Only this send is affected by earlier versions; the lists take everyone.
-  const leftOutEarlier = scope === 'send' && skipEarlierVersions ? preview?.earlierVersion ?? 0 : 0
-  const toAdd = n - leftOutEarlier
 
   const run = (op: AudienceOp) => start(async () => {
-    const r = await applyAudience({ filter, op, editionId: editionId ?? null, listIds, expected: n, skipEarlierVersions })
+    const r = await applyAudience({ filter, op, editionId: editionId ?? null, listIds, expected: n, skipEarlierVersions: skipEarlier })
     posthog.capture('mailing_group_clicked', { op, people: n, editionId: editionId ?? null, history: filter.history })
     setMessage({ ok: r.ok, text: r.message })
     setConfirm(null)
-    if (r.ok) { router.refresh(); setPreview(await previewAudience(filter, { editionId, skipEarlierVersions })) }
+    if (r.ok) {
+      setPreview(await previewAudience(filter, { editionId, skipEarlierVersions: skipEarlier }))
+      // Last, so the roster below redraws with the people just added.
+      router.refresh()
+    }
   })
 
   const verb: Record<AudienceOp, string> = {
-    add_send: `Add ${toAdd} to this send`,
+    add_send: `Add ${n} to this send`,
     remove_send: `Uncheck ${n} for this send`,
     add_lists: `Add ${n} to the ticked lists`,
     remove_lists: `Take ${n} off the ticked lists`,
@@ -105,8 +108,9 @@ export function MailingGroupBuilder({
       <div>
         <p className="text-sm font-medium">Add or remove a group</p>
         <p className="text-xs text-muted-foreground">
-          Only people with an email address are counted or added; anyone marked Do not email is left out. Each choice narrows the group;
-          the number next to an option is how many you&apos;d get with it.
+          Only people with an email address are counted or added; anyone marked Do not email is left out
+          {skipEarlier ? ', and so is anyone an earlier version already emailed' : ''}. Each choice narrows the group; the number next to an
+          option is how many you&apos;d get with it.
         </p>
       </div>
 
@@ -184,7 +188,7 @@ export function MailingGroupBuilder({
         <div className="space-y-2">
           <p className="text-sm">
             <span className="font-semibold">{n.toLocaleString()} {n === 1 ? 'person' : 'people'} with an email address</span>
-            {leftOutEarlier > 0 && <span className="text-muted-foreground"> · {leftOutEarlier} already got an earlier version and go on unchecked</span>}
+            {skipEarlier && preview.earlierVersion > 0 && <span className="text-muted-foreground"> · {preview.earlierVersion} already got an earlier version, not counted</span>}
             {preview.doNotEmail > 0 && <span className="text-muted-foreground"> · {preview.doNotEmail} marked Do not email left out</span>}
             {loading && <span className="text-muted-foreground"> · updating…</span>}
           </p>
@@ -204,7 +208,7 @@ export function MailingGroupBuilder({
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" disabled={(addOp === 'add_send' ? toAdd : n) === 0 || (scope === 'lists' && listIds.length === 0)} onClick={() => setConfirm(addOp)}
+              <button type="button" disabled={n === 0 || (scope === 'lists' && listIds.length === 0)} onClick={() => setConfirm(addOp)}
                 className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
                 {verb[addOp]}
               </button>
