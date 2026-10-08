@@ -49,6 +49,10 @@ const ROLE_TO_GOAL: Partial<Record<CrmPersonRole, CrmGoal>> = {
   POLICY_ANALYST: 'ADVISORY_RECRUITING', // also covers the old ACADEMIC, folded into this role
   JOB_SEEKER: 'USER_ACQUISITION',
   ALUMNI_OFFICE: 'USER_ACQUISITION',
+  HIGHER_ED_CAREER: 'USER_ACQUISITION',
+  HIGHER_ED_EXEC_ED: 'USER_ACQUISITION',
+  HIGHER_ED_DEVELOPMENT: 'BD',
+  HIGHER_ED_ADMIN: 'BD',
   // CONNECTOR, PRESS, GTM_PARTNER and OTHER map to nothing on purpose: they
   // are useful people who are not themselves an outcome we are pursuing,
   // and inventing a goal for them would make every goal filter noisier.

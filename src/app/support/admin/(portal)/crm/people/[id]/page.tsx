@@ -329,7 +329,9 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       <section>
         <h2 className="mb-1 text-lg font-semibold">Convert</h2>
         <p className="mb-2 text-sm text-muted-foreground">
-          Creates a real production record and links it here. Everything above — every email, intro path and
+          Optional. Contact types above (hiring manager, coach, higher ed, outplacement and the rest) are enough
+          on their own — a person stays unconverted and keeps every type. Converting creates a real production
+          record and links it here. Everything above — every email, intro path and
           stage change — stays on this record; the CRM owns the relationship before conversion, production
           owns it after.
         </p>

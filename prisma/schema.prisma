@@ -8915,7 +8915,11 @@ enum CrmPersonRole {
   HIRING_MANAGER // also covers the old CHRO_HR, folded in during the contact-type relabel
   OUTPLACEMENT_BUYER
   POLICY_ANALYST // also covers the old ACADEMIC, folded in during the contact-type relabel
-  ALUMNI_OFFICE
+  ALUMNI_OFFICE // higher ed: alumni relations
+  HIGHER_ED_DEVELOPMENT
+  HIGHER_ED_CAREER
+  HIGHER_ED_EXEC_ED
+  HIGHER_ED_ADMIN
   JOB_SEEKER
   EMPLOYEE_CANDIDATE // someone we might hire ourselves
   ADVISOR

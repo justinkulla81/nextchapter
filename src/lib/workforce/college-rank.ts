@@ -25,7 +25,7 @@ export function emailAtCollege(email: string, domain: string): boolean {
 }
 
 /** Contacts whose priority says something about a college as a partner — listed, not inferred. */
-export const RELATIONSHIP_ROLES = ['ALUMNI_OFFICE', 'BD_PARTNER'] as const
+export const RELATIONSHIP_ROLES = ['ALUMNI_OFFICE', 'HIGHER_ED_DEVELOPMENT', 'HIGHER_ED_CAREER', 'HIGHER_ED_EXEC_ED', 'HIGHER_ED_ADMIN', 'BD_PARTNER'] as const
 
 /** 0 for P0 or a pilot/customer, 1 for P1 or a live deal, 2 for P2 or first contact, 3 for none. */
 export function relationshipLevel(points: number): number {
