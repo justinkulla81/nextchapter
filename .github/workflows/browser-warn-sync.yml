@@ -58,7 +58,10 @@ jobs:
 
       - name: Install the WARN scrapers
         if: always()
-        run: pip install --quiet warn-scraper warn-transformer
+        # From the repository rather than the last release: it carries scrapers
+        # (North Dakota) and fixes the release does not. pyquery, lxml and
+        # html5lib are used by some state scrapers but not declared by the package.
+        run: pip install --quiet "git+https://github.com/biglocalnews/warn-scraper.git@main" warn-transformer pyquery lxml html5lib
 
       - name: Import scraped states
         # Each state imports on its own; one state's broken site fails only that state.

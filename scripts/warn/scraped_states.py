@@ -42,6 +42,67 @@ def recent(n, since):
     return d is not None and d >= since
 
 
+DATE_FORMATS = ["%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d", "%B %d, %Y", "%b %d, %Y", "%m-%d-%Y", "%Y/%m/%d"]
+
+
+def parse_date(v):
+    v = (v or "").strip()
+    if not v:
+        return None
+    # "Beginning: January 23, 2023; Ending: ..." → the first date in it.
+    v = v.split(";")[0].replace("Beginning:", "").strip()
+    for f in DATE_FORMATS:
+        try:
+            d = datetime.datetime.strptime(v[:30].strip(), f).date()
+            return d.isoformat() if 1990 <= d.year <= datetime.date.today().year + 2 else None
+        except ValueError:
+            continue
+    return None
+
+
+def pick(header, *words):
+    """The first column whose name contains one of the words, in the order given."""
+    low = {h: (h or "").lower() for h in header}
+    for w in words:
+        for h, l in low.items():
+            if w in l:
+                return h
+    return None
+
+
+def raw_fallback(state, data_dir):
+    """
+    When a state's transformer fails on one bad row (a mistyped date, a
+    renamed column), read the scraper's raw CSV by column names instead of
+    losing the whole state.
+    """
+    import csv
+    with open(data_dir / f"{state.lower()}.csv", newline="", encoding="utf-8", errors="replace") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        return []
+    header = list(rows[0].keys())
+    c_company = pick(header, "company", "employer", "business", "organization", "name")
+    c_notice = pick(header, "notice date", "date of notice", "received", "warn date", "date posted", "notice")
+    c_effective = pick(header, "effective", "separation", "layoff date", "closure date", "start", "impact date")
+    c_jobs = pick(header, "affected", "employees", "workers", "jobs", "number", "total")
+    c_city = pick(header, "city", "location", "address", "site")
+    out = []
+    for r in rows:
+        try:
+            jobs = int(float(str(r.get(c_jobs) or "").replace(",", "").strip())) if c_jobs else None
+        except ValueError:
+            jobs = None
+        out.append({
+            "company": (r.get(c_company) or "").strip() if c_company else None,
+            "location": (r.get(c_city) or "").strip() or None if c_city else None,
+            "notice_date": parse_date(r.get(c_notice)) if c_notice else None,
+            "effective_date": parse_date(r.get(c_effective)) if c_effective else None,
+            "jobs": jobs,
+        })
+    return out
+
+
 def post(state, notices):
     url = os.environ["NEXTCHAPTER_URL"].rstrip("/") + "/api/admin/warn/import-rows"
     req = urllib.request.Request(
@@ -70,7 +131,11 @@ def main():
                 ["warn-scraper", state.lower(), "--data-dir", str(data_dir), "--cache-dir", str(data_dir / "cache"), "-l", "WARNING"],
                 check=True, timeout=600,
             )
-            rows = import_module(f"warn_transformer.transformers.{state.lower()}").Transformer(data_dir).transform()
+            try:
+                rows = import_module(f"warn_transformer.transformers.{state.lower()}").Transformer(data_dir).transform()
+            except Exception as e:
+                print(f"{state}: transformer failed ({str(e)[:120]}); reading the raw file by column names", file=sys.stderr, flush=True)
+                rows = raw_fallback(state, data_dir)
             notices = [
                 {
                     "company": r.get("company"),
