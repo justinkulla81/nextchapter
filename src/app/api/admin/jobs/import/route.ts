@@ -1,18 +1,33 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { screenJobTitle } from '@/lib/jobs/job-seniority'
+import { isUsLocation } from '@/lib/jobs/us-location'
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 // Bulk-import endpoint for the external `ncrawl` pipeline's import-jobs.py
 // script — the only write path into ExclusiveJobPosting that accepts many
 // records in one call (every other path, admin form and the ATS feed cron,
 // writes one job at a time or from a hardcoded company list). Upserts on
-// `url` (see the @unique on ExclusiveJobPosting.url). Rows this endpoint
-// created (addedBy: 'ncrawl') that stop appearing in a `fullSync: true`
-// call are archived — see the note on `fullSync` below for why partial
-// runs must never set it.
+// `url` (see the @unique on ExclusiveJobPosting.url).
+//
+// Every job is screened the same way NextChapter's own ATS feed screens:
+// US (or remote) only, and manager-and-up plus senior individual roles
+// (job-seniority.ts — the same rules ncrawl applies at crawl time). Its
+// stored `level` is our own classification of the title, never the
+// sender's, so every automated source is levelled identically.
+//
+// A full sync comes in two steps, since tens of thousands of jobs don't fit
+// one request: batches of `jobs` (each confirming its rows), then one
+// `finalizeSync` call that archives every 'ncrawl' row the run didn't
+// confirm. The old single-call `fullSync: true` still works for small runs.
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
+// A finalize that would archive more than this share of the live ncrawl
+// rows almost always means a broken crawl, not a market that emptied —
+// refuse unless the caller passes `force`.
+const MAX_ARCHIVE_SHARE = 0.5
 
 interface ImportJobInput {
   title: string
@@ -29,20 +44,91 @@ interface ImportJobInput {
 }
 
 interface ImportRequestBody {
-  jobs: ImportJobInput[]
+  jobs?: ImportJobInput[]
   dryRun?: boolean
-  // True only for a complete, unfiltered run of the whole current source
-  // list — triggers archiving any previously-imported ('ncrawl') row whose
-  // url isn't in this batch. A --limit test run or a partial batch MUST
-  // leave this false/omitted, or it will archive every real listing that
-  // just isn't in the small test batch.
+  // Single-call full sync: archive every 'ncrawl' row whose url isn't in
+  // this batch. A --limit test run or a partial batch MUST leave this
+  // false/omitted, or it will archive every real listing that just isn't
+  // in the small test batch.
   fullSync?: boolean
+  // Batched full sync, last step: archive every 'ncrawl' row not confirmed
+  // since `startedAt` (the moment the run's first batch was sent).
+  finalizeSync?: { startedAt: string; force?: boolean }
 }
 
 function isValidJob(job: unknown): job is ImportJobInput {
   if (!job || typeof job !== 'object') return false
   const j = job as Record<string, unknown>
   return typeof j.title === 'string' && j.title.trim().length > 0 && typeof j.companyName === 'string' && j.companyName.trim().length > 0 && typeof j.url === 'string' && j.url.trim().length > 0
+}
+
+type Screened = { job: ImportJobInput; level: string }
+
+function screen(jobs: unknown[]) {
+  const kept: Screened[] = []
+  const skipped: { url: string | null; reason: string }[] = []
+  const seen = new Set<string>()
+  for (const job of jobs) {
+    if (!isValidJob(job)) {
+      skipped.push({ url: (job as { url?: string })?.url ?? null, reason: 'missing required field (title, companyName, or url)' })
+      continue
+    }
+    if (seen.has(job.url)) continue
+    seen.add(job.url)
+    if (!isUsLocation(job.location?.trim() || null)) {
+      skipped.push({ url: job.url, reason: 'outside the US' })
+      continue
+    }
+    const verdict = screenJobTitle(job.title)
+    if (!verdict.keep) {
+      skipped.push({ url: job.url, reason: verdict.reason })
+      continue
+    }
+    kept.push({ job, level: verdict.level })
+  }
+  return { kept, skipped }
+}
+
+function rowData({ job, level }: Screened) {
+  return {
+    title: job.title.trim(),
+    companyName: fixAllCapsCompanyName(job.companyName.trim()),
+    location: job.location?.trim() || null,
+    description: job.description?.trim() || null,
+    level,
+    sourceCategory: job.sourceCategory?.trim() || null,
+    badges: job.badges ?? [],
+    salaryMin: job.salaryMin ?? null,
+    salaryMax: job.salaryMax ?? null,
+    salaryCurrency: job.salaryCurrency?.trim() || null,
+  }
+}
+
+type RowData = ReturnType<typeof rowData>
+
+function changed(before: Record<string, unknown>, after: RowData): boolean {
+  return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
+}
+
+async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
+  const stale = { addedBy: 'ncrawl', archivedAt: null, OR: [{ lastConfirmedAt: null }, { lastConfirmedAt: { lt: startedAt } }] }
+  const [live, wouldArchive] = await Promise.all([
+    prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null } }),
+    prisma.exclusiveJobPosting.count({ where: stale }),
+  ])
+  if (!force && live > 0 && wouldArchive / live > MAX_ARCHIVE_SHARE) {
+    return NextResponse.json(
+      {
+        error: `Refusing to archive ${wouldArchive} of ${live} live ncrawl jobs (over ${MAX_ARCHIVE_SHARE * 100}%). That usually means the crawl broke. Check the run, then re-send with force: true if the drop is real.`,
+        wouldArchive,
+        live,
+      },
+      { status: 409 }
+    )
+  }
+  if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
+  const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
+  return NextResponse.json({ archived: result.count, live: live - result.count })
 }
 
 export async function POST(request: NextRequest) {
@@ -58,83 +144,76 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
+  if (body.finalizeSync) {
+    const startedAt = new Date(body.finalizeSync.startedAt)
+    if (Number.isNaN(startedAt.getTime())) {
+      return NextResponse.json({ error: 'finalizeSync.startedAt must be an ISO timestamp' }, { status: 400 })
+    }
+    return finalize(startedAt, !!body.finalizeSync.force, !!body.dryRun)
+  }
+
   if (!Array.isArray(body.jobs)) {
     return NextResponse.json({ error: '"jobs" must be an array' }, { status: 400 })
   }
 
-  const errors: { url: string | null; reason: string }[] = []
-  const validJobs = body.jobs.filter((job) => {
-    if (isValidJob(job)) return true
-    errors.push({ url: (job as { url?: string })?.url ?? null, reason: 'missing required field (title, companyName, or url)' })
-    return false
+  const { kept, skipped } = screen(body.jobs)
+  const urls = kept.map((k) => k.job.url)
+  const existing = await prisma.exclusiveJobPosting.findMany({
+    where: { url: { in: urls } },
+    select: {
+      id: true, url: true, title: true, companyName: true, location: true, description: true, level: true,
+      sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
+    },
   })
+  const existingByUrl = new Map(existing.map((e) => [e.url, e]))
+  const toCreate = kept.filter((k) => !existingByUrl.has(k.job.url))
+  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url))
 
   if (body.dryRun) {
-    const urls = validJobs.map((j) => j.url)
-    const existing = await prisma.exclusiveJobPosting.findMany({
-      where: { url: { in: urls } },
-      select: { url: true },
-    })
-    const existingUrls = new Set(existing.map((e) => e.url))
     return NextResponse.json({
       dryRun: true,
-      wouldCreate: validJobs.filter((j) => !existingUrls.has(j.url)).length,
-      wouldUpdate: validJobs.filter((j) => existingUrls.has(j.url)).length,
+      wouldCreate: toCreate.length,
+      wouldUpdate: toUpdate.length,
       wouldArchive: body.fullSync
-        ? await prisma.exclusiveJobPosting.count({
-            where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } },
-          })
+        ? await prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } } })
         : 0,
-      skipped: errors,
+      skipped,
     })
   }
 
-  const expiresAt = new Date(Date.now() + THIRTY_DAYS_MS)
-  const urls = validJobs.map((j) => j.url)
-  const existingBefore = await prisma.exclusiveJobPosting.findMany({
-    where: { url: { in: urls } },
-    select: { url: true },
-  })
-  const existingUrlSet = new Set(existingBefore.map((e) => e.url))
-  let created = 0
-  let updated = 0
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
 
-  for (const job of validJobs) {
-    if (existingUrlSet.has(job.url)) updated++
-    else created++
-
-    const data = {
-      title: job.title.trim(),
-      companyName: fixAllCapsCompanyName(job.companyName.trim()),
-      location: job.location?.trim() || null,
-      description: job.description?.trim() || null,
-      level: job.level?.trim() || null,
-      sourceCategory: job.sourceCategory?.trim() || null,
-      badges: job.badges ?? [],
-      salaryMin: job.salaryMin ?? null,
-      salaryMax: job.salaryMax ?? null,
-      salaryCurrency: job.salaryCurrency?.trim() || null,
-    }
-
-    await prisma.exclusiveJobPosting.upsert({
-      where: { url: job.url },
-      create: {
-        ...data,
-        url: job.url,
+  if (toCreate.length > 0) {
+    await prisma.exclusiveJobPosting.createMany({
+      data: toCreate.map((k) => ({
+        ...rowData(k),
+        url: k.job.url,
         addedBy: 'ncrawl',
         source: 'ats_feed',
         status: 'approved',
         postingType: 'direct',
         contactName: null,
         expiresAt,
-      },
-      update: {
-        ...data,
-        archivedAt: null,
-        expiresAt,
-        lastConfirmedAt: new Date(),
-      },
+        lastConfirmedAt: now,
+      })),
+      skipDuplicates: true,
     })
+  }
+
+  // Every row still in the feed is reconfirmed in one statement; only rows
+  // whose content actually changed get their own update.
+  if (toUpdate.length > 0) {
+    await prisma.exclusiveJobPosting.updateMany({
+      where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
+      data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
+    })
+    const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
+    for (let i = 0; i < edits.length; i += 100) {
+      await prisma.$transaction(
+        edits.slice(i, i + 100).map((k) => prisma.exclusiveJobPosting.update({ where: { url: k.job.url }, data: rowData(k) }))
+      )
+    }
   }
 
   let archived = 0
@@ -146,5 +225,5 @@ export async function POST(request: NextRequest) {
     archived = result.count
   }
 
-  return NextResponse.json({ created, updated, archived, skipped: errors })
+  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })
 }

@@ -1,3 +1,4 @@
+import { SENIORITY_GROUPS, seniorityGroupOf } from '@/lib/jobs/job-seniority'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
@@ -416,6 +417,13 @@ export default async function ExclusiveJobsAdminPage() {
             {activeAtsFeedCount.toLocaleString()} of those are ATS-fed listings, managed automatically by the daily
             feed sync (reconfirmed or archived on their own) — not listed individually here. The rows below are the
             ones that need a person to keep an eye on them.
+          </p>
+        )}
+        {activeAtsFeedCount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            By seniority:{' '}
+            {SENIORITY_GROUPS.map((g) => `${g.label} ${active.filter((p) => p.source === 'ats_feed' && seniorityGroupOf(p.level) === g.key).length.toLocaleString()}`).join(' · ')}
+            . Jobs below manager level (entry-level, hourly, frontline) are screened out before they get here.
           </p>
         )}
         {activeManaged.length === 0 ? (

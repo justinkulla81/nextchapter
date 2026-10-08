@@ -7,6 +7,7 @@ import { inferFunctionFromTitle, inferCalibratedLevelRank } from '@/lib/jobs/inf
 import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { screenJobTitle } from '@/lib/jobs/job-seniority'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -187,6 +188,7 @@ export interface AtsFeedResult {
   reconfirmed: number
   skippedNoFit: number
   skippedNonUs: number
+  skippedBelowFloor: number
 }
 
 // Prompt 63, later upgraded — seeds NC Job Board with listings pulled
@@ -255,10 +257,11 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   )
 
   const toReconfirmIds: string[] = []
-  const toCreate: FeedListing[] = []
+  const toCreate: (FeedListing & { level: string })[] = []
   const seenUrls = new Set<string>()
   let skippedNoFit = 0
   let skippedNonUs = 0
+  let skippedBelowFloor = 0
 
   for (const listing of allListings) {
     if (seenUrls.has(listing.url)) continue // defensive de-dupe within one run
@@ -279,6 +282,14 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     // anyone in the pool regardless of function match.
     if (!isUsLocation(listing.location)) {
       skippedNonUs += 1
+      continue
+    }
+
+    // Manager and up, plus senior individual roles — the same screen every
+    // automated feed applies (see job-seniority.ts).
+    const seniority = screenJobTitle(listing.title)
+    if (!seniority.keep) {
+      skippedBelowFloor += 1
       continue
     }
 
@@ -304,7 +315,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
       continue
     }
 
-    toCreate.push(listing)
+    toCreate.push({ ...listing, level: seniority.level })
   }
 
   if (toReconfirmIds.length > 0) {
@@ -330,6 +341,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
         salaryMax: listing.salaryMax,
         salaryCurrency: listing.salaryCurrency,
         addedBy: 'ats_feed',
+        level: listing.level,
         expiresAt: new Date(Date.now() + THIRTY_DAYS_MS),
       })),
     })
@@ -341,5 +353,6 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     reconfirmed: toReconfirmIds.length,
     skippedNoFit,
     skippedNonUs,
+    skippedBelowFloor,
   }
 }
