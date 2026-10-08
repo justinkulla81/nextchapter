@@ -187,7 +187,7 @@ async function applyJobSearchDailyEvent(event: ResendEvent, emailId: string): Pr
     case 'email.clicked': {
       // The unsubscribe link is a click too, but not engagement.
       const link = event.data.click?.link ?? null
-      if (link?.includes('/api/unsubscribe/')) break
+      if (link?.includes('/api/unsubscribe/') || link?.includes('/api/e/jsd')) break // own tracker records these
       await prisma.jobSearchDailySend.update({
         where: { id: send.id },
         data: { clickedAt: send.clickedAt ?? at, clickCount: { increment: 1 }, lastClickLink: link?.slice(0, 500) ?? null },

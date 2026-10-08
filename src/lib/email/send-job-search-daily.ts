@@ -13,6 +13,7 @@ import {
   type JobSearchDailyContent,
 } from '@/lib/job-search-daily/build'
 import JobSearchDailyEmail from '@/emails/job-search-daily'
+import { buildClickUrl, wrapHrefs } from '@/lib/job-search-daily/click-link'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
 
@@ -88,6 +89,10 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
     return { sent: false, reason: 'already sent today' } as SendResult
   }
 
+  // Links in real sends go through our own click tracker (test sends stay plain).
+  const sendId = crypto.randomUUID()
+  const tracked = options.toOverride ? content : wrapHrefs(content, (url) => buildClickUrl(appUrl, sendId, url))
+
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { data: sendData, error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
@@ -95,7 +100,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
     to,
     subject,
     react: JobSearchDailyEmail({
-      content,
+      content: tracked,
       masthead: candidate.confidentialSearchMode ? 'NextChapter Daily' : 'Job Search Daily',
       weekday,
       appUrl,
@@ -125,7 +130,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
     // opens and clicks to this candidate (see applyResendEvent).
     if (sendData?.id) {
       await prisma.jobSearchDailySend
-        .create({ data: { candidateId, resendEmailId: sendData.id } })
+        .create({ data: { id: sendId, candidateId, resendEmailId: sendData.id } })
         .catch((e) => console.error('Failed to record Job Search Daily send:', e))
     }
     const keys = shownItemKeys(content)
