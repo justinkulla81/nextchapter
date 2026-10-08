@@ -8,6 +8,7 @@ export interface RotationContext {
   dossierUnlocked: boolean
   referencesMet: boolean
   gmailConnected: boolean
+  calendarConnected: boolean
   recruiterDatabaseOptIn: boolean
   trackedCompanyCount: number
   checkedInToday: boolean
@@ -72,10 +73,11 @@ export const UNLOCK_NUDGES: UnlockNudge[] = [
   },
   {
     id: 'gmail',
-    title: 'Connect your email so we track every reply for you',
-    detail: 'We track replies and follow-ups for you, so nobody falls through the cracks.',
+    title: 'Connect Gmail and Calendar so we can tailor your advice',
+    detail:
+      'It lets us give you sharper job application, networking, learning and fractional job advice, and track replies so nobody falls through the cracks.',
     path: '/dashboard/network',
-    done: (c) => c.gmailConnected,
+    done: (c) => c.gmailConnected && c.calendarConnected,
   },
   {
     id: 'recruiter-db',

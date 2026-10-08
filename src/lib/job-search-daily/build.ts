@@ -339,6 +339,15 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const networking = [...repliesOwed, ...starred, ...(reconnect ? [reconnect] : []), ...stale.slice(0, MAX_STALE_SHOWN)]
   const networkingMoreCount = Math.max(0, stale.length - MAX_STALE_SHOWN)
 
+  const todayStart = new Date(now)
+  todayStart.setUTCHours(0, 0, 0, 0)
+  const gmailConnected =
+    (await prisma.emailConnection.count({
+      where: { candidateId: candidate.id, disconnectedAt: null },
+    })) > 0
+  const calendarConnected =
+    (await prisma.calendarConnection.count({ where: { candidateId: candidate.id, disconnectedAt: null } })) > 0
+
   // ── Interviews: tie the generic to-dos to something real ──────────────
   // Only interviews for a job the candidate told us about (they marked "I got
   // an interview"), never a calendar guess — a school or press "interview" on
@@ -423,6 +432,28 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
       href: topHref(a.href ?? jobsUrl),
     })
   }
+  // Standing actions. The daily check-in (still searching, how you're feeling)
+  // and connecting Gmail/Calendar are never urgent, so they rank below
+  // anything someone is waiting on — but for a candidate who hasn't connected,
+  // the urgent items don't exist yet, and this is the first step that makes
+  // every other piece of advice better.
+  if (!(candidate.lastCheckInAt && candidate.lastCheckInAt >= todayStart)) {
+    candidatesForTop.push({
+      key: 'check-in',
+      lead: '1 minute:',
+      text: 'Check in: are you still searching, and how are you feeling about it?',
+      href: topHref(withSrc('/dashboard')),
+    })
+  }
+  if (!gmailConnected || !calendarConnected) {
+    const what = !gmailConnected && !calendarConnected ? 'Gmail and Calendar' : !gmailConnected ? 'Gmail' : 'Calendar'
+    candidatesForTop.push({
+      key: 'connect',
+      lead: '2 minutes:',
+      text: `Connect ${what} so we can give you better job application, networking, learning and fractional job advice`,
+      href: topHref(withSrc('/dashboard/network')),
+    })
+  }
   if (todosForToday[0]) {
     candidatesForTop.push({
       key: 'todo:0',
@@ -459,17 +490,12 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
         .map((s) => s.itemKey.slice(prefix.length))
     )
   }
-  const todayStart = new Date(now)
-  todayStart.setUTCHours(0, 0, 0, 0)
-  const gmailConnected =
-    (await prisma.emailConnection.count({
-      where: { candidateId: candidate.id, disconnectedAt: null },
-    })) > 0
   const ctx: RotationContext = {
     skillsAssessmentDone: !!candidate.skillsAssessmentCompletedAt,
     dossierUnlocked: dossier.unlocked,
     referencesMet: dossier.referencesMet,
     gmailConnected,
+    calendarConnected,
     recruiterDatabaseOptIn: candidate.recruiterDatabaseOptIn,
     trackedCompanyCount: watchlist.length,
     checkedInToday: !!candidate.lastCheckInAt && candidate.lastCheckInAt >= todayStart,
