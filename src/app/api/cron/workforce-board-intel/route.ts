@@ -3,6 +3,7 @@ import { syncBoardPartners } from '@/lib/workforce/partners'
 import { refreshBoardNews } from '@/lib/workforce/board-news'
 import { refreshCountyLabor } from '@/lib/workforce/labor'
 import { derivePlaceCounties } from '@/lib/workforce/match'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { addBoardContactsToCrm } from '@/lib/workforce/board-crm'
 import { addCollegeContactsToCrm } from '@/lib/workforce/college-crm'
 import { guessHrLeaderEmails, guessUniversityEmails } from '@/lib/crm/guess-emails'
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
   const labor = await run(() => refreshCountyLabor(60_000))
   const boardsCrm = await run(() => addBoardContactsToCrm(40_000))
   const collegesCrm = await run(() => addCollegeContactsToCrm(40_000))
+  captureServerEvent('cron', 'crm_workforce_contacts_synced', { boards: boardsCrm, colleges: collegesCrm })
   // Guessed addresses for people at universities with none, from each
   // university's own format; cleared once a real address arrives.
   const emails = await run(() => guessUniversityEmails())
