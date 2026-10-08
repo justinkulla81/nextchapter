@@ -403,23 +403,26 @@ export function parseMichiganWarn(buf: Buffer): WarnRow[] {
   const out: WarnRow[] = []
   for (const r of data.Results ?? []) {
     const html = r.Html ?? ''
-    const employer = stripTags(html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1] ?? '').trim()
+    // Newer notices put the company in an <h3>; older ones in the title link.
+    const employer = stripTags(
+      html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1] ?? html.match(/class="content-title-link"[^>]*>([\s\S]*?)<\/a>/i)?.[1] ?? '',
+    ).trim()
     if (!employer) continue
-    // label → the text after it, up to the end of its list item.
+    // label → the text after it, up to the end of its list item or line.
     const field = (label: RegExp) => {
-      const m = html.match(new RegExp(`<strong>\\s*${label.source}\\s*:?\\s*<\\/strong>([\\s\\S]*?)<\\/li>`, 'i'))
-      return m ? stripTags(m[1]).replace(/\s+/g, ' ').trim() || null : null
+      const m = html.match(new RegExp(`<strong>\\s*${label.source}\\s*:?\\s*<\\/strong>([\\s\\S]*?)(?:<br|<\\/li>|<\\/p>)`, 'i'))
+      return m ? stripTags(m[1]).replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() || null : null
     }
     // Several sites: the first one (the nested list's first item).
     const multi = html.match(/Site addresses[\s\S]*?<li[^>]*>([\s\S]*?)<\/li>/i)?.[1]
-    const address = (multi ? stripTags(multi) : field(/Site address/))?.replace(/\s+/g, ' ').trim() || null
+    const address = (multi ? stripTags(multi) : field(/Site address/) ?? field(/City/))?.replace(/\s+/g, ' ').trim() || null
     const posted = r.Path?.match(/SearchData\/(\d{4})\/(\d{2})\/(\d{2})/i)
     out.push({
       state: 'MI',
       employer,
       normalizedEmployer: normalizeOrgName(employer),
       noticeDate: posted ? new Date(Date.UTC(Number(posted[1]), Number(posted[2]) - 1, Number(posted[3]))) : null,
-      effectiveDate: parseDate(field(/Layoff date/)),
+      effectiveDate: parseDate(field(/Layoff date/) ?? field(/Commencing date/)),
       employees: parseCount(field(/Number of jobs impacted/)),
       layoffType: field(/Type of company action/),
       county: field(/County/),

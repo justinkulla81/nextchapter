@@ -26,6 +26,17 @@ describe('Michigan WARN', () => {
     expect(day(d.effectiveDate)).toBe('2026-12-31')
     expect(day(d.noticeDate)).toBe('2026-09-10')
   })
+  it('reads the older layout too (title link, fields on lines)', () => {
+    const json = JSON.stringify({ Results: [{
+      Path: '/sitecore/content/x/SearchData/2026/04/17/13/05/Samaritas',
+      Html: '<div><a class="content-title-link" href="/x.pdf">Samaritas</a></div><div><p><strong>Type of company action:</strong> Facility closure<br /> <strong>City:</strong> Grand Rapids, Michigan<br /> <strong>County:</strong> Kent<br /> <strong>Commencing date:</strong> 3/31/26<br /> <strong>Number of jobs impacted:</strong> 58</p></div>',
+    }] })
+    const [r] = parseMichiganWarn(Buffer.from(json))
+    expect(r).toMatchObject({ employer: 'Samaritas', employees: 58, county: 'Kent', address: 'Grand Rapids, Michigan', layoffType: 'Facility closure' })
+    expect(day(r.effectiveDate)).toBe('2026-03-31')
+    expect(day(r.noticeDate)).toBe('2026-04-17')
+  })
+
   it('takes the first site of a notice with several', () => {
     const multi = rows.find((r) => /rugged liner/i.test(r.employer))
     if (multi) expect(multi.address).toMatch(/Owosso/i)
