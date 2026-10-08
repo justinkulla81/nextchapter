@@ -23,7 +23,7 @@ const LABEL = 'text-sm font-semibold text-navy'
  * recruiter for their practice, a job applicant for the role and LinkedIn. The action hands typed values back on an
  * error, so fields refill after React's post-submit reset.
  */
-export function ContactForm({ initialAudience }: { initialAudience: ContactAudience }) {
+export function ContactForm({ initialAudience, source }: { initialAudience: ContactAudience; source?: string }) {
   const posthog = usePostHog()
   const [audience, setAudience] = useState<ContactAudience>(initialAudience)
   const [state, action, pending] = useActionState<ContactFormState, FormData>(submitContactForm, undefined)
@@ -63,6 +63,8 @@ export function ContactForm({ initialAudience }: { initialAudience: ContactAudie
           {CONTACT_AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
         </select>
       </div>
+
+      {source && <input type="hidden" name="source" value={source} />}
 
       {/* Hidden from people; bots fill it in. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">

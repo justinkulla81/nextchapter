@@ -17,7 +17,7 @@ const AUDIENCES = new Set<ContactAudience>(['CANDIDATE', 'ORGANIZATION', 'COACH_
 const MAX_PER_HOUR_PER_IP = 5
 // Forms on other pages that post here. An allowlist: the value is stored
 // and shown to admins, so it is never whatever the browser sent.
-const SOURCES = new Set(['why-stuck', 'about'])
+const SOURCES = new Set(['why-stuck', 'about', 'recruiters', 'organizations'])
 
 export async function submitContactForm(_prev: ContactFormState, formData: FormData): Promise<ContactFormState> {
   const text = (k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)

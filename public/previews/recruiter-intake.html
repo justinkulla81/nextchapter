@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NextChapter for Recruiters: interactive preview</title>
+<style>
+  :root { color-scheme: light;
+    --cream:#f0eee4; --ink:#38261c; --teal:#2b3b3b; --olive:#8f8c78; --oliveDark:#767360; --line:rgba(56,38,28,.18); --paper:#f7f6ef;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#dcd9cc; color:var(--ink); font:16px/1.5 "Helvetica Neue",Arial,sans-serif; }
+  .serif { font-family:"Cormorant Garamond","Ivy Presto Display",Georgia,serif; font-weight:300; }
+  .preview { background:#1b1b1b; color:#e9e6da; font-size:12px; padding:8px 16px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .preview .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .preview button { background:transparent; color:#e9e6da; border:1px solid #555; border-radius:999px; padding:5px 12px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .preview button[aria-selected="true"] { background:#e9e6da; color:#1b1b1b; border-color:#e9e6da; }
+  .frame { max-width:1180px; margin:0 auto; background:var(--cream); }
+  .up { text-transform:uppercase; letter-spacing:.14em; font-size:13px; }
+  a { color:inherit; }
+  /* header */
+  .hdr { position:absolute; left:0; right:0; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 36px; border-bottom:1px solid rgba(240,238,228,.55); color:var(--cream); flex-wrap:wrap; }
+  .hdr img { width:170px; display:block; }
+  .nav { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  .nav span { cursor:default; }
+  .gt { background:var(--cream); color:var(--teal); padding:13px 26px; }
+  .hero { position:relative; height:640px; background:#222 linear-gradient(135deg,#46585a,#1e2a2b) center 30%/cover; display:flex; align-items:flex-end; justify-content:center; text-align:center; }
+  .hero::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,24,24,.35) 0%,rgba(20,24,24,.15) 40%,rgba(20,24,24,.72) 100%); }
+  .hero .in { position:relative; z-index:1; color:var(--cream); padding:0 24px 56px; max-width:860px; }
+  .hero h1 { font-size:54px; line-height:1.08; margin:0 0 26px; }
+  .hero h1 em { font-style:italic; }
+  .btn { display:inline-block; background:var(--olive); color:#fff; padding:15px 32px; border:0; cursor:pointer; font-family:inherit; text-transform:uppercase; letter-spacing:.14em; font-size:13px; }
+  .btn:hover { background:var(--oliveDark); }
+  .btn.cream { background:var(--cream); color:var(--teal); }
+  .intro { text-align:center; padding:64px 36px 24px; }
+  .intro .eyebrow { margin-bottom:14px; }
+  .intro h2 { font-size:42px; line-height:1.12; margin:0 auto; max-width:820px; font-style:italic; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:48px; }
+  .two .img { background:linear-gradient(135deg,#46585a,#1e2a2b) center/cover; min-height:340px; }
+  .two .txt { background:var(--teal); color:var(--cream); padding:56px 48px; display:flex; flex-direction:column; justify-content:center; gap:16px; }
+  .two .txt h3 { font-size:36px; line-height:1.1; margin:0; }
+  .two .txt p { margin:0; opacity:.88; }
+  .footer { background:#202b2b; color:var(--cream); padding:36px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; font-size:13px; }
+  .footer img { width:150px; }
+  .footer small { opacity:.7; }
+  /* modal */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(20,24,24,.62); padding:16px; overflow:auto; z-index:10; }
+  .overlay.open { display:block; }
+  .modal { background:var(--cream); max-width:640px; margin:24px auto; padding:34px 38px 30px; position:relative; }
+  .modal h3 { font-size:38px; margin:0 0 6px; }
+  .x { position:absolute; top:14px; right:18px; background:none; border:0; font-size:26px; cursor:pointer; color:var(--ink); }
+  .exp { border-left:2px solid var(--olive); padding:4px 0 4px 16px; margin:14px 0 18px; font-size:14.5px; }
+  .exp b { display:block; margin-bottom:4px; }
+  .exp ul { margin:0; padding-left:18px; }
+  .fld { margin-bottom:14px; }
+  .fld label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px; color:var(--teal); }
+  .fld .in { border:0; border-bottom:1px solid var(--ink); padding:7px 0; color:#7a6f66; font-size:15px; }
+  .drop { border:1px dashed var(--ink); padding:18px; text-align:center; font-size:14px; margin-bottom:16px; }
+  .join { background:var(--paper); border:1px solid var(--olive); padding:14px 16px; font-size:14.5px; margin-bottom:18px; }
+  .join label { display:flex; gap:10px; cursor:pointer; }
+  .join small { display:block; margin:8px 0 0 26px; opacity:.78; font-size:12.5px; line-height:1.45; }
+  .fine { font-size:12px; opacity:.72; margin:14px 0 0; }
+  /* email */
+  .mail { max-width:700px; margin:0 auto; padding:28px 16px; }
+  .mailmeta { font-size:13px; color:#555; margin-bottom:10px; }
+  .mailmeta b { color:#222; }
+  .mailbody { background:var(--cream); }
+  .mailhead { background:var(--teal); padding:22px 30px; }
+  .mailhead img { width:170px; display:block; }
+  .mailcontent { padding:34px 38px 30px; }
+  .mailcontent h3 { font-size:34px; margin:0 0 14px; line-height:1.1; }
+  .mailcontent p { margin:0 0 14px; }
+  .steps { margin:18px 0; border-top:1px solid var(--line); }
+  .steps div { padding:12px 0; border-bottom:1px solid var(--line); display:flex; gap:14px; font-size:14.5px; }
+  .steps b { min-width:24px; font-family:"Cormorant Garamond",Georgia,serif; font-size:22px; color:var(--olive); line-height:1; }
+  .mailfoot { padding:18px 38px 26px; font-size:12px; opacity:.72; border-top:1px solid var(--line); }
+  /* pipeline */
+  .bar { background:var(--teal); color:var(--cream); padding:18px 36px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .bar img { width:160px; display:block; }
+  .app { padding:30px 36px 40px; }
+  .app h2 { font-size:40px; margin:0 0 4px; line-height:1.1; }
+  .app .lede { margin:0 0 20px; opacity:.85; max-width:760px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px; }
+  .stat { background:var(--paper); border:1px solid var(--line); padding:12px 14px; }
+  .stat b { font:300 34px/1 "Cormorant Garamond",Georgia,serif; display:block; }
+  .stat span { font-size:12px; text-transform:uppercase; letter-spacing:.1em; opacity:.75; }
+  .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  select { background:var(--paper); border:1px solid var(--line); color:var(--ink); padding:8px 10px; font:inherit; font-size:13px; }
+  .hint { font-size:12px; opacity:.7; }
+  .tablewrap { overflow-x:auto; border:1px solid var(--line); background:var(--paper); }
+  table { border-collapse:collapse; width:100%; min-width:1040px; font-size:14px; }
+  th { text-align:left; padding:11px 12px; border-bottom:1px solid var(--ink); font-size:11.5px; text-transform:uppercase; letter-spacing:.12em; font-weight:700; white-space:nowrap; cursor:pointer; user-select:none; }
+  th[data-dir="asc"]::after { content:" \25B2"; font-size:9px; } th[data-dir="desc"]::after { content:" \25BC"; font-size:9px; }
+  td { padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr.row { cursor:pointer; } tr.row:hover td { background:#efede2; }
+  tr.detail td { background:#efede2; font-size:13.5px; }
+  .sub { font-size:12px; opacity:.72; }
+  .chip { display:inline-block; padding:2px 10px; font-size:12px; letter-spacing:.04em; white-space:nowrap; }
+  .hi { background:var(--teal); color:var(--cream); } .md { background:var(--olive); color:#fff; } .lo { background:#e4e0d2; color:#6d6358; }
+  .ok { border-bottom:2px solid var(--teal); } .no { border-bottom:2px solid #c9b8a3; color:#8a7b6d; }
+  .grade { font:400 22px/1 "Cormorant Garamond",Georgia,serif; border:1px solid var(--ink); padding:1px 8px; }
+  .stars { color:#b5892b; letter-spacing:1px; white-space:nowrap; }
+  a.dos { text-decoration:underline; color:var(--teal); }
+  .seen { font-size:12.5px; border:1px solid var(--line); padding:3px 6px; background:#fff; }
+  .pfoot { margin-top:14px; font-size:12px; opacity:.75; }
+  [hidden] { display:none !important; }
+  @media (max-width:760px){ .hero h1{font-size:34px} .two{grid-template-columns:1fr} .hdr{position:static;background:var(--teal)} .hero{height:480px} .intro h2{font-size:30px} .modal{padding:26px 22px} }
+  .atabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .at { background:transparent; border:1px solid var(--ink); color:var(--ink); padding:8px 16px; font:12px "Helvetica Neue",Arial,sans-serif; text-transform:uppercase; letter-spacing:.12em; cursor:pointer; }
+  .at[aria-selected="true"] { background:var(--teal); color:var(--cream); border-color:var(--teal); }
+  .vbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; font-size:13px; }
+  .seg { display:inline-flex; border:1px solid var(--ink); }
+  .seg button { border:0; background:transparent; color:var(--ink); padding:7px 12px; font:12px "Helvetica Neue",Arial,sans-serif; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--ink); color:var(--cream); }
+  .who { background:#e7e4d6; padding:9px 12px; font-size:13.5px; margin-bottom:14px; }
+  .un { color:#8a3b3b; font-weight:700; }
+  .mini { border:1px solid var(--teal); background:transparent; color:var(--teal); padding:4px 8px; font:12px "Helvetica Neue",Arial,sans-serif; margin:2px 2px 0 0; cursor:pointer; }
+  .mini[disabled] { background:#dce3e1; border-color:transparent; cursor:default; }
+  .chips2 { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 8px; }
+  .chips2 .chip, td .chip { background:#e4e0d2; color:var(--ink); }
+  .chips2 .chip.hi, td .chip.hi { background:var(--teal); color:var(--cream); }
+  td .chip.md { background:var(--olive); color:#fff; } td .chip.lo { background:#e4e0d2; color:#6d6358; }
+  .steps code { background:#e7e4d6; padding:2px 6px; font-size:12.5px; word-break:break-all; }
+  a.dos { color:var(--teal); text-decoration:underline; }
+  .barr { display:flex; align-items:center; gap:14px; }
+  .gear { background:transparent; border:1px solid rgba(240,238,228,.5); color:var(--cream); width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+  .gear:hover { background:rgba(240,238,228,.12); }
+  .co { font-size:11px; text-transform:uppercase; letter-spacing:.1em; background:var(--olive); color:#fff; padding:1px 7px; }
+  tr.mrow { cursor:pointer; } tr.mrow:hover td { background:#efede2; }
+  tr.mdet td { background:#efede2; }
+  .ncmark { display:inline-flex; align-items:center; gap:7px; font-size:12px; }
+  .ncmark b { font-weight:700; }
+  .ncmark.light { color:var(--cream); opacity:.85; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(440px,100%); background:var(--cream); border-left:1px solid var(--ink); box-shadow:-12px 0 32px rgba(0,0,0,.18); padding:20px 22px 28px; overflow:auto; z-index:20; }
+  .drawer[hidden] { display:none; }
+  .dh { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .dn { font:300 30px/1.05 "Cormorant Garamond",Georgia,serif; }
+  .dx { background:none; border:0; font-size:28px; cursor:pointer; color:var(--ink); line-height:1; }
+  .dchips { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px; }
+  .dchips .chip { background:#e4e0d2; color:var(--ink); } .dchips .chip.hi { background:var(--teal); color:var(--cream); } .dchips .chip.md { background:var(--olive); color:#fff; }
+  .dsec { border-top:1px solid var(--line); margin-top:14px; padding-top:12px; font-size:14px; }
+  .grow { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .bar2 { display:grid; grid-template-columns:140px 1fr 28px; gap:8px; align-items:center; font-size:12.5px; margin:4px 0; }
+  .bar2 i { display:block; height:6px; background:#e4e0d2; } .bar2 u { display:block; height:6px; background:var(--teal); } .bar2 em { font-style:normal; text-align:right; }
+  .trow { display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .trow:last-child { border-bottom:0; }
+  .tact { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+  .tchip { font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; padding:2px 8px; background:#e4e0d2; white-space:nowrap; }
+  .tchip.done { background:var(--teal); color:var(--cream); } .tchip.prog { background:var(--olive); color:#fff; } .tchip.req { background:#e8e5d0; border:1px solid var(--olive); }
+  .rate button { background:none; border:0; font-size:22px; color:#cbbf9c; cursor:pointer; padding:0 2px; } .rate button.on { color:#b5892b; }
+  .drawer textarea { width:100%; border:1px solid var(--line); background:var(--paper); padding:8px 10px; font:14px "Helvetica Neue",Arial,sans-serif; margin-top:6px; }
+  .dact { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+  a.cand { color:inherit; text-decoration:none; border-bottom:1px dotted var(--ink); } a.cand:hover { color:var(--teal); border-bottom-style:solid; }
+  .fg { display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--card, #fff); }
+  .fg .fl { padding:6px 9px; font-size:12px; opacity:.7; border-right:1px solid var(--line); }
+  .fg button { border:0; background:transparent; color:inherit; padding:7px 11px; font:inherit; font-size:13px; cursor:pointer; border-right:1px solid var(--line); }
+  .fg button:last-child { border-right:0; }
+  .fg button[aria-pressed="true"] { background:var(--ink); color:var(--bg, #f0eee4); }
+  body.busy, body.busy * { cursor:wait !important; }
+  .chip.str { background:transparent !important; color:var(--teal) !important; border:1px solid var(--teal); }
+  .chip.str.est { border-style:dashed; opacity:.8; }
+  .chip.ncref { background:var(--olive) !important; color:#fff !important; }
+  .legend { margin-top:10px; font-size:12.5px; opacity:.85; max-width:760px; }
+  .dchips .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.1em; opacity:.7; align-self:center; }
+  .sub-hdr { }
+  .optrow { display:inline-flex; border:1px solid var(--ink); margin:4px 0; }
+  .opt { border:0; border-right:1px solid var(--ink); background:transparent; color:var(--ink); padding:10px 16px; font:12px "Helvetica Neue",Arial,sans-serif; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; }
+  .opt:last-child { border-right:0; } .opt[aria-pressed="true"] { background:var(--ink); color:var(--cream); }
+  .backmail { font-size:13px; }
+  .meter { display:grid; grid-template-columns:110px 1fr 36px; gap:10px; align-items:center; font-size:13px; margin:6px 0 12px; }
+  .meter i { display:block; height:8px; background:#e4e0d2; } .meter u { display:block; height:8px; background:var(--teal); transition:width .3s; } .meter em { font-style:normal; font-weight:700; text-align:right; }
+  .ctrow .tchip { margin-left:6px; }
+  .barr { gap:16px !important; }
+  .vdiv { width:1px; height:26px; background:rgba(240,238,228,.3); }
+  .ncmark svg { width:20px; height:20px; }
+  .ncmark.light { gap:8px; font-size:12.5px; opacity:.9; white-space:nowrap; }
+  .gear { width:36px !important; height:36px !important; border-color:rgba(240,238,228,.35) !important; }
+  .ctrow { align-items:center; padding:12px 0; }
+  .ctrow .tact { flex-direction:row; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; min-width:210px; }
+  .ctrow .btn, .ctrow .mini { min-width:182px; padding:10px 14px; font-size:12px; text-transform:uppercase; letter-spacing:.1em; text-align:center; }
+  .ctrow .mini { background:transparent; }
+  .ctrow .mini:hover { background:#e7e4d6; }
+  .ctrow .sub { max-width:34em; }
+  .ctrow .tchip { margin-left:0; }
+  .toolbar { display:flex; justify-content:space-between; align-items:flex-end; gap:6px 28px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin-bottom:22px; }
+  .toolbar .atabs { margin:0; gap:26px; }
+  .toolbar .at { border:0; border-bottom:2px solid transparent; background:transparent; color:var(--ink); opacity:.6; padding:10px 0; letter-spacing:.14em; }
+  .toolbar .at:hover { opacity:1; }
+  .toolbar .at[aria-selected="true"] { background:transparent; color:var(--ink); border-bottom-color:var(--teal); opacity:1; font-weight:700; }
+  .toolbar .vbar { margin:0 0 6px; gap:8px; font-size:12px; }
+  .toolbar .vbar label { opacity:.6; }
+  .toolbar .vbar select { border:0; border-bottom:1px solid var(--line); background:transparent; font-size:13px; font-weight:600; padding:4px 2px; }
+  .toolbar .seg { border-color:var(--line); }
+  .toolbar .seg button { padding:5px 10px; font-size:11px; }
+  .who { background:transparent; border-left:3px solid var(--olive); padding:4px 12px; margin-bottom:16px; font-size:13px; }
+  .ctrow .btn, .ctrow .mini { width:210px; white-space:nowrap; }
+  .ctrow .tact { min-width:220px; }
+  .mailfoot .ncmark { margin-right:12px; }
+  :root { color-scheme: light; }
+  .wm { font-family:"Cormorant Garamond",Georgia,serif; font-weight:400; font-size:25px; letter-spacing:.07em; text-transform:uppercase; color:var(--cream); line-height:1; display:inline-block; }
+  .wm.hasimg { background:#fff; padding:6px 10px; border-radius:2px; line-height:0; }
+  .wm img { max-height:34px; max-width:200px; display:block; }
+  .custom { background:#e7e4d6; border-bottom:1px solid var(--line); padding:8px 16px; display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; font-size:12.5px; }
+  .custom label { display:inline-flex; align-items:center; gap:6px; }
+  .custom input[type=text] { border:1px solid var(--line); background:var(--paper); padding:5px 8px; font:13px "Helvetica Neue",Arial,sans-serif; width:150px; }
+  .custom input[type=file] { max-width:180px; font-size:12px; }
+  .custom input[type=color] { width:32px; height:26px; padding:1px; border:1px solid var(--line); background:var(--paper); }
+  .cnote { opacity:.7; font-size:12px; }
+  .disc { max-width:1180px; margin:0 auto; padding:10px 16px 24px; font-size:12px; opacity:.7; }
+</style>
+</head>
+<body>
+
+
+<div class="preview">
+  <span>Interactive preview</span>
+  <span class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="site">1 · Candidate submits</button>
+    <button role="tab" aria-selected="false" data-tab="mail">2 · Candidate hears back</button>
+    <button role="tab" aria-selected="false" data-tab="app">3 · Your team and pipeline</button>
+  </span>
+</div>
+<div class="custom">
+  <label>Your firm <input id="cFirm" type="text" value="Your Firm" maxlength="32"></label>
+  <label>Logo <input id="cLogo" type="file" accept="image/*"></label>
+  <label>Photo <input id="cPhoto" type="file" accept="image/*"></label>
+  <label>Color <input id="cColor" type="color" value="#2b3b3b"></label>
+  <span class="cnote">Add your firm's name, logo, photo and color. They stay in your browser. Nothing is uploaded or saved.</span>
+</div>
+
+<!-- ===== 1. Website ===== -->
+<section id="site" class="frame">
+  <div style="position:relative">
+    <div class="hdr">
+      <span class="wm"><span class="fn">Your Firm</span></span>
+      <div class="nav up"><span>About Us</span><span>Our Process</span><span>Our Expertise</span><span>FAQ</span><span>Case Studies</span><span>Insights</span><span>Login</span><span class="gt">Get in Touch</span></div>
+    </div>
+    <div class="hero">
+      <div class="in">
+        <h1 class="serif">Executive headhunters that <em>deliver success</em> with world-class partnership</h1>
+        <button class="btn" id="open">Submit Your Resume</button>
+      </div>
+    </div>
+  </div>
+  <div class="intro">
+    <div class="eyebrow up">Results-driven executive recruiting</div>
+    <h2 class="serif">Considering your next leadership role? Let us know you are open to the conversation.</h2>
+  </div>
+  <div class="two">
+    <div class="img"></div>
+    <div class="txt">
+      <h3 class="serif">We review every resume against our current and upcoming searches.</h3>
+      <p>Submit your resume and we will consider you for Director, VP and C-suite roles. If you would like, join the NextChapter network for a free Market Reality Assessment and Resume Review.</p>
+      <div><button class="btn cream" id="open2">Submit Your Resume</button></div>
+    </div>
+  </div>
+  <div class="footer"><span class="wm"><span class="fn">Your Firm</span></span><small><span class="ncmark light"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span></small></div>
+</section>
+
+<!-- ===== 2. Email ===== -->
+<section id="mail" class="frame" hidden>
+  <div class="mail">
+    <div class="mailmeta"><b>From:</b> <span class="fn">Your Firm</span> &nbsp;·&nbsp; <b>To:</b> Dana R. &nbsp;·&nbsp; <b>Subject:</b> We received your resume</div>
+    <div class="mailbody">
+      <div class="mailhead"><span class="wm"><span class="fn">Your Firm</span></span></div>
+      <div class="mailcontent">
+        <h3 class="serif">Thank you, Dana. We have your resume.</h3>
+        <p>Here is what happens next, so you are never left guessing.</p>
+        <div class="steps">
+          <div><b>1</b><span>Our team reviews your resume against our current and upcoming searches at the Director, VP and C-suite level.</span></div>
+          <div><b>2</b><span>If there is a potential fit, one of our consultants will contact you directly. We cannot reply to every submission.</span></div>
+          <div><b>3</b><span>If there is no match today, we keep your resume on file for future searches. You can update or remove it any time.</span></div>
+        </div>
+        <p><b>Your status:</b> Received · Oct 7. You can check it any time.</p>
+        <p><button class="btn" id="goStatus" type="button">View my status</button></p>
+        <p style="margin-top:22px">You also asked to join the NextChapter network. Your free <b>Market Reality Assessment</b> and <b>Resume Review</b> are ready, whether or not we have a search that fits today.</p>
+        <p><button class="btn" id="goAssess" type="button" style="background:var(--teal)">Start my assessment</button></p>
+      </div>
+      <div class="mailfoot"><span class="ncmark"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span> You are receiving this because you submitted your resume to <span class="fn">Your Firm</span>. <u>Remove my resume</u></div>
+    </div>
+  </div>
+</section>
+
+<section id="mailstatus" class="frame" hidden>
+  <div class="mail">
+    <p><a href="#" class="dos backmail">&larr; Back to the email</a></p>
+    <div class="mailbody">
+      <div class="mailhead"><span class="wm"><span class="fn">Your Firm</span></span></div>
+      <div class="mailcontent">
+        <h3 class="serif">Your status, Dana</h3>
+        <div class="steps">
+          <div><b>1</b><span><b style="font-family:inherit;font-size:inherit;color:var(--teal)">Received</b> · Oct 7. We have your resume.</span></div>
+          <div><b>2</b><span><b style="font-family:inherit;font-size:inherit;color:var(--teal)">In review</b> · Now. Our team is comparing your resume with current and upcoming searches.</span></div>
+          <div><b>3</b><span>If there is a potential fit, a consultant contacts you directly.</span></div>
+          <div><b>4</b><span>If not, we keep your resume on file. You can update or remove it any time.</span></div>
+        </div>
+        <h3 class="serif" style="font-size:28px;margin:26px 0 4px">Make your file as strong as possible for recruiters</h3>
+        <p class="sub" style="margin:0 0 10px">Each step adds to your file strength. When you choose to share, recruiters see how strong your file is.</p>
+        <div class="meter"><span>File strength</span><i><u id="mfill" style="width:0%"></u></i><em id="mval">0</em></div>
+        <div id="chk"></div>
+      </div>
+      <div class="mailfoot"><span class="ncmark"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span> Remove my resume</div>
+    </div>
+  </div>
+</section>
+
+<section id="mailassess" class="frame" hidden>
+  <div class="mail">
+    <p><a href="#" class="dos backmail">&larr; Back to the email</a></p>
+    <div class="mailbody">
+      <div class="mailhead"><span class="wm"><span class="fn">Your Firm</span></span></div>
+      <div class="mailcontent">
+        <h3 class="serif">Your free Market Reality Assessment</h3>
+        <p>About 15 minutes. You get a grade, a resume review and an Executive Dossier you can use with any recruiter.</p>
+        <div class="steps">
+          <div><b>1</b><span>Tell us about your search and the roles you want.</span></div>
+          <div><b>2</b><span>Answer questions about your experience and how you work.</span></div>
+          <div><b>3</b><span>Get your grade and your resume review.</span></div>
+        </div>
+        <p><b>What <span class="fn">Your Firm</span> can see</b></p>
+        <div class="optrow" role="group" aria-label="Sharing with your firm">
+          <button type="button" class="opt" aria-pressed="true" data-o="none">Nothing yet</button>
+          <button type="button" class="opt" aria-pressed="false" data-o="grade">My grade</button>
+          <button type="button" class="opt" aria-pressed="false" data-o="all">Grade and dossier</button>
+        </div>
+        <p class="sub" id="optnote" style="margin-top:6px">You can change this any time.</p>
+        <p><button class="btn" id="beginAssess" type="button" style="background:var(--teal)">Start my assessment</button></p>
+      </div>
+      <div class="mailfoot"><span class="ncmark"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span> Your assessment belongs to you.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3. Recruiter app ===== -->
+<section id="app" class="frame" hidden>
+  <div class="bar"><span class="wm"><span class="fn">Your Firm</span></span><span class="barr"><span class="ncmark light"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span><span class="vdiv"></span><button class="gear" id="gear" type="button" aria-label="Website setup" title="Website setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></div>
+  <div class="app">
+    <div id="main">
+      <div class="toolbar">
+      <div class="atabs" role="tablist">
+        <button class="at" data-a="a1" aria-selected="true">New leads</button>
+        <button class="at" data-a="a5" aria-selected="false">Mandates</button>
+        <button class="at" data-a="a2" aria-selected="false">Pipeline</button>
+        <button class="at" data-a="a3" aria-selected="false">Team and focus</button>
+      </div>
+      <div class="vbar" id="vbar">
+        <label for="who">Signed in as</label><select id="who"></select>
+        <span class="seg"><button type="button" data-v="my" aria-pressed="true">My view</button><button type="button" data-v="firm" aria-pressed="false">Firm view</button></span>
+      </div>
+      </div>
+      <div id="a1"></div><div id="a5" hidden></div><div id="a2" hidden></div><div id="a3" hidden></div>
+    </div>
+    <div id="a4" hidden>
+      <p><a href="#" id="backsetup" class="dos">&larr; Back to workspace</a></p>
+      <h2 class="serif">Website setup</h2>
+      <p class="lede">Your site runs on Squarespace. It takes a button and a link.</p>
+      <div class="steps"><div><b>1</b><span>Copy your link: <code>launchyournextchapter.com/in/your-firm</code></span></div><div><b>2</b><span>Edit your page, add a Button, name it "Submit Your Resume" and paste the link.</span></div><div><b>3</b><span>Publish. Every resume lands in your pipeline and every visit is tracked to your firm.</span></div></div>
+      <h2 class="serif" style="margin-top:26px">Connections</h2>
+      <p class="lede">Recruiting software and ATS, CRM, email and calendar, spreadsheet export, and webhooks for anything else. We build the connections your team asks for first.</p>
+    </div>
+    <p class="pfoot">Grades, assessments and dossiers appear only for candidates who joined NextChapter and agreed to share them with <span class="fn">Your Firm</span>. Sample candidates, mandates and focus areas; team names and titles are from the public About page. </p>
+    <p class="pfoot"><span class="ncmark"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span></p>
+  </div>
+  <aside id="drawer" class="drawer" hidden aria-label="Candidate profile"></aside>
+</section>
+
+<!-- ===== Form modal ===== -->
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-label="Submit your resume">
+  <div class="modal">
+    <button class="x" id="close" aria-label="Close">&times;</button>
+    <h3 class="serif">Submit your resume</h3>
+    <div class="exp">
+      <b>What to expect</b>
+      <ul>
+        <li>We review each resume against our current and upcoming searches at the Director, VP and C-suite level.</li>
+        <li>We contact you only when there is a potential fit. We cannot reply to every submission.</li>
+        <li>If there is no match today, we keep your resume on file for future searches.</li>
+      </ul>
+    </div>
+    <div class="fld"><label>Full name</label><div class="in">Your name</div></div>
+    <div class="fld"><label>Email</label><div class="in">you@example.com</div></div>
+    <div class="fld"><label>Current or most recent title</label><div class="in">e.g. VP of Operations</div></div>
+    <div class="drop">Drop your resume here, or choose a file (PDF or Word, up to 10 MB)</div>
+    <div class="join">
+      <label><input type="checkbox" checked> <span><b>Join the NextChapter network (free).</b> Get a free Market Reality Assessment of your search and a free Resume Review.</span></label>
+      <small>If you join, you agree to share your NextChapter profile, assessment grade and Executive Dossier with <span class="fn">Your Firm</span>. You control what is shared and can change it any time.</small>
+    </div>
+    <button class="btn" id="send">Send my resume</button>
+    <p class="fine"><span class="ncmark"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="3" fill="#0b2545"/><text x="12" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">NC</text></svg><span>Powered by <b>NextChapter</b></span></span> Your resume goes to <span class="fn">Your Firm</span> and is not shared with other recruiters unless you choose that in NextChapter.</p>
+  </div>
+</div>
+
+<p class="disc">Interactive preview with sample candidates, mandates and focus areas. Resume intake powered by NextChapter.</p>
+<script>
+  const $ = (s, r=document) => r.querySelector(s);
+  const R = {
+    J:{name:'Avery Stone', role:'President, firm admin', bio:'Talent acquisition leader with hiring-manager experience at Fortune 500 companies.', focus:['C-suite','VP','Director'], also:['MedTech','Manufacturing','Commercial real estate','Multi-family real estate','Private aviation','UHNW services'], area:'Leadership hiring'},
+    T:{name:'Reese Cole', role:'Founder & CEO, firm admin', bio:'Founder. Executive search in information technology, pharmatech and emerging MedTech.', focus:['Information technology','MedTech'], also:['Pharmatech'], area:'Information technology'},
+    S:{name:'Quinn Ortiz', role:'Senior Search Consultant', bio:'Strategic talent acquisition across technical, operational and leadership functions.', focus:['Operations','Manufacturing'], also:['Technical leadership'], area:'Operations'},
+    M:{name:'Skyler Wynn', role:'Associate Search Consultant', bio:'Accounting and finance talent in energy and oil and gas.', focus:['Finance','Accounting'], also:['Energy, oil and gas'], area:'Finance'},
+    B:{name:'Devon Hale', role:'Associate Search Consultant', bio:'People operations and organizational support, with an HR background.', focus:['People operations'], also:['Organizational support'], area:'People operations'}
+  };
+  const OWNER = {'Information technology':'T','MedTech':'T','Operations':'S','Manufacturing':'S','Finance':'M','Accounting':'M','People operations':'B','Leadership hiring':'J','Commercial real estate':'J','Multi-family real estate':'J','Private aviation':'J','UHNW services':'J'};
+  // [name, title, stage, fit, level, focus, region, date, grade, rating, seen, source, note]
+  const RAW = [
+    ['Dana R.','SVP Operations, medical device maker','pipe',95,'VP','Operations','In your region','Oct 7','A',5,'In review','Your site'],
+    ['Nate W.','CTO, medical device software','pipe',93,'C-suite','Information technology','In your region','Oct 7','A',4,'In review','Talent pool'],
+    ['Marcus T.','Chief Operating Officer, specialty manufacturer','pipe',91,'C-suite','Operations','In your region','Oct 6','A',4,'In review','Talent pool'],
+    ['Elena V.','Chief Financial Officer, energy','pipe',88,'C-suite','Finance','Outside your region','Oct 4','A',3,'On file','Referred in','Pre-vetted by another firm'],
+    ['Whitney C.','President, private aviation operator','pipe',89,'C-suite','Private aviation','In your region','Oct 5','A',5,'In review','Your site'],
+    ['Grant H.','Chief Technology Officer, diagnostics','pipe',87,'C-suite','MedTech','Remote-ok','Oct 3','A',4,'In review','Talent pool'],
+    ['Priya S.','VP Development, multi-family real estate','pipe',84,'VP','Multi-family real estate','Remote-ok','Oct 6','B',4,'Received','Your site'],
+    ['Daniel O.','VP Operations, aerospace components','pipe',83,'VP','Manufacturing','In your region','Oct 2','B',3,'On file','Your site'],
+    ['Leah F.','Chief People Officer, wealth management','pipe',81,'C-suite','UHNW services','In your region','Oct 1','A',4,'In review','Talent pool'],
+    ['Tomas R.','Controller, oilfield services','pipe',74,'Director','Accounting','Outside your region','Sep 30','B',0,'Received','Your site'],
+    ['Maya J.','VP Quality, medical devices','pipe',79,'VP','MedTech','In your region','Sep 29','B',3,'On file','Your site'],
+    ['Owen B.','Director of Asset Management, commercial real estate','pipe',77,'Director','Commercial real estate','In your region','Sep 28','B',0,'Received','Referred in','Pre-vetted by another firm'],
+    ['Priscilla A.','Chief Revenue Officer, software','pipe',52,'C-suite','Software','Remote-ok','Oct 6','B',0,'Received','Your site','','refer'],
+    ['Aiden P.','Director of Finance, oil and gas','new',85,'Director','Finance','In your region','Oct 8','',0,'Received','Your site'],
+    ['Rachel D.','VP Operations, industrial manufacturer','new',82,'VP','Manufacturing','In your region','Oct 8','',0,'Received','Your site'],
+    ['Carter L.','Chief Financial Officer, private aviation','new',86,'C-suite','Private aviation','In your region','Oct 8','',0,'Received','Your site'],
+    ['Imani W.','VP Clinical Operations, medical devices','new',84,'VP','MedTech','In your region','Oct 8','',0,'Received','Your site'],
+    ['Jordan K.','Director, Commercial Real Estate','new',78,'Director','Commercial real estate','In your region','Oct 7','',0,'Received','Your site'],
+    ['Taylor M.','Director, HR Business Partner','new',72,'Director','People operations','In your region','Oct 7','',0,'Received','Your site'],
+    ['Eli S.','VP Engineering, healthcare software','new',80,'VP','Information technology','Remote-ok','Oct 7','',0,'Received','Your site'],
+    ['Nora K.','Chief Operating Officer, family office','new',83,'C-suite','UHNW services','In your region','Oct 7','',0,'Received','Your site'],
+    ['Paul D.','Director of Operations, packaging manufacturer','new',75,'Director','Manufacturing','In your region','Oct 6','',0,'Received','Your site'],
+    ['Hannah G.','VP Finance, multi-family real estate','new',79,'VP','Multi-family real estate','Remote-ok','Oct 6','',0,'Received','Your site'],
+    ['Vivian H.','Chief Operating Officer, commercial real estate','new',90,'C-suite','Commercial real estate','In your region','Oct 8','A',0,'Received','NextChapter referral','Matched to your focus from the Talent pool'],
+    ['Andre M.','VP Operations, MedTech manufacturer','new',88,'VP','MedTech','In your region','Oct 8','A',0,'Received','NextChapter referral','Matched to your focus from the Talent pool'],
+    ['Sofia L.','Chief Financial Officer, wealth management','new',87,'C-suite','UHNW services','In your region','Oct 7','A',0,'Received','NextChapter referral','Matched to your focus from the Talent pool'],
+    ['Kevin P.','Director of Maintenance, private aviation','new',81,'Director','Private aviation','Remote-ok','Oct 7','B',0,'Received','NextChapter referral','Matched to your focus from the Talent pool'],
+    ['Sam L.','Senior Manager, Supply Chain','new',44,'Below Director','Manufacturing','In your region','Oct 6','',0,'Received','Your site'],
+    ['Chris B.','VP Marketing, consumer goods','new',30,'VP','Marketing','Remote-ok','Oct 5','',0,'Received','Your site'],
+    ['Alex M.','Manager, Accounting','new',38,'Below Director','Accounting','In your region','Oct 5','',0,'Received','Your site']
+  ];
+  const L = RAW.map(r=>({n:r[0],t:r[1],st:r[2],fit:r[3],lvl:r[4],foc:r[5],region:r[6],date:r[7],grade:r[8],rating:r[9],seen:r[10],src:r[11],note:r[12]||'',refer:r[13]==='refer',own:OWNER[r[5]]||null,
+    why:(OWNER[r[5]]?'Matches '+R[OWNER[r[5]]].name.split(' ')[0]+"'s focus":'Outside firm focus')}));
+  // Candidate strength: how strong the person is on their own (NextChapter grade, or an estimate from the resume).
+  // Fit: how well they match a focus area or one specific mandate. The two are different measures.
+  L.forEach(p=>{ p.strEst = !p.grade; p.str = p.grade ? (p.grade==='A'?90:76) + (p.rating?(p.rating-3)*2:0) + (p.fit%5) : 56 + (p.fit%17); });
+  const strChip = p => `<span class="chip str${p.strEst?' est':''}" title="${p.strEst?'Estimated from the resume. Not a NextChapter member yet.':'From the NextChapter Market Reality grade and assessments.'}">${p.str}${p.strEst?' est.':''}</span>`;
+  const srcCell = p => p.src==='NextChapter referral' ? `<span class="chip ncref">NextChapter referral</span>${p.note?`<div class="sub">${p.note}</div>`:''}` : `${p.src}${p.note?`<div class="sub">${p.note}</div>`:''}`;
+  const legend = '<p class="sub legend"><b>Candidate strength</b> is how strong the person is on their own: NextChapter grade, or an estimate from the resume. <b>Fit</b> is how well they match your focus or a specific mandate. A strong candidate can be a weak fit, and the reverse.</p>';
+  const MANDATES = [
+    {id:'m1',title:'Chief Operating Officer',client:'Specialty MedTech manufacturer',lvl:'C-suite',foc:['Operations','Manufacturing','MedTech'],region:'In your region',lead:['S','J'],stage:'Shortlist',opened:'Sep 22',must:['Multi-site P&L','FDA-regulated','Lean']},
+    {id:'m2',title:'Chief Financial Officer',client:'Multi-family real estate developer',lvl:'C-suite',foc:['Finance','Multi-family real estate'],region:'Remote-ok',lead:['J','M'],stage:'Interviewing',opened:'Sep 15',must:['Capital raising','Development finance']},
+    {id:'m3',title:'President',client:'Private aviation operator',lvl:'C-suite',foc:['Private aviation','Operations'],region:'In your region',lead:['J'],stage:'Sourcing',opened:'Oct 1',must:['Charter operations','Part 135']},
+    {id:'m4',title:'Chief Technology Officer',client:'MedTech software company',lvl:'C-suite',foc:['Information technology','MedTech'],region:'Remote-ok',lead:['T','J'],stage:'Shortlist',opened:'Sep 18',must:['Regulated software','Cloud migration']},
+    {id:'m5',title:'Chief People Officer',client:'UHNW wealth services firm',lvl:'C-suite',foc:['UHNW services','People operations'],region:'In your region',lead:['J','B'],stage:'Sourcing',opened:'Oct 3',must:['Scaling to 500+','Compensation design']},
+    {id:'m6',title:'VP Finance',client:'Oil and gas services company',lvl:'VP',foc:['Finance','Accounting'],region:'In your region',lead:['M'],stage:'Interviewing',opened:'Sep 25',must:['Energy sector','Forecasting']}
+  ];
+  const st = {who:'J', view:'my', tab:'a1'};
+  const P = {k:'fit', d:-1, sen:'', foc:'', reg:'', mem:''};
+  const lvlOrder = {'C-suite':0,'VP':1,'Director':2,'Below Director':3};
+  const fitCls = f => f>=80?'hi':f>=60?'md':'lo', fitTxt = f => f>=80?'Strong':f>=60?'Possible':'Weak';
+  const chips = (a, cls='') => a.map(x=>`<span class="chip ${cls}">${x}</span>`).join(' ');
+  const mine = list => st.view==='firm' ? list : list.filter(x=>x.own===st.who);
+  const leadNames = a => a.map(k=>R[k].name).join(' and ');
+  const mineM = list => st.view==='firm' ? list : list.filter(m=>m.lead.includes(st.who));
+  const ownerName = o => o ? R[o].name : '<span class="un">Unassigned</span>';
+  const scope = () => st.view==='firm'
+    ? `<div class="who"><b>Firm view.</b> Everyone's leads, mandates and focus areas at your firm. The firm owner decides which recruiters can open it.</div>`
+    : `<div class="who"><b>${R[st.who].name}'s view.</b> Only the leads and mandates routed to ${R[st.who].name.split(' ')[0]}. Colleagues have their own.</div>`;
+  function matchesFor(m){
+    return L.map(p=>{
+      const f = m.foc.includes(p.foc)?50:0, d = Math.abs(lvlOrder[p.lvl]-lvlOrder[m.lvl]), l = d===0?35:d===1?15:0, g = p.region===m.region||p.region==='Remote-ok'||m.region==='Remote-ok'?15:0;
+      return {p, score:f+l+g};
+    }).filter(x=>x.score>=65).sort((a,b)=>b.score-a.score);
+  }
+
+  function renderLeads(){
+    const all = L.filter(x=>x.st==='new'), rows = mine(all);
+    let h = '<h2 class="serif">New leads</h2><p class="lede">Resumes that arrived through your website and have not been reviewed yet, routed to the recruiter whose focus fits.</p>' + scope();
+    h += `<div class="stats"><div class="stat"><b>${rows.length}</b><span>New leads${st.view==='my'?' for you':''}</span></div><div class="stat"><b>${rows.filter(x=>x.fit>=80).length}</b><span>Strong fit</span></div><div class="stat"><b>${rows.filter(x=>x.date==='Oct 8').length}</b><span>Arrived today</span></div><div class="stat"><b>${rows.filter(x=>x.src==='NextChapter referral').length}</b><span>Referred by NextChapter</span></div>${st.view==='firm'?`<div class="stat"><b>${all.filter(x=>!x.own).length}</b><span>Unassigned</span></div>`:''}</div>`;
+    h += `<div class="tablewrap"><table style="min-width:760px"><thead><tr><th>Candidate</th><th>Arrived</th><th>Candidate strength</th><th>Fit to your focus</th><th>Seniority</th><th>Specialty</th><th>Why it came here</th>${st.view==='firm'?'<th>Routed to</th>':''}<th>Source</th></tr></thead><tbody>
+      ${rows.sort((a,b)=>b.fit-a.fit).map(p=>`<tr><td><a class="cand" href="#" data-n="${p.n}"><b>${p.n}</b></a><div class="sub">${p.t}</div></td><td>${p.date}</td><td>${strChip(p)}</td><td><span class="chip ${fitCls(p.fit)}">${fitTxt(p.fit)} · ${p.fit}</span></td><td>${p.lvl}</td><td>${p.foc}</td><td>${p.why}</td>${st.view==='firm'?`<td>${ownerName(p.own)}</td>`:''}<td>${srcCell(p)}</td></tr>`).join('') || '<tr><td colspan="9" class="sub">No new leads for this view.</td></tr>'}</tbody></table></div>
+      ${legend}<p class="sub" style="margin-top:8px">Both scores are sorting aids: a person at your firm makes every decision.</p>`;
+    $('#a1').innerHTML = h;
+  }
+
+  function renderMandates(){
+    const rows = mineM(MANDATES);
+    let h = '<h2 class="serif">Mandates</h2><p class="lede">Your open searches, which can be led by one recruiter or co-led by several. Each one is matched against your leads, your pipeline, the NextChapter Talent pool and candidates referred in by other firms.</p>' + scope();
+    h += `<div class="stats"><div class="stat"><b>${rows.length}</b><span>Open mandates</span></div><div class="stat"><b>${rows.reduce((n,m)=>n+matchesFor(m).filter(x=>x.score>=80).length,0)}</b><span>Strong matches</span></div><div class="stat"><b>${rows.filter(m=>m.stage==='Shortlist').length}</b><span>At shortlist</span></div></div>`;
+    h += `<div class="tablewrap"><table style="min-width:900px"><thead><tr><th>Mandate</th><th>Level</th><th>Focus</th><th>Stage</th><th>Opened</th><th>Led by</th><th>Matches</th></tr></thead><tbody>
+      ${rows.map(m=>{const ms=matchesFor(m); return `<tr class="mrow" data-m="${m.id}"><td><b>${m.title}</b><div class="sub">${m.client} · confidential</div></td><td>${m.lvl}</td><td>${chips(m.foc.slice(0,2))}</td><td>${m.stage}</td><td>${m.opened}</td><td>${m.lead.length>1?'<span class="co">Co-led</span> ':''}${leadNames(m.lead)}</td>
+        <td><b>${ms.length}</b> <span class="sub">(${ms.filter(x=>x.p.src==='Talent pool').length} Talent pool, ${ms.filter(x=>x.p.src==='Referred in').length} referred in)</span><div class="sub">Click to see who</div></td></tr>
+        <tr class="mdet" id="d_${m.id}" hidden><td colspan="8"><div class="sub" style="margin-bottom:6px">Must have: ${m.must.join(' · ')}</div>
+          <table style="min-width:640px"><thead><tr><th>Candidate</th><th>Mandate fit</th><th>Candidate strength</th><th>Level</th><th>Specialty</th><th>Location</th><th>Source</th></tr></thead><tbody>
+          ${ms.slice(0,6).map(x=>`<tr><td><a class="cand" href="#" data-n="${x.p.n}"><b>${x.p.n}</b></a><div class="sub">${x.p.t}</div></td><td><span class="chip ${fitCls(x.score)}">${x.score}</span></td><td>${strChip(x.p)}</td><td>${x.p.lvl}</td><td>${x.p.foc}</td><td>${x.p.region}</td><td>${srcCell(x.p)}</td></tr>`).join('')}
+          </tbody></table></td></tr>`;}).join('') || '<tr><td colspan="8" class="sub">No mandates for this view.</td></tr>'}</tbody></table></div>
+      <p class="sub" style="margin-top:8px">Upload a search brief and it is read into a mandate like these. ${legend}</p>`;
+    $('#a5').innerHTML = h;
+    document.querySelectorAll('#a5 tr.mrow').forEach(r=>r.addEventListener('click',()=>{const d=$('#d_'+r.dataset.m); d.hidden=!d.hidden;}));
+  }
+
+  function renderPipe(){
+    const base = mine(L.filter(x=>x.st==='pipe'));
+    const uniq = k => [...new Set(base.map(p=>p[k]))];
+    const rows = base.filter(p=>(!P.sen||p.lvl===P.sen)&&(!P.foc||p.foc===P.foc)&&(!P.reg||p.region===P.reg)&&(!P.mem||(P.mem==='Member')===!!p.grade))
+      .sort((a,b)=>{let va=a[P.k],vb=b[P.k]; if(P.k==='lvl'){va=lvlOrder[a.lvl];vb=lvlOrder[b.lvl];} if(P.k==='grade'){va=a.grade||'Z';vb=b.grade||'Z';return (va<vb?-1:va>vb?1:0)*(-P.d);} return (va<vb?-1:va>vb?1:0)*P.d;});
+    const SELK = {pSen:'sen', pFoc:'foc', pReg:'reg', pMem:'mem'};
+    const sel = (id,label,vals,cur) => { const k=SELK[id];
+      // 2 to 4 options: adjacent buttons. 5 or more: dropdown.
+      if (vals.length>=2 && vals.length<=4) return `<div class="fg" data-k="${k}" role="group" aria-label="${label}"><span class="fl">${label}</span><button type="button" data-v=""${cur===''?' aria-pressed="true"':' aria-pressed="false"'}>All</button>${vals.map(v=>`<button type="button" data-v="${v}" aria-pressed="${v===cur}">${v}</button>`).join('')}</div>`;
+      return `<select id="${id}" data-k="${k}" aria-label="${label}"><option value="">${label}: all</option>${vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('')}</select>`; };
+    const th = (k,label) => `<th data-k="${k}"${P.k===k?` data-dir="${P.d>0?'asc':'desc'}"`:''}>${label}</th>`;
+    let h = '<h2 class="serif">Resume submissions</h2><p class="lede">Candidates being worked: from your website, the NextChapter Talent pool and other firms, ranked against your focus.</p>' + scope();
+    h += `<div class="stats"><div class="stat"><b>${base.length}</b><span>In your pipeline</span></div><div class="stat"><b>${base.filter(p=>p.grade).length}</b><span>Joined NextChapter</span></div><div class="stat"><b>${base.filter(p=>p.fit>=80).length}</b><span>Strong fit</span></div><div class="stat"><b>${base.filter(p=>p.grade).length}</b><span>Dossiers available</span></div></div>
+      <div class="filters">${sel('pSen','Seniority',uniq('lvl'),P.sen)}${sel('pFoc','Specialty',uniq('foc'),P.foc)}${sel('pReg','Location',uniq('region'),P.reg)}${sel('pMem','NextChapter',['Member','Not yet'],P.mem)}<span class="hint">Click a column to sort.</span></div>
+      <div class="tablewrap"><table><thead><tr>${th('n','Candidate')}${th('date','Submitted')}${th('str','Candidate strength')}${th('fit','Fit to your focus')}${th('lvl','Seniority')}${th('foc','Specialty')}${th('region','Location')}${th('grade','NextChapter grade')}<th>Your rating</th><th>Dossier</th>${st.view==='firm'?'<th>Owner</th>':''}<th>Candidate sees</th><th>Your call</th></tr></thead><tbody>
+      ${rows.map(p=>`<tr><td><a class="cand" href="#" data-n="${p.n}"><b>${p.n}</b></a><div class="sub">${p.t}</div>${p.note?`<div class="sub">${p.note}</div>`:''}${Object.keys(todo[p.n]||{}).length?`<div class="sub">NextChapter to-dos: ${Object.values(todo[p.n]).filter(v=>v==='Done').length} done, ${Object.values(todo[p.n]).filter(v=>v!=='Done').length} open</div>`:''}</td><td>${p.date}</td><td>${strChip(p)}</td><td><span class="chip ${fitCls(p.fit)}">${fitTxt(p.fit)} · ${p.fit}</span></td><td>${p.lvl}</td><td>${p.foc}</td><td>${p.region}</td>
+        <td>${p.grade?`<span class="grade">${p.grade}</span> <span class="sub">member</span>`:'<span class="sub">Not a member yet</span>'}</td>
+        <td><span class="stars">${p.rating?'★'.repeat(p.rating)+'☆'.repeat(5-p.rating):'<span class="sub">Rate</span>'}</span></td>
+        <td>${p.grade?'<a class="dos" href="#" onclick="return false">View dossier</a>':'<span class="sub">&ndash;</span>'}</td>${st.view==='firm'?`<td>${ownerName(p.own)}</td>`:''}
+        <td><span class="seen">${p.seen}</span></td>
+        <td>${p.refer?'<button class="mini ref" type="button">Good, not for us: refer</button>':'<button class="mini ref2" type="button">Request references</button> <button class="mini ref2" type="button">Skills assessment</button> <button class="mini ref2" type="button">Search strategy</button>'}</td></tr>`).join('') || '<tr><td colspan="12" class="sub">Nothing here yet for this view.</td></tr>'}</tbody></table></div>
+      ${legend}<p class="sub" style="margin-top:8px">When you refer someone, other firms see that you vetted them, and the candidate agrees before anything is shared. Candidates choose what they complete when you ask.</p>`;
+    $('#a2').innerHTML = h;
+    $('#a2').querySelectorAll('.fg button').forEach(b=>b.addEventListener('click',()=>{P[b.closest('.fg').dataset.k]=b.dataset.v; renderPipe();}));
+    $('#a2').querySelectorAll('select[data-k]').forEach(s=>s.addEventListener('change',e=>{P[s.dataset.k]=e.target.value; renderPipe();}));
+    document.querySelectorAll('#a2 th[data-k]').forEach(t=>t.addEventListener('click',()=>{const k=t.dataset.k; P.d=(P.k===k)?-P.d:(k==='n'||k==='lvl'?1:-1); P.k=k; renderPipe();}));
+    document.querySelectorAll('button.ref2').forEach(b=>b.addEventListener('click',()=>{b.textContent=b.textContent+': requested'; b.disabled=true;}));
+    document.querySelectorAll('button.ref').forEach(b=>b.addEventListener('click',()=>{b.textContent='Referred · shown as pre-vetted'; b.disabled=true;}));
+  }
+
+  function renderTeam(){
+    let h = '<h2 class="serif">Team and focus</h2><p class="lede">The firm sets the guardrails. Each recruiter has their own profile, focus, mandates and leads.</p>' + scope();
+    const cnt = k => ({leads:L.filter(x=>x.own===k&&x.st==='new').length, pipe:L.filter(x=>x.own===k&&x.st==='pipe').length, man:MANDATES.filter(m=>m.lead.includes(k)).length});
+    if (st.view==='my'){
+      const k = st.who, r = R[k], c = cnt(k);
+      h += `<div class="stats"><div class="stat"><b>${c.man}</b><span>Open mandates</span></div><div class="stat"><b>${c.leads}</b><span>New leads</span></div><div class="stat"><b>${c.pipe}</b><span>In pipeline</span></div><div class="stat"><b>${L.filter(x=>x.own===k&&x.src==='Talent pool').length}</b><span>From the Talent pool</span></div></div>
+        <p><b>${r.name}</b>, ${r.role}</p><p class="sub" style="font-size:14px;opacity:.85">${r.bio}</p>
+        <p style="margin-top:12px"><b>Focus</b></p><div class="chips2">${chips(r.focus,'hi')}</div>
+        <p style="margin-top:8px"><b>Also covers</b></p><div class="chips2">${chips(r.also)}</div>
+        <p style="margin-top:12px"><b>My mandates</b></p>
+        <div class="tablewrap"><table style="min-width:560px"><thead><tr><th>Mandate</th><th>Stage</th><th>Matches</th></tr></thead><tbody>${MANDATES.filter(m=>m.lead.includes(k)).map(m=>`<tr><td><b>${m.title}</b><div class="sub">${m.client}${m.lead.length>1?' · co-led with '+m.lead.filter(x=>x!==k).map(x=>R[x].name.split(' ')[0]).join(', '):''}</div></td><td>${m.stage}</td><td>${matchesFor(m).length}</td></tr>`).join('')}</tbody></table></div>
+        <p style="margin-top:14px"><b>Firm guardrails</b> (set by the firm)</p><div class="chips2">${chips(['Level: Director and above','Industries: MedTech, manufacturing, commercial and multi-family real estate, private aviation, UHNW services','Region: Northeast, remote'])}</div>`;
+    } else {
+      h += `<p><b>Firm guardrails</b></p><div class="chips2">${chips(['Level: Director and above','Industries: MedTech, manufacturing, commercial and multi-family real estate, private aviation, UHNW services','Region: Northeast, remote'],'hi')}</div>
+        <div class="tablewrap" style="margin-top:10px"><table style="min-width:760px"><thead><tr><th>Recruiter</th><th>Primary focus</th><th>Also covers</th><th>Mandates</th><th>New leads</th><th>Pipeline</th></tr></thead><tbody>
+        ${Object.keys(R).map(k=>{const c=cnt(k); return `<tr><td><b>${R[k].name}</b><div class="sub">${R[k].role}</div></td><td>${chips(R[k].focus.slice(0,3))}</td><td>${chips(R[k].also.slice(0,3))}</td><td>${c.man}</td><td>${c.leads}</td><td>${c.pipe}</td></tr>`;}).join('')}</tbody></table></div>
+        <p class="sub" style="margin-top:8px">Leads outside every recruiter's focus stay unassigned for the firm to route, or to refer to a partner firm.</p>`;
+    }
+    $('#a3').innerHTML = h;
+  }
+
+  // Candidate checklist: build the strongest possible file for recruiters.
+  const FS = {assess:'todo', skills:'todo', strategy:'todo', resume:'todo', refs:'todo', dossier:'todo'};
+  const FSITEMS = [
+    {k:'assess', t:'Market Reality Assessment', d:'15 minutes. Gives you a grade recruiters trust.', w:30, btn:'Start my assessment', primary:true},
+    {k:'skills', t:'Skills assessment', d:'20 minutes. Shows what you can do in a form recruiters can compare.', w:15, btn:'Start skills assessment', tag:'Asked by your firm'},
+    {k:'strategy', t:'Job search strategy', d:'Target roles, companies and a weekly plan.', w:10, btn:'Build my strategy'},
+    {k:'resume', t:'Fix resume issues', d:'We found 4 things to fix, such as missing results and unclear dates.', w:20, btn:'Fix my resume'},
+    {k:'refs', t:'Get references', d:'Name three people. NextChapter collects the references for you.', w:20, btn:'Ask for references', tag:'Asked by your firm'},
+    {k:'dossier', t:'Executive Dossier', d:'Built from the steps above. Recruiters can open it when you share it.', w:5, btn:'Build my dossier', lock:true}
+  ];
+  function renderChk(){
+    const score = Math.round(FSITEMS.reduce((n,i)=>n+(FS[i.k]==='done'?i.w:FS[i.k]==='started'?i.w/2:0),0));
+    $('#mfill').style.width = score+'%'; $('#mval').textContent = score;
+    const dossierReady = FS.assess==='done' && FS.resume==='done';
+    $('#chk').innerHTML = FSITEMS.map(i=>{
+      const st = FS[i.k], locked = i.lock && !dossierReady && st!=='done';
+      const label = st==='done' ? '<span class="tchip done">Done</span>' : st==='started' ? '<span class="tchip prog">In progress</span>' : '';
+      const action = st==='done' ? '' : locked ? '<span class="sub">Finish the assessment and the resume fixes first.</span>'
+        : `<button type="button" class="${i.primary?'btn':'mini'} cact" data-k="${i.k}"${i.primary?' style="background:var(--teal)"':''}>${st==='started'&&!i.primary?'Mark as done':i.btn}</button>`;
+      return `<div class="trow ctrow"><div><div><b>${i.t}</b> ${i.tag?`<span class="tchip req">${i.tag}</span>`:''}</div><div class="sub">${i.d}</div></div><div class="tact">${label}${action}</div></div>`;
+    }).join('');
+    document.querySelectorAll('.cact').forEach(b=>b.addEventListener('click',()=>{
+      const k=b.dataset.k;
+      if(k==='assess'){ FS.assess='started'; renderChk(); showMail('mailassess'); return; }
+      FS[k] = FS[k]==='started' ? 'done' : 'started'; renderChk();
+    }));
+  }
+  // Email links: one level deeper (status page, assessment start).
+  const mailPages = ['mail','mailstatus','mailassess'];
+  function showMail(id){ mailPages.forEach(x=>{ $('#'+x).hidden = x!==id; }); window.scrollTo(0,0); }
+  $('#goStatus').addEventListener('click',()=>showMail('mailstatus'));
+  $('#goAssess').addEventListener('click',()=>showMail('mailassess'));
+  renderChk();
+  document.querySelectorAll('.backmail').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); showMail('mail');}));
+  const optNotes = {none:'Your firm sees nothing until you choose. You can change this any time.', grade:'Your firm sees your grade only. You can change this any time.', all:'Your firm sees your grade and your Executive Dossier. You can change this any time.'};
+  document.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('#optnote').textContent=optNotes[b.dataset.o]; }));
+  $('#beginAssess').addEventListener('click',e=>{ e.target.textContent='Assessment started'; e.target.disabled=true; FS.assess='started'; renderChk(); });
+  const TASKS = [
+    {k:'refs', label:'References', ask:'Request 3 references', note:'NextChapter collects them from the people the candidate names.'},
+    {k:'skills', label:'Skills assessment', ask:'Assign skills assessment', note:'Takes about 20 minutes.'},
+    {k:'strategy', label:'Job search strategy', ask:'Ask for a search strategy', note:'Target roles, companies and a weekly plan.'},
+    {k:'resume', label:'Resume review', ask:'Offer a resume review', note:'Free for NextChapter members.'},
+    {k:'interview', label:'Interview prep', ask:'Offer interview prep', note:'A practice session before your client interview.'}
+  ];
+  const DONE = {'Dana R.':{refs:'Done',skills:'In progress'}, 'Nate W.':{skills:'Done',strategy:'Done'}, 'Marcus T.':{refs:'Requested'}, 'Whitney C.':{refs:'Done',skills:'Done'}};
+  const NOTES = {}, RATE = {};
+  const todo = {};
+  L.forEach(p=>{ todo[p.n] = Object.assign({}, DONE[p.n]||{}); RATE[p.n] = p.rating; });
+  const dims = g => g==='A'?[['Market reality',92],['Seniority readiness',88],['Interview readiness',84],['Network strength',90]]:[['Market reality',74],['Seniority readiness',70],['Interview readiness',66],['Network strength',72]];
+  function openDrawer(name){
+    const p = L.find(x=>x.n===name); if(!p) return;
+    const d = $('#drawer'), t = todo[p.n], first = p.n.split(' ')[0];
+    const chip = s => `<span class="tchip ${s==='Done'?'done':s==='In progress'?'prog':s==='Requested'?'req':''}">${s||'Not asked'}</span>`;
+    d.innerHTML = `<div class="dh"><div><div class="dn">${p.n}</div><div class="sub">${p.t}</div></div><button type="button" class="dx" id="dclose" aria-label="Close">&times;</button></div>
+      <div class="dchips"><span class="lbl">Strength</span>${strChip(p)} <span class="lbl">Fit to focus</span><span class="chip ${fitCls(p.fit)}">${fitTxt(p.fit)} · ${p.fit}</span> <span class="chip">${p.lvl}</span> <span class="chip">${p.foc}</span> <span class="chip">${p.region}</span></div>
+      <div class="dsec"><b>NextChapter profile</b>
+      ${p.grade?`<p class="sub" style="margin:4px 0 8px">${first} chose to share this with your firm. ${first} controls what you see and can change it any time.</p>
+        <div class="grow"><span class="grade">${p.grade}</span><span>Market Reality grade</span></div>
+        ${dims(p.grade).map(x=>`<div class="bar2"><span>${x[0]}</span><i><u style="width:${x[1]}%"></u></i><em>${x[1]}</em></div>`).join('')}
+        <p style="margin:10px 0 0"><a class="dos" href="#" onclick="return false">View Executive Dossier</a></p>`
+       :`<p class="sub" style="margin:4px 0 8px">${first} has not joined NextChapter, so there is no grade or dossier yet.</p><button type="button" class="mini inv">Invite ${first} to NextChapter</button><p class="sub" style="margin-top:6px">Free Market Reality Assessment and Resume Review. ${first} decides what to share.</p>`}
+      </div>
+      <div class="dsec"><b>Fit to your mandates</b><p class="sub" style="margin:4px 0 6px">How well ${first} matches each open search. This is separate from ${first}'s strength.</p>
+        ${MANDATES.map(m=>({m,sc:matchesFor(m).find(x=>x.p.n===p.n)})).filter(x=>x.sc).map(x=>`<div class="trow"><div>${x.m.title}<div class="sub">${x.m.client} · ${x.m.stage}</div></div><span class="chip ${fitCls(x.sc.score)}">${x.sc.score}</span></div>`).join('') || '<p class="sub">No open mandate matches yet.</p>'}
+      </div>
+      <div class="dsec"><b>Assign from NextChapter</b><p class="sub" style="margin:4px 0 8px">Ask ${first} to build their profile. ${first} chooses what to complete, and you see what ${first} shares.</p>
+        ${TASKS.map(k=>`<div class="trow"><div><div>${k.label}</div><div class="sub">${k.note}</div></div><div class="tact">${chip(t[k.k])}${t[k.k]?'':`<button type="button" class="mini ask" data-k="${k.k}">${k.ask}</button>`}</div></div>`).join('')}
+      </div>
+      <div class="dsec"><b>Your notes and rating</b>
+        <div class="rate" id="rate">${[1,2,3,4,5].map(i=>`<button type="button" data-r="${i}" class="${i<=RATE[p.n]?'on':''}" aria-label="${i} stars">★</button>`).join('')}</div>
+        <textarea id="dnote" rows="3" placeholder="Private to your firm">${NOTES[p.n]||''}</textarea>
+      </div>
+      <div class="dact"><button type="button" class="mini">Move to shortlist</button> <button type="button" class="mini">Refer to another firm</button></div>`;
+    d.hidden = false;
+    $('#dclose').onclick = () => { d.hidden = true; };
+    d.querySelectorAll('.ask').forEach(b=>b.addEventListener('click',()=>{ todo[p.n][b.dataset.k]='Requested'; openDrawer(name); }));
+    d.querySelectorAll('.inv').forEach(b=>b.addEventListener('click',()=>{ b.textContent='Invitation sent'; b.disabled=true; }));
+    d.querySelectorAll('#rate button').forEach(b=>b.addEventListener('click',()=>{ RATE[p.n]=+b.dataset.r; p.rating=RATE[p.n]; renderAll(); openDrawer(name); }));
+    $('#dnote').addEventListener('input',e=>{ NOTES[p.n]=e.target.value; });
+  }
+  document.addEventListener('click',e=>{ const a=e.target.closest('a.cand'); if(a){ e.preventDefault(); openDrawer(a.dataset.n); } });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#drawer').hidden=true; });
+  function renderAll(){ renderLeads(); renderMandates(); renderPipe(); renderTeam(); }
+
+  const who=$('#who'); who.innerHTML=Object.keys(R).map(k=>`<option value="${k}">${R[k].name} (${R[k].role.split(',')[0]})</option>`).join('');
+  who.addEventListener('change',()=>{st.who=who.value; renderAll();});
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{st.view=b.dataset.v; document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderAll();}));
+  const panes=['a1','a5','a2','a3'];
+  function showTab(id){ st.tab=id; document.querySelectorAll('.at').forEach(x=>x.setAttribute('aria-selected',x.dataset.a===id)); panes.forEach(p=>{$('#'+p).hidden = p!==id;}); }
+  document.querySelectorAll('.at').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.a)));
+  $('#gear').addEventListener('click',()=>{ $('#main').hidden=true; $('#a4').hidden=false; });
+  $('#backsetup').addEventListener('click',e=>{ e.preventDefault(); $('#a4').hidden=true; $('#main').hidden=false; });
+  // Principle: show a busy cursor while a clicked action processes (simulated for the mockup).
+  document.addEventListener('click',e=>{ if(e.target.closest('button.mini, button.cpb, #send, #logoclr, #photoclr, button.btn.alt.ref, button.btn.alt.ref2, #beginAssess')){ document.body.classList.add('busy'); setTimeout(()=>document.body.classList.remove('busy'),600); } },true);
+  renderAll();
+
+  document.querySelectorAll('.preview button').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.preview button').forEach(x=>x.setAttribute('aria-selected', x===t));
+    ['site','mail','app'].forEach(id=>document.getElementById(id).hidden = t.dataset.tab!==id); ['mailstatus','mailassess'].forEach(id=>document.getElementById(id).hidden=true);
+    window.scrollTo(0,0);
+  }));
+  const ov=document.getElementById('ov');
+  const open=()=>ov.classList.add('open'), close=()=>ov.classList.remove('open');
+  document.getElementById('open').onclick=open; document.getElementById('open2').onclick=open;
+  document.getElementById('close').onclick=close; document.getElementById('send').onclick=close;
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+
+  // Customise: name, logo, photo and color stay in this browser tab (read locally, never uploaded).
+  (function(){
+    const root=document.documentElement;
+    const fnEls=()=>document.querySelectorAll('.fn');
+    const apply=()=>{ const t=document.getElementById('cFirm').value.trim()||'Your Firm'; fnEls().forEach(e=>e.textContent=t); };
+    document.getElementById('cFirm').addEventListener('input',apply);
+    document.getElementById('cColor').addEventListener('input',e=>root.style.setProperty('--teal',e.target.value));
+    let logo=null;
+    const setLogo=()=>document.querySelectorAll('.wm').forEach(w=>{
+      if(logo){ w.classList.add('hasimg'); w.innerHTML='<img alt="">'; w.querySelector('img').src=logo; }
+      else { w.classList.remove('hasimg'); w.innerHTML='<span class="fn"></span>'; apply(); }
+    });
+    document.getElementById('cLogo').addEventListener('change',e=>{
+      const f=e.target.files[0]; if(!f||!f.type.startsWith('image/')||f.size>3*1024*1024){ logo=null; setLogo(); return; }
+      const r=new FileReader(); r.onload=()=>{ logo=r.result; setLogo(); }; r.readAsDataURL(f);
+    });
+    document.getElementById('cPhoto').addEventListener('change',e=>{
+      const f=e.target.files[0]; const h=document.querySelector('.hero'); const two=document.querySelector('.two .img');
+      if(!f||!f.type.startsWith('image/')||f.size>8*1024*1024){ h.style.backgroundImage=''; if(two) two.style.backgroundImage=''; return; }
+      const r=new FileReader(); r.onload=()=>{ h.style.backgroundImage='url("'+r.result+'")'; h.style.backgroundSize='cover'; h.style.backgroundPosition='center 30%'; if(two){ two.style.backgroundImage='url("'+r.result+'")'; two.style.backgroundSize='cover'; two.style.backgroundPosition='center'; } }; r.readAsDataURL(f);
+    });
+    apply();
+  })();
+</script>
+
+</body>
+</html>

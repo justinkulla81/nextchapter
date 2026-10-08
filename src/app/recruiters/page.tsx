@@ -3,6 +3,7 @@ import { OrganizationPageTemplate } from '@/components/organizations/Organizatio
 import { AUDIENCE_TABS } from '@/components/audience/audience-data'
 import { StructuredData } from '@/components/StructuredData'
 import { SubmissionPacketMockup } from '@/components/marketing/SubmissionPacketMockup'
+import { RecruiterIntakeShowcase } from '@/components/organizations/RecruiterIntakeShowcase'
 
 const tab = AUDIENCE_TABS.find((t) => t.id === 'recruiters')!
 
@@ -36,7 +37,15 @@ export default function RecruitersPage() {
   return (
     <>
       <StructuredData data={jsonLd} />
-      <OrganizationPageTemplate tab={tab} artifact={<SubmissionPacketMockup />} />
+      <OrganizationPageTemplate
+        tab={tab}
+        artifact={
+          <div className="space-y-16">
+            <RecruiterIntakeShowcase />
+            <SubmissionPacketMockup />
+          </div>
+        }
+      />
     </>
   )
 }

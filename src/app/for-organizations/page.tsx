@@ -4,6 +4,7 @@ import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, C
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ContactForm } from '@/components/marketing/ContactForm'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
@@ -188,6 +189,33 @@ export default function ForOrganizationsPage() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{beat.body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Featured: the recruiter resume-intake product. */}
+      <section className="bg-white py-16">
+        <div className="mx-auto grid max-w-5xl items-center gap-8 px-6 md:grid-cols-[1fr_auto]">
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-brand uppercase">New for recruiting firms</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-navy">Turn every resume your website attracts into a candidate you can place.</h2>
+            <p className="mt-3 text-muted-foreground">
+              A page in your own logo and colors, resumes routed to the right recruiter, and candidates who arrive with
+              their file built. Set up in about ten minutes.
+            </p>
+          </div>
+          <Button nativeButton={false} size="lg" className="h-12 px-8" render={<Link href="/recruiters" />}>
+            See it for recruiters →
+          </Button>
+        </div>
+      </section>
+
+      <section id="contact" className="bg-off-white py-16">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-2xl font-bold tracking-tight text-navy">Talk to us</h2>
+          <p className="mt-2 mb-6 text-muted-foreground">Tell us about your organization and what you want to do. We reply within one business day.</p>
+          <div className="rounded-xl border border-border bg-white p-6 sm:p-8">
+            <ContactForm initialAudience="ORGANIZATION" source="organizations" />
+          </div>
         </div>
       </section>
 
