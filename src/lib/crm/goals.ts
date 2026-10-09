@@ -14,7 +14,7 @@ export const GOAL_LABELS: Record<CrmGoal, string> = {
   BD: 'BD',
   SALES: 'Sales',
   FULL_TIME_RECRUITING: 'Full-time recruiting',
-  ECOSYSTEM_RECRUITING: 'Ecosystem recruiting',
+  ECOSYSTEM_RECRUITING: 'CRM recruiting',
   ADVISORY_RECRUITING: 'Advisory recruiting',
   USER_ACQUISITION: 'User acquisition',
   MEMBERSHIP_UPGRADE: 'Membership upgrade',
