@@ -159,6 +159,11 @@ export default async function CrmPeoplePage({
     prisma.crmReportSend.findMany({ distinct: ['editionKey'], orderBy: { editionKey: 'desc' }, take: 6, select: { editionKey: true } }),
   ])
   const reportKeys = reportKeyRows.map((r) => r.editionKey)
+  // 'YYYY-MM' → 'Sep 2026', so the filter reads "monthly report · Sep 2026".
+  const editionLabel = (k: string) => {
+    const [y, m] = k.split('-').map(Number)
+    return m >= 1 && m <= 12 ? new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : k
+  }
   const listKey = list.replace(/^!/, '')
   const reportKey = report.replace(/^!/, '')
   // The Report column shows the filtered edition, else the newest one.
@@ -250,7 +255,7 @@ export default async function CrmPeoplePage({
         priority && `priority ${priority}`,
         Number.isFinite(minScore) && `score ${minScore}+`,
         listKey && `${list.startsWith('!') ? 'not on' : 'on'} ${mailingLists.find((l) => l.key === listKey)?.name ?? listKey}`,
-        reportKey && `${report.startsWith('!') ? 'did not receive' : 'received'} report ${reportKey}`,
+        reportKey && `${report.startsWith('!') ? 'did not receive' : 'received'} the monthly report (${editionLabel(reportKey)})`,
         method && `${method === 'MANUAL' ? 'sent by hand' : 'sent by the system'}`,
       ].filter((x): x is string => Boolean(x))
     : []
@@ -375,7 +380,7 @@ export default async function CrmPeoplePage({
           // This one filters the computed score, not the tier — two dropdowns
           // both reading "Priority: All" was just ambiguous.
           { key: 'list', label: 'Mailing list', value: list, options: [{ value: '', label: 'Any list' }, ...mailingLists.flatMap((l) => [{ value: l.key, label: `On ${l.name}` }, { value: `!${l.key}`, label: `Not on ${l.name}` }])] },
-          { key: 'report', label: 'Report', value: report, options: [{ value: '', label: 'Any report' }, ...reportKeys.flatMap((k) => [{ value: k, label: `Received ${k}` }, { value: `!${k}`, label: `Not received ${k}` }])] },
+          { key: 'report', label: 'Monthly report', value: report, options: [{ value: '', label: 'Any monthly report' }, ...reportKeys.flatMap((k) => [{ value: k, label: `Received monthly report · ${editionLabel(k)}` }, { value: `!${k}`, label: `Not received monthly report · ${editionLabel(k)}` }])] },
           { key: 'photo', label: 'Photo', value: photo, options: [{ value: '', label: 'Any photo' }, { value: 'none', label: 'No photo yet' }, { value: 'has', label: 'Has a photo' }] },
           { key: 'method', label: 'Report sent', value: method, options: [{ value: '', label: 'By anyone' }, { value: 'AUTOMATED', label: '✉︎ By the system' }, { value: 'MANUAL', label: '✋ By hand' }] },
           { key: 'minScore', label: 'Score', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any score' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
@@ -448,7 +453,7 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Goal</th>
                   <th className="px-3 py-2 font-medium">Deal status</th>
                   <th className="px-3 py-2 font-medium">Lists</th>
-                  <th className="whitespace-nowrap px-3 py-2 font-medium" title="One square per recent report, oldest to newest. Filled = received; hover for details.">Reports</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium" title="Monthly report: one square per recent edition, oldest to newest. Filled = received; hover for details.">Monthly report</th>
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
@@ -548,7 +553,7 @@ export default async function CrmPeoplePage({
                           const detail = r ? ` on ${r.sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${r.clickedAt ? ', clicked' : ''}${r.repliedAt ? ', replied' : ''}` : ''
                           return (
                             <span
-                              key={k} role="img" aria-label={`Report ${k}: ${how}${detail}`} title={`${k}: ${how}${detail}`}
+                              key={k} role="img" aria-label={`Monthly report ${editionLabel(k)}: ${how}${detail}`} title={`${editionLabel(k)}: ${how}${detail}`}
                               className={`h-3 w-3 rounded-sm border ${r ? 'border-brand bg-brand' : 'border-border'}`}
                             />
                           )
