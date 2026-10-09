@@ -4,7 +4,7 @@ import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-lg border border-border p-4">
-      <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="text-2xl font-semibold tabular-nums text-foreground">{typeof value === "number" ? value.toLocaleString("en-US") : value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{label}</p>
     </div>
   )
@@ -19,7 +19,7 @@ function ApprovalRow({ href, label, count }: { href: string; label: string; coun
     >
       <span className="font-medium text-foreground">{label}</span>
       <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange tabular-nums">
-        {count}
+        {count.toLocaleString("en-US")}
       </span>
     </Link>
   )
