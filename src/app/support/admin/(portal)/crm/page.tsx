@@ -218,7 +218,7 @@ export default async function CrmPeoplePage({
         lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true, photoUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
         mailingMemberships: { where: { status: 'ACTIVE' }, select: { list: { select: { key: true, name: true } } } },
-        reportSends: { where: { editionKey: shownReport || '-' }, select: { method: true, channel: true, sentAt: true, clickedAt: true, repliedAt: true } },
+        reportSends: { where: { editionKey: { in: reportKeys } }, select: { editionKey: true, method: true, channel: true, sentAt: true, clickedAt: true, repliedAt: true } },
         affiliations: {
           where: { isPrimary: true }, take: 1,
           select: { title: true, org: { select: { id: true, name: true } } },
@@ -444,7 +444,7 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Goal</th>
                   <th className="px-3 py-2 font-medium">Deal status</th>
                   <th className="px-3 py-2 font-medium">Lists</th>
-                  <th className="whitespace-nowrap px-3 py-2 font-medium">{shownReport ? `Report ${shownReport}` : 'Report'}</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium" title="One square per recent report, oldest to newest. Filled = received; hover for details.">Reports</th>
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
@@ -536,14 +536,20 @@ export default async function CrmPeoplePage({
                         ))}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1.5 text-xs">
-                      {p.reportSends[0] ? (
-                        <span title={`${p.reportSends[0].method === 'AUTOMATED' ? 'Sent by the system' : `Sent by hand (${p.reportSends[0].channel.toLowerCase().replace('_', ' ')})`} on ${p.reportSends[0].sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${p.reportSends[0].clickedAt ? ', clicked' : ''}${p.reportSends[0].repliedAt ? ', replied' : ''}`}>
-                          <span aria-label="Received">☑</span> {p.reportSends[0].method === 'AUTOMATED' ? '✉︎' : '✋'}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground" aria-label="Not received">☐</span>
-                      )}
+                    <td className="whitespace-nowrap px-3 py-1.5">
+                      <span className="inline-flex items-center gap-1">
+                        {[...reportKeys].reverse().map((k) => {
+                          const r = p.reportSends.find((x) => x.editionKey === k)
+                          const how = r ? (r.method === 'AUTOMATED' ? 'sent by the system' : `sent by hand (${r.channel.toLowerCase().replace('_', ' ')})`) : 'not received'
+                          const detail = r ? ` on ${r.sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${r.clickedAt ? ', clicked' : ''}${r.repliedAt ? ', replied' : ''}` : ''
+                          return (
+                            <span
+                              key={k} role="img" aria-label={`Report ${k}: ${how}${detail}`} title={`${k}: ${how}${detail}`}
+                              className={`h-3 w-3 rounded-sm border ${r ? 'border-brand bg-brand' : 'border-border'}`}
+                            />
+                          )
+                        })}
+                      </span>
                     </td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
                   </tr>
