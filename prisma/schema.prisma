@@ -12138,3 +12138,79 @@ model CrmRapSheet {
   @@index([status, meetingAt])
   @@index([personId, createdAt(sort: Desc)])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GEOGRAPHY + PITCH RULES
+// Tables that were created in the database outside this schema (geo areas,
+// EDO/chamber/nonprofit org leads, per-customer-type pitch rules). Added here
+// so `prisma db push` stops wanting to drop them. Introspected 2026-10-09.
+// ─────────────────────────────────────────────────────────────────────────────
+model GeoArea {
+  id                    String       @id
+  level                 String
+  state                 String
+  name                  String
+  population            Int?
+  laborForce            Int?
+  unemploymentRate      Float?
+  unemploymentRatePrior Float?
+  unemploymentAsOf      String?
+  medianHouseholdIncome Int?
+  perCapitaIncome       Int?
+  whiteCollarShare      Float?
+  wcUnemploymentEst     Float?
+  bcUnemploymentEst     Float?
+  higherEdCount         Int          @default(0)
+  higherEdEnrollmentEst Int          @default(0)
+  higherEd              Json?
+  dataCenterCount       Int          @default(0)
+  dataCenters           Json?
+  wioaBoards            Json?
+  layoffs12mo           Int          @default(0)
+  layoffEvents12mo      Int          @default(0)
+  layoffs90d            Int          @default(0)
+  majorEmployers        Json?
+  initiatives           String?
+  news                  Json?
+  newsUpdatedAt         DateTime?
+  dataBuiltAt           DateTime?
+  orgLeads              GeoOrgLead[]
+
+  @@index([level, state])
+  @@index([unemploymentRate])
+  @@index([whiteCollarShare])
+}
+
+model GeoOrgLead {
+  id                String    @id
+  ein               String    @unique
+  name              String
+  kind              String
+  street            String?
+  city              String?
+  state             String
+  zip               String?
+  geoAreaId         String?
+  revenue           Float?
+  assets            Float?
+  ntee              String?
+  subsection        String?
+  taxPeriod         String?
+  website           String?
+  crmOrganizationId String?
+  dismissedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  geoArea           GeoArea?  @relation(fields: [geoAreaId], references: [id], onUpdate: NoAction)
+
+  @@index([geoAreaId])
+  @@index([kind, state])
+  @@index([revenue(sort: Desc)])
+}
+
+model PitchRuleSet {
+  type      String   @id
+  rules     Json
+  updatedBy String?
+  updatedAt DateTime @default(now())
+}
+
