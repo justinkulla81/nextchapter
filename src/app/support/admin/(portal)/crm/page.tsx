@@ -131,6 +131,8 @@ export default async function CrmPeoplePage({
   const list = sp.list ?? ''
   // Report editions: "report=2026-09" received it, "report=!2026-09" didn't.
   const report = sp.report ?? ''
+  // "photo=none" lists people still missing a profile picture.
+  const photo = sp.photo === 'none' || sp.photo === 'has' ? sp.photo : ''
   const method = sp.method === 'AUTOMATED' || sp.method === 'MANUAL' ? sp.method : ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   // Organization is not sortable: it lives on a to-many affiliation, which
@@ -194,6 +196,7 @@ export default async function CrmPeoplePage({
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
+    ...(photo ? { photoUrl: photo === 'none' ? null : { not: null } } : {}),
     ...(listKey
       ? list.startsWith('!')
         ? { NOT: { mailingMemberships: { some: { status: 'ACTIVE', list: { key: listKey } } } } }
@@ -256,7 +259,7 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, waiting, invited, goal, priority, list, report, method,
+    q, role, quality, warmth, touched, waiting, invited, goal, priority, list, report, method, photo,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
@@ -373,6 +376,7 @@ export default async function CrmPeoplePage({
           // both reading "Priority: All" was just ambiguous.
           { key: 'list', label: 'Mailing list', value: list, options: [{ value: '', label: 'Any list' }, ...mailingLists.flatMap((l) => [{ value: l.key, label: `On ${l.name}` }, { value: `!${l.key}`, label: `Not on ${l.name}` }])] },
           { key: 'report', label: 'Report', value: report, options: [{ value: '', label: 'Any report' }, ...reportKeys.flatMap((k) => [{ value: k, label: `Received ${k}` }, { value: `!${k}`, label: `Not received ${k}` }])] },
+          { key: 'photo', label: 'Photo', value: photo, options: [{ value: '', label: 'Any photo' }, { value: 'none', label: 'No photo yet' }, { value: 'has', label: 'Has a photo' }] },
           { key: 'method', label: 'Report sent', value: method, options: [{ value: '', label: 'By anyone' }, { value: 'AUTOMATED', label: '✉︎ By the system' }, { value: 'MANUAL', label: '✋ By hand' }] },
           { key: 'minScore', label: 'Score', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any score' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
         ]}
@@ -381,7 +385,7 @@ export default async function CrmPeoplePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-          {q || role || quality || warmth || touched || waiting || invited || list || report || method ? ' matching these filters' : ''}
+          {q || role || quality || warmth || touched || waiting || invited || list || report || method || photo ? ' matching these filters' : ''}
         </p>
         {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
         <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
