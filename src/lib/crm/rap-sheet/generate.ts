@@ -6,8 +6,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { gatherRapSheetContext } from './context'
 import type { RapSheetContent } from './types'
 
-export const RAP_SHEET_MODEL = 'claude-sonnet-5'
-const MAX_SEARCHES = 10
+export const RAP_SHEET_MODEL = 'claude-haiku-4-5-20251001'
+const MAX_SEARCHES = 5
 const MAX_CONTINUATIONS = 3
 
 const PRODUCT = `NextChapter helps laid-off and displaced white-collar professionals land their next role: a candidate platform (job search plan, coaching, a daily job email, résumé and narrative tools, a network of coaches and recruiters) plus programs sold to institutions. Buyers and partners include workforce boards, economic-development and chamber organizations, universities and alumni offices, outplacement buyers, employers doing layoffs, and funders. The founder, Justin Kulla, is pitching them.`
@@ -61,7 +61,7 @@ export async function buildRapSheetContent(personId: string, meeting: { title: s
   const client = getAnthropicClient()
   let text = ''
   for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
-    const res = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: 8000, system: SYSTEM, tools, messages })
+    const res = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: 4000, system: SYSTEM, tools, messages })
     text = res.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
     if (res.stop_reason !== 'pause_turn') break
     messages.push({ role: 'assistant', content: res.content })

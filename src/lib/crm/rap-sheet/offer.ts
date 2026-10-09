@@ -5,7 +5,7 @@ import { classifyParticipant } from '@/lib/crm/sync-matching'
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { sendOfferEmail, type OfferRow } from './email'
+import { sendOfferEmail, sendOfferProblemEmail, type OfferRow } from './email'
 
 /** [start, end) of an Eastern-time calendar day, `offsetDays` from today. */
 export function easternDayBounds(offsetDays: number, now = new Date()): { from: Date; to: Date } {
@@ -28,10 +28,23 @@ export function easternDayBounds(offsetDays: number, now = new Date()): { from: 
 /** Find tomorrow's meetings with CRM people, record an offer for each, and email the choice. */
 export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: boolean; reason?: string }> {
   let token: string
-  try { token = await getValidAdminAccessToken() } catch { return { offered: 0, sent: false, reason: 'no_calendar_connection' } }
+  try { token = await getValidAdminAccessToken() } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e)
+    console.error('Rap sheet offer: calendar token unavailable:', detail)
+    await sendOfferProblemEmail('Your Google Calendar connection has expired or was revoked, so tomorrow\'s meetings could not be read.', detail)
+    return { offered: 0, sent: false, reason: 'no_calendar_connection' }
+  }
 
   const { from, to } = easternDayBounds(1)
-  const [events, ctx] = await Promise.all([listCalendarEvents(token, from, to), buildSweepContext(null)])
+  let events: Awaited<ReturnType<typeof listCalendarEvents>>, ctx: Awaited<ReturnType<typeof buildSweepContext>>
+  try {
+    ;[events, ctx] = await Promise.all([listCalendarEvents(token, from, to), buildSweepContext(null)])
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e)
+    console.error('Rap sheet offer: calendar read failed:', detail)
+    await sendOfferProblemEmail('Your calendar could not be read, so tomorrow\'s meetings were not checked.', detail)
+    return { offered: 0, sent: false, reason: 'calendar_read_failed' }
+  }
 
   const rows: OfferRow[] = []
   const unknown: { email: string; name: string | null; at: Date }[] = []

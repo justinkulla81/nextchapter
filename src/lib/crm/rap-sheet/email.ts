@@ -65,7 +65,19 @@ export function sendOfferEmail(rows: OfferRow[], unknown: { email: string; name:
     <h1 style="font-size:18px;margin:0 0 6px">Tomorrow's pitches</h1>
     ${ul(items)}
     <p style="margin:16px 0"><a href="${url}" style="background:#1d4ed8;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Choose rap sheets</a></p>
-    <p style="margin:0;color:#666">Each one you include costs about $0.30–1.00 in research. Anything you leave alone is skipped. Included sheets arrive by email at 6:30 AM ET.</p>
+    <p style="margin:0;color:#666">Each one you include is a small research run (cheapest model, 5 searches). Anything you leave alone is skipped. Included sheets arrive by email at 6:30 AM ET.</p>
     ${miss.length ? `${h('On your calendar but not in the CRM')}${ul(miss)}<p style="margin:4px 0;color:#666">Add them to the CRM to get a rap sheet offer.</p>` : ''}
+  `))
+}
+
+/** Tells Justin the night-before job could not read his calendar, so he is not left waiting for briefs that will never come. */
+export function sendOfferProblemEmail(reason: string, detail?: string): Promise<boolean> {
+  const connect = `${APP()}/api/admin/google-calendar/connect`
+  return send('Rap sheet offers did not run: reconnect your calendar', wrap(`
+    <h1 style="font-size:18px;margin:0 0 6px">Tomorrow's rap sheet offers did not run</h1>
+    <p style="margin:0 0 8px">${esc(reason)}</p>
+    ${detail ? `<p style="margin:0 0 8px;color:#666">${esc(detail)}</p>` : ''}
+    <p style="margin:16px 0"><a href="${connect}" style="background:#1d4ed8;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Reconnect Google Calendar</a></p>
+    <p style="margin:0;color:#666">Until you do, no rap sheet offers are sent. You can still build one by hand from the person's CRM page.</p>
   `))
 }
