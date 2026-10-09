@@ -120,7 +120,7 @@ export function CrmPeekPanel() {
                 <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-4">LinkedIn</a>
               )}
               {data?.rapSheet && (
-                <Link href={data.rapSheet.href} className="text-primary underline underline-offset-4" title={data.rapSheet.label}>Rap sheet</Link>
+                <Link href={data.rapSheet.href} className="text-primary underline underline-offset-4" title={data.rapSheet.label}>Meeting brief</Link>
               )}
             </div>
           </div>
@@ -358,7 +358,7 @@ function Field({ label, children, className, as }: { label: string; children: Re
 function MeetingChip({ meeting, href }: { meeting: string; href?: string }) {
   const cls = 'ml-1.5 inline-block rounded-full bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand'
   return href
-    ? <Link href={href} className={`${cls} underline underline-offset-2`} title="Open the rap sheet">Meeting scheduled · {meeting}</Link>
+    ? <Link href={href} className={`${cls} underline underline-offset-2`} title="Open the meeting brief">Meeting scheduled · {meeting}</Link>
     : <span className={cls}>Meeting scheduled · {meeting}</span>
 }
 

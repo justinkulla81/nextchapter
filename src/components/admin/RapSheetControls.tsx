@@ -15,7 +15,7 @@ export function RapSheetDecision({ sheetId, personId, status }: { sheetId: strin
       await decideRapSheet(sheetId, d)
     })
   return (
-    <div className={`flex gap-2 ${pending ? 'cursor-wait' : ''}`} role="group" aria-label="Rap sheet decision">
+    <div className={`flex gap-2 ${pending ? 'cursor-wait' : ''}`} role="group" aria-label="Meeting brief decision">
       <Button size="sm" variant={status === 'APPROVED' ? 'default' : 'outline'} disabled={pending} onClick={() => choose('APPROVED')}>
         {status === 'APPROVED' ? 'Included' : 'Include in morning email'}
       </Button>

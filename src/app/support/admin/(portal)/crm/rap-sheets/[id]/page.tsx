@@ -16,7 +16,7 @@ export default async function RapSheetPage({ params }: { params: Promise<{ id: s
     <div className="space-y-6">
       <nav className="text-sm"><Link href={`/support/admin/crm/people/${sheet.person.id}`} className="text-muted-foreground hover:underline">← {sheet.person.fullName}</Link></nav>
       <header>
-        <h1 className="text-2xl font-semibold">Rap sheet: {sheet.person.fullName}</h1>
+        <h1 className="text-2xl font-semibold">Meeting brief: {sheet.person.fullName}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Researched {sheet.generatedAt?.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })} ET{sheet.meetingTitle ? ` · ${sheet.meetingTitle}` : ''}</p>
       </header>
       <div className="max-w-3xl"><RapSheetView c={sheet.content as unknown as RapSheetContent} /></div>
