@@ -27,4 +27,13 @@ describe('groupEmailChains', () => {
     expect(chains.map((c) => c.messages.map((m) => m.id))).toEqual([['2'], ['1', '3']])
     expect(threadKey('RE: re: Intro ')).toBe('intro')
   })
+  it('groups by Gmail thread id when present, even across different subjects', () => {
+    const d = (n: number) => new Date(2026, 9, n)
+    const chains = groupEmailChains([
+      { id: '1', subject: 'Intro', occurredAt: d(1), threadId: 'T1' },
+      { id: '2', subject: 'Totally different subject', occurredAt: d(2), threadId: 'T1' },
+      { id: '3', subject: 'Intro', occurredAt: d(3), threadId: 'T2' },
+    ])
+    expect(chains.map((c) => c.messages.map((m) => m.id))).toEqual([['3'], ['1', '2']])
+  })
 })

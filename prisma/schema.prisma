@@ -9609,6 +9609,8 @@ model CrmActivity {
   // would otherwise look colder than they are.
   isAutoLogged  Boolean @default(false)
   sourceRef     String? // gmail thread id / calendar event id — dedupes re-syncs
+  /// Gmail's thread id for a synced email — what makes the profile's email chains exact. Null for older rows until backfilled.
+  threadId      String?
   loggedByEmail String?
 
   /// True for a synced email that doesn't mention NextChapter — an
@@ -9626,6 +9628,7 @@ model CrmActivity {
   reportSends      CrmReportSend[]
 
   @@unique([type, sourceRef])
+  @@index([threadId])
   @@index([personId, occurredAt(sort: Desc)])
   @@index([orgId, occurredAt(sort: Desc)])
   @@index([opportunityId, occurredAt(sort: Desc)])

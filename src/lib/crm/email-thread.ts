@@ -35,13 +35,14 @@ export function threadKey(subject: string | null | undefined): string | null {
 export type Chain<T> = { key: string; messages: T[]; latest: Date }
 
 /**
- * Groups emails into chains by normalised subject, messages oldest-first and
+ * Groups emails into chains by Gmail thread id (normalised subject for rows without one), messages oldest-first and
  * chains newest-activity-first. Email with no subject is its own chain.
  */
-export function groupEmailChains<T extends { id: string; subject: string | null; occurredAt: Date }>(emails: T[]): Chain<T>[] {
+export function groupEmailChains<T extends { id: string; subject: string | null; occurredAt: Date; threadId?: string | null }>(emails: T[]): Chain<T>[] {
   const byKey = new Map<string, T[]>()
   for (const e of emails) {
-    const key = threadKey(e.subject) ?? `solo:${e.id}`
+    // Gmail's thread id is exact; rows not yet backfilled fall back to the subject.
+    const key = e.threadId ? `t:${e.threadId}` : (threadKey(e.subject) ?? `solo:${e.id}`)
     byKey.set(key, [...(byKey.get(key) ?? []), e])
   }
   return [...byKey.entries()]

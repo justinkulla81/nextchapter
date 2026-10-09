@@ -423,16 +423,19 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     // body anyway, one at a time — most of a sweep's runtime.
     const logged = new Set<string>()
     const loggedRefs = new Set<string>()
+    // Rows logged before thread ids were stored — filled in as the sweep meets them again.
+    const needsThreadId = new Set<string>()
     for (let i = 0; i < ids.length; i += 100) {
       const chunk = ids.slice(i, i + 100)
       const rows = await prisma.crmActivity.findMany({
         where: { type: 'EMAIL', OR: chunk.map((id) => ({ sourceRef: { startsWith: `${id}:` } })) },
-        select: { sourceRef: true },
+        select: { sourceRef: true, threadId: true },
       })
       for (const r of rows) {
         if (!r.sourceRef) continue
         loggedRefs.add(r.sourceRef)
         logged.add(r.sourceRef.split(':')[0])
+        if (!r.threadId) needsThreadId.add(r.sourceRef.split(':')[0])
       }
     }
 
@@ -522,6 +525,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         // window — which Sync now does deliberately — costs almost nothing.
         if (loggedRefs.has(`${id}:${personId}`)) {
           loggedForThisMessage = true
+          if (needsThreadId.delete(id)) {
+            await prisma.crmActivity.updateMany({ where: { type: 'EMAIL', sourceRef: { startsWith: `${id}:` }, threadId: null }, data: { threadId: msg.threadId } })
+          }
           continue
         }
 
@@ -542,6 +548,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             occurredAt: msg.internalDate,
             personId,
             subject: msg.subject,
+            threadId: msg.threadId,
             // A known CRM contact's mail is worth the real message, not
             // Gmail's ~200-char snippet — falls back to the snippet only if
             // the full-body fetch itself failed (never on an empty body).
@@ -829,12 +836,13 @@ export async function backfillPersonFromEmail(
           occurredAt: msg.internalDate,
           personId,
           subject: msg.subject,
+          threadId: msg.threadId,
           body: fullBody ?? snippetOf(msg.snippet),
           isAutoLogged: true,
           sourceRef: `${id}:${personId}`,
           needsReview: direction === 'OUTBOUND' && !relevant,
         },
-        update: {},
+        update: { threadId: msg.threadId },
       })
       found++
       if (!oldestAt || msg.internalDate < oldestAt) oldestAt = msg.internalDate
