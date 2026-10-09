@@ -39,7 +39,7 @@ export function RapSheetGenerateButton({ personId, sheetId, label }: { personId:
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ personId, sheetId }),
       })
       const j = (await res.json()) as { error?: string; emailed?: boolean }
-      if (!res.ok) setMsg({ ok: false, text: j.error ?? 'Could not build the rap sheet. Try again.' })
+      if (!res.ok) setMsg({ ok: false, text: j.error ?? 'Could not build the meeting brief. Try again.' })
       else { setMsg({ ok: true, text: j.emailed ? 'Built and emailed to you.' : 'Built, but the email did not send. It is saved here.' }); router.refresh() }
     } catch {
       setMsg({ ok: false, text: 'Lost the connection while building. Check the CRM in a minute, then try again.' })

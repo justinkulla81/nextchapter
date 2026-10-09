@@ -568,6 +568,23 @@ export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: strin
   revalidatePath(`${CRM}/people/${personId}`)
 }
 
+/** Sets a person's LinkedIn profile link from the profile page. */
+export async function setPersonLinkedIn(personId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const raw = String(formData.get('linkedinUrl') ?? '').trim()
+  const slug = slugOf(raw)
+  if (!slug) return
+  // The slug is unique across people; a clash means this is a duplicate record, which the Review List handles.
+  const clash = await prisma.crmPerson.findFirst({ where: { linkedinSlug: slug, id: { not: personId } }, select: { id: true } })
+  if (clash) return
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: { linkedinSlug: slug, linkedinUrl: `https://www.linkedin.com/in/${slug}/` },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { personId, field: 'linkedinUrl', surface: 'profile' })
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
 /** Set roles on one person (multi-select). */
 /**
  * Setting a contact type on a record with no title yet also fills the

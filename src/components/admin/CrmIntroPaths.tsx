@@ -47,7 +47,7 @@ export function CrmIntroPaths({
 
   return (
     <section>
-      <h2 className="mb-1 text-lg font-semibold">
+      <h2 className="mb-1 text-base font-semibold">
         {targetPersonId ? `Who knows ${targetName.split(' ')[0]}` : `Who can reach ${targetName}`}
       </h2>
       <p className="mb-3 text-sm text-muted-foreground">
@@ -69,8 +69,9 @@ export function CrmIntroPaths({
         </ul>
       )}
 
-      <form action={add} className="mt-3 rounded-lg border border-border p-4">
-        <h3 className="text-sm font-medium">Add a route</h3>
+      <details className="group mt-3 rounded-lg border border-border">
+      <summary className="cursor-pointer select-none p-3 text-sm font-medium hover:bg-muted/50">Add a route</summary>
+      <form action={add} className="border-t border-border p-4">
         <ConnectorPicker excludeId={targetPersonId ?? ''} />
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-xs">
@@ -90,6 +91,7 @@ export function CrmIntroPaths({
         </div>
         <div className="mt-3"><SubmitButton size="sm" pendingLabel="Adding…">Add route</SubmitButton></div>
       </form>
+      </details>
     </section>
   )
 }

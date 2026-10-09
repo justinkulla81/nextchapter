@@ -17,8 +17,7 @@ export interface NextChapterAccountInfo {
 export function CrmNextChapterAccount({ info, onChanged, membership }: { info: NextChapterAccountInfo; onChanged?: () => void; membership?: string }) {
   return (
     <div>
-      <p className="flex items-center gap-2">
-        <input type="checkbox" checked={!!info.account} readOnly aria-label="Has a NextChapter candidate account" className="h-4 w-4 accent-primary" />
+      <p className="flex flex-wrap items-center gap-2">
         {info.account ? (
           <span>
             NextChapter candidate account ·{' '}
@@ -27,7 +26,7 @@ export function CrmNextChapterAccount({ info, onChanged, membership }: { info: N
           </span>
         ) : (
           <span className="text-muted-foreground">
-            No NextChapter account{info.invitedAt ? ` · invited ${info.invitedAt}` : ''}
+            Not a NextChapter user yet — no candidate account is linked to this person{info.invitedAt ? ` · invited ${info.invitedAt}` : ''}
           </span>
         )}
       </p>

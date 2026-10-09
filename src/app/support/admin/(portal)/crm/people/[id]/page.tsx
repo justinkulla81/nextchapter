@@ -13,13 +13,15 @@ import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
+import { CrmPersonOrg } from '@/components/admin/CrmPersonOrg'
+import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { groupEmailChains, latestReplyOnly } from '@/lib/crm/email-thread'
-import { updatePersonRoles, updatePersonField } from '../../actions'
+import { updatePersonRoles, updatePersonField, setPersonLinkedIn } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
   PRIORITY_TIERS, PRIORITY_TIER_LABELS, priorityTierClass,
@@ -47,7 +49,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
-      rapSheets: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 1, select: { id: true, generatedAt: true, meetingTitle: true } },
+      rapSheets: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 5, select: { id: true, generatedAt: true, meetingTitle: true } },
       introPathsAsTarget: {
         include: { connectorPerson: { select: { id: true, fullName: true } } },
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
@@ -61,6 +63,10 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     },
   })
   if (!person) notFound()
+  const primaryAff = person.affiliations[0] ?? null
+  const othersAtOrg = primaryAff
+    ? await prisma.crmAffiliation.count({ where: { orgId: primaryAff.orgId, personId: { not: person.id }, person: { deletedAt: null } } })
+    : 0
   // Sign-ups that look like someone invited from here, waiting on a yes/no.
   const inviteMatches = person.candidateId ? [] : await prisma.candidateIdentityMatch.findMany({
     where: { source: 'CRM_INVITE', sourceRecordId: person.id, status: 'PENDING' },
@@ -150,27 +156,55 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     )
   }
 
+  // "BD: Coach" -> group "Business development", item "Coach".
+  const ROLE_GROUPS: Record<string, string> = {
+    BD: 'Business development', F: 'Funding', FF: 'Friends and family', GTM: 'Go-to-market', 'Higher ed': 'Higher ed', NC: 'NextChapter',
+  }
+  const roleGroups = new Map<string, { role: (typeof PERSON_ROLES)[number]; label: string }[]>()
+  for (const r of PERSON_ROLES) {
+    const [prefix, ...rest] = PERSON_ROLE_LABELS[r].split(': ')
+    const group = ROLE_GROUPS[prefix] ?? prefix
+    roleGroups.set(group, [...(roleGroups.get(group) ?? []), { role: r, label: rest.join(': ') || PERSON_ROLE_LABELS[r] }])
+  }
+  const selectedRoles = person.roles.map((r) => PERSON_ROLE_LABELS[r])
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <nav className="text-sm">
         <Link href="/support/admin/crm" className="text-muted-foreground hover:underline">← All people</Link>
       </nav>
 
+      {/* Who they are, and the few things you do from here. */}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{person.fullName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {person.affiliations[0]
-              ? <>
-                  {person.affiliations[0].title || 'No title on file'} at{' '}
-                  <Link href={`/support/admin/crm/organizations/${person.affiliations[0].orgId}`} className="underline">
-                    {person.affiliations[0].org.name}
-                  </Link>
-                </>
-              : 'No organization on file'}
-          </p>
           {person.location && <p className="mt-0.5 text-sm text-muted-foreground">{person.location}</p>}
-          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
+            {!person.email && person.guessedEmail && (
+              <span title={`Guessed from the format others there use: ${person.guessedEmailBasis ?? ''}. Not confirmed.`}>
+                <a href={`mailto:${person.guessedEmail}`} className="underline">{person.guessedEmail}</a>
+                <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">guessed</span>
+              </span>
+            )}
+            {person.phone && <a href={`tel:${person.phone}`} className="underline">{person.phone}</a>}
+            {person.linkedinUrl ? (
+              <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn profile ↗</a>
+            ) : (
+              <details>
+                <summary className="cursor-pointer text-muted-foreground underline">Add LinkedIn link</summary>
+                <form action={setPersonLinkedIn.bind(null, person.id)} className="mt-2 flex items-center gap-2">
+                  <label htmlFor="linkedinUrl" className="sr-only">LinkedIn profile URL</label>
+                  <input
+                    id="linkedinUrl" name="linkedinUrl" type="url" placeholder="https://www.linkedin.com/in/…"
+                    className="h-8 w-72 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+                  />
+                  <SubmitButton size="sm" pendingLabel="Saving…">Save link</SubmitButton>
+                </form>
+              </details>
+            )}
+          </p>
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
             <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${qualityClass(person.leadQuality)}`}>
               {QUALITY_LABELS[person.leadQuality]}
             </span>
@@ -208,9 +242,6 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">guessed</span>
               </span>
             )}
-            {person.linkedinUrl && (
-              <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>
-            )}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -229,93 +260,6 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
       </section>
-
-      <CrmReferrals personId={person.id} />
-
-      <CrmNextChapterAccount
-        info={{
-          account: person.candidate
-            ? { href: `/support/admin/candidates/${person.candidate.id}`, since: formatDate(person.candidate.createdAt) }
-            : null,
-          invitedAt: person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null,
-          possibleSignups: inviteMatches.map((m) => ({
-            matchId: m.id,
-            name: [m.candidate.firstName, m.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
-            email: m.candidate.email,
-            signedUp: formatDate(m.candidate.createdAt),
-            sameEmail: m.strength === 'EMAIL_EXACT',
-          })),
-        }}
-        membership={person.candidate ? `membership: ${MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}` : undefined}
-      />
-
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Contact type</h2>
-        <form action={saveRoles} className="rounded-lg border border-border p-4">
-          <fieldset>
-            <legend className="sr-only">Contact types for {person.fullName}</legend>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {PERSON_ROLES.map((r) => (
-                <label key={r} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="roles" value={r} defaultChecked={person.roles.includes(r)} />
-                  {PERSON_ROLE_LABELS[r]}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <div className="mt-3">
-            <SubmitButton pendingLabel="Saving…">Save contact types</SubmitButton>
-          </div>
-        </form>
-      </section>
-
-      {person.affiliations.length > 1 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">Affiliations</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.affiliations.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <span>
-                  <Link href={`/support/admin/crm/organizations/${a.orgId}`} className="font-medium hover:underline">{a.org.name}</Link>
-                  {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
-                </span>
-                <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {person.backgrounds.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">Background</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.backgrounds.map((b) => (
-              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <span>
-                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
-                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
-                </span>
-                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {person.opportunities.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">Pipelines</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.opportunities.map((o) => (
-              <li key={o.id} className="flex items-center justify-between gap-2 p-3 text-sm">
-                <span>{o.title}</span>
-                <span className="text-xs text-muted-foreground">{o.pipeline.label} · {o.stage.label}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {contradicting.length > 0 && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
@@ -336,95 +280,58 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         </div>
       )}
 
-      <CrmIntroPaths
-        targetPersonId={person.id}
-        targetName={person.fullName}
-        youKnowThemDirectly={person.warmth === 'HOT'}
-        paths={person.introPathsAsTarget.map((p) => ({
-          id: p.id,
-          connectorPersonId: p.connectorPersonId,
-          connectorName: p.connectorName,
-          connectorRecordName: p.connectorPerson?.fullName ?? null,
-          relationshipNote: p.relationshipNote,
-          strength: p.strength,
-          status: p.status,
-          askedAt: p.askedAt ? p.askedAt.toISOString() : null,
-        }))}
-      />
-
-      {person.researchItems.length > 0 && (
+      <section className="space-y-3">
+        <GroupHeading>Organization</GroupHeading>
+        <CrmPersonOrg
+          personId={person.id}
+          org={primaryAff ? { id: primaryAff.orgId, name: primaryAff.org.name } : null}
+          title={primaryAff?.title ?? null}
+          othersCount={othersAtOrg}
+        />
+      {person.affiliations.length > 1 && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">Their research</h2>
+          <h2 className="mb-2 text-base font-semibold">Affiliations</h2>
           <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.researchItems.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 p-3 text-sm">
-                <span className="min-w-0">
-                  {r.url ? (
-                    <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title}</a>
-                  ) : <span className="font-medium">{r.title}</span>}
-                  {r.keyClaim && <span className="mt-0.5 block text-xs text-muted-foreground">{r.keyClaim}</span>}
+            {person.affiliations.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${a.orgId}`} className="font-medium hover:underline">{a.org.name}</Link>
+                  {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
                 </span>
-                <span className="flex shrink-0 items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STANCE_CLASS[r.stance]}`}>
-                    {STANCE_LABEL[r.stance]}
-                  </span>
-                  <CrmStanceSelect itemId={r.id} stance={r.stance} title={r.title} />
-                </span>
+                <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Notes</h2>
-        <form action={saveNotes} className="rounded-lg border border-border p-4">
-          <label htmlFor="notes" className="sr-only">Notes about {person.fullName}</label>
-          <textarea
-            id="notes" name="notes" rows={4} defaultValue={person.notes ?? ''}
-            placeholder="What matters about this person that isn't captured above."
-            className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
-          />
-          <div className="mt-3"><SubmitButton pendingLabel="Saving…">Save notes</SubmitButton></div>
-        </form>
+      {person.backgrounds.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Background</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.backgrounds.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
+                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       </section>
 
-      <section>
-        <h2 className="mb-1 text-lg font-semibold">Convert</h2>
-        <p className="mb-2 text-sm text-muted-foreground">
-          Optional. Contact types above (hiring manager, coach, higher ed, outplacement and the rest) are enough
-          on their own — a person stays unconverted and keeps every type. Converting creates a real production
-          record and links it here. Everything above — every email, intro path and
-          stage change — stays on this record; the CRM owns the relationship before conversion, production
-          owns it after.
-        </p>
-        <CrmGraduatePerson personId={person.id} coachId={person.coachId} recruiterId={person.recruiterId} />
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Rap sheet</h2>
-        <p className="mb-2 text-sm text-muted-foreground">
-          Local layoffs, initiatives, white-collar metrics, and a tailored pitch, emailed to you. Costs about $0.30–1.00 per build.
-          {person.rapSheets[0]?.generatedAt && (
-            <> Last built {formatDate(person.rapSheets[0].generatedAt)}. <Link href={`/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`} className="underline">View it</Link>.</>
-          )}
-        </p>
-        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild rap sheet and email me' : 'Build rap sheet now and email me'} />
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Mailing lists and reports</h2>
-        <PersonMailingSection personId={person.id} email={person.email} />
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Send outreach</h2>
-        <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
-      </section>
-
+      <section className="space-y-3">
+        <GroupHeading>Conversation</GroupHeading>
+        <Collapsible title="Send outreach" hint={person.email ? `to ${person.email}` : 'no email on file'}>
+          <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
+        </Collapsible>
       {needsReview.length > 0 && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">
+          <h2 className="mb-2 text-base font-semibold">
             Needs review <span className="text-sm font-normal text-muted-foreground">{needsReview.length}</span>
           </h2>
           <p className="mb-2 text-xs text-muted-foreground">
@@ -448,41 +355,196 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         </section>
       )}
 
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">
-          History{chainCount > 0 && <span className="ml-2 text-sm font-normal text-muted-foreground">{chainCount} email {chainCount === 1 ? 'conversation' : 'conversations'}</span>}
-        </h2>
-        {confirmedActivities.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Nothing logged yet. Email and calendar sync arrive in a later phase; LinkedIn messages are logged with the button above.
-          </p>
-        ) : (
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {historyItems.map((item) =>
-              item.kind === 'chain' ? (
-                <li key={item.chain.key} className="p-3 text-sm">
-                  <p className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-medium">{item.chain.messages[0].subject}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {item.chain.messages.length} {item.chain.messages.length === 1 ? 'email' : 'emails'} · latest {formatDate(item.chain.latest)}
-                    </span>
-                  </p>
-                  {/* One continuous rule down the left ties the messages into a single chain. */}
-                  <ol className="mt-2 ml-1 space-y-2 border-l-2 border-border pl-4">
-                    {item.chain.messages.map((a) => (
-                      <li key={a.id} className="relative">
-                        <span className="absolute -left-[1.4rem] top-1.5 h-2 w-2 rounded-full bg-border" aria-hidden />
-                        {renderActivity(a, false)}
-                      </li>
-                    ))}
-                  </ol>
-                </li>
-              ) : (
-                <li key={item.activity.id} className="p-3 text-sm">{renderActivity(item.activity, true)}</li>
-              ),
-            )}
+
+        <div>
+          <h3 className="mb-2 text-base font-semibold">
+            History{chainCount > 0 && <span className="ml-2 text-sm font-normal text-muted-foreground">{chainCount} email {chainCount === 1 ? 'conversation' : 'conversations'}</span>}
+          </h3>
+          {confirmedActivities.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              Nothing logged yet. Email and calendar sync arrive in a later phase; LinkedIn messages are logged with the button above.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {historyItems.map((item) =>
+                item.kind === 'chain' ? (
+                  <li key={item.chain.key}>
+                    <details className="rounded-lg border border-border">
+                      <summary className="flex cursor-pointer select-none flex-wrap items-baseline justify-between gap-2 p-3 text-sm hover:bg-muted/50">
+                        <span className="font-medium">{item.chain.messages[0].subject}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {item.chain.messages.length} {item.chain.messages.length === 1 ? 'email' : 'emails'} · latest {formatDate(item.chain.latest)}
+                        </span>
+                      </summary>
+                      {/* One continuous rule down the left ties the messages into a single chain. */}
+                      <ol className="mx-4 mb-3 ml-5 space-y-2 border-l-2 border-border pl-4 pt-1">
+                        {item.chain.messages.map((a) => (
+                          <li key={a.id} className="relative text-sm">
+                            <span className="absolute -left-[1.4rem] top-1.5 h-2 w-2 rounded-full bg-border" aria-hidden />
+                            {renderActivity(a, false)}
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
+                  </li>
+                ) : (
+                  <li key={item.activity.id} className="rounded-lg border border-border p-3 text-sm">{renderActivity(item.activity, true)}</li>
+                ),
+              )}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>Meeting briefs</GroupHeading>
+        <p className="text-sm text-muted-foreground">
+          Local layoffs, initiatives, white-collar metrics and a tailored pitch for a meeting with {person.fullName.split(' ')[0]}, emailed to you.
+          Costs about $0.30–1.00 per build.
+        </p>
+        {person.rapSheets.length > 0 && (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {person.rapSheets.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <Link href={`/support/admin/crm/rap-sheets/${r.id}`} className="font-medium underline">
+                  {r.meetingTitle || 'Meeting brief'}
+                </Link>
+                <span className="text-xs text-muted-foreground">Built {r.generatedAt ? formatDate(r.generatedAt) : '—'}</span>
+              </li>
+            ))}
           </ul>
         )}
+        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild meeting brief and email me' : 'Build meeting brief and email me'} />
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>Relationships</GroupHeading>
+      <CrmIntroPaths
+        targetPersonId={person.id}
+        targetName={person.fullName}
+        youKnowThemDirectly={person.warmth === 'HOT'}
+        paths={person.introPathsAsTarget.map((p) => ({
+          id: p.id,
+          connectorPersonId: p.connectorPersonId,
+          connectorName: p.connectorName,
+          connectorRecordName: p.connectorPerson?.fullName ?? null,
+          relationshipNote: p.relationshipNote,
+          strength: p.strength,
+          status: p.status,
+          askedAt: p.askedAt ? p.askedAt.toISOString() : null,
+        }))}
+      />
+
+        <Collapsible title="Referrals" hint="candidates they have recommended">
+          <CrmReferrals personId={person.id} />
+        </Collapsible>
+      {person.researchItems.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Their research</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.researchItems.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 p-3 text-sm">
+                <span className="min-w-0">
+                  {r.url ? (
+                    <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title}</a>
+                  ) : <span className="font-medium">{r.title}</span>}
+                  {r.keyClaim && <span className="mt-0.5 block text-xs text-muted-foreground">{r.keyClaim}</span>}
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STANCE_CLASS[r.stance]}`}>
+                    {STANCE_LABEL[r.stance]}
+                  </span>
+                  <CrmStanceSelect itemId={r.id} stance={r.stance} title={r.title} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>About this person</GroupHeading>
+        <Collapsible title="Contact type" hint={selectedRoles.length ? selectedRoles.join(' · ') : 'None set'}>
+          <form action={saveRoles}>
+            <fieldset className="space-y-3">
+              <legend className="sr-only">Contact types for {person.fullName}</legend>
+              {[...roleGroups.entries()].map(([group, items]) => (
+                <div key={group}>
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">{group}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {items.map(({ role, label }) => (
+                      <label key={role} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="roles" value={role} defaultChecked={person.roles.includes(role)} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </fieldset>
+            <div className="mt-3">
+              <SubmitButton pendingLabel="Saving…">Save contact types</SubmitButton>
+            </div>
+          </form>
+        </Collapsible>
+        <Collapsible title="Notes" hint={person.notes ? person.notes.slice(0, 80) : 'Nothing yet'} defaultOpen={!!person.notes}>
+          <form action={saveNotes}>
+            <label htmlFor="notes" className="sr-only">Notes about {person.fullName}</label>
+            <textarea
+              id="notes" name="notes" rows={4} defaultValue={person.notes ?? ''}
+              placeholder="What matters about this person that isn't captured above."
+              className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+            />
+            <div className="mt-3"><SubmitButton pendingLabel="Saving…">Save notes</SubmitButton></div>
+          </form>
+        </Collapsible>
+      {person.opportunities.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Pipelines</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.opportunities.map((o) => (
+              <li key={o.id} className="flex items-center justify-between gap-2 p-3 text-sm">
+                <span>{o.title}</span>
+                <span className="text-xs text-muted-foreground">{o.pipeline.label} · {o.stage.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>NextChapter account and lists</GroupHeading>
+        <CrmNextChapterAccount
+          info={{
+            account: person.candidate
+              ? { href: `/support/admin/candidates/${person.candidate.id}`, since: formatDate(person.candidate.createdAt) }
+              : null,
+            invitedAt: person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null,
+            possibleSignups: inviteMatches.map((m) => ({
+              matchId: m.id,
+              name: [m.candidate.firstName, m.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
+              email: m.candidate.email,
+              signedUp: formatDate(m.candidate.createdAt),
+              sameEmail: m.strength === 'EMAIL_EXACT',
+            })),
+          }}
+          membership={person.candidate ? `membership: ${MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}` : undefined}
+        />
+        <Collapsible title="Mailing lists and reports">
+          <PersonMailingSection personId={person.id} email={person.email} />
+        </Collapsible>
+        <Collapsible title="Convert to a production record" hint="optional">
+          <p className="mb-2 text-sm text-muted-foreground">
+            Contact types are enough on their own — a person stays unconverted and keeps every type. Converting creates a real production
+            record and links it here. Every email, intro path and stage change stays on this record; the CRM owns the relationship before
+            conversion, production owns it after.
+          </p>
+          <CrmGraduatePerson personId={person.id} coachId={person.coachId} recruiterId={person.recruiterId} />
+        </Collapsible>
       </section>
 
       {sources.length > 0 && (
