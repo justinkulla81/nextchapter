@@ -326,23 +326,27 @@ export async function POST(req: NextRequest) {
       // says it's someone already saved.
       const email = normalizeEmail(body.email)
       const include = { affiliations: { where: { isPrimary: true }, take: 1 } } as const
-      const existing = slug
-        ? await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, include })
-        : (email
-            ? await prisma.crmPerson.findFirst({ where: { OR: [{ email }, { emails: { has: email } }] }, include })
-            : null) ??
-          // No slug and no matching email: the same name at the same
-          // organization is the same person — this is what lets a second
-          // capture of a bio page fill in the phone or email the first one
-          // missed, instead of creating a duplicate. Both must match, so two
-          // different people who share a common name are never merged — and
-          // never on a placeholder ("- Unemployed" is not an organization).
-          (name && orgId && orgKey
-            ? await prisma.crmPerson.findFirst({
-                where: { fullName: { equals: name, mode: 'insensitive' }, affiliations: { some: { orgId } } },
-                include,
-              })
-            : null)
+      // The slug is the strongest key, but a record built from mail has no
+      // slug at all — so a LinkedIn capture that finds nothing by slug still
+      // looks for the same person by email, then by name at the same
+      // organization, rather than creating a duplicate. A record that already
+      // carries a *different* slug is someone else with the same name and is
+      // never claimed.
+      const bySlug = slug ? await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, include }) : null
+      const unclaimed = <T extends { linkedinSlug: string | null }>(p: T | null) => (p && (!slug || !p.linkedinSlug) ? p : null)
+      const byEmail = !bySlug && email
+        ? unclaimed(await prisma.crmPerson.findFirst({ where: { OR: [{ email }, { emails: { has: email } }] }, include }))
+        : null
+      // Both name and org must match, so two different people who share a
+      // common name are never merged — and never on a placeholder
+      // ("- Unemployed" is not an organization).
+      const byNameOrg = !bySlug && !byEmail && name && orgId && orgKey
+        ? unclaimed(await prisma.crmPerson.findFirst({
+            where: { fullName: { equals: name, mode: 'insensitive' }, affiliations: { some: { orgId } } },
+            include,
+          }))
+        : null
+      const existing = bySlug ?? byEmail ?? byNameOrg
       if (existing?.deletedAt) {
         // Writing to a removed record changes something you can't see. Say
         // it's removed and where to bring it back instead.

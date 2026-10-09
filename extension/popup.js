@@ -678,7 +678,16 @@ function renderFields() {
         const has = Boolean(scrapedValue('photoUrl'))
         cb.checked = has
         cb.disabled = !has
-        item.append(cb, document.createTextNode(has ? f.label : 'No profile pic found on this page'))
+        item.append(cb)
+        // Show what was found, so you can see whose face it is before saving.
+        if (has) {
+          const thumb = document.createElement('img')
+          thumb.src = scrapedValue('photoUrl')
+          thumb.alt = 'Profile pic found on this page'
+          thumb.style.cssText = 'width:40px;height:40px;border-radius:50%;object-fit:cover;margin:0 6px'
+          item.append(thumb)
+        }
+        item.append(document.createTextNode(has ? f.label : 'No profile pic found on this page'))
         host.append(item)
         continue
       }
