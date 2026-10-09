@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   updatePersonField, logCallWithFollowUp, clearPersonFollowUp,
 } from '@/app/support/admin/(portal)/crm/actions'
-import { QUALITY_LABELS, WARMTH_LABELS, PRIORITY_TIER_LABELS, QUALITIES, WARMTHS, PRIORITY_TIERS } from '@/lib/crm/labels'
+import { QUALITY_LABELS, WARMTH_LABELS, QUALITIES, WARMTHS, PRIORITY_TIERS } from '@/lib/crm/labels'
 import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmInlineGoals } from '@/components/admin/CrmInlineGoals'
 import { CrmInlineText } from '@/components/admin/CrmInlineText'
@@ -14,6 +14,10 @@ import { CrmNextChapterAccount, type NextChapterAccountInfo } from '@/components
 import type { CrmPersonRole, CrmGoal } from '@prisma/client'
 
 interface Fact { label: string; value: string }
+interface Activity {
+  subject: string; when: string; auto: boolean; body?: string | null; isProfileChange?: boolean
+  thread?: string | null; direction?: string
+}
 interface Peek {
   kind: 'person' | 'org'
   id: string
@@ -23,7 +27,9 @@ interface Peek {
   roles?: CrmPersonRole[]
   goals?: CrmGoal[]
   email?: string | null
+  phone?: string | null
   location?: string | null
+  rapSheet?: { href: string; label: string } | null
   awaitingReply?: boolean
   meeting?: string | null
   nextChapter?: NextChapterAccountInfo
@@ -33,7 +39,7 @@ interface Peek {
   body: string | null
   linkedinUrl?: string | null
   followUp?: { dueAt: string | null; note: string | null } | null
-  activities?: { subject: string; when: string; auto: boolean; body?: string | null; isProfileChange?: boolean }[]
+  activities?: Activity[]
   people?: { id: string; name: string; detail: string | null; touched: string }[]
   pipelines?: { label: string; stage: string }[]
   paths?: { via: string; strength: string; status: string }[]
@@ -109,11 +115,14 @@ export function CrmPeekPanel() {
           <div className="min-w-0">
             <h2 className="text-lg font-semibold">{data?.title ?? (loading ? 'Loading…' : 'Record')}</h2>
             {data?.subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{data.subtitle}</p>}
-            {data?.linkedinUrl && (
-              <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="mt-0.5 inline-block text-sm text-primary underline underline-offset-4">
-                LinkedIn
-              </a>
-            )}
+            <div className="mt-0.5 flex flex-wrap gap-x-3 text-sm">
+              {data?.linkedinUrl && (
+                <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-4">LinkedIn</a>
+              )}
+              {data?.rapSheet && (
+                <Link href={data.rapSheet.href} className="text-primary underline underline-offset-4" title={data.rapSheet.label}>Rap sheet</Link>
+              )}
+            </div>
           </div>
           <button
             ref={closeRef}
@@ -135,10 +144,6 @@ export function CrmPeekPanel() {
                 <CrmInlineRoles personId={data.id} roles={data.roles} name={data.title} onSaved={() => refetch(data.id, 'person')} />
               )}
 
-              {data.kind === 'person' && data.nextChapter && (
-                <CrmNextChapterAccount info={data.nextChapter} onChanged={() => refetch(data.id, 'person')} />
-              )}
-
               {data.company !== undefined && (
                 <div>
                   {data.company ? (
@@ -147,13 +152,13 @@ export function CrmPeekPanel() {
                         {data.company.name}
                       </Link>
                       {data.company.otherPeopleCount > 0 && (
-                        <span className="ml-1.5 text-xs text-muted-foreground">
+                        <span className="ml-1.5 text-muted-foreground">
                           · {data.company.otherPeopleCount} other {data.company.otherPeopleCount === 1 ? 'person' : 'people'} here
                         </span>
                       )}
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No organization on file.</p>
+                    <p className="text-muted-foreground">No organization on file.</p>
                   )}
                 </div>
               )}
@@ -163,30 +168,30 @@ export function CrmPeekPanel() {
               )}
 
               {data.kind === 'person' && data.goals !== undefined && (
-                <label className="block text-xs text-muted-foreground">
-                  Goal
-                  <div className="mt-0.5">
-                    <CrmInlineGoals personId={data.id} goals={data.goals} name={data.title} onSaved={() => refetch(data.id, 'person')} />
-                  </div>
-                </label>
+                <Field label="Goal">
+                  <CrmInlineGoals size="md" personId={data.id} goals={data.goals} name={data.title} onSaved={() => refetch(data.id, 'person')} />
+                </Field>
               )}
 
-              {data.kind === 'person' && data.location !== undefined && (
-                <label className="block text-xs text-muted-foreground">
-                  Location
-                  <div className="mt-0.5">
-                    <CrmInlineText personId={data.id} field="location" value={data.location ?? ''} label={`Location for ${data.title}`} placeholder="No location on file" />
-                  </div>
-                </label>
-              )}
-
-              {data.kind === 'person' && data.email !== undefined && (
-                <label className="block text-xs text-muted-foreground">
-                  Email
-                  <div className="mt-0.5">
-                    <CrmEmailBackfillPrompt personId={data.id} email={data.email} />
-                  </div>
-                </label>
+              {data.kind === 'person' && (
+                <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                  {data.email !== undefined && (
+                    <Field label="Email" className="min-w-0 break-words">
+                      <CrmEmailBackfillPrompt personId={data.id} email={data.email} />
+                    </Field>
+                  )}
+                  <Field label="Phone">
+                    {data.phone ? <a href={`tel:${data.phone}`} className="text-muted-foreground underline underline-offset-2">{data.phone}</a> : <span className="text-muted-foreground">—</span>}
+                  </Field>
+                  {data.location !== undefined && (
+                    <Field label="Location">
+                      <CrmInlineText size="md" personId={data.id} field="location" value={data.location ?? ''} label={`Location for ${data.title}`} placeholder="Add a location" onSaved={() => refetch(data.id, 'person')} />
+                    </Field>
+                  )}
+                  {data.nextChapter && (
+                    <CrmNextChapterAccount variant="field" info={data.nextChapter} onChanged={() => refetch(data.id, 'person')} />
+                  )}
+                </div>
               )}
 
               <dl className="grid grid-cols-2 gap-3">
@@ -196,9 +201,7 @@ export function CrmPeekPanel() {
                     <dd className="mt-0.5 break-words">
                       {f.value}
                       {f.label === 'Last contacted' && (data.meeting ? (
-                        <span className="ml-1.5 inline-block rounded-full bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand">
-                          Meeting scheduled · {data.meeting}
-                        </span>
+                        <MeetingChip meeting={data.meeting} href={data.rapSheet?.href} />
                       ) : data.awaitingReply && (
                         <span className="ml-1.5 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
                           Waiting on them
@@ -258,7 +261,7 @@ export function CrmPeekPanel() {
                   <>
                     {interactions.length > 0 && (
                       <Block title="Interaction activity — calls, email, meetings">
-                        {interactions.map((a, i) => <ActivityRow key={i} activity={a} />)}
+                        {groupThreads(interactions).map((g, i) => g.length > 1 ? <ThreadRow key={i} messages={g} /> : <ActivityRow key={i} activity={g[0]} />)}
                       </Block>
                     )}
                     {profileChanges.length > 0 && (
@@ -318,28 +321,82 @@ function EditableFields({
   const save = (field: 'leadQuality' | 'warmth' | 'priority', value: string) => {
     start(async () => { await updatePersonField(personId, field, value); onSaved() })
   }
+  const select = 'block h-8 w-full rounded border border-input bg-transparent px-1.5 text-sm'
   return (
-    <div className={`grid grid-cols-3 gap-2 ${pending ? 'cursor-progress opacity-60' : ''}`}>
-      <label className="text-xs text-muted-foreground">
-        Quality
-        <select defaultValue={editable.leadQuality} onChange={(e) => save('leadQuality', e.target.value)} className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-1 text-sm">
+    <div className={`grid grid-cols-3 gap-3 ${pending ? 'cursor-progress opacity-60' : ''}`}>
+      <Field label="Priority" as="label">
+        <select key={editable.priority ?? ''} defaultValue={editable.priority ?? ''} onChange={(e) => save('priority', e.target.value)} className={select}>
+          {!editable.priority && <option value="">—</option>}
+          {PRIORITY_TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </Field>
+      <Field label="Quality" as="label">
+        <select key={editable.leadQuality} defaultValue={editable.leadQuality} onChange={(e) => save('leadQuality', e.target.value)} className={select}>
           {QUALITIES.map((q) => <option key={q} value={q}>{QUALITY_LABELS[q]}</option>)}
         </select>
-      </label>
-      <label className="text-xs text-muted-foreground">
-        Warmth
-        <select defaultValue={editable.warmth} onChange={(e) => save('warmth', e.target.value)} className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-1 text-sm">
+      </Field>
+      <Field label="Warmth" as="label">
+        <select key={editable.warmth} defaultValue={editable.warmth} onChange={(e) => save('warmth', e.target.value)} className={select}>
           {WARMTHS.map((w) => <option key={w} value={w}>{WARMTH_LABELS[w]}</option>)}
         </select>
-      </label>
-      <label className="text-xs text-muted-foreground">
-        Priority
-        <select defaultValue={editable.priority ?? ''} onChange={(e) => save('priority', e.target.value)} className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-1 text-sm">
-          <option value="">No priority</option>
-          {PRIORITY_TIERS.map((t) => <option key={t} value={t}>{PRIORITY_TIER_LABELS[t]}</option>)}
-        </select>
-      </label>
+      </Field>
     </div>
+  )
+}
+
+/** Label above a value — the one label/value shape the whole panel uses. */
+function Field({ label, children, className, as }: { label: string; children: React.ReactNode; className?: string; as?: 'label' }) {
+  const Tag = as ?? 'div'
+  return (
+    <Tag className={`block ${className ?? ''}`}>
+      <span className="block text-xs text-muted-foreground">{label}</span>
+      <div className="mt-0.5 text-sm">{children}</div>
+    </Tag>
+  )
+}
+
+function MeetingChip({ meeting, href }: { meeting: string; href?: string }) {
+  const cls = 'ml-1.5 inline-block rounded-full bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand'
+  return href
+    ? <Link href={href} className={`${cls} underline underline-offset-2`} title="Open the rap sheet">Meeting scheduled · {meeting}</Link>
+    : <span className={cls}>Meeting scheduled · {meeting}</span>
+}
+
+/** Consecutive-or-not, messages in one thread collapse into a group placed where the newest one sits. */
+function groupThreads(items: Activity[]): Activity[][] {
+  const groups: Activity[][] = []
+  const byThread = new Map<string, Activity[]>()
+  for (const a of items) {
+    const g = a.thread ? byThread.get(a.thread) : undefined
+    if (g) { g.push(a); continue }
+    const ng = [a]
+    groups.push(ng)
+    if (a.thread) byThread.set(a.thread, ng)
+  }
+  return groups
+}
+
+function ThreadRow({ messages }: { messages: Activity[] }) {
+  const [open, setOpen] = useState(false)
+  const title = messages[0].subject.replace(/^(\s*(re|fwd?)\s*:\s*)+/i, '')
+  const first = messages[messages.length - 1]
+  return (
+    <li>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="text-left hover:underline">
+        {title}
+      </button>
+      <span className="text-xs text-muted-foreground"> · {messages.length} emails · {messages[0].when}{first.when !== messages[0].when ? ` back to ${first.when}` : ''}</span>
+      {open && (
+        <ul className="mt-1 space-y-1 border-l border-border pl-3">
+          {messages.map((m, i) => (
+            <li key={i} className="text-xs text-muted-foreground">
+              {m.when} · {m.direction === 'INBOUND' ? 'from them' : 'from you'}{m.auto ? ' · auto' : ''}
+              {m.body && <p className="mt-0.5 whitespace-pre-wrap rounded-md bg-muted/50 p-2">{m.body}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   )
 }
 

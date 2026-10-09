@@ -9316,6 +9316,14 @@ model CrmPerson {
   /// do. Null = no priority set.
   priority CrmPriorityTier?
 
+  /// When the email rule (src/lib/crm/priority-bump.ts) last raised
+  /// `priority` by itself, and when a human last set it. The pair is how a
+  /// manual lowering stands: once you move someone down after an automatic
+  /// bump (priorityManualAt later than priorityAutoAt), the rule leaves them
+  /// where you put them.
+  priorityAutoAt   DateTime?
+  priorityManualAt DateTime?
+
   // A reminder that isn't tied to any opportunity — set when logging a call
   // from the peek panel. Independent of CrmOpportunity.nextStepDueAt, which
   // only exists for people with an actual opportunity attached.

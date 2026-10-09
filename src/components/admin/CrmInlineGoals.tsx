@@ -13,12 +13,13 @@ import type { CrmGoal } from '@prisma/client'
  * on that) into a generic multi-select it was never designed to be.
  */
 export function CrmInlineGoals({
-  personId, goals, name, onSaved,
+  personId, goals, name, onSaved, size = 'sm',
 }: {
   personId: string
   goals: CrmGoal[]
   name: string
   onSaved?: () => void
+  size?: 'sm' | 'md'
 }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<CrmGoal[]>(goals)
@@ -49,7 +50,7 @@ export function CrmInlineGoals({
         aria-label={`Goals for ${name}`}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="min-w-24 max-w-56 truncate rounded border border-input bg-transparent px-1.5 py-1 text-left text-xs outline-none hover:border-ring focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+        className={`${size === 'md' ? 'h-8 max-w-full px-2 text-sm' : 'max-w-56 px-1.5 py-1 text-xs'} min-w-24 truncate rounded border border-input bg-transparent text-left outline-none hover:border-ring focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand`}
       >
         {selected.length > 0 ? selected.map((g) => GOAL_LABELS[g]).join(' · ') : '—'}
       </button>

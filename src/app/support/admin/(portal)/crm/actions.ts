@@ -21,6 +21,7 @@ import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { goalsForRoles } from '@/lib/crm/goals'
 import { isDealStatus } from '@/lib/crm/deal-status'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
@@ -347,7 +348,7 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
   } else if (field === 'warmth') {
     await prisma.crmPerson.update({ where: { id: personId }, data: { warmth: value as CrmWarmth } })
   } else if (field === 'priority') {
-    await prisma.crmPerson.update({ where: { id: personId }, data: { priority: value ? (value as CrmPriorityTier) : null } })
+    await prisma.crmPerson.update({ where: { id: personId }, data: { priority: value ? (value as CrmPriorityTier) : null, priorityManualAt: new Date() } })
   } else if (field === 'fullName') {
     const name = value.trim()
     if (!name) return
@@ -617,6 +618,12 @@ export async function updatePersonRoles(personId: string, formData: FormData) {
   const admin = await requireAdmin()
   const roles = formData.getAll('roles').map(String) as CrmPersonRole[]
   await prisma.crmPerson.update({ where: { id: personId }, data: { roles: { set: roles } } })
+  // The goal follows the contact type until someone picks one by hand: fill
+  // it only when empty, so a manual choice is never overwritten.
+  const derived = goalsForRoles(roles)
+  if (derived.length > 0) {
+    await prisma.crmPerson.updateMany({ where: { id: personId, goals: { isEmpty: true } }, data: { goals: { set: derived } } })
+  }
 
   if (roles.length > 0) {
     const person = await prisma.crmPerson.findUniqueOrThrow({
@@ -713,6 +720,10 @@ export async function bulkUpdatePeople(formData: FormData) {
           : null
       }).filter(Boolean)
     )
+    const derived = goalsForRoles(addRoles)
+    if (derived.length > 0) {
+      await prisma.crmPerson.updateMany({ where: { id: { in: ids }, goals: { isEmpty: true } }, data: { goals: { set: derived } } })
+    }
   }
 
   await prisma.crmActivity.createMany({
@@ -1667,7 +1678,7 @@ export async function updateFunderFacts(orgId: string, formData: FormData) {
 /** Sets (or clears) a person's priority tier. A decision, not a computation. */
 export async function setPersonPriority(personId: string, tier: CrmPriorityTier | null) {
   const admin = await requireAdmin()
-  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier } })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier, priorityManualAt: new Date() } })
   captureServerEvent(admin.email ?? 'admin', 'crm_person_priority_set', { personId, tier })
   revalidatePath(CRM)
 }

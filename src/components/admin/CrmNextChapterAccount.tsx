@@ -14,9 +14,24 @@ export interface NextChapterAccountInfo {
  * box when they do — and any sign-up that looks like them, confirmable
  * right here as well as on the Review List.
  */
-export function CrmNextChapterAccount({ info, onChanged, membership }: { info: NextChapterAccountInfo; onChanged?: () => void; membership?: string }) {
+export function CrmNextChapterAccount({ info, onChanged, membership, variant = 'line' }: { info: NextChapterAccountInfo; onChanged?: () => void; membership?: string; variant?: 'line' | 'field' }) {
   return (
     <div>
+      {variant === 'field' ? (
+        <div>
+          <div className="text-xs text-muted-foreground">NextChapter account</div>
+          <div className="mt-0.5 text-sm">
+            {info.account ? (
+              <>
+                Yes · <Link href={info.account.href} className="text-primary underline underline-offset-4">view</Link>
+                <span className="text-muted-foreground"> · since {info.account.since}{membership ? ` · ${membership}` : ''}</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">None{info.invitedAt ? ` · invited ${info.invitedAt}` : ''}</span>
+            )}
+          </div>
+        </div>
+      ) : (
       <p className="flex flex-wrap items-center gap-2">
         {info.account ? (
           <span>
@@ -30,6 +45,7 @@ export function CrmNextChapterAccount({ info, onChanged, membership }: { info: N
           </span>
         )}
       </p>
+      )}
 
       {info.possibleSignups.map((m) => (
         <div key={m.matchId} className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/40">

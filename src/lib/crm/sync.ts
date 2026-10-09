@@ -1,4 +1,5 @@
 import 'server-only'
+import { applyEmailPriorityBumps } from '@/lib/crm/priority-bump'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
@@ -215,6 +216,11 @@ export async function refreshTouchFields(personIds: string[]) {
       )
       WHERE p.id = v.id`
   }
+
+  // Someone emailing with you is at least P1 (P0 if it's a lot) — see
+  // priority-bump.ts. Runs here because this is the one place every email
+  // write already funnels through.
+  await applyEmailPriorityBumps(ids)
 }
 
 /**

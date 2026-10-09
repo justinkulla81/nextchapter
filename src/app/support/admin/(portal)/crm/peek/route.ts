@@ -1,7 +1,9 @@
 import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
+import { goalsForRoles } from '@/lib/crm/goals'
 import { ORG_TYPE_LABELS, sinceLabel, meetingLabel, formatDate, MEMBERSHIP_STATUS_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 20
@@ -68,7 +70,13 @@ export async function GET(req: NextRequest) {
       },
       activities: {
         where: { occurredAt: { gte: CRM_ACTIVITY_CUTOFF } },
-        orderBy: { occurredAt: 'desc' }, take: 8,
+        // Enough for a few whole email threads to collapse into one row each.
+        orderBy: { occurredAt: 'desc' }, take: 40,
+      },
+      rapSheets: {
+        where: { content: { not: Prisma.DbNull } },
+        orderBy: { generatedAt: 'desc' }, take: 1,
+        select: { id: true, meetingTitle: true, meetingAt: true },
       },
       opportunities: { include: { pipeline: true, stage: true }, take: 5 },
       introPathsAsTarget: { include: { connectorPerson: { select: { fullName: true } } }, take: 5 },
@@ -100,14 +108,19 @@ export async function GET(req: NextRequest) {
     // `facts` list below with no way to add or fix it from here at all.
     email: person.email,
     location: person.location,
-    goals: person.goals,
+    // The goal follows the contact type until one is picked by hand, so an
+    // untouched record still shows what its type implies.
+    goals: person.goals.length > 0 ? person.goals : goalsForRoles(person.roles),
+    rapSheet: person.rapSheets[0]
+      ? { href: `/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`, label: person.rapSheets[0].meetingTitle ?? (person.rapSheets[0].meetingAt ? `Meeting ${formatDate(person.rapSheets[0].meetingAt)}` : 'Rap sheet') }
+      : null,
+    phone: person.phone,
     company: primaryOrg
       ? { id: primaryOrg.id, name: primaryOrg.name, otherPeopleCount: Math.max(0, primaryOrg._count.affiliations - 1) }
       : null,
     facts: [
       { label: 'Last contacted', value: sinceLabel(person.lastTouchedAt) },
       { label: 'Touches', value: String(person.touchCount) },
-      person.phone ? { label: 'Phone', value: person.phone } : null,
       // Only set when this person is also a real NextChapter candidate.
       person.candidate ? { label: 'Membership', value: MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE'] } : null,
     ].filter(Boolean),
@@ -135,6 +148,10 @@ export async function GET(req: NextRequest) {
       : null,
     activities: person.activities.map((a) => ({
       subject: a.subject ?? a.type, when: formatDate(a.occurredAt), auto: a.isAutoLogged, body: a.body,
+      // Emails in one Gmail thread share a sourceRef; the panel folds them
+      // into a single row. Without a thread id, the subject minus Re:/Fwd:.
+      thread: a.type === 'EMAIL' ? (a.sourceRef ?? (a.subject ?? '').replace(/^(\s*(re|fwd?)\s*:\s*)+/i, '').trim().toLowerCase()) || null : null,
+      direction: a.direction,
       // FIELD_CHANGED/STAGE_CHANGED are record edits, not contact with the
       // person — kept as their own "Profile activity" block in the panel,
       // separate from real interactions (calls, emails, meetings, ...).
