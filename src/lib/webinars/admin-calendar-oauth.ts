@@ -21,9 +21,13 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // create events with conferenceData (the auto-generated Meet link).
 const SCOPE = 'https://www.googleapis.com/auth/calendar.events'
 
+// The admin session cookie only exists on the admin host, and the callback
+// requires an admin, so in production Google must send the browser back there
+// (the main domain would bounce to login and silently never save the tokens).
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return `${appUrl}/api/admin/google-calendar/callback`
+  const base = /localhost|127\.0\.0\.1/.test(appUrl) ? appUrl : 'https://admin.launchyournextchapter.com'
+  return `${base}/api/admin/google-calendar/callback`
 }
 
 export function buildAdminCalendarAuthUrl(state: string): string {
