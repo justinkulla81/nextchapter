@@ -87,6 +87,8 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'To do',
+      collapsible: true,
+      defaultOpen: true,
       links: [
         // "Org queue"/"People queue" — same idea (what's overdue right now:
         // a broken promise, a missed next step), split by whether the
@@ -101,6 +103,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'Pipeline',
+      collapsible: true,
       links: [
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
@@ -109,6 +112,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'Records',
+      collapsible: true,
       links: [
         { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
@@ -118,6 +122,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'Email',
+      collapsible: true,
       links: [
         // The bulk-send surface. Each list has a cadence; due sends are
         // drafted for you and wait here for approval.
@@ -129,6 +134,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'Lead sources',
+      collapsible: true,
       links: [
         // Pending == not yet promoted to a lead or dismissed — the one
         // state on this page that is actually waiting on you.
@@ -140,6 +146,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     },
     {
       title: 'Import and sync',
+      collapsible: true,
       links: [
         { href: '/support/admin/crm/import', label: 'Upload CSV' },
         { href: '/support/admin/crm/sync', label: 'Activity sync' },
