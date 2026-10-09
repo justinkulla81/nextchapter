@@ -87,6 +87,39 @@ export function computeTrajectory(current: number, past12wk: number): Trajectory
   return 'flat'
 }
 
+// Crawler-discovery guard. computeTrajectory reads "no roles 12 weeks ago, 2+
+// now" as growing — right for a company that really started hiring, wrong for
+// one our crawler simply found later (a bulk import can add tens of thousands
+// of postings, from thousands of employers we hadn't crawled, in one week).
+// Those employers have no earlier count because we weren't looking, not
+// because they weren't hiring, so they get no verdict.
+//
+// A bulk-import week is one whose number of new postings dwarfs the usual
+// weekly flow. Deliberately relative (5x the median week, and at least 500),
+// not a hard-coded date, so it keeps working for the next import.
+const WEEK_MS = 7 * DAY_MS
+const BULK_IMPORT_MULTIPLE = 5
+const BULK_IMPORT_MIN_POSTINGS = 500
+
+const weekBucket = (t: number) => Math.floor((t + 3 * DAY_MS) / WEEK_MS)
+
+export function bulkImportWeeks(createdAts: Date[]): Set<number> {
+  const perWeek = new Map<number, number>()
+  for (const d of createdAts) {
+    const b = weekBucket(d.getTime())
+    perWeek.set(b, (perWeek.get(b) ?? 0) + 1)
+  }
+  const counts = [...perWeek.values()].sort((a, b) => a - b)
+  if (counts.length === 0) return new Set()
+  const median = counts[Math.floor(counts.length / 2)]
+  const threshold = Math.max(BULK_IMPORT_MIN_POSTINGS, median * BULK_IMPORT_MULTIPLE)
+  return new Set([...perWeek.entries()].filter(([, n]) => n > threshold).map(([b]) => b))
+}
+
+export function wasDiscoveredInBulkImport(earliestPosting: Date, importWeeks: Set<number>): boolean {
+  return importWeeks.has(weekBucket(earliestPosting.getTime()))
+}
+
 function medianOf(values: number[]): number | null {
   if (values.length === 0) return null
   const sorted = [...values].sort((a, b) => a - b)
@@ -121,6 +154,7 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
   ])
 
   const results: ComputedCompanySignal[] = []
+  const importWeeks = bulkImportWeeks([...currentGrouped.values()].flatMap((rows) => rows.map((p) => p.createdAt)))
 
   for (const [companyNameNormalized, current] of currentGrouped) {
     const openRolesTotal = current.length
@@ -129,7 +163,13 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
     const past12wk = twelveWeeksAgoGrouped.get(companyNameNormalized)?.length ?? 0
     const rolesDelta4wk = openRolesTotal - past4wk
     const rolesDelta12wk = openRolesTotal - past12wk
-    const trajectory = computeTrajectory(openRolesTotal, past12wk)
+    // No roles 12 weeks ago: only call it growing if we were plausibly already
+    // watching this employer (its first posting is not from a bulk import).
+    const earliest = new Date(Math.min(...current.map((p) => p.createdAt.getTime())))
+    const trajectory =
+      past12wk === 0 && wasDiscoveredInBulkImport(earliest, importWeeks)
+        ? 'flat'
+        : computeTrajectory(openRolesTotal, past12wk)
 
     const functionCounts = new Map<string, number>()
     for (const p of current) {

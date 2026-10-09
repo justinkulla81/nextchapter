@@ -224,25 +224,6 @@ export async function loadCompanyRankingData(
     : new Map<string, number>()
   const watched = new Set(watchlist.map((w) => w.companyNameNormalized))
 
-  // Platform-wide growth in open roles over the signal's 12-week window. A bulk
-  // crawler import makes the stored per-company trajectory read "growing" for
-  // nearly everyone (their count 12 weeks ago predates the import), which would
-  // hand every company the same hiring points. When the whole platform grew by
-  // more than a quarter, judge each company against that baseline instead.
-  let totalNow = 0
-  let totalPast = 0
-  for (const c of companyRows) {
-    const sig = c.signals[0]
-    if (!sig || now - sig.weekStartDate.getTime() > SIGNAL_FRESH_MS) continue
-    const past = sig.openRolesTotal - sig.rolesDelta12wk
-    if (past > 0) {
-      totalNow += sig.openRolesTotal
-      totalPast += past
-    }
-  }
-  const platformGrowth = totalPast > 0 ? totalNow / totalPast : 1
-  const platformRamp = platformGrowth > 1.25
-
   const companies: RankingCompany[] = companyRows.map((c) => {
     const signal = c.signals[0]
     const fresh = signal && now - signal.weekStartDate.getTime() <= SIGNAL_FRESH_MS
@@ -250,16 +231,11 @@ export async function loadCompanyRankingData(
       fresh && ['growing', 'flat', 'contracting'].includes(signal.trajectory)
         ? (signal.trajectory as 'growing' | 'flat' | 'contracting')
         : null
-    if (fresh && platformRamp) {
-      const past = signal.openRolesTotal - signal.rolesDelta12wk
-      // No past count means a company that appeared with the import: new to us,
-      // not necessarily new to hiring — no verdict.
-      if (past <= 0) trajectory = null
-      else {
-        const ratio = signal.openRolesTotal / past
-        trajectory = ratio >= platformGrowth * 1.15 ? 'growing' : ratio <= platformGrowth * 0.85 ? 'contracting' : 'flat'
-      }
-    }
+    // No roles 12 weeks ago means new to our crawler as often as new to hiring
+    // (see bulkImportWeeks in signals.ts, which the nightly job applies with
+    // the posting dates this loader doesn't have). Until that has run, give no
+    // verdict rather than a growth bonus the data can't support.
+    if (fresh && signal.openRolesTotal - signal.rolesDelta12wk <= 0) trajectory = null
     const industryText = c.industry ?? warnIndustryByCompany.get(c.id)?.industry ?? null
     const industryBucket = industryText ? (industryTrends[industryText] ? industryText : normalizeIndustryBucket(industryText)) : null
     const former = formerByCompany.get(c.id)

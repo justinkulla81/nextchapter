@@ -227,14 +227,12 @@ function JobRecommendationsSkeleton() {
 // Tracking, Application Tracker, Company Tracker) never blocks on them.
 async function JobRecommendationsSection({
   profile,
-  isCandidatePlus,
   dossierReason,
   board,
   contacts,
   seniorityGroup,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
-  isCandidatePlus: boolean
   dossierReason: string
   board: BoardShortlist
   seniorityGroup: SeniorityGroup | null
@@ -790,7 +788,6 @@ async function FindMyJobBody({
             <Suspense fallback={<JobRecommendationsSkeleton />}>
               <JobRecommendationsSection
                 profile={profile}
-                isCandidatePlus={isCandidatePlus}
                 dossierReason={dossierStatus.reason}
                 board={board}
                 contacts={contacts}
