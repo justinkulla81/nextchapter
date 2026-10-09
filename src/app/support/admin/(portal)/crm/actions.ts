@@ -429,7 +429,7 @@ async function raisePriorityTo(personId: string, tier: 'P0' | 'P1') {
   const rank = { P0: 0, P1: 1, P2: 2 } as const
   const person = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { priority: true } })
   if (!person || (person.priority && rank[person.priority as keyof typeof rank] <= rank[tier])) return
-  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier } })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier, priorityAutoAt: new Date() } })
 }
 
 /** Sets (or updates) a follow-up reminder directly, with no call attached. */
