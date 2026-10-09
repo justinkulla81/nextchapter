@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
     // untouched record still shows what its type implies.
     goals: person.goals.length > 0 ? person.goals : goalsForRoles(person.roles),
     rapSheet: person.rapSheets[0]
-      ? { href: `/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`, label: person.rapSheets[0].meetingTitle ?? (person.rapSheets[0].meetingAt ? `Meeting ${formatDate(person.rapSheets[0].meetingAt)}` : 'Meeting brief') }
+      ? { href: `/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`, label: person.rapSheets[0].meetingTitle ?? (person.rapSheets[0].meetingAt ? `Meeting ${formatDate(person.rapSheets[0].meetingAt)}` : 'Meeting Prep') }
       : null,
     phone: person.phone,
     company: primaryOrg

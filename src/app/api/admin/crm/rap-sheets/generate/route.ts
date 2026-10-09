@@ -8,7 +8,7 @@ import { deliverRapSheet } from '@/lib/crm/rap-sheet/deliver'
 export const maxDuration = 300
 
 /**
- * Build a meeting brief right now and email it. Either rebuilds an existing sheet
+ * Build Meeting Prep right now and email it. Either rebuilds an existing sheet
  * (sheetId) or starts a one-off for a person (personId) — the path for a pitch
  * that wasn't on the calendar the night before.
  */
@@ -37,6 +37,6 @@ export async function POST(request: Request) {
 
   const result = await deliverRapSheet(sheetId, { rebuild: true })
   captureServerEvent('admin', 'rap_sheet_generate_requested', { sheetId, personId: body.personId ?? null, ok: result.ok })
-  if (!result.ok) return NextResponse.json({ error: result.error ?? 'Could not build the meeting brief.', sheetId }, { status: 502 })
+  if (!result.ok) return NextResponse.json({ error: result.error ?? 'Could not build the Meeting Prep.', sheetId }, { status: 502 })
   return NextResponse.json({ sheetId, emailed: result.emailed })
 }

@@ -25,15 +25,15 @@ export default async function RapSheetsPage() {
     <div className="space-y-6">
       <nav className="text-sm"><Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← CRM</Link></nav>
       <header>
-        <h1 className="text-2xl font-semibold">Meeting briefs</h1>
+        <h1 className="text-2xl font-semibold">Meeting Prep</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          The night before, you get an email listing tomorrow&apos;s pitches. Include the ones you want a meeting brief for; each one is
+          The night before, you get an email listing tomorrow&apos;s pitches. Include the ones you want Meeting Prep for; each one is
           researched fresh (about $0.30–1.00) and emailed at 6:30 AM ET. Anything you leave alone is skipped.
         </p>
       </header>
 
       {upcoming.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No pitches offered yet. Open a person in the CRM and choose &ldquo;Build meeting brief now&rdquo; for a one-off.</p>
+        <p className="text-sm text-muted-foreground">No pitches offered yet. Open a person in the CRM and choose &ldquo;Build Meeting Prep now&rdquo; for a one-off.</p>
       ) : (
         <ul className="divide-y rounded border">
           {upcoming.map((s) => (
@@ -43,7 +43,7 @@ export default async function RapSheetsPage() {
                 {s.person.affiliations[0] && <span className="text-sm text-muted-foreground">, {s.person.affiliations[0].org.name}</span>}
                 <p className="text-sm text-muted-foreground">{when(s.meetingAt)}{s.meetingTitle ? ` · ${s.meetingTitle}` : ''} · {STATUS_LABEL[s.status]}{s.emailedAt ? ' · emailed' : ''}</p>
                 {s.error && <p className="text-sm text-red-700">{s.error}</p>}
-                {s.content && <Link href={`/support/admin/crm/rap-sheets/${s.id}`} className="text-sm underline">View meeting brief</Link>}
+                {s.content && <Link href={`/support/admin/crm/rap-sheets/${s.id}`} className="text-sm underline">View Meeting Prep</Link>}
               </div>
               <div className="flex flex-col items-end gap-2">
                 {s.status !== 'READY' && s.status !== 'FAILED' && <RapSheetDecision sheetId={s.id} personId={s.person.id} status={s.status} />}

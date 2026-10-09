@@ -30,7 +30,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
   let token: string
   try { token = await getValidAdminAccessToken() } catch (e) {
     const detail = e instanceof Error ? e.message : String(e)
-    console.error('Meeting brief offer: calendar token unavailable:', detail)
+    console.error('Meeting Prep offer: calendar token unavailable:', detail)
     await sendOfferProblemEmail('Your Google Calendar connection has expired or was revoked, so tomorrow\'s meetings could not be read.', detail)
     return { offered: 0, sent: false, reason: 'no_calendar_connection' }
   }
@@ -41,7 +41,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
     ;[events, ctx] = await Promise.all([listCalendarEvents(token, from, to), buildSweepContext(null)])
   } catch (e) {
     const detail = e instanceof Error ? e.message : String(e)
-    console.error('Meeting brief offer: calendar read failed:', detail)
+    console.error('Meeting Prep offer: calendar read failed:', detail)
     await sendOfferProblemEmail('Your calendar could not be read, so tomorrow\'s meetings were not checked.', detail)
     return { offered: 0, sent: false, reason: 'calendar_read_failed' }
   }

@@ -407,7 +407,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </section>
 
       <section className="space-y-3">
-        <GroupHeading>Meeting briefs</GroupHeading>
+        <GroupHeading>Meeting Prep</GroupHeading>
         <p className="text-sm text-muted-foreground">
           Local layoffs, initiatives, white-collar metrics and a tailored pitch for a meeting with {person.fullName.split(' ')[0]}, emailed to you.
           Costs about $0.30–1.00 per build.
@@ -417,14 +417,14 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             {person.rapSheets.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
                 <Link href={`/support/admin/crm/rap-sheets/${r.id}`} className="font-medium underline">
-                  {r.meetingTitle || 'Meeting brief'}
+                  {r.meetingTitle || 'Meeting Prep'}
                 </Link>
                 <span className="text-xs text-muted-foreground">Built {r.generatedAt ? formatDate(r.generatedAt) : '—'}</span>
               </li>
             ))}
           </ul>
         )}
-        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild meeting brief and email me' : 'Build meeting brief and email me'} />
+        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild Meeting Prep and email me' : 'Build Meeting Prep and email me'} />
       </section>
 
       <section className="space-y-3">
