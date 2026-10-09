@@ -4,7 +4,8 @@
 // person's contact types (goalsForRoles). Raise-only and fill-only — it
 // never lowers a priority or overwrites a goal.
 //
-// Dry run by default. Run: npx tsx scripts/backfill-crm-email-priority-and-goals.ts [--apply]
+// Dry run by default. Run (the condition lets the 'server-only' import through):
+//   node --env-file=.env.local --conditions=react-server --import tsx scripts/backfill-crm-email-priority-and-goals.ts [--apply]
 
 import { PrismaClient } from '@prisma/client'
 import { goalsForRoles } from '../src/lib/crm/goals'
