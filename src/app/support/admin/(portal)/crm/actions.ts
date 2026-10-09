@@ -205,7 +205,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
   if (slug) {
     const bySlug = await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug } })
     if (bySlug && bySlug.deletedAt) {
-      return { status: 'error', message: `${bySlug.fullName} was previously removed from the Ecosystem. Restore them from a full backup if that was a mistake — this won't recreate them.` }
+      return { status: 'error', message: `${bySlug.fullName} was previously removed from the CRM. Restore them from a full backup if that was a mistake — this won't recreate them.` }
     }
     if (bySlug) {
       const missing = roles.filter((r) => !bySlug.roles.includes(r))
@@ -214,7 +214,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
       }
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: bySlug.id, on: 'slug' })
       revalidatePath(CRM)
-      return { status: 'existing', personId: bySlug.id, message: `${bySlug.fullName} is already in the Ecosystem — opened their record.` }
+      return { status: 'existing', personId: bySlug.id, message: `${bySlug.fullName} is already in the CRM — opened their record.` }
     }
   }
   if (match?.email) {
@@ -222,12 +222,12 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
     // just the primary `email` column, which is all this used to check.
     const byEmail = await findEmailOwner(match.email, { includeDeleted: true })
     if (byEmail?.deleted) {
-      return { status: 'error', message: `${byEmail.fullName} was previously removed from the Ecosystem. Restore them from a full backup if that was a mistake — this won't recreate them.` }
+      return { status: 'error', message: `${byEmail.fullName} was previously removed from the CRM. Restore them from a full backup if that was a mistake — this won't recreate them.` }
     }
     if (byEmail) {
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: byEmail.id, on: 'email' })
       revalidatePath(CRM)
-      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the Ecosystem with ${match.email} — opened their record.` }
+      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the CRM with ${match.email} — opened their record.` }
     }
   }
 
@@ -1209,7 +1209,7 @@ export async function confirmDeadlineDate(formData: FormData) {
  * express — they held a single free-text "Warm Path" column with one guess
  * that couldn't be searched, updated, or marked as already asked.
  *
- * A connector is either a real person in the Ecosystem (searchable across all 3,688)
+ * A connector is either a real person in the CRM (searchable across all 3,688)
  * or free text, for a route you've heard about but can't yet name.
  */
 export async function addIntroPath(

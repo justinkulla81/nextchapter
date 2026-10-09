@@ -348,7 +348,7 @@ export async function POST(req: NextRequest) {
         // it's removed and where to bring it back instead.
         const when = existing.deletedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })
         return NextResponse.json(
-          { error: `${existing.fullName} was removed from the CRM on ${when}. Restore them from Ecosystem → Removed, then save again.`, removed: true, personId: existing.id },
+          { error: `${existing.fullName} was removed from the CRM on ${when}. Restore them from CRM → Removed, then save again.`, removed: true, personId: existing.id },
           { status: 409, headers: CORS }
         )
       }

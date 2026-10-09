@@ -60,7 +60,7 @@ export type AdminArea = 'administrator' | 'ecosystem' | 'vision'
 
 export const AREAS: { key: AdminArea; label: string; href: string; hint: string }[] = [
   { key: 'administrator', label: 'Web Admin', href: '/support/admin', hint: 'Running the product' },
-  { key: 'ecosystem', label: 'Ecosystem', href: '/support/admin/crm/home', hint: 'People and organizations' },
+  { key: 'ecosystem', label: 'CRM', href: '/support/admin/crm/home', hint: 'People and organizations' },
   { key: 'vision', label: 'Operations', href: '/support/admin/vision', hint: 'What we build and why' },
 ]
 

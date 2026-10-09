@@ -58,7 +58,7 @@ export default async function VisionHomePage() {
             Export for Claude
           </Link>
           <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-            Ecosystem
+            CRM
           </Link>
         </span>
       </header>

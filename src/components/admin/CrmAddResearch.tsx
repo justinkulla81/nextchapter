@@ -70,7 +70,7 @@ export function CrmAddResearch() {
       <p className="rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
         Authors are matched to people you already have, and added as new ones where they are missing — a
         researcher is someone you may end up meeting, so the name on the paper and the record in the
-        Ecosystem should be the same person.
+        CRM should be the same person.
       </p>
 
       <label className="block text-sm">

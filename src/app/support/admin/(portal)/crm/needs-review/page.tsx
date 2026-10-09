@@ -38,7 +38,7 @@ export default async function CrmNeedsReviewPage() {
   return (
     <div className="space-y-6">
       <nav className="text-sm">
-        <Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← Ecosystem</Link>
+        <Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← CRM</Link>
       </nav>
 
       <header>

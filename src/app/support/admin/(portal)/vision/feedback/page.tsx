@@ -97,9 +97,9 @@ export default async function VisionFeedbackPage({
             </select>
           </label>
           <label className="text-sm">
-            <span className="mb-1 block font-medium">Or in the Ecosystem</span>
+            <span className="mb-1 block font-medium">Or in the CRM</span>
             <select name="personId" defaultValue="" className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm">
-              <option value="">Not in the Ecosystem</option>
+              <option value="">Not in the CRM</option>
               {testers.map((t) => <option key={t.id} value={t.id}>{t.fullName}</option>)}
             </select>
           </label>

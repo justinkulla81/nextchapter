@@ -68,7 +68,7 @@ function when(d: Date): string {
 }
 
 /**
- * The Ecosystem's front page: is outreach happening, and what came back.
+ * The CRM front page: is outreach happening, and what came back.
  *
  * Deliberately a read-out, not another worklist — the queues are where you
  * act. This answers "how was the week" in one screen: the email trend on
@@ -401,7 +401,7 @@ export default async function CrmHomePage({
 
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Ecosystem</h1>
+          <h1 className="text-2xl font-semibold">CRM</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Outreach at a glance — what went out, what came back, and where things stand.
           </p>

@@ -286,7 +286,7 @@ export default async function CrmPeoplePage({
       </datalist>
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">NextChapter Ecosystem</h1>
+          <h1 className="text-2xl font-semibold">NextChapter CRM</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Everyone around NextChapter — investors, partners, employers, coaches, recruiters, policy people
             and job seekers — in one place, whatever combination of those they are.

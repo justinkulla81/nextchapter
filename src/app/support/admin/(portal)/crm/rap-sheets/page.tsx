@@ -23,7 +23,7 @@ export default async function RapSheetsPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="text-sm"><Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← Ecosystem</Link></nav>
+      <nav className="text-sm"><Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← CRM</Link></nav>
       <header>
         <h1 className="text-2xl font-semibold">Rap sheets</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">

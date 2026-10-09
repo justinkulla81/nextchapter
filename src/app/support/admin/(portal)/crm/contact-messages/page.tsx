@@ -22,7 +22,7 @@ export default async function ContactMessagesPage({ searchParams }: { searchPara
   return (
     <div className="space-y-6">
       <nav className="text-sm">
-        <Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← Ecosystem</Link>
+        <Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← CRM</Link>
       </nav>
       <header>
         <h1 className="text-2xl font-semibold">Contact messages</h1>
