@@ -40,6 +40,11 @@ interface NavLink {
 interface NavSection {
   title: string
   links: NavLink[]
+  /** Renders the header as a toggle. Only the Administrator area uses this —
+   * it has ~70 links, so everything but the section you're in stays folded. */
+  collapsible?: boolean
+  /** Open on first load even when it doesn't hold the current page. */
+  defaultOpen?: boolean
 }
 
 /**
@@ -176,109 +181,129 @@ export function buildSectionsForArea(area: AdminArea, badges: Record<string, num
 
 function buildSections(badges: Record<string, number>): NavSection[] {
   const badgeFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
+  const A = '/support/admin'
 
+  // Grouped by the job you're doing, not by which table the page reads.
+  // "Review queues" is every page where an orange badge means something is
+  // waiting on you, so the first thing in the menu answers "what needs me?".
   return [
     {
+      title: 'Review queues',
+      collapsible: true,
+      defaultOpen: true,
+      links: [
+        { href: `${A}/help`, label: 'Help inbox', badge: badgeFor('helpNeedsReply') },
+        { href: `${A}/requests`, label: 'Requests', badge: badgeFor('requests') },
+        { href: `${A}/identity-matches`, label: 'Identity Matches', badge: badgeFor('identityMatches') },
+        { href: `${A}/bounty-claims`, label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
+        { href: `${A}/scholarship-applications`, label: 'Scholarship Applications', badge: badgeFor('scholarshipApplications') },
+        { href: `${A}/eqoveriq-applications`, label: 'EQoverIQ Applications', badge: badgeFor('eqoveriqApplications') },
+        { href: `${A}/reference-disputes`, label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
+        { href: `${A}/reported-messages`, label: 'Reported Conversations', badge: badgeFor('reportedMessages') },
+        { href: `${A}/community-moderation`, label: 'Community Moderation', badge: badgeFor('communityModeration') },
+      ],
+    },
+    {
       title: 'Candidates',
+      collapsible: true,
       links: [
-        { href: '/support/admin/candidates', label: 'Candidates' },
-        { href: '/support/admin/help', label: 'Help inbox', badge: badgeFor('helpNeedsReply') },
-        { href: '/support/admin/candidates/declined-commitment', label: 'Declined Commitment' },
-        { href: '/support/admin/performance', label: 'Performance' },
-        { href: '/support/admin/pacing', label: 'Pacing' },
-        { href: '/support/admin/platform-engagement', label: 'Work & Learning' },
-        { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts' },
-        { href: '/support/admin/weekly-recognition', label: 'Weekly Recognition Archive' },
-        { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
-        { href: '/support/admin/scholarship-applications', label: 'Scholarship Applications', badge: badgeFor('scholarshipApplications') },
-        { href: '/support/admin/identity-matches', label: 'Identity Matches', badge: badgeFor('identityMatches') },
-        { href: '/support/admin/classification-feedback', label: 'Detection Feedback' },
-        { href: '/support/admin/references', label: 'References' },
-        { href: '/support/admin/reference-disputes', label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
-        { href: '/support/admin/employer-references', label: 'Employer References' },
-        { href: '/support/admin/reported-messages', label: 'Reported Conversations', badge: badgeFor('reportedMessages') },
-        { href: '/support/admin/community-moderation', label: 'Community Moderation', badge: badgeFor('communityModeration') },
-        { href: '/support/admin/community-stories', label: 'Community Stories' },
+        { href: `${A}/candidates`, label: 'All candidates' },
+        { href: `${A}/candidates/declined-commitment`, label: 'Declined Commitment' },
+        { href: `${A}/layoff-cohorts`, label: 'Layoff Cohorts' },
+        { href: `${A}/performance`, label: 'Performance' },
+        { href: `${A}/pacing`, label: 'Pacing' },
+        { href: `${A}/platform-engagement`, label: 'Work & Learning' },
+        { href: `${A}/search-checkins`, label: 'Search Check-ins' },
+        { href: `${A}/weekly-recognition`, label: 'Weekly Recognition Archive' },
       ],
     },
     {
-      title: 'Coaches',
+      title: 'Coaching',
+      collapsible: true,
       links: [
-        { href: '/support/admin/coaches', label: 'Coaches' },
-        { href: '/support/admin/coach-matches', label: 'Coach Matches' },
-        { href: '/support/admin/coaching-reassignments', label: 'Reassignments & Surge' },
-        { href: '/support/admin/coaching-rates', label: 'Coaching Rate Card' },
-        { href: '/support/admin/coaching-settings', label: 'Coaching Settings' },
+        { href: `${A}/coaches`, label: 'Coaches' },
+        { href: `${A}/coach-matches`, label: 'Coach Matches' },
+        { href: `${A}/coaching-reassignments`, label: 'Reassignments & Surge' },
+        { href: `${A}/coaching-rates`, label: 'Rate Card' },
+        { href: `${A}/coaching-settings`, label: 'Settings' },
       ],
     },
     {
-      title: 'Employers',
+      title: 'Employers & jobs',
+      collapsible: true,
       links: [
-        { href: '/support/admin/employers', label: 'Employers' },
-        { href: '/support/admin/exclusive-jobs', label: 'Job Board', badge: badgeFor('jobBoard') },
+        { href: `${A}/employers`, label: 'Employers' },
+        { href: `${A}/companies`, label: 'Companies' },
+        { href: `${A}/exclusive-jobs`, label: 'Job Board', badge: badgeFor('jobBoard') },
+        { href: `${A}/jobs`, label: 'Jobs' },
+        { href: `${A}/interim-listings`, label: 'Interim Work Listings' },
       ],
     },
     {
       title: 'Recruiters',
+      collapsible: true,
       links: [
-        { href: '/support/admin/recruiters', label: 'Recruiters' },
-        { href: '/support/admin/recruiter-database', label: 'Recruiter Database' },
-        { href: '/support/admin/recruiter-settings', label: 'Recruiter Settings' },
+        { href: `${A}/recruiters`, label: 'Recruiters' },
+        { href: `${A}/recruiter-database`, label: 'Database' },
+        { href: `${A}/recruiter-settings`, label: 'Settings' },
       ],
     },
     {
-      title: 'NEN',
+      title: 'Trust & community',
+      collapsible: true,
       links: [
-        { href: '/support/admin/nen-sessions', label: 'Sessions' },
-        { href: '/support/admin/nen-employers', label: 'Employers' },
-        { href: '/support/admin/nen-contests', label: 'Contests' },
+        { href: `${A}/references`, label: 'References' },
+        { href: `${A}/employer-references`, label: 'Employer References' },
+        { href: `${A}/community-stories`, label: 'Community Stories' },
+        { href: `${A}/classification-feedback`, label: 'Detection Feedback' },
+        { href: `${A}/bias-detection`, label: 'Bias Detection' },
       ],
     },
     {
-      title: 'EQoverIQ',
+      title: 'Programs & content',
+      collapsible: true,
       links: [
-        { href: '/support/admin/eqoveriq-applications', label: 'Applications', badge: badgeFor('eqoveriqApplications') },
-        { href: '/support/admin/eqoveriq-contributors', label: 'Contributors' },
+        { href: `${A}/courses`, label: 'Courses' },
+        { href: `${A}/webinars`, label: 'Videos and Webinars' },
+        { href: `${A}/nen-sessions`, label: 'NEN Sessions' },
+        { href: `${A}/nen-employers`, label: 'NEN Employers' },
+        { href: `${A}/nen-contests`, label: 'NEN Contests' },
+        { href: `${A}/eqoveriq-contributors`, label: 'EQoverIQ Contributors' },
+        { href: `${A}/alumni-groups`, label: 'Alumni & Employer Networks' },
+        { href: `${A}/benefits-network`, label: 'Alumni Benefits Network' },
       ],
     },
     {
-      title: 'Companies',
-      links: [{ href: '/support/admin/companies', label: 'Companies' }],
-    },
-    {
-      title: 'Commercial',
+      title: 'Money',
+      collapsible: true,
       links: [
-        { href: '/support/admin/plan-catalog', label: 'Plan Catalog' },
-        { href: '/support/admin/margin-dashboard', label: 'Margin Dashboard' },
-        { href: '/support/admin/outplacement-contracts', label: 'Employer Contracts' },
+        { href: `${A}/plan-catalog`, label: 'Plan Catalog' },
+        { href: `${A}/margin-dashboard`, label: 'Margin Dashboard' },
+        { href: `${A}/outplacement-contracts`, label: 'Employer Contracts' },
       ],
     },
     {
-      title: 'Admin',
+      title: 'Reports',
+      collapsible: true,
       links: [
-        { href: '/support/admin/requests', label: 'Requests', badge: badgeFor('requests') },
-        { href: '/support/admin/issues', label: 'Resume Issue Analytics' },
-        { href: '/support/admin/jobs', label: 'Jobs' },
-        { href: '/support/admin/action-counts', label: 'Action Counts' },
-        { href: '/support/admin/metrics', label: 'Site Metrics' },
-        { href: '/support/admin/population', label: 'Population Report' },
-        { href: '/support/admin/page-content', label: 'Page Content' },
-        { href: '/support/admin/email-cadence', label: 'Email Cadence' },
-        { href: '/support/admin/search-checkins', label: 'Search Check-ins' },
-        { href: '/support/admin/courses', label: 'Courses' },
-        { href: '/support/admin/alumni-groups', label: 'Alumni & Employer Networks' },
-        { href: '/support/admin/webinars', label: 'Videos and Webinars' },
-        { href: '/support/admin/pedigree-signals', label: 'Pedigree Signals' },
-        { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
-        { href: '/support/admin/benefits-network', label: 'Alumni Benefits Network' },
-        { href: '/support/admin/bias-detection', label: 'Bias Detection' },
+        { href: `${A}/metrics`, label: 'Site Metrics' },
+        { href: `${A}/visitors`, label: 'Visitors' },
+        { href: `${A}/action-counts`, label: 'Action Counts' },
+        { href: `${A}/population`, label: 'Population Report' },
+        { href: `${A}/issues`, label: 'Resume Issue Analytics' },
+        { href: `${A}/pedigree-signals`, label: 'Pedigree Signals' },
+      ],
+    },
+    {
+      title: 'Site & email',
+      collapsible: true,
+      links: [
+        { href: `${A}/page-content`, label: 'Page Content' },
+        { href: `${A}/email-cadence`, label: 'Email Cadence' },
         // Weekly Market Digest (queue + send history) lives at the bottom of
-        // this same page now — see Market Pulse's own page.tsx comment. It
-        // was never actually "Coming soon" (that nav label was stale); the
-        // three per-audience sends are real, live weekly crons.
-        { href: '/support/admin/digest', label: 'Market Pulse' },
-        { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },
-        { href: '/support/admin/visitors', label: 'Visitors' },
+        // this same page — see Market Pulse's own page.tsx comment.
+        { href: `${A}/digest`, label: 'Market Pulse' },
+        { href: `${A}/tracking-testers`, label: 'Gmail/Calendar Testers' },
       ],
     },
   ]
@@ -311,6 +336,8 @@ function NavContent({
     .filter(matches)
     .sort((a, b) => b.length - a.length)[0]
   const isActive = (href: string) => href === activeHref
+  // Per-section overrides of the default (open if it holds the current page).
+  const [toggled, setToggled] = useState<Record<string, boolean>>({})
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -342,12 +369,41 @@ function NavContent({
           {AREAS.find((a) => a.key === area)?.hint}
         </p>
       </div>
-      {sections.map((section) => (
+      {sections.map((section) => {
+        const hasActive = section.links.some((l) => isActive(l.href))
+        const isOpen = !section.collapsible || (toggled[section.title] ?? (hasActive || !!section.defaultOpen))
+        // A folded section still has to say when something inside needs you.
+        const alertCount = section.links.reduce(
+          (n, l) => n + (l.badge && l.badgeTone !== 'count' ? Number(l.badge) || 0 : 0),
+          0
+        )
+        return (
         <div key={section.title} className="space-y-px">
-          <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
-            {section.title}
-          </p>
-          {section.links.map((link) => {
+          {section.collapsible ? (
+            <button
+              type="button"
+              onClick={() => setToggled((t) => ({ ...t, [section.title]: !isOpen }))}
+              aria-expanded={isOpen}
+              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-[11px] font-semibold tracking-widest text-white/60 uppercase transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <span className="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" className={cn('size-3 transition-transform', isOpen && 'rotate-90')} fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
+                </svg>
+                {section.title}
+              </span>
+              {!isOpen && alertCount > 0 && (
+                <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange">
+                  {alertCount}
+                </span>
+              )}
+            </button>
+          ) : (
+            <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
+              {section.title}
+            </p>
+          )}
+          {isOpen && section.links.map((link) => {
             const badgeEl = link.badge && (
               <span
                 className={cn(
@@ -392,7 +448,8 @@ function NavContent({
             )
           })}
         </div>
-      ))}
+        )
+      })}
       <form action={signOut} className="mt-auto px-2">
         <SignOutButton />
       </form>
