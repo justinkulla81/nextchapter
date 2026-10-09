@@ -110,6 +110,8 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
         linkedinSlug: target.linkedinSlug ?? source.linkedinSlug,
         linkedinUrl: target.linkedinUrl ?? source.linkedinUrl,
         notes: target.notes ?? source.notes,
+        photoUrl: target.photoUrl ?? source.photoUrl,
+        location: target.location ?? source.location,
         connectedAt: target.connectedAt ?? source.connectedAt,
       },
     })
