@@ -188,6 +188,10 @@ function buildSections(badges: Record<string, number>): NavSection[] {
   // waiting on you, so the first thing in the menu answers "what needs me?".
   return [
     {
+      title: 'Overview',
+      links: [{ href: A, label: 'Home' }],
+    },
+    {
       title: 'Review queues',
       collapsible: true,
       defaultOpen: true,
