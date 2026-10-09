@@ -26,7 +26,7 @@ export function easternDayBounds(offsetDays: number, now = new Date()): { from: 
 }
 
 /** Find tomorrow's meetings with CRM people, record an offer for each, and email the choice. */
-export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: boolean; reason?: string }> {
+export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: boolean; reason?: string; events?: number; unmatchedAttendees?: number }> {
   let token: string
   try { token = await getValidAdminAccessToken() } catch (e) {
     const detail = e instanceof Error ? e.message : String(e)
@@ -71,7 +71,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
       rows.push({ personId: person.id, personName: person.fullName, orgName: org?.name ?? null, title: ev.summary, at: ev.start, role: person.roles[0] ?? null })
     }
   }
-  if (rows.length === 0) return { offered: 0, sent: false, reason: 'no_crm_pitches_tomorrow' }
+  if (rows.length === 0) return { offered: 0, sent: false, reason: 'no_crm_pitches_tomorrow', events: events.length, unmatchedAttendees: unknown.length }
   const sent = await sendOfferEmail(rows, unknown)
   captureServerEvent('admin', 'rap_sheet_offer_sent', { pitches: rows.length, unknownAttendees: unknown.length, sent })
   return { offered: rows.length, sent }
