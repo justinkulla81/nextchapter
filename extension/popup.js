@@ -469,6 +469,16 @@ async function readPage() {
         .find((t) => /^·\s*(1st|2nd|3rd\+?)$/i.test(t))
         ?.replace('·', '')
         .trim() || ''
+    // The profile photo: the top card's round image served from LinkedIn's
+    // displayphoto path. Preferring the one whose alt names this person keeps
+    // a viewer's own avatar in the nav, or a "People also viewed" face, from
+    // being saved as theirs.
+    {
+      const imgs = Array.from(document.querySelectorAll('img[src*="profile-displayphoto"]'))
+      const first = (out.name || '').split(' ')[0].toLowerCase()
+      const mine = imgs.find((i) => first && (i.alt || '').toLowerCase().includes(first) && scope.contains(i))
+      out.photoUrl = (mine || imgs.find((i) => scope.contains(i)))?.src || ''
+    }
     // <title> rarely changes format even when the page markup does, but the
     // format itself varies — sometimes "Name - Headline | LinkedIn", often
     // just "Name | LinkedIn" with no headline at all — so try the richer
@@ -831,6 +841,12 @@ $('save').addEventListener('click', async () => {
   // Not a field you'd hand-edit — it's a fact read off the page, used
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
+  // The photo is fetched here (the popup may read any https host) and shrunk
+  // to a small JPEG before sending: LinkedIn's image links are signed and
+  // expire, so the server keeps its own copy. Failure just skips the photo.
+  if (kind === 'person' && page.scraped.photoUrl) {
+    try { payload.photoDataUrl = await shrinkPhoto(page.scraped.photoUrl) } catch { /* no photo */ }
+  }
   // Same: read off the page, not typed — they put this person on their
   // schools' alumni lists and their last employer's former-employee list.
   if (kind === 'person' && page.scraped.schools?.length) payload.schools = page.scraped.schools
@@ -880,3 +896,15 @@ $('save').addEventListener('click', async () => {
 })
 
 init()
+
+/** Downloads an image and returns it as a ≤256px JPEG data URL. */
+async function shrinkPhoto(src) {
+  const blob = await (await fetch(src)).blob()
+  const bmp = await createImageBitmap(blob)
+  const scale = Math.min(1, 256 / Math.max(bmp.width, bmp.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bmp.width * scale)
+  canvas.height = Math.round(bmp.height * scale)
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.82)
+}

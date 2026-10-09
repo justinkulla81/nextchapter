@@ -9,6 +9,7 @@ import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { PERSON_ROLES } from '@/lib/crm/labels'
 import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 import { slugOf } from '@/lib/crm/linkedin'
+import { savePersonPhoto } from '@/lib/crm/person-photo'
 import { logManualContact } from '@/lib/crm/log-contact'
 import { completionUpdate } from '@/lib/crm/completion'
 import { markInvitedAsCandidate } from '@/lib/candidates/invite'
@@ -50,6 +51,8 @@ interface CapturePayload {
   email?: string
   phone?: string
   connectionDegree?: string
+  /** Profile photo as a small JPEG data URL, shrunk by the extension before sending. */
+  photoDataUrl?: string
   /** A bio or directory page's link to the person's own LinkedIn profile. */
   linkedinUrl?: string
   /** "I messaged them on LinkedIn today" — logs a LinkedIn message, dated now. */
@@ -222,6 +225,7 @@ async function fillBlanks(
   if (Object.keys(data).length > 0) {
     await prisma.crmPerson.update({ where: { id: existing.id }, data })
   }
+  if (await savePersonPhoto(existing.id, body.photoDataUrl)) filled.push('photo')
   const background = await recordBackground(existing.id, {
     schools: schoolsFrom(body.schools),
     formerEmployer: formerEmployerFrom(body.formerEmployer),
@@ -430,6 +434,7 @@ export async function POST(req: NextRequest) {
       if (orgId) {
         await prisma.crmAffiliation.create({ data: { personId: person.id, orgId, title: body.jobTitle?.trim() || '' } })
       }
+      await savePersonPhoto(person.id, body.photoDataUrl)
       const background = await recordBackground(person.id, {
         schools: schoolsFrom(body.schools),
         formerEmployer: formerEmployerFrom(body.formerEmployer),

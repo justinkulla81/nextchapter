@@ -9239,6 +9239,10 @@ model CrmPerson {
   linkedinSlug String? @unique
   linkedinUrl  String?
 
+  /// Profile photo captured from LinkedIn by the extension and re-hosted in
+  /// the `avatars` bucket (LinkedIn's own image URLs are signed and expire).
+  photoUrl String?
+
   // Primary email is the first entry of `emails`, mirrored here so simple
   // consumers need no array handling — same shape as SupportNetworkContact.
   // Expect this to be null for most rows: the dry run found only 3% of the

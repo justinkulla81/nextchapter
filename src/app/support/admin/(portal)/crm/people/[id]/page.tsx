@@ -176,6 +176,15 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
 
       {/* Who they are, and the few things you do from here. */}
       <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          {person.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={person.photoUrl} alt={`Photo of ${person.fullName}`} className="h-20 w-20 shrink-0 rounded-full border border-border object-cover" />
+          ) : (
+            <span aria-hidden className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-muted text-xl font-semibold text-muted-foreground">
+              {person.fullName.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}
+            </span>
+          )}
         <div>
           <h1 className="text-2xl font-semibold">{person.fullName}</h1>
           {person.location && <p className="mt-0.5 text-sm text-muted-foreground">{person.location}</p>}
@@ -243,6 +252,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               </span>
             )}
           </p>
+        </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <CrmLogLinkedInButton personId={person.id} />
