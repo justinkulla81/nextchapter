@@ -59,9 +59,9 @@ interface NavSection {
 export type AdminArea = 'administrator' | 'ecosystem' | 'vision'
 
 export const AREAS: { key: AdminArea; label: string; href: string; hint: string }[] = [
-  { key: 'administrator', label: 'Administrator', href: '/support/admin', hint: 'Running the product' },
+  { key: 'administrator', label: 'Web Admin', href: '/support/admin', hint: 'Running the product' },
   { key: 'ecosystem', label: 'Ecosystem', href: '/support/admin/crm/home', hint: 'People and organizations' },
-  { key: 'vision', label: 'Vision', href: '/support/admin/vision', hint: 'What we build and why' },
+  { key: 'vision', label: 'Operations', href: '/support/admin/vision', hint: 'What we build and why' },
 ]
 
 /** Which area a path belongs to. Order matters: the specific prefixes first. */
@@ -157,26 +157,30 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
 }
 
 function visionSections(): NavSection[] {
+  // The URL stays /vision (bookmarks, links in emails); the area is labelled
+  // Operations. Only Product has pages today — the rest are placeholders so
+  // the shape is visible while they get built.
+  const soon = (key: string): NavLink => ({ href: `#${key}-soon`, label: 'Coming soon', disabled: true })
   return [
     {
-      title: 'Direction',
+      title: 'Product',
+      collapsible: true,
+      defaultOpen: true,
       links: [
         { href: '/support/admin/vision', label: 'Overview' },
         { href: '/support/admin/vision/doc', label: 'Master vision' },
-      ],
-    },
-    {
-      title: 'Work',
-      links: [
         { href: '/support/admin/vision/items', label: 'Roadmap' },
         { href: '/support/admin/vision/brainstorm', label: 'Brainstorm' },
         { href: '/support/admin/vision/feedback', label: 'Feedback' },
+        { href: '/support/admin/vision/competitors', label: 'Competitors' },
       ],
     },
-    {
-      title: 'Market',
-      links: [{ href: '/support/admin/vision/competitors', label: 'Competitors' }],
-    },
+    { title: 'Marketing', collapsible: true, links: [soon('marketing')] },
+    { title: 'Operations', collapsible: true, links: [soon('operations')] },
+    { title: 'Revenue', collapsible: true, links: [soon('revenue')] },
+    { title: 'Customer service', collapsible: true, links: [soon('customer-service')] },
+    // Eventually fed by webhooks from the accounting system.
+    { title: 'Financials', collapsible: true, links: [soon('financials')] },
   ]
 }
 
@@ -376,9 +380,6 @@ function NavContent({
             </Link>
           ))}
         </div>
-        <p className="mt-1.5 px-2 text-[10px] text-white/40">
-          {AREAS.find((a) => a.key === area)?.hint}
-        </p>
       </div>
       {sections.map((section) => {
         const hasActive = section.links.some((l) => isActive(l.href))
@@ -395,7 +396,7 @@ function NavContent({
               type="button"
               onClick={() => setToggled((t) => ({ ...t, [section.title]: !isOpen }))}
               aria-expanded={isOpen}
-              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-[11px] font-semibold tracking-widest text-white/60 uppercase transition-colors hover:bg-white/10 hover:text-white"
+              className="flex w-full items-center justify-between gap-2 rounded-md bg-black/25 px-2 py-1.5 text-left text-[11px] font-semibold tracking-widest text-white/80 uppercase transition-colors hover:bg-black/40 hover:text-white"
             >
               <span className="flex items-center gap-1.5">
                 <svg viewBox="0 0 24 24" className={cn('size-3 transition-transform', isOpen && 'rotate-90')} fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
