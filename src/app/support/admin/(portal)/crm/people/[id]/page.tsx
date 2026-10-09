@@ -18,6 +18,7 @@ import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInl
 import { RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
+import { groupEmailChains, latestReplyOnly } from '@/lib/crm/email-thread'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -89,6 +90,65 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   // unaware that your counterpart's own research undercuts your premise is the
   // specific failure this field exists to prevent.
   const contradicting = person.researchItems.filter((r) => r.stance === 'CONTRADICTS')
+
+  // Emails collapse into one chain per conversation; everything else stays a single row.
+  type Activity = (typeof confirmedActivities)[number]
+  const emailChains = groupEmailChains(confirmedActivities.filter((a) => a.type === 'EMAIL'))
+  const historyItems = [
+    ...emailChains.map((chain) => ({ kind: 'chain' as const, chain, at: chain.latest })),
+    ...confirmedActivities.filter((a) => a.type !== 'EMAIL').map((activity) => ({ kind: 'single' as const, activity, at: activity.occurredAt })),
+  ].sort((x, y) => y.at.getTime() - x.at.getTime())
+  const chainCount = emailChains.length
+
+  const renderActivity = (a: Activity, showSubject: boolean) => {
+    // Synced mail stores the whole quoted thread; only the newest message's own text is shown.
+    const reply = a.type === 'EMAIL' ? latestReplyOnly(a.body) : (a.body ?? '')
+    const m = a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? mailingRecipients.get(a.sourceRef.slice(MAILING_REF_PREFIX.length)) : undefined
+    const mailingBits = m ? [
+      m.bouncedAt ? 'Bounced' : m.deliveredAt ? 'Delivered' : 'Not delivered yet',
+      m.openCount > 0 ? `opened ${m.openCount}× (approx.)` : 'not opened',
+      m.clickCount > 0 ? `${m.clickCount} ${m.clickCount === 1 ? 'click' : 'clicks'}` : null,
+      m.repliedAt ? 'replied' : null,
+      m.unsubscribedAt ? 'unsubscribed' : null,
+    ].filter(Boolean) : []
+    return (
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          {showSubject && <span className="font-medium">{a.subject ?? a.type}</span>}
+          {!showSubject && (
+            <span className="text-xs font-medium">{a.direction === 'INBOUND' ? 'Received' : 'Sent'}</span>
+          )}
+          {reply && (
+            <details className="mt-1">
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">Show message</summary>
+              <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{reply}</p>
+            </details>
+          )}
+          {m && (
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {mailingBits.join(' · ')} · <Link href={`/support/admin/crm/mailing/editions/${m.editionId}`} className="underline">open the send</Link>
+            </span>
+          )}
+          {a.outreachTracking && (
+            <span className="mt-1 block text-xs">
+              <span className={a.outreachTracking.openCount > 0 ? 'text-success' : 'text-muted-foreground'}>
+                {a.outreachTracking.openCount > 0 ? `Opened ${a.outreachTracking.openCount}×` : 'Not opened yet'}
+              </span>
+              {a.outreachTracking.links.length > 0 && (
+                <span className="text-muted-foreground">
+                  {' · '}{a.outreachTracking.links.reduce((n, l) => n + l.clickCount, 0)} link click(s)
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {formatDate(a.occurredAt)}
+          {a.isAutoLogged ? ' · auto' : ' · logged by hand'}
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -376,7 +436,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
                 <span>
                   <span className="font-medium">{a.subject ?? a.type}</span>
-                  {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
+                  {a.body && <span className="block text-xs text-muted-foreground">{a.type === 'EMAIL' ? latestReplyOnly(a.body) : a.body}</span>}
                 </span>
                 <span className="flex items-center gap-2 text-xs text-muted-foreground">
                   {formatDate(a.occurredAt)}
@@ -389,53 +449,38 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       )}
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">History</h2>
+        <h2 className="mb-2 text-lg font-semibold">
+          History{chainCount > 0 && <span className="ml-2 text-sm font-normal text-muted-foreground">{chainCount} email {chainCount === 1 ? 'conversation' : 'conversations'}</span>}
+        </h2>
         {confirmedActivities.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             Nothing logged yet. Email and calendar sync arrive in a later phase; LinkedIn messages are logged with the button above.
           </p>
         ) : (
           <ul className="rounded-lg border border-border divide-y divide-border">
-            {confirmedActivities.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
-                <span>
-                  <span className="font-medium">{a.subject ?? a.type}</span>
-                  {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
-                  {(() => {
-                    const m = a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? mailingRecipients.get(a.sourceRef.slice(MAILING_REF_PREFIX.length)) : undefined
-                    if (!m) return null
-                    const bits = [
-                      m.bouncedAt ? 'Bounced' : m.deliveredAt ? 'Delivered' : 'Not delivered yet',
-                      m.openCount > 0 ? `opened ${m.openCount}× (approx.)` : 'not opened',
-                      m.clickCount > 0 ? `${m.clickCount} ${m.clickCount === 1 ? 'click' : 'clicks'}` : null,
-                      m.repliedAt ? 'replied' : null,
-                      m.unsubscribedAt ? 'unsubscribed' : null,
-                    ].filter(Boolean)
-                    return (
-                      <span className="mt-1 block text-xs text-muted-foreground">
-                        {bits.join(' · ')} · <Link href={`/support/admin/crm/mailing/editions/${m.editionId}`} className="underline">open the send</Link>
-                      </span>
-                    )
-                  })()}
-                  {a.outreachTracking && (
-                    <span className="mt-1 block text-xs">
-                      <span className={a.outreachTracking.openCount > 0 ? 'text-success' : 'text-muted-foreground'}>
-                        {a.outreachTracking.openCount > 0 ? `Opened ${a.outreachTracking.openCount}×` : 'Not opened yet'}
-                      </span>
-                      {a.outreachTracking.links.length > 0 && (
-                        <span className="text-muted-foreground">
-                          {' · '}{a.outreachTracking.links.reduce((n, l) => n + l.clickCount, 0)} link click(s)
-                        </span>
-                      )}
+            {historyItems.map((item) =>
+              item.kind === 'chain' ? (
+                <li key={item.chain.key} className="p-3 text-sm">
+                  <p className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium">{item.chain.messages[0].subject}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {item.chain.messages.length} {item.chain.messages.length === 1 ? 'email' : 'emails'} · latest {formatDate(item.chain.latest)}
                     </span>
-                  )}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(a.occurredAt)}
-                  {a.isAutoLogged ? ' · auto' : ' · logged by hand'}
-                </span>
-              </li>
-            ))}
+                  </p>
+                  {/* One continuous rule down the left ties the messages into a single chain. */}
+                  <ol className="mt-2 ml-1 space-y-2 border-l-2 border-border pl-4">
+                    {item.chain.messages.map((a) => (
+                      <li key={a.id} className="relative">
+                        <span className="absolute -left-[1.4rem] top-1.5 h-2 w-2 rounded-full bg-border" aria-hidden />
+                        {renderActivity(a, false)}
+                      </li>
+                    ))}
+                  </ol>
+                </li>
+              ) : (
+                <li key={item.activity.id} className="p-3 text-sm">{renderActivity(item.activity, true)}</li>
+              ),
+            )}
           </ul>
         )}
       </section>
