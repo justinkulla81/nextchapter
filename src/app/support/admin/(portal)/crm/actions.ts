@@ -109,17 +109,23 @@ async function resolveInput(raw: string) {
   // extract-profile-fields.ts already guards against for resume names (see
   // isPlaceholderName's own comment). A generic result here is treated the
   // same as no name at all — never silently used to create a record.
+  // A name typed alongside the URL ("Daniel Speigel linkedin.com/in/dspeigel")
+  // is the escape hatch for hyphen-less slugs like "dspeigel" — the admin
+  // supplies the name, the URL still supplies the slug.
+  const typedName = raw.replace(/\S*linkedin\.com\/in\/\S*/i, ' ').replace(/\s+/g, ' ').trim()
   const fullName = match
     ? `${match.firstName ?? ''} ${match.lastName ?? ''}`.trim()
     : slug
-      ? (slugDerivedName && !isPlaceholderName(slugDerivedName) ? slugDerivedName : null)
+      ? (typedName && !isPlaceholderName(typedName)
+          ? typedName
+          : slugDerivedName && !isPlaceholderName(slugDerivedName) ? slugDerivedName : null)
       : raw
   return { slug, match, fullName }
 }
 
 async function createPerson(raw: string, roles: CrmPersonRole[], adminEmail: string): Promise<QuickAddResult> {
   const { slug, match, fullName } = await resolveInput(raw)
-  if (!fullName) return { status: 'error', message: "Couldn't work out a name from that. Try typing the name instead." }
+  if (!fullName) return { status: 'error', message: "Couldn't work out a name from that link. Type the name before the URL, e.g. \"Jane Smith https://linkedin.com/in/…\"." }
 
   let orgId: string | null = null
   let orgKey: string | null = null
@@ -199,7 +205,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
   const roles = formData.getAll('roles').map(String).filter(Boolean) as CrmPersonRole[]
 
   const { slug, match, fullName } = await resolveInput(raw)
-  if (!fullName) return { status: 'error', message: "Couldn't work out a name from that. Try typing the name instead." }
+  if (!fullName) return { status: 'error', message: "Couldn't work out a name from that link. Type the name before the URL, e.g. \"Jane Smith https://linkedin.com/in/…\"." }
 
   // Definitive identifiers — same person, no question to ask. A deleted
   // match falls through to create-a-new-person below rather than silently
