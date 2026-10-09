@@ -24,6 +24,7 @@ import {
   WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
   priorityTierClass, sinceLabel, meetingLabel,
 } from '@/lib/crm/labels'
+import { PersonAvatar } from '@/components/admin/PersonAvatar'
 import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal, CrmPriorityTier } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 import { MailingBulkControls } from '@/components/admin/mailing/MailingBulkControls'
@@ -214,7 +215,7 @@ export default async function CrmPeoplePage({
       take: perPage,
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
-        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true,
+        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true, photoUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
         mailingMemberships: { where: { status: 'ACTIVE' }, select: { list: { select: { key: true, name: true } } } },
         reportSends: { where: { editionKey: shownReport || '-' }, select: { method: true, channel: true, sentAt: true, clickedAt: true, repliedAt: true } },
@@ -470,6 +471,9 @@ export default async function CrmPeoplePage({
                         the whole row; it truncates here and the full text is
                         one hover (or the peek panel) away. */}
                     <td className="max-w-xs px-3 py-1.5">
+                     <div className="flex items-start gap-2.5">
+                      <PersonAvatar url={p.photoUrl} name={p.fullName} />
+                      <div className="min-w-0">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
                       {p.candidateId ? (
                         <span className="ml-1.5 inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 align-middle text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" title="Has a NextChapter candidate account">
@@ -488,6 +492,8 @@ export default async function CrmPeoplePage({
                       <span className="block">
                         <CrmEmailBackfillPrompt personId={p.id} email={p.email} />
                       </span>
+                      </div>
+                     </div>
                     </td>
                     <td className="px-3 py-1.5">
                       {/* A real width, set on the contents: the cell holds an input,

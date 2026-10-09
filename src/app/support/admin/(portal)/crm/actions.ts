@@ -413,9 +413,22 @@ export async function logCallWithFollowUp(personId: string, formData: FormData) 
     },
   })
 
+  if (needsFollowUp) await raisePriorityTo(personId, 'P0')
   captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type: 'CALL', auto: false, hasFollowUp: Boolean(followUpRaw) })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
+}
+
+/**
+ * A status past the default means the relationship is live, so it must not
+ * sit at P2 or unranked: Follow up lifts to at least P0, Keep in touch to at
+ * least P1. Only ever raises — a manually set higher tier stays put.
+ */
+async function raisePriorityTo(personId: string, tier: 'P0' | 'P1') {
+  const rank = { P0: 0, P1: 1, P2: 2 } as const
+  const person = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { priority: true } })
+  if (!person || (person.priority && rank[person.priority as keyof typeof rank] <= rank[tier])) return
+  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier } })
 }
 
 /** Sets (or updates) a follow-up reminder directly, with no call attached. */
@@ -434,6 +447,7 @@ export async function setPersonFollowUp(personId: string, note: string, dateStr:
     },
   })
   await removeFromNewsletter(personId)
+  await raisePriorityTo(personId, 'P0')
   captureServerEvent(admin.email ?? 'admin', 'crm_followup_set', { personId, hasDate: Boolean(dateStr) })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
@@ -478,6 +492,7 @@ export async function markPersonKeepInTouch(personId: string) {
       update: { isExcluded: false },
     }),
   ])
+  await raisePriorityTo(personId, 'P1')
   captureServerEvent(admin.email ?? 'admin', 'crm_person_keep_in_touch', { personId })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)

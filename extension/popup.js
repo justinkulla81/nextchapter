@@ -38,6 +38,9 @@ const KINDS = {
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
     // LinkedIn can never log itself — this is the only way a DM you just sent
     // counts as contact. Logged as a LinkedIn message dated now.
+    // Checked when a headshot was found on the page; uncheck to keep a wrong
+    // one off the record. Disabled (and unchecked) when none was found.
+    { id: 'usePhoto', label: 'Found profile pic', type: 'toggle' },
     { id: 'messagedToday', label: 'I messaged them on LinkedIn today', type: 'toggle' },
     // Flags them so that when someone with a similar name or the same email
     // signs up, the admin is asked to confirm it's them — and the candidate's
@@ -414,12 +417,21 @@ async function readPage() {
       if (!t || /^(show all|see more|… ?more)\b/i.test(t) || t === eduLines[eduLines.length - 1]?.t) continue
       eduLines.push({ t, bold: Number(getComputedStyle(el).fontWeight) >= 600 })
     }
+    const SKILL_LINE = /(^|\s)\+\s?\d+\s+skills?$|^skills?:/i
+    // Not degree programs: executive/adult/continuing ed, online courses,
+    // certificates, bootcamps. "Harvard Business School Online" is not
+    // Harvard alumni — keep them off the school lists.
+    const NON_DEGREE = /\b(online|executive education|exec(utive)? ed\b|continuing (education|studies)|adult (education|learning)|professional (education|development)|extension school|bootcamp|certificates?|certification|non-degree|short course|micro-?masters|mooc|coursera|edx|udemy|linkedin learning|masterclass)\b/i
     const byWeight = eduLines.some((l) => l.bold)
     let current = null
     let dated = false
     for (const { t, bold } of eduLines) {
       if (DATE_LINE.test(t)) { if (current) dated = true; continue }
       if (/^(activities and societies|grade)\b/i.test(t) || t.length > 160) continue
+      // "Change Management, Decision-Making and +4 skills" — the skills tag
+      // under an entry. It's bold like a school name, so without this it
+      // was filed as another school.
+      if (SKILL_LINE.test(t)) continue
       const starts = byWeight ? bold : (!current || dated || eduLogos.has(t))
       if (starts) {
         current = { name: t, detail: '' }
@@ -429,7 +441,9 @@ async function readPage() {
         current.detail = t
       }
     }
-    out.schools = out.schools.filter((sc, i, a) => !CARD_TEXT.test(sc.name) && a.findIndex((x) => x.name === sc.name) === i).slice(0, 6)
+    out.schools = out.schools
+      .filter((sc, i, a) => !CARD_TEXT.test(sc.name) && !NON_DEGREE.test(`${sc.name} ${sc.detail}`) && a.findIndex((x) => x.name === sc.name) === i)
+      .slice(0, 6)
     if (out.schools.length === 0) {
       for (const b of topCardBadges()) if (b.schoolLink) out.schools.push({ name: b.text, detail: '' })
     }
@@ -607,6 +621,33 @@ async function readPage() {
     out.isArticle = nodes.some((n) => typeOf(n).some((t) => /^(News|Blog|Scholarly|Tech)?Article$|^Report$|^ScholarlyArticle$/.test(t))) ||
       meta('og:type') === 'article'
     out.person = person
+
+    // A headshot, for a page that isn't LinkedIn: the page's own Person
+    // schema image first, then the <img> that is clearly this person — alt
+    // text or file name carrying their name, or a large near-square image
+    // sitting before the name heading (how faculty/staff bio pages lay it
+    // out). Logos, icons, SVGs and banners are skipped. Nothing is guessed
+    // when none qualifies: no photo beats someone else's.
+    {
+      const nameWords = (person.name || '').toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+      const last = nameWords[nameWords.length - 1] || ''
+      const abs = (u) => { try { return new URL(u, location.href).href } catch { return '' } }
+      const BAD = /logo|icon|sprite|avatar-default|placeholder|banner|hero|favicon|\.svg|\.gif|data:/i
+      let found = ''
+      const ldImg = nodes.find((n) => typeOf(n).includes('Person'))?.image
+      const ldUrl = typeof ldImg === 'string' ? ldImg : ldImg?.url || ldImg?.contentUrl || ''
+      if (ldUrl && !BAD.test(ldUrl)) found = abs(ldUrl)
+      if (!found && nameWords.length) {
+        const imgs = Array.from(document.images).filter((i) => i.src && !BAD.test(i.src) && !i.closest('nav, footer, header[role="banner"]'))
+        const w = (i) => i.naturalWidth || i.width
+        const h = (i) => i.naturalHeight || i.height
+        const roundOrSquare = (i) => { const r = w(i) / (h(i) || 1); return w(i) >= 90 && r >= 0.6 && r <= 1.4 }
+        const named = imgs.find((i) => last && roundOrSquare(i) && (`${i.alt} ${decodeURIComponent(i.src.split('/').pop() || '')}`.toLowerCase().includes(last)))
+        const beforeName = h1 ? imgs.find((i) => roundOrSquare(i) && w(i) >= 120 && (i.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING)) : null
+        found = abs((named || beforeName)?.src || '')
+      }
+      if (found) out.photoUrl = found
+    }
   }
   return out
 }
@@ -633,6 +674,14 @@ function renderFields() {
       const cb = document.createElement('input')
       cb.type = 'checkbox'
       cb.id = `f-${f.id}`
+      if (f.id === 'usePhoto') {
+        const has = Boolean(scrapedValue('photoUrl'))
+        cb.checked = has
+        cb.disabled = !has
+        item.append(cb, document.createTextNode(has ? f.label : 'No profile pic found on this page'))
+        host.append(item)
+        continue
+      }
       item.append(cb, document.createTextNode(f.label))
       host.append(item)
       continue
@@ -844,8 +893,8 @@ $('save').addEventListener('click', async () => {
   // The photo is fetched here (the popup may read any https host) and shrunk
   // to a small JPEG before sending: LinkedIn's image links are signed and
   // expire, so the server keeps its own copy. Failure just skips the photo.
-  if (kind === 'person' && page.scraped.photoUrl) {
-    try { payload.photoDataUrl = await shrinkPhoto(page.scraped.photoUrl) } catch { /* no photo */ }
+  if (kind === 'person' && scrapedValue('photoUrl') && $('f-usePhoto')?.checked) {
+    try { payload.photoDataUrl = await shrinkPhoto(scrapedValue('photoUrl')) } catch { /* no photo */ }
   }
   // Same: read off the page, not typed — they put this person on their
   // schools' alumni lists and their last employer's former-employee list.
@@ -853,6 +902,7 @@ $('save').addEventListener('click', async () => {
   if (kind === 'person' && page.scraped.formerEmployer) payload.formerEmployer = page.scraped.formerEmployer
   for (const f of KINDS[kind]) {
     if (f.type === 'toggle') {
+      if (f.id === 'usePhoto') continue
       if ($(`f-${f.id}`)?.checked) payload[f.id] = true
       continue
     }
