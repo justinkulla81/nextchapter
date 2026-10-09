@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
+import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 
 export interface WatchlistPosting {
   id: string
@@ -34,7 +35,7 @@ export interface WatchlistEntryView {
 // small enough to fetch in full and match in JS against each candidate's
 // watchlist, rather than needing a normalized column on ExclusiveJobPosting
 // itself.
-async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: string })[]> {
+async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: string; source: string })[]> {
   return prisma.exclusiveJobPosting.findMany({
     where: {
       archivedAt: null,
@@ -50,6 +51,7 @@ async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: 
       url: true,
       createdAt: true,
       audienceTier: true,
+      source: true,
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -106,7 +108,7 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
     // this candidate can open yet — counted, never detailed, unless the
     // candidate is actually Candidate+.
-    const visibleBoard = boardMatches.filter((p) => isCandidatePlus || p.audienceTier !== 'A_LIST_ONLY')
+    const visibleBoard = boardMatches.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
     const visible = [...visibleBoard, ...surfacedMatches]
     return {
       id: entry.id,

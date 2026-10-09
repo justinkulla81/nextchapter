@@ -97,7 +97,8 @@ function buildSections(
   skillsAssessmentCompleted: boolean,
   isEarlyCareer: boolean | null,
   isActiveMember: boolean,
-  helpRepliesWaiting: number
+  helpRepliesWaiting: number,
+  newStrongCompaniesCount: number
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -208,7 +209,14 @@ function buildSections(
     {
       title: 'Data',
       links: [
-        { href: '/dashboard/companies', label: 'Companies', icon: Landmark },
+        {
+          href: '/dashboard/companies',
+          label: 'Companies',
+          icon: Landmark,
+          // Companies that newly became a strong fit since the member last
+          // opened the directory — see countNewStrongCompanies.
+          badge: newStrongCompaniesCount > 0 ? String(newStrongCompaniesCount) : undefined,
+        },
         { href: '/dashboard/universities', label: 'Universities', icon: School },
         {
           href: '/dashboard/portfolio',
@@ -265,6 +273,7 @@ function NavContent({
   isEarlyCareer,
   isActiveMember,
   helpRepliesWaiting,
+  newStrongCompaniesCount,
   collapsedSections,
   onToggleSection,
 }: {
@@ -281,6 +290,7 @@ function NavContent({
   isEarlyCareer: boolean | null
   isActiveMember: boolean
   helpRepliesWaiting: number
+  newStrongCompaniesCount: number
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -296,7 +306,8 @@ function NavContent({
     skillsAssessmentCompleted,
     isEarlyCareer,
     isActiveMember,
-    helpRepliesWaiting
+    helpRepliesWaiting,
+    newStrongCompaniesCount
   )
 
   return (
@@ -438,6 +449,7 @@ export function DashboardNav({
   isEarlyCareer = null,
   isActiveMember = false,
   helpRepliesWaiting = 0,
+  newStrongCompaniesCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -450,6 +462,7 @@ export function DashboardNav({
   isEarlyCareer?: boolean | null
   isActiveMember?: boolean
   helpRepliesWaiting?: number
+  newStrongCompaniesCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -497,6 +510,7 @@ export function DashboardNav({
           isEarlyCareer={isEarlyCareer}
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
+          newStrongCompaniesCount={newStrongCompaniesCount}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -603,6 +617,7 @@ export function DashboardNav({
               isEarlyCareer={isEarlyCareer}
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
+              newStrongCompaniesCount={newStrongCompaniesCount}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

@@ -21,6 +21,7 @@ import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
+import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -56,6 +57,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     latestSeniorityBand,
     activeMember,
     helpRepliesWaiting,
+    newStrongCompaniesCount,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -69,6 +71,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getLatestSeniorityBand(profileId),
     isActiveMember(profileId),
     getHelpRepliesWaiting(profileId),
+    getNewStrongCompaniesCountForBadge(profileId),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
@@ -113,11 +116,23 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       isEarlyCareer={isEarlyCareer}
       isActiveMember={activeMember}
       helpRepliesWaiting={helpRepliesWaiting}
+      newStrongCompaniesCount={newStrongCompaniesCount}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
     </>
   )
+}
+
+// The nav badge is decoration: a failure or slow first compute must never take
+// the whole dashboard down, so any error reads as "no new signals".
+async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<number> {
+  try {
+    return await countNewStrongCompanies(profileId)
+  } catch (error) {
+    console.error('Failed to count new strong companies for nav badge:', error)
+    return 0
+  }
 }
 
 // getSupportNetworkUnreadCount needs a profile field beyond just the id

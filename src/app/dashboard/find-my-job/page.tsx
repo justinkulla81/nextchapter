@@ -89,7 +89,6 @@ const SURFACED_JOB_LIST_SIZE = 5
 // Free candidates only ever see the first 3 automated-search-partner
 // matches — the rest count toward the same "opportunities waiting" total
 // the hamburger nav badge shows, but stay locked until the Dossier unlocks.
-const SURFACED_JOB_FREE_PREVIEW = 3
 // Keeps the unreacted queue from silently ballooning: surfaceNewJobs used to
 // fetch a fresh batch of up to 10 every time the queue dropped below
 // SURFACED_JOB_LIST_SIZE, regardless of how close to that ceiling it already
@@ -294,13 +293,10 @@ async function JobRecommendationsSection({
     ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
     : allSurfacedJobs
 
-  // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
-  // matches — the rest stay locked until the Dossier unlocks, folded into
-  // the same unlock count as the locked job-board postings below so there's
-  // one combined "unlocks with your Dossier" number for the whole Discover
-  // list.
-  const visibleSurfacedJobs = isCandidatePlus ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
-  const lockedSurfacedCount = isCandidatePlus ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
+  // Everyone sees every surfaced (search-partner) job; only employer / recruiter
+  // exclusives stay Candidate+-only, and that rule lives in board-shortlist.ts.
+  const visibleSurfacedJobs = surfacedJobs
+  const lockedSurfacedCount = 0
   // The board's best-fitting jobs (see board-shortlist.ts) — the full
   // board is tens of thousands of rows; totals still count all of them.
   const openBoardPostings = board.open

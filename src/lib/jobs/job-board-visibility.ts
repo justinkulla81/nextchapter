@@ -34,3 +34,22 @@ export const TARGET_REMOTE_POLICY_OPTIONS = [
   { value: 'remote' as const, label: 'Remote' },
   { value: 'hybrid' as const, label: 'Hybrid' },
 ]
+
+// Who can open a board listing. Everyone sees every listing EXCEPT exclusives:
+// a listing a hiring manager (source 'employer') or a recruiter mandate
+// (source 'recruiter') posted straight to NextChapter, which stays
+// Candidate+-only unless the poster explicitly opened it to all candidates
+// (audienceTier 'ALL_CANDIDATES'). Crawled, partner-feed and admin-added
+// listings carry no such exclusivity, so they are open to every member
+// whatever their stored audienceTier (existing rows were all backfilled to
+// 'A_LIST_ONLY' before this rule existed).
+const EXCLUSIVE_POSTING_SOURCES = new Set(['employer', 'recruiter'])
+
+export function isBoardPostingLockedForViewer(
+  posting: { audienceTier: string; source: string },
+  isCandidatePlus: boolean
+): boolean {
+  if (isCandidatePlus) return false
+  if (posting.audienceTier === 'ALL_CANDIDATES') return false
+  return EXCLUSIVE_POSTING_SOURCES.has(posting.source)
+}

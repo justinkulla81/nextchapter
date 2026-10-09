@@ -3,6 +3,7 @@ import type { ExclusiveJobPosting, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
+import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
@@ -26,6 +27,7 @@ const LIGHT_SELECT = {
   title: true,
   companyName: true,
   audienceTier: true,
+  source: true,
   targetFunction: true,
   targetLevel: true,
   targetRemotePolicy: true,
@@ -94,7 +96,8 @@ export async function loadBoardShortlist(opts: {
       ),
       at: p.createdAt.getTime(),
     }
-    if (p.audienceTier === 'ALL_CANDIDATES' || opts.isCandidatePlus) open.push(entry)
+    // Everyone can open everything except employer / recruiter exclusives.
+    if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) open.push(entry)
     else locked.push(entry)
   }
 

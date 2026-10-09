@@ -190,21 +190,55 @@ export async function getCandidateContactCountsByCompany(
     where: { candidateId, removedAt: null },
     select: { company: true, inferredCompany: true },
   })
-  // One entry per ROW (not per field) — a contact whose company AND
-  // inferredCompany both happen to match the same target company must still
-  // only count once, same as the original per-row `.filter()` semantics.
-  const rowNormalized = ownContacts.map((c) => ({
-    company: c.company ? normalizeOrgName(c.company) : '',
-    inferredCompany: c.inferredCompany ? normalizeOrgName(c.inferredCompany) : '',
+
+  // Collapse ROWS to distinct (company, inferredCompany) pairs with a row
+  // count. A real LinkedIn export is ~27k rows but only a few thousand
+  // distinct pairs, and the matching below is O(companies x pairs) — at
+  // ~2,000 Company rows the old per-row loop (with a regex tight-form
+  // rebuilt on every comparison) took ~54s for a contact-heavy member. One
+  // pair still counts once per row, so a row whose company AND inferredCompany
+  // both match the same target is still a single contact, as before.
+  const pairs = new Map<string, { company: string; inferred: string; rows: number }>()
+  for (const c of ownContacts) {
+    const company = c.company ? normalizeOrgName(c.company) : ''
+    const inferred = c.inferredCompany ? normalizeOrgName(c.inferredCompany) : ''
+    if (!company && !inferred) continue
+    const key = `${company}\u0000${inferred}`
+    const cur = pairs.get(key)
+    if (cur) cur.rows += 1
+    else pairs.set(key, { company, inferred, rows: 1 })
+  }
+  const pairList = Array.from(pairs.values()).map((p) => ({
+    ...p,
+    companyTight: p.company.replace(/\s+/g, ''),
+    inferredTight: p.inferred.replace(/\s+/g, ''),
   }))
 
   const counts = new Map<string, number>()
   for (const companyName of companyNames) {
     const normCompany = normalizeOrgName(companyName)
-    const count = rowNormalized.filter(
-      (r) => normalizedNamesMatch(r.company, normCompany) || normalizedNamesMatch(r.inferredCompany, normCompany)
-    ).length
+    if (!normCompany) continue
+    const tightCompany = normCompany.replace(/\s+/g, '')
+    let count = 0
+    for (const p of pairList) {
+      if (
+        normalizedNamesMatchTight(p.company, p.companyTight, normCompany, tightCompany) ||
+        normalizedNamesMatchTight(p.inferred, p.inferredTight, normCompany, tightCompany)
+      ) {
+        count += p.rows
+      }
+    }
     if (count > 0) counts.set(companyName, count)
   }
   return counts
+}
+
+// normalizedNamesMatch (above), with both tight forms supplied by the caller
+// instead of rebuilt per comparison — identical semantics.
+function normalizedNamesMatchTight(normA: string, tightA: string, normB: string, tightB: string): boolean {
+  if (!normA || !normB) return false
+  if (normA === normB) return true
+  if (tightA.length >= 4 && tightA === tightB) return true
+  if (normA.length < 4 || normB.length < 4) return false
+  return normA.includes(normB) || normB.includes(normA)
 }
