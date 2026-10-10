@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
-import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { isVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket'
+import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -14,17 +15,17 @@ import FreshJobAlertEmail from '@/emails/fresh-job-alert'
  * Instant new-job alerts: when a strong-fit job is posted, email the member
  * the same day so they can apply in the first 72 hours.
  *
- * OFF until FRESH_JOB_ALERTS_ENABLED=true (a new kind of member email, held
- * for the founder's sign-off on wording and frequency). While off, the cron
- * only counts who would get one.
+ * Switched on by FRESH_JOB_ALERTS_ENABLED=true (founder approved 2026-10-10,
+ * on condition that only very strong fits are sent — see
+ * isVeryStrongBoardFit). While off, the cron only counts who would get one.
  *
- * Rules: at most one alert per member per day; only 'strong' fits posted in
- * the last 24 hours; at most 3 jobs; never a job already sent in an alert or
+ * Rules: at most one alert per member per day; only very strong fits
+ * posted in the last 24 hours; at most 2 jobs; never a job already sent in an alert or
  * already shown in Job Search Daily; members who opted out of these alerts,
  * Job Search Daily, or are on a break don't get them.
  */
 
-const MAX_JOBS = 3
+const MAX_JOBS = 2
 const WINDOW_HOURS = 24
 
 export function freshJobAlertsEnabled(): boolean {
@@ -53,7 +54,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   ])
   const skip = new Set([...alerted.map((a) => a.postingId), ...shownDaily.map((d) => d.itemKey.slice(4))])
   const jobs = board.open
-    .filter((p) => !skip.has(p.id) && computeBoardListingFitBucket(candidate, p) === 'strong')
+    .filter((p) => !skip.has(p.id) && isVeryStrongBoardFit(candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }
   if (options.dryRun || !freshJobAlertsEnabled()) return { sent: false, reason: 'dry run', jobCount: jobs.length }

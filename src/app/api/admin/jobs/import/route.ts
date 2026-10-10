@@ -99,7 +99,10 @@ function screen(jobs: unknown[]) {
 
 // Some sources fill unknown locations with placeholders ("UNAVAILABLE").
 function cleanLocation(raw: string | null | undefined): string | null {
-  const parts = (raw ?? '')
+  // Icon labels and field names some boards leave in the text ("wifi
+  // Remote", "Orange County, CA Date").
+  const text = (raw ?? '').replace(/^\s*wifi\s+/i, '').replace(/\s+date\s*$/i, '')
+  const parts = text
     .split(/\s*,\s*/)
     .filter((p) => p && !/^(unavailable|n\/?a|none|null|undefined|tbd)$/i.test(p))
   return parts.length ? parts.join(', ') : null

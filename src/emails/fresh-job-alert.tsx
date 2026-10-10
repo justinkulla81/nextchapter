@@ -43,7 +43,8 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
       <p style={{ fontSize: '20px', fontWeight: 700, color: '#0b2545', margin: 0 }}>NextChapter</p>
       <p style={{ marginTop: '24px' }}>Hi {firstName || 'there'},</p>
       <p>
-        {jobs.length === 1 ? 'A role that fits you was' : `${jobs.length} roles that fit you were`} just posted. Early
+        {jobs.length === 1 ? 'A role that closely matches your background was' : `${jobs.length} roles that closely match your background were`}{' '}
+        just posted. Early
         applicants get most of the interviews, so it&apos;s worth applying today.
       </p>
       <ul style={{ paddingLeft: '18px' }}>
@@ -61,7 +62,7 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
         See them and apply →
       </a>
       <p style={{ ...muted, marginTop: '32px', fontSize: '12px' }}>
-        You get this when a strong match is posted — at most once a day.{' '}
+        You only get this when a very strong match is posted — at most once a day.{' '}
         <a href={unsubscribeUrl} style={muted}>
           Stop new-job alerts
         </a>

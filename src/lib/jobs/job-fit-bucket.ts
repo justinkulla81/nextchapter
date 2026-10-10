@@ -252,9 +252,12 @@ function matchesTargetGeo(
   if (role.remotePolicy === 'remote' && (candidate.remotePreference === 'remote' || candidate.remotePreference === 'flexible')) {
     return true
   }
-  const location = (role.locationRequirement ?? '').toLowerCase()
-  if (candidate.currentCity && location.includes(candidate.currentCity.toLowerCase())) return true
-  if (candidate.currentState && location.includes(candidate.currentState.toLowerCase())) return true
+  const location = role.locationRequirement ?? ''
+  // Whole words only: a plain substring test read "CA" inside "North
+  // Carolina" and "MA" inside "Oklahoma" as the member's state.
+  const word = (needle: string) => new RegExp(`(^|[^a-z])${needle.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
+  if (candidate.currentCity?.trim() && word(candidate.currentCity).test(location)) return true
+  if (candidate.currentState?.trim() && word(candidate.currentState).test(location)) return true
   return false
 }
 
@@ -436,6 +439,59 @@ export function computeBoardListingFitBucket(
 ): FitBucket {
   const postingLike = { ...posting, companySizeBand }
   return bucketFromScoreAndLevel(computeEnrichedFitScore(candidate, postingLike), candidate, postingLike)
+}
+
+// The bar for an instant alert email — deliberately far above "strong":
+// founder's call is fewer, better alerts over more, merely-OK ones. All of:
+// a fit score of VERY_STRONG_FIT_SCORE+, a location that works for them, the
+// member's own function, a level at theirs or one step up (never below,
+// never when either level is unknown), and — when the job has a description
+// to judge it by and the member named target industries — their industry.
+export const VERY_STRONG_FIT_SCORE = 85
+
+/** Which very-strong condition a posting fails first ('pass' if none) — for tuning. */
+export function veryStrongFitFailure(
+  candidate: FitCandidate,
+  posting: Parameters<typeof isVeryStrongBoardFit>[1],
+  postingLevel: string | null
+): 'score' | 'ideal' | 'function' | 'level' | 'pass' {
+  const postingLike = { ...posting, companySizeBand: null }
+  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return 'score'
+  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return 'ideal'
+  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
+  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
+  if (!fn || !own.includes(fn)) return 'function'
+  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
+  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel || calibratedLevelDistance(candidateLevel, roleLevel) > 1) return 'level'
+  return 'pass'
+}
+
+export function isVeryStrongBoardFit(
+  candidate: FitCandidate,
+  posting: Pick<
+    ExclusiveJobPosting,
+    'title' | 'description' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+  >,
+  postingLevel: string | null
+): boolean {
+  const postingLike = { ...posting, companySizeBand: null }
+  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return false
+  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return false
+  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
+  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
+  if (!fn || !own.includes(fn)) return false
+  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
+  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel) return false
+  return calibratedLevelDistance(candidateLevel, roleLevel) <= 1
+}
+
+function veryStrongPlaceAndIndustry(candidate: FitCandidate, posting: FitPostingLike): boolean {
+  if (!matchesTargetGeo(candidate, posting)) return false
+  const hasTargets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].some((t) => !!t?.trim())
+  if (!posting.description || !hasTargets) return true
+  return matchesTargetIndustry(candidate, `${posting.title} ${posting.description} ${posting.location ?? ''}`)
 }
 
 // Ideal-vs-broader tiering (see isIdealMatch above) for a board listing —

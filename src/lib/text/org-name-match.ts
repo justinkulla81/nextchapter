@@ -132,7 +132,11 @@ const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'in', 'at', 'on', 'to', 
 const LEGAL_SUFFIX = /(?:[\s,]+(?:&\s*co\.?|[\/\\][a-z]{2,4}[\/\\]|inc\.?|incorporated|corp\.?|corporation|co\.?|llc|l\.l\.c\.|ltd\.?|limited|plc|lp|llp|n\.?a\.?|s\.?a\.?|ag|nv|se))+\s*$/i
 
 export function displayCompanyName(name: string): string {
-  const fixed = fixAllCapsCompanyName(name)
+  // A board slug standing in for a name ("zilker-partners") reads as words.
+  const unslugged = /^[a-z0-9]+(-[a-z0-9]+)+$/.test(name.trim())
+    ? name.trim().split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : name
+  const fixed = fixAllCapsCompanyName(unslugged)
   const stripped = fixed.replace(LEGAL_SUFFIX, '').trim()
   return stripped.length >= 2 ? stripped : fixed
 }
