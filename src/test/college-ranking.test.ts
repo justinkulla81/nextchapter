@@ -69,8 +69,8 @@ describe('scoring', () => {
 
   it('rewards contacts, fit, size and interest', () => {
     const r = scoreCollege({ ...base, contacts: [leader('career'), leader('alumni')], interestSignals: ['ai', 'reskilling'], areaJobsLost: 5000 })
-    expect(r.parts).toMatchObject({ contacts: 15, fit: 30, size: 20, interest: 11 })
-    expect(r.score).toBe(76)
+    expect(r.parts).toMatchObject({ contacts: 5, fit: 30, size: 20, interest: 11 })
+    expect(r.score).toBe(82.5)
     expect(r.tier).toBe('A')
   })
   it('marks down very selective schools', () => {

@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client'
 import { countyKey } from '../../src/lib/workforce/places'
 import { scorePartner, type AreaSignal, type FitScore, type PartnerKind } from '../../src/lib/geo/partner-scoring'
 import { normalizeOrgName } from '../../src/lib/text/org-name-match'
+import { contactStrength, strongerContact, type ContactStrength } from '../../src/lib/crm/contact-strength'
 
 const prisma = new PrismaClient()
 const apply = process.argv.includes('--apply')
@@ -39,10 +40,8 @@ const dist = (name: string, rows: { s: FitScore }[]) => {
   console.log(`${name.padEnd(22)} n=${String(t.length).padStart(5)}  min ${t[0]}  median ${t[Math.floor(t.length / 2)]}  p90 ${t[Math.floor(t.length * 0.9)]}  max ${t[t.length - 1]}`)
 }
 
-type Strength = 'hot' | 'warm' | 'any'
-const ORDER: Strength[] = ['hot', 'warm', 'any']
-const best = (a: Strength | null | undefined, b: Strength | null | undefined): Strength | null => (!a ? b ?? null : !b ? a : ORDER.indexOf(a) <= ORDER.indexOf(b) ? a : b)
-const strengthOf = (p: { warmth: string; connectedAt: Date | null }): Strength => (p.warmth === 'HOT' ? 'hot' : p.warmth === 'WARM' || p.connectedAt ? 'warm' : 'any')
+type Strength = ContactStrength
+const best = strongerContact
 /** Mailbox providers and shared government domains say nothing about who works at a given body. */
 const SHARED_DOMAIN = /(^|\.)(gmail|yahoo|outlook|hotmail|aol|icloud|me|live|msn|comcast|proton(mail)?)\.(com|me)$|\.(gov|us|mil)$/i
 const domainOf = (url: string | null): string | null => {
@@ -56,14 +55,17 @@ async function main() {
   const byDomain = new Map<string, Strength>()
   const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true } })
   const orgKey = new Map(orgs.map((o) => [o.id, normalizeOrgName(o.name)]))
-  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true } } } })) {
+  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } } })) {
     const k = orgKey.get(a.orgId)
-    if (k) byOrgName.set(k, best(byOrgName.get(k), strengthOf(a.person))!)
+    const st = contactStrength(a.person)
+    if (k && st) byOrgName.set(k, best(byOrgName.get(k), st)!)
   }
-  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true } })) {
+  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } })) {
+    const st = contactStrength(p)
+    if (!st) continue
     for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {
       const d = e.split('@')[1]?.toLowerCase().trim()
-      if (d && !SHARED_DOMAIN.test(d)) byDomain.set(d, best(byDomain.get(d), strengthOf(p))!)
+      if (d && !SHARED_DOMAIN.test(d)) byDomain.set(d, best(byDomain.get(d), st)!)
     }
   }
   const contactFor = (name: string, website: string | null): Strength | null => {

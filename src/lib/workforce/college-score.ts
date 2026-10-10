@@ -78,13 +78,14 @@ export interface ScoreInput {
   contactStrength?: ContactStrength | null
   /**
    * Facts from CollegeProfile (alumni, budget, outcomes, programs). When given,
-   * they add a part worth up to 20 and the five parts are rescaled to 100, so
-   * tier cut-offs keep their meaning. Left out, the score is unchanged.
+   * they fill the last 20 of the 100. Left out, the other four parts (80) are
+   * scaled to 100, so tier cut-offs keep their meaning.
    */
   profile?: CollegeFacts | null
 }
 
-export type ContactStrength = 'hot' | 'warm' | 'any'
+export type { ContactStrength } from '@/lib/crm/contact-strength'
+import type { ContactStrength } from '@/lib/crm/contact-strength'
 /** What a contact is worth, outside the 100: a warm one helps a lot, any one helps a little. */
 export const CONTACT_POINTS: Record<ContactStrength, number> = { hot: 25, warm: 20, any: 5 }
 
@@ -105,7 +106,7 @@ export interface ScoreParts {
   fit: number
   size: number
   interest: number
-  /** Alumni base, budget and giving, graduate outcomes, programs: up to 20 before rescaling (0 when no facts). */
+  /** Alumni base, budget and giving, graduate outcomes, programs: up to 20 (0 when no facts). */
   profile?: number
   /** Added for an existing relationship or deal, outside the 100. */
   relationship: number
@@ -157,12 +158,13 @@ export function profilePart(f: CollegeFacts, notes: string[]): number {
 export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts; tier: 'A' | 'B' | 'C' } {
   const notes: string[] = []
 
-  // Contacts, up to 30: per office, a named leader with their own email 7.5,
-  // a named leader 4.5, the office's general line 1.5.
+  // Contact details, up to 10 ("any contact helps a little"; a warm contact in
+  // the CRM is worth 20-25 on its own, below): per office, a named leader with
+  // their own email 2.5, a named leader 1.5, the office's general line 0.5.
   let contacts = 0
   for (const role of ['career', 'alumni', 'development', 'execEd']) {
     const c0 = c.contacts.filter((x) => x.role === role)
-    const best = Math.max(0, ...c0.map((x) => (x.name ? (isPersonalEmail(x.email, x.name) && titleLeadsRole(x.title, role) ? 7.5 : 4.5) : 1.5)))
+    const best = Math.max(0, ...c0.map((x) => (x.name ? (isPersonalEmail(x.email, x.name) && titleLeadsRole(x.title, role) ? 2.5 : 1.5) : 0.5)))
     contacts += best
   }
 
@@ -197,10 +199,11 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   if (c.relationship) notes.push(`${c.relationship} contact in the CRM`)
   if (c.dealStatus) notes.push(`Deal: ${c.dealStatus.toLowerCase().replace(/_/g, ' ')}`)
 
-  // With facts the five parts run to 120, so rescale them to the same 100.
+  // Contacts 10 + fit 30 + size 20 + interest 20 = 80; the profile part is the
+  // other 20. With no facts for the college, scale the 80 to the same 100.
   const profile = c.profile ? profilePart(c.profile, notes) : 0
   const body = contacts + fit + size + interest
-  const score = Math.round(((c.profile ? ((body + profile) * 100) / 120 : body) + relationship) * 10) / 10
+  const score = Math.round(((c.profile ? body + profile : (body * 100) / 80) + relationship) * 10) / 10
   const base = isCommunityCollege(c) ? 'C' : score >= 60 ? 'A' : score >= 45 ? 'B' : 'C'
   const floor = relationship >= 30 ? 'A' : relationship >= 15 ? 'B' : 'C'
   const tier = (base < floor ? base : floor) as 'A' | 'B' | 'C'
