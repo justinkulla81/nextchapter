@@ -9,9 +9,12 @@ import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import type { LikelyOpeningSignalType } from '@prisma/client'
 import { listFilingsForDay, secFetch, filingDocUrl, filingIndexUrl, type EftsHit } from './edgar'
-import { htmlToText, extractItem502, readItem502, execSignalsFrom, isNonOperating8kFiler } from './parse-8k'
+import { htmlToText, extractItem502, readItem502, isNonOperating8kFiler } from './parse-8k'
 import { parseFormDXml, judgeFormD, fundingSummary, looksLikeVehicleName } from './parse-form-d'
 import { companyKey } from './roles'
+import { execSignalsWithLlm, emptyLlmStats, type LlmPassStats, type FilingReadCache } from './llm-read'
+import { dbFilingReadCache } from './read-cache'
+import { getAnthropicClient } from '@/lib/anthropic'
 
 export const SIGNAL_TTL_DAYS = 120
 
@@ -25,6 +28,8 @@ export interface IngestStats {
   created: Record<LikelyOpeningSignalType, number>
   errors: number
   stoppedEarly: boolean
+  /** Haiku second pass over rule-flagged 8-Ks: calls, cache hits, failures, tokens. */
+  llm: LlmPassStats
 }
 
 function isoDay(d: Date): string {
@@ -97,7 +102,8 @@ export async function ingestLikelyOpenings({
   days = 3,
   deadline = Number.POSITIVE_INFINITY,
   log = () => {},
-}: { days?: number; deadline?: number; log?: (msg: string) => void } = {}): Promise<IngestStats> {
+  readCache = dbFilingReadCache,
+}: { days?: number; deadline?: number; log?: (msg: string) => void; readCache?: FilingReadCache } = {}): Promise<IngestStats> {
   const stats: IngestStats = {
     days: businessDaysBack(days),
     eightKSeen: 0,
@@ -108,6 +114,7 @@ export async function ingestLikelyOpenings({
     created: { EXEC_DEPARTURE: 0, EXEC_APPOINTMENT: 0, FUNDING_RAISE: 0 },
     errors: 0,
     stoppedEarly: false,
+    llm: emptyLlmStats(),
   }
   const outOfTime = () => {
     if (Date.now() > deadline) stats.stoppedEarly = true
@@ -140,7 +147,17 @@ export async function ingestLikelyOpenings({
         const section = extractItem502(htmlToText(html))
         if (!section) continue
         const name = displayCompanyName(hit.companyName)
-        const rows: Row[] = execSignalsFrom(name, readItem502(section)).map((s) => ({
+        const { signals } = await execSignalsWithLlm({
+          accessionNumber: hit.accessionNumber,
+          companyName: name,
+          section,
+          rules: readItem502(section),
+          cache: readCache,
+          client: getAnthropicClient,
+          stats: stats.llm,
+          log,
+        })
+        const rows: Row[] = signals.map((s) => ({
           ...baseRow(hit, name),
           signalType: s.signalType,
           roles: s.roles,

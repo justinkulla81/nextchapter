@@ -28,6 +28,11 @@ export async function GET(request: NextRequest) {
     eightK502: stats.eightK502,
     formDFetched: stats.formDFetched,
     errors: stats.errors,
+    llmCalls: stats.llm.llmCalls,
+    llmCacheHits: stats.llm.llmCacheHits,
+    llmFailures: stats.llm.llmFailures,
+    llmInputTokens: stats.llm.inputTokens,
+    llmOutputTokens: stats.llm.outputTokens,
     stoppedEarly: stats.stoppedEarly,
   })
   return NextResponse.json(stats)

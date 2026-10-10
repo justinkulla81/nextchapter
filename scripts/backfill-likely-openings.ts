@@ -4,7 +4,9 @@
  * daily cron (/api/cron/likely-openings). Safe to re-run — stored filings are
  * skipped. No time limit; ~8 requests/second to stay under SEC's 10/s cap.
  *
- * Usage: npx tsx --env-file=.env.local scripts/backfill-likely-openings.ts [days]
+ * Rule-flagged 8-Ks get the cached Claude Haiku pass (llm-read.ts).
+ *
+ * Usage: node --env-file=.env.local --conditions=react-server --import tsx scripts/backfill-likely-openings.ts [days]
  */
 import { prisma } from '../src/lib/prisma'
 import { ingestLikelyOpenings } from '../src/lib/likely-openings/ingest'

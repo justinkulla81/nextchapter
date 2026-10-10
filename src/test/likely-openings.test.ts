@@ -3,10 +3,21 @@
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
+vi.mock('@/lib/anthropic', () => ({ getAnthropicClient: vi.fn() }))
 import { htmlToText, extractItem502, readItem502, execSignalsFrom, isNonOperating8kFiler } from '@/lib/likely-openings/parse-8k'
 import { parseFormDXml, judgeFormD, formatAmount, looksLikeVehicleName } from '@/lib/likely-openings/parse-form-d'
 import { companyKey } from '@/lib/likely-openings/roles'
 import { scoreLikelyOpening } from '@/lib/likely-openings/for-candidate'
+import {
+  signalsFromLlmRead,
+  execSignalsWithLlm,
+  emptyLlmStats,
+  usageCostUsd,
+  type LlmRead,
+  type CachedFilingRead,
+  type FilingReadCache,
+} from '@/lib/likely-openings/llm-read'
+import type Anthropic from '@anthropic-ai/sdk'
 
 const COVER = `<p>Check the appropriate box below if the Form 8-K filing is intended to satisfy... Item 5.02 Departure of Directors</p>`
 const SIGNATURE = `<p>SIGNATURE</p><p>Pursuant to the requirements of the Securities Exchange Act of 1934... By: /s/ Andre Maciel, Executive Vice President &amp; Chief Financial Officer</p>`
@@ -167,5 +178,155 @@ describe('candidate ranking', () => {
     const raise = scoreLikelyOpening({ ...base, signalType: 'FUNDING_RAISE', roles: [], amountRaised: 40_000_000 }, manager, now)
     const departure = scoreLikelyOpening({ ...base, signalType: 'EXEC_DEPARTURE', roles: ['CFO'] }, manager, now)
     expect(raise.score).toBeGreaterThan(departure.score)
+  })
+})
+
+// ---- Haiku second pass -------------------------------------------------
+
+const DIVISION_PRESIDENT = `<p>On October 3, 2026, John Park notified the Company that he will retire as President, Industrial Segment, effective December 31, 2026. The Company has commenced a search for his successor.</p>`
+const MERGER_CLOSING = `<p>In connection with the consummation of the Merger, and as contemplated by the Merger Agreement, each of the officers of the Company immediately prior to the Effective Time ceased to serve, and Jane Roe was appointed President and Chief Executive Officer, John Doe was appointed Chief Financial Officer and Mary Major was appointed General Counsel of the Surviving Corporation.</p>`
+
+function memoryCache(seed: Record<string, CachedFilingRead> = {}): FilingReadCache & { store: Record<string, CachedFilingRead> } {
+  const store = { ...seed }
+  return { store, get: async (a) => store[a] ?? null, set: async (a, e) => void (store[a] = e) }
+}
+
+function mockClient(read: LlmRead | Error) {
+  const stream = vi.fn(() => ({
+    finalMessage: async () => {
+      if (read instanceof Error) throw read
+      return { parsed_output: read, stop_reason: 'end_turn', usage: { input_tokens: 1500, output_tokens: 120 } }
+    },
+  }))
+  return { client: { messages: { stream } } as unknown as Anthropic, stream }
+}
+
+describe('Haiku read of Item 5.02', () => {
+  it('drops a division president the rules read as the company President', () => {
+    const rules = read(DIVISION_PRESIDENT)
+    expect(rules.openings).toEqual(['PRESIDENT'])
+    const llm: LlmRead = {
+      changes: [{ role: 'PRESIDENT', scope: 'division', change: 'departure', permanentSuccessorNamed: false }],
+      mergerDriven: false,
+      summary: 'The head of the Industrial segment is retiring.',
+    }
+    expect(signalsFromLlmRead('Acme', llm, rules)).toEqual([])
+  })
+
+  it('drops merger-closing boilerplate appointments', () => {
+    const rules = read(MERGER_CLOSING)
+    expect(rules.appointed.length).toBeGreaterThan(0)
+    const llm: LlmRead = {
+      changes: [
+        { role: 'CEO', scope: 'company', change: 'appointment', permanentSuccessorNamed: false },
+        { role: 'CFO', scope: 'company', change: 'appointment', permanentSuccessorNamed: false },
+      ],
+      mergerDriven: true,
+      summary: 'Acme was acquired and the buyer named its own officers.',
+    }
+    expect(signalsFromLlmRead('Acme', llm, rules)).toEqual([])
+  })
+
+  it('corrects the signal type and rewrites the summary', () => {
+    const rules = { openings: ['CEO' as const], appointed: [], interim: [], searchUnderway: false }
+    const llm: LlmRead = {
+      changes: [
+        { role: 'CEO', scope: 'company', change: 'departure', permanentSuccessorNamed: true },
+        { role: 'COO', scope: 'company', change: 'promotion', permanentSuccessorNamed: false },
+        { role: 'OTHER', scope: 'company', change: 'appointment', permanentSuccessorNamed: false },
+      ],
+      mergerDriven: false,
+      summary: "Acme's CEO is retiring and its COO will take over",
+    }
+    const out = signalsFromLlmRead('Acme', llm, rules)
+    expect(out).toHaveLength(1)
+    expect(out[0].signalType).toBe('EXEC_APPOINTMENT')
+    expect(out[0].roles.sort()).toEqual(['CEO', 'COO'])
+    expect(out[0].summary).toBe("Acme's CEO is retiring and its COO will take over. New chief executives often rebuild the leadership team in their first year.")
+  })
+
+  it('keeps an interim fill as an opening', () => {
+    const rules = { openings: ['CFO' as const], appointed: [], interim: [], searchUnderway: true }
+    const llm: LlmRead = {
+      changes: [
+        { role: 'CFO', scope: 'company', change: 'departure', permanentSuccessorNamed: false },
+        { role: 'CFO', scope: 'company', change: 'interim', permanentSuccessorNamed: false },
+      ],
+      mergerDriven: false,
+      summary: "Acme's CFO is retiring; the controller is interim CFO.",
+    }
+    const [s] = signalsFromLlmRead('Acme', llm, rules)
+    expect(s.signalType).toBe('EXEC_DEPARTURE')
+    expect(s.roles).toEqual(['CFO'])
+    // The written lead already mentions the interim, so no tail is added.
+    expect(s.summary).toBe("Acme's CFO is retiring; the controller is interim CFO.")
+  })
+
+  const keep: LlmRead = {
+    changes: [{ role: 'CFO', scope: 'company', change: 'departure', permanentSuccessorNamed: false }],
+    mergerDriven: false,
+    summary: "Acme's CFO is leaving at year-end.",
+  }
+  const cfoRules = { openings: ['CFO' as const], appointed: [], interim: [], searchUnderway: false }
+
+  it('calls Haiku once per filing, then serves the cached read', async () => {
+    const { client, stream } = mockClient(keep)
+    const cache = memoryCache()
+    const stats = emptyLlmStats()
+    const args = { accessionNumber: '0001-26-1', companyName: 'Acme', section: 'x'.repeat(9000), rules: cfoRules, cache, client: () => client, stats }
+    const first = await execSignalsWithLlm(args)
+    expect(first.source).toBe('llm')
+    expect(first.signals[0].summary).toMatch(/^Acme's CFO is leaving at year-end\./)
+    const second = await execSignalsWithLlm(args)
+    expect(second.source).toBe('cache')
+    expect(stream).toHaveBeenCalledTimes(1)
+    // Only the first ~6k chars are sent.
+    const sent = (stream.mock.calls[0] as unknown as [{ messages: { content: string }[] }])[0].messages[0].content
+    expect(sent).toContain('x'.repeat(6000))
+    expect(sent).not.toContain('x'.repeat(6001))
+    expect(stats).toMatchObject({ llmCalls: 1, llmCacheHits: 1, inputTokens: 1500, outputTokens: 120 })
+    expect(usageCostUsd(stats.inputTokens, stats.outputTokens)).toBeCloseTo(0.0021, 6)
+  })
+
+  it('skips the call when the rules see nothing', async () => {
+    const { client, stream } = mockClient(keep)
+    const res = await execSignalsWithLlm({ accessionNumber: 'a', companyName: 'Acme', section: 's', rules: { openings: [], appointed: [], interim: [], searchUnderway: false }, cache: memoryCache(), client: () => client, stats: emptyLlmStats() })
+    expect(res).toEqual({ signals: [], source: 'none' })
+    expect(stream).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the rules when the call fails, without caching', async () => {
+    const { client } = mockClient(new Error('overloaded'))
+    const cache = memoryCache()
+    const stats = emptyLlmStats()
+    const res = await execSignalsWithLlm({ accessionNumber: 'a', companyName: 'Acme', section: 's', rules: cfoRules, cache, client: () => client, stats })
+    expect(res.source).toBe('rules')
+    expect(res.signals[0].summary).toBe("Acme's Chief Financial Officer is leaving. A search for a replacement usually follows.")
+    expect(cache.store).toEqual({})
+    expect(stats.llmFailures).toBe(1)
+  })
+
+  it('never calls Haiku when the cache is unavailable', async () => {
+    const { client, stream } = mockClient(keep)
+    const cache: FilingReadCache = { get: async () => { throw new Error('relation "SecFilingRead" does not exist') }, set: async () => {} }
+    const res = await execSignalsWithLlm({ accessionNumber: 'a', companyName: 'Acme', section: 's', rules: cfoRules, cache, client: () => client, stats: emptyLlmStats() })
+    expect(res.source).toBe('rules')
+    expect(stream).not.toHaveBeenCalled()
+  })
+})
+
+describe('Form D fund-like names', () => {
+  it('drops single-deal vehicles the old list missed', () => {
+    for (const name of ['Colossal Bio Opportunities, LLC', 'Definition II-A', 'DMJC Colossal Iii', 'Frontier Z 1', 'Quantum Spvg1 LLC', 'Wildlife Partners EBP #2026B', 'Vision EB5 Glassboro', 'Black Diamond Funding Ventures', 'Peachtree Hotel Partners', 'Secret Production Five', 'Gateway Royalty VII', 'USM Procurement 4, LLC']) {
+      expect(looksLikeVehicleName(name), name).toBe(true)
+    }
+    for (const name of ['Databricks, Inc.', 'Modal Labs', 'Superhuman Platform Inc.', '3D-23', 'Crusoe', 'Seen Partners', 'Pictura Bio US', 'Vistiq.AI', 'Amira Learning']) {
+      expect(looksLikeVehicleName(name), name).toBe(false)
+    }
+  })
+
+  it('drops structured-note and hotel issuers by industry', () => {
+    const v = judgeFormD(parseFormDXml(formD({ name: 'GS Finance Corp.', industry: 'Investment Banking' }))!)
+    expect(v.keep).toBe(false)
   })
 })

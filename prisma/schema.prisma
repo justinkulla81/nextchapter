@@ -12466,6 +12466,18 @@ model LikelyOpening {
   @@index([expiresAt, filingDate])
 }
 
+/// Cached Claude Haiku read of one 8-K's Item 5.02 section, keyed by SEC
+/// accession number, so re-runs (daily cron lookback, backfills) never pay
+/// for the same filing twice. See src/lib/likely-openings/llm-read.ts.
+model SecFilingRead {
+  accessionNumber String   @id
+  model           String
+  result          Json
+  inputTokens     Int
+  outputTokens    Int
+  createdAt       DateTime @default(now())
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SEARCH-FIRM OUTREACH — firms we ask to send their open or confidential
 // searches, and the searches recruiters send in through /submit-search.

@@ -2,10 +2,10 @@
 // Officers; Election of Directors; Appointment of Certain Officers"). Pure
 // functions — no network, no database — so the tests can feed fixture text.
 //
-// Deliberately rules, not an LLM: the filings are formulaic legal prose
-// ("notified the Company of her decision to resign as Chief Financial
-// Officer"), and a wrong read costs little — the signal is a hint to look,
-// never a posted job.
+// Rules first: the filings are formulaic legal prose ("notified the Company
+// of her decision to resign as Chief Financial Officer"). Sections the rules
+// flag get a Claude Haiku second read (llm-read.ts) for the judgment calls —
+// division presidents, merger boilerplate — with these rules as the fallback.
 
 import { ROLE_PATTERNS, ROLE_LABELS, type OfficerRole } from './roles'
 
@@ -231,35 +231,37 @@ export interface ExecSignalDraft {
   summary: string
 }
 
+/** The "why this matters" sentence that follows a signal's lead sentence. */
+export function signalTail(signalType: ExecSignalDraft['signalType'], read: Item502Read): string {
+  if (signalType === 'EXEC_DEPARTURE') {
+    return read.interim.length > 0
+      ? 'An interim is covering while they look for a permanent hire.'
+      : read.searchUnderway
+        ? 'The company says a search is under way.'
+        : 'A search for a replacement usually follows.'
+  }
+  return read.appointed.includes('CEO')
+    ? 'New chief executives often rebuild the leadership team in their first year.'
+    : 'New leaders often bring in or reshape the senior team under them.'
+}
+
 /**
  * Turn a read into at most two signals: an opening (departure, or interim
  * fill) and a leadership change (permanent appointment). Summaries are plain
- * language for candidates — no filing jargon.
+ * language for candidates — no filing jargon. `lead` replaces the
+ * rule-written first sentence (the Haiku pass supplies one).
  */
-export function execSignalsFrom(companyName: string, read: Item502Read): ExecSignalDraft[] {
+export function execSignalsFrom(companyName: string, read: Item502Read, lead?: string): ExecSignalDraft[] {
   const out: ExecSignalDraft[] = []
   if (read.openings.length > 0) {
-    const interimNote =
-      read.interim.length > 0
-        ? ' An interim is covering while they look for a permanent hire.'
-        : read.searchUnderway
-          ? ' The company says a search is under way.'
-          : ' A search for a replacement usually follows.'
-    out.push({
-      signalType: 'EXEC_DEPARTURE',
-      roles: read.openings,
-      summary: `${companyName}'s ${roleList(read.openings)} ${read.openings.length > 1 ? 'are' : 'is'} leaving.${interimNote}`,
-    })
+    const first = lead ?? `${companyName}'s ${roleList(read.openings)} ${read.openings.length > 1 ? 'are' : 'is'} leaving.`
+    // A written lead that already mentions the search or interim needs no tail.
+    const covered = lead !== undefined && /\b(search|searching|interim|acting|successor)\b/i.test(lead)
+    out.push({ signalType: 'EXEC_DEPARTURE', roles: read.openings, summary: covered ? first : `${first} ${signalTail('EXEC_DEPARTURE', read)}` })
   }
   if (read.appointed.length > 0) {
-    const newChief = read.appointed.includes('CEO')
-    out.push({
-      signalType: 'EXEC_APPOINTMENT',
-      roles: read.appointed,
-      summary: newChief
-        ? `${companyName} named a new ${roleList(read.appointed)}. New chief executives often rebuild the leadership team in their first year.`
-        : `${companyName} named a new ${roleList(read.appointed)}. New leaders often bring in or reshape the senior team under them.`,
-    })
+    const first = lead ?? `${companyName} named a new ${roleList(read.appointed)}.`
+    out.push({ signalType: 'EXEC_APPOINTMENT', roles: read.appointed, summary: `${first} ${signalTail('EXEC_APPOINTMENT', read)}` })
   }
   return out
 }

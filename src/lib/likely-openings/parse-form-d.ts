@@ -69,6 +69,9 @@ const EXCLUDED_INDUSTRY_GROUPS = [
   'commercial',
   'construction',
   'other real estate',
+  // Structured-note and deal issuers ("GS Finance Corp."), hotel owners.
+  'investment banking',
+  'lodging and conventions',
 ]
 
 // Single-purpose vehicles: "XYZ Fund II, LP", "Acme I, a series of Capitalize
@@ -77,9 +80,21 @@ const EXCLUDED_INDUSTRY_GROUPS = [
 const VEHICLE_NAME_RE =
   /\b(fund|funds|feeder|master|co-?invest(?:ment|ors)?|investors?|a series of|series [a-z0-9]+|spv|vehicle|opportunit(?:y|ies) (?:i|ii|iii|iv|v)|partners (?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\b|holdings? (?:i|ii|iii|iv|v)|capital partners|ventures? (?:i|ii|iii|iv|v)\b|gp|l\.?p\.?|lp|apartments|properties|realty|real estate|reit|dst)\b/i
 const ADDRESS_NAME_RE = /^\d{2,}\s/ // "1330 Conn Investors", "90 NE 39th St Restaurant"
+// Single-deal vehicles that slip past the list above: "Colossal Bio
+// Opportunities", "Definition II-A", "DMJC Colossal III", "Frontier Z 1",
+// "Quantum SPVG1", "Wildlife Partners EBP #2026B", "Vision EB5 Glassboro",
+// "Black Diamond Funding Ventures", "Peachtree Hotel Partners", "Secret
+// Production Five".
+const VEHICLE_NAME_EXTRA_RE =
+  /\bopportunit(?:y|ies)\b|\b(?:[IVX]+|\d+)-[A-Z]\b|\b(?:ii|iii|iv|vi|vii|viii|ix)$|\s\d{1,2}$|\bspv\w*|#|\b(?:19|20)\d{2}-?[A-Z]\b|\beb-?5\b|\bfunding\b|\bacquisitions?\b|\b(?:hotel|inn|resort)s?\b|\bproductions? (?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/i
 
 export function looksLikeVehicleName(name: string): boolean {
-  return VEHICLE_NAME_RE.test(name) || ADDRESS_NAME_RE.test(name)
+  const bare = name.replace(/,?\s*(?:inc|llc|l\.l\.c|corp|corporation|co|ltd|lp|pbc)\.?$/i, '').trim()
+  return VEHICLE_NAME_RE.test(name) || ADDRESS_NAME_RE.test(name) || VEHICLE_NAME_EXTRA_RE.test(bare)
+}
+
+export function isExcludedIndustry(industryGroupType: string | null | undefined): boolean {
+  return EXCLUDED_INDUSTRY_GROUPS.includes((industryGroupType ?? '').toLowerCase())
 }
 
 export type FormDVerdict = { keep: true; amount: number; closed: boolean } | { keep: false; reason: string }
@@ -95,8 +110,7 @@ export function judgeFormD(f: FormDFiling, minAmount = FORM_D_MIN_AMOUNT): FormD
   if (f.isPooledFund) return { keep: false, reason: 'pooled fund' }
   // Section 3(c) exclusions are the Investment Company Act carve-outs funds use.
   if (f.federalExemptions.some((e) => /^3c/i.test(e))) return { keep: false, reason: 'investment company exemption' }
-  const group = (f.industryGroupType ?? '').toLowerCase()
-  if (EXCLUDED_INDUSTRY_GROUPS.includes(group)) return { keep: false, reason: `industry: ${f.industryGroupType}` }
+  if (isExcludedIndustry(f.industryGroupType)) return { keep: false, reason: `industry: ${f.industryGroupType}` }
   if (/limited partnership/i.test(f.entityType ?? '')) return { keep: false, reason: 'limited partnership' }
   if (looksLikeVehicleName(f.entityName)) return { keep: false, reason: 'investment vehicle name' }
   const sold = f.totalAmountSold ?? 0
