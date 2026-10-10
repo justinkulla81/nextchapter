@@ -19,8 +19,15 @@ export function hunterConfigured(): boolean {
 
 async function call<T>(path: string, params: Record<string, string>): Promise<T | null> {
   const qs = new URLSearchParams({ ...params, api_key: process.env.HUNTER_API_KEY ?? '' })
-  const res = await fetch(`${BASE}/${path}?${qs}`, { signal: AbortSignal.timeout(20_000) }).catch(() => null)
-  if (!res) return null
+  // The verifier checks the mail server live and can take a while, or answer
+  // 202 ("still verifying — ask again"); give it time and a few retries.
+  let res: Response | null = null
+  for (let attempt = 0; attempt < 4; attempt++) {
+    res = await fetch(`${BASE}/${path}?${qs}`, { signal: AbortSignal.timeout(60_000) }).catch(() => null)
+    if (!res || res.status !== 202) break
+    await new Promise((r) => setTimeout(r, 5_000 * (attempt + 1)))
+  }
+  if (!res || res.status === 202) return null
   if (res.status === 429) throw new Error('Hunter rate limit reached — try again later')
   if (res.status === 401 || res.status === 403) throw new Error('Hunter rejected the API key or the plan is out of credits')
   if (!res.ok) return null
