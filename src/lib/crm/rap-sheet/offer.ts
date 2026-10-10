@@ -25,12 +25,19 @@ export function easternDayBounds(offsetDays: number, now = new Date()): { from: 
   return { from: midnight(day), to: midnight(next.toISOString().slice(0, 10)) }
 }
 
+/** Friday and Saturday nights prep Saturday and Sunday, and there are no meetings over the weekend. */
+export function isNoMeetingNight(now = new Date()): boolean {
+  const day = now.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' })
+  return day === 'Fri' || day === 'Sat'
+}
+
 /** Find tomorrow's meetings with CRM people, record an offer for each, and email the choice. */
 export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: boolean; reason?: string; events?: number; unmatchedAttendees?: number }> {
+  if (isNoMeetingNight()) return { offered: 0, sent: false, reason: 'weekend' }
   let token: string
   try { token = await getValidAdminAccessToken() } catch (e) {
     const detail = e instanceof Error ? e.message : String(e)
-    console.error('Meeting Prep offer: calendar token unavailable:', detail)
+    console.error('Prep for tomorrow: calendar token unavailable:', detail)
     await sendOfferProblemEmail('Your Google Calendar connection has expired or was revoked, so tomorrow\'s meetings could not be read.', detail)
     return { offered: 0, sent: false, reason: 'no_calendar_connection' }
   }
@@ -41,7 +48,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
     ;[events, ctx] = await Promise.all([listCalendarEvents(token, from, to), buildSweepContext(null)])
   } catch (e) {
     const detail = e instanceof Error ? e.message : String(e)
-    console.error('Meeting Prep offer: calendar read failed:', detail)
+    console.error('Prep for tomorrow: calendar read failed:', detail)
     await sendOfferProblemEmail('Your calendar could not be read, so tomorrow\'s meetings were not checked.', detail)
     return { offered: 0, sent: false, reason: 'calendar_read_failed' }
   }

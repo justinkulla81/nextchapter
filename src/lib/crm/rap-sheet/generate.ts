@@ -12,7 +12,7 @@ const MAX_CONTINUATIONS = 3
 
 const PRODUCT = `NextChapter helps laid-off and displaced white-collar professionals land their next role: a candidate platform (job search plan, coaching, a daily job email, résumé and narrative tools, a network of coaches and recruiters) plus programs sold to institutions. Buyers and partners include workforce boards, economic-development and chamber organizations, universities and alumni offices, outplacement buyers, employers doing layoffs, and funders. The founder, Justin Kulla, is pitching them.`
 
-const SYSTEM = `You are preparing a one-page prospect briefing ("rap sheet") for a founder walking into a pitch. ${PRODUCT}
+const SYSTEM = `You are preparing a one-page prospect briefing for a founder walking into a pitch. ${PRODUCT}
 
 Rules:
 - Use web search to research the prospect's organization and its LOCAL area: recent layoffs and closures (especially white-collar and corporate), regional workforce and economic-development initiatives, programs, grants and funders they run or are part of, and white-collar labor-market metrics (unemployment rate, professional/business services and information-sector employment trends, job openings, major employers' headcount moves). Prefer sources from the last 12 months and say the date.
@@ -48,7 +48,7 @@ export function parseRapSheet(raw: string): RapSheetContent | null {
   }
 }
 
-/** Research and write one rap sheet. This is the metered step: one Claude call with up to MAX_SEARCHES web searches. */
+/** Research and write one Meeting Prep. This is the metered step: one Claude call with up to MAX_SEARCHES web searches. */
 export async function buildRapSheetContent(personId: string, meeting: { title: string | null; at: Date | null }): Promise<RapSheetContent> {
   const ctx = await gatherRapSheetContext(personId)
   const when = meeting.at ? meeting.at.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'short' }) + ' ET' : 'upcoming'
@@ -67,7 +67,7 @@ export async function buildRapSheetContent(personId: string, meeting: { title: s
     messages.push({ role: 'assistant', content: res.content })
   }
   const parsed = parseRapSheet(text)
-  if (!parsed) throw new Error('The model did not return a usable rap sheet.')
+  if (!parsed) throw new Error('The model did not return a usable Meeting Prep.')
   return parsed
 }
 

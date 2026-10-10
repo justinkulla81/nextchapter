@@ -8,7 +8,7 @@ vi.mock('@/lib/crm/sync', () => ({ buildSweepContext: vi.fn() }))
 vi.mock('@/lib/google/admin-calendar', () => ({ listCalendarEvents: vi.fn() }))
 vi.mock('@/lib/webinars/admin-calendar-oauth', () => ({ getValidAdminAccessToken: vi.fn() }))
 
-import { easternDayBounds } from '@/lib/crm/rap-sheet/offer'
+import { easternDayBounds, isNoMeetingNight } from '@/lib/crm/rap-sheet/offer'
 import { parseRapSheet } from '@/lib/crm/rap-sheet/generate'
 import { renderRapSheetHtml } from '@/lib/crm/rap-sheet/email'
 
@@ -48,5 +48,16 @@ describe('renderRapSheetHtml', () => {
     )
     expect(html).not.toContain('<script>')
     expect(html).not.toContain('javascript:')
+  })
+})
+
+describe('isNoMeetingNight', () => {
+  it('skips Friday and Saturday nights in Eastern time', () => {
+    expect(isNoMeetingNight(new Date('2026-10-10T00:00:00Z'))).toBe(true) // Fri 8 PM ET
+    expect(isNoMeetingNight(new Date('2026-10-11T00:00:00Z'))).toBe(true) // Sat 8 PM ET
+  })
+  it('runs Sunday through Thursday nights', () => {
+    expect(isNoMeetingNight(new Date('2026-10-12T00:00:00Z'))).toBe(false) // Sun 8 PM ET
+    expect(isNoMeetingNight(new Date('2026-10-09T00:00:00Z'))).toBe(false) // Thu 8 PM ET
   })
 })

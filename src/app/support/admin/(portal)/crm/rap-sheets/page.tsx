@@ -25,7 +25,7 @@ export default async function RapSheetsPage() {
     <div className="space-y-6">
       <nav className="text-sm"><Link href="/support/admin/crm/home" className="text-muted-foreground hover:underline">← CRM</Link></nav>
       <header>
-        <h1 className="text-2xl font-semibold">Meeting Prep</h1>
+        <h1 className="text-2xl font-semibold">Prep for tomorrow</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           The night before, you get an email listing tomorrow&apos;s pitches. Include the ones you want Meeting Prep for; each one is
           researched fresh (about $0.30–1.00) and emailed at 6:30 AM ET. Anything you leave alone is skipped.

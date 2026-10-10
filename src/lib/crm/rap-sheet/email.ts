@@ -61,23 +61,24 @@ export function sendOfferEmail(rows: OfferRow[], unknown: { email: string; name:
   const url = `${APP()}/support/admin/crm/rap-sheets`
   const items = rows.map((r) => `<b>${esc(r.personName)}</b>${r.orgName ? `, ${esc(r.orgName)}` : ''} · ${esc(when(r.at))}${r.title ? ` · ${esc(r.title)}` : ''}`)
   const miss = unknown.map((u) => `${esc(u.name || u.email)} (${esc(u.email)}) · ${esc(when(u.at))}`)
-  return send(`Meeting Prep for tomorrow: which meetings? (${rows.length})`, wrap(`
-    <h1 style="font-size:18px;margin:0 0 6px">Tomorrow's pitches</h1>
+  return send('Prep for tomorrow', wrap(`
+    <h1 style="font-size:18px;margin:0 0 6px">Prep for tomorrow</h1>
+    <p style="margin:0 0 6px;color:#666">Your meetings tomorrow with people in the CRM:</p>
     ${ul(items)}
     <p style="margin:16px 0"><a href="${url}" style="background:#1d4ed8;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Choose meetings to prep</a></p>
-    <p style="margin:0;color:#666">Each one you include is a small research run (cheapest model, 5 searches). Anything you leave alone is skipped. Included sheets arrive by email at 6:30 AM ET.</p>
-    ${miss.length ? `${h('On your calendar but not in the CRM')}${ul(miss)}<p style="margin:4px 0;color:#666">Add them to the CRM to get a Meeting Prep offer.</p>` : ''}
+    <p style="margin:0;color:#666">Each one you include is a small research run (cheapest model, 5 searches). Anything you leave alone is skipped. Prep for each one you include arrives by email at 6:30 AM ET.</p>
+    ${miss.length ? `${h('On your calendar but not in the CRM')}${ul(miss)}<p style="margin:4px 0;color:#666">Add them to the CRM to get prep for them.</p>` : ''}
   `))
 }
 
 /** Tells Justin the night-before job could not read his calendar, so he is not left waiting for briefs that will never come. */
 export function sendOfferProblemEmail(reason: string, detail?: string): Promise<boolean> {
   const connect = `${APP()}/api/admin/google-calendar/connect`
-  return send('Meeting Prep offers did not run: reconnect your calendar', wrap(`
-    <h1 style="font-size:18px;margin:0 0 6px">Tomorrow's Meeting Prep offers did not run</h1>
+  return send('Prep for tomorrow did not run: reconnect your calendar', wrap(`
+    <h1 style="font-size:18px;margin:0 0 6px">Prep for tomorrow did not run</h1>
     <p style="margin:0 0 8px">${esc(reason)}</p>
     ${detail ? `<p style="margin:0 0 8px;color:#666">${esc(detail)}</p>` : ''}
     <p style="margin:16px 0"><a href="${connect}" style="background:#1d4ed8;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Reconnect Google Calendar</a></p>
-    <p style="margin:0;color:#666">Until you do, no Meeting Prep offers are sent. You can still build one by hand from the person's CRM page.</p>
+    <p style="margin:0;color:#666">Until you do, Prep for tomorrow will not be sent. You can still build one by hand from the person's CRM page.</p>
   `))
 }

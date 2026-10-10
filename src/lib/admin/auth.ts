@@ -2,7 +2,7 @@ import 'server-only'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-// Where every admin-bound notification (digests, alerts, rap sheets) lands.
+// Where every admin-bound notification (digests, alerts, Meeting Prep) lands.
 export const ADMIN_NOTIFICATION_EMAIL = 'justin@launchyournextchapter.com'
 
 function adminEmails(): string[] {
