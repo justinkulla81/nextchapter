@@ -1,4 +1,6 @@
-import { Banknote, TrendingUp, ClipboardList } from 'lucide-react'
+import { Banknote, TrendingUp, ClipboardList, FileText } from 'lucide-react'
+import { SIGNAL_LABELS } from '@/lib/likely-openings/roles'
+import { LikelyOpeningFilingLink } from '@/components/likely-openings/FilingLink'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { loadCompanyIntelPanels } from '@/lib/companies/company-intel-data'
 import type { RecoveryStatus } from '@/lib/companies/layoff-timeline'
@@ -125,6 +127,39 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
           )}
         </CardContent>
       </Card>
+
+      {d.filings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="size-4" aria-hidden="true" />
+              Recent filings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <ul className="space-y-1.5">
+              {d.filings.map((f) => (
+                <li key={f.id} className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">{SIGNAL_LABELS[f.signalType]}</span> ·{' '}
+                  {dateLabel(f.filingDate)} · {f.summary}{' '}
+                  <LikelyOpeningFilingLink
+                    likelyOpeningId={f.id}
+                    companyName={d.companyName}
+                    signalType={f.signalType}
+                    href={f.filingUrl}
+                    source="company_page"
+                    label="Read the filing"
+                  />
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              Public SEC filings only. A leadership change or a large raise often comes before hiring, but it is a
+              hint to look, not an open role.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

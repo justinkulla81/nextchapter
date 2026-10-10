@@ -2,10 +2,10 @@
 // OfferedWageSummary, for companies already in the directory (exact normalised-name match
 // only, never guessed). Re-runnable: rows upsert on (company, occupation).
 //
-//   npx tsx scripts/import-lca-wages.ts /path/to/lca-wages.csv [--dry-run]
+//   node --env-file=.env.local --conditions=react-server --import tsx scripts/import-lca-wages.ts /path/to/lca-wages.csv [--dry-run]
 import { readFileSync } from 'node:fs'
-import { prisma } from '@/lib/prisma'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { prisma } from '../src/lib/prisma'
+import { normalizeOrgName } from '../src/lib/text/org-name-match'
 
 function parseCsv(text: string): string[][] {
   const rows: string[][] = []

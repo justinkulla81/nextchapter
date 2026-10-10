@@ -16,7 +16,7 @@ export function LikelyOpeningFilingLink({
   companyName: string
   signalType: string
   href: string
-  source: 'company_tracker' | 'admin'
+  source: 'company_tracker' | 'admin' | 'company_page'
   label?: string
 }) {
   return (

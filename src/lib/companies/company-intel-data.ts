@@ -4,6 +4,7 @@ import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
 import { buildLayoffTimeline, type LayoffTimeline } from '@/lib/companies/layoff-timeline'
+import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
 import { summarizeHowToApply, type ApplyFacts } from '@/lib/companies/how-to-apply'
 
 // The company page's intelligence panels: what it pays, its layoff history and whether
@@ -16,6 +17,9 @@ export interface CompanyIntelPanels {
   pay: PayGroup[]
   /** Offered wages on public H-1B filings, by occupation. Empty when none are on file. */
   visaWages: { socTitle: string; filings: number; p25: number; median: number; p75: number; state: string | null; latest: Date }[]
+  /** Public SEC filings that suggest a change: leadership moves and large private raises. */
+  filings: CompanyLikelyOpening[]
+  companyName: string
   payPostings: number
   layoffs: LayoffTimeline
   apply: ApplyFacts
@@ -33,7 +37,9 @@ async function boardTrackingStart(): Promise<Date | null> {
 const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
 
 export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus: boolean): Promise<CompanyIntelPanels> {
-  const [postings, notices, trackingStart, wageRows] = await Promise.all([
+  const company = await prisma.company.findUnique({ where: { id: companyId }, select: { name: true } })
+  const companyName = company?.name ?? ''
+  const [postings, notices, trackingStart, wageRows, filingMap] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { companyId, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
       select: {
@@ -48,6 +54,10 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
     }),
     boardTrackingStart(),
     prisma.offeredWageSummary.findMany({ where: { companyId }, orderBy: { filings: 'desc' }, take: 8 }).catch(() => []),
+    // Exact normalised-name match inside the SEC feed; expired signals are already excluded.
+    companyName
+      ? getLikelyOpeningsForCompanies([companyName], { perCompany: 4 }).catch(() => new Map<string, CompanyLikelyOpening[]>())
+      : Promise.resolve(new Map<string, CompanyLikelyOpening[]>()),
   ])
 
   const openable = postings.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
@@ -72,6 +82,8 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
       state: w.topState,
       latest: w.latestDecision,
     })),
+    filings: filingMap.get(companyName) ?? [],
+    companyName,
     payPostings: pay.reduce((s, g) => s + g.postings, 0),
     layoffs,
     apply: summarizeHowToApply(live),
