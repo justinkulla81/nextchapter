@@ -142,6 +142,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
         { href: '/support/admin/crm/colleges', label: 'Colleges' },
+        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
       ],
     },

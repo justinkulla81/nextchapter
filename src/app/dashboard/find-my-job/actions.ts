@@ -779,6 +779,11 @@ export async function promoteJobBoardListing(postingId: string, _prevState: Prom
     where: { id: postingId, status: 'approved', archivedAt: null },
   })
   if (!posting) return { error: 'Could not find that listing.' }
+  // A confidential search's URL and description name the client — copying
+  // them into the candidate's own tracker would reveal what the listing hides.
+  if (posting.disclosure === 'CONFIDENTIAL') {
+    return { error: 'This is a confidential search, so it can’t be added to your tracker. Use Request intro and the recruiter will contact you with details.' }
+  }
 
   // Dedup by URL against the candidate's own tracker — clicking "See full
   // fit" twice on the same listing (or having already found it themselves)

@@ -9274,6 +9274,7 @@ model CrmOrganization {
   outplacementProfile CrmOutplacementProfile?
   partnerProfile      CrmPartnerProfile?
   researchProfile     CrmResearchProfile?
+  searchFirms         SearchFirm[]
 
   // How this organisation came to be (or not be) linked to a directory Company:
   // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
@@ -12412,4 +12413,71 @@ model LikelyOpening {
   @@unique([accessionNumber, signalType])
   @@index([companyNameNormalized])
   @@index([expiresAt, filingDate])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEARCH-FIRM OUTREACH — firms we ask to send their open or confidential
+// searches, and the searches recruiters send in through /submit-search.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A recruiting or executive-search firm, loaded from the ncrawl crawler by
+/// scripts/search-firms/import.ts: its live searches and its CRM organization.
+model SearchFirm {
+  id              String           @id @default(cuid())
+  /// "sf:isaacsonmiller" for an ncrawl source, "csv:<domain or name>" for the bulk firm list.
+  sourceKey       String           @unique
+  name            String
+  website         String?
+  domain          String?
+  /// Which pitch fits: retained, contingent or nonprofit_higher_ed.
+  segment         String           @default("retained")
+  liveSearchCount Int              @default(0)
+  sampleTitles    String[]         @default([])
+  teamPageUrl     String?
+  crmOrgId        String?
+  crmOrg          CrmOrganization? @relation(fields: [crmOrgId], references: [id], onDelete: SetNull)
+  /// MATCHED: an organization with the same name or domain was already in the
+  /// CRM. ADDED: we created it. REVIEW: a similarly named organization exists
+  /// and a person decides on the Review List (reviewOrgId) — never guessed.
+  matchStatus     String           @default("REVIEW")
+  reviewOrgId     String?
+  reviewReason    String?
+  lastSyncedAt    DateTime         @default(now())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  requests SearchRequest[]
+
+  @@index([matchStatus])
+  @@index([crmOrgId])
+}
+
+/// A search a recruiter or employer sent in through /submit-search. Nothing is
+/// emailed back automatically (auto-replies stay off until NYC LL144 review);
+/// a person builds the shortlist and replies by hand.
+model SearchRequest {
+  id           String      @id @default(cuid())
+  firmName     String
+  contactName  String
+  contactEmail String
+  contactPhone String?
+  roleTitle    String
+  /// Never shown to members when confidential.
+  clientName   String?
+  confidential Boolean     @default(false)
+  level        String?
+  function     String?
+  location     String?
+  compensation String?
+  description  String?     @db.Text
+  /// NEW → SHORTLISTING → SENT, or CLOSED.
+  status       String      @default("NEW")
+  searchFirmId String?
+  searchFirm   SearchFirm? @relation(fields: [searchFirmId], references: [id], onDelete: SetNull)
+  /// ?ref= on the link the recruiter came in from (e.g. an outreach email variant).
+  ref          String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status, createdAt])
 }

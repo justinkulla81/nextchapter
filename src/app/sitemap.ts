@@ -34,6 +34,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/faq', updated: '2026-10-02', freq: 'monthly', priority: 0.5 },
   { path: '/contact', updated: '2026-09-29', freq: 'yearly', priority: 0.5 },
   { path: '/submit-resume', updated: '2026-10-02', freq: 'monthly', priority: 0.4 },
+  { path: '/submit-search', updated: '2026-10-09', freq: 'monthly', priority: 0.4 },
   { path: '/refer', updated: '2026-10-02', freq: 'monthly', priority: 0.3 },
   { path: '/for-organizations', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },
   { path: '/outplacement', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },

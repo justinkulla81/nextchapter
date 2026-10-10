@@ -15,6 +15,7 @@ import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPromp
 import { CrmNeedsCompletionList } from '@/components/admin/CrmNeedsCompletionList'
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
+import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
 
 export const maxDuration = 30
 
@@ -42,6 +43,17 @@ export default async function CrmNeedsCompletionPage({
       candidate: { select: { id: true, firstName: true, lastName: true, email: true, createdAt: true } },
     },
   })
+  // Search firms whose name is close to an organization already here — linked or added by a person, never guessed.
+  const firmReviews = await prisma.searchFirm.findMany({
+    where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } },
+    orderBy: [{ liveSearchCount: 'desc' }, { name: 'asc' }],
+    select: { id: true, name: true, reviewOrgId: true, reviewReason: true },
+  })
+  const firmReviewOrgs = new Map((await prisma.crmOrganization.findMany({
+    where: { id: { in: firmReviews.map((f) => f.reviewOrgId!) } },
+    select: { id: true, name: true },
+  })).map((o) => [o.id, o.name]))
+
   const matchedPeople = await prisma.crmPerson.findMany({
     where: { id: { in: signupMatches.map((m) => m.sourceRecordId) } },
     select: { id: true, candidateInvitedAt: true },
@@ -193,6 +205,23 @@ export default async function CrmNeedsCompletionPage({
           prefill rather than typing.
         </p>
       </header>
+
+      {firmReviews.length > 0 && (
+        <section aria-labelledby="firm-matches">
+          <h2 id="firm-matches" className="text-lg font-semibold">Search firms to match</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Firms from the <Link href="/support/admin/crm/search-firms" className="underline">search-firm list</Link> whose
+            name is close to an organization already in the CRM. Link them if they are the same firm; otherwise add the firm as its own.
+          </p>
+          <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {firmReviews.map((f) => (
+              <li key={f.id} className="px-3 py-2">
+                <SearchFirmReviewRow firmId={f.id} firmName={f.name} orgId={f.reviewOrgId!} orgName={firmReviewOrgs.get(f.reviewOrgId!) ?? 'an organization'} reason={f.reviewReason} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {signupMatches.length > 0 && (
         <section aria-labelledby="signup-matches">

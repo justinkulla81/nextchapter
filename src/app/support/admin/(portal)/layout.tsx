@@ -27,11 +27,12 @@ export default async function AdminPortalLayout({ children }: { children: React.
         OR: [{ moderationStatus: 'HELD' }, { moderationCategory: 'CRISIS_SELF_HARM', moderationReviewedAt: null }],
       },
     }),
-    // Review List = records to complete or merge + sign-ups to link.
+    // Review List = records to complete or merge + sign-ups to link + search firms to match.
     Promise.all([
       prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
       prisma.candidateIdentityMatch.count({ where: { source: 'CRM_INVITE', status: 'PENDING' } }),
-    ]).then(([a, b]) => a + b),
+      prisma.searchFirm.count({ where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } } }),
+    ]).then(([a, b, c]) => a + b + c),
     // A rough count of what's overdue right now — a broken promise or a
     // missed next step — not the page's full snoozed/buffered query. Close
     // enough for "is there something waiting", which is all a badge needs to
