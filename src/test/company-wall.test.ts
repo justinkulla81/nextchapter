@@ -98,3 +98,83 @@ describe('an institution\'s target companies stay inside that institution', () =
     expect(outside).toEqual([])
   })
 })
+
+// ── No indirect route ──────────────────────────────────────────────────────
+// The first test above only sees candidate files that touch CRM tables directly. A
+// helper in src/lib that reads the CRM and is imported by a candidate page walks
+// straight past it — which is how job-contacts.ts got through. So every file OUTSIDE
+// the CRM / admin zone that reads a CRM table is listed here, with why it is allowed,
+// and the list must match exactly: a NEW reader fails this test until someone looks
+// at it and adds it with a reason.
+describe('no indirect route from CRM data to a candidate', () => {
+  const CRM_MODEL = /\.(crm[A-Z][A-Za-z]*)\b/
+  const ZONE = /^src\/(lib\/crm|app\/support|app\/api\/crm|app\/api\/admin|test|lib\/admin)\//
+
+  // Allowed: they WRITE into the CRM from a public form or event, or they run only
+  // in admin pages, the CRM sync, or crons. None returns CRM data to a candidate.
+  const ALLOWED: Record<string, string> = {
+    'src/app/api/cron/crm-sync/route.ts': 'cron',
+    'src/components/admin/CrmOrgBackgroundSections.tsx': 'admin UI',
+    'src/components/admin/mailing/PersonMailingSection.tsx': 'admin UI',
+    'src/lib/candidates/invite.ts': 'writes an invite into the CRM',
+    'src/lib/candidates/lead-source.ts': 'attribution, writes only',
+    'src/lib/candidates/link-invite.ts': 'attribution, writes only',
+    'src/lib/companies/company-graph-sync.ts': 'nightly job: links CRM orgs to companies',
+    'src/lib/contact/process-submission.ts': 'contact form writes a CRM lead',
+    'src/lib/geo/local-partners.ts': 'admin geography tooling',
+    'src/lib/help/crm-note.ts': 'help request writes a CRM note',
+    'src/lib/search-firms/report.ts': 'admin-only: imported by the CRM search-firms pages',
+    'src/lib/search-firms/sync.ts': 'admin-only: imported by the CRM search-firms pages',
+    'src/lib/mailing/editions.ts': 'admin mailing',
+    'src/lib/mailing/lists.ts': 'admin mailing',
+    'src/lib/mailing/prompt-cards.ts': 'admin mailing',
+    'src/lib/mailing/tracking.ts': 'admin mailing',
+    'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
+    'src/lib/warn/sync.ts': 'admin WARN tooling',
+    'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
+    'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
+  }
+
+  // KNOWN POLICY VIOLATION, pending the owner's decision. job-contacts.ts READS CRM
+  // affiliations and the job board shows the result to candidates ("who to contact":
+  // CRM recruiters at the employer). The rule is that candidates never see CRM data.
+  // It is listed so the exception is visible and cannot grow; remove it from here
+  // when the feature is changed to stop reading the CRM.
+  const KNOWN_VIOLATIONS = ['src/lib/jobs/job-contacts.ts']
+
+  const readers = [...walk(join(ROOT, 'src'))]
+    .map(rel)
+    .filter((f) => !ZONE.test(f) && CRM_MODEL.test(stripComments(read(join(ROOT, f)))))
+    .sort()
+
+  it('every reader outside the CRM zone is accounted for', () => {
+    expect(readers).toEqual([...Object.keys(ALLOWED), ...KNOWN_VIOLATIONS].sort())
+  })
+
+  it('a candidate-facing file imports no CRM reader except the known one', () => {
+    const candidateFiles = [
+      ...walk(join(ROOT, 'src/app/dashboard')),
+      ...walk(join(ROOT, 'src/components/dashboard')),
+      ...walk(join(ROOT, 'src/components/companies')),
+      ...walk(join(ROOT, 'src/lib/job-search-daily')),
+    ]
+    const importsOf = (file: string) =>
+      [...read(file).matchAll(/from ['"]@\/([^'"]+)['"]/g)].map((m) => `src/${m[1]}.ts`)
+    const offenders: string[] = []
+    for (const f of candidateFiles) {
+      for (const imp of importsOf(f)) {
+        if (readers.includes(imp) && !KNOWN_VIOLATIONS.includes(imp) && !ALLOWED[imp]) offenders.push(`${rel(f)} -> ${imp}`)
+      }
+    }
+    expect(offenders).toEqual([])
+  })
+
+  it('the known violation is imported by the job board only, and shrinks rather than spreads', () => {
+    const users = [...walk(join(ROOT, 'src'))]
+      .map(rel)
+      .filter((f) => !f.startsWith('src/test/') && read(join(ROOT, f)).includes("@/lib/jobs/job-contacts"))
+      .sort()
+    expect(users).toEqual(['src/app/dashboard/find-my-job/page.tsx', 'src/components/dashboard/DiscoverJobCard.tsx'])
+  })
+})
+

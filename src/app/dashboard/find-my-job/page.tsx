@@ -86,6 +86,8 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
+import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
+import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 
 export const metadata: Metadata = { title: 'Find a Full-time Job' }
 
@@ -330,6 +332,14 @@ async function JobRecommendationsSection({
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
   const contactsByPosting = await loadJobContacts(visibleBoardPostings)
+  // Per-job skills gap, from the job's own description only.
+  const memberKeywords = memberSkillKeywords(profile)
+  const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
+    jobSkillGap({
+      title: p.title,
+      description: p.description,
+      memberKeywords,
+    })
   const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>
     scoreCompetition(p, board.countByCompany.get(normalizeOrgName(p.companyName)) ?? 0)
 
@@ -398,6 +408,7 @@ async function JobRecommendationsSection({
                           posting={posting}
                           competition={competitionFor(posting)}
                           contacts={contactsByPosting.get(posting.id)}
+                          skillGap={skillGapFor(posting)}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
                         />

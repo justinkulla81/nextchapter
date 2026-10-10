@@ -8,6 +8,9 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/competition'
+import { classifyLocation } from '@/lib/jobs/us-location'
+import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
+import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
@@ -86,7 +89,22 @@ export async function loadBoardShortlist(opts: {
   view?: BoardView
 }): Promise<BoardShortlist> {
   const size = opts.size ?? 300
-  const light = await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(opts.where), select: LIGHT_SELECT })
+  const closedCounts = await getClosedPostingCounts()
+  const nowMs = Date.now()
+  // Only relevant jobs reach a member: not confidently outside the US, and not a
+  // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
+  // in the database — this filters the view, it deletes nothing — and the board
+  // totals below are computed over what is kept, so they match what is shown.
+  const light = (await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(opts.where), select: LIGHT_SELECT })).filter(
+    (p) => {
+      if (classifyLocation(p.location) === 'non_us') return false
+      const ghost = ghostRisk({
+        priorClosedCount: closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0,
+        ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
+      })
+      return ghost.level !== 'likely'
+    }
+  )
 
   const countByCompany = new Map<string, number>()
   // Within a fit level, roles nearest the candidate's own level come first
@@ -108,7 +126,7 @@ export async function loadBoardShortlist(opts: {
   let lowCompetitionOpenTotal = 0
   for (const p of light) {
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
-    const canOpen = p.audienceTier === 'ALL_CANDIDATES' || opts.isCandidatePlus
+    const canOpen = !isBoardPostingLockedForViewer(p, opts.isCandidatePlus)
     const fresh = isFresh(p, now)
     const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
     const low = competition === 'low'

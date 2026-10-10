@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
+import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import posthog from 'posthog-js'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
@@ -116,18 +117,33 @@ export function LockedDiscoverJobCard({
   )
 }
 
+// How the member's skills line up with what this job's own description asks for.
+function SkillGapLine({ gap }: { gap: JobSkillGap }) {
+  const scope = 'this role asks for'
+  return (
+    <p className="text-sm text-muted-foreground">
+      <span className="font-medium text-foreground">
+        Skills: you show {gap.have.length} of {gap.requested.length} {scope}
+      </span>
+      {gap.missing.length > 0 && ` — missing ${gap.missing.slice(0, 4).join(', ')}`}
+    </p>
+  )
+}
+
 export function DiscoverJobCard({
   posting,
   fitBucket,
   idealMatch,
   competition,
   contacts,
+  skillGap,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
   idealMatch?: boolean
   competition?: CompetitionScore
   contacts?: JobContacts
+  skillGap?: JobSkillGap
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -188,6 +204,7 @@ export function DiscoverJobCard({
         <p className="text-sm text-foreground">
           <span className="font-medium">Your edge:</span> {edgeTip(posting)}
         </p>
+        {skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
         {contacts && <WhoToContact contacts={contacts} />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
