@@ -118,6 +118,10 @@
       "schedule": "0 5 * * 0"
     },
     {
+      "path": "/api/cron/partner-scores",
+      "schedule": "0 6 * * 0"
+    },
+    {
       "path": "/api/cron/workforce-board-intel",
       "schedule": "30 8 * * *"
     },

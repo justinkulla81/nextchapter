@@ -1,5 +1,7 @@
 import { areasForCompany, localPartnersForArea } from '@/lib/geo/local-partners'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { FitScoreBadge } from '@/components/admin/FitScoreBadge'
+import { LocalPartnersViewedTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 
 const money = (n: number | null) => (n ? `$${(n / 1e6).toFixed(1)}M revenue` : null)
 
@@ -18,6 +20,16 @@ export async function CompanyLocalPartners({ companyId }: { companyId: string })
   const partners = (await Promise.all(areas.slice(0, 4).map((a) => localPartnersForArea(a.areaId)))).filter((p): p is NonNullable<typeof p> => !!p)
   return (
     <Card>
+      <LocalPartnersViewedTracker
+        companyId={companyId}
+        areas={partners.length}
+        boards={partners.reduce((n, p) => n + p.boards.length, 0)}
+        jobCenters={partners.reduce((n, p) => n + p.jobCenters.length, 0)}
+        districts={partners.reduce((n, p) => n + p.districts.length, 0)}
+        edos={partners.reduce((n, p) => n + p.localEdos.length, 0)}
+        universities={partners.reduce((n, p) => n + p.universities.length, 0)}
+        sources={[...new Set(areas.map((a) => a.via))].join(',')}
+      />
       <CardHeader>
         <CardTitle>Local partners</CardTitle>
       </CardHeader>
@@ -41,7 +53,7 @@ export async function CompanyLocalPartners({ companyId }: { companyId: string })
               {p.boards.length ? (
                 <ul className="list-disc pl-5">
                   {p.boards.map((b) => (
-                    <li key={b.id}><Link href={b.website}>{b.name}</Link>{b.statewide ? ' (state)' : ''}<Contact name={b.directorName} email={b.directorEmail} phone={b.directorPhone} /></li>
+                    <li key={b.id}><FitScoreBadge score={b.fit?.score} breakdown={b.fit?.breakdown} /> <Link href={b.website}>{b.name}</Link>{b.statewide ? ' (state)' : ''}<Contact name={b.directorName} email={b.directorEmail} phone={b.directorPhone} /></li>
                   ))}
                 </ul>
               ) : <p className="text-muted-foreground">None on file.</p>}
@@ -51,7 +63,7 @@ export async function CompanyLocalPartners({ companyId }: { companyId: string })
               {p.jobCenters.length ? (
                 <ul className="list-disc pl-5">
                   {p.jobCenters.map((c) => (
-                    <li key={c.id}><Link href={c.detailsUrl}>{c.name}</Link>{c.centerType ? ` (${c.centerType})` : ''}{c.city ? `, ${c.city}` : ''}<Contact email={c.businessEmail} phone={c.phone} /></li>
+                    <li key={c.id}><FitScoreBadge score={c.fit?.score} breakdown={c.fit?.breakdown} /> <Link href={c.detailsUrl}>{c.name}</Link>{c.centerType ? ` (${c.centerType})` : ''}{c.city ? `, ${c.city}` : ''}<Contact email={c.businessEmail} phone={c.phone} /></li>
                   ))}
                 </ul>
               ) : <p className="text-muted-foreground">None on file.</p>}
@@ -60,12 +72,12 @@ export async function CompanyLocalPartners({ companyId }: { companyId: string })
               <h4 className="text-xs font-semibold uppercase text-muted-foreground">Economic development</h4>
               <ul className="list-disc pl-5">
                 {p.districts.map((d) => (
-                  <li key={d.id}><Link href={d.website}>{d.name}</Link> (EDA district)<Contact name={d.contactName} email={d.email} /></li>
+                  <li key={d.id}><FitScoreBadge score={d.fit?.score} breakdown={d.fit?.breakdown} /> <Link href={d.website}>{d.name}</Link> (EDA district)<Contact name={d.contactName} email={d.email} /></li>
                 ))}
                 {p.localEdos.map((e) => (
-                  <li key={e.id}><Link href={e.website}>{e.name}</Link>{money(e.revenue) ? ` · ${money(e.revenue)}` : ''}<Contact name={e.contactName} email={e.email} phone={e.phone} />{e.confidence === 'low' ? ' (unverified)' : ''}</li>
+                  <li key={e.id}><FitScoreBadge score={e.fit?.score} breakdown={e.fit?.breakdown} /> <Link href={e.website}>{e.name}</Link>{money(e.revenue) ? ` · ${money(e.revenue)}` : ''}<Contact name={e.contactName} email={e.email} phone={e.phone} />{e.confidence === 'low' ? ' (unverified)' : ''}</li>
                 ))}
-                {p.stateAgency && <li><Link href={p.stateAgency.website}>{p.stateAgency.name}</Link> (state)<Contact name={p.stateAgency.contactName} email={p.stateAgency.email} phone={p.stateAgency.phone} /></li>}
+                {p.stateAgency && <li><FitScoreBadge score={p.stateAgency.fit?.score} breakdown={p.stateAgency.fit?.breakdown} /> <Link href={p.stateAgency.website}>{p.stateAgency.name}</Link> (state)<Contact name={p.stateAgency.contactName} email={p.stateAgency.email} phone={p.stateAgency.phone} /></li>}
                 {!p.districts.length && !p.localEdos.length && !p.stateAgency && <li className="list-none text-muted-foreground">None on file.</li>}
               </ul>
             </div>

@@ -12,17 +12,28 @@ export interface CompanyArea {
   detail: string | null
 }
 
+export type Fit = { score: number; breakdown: { coverage?: number; parts?: { key: string; label: string; points: number; max: number; note: string; known: boolean }[] } | null }
+
 export interface LocalPartners {
   area: { id: string; state: string; name: string }
-  boards: { id: string; name: string; website: string | null; directorName: string | null; directorTitle: string | null; directorEmail: string | null; directorPhone: string | null; statewide: boolean }[]
-  jobCenters: { id: string; name: string; centerType: string | null; city: string | null; phone: string | null; businessEmail: string | null; detailsUrl: string | null }[]
-  districts: { id: string; name: string; website: string | null; contactName: string | null; contactTitle: string | null; email: string | null }[]
-  stateAgency: { id: string; name: string; website: string | null; contactName: string | null; email: string | null; phone: string | null } | null
-  localEdos: { id: string; name: string; kind: string; website: string | null; contactName: string | null; email: string | null; phone: string | null; revenue: number | null; confidence: string | null }[]
+  boards: { id: string; name: string; website: string | null; directorName: string | null; directorTitle: string | null; directorEmail: string | null; directorPhone: string | null; statewide: boolean; fit: Fit | null }[]
+  jobCenters: { id: string; name: string; centerType: string | null; city: string | null; phone: string | null; businessEmail: string | null; detailsUrl: string | null; fit: Fit | null }[]
+  districts: { id: string; name: string; website: string | null; contactName: string | null; contactTitle: string | null; email: string | null; fit: Fit | null }[]
+  stateAgency: { id: string; name: string; website: string | null; contactName: string | null; email: string | null; phone: string | null; fit: Fit | null } | null
+  localEdos: { id: string; name: string; kind: string; website: string | null; contactName: string | null; email: string | null; phone: string | null; revenue: number | null; confidence: string | null; fit: Fit | null }[]
   universities: { name: string; city?: string | null; enrollment?: number | null; control?: string | null; nearby: boolean }[]
 }
 
 type CountyArea = { id: string; state: string; name: string }
+
+/** Stored fit scores (scripts/geo/score-partners.ts) for a set of ids in one table. */
+async function fitFor(table: 'WorkforceBoard' | 'AmericanJobCenter' | 'LocalPartnerOrg' | 'GeoOrgLead', ids: string[]): Promise<Map<string, Fit>> {
+  if (ids.length === 0) return new Map()
+  const rows = await prisma.$queryRawUnsafe<{ id: string; fitScore: number | null; fitBreakdown: Fit['breakdown'] }[]>(
+    `select id, "fitScore", "fitBreakdown" from "${table}" where id = any($1::text[]) and "fitScore" is not null`, ids,
+  ).catch(() => [])
+  return new Map(rows.map((r) => [r.id, { score: r.fitScore as number, breakdown: r.fitBreakdown }]))
+}
 
 async function countyArea(state: string, countyName: string): Promise<CountyArea | null> {
   const key = countyKey(countyName)
@@ -114,15 +125,22 @@ export async function localPartnersForArea(areaId: string): Promise<LocalPartner
       .slice(0, 8)
   }
 
+  const [boardFit, centerFit, orgFit, leadFit] = await Promise.all([
+    fitFor('WorkforceBoard', boards.map((b) => b.id)),
+    fitFor('AmericanJobCenter', jobCenters.map((c) => c.id)),
+    fitFor('LocalPartnerOrg', [...districts.map((d) => d.id), ...edos.map((e) => e.id), ...(agency ? [agency.id] : [])]),
+    fitFor('GeoOrgLead', leads.map((l) => l.id)),
+  ])
+
   return {
     area: { id: area.id, state: area.state, name: area.name },
-    boards: boards.map((b) => ({ id: b.id, name: b.name, website: b.website, directorName: b.directorName, directorTitle: b.directorTitle, directorEmail: b.directorEmail, directorPhone: b.directorPhone, statewide: b.statewide })),
-    jobCenters: jobCenters.map((c) => ({ id: c.id, name: c.name, centerType: c.centerType, city: c.city, phone: c.phone, businessEmail: c.businessEmail, detailsUrl: c.detailsUrl })),
-    districts: districts.map((d) => ({ id: d.id, name: d.name, website: d.website, contactName: d.contactName, contactTitle: d.contactTitle, email: d.email })),
-    stateAgency: agency ? { id: agency.id, name: agency.name, website: agency.website, contactName: agency.contactName, email: agency.email, phone: agency.phone } : null,
+    boards: boards.map((b) => ({ id: b.id, name: b.name, website: b.website, directorName: b.directorName, directorTitle: b.directorTitle, directorEmail: b.directorEmail, directorPhone: b.directorPhone, statewide: b.statewide, fit: boardFit.get(b.id) ?? null })),
+    jobCenters: jobCenters.map((c) => ({ id: c.id, name: c.name, centerType: c.centerType, city: c.city, phone: c.phone, businessEmail: c.businessEmail, detailsUrl: c.detailsUrl, fit: centerFit.get(c.id) ?? null })),
+    districts: districts.map((d) => ({ id: d.id, name: d.name, website: d.website, contactName: d.contactName, contactTitle: d.contactTitle, email: d.email, fit: orgFit.get(d.id) ?? null })),
+    stateAgency: agency ? { id: agency.id, name: agency.name, website: agency.website, contactName: agency.contactName, email: agency.email, phone: agency.phone, fit: orgFit.get(agency.id) ?? null } : null,
     localEdos: [
-      ...edos.map((e) => ({ id: e.id, name: e.name, kind: 'LOCAL_EDO', website: e.website, contactName: e.contactName, email: e.email, phone: e.phone, revenue: null, confidence: e.confidence })),
-      ...leads.map((l) => ({ id: l.id, name: l.name, kind: l.kind, website: l.website, contactName: l.contactName, email: l.contactEmail, phone: l.contactPhone, revenue: l.revenue, confidence: l.contactConfidence })),
+      ...edos.map((e) => ({ id: e.id, name: e.name, kind: 'LOCAL_EDO', website: e.website, contactName: e.contactName, email: e.email, phone: e.phone, revenue: null, confidence: e.confidence, fit: orgFit.get(e.id) ?? null })),
+      ...leads.map((l) => ({ id: l.id, name: l.name, kind: l.kind, website: l.website, contactName: l.contactName, email: l.contactEmail, phone: l.contactPhone, revenue: l.revenue, confidence: l.contactConfidence, fit: leadFit.get(l.id) ?? null })),
     ],
     universities,
   }

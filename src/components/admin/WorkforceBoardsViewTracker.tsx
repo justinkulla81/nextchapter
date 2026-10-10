@@ -34,3 +34,20 @@ export function CollegesViewTracker(props: { q: string; state: string; tier: str
   }, [q, state, tier, sort, contacts, theme, rel, results])
   return null
 }
+
+/** The company page's Local partners panel was shown: how many places, and how much it found. */
+export function LocalPartnersViewedTracker(props: { companyId: string; areas: number; boards: number; jobCenters: number; districts: number; edos: number; universities: number; sources: string }) {
+  const { companyId, areas, boards, jobCenters, districts, edos, universities, sources } = props
+  useEffect(() => {
+    posthog.capture('company_local_partners_viewed', { companyId, areas, boards, jobCenters, districts, edos, universities, sources })
+  }, [companyId, areas, boards, jobCenters, districts, edos, universities, sources])
+  return null
+}
+
+/** A college's profile card opened on its organization page. */
+export function CollegeProfileViewedTracker({ unitid, tier, hasExecEd, hasRetraining }: { unitid: string; tier: string | null; hasExecEd: boolean | null; hasRetraining: boolean | null }) {
+  useEffect(() => {
+    posthog.capture('college_profile_viewed', { unitid, tier, hasExecEd, hasRetraining })
+  }, [unitid, tier, hasExecEd, hasRetraining])
+  return null
+}

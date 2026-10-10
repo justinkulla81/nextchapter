@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { CollegeProfileViewedTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 
 type Row = {
   unitid: string; name: string; city: string | null; state: string; website: string | null; control: string | null; level: string | null
@@ -35,6 +36,7 @@ export async function CrmCollegeProfile({ orgId }: { orgId: string }) {
   if (!c) return null
   return (
     <section className="rounded-lg border border-border p-4">
+      <CollegeProfileViewedTracker unitid={c.unitid} tier={c.tier} hasExecEd={c.hasExecEd} hasRetraining={c.hasRetraining} />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">College profile</h2>
         {c.score != null && (

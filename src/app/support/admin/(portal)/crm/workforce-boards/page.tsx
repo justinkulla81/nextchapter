@@ -6,6 +6,7 @@ import { LinkButtonGroup } from '@/components/admin/LinkButtonGroup'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 import { BoardContact } from '@/components/admin/WarnWorkforceBoard'
 import { WorkforceBoardsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
+import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 import { buildBoardReport, isCompanyWide, type ReportSort } from '@/lib/workforce/board-report'
 import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
@@ -15,7 +16,8 @@ import { formatDate } from '@/lib/crm/labels'
 export const maxDuration = 60
 
 const BASE = '/support/admin/crm/workforce-boards'
-const SORTS: { key: ReportSort; label: string; defaultDir: 'asc' | 'desc' }[] = [
+const SORTS: { key: ReportSort | 'fit'; label: string; defaultDir: 'asc' | 'desc' }[] = [
+  { key: 'fit', label: 'Fit score', defaultDir: 'desc' },
   { key: 'jobs', label: 'Total job loss', defaultDir: 'desc' },
   { key: 'recent', label: 'Most recent', defaultDir: 'desc' },
   { key: 'name', label: 'Name', defaultDir: 'asc' },
@@ -40,7 +42,7 @@ export default async function WorkforceBoardsPage({
   const sp = await searchParams
   const q = (sp.q ?? '').trim()
   const state = sp.state ?? ''
-  const sort: ReportSort = SORTS.some((s) => s.key === sp.sort) ? (sp.sort as ReportSort) : 'jobs'
+  const sort: ReportSort | 'fit' = SORTS.some((s) => s.key === sp.sort) ? (sp.sort as ReportSort | 'fit') : 'jobs'
   const sortDef = SORTS.find((s) => s.key === sort)!
   const dir: 'asc' | 'desc' = sp.dir === 'asc' || sp.dir === 'desc' ? sp.dir : sortDef.defaultDir
   const windowKey = WINDOWS.some((w) => w.key === sp.window) ? sp.window! : '12m'
@@ -49,7 +51,7 @@ export default async function WorkforceBoardsPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  const [allBoards, notices, states, labor] = await Promise.all([
+  const [allBoards, notices, states, labor, fitRows] = await Promise.all([
     prisma.workforceBoard.findMany({
       where: state ? { state } : {},
       orderBy: { name: 'asc' },
@@ -72,7 +74,10 @@ export default async function WorkforceBoardsPage({
       where: state ? { state } : {},
       select: { state: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
     }),
+    // Internal fit score and its reasons (scripts/geo/score-partners.ts, refreshed weekly).
+    prisma.$queryRaw<{ id: string; fitScore: number | null; fitBreakdown: FitBreakdown }[]>`select id, "fitScore", "fitBreakdown" from "WorkforceBoard" where "fitScore" is not null`.catch(() => []),
   ])
+  const fitById = new Map(fitRows.map((f) => [f.id, f]))
   // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
   const boards = visibleBoards(allBoards)
   const laborByState = new Map<string, typeof labor>()
@@ -83,7 +88,11 @@ export default async function WorkforceBoardsPage({
     return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(r.nameKey)))
   }
 
-  const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort, dir, includeEmpty })
+  const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
+  if (sort === 'fit') {
+    const f = (id: string) => fitById.get(id)?.fitScore ?? -1
+    rows.sort((a, b) => (dir === 'asc' ? f(a.board.id) - f(b.board.id) : f(b.board.id) - f(a.board.id)) || b.jobs - a.jobs)
+  }
   const totals = rows.reduce((t, r) => ({ jobs: t.jobs + r.jobs, companies: t.companies + r.companies.length }), { jobs: 0, companies: 0 })
   const anyReported = rows.some((r) => r.reportedJobs > 0)
   const totalPages = Math.max(1, Math.ceil(rows.length / perPage))
@@ -177,6 +186,7 @@ export default async function WorkforceBoardsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="px-3 py-1.5 font-medium">Board</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Internal fit score: reach to white-collar workers, size, mission, contact details, timing; a warm contact in the CRM adds more. Hover a score for the reasons.">Fit</th>
                 <th className="px-3 py-1.5 font-medium">Contacts</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="Jobs in state WARN filings for this board's area">Jobs lost</th>
                 {anyReported && (
@@ -258,6 +268,7 @@ export default async function WorkforceBoardsPage({
                         </details>
                       )}
                     </td>
+                    <td className="px-2 py-2 text-right"><FitScoreBadge score={fitById.get(b.id)?.fitScore} breakdown={fitById.get(b.id)?.fitBreakdown} /></td>
                     <td className="min-w-64 space-y-0.5 px-3 py-2 text-xs">
                       <BoardContact role={b.directorTitle ?? 'Director'} name={b.directorName} email={b.directorEmail} phone={b.directorPhone} />
                       <BoardContact role="Board chair" name={b.chairName} email={b.chairEmail} phone={b.chairPhone} />
