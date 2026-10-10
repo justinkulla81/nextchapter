@@ -64,15 +64,21 @@ export function trailingStreetAddress(text: string | null | undefined): string |
 
 /** A county name as boards list it and filings write it: "Harris County" → "harris". */
 export function countyKey(raw: string): string {
-  return raw
+  const key = raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Doña Ana → Dona Ana
     .toLowerCase()
     .replace(/\s+(county|parish|borough|census area|city and borough|municipality)$/, '')
     .replace(/\bsaint\b/g, 'st')
     .replace(/\bst\.\s*/g, 'st ')
     .replace(/[^a-z0-9 ]/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, '') // "De Kalb" / "DeKalb", "La Salle" / "LaSalle" are one county
     .trim()
+  return COUNTY_ALIASES[key] ?? key
 }
+
+/** Counties one source spells so differently the key alone cannot join them. */
+const COUNTY_ALIASES: Record<string, string> = { miamidade: 'dade' }
 
 /**
  * The city a WARN notice's address names, if it names one in the notice's

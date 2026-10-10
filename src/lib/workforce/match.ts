@@ -60,7 +60,7 @@ type Board = { id: string; name: string; counties: string[]; serviceArea: string
  * area by town. Otherwise the board whose area lists the county; where
  * several do, one that is not a single city's.
  */
-export function pickBoard(boards: Board[], county: string | null, city: string | null): Board | null {
+export function pickBoard<T extends Board>(boards: T[], county: string | null, city: string | null): T | null {
   if (city) {
     const keys = placeKeys(city)
     const own = boards.find((b) => !b.statewide && areaPlaces(b.serviceArea).some((p) => keys.includes(p)))

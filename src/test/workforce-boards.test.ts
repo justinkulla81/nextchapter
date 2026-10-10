@@ -16,8 +16,11 @@ describe('placeKey / countyKey', () => {
   })
   it('drops County / Parish', () => {
     expect(countyKey('Harris County')).toBe('harris')
-    expect(countyKey('St. Tammany Parish')).toBe('st tammany')
-    expect(countyKey(' Palo Pinto ')).toBe('palo pinto')
+    expect(countyKey('St. Tammany Parish')).toBe('sttammany')
+    expect(countyKey(' Palo Pinto ')).toBe('palopinto')
+    expect(countyKey('DeKalb County')).toBe(countyKey('De Kalb'))
+    expect(countyKey('Doña Ana County')).toBe(countyKey('Dona Ana'))
+    expect(countyKey('Miami-Dade County')).toBe(countyKey('Dade'))
   })
 })
 
@@ -80,7 +83,7 @@ describe('parseBoardDetails', () => {
     expect(b.address).toBe('600 Six Flags Drive, Suite 300, PO Box 5888 (76005-5888), Arlington, TX 76011')
     expect(b.zip).toBe('76011')
     expect(b.website).toBe('https://www.dfwjobs.com/')
-    expect(b.counties).toEqual(['collin', 'denton', 'palo pinto'])
+    expect(b.counties).toEqual(['collin', 'denton', 'palopinto'])
     expect(b.serviceArea).toBe('Collin, Denton, Palo Pinto; City: City of Fort Worth')
     expect(b).toMatchObject({
       directorTitle: 'Executive Director', directorName: 'Phedra Redifer',
@@ -115,7 +118,7 @@ describe('pickBoard', () => {
     const boards = [
       board('la-city', [], { name: 'City of Los Angeles WDB', serviceArea: 'City: Los Angeles' }),
       board('fw', ['tarrant'], { serviceArea: 'Tarrant; City: City of Fort Worth' }),
-      board('la-county', ['los angeles'], { name: 'Los Angeles County WDB' }),
+      board('la-county', ['losangeles'], { name: 'Los Angeles County WDB' }),
     ]
     expect(pickBoard(boards, 'Los Angeles County', 'Los Angeles')?.id).toBe('la-city')
     expect(pickBoard(boards, null, 'Los Angeles')?.id).toBe('la-city')

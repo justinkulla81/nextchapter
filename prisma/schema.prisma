@@ -12197,6 +12197,14 @@ model GeoOrgLead {
   subsection        String?
   taxPeriod         String?
   website           String?
+  /// Contact found by research (never guessed). contactConfidence: high | medium | low.
+  contactName       String?
+  contactTitle      String?
+  contactEmail      String?
+  contactPhone      String?
+  contactSource     String?
+  contactConfidence String?
+  enrichedAt        DateTime?
   crmOrganizationId String?
   dismissedAt       DateTime?
   createdAt         DateTime  @default(now())
@@ -12214,3 +12222,56 @@ model PitchRuleSet {
   updatedAt DateTime @default(now())
 }
 
+/// An American Job Center (one-stop career center) from CareerOneStop's
+/// locator. The on-the-ground partner of a local workforce board.
+model AmericanJobCenter {
+  id               String   @id // "<ST>-<centerID>"
+  centerId         String
+  name             String
+  centerType       String? // Comprehensive | Affiliate | Specialized
+  state            String
+  street           String?
+  city             String?
+  zip              String?
+  /// 5-digit county FIPS, from the ZIP (Census ZCTA-county file).
+  countyFips       String?
+  phone            String?
+  hours            String?
+  generalEmail     String?
+  businessEmail    String? // the business-services rep — the employer-facing contact
+  veteranEmail     String?
+  youthEmail       String?
+  detailsUrl       String?
+  workforceBoardId String?
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([state])
+  @@index([countyFips])
+  @@index([workforceBoardId])
+}
+
+/// A government or regional economic-development body that is not an IRS
+/// exempt-org lead: EDA Economic Development Districts, state commerce
+/// agencies, and local EDOs found in state directories.
+model LocalPartnerOrg {
+  id           String   @id // "edd-<n>", "state-<ST>", "edo-<hash>"
+  kind         String // EDD | STATE_AGENCY | LOCAL_EDO
+  name         String
+  abbrev       String?
+  state        String
+  city         String?
+  /// Counties served, keyed with countyKey() (lower case, no spaces).
+  counties     String[] @default([])
+  countiesText String?  @db.Text
+  website      String?
+  contactName  String?
+  contactTitle String?
+  email        String?
+  phone        String?
+  source       String // EDA_EDD | STATE_AGENCY_DIRECTORY | RESEARCH
+  sourceUrl    String?
+  confidence   String? // high | medium | low
+  updatedAt    DateTime @default(now()) @updatedAt
+
+  @@index([kind, state])
+}

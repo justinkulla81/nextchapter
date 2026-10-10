@@ -13,6 +13,7 @@ import { isSuppressedCell } from '@/lib/admin/cell-suppression'
 import type { RankedSkill } from '@/lib/companies/skills-extraction'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NervousEmployeePanel } from '@/components/admin/NervousEmployeePanel'
+import { CompanyLocalPartners } from '@/components/admin/CompanyLocalPartners'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { OWNERSHIP_LABEL } from '@/lib/market-intelligence/target-list'
 import { setCompanyOwnershipType } from './actions'
@@ -109,6 +110,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
           </form>
         </CardContent>
       </Card>
+
+      {/* ── Local WIOA board, job centers, economic development, colleges ── */}
+      <Suspense fallback={<Card><CardContent className="p-6 text-sm text-muted-foreground">Finding local partners…</CardContent></Card>}>
+        <CompanyLocalPartners companyId={id} />
+      </Suspense>
 
       {/* ── Outplacement pitch signal composite ── */}
       <Card>
