@@ -338,6 +338,7 @@ async function JobRecommendationsSection({
     jobSkillGap({
       title: p.title,
       description: p.description,
+      skills: p.skills,
       memberKeywords,
     })
   const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>

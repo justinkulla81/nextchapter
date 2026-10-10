@@ -27,7 +27,12 @@ const FUNCTION_KEYWORDS: { function: (typeof PRIMARY_FUNCTION_OPTIONS)[number]; 
   { function: 'Marketing', keywords: ['marketing', 'growth marketer', 'brand manager', 'demand generation', 'seo specialist', 'content strategist'] },
   { function: 'Sales', keywords: ['account executive', 'business development', 'sales representative', 'sales manager', 'sdr', 'bdr', 'sales director'] },
   { function: 'Customer Success', keywords: ['customer success', 'customer support', 'client success', 'implementation manager'] },
-  { function: 'Finance', keywords: ['accountant', 'accounting', 'controller', 'fp&a', 'treasury', 'financial analyst'] },
+  // 'finance' / 'financial' were missing, so "Head of Finance", "Director of Finance" and
+  // "VP of Finance" had NO function (~1,600 live jobs). Safe here because every more
+  // specific function above is checked first ("Finance Systems Engineer" is Engineering,
+  // "Sales Manager, Financial Services" is Sales) and retail-banking phrases are
+  // neutralised below.
+  { function: 'Finance', keywords: ['accountant', 'accounting', 'controller', 'fp&a', 'treasury', 'financial analyst', 'finance', 'financial'] },
   { function: 'Operations', keywords: ['operations', 'supply chain', 'logistics'] },
 ]
 
@@ -67,8 +72,14 @@ function stripExecutiveOfficePhrase(lower: string): string {
   return lower.replace(/\boffice of the (chief \w+( \w+)?|ceo|coo|cfo|cto|cmo|cpo|president)\b/g, 'office of the executive')
 }
 
+// A bank branch ("Financial Center Manager") or a wealth-management seller ("Financial
+// Advisor") is not the finance function, though the word is in the title.
+function stripRetailFinancePhrases(lower: string): string {
+  return lower.replace(/\bfinancial (center|centre|advisor|adviser|planner|consultant|solutions advisor)s?\b/g, 'banking $1')
+}
+
 export function inferFunctionFromTitle(title: string): string | null {
-  const lower = stripExecutiveOfficePhrase(title.toLowerCase())
+  const lower = stripRetailFinancePhrases(stripExecutiveOfficePhrase(title.toLowerCase()))
   for (const entry of FUNCTION_KEYWORDS) {
     const hits = entry.keywords.filter((kw) => lower.includes(kw))
     const matchesExecAcronym = entry.function === 'Executive Leadership' && EXEC_ACRONYM_PATTERN.test(lower)

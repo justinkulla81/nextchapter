@@ -45,11 +45,15 @@ export function memberHasSkill(skill: string, memberKeywords: string[]): boolean
 export function jobSkillGap(input: {
   title: string
   description: string | null
+  /** Skills extracted from the full description at import (ExclusiveJobPosting.skills). Preferred: the stored description is only an excerpt. */
+  skills?: string[]
   memberKeywords: string[]
 }): JobSkillGap {
-  const fromPosting = input.description ? extractTopSkills([`${input.title}\n${input.description}`], MAX_JOB_SKILLS) : []
-  const basis: SkillGapBasis = fromPosting.length >= MIN_POSTING_SKILLS ? 'posting' : 'none'
-  const requested = basis === 'posting' ? fromPosting.map((s) => s.term) : []
+  const stored = (input.skills ?? []).slice(0, MAX_JOB_SKILLS)
+  const scanned = stored.length === 0 && input.description ? extractTopSkills([`${input.title}\n${input.description}`], MAX_JOB_SKILLS).map((s) => s.term) : []
+  const found = stored.length > 0 ? stored : scanned
+  const basis: SkillGapBasis = found.length >= MIN_POSTING_SKILLS ? 'posting' : 'none'
+  const requested = basis === 'posting' ? found : []
   const have = requested.filter((t) => memberHasSkill(t, input.memberKeywords))
   const missing = requested.filter((t) => !have.includes(t))
   return {

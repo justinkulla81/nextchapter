@@ -38,6 +38,7 @@ export async function loadMemberSkillGap(candidateId: string): Promise<Aggregate
         gap: jobSkillGap({
           title: p.title,
           description: p.description,
+          skills: p.skills,
           memberKeywords: keywords,
         }),
       }

@@ -4690,6 +4690,12 @@ model ExclusiveJobPosting {
   @@index([institutionScopeId])
   @@index([companyId])
   @@index([postedAt])
+
+  // Skills this posting asks for, extracted at import from its full description (a fixed
+  // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
+  // of which only a short excerpt is stored: ~15 MB for the whole board instead of
+  // ~125 MB, and skills are what the skills gap and fit scoring actually use.
+  skills String[] @default([])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover

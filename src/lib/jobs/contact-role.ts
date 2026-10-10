@@ -37,3 +37,22 @@ export function classifyContactRole(input: { contactTitle: string | null; jobTit
   if (theirs && wanted && theirs === wanted) return 'hiring_manager'
   return null
 }
+
+/**
+ * Company-level version, for ranking: is this contact of the member's a recruiter, or a
+ * leader in one of the member's OWN functions (the person roles like theirs would
+ * report into)? A leader in an unrelated function is not "reach" for this member.
+ */
+export function classifyContactForMember(input: {
+  contactTitle: string | null
+  memberFunctions: (string | null | undefined)[]
+}): ContactRole | null {
+  const title = input.contactTitle?.trim()
+  if (!title) return null
+  if (RECRUITER_TITLE.test(title) && !NOT_A_RECRUITER.test(title)) return 'recruiter'
+  if (IC_NOUN.test(title) && !LEADERSHIP_WORD.test(title)) return null
+  if (!SENIOR_LEVELS.has(inferLevelFromTitle(title))) return null
+  const theirs = inferFunctionFromTitle(title)
+  const mine = new Set(input.memberFunctions.filter((f): f is string => !!f))
+  return theirs && mine.has(theirs) ? 'hiring_manager' : null
+}

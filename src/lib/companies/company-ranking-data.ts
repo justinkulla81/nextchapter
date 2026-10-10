@@ -8,6 +8,8 @@ import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
 import { getLocalEconomy, type LocalEconomy } from '@/lib/companies/local-economy'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { classifyContactForMember } from '@/lib/jobs/contact-role'
+import { isLinkableCompanyName } from '@/lib/companies/posting-company'
 import { getCandidateContactCountsByCompany } from '@/lib/companies/candidate-contacts-at-company'
 import type { NamedPosting, RankingCandidate, RankingCompany } from '@/lib/companies/company-ranking'
 
@@ -224,7 +226,42 @@ export async function loadCompanyRankingData(
     : new Map<string, number>()
   const watched = new Set(watchlist.map((w) => w.companyNameNormalized))
 
-  const companies: RankingCompany[] = companyRows.map((c) => {
+  // Who the member knows here: recruiters, and leaders in their own functions. Only
+  // their own contact list is read, and only on the personal (not the nav-badge) path.
+  const reachByCompany = new Map<string, { recruiters: number; hiringManagers: number }>()
+  if (includeContacts) {
+    const mine = await prisma.supportNetworkContact.findMany({
+      where: {
+        candidateId,
+        removedAt: null,
+        title: { not: null },
+        OR: [{ company: { not: null } }, { inferredCompany: { not: null } }],
+      },
+      select: { title: true, company: true, inferredCompany: true },
+    })
+    for (const c of mine) {
+      const role = classifyContactForMember({
+        contactTitle: c.title,
+        memberFunctions: [profile.primaryFunction, profile.secondaryFunction],
+      })
+      if (!role) continue
+      for (const raw of new Set([c.company, c.inferredCompany])) {
+        if (!raw) continue
+        const key = normalizeOrgName(raw)
+        if (!key) continue
+        const cur = reachByCompany.get(key) ?? { recruiters: 0, hiringManagers: 0 }
+        if (role === 'recruiter') cur.recruiters += 1
+        else cur.hiringManagers += 1
+        reachByCompany.set(key, cur)
+      }
+    }
+  }
+
+  const companies: RankingCompany[] = companyRows
+    // "Confidential", "Self-employed" and the like are not employers; some exist as
+    // directory rows from before they were filtered, and must not rank.
+    .filter((c) => isLinkableCompanyName(c.name))
+    .map((c) => {
     const signal = c.signals[0]
     const fresh = signal && now - signal.weekStartDate.getTime() <= SIGNAL_FRESH_MS
     let trajectory: 'growing' | 'flat' | 'contracting' | null =
@@ -249,6 +286,7 @@ export async function loadCompanyRankingData(
       trajectory,
       signalOpenRoles: fresh ? signal.openRolesTotal : null,
       latestPostingAt: latestNamedAt.get(c.canonicalNameNormalized) ?? null,
+      reach: reachByCompany.get(c.canonicalNameNormalized) ?? { recruiters: 0, hiringManagers: 0 },
       industryYoyPct: industryBucket ? (industryTrends[industryBucket]?.yoyPct ?? null) : null,
       postings: named.get(c.canonicalNameNormalized) ?? [],
       hiddenPostings: hidden.get(c.canonicalNameNormalized) ?? 0,

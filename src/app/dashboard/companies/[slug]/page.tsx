@@ -37,6 +37,7 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Briefcase } from 'lucide-react'
 import { toCandidateCompany } from '@/lib/companies/candidate-view'
+import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -190,11 +191,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           this codebase (see Company.atsPlatform's schema comment). Explicit
           "not available yet" rather than a guess, per design-principles.md's
           "never disable without explaining why" rule. */}
-      {!company.atsPlatform && (
-        <p className="text-xs text-muted-foreground">
-          Which ATS this company uses isn&apos;t available yet — we&apos;ll show it here once we can detect it.
-        </p>
-      )}
+      {/* The application system is now read from the postings' own URLs (see
+          CompanyIntelPanels' "How to apply"), so the old placeholder is gone. */}
 
       {/* ── Hiring signal ── */}
       <Card>
@@ -241,6 +239,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           )}
         </CardContent>
       </Card>
+
+      <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
 
       {/* ── Contraction signal ──
           Removed entirely rather than showing a permanent "not built yet"

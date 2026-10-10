@@ -4,6 +4,7 @@ import { displayCompanyName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
 import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
+import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 
 export const maxDuration = 300
@@ -120,7 +121,8 @@ function rowData({ job, level }: Screened) {
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
-    description: job.description?.trim() || null,
+    description: excerptOf(job.description),
+    skills: skillsFrom(job.title, job.description),
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
   const existing = await prisma.exclusiveJobPosting.findMany({
     where: { url: { in: urls } },
     select: {
-      id: true, url: true, title: true, companyName: true, location: true, description: true, level: true,
+      id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
       postedAt: true, sourceCount: true, sourceName: true,
     },
@@ -243,7 +245,15 @@ export async function POST(request: NextRequest) {
     const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
     for (let i = 0; i < edits.length; i += 100) {
       await prisma.$transaction(
-        edits.slice(i, i + 100).map((k) => prisma.exclusiveJobPosting.update({ where: { url: k.job.url }, data: rowData(k) }))
+        edits.slice(i, i + 100).map((k) => {
+          const data = rowData(k)
+          // A payload with no description (an older exporter) must not erase one we already hold.
+          if (!data.description) {
+            delete (data as { description?: unknown }).description
+            delete (data as { skills?: unknown }).skills
+          }
+          return prisma.exclusiveJobPosting.update({ where: { url: k.job.url }, data })
+        })
       )
     }
   }

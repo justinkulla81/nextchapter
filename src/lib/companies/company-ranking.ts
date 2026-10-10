@@ -90,6 +90,10 @@ export interface RankingCompany {
   hiddenPostings: number
   warn: { filings12mo: number; employeesAffected: number; daysSinceMostRecent: number } | null
   myContactCount: number
+  // The member's OWN contacts here: a recruiter, and a leader in one of the member's
+  // functions (the person roles like theirs report into). Private to the member —
+  // computed from their own contact list and never shown to anyone else.
+  reach: { recruiters: number; hiringManagers: number }
   memberFormerCount: number // NC members who worked here (insider-eligible only)
   memberSameFunctionCount: number
   onWatchlist: boolean
@@ -358,6 +362,24 @@ export function localStrainAdjustment(company: RankingCompany, candidate: Rankin
   }
 }
 
+// Knowing a recruiter, or the likely hiring manager, at a company is the strongest sign a
+// door is open there — far more than any statistic about the company — so it is the
+// largest single adjustment. Outside the 100-point base on purpose: it lifts a company a
+// member can actually reach above one that merely fits on paper.
+export function reachAdjustment(reach: RankingCompany['reach']): Adjustment | null {
+  const { recruiters, hiringManagers } = reach
+  if (recruiters > 0 && hiringManagers > 0) {
+    return { key: 'reach', points: 14, note: 'You know a recruiter and a likely hiring manager here' }
+  }
+  if (hiringManagers > 0) {
+    return { key: 'reach', points: 12, note: hiringManagers === 1 ? 'You know a likely hiring manager here' : `You know ${hiringManagers} likely hiring managers here` }
+  }
+  if (recruiters > 0) {
+    return { key: 'reach', points: 8, note: recruiters === 1 ? 'You know a recruiter here' : `You know ${recruiters} recruiters here` }
+  }
+  return null
+}
+
 // ── total ─────────────────────────────────────────────────────────────────
 
 export function bandFor(score: number): FitBand {
@@ -379,7 +401,11 @@ export function scoreCompany(company: RankingCompany, candidate: RankingCandidat
 
   const layoff = layoffPenalty(company)
   const overhire = overhirePenalty(company, candidate)
-  const adjustments = [industryTrendAdjustment(company.industryYoyPct), localStrainAdjustment(company, candidate)].filter(
+  const adjustments = [
+    industryTrendAdjustment(company.industryYoyPct),
+    localStrainAdjustment(company, candidate),
+    reachAdjustment(company.reach),
+  ].filter(
     (a): a is Adjustment => a !== null
   )
   const positive = components.reduce((s, c) => s + c.points, 0)
@@ -409,6 +435,14 @@ export function scoreCompany(company: RankingCompany, candidate: RankingCandidat
     .map((c) => c.reason!)
   const trend = adjustments.find((a) => a.key === 'industry_trend' && a.points > 0)
   if (trend && reasons.length < 4) reasons.push(trend.note)
+  // Reach leads: it is the one reason a member can act on today.
+  const reach = adjustments.find((a) => a.key === 'reach')
+  if (reach) {
+    // The generic "You know N people here" is superseded by the more specific reach line.
+    const i = reasons.findIndex((r) => /^You know \d+ people? here$/.test(r))
+    if (i >= 0) reasons.splice(i, 1)
+    reasons.unshift(reach.note)
+  }
 
   return {
     score,

@@ -1,0 +1,68 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
+import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
+import { buildLayoffTimeline, type LayoffTimeline } from '@/lib/companies/layoff-timeline'
+import { summarizeHowToApply, type ApplyFacts } from '@/lib/companies/how-to-apply'
+
+// The company page's intelligence panels: what it pays, its layoff history and whether
+// it is hiring again, and how to approach applying. All from data we already hold; no
+// AI call, so no per-view cost. Postings here are limited to ones THIS viewer could open
+// and that name the company — a confidential search or a locked exclusive never feeds a
+// panel, so a panel cannot reveal one.
+
+export interface CompanyIntelPanels {
+  pay: PayGroup[]
+  payPostings: number
+  layoffs: LayoffTimeline
+  apply: ApplyFacts
+  openPostings: number
+}
+
+let trackingStartCache: { at: number; value: Date | null } | null = null
+async function boardTrackingStart(): Promise<Date | null> {
+  if (trackingStartCache && Date.now() - trackingStartCache.at < 60 * 60 * 1000) return trackingStartCache.value
+  const row = await prisma.exclusiveJobPosting.aggregate({ _min: { createdAt: true } })
+  trackingStartCache = { at: Date.now(), value: row._min.createdAt }
+  return row._min.createdAt
+}
+
+const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
+
+export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus: boolean): Promise<CompanyIntelPanels> {
+  const [postings, notices, trackingStart] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({
+      where: { companyId, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
+      select: {
+        title: true, url: true, createdAt: true, archivedAt: true, badges: true, postingType: true, sourceCategory: true,
+        salaryMin: true, salaryMax: true, salaryCurrency: true, audienceTier: true, source: true,
+      },
+    }),
+    prisma.warnNotice.findMany({
+      where: { companyId, noticeDate: { gte: new Date(Date.now() - TWO_YEARS_MS) } },
+      select: { noticeDate: true, employees: true, layoffType: true, sourceUrl: true },
+      orderBy: { noticeDate: 'desc' },
+    }),
+    boardTrackingStart(),
+  ])
+
+  const openable = postings.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
+  const live = openable.filter((p) => p.archivedAt === null)
+
+  const pay = summarizePay(live)
+  const layoffs = buildLayoffTimeline({
+    notices: notices.filter((n): n is typeof n & { noticeDate: Date } => n.noticeDate !== null),
+    // Hiring "since" counts every posting we have seen, open or since closed.
+    postings: openable.map((p) => ({ createdAt: p.createdAt, function: inferFunctionFromTitle(p.title) })),
+    trackingStart,
+  })
+
+  return {
+    pay,
+    payPostings: pay.reduce((s, g) => s + g.postings, 0),
+    layoffs,
+    apply: summarizeHowToApply(live),
+    openPostings: live.length,
+  }
+}

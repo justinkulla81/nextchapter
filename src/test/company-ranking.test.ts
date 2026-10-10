@@ -45,6 +45,7 @@ function company(over: Partial<RankingCompany> = {}): RankingCompany {
     postings: [posting()],
     signalOpenRoles: null,
     latestPostingAt: null,
+    reach: { recruiters: 0, hiringManagers: 0 },
     industryYoyPct: null,
     hiddenPostings: 0,
     warn: null,
@@ -232,3 +233,26 @@ describe('market adjustments', () => {
     expect(local.cautions.join(' ')).toMatch(/local job market is under strain/)
   })
 })
+
+describe('reach: people the member already knows', () => {
+  it('lifts a company where the member knows the likely hiring manager far above one that only fits on paper', () => {
+    const cold = scoreCompany(company(), candidate)
+    const warm = scoreCompany(company({ reach: { recruiters: 0, hiringManagers: 1 } }), candidate)
+    expect(warm.score - cold.score).toBe(12)
+    expect(warm.reasons[0]).toMatch(/likely hiring manager/)
+  })
+
+  it('values a recruiter less than the hiring manager, and both most', () => {
+    const rec = scoreCompany(company({ reach: { recruiters: 2, hiringManagers: 0 } }), candidate)
+    const hm = scoreCompany(company({ reach: { recruiters: 0, hiringManagers: 1 } }), candidate)
+    const both = scoreCompany(company({ reach: { recruiters: 1, hiringManagers: 1 } }), candidate)
+    expect(rec.score).toBeLessThan(hm.score)
+    expect(hm.score).toBeLessThan(both.score)
+    expect(rec.reasons[0]).toBe('You know 2 recruiters here')
+  })
+
+  it('does nothing when the member knows no one', () => {
+    expect(scoreCompany(company(), candidate).adjustments.find((a) => a.key === 'reach')).toBeUndefined()
+  })
+})
+

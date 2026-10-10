@@ -4,6 +4,7 @@ import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { buildCompanyIndex, cleanWebsite, matchNameToCompany, type CompanyIndex } from '@/lib/companies/company-links'
 import { isLinkableCompanyName } from '@/lib/companies/posting-company'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { detectAts } from '@/lib/companies/how-to-apply'
 
 // Keeps the company graph whole: every posting, employer, recruiter firm,
 // outplacement org and CRM organisation that names a company points at the
@@ -24,6 +25,7 @@ export interface GraphSyncResult {
   outplacementOrgsLinked: number
   crmOrganizationsLinked: number
   websitesFilled: number
+  atsPlatformsFilled: number
 }
 
 async function loadIndex(): Promise<CompanyIndex> {
@@ -64,6 +66,7 @@ export async function syncCompanyGraph(opts: { postingNameLimit?: number } = {})
     outplacementOrgsLinked: 0,
     crmOrganizationsLinked: 0,
     websitesFilled: 0,
+    atsPlatformsFilled: 0,
   }
 
   // 1. Postings added before the link existed, or where it failed at write time.
@@ -157,6 +160,35 @@ export async function syncCompanyGraph(opts: { postingNameLimit?: number } = {})
       data: { website, websiteSource: 'employer' },
     })
     result.websitesFilled += count
+  }
+
+  // 7. The application system each company uses, read from its postings' own URLs (an
+  // exact host match — never guessed). One query for the whole board.
+  const hosts = await prisma.$queryRaw<{ companyId: string; host: string | null; n: number }[]>`
+    SELECT "companyId", substring(url from '://([^/]+)') AS host, COUNT(*)::int AS n
+      FROM "ExclusiveJobPosting"
+     WHERE "archivedAt" IS NULL AND "companyId" IS NOT NULL
+     GROUP BY 1, 2`
+  const votes = new Map<string, Map<string, number>>()
+  for (const h of hosts) {
+    const name = h.host ? detectAts(`https://${h.host}`)?.name : null
+    if (!name) continue
+    const m = votes.get(h.companyId) ?? new Map<string, number>()
+    m.set(name, (m.get(name) ?? 0) + h.n)
+    votes.set(h.companyId, m)
+  }
+  const idsByAts = new Map<string, string[]>()
+  for (const [companyId, m] of votes) {
+    const best = [...m.entries()].sort((a, b) => b[1] - a[1])[0]
+    if (!best) continue
+    const list = idsByAts.get(best[0]) ?? []
+    list.push(companyId)
+    idsByAts.set(best[0], list)
+  }
+  for (const [ats, ids] of idsByAts) {
+    // Only companies with none recorded — a value an admin typed is never overwritten.
+    const { count } = await prisma.company.updateMany({ where: { id: { in: ids }, atsPlatform: null }, data: { atsPlatform: ats } })
+    result.atsPlatformsFilled += count
   }
 
   return result
