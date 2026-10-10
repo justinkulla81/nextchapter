@@ -3,6 +3,7 @@ import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
+import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import {
   getCurrentWeekSprint,
@@ -84,6 +85,8 @@ export interface JobSearchDailyContent {
   // `fresh`: posted in the last 72 hours — the email leads with these.
   jobs: { items: DailyItem[]; fresh: DailyItem[]; lockedCount: number }
   companyMoves: DailyItem[]
+  // SEC-filing signals of a senior role about to open (not posted yet).
+  likelyOpenings: DailyItem[]
   reconnect: DailyItem | null
   article: DailyItem | null
   unlock: DailyItem | null
@@ -202,6 +205,19 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
     .map(toJobItem)
   const lockedCount = fitting.length - openable.length
+
+  // ── Likely openings (SEC filings), not posted yet ─────────────────────
+  // Only ones tied to the member (a watched or applied company, or their
+  // function), never the same filing twice.
+  const likelyOpenings: DailyItem[] = (await getLikelyOpeningsForCandidate(candidate, { limit: 10 }))
+    .filter((o) => o.reason && !shownKeys.has(`lo:${o.id}`))
+    .slice(0, 2)
+    .map((o) => ({
+      key: `lo:${o.id}`,
+      title: `${o.companyName}: ${o.summary}`,
+      detail: [o.reason, 'from an SEC filing — reach out before it is posted'].filter(Boolean).join(' · '),
+      href: o.filingUrl,
+    }))
 
   // ── Moves at the companies you're tracking ────────────────────────────
   // "Tracking" = Company Tracker watchlist plus anywhere they've applied.
@@ -550,7 +566,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? Math.floor((now.getTime() - candidate.registrationCompletedAt.getTime()) / DAY_MS) + 1
     : null
 
-  const freshCount = jobItems.length + freshJobItems.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
+  const freshCount = jobItems.length + freshJobItems.length + likelyOpenings.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
     firstName: candidate.firstName,
@@ -565,6 +581,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     networking: networkingListed,
     networkingMoreCount,
     jobs: { items: jobItems, fresh: freshJobItems, lockedCount },
+    likelyOpenings,
     companyMoves,
     reconnect,
     article,
@@ -583,6 +600,7 @@ export function shownItemKeys(content: JobSearchDailyContent): string[] {
     ...content.jobs.fresh.map((i) => i.key),
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
+    ...content.likelyOpenings.map((i) => i.key),
     ...[content.reconnect, content.article, content.unlock].filter((i): i is DailyItem => !!i).map((i) => i.key),
     ...(content.quote ? [`quote:${content.quote.id}`] : []),
   ]

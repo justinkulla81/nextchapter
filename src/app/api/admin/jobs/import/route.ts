@@ -79,7 +79,7 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    if (!isUsLocation(job.location?.trim() || null)) {
+    if (!isUsLocation(cleanLocation(job.location))) {
       skipped.push({ url: job.url, reason: 'outside the US' })
       continue
     }
@@ -93,6 +93,14 @@ function screen(jobs: unknown[]) {
   return { kept, skipped }
 }
 
+// Some sources fill unknown locations with placeholders ("UNAVAILABLE").
+function cleanLocation(raw: string | null | undefined): string | null {
+  const parts = (raw ?? '')
+    .split(/\s*,\s*/)
+    .filter((p) => p && !/^(unavailable|n\/?a|none|null|undefined|tbd)$/i.test(p))
+  return parts.length ? parts.join(', ') : null
+}
+
 // The source's own posting date; ignored when unparseable or in the future.
 function postedDate(raw: string | null | undefined): Date | null {
   if (!raw) return null
@@ -104,7 +112,7 @@ function rowData({ job, level }: Screened) {
   return {
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
-    location: job.location?.trim() || null,
+    location: cleanLocation(job.location),
     description: job.description?.trim() || null,
     level,
     sourceCategory: job.sourceCategory?.trim() || null,

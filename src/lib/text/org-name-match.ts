@@ -119,7 +119,7 @@ export function fixAllCapsCompanyName(name: string): string {
 
 const SHORT_WORDS = new Set([
   'new', 'oil', 'gas', 'bay', 'red', 'big', 'one', 'two', 'air', 'sun', 'sea', 'art', 'car', 'old', 'all', 'way',
-  'top', 'key', 'pro', 'bio', 'eco', 'net', 'web', 'app', 'lab', 'box', 'hub', 'go', 'my', 'us', 'we', 'by', 'or',
+  'top', 'key', 'pro', 'bio', 'eco', 'net', 'web', 'app', 'lab', 'box', 'hub', 'go', 'my', 'we', 'by', 'or',
   'and', 'of', 'the', 'for', 'in', 'at', 'on', 'to', 'an', 'de', 'co', 'inc', 'ltd', 'llc', 'corp', 'bank', 'blue',
   'gold', 'east', 'west', 'home', 'life', 'care', 'farm', 'food', 'auto', 'tech', 'data', 'land', 'star', 'fox', 'dow', 'ford', 'kroger',
 ])
@@ -129,7 +129,7 @@ const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'in', 'at', 'on', 'to', 
 // "BANK OF AMERICA CORP /DE/" -> "Bank of America", "Elevance Health, Inc."
 // -> "Elevance Health". Only a trailing suffix is removed, never a name
 // that is itself one of these words.
-const LEGAL_SUFFIX = /(?:[\s,]+(?:&\s*co\.?|\/[a-z]{2,4}\/|inc\.?|incorporated|corp\.?|corporation|co\.?|llc|l\.l\.c\.|ltd\.?|limited|plc|lp|llp|n\.?a\.?|s\.?a\.?|ag|nv|se))+\s*$/i
+const LEGAL_SUFFIX = /(?:[\s,]+(?:&\s*co\.?|[\/\\][a-z]{2,4}[\/\\]|inc\.?|incorporated|corp\.?|corporation|co\.?|llc|l\.l\.c\.|ltd\.?|limited|plc|lp|llp|n\.?a\.?|s\.?a\.?|ag|nv|se))+\s*$/i
 
 export function displayCompanyName(name: string): string {
   const fixed = fixAllCapsCompanyName(name)

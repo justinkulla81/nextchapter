@@ -15,12 +15,16 @@ async function main() {
   const write = process.argv.includes('--write')
   const rows = await prisma.exclusiveJobPosting.findMany({
     where: { archivedAt: null, addedBy: { in: ['ats_feed', 'ncrawl'] } },
-    select: { id: true, title: true, level: true, companyName: true, addedBy: true },
+    select: { id: true, title: true, level: true, companyName: true, addedBy: true, location: true },
   })
 
   const renames = rows
     .filter((r) => r.addedBy === 'ncrawl' && displayCompanyName(r.companyName) !== r.companyName)
     .map((r) => ({ id: r.id, companyName: displayCompanyName(r.companyName) }))
+  const PLACEHOLDER = /(^|,\s*)(unavailable|n\/?a|none|tbd)(?=\s*(,|$))/gi
+  const relocations = rows
+    .filter((r) => r.location && PLACEHOLDER.test(r.location))
+    .map((r) => ({ id: r.id, location: r.location!.replace(PLACEHOLDER, '').replace(/^[,\s]+|[,\s]+$/g, '') || null }))
   const byLevel = new Map<string, string[]>()
   const below: string[] = []
   const counts = new Map<string, number>()
@@ -37,7 +41,7 @@ async function main() {
   console.log(`${rows.length} live automated jobs`)
   console.log(`  keep ${rows.length - below.length}:`, Object.fromEntries(counts))
   console.log(`  archive ${below.length} below the floor`)
-  console.log(`  tidy ${renames.length} company names`)
+  console.log(`  tidy ${renames.length} company names, ${relocations.length} placeholder locations`)
   if (!write) return console.log('dry run — pass --write to apply')
 
   for (const [level, ids] of byLevel) {
@@ -54,6 +58,11 @@ async function main() {
   for (let i = 0; i < renames.length; i += 100) {
     await prisma.$transaction(
       renames.slice(i, i + 100).map((r) => prisma.exclusiveJobPosting.update({ where: { id: r.id }, data: { companyName: r.companyName } }))
+    )
+  }
+  for (let i = 0; i < relocations.length; i += 100) {
+    await prisma.$transaction(
+      relocations.slice(i, i + 100).map((r) => prisma.exclusiveJobPosting.update({ where: { id: r.id }, data: { location: r.location } }))
     )
   }
   console.log('done')
