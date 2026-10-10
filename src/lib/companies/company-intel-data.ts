@@ -14,6 +14,8 @@ import { summarizeHowToApply, type ApplyFacts } from '@/lib/companies/how-to-app
 
 export interface CompanyIntelPanels {
   pay: PayGroup[]
+  /** Offered wages on public H-1B filings, by occupation. Empty when none are on file. */
+  visaWages: { socTitle: string; filings: number; p25: number; median: number; p75: number; state: string | null; latest: Date }[]
   payPostings: number
   layoffs: LayoffTimeline
   apply: ApplyFacts
@@ -31,7 +33,7 @@ async function boardTrackingStart(): Promise<Date | null> {
 const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
 
 export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus: boolean): Promise<CompanyIntelPanels> {
-  const [postings, notices, trackingStart] = await Promise.all([
+  const [postings, notices, trackingStart, wageRows] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { companyId, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
       select: {
@@ -45,6 +47,7 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
       orderBy: { noticeDate: 'desc' },
     }),
     boardTrackingStart(),
+    prisma.offeredWageSummary.findMany({ where: { companyId }, orderBy: { filings: 'desc' }, take: 8 }).catch(() => []),
   ])
 
   const openable = postings.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
@@ -60,6 +63,15 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
 
   return {
     pay,
+    visaWages: wageRows.map((w) => ({
+      socTitle: w.socTitle,
+      filings: w.filings,
+      p25: w.wageP25,
+      median: w.wageMedian,
+      p75: w.wageP75,
+      state: w.topState,
+      latest: w.latestDecision,
+    })),
     payPostings: pay.reduce((s, g) => s + g.postings, 0),
     layoffs,
     apply: summarizeHowToApply(live),

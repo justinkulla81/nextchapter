@@ -17,6 +17,8 @@ import type { LocalEconomy } from '@/lib/companies/local-economy'
 import { rankCompanies, type CompanyRanking, type FitBand } from '@/lib/companies/company-ranking'
 import { CompanyDirectoryViewed, RankedCompanyLink } from '@/components/companies/CompanyDirectoryAnalytics'
 import { FeedbackRequests } from '@/components/companies/FeedbackRequests'
+import { AiPayPremiumCard } from '@/components/companies/AiPayPremiumCard'
+import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 
 export const metadata: Metadata = { title: 'Companies' }
 
@@ -135,6 +137,9 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
 
   // Ranking is needed for the Best fit order and for the "Strong signals only"
   // filter; plain A–Z lookups skip it (it is a handful of bulk reads).
+  const aiPay = profile.primaryFunction
+    ? ((await loadAiPayPremium()).find((r) => r.function === profile.primaryFunction) ?? null)
+    : null
   const rankingById = new Map<string, { rank: number; ranking: CompanyRanking }>()
   const newStrongIds = new Set<string>()
   let localEconomy: LocalEconomy | null = null
@@ -248,6 +253,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
       </div>
 
       <FeedbackRequests candidateId={profile.id} />
+      {aiPay && <AiPayPremiumCard row={aiPay} functionName={aiPay.function} />}
 
       <form className="space-y-3">
         {sort === 'az' && <input type="hidden" name="sort" value="az" />}

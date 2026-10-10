@@ -56,6 +56,27 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
               </p>
             </>
           )}
+          {d.visaWages.length > 0 && (
+            <div className="mt-3 space-y-1.5 border-t border-border pt-3">
+              <p className="text-sm font-medium text-foreground">On visa filings</p>
+              <ul className="space-y-1">
+                {d.visaWages.map((w) => (
+                  <li key={w.socTitle} className="text-sm">
+                    <span className="text-foreground">{w.socTitle}</span>: {usd(w.p25)}–{usd(w.p75)}, median {usd(w.median)}
+                    <span className="text-muted-foreground">
+                      {' '}
+                      · {w.filings} filings{w.state ? `, mostly ${w.state}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-muted-foreground">
+                Base annual wage this employer told the U.S. Department of Labor it would pay on certified
+                H-1B filings in the last two years. It shows what they offer for these occupations, not what a
+                specific role here pays, and it leaves out bonus and equity.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

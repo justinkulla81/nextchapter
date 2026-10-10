@@ -12722,3 +12722,28 @@ model CoachingStyleResponse {
   completedAt DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
+
+// What a company offered on certified H-1B filings (U.S. Dept. of Labor LCA disclosure
+// data, public record), summarised per employer and occupation. Base annual wage only,
+// full-time, certified and not withdrawn; at least three filings per row so no individual
+// is a "range". Linked only on an exact company-name match. Filled by
+// scripts/import-lca-wages.ts from the CSV that ~/nextchapter-jobs/lca-wages.py writes.
+model OfferedWageSummary {
+  id             String   @id @default(cuid())
+  companyId      String
+  employerName   String
+  socCode        String
+  socTitle       String
+  filings        Int
+  wageP25        Int
+  wageMedian     Int
+  wageP75        Int
+  topWageLevel   String?
+  topState       String?
+  latestDecision DateTime
+  source         String   @default("DOL_LCA")
+  updatedAt      DateTime @updatedAt
+
+  @@unique([companyId, socCode, source])
+  @@index([companyId])
+}
