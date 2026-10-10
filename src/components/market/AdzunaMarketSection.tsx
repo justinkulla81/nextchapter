@@ -9,6 +9,7 @@ import {
   getTopHiringCompanies,
   histogramPercentile,
   histogramShareBelow,
+  isAdzunaInsightsEnabled,
   historyChangePct,
   memberMarketRole,
   resolveState,
@@ -121,6 +122,7 @@ export function AdzunaMarketSectionLoading() {
 // with AdzunaMarketSectionLoading as the fallback, since a cold cache calls
 // Adzuna inline.
 export async function AdzunaMarketSection({ candidateId, scope }: { candidateId: string; scope: 'state' | 'us' }) {
+  if (!isAdzunaInsightsEnabled()) return null
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
     select: { targetRoleType: true, targetFunction: true, primaryFunction: true, currentState: true, targetCompMin: true },
@@ -200,8 +202,7 @@ export async function AdzunaMarketSection({ candidateId, scope }: { candidateId:
           {demand.data && (
             <p className="text-sm text-foreground">
               <span className="font-semibold tabular-nums">{demand.data.count.toLocaleString()}</span> open postings match
-              this role in {placeLabel} right now
-              {demand.data.meanSalary ? <>, averaging {money(demand.data.meanSalary)} where a salary is listed</> : null}.
+              this role in {placeLabel} right now.
             </p>
           )}
 

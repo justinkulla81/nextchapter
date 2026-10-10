@@ -4,7 +4,7 @@ import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/te
 import type { PageContentView } from '@/lib/dashboard/page-content'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
-import { getTopHiringCompanies, memberMarketRole, resolveState } from '@/lib/market/adzuna-insights'
+import { getTopHiringCompanies, isAdzunaInsightsEnabled, memberMarketRole, resolveState } from '@/lib/market/adzuna-insights'
 
 export interface WatchlistPosting {
   id: string
@@ -150,7 +150,7 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
     () => new Map<string, CompanyLikelyOpening[]>()
   )
   const topHirerFor =
-    matches.length > 0 ? await getTopHirerMatcher(candidateId).catch(() => () => null) : () => null
+    matches.length > 0 && isAdzunaInsightsEnabled() ? await getTopHirerMatcher(candidateId).catch(() => () => null) : () => null
 
   return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones

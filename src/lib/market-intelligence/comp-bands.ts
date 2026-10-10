@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { getSalaryHistogram, histogramPercentile, resolveState } from '@/lib/market/adzuna-insights'
+import { getSalaryHistogram, histogramPercentile, isAdzunaInsightsEnabled, resolveState } from '@/lib/market/adzuna-insights'
 
 // Partners Master Build Script §A3.2/§A3.3 — "comp bands by role, level, and
 // metro" is listed as an already-built proprietary input. It is not: no
@@ -107,7 +107,7 @@ export async function computeCompBandWithMarketFallback(input: {
   if (own.sufficientData && own.matchedOnFunction && own.low !== null && own.high !== null) {
     return { ...own, source: 'nc_job_board' }
   }
-  if (!input.role) return { ...own, source: 'nc_job_board' }
+  if (!input.role || !isAdzunaInsightsEnabled()) return { ...own, source: 'nc_job_board' }
 
   const state = resolveState(input.state)
   let h = (await getSalaryHistogram({ role: input.role, state }, { onMiss: 'fetch' })).data

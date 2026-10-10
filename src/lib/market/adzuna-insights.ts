@@ -34,6 +34,15 @@ export * from '@/lib/market/adzuna-insights-core'
 
 export const ADZUNA_ATTRIBUTION_URL = 'https://www.adzuna.com'
 
+// Adzuna's terms allow commercial use only as a 14-day trial; ongoing use in
+// aggregation needs their written consent. Every member-facing surface of
+// this data checks this flag (default off) so it can go live the day consent
+// arrives. The admin cache/budget page ignores it. Existing job-search use
+// of Adzuna (adzuna.ts) is unaffected.
+export function isAdzunaInsightsEnabled(): boolean {
+  return process.env.ADZUNA_INSIGHTS_ENABLED === 'true' || process.env.ADZUNA_INSIGHTS_ENABLED === '1'
+}
+
 const BASE = 'https://api.adzuna.com/v1/api/jobs/us'
 
 // ── Stores ───────────────────────────────────────────────────────────────────

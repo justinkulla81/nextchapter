@@ -206,13 +206,15 @@ export function locationKey(state: string | null): string {
 // ── Budget ───────────────────────────────────────────────────────────────────
 
 // Adzuna's published default limits: 25/minute, 250/day, 1,000/week,
-// 2,500/month for the whole app. "all" counts every Adzuna call the app
-// makes (job listings and posting counts in adzuna.ts too); "insights" is
-// this module's own sub-budget, so statistics can never starve the job
-// search features. Both must have room before a statistics call goes out.
+// 2,500/month, shared by everything on our key. "all" counts every Adzuna
+// call this app makes (job listings and posting counts in adzuna.ts too),
+// with headroom for the external ncrawl job crawler (~72 calls/week, not
+// counted here). "insights" is this module's own sub-budget, kept small so
+// statistics can never starve job search. Both must have room before a
+// statistics call goes out; otherwise stale cache or nothing is served.
 export const BUDGET_LIMITS = {
-  all: { minute: 20, day: 220, week: 900, month: 2300 },
-  insights: { minute: 10, day: 80, week: 350, month: 900 },
+  all: { minute: 20, day: 200, week: 850, month: 2200 },
+  insights: { minute: 10, day: 100, week: 250, month: 600 },
 } as const
 
 export type BudgetScope = keyof typeof BUDGET_LIMITS

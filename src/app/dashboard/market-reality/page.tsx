@@ -35,6 +35,7 @@ import { EstimateTag } from '@/components/ui/estimate-tag'
 import { getSearchDiagnosis } from '@/lib/reports/search-diagnosis-data'
 import type { Verdict } from '@/lib/reports/search-diagnosis'
 import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
+import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
 
@@ -786,12 +787,14 @@ export default async function MarketRealityReportPage({
 
           {/* Adzuna labor-market data for the member's target role: advertised
               salary distribution, 6-month trend, demand by state, top hirers. */}
-          <div id="market-data" className="mt-10 scroll-mt-24 border-t border-border pt-8">
-            <SectionHeading>The market for your role</SectionHeading>
-            <Suspense fallback={<AdzunaMarketSectionLoading />}>
-              <AdzunaMarketSection candidateId={profile.id} scope={marketScope} />
-            </Suspense>
-          </div>
+          {isAdzunaInsightsEnabled() && (
+            <div id="market-data" className="mt-10 scroll-mt-24 border-t border-border pt-8">
+              <SectionHeading>The market for your role</SectionHeading>
+              <Suspense fallback={<AdzunaMarketSectionLoading />}>
+                <AdzunaMarketSection candidateId={profile.id} scope={marketScope} />
+              </Suspense>
+            </div>
+          )}
 
 
           {/* What's My Pattern — reactions to surfaced matches plus jobs

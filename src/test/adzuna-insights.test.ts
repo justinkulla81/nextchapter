@@ -159,6 +159,8 @@ describe('budget buckets', () => {
     expect(BUDGET_LIMITS.all.day).toBeLessThan(250)
     expect(BUDGET_LIMITS.all.week).toBeLessThan(1000)
     expect(BUDGET_LIMITS.all.month).toBeLessThan(2500)
+    expect(BUDGET_LIMITS.insights.day).toBeLessThanOrEqual(100)
+    expect(BUDGET_LIMITS.insights.month).toBeLessThanOrEqual(600)
   })
 })
 

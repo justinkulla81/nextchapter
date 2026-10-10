@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
-import { getAdzunaBudgetUsage } from '@/lib/market/adzuna-insights'
+import { getAdzunaBudgetUsage, isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
+import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 import { cn } from '@/lib/utils'
 
 const SHOW = 300
@@ -98,6 +99,17 @@ export default async function AdminAdzunaPage({ searchParams }: { searchParams: 
           API, cached per role and location and refreshed at most weekly. {totals._count} cached queries,{' '}
           {(totals._sum.hitCount ?? 0).toLocaleString()} cache hits in total.
         </p>
+        <p className="mt-2 text-sm">
+          Member-facing surfaces (Market Reality section, comp-band fallback, Company Tracker top-hirer line):{' '}
+          {isAdzunaInsightsEnabled() ? (
+            <span className="font-semibold">on</span>
+          ) : (
+            <span className="font-semibold">
+              off — set ADZUNA_INSIGHTS_ENABLED=true in Vercel once Adzuna&apos;s written consent for commercial use is in
+            </span>
+          )}
+          .
+        </p>
       </div>
 
       <section className="space-y-2">
@@ -158,11 +170,7 @@ export default async function AdminAdzunaPage({ searchParams }: { searchParams: 
         />
       </section>
 
-      <p className="text-xs text-muted-foreground">
-        <a href="https://www.adzuna.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-          Data by Adzuna
-        </a>
-      </p>
+      <AdzunaAttribution surface="admin" />
     </div>
   )
 }
