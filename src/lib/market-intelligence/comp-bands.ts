@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { getSalaryHistogram, histogramPercentile, resolveState } from '@/lib/market/adzuna-insights'
 
 // Partners Master Build Script §A3.2/§A3.3 — "comp bands by role, level, and
 // metro" is listed as an already-built proprietary input. It is not: no
@@ -75,5 +76,60 @@ export async function computeCompBandForTarget(targetFunction: string | null): P
     sampleSize: approvedWithSalary.length,
     matchedOnFunction: false,
     sufficientData: approvedWithSalary.length >= MIN_SAMPLE_FOR_HONEST_BAND,
+  }
+}
+
+export type CompBandSource = 'nc_job_board' | 'adzuna'
+
+export interface SourcedCompBand extends CompBand {
+  source: CompBandSource
+  // Only for source 'adzuna': the role and place the advertised-salary
+  // histogram was read for, so the UI can say exactly what it is.
+  adzunaRole?: string
+  adzunaPlace?: string
+}
+
+// Our own NC Job Board band first — it's real posted ranges for director+
+// roles. Only when that's too thin or not specific to the member's function do we fall back to Adzuna's advertised-
+// salary histogram for the member's role (and state, when known): the
+// middle half (25th–75th percentile) of what employers advertise. The
+// source is always returned so the UI labels it; an Adzuna band must show
+// "Data by Adzuna" next to it.
+export async function computeCompBandWithMarketFallback(input: {
+  targetFunction: string | null
+  role: string | null
+  state: string | null
+}): Promise<SourcedCompBand> {
+  const own = await computeCompBandForTarget(input.targetFunction)
+  // Our own band wins only when it's actually about the member's function —
+  // the broader director+ pool is a weaker answer than real market data
+  // for their role.
+  if (own.sufficientData && own.matchedOnFunction && own.low !== null && own.high !== null) {
+    return { ...own, source: 'nc_job_board' }
+  }
+  if (!input.role) return { ...own, source: 'nc_job_board' }
+
+  const state = resolveState(input.state)
+  let h = (await getSalaryHistogram({ role: input.role, state }, { onMiss: 'fetch' })).data
+  let place = state ?? 'the US'
+  // A thin state-level sample is less honest than the national one.
+  if (state && (!h || h.total < 20)) {
+    h = (await getSalaryHistogram({ role: input.role, state: null }, { onMiss: 'fetch' })).data
+    place = 'the US'
+  }
+  if (!h || h.total < 20) return { ...own, source: 'nc_job_board' }
+
+  const low = histogramPercentile(h, 0.25)
+  const high = histogramPercentile(h, 0.75)
+  if (low === null || high === null || high <= low) return { ...own, source: 'nc_job_board' }
+  return {
+    low,
+    high,
+    sampleSize: h.total,
+    matchedOnFunction: true,
+    sufficientData: true,
+    source: 'adzuna',
+    adzunaRole: input.role,
+    adzunaPlace: place,
   }
 }

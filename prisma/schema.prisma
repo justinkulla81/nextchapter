@@ -12571,3 +12571,36 @@ model UndatedEmployment {
   @@index([companyId])
   @@index([candidateId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADZUNA LABOR-MARKET STATISTICS — salary histogram/history, top hiring
+// companies, demand by state and posting counts. One shared cache row per
+// endpoint + normalized role query + location, refreshed at most weekly, plus
+// a global request counter so no page view can push the app past Adzuna's
+// free-tier limits. See src/lib/market/adzuna-insights.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdzunaInsightCache {
+  id           String    @id @default(cuid())
+  endpoint     String // histogram | history | top_companies | geodata | demand
+  queryKey     String // normalized role query, e.g. "vp marketing"
+  location     String // full US state name lowercased, or "us"
+  payload      Json? // parsed, typed result; null when nothing usable has ever come back
+  error        String? // last fetch error, kept alongside an older good payload
+  fetchedAt    DateTime // when payload was last fetched successfully (or first attempted)
+  refreshAfter DateTime // no live call for this key before this time
+  hitCount     Int       @default(0)
+  lastHitAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([endpoint, queryKey, location])
+  @@index([lastHitAt])
+}
+
+model AdzunaApiUsage {
+  // "all:day:2026-10-10", "insights:minute:2026-10-10T14:03", ... (UTC)
+  bucket    String   @id
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}

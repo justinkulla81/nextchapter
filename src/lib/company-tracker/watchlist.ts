@@ -4,6 +4,7 @@ import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/te
 import type { PageContentView } from '@/lib/dashboard/page-content'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
+import { getTopHiringCompanies, memberMarketRole, resolveState } from '@/lib/market/adzuna-insights'
 
 export interface WatchlistPosting {
   id: string
@@ -29,6 +30,43 @@ export interface WatchlistEntryView {
   // SEC filings suggesting a senior role is about to open here (officer
   // departure, new CEO, big raise) — see src/lib/likely-openings/.
   likelyOpenings: CompanyLikelyOpening[]
+  // Set when Adzuna ranks this company among the top 5 advertisers for the
+  // member's target role (their state first, then nationwide).
+  topHirer: WatchlistTopHirer | null
+}
+
+export interface WatchlistTopHirer {
+  rank: number
+  openCount: number
+  role: string
+  place: string // state name or "the US"
+}
+
+// Cache-only read (onMiss: 'background') so the Jobs page never waits on
+// Adzuna; a cold cache fills after the response and shows next visit.
+async function getTopHirerMatcher(candidateId: string): Promise<(companyName: string) => WatchlistTopHirer | null> {
+  const candidate = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: { targetRoleType: true, targetFunction: true, primaryFunction: true, currentState: true },
+  })
+  const role = candidate ? memberMarketRole(candidate) : null
+  if (!role) return () => null
+  const state = resolveState(candidate?.currentState)
+  const [local, national] = await Promise.all([
+    state ? getTopHiringCompanies({ role, state }, { onMiss: 'background' }) : Promise.resolve(null),
+    getTopHiringCompanies({ role, state: null }, { onMiss: 'background' }),
+  ])
+  const boards = [
+    { place: state ?? 'the US', companies: local?.data?.companies ?? [] },
+    { place: 'the US', companies: national.data?.companies ?? [] },
+  ]
+  return (companyName) => {
+    for (const board of boards) {
+      const i = board.companies.findIndex((c) => orgNamesMatch(c.name, companyName))
+      if (i >= 0) return { rank: i + 1, openCount: board.companies[i].count, role, place: board.place }
+    }
+    return null
+  }
 }
 
 // Active NC Job Board postings only (archived/rejected/excluded/expired
@@ -111,6 +149,8 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
   const signals = await getLikelyOpeningsForCompanies(matches.map((m) => m.entry.companyName)).catch(
     () => new Map<string, CompanyLikelyOpening[]>()
   )
+  const topHirerFor =
+    matches.length > 0 ? await getTopHirerMatcher(candidateId).catch(() => () => null) : () => null
 
   return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
@@ -132,6 +172,7 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
       })),
       lockedCount: boardMatches.length - visibleBoard.length,
       likelyOpenings: signals.get(entry.companyName) ?? [],
+      topHirer: topHirerFor(entry.companyName),
     }
   })
 }

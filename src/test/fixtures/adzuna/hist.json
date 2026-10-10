@@ -1,0 +1,1 @@
+{"location":{"__CLASS__":"Adzuna::API::Response::Location","display_name":"Massachusetts, US","area":["US","Massachusetts"]},"histogram":{"100000":203,"120000":268,"140000":963,"60000":125,"80000":196,"20000":52,"40000":172},"__CLASS__":"Adzuna::API::Response::SalaryHistogram"}

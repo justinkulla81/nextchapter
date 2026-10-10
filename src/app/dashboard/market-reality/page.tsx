@@ -34,6 +34,7 @@ import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanat
 import { EstimateTag } from '@/components/ui/estimate-tag'
 import { getSearchDiagnosis } from '@/lib/reports/search-diagnosis-data'
 import type { Verdict } from '@/lib/reports/search-diagnosis'
+import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
 
@@ -251,7 +252,12 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default async function MarketRealityReportPage() {
+export default async function MarketRealityReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const marketScope = (await searchParams).market === 'us' ? 'us' : 'state'
   const profile = await getDashboardData()
   const [{ data: { user } }, report] = await Promise.all([
     createClient().then((supabase) => supabase.auth.getUser()),
@@ -777,6 +783,15 @@ export default async function MarketRealityReportPage() {
           <Suspense fallback={null}>
             <SearchDiagnosisSection candidateId={profile.id} />
           </Suspense>
+
+          {/* Adzuna labor-market data for the member's target role: advertised
+              salary distribution, 6-month trend, demand by state, top hirers. */}
+          <div id="market-data" className="mt-10 scroll-mt-24 border-t border-border pt-8">
+            <SectionHeading>The market for your role</SectionHeading>
+            <Suspense fallback={<AdzunaMarketSectionLoading />}>
+              <AdzunaMarketSection candidateId={profile.id} scope={marketScope} />
+            </Suspense>
+          </div>
 
 
           {/* What's My Pattern — reactions to surfaced matches plus jobs

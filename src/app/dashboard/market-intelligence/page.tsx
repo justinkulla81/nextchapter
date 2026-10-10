@@ -14,7 +14,9 @@ import {
   MARKET_INTEL_TIER_LABEL,
   type MarketIntelFeature,
 } from '@/lib/market-intelligence/access'
-import { computeCompBandForTarget } from '@/lib/market-intelligence/comp-bands'
+import { computeCompBandWithMarketFallback } from '@/lib/market-intelligence/comp-bands'
+import { memberMarketRole } from '@/lib/market/adzuna-insights'
+import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 import {
   searchTargetCompanies,
   listAvailableTargetMetros,
@@ -73,7 +75,9 @@ export default async function MarketIntelligencePage({
   const hasAnyFilter = !!(filters.trajectory || filters.sizeBand || filters.ownershipType || filters.hqMetro)
 
   const [compBand, availableMetros, targetCompanies, latestBrief] = await Promise.all([
-    canCompBands ? computeCompBandForTarget(targetFunction) : Promise.resolve(null),
+    canCompBands
+      ? computeCompBandWithMarketFallback({ targetFunction, role: memberMarketRole(profile), state: profile.currentState })
+      : Promise.resolve(null),
     canTargetList ? listAvailableTargetMetros() : Promise.resolve([]),
     canTargetList ? searchTargetCompanies(filters, 20) : Promise.resolve([]),
     canWeeklyBrief ? getLatestWeeklyBrief(profile.id) : Promise.resolve(null),
@@ -132,6 +136,21 @@ export default async function MarketIntelligencePage({
               {compBand && compBand.sampleSize > 0 ? ` (only ${compBand.sampleSize} posted salary range${compBand.sampleSize === 1 ? '' : 's'} on file)` : ''}.
               Check back as more postings with salary data come in.
             </p>
+          ) : compBand.source === 'adzuna' ? (
+            <div className="space-y-1">
+              <p className="text-sm">
+                <span className="font-medium">
+                  ${compBand.low.toLocaleString()}–${compBand.high.toLocaleString()} base
+                </span>{' '}
+                advertised for {compBand.adzunaRole} in {compBand.adzunaPlace}.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                The middle half of {compBand.sampleSize.toLocaleString()} advertised salaries on job postings across the
+                market. We don&apos;t have enough NC Job Board salary data for your target yet, so this comes from
+                Adzuna instead.
+              </p>
+              <AdzunaAttribution surface="comp_band" />
+            </div>
           ) : (
             <div className="space-y-1">
               <p className="text-sm">

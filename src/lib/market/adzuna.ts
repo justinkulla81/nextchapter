@@ -1,5 +1,6 @@
 import 'server-only'
 import type { AdzunaResult } from '@/lib/market/types'
+import { recordAdzunaCall } from '@/lib/market/adzuna-insights'
 
 export interface AdzunaListing {
   title: string
@@ -35,6 +36,9 @@ export async function searchAdzunaJobListings(
   if (options?.whatOr && options.whatOr.length > 0) params.set('what_or', options.whatOr.join(' '))
   if (options?.salaryMin) params.set('salary_min', String(options.salaryMin))
 
+  // Counted toward the app-wide Adzuna budget (adzuna-insights.ts) so the
+  // statistics cache backs off when job search is using the quota.
+  recordAdzunaCall()
   try {
     const response = await fetch(
       `https://api.adzuna.com/v1/api/jobs/us/search/1?${params.toString()}`,
@@ -129,6 +133,9 @@ export async function searchAdzunaJobs(
     params.set('distance', String(distanceMiles))
   }
 
+  // Counted toward the app-wide Adzuna budget (adzuna-insights.ts) so the
+  // statistics cache backs off when job search is using the quota.
+  recordAdzunaCall()
   try {
     const response = await fetch(
       `https://api.adzuna.com/v1/api/jobs/us/search/1?${params.toString()}`,

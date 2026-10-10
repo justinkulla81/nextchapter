@@ -9,6 +9,7 @@ import { LikelyOpeningFilingLink } from '@/components/likely-openings/FilingLink
 import { SIGNAL_LABELS } from '@/lib/likely-openings/roles'
 import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
+import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 
 const PAGE_SIZE = 5
 
@@ -36,6 +37,7 @@ export interface WatchlistEntry {
   visiblePostings: WatchlistPosting[]
   lockedCount: number
   likelyOpenings?: WatchlistLikelyOpening[]
+  topHirer?: { rank: number; openCount: number; role: string; place: string } | null
 }
 
 // Signals from public SEC filings that a senior role may open here before
@@ -135,6 +137,17 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
                 Remove
               </Button>
             </div>
+
+            {entry.topHirer && (
+              <div className="flex flex-wrap items-baseline gap-2 px-4 pb-3 text-sm">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground">Top hirer</span>
+                <span className="text-muted-foreground">
+                  #{entry.topHirer.rank} for {entry.topHirer.role} roles in {entry.topHirer.place} right now (
+                  {entry.topHirer.openCount.toLocaleString()} open postings).
+                </span>
+                <AdzunaAttribution surface="company_tracker" />
+              </div>
+            )}
 
             {entry.likelyOpenings && entry.likelyOpenings.length > 0 && (
               <LikelyOpeningLines companyName={entry.companyName} signals={entry.likelyOpenings} />
