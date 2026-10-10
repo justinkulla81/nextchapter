@@ -10,7 +10,7 @@ import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/f
 import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
-import { edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
+import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import posthog from 'posthog-js'
 
@@ -147,11 +147,15 @@ export function DiscoverJobCard({
   return (
     <details className="group">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
-          <span className="truncate text-sm text-muted-foreground">
-            {confidential ? 'Confidential search' : `at ${posting.companyName}`}
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
+            <span className="truncate text-sm text-muted-foreground">
+              {confidential ? 'Confidential search' : `at ${posting.companyName}`}
+            </span>
           </span>
+          {/* The edge, visible without opening the card. */}
+          <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}

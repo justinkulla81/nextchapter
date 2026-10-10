@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { edgeTip, isFresh, postedAgo, scoreCompetition } from '@/lib/jobs/competition'
+import { edgeHeadline, edgeTip, isFresh, postedAgo, scoreCompetition } from '@/lib/jobs/competition'
 
 const now = new Date('2026-10-09T12:00:00Z')
 const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000)
@@ -42,5 +42,17 @@ describe('job competition', () => {
     expect(edgeTip({ sourceCategory: 'search_firm', sourceName: 'Isaacson, Miller', postedAt: daysAgo(1), createdAt: daysAgo(1) }, now)).toMatch(
       /Isaacson, Miller/
     )
+  })
+
+  it('leads the card with the edge', () => {
+    const base = { sourceName: null, postedAt: daysAgo(10), createdAt: daysAgo(10) }
+    expect(edgeHeadline({ ...base, sourceCategory: 'search_firm' }, undefined, now)).toBe('Search-firm mandate — contact the partner directly')
+    expect(edgeHeadline({ ...base, sourceCategory: null, postedAt: new Date(now.getTime() - 5 * 3_600_000) }, undefined, now)).toBe(
+      'Posted 5 hours ago — apply first'
+    )
+    expect(edgeHeadline({ ...base, sourceCategory: null }, { level: 'low', reasons: ['Few openings listed at this employer'] }, now)).toBe(
+      'Low competition: few openings listed at this employer'
+    )
+    expect(edgeHeadline({ ...base, sourceCategory: null }, { level: 'high', reasons: [] }, now)).toMatch(/referral/)
   })
 })

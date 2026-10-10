@@ -29,7 +29,7 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
-import { scoreCompetition } from '@/lib/jobs/competition'
+import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
@@ -387,10 +387,11 @@ async function JobRecommendationsSection({
                 // bucket the original recency order (board postings first,
                 // then surfaced jobs, newest of each first) is preserved.
                 ...[
+                  // Within a fit level, low-competition jobs come first.
                   ...visibleBoardPostings.map((posting) => {
                     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
                     return {
-                      rank: FIT_BUCKET_SORT_RANK[fitBucket],
+                      rank: FIT_BUCKET_SORT_RANK[fitBucket] * 3 + COMPETITION_SORT_RANK[competitionFor(posting).level],
                       node: (
                         <DiscoverJobCard
                           key={posting.id}
@@ -407,7 +408,8 @@ async function JobRecommendationsSection({
                     const fitBucket = computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))
                     const worksHere = worksHereFor(job.companyName)
                     return {
-                      rank: FIT_BUCKET_SORT_RANK[fitBucket],
+                      // Partner-search jobs: competition unknown, so "medium".
+                      rank: FIT_BUCKET_SORT_RANK[fitBucket] * 3 + 1,
                       node: (
                         <NextSurfacedJobCard
                           key={job.id}

@@ -7,7 +7,7 @@ import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
-import { isFresh, scoreCompetition } from '@/lib/jobs/competition'
+import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/competition'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
@@ -97,7 +97,7 @@ export async function loadBoardShortlist(opts: {
   const functions = new Set(
     [opts.candidate.primaryFunction, opts.candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
   )
-  const open: { id: string; rank: number; offFunction: number; gap: number; at: number; company: string; title: string }[] = []
+  const open: { id: string; rank: number; offFunction: number; crowd: number; gap: number; at: number; company: string; title: string }[] = []
   const locked: typeof open = []
   for (const p of light) {
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
@@ -110,7 +110,8 @@ export async function loadBoardShortlist(opts: {
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
     const canOpen = p.audienceTier === 'ALL_CANDIDATES' || opts.isCandidatePlus
     const fresh = isFresh(p, now)
-    const low = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level === 'low'
+    const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
+    const low = competition === 'low'
     const rank = FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(opts.candidate, { ...p, description: null })]
     // The prompts count only jobs that fit (strong or good).
     if (canOpen && fresh && rank <= 1) freshOpenTotal++
@@ -122,6 +123,7 @@ export async function loadBoardShortlist(opts: {
       company,
       title: p.title.trim().toLowerCase(),
       rank,
+      crowd: COMPETITION_SORT_RANK[competition],
       offFunction: functions.has((inferFunctionFromTitle(p.title) ?? '').toLowerCase()) ? 0 : 1,
       gap: calibratedLevelDistance(
         candidateLevel,
@@ -134,12 +136,15 @@ export async function loadBoardShortlist(opts: {
     else locked.push(entry)
   }
 
-  // Best fit first, then own function, nearest level, newest — but one listing per
+  // Best fit first, then own function, least competition, nearest level,
+  // newest — but one listing per
   // title per company (big employers post the same role in dozens of
   // places) and at most PER_COMPANY per company, so one employer can't fill
   // the whole list. If that leaves room, the held-back ones fill it.
   const best = (list: typeof open) => {
-    const sorted = list.sort((a, b) => a.rank - b.rank || a.offFunction - b.offFunction || a.gap - b.gap || b.at - a.at)
+    const sorted = list.sort(
+      (a, b) => a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+    )
     const picked: string[] = []
     const heldBack: string[] = []
     const seenTitles = new Set<string>()

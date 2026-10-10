@@ -117,3 +117,25 @@ export function edgeTip(p: Pick<ExclusiveJobPosting, 'sourceCategory' | 'sourceN
   if (p.sourceCategory === 'association') return 'Mention your membership or ties to the association in your note.'
   return 'Find someone who works there — a referral beats a cold application.'
 }
+
+/** Sorts low competition first (with fit as the primary key, by callers). */
+export const COMPETITION_SORT_RANK: Record<CompetitionLevel, number> = { low: 0, medium: 1, high: 2 }
+
+/**
+ * One line shown on the collapsed card: why this job is worth a move, and
+ * the move. Search-firm and association jobs lead with where they're from;
+ * fresh jobs with timing; other low-competition jobs with their strongest
+ * reason; everything else with the referral advice.
+ */
+export function edgeHeadline(
+  p: Pick<ExclusiveJobPosting, 'sourceCategory' | 'sourceName' | 'postedAt' | 'createdAt'>,
+  competition: CompetitionScore | undefined,
+  now = new Date()
+): string {
+  if (p.sourceCategory === 'search_firm') return 'Search-firm mandate — contact the partner directly'
+  if (p.sourceCategory === 'association') return 'Association board, few applicants — mention your membership or ties'
+  if (isFresh(p, now)) return `${postedAgo(p, now)} — apply first`
+  if (competition?.level === 'low' && competition.reasons[0]) return `Low competition: ${competition.reasons[0].toLowerCase()}`
+  if (p.sourceCategory === 'pe') return 'PE-backed — PE experience and an operating-partner intro stand out'
+  return 'Find someone who works there — a referral beats a cold application'
+}
