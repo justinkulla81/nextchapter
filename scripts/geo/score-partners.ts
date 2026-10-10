@@ -55,12 +55,12 @@ async function main() {
   const byDomain = new Map<string, Strength>()
   const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true } })
   const orgKey = new Map(orgs.map((o) => [o.id, normalizeOrgName(o.name)]))
-  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } } })) {
+  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } } })) {
     const k = orgKey.get(a.orgId)
     const st = contactStrength(a.person)
     if (k && st) byOrgName.set(k, best(byOrgName.get(k), st)!)
   }
-  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } })) {
+  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } })) {
     const st = contactStrength(p)
     if (!st) continue
     for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {

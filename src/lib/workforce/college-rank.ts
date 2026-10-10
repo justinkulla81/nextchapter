@@ -74,12 +74,12 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
     // Anyone in the CRM at an organization, with how warm: "any contact helps a little, a warm one a lot".
     prisma.crmAffiliation.findMany({
       where: { isCurrent: true, person: { deletedAt: null } },
-      select: { orgId: true, person: { select: { warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } },
+      select: { orgId: true, person: { select: { warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } },
     }),
     // People with a college address, wherever they are affiliated.
     prisma.crmPerson.findMany({
       where: { deletedAt: null, email: { endsWith: '.edu', mode: 'insensitive' } },
-      select: { warmth: true, connectedAt: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true, email: true, emails: true },
+      select: { warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true, email: true, emails: true },
     }),
   ])
   const strengthByOrg = new Map<string, ContactStrength>()

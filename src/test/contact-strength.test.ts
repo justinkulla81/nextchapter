@@ -10,9 +10,14 @@ describe('contactStrength', () => {
     expect(contactStrength(p({ warmth: 'HOT' }), now)).toBe('hot')
     expect(contactStrength(p({ firstRepliedAt: daysAgo(40), lastTouchedAt: daysAgo(30), touchCount: 3 }), now)).toBe('hot')
   })
-  it('WARM warmth, a connection, an old reply or a touch in the last year is warm', () => {
+  it('a first-degree connection is hot, a second-degree one is warm', () => {
+    expect(contactStrength(p({ connectedAt: daysAgo(900) }), now)).toBe('hot')
+    expect(contactStrength(p({ linkedinDegree: '1st' }), now)).toBe('hot')
+    expect(contactStrength(p({ linkedinDegree: '2nd' }), now)).toBe('warm')
+    expect(contactStrength(p({ linkedinDegree: '3rd' }), now)).toBe('any')
+  })
+  it('WARM warmth, an old reply or a touch in the last year is warm', () => {
     expect(contactStrength(p({ warmth: 'WARM' }), now)).toBe('warm')
-    expect(contactStrength(p({ connectedAt: daysAgo(900) }), now)).toBe('warm')
     expect(contactStrength(p({ firstRepliedAt: daysAgo(400), lastTouchedAt: daysAgo(300) }), now)).toBe('warm')
     expect(contactStrength(p({ touchCount: 2, lastTouchedAt: daysAgo(200) }), now)).toBe('warm')
   })
@@ -25,7 +30,7 @@ describe('contactStrength', () => {
   })
   it('an auto-added person you have since connected with or contacted counts', () => {
     const notes = "Career Services at Y. From the college's own website: https://y"
-    expect(contactStrength(p({ notes, connectedAt: daysAgo(10) }), now)).toBe('warm')
+    expect(contactStrength(p({ notes, connectedAt: daysAgo(10) }), now)).toBe('hot')
     expect(contactStrength(p({ notes, touchCount: 1, lastTouchedAt: daysAgo(10) }), now)).toBe('warm')
   })
   it('anyone else in the CRM is any', () => {
