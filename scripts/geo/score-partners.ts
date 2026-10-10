@@ -5,6 +5,7 @@ import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { countyKey } from '../../src/lib/workforce/places'
 import { scorePartner, type AreaSignal, type FitScore, type PartnerKind } from '../../src/lib/geo/partner-scoring'
+import { normalizeOrgName } from '../../src/lib/text/org-name-match'
 
 const prisma = new PrismaClient()
 const apply = process.argv.includes('--apply')
@@ -38,7 +39,40 @@ const dist = (name: string, rows: { s: FitScore }[]) => {
   console.log(`${name.padEnd(22)} n=${String(t.length).padStart(5)}  min ${t[0]}  median ${t[Math.floor(t.length / 2)]}  p90 ${t[Math.floor(t.length * 0.9)]}  max ${t[t.length - 1]}`)
 }
 
+type Strength = 'hot' | 'warm' | 'any'
+const ORDER: Strength[] = ['hot', 'warm', 'any']
+const best = (a: Strength | null | undefined, b: Strength | null | undefined): Strength | null => (!a ? b ?? null : !b ? a : ORDER.indexOf(a) <= ORDER.indexOf(b) ? a : b)
+const strengthOf = (p: { warmth: string; connectedAt: Date | null }): Strength => (p.warmth === 'HOT' ? 'hot' : p.warmth === 'WARM' || p.connectedAt ? 'warm' : 'any')
+/** Mailbox providers and shared government domains say nothing about who works at a given body. */
+const SHARED_DOMAIN = /(^|\.)(gmail|yahoo|outlook|hotmail|aol|icloud|me|live|msn|comcast|proton(mail)?)\.(com|me)$|\.(gov|us|mil)$/i
+const domainOf = (url: string | null): string | null => {
+  if (!url) return null
+  try { return new URL(/^https?:/i.test(url) ? url : `https://${url}`).hostname.toLowerCase().replace(/^(www\d?|home|web)\./, '') } catch { return null }
+}
+
 async function main() {
+  // Contacts in the CRM: by organization name, and by the address a person writes from.
+  const byOrgName = new Map<string, Strength>()
+  const byDomain = new Map<string, Strength>()
+  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true } })
+  const orgKey = new Map(orgs.map((o) => [o.id, normalizeOrgName(o.name)]))
+  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true } } } })) {
+    const k = orgKey.get(a.orgId)
+    if (k) byOrgName.set(k, best(byOrgName.get(k), strengthOf(a.person))!)
+  }
+  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true } })) {
+    for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {
+      const d = e.split('@')[1]?.toLowerCase().trim()
+      if (d && !SHARED_DOMAIN.test(d)) byDomain.set(d, best(byDomain.get(d), strengthOf(p))!)
+    }
+  }
+  const contactFor = (name: string, website: string | null): Strength | null => {
+    const d = domainOf(website)
+    const viaDomain = d && !SHARED_DOMAIN.test(d) ? [...byDomain].reduce<Strength | null>((acc, [dom, st]) => (dom === d || dom.endsWith(`.${d}`) ? best(acc, st) : acc), null) : null
+    return best(byOrgName.get(normalizeOrgName(name)), viaDomain)
+  }
+  console.log(`CRM contacts: ${byOrgName.size} orgs by name, ${byDomain.size} email domains`)
+
   const areas = (await prisma.geoArea.findMany({ select: { id: true, level: true, state: true, name: true, laborForce: true, whiteCollarShare: true, layoffs12mo: true, layoffs90d: true, wcUnemploymentEst: true } })) as Area[]
   const byId = new Map(areas.map((a) => [a.id, a]))
   const stateArea = new Map(areas.filter((a) => a.level === 'STATE').map((a) => [a.state, a]))
@@ -55,27 +89,29 @@ async function main() {
   const bs = boards.map((b) => ({
     id: b.id,
     s: scorePartner({ kind: b.statewide ? 'STATE_BOARD' : 'WIOA_BOARD', area: b.statewide ? combine(stateArea.get(b.state) ? [stateArea.get(b.state)!] : []) : forCounties(b.state, b.counties),
-      hasName: !!b.directorName, hasEmail: !!b.directorEmail, hasPhone: !!b.directorPhone, hasWebsite: !!b.website }),
+      hasName: !!b.directorName, hasEmail: !!b.directorEmail, hasPhone: !!b.directorPhone, hasWebsite: !!b.website,
+      contact: contactFor(b.name, b.website) }),
   }))
   await writeScores('WorkforceBoard', 'id', bs); dist('WIOA boards', bs)
 
   // American Job Centers
-  const ajcs = await prisma.$queryRaw<{ id: string; state: string; countyFips: string | null; centerType: string | null; phone: string | null; generalEmail: string | null; businessEmail: string | null; detailsUrl: string | null }[]>`select id, state, "countyFips", "centerType", phone, "generalEmail", "businessEmail", "detailsUrl" from "AmericanJobCenter"`
+  const ajcs = await prisma.$queryRaw<{ id: string; name: string; state: string; countyFips: string | null; centerType: string | null; phone: string | null; generalEmail: string | null; businessEmail: string | null; detailsUrl: string | null }[]>`select id, name, state, "countyFips", "centerType", phone, "generalEmail", "businessEmail", "detailsUrl" from "AmericanJobCenter"`
   const as = ajcs.map((a) => ({ id: a.id, s: scorePartner({ kind: 'AJC', area: a.countyFips && byId.get(a.countyFips) ? combine([byId.get(a.countyFips)!]) : combine(stateArea.get(a.state) ? [stateArea.get(a.state)!] : []),
-    hasName: false, hasEmail: !!(a.businessEmail || a.generalEmail), hasPhone: !!a.phone, hasWebsite: !!a.detailsUrl, ajcType: a.centerType, hasBusinessRep: !!a.businessEmail }) }))
+    hasName: false, hasEmail: !!(a.businessEmail || a.generalEmail), hasPhone: !!a.phone, hasWebsite: !!a.detailsUrl, ajcType: a.centerType, hasBusinessRep: !!a.businessEmail, contact: byOrgName.get(normalizeOrgName(a.name)) ?? null }) }))
   await writeScores('AmericanJobCenter', 'id', as); dist('American Job Centers', as)
 
   // EDA districts, state agencies, local EDOs
-  const lp = await prisma.$queryRaw<{ id: string; kind: string; state: string; counties: string[]; website: string | null; contactName: string | null; email: string | null; phone: string | null }[]>`select id, kind, state, counties, website, "contactName", email, phone from "LocalPartnerOrg"`
+  const lp = await prisma.$queryRaw<{ id: string; kind: string; name: string; state: string; counties: string[]; website: string | null; contactName: string | null; email: string | null; phone: string | null }[]>`select id, kind, name, state, counties, website, "contactName", email, phone from "LocalPartnerOrg"`
   const ls = lp.map((o) => ({ id: o.id, s: scorePartner({ kind: o.kind as PartnerKind, area: o.kind === 'STATE_AGENCY' ? combine(stateArea.get(o.state) ? [stateArea.get(o.state)!] : []) : forCounties(o.state, o.counties),
-    hasName: !!o.contactName, hasEmail: !!o.email, hasPhone: !!o.phone, hasWebsite: !!o.website }) }))
+    hasName: !!o.contactName, hasEmail: !!o.email, hasPhone: !!o.phone, hasWebsite: !!o.website, contact: contactFor(o.name, o.website) }) }))
   await writeScores('LocalPartnerOrg', 'id', ls); dist('EDDs / agencies / EDOs', ls)
 
   // nonprofit leads
   const leads = await prisma.$queryRaw<{ id: string; kind: string; name: string; state: string; geoAreaId: string | null; revenue: number | null; website: string | null; contactName: string | null; contactEmail: string | null; contactPhone: string | null }[]>`select id, kind, name, state, "geoAreaId", revenue, website, "contactName", "contactEmail", "contactPhone" from "GeoOrgLead" where "dismissedAt" is null`
   const ns = leads.map((l) => ({ id: l.id, s: scorePartner({ kind: l.kind === 'WORKFORCE' ? 'NONPROFIT_WORKFORCE' : l.kind === 'CHAMBER' ? 'CHAMBER' : 'NONPROFIT_ECON',
     area: l.geoAreaId && byId.get(l.geoAreaId) ? combine([byId.get(l.geoAreaId)!]) : combine(stateArea.get(l.state) ? [stateArea.get(l.state)!] : []),
-    hasName: !!l.contactName, hasEmail: !!l.contactEmail, hasPhone: !!l.contactPhone, hasWebsite: !!l.website, revenue: l.revenue, name: l.name }) }))
+    hasName: !!l.contactName, hasEmail: !!l.contactEmail, hasPhone: !!l.contactPhone, hasWebsite: !!l.website, revenue: l.revenue, name: l.name,
+    contact: contactFor(l.name, l.website) }) }))
   await writeScores('GeoOrgLead', 'id', ns); dist('Nonprofit leads', ns)
 
   console.log(apply ? 'written' : 'dry run — pass --apply')

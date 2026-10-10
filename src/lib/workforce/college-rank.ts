@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { boardCountyKeys } from './board-area'
 import { isCompanyWide } from './board-report'
-import { scoreCollege, type CollegeFacts } from './college-score'
+import { scoreCollege, type CollegeFacts, type ContactStrength } from './college-score'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 
@@ -32,6 +32,14 @@ export function relationshipLevel(points: number): number {
   return points >= 40 ? 0 : points >= 30 ? 1 : points >= 15 ? 2 : 3
 }
 
+const STRENGTH_ORDER: ContactStrength[] = ['hot', 'warm', 'any']
+const stronger = (a: ContactStrength | null, b: ContactStrength | null): ContactStrength | null =>
+  !a ? b : !b ? a : STRENGTH_ORDER.indexOf(a) <= STRENGTH_ORDER.indexOf(b) ? a : b
+/** HOT warmth is hot; WARM warmth or a first-degree connection is warm; anyone else is just a contact. */
+export function personStrength(p: { warmth: string; connectedAt: Date | null }): ContactStrength {
+  return p.warmth === 'HOT' ? 'hot' : p.warmth === 'WARM' || p.connectedAt ? 'warm' : 'any'
+}
+
 const PRIORITY_ORDER = ['P0', 'P1', 'P2'] as const
 type Priority = (typeof PRIORITY_ORDER)[number]
 const better = (a: Priority | null, b: Priority | null): Priority | null =>
@@ -44,7 +52,7 @@ const better = (a: Priority | null, b: Priority | null): Priority | null =>
  */
 export async function rankColleges(): Promise<{ ranked: number; tiers: Record<string, number> }> {
   const since = new Date(Date.now() - 365 * 86_400_000)
-  const [colleges, contacts, boards, notices, orgs, affiliations, prioritized, factRows] = await Promise.all([
+  const [colleges, contacts, boards, notices, orgs, affiliations, prioritized, factRows, anyAffiliations, eduPersons] = await Promise.all([
     prisma.localCollege.findMany({
       select: {
         id: true, name: true, website: true, crmOrgId: true,
@@ -70,7 +78,22 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
     prisma.$queryRaw<{ unitid: string; alumni: number | null; expenses: number | null; endowment: number | null; privateGifts: number | null; earnings10: number | null; employedShare10: number | null; hasExecEd: boolean | null; hasRetraining: boolean | null }[]>`
       select "unitid", coalesce("alumniReported", "alumniEstimate") as alumni, expenses, endowment, "privateGifts", earnings10, "employedShare10", "hasExecEd", "hasRetraining" from "CollegeProfile"`
       .catch(() => []),
+    // Anyone in the CRM at an organization, with how warm: "any contact helps a little, a warm one a lot".
+    prisma.crmAffiliation.findMany({
+      where: { isCurrent: true, person: { deletedAt: null } },
+      select: { orgId: true, person: { select: { warmth: true, connectedAt: true } } },
+    }),
+    // People with a college address, wherever they are affiliated.
+    prisma.crmPerson.findMany({
+      where: { deletedAt: null, email: { endsWith: '.edu', mode: 'insensitive' } },
+      select: { warmth: true, connectedAt: true, email: true, emails: true },
+    }),
   ])
+  const strengthByOrg = new Map<string, ContactStrength>()
+  for (const a of anyAffiliations) strengthByOrg.set(a.orgId, stronger(strengthByOrg.get(a.orgId) ?? null, personStrength(a.person))!)
+  const eduStrength = eduPersons.map((p) => ({ strength: personStrength(p), emails: [...new Set([p.email, ...p.emails].filter(Boolean) as string[])] }))
+  const strengthAtDomain = (domain: string): ContactStrength | null =>
+    eduStrength.reduce<ContactStrength | null>((best, p) => (p.emails.some((e) => emailAtCollege(e, domain)) ? stronger(best, p.strength) : best), null)
   const facts = new Map<string, CollegeFacts>(factRows.map((r) => [r.unitid, r]))
   // The college's organization in the CRM: the one it is linked to, or one of the same name.
   const orgById = new Map(orgs.map((o) => [o.id, o]))
@@ -108,7 +131,8 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
     const relationship = better(org ? bestByOrg.get(org.id) ?? null : null, domain ? bestAtDomain(domain) : null)
     return {
       id: c.id, crmOrgId: org?.id ?? null, relationship,
-      ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null, profile: facts.get(c.id) ?? null }),
+      ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null, profile: facts.get(c.id) ?? null,
+        contactStrength: stronger(org ? strengthByOrg.get(org.id) ?? null : null, domain ? strengthAtDomain(domain) : null) }),
     }
   // Relationships first — a P0 contact or a pilot/customer, then P1 or a live
   // deal, then P2 or first contact — then tier, so a community college held

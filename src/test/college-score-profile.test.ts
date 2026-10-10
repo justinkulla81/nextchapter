@@ -25,3 +25,19 @@ describe('college score with facts', () => {
     expect(unknown).toBeGreaterThan(no)
   })
 })
+
+describe('contacts in the CRM', () => {
+  it('a warm contact lifts a college well above no contact; any contact a little', () => {
+    const none = scoreCollege(base).score
+    expect(scoreCollege({ ...base, contactStrength: 'any' }).score).toBeCloseTo(none + 5, 1)
+    expect(scoreCollege({ ...base, contactStrength: 'warm' }).score).toBeCloseTo(none + 20, 1)
+    expect(scoreCollege({ ...base, contactStrength: 'hot' }).score).toBeGreaterThan(none + 20)
+  })
+  it('never lowers a P0 relationship', () => {
+    const p0 = scoreCollege({ ...base, relationship: 'P0' }).score
+    expect(scoreCollege({ ...base, relationship: 'P0', contactStrength: 'any' }).score).toBe(p0)
+  })
+  it('a warm contact puts even a community college at tier B at least', () => {
+    expect(scoreCollege({ ...base, carnegie: 3, sector: 4, contactStrength: 'warm' }).tier).not.toBe('C')
+  })
+})

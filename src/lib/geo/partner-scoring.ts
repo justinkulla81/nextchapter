@@ -60,7 +60,11 @@ export interface PartnerInput {
   /** Nonprofits only. */
   revenue?: number | null
   name?: string
+  /** The strongest contact we have there: hot / warm (a lot) or any (a little). Counts outside the 100. */
+  contact?: 'hot' | 'warm' | 'any' | null
 }
+/** Same values as college-score.ts CONTACT_POINTS. */
+const CONTACT_POINTS = { hot: 25, warm: 20, any: 5 } as const
 
 /** How directly this kind of body can act on a displaced professional (0-1). */
 const KIND_MISSION: Record<PartnerKind, { v: number; why: string }> = {
@@ -97,16 +101,20 @@ export function scorePartner(i: PartnerInput): FitScore {
     else if (HIGH_FIT_NAME.test(i.name)) { mission = Math.min(1, mission + 0.3); missionNote = 'Name suggests professional or career-transition work' }
   }
 
-  const contact = (i.hasName ? 8 : 0) + (i.hasEmail ? 6 : 0) + (i.hasPhone ? 3 : 0) + (i.hasWebsite ? 3 : 0)
+  // Contact details help a little (10 of 100); a warm contact in the CRM helps a lot (+20 outside the 100).
+  const contact = (i.hasName ? 4 : 0) + (i.hasEmail ? 3 : 0) + (i.hasPhone ? 1.5 : 0) + (i.hasWebsite ? 1.5 : 0)
   const lay90 = logScale(a.layoffs90d, 25, 3_000)
   const wcu = linScale(a.wcUnemploymentEst, 0.02, 0.06)
   const timing = lay90 !== null && wcu !== null ? 0.6 * lay90 + 0.4 * wcu : lay90 ?? wcu
 
   return finish([
-    part('whiteCollar', 'Reach to white-collar workers', 30, reach, a.whiteCollarShare != null ? `${Math.round(a.whiteCollarShare * 100)}% of workers in the area are professional; ${a.layoffs12mo ?? 0} laid off in 12 months` : 'No area data'),
-    part('scale', isNonprofit ? 'Budget' : 'Size of workforce served', 20, sizeFrac, isNonprofit ? (i.revenue ? `$${(i.revenue / 1e6).toFixed(1)}M revenue` : 'Revenue unknown') : (a.laborForce ? `${a.laborForce.toLocaleString()} in the labor force` : 'No area data')),
+    part('whiteCollar', 'Reach to white-collar workers', 35, reach, a.whiteCollarShare != null ? `${Math.round(a.whiteCollarShare * 100)}% of workers in the area are professional; ${a.layoffs12mo ?? 0} laid off in 12 months` : 'No area data'),
+    part('scale', isNonprofit ? 'Budget' : 'Size of workforce served', 25, sizeFrac, isNonprofit ? (i.revenue ? `$${(i.revenue / 1e6).toFixed(1)}M revenue` : 'Revenue unknown') : (a.laborForce ? `${a.laborForce.toLocaleString()} in the labor force` : 'No area data')),
     part('mission', 'Mission fit', 20, mission, missionNote),
-    { key: 'reach', label: 'Reachable', max: 20, known: true, points: contact * (20 / 20), note: [i.hasName && 'named contact', i.hasEmail && 'email', i.hasPhone && 'phone', i.hasWebsite && 'website'].filter(Boolean).join(', ') || 'No contact info' },
+    { key: 'reach', label: 'Contact details', max: 10, known: true, points: contact, note: [i.hasName && 'named contact', i.hasEmail && 'email', i.hasPhone && 'phone', i.hasWebsite && 'website'].filter(Boolean).join(', ') || 'No contact info' },
     part('timing', 'Timing', 10, timing, `${a.layoffs90d ?? 0} laid off in the last 90 days`),
+    // Outside the 100 and outside coverage: a warm contact beats anything the public data says.
+    { key: 'relationship', label: 'Contact in the CRM', max: 0, known: true, points: i.contact ? CONTACT_POINTS[i.contact] : 0,
+      note: i.contact === 'any' ? 'Someone in the CRM works there' : i.contact ? 'A warm contact in the CRM' : 'No contact in the CRM' },
   ])
 }

@@ -24,6 +24,19 @@ describe('partner scoring', () => {
   })
 })
 
+describe('contacts in the CRM', () => {
+  const b = { kind: 'WIOA_BOARD' as const, area: { whiteCollarShare: 0.4, laborForce: 500_000, layoffs12mo: 800 }, hasName: true, hasEmail: true, hasPhone: false, hasWebsite: true }
+  it('a warm contact helps a lot, any contact a little, none not at all', () => {
+    const none = scorePartner(b).total, any = scorePartner({ ...b, contact: 'any' }).total, warm = scorePartner({ ...b, contact: 'warm' }).total, hot = scorePartner({ ...b, contact: 'hot' }).total
+    expect(any).toBe(none + 5)
+    expect(warm).toBe(none + 20)
+    expect(hot).toBeGreaterThan(warm)
+  })
+  it('does not touch coverage', () => {
+    expect(scorePartner({ ...b, contact: 'warm' }).coverage).toBe(scorePartner(b).coverage)
+  })
+})
+
 describe('scales', () => {
   it('log scale clamps', () => { expect(logScale(1, 1000, 1e6)).toBe(0); expect(logScale(1e9, 1000, 1e6)).toBe(1); expect(logScale(null, 1, 2)).toBeNull() })
 })

@@ -71,12 +71,22 @@ export interface ScoreInput {
   /** The college's deal status in the CRM. */
   dealStatus?: string | null
   /**
+   * The strongest contact we have at the college, whatever their priority or
+   * role: 'hot' (HOT warmth), 'warm' (WARM warmth or a first-degree connection),
+   * 'any' (someone in the CRM works there).
+   */
+  contactStrength?: ContactStrength | null
+  /**
    * Facts from CollegeProfile (alumni, budget, outcomes, programs). When given,
    * they add a part worth up to 20 and the five parts are rescaled to 100, so
    * tier cut-offs keep their meaning. Left out, the score is unchanged.
    */
   profile?: CollegeFacts | null
 }
+
+export type ContactStrength = 'hot' | 'warm' | 'any'
+/** What a contact is worth, outside the 100: a warm one helps a lot, any one helps a little. */
+export const CONTACT_POINTS: Record<ContactStrength, number> = { hot: 25, warm: 20, any: 5 }
 
 export interface CollegeFacts {
   /** Reported alumni, else the estimate from annual degrees. */
@@ -180,7 +190,10 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   // at least — community colleges included, since you chose them.
   const byPriority: Record<string, number> = { P0: 40, P1: 30, P2: 15 }
   const byDeal: Record<string, number> = { CUSTOMER: 40, PILOT: 40, PROPOSAL: 30, IN_CONVERSATION: 30, CONTACTED: 15, PROSPECT: 5 }
-  const relationship = Math.max(c.relationship ? byPriority[c.relationship] ?? 0 : 0, c.dealStatus ? byDeal[c.dealStatus] ?? 0 : 0)
+  const byContact = c.contactStrength ? CONTACT_POINTS[c.contactStrength] : 0
+  const relationship = Math.max(c.relationship ? byPriority[c.relationship] ?? 0 : 0, c.dealStatus ? byDeal[c.dealStatus] ?? 0 : 0, byContact)
+  if (c.contactStrength === 'hot' || c.contactStrength === 'warm') notes.push('Warm contact in the CRM')
+  else if (c.contactStrength === 'any') notes.push('A contact in the CRM')
   if (c.relationship) notes.push(`${c.relationship} contact in the CRM`)
   if (c.dealStatus) notes.push(`Deal: ${c.dealStatus.toLowerCase().replace(/_/g, ' ')}`)
 
