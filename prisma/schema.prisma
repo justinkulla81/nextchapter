@@ -12481,3 +12481,17 @@ model SearchRequest {
 
   @@index([status, createdAt])
 }
+
+/// Where a company is headquartered, when nothing better is known. Filled by
+/// scripts/geo/fill-company-hq.ts from a language model's own knowledge (no
+/// web), so every row carries a confidence; "unknown" rows have no city/state.
+model CompanyHq {
+  companyId  String   @id
+  city       String?
+  state      String?
+  confidence String // high | medium | unknown
+  source     String
+  checkedAt  DateTime @default(now())
+
+  @@index([state])
+}

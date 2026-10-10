@@ -99,23 +99,26 @@ async function main() {
   }
   console.log(`researched orgs with data: ${enrich.size}`)
 
-  const stateEdoFiles = existsSync(rdir) ? readdirSync(rdir).filter((f) => /^state-edo-\d+\.json$/.test(f)) : []
+  // Hand-collected files first, the API run (state-edo-api.json) last so it wins on a shared id.
+  const stateEdoFiles = existsSync(rdir) ? readdirSync(rdir).filter((f) => /^state-edo-[\w-]+\.json$/.test(f)).sort((a, b) => Number(a.includes('api')) - Number(b.includes('api')) || a.localeCompare(b)) : []
   type StateFile = { states: Record<string, { stateAgency?: Record<string, string | null> | null; localEdos?: Record<string, string | null>[] }> }
+  const stateById = new Map<string, (typeof eddRows)[number]>()
   const stateRows: typeof eddRows = []
   for (const f of stateEdoFiles) {
     const j = JSON.parse(readFileSync(path.join(rdir, f), 'utf8')) as StateFile
     for (const [st, v] of Object.entries(j.states ?? {})) {
       const a = v.stateAgency
-      if (a?.name) stateRows.push({ id: `state-${st}`, kind: 'STATE_AGENCY', name: a.name, abbrev: null, state: st, city: null, counties: [], countiesText: null, website: a.website ?? null,
+      if (a?.name) stateById.set(`state-${st}`, { id: `state-${st}`, kind: 'STATE_AGENCY', name: a.name, abbrev: null, state: st, city: null, counties: [], countiesText: null, website: a.website ?? null,
         contactName: a.contactName ?? a.leaderName ?? null, contactTitle: a.contactTitle ?? a.leaderTitle ?? null, email: a.email ?? null, phone: a.phone ?? null, source: 'STATE_AGENCY_DIRECTORY', sourceUrl: a.sourceUrl ?? null, confidence: 'medium' })
-      for (const [i, e] of (v.localEdos ?? []).entries()) {
+      for (const e of v.localEdos ?? []) {
         if (!e.name) continue
-        stateRows.push({ id: `edo-${st}-${i}-${countyKey(e.name).slice(0, 24)}`, kind: 'LOCAL_EDO', name: e.name, abbrev: null, state: st, city: e.city ?? null,
+        stateById.set(`edo-${st}-${countyKey(e.name).slice(0, 40)}`, { id: `edo-${st}-${countyKey(e.name).slice(0, 40)}`, kind: 'LOCAL_EDO', name: e.name, abbrev: null, state: st, city: e.city ?? null,
           counties: e.county ? [countyKey(e.county)] : [], countiesText: e.county ?? null, website: e.website ?? null, contactName: e.contactName ?? null, contactTitle: e.contactTitle ?? null,
-          email: e.email ?? null, phone: e.phone ?? null, source: 'STATE_AGENCY_DIRECTORY', sourceUrl: e.sourceUrl ?? null, confidence: 'low' })
+          email: e.email ?? null, phone: e.phone ?? null, source: 'STATE_AGENCY_DIRECTORY', sourceUrl: e.sourceUrl ?? null, confidence: f.includes('api') ? 'medium' : 'low' })
       }
     }
   }
+  stateRows.push(...stateById.values())
   console.log(`state agencies + local EDOs from research: ${stateRows.length}`)
 
   if (!apply) { console.log('dry run — pass --apply to write'); return }

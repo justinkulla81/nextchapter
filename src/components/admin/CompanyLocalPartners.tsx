@@ -33,7 +33,7 @@ export async function CompanyLocalPartners({ companyId }: { companyId: string })
             <h3 className="font-semibold text-foreground">
               {p.area.name}, {p.area.state}
               <span className="ml-2 text-xs font-normal text-muted-foreground">
-                {areas[i].via === 'layoff-notice' ? 'from a layoff notice' : areas[i].via === 'job-posting' ? `job posting in ${areas[i].detail ?? ''}` : `CRM headquarters ${areas[i].detail ?? ''}`}
+                {areas[i].via === 'layoff-notice' ? 'from a layoff notice' : areas[i].via === 'job-posting' ? `job posting in ${areas[i].detail ?? ''}` : areas[i].via === 'company-hq' ? `estimated headquarters ${areas[i].detail ?? ''}` : `CRM headquarters ${areas[i].detail ?? ''}`}
               </span>
             </h3>
             <div>

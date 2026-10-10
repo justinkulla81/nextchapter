@@ -8,7 +8,7 @@ export interface CompanyArea {
   areaId: string
   state: string
   county: string
-  via: 'layoff-notice' | 'crm-headquarters' | 'job-posting'
+  via: 'layoff-notice' | 'crm-headquarters' | 'job-posting' | 'company-hq'
   detail: string | null
 }
 
@@ -71,6 +71,12 @@ export async function areasForCompany(companyId: string): Promise<CompanyArea[]>
       const m = p.location?.trim().match(CITY_STATE)
       if (m) add(await countyForPlace(m[1], m[2]), 'job-posting', p.location)
     }
+  }
+  // Last resort: the headquarters a language model supplied (high/medium only).
+  if (out.size === 0) {
+    const [hq] = await prisma.$queryRaw<{ city: string | null; state: string | null }[]>`
+      select city, state from "CompanyHq" where "companyId" = ${companyId} and confidence in ('high', 'medium') and state is not null limit 1`
+    if (hq?.city && hq.state) add(await countyForPlace(hq.city, hq.state), 'company-hq', `${hq.city}, ${hq.state}`)
   }
   return [...out.values()]
 }
