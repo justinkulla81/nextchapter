@@ -10788,6 +10788,10 @@ model WorkforceBoard {
   newsCheckedAt     DateTime?
 
   @@index([state])
+
+  fitScore     Float?
+  fitBreakdown Json?
+  fitScoredAt  DateTime?
 }
 
 /// A county's labor force and unemployment from the BLS Local Area
@@ -12310,6 +12314,10 @@ model GeoOrgLead {
   @@index([geoAreaId])
   @@index([kind, state])
   @@index([revenue(sort: Desc)])
+
+  fitScore     Float?
+  fitBreakdown Json?
+  fitScoredAt  DateTime?
 }
 
 model PitchRuleSet {
@@ -12345,6 +12353,10 @@ model AmericanJobCenter {
   @@index([state])
   @@index([countyFips])
   @@index([workforceBoardId])
+
+  fitScore     Float?
+  fitBreakdown Json?
+  fitScoredAt  DateTime?
 }
 
 /// A government or regional economic-development body that is not an IRS
@@ -12371,6 +12383,10 @@ model LocalPartnerOrg {
   updatedAt    DateTime @default(now()) @updatedAt
 
   @@index([kind, state])
+
+  fitScore     Float?
+  fitBreakdown Json?
+  fitScoredAt  DateTime?
 }
 
 // A company an institution's career or advancement team has flagged as a target:
@@ -12610,4 +12626,53 @@ model AdzunaApiUsage {
   bucket    String   @id
   count     Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+/// The facts about one degree-granting US college (IPEDS Finance, IC and
+/// Completions + College Scorecard), keyed by UNITID like LocalCollege. Scored
+/// by college-score.ts. Alumni counts are estimates unless
+/// alumniReported is set; hasExecEd / hasRetraining stay null until researched.
+model CollegeProfile {
+  unitid               String    @id
+  name                 String
+  city                 String?
+  state                String
+  zip                  String?
+  countyFips           String?
+  website              String?
+  control              String?
+  level                String?
+  presidentName        String?
+  presidentTitle       String?
+  phone                String?
+  enrollment           Int?
+  annualAwards         Int?
+  alumniEstimate       Int?
+  alumniEstimateMethod String?
+  alumniReported       Int?
+  tuitionInState       Int?
+  tuitionOutState      Int?
+  netPrice             Int?
+  topMajors            Json?
+  endowment            Float?
+  revenue              Float?
+  expenses             Float?
+  privateGifts         Float?
+  onlineGiving         Float?
+  earnings6            Int?
+  earnings10           Int?
+  employedShare10      Float?
+  completionRate       Float?
+  hasExecEd            Boolean?
+  hasRetraining        Boolean?
+  programNotes         String?
+  careerContactName    String?
+  careerContactEmail   String?
+  alumniContactName    String?
+  alumniContactEmail   String?
+  dataYear             String?
+  researchedAt         DateTime?
+  updatedAt            DateTime  @default(now())
+
+  @@index([state])
 }

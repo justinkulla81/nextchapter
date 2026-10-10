@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { boardCountyKeys } from './board-area'
 import { isCompanyWide } from './board-report'
-import { scoreCollege } from './college-score'
+import { scoreCollege, type CollegeFacts } from './college-score'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 
@@ -44,7 +44,7 @@ const better = (a: Priority | null, b: Priority | null): Priority | null =>
  */
 export async function rankColleges(): Promise<{ ranked: number; tiers: Record<string, number> }> {
   const since = new Date(Date.now() - 365 * 86_400_000)
-  const [colleges, contacts, boards, notices, orgs, affiliations, prioritized] = await Promise.all([
+  const [colleges, contacts, boards, notices, orgs, affiliations, prioritized, factRows] = await Promise.all([
     prisma.localCollege.findMany({
       select: {
         id: true, name: true, website: true, crmOrgId: true,
@@ -66,7 +66,12 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
       where: { deletedAt: null, priority: { not: null }, roles: { hasSome: [...RELATIONSHIP_ROLES] } },
       select: { priority: true, email: true, emails: true },
     }),
+    // Facts from scripts/geo/load-colleges.ts; an empty table just leaves scores as they were.
+    prisma.$queryRaw<{ unitid: string; alumni: number | null; expenses: number | null; endowment: number | null; privateGifts: number | null; earnings10: number | null; employedShare10: number | null; hasExecEd: boolean | null; hasRetraining: boolean | null }[]>`
+      select "unitid", coalesce("alumniReported", "alumniEstimate") as alumni, expenses, endowment, "privateGifts", earnings10, "employedShare10", "hasExecEd", "hasRetraining" from "CollegeProfile"`
+      .catch(() => []),
   ])
+  const facts = new Map<string, CollegeFacts>(factRows.map((r) => [r.unitid, r]))
   // The college's organization in the CRM: the one it is linked to, or one of the same name.
   const orgById = new Map(orgs.map((o) => [o.id, o]))
   const orgByKey = new Map(orgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o]))
@@ -103,7 +108,7 @@ export async function rankColleges(): Promise<{ ranked: number; tiers: Record<st
     const relationship = better(org ? bestByOrg.get(org.id) ?? null : null, domain ? bestAtDomain(domain) : null)
     return {
       id: c.id, crmOrgId: org?.id ?? null, relationship,
-      ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null }),
+      ...scoreCollege({ ...c, contacts: contactsByCollege.get(c.id) ?? [], areaJobsLost, relationship, dealStatus: org?.dealStatus ?? null, profile: facts.get(c.id) ?? null }),
     }
   // Relationships first — a P0 contact or a pilot/customer, then P1 or a live
   // deal, then P2 or first contact — then tier, so a community college held

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
+import { CrmCollegeProfile } from '@/components/admin/CrmCollegeProfile'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
@@ -89,6 +90,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         </p>
         {org.focus && <p className="mt-3 max-w-3xl text-sm">{org.focus}</p>}
       </header>
+
+      <CrmCollegeProfile orgId={org.id} />
 
       {org.investorProfile && (
         <section className="rounded-lg border border-border p-4">

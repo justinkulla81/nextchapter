@@ -70,6 +70,24 @@ export interface ScoreInput {
   relationship?: 'P0' | 'P1' | 'P2' | null
   /** The college's deal status in the CRM. */
   dealStatus?: string | null
+  /**
+   * Facts from CollegeProfile (alumni, budget, outcomes, programs). When given,
+   * they add a part worth up to 20 and the five parts are rescaled to 100, so
+   * tier cut-offs keep their meaning. Left out, the score is unchanged.
+   */
+  profile?: CollegeFacts | null
+}
+
+export interface CollegeFacts {
+  /** Reported alumni, else the estimate from annual degrees. */
+  alumni: number | null
+  expenses: number | null
+  endowment: number | null
+  privateGifts: number | null
+  earnings10: number | null
+  employedShare10: number | null
+  hasExecEd: boolean | null
+  hasRetraining: boolean | null
 }
 
 export interface ScoreParts {
@@ -77,6 +95,8 @@ export interface ScoreParts {
   fit: number
   size: number
   interest: number
+  /** Alumni base, budget and giving, graduate outcomes, programs: up to 20 before rescaling (0 when no facts). */
+  profile?: number
   /** Added for an existing relationship or deal, outside the 100. */
   relationship: number
   notes: string[]
@@ -91,6 +111,35 @@ function programFit(carnegie: number | null, sector: number | null): number {
   if (carnegie === 23) return 6 // mixed baccalaureate/associate's
   if (carnegie <= 14) return 0 // community colleges
   return 5 // faith, medical, arts, law and other special focus
+}
+
+
+const logFrac = (v: number | null | undefined, lo: number, hi: number): number | null =>
+  v == null || !(v > 0) ? null : Math.min(1, Math.max(0, (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))))
+
+/**
+ * The college's own facts, up to 20: alumni base 8 (more graduates is a bigger
+ * pool of people who will need this), money to act with 6 (budget, endowment,
+ * private gifts), weak graduate outcomes 2 (an opening for career help), and
+ * 2 each for an executive-education and a retraining arm (already sells to
+ * working adults). A fact we do not have scores a neutral 40% of its share and
+ * is listed in the notes, so an unresearched college never beats a researched
+ * one on ignorance alone.
+ */
+export function profilePart(f: CollegeFacts, notes: string[]): number {
+  const N = 0.4
+  const alumni = logFrac(f.alumni, 2_000, 300_000)
+  const money = (() => {
+    const e = logFrac(f.expenses, 10e6, 3e9), en = logFrac(f.endowment, 1e6, 10e9), g = logFrac(f.privateGifts, 1e6, 1e9)
+    return e === null && en === null && g === null ? null : 0.6 * (e ?? 0.3) + 0.25 * (en ?? 0.2) + 0.15 * (g ?? 0.2)
+  })()
+  const gap = f.employedShare10 == null ? null : 1 - Math.min(1, Math.max(0, (f.employedShare10 - 0.6) / 0.3))
+  const flag = (v: boolean | null) => (v == null ? N : v ? 1 : 0)
+  if (f.alumni) notes.push(`${f.alumni.toLocaleString()} alumni (estimated unless reported)`)
+  if (f.hasExecEd) notes.push('Has an executive-education program')
+  if (f.hasRetraining) notes.push('Runs retraining programs')
+  if (f.employedShare10 != null && gap !== null && gap > 0.6) notes.push(`Only ${Math.round(f.employedShare10 * 100)}% of entrants working at 10 years`)
+  return Math.round((8 * (alumni ?? N) + 6 * (money ?? N) + 2 * (gap ?? N) + 2 * flag(f.hasExecEd) + 2 * flag(f.hasRetraining)) * 10) / 10
 }
 
 export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts; tier: 'A' | 'B' | 'C' } {
@@ -133,9 +182,12 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   if (c.relationship) notes.push(`${c.relationship} contact in the CRM`)
   if (c.dealStatus) notes.push(`Deal: ${c.dealStatus.toLowerCase().replace(/_/g, ' ')}`)
 
-  const score = Math.round((contacts + fit + size + interest + relationship) * 10) / 10
+  // With facts the five parts run to 120, so rescale them to the same 100.
+  const profile = c.profile ? profilePart(c.profile, notes) : 0
+  const body = contacts + fit + size + interest
+  const score = Math.round(((c.profile ? ((body + profile) * 100) / 120 : body) + relationship) * 10) / 10
   const base = isCommunityCollege(c) ? 'C' : score >= 60 ? 'A' : score >= 45 ? 'B' : 'C'
   const floor = relationship >= 30 ? 'A' : relationship >= 15 ? 'B' : 'C'
   const tier = (base < floor ? base : floor) as 'A' | 'B' | 'C'
-  return { score, parts: { contacts, fit, size, interest, relationship, notes }, tier }
+  return { score, parts: { contacts, fit, size, interest, ...(c.profile ? { profile } : {}), relationship, notes }, tier }
 }

@@ -75,6 +75,16 @@ async function main() {
     byOrg.set(o.orgId!, Math.max(byOrg.get(o.orgId!) ?? 0, s))
   }
 
+  // ── colleges: the pilot-partner score (src/lib/workforce/college-score.ts) ──
+  // A college has no opportunity yet, so it would sit at 0 and never reach the
+  // queue. Its score (contacts, fit, size, interest, alumni/budget/programs,
+  // and any relationship) puts it on this scale at 60%: a top college ranks
+  // with a well-qualified lead, never above one with a live deadline.
+  const COLLEGE_WEIGHT = 0.6
+  const colleges = await prisma.$queryRaw<{ orgId: string; score: number }[]>`
+    select "crmOrgId" as "orgId", score from "LocalCollege" where "crmOrgId" is not null and score is not null`
+  for (const c of colleges) byOrg.set(c.orgId, Math.max(byOrg.get(c.orgId) ?? 0, Math.round(c.score * COLLEGE_WEIGHT * 10) / 10))
+
   // ── people ──
   //
   // A person's own attributes barely discriminate: with no deadline, no stage
