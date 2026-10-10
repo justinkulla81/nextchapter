@@ -13,10 +13,22 @@ import { displayCompanyName } from '@/lib/text/org-name-match'
 
 async function main() {
   const write = process.argv.includes('--write')
-  const rows = await prisma.exclusiveJobPosting.findMany({
-    where: { archivedAt: null, addedBy: { in: ['ats_feed', 'ncrawl'] } },
-    select: { id: true, title: true, level: true, companyName: true, addedBy: true, location: true },
-  })
+  // Read in pages: one findMany over the whole board drops the connection.
+  type Row = { id: string; title: string; level: string | null; companyName: string; addedBy: string | null; location: string | null }
+  const rows: Row[] = []
+  for (let cursor: string | undefined; ; ) {
+    const page: Row[] = await prisma.exclusiveJobPosting.findMany({
+      where: { archivedAt: null, addedBy: { in: ['ats_feed', 'ncrawl'] } },
+      select: { id: true, title: true, level: true, companyName: true, addedBy: true, location: true },
+      orderBy: { id: 'asc' },
+      take: 5000,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    })
+    rows.push(...page)
+    if (page.length < 5000) break
+    cursor = page[page.length - 1].id
+  }
+
 
   const renames = rows
     .filter((r) => r.addedBy === 'ncrawl' && displayCompanyName(r.companyName) !== r.companyName)
