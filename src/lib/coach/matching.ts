@@ -2,11 +2,10 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getSentimentAlert } from '@/lib/daily/mood'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { coachMatchesSeniority } from '@/lib/scoring/level-rank'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 import { isActiveMember } from '@/lib/membership/subscription'
-
-const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
+import { scoreCoachFit } from '@/lib/coach/fit'
+import { isCoachingStyle, type CoachingStyle } from '@/lib/coach/coaching-style'
 
 export interface CoachShortlistEntry {
   id: string
@@ -16,6 +15,8 @@ export interface CoachShortlistEntry {
   industries: string[]
   seniorityFit: string[]
   certifications: string[]
+  /** Why this coach was suggested, in the member's terms, best first. */
+  reasons: string[]
 }
 
 // Coach-Candidate Matching System, Phase 1. Runs on stated
@@ -34,6 +35,11 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       where: { id: candidateId },
       select: {
         primaryFunction: true,
+        secondaryFunction: true,
+        targetFunction: true,
+        targetIndustries: true,
+        skillsToBuild: true,
+        coachingStyleResponse: { select: { topStyles: true } },
         highestLevelReached: true,
         coachGenderPreference: true,
         coachLanguagePreference: true,
@@ -57,6 +63,9 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       industries: true,
       seniorityFit: true,
       certifications: true,
+      functions: true,
+      skills: true,
+      coachingStyles: true,
       specializationTags: true,
       gender: true,
       languages: true,
@@ -105,20 +114,29 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     }),
   ])
 
+  const member = {
+    primaryFunction: candidate.primaryFunction,
+    secondaryFunction: candidate.secondaryFunction ?? candidate.targetFunction,
+    industries: candidate.targetIndustries,
+    levelRankScore: levelRank.score,
+    skillsWanted: candidate.skillsToBuild,
+    styleTop: (candidate.coachingStyleResponse?.topStyles ?? []).filter(isCoachingStyle) as CoachingStyle[],
+    lowSentiment,
+  }
+  const weights = {
+    function: settings.matchWeightFunctionIndustry,
+    industry: Math.max(1, Math.round(settings.matchWeightFunctionIndustry * 0.66)),
+    seniority: settings.matchWeightSeniorityLevel,
+    skill: 1,
+    style: settings.matchWeightStyle,
+    highNeed: settings.matchWeightHighNeedBoost,
+  }
+
   const scored = pool.map((coach) => {
-    let score = 0
-    if (candidate.primaryFunction && coach.industries.includes(candidate.primaryFunction)) {
-      score += settings.matchWeightFunctionIndustry
-    }
-    if (levelRank.score !== null && coachMatchesSeniority(coach.seniorityFit, levelRank.score)) {
-      score += settings.matchWeightSeniorityLevel
-    }
-    // A struggling candidate's shortlist is weighted toward coaches who've
-    // tagged comfort with high-need candidates — never exposed to the coach
-    // as a raw flag, just reflected in ranking order.
-    if (lowSentiment && coach.specializationTags.includes(HIGH_NEED_TAG)) {
-      score += settings.matchWeightHighNeedBoost
-    }
+    // A struggling member's shortlist is weighted toward coaches who've tagged comfort
+    // with high-need members — never exposed to the coach as a flag, only ranking order.
+    const fit = scoreCoachFit(member, coach, weights)
+    let score = fit.score
     // Phase 8, §A2.4 "priority coach booking" — a Membership perk, not a
     // quality/grade signal (same exemption class as levelRankScore, see this
     // function's header comment). Boosted toward coaches with real capacity
@@ -131,12 +149,12 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       const headroom = Math.max(0, 1 - coach._count.clients / settings.coachMaxActiveClients)
       score += settings.matchWeightMembershipPriorityBoost * headroom
     }
-    return { coach, score }
+    return { coach, score, reasons: fit.reasons }
   })
 
   scored.sort((a, b) => b.score - a.score)
 
-  return scored.slice(0, settings.matchShortlistSize).map(({ coach }) => ({
+  return scored.slice(0, settings.matchShortlistSize).map(({ coach, reasons }) => ({
     id: coach.id,
     fullName: coach.fullName,
     firmName: coach.firmName,
@@ -144,5 +162,6 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     industries: coach.industries,
     seniorityFit: coach.seniorityFit,
     certifications: coach.certifications,
+    reasons: reasons.slice(0, 3),
   }))
 }

@@ -1660,6 +1660,8 @@ model CandidateProfile {
   @@index([currentState, currentCity])
 
   undatedEmployment UndatedEmployment[]
+
+  coachingStyleResponse CoachingStyleResponse?
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -4857,6 +4859,16 @@ model Coach {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmPersonLinks CrmPerson[]
+
+  // What this coach is strongest at, beyond the older industries / seniorityFit fields.
+  // functions: PRIMARY_FUNCTION_OPTIONS values this coach works in (matching used to compare
+  // a member's function against `industries`, which only worked if a coach typed one in).
+  functions      String[] @default([])
+  // Free-form skills this coach is strong in (e.g. "negotiation", "executive presence").
+  skills         String[] @default([])
+  // The styles this coach actually delivers: a subset of COACHING_STYLES
+  // (PUSH, SUPPORT, ACCOUNTABILITY, STRATEGY, PRACTICAL, SPACE) in src/lib/coach/coaching-style.ts.
+  coachingStyles String[] @default([])
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -7411,7 +7423,7 @@ model CoachingSettings {
   matchWeightSeniorityLevel          Int @default(2)
   matchWeightHighNeedBoost           Int @default(4)
   matchWeightTimezone                Int @default(0)
-  matchWeightStyle                   Int @default(0)
+  matchWeightStyle                   Int @default(3)
   // Phase 8, §A2.4 "priority coach booking" -- an additive boost, never a
   // quality/grade signal, applied only to candidates with an ACTIVE
   // MembershipSubscription.priorityCoachBooking flag. See the invariant
@@ -12693,4 +12705,20 @@ model CollegeProfile {
   updatedAt            DateTime  @default(now())
 
   @@index([state])
+}
+
+// What a member wants from a coach (pushed, supported, held accountable...), from a short
+// assessment. itemRatings is {itemId: 1-4} for the items in COACHING_STYLE_ITEMS
+// (src/lib/coach/coaching-style.ts); topStyles is the derived result (at most two, strongest
+// first; empty when they expressed no real preference). Used to match them with a coach who
+// delivers those styles. Private to the member and the matching code: never shown to a coach
+// as a score, only reflected in who is suggested and why.
+model CoachingStyleResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  itemRatings Json
+  topStyles   String[]         @default([])
+  completedAt DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }

@@ -6,6 +6,15 @@ import { generateCoachShortlist } from '@/lib/coach/matching'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
 import { submitCoachPreferences, selectCoach } from './actions'
+import { COACHING_STYLE_ITEMS } from '@/lib/coach/coaching-style'
+import { prisma } from '@/lib/prisma'
+
+const RATING_CHOICES = [
+  { value: 1, label: 'Not me' },
+  { value: 2, label: 'A little' },
+  { value: 3, label: 'Mostly' },
+  { value: 4, label: 'Very me' },
+]
 
 export const metadata: Metadata = { title: 'Coach Matching' }
 
@@ -27,6 +36,13 @@ async function CoachShortlist({ candidateId }: { candidateId: string }) {
           <p className="text-sm text-muted-foreground">
             {coach.firmName ?? 'Independent'} · {coach.focus}
           </p>
+          {coach.reasons.length > 0 && (
+            <ul className="mt-2 space-y-0.5 text-sm text-foreground">
+              {coach.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          )}
           {coach.industries.length > 0 && (
             <p className="mt-1 text-xs text-muted-foreground">Industries: {coach.industries.join(', ')}</p>
           )}
@@ -69,6 +85,11 @@ export default async function CoachingMatchPage({
   const showShortlist = params.step === 'shortlist'
 
   if (!showShortlist) {
+    const saved = await prisma.coachingStyleResponse.findUnique({
+      where: { candidateId: profile.id },
+      select: { itemRatings: true },
+    })
+    const savedRatings = (saved?.itemRatings ?? {}) as Record<string, number>
     return (
       <div className="mx-auto max-w-lg space-y-6">
         <div className="space-y-1">
@@ -134,6 +155,35 @@ export default async function CoachingMatchPage({
               className={selectClass}
             />
           </div>
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-foreground">What do you want from a coach?</legend>
+            <p className="text-sm text-muted-foreground">
+              Tell us how much each sounds like you. We use this only to suggest coaches who work the way you
+              want; skip any you like.
+            </p>
+            {COACHING_STYLE_ITEMS.map((item) => (
+              <div key={item.id} className="space-y-1.5">
+                <p className="text-sm text-foreground">{item.text}</p>
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={item.text}>
+                  {RATING_CHOICES.map((c) => (
+                    <label
+                      key={c.value}
+                      className="cursor-pointer rounded-md border border-input px-3 py-1.5 text-sm has-[:checked]:border-ring has-[:checked]:bg-muted"
+                    >
+                      <input
+                        type="radio"
+                        name={`style-${item.id}`}
+                        value={c.value}
+                        defaultChecked={savedRatings[item.id] === c.value}
+                        className="sr-only"
+                      />
+                      {c.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </fieldset>
           <SubmitButton pendingLabel="Finding coaches…">See my matches</SubmitButton>
         </form>
       </div>

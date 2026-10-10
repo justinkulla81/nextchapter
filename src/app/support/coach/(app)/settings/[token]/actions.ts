@@ -7,6 +7,8 @@ import { getCoachByToken } from '@/lib/coach/access'
 import { ACCENT_COLOR_OPTIONS } from '@/lib/constants/coach-branding'
 import { saveCoachTemplate, type EffectiveTemplateQuestion } from '@/lib/coach/onboarding-form'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { COACHING_STYLES } from '@/lib/coach/coaching-style'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 
@@ -111,4 +113,51 @@ export async function removeMyProfilePicture(token: string): Promise<void> {
   await prisma.coach.update({ where: { id: coach.id }, data: { profilePictureUrl: null } })
   captureServerEvent(coach.id, 'profile_picture_removed')
   revalidatePath(`/support/coach/settings/${token}`)
+}
+
+const GENDER_VALUES = ['female', 'male', 'nonbinary']
+const only = <T extends string>(values: FormDataEntryValue[], allowed: readonly T[]): T[] =>
+  allowed.filter((a) => values.includes(a))
+const tags = (raw: FormDataEntryValue | null, max = 15): string[] =>
+  [...new Set(String(raw ?? '').split(/[,\n]/).map((t) => t.trim()).filter((t) => t.length > 0 && t.length <= 60))].slice(0, max)
+
+export type SpecialtiesFormState = { error?: string; saved?: boolean } | undefined
+
+// What the coach is strongest at, so members are matched on it (see scoreCoachFit in
+// src/lib/coach/fit.ts). Everything is optional and validated against the same option lists
+// the member side uses, so a typo can never silently fail to match.
+export async function updateCoachSpecialties(
+  token: string,
+  _prevState: SpecialtiesFormState,
+  formData: FormData
+): Promise<SpecialtiesFormState> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return { error: 'This link isn’t valid.' }
+
+  const gender = String(formData.get('gender') ?? '')
+  if (gender && !GENDER_VALUES.includes(gender)) return { error: 'Please choose one of the listed options.' }
+
+  const functions = only(formData.getAll('functions'), PRIMARY_FUNCTION_OPTIONS)
+  const seniorityFit = only(formData.getAll('seniorityFit'), HIGHEST_LEVEL_OPTIONS)
+  const coachingStyles = only(formData.getAll('coachingStyles'), COACHING_STYLES)
+
+  await prisma.coach.update({
+    where: { id: coach.id },
+    data: {
+      functions,
+      seniorityFit,
+      coachingStyles,
+      industries: tags(formData.get('industries')),
+      skills: tags(formData.get('skills')),
+      gender: gender || null,
+    },
+  })
+
+  captureServerEvent(coach.id, 'coach_specialties_saved', {
+    functionCount: functions.length,
+    seniorityCount: seniorityFit.length,
+    styleCount: coachingStyles.length,
+  })
+  revalidatePath(`/support/coach/settings/${token}`)
+  return { saved: true }
 }

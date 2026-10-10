@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getCoachByToken } from '@/lib/coach/access'
 import { CoachBrandingForm } from '@/components/coach/CoachBrandingForm'
+import { CoachSpecialtiesForm } from '@/components/coach/CoachSpecialtiesForm'
 import { OnboardingTemplateEditor } from '@/components/coach/OnboardingTemplateEditor'
 import { getCoachTemplate } from '@/lib/coach/onboarding-form'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
@@ -43,6 +44,16 @@ export default async function CoachSettingsPage({
       </div>
 
       <CoachBrandingForm token={token} coach={coach} />
+
+      <div className="mt-10 mb-6 space-y-1 border-t border-border pt-8">
+        <p className="text-sm font-medium text-muted-foreground">Matching</p>
+        <h2 className="text-2xl font-semibold tracking-tight">Your specialties</h2>
+        <p className="text-muted-foreground">
+          Members are matched to you on these: how you coach, the functions, levels and industries you
+          know, and the skills you are strongest at.
+        </p>
+      </div>
+      <CoachSpecialtiesForm token={token} coach={coach} />
 
       <div className="mt-8 space-y-3 border-t border-border pt-8">
         <div>
