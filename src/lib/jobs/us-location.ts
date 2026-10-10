@@ -164,7 +164,7 @@ export function displayJobLocation(location: string | null): string | null {
 
 const US_STATE_CODE_PATTERN =
   'AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC'
-const CLEARLY_US = new RegExp(`\\b(united states|usa|u\\.s\\.a?\\.?)\\b|,\\s*(${US_STATE_CODES})\\b`, 'i')
+const CLEARLY_US = new RegExp(`\\b(united states|usa|u\\.s\\.a?\\.?)\\b|,\\s*(${US_STATE_CODE_PATTERN})\\b`, 'i')
 
 /**
  * A location that says outright it's in the US ("Dresher, PA", "Remote,

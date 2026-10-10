@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classifyLocation, isUsLocation } from '@/lib/jobs/us-location'
+import { classifyLocation, isClearlyUsLocation, isUsLocation } from '@/lib/jobs/us-location'
 
 const us = (l: string) => expect(classifyLocation(l), l).toBe('us')
 const non = (l: string) => expect(classifyLocation(l), l).toBe('non_us')
@@ -85,3 +85,17 @@ describe('unknown is kept but never called US', () => {
     expect(isUsLocation('Bengaluru')).toBe(false)
   })
 })
+
+describe('isClearlyUsLocation (used by the import screen alongside classifyLocation)', () => {
+  it('trusts an explicit US signal, by state code or name', () => {
+    expect(isClearlyUsLocation('Dresher, PA')).toBe(true)
+    expect(isClearlyUsLocation('Remote, United States')).toBe(true)
+    expect(isClearlyUsLocation('Rome, NY')).toBe(true)
+  })
+  it('does not trust a bare or foreign location', () => {
+    expect(isClearlyUsLocation('Bengaluru')).toBe(false)
+    expect(isClearlyUsLocation('Remote')).toBe(false)
+    expect(isClearlyUsLocation(null)).toBe(false)
+  })
+})
+
