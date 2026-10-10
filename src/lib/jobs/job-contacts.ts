@@ -2,34 +2,43 @@ import 'server-only'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { classifyContactRole, type ContactRole } from '@/lib/jobs/contact-role'
 
 /**
  * Who a member should contact about a job:
- * - the search firm, for a recruiter-led search (the source we found it on);
- * - recruiters in our CRM at that employer — recruiting / talent-acquisition
- *   titles, real email addresses only (never a guessed one), and never a
- *   person we're working ourselves (any CRM priority, or a BD / sales /
- *   fundraising goal), so members don't land in Justin's own pipeline;
- * - a LinkedIn people search for recruiters there, for everything else.
+ *  - the search firm, for a recruiter-led search (public: it's the source we found it on);
+ *  - people THE MEMBER ALREADY KNOWS at that employer — their own contacts (LinkedIn
+ *    export, calendar, manual) — who are a recruiter, or a leader in the job's function;
+ *  - a LinkedIn people search for recruiters there, for everything else.
+ *
+ * Deliberately NOT here: anyone from NextChapter's CRM. A candidate never sees CRM
+ * data, and CRM contacts never agreed to be handed to members. An earlier version
+ * listed CRM recruiters' real emails; that source is gone, and the wall test
+ * (src/test/company-wall.test.ts) now fails if a CRM table is read here again.
+ *
+ * The contacts returned are the member's own data, matched against only the member's
+ * own list — nothing here crosses to another member.
  */
 
 export interface JobContact {
+  id: string
   name: string
   title: string | null
-  email: string
+  role: ContactRole
+  email: string | null
+  linkedinUrl: string | null
 }
 
 export interface JobContacts {
   firm: { name: string; url: string | null } | null
-  recruiters: JobContact[]
+  /** The member's own contacts at this employer, recruiters first. */
+  known: JobContact[]
   linkedinSearchUrl: string
 }
 
-const RECRUITER_TITLE = /\b(recruit\w*|talent acquisition|talent partner|sourc(er|ing)|staffing|head of talent|talent lead)\b/i
-const OUR_PIPELINE_GOALS = new Set(['BD', 'SALES', 'FUNDRAISING'])
-const MAX_PER_COMPANY = 3
+const MAX_KNOWN = 3
 
-type ContactPosting = Pick<ExclusiveJobPosting, 'id' | 'companyName' | 'sourceCategory' | 'sourceName' | 'url' | 'disclosure'>
+type ContactPosting = Pick<ExclusiveJobPosting, 'id' | 'title' | 'companyName' | 'sourceCategory' | 'sourceName' | 'url' | 'disclosure'>
 
 function originOf(url: string): string | null {
   try {
@@ -39,39 +48,51 @@ function originOf(url: string): string | null {
   }
 }
 
-export async function loadJobContacts(postings: ContactPosting[]): Promise<Map<string, JobContacts>> {
-  const affiliations = await prisma.crmAffiliation.findMany({
+export async function loadJobContacts(postings: ContactPosting[], candidateId: string): Promise<Map<string, JobContacts>> {
+  // Only contacts with a title and an employer can be classified or matched, which also
+  // keeps a 27,000-row LinkedIn export down to the few that matter.
+  const mine = await prisma.supportNetworkContact.findMany({
     where: {
-      isCurrent: true,
-      OR: ['recruit', 'talent', 'sourc', 'staffing'].map((w) => ({ title: { contains: w, mode: 'insensitive' as const } })),
-      person: { deletedAt: null, mergedIntoId: null, email: { not: null }, priority: null },
+      candidateId,
+      removedAt: null,
+      title: { not: null },
+      OR: [{ company: { not: null } }, { inferredCompany: { not: null } }],
     },
-    select: {
-      title: true,
-      org: { select: { name: true } },
-      person: { select: { fullName: true, email: true, goals: true } },
-    },
+    select: { id: true, name: true, title: true, company: true, inferredCompany: true, email: true, linkedinUrl: true },
   })
 
-  const byCompany = new Map<string, JobContact[]>()
-  for (const a of affiliations) {
-    if (!a.title || !RECRUITER_TITLE.test(a.title)) continue
-    if (a.person.goals.some((g) => OUR_PIPELINE_GOALS.has(g))) continue
-    const key = normalizeOrgName(a.org.name)
-    const list = byCompany.get(key) ?? []
-    if (list.length < MAX_PER_COMPANY && !list.some((c) => c.email === a.person.email)) {
-      list.push({ name: a.person.fullName, title: a.title, email: a.person.email! })
+  const byCompany = new Map<string, typeof mine>()
+  for (const c of mine) {
+    for (const raw of new Set([c.company, c.inferredCompany])) {
+      if (!raw) continue
+      const key = normalizeOrgName(raw)
+      if (!key) continue
+      const list = byCompany.get(key)
+      if (list) list.push(c)
+      else byCompany.set(key, [c])
     }
-    byCompany.set(key, list)
   }
 
   const out = new Map<string, JobContacts>()
   for (const p of postings) {
-    // A confidential search names no company, so no company contacts.
+    // A confidential search names no company, so there is no employer to match.
     const confidential = p.disclosure === 'CONFIDENTIAL'
+    const known: JobContact[] = []
+    if (!confidential) {
+      const seen = new Set<string>()
+      for (const c of byCompany.get(normalizeOrgName(p.companyName)) ?? []) {
+        if (seen.has(c.id)) continue
+        const role = classifyContactRole({ contactTitle: c.title, jobTitle: p.title })
+        if (!role) continue
+        seen.add(c.id)
+        known.push({ id: c.id, name: c.name, title: c.title, role, email: c.email, linkedinUrl: c.linkedinUrl })
+      }
+      // Recruiters first (they run the process), then the likely hiring manager.
+      known.sort((a, b) => Number(b.role === 'recruiter') - Number(a.role === 'recruiter'))
+    }
     out.set(p.id, {
       firm: p.sourceCategory === 'search_firm' && p.sourceName ? { name: p.sourceName, url: originOf(p.url) } : null,
-      recruiters: confidential ? [] : (byCompany.get(normalizeOrgName(p.companyName)) ?? []),
+      known: known.slice(0, MAX_KNOWN),
       linkedinSearchUrl: `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(
         `${confidential ? '' : p.companyName} recruiter`.trim()
       )}`,

@@ -265,13 +265,22 @@ function WhoToContact({ contacts }: { contacts: JobContacts }) {
           — the consultant named on the posting runs this search.
         </p>
       )}
-      {contacts.recruiters.map((r) => (
-        <p key={r.email} className="text-muted-foreground">
-          {r.name}
-          {r.title && `, ${r.title}`} —{' '}
-          <a href={`mailto:${r.email}`} className="text-primary underline underline-offset-4">
-            {r.email}
-          </a>
+      {contacts.known.map((c) => (
+        <p key={c.id} className="text-muted-foreground">
+          <span className="text-foreground">You know {c.name}</span>
+          {c.title && `, ${c.title}`}
+          {c.role === 'recruiter' ? ' (recruiter)' : ' (likely hiring manager)'} —{' '}
+          {c.email ? (
+            <a href={`mailto:${c.email}`} className="text-primary underline underline-offset-4">
+              {c.email}
+            </a>
+          ) : c.linkedinUrl ? (
+            <a href={c.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+              LinkedIn
+            </a>
+          ) : (
+            'no contact details saved'
+          )}
         </p>
       ))}
       <p className="text-muted-foreground">

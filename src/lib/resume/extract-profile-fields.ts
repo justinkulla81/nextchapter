@@ -38,7 +38,10 @@ const profileFieldsSchema = z.object({
       })
     )
     .max(10),
-  highestEducationLevel: z.enum(HIGHEST_EDUCATION_LEVELS).nullable(),
+  // A plain string, normalised to the allowed list in code (coerceOption). A strict enum
+  // here threw away a member's WHOLE resume — every school and job — over one value that
+  // fell outside the list.
+  highestEducationLevel: z.string().nullable(),
   employers: z
     .array(
       z.object({
@@ -55,7 +58,7 @@ const profileFieldsSchema = z.object({
   firstJobStartDate: z.string().nullable(), // ISO date string
   latestJobTitle: z.string().nullable(),
   industry: z.string().nullable(),
-  primaryFunction: z.enum(PRIMARY_FUNCTION_OPTIONS).nullable(),
+  primaryFunction: z.string().nullable(), // normalised in code, as above
   aiReadinessScore: z.number().int().min(0).max(100).nullable(),
   aiReadinessNotes: z.string().nullable(),
   resumeKeywords: z.array(z.string()).max(15),
@@ -72,7 +75,7 @@ const profileFieldsSchema = z.object({
 // were added there. A second small Haiku call costs little and keeps the
 // main extraction schema untouched.
 const secondaryFunctionIndustrySchema = z.object({
-  secondaryFunction: z.enum(PRIMARY_FUNCTION_OPTIONS).nullable(),
+  secondaryFunction: z.string().nullable(), // normalised in code, as above
   secondaryIndustry: z.string().nullable(),
 })
 
@@ -86,13 +89,13 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 - firstName, lastName: from the resume header/contact info.
 - email, phone, streetAddress, city, state, country: from contact info, if present.
 - education: every real degree-granting program listed (skip bootcamps, certificates, single courses), most recent first, max 10. For schoolName, use ONLY the parent institution's name, normalized (e.g. "Harvard University", never "Harvard Kennedy School" or "Harvard Graduate School of Education" — strip the sub-school/department down to the university). degree/fieldOfStudy as listed; graduationDate as an ISO date (YYYY-01-01 if only a year is given), null if not stated.
-- highestEducationLevel: the single highest degree completed, one of the provided categories (MBA is its own category, distinct from other MASTERS degrees).
+- highestEducationLevel: the single highest degree completed, exactly one of: ${HIGHEST_EDUCATION_LEVELS.join(', ')} (MBA is its own category, distinct from other MASTERS degrees).
 - employers: every real job listed (include a job even when its dates are missing — leave the date null, never guess one), max 20, in any order. companyName as the employer's name (not a client/project name); roleTitle as listed; startDate/endDate as ISO dates (YYYY-01-01 if only a year given), endDate null if isCurrent; companyIndustry as a few words describing that employer's industry.
 - graduationDate: the graduation date of their most recent/highest degree, as an ISO date (YYYY-MM-DD). If only a year is given, use YYYY-01-01.
 - firstJobStartDate: the start date of their EARLIEST listed job (their first job after school), as an ISO date. If only a year is given, use YYYY-01-01.
 - latestJobTitle: their most recent job title.
 - industry: the industry of their most recent employer, in a few words.
-- primaryFunction: their primary functional area (the one that describes the bulk of their career), constrained to one of the provided categories.
+- primaryFunction: their primary functional area (the one that describes the bulk of their career), exactly one of: ${PRIMARY_FUNCTION_OPTIONS.join(', ')}.
 - aiReadinessScore (0-100) and aiReadinessNotes: assess how "AI-ready" this resume signals the candidate is — mentions of AI tools, automation, LLM usage, building with AI, etc. This is being captured for future use, not for immediate scoring — be honest and specific in the notes.
 - resumeKeywords: up to 15 concrete skills, tools, technologies, certifications, and role-specific terms pulled directly from the resume text (e.g. "Salesforce", "P&L management", "Six Sigma", "Python") — used to match this candidate against job postings. Prefer specific, searchable terms over generic ones (skip words like "communication" or "teamwork").
 - certifications: up to 10 real professional certifications/credentials explicitly listed (e.g. "PMP", "CFA", "Six Sigma Black Belt", "SHRM-CP", "AWS Certified Solutions Architect", "CPA"). Only named, earned credentials — not degrees (those go in education) and not generic skills or tools. Empty array if none are listed.
@@ -137,6 +140,16 @@ function inferHighestLevelFromTitle(latestJobTitle: string | null): (typeof HIGH
   if (DIRECTOR_TITLE_PATTERN.test(latestJobTitle)) return 'Director'
   if (MANAGER_TITLE_PATTERN.test(latestJobTitle)) return 'Manager'
   return 'IC'
+}
+
+// Map whatever the model wrote onto the allowed list (case, spacing and underscores
+// ignored), or null. Never throws: an unrecognised value costs that one field, not the
+// resume.
+export function coerceOption<T extends string>(value: string | null | undefined, options: readonly T[]): T | null {
+  if (!value) return null
+  const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const target = norm(value)
+  return options.find((o) => norm(o) === target) ?? null
 }
 
 export async function extractProfileFieldsFromResume(
@@ -234,11 +247,11 @@ export async function extractProfileFieldsFromResume(
         highestLevelReached,
         industryContext: data.industry,
         industryBucket: normalizeIndustryBucket(data.industry),
-        primaryFunction: data.primaryFunction,
-        secondaryFunction: secondaryData?.secondaryFunction ?? null,
+        primaryFunction: coerceOption(data.primaryFunction, PRIMARY_FUNCTION_OPTIONS),
+        secondaryFunction: coerceOption(secondaryData?.secondaryFunction ?? null, PRIMARY_FUNCTION_OPTIONS),
         secondaryIndustryContext: secondaryData?.secondaryIndustry ?? null,
         yearsExperience,
-        highestEducationLevel: data.highestEducationLevel,
+        highestEducationLevel: coerceOption(data.highestEducationLevel, HIGHEST_EDUCATION_LEVELS),
         // Each credential flag only ever flips true, never overwrites a
         // previously-detected true with false (a later resume version that
         // omits the JD line shouldn't un-flag a real lawyer).

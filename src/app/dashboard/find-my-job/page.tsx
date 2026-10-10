@@ -331,7 +331,7 @@ async function JobRecommendationsSection({
     if (p.distribution !== 'TARGETED') return true
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
-  const contactsByPosting = await loadJobContacts(visibleBoardPostings)
+  const contactsByPosting = await loadJobContacts(visibleBoardPostings, profile.id)
   // Per-job skills gap, from the job's own description only.
   const memberKeywords = memberSkillKeywords(profile)
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>

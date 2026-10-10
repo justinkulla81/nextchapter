@@ -135,12 +135,10 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
   }
 
-  // KNOWN POLICY VIOLATION, pending the owner's decision. job-contacts.ts READS CRM
-  // affiliations and the job board shows the result to candidates ("who to contact":
-  // CRM recruiters at the employer). The rule is that candidates never see CRM data.
-  // It is listed so the exception is visible and cannot grow; remove it from here
-  // when the feature is changed to stop reading the CRM.
-  const KNOWN_VIOLATIONS = ['src/lib/jobs/job-contacts.ts']
+  // No known violations. job-contacts.ts used to read CRM affiliations and show real CRM
+  // emails to members; it now uses only the member's own contacts. If a candidate-facing
+  // file ever has to appear here again, that is a policy decision, not a test edit.
+  const KNOWN_VIOLATIONS: string[] = []
 
   const readers = [...walk(join(ROOT, 'src'))]
     .map(rel)
@@ -169,12 +167,10 @@ describe('no indirect route from CRM data to a candidate', () => {
     expect(offenders).toEqual([])
   })
 
-  it('the known violation is imported by the job board only, and shrinks rather than spreads', () => {
-    const users = [...walk(join(ROOT, 'src'))]
-      .map(rel)
-      .filter((f) => !f.startsWith('src/test/') && read(join(ROOT, f)).includes("@/lib/jobs/job-contacts"))
-      .sort()
-    expect(users).toEqual(['src/app/dashboard/find-my-job/page.tsx', 'src/components/dashboard/DiscoverJobCard.tsx'])
+  it('job-contacts.ts reads no CRM table', () => {
+    const src = stripComments(read(join(ROOT, 'src/lib/jobs/job-contacts.ts')))
+    expect(src).not.toMatch(/\.(crm[A-Z][A-Za-z]*)\b/)
+    expect(src).not.toMatch(/@\/lib\/crm\//)
   })
 })
 
