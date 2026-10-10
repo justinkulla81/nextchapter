@@ -50,6 +50,10 @@ export default async function RecruiterSearchPage({
   const remote = params.remote || ''
   const location = params.location?.trim() || ''
   const compMax = params.compMax ? parseInt(params.compMax, 10) : null
+  const school = params.school?.trim().slice(0, 80) || ''
+  const industry = params.industry?.trim().slice(0, 80) || ''
+  const skill = params.skill?.trim().slice(0, 80) || ''
+  const employer = params.employer?.trim().slice(0, 80) || ''
 
   // Consent-gated, not browsable (Partners Master Build Script §A6.2) — the
   // candidate id list itself is scoped to this recruiter's active CONSENTED
@@ -71,18 +75,35 @@ export default async function RecruiterSearchPage({
     ...(level && { highestLevelReached: level }),
     ...(remote && { remotePreference: remote }),
     ...(location && {
+      AND: [
+        {
+          OR: [
+            { currentCity: { contains: location, mode: 'insensitive' as const } },
+            { currentState: { contains: location, mode: 'insensitive' as const } },
+          ],
+        },
+      ],
+    }),
+    // These four only narrow the consented set above, never widen it. Each is a
+    // case-insensitive contains, so "mit" or "Massachusetts" both find the school.
+    ...(school && {
+      educationHistory: { some: { schoolNameNormalized: { contains: school.toLowerCase(), mode: 'insensitive' } } },
+    }),
+    ...(employer && { workHistory: { some: { companyName: { contains: employer, mode: 'insensitive' } } } }),
+    ...(industry && {
       OR: [
-        { currentCity: { contains: location, mode: 'insensitive' } },
-        { currentState: { contains: location, mode: 'insensitive' } },
+        { workHistory: { some: { companyIndustry: { contains: industry, mode: 'insensitive' as const } } } },
+        { targetIndustries: { has: industry } },
       ],
     }),
   }
 
-  const candidates = consentedCandidateIds.length === 0 ? [] : await prisma.candidateProfile.findMany({
+  const found = consentedCandidateIds.length === 0 ? [] : await prisma.candidateProfile.findMany({
     where,
     orderBy: { createdAt: 'desc' },
-    take: 100,
+    take: skill ? 500 : 100,
     select: {
+      confirmedSkillsHave: true,
       id: true,
       privacyTier: true,
       firstName: true,
@@ -100,6 +121,13 @@ export default async function RecruiterSearchPage({
       priorityWorkLife: true,
     },
   })
+
+  // Skills are free text in mixed case, so the match is done here, case-insensitively.
+  const candidates = (
+    skill
+      ? found.filter((c) => c.confirmedSkillsHave.some((k) => k.toLowerCase().includes(skill.toLowerCase())))
+      : found
+  ).slice(0, 100)
 
   const roleFilter = {
     primaryFunction: fn || null,
@@ -136,9 +164,19 @@ export default async function RecruiterSearchPage({
     })
     .sort((a, b) => b.rankScore - a.rankScore)
 
-  const hasFilters = Boolean(fn || level || remote || location || compMax)
+  const hasFilters = Boolean(fn || level || remote || location || compMax || school || industry || skill || employer)
   if (hasFilters) {
-    captureServerEvent(recruiter.id, 'recruiter_search_executed', { function: fn, level, remote, location, compMax })
+    captureServerEvent(recruiter.id, 'recruiter_search_executed', {
+      function: fn,
+      level,
+      remote,
+      location,
+      compMax,
+      school: !!school,
+      industry: !!industry,
+      skill: !!skill,
+      employer: !!employer,
+    })
   }
 
   return (
@@ -213,6 +251,23 @@ export default async function RecruiterSearchPage({
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </label>
+        {[
+          { name: 'school', label: 'School', value: school, placeholder: 'e.g. Michigan' },
+          { name: 'employer', label: 'Has worked at', value: employer, placeholder: 'e.g. Deloitte' },
+          { name: 'industry', label: 'Industry', value: industry, placeholder: 'e.g. Healthcare' },
+          { name: 'skill', label: 'Confirmed skill', value: skill, placeholder: 'e.g. negotiation' },
+        ].map((f) => (
+          <label key={f.name} className="text-sm">
+            <span className="mb-1 block font-medium text-foreground">{f.label}</span>
+            <input
+              type="text"
+              name={f.name}
+              defaultValue={f.value}
+              placeholder={f.placeholder}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </label>
+        ))}
         <div className="sm:col-span-2">
           <button
             type="submit"
