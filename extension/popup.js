@@ -488,10 +488,16 @@ async function readPage() {
     // a viewer's own avatar in the nav, or a "People also viewed" face, from
     // being saved as theirs.
     {
-      const imgs = Array.from(document.querySelectorAll('img[src*="profile-displayphoto"]'))
+      // Open to Work / Hiring frames are served from profile-framedphoto, not
+      // profile-displayphoto, so both paths count. The fallback is limited to
+      // the top card: page-wide it grabbed the viewer's own face from the
+      // right-rail "explore" card.
+      const imgs = Array.from(document.querySelectorAll('img[src*="profile-displayphoto"], img[src*="profile-framedphoto"]'))
+        .filter((i) => !i.closest('aside, nav, header[role="banner"]'))
       const first = (out.name || '').split(' ')[0].toLowerCase()
+      const inCard = (i) => scope.contains(i) && (!topCard || topCard.contains(i))
       const mine = imgs.find((i) => first && (i.alt || '').toLowerCase().includes(first) && scope.contains(i))
-      out.photoUrl = (mine || imgs.find((i) => scope.contains(i)))?.src || ''
+      out.photoUrl = (mine || imgs.find(inCard))?.src || ''
     }
     // <title> rarely changes format even when the page markup does, but the
     // format itself varies — sometimes "Name - Headline | LinkedIn", often
