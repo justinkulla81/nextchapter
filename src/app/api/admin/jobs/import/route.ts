@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
+import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation } from '@/lib/jobs/us-location'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 
@@ -79,7 +80,10 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    if (!isUsLocation(cleanLocation(job.location))) {
+    // isUsLocation knows US places; NON_US catches foreign towns it doesn't
+    // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
+    const location = cleanLocation(job.location)
+    if (!isUsLocation(location) || NON_US.test(job.title) || (location && NON_US.test(location))) {
       skipped.push({ url: job.url, reason: 'outside the US' })
       continue
     }
