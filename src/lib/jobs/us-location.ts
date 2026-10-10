@@ -136,3 +136,37 @@ export function displayJobLocation(location: string | null): string | null {
   const trimmed = location.trim()
   return /^united states$/i.test(trimmed) || /^usa$/i.test(trimmed) ? 'Remote' : trimmed
 }
+
+const US_STATE_CODES =
+  'AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC'
+const CLEARLY_US = new RegExp(`\\b(united states|usa|u\\.s\\.a?\\.?)\\b|,\\s*(${US_STATE_CODES})\\b`, 'i')
+
+/**
+ * A location that says outright it's in the US ("Dresher, PA", "Remote,
+ * United States") — enough to trust over a foreign-sounding word in the job
+ * title ("Upper Dublin" is in Pennsylvania).
+ */
+export function isClearlyUsLocation(location: string | null): boolean {
+  return !!location && CLEARLY_US.test(location)
+}
+
+// Foreign city names that are also US towns ("Rome, NY", "Vienna, VA",
+// "Vancouver, WA"): with a US state code beside them, they're the US town.
+const AMBIGUOUS_US_TOWN =
+  /^(rome|paris|dublin|manchester|athens|lima|london|vienna|valencia|hamburg|frankfurt|berlin|milan|warsaw|delhi|edinburgh|glasgow|belfast|cologne|ottawa|montevideo|lisbon|madrid|amsterdam|rotterdam|cairo|melbourne|brussels|antwerp|toronto|vancouver|sofia|lyon|naples|florence|cork|santiago|quebec)$/i
+
+/**
+ * Whether a job's title or location names a place outside the US — catches
+ * foreign towns isUsLocation doesn't know ("Poznań", "DEU - Bayern") and
+ * European "(f/m/d)" titles, while trusting a clearly-US location over a
+ * title word ("Upper Dublin" in Dresher, PA) and a US state code over an
+ * ambiguous town name ("Rome, NY").
+ */
+export function namesNonUsPlace(title: string, location: string | null, nonUs: RegExp): boolean {
+  const clearlyUs = isClearlyUsLocation(location)
+  if (nonUs.test(title) && !clearlyUs) return true
+  if (!location) return false
+  const m = location.match(nonUs)
+  if (!m) return false
+  return !(clearlyUs && AMBIGUOUS_US_TOWN.test(m[0].trim()))
+}

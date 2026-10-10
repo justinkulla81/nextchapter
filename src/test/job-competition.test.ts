@@ -56,3 +56,21 @@ describe('job competition', () => {
     expect(edgeHeadline({ ...base, sourceCategory: null }, { level: 'high', reasons: [] }, now)).toMatch(/referral/)
   })
 })
+
+import { namesNonUsPlace } from '@/lib/jobs/us-location'
+import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
+
+describe('non-US screen', () => {
+  it.each([
+    ['Head of Supply Chain (f/m/d) - Poznań', 'Poznań', true],
+    ['Executive Director, Operations', 'NLD - North Brabant - Boxmeer', true],
+    ['Senior Software Architect', 'Haifa, Haifa District, IL', true],
+    ['Sales Manager - Upper Dublin', 'Dresher, PA, United States', false],
+    ['Sr. Principal Engineer', 'Rome, NY, US; Wright-Patterson AFB, OH, US', false],
+    ['VP Finance', 'Vienna, VA', false],
+    ['VP Finance', 'Chicago, IL', false],
+    ['Senior Engineer, Observability', 'Dublin', true],
+  ])('%s | %s -> %s', (title, location, expected) => {
+    expect(namesNonUsPlace(title, location, NON_US)).toBe(expected)
+  })
+})
