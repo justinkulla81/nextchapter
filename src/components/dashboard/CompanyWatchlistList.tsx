@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { removeWatchlistCompany, viewWatchlistPosting } from '@/app/dashboard/company-tracker/actions'
 import { goToCompanyPage } from '@/app/dashboard/companies/actions'
 import { Button } from '@/components/ui/button'
+import { LikelyOpeningFilingLink } from '@/components/likely-openings/FilingLink'
+import { SIGNAL_LABELS } from '@/lib/likely-openings/roles'
 import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 
@@ -19,12 +21,46 @@ export interface WatchlistPosting {
   createdAt: Date
 }
 
+export interface WatchlistLikelyOpening {
+  id: string
+  signalType: 'EXEC_DEPARTURE' | 'EXEC_APPOINTMENT' | 'FUNDING_RAISE'
+  summary: string
+  filingDate: Date
+  filingUrl: string
+}
+
 export interface WatchlistEntry {
   id: string
   companyName: string
   newPostingCount: number
   visiblePostings: WatchlistPosting[]
   lockedCount: number
+  likelyOpenings?: WatchlistLikelyOpening[]
+}
+
+// Signals from public SEC filings that a senior role may open here before
+// anything is posted. Always visible (not behind the expand), since a
+// company with zero postings is exactly where this is most useful.
+function LikelyOpeningLines({ companyName, signals }: { companyName: string; signals: WatchlistLikelyOpening[] }) {
+  return (
+    <ul className="space-y-1 px-4 pb-3">
+      {signals.map((signal) => (
+        <li key={signal.id} className="flex flex-wrap items-baseline gap-2 text-sm">
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+            {SIGNAL_LABELS[signal.signalType]}
+          </span>
+          <span className="text-muted-foreground">{signal.summary}</span>
+          <LikelyOpeningFilingLink
+            likelyOpeningId={signal.id}
+            companyName={companyName}
+            signalType={signal.signalType}
+            href={signal.filingUrl}
+            source="company_tracker"
+          />
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
@@ -99,6 +135,10 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
                 Remove
               </Button>
             </div>
+
+            {entry.likelyOpenings && entry.likelyOpenings.length > 0 && (
+              <LikelyOpeningLines companyName={entry.companyName} signals={entry.likelyOpenings} />
+            )}
 
             {expanded && (
               <ul className="space-y-2 px-4 pb-3">

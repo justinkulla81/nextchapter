@@ -152,6 +152,10 @@
     {
       "path": "/api/cron/fresh-job-alerts",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/likely-openings",
+      "schedule": "30 9 * * *"
     }
   ]
 }

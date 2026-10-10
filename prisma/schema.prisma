@@ -12378,3 +12378,38 @@ model FreshJobAlertSend {
   @@unique([candidateId, postingId])
   @@index([candidateId, sentAt])
 }
+
+// "Likely openings" — public SEC EDGAR filings that suggest a senior role is
+// about to open, before any job is posted. Written daily by
+// /api/cron/likely-openings (src/lib/likely-openings/ingest.ts):
+//   EXEC_DEPARTURE   — 8-K Item 5.02: an officer is leaving (or only an interim was named)
+//   EXEC_APPOINTMENT — 8-K Item 5.02: a new permanent officer; a new CEO often rebuilds the team
+//   FUNDING_RAISE    — Form D: an operating company raised $10M+ privately
+// A hint to look, never a posting. Rows go stale at expiresAt (filing + 120 days).
+enum LikelyOpeningSignalType {
+  EXEC_DEPARTURE
+  EXEC_APPOINTMENT
+  FUNDING_RAISE
+}
+
+model LikelyOpening {
+  id                    String                  @id @default(cuid())
+  companyName           String // display name, all-caps SEC names fixed
+  companyNameNormalized String // companyKey() in src/lib/likely-openings/roles.ts — the join key to watchlists/applications
+  cik                   String // SEC Central Index Key, no leading zeros
+  signalType            LikelyOpeningSignalType
+  roles                 String[]                @default([]) // OfficerRole codes (CEO, CFO, ...); empty for FUNDING_RAISE
+  filingDate            DateTime
+  accessionNumber       String
+  filingUrl             String
+  summary               String
+  amountRaised          Float? // Form D only, US dollars
+  industry              String? // Form D industry group
+  location              String? // "City, ST"
+  expiresAt             DateTime
+  createdAt             DateTime                @default(now())
+
+  @@unique([accessionNumber, signalType])
+  @@index([companyNameNormalized])
+  @@index([expiresAt, filingDate])
+}

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
+import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
 
 export interface WatchlistPosting {
   id: string
@@ -25,6 +26,9 @@ export interface WatchlistEntryView {
   newPostingCount: number
   visiblePostings: WatchlistPosting[]
   lockedCount: number
+  // SEC filings suggesting a senior role is about to open here (officer
+  // departure, new CEO, big raise) — see src/lib/likely-openings/.
+  likelyOpenings: CompanyLikelyOpening[]
 }
 
 // Active NC Job Board postings only (archived/rejected/excluded/expired
@@ -103,6 +107,10 @@ async function matchWatchlistEntries(candidateId: string) {
 
 export async function getWatchlistView(candidateId: string, isCandidatePlus: boolean): Promise<WatchlistEntryView[]> {
   const matches = await matchWatchlistEntries(candidateId)
+  // Never let a signals lookup break the tracker itself.
+  const signals = await getLikelyOpeningsForCompanies(matches.map((m) => m.entry.companyName)).catch(
+    () => new Map<string, CompanyLikelyOpening[]>()
+  )
 
   return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
@@ -123,6 +131,7 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
         createdAt,
       })),
       lockedCount: boardMatches.length - visibleBoard.length,
+      likelyOpenings: signals.get(entry.companyName) ?? [],
     }
   })
 }
