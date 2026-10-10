@@ -9,6 +9,7 @@ import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
 import { extractPostingFields, type ExtractedPostingFields } from '@/lib/jobs/extract-posting-fields'
 import { countPendingJobMatches, loadAdminFitCandidates, type PendingJobMatchCount } from '@/lib/jobs/job-fit-bucket'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { linkPostingToCompany } from '@/lib/companies/posting-company'
 
 export type FormState = { error?: string } | undefined
 
@@ -42,6 +43,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
   const posting = await prisma.exclusiveJobPosting.create({
     data: {
       ...input,
+      companyId: await linkPostingToCompany(input.companyName),
       salaryCurrency: input.salaryCurrency || 'USD',
       status: 'approved', // admin-added postings are trusted immediately, same as before this feature existed
       source: 'admin',

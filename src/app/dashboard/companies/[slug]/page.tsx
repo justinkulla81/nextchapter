@@ -36,6 +36,7 @@ import { getRecruitingFirmData } from '@/lib/companies/recruiting-firm'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Briefcase } from 'lucide-react'
+import { toCandidateCompany } from '@/lib/companies/candidate-view'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -70,7 +71,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // before the company row lookup starts.
   const [profile, companyRow] = await Promise.all([
     getDashboardData(),
-    prisma.company.findUnique({ where: { canonicalNameNormalized: decodeURIComponent(slug) } }),
+    // Admin-only working notes (priority, named HR contact) are stripped before any
+    // component can see the row — see toCandidateCompany.
+    prisma.company
+      .findUnique({ where: { canonicalNameNormalized: decodeURIComponent(slug) } })
+      .then((row) => (row ? toCandidateCompany(row) : null)),
   ])
   if (!companyRow) notFound()
 

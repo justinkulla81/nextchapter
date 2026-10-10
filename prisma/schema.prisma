@@ -2596,6 +2596,13 @@ model EmployerProfile {
   institutionLinks InstitutionEmployer[]
 
   @@index([subscriptionTier, subscriptionStatus])
+
+  // The directory Company this is the employer / firm of. Public business facts
+  // live on Company; everything private to this role stays on this record.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
 }
 
 // Team seats, additive to the original single-owner EmployerProfile.userId
@@ -4643,6 +4650,14 @@ model ExclusiveJobPosting {
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
+
+  // The directory company this posting is for. Set when the posting is added (see
+  // linkPostingToCompany) and backfilled for older rows; null only when the
+  // company name could not be normalised. companyName stays the display text.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -6718,6 +6733,25 @@ model Company {
   institutionLayoffMatches LayoffMatch[]
 
   @@index([industry])
+
+  // The company's own website. Filled only from a source a person typed — a linked
+  // CRM organisation or an employer profile — never guessed or scraped.
+  website           String?
+  websiteSource     String? // 'crm' | 'employer'
+  // Last time industry resolution was attempted for this company. Lets the nightly
+  // job ask once per company (an unrecognised name stays unrecognised) and cap
+  // its spend per run.
+  industryCheckedAt DateTime?
+
+  // Role-scoped attachments. Company is the shared spine of public business facts;
+  // each of these is read only through its own role's queries (see the company
+  // wall test) — a candidate never reaches CRM data through a company, and CRM
+  // never reads a candidate's private search data through one.
+  postings           ExclusiveJobPosting[]
+  employerProfiles   EmployerProfile[]
+  recruiterFirms     RecruiterFirm[]
+  outplacementOrgs   OutplacementEmployerOrg[]
+  institutionTargets InstitutionTargetCompany[]
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
@@ -7075,6 +7109,13 @@ model OutplacementEmployerOrg {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+
+  // The directory Company this is the employer / firm of. Public business facts
+  // live on Company; everything private to this role stays on this record.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
 }
 
 // A single purchase — seats, tier, term, PO/invoice reference. Admin-
@@ -7485,6 +7526,13 @@ model RecruiterFirm {
   intakeSearches    IntakeSearch[]
   intakeConnections IntakeConnection[]
   intakeResumes     IntakeResume[]
+
+  // The directory Company this is the employer / firm of. Public business facts
+  // live on Company; everything private to this role stays on this record.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
 }
 
 // ── NextChapter Talent (recruiter intake) ───────────────────────────────────
@@ -9224,6 +9272,11 @@ model CrmOrganization {
   @@index([leadQuality])
   @@index([companyId])
   @@index([usState])
+
+  // How this organisation came to be (or not be) linked to a directory Company:
+  // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
+  // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
+  companyLinkState String?
 }
 
 model CrmPerson {
@@ -11163,6 +11216,8 @@ model Institution {
   purchases         InstitutionPurchase[]
   coachSessions     CoachSession[]
   scopedJobPostings ExclusiveJobPosting[]
+
+  targetCompanies InstitutionTargetCompany[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -12274,4 +12329,21 @@ model LocalPartnerOrg {
   updatedAt    DateTime @default(now()) @updatedAt
 
   @@index([kind, state])
+}
+
+// A company an institution's career or advancement team has flagged as a target:
+// somewhere to place alumni, or to build a relationship with. Private to that
+// institution — never shown to members, candidates, or other institutions.
+model InstitutionTargetCompany {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  note          String?     @db.Text
+  createdBy     String? // Supabase auth.users id of the staff member who flagged it
+  createdAt     DateTime    @default(now())
+
+  @@unique([institutionId, companyId])
+  @@index([companyId])
 }

@@ -8,6 +8,7 @@ import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/leve
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
+import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -326,10 +327,12 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   }
 
   if (toCreate.length > 0) {
+    const companyIds = await linkPostingsToCompanies(toCreate.map((l) => l.companyName))
     await prisma.exclusiveJobPosting.createMany({
       data: toCreate.map((listing) => ({
         title: listing.title,
         companyName: listing.companyName,
+        companyId: companyIds.get(listing.companyName) ?? null,
         location: listing.location,
         url: listing.url,
         description: listing.description,

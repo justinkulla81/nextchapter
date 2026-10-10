@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
 import { isUsLocation } from '@/lib/jobs/us-location'
+import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 
 export const maxDuration = 300
 
@@ -185,9 +186,11 @@ export async function POST(request: NextRequest) {
   const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
 
   if (toCreate.length > 0) {
+    const companyIds = await linkPostingsToCompanies(toCreate.map((k) => rowData(k).companyName))
     await prisma.exclusiveJobPosting.createMany({
       data: toCreate.map((k) => ({
         ...rowData(k),
+        companyId: companyIds.get(rowData(k).companyName) ?? null,
         url: k.job.url,
         addedBy: 'ncrawl',
         source: 'ats_feed',

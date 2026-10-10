@@ -34,6 +34,18 @@ export async function CompanyMetaLine({ companyRow }: { companyRow: Company }) {
           .join(' · ') || 'Details still filling in'}
       </p>
       {company.description && <p className="mt-1 text-sm text-foreground">{company.description}</p>}
+      {company.website && (
+        <p className="mt-1 text-sm">
+          <a
+            href={company.website}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="text-brand underline underline-offset-2"
+          >
+            {company.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+          </a>
+        </p>
+      )}
     </>
   )
 }
