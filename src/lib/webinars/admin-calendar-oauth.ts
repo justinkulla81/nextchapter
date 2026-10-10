@@ -19,7 +19,9 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // Write scope — broader than Prompt 79's calendar.events.readonly, needed to
 // create events with conferenceData (the auto-generated Meet link).
-const SCOPE = 'https://www.googleapis.com/auth/calendar.events'
+// documents.readonly (a sensitive, not restricted, scope) reads the "Notes by Gemini"
+// doc Meet attaches to a call — the CRM sweep copies its text onto the meeting.
+const SCOPE = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly'
 
 // The admin session cookie only exists on the admin host, and the callback
 // requires an admin, so in production Google must send the browser back there

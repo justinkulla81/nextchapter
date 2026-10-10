@@ -17,6 +17,7 @@ import { CrmPersonOrg } from '@/components/admin/CrmPersonOrg'
 import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
+import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
@@ -45,7 +46,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       activities: {
         where: { occurredAt: { gte: CRM_ACTIVITY_CUTOFF } },
         orderBy: { occurredAt: 'desc' }, take: 50,
-        include: { outreachTracking: { include: { links: true } } },
+        include: {
+          outreachTracking: { include: { links: true } },
+          org: { select: { id: true, name: true } },
+          opportunity: { select: { id: true, title: true } },
+        },
       },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
@@ -126,9 +131,19 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           )}
           {reply && (
             <details className="mt-1">
-              <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">Show message</summary>
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">{a.type === 'MEETING' ? 'Show meeting notes' : 'Show message'}</summary>
               <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{reply}</p>
             </details>
+          )}
+          {a.type === 'MEETING' && (a.meetUrl || a.notesDocUrl || a.org || a.opportunity) && (
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {[
+                a.meetUrl && <CrmMeetLink key="m" href={a.meetUrl} label="Meet link" kind="join" personId={person.id} />,
+                a.notesDocUrl && <CrmMeetLink key="n" href={a.notesDocUrl} label="Notes by Gemini (Google Doc)" kind="notes" personId={person.id} />,
+                a.org && <Link key="o" href={`/support/admin/crm/organizations/${a.org.id}`} className="underline">{a.org.name}</Link>,
+                a.opportunity && <span key="p">Opportunity: {a.opportunity.title}</span>,
+              ].filter(Boolean).flatMap((el, i) => (i === 0 ? [el] : [' · ', el]))}
+            </span>
           )}
           {m && (
             <span className="mt-1 block text-xs text-muted-foreground">
@@ -265,7 +280,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </header>
 
       <section className="grid gap-4 sm:grid-cols-4">
-        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={meetingLabel(person.nextMeetingAt) ? `Meeting scheduled · ${meetingLabel(person.nextMeetingAt)}` : person.awaitingReplySince ? 'Waiting on their reply' : undefined} />
+        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={meetingLabel(person.nextMeetingAt) ? `Meeting scheduled · ${meetingLabel(person.nextMeetingAt)}` : person.awaitingReplySince ? 'Waiting on their reply' : undefined} action={person.nextMeetingUrl ? <CrmMeetLink href={person.nextMeetingUrl} label="Join on Google Meet" kind="join" personId={person.id} /> : undefined} />
         <Stat label="Touches" value={String(person.touchCount)} />
         <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
         <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
@@ -566,12 +581,13 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   )
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({ label, value, hint, action }: { label: string; value: string; hint?: string; action?: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-lg font-semibold">{value}</p>
       {hint && <p className="mt-1 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">{hint}</p>}
+      {action && <p className="mt-1 text-xs">{action}</p>}
     </div>
   )
 }

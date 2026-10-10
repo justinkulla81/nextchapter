@@ -4,7 +4,9 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
 import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getMessageContent, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
-import { listCalendarEvents } from '@/lib/google/admin-calendar'
+import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
+import { capNotes } from '@/lib/google/meeting-notes'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
   normalizeEmail, displayNameFrom, personNameFromDisplay, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
@@ -337,6 +339,10 @@ export interface SweepResult {
   /** Messages Gmail would not return even after retrying. Never silently zero. */
   failed?: number
   reason?: string
+  /** Calendar only: meetings that got a Gemini notes doc copied onto them this run. */
+  notesAttached?: number
+  /** Calendar only: notes exist but the Google grant predates documents.readonly. */
+  notesNeedReconnect?: boolean
 }
 
 /**
@@ -603,6 +609,33 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
 }
 
 /**
+ * Where a meeting with this person belongs besides their own record: the
+ * organization they're currently affiliated with, and the open opportunity
+ * it relates to — theirs first, else the organization's most recent one.
+ * Null parts are simply left off the activity.
+ */
+async function meetingContextFor(personId: string): Promise<{ orgId: string | null; opportunityId: string | null }> {
+  const aff = await prisma.crmAffiliation.findFirst({
+    where: { personId, isCurrent: true },
+    orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+    select: { orgId: true },
+  })
+  const own = await prisma.crmOpportunity.findFirst({
+    where: { outcome: 'OPEN', primaryPersonId: personId },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true, orgId: true },
+  })
+  const opp = own ?? (aff
+    ? await prisma.crmOpportunity.findFirst({
+        where: { outcome: 'OPEN', orgId: aff.orgId },
+        orderBy: { updatedAt: 'desc' },
+        select: { id: true, orgId: true },
+      })
+    : null)
+  return { orgId: aff?.orgId ?? opp?.orgId ?? null, opportunityId: opp?.id ?? null }
+}
+
+/**
  * Logs meetings whose attendees include a CRM person — an unrecognized
  * attendee is created as a real person immediately (flagged
  * `needsCompletion`), same as sweepGmail, so "meeting Omer tomorrow" adds
@@ -637,7 +670,15 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     const personCache = new Map<string, string | null>()
     const result = { ...base }
     // The soonest meeting still ahead for each person on one.
-    const upcoming = new Map<string, Date>()
+    const upcoming = new Map<string, { at: Date; url: string | null }>()
+    const contextCache = new Map<string, Promise<{ orgId: string | null; opportunityId: string | null }>>()
+    const contextOf = (personId: string) => {
+      let c = contextCache.get(personId)
+      if (!c) { c = meetingContextFor(personId); contextCache.set(personId, c) }
+      return c
+    }
+    let notesAttached = 0
+    let notesNeedReconnect = false
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
 
@@ -646,6 +687,20 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
       const isPast = ev.start.getTime() <= Date.now()
       let logged = false
       let hasInternal = false
+      // Gemini's notes doc, read at most once per event and only when someone
+      // already in the CRM was on it: an unknown attendee is only a suggestion,
+      // and a call with a stranger is not something to copy notes onto.
+      let notesRead: Promise<string | null> | undefined
+      const notesFor = () => {
+        if (!ev.notesDoc || notesNeedReconnect) return Promise.resolve(null)
+        notesRead ??= fetchGoogleDocText(token, ev.notesDoc.fileId)
+          .then((t) => (t ? capNotes(t) : null))
+          .catch((e) => {
+            if (e instanceof NotesFetchError && e.kind === 'needs_reconnect') notesNeedReconnect = true
+            return null
+          })
+        return notesRead
+      }
 
       for (const a of ev.attendees) {
         if (!a.email) continue
@@ -672,20 +727,39 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
         // the meeting is not an interaction.
         if (!isPast) {
           const soonest = upcoming.get(personId)
-          if (!soonest || ev.start < soonest) upcoming.set(personId, ev.start)
+          if (!soonest || ev.start < soonest.at) upcoming.set(personId, { at: ev.start, url: ev.meetUrl })
         }
         if (!isPast || !isAfterCrmCutoff(ev.start)) continue
 
+        const ctxRow = await contextOf(personId)
+        const ref = `${ev.id}:${personId}`
+        // Notes are copied once: an activity that already holds the doc keeps it.
+        let notes: string | null = null
+        if (ev.notesDoc && verdict.kind === 'crm') {
+          const have = await prisma.crmActivity.findUnique({
+            where: { type_sourceRef: { type: 'MEETING', sourceRef: ref } },
+            select: { notesDocUrl: true },
+          })
+          if (!have?.notesDocUrl) notes = await notesFor()
+        }
+        const attach = {
+          ...(ev.meetUrl ? { meetUrl: ev.meetUrl } : {}),
+          ...(ctxRow.orgId ? { orgId: ctxRow.orgId } : {}),
+          ...(ctxRow.opportunityId ? { opportunityId: ctxRow.opportunityId } : {}),
+          ...(notes && ev.notesDoc ? { body: notes, notesDocUrl: ev.notesDoc.url } : {}),
+        }
         const created = await prisma.crmActivity.upsert({
-          where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${personId}` } },
+          where: { type_sourceRef: { type: 'MEETING', sourceRef: ref } },
           create: {
             type: 'MEETING', direction: 'OUTBOUND', occurredAt: ev.start,
             personId, subject: ev.summary ?? 'Meeting',
-            isAutoLogged: true, sourceRef: `${ev.id}:${personId}`,
+            isAutoLogged: true, sourceRef: ref,
+            ...attach,
           },
-          update: {},
+          update: attach,
           select: { createdAt: true },
         })
+        if (notes) notesAttached++
         if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
         touched.add(personId)
         logged = true
@@ -697,6 +771,13 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
 
     await refreshTouchFields([...touched])
     await setUpcomingMeetings(upcoming, new Date(Date.now() + daysForward * DAY))
+    result.notesAttached = notesAttached
+    if (notesNeedReconnect) result.notesNeedReconnect = true
+    if (notesAttached > 0 || notesNeedReconnect) {
+      captureServerEvent('system', 'crm_meeting_notes_synced', {
+        notesAttached, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
+      })
+    }
     await prisma.crmSyncRun.update({
       where: { id: run.id },
       data: {
@@ -724,18 +805,19 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
  * one further out than it looked is simply not known about either way.
  * Raw SQL so that noting a meeting doesn't count as editing the record.
  */
-async function setUpcomingMeetings(upcoming: Map<string, Date>, windowEnd: Date) {
+async function setUpcomingMeetings(upcoming: Map<string, { at: Date; url: string | null }>, windowEnd: Date) {
   const ids = [...upcoming.keys()]
   await prisma.$executeRaw`
-    UPDATE "CrmPerson" SET "nextMeetingAt" = NULL
+    UPDATE "CrmPerson" SET "nextMeetingAt" = NULL, "nextMeetingUrl" = NULL
     WHERE "nextMeetingAt" IS NOT NULL AND "nextMeetingAt" <= ${windowEnd}
       AND NOT (id = ANY(${ids}::text[]))`
   if (ids.length === 0) return
-  const payload = JSON.stringify(ids.map((id) => ({ id, at: upcoming.get(id)!.toISOString() })))
+  const payload = JSON.stringify(ids.map((id) => ({ id, at: upcoming.get(id)!.at.toISOString(), url: upcoming.get(id)!.url })))
   await prisma.$executeRaw`
-    UPDATE "CrmPerson" AS p SET "nextMeetingAt" = v.at
-    FROM jsonb_to_recordset(${payload}::jsonb) AS v(id text, at timestamp)
-    WHERE p.id = v.id AND p."nextMeetingAt" IS DISTINCT FROM v.at`
+    UPDATE "CrmPerson" AS p SET "nextMeetingAt" = v.at, "nextMeetingUrl" = v.url
+    FROM jsonb_to_recordset(${payload}::jsonb) AS v(id text, at timestamp, url text)
+    WHERE p.id = v.id
+      AND (p."nextMeetingAt" IS DISTINCT FROM v.at OR p."nextMeetingUrl" IS DISTINCT FROM v.url)`
 }
 
 export interface PersonBackfillResult {

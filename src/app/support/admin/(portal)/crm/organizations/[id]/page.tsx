@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
+import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
@@ -33,6 +34,31 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     },
   })
   if (!org) notFound()
+
+  // Meetings tied to this organization directly or through one of its
+  // opportunities. One calendar event is logged once per attendee, so group by
+  // event to show each call once with everyone who was on it.
+  const meetingRows = await prisma.crmActivity.findMany({
+    where: { type: 'MEETING', OR: [{ orgId: id }, { opportunity: { orgId: id } }] },
+    orderBy: { occurredAt: 'desc' },
+    take: 60,
+    select: {
+      id: true, subject: true, occurredAt: true, sourceRef: true, body: true, meetUrl: true, notesDocUrl: true,
+      person: { select: { id: true, fullName: true } },
+      opportunity: { select: { id: true, title: true } },
+    },
+  })
+  const meetings = [...meetingRows.reduce((m, a) => {
+    const key = a.sourceRef?.split(':')[0] ?? a.id
+    const cur = m.get(key)
+    if (cur) {
+      if (a.person && !cur.people.some((p) => p.id === a.person!.id)) cur.people.push(a.person)
+      if (!cur.body && a.body) { cur.body = a.body; cur.notesDocUrl = a.notesDocUrl }
+    } else {
+      m.set(key, { ...a, people: a.person ? [a.person] : [] })
+    }
+    return m
+  }, new Map<string, (typeof meetingRows)[number] & { people: { id: string; fullName: string }[] }>()).values()].slice(0, 20)
 
   return (
     <div className="space-y-6">
@@ -108,6 +134,36 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           askedAt: p.askedAt ? p.askedAt.toISOString() : null,
         }))}
       />
+
+      {meetings.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">Meetings ({meetings.length})</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {meetings.map((m) => (
+              <li key={m.id} className="p-3 text-sm">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-medium">{m.subject ?? 'Meeting'}</span>
+                  <span className="text-xs text-muted-foreground">{formatDate(m.occurredAt)}</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {m.people.map((p, i) => (
+                    <span key={p.id}>{i > 0 && ', '}<Link href={`/support/admin/crm/people/${p.id}`} className="underline">{p.fullName}</Link></span>
+                  ))}
+                  {m.opportunity && <> · Opportunity: {m.opportunity.title}</>}
+                  {m.meetUrl && <> · <CrmMeetLink href={m.meetUrl} label="Meet link" kind="join" orgId={org.id} /></>}
+                  {m.notesDocUrl && <> · <CrmMeetLink href={m.notesDocUrl} label="Notes by Gemini" kind="notes" orgId={org.id} /></>}
+                </p>
+                {m.body && (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">Show meeting notes</summary>
+                    <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{m.body}</p>
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 text-lg font-semibold">People ({org.affiliations.length})</h2>

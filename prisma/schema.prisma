@@ -9465,6 +9465,8 @@ model CrmPerson {
   /// an upcoming event has them as an attendee, cleared once it has passed,
   /// been moved out of range, or been cancelled.
   nextMeetingAt DateTime?
+  /// Meet link of that same upcoming event, when it has one.
+  nextMeetingUrl String?
 
   // ── graduation links ──
   candidateId String?
@@ -9698,6 +9700,11 @@ model CrmActivity {
   // would otherwise look colder than they are.
   isAutoLogged  Boolean @default(false)
   sourceRef     String? // gmail thread id / calendar event id — dedupes re-syncs
+  /// Google Meet link of the calendar event a MEETING was logged from.
+  meetUrl       String?
+  /// The "Notes by Gemini" Google Doc attached to that event, once it exists.
+  /// Set means `body` holds that doc's text and it is not re-fetched.
+  notesDocUrl   String?
   /// Gmail's thread id for a synced email — what makes the profile's email chains exact. Null for older rows until backfilled.
   threadId      String?
   loggedByEmail String?

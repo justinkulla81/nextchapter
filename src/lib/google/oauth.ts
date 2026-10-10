@@ -26,7 +26,7 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // sendGmailMessage will 403 until the admin reconnects (prompt=consent below
 // forces a fresh grant covering the new scope rather than silently reusing
 // the old one).
-const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events openid email'
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly openid email'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
