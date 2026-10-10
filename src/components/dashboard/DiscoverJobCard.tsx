@@ -170,7 +170,10 @@ export function DiscoverJobCard({
             ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
         </p>
 
-        {posting.description && <p className="line-clamp-2 text-sm text-muted-foreground">{posting.description}</p>}
+        {/* A confidential search's description usually names the client — never shown. */}
+        {posting.description && !confidential && (
+          <p className="line-clamp-2 text-sm text-muted-foreground">{posting.description}</p>
+        )}
 
         {competition && (
           <p className="text-sm text-muted-foreground">

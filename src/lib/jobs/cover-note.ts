@@ -49,7 +49,7 @@ Rules:
 - End with a simple ask for a conversation. No subject line, no placeholders in brackets, no sign-off name.
 
 Job: ${posting.title}${confidential ? ' (confidential search)' : ` at ${posting.companyName}`}${posting.location ? `, ${posting.location}` : ''}
-${posting.description ? `Job description (excerpt): ${posting.description.slice(0, 1500)}` : ''}
+${posting.description && !confidential ? `Job description (excerpt): ${posting.description.slice(0, 1500)}` : ''}
 
 Candidate:
 Name: ${candidate.firstName ?? ''}
