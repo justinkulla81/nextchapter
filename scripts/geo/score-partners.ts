@@ -53,14 +53,21 @@ async function main() {
   // Contacts in the CRM: by organization name, and by the address a person writes from.
   const byOrgName = new Map<string, Strength>()
   const byDomain = new Map<string, Strength>()
-  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true } })
-  const orgKey = new Map(orgs.map((o) => [o.id, normalizeOrgName(o.name)]))
-  for (const a of await prisma.crmAffiliation.findMany({ where: { isCurrent: true, person: { deletedAt: null } }, select: { orgId: true, person: { select: { warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } } } })) {
-    const k = orgKey.get(a.orgId)
-    const st = contactStrength(a.person)
+  // Raw SQL so the script does not depend on how fresh the generated client is.
+  type P = { warmth: string; connectedAt: Date | null; linkedinDegree: string | null; firstRepliedAt: Date | null; lastTouchedAt: Date | null; touchCount: number; notes: string | null }
+  const affs = await prisma.$queryRaw<(P & { name: string })[]>`
+    select o.name, p.warmth::text as warmth, p."connectedAt", p."linkedinDegree", p."firstRepliedAt", p."lastTouchedAt", p."touchCount", p.notes
+    from "CrmAffiliation" a join "CrmOrganization" o on o.id = a."orgId" join "CrmPerson" p on p.id = a."personId"
+    where a."isCurrent" = true and p."deletedAt" is null`
+  for (const a of affs) {
+    const k = normalizeOrgName(a.name)
+    const st = contactStrength(a)
     if (k && st) byOrgName.set(k, best(byOrgName.get(k), st)!)
   }
-  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, email: { not: null } }, select: { email: true, emails: true, warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true } })) {
+  const people = await prisma.$queryRaw<(P & { email: string | null; emails: string[] })[]>`
+    select email, emails, warmth::text as warmth, "connectedAt", "linkedinDegree", "firstRepliedAt", "lastTouchedAt", "touchCount", notes
+    from "CrmPerson" where "deletedAt" is null and email is not null`
+  for (const p of people) {
     const st = contactStrength(p)
     if (!st) continue
     for (const e of new Set([p.email, ...p.emails].filter(Boolean) as string[])) {
