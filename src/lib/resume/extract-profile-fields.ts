@@ -37,7 +37,7 @@ const profileFieldsSchema = z.object({
         graduationDate: z.string().nullable(), // ISO date string
       })
     )
-    .max(10),
+    .max(30), // sanity ceiling only; the prompt asks for 10
   // A plain string, normalised to the allowed list in code (coerceOption). A strict enum
   // here threw away a member's WHOLE resume — every school and job — over one value that
   // fell outside the list.
@@ -53,19 +53,19 @@ const profileFieldsSchema = z.object({
         companyIndustry: z.string().nullable(),
       })
     )
-    .max(20),
+    .max(60), // sanity ceiling only; the prompt asks for 20
   graduationDate: z.string().nullable(), // ISO date string, e.g. "2018-05-15"
   firstJobStartDate: z.string().nullable(), // ISO date string
   latestJobTitle: z.string().nullable(),
   industry: z.string().nullable(),
   primaryFunction: z.string().nullable(), // normalised in code, as above
-  aiReadinessScore: z.number().int().min(0).max(100).nullable(),
+  aiReadinessScore: z.number().nullable(), // clamped and rounded in code, not rejected
   aiReadinessNotes: z.string().nullable(),
-  resumeKeywords: z.array(z.string()).max(15),
+  resumeKeywords: z.array(z.string()).max(80), // trimmed to 15 in code
   // Non-nullable array, like resumeKeywords/education/employers above — does
   // NOT count against the nullable/union-type cap that forced
   // secondaryFunctionIndustrySchema into its own call below.
-  certifications: z.array(z.string()).max(10),
+  certifications: z.array(z.string()).max(50), // trimmed to 10 in code
 })
 
 // Kept as its own call rather than folded into profileFieldsSchema above —
@@ -171,7 +171,7 @@ export async function extractProfileFieldsFromResume(
     const client = getAnthropicClient()
     const stream = client.messages.stream({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 5000, // bumped from 3000 — the new education[]/employers[] arrays materially grow output
+      max_tokens: 8000, // the education[]/employers[] arrays are large; a truncated JSON reply fails the whole parse
       thinking: { type: 'disabled' },
       // No `effort` here — unlike Sonnet/Opus, Haiku 4.5 rejects the effort
       // parameter on structured outputs with a 400, which the bare catch
@@ -208,7 +208,7 @@ export async function extractProfileFieldsFromResume(
       where: { id: resume.candidateId },
       select: { certifications: true, highestLevelReached: true, firstName: true, lastName: true },
     })
-    const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications]))
+    const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications.slice(0, 10)]))
     // Never overwrite a level the candidate already confirmed by hand on
     // confirm/page.tsx — only fill it in while it's still blank.
     const highestLevelReached = existingProfile?.highestLevelReached ?? inferHighestLevelFromTitle(data.latestJobTitle)
@@ -259,9 +259,10 @@ export async function extractProfileFieldsFromResume(
         hasJD: credentials.hasJD || undefined,
         hasMD: credentials.hasMD || undefined,
         hasDO: credentials.hasDO || undefined,
-        resumeAiReadinessScore: data.aiReadinessScore,
+        resumeAiReadinessScore:
+          data.aiReadinessScore === null ? null : Math.max(0, Math.min(100, Math.round(data.aiReadinessScore))),
         resumeAiReadinessNotes: data.aiReadinessNotes,
-        resumeKeywords: data.resumeKeywords,
+        resumeKeywords: data.resumeKeywords.slice(0, 15),
         certifications: mergedCertifications,
       },
     })
