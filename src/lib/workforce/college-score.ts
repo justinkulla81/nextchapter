@@ -204,7 +204,10 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   const profile = c.profile ? profilePart(c.profile, notes) : 0
   const body = contacts + fit + size + interest
   const score = Math.round(((c.profile ? body + profile : (body * 100) / 80) + relationship) * 10) / 10
-  const base = isCommunityCollege(c) ? 'C' : score >= 60 ? 'A' : score >= 45 ? 'B' : 'C'
+  // Cut-offs sit at 66 and 52 (they were 60 and 45 before the facts part was added
+  // and the contact details part cut from 30 to 10, which moved the scale up by
+  // about 7 points); on today's data that keeps the same number of A and B colleges.
+  const base = isCommunityCollege(c) ? 'C' : score >= 66 ? 'A' : score >= 52 ? 'B' : 'C'
   const floor = relationship >= 30 ? 'A' : relationship >= 15 ? 'B' : 'C'
   const tier = (base < floor ? base : floor) as 'A' | 'B' | 'C'
   return { score, parts: { contacts, fit, size, interest, ...(c.profile ? { profile } : {}), relationship, notes }, tier }
