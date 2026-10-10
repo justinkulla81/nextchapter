@@ -53,7 +53,7 @@ export async function CrmCollegeProfile({ orgId }: { orgId: string }) {
         <F label="Endowment" value={usd(c.endowment)} />
         <F label="Annual budget" value={usd(c.expenses)} note={c.revenue ? `Revenue ${usd(c.revenue)}` : undefined} />
         <F label="Annual giving" value={usd(c.onlineGiving) ?? usd(c.privateGifts)} note={c.onlineGiving ? 'Online giving' : c.privateGifts ? 'Private gifts total; online giving is not published' : 'Online giving is not published'} />
-        <F label="Executive education" value={yn(c.hasExecEd)} />
+        <F label="Executive education" value={yn(c.hasExecEd)} note="Includes executive-format degrees such as an Executive MBA" />
         <F label="Retraining / upskilling" value={yn(c.hasRetraining)} note={c.programNotes ?? undefined} />
         <F label="Graduate outcomes" value={c.earnings10 ? `${usd(c.earnings10)} median earnings, 10 yrs` : null}
           note={[c.earnings6 ? `${usd(c.earnings6)} at 6 yrs` : null, c.employedShare10 != null ? `${Math.round(c.employedShare10 * 100)}% working at 10 yrs` : null, c.completionRate != null ? `${Math.round(c.completionRate * 100)}% complete` : null].filter(Boolean).join(' · ') || undefined} />

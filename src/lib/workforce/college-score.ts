@@ -120,9 +120,11 @@ const logFrac = (v: number | null | undefined, lo: number, hi: number): number |
 /**
  * The college's own facts, up to 20: alumni base 8 (more graduates is a bigger
  * pool of people who will need this), money to act with 6 (budget, endowment,
- * private gifts), weak graduate outcomes 2 (an opening for career help), and
- * 2 each for an executive-education and a retraining arm (already sells to
- * working adults). A fact we do not have scores a neutral 40% of its share and
+ * private gifts), weak graduate outcomes 2 (an opening for career help), an
+ * executive-education arm 3 and a retraining arm 1 (already sells to working
+ * adults). Retraining is worth less because researched colleges answered yes
+ * about 90% of the time, so it barely separates them; the executive-education
+ * flag also counts executive-format degrees such as an Executive MBA. A fact we do not have scores a neutral 40% of its share and
  * is listed in the notes, so an unresearched college never beats a researched
  * one on ignorance alone.
  */
@@ -139,7 +141,7 @@ export function profilePart(f: CollegeFacts, notes: string[]): number {
   if (f.hasExecEd) notes.push('Has an executive-education program')
   if (f.hasRetraining) notes.push('Runs retraining programs')
   if (f.employedShare10 != null && gap !== null && gap > 0.6) notes.push(`Only ${Math.round(f.employedShare10 * 100)}% of entrants working at 10 years`)
-  return Math.round((8 * (alumni ?? N) + 6 * (money ?? N) + 2 * (gap ?? N) + 2 * flag(f.hasExecEd) + 2 * flag(f.hasRetraining)) * 10) / 10
+  return Math.round((8 * (alumni ?? N) + 6 * (money ?? N) + 2 * (gap ?? N) + 3 * flag(f.hasExecEd) + 1 * flag(f.hasRetraining)) * 10) / 10
 }
 
 export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts; tier: 'A' | 'B' | 'C' } {
