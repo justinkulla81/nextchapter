@@ -21,6 +21,9 @@ const PLACEHOLDER_BY_TYPE: Record<IntelType, string> = {
   who_decides: 'e.g. "The hiring manager decides, but the panel has real veto power."',
   recruiter_responsiveness: 'e.g. "Recruiter followed up within 2-3 business days at every stage."',
   what_kills_candidates: 'e.g. "Vague answers to \'why us\' — they expect real company research."',
+  // Same framing as above: what it is like and how it works, never grievance about a person.
+  culture: 'e.g. "Collaborative and fast-moving; decisions get made in small teams, and people are expected to own outcomes."',
+  hiring_practices: 'e.g. "Clear process, and they kept candidates informed. Feedback after the final round took about a week."',
 }
 
 export function SubmitIntelForm({ companyId, companyPageId }: { companyId: string; companyPageId: string }) {

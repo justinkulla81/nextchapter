@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
+import { linkPostingToCompany } from '@/lib/companies/posting-company'
 
 export interface ResumeEmployerInput {
   companyName: string
@@ -24,12 +25,20 @@ function rangesOverlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): bool
 // gap analysis downstream.
 export async function syncResumeWorkHistory(
   candidateId: string,
-  employers: ResumeEmployerInput[]
-): Promise<{ insertedCount: number }> {
-  const valid = employers.filter(
-    (entry) => entry.startDate && entry.companyName?.trim() && entry.roleTitle?.trim()
+  employers: ResumeEmployerInput[],
+  opts: { resumeId?: string } = {}
+): Promise<{ insertedCount: number; undatedCount: number }> {
+  const named = employers.filter((entry) => entry.companyName?.trim() && entry.roleTitle?.trim())
+  const valid = named.filter((entry) => entry.startDate)
+  // Jobs with no start date are not dropped: they still tie the member to a company
+  // (alumni networks, feedback requests), they are just kept apart from the dated
+  // history so they can never distort tenure or gap analysis.
+  const undatedCount = await saveUndated(
+    candidateId,
+    named.filter((entry) => !entry.startDate),
+    opts.resumeId
   )
-  if (valid.length === 0) return { insertedCount: 0 }
+  if (valid.length === 0) return { insertedCount: 0, undatedCount }
 
   const existing = await prisma.workHistoryEntry.findMany({ where: { candidateId } })
   const now = new Date()
@@ -57,11 +66,44 @@ export async function syncResumeWorkHistory(
         endDate: entry.isCurrent ? null : entry.endDate,
         isCurrent: entry.isCurrent,
         resumeDerived: true,
+        // Best-effort: null when the name isn't an employer or the lookup fails; the
+        // backfill links it later.
+        companyId: await linkPostingToCompany(entry.companyName),
       },
     })
     existing.push(created)
     insertedCount++
   }
 
-  return { insertedCount }
+  return { insertedCount, undatedCount }
+}
+
+async function saveUndated(candidateId: string, entries: ResumeEmployerInput[], resumeId?: string): Promise<number> {
+  let count = 0
+  for (const entry of entries) {
+    const companyNameNormalized = normalizeOrgName(entry.companyName)
+    if (!companyNameNormalized) continue
+    try {
+      await prisma.undatedEmployment.upsert({
+        where: {
+          candidateId_companyNameNormalized_roleTitle: { candidateId, companyNameNormalized, roleTitle: entry.roleTitle.trim() },
+        },
+        create: {
+          candidateId,
+          resumeId: resumeId ?? null,
+          companyName: entry.companyName.trim(),
+          companyNameNormalized,
+          companyId: await linkPostingToCompany(entry.companyName),
+          roleTitle: entry.roleTitle.trim(),
+          endDate: entry.endDate,
+          isCurrent: entry.isCurrent,
+        },
+        update: {},
+      })
+      count++
+    } catch (error) {
+      console.error('Could not save undated employment:', entry.companyName, error)
+    }
+  }
+  return count
 }

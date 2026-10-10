@@ -114,10 +114,22 @@ export async function leaveCommunity(candidateId: string, communityId: string) {
 // Prisma filter for the candidate's active community selection —
 // community/page.tsx keys the existing postCity/postFunction/postIndustry
 // where clause off this instead of raw searchParams.city/function/industry.
-export function communityPostWhere(community: { type: CommunityType; value: string } | null) {
+export function communityPostWhere(community: { type: CommunityType; value: string; communityId?: string } | null) {
   if (!community) return {}
   if (community.type === 'CITY') return { postCity: community.value }
   if (community.type === 'FUNCTION') return { postFunction: community.value }
   if (community.type === 'INDUSTRY') return { postIndustry: community.value }
+  // Alumni networks have no tag on a post; they are the posts of the network's
+  // members. Fails CLOSED: without the community's id the filter matches nothing,
+  // never "everyone".
+  if (community.type === 'SCHOOL' || community.type === 'FORMER_EMPLOYER') {
+    if (!community.communityId) return { id: '__no_such_post__' }
+    return {
+      candidate: {
+        communityMemberships: { some: { communityId: community.communityId, leftAt: null } },
+        confidentialSearchMode: false,
+      },
+    }
+  }
   return {}
 }

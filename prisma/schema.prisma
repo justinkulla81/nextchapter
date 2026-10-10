@@ -1658,6 +1658,8 @@ model CandidateProfile {
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+
+  undatedEmployment UndatedEmployment[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -1853,6 +1855,15 @@ model WorkHistoryEntry {
 
   @@index([candidateId])
   @@index([companyNameNormalized])
+
+  // The directory company this job was at. companyName stays what the resume said.
+  // This link is internal (grouping, alumni networks, feedback requests): a job here
+  // does NOT make the member visible as an insider — that is MemberEmployment, which
+  // the member confirms.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
 }
 
 // Permanent, platform-wide cache of company name -> employee-count band.
@@ -1956,6 +1967,16 @@ model EducationEntry {
 
   @@index([candidateId])
   @@index([schoolNameNormalized])
+
+  // The canonical institution this entry is at — set when the entry is created from a
+  // resume (and by a backfill for older rows). schoolName stays exactly what the
+  // resume said; schoolId is what alumni are grouped by.
+  schoolId    String?
+  school      School? @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  // 'ASSOCIATE' | 'BACHELORS' | 'MASTERS' | 'MBA' | 'DOCTORATE' | 'PROFESSIONAL' | 'OTHER'
+  degreeLevel String?
+
+  @@index([schoolId])
 }
 
 model Reference {
@@ -3480,6 +3501,10 @@ enum CommunityType {
   FUNCTION
   INDUSTRY
   EX_COMPANY
+  // Alumni networks. Opt-in only (never auto-joined), never for a member in
+  // Confidential Search Mode, and only offered once a group has 5+ members.
+  SCHOOL
+  FORMER_EMPLOYER
 }
 
 enum CommunityJoinSource {
@@ -6759,6 +6784,9 @@ model Company {
   institutionTargets InstitutionTargetCompany[]
 
   @@index([industry])
+
+  workHistory      WorkHistoryEntry[]
+  undatedEmployers UndatedEmployment[]
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
@@ -12494,4 +12522,52 @@ model CompanyHq {
   checkedAt  DateTime @default(now())
 
   @@index([state])
+}
+
+// A canonical institution. Resumes write the same school many ways ("MIT",
+// "MIT Sloan School of Management", "Massachusetts Institute of Technology"); every
+// education entry points at ONE of these so alumni can be grouped and counted.
+// Seeded with well-known institutions and their aliases; anything else is created
+// unverified, and a near-miss to an existing school is queued for review rather than
+// merged (see src/lib/education/school-match.ts).
+model School {
+  id               String   @id @default(cuid())
+  name             String // canonical display name
+  canonicalKey     String   @unique // schoolKey(name)
+  aliases          String[] @default([])
+  // Optional link to the outreach college directory, for state / sector / size.
+  localCollegeId   String?
+  state            String?
+  verified         Boolean  @default(false)
+  // 'REVIEW' (looks like a variant of mergeSuggestionId) | 'KEPT_SEPARATE' | 'MERGED'
+  reviewState      String?
+  mergeSuggestionId String?
+  createdAt        DateTime @default(now())
+
+  educationEntries EducationEntry[]
+
+  @@index([reviewState])
+}
+
+// A job on a resume that has NO start date. The dated work history requires one (a
+// fabricated date would corrupt tenure and gap analysis), so these are kept here
+// instead of being dropped: they still connect the member to the company for alumni
+// networks and feedback, but are excluded from every dated calculation.
+model UndatedEmployment {
+  id                    String           @id @default(cuid())
+  candidateId           String
+  candidate             CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId              String?
+  companyName           String
+  companyNameNormalized String
+  companyId             String?
+  company               Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  roleTitle             String
+  endDate               DateTime?
+  isCurrent             Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+
+  @@unique([candidateId, companyNameNormalized, roleTitle])
+  @@index([companyId])
+  @@index([candidateId])
 }

@@ -178,3 +178,58 @@ describe('no indirect route from CRM data to a candidate', () => {
   })
 })
 
+// ── Research metrics and alumni data stay inside their walls ───────────────
+describe('research metrics are admin-only', () => {
+  // Outcomes and engagement by college, degree, level, function and industry are
+  // NextChapter research. They describe observable behaviour in aggregate; they are
+  // never shown to members, recruiters, coaches or hiring managers, and no one's
+  // "work ethic" is ever labelled. The only importers allowed are admin pages.
+  it('is imported only from the admin portal', () => {
+    const importers = [...walk(join(ROOT, 'src'))]
+      .map(rel)
+      .filter((f) => !f.startsWith('src/test/') && !f.endsWith('src/lib/analytics/education-outcomes.ts'))
+      .filter((f) => read(join(ROOT, f)).includes('@/lib/analytics/education-outcomes'))
+    expect(importers.filter((f) => !f.startsWith('src/app/support/admin/'))).toEqual([])
+  })
+
+  it('suppresses small groups inside the module itself, not only in the page', () => {
+    const src = read(join(ROOT, 'src/lib/analytics/education-outcomes.ts'))
+    expect(src).toContain('suppressSmallCells')
+    expect(src).toContain('confidentialSearchMode: false')
+  })
+})
+
+describe('alumni networks stay opt-in, private and above the floor', () => {
+  const src = read(join(ROOT, 'src/lib/community/alumni-networks.ts'))
+  it('is never joined automatically', () => {
+    // The auto-join sync (syncAutoJoinedCommunities) must not know about these types.
+    const auto = read(join(ROOT, 'src/lib/community/communities.ts'))
+    const syncBody = auto.slice(auto.indexOf('export async function syncAutoJoinedCommunities'), auto.indexOf('export async function getPendingAutoJoinNotices'))
+    expect(syncBody).not.toMatch(/SCHOOL|FORMER_EMPLOYER/)
+  })
+  it('excludes Confidential Search Mode members from the offer and from every count', () => {
+    expect(src).toContain('confidentialSearchMode')
+    expect(src).toMatch(/c\."confidentialSearchMode" = false/)
+  })
+  it('applies the group-size floor', () => {
+    expect(src).toContain('MIN_ALUMNI_GROUP')
+    expect(src).toMatch(/n >= MIN_ALUMNI_GROUP/)
+  })
+  it('the alumni feed filter fails closed', () => {
+    const c = read(join(ROOT, 'src/lib/community/communities.ts'))
+    expect(c).toContain("__no_such_post__")
+  })
+})
+
+describe('ex-employee feedback', () => {
+  const src = read(join(ROOT, 'src/lib/companies/ex-employee-feedback.ts'))
+  it('never asks a member in Confidential Search Mode, or about a current employer', () => {
+    expect(src).toContain('confidentialSearchMode')
+    expect(src).toContain('currentlyThere')
+  })
+  it('reports small counts as "fewer than 5", never as the number', () => {
+    expect(src).toContain('MIN_CELL_SIZE')
+    expect(src).toMatch(/floor\(/)
+  })
+})
+

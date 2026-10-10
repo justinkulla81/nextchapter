@@ -12,6 +12,9 @@ export const INTEL_TYPES = [
   'who_decides',
   'recruiter_responsiveness',
   'what_kills_candidates',
+  // Asked of people who used to work there (see ex-employee-feedback.ts).
+  'culture',
+  'hiring_practices',
 ] as const
 export type IntelType = (typeof INTEL_TYPES)[number]
 
@@ -22,4 +25,6 @@ export const INTEL_TYPE_LABEL: Record<IntelType, string> = {
   who_decides: 'Who makes the decision',
   recruiter_responsiveness: 'Recruiter responsiveness',
   what_kills_candidates: "What's killed other candidates",
+  culture: 'What it is like to work there',
+  hiring_practices: 'How they treat candidates and hire',
 }

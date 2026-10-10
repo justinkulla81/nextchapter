@@ -37,7 +37,7 @@ const profileFieldsSchema = z.object({
         graduationDate: z.string().nullable(), // ISO date string
       })
     )
-    .max(6),
+    .max(10),
   highestEducationLevel: z.enum(HIGHEST_EDUCATION_LEVELS).nullable(),
   employers: z
     .array(
@@ -50,7 +50,7 @@ const profileFieldsSchema = z.object({
         companyIndustry: z.string().nullable(),
       })
     )
-    .max(12),
+    .max(20),
   graduationDate: z.string().nullable(), // ISO date string, e.g. "2018-05-15"
   firstJobStartDate: z.string().nullable(), // ISO date string
   latestJobTitle: z.string().nullable(),
@@ -85,9 +85,9 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 
 - firstName, lastName: from the resume header/contact info.
 - email, phone, streetAddress, city, state, country: from contact info, if present.
-- education: every real degree-granting program listed (skip bootcamps, certificates, single courses), most recent first, max 6. For schoolName, use ONLY the parent institution's name, normalized (e.g. "Harvard University", never "Harvard Kennedy School" or "Harvard Graduate School of Education" — strip the sub-school/department down to the university). degree/fieldOfStudy as listed; graduationDate as an ISO date (YYYY-01-01 if only a year is given), null if not stated.
+- education: every real degree-granting program listed (skip bootcamps, certificates, single courses), most recent first, max 10. For schoolName, use ONLY the parent institution's name, normalized (e.g. "Harvard University", never "Harvard Kennedy School" or "Harvard Graduate School of Education" — strip the sub-school/department down to the university). degree/fieldOfStudy as listed; graduationDate as an ISO date (YYYY-01-01 if only a year is given), null if not stated.
 - highestEducationLevel: the single highest degree completed, one of the provided categories (MBA is its own category, distinct from other MASTERS degrees).
-- employers: every real job listed, max 12, in any order. companyName as the employer's name (not a client/project name); roleTitle as listed; startDate/endDate as ISO dates (YYYY-01-01 if only a year given), endDate null if isCurrent; companyIndustry as a few words describing that employer's industry.
+- employers: every real job listed (include a job even when its dates are missing — leave the date null, never guess one), max 20, in any order. companyName as the employer's name (not a client/project name); roleTitle as listed; startDate/endDate as ISO dates (YYYY-01-01 if only a year given), endDate null if isCurrent; companyIndustry as a few words describing that employer's industry.
 - graduationDate: the graduation date of their most recent/highest degree, as an ISO date (YYYY-MM-DD). If only a year is given, use YYYY-01-01.
 - firstJobStartDate: the start date of their EARLIEST listed job (their first job after school), as an ISO date. If only a year is given, use YYYY-01-01.
 - latestJobTitle: their most recent job title.
@@ -139,10 +139,20 @@ function inferHighestLevelFromTitle(latestJobTitle: string | null): (typeof HIGH
   return 'IC'
 }
 
-export async function extractProfileFieldsFromResume(resumeId: string): Promise<void> {
+export async function extractProfileFieldsFromResume(
+  resumeId: string,
+  // entriesOnly: sync the education and job entries and nothing else. Used to re-read
+  // existing resumes (after the caps were raised) without touching a profile the member
+  // may have corrected by hand — the full run rewrites city, name, phone and so on.
+  opts: { entriesOnly?: boolean } = {}
+): Promise<void> {
   const resume = await prisma.resume.findUniqueOrThrow({ where: { id: resumeId } })
 
-  if (!resume.extractedText) return
+  if (!resume.extractedText) {
+    // Silent before: an image-only PDF or a failed text extraction simply did nothing.
+    captureServerEvent(resume.candidateId, 'resume_extraction_skipped', { resumeId, reason: 'no_extracted_text' })
+    return
+  }
 
   try {
     const client = getAnthropicClient()
@@ -168,7 +178,10 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     const data = message.parsed_output
     const secondaryData = secondaryMessage.parsed_output
 
-    if (!data) return
+    if (!data) {
+      captureServerEvent(resume.candidateId, 'resume_extraction_failed', { resumeId, reason: 'no_parsed_output' })
+      return
+    }
 
     const graduationDate = data.graduationDate ? new Date(data.graduationDate) : null
     const firstJobStartDate = data.firstJobStartDate ? new Date(data.firstJobStartDate) : null
@@ -203,7 +216,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     const firstName = extractedFirstName ?? existingProfile?.firstName ?? null
     const lastName = extractedLastName ?? existingProfile?.lastName ?? null
 
-    await prisma.candidateProfile.update({
+    if (!opts.entriesOnly) await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
       data: {
         firstName,
@@ -240,7 +253,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
       },
     })
 
-    const [{ insertedCount: educationInserted }, { insertedCount: employersInserted }] = await Promise.all([
+    const [{ insertedCount: educationInserted }, { insertedCount: employersInserted, undatedCount }] = await Promise.all([
       syncResumeEducation(
         resume.candidateId,
         data.education.map((entry) => ({
@@ -262,10 +275,11 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
           endDate: entry.endDate ? new Date(entry.endDate) : null,
           isCurrent: entry.isCurrent,
           companyIndustry: entry.companyIndustry,
-        }))
+        })),
+        { resumeId: resume.id }
       ).catch((error) => {
         console.error('Failed to sync resume-derived work history:', error)
-        return { insertedCount: 0 }
+        return { insertedCount: 0, undatedCount: 0 }
       }),
     ])
 
@@ -276,7 +290,9 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     captureServerEvent(resume.candidateId, 'resume_employers_extracted', {
       count: data.employers.length,
       insertedCount: employersInserted,
-      dedupedCount: data.employers.length - employersInserted,
+      // Kept (in UndatedEmployment) rather than dropped; counted so we can see how often.
+      undatedCount,
+      dedupedCount: data.employers.length - employersInserted - undatedCount,
     })
 
     if (educationInserted > 0 || employersInserted > 0) {
@@ -292,6 +308,11 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     }
   } catch (error) {
     console.error('Failed to auto-fill profile fields from resume:', error)
+    captureServerEvent(resume.candidateId, 'resume_extraction_failed', {
+      resumeId,
+      reason: 'error',
+      message: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+    })
     // Best-effort auto-fill — failure here must never block the resume
     // upload or its ATS/results/experience analysis.
   }

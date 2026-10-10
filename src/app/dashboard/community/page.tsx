@@ -35,6 +35,7 @@ import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
 import { CommunityChips } from '@/components/dashboard/CommunityChips'
+import { AlumniNetworkOptions } from '@/components/community/AlumniNetworkOptions'
 import { CommunityAutoJoinBanner } from '@/components/dashboard/CommunityAutoJoinBanner'
 import { CommunityGroupStrip } from '@/components/dashboard/CommunityGroupStrip'
 import { getCandidateGroups } from '@/lib/community/groups'
@@ -837,6 +838,8 @@ async function CommunityTab({
             </div>
           </details>
         )}
+
+        <AlumniNetworkOptions candidateId={candidateId} />
 
         <div className="border-b border-border px-4 py-2">
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Feed</p>

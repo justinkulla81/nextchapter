@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatchStrict } from '@/lib/text/org-name-match'
+import { ensureSchoolsSeeded, loadSchoolIndex, resolveOrCreateSchool } from '@/lib/education/school-link'
+import { inferDegreeLevel } from '@/lib/education/school-match'
 
 export interface ResumeEducationInput {
   schoolName: string
@@ -47,9 +49,36 @@ export async function syncResumeEducation(
     orderBy: { createdAt: 'asc' },
   })
 
+  // Resolve each school to its canonical institution. Best-effort: if it fails the
+  // entry is still saved (unlinked) and the backfill links it later.
+  let schoolIndex: Awaited<ReturnType<typeof loadSchoolIndex>>['index'] | null = null
+  try {
+    await ensureSchoolsSeeded()
+    schoolIndex = (await loadSchoolIndex()).index
+  } catch (error) {
+    console.error('Could not load school index for resume sync:', error)
+  }
+
   let insertedCount = 0
   for (const entry of valid) {
-    const alreadyExists = existing.some((row) => orgNamesMatchStrict(row.schoolName, entry.schoolName))
+    let schoolId: string | null = null
+    if (schoolIndex) {
+      try {
+        schoolId = (await resolveOrCreateSchool(entry.schoolName, { index: schoolIndex }))?.schoolId ?? null
+      } catch (error) {
+        console.error('Could not resolve school:', entry.schoolName, error)
+      }
+    }
+    // The same institution under another spelling ("MIT" vs "Massachusetts Institute
+    // of Technology") is a duplicate; so is the same degree-level at it. A different
+    // degree at the same school is a real second entry (BS then MS).
+    const alreadyExists = existing.some(
+      (row) =>
+        orgNamesMatchStrict(row.schoolName, entry.schoolName) ||
+        (schoolId !== null &&
+          row.schoolId === schoolId &&
+          (row.degreeLevel ?? inferDegreeLevel(row.degree)) === inferDegreeLevel(entry.degree))
+    )
     if (alreadyExists) continue
 
     const created = await prisma.educationEntry.create({
@@ -57,6 +86,8 @@ export async function syncResumeEducation(
         candidateId,
         schoolName: entry.schoolName,
         schoolNameNormalized: normalizeOrgName(entry.schoolName),
+        schoolId,
+        degreeLevel: inferDegreeLevel(entry.degree),
         degree: entry.degree,
         fieldOfStudy: entry.fieldOfStudy,
         graduationDate: entry.graduationDate,

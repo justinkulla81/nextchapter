@@ -20,8 +20,22 @@ import {
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
 import { createModeratedCommunityPost } from '@/lib/community/create-post'
+import { joinAlumniNetwork } from '@/lib/community/alumni-networks'
 
 export type FormState = { error?: string } | undefined
+
+// Opt in to a college or former-employer network. The server re-checks that the member
+// qualifies, is not in Confidential Search Mode, and that the group has 5+ members.
+export async function joinAlumniNetworkAction(formData: FormData): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  const kind = formData.get('kind') === 'SCHOOL' ? 'SCHOOL' : 'FORMER_EMPLOYER'
+  const refId = String(formData.get('refId') ?? '')
+  if (!refId) return
+  const result = await joinAlumniNetwork(profile.id, kind, refId)
+  captureServerEvent(profile.id, 'alumni_network_joined', { kind, refId, ok: result.ok })
+  revalidatePath('/dashboard/community')
+}
 
 async function getAuthedProfile() {
   const supabase = await createClient()

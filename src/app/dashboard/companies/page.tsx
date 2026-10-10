@@ -16,6 +16,7 @@ import { COMPANIES_VISIT_SESSION_MS, getLastCompaniesVisit, getNewStrongCompanyI
 import type { LocalEconomy } from '@/lib/companies/local-economy'
 import { rankCompanies, type CompanyRanking, type FitBand } from '@/lib/companies/company-ranking'
 import { CompanyDirectoryViewed, RankedCompanyLink } from '@/components/companies/CompanyDirectoryAnalytics'
+import { FeedbackRequests } from '@/components/companies/FeedbackRequests'
 
 export const metadata: Metadata = { title: 'Companies' }
 
@@ -245,6 +246,8 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
           </p>
         )}
       </div>
+
+      <FeedbackRequests candidateId={profile.id} />
 
       <form className="space-y-3">
         {sort === 'az' && <input type="hidden" name="sort" value="az" />}
