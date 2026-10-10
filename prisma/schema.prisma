@@ -9369,6 +9369,16 @@ model CrmPerson {
   guessedEmail      String?
   guessedEmailBasis String?
 
+  /// What Hunter said about the address in email when it was last checked:
+  /// deliverable, risky (a catch-all domain) or undeliverable. Null = never
+  /// checked. emailSource says where the address came from ('hunter-finder',
+  /// 'hunter-domain-search', or 'hunter-guess-verified' for a guess that
+  /// verified); null for addresses that arrived any other way.
+  emailVerifiedStatus String?
+  emailVerifiedAt     DateTime?
+  emailVerifyScore    Int?
+  emailSource         String?
+
   /// Set when this record was absorbed into another by a merge. A removed
   /// record with this set is a duplicate, not a person you took out — the
   /// Removed page shows where it went instead of offering to restore it.
