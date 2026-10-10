@@ -273,6 +273,8 @@ export default function JobSearchDailyEmail({
           }
         />
 
+        <Section title="Posted in the last 72 hours — apply first" items={jobs.fresh} />
+
         <Section
           title="New for you"
           items={newForYou}

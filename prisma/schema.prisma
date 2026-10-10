@@ -1192,6 +1192,7 @@ model CandidateProfile {
   sprintGoalEmailsOptedOut Boolean          @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
   marketDigestOptedOut     Boolean          @default(false) // the new Weekly Market Digest — own flag, deliberately not folded into weeklyReportOptedOut above
   jobSearchDailyOptedOut   Boolean          @default(false) // Job Search Daily — sent on top of the weekday rotation, so its own flag rather than dailyEmailOptedOut
+  freshJobAlertsOptedOut   Boolean          @default(false) // instant "posted in the last 72 hours" job alerts (fresh-job-alerts.ts)
   notificationTier         NotificationTier @default(FULL)
 
   // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
@@ -2595,13 +2596,12 @@ model EmployerProfile {
   // Higher Ed: institutions this employer is linked to (Prisma-virtual).
   institutionLinks InstitutionEmployer[]
 
-  @@index([subscriptionTier, subscriptionStatus])
-
   // The directory Company this is the employer / firm of. Public business facts
   // live on Company; everything private to this role stays on this record.
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
 }
 
@@ -4644,12 +4644,14 @@ model ExclusiveJobPosting {
   // Higher Ed: an employer post visible only to this institution's members.
   // Null for every ordinary job-board posting.
   institutionScopeId String?
+  // From the crawler (ncrawl) import: the date the source says the job was
+  // posted (createdAt is only when we imported it), how many of our sources
+  // list it (1 = seen in few places — a low-competition signal), and the
+  // source's name (the search firm for a recruiter-led search).
+  postedAt           DateTime?
+  sourceCount        Int?
+  sourceName         String?
   institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
-
-  @@index([archivedAt, createdAt])
-  @@index([status, archivedAt])
-  @@index([audienceTier, distribution])
-  @@index([institutionScopeId])
 
   // The directory company this posting is for. Set when the posting is added (see
   // linkPostingToCompany) and backfilled for older rows; null only when the
@@ -4657,7 +4659,12 @@ model ExclusiveJobPosting {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  @@index([archivedAt, createdAt])
+  @@index([status, archivedAt])
+  @@index([audienceTier, distribution])
+  @@index([institutionScopeId])
   @@index([companyId])
+  @@index([postedAt])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -6732,8 +6739,6 @@ model Company {
   // Higher Ed back-relation (Prisma-virtual; adds no column).
   institutionLayoffMatches LayoffMatch[]
 
-  @@index([industry])
-
   // The company's own website. Filled only from a source a person typed — a linked
   // CRM organisation or an employer profile — never guessed or scraped.
   website           String?
@@ -6752,6 +6757,8 @@ model Company {
   recruiterFirms     RecruiterFirm[]
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
+
+  @@index([industry])
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
@@ -7631,16 +7638,16 @@ model RecruiterFirmInvite {
 // secret signs every delivery (NextChapter-Signature header) and is shown to
 // the admin once, on create and on rotate.
 model FirmWebhookEndpoint {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   firmId        String
   firm          RecruiterFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
   url           String
   secret        String
   events        String[]
-  isActive      Boolean   @default(true)
+  isActive      Boolean       @default(true)
   lastSuccessAt DateTime?
   lastFailureAt DateTime?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime      @default(now())
 
   deliveries FirmWebhookDelivery[]
 
@@ -9268,24 +9275,24 @@ model CrmOrganization {
   partnerProfile      CrmPartnerProfile?
   researchProfile     CrmResearchProfile?
 
-  @@index([priorityScore(sort: Desc)])
-  @@index([leadQuality])
-  @@index([companyId])
-  @@index([usState])
-
   // How this organisation came to be (or not be) linked to a directory Company:
   // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
+
+  @@index([priorityScore(sort: Desc)])
+  @@index([leadQuality])
+  @@index([companyId])
+  @@index([usState])
 }
 
 model CrmPerson {
-  id        String  @id @default(cuid())
+  id                 String              @id @default(cuid())
   referredCandidates CandidateReferral[]
   referralLinks      ReferralLink[]
-  firstName String?
-  lastName  String?
-  fullName  String // always populated; the other two are best-effort splits
+  firstName          String?
+  lastName           String?
+  fullName           String // always populated; the other two are best-effort splits
 
   // Strongest dedup key — the bare slug from a profile URL, lowercased. The
   // dry run matched 77 of 92 auto-merges on this alone.
@@ -10862,19 +10869,19 @@ model LocalCollege {
 /// own website. Kept only when the name (and email, if any) appear verbatim
 /// on the page it came from.
 model CollegeContact {
-  id          String   @id @default(cuid())
-  collegeId   String
+  id                String   @id @default(cuid())
+  collegeId         String
   /// 'career' | 'alumni' | 'development' | 'execEd'
-  role        String
+  role              String
   /// null for the office's general line when the site names no leader.
-  name        String?
-  title       String?
-  email       String?
-  phone       String?
-  sourceUrl   String
-  foundAt     DateTime @default(now())
+  name              String?
+  title             String?
+  email             String?
+  phone             String?
+  sourceUrl         String
+  foundAt           DateTime @default(now())
   /// The CRM person this contact was added as, so a re-run never adds them twice.
-  crmPersonId String?
+  crmPersonId       String?
   /// For a named leader with no email on the page: the college's address
   /// format applied to their name, and how that format was worked out.
   guessedEmail      String?
@@ -11910,18 +11917,18 @@ enum CrmReportSendChannel {
 /// on. A person can be on several; unsubscribing is per list. Edited in
 /// Admin → CRM → Mailing lists; `key` is what code refers to and never changes.
 model MailingList {
-  id              String   @id @default(cuid())
-  key             String   @unique
+  id              String         @id @default(cuid())
+  key             String         @unique
   name            String
   description     String?
   /// Who this list is for, in plain words, shown when choosing lists.
   audience        String?
   defaultFromName String?
   cadence         MailingCadence @default(AD_HOC)
-  isActive        Boolean  @default(true)
-  sortOrder       Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isActive        Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   members  MailingListMember[]
   editions MailingEditionList[]
@@ -12006,41 +12013,41 @@ model MailingSettings {
 /// investor update, a product note. Someone on two targeted lists gets it
 /// once. `isReport` + `reportKey` ('2026-10') tie it to CrmReportSend.
 model MailingEdition {
-  id              String               @id @default(cuid())
-  key             String               @unique
-  title           String
-  isReport        Boolean              @default(false)
-  reportKey       String?
-  subject         String               @default("")
-  previewText     String?
+  id                  String               @id @default(cuid())
+  key                 String               @unique
+  title               String
+  isReport            Boolean              @default(false)
+  reportKey           String?
+  subject             String               @default("")
+  previewText         String?
   /// Sanitized HTML from the composer: p, br, b, u, i, ul, ol, li, a only.
-  bodyHtml        String               @default("") @db.Text
+  bodyHtml            String               @default("") @db.Text
   /// Supabase Storage path in the mailing-files bucket.
-  attachmentPath  String?
-  attachmentName  String?
-  attachmentBytes Int?
+  attachmentPath      String?
+  attachmentName      String?
+  attachmentBytes     Int?
   /// Attach the file itself as well as linking to it.
-  attachFile      Boolean              @default(false)
+  attachFile          Boolean              @default(false)
   /// The link to the report in the email; defaults to the uploaded file.
-  reportUrl       String?
-  status          MailingEditionStatus @default(DRAFT)
+  reportUrl           String?
+  status              MailingEditionStatus @default(DRAFT)
   /// Set on drafts the cadence job made: the list it was made for and the
   /// period ('2026-10', '2026-Q4', '2026-10-07'), so each period gets one.
-  cadenceListId   String?
-  periodKey       String?
+  cadenceListId       String?
+  periodKey           String?
   /// When the "ready for your approval" email went out for this draft.
   approvalRequestedAt DateTime?
   /// Set on a copy ("Make a copy"): the first edition of the group. Versions
   /// share it so their sends can be read together and one at a time.
-  versionOfId     String?
-  versionOf       MailingEdition?      @relation("EditionVersions", fields: [versionOfId], references: [id], onDelete: SetNull)
-  versions        MailingEdition[]     @relation("EditionVersions")
-  scheduledAt     DateTime?
-  sendStartedAt   DateTime?
-  sentAt          DateTime?
-  createdByEmail  String?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  versionOfId         String?
+  versionOf           MailingEdition?      @relation("EditionVersions", fields: [versionOfId], references: [id], onDelete: SetNull)
+  versions            MailingEdition[]     @relation("EditionVersions")
+  scheduledAt         DateTime?
+  sendStartedAt       DateTime?
+  sentAt              DateTime?
+  createdByEmail      String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   lists      MailingEditionList[]
   recipients MailingEditionRecipient[]
@@ -12151,7 +12158,6 @@ model MailingUnsubscribeRequest {
   @@index([processedAt, receivedAt])
 }
 
-
 enum CrmRapSheetStatus {
   /// Offered in the night-before email; waiting on a yes/no. No answer means no.
   OFFERED
@@ -12184,7 +12190,7 @@ model CrmRapSheet {
   content     Json?
   generatedAt DateTime?
   emailedAt   DateTime?
-  error       String?           @db.Text
+  error       String?   @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -12346,4 +12352,29 @@ model InstitutionTargetCompany {
 
   @@unique([institutionId, companyId])
   @@index([companyId])
+}
+
+// A cover note a member drafted for a job board posting (an LLM call per
+// click, capped per member per day — see src/lib/jobs/cover-note.ts).
+model JobCoverNote {
+  id          String   @id @default(cuid())
+  candidateId String
+  postingId   String
+  body        String   @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+  @@index([candidateId, postingId])
+}
+
+// One instant "posted in the last 72 hours" alert email per member per
+// posting (src/lib/jobs/fresh-job-alerts.ts) — never the same job twice.
+model FreshJobAlertSend {
+  id          String   @id @default(cuid())
+  candidateId String
+  postingId   String
+  sentAt      DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([candidateId, sentAt])
 }

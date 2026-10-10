@@ -1,15 +1,18 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState, useTransition } from 'react'
 import { Lock, ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick } from '@/app/dashboard/find-my-job/actions'
+import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick, draftJobCoverNote } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
+import { edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
+import type { JobContacts } from '@/lib/jobs/job-contacts'
+import posthog from 'posthog-js'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -47,6 +50,27 @@ function SeniorityBadge({ level }: { level: string | null }) {
 function attributionOf(posting: Pick<ExclusiveJobPosting, 'badges'>): string | null {
   return posting.badges.find((b) => b.startsWith('Listed on ')) ?? null
 }
+
+// The first 72 hours after posting are when an application stands out.
+function FreshBadge({ posting }: { posting: Pick<ExclusiveJobPosting, 'postedAt' | 'createdAt'> }) {
+  if (!isFresh(posting)) return null
+  return (
+    <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">
+      {postedAgo(posting)} · apply first
+    </span>
+  )
+}
+
+function LowCompetitionBadge({ competition }: { competition?: CompetitionScore }) {
+  if (competition?.level !== 'low') return null
+  return (
+    <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success" title={competition.reasons.join(' · ')}>
+      Low competition
+    </span>
+  )
+}
+
+const COMPETITION_LABEL = { low: 'Low', medium: 'Medium', high: 'High' } as const
 
 function NewBadge() {
   return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
@@ -96,10 +120,14 @@ export function DiscoverJobCard({
   posting,
   fitBucket,
   idealMatch,
+  competition,
+  contacts,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
   idealMatch?: boolean
+  competition?: CompetitionScore
+  contacts?: JobContacts
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -126,7 +154,8 @@ export function DiscoverJobCard({
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2">
-          {isRecentlyListed(posting.createdAt) && <NewBadge />}
+          {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
+          <LowCompetitionBadge competition={competition} />
           <SeniorityBadge level={posting.level} />
           {idealMatch && <IdealMatchBadge />}
           <FitBadge bucket={fitBucket} />
@@ -142,6 +171,17 @@ export function DiscoverJobCard({
         </p>
 
         {posting.description && <p className="line-clamp-2 text-sm text-muted-foreground">{posting.description}</p>}
+
+        {competition && (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Competition: {COMPETITION_LABEL[competition.level]}</span>
+            {competition.reasons.length > 0 && ` — ${competition.reasons.join(' · ')}`}
+          </p>
+        )}
+        <p className="text-sm text-foreground">
+          <span className="font-medium">Your edge:</span> {edgeTip(posting)}
+        </p>
+        {contacts && <WhoToContact contacts={contacts} />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (
@@ -168,6 +208,7 @@ export function DiscoverJobCard({
           {!confidential && <AddToWatchlistButton companyName={posting.companyName} />}
         </div>
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+        <CoverNote postingId={posting.id} />
       </div>
     </details>
   )
@@ -180,5 +221,99 @@ function RequestIntroButton({ postingId }: { postingId: string }) {
         Request intro
       </SubmitButton>
     </form>
+  )
+}
+
+function WhoToContact({ contacts }: { contacts: JobContacts }) {
+  return (
+    <div className="space-y-1 text-sm">
+      <p className="font-medium text-foreground">Who to contact</p>
+      {contacts.firm && (
+        <p className="text-muted-foreground">
+          Search firm:{' '}
+          {contacts.firm.url ? (
+            <a href={contacts.firm.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+              {contacts.firm.name}
+            </a>
+          ) : (
+            contacts.firm.name
+          )}{' '}
+          — the consultant named on the posting runs this search.
+        </p>
+      )}
+      {contacts.recruiters.map((r) => (
+        <p key={r.email} className="text-muted-foreground">
+          {r.name}
+          {r.title && `, ${r.title}`} —{' '}
+          <a href={`mailto:${r.email}`} className="text-primary underline underline-offset-4">
+            {r.email}
+          </a>
+        </p>
+      ))}
+      <p className="text-muted-foreground">
+        <a href={contacts.linkedinSearchUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+          Find recruiters there on LinkedIn
+        </a>
+      </p>
+    </div>
+  )
+}
+
+// Drafted on click (an LLM call, capped per day — see cover-note.ts).
+function CoverNote({ postingId }: { postingId: string }) {
+  const [pending, startTransition] = useTransition()
+  const [note, setNote] = useState<string | null>(null)
+  const [remaining, setRemaining] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  function draft() {
+    setError(null)
+    startTransition(async () => {
+      const result = await draftJobCoverNote(postingId)
+      if (!result.ok) return setError(result.error)
+      setNote(result.body)
+      setRemaining(result.remainingToday)
+    })
+  }
+
+  async function copy() {
+    if (!note) return
+    await navigator.clipboard.writeText(note)
+    setCopied(true)
+    posthog.capture('job_cover_note_copied', { postingId })
+  }
+
+  if (!note) {
+    return (
+      <div className="space-y-1">
+        <Button variant="outline" size="sm" onClick={draft} disabled={pending} aria-busy={pending} className={pending ? 'cursor-wait' : ''}>
+          {pending ? 'Drafting…' : 'Draft a cover note'}
+        </Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-foreground" htmlFor={`cover-note-${postingId}`}>
+        Cover note — edit before you send
+      </label>
+      <textarea
+        id={`cover-note-${postingId}`}
+        defaultValue={note}
+        rows={8}
+        className="w-full rounded-md border border-border bg-background p-2 text-sm text-foreground"
+        onChange={(e) => setNote(e.target.value)}
+      />
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={copy}>
+          {copied ? 'Copied' : 'Copy note'}
+        </Button>
+        {remaining !== null && (
+          <p className="text-xs text-muted-foreground">{remaining} more drafts available today</p>
+        )}
+      </div>
+    </div>
   )
 }

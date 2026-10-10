@@ -16,6 +16,7 @@ import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
 import { isPoorFitApplication } from '@/lib/scoring/market-reality/attempts'
 import {
   applyInterviewLandedRewrite,
@@ -903,3 +904,13 @@ export async function requestNegotiationPracticeFeedback(
   return evaluation
 }
 
+
+// Drafts (or returns the saved) cover note for a job board posting — an LLM
+// call per new draft, capped per member per day (see cover-note.ts).
+export async function draftJobCoverNote(postingId: string): Promise<CoverNoteResult> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { ok: false, error: 'Sign in again to draft a cover note.' }
+  const result = await draftCoverNote(profile.id, postingId)
+  if (result.ok) captureServerEvent(profile.id, 'job_cover_note_drafted', { postingId, reused: result.reused })
+  return result
+}

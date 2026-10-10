@@ -26,7 +26,10 @@ import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
-import { loadBoardShortlist, type BoardShortlist } from '@/lib/jobs/board-shortlist'
+import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
+import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
+import { scoreCompetition } from '@/lib/jobs/competition'
+import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -231,11 +234,13 @@ async function JobRecommendationsSection({
   board,
   contacts,
   seniorityGroup,
+  boardView,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   dossierReason: string
   board: BoardShortlist
   seniorityGroup: SeniorityGroup | null
+  boardView: BoardView
   contacts: {
     id: string
     name: string
@@ -323,6 +328,9 @@ async function JobRecommendationsSection({
     if (p.distribution !== 'TARGETED') return true
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
+  const contactsByPosting = await loadJobContacts(visibleBoardPostings)
+  const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>
+    scoreCompetition(p, board.countByCompany.get(normalizeOrgName(p.companyName)) ?? 0)
 
   // Locked (Candidate+-only) postings used to render in raw createdAt-desc
   // order with no fit awareness at all — for a candidate without Candidate+
@@ -351,6 +359,18 @@ async function JobRecommendationsSection({
         </p>
       ) : (
         <div className="space-y-3">
+          {board.freshOpenTotal > 0 && boardView !== 'fresh' && (
+            <p className="rounded-md border border-orange/40 bg-orange/10 px-3 py-2 text-sm text-foreground">
+              <span className="font-medium">
+                {board.freshOpenTotal} job{board.freshOpenTotal === 1 ? '' : 's'} that fit you{' '}
+                {board.freshOpenTotal === 1 ? 'was' : 'were'} posted in the last 72 hours.
+              </span>{' '}
+              Early applicants get most of the interviews — apply to these first.{' '}
+              <a href="?view=fresh#job-recommendations" className="text-primary underline underline-offset-4">
+                Show them
+              </a>
+            </p>
+          )}
           {surfacedJobs.length > 0 && (
             <p className="text-xs font-medium text-muted-foreground">
               Showing {visibleSurfacedJobs.length} of {totalUnreactedCount} match
@@ -374,6 +394,8 @@ async function JobRecommendationsSection({
                         <DiscoverJobCard
                           key={posting.id}
                           posting={posting}
+                          competition={competitionFor(posting)}
+                          contacts={contactsByPosting.get(posting.id)}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
                         />
@@ -425,10 +447,15 @@ async function JobRecommendationsSection({
   )
 }
 
-export default async function JobFitPage({ searchParams }: { searchParams: Promise<{ seniority?: string }> }) {
+export default async function JobFitPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ seniority?: string; view?: string }>
+}) {
   const profile = await getDashboardData()
-  const { seniority } = await searchParams
+  const { seniority, view } = await searchParams
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
+  const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
 
   return (
     <div className="space-y-10">
@@ -441,7 +468,7 @@ export default async function JobFitPage({ searchParams }: { searchParams: Promi
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       <Suspense fallback={<FindMyJobBodySkeleton />}>
-        <FindMyJobBody profile={profile} seniorityGroup={seniorityGroup} />
+        <FindMyJobBody profile={profile} seniorityGroup={seniorityGroup} boardView={boardView} />
       </Suspense>
     </div>
   )
@@ -465,9 +492,11 @@ function FindMyJobBodySkeleton() {
 async function FindMyJobBody({
   profile,
   seniorityGroup,
+  boardView,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
+  boardView: BoardView
 }) {
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
@@ -536,6 +565,7 @@ async function FindMyJobBody({
     candidate: profile,
     isCandidatePlus,
     where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
+    view: boardView,
   })
   const matchedFullTimeRoles = isCandidatePlus ? await getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : []
   // Scoped to just the companies already-applied-to postings mention — the
@@ -780,7 +810,8 @@ async function FindMyJobBody({
             <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
               +{applicationPoints} pts
             </span>
-            <div className="ml-auto">
+            <div className="ml-auto flex flex-wrap items-center gap-3">
+              <BoardViewToggle surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />
             </div>
           </div>
@@ -792,6 +823,7 @@ async function FindMyJobBody({
                 board={board}
                 contacts={contacts}
                 seniorityGroup={seniorityGroup}
+                boardView={boardView}
               />
             </Suspense>
           </div>

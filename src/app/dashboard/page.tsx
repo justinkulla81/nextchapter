@@ -1,5 +1,6 @@
 import type { MarketRealityReport } from '@prisma/client'
 import { Suspense } from 'react'
+import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -292,6 +293,10 @@ export default async function DashboardPage() {
           suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
           badgesLastSeenCount={profile.badgesLastSeenCount}
         />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <FreshJobsPrompt profile={profile} />
       </Suspense>
 
       <EmployerInterestSection candidateId={profile.id} />

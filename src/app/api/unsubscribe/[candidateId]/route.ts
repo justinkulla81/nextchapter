@@ -14,6 +14,8 @@ export async function GET(
       ? { dailyEmailOptedOut: true }
       : type === 'jobSearchDaily'
         ? { jobSearchDailyOptedOut: true }
+        : type === 'freshJobAlerts'
+        ? { freshJobAlertsOptedOut: true }
         : type === 'weekly'
         ? { weeklyReportOptedOut: true }
         : type === 'sprintGoal'
@@ -28,12 +30,15 @@ export async function GET(
   })
 
   if (type === 'jobSearchDaily') captureServerEvent(candidateId, 'job_search_daily_unsubscribed', {})
+  if (type === 'freshJobAlerts') captureServerEvent(candidateId, 'fresh_job_alerts_unsubscribed', {})
 
   const message =
     type === 'daily'
       ? "You won't receive any more daily action emails from Vic."
       : type === 'jobSearchDaily'
         ? "You won't receive Job Search Daily anymore. Your other NextChapter emails are unchanged."
+        : type === 'freshJobAlerts'
+        ? "You won't receive new-job alerts anymore. Your other NextChapter emails are unchanged."
         : type === 'weekly'
         ? "You won't receive the Friday check-in, Community & Coaching digest, or backchannel-connection emails anymore."
         : type === 'sprintGoal'

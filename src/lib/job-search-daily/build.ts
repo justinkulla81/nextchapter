@@ -2,6 +2,7 @@ import 'server-only'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { isFresh, postedAgo } from '@/lib/jobs/competition'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import {
   getCurrentWeekSprint,
@@ -80,7 +81,8 @@ export interface JobSearchDailyContent {
   staleApplicationCount: number // applied 30+ days ago, no word: close out, don't chase
   networking: DailyItem[] // replies owed, starred people due a note, a contact at a hiring company, a few stale contacts
   networkingMoreCount: number // stale contacts beyond the few shown
-  jobs: { items: DailyItem[]; lockedCount: number }
+  // `fresh`: posted in the last 72 hours — the email leads with these.
+  jobs: { items: DailyItem[]; fresh: DailyItem[]; lockedCount: number }
   companyMoves: DailyItem[]
   reconnect: DailyItem | null
   article: DailyItem | null
@@ -184,12 +186,21 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     return bucket === 'strong' || bucket === 'good'
   })
   const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)
-  const jobItems: DailyItem[] = openable.slice(0, MAX_JOBS).map((p) => ({
+  // Jobs posted in the last 72 hours lead (applying early matters most);
+  // the rest fill the remaining slots.
+  const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
     key: `job:${p.id}`,
     title: p.title,
-    detail: [p.companyName, p.location, knowLine(p.companyName)].filter(Boolean).join(' · '),
+    detail: [p.companyName, p.location, isFresh(p, now) ? postedAgo(p, now) : null, knowLine(p.companyName)]
+      .filter(Boolean)
+      .join(' · '),
     href: jobsUrl,
-  }))
+  })
+  const freshJobItems = openable.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS).map(toJobItem)
+  const jobItems: DailyItem[] = openable
+    .filter((p) => !isFresh(p, now))
+    .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
+    .map(toJobItem)
   const lockedCount = fitting.length - openable.length
 
   // ── Moves at the companies you're tracking ────────────────────────────
@@ -501,7 +512,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     topTodo: todosForToday[0]?.text ?? null,
     // Owed follow-ups only — counting every stale contact makes the button a chore.
     followUpCount: applications.length + repliesOwed.length + starred.length,
-    newJobCount: jobItems.length,
+    newJobCount: jobItems.length + freshJobItems.length,
   }
   const dateSeed = `${candidate.id}:${now.toISOString().slice(0, 10)}`
   const pickFrom = <T>(pool: T[], salt: string): T | null =>
@@ -539,7 +550,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? Math.floor((now.getTime() - candidate.registrationCompletedAt.getTime()) / DAY_MS) + 1
     : null
 
-  const freshCount = jobItems.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
+  const freshCount = jobItems.length + freshJobItems.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
     firstName: candidate.firstName,
@@ -553,7 +564,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     staleApplicationCount,
     networking: networkingListed,
     networkingMoreCount,
-    jobs: { items: jobItems, lockedCount },
+    jobs: { items: jobItems, fresh: freshJobItems, lockedCount },
     companyMoves,
     reconnect,
     article,
@@ -569,6 +580,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
 // until done.
 export function shownItemKeys(content: JobSearchDailyContent): string[] {
   return [
+    ...content.jobs.fresh.map((i) => i.key),
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
     ...[content.reconnect, content.article, content.unlock].filter((i): i is DailyItem => !!i).map((i) => i.key),

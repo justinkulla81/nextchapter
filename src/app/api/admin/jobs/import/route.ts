@@ -42,6 +42,9 @@ interface ImportJobInput {
   salaryMin?: number | null
   salaryMax?: number | null
   salaryCurrency?: string | null
+  postedAt?: string | null
+  sourceCount?: number | null
+  sourceName?: string | null
 }
 
 interface ImportRequestBody {
@@ -90,6 +93,13 @@ function screen(jobs: unknown[]) {
   return { kept, skipped }
 }
 
+// The source's own posting date; ignored when unparseable or in the future.
+function postedDate(raw: string | null | undefined): Date | null {
+  if (!raw) return null
+  const d = new Date(raw)
+  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 86_400_000 ? null : d
+}
+
 function rowData({ job, level }: Screened) {
   return {
     title: job.title.trim(),
@@ -102,6 +112,9 @@ function rowData({ job, level }: Screened) {
     salaryMin: job.salaryMin ?? null,
     salaryMax: job.salaryMax ?? null,
     salaryCurrency: job.salaryCurrency?.trim() || null,
+    postedAt: postedDate(job.postedAt),
+    sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
+    sourceName: job.sourceName?.trim() || null,
   }
 }
 
@@ -164,6 +177,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true, url: true, title: true, companyName: true, location: true, description: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
+      postedAt: true, sourceCount: true, sourceName: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

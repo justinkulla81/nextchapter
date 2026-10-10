@@ -20,7 +20,8 @@ type SendResult = { sent: true } | { sent: false; reason: string }
 // The subject leads with the single freshest thing in the email, so the
 // inbox line itself is different every day instead of a fixed title.
 function buildSubject(content: JobSearchDailyContent): string {
-  const jobs = content.jobs.items.length
+  const jobs = content.jobs.items.length + content.jobs.fresh.length
+  const freshJobs = content.jobs.fresh.length
   const move = content.companyMoves[0]
   const owed = content.applications.length + content.networking.length
   // Lead with the most time-sensitive thing, when there is one.
@@ -32,6 +33,7 @@ function buildSubject(content: JobSearchDailyContent): string {
     )
   )
     return `${top.lead.replace(/:$/, '')}: ${top.text}`.slice(0, 90)
+  if (freshJobs > 0) return `${freshJobs} new role${freshJobs === 1 ? '' : 's'} posted in the last 72 hours — apply first`
   if (jobs > 0 && move) return `${jobs} new role${jobs === 1 ? '' : 's'} for you, and ${lowerFirst(move.title)}`
   if (jobs > 0) return `${jobs} new role${jobs === 1 ? '' : 's'} that fit you`
   if (move) return move.title
@@ -153,7 +155,8 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       todoCount: content.todos.length,
       applicationFollowUpCount: content.applications.length,
       networkingFollowUpCount: content.networking.length,
-      jobCount: content.jobs.items.length,
+      jobCount: content.jobs.items.length + content.jobs.fresh.length,
+      freshJobCount: content.jobs.fresh.length,
       lockedJobCount: content.jobs.lockedCount,
       companyMoveCount: content.companyMoves.length,
       hasReconnect: !!content.reconnect,

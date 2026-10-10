@@ -7,6 +7,7 @@ import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
+import { isFresh, scoreCompetition } from '@/lib/jobs/competition'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
@@ -18,7 +19,8 @@ export function liveBoardWhere(extra: Prisma.ExclusiveJobPostingWhereInput = {})
     archivedAt: null,
     distribution: { not: 'EXCLUDED' },
     OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-    ...extra,
+    // AND, not a spread: an extra OR must not replace the expiry OR above.
+    AND: [extra],
   }
 }
 
@@ -34,12 +36,24 @@ const LIGHT_SELECT = {
   targetLocation: true,
   location: true,
   level: true,
+  sourceCategory: true,
+  postedAt: true,
+  sourceCount: true,
   salaryMin: true,
   salaryMax: true,
   createdAt: true,
 } satisfies Prisma.ExclusiveJobPostingSelect
 
 const PER_COMPANY = 5
+
+/** Board views: everything, posted in the last 72 hours, or low competition only. */
+export type BoardView = 'all' | 'fresh' | 'low_competition'
+
+/** Jobs posted (or, with no posting date, imported) in the last 72 hours. */
+export function postedWithinWhere(hours: number): Prisma.ExclusiveJobPostingWhereInput {
+  const since = new Date(Date.now() - hours * 3_600_000)
+  return { OR: [{ postedAt: { gte: since } }, { postedAt: null, createdAt: { gte: since } }] }
+}
 
 export interface BoardShortlist {
   /** Full rows of the best-fitting jobs the candidate can open, best first. */
@@ -48,6 +62,9 @@ export interface BoardShortlist {
   locked: ExclusiveJobPosting[]
   openTotal: number
   lockedTotal: number
+  /** Good-or-better fits the candidate can open, across the whole board: posted in the last 72 hours / low competition. */
+  freshOpenTotal: number
+  lowCompetitionOpenTotal: number
   /** Live board jobs per company (normalizeOrgName key), across the whole board. */
   countByCompany: Map<string, number>
 }
@@ -66,6 +83,7 @@ export async function loadBoardShortlist(opts: {
   isCandidatePlus: boolean
   where?: Prisma.ExclusiveJobPostingWhereInput
   size?: number
+  view?: BoardView
 }): Promise<BoardShortlist> {
   const size = opts.size ?? 300
   const light = await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(opts.where), select: LIGHT_SELECT })
@@ -84,11 +102,26 @@ export async function loadBoardShortlist(opts: {
   for (const p of light) {
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
     if (company) countByCompany.set(company, (countByCompany.get(company) ?? 0) + 1)
+  }
+  const now = new Date()
+  let freshOpenTotal = 0
+  let lowCompetitionOpenTotal = 0
+  for (const p of light) {
+    const company = p.companyName ? normalizeOrgName(p.companyName) : ''
+    const canOpen = p.audienceTier === 'ALL_CANDIDATES' || opts.isCandidatePlus
+    const fresh = isFresh(p, now)
+    const low = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level === 'low'
+    const rank = FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(opts.candidate, { ...p, description: null })]
+    // The prompts count only jobs that fit (strong or good).
+    if (canOpen && fresh && rank <= 1) freshOpenTotal++
+    if (canOpen && low && rank <= 1) lowCompetitionOpenTotal++
+    if (opts.view === 'fresh' && !fresh) continue
+    if (opts.view === 'low_competition' && !low) continue
     const entry = {
       id: p.id,
       company,
       title: p.title.trim().toLowerCase(),
-      rank: FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(opts.candidate, { ...p, description: null })],
+      rank,
       offFunction: functions.has((inferFunctionFromTitle(p.title) ?? '').toLowerCase()) ? 0 : 1,
       gap: calibratedLevelDistance(
         candidateLevel,
@@ -137,6 +170,8 @@ export async function loadBoardShortlist(opts: {
     locked: inOrder(lockedIds),
     openTotal: open.length,
     lockedTotal: locked.length,
+    freshOpenTotal,
+    lowCompetitionOpenTotal,
     countByCompany,
   }
 }
