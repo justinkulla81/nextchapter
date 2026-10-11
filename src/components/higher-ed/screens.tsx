@@ -790,7 +790,7 @@ const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
-  const [members, joined, invitable, runs] = await Promise.all([
+  const [members, joined, invitable, runs, outbox] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     countInvitable(ctx.institution.id),
@@ -800,6 +800,15 @@ async function AdminRoster({ ctx }: ScreenProps) {
       take: 10,
       select: { id: true, direction: true, fileName: true, rowCount: true, errorCount: true, status: true, startedAt: true },
     }),
+    // Demo colleges never email: the recorded invitations, with their links.
+    ctx.institution.isDemo
+      ? prisma.outreachSend.findMany({
+          where: { campaign: { institutionId: ctx.institution.id, type: 'WELCOME' } },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, email: true, claimToken: true, claimedAt: true },
+        })
+      : Promise.resolve([]),
   ])
   return (
     <div className="space-y-6">
@@ -817,6 +826,25 @@ async function AdminRoster({ ctx }: ScreenProps) {
           Do-not-contact alumni are never emailed.
         </p>
         <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} />
+        {ctx.institution.isDemo && outbox.length > 0 && (
+          <details className="rounded-lg border border-border bg-card p-3 text-sm">
+            <summary className="cursor-pointer font-medium">Demo outbox: {outbox.length} most recent invitations (not emailed)</summary>
+            <ul className="mt-2 space-y-1">
+              {outbox.map((o) => (
+                <li key={o.id} className="flex flex-wrap justify-between gap-2">
+                  <span>{o.email}</span>
+                  {o.claimedAt ? (
+                    <span className="text-muted-foreground">Joined</span>
+                  ) : (
+                    <Link href={`/i/${slug}/join?t=${o.claimToken}`} className="font-medium text-primary hover:underline">
+                      Open join page
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </section>
       <section aria-labelledby="upload" className="space-y-3">
         <h2 id="upload" className="text-base font-semibold">
