@@ -128,7 +128,7 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
         </CardContent>
       </Card>
 
-      {d.filings.length > 0 && (
+      {(d.filings.length > 0 || d.federal) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -137,6 +137,17 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
+            {d.federal && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Federal contracts</span> · {d.federal.awards}{' '}
+                {d.federal.awards === 1 ? 'award' : 'awards'} started in the last two years, about{' '}
+                {d.federal.totalAmount >= 1e9
+                  ? `$${(d.federal.totalAmount / 1e9).toFixed(1)}B`
+                  : `$${Math.round(d.federal.totalAmount / 1e6).toLocaleString()}M`}{' '}
+                in total value
+                {d.federal.topAgency ? `, mostly ${d.federal.topAgency}` : ''}. Source: USAspending.gov.
+              </p>
+            )}
             <ul className="space-y-1.5">
               {d.filings.map((f) => (
                 <li key={f.id} className="text-sm text-muted-foreground">
@@ -154,8 +165,8 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
               ))}
             </ul>
             <p className="text-xs text-muted-foreground">
-              Public SEC filings only. A leadership change or a large raise often comes before hiring, but it is a
-              hint to look, not an open role.
+              A leadership change, a large raise or new federal work often comes before hiring, but it is a hint to
+              look, not an open role.
             </p>
           </CardContent>
         </Card>

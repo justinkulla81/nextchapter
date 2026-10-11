@@ -12747,3 +12747,16 @@ model OfferedWageSummary {
   @@unique([companyId, socCode, source])
   @@index([companyId])
 }
+
+// Federal contract awards a directory company has won in the last two years (USAspending.gov,
+// public, free). One row per company; exact recipient-name match only
+// (src/lib/companies/federal-contracts.ts). Filled by scripts/sync-federal-contracts.ts.
+model FederalContractSummary {
+  id          String   @id @default(cuid())
+  companyId   String   @unique
+  awards      Int
+  totalAmount Float
+  topAgency   String?
+  latestStart DateTime?
+  checkedAt   DateTime @default(now())
+}

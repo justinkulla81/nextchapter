@@ -19,6 +19,8 @@ export interface CompanyIntelPanels {
   visaWages: { socTitle: string; filings: number; p25: number; median: number; p75: number; state: string | null; latest: Date }[]
   /** Public SEC filings that suggest a change: leadership moves and large private raises. */
   filings: CompanyLikelyOpening[]
+  /** Federal contract awards in the last two years, or null when none are on file. */
+  federal: { awards: number; totalAmount: number; topAgency: string | null } | null
   companyName: string
   payPostings: number
   layoffs: LayoffTimeline
@@ -39,7 +41,7 @@ const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
 export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus: boolean): Promise<CompanyIntelPanels> {
   const company = await prisma.company.findUnique({ where: { id: companyId }, select: { name: true } })
   const companyName = company?.name ?? ''
-  const [postings, notices, trackingStart, wageRows, filingMap] = await Promise.all([
+  const [postings, notices, trackingStart, wageRows, filingMap, federalRow] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { companyId, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
       select: {
@@ -58,6 +60,7 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
     companyName
       ? getLikelyOpeningsForCompanies([companyName], { perCompany: 4 }).catch(() => new Map<string, CompanyLikelyOpening[]>())
       : Promise.resolve(new Map<string, CompanyLikelyOpening[]>()),
+    prisma.federalContractSummary.findUnique({ where: { companyId } }).catch(() => null),
   ])
 
   const openable = postings.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
@@ -83,6 +86,9 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
       latest: w.latestDecision,
     })),
     filings: filingMap.get(companyName) ?? [],
+    federal: federalRow
+      ? { awards: federalRow.awards, totalAmount: federalRow.totalAmount, topAgency: federalRow.topAgency }
+      : null,
     companyName,
     payPostings: pay.reduce((s, g) => s + g.postings, 0),
     layoffs,
