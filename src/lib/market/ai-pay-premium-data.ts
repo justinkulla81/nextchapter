@@ -15,6 +15,7 @@ export async function loadAiPayPremium(): Promise<FunctionPremium[]> {
     where: {
       status: 'approved',
       archivedAt: null,
+      institutionScopeId: null,
       distribution: { not: 'EXCLUDED' },
       disclosure: 'OPEN',
       salaryMin: { not: null },

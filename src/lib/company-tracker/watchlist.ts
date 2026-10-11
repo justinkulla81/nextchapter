@@ -81,6 +81,7 @@ async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: 
   return prisma.exclusiveJobPosting.findMany({
     where: {
       archivedAt: null,
+      institutionScopeId: null,
       status: 'approved',
       distribution: { not: 'EXCLUDED' },
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],

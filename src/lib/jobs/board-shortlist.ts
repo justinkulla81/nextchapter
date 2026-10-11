@@ -20,6 +20,7 @@ export function liveBoardWhere(extra: Prisma.ExclusiveJobPostingWhereInput = {})
   return {
     status: 'approved',
     archivedAt: null,
+    institutionScopeId: null,
     distribution: { not: 'EXCLUDED' },
     OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     // AND, not a spread: an extra OR must not replace the expiry OR above.

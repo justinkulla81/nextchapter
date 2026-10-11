@@ -45,7 +45,7 @@ export interface CompBand {
 
 export async function computeCompBandForTarget(targetFunction: string | null): Promise<CompBand> {
   const approvedWithSalary = await prisma.exclusiveJobPosting.findMany({
-    where: { status: 'approved', archivedAt: null, salaryMin: { not: null }, salaryMax: { not: null } },
+    where: { status: 'approved', archivedAt: null, institutionScopeId: null, salaryMin: { not: null }, salaryMax: { not: null } },
     select: { salaryMin: true, salaryMax: true, title: true },
     take: 500,
   })

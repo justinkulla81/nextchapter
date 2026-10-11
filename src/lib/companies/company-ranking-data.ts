@@ -58,6 +58,7 @@ function fetchBulk() {
       where: {
         status: 'approved',
         archivedAt: null,
+        institutionScopeId: null,
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       select: {

@@ -48,6 +48,7 @@ interface PostingRow {
 async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingRow[]>> {
   const rows = await prisma.exclusiveJobPosting.findMany({
     where: {
+      institutionScopeId: null,
       createdAt: { lte: asOf },
       OR: [{ archivedAt: null }, { archivedAt: { gt: asOf } }],
     },

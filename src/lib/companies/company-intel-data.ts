@@ -43,7 +43,7 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
   const companyName = company?.name ?? ''
   const [postings, notices, trackingStart, wageRows, filingMap, federalRow] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
-      where: { companyId, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
+      where: { companyId, institutionScopeId: null, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
       select: {
         title: true, url: true, createdAt: true, archivedAt: true, badges: true, postingType: true, sourceCategory: true,
         salaryMin: true, salaryMax: true, salaryCurrency: true, audienceTier: true, source: true,
