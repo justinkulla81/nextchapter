@@ -59,7 +59,8 @@
     "report:news": "tsx --env-file=.env.local scripts/displacement/add-news-item.ts",
     "report:indexnow": "tsx --env-file=.env.local scripts/displacement/indexnow.ts",
     "seed:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/seed-demo.ts",
-    "verify:he02": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he02.ts"
+    "verify:he02": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he02.ts",
+    "verify:he06": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he06.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

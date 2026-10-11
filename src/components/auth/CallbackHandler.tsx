@@ -53,6 +53,10 @@ export function CallbackHandler() {
   const nextIsOutplacementSeat = searchParams.get('next') === 'outplacement-seat'
   const nextIsOutplacementOrgInvite = searchParams.get('next') === 'outplacement-org-invite'
   const nextIsInstitutionInvite = searchParams.get('next') === 'institution-invite'
+  // An alum joining from their college's email (src/lib/higher-ed/join.ts):
+  // only ever a college welcome page, so this can't become an open redirect.
+  const joinTo = searchParams.get('next') === 'institution-join' ? searchParams.get('joinTo') : null
+  const institutionJoinPath = joinTo && /^\/i\/[a-z0-9-]+\/welcome(\?t=[A-Za-z0-9_-]+)?$/.test(joinTo) ? joinTo : null
   const inviteToken = searchParams.get('inviteToken')
   // Every non-candidate portal now has its own session cookie (see
   // src/lib/supabase/portal.ts) — this is the single shared handler for
@@ -286,6 +290,11 @@ export function CallbackHandler() {
       // College staff share the main session; land them in their institution's portal.
       setPostSecureAccountPath(result.slug ? `/i/${result.slug}` : '/')
       setStatus('secure-account')
+      return
+    }
+    if (institutionJoinPath) {
+      setStatus('redirecting')
+      router.replace(institutionJoinPath)
       return
     }
     setStatus('redirecting')

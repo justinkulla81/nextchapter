@@ -67,7 +67,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'coaching', label: 'Coaching', comingIn: null },
-      { key: 'privacy', label: 'Privacy & sharing', comingIn: 'HE-06' },
+      { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
       { key: 'mentors', label: 'Mentors', comingIn: 'HE-09' },
     ],
   },
@@ -176,7 +176,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'services', label: 'Services', comingIn: null },
       { key: 'users', label: 'Staff', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
-      { key: 'roster', label: 'Roster', comingIn: 'HE-05' },
+      { key: 'roster', label: 'Roster', comingIn: null },
     ],
   },
   { key: 'workforce', label: 'Workforce board', icon: 'Landmark', release: 'V2', requiredRoles: [], homePath: 'workforce', tabs: [] },

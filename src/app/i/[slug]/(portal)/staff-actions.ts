@@ -15,6 +15,8 @@ import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { flagTargetCompany, unflagTargetCompany } from '@/lib/companies/institution-targets'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import { updateInstitutionBranding, uploadInstitutionImage } from '@/lib/institution/admin'
+import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
+import { sendJoinInvites } from '@/lib/higher-ed/invites'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
 import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
@@ -170,4 +172,68 @@ export async function saveBranding(slug: string, _prev: FormState, formData: For
   captureServerEvent(ctx.userId, 'he_branding_saved', { institutionId: ctx.institution.id, logo: !!logo, hero: !!hero })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved. Everyone sees the new look on their next page load.' }
+}
+
+// ── Admin › Roster (HE-05) ──────────────────────────────────────────────────
+
+export type ImportState =
+  | { error?: string; ok?: boolean; summary?: string; errors?: { row: number; column?: string; message: string }[] }
+  | undefined
+
+const MAX_CSV_BYTES = 10 * 1024 * 1024
+
+export async function uploadCrmFile(slug: string, kind: 'roster' | 'gifts', _prev: ImportState, formData: FormData): Promise<ImportState> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) return { error: 'Choose a CSV file.' }
+  if (file.size > MAX_CSV_BYTES) return { error: 'That file is over 10MB. Split it and upload the parts.' }
+  const args = { institutionId: ctx.institution.id, csv: await file.text(), fileName: file.name, createdBy: ctx.email ?? ctx.userId }
+  const r = kind === 'roster' ? await importRoster(args) : await importGifts(args)
+  captureServerEvent(ctx.userId, kind === 'roster' ? 'he_roster_imported' : 'he_gifts_imported', {
+    institutionId: ctx.institution.id,
+    runId: r.runId,
+    imported: r.imported,
+    updated: r.updated,
+    errors: r.errors.length,
+  })
+  revalidatePath(`/i/${slug}`, 'layout')
+  if (r.fileError) return { error: `${r.fileError}. Nothing was imported.` }
+  const summary =
+    kind === 'roster'
+      ? `${r.imported} added, ${r.updated} updated${r.errors.length ? `, ${r.errors.length} rows skipped` : ''}.`
+      : `${r.imported} gifts added${r.skipped ? `, ${r.skipped} skipped (already imported or invalid)` : ''}.`
+  return { ok: true, summary, errors: r.errors.slice(0, 50) }
+}
+
+export async function sendInvitations(slug: string): Promise<{ error?: string; message?: string }> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  const r = await sendJoinInvites({ institutionId: ctx.institution.id, createdBy: ctx.email ?? ctx.userId })
+  captureServerEvent(ctx.userId, 'he_join_invites_sent', { institutionId: ctx.institution.id, sent: r.sent, demo: r.demo })
+  revalidatePath(`/i/${slug}`, 'layout')
+  const where = r.demo ? 'recorded in the demo outbox (no email sent)' : 'sent'
+  return { message: `${r.sent} invitations ${where}.${r.remaining ? ` ${r.remaining} more to go: send again for the next batch.` : ''}` }
+}
+
+// ── Admin › Overview settings (HE-04) ───────────────────────────────────────
+
+export async function saveCollegeSettings(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  const graceDays = Number(formData.get('graceDays'))
+  const fiscalYearStartMonth = Number(formData.get('fiscalYearStartMonth'))
+  const givingUrl = String(formData.get('givingUrl') ?? '').trim() || null
+  if (!Number.isInteger(graceDays) || graceDays < 0 || graceDays > 365) return { error: 'Grace period is 0 to 365 days.' }
+  if (!(fiscalYearStartMonth >= 1 && fiscalYearStartMonth <= 12)) return { error: 'Pick the month your fiscal year starts.' }
+  if (givingUrl && !/^https:\/\/\S+$/.test(givingUrl)) return { error: 'The giving page must be an https:// link.' }
+  const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+  await prisma.institution.update({
+    where: { id: ctx.institution.id },
+    data: {
+      givingUrl,
+      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth },
+    },
+    select: { id: true },
+  })
+  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Saved.' }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
+import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
@@ -195,6 +196,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         personName={personName}
         className="lg:pl-[calc(18rem+1.5rem)]"
       />
+      {/* Higher Ed: the member's college brand, when they joined through one. */}
+      <Suspense fallback={null}>
+        <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
+      </Suspense>
       <Suspense
         fallback={
           <DashboardNav

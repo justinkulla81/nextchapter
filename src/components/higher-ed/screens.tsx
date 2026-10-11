@@ -35,10 +35,18 @@ import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
 import { BrandingForm } from './BrandingForm'
+import { CareerStatusCard } from './CareerStatusCard'
+import { PrivacyPanel } from './PrivacyPanel'
+import { CrmUploadForm } from './CrmUploadForm'
+import { InviteAlumniButton } from './InviteAlumniButton'
+import { CollegeSettingsForm } from './CollegeSettingsForm'
+import { listProfileViews } from '@/lib/higher-ed/audit'
+import { countInvitable } from '@/lib/higher-ed/invites'
+import { graceDaysFrom } from '@/lib/higher-ed/transition'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
-import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding } from '@/app/i/[slug]/(portal)/staff-actions'
+import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
 export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string }
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
@@ -136,6 +144,9 @@ async function CandidateHome({ ctx }: ScreenProps) {
   // The college's switched-on services for this member's audiences (a
   // preview with no member record sees them all). Each card counts its opens.
   const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member) : null)
+  const openFlag = ctx.memberId
+    ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
+    : null
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   return (
@@ -157,6 +168,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
           <p className="mt-2 text-sm text-amber-900">You&apos;re previewing as an alum. There&apos;s no member record behind this preview.</p>
         )}
       </div>
+      <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
@@ -720,7 +732,121 @@ async function TeachingFaculty({ ctx }: ScreenProps) {
   return <StaffRoster ctx={ctx} roles={['FACULTY', 'EXEC_ED']} empty="Invite faculty and Exec Ed staff from Admin › Staff." />
 }
 
+// ── Candidate › Privacy & sharing ───────────────────────────────────────────
+
+const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string }> = {
+  SHARE_OUTCOME: { label: (c) => `Tell ${c} when I land a job`, help: 'Your new employer and title. Nothing about your search.' },
+  SHARE_SEARCH_DETAIL_WITH_CAREER: { label: () => 'Let Career Services see my progress', help: 'Weekly progress and activity, so a counselor can help. Never assessments or messages.' },
+  SHARE_ENGAGEMENT: { label: (c) => `Count my activity toward ${c}'s alumni engagement`, help: 'That you used the tools and took calls, as totals. Never what you did in them.' },
+  SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
+}
+
+async function CandidatePrivacy({ ctx }: ScreenProps) {
+  if (!ctx.memberId) {
+    return <p className="text-sm text-muted-foreground">This is a preview: there&apos;s no member record, so there are no settings to show.</p>
+  }
+  const [consent] = await prisma.$queryRaw<{ shareEngagement: boolean; shareOutcome: boolean; shareSearchDetail: boolean; shareDossier: boolean }[]>`
+    select "shareEngagement", "shareOutcome", "shareSearchDetail", "shareDossier" from private.v_member_consent where "memberId" = ${ctx.memberId}`
+  const granted: Record<string, boolean> = {
+    SHARE_OUTCOME: consent?.shareOutcome ?? true,
+    SHARE_SEARCH_DETAIL_WITH_CAREER: consent?.shareSearchDetail ?? false,
+    SHARE_ENGAGEMENT: consent?.shareEngagement ?? true,
+    SHARE_DOSSIER_WITH_EMPLOYERS: consent?.shareDossier ?? false,
+  }
+  const views = await listProfileViews(ctx.memberId)
+  const rows = Object.entries(CONSENT_COPY).map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
+  return (
+    <div className="max-w-2xl space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Your job search belongs to you. {ctx.institution.name} sees only what you switch on here, and never your assessments, coaching notes or
+        messages.
+      </p>
+      <PrivacyPanel slug={ctx.institution.slug} rows={rows} />
+      <section aria-labelledby="who-viewed" className="space-y-2">
+        <h2 id="who-viewed" className="text-base font-semibold">
+          Who viewed my profile
+        </h2>
+        {views.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No one at {ctx.institution.name} has opened your record.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
+            {views.map((v, i) => (
+              <li key={i} className="flex justify-between px-4 py-2">
+                <span>{v.workspace.replace(/^\w/, (c) => c.toUpperCase())} office</span>
+                <span className="text-muted-foreground">{fmtDate(v.viewedAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
 // ── Admin ───────────────────────────────────────────────────────────────────
+
+const ROSTER_COLUMNS = 'external_id, email, first_name, last_name, affiliation, class_year, degree, major, employer, title, do_not_contact'
+const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
+
+async function AdminRoster({ ctx }: ScreenProps) {
+  const slug = ctx.institution.slug
+  const [members, joined, invitable, runs] = await Promise.all([
+    prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
+    prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
+    countInvitable(ctx.institution.id),
+    prisma.crmExchangeRun.findMany({
+      where: { institutionId: ctx.institution.id },
+      orderBy: { startedAt: 'desc' },
+      take: 10,
+      select: { id: true, direction: true, fileName: true, rowCount: true, errorCount: true, status: true, startedAt: true },
+    }),
+  ])
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-3">
+        <StatTile label="On the roster" value={members.toLocaleString()} />
+        <StatTile label="Joined" value={joined.toLocaleString()} />
+        <StatTile label="Not invited yet" value={invitable.toLocaleString()} />
+      </div>
+      <section aria-labelledby="invite" className="space-y-2">
+        <h2 id="invite" className="text-base font-semibold">
+          Invite alumni
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Each alum gets a short email from {ctx.institution.name} with a one-click link: no password, two privacy choices, then their job market.
+          Do-not-contact alumni are never emailed.
+        </p>
+        <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} />
+      </section>
+      <section aria-labelledby="upload" className="space-y-3">
+        <h2 id="upload" className="text-base font-semibold">
+          Upload from your CRM
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Export from Raiser&apos;s Edge, Salesforce or a spreadsheet. Uploading the same file again changes nothing; an updated file updates the people in it.
+          Or send the file to NextChapter and we&apos;ll load it.
+        </p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <CrmUploadForm id="roster" title="Alumni roster" columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
+          <CrmUploadForm id="gifts" title="Gifts" columns={GIFT_COLUMNS} action={uploadCrmFile.bind(null, slug, 'gifts')} />
+        </div>
+      </section>
+      {runs.length > 0 && (
+        <Table caption="Upload history" head={['When', 'File', 'Rows', 'Problems', 'Result']}>
+          {runs.map((r) => (
+            <tr key={r.id}>
+              <td className="px-4 py-2">{fmtDate(r.startedAt)}</td>
+              <td className="px-4 py-2">{r.fileName ?? (r.direction === 'IMPORT_GIFTS' ? 'Gifts' : 'Roster')}</td>
+              <td className="px-4 py-2 tabular-nums">{r.rowCount}</td>
+              <td className="px-4 py-2 tabular-nums">{r.errorCount}</td>
+              <td className="px-4 py-2">{r.status === 'SUCCEEDED' ? 'Imported' : r.status === 'PARTIAL' ? 'Imported, some rows skipped' : r.status === 'FAILED' ? 'Not imported' : 'Running'}</td>
+            </tr>
+          ))}
+        </Table>
+      )}
+    </div>
+  )
+}
 
 // What each license tier buys (product design, Packaging), in the buyer's terms.
 const TIER_VALUE: Record<string, string> = {
@@ -761,7 +887,8 @@ async function LaunchChecklist({ ctx }: { ctx: WorkspaceContext }) {
     {
       done: members > 0,
       label: 'Load your alumni',
-      detail: members ? `${members.toLocaleString()} members loaded.` : 'Send NextChapter your roster CSV; self-serve import arrives in HE-05.',
+      detail: members ? `${members.toLocaleString()} on the roster.` : 'Upload your roster CSV, or send it to NextChapter and we’ll load it.',
+      href: `${base}/admin/roster`,
     },
     { done: coaches > 0, label: 'Add your coaches (optional)', detail: 'Invite them with the Coach role; they get the NextChapter coach portal.', href: `${base}/admin/users` },
     { done: jobs > 0, label: 'Post an alumni job', detail: 'Roles only your alumni see.', href: `${base}/career/jobs` },
@@ -893,9 +1020,6 @@ async function SettingsOverview({ ctx }: ScreenProps) {
     ['Alumni', i.alumniCount?.toLocaleString() ?? '—'],
     ['Included seats', i.includedSeats.toLocaleString()],
     ['License', [fmtDate(i.licenseStartAt), fmtDate(i.licenseEndAt)].filter(Boolean).join(' – ') || '—'],
-    ['Grace period after placement', `${features.graceDays ?? 60} days`],
-    ['Fiscal year starts', new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, (features.fiscalYearStartMonth ?? 7) - 1, 1)))],
-    ['Giving page', i.givingUrl ?? '—'],
   ]
   return (
     <div className="space-y-6">
@@ -908,7 +1032,11 @@ async function SettingsOverview({ ctx }: ScreenProps) {
           </div>
         ))}
       </dl>
-      <p className="text-xs text-muted-foreground">Grace period, fiscal year and giving page become editable in HE-04.</p>
+      <CollegeSettingsForm
+        action={saveCollegeSettings.bind(null, i.slug)}
+        canEdit={ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly}
+        defaults={{ graceDays: graceDaysFrom(i.enabledFeatures), fiscalYearStartMonth: features.fiscalYearStartMonth ?? 7, givingUrl: i.givingUrl }}
+      />
       <CollegeProfile profile={readProfile(i.profile)} />
     </div>
   )
@@ -1028,6 +1156,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'execed:home': ExecEdPrograms,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
+  'admin:roster': AdminRoster,
+  'candidate:privacy': CandidatePrivacy,
   'admin:services': SettingsServices,
   'admin:users': SettingsStaff,
 }
