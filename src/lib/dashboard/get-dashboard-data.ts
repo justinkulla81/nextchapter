@@ -21,9 +21,16 @@ import { getClientIp } from '@/lib/http/client-ip'
 // free. Request-scoped only: a fresh navigation gets a fresh (uncached) run.
 export const getDashboardData = cache(async () => {
   const supabase = await createClient()
+  // proxy.ts already verified this session with Supabase Auth on this same request (and
+  // refreshed its cookie), so a second getUser() here was a duplicate network round trip
+  // on every dashboard page. getClaims() verifies the token's signature locally against
+  // the project's signing keys instead; the user object then comes from the verified
+  // session, and must belong to the same subject.
+  const { data: claimsData } = await supabase.auth.getClaims()
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = claimsData?.claims && session?.user.id === claimsData.claims.sub ? session.user : null
 
   if (!user) {
     redirect('/auth/login')

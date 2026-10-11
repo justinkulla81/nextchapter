@@ -50,6 +50,49 @@ const LIGHT_SELECT = {
 
 const PER_COMPANY = 5
 
+// Every board render needs the same few thousand light rows, filtered the same way, and
+// that fetch was the single most expensive thing the site did (~6,600 rows per page view).
+// Memoised per server instance for a minute, keyed by the extra filter, so a candidate
+// paging around the board pays for it once. Same pattern as ghost-risk-data.ts; the rows
+// are read-only downstream. A new import or approval shows up within the TTL.
+const LIGHT_TTL_MS = 60_000
+const LIGHT_MAX_KEYS = 20
+type LightRow = Prisma.ExclusiveJobPostingGetPayload<{ select: typeof LIGHT_SELECT }>
+const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
+
+function loadLightBoardRows(
+  where: Prisma.ExclusiveJobPostingWhereInput | undefined,
+  closedCounts: Map<string, number>
+): Promise<LightRow[]> {
+  const key = JSON.stringify(where ?? null)
+  const hit = lightCache.get(key)
+  if (hit && Date.now() - hit.at < LIGHT_TTL_MS) return hit.rows
+
+  const rows = (async () => {
+    const nowMs = Date.now()
+    // Only relevant jobs reach a member: not confidently outside the US, and not a
+    // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
+    // in the database — this filters the view, it deletes nothing — and the board
+    // totals are computed over what is kept, so they match what is shown.
+    const all = await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT })
+    return all.filter((p) => {
+      if (classifyLocation(p.location) === 'non_us') return false
+      const ghost = ghostRisk({
+        priorClosedCount: closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0,
+        ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
+      })
+      return ghost.level !== 'likely'
+    })
+  })()
+
+  if (lightCache.size >= LIGHT_MAX_KEYS) lightCache.delete(lightCache.keys().next().value as string)
+  lightCache.set(key, { at: Date.now(), rows })
+  rows.catch(() => {
+    if (lightCache.get(key)?.rows === rows) lightCache.delete(key)
+  })
+  return rows
+}
+
 /** Board views: everything, posted in the last 72 hours, or low competition only. */
 export type BoardView = 'all' | 'fresh' | 'low_competition'
 
@@ -91,21 +134,11 @@ export async function loadBoardShortlist(opts: {
 }): Promise<BoardShortlist> {
   const size = opts.size ?? 300
   const closedCounts = await getClosedPostingCounts()
-  const nowMs = Date.now()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
   // in the database — this filters the view, it deletes nothing — and the board
   // totals below are computed over what is kept, so they match what is shown.
-  const light = (await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(opts.where), select: LIGHT_SELECT })).filter(
-    (p) => {
-      if (classifyLocation(p.location) === 'non_us') return false
-      const ghost = ghostRisk({
-        priorClosedCount: closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0,
-        ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
-      })
-      return ghost.level !== 'likely'
-    }
-  )
+  const light = await loadLightBoardRows(opts.where, closedCounts)
 
   const countByCompany = new Map<string, number>()
   // Within a fit level, roles nearest the candidate's own level come first

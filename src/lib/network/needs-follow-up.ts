@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { formatDisplayName } from '@/lib/format-name'
@@ -145,7 +146,10 @@ function buildInterviewItems(
 // list never awards points itself; the points still only come from Gmail/
 // Calendar actually detecting the real thank-you/follow-up/reply (see
 // AUTO_DETECTED_ACTION_TYPES) once the candidate acts on it.
-export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFollowUpItem[]> {
+// cache(): the dashboard layout's nav badge and the page itself both call this for the
+// same candidate in the same request; it was running (and loading the candidate's whole
+// email-activity history) twice per page view.
+export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFollowUpItem[]> {
   const [calendarConnection, emailConnection] = await Promise.all([
     prisma.calendarConnection.findUnique({ where: { candidateId } }),
     prisma.emailConnection.findUnique({ where: { candidateId } }),
@@ -342,4 +346,4 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     deduped.push(item)
   }
   return deduped.slice(0, 10)
-}
+})
