@@ -67,7 +67,12 @@ export async function GET(request: NextRequest) {
     // rows, same pattern the calendar-only flow already used.
     const [existingInbox, existingCalendar] = await Promise.all([
       prisma.googleInboxConnection.findFirst(),
-      prisma.adminGoogleCalendarConnection.findFirst(),
+      // This account's own calendar row; a pre-accounts row with no email is
+      // adopted only when it is the sole one.
+      prisma.adminGoogleCalendarConnection.findUnique({ where: { googleEmail: email.toLowerCase() } }).then(async (r) =>
+        r ?? ((await prisma.adminGoogleCalendarConnection.count()) === 1
+          ? prisma.adminGoogleCalendarConnection.findFirst({ where: { googleEmail: null } })
+          : null)),
     ])
 
     await prisma.googleInboxConnection.upsert({
@@ -77,8 +82,8 @@ export async function GET(request: NextRequest) {
     })
     await prisma.adminGoogleCalendarConnection.upsert({
       where: { id: existingCalendar?.id ?? '' },
-      update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? existingCalendar?.connectedByEmail ?? null },
-      create: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? null },
+      update: { googleEmail: email.toLowerCase(), accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? existingCalendar?.connectedByEmail ?? null },
+      create: { googleEmail: email.toLowerCase(), accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? null },
     })
 
     return NextResponse.redirect(adminUrl(`${returnPath}?googleConnected=1`))

@@ -21,7 +21,9 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // create events with conferenceData (the auto-generated Meet link).
 // documents.readonly (a sensitive, not restricted, scope) reads the "Notes by Gemini"
 // doc Meet attaches to a call — the CRM sweep copies its text onto the meeting.
-const SCOPE = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly'
+// openid+email lets the callback learn WHICH Google account just connected, so
+// more than one can be kept.
+const SCOPE = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly openid email'
 
 // The admin session cookie only exists on the admin host, and the callback
 // requires an admin, so in production Google must send the browser back there
@@ -42,7 +44,9 @@ export function buildAdminCalendarAuthUrl(state: string): string {
     response_type: 'code',
     scope: SCOPE,
     access_type: 'offline',
-    prompt: 'consent',
+    // select_account: always show the chooser, so a second address can be
+    // picked instead of Google silently reusing the signed-in one.
+    prompt: 'consent select_account',
     state,
   })
   return `${GOOGLE_AUTH_URL}?${params.toString()}`
@@ -102,18 +106,11 @@ async function refreshAdminAccessToken(refreshToken: string): Promise<GoogleToke
   return response.json()
 }
 
-// Returns a valid access token for the singleton admin connection, refreshing
-// it first if it's expired. Throws if no connection exists — callers should
-// catch this and point the admin at the connect flow.
-export async function getValidAdminAccessToken(): Promise<string> {
+type CalendarConnectionRow = { id: string; accessToken: string; refreshToken: string; expiresAt: Date }
+
+async function tokenFor(connection: CalendarConnectionRow): Promise<string> {
+  if (connection.expiresAt.getTime() > Date.now() + 60_000) return connection.accessToken
   const { prisma } = await import('@/lib/prisma')
-  const connection = await prisma.adminGoogleCalendarConnection.findFirst()
-  if (!connection) throw new Error('Google Calendar is not connected yet.')
-
-  if (connection.expiresAt.getTime() > Date.now() + 60_000) {
-    return connection.accessToken
-  }
-
   const refreshed = await refreshAdminAccessToken(connection.refreshToken)
   await prisma.adminGoogleCalendarConnection.update({
     where: { id: connection.id },
@@ -123,4 +120,39 @@ export async function getValidAdminAccessToken(): Promise<string> {
     },
   })
   return refreshed.access_token
+}
+
+// A valid access token for the PRIMARY (oldest) connection, refreshing it
+// first if it's expired. Webinar scheduling and Meeting Prep use this one.
+// Throws if no connection exists — callers should catch this and point the
+// admin at the connect flow.
+export async function getValidAdminAccessToken(): Promise<string> {
+  const { prisma } = await import('@/lib/prisma')
+  const connection = await prisma.adminGoogleCalendarConnection.findFirst({ orderBy: { createdAt: 'asc' } })
+  if (!connection) throw new Error('Google Calendar is not connected yet.')
+  return tokenFor(connection)
+}
+
+export interface AdminCalendarAccess {
+  googleEmail: string | null
+  token: string | null
+  /** Set when this account's token could not be refreshed (revoked, expired). */
+  error: string | null
+}
+
+/**
+ * Every connected account's token, for the CRM meeting sweep. One account
+ * failing to refresh is reported on its own entry rather than thrown, so the
+ * others still sweep.
+ */
+export async function getAllAdminCalendarAccess(): Promise<AdminCalendarAccess[]> {
+  const { prisma } = await import('@/lib/prisma')
+  const rows = await prisma.adminGoogleCalendarConnection.findMany({ orderBy: { createdAt: 'asc' } })
+  return Promise.all(rows.map(async (r) => {
+    try {
+      return { googleEmail: r.googleEmail, token: await tokenFor(r), error: null }
+    } catch (e) {
+      return { googleEmail: r.googleEmail, token: null, error: e instanceof Error ? e.message : String(e) }
+    }
+  }))
 }
