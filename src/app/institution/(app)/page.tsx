@@ -3,9 +3,15 @@ import { getCurrentInstitutionUser } from '@/lib/institution/auth'
 import { prisma } from '@/lib/prisma'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { ROLE_LABEL } from '@/lib/institution/permissions'
+import { readBranding } from '@/lib/institution/branding'
 
 export default async function InstitutionHomePage() {
   const user = await getCurrentInstitutionUser()
+  const inst = await prisma.institution.findUniqueOrThrow({
+    where: { id: user.institutionId },
+    select: { accentColor: true, logoUrl: true, profile: true },
+  })
+  const brand = readBranding(inst)
   const [claimed, jobs, targets] = await Promise.all([
     prisma.institutionMember.count({
       where: { institutionId: user.institutionId, status: { in: ['CLAIMED', 'ACTIVE'] } },
@@ -18,6 +24,15 @@ export default async function InstitutionHomePage() {
 
   return (
     <div className="space-y-6">
+      {brand.heroImageUrl && (
+        <div className="relative overflow-hidden rounded-lg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={brand.heroImageUrl} alt="" className="h-48 w-full object-cover" />
+          {brand.tagline && (
+            <p className="absolute inset-x-0 bottom-0 bg-black/50 px-4 py-2 text-sm font-medium text-white">{brand.tagline}</p>
+          )}
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{user.institutionName}</h1>
         <p className="text-muted-foreground">
