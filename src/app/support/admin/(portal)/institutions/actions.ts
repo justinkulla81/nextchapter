@@ -3,11 +3,12 @@
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { createInstitution, seedDemoContent, updateInstitutionBranding } from '@/lib/institution/admin'
+import { createInstitution, seedDemoContent, updateInstitutionBranding, uploadInstitutionImage as uploadImage } from '@/lib/institution/admin'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import type { InstitutionUserRole } from '@prisma/client'
+import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
+import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 
 export type InstitutionFormState = { error?: string; ok?: string } | undefined
 
@@ -17,24 +18,10 @@ const ROLES: InstitutionUserRole[] = [
   'EMPLOYER_RELATIONS',
   'ALUMNI_RELATIONS',
   'DEVELOPMENT',
-  'VIEWER',
+  'COACH',
+  'FACULTY',
+  'EXEC_ED',
 ]
-
-const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-
-// Stored in the existing public logo bucket under institutions/<id>/, so a demo's logo
-// and hero image are plain public URLs the portal can render.
-async function uploadImage(institutionId: string, file: File | null, kind: 'logo' | 'hero'): Promise<string | null | { error: string }> {
-  if (!file || file.size === 0) return null
-  if (!file.type.startsWith('image/')) return { error: 'The file must be an image.' }
-  if (file.size > MAX_IMAGE_BYTES) return { error: 'Images must be under 3MB.' }
-  const admin = createAdminClient()
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png'
-  const path = `institutions/${institutionId}/${kind}-${crypto.randomUUID()}.${ext}`
-  const { error } = await admin.storage.from('coach-logos').upload(path, file, { contentType: file.type })
-  if (error) return { error: 'The image could not be uploaded. Try again.' }
-  return admin.storage.from('coach-logos').getPublicUrl(path).data.publicUrl
-}
 
 export async function createCollege(_prev: InstitutionFormState, formData: FormData): Promise<InstitutionFormState> {
   const admin = await requireAdmin()
@@ -48,6 +35,7 @@ export async function createCollege(_prev: InstitutionFormState, formData: FormD
     accentColor: get('accentColor') || null,
     tagline: get('tagline') || null,
     isDemo: formData.get('isDemo') === 'on',
+    localCollegeId: get('localCollegeId') || null,
   })
   if ('error' in created) return { error: created.error }
 
@@ -107,5 +95,52 @@ export async function loadDemoContent(institutionId: string): Promise<void> {
   if (!inst?.isDemo) return
   const r = await seedDemoContent(institutionId, admin?.email ?? 'admin')
   captureServerEvent(admin?.email ?? 'admin', 'institution_demo_seeded', { institutionId, ...r })
+  revalidatePath('/support/admin/institutions')
+}
+
+export interface CrmCollegeOption {
+  id: string
+  name: string
+  website: string | null
+  domain: string | null
+  location: string | null
+  linkedTo: string | null
+}
+
+// Type-ahead for the New college form: the CRM's college list (LocalCollege), matched by name.
+export async function searchCrmColleges(query: string): Promise<CrmCollegeOption[]> {
+  await requireAdmin()
+  const q = query.trim()
+  if (q.length < 2) return []
+  const rows = await prisma.localCollege.findMany({
+    where: { name: { contains: q, mode: 'insensitive' } },
+    orderBy: [{ rank: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
+    take: 8,
+    select: { id: true, name: true, website: true, city: true, state: true, crmOrgId: true },
+  })
+  const orgIds = rows.map((r) => r.crmOrgId).filter((id): id is string => !!id)
+  const taken = await prisma.institution.findMany({ where: { crmOrganizationId: { in: orgIds } }, select: { crmOrganizationId: true, name: true } })
+  const takenBy = new Map(taken.map((t) => [t.crmOrganizationId, t.name]))
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    website: r.website,
+    domain: r.website ? r.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase() : null,
+    location: [r.city, r.state].filter(Boolean).join(', ') || null,
+    linkedTo: r.crmOrgId ? takenBy.get(r.crmOrgId) ?? null : null,
+  }))
+}
+
+// Demo colleges that have a fixture (src/lib/higher-ed/demo-tenants.ts) can be
+// put back to it: fictional members, staff, flags and gifts, then the sample
+// alumni jobs and target companies. Same reset as the portal's demo bar.
+export async function resetDemoFixture(institutionId: string): Promise<void> {
+  const admin = await requireAdmin()
+  const inst = await prisma.institution.findUnique({ where: { id: institutionId }, select: { slug: true, isDemo: true } })
+  const tenant = inst ? DEMO_TENANTS[inst.slug] : undefined
+  if (!inst?.isDemo || !tenant) return
+  const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 120_000, maxWait: 20_000 })
+  const sample = await seedDemoContent(result.institutionId, admin?.email ?? 'admin')
+  captureServerEvent(admin?.email ?? 'admin', 'institution_demo_reset', { institutionId: result.institutionId, slug: inst.slug, members: result.members, ...sample })
   revalidatePath('/support/admin/institutions')
 }

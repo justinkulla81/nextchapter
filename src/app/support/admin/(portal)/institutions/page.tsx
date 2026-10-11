@@ -3,7 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { readBranding } from '@/lib/institution/branding'
 import { CreateCollegeForm, BrandingForm, InviteStaffForm } from '@/components/admin/InstitutionForms'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { loadDemoContent } from './actions'
+import { loadDemoContent, resetDemoFixture } from './actions'
+import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
+import { SERVICES, serviceSettingsFrom } from '@/lib/higher-ed/services'
+
+// The college portal lives on the main site (its session cookie), not on the
+// admin subdomain.
+const PORTAL_ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 
 export const maxDuration = 30
 
@@ -13,9 +19,9 @@ export default async function InstitutionsAdminPage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, slug: true, name: true, programBrandName: true, accentColor: true, logoUrl: true, profile: true,
-      isDemo: true, isSampleData: true,
+      isDemo: true, isSampleData: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true,
       users: { where: { revokedAt: null }, select: { invitedEmail: true, role: true, acceptedAt: true } },
-      _count: { select: { targetCompanies: true, scopedJobPostings: true } },
+      _count: { select: { targetCompanies: true, scopedJobPostings: true, members: true } },
     },
   })
 
@@ -25,11 +31,9 @@ export default async function InstitutionsAdminPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Colleges</h1>
         <p className="text-muted-foreground">
           Set up a college workspace, brand it with their logo, colour and imagery, and invite their staff. A demo
-          works exactly like the real portal, flagged so it is never mistaken for a customer. Staff sign in at{' '}
-          <a href="https://launchyournextchapter.com/institution/login" className="underline underline-offset-4">
-            https://launchyournextchapter.com/institution/login
-          </a>
-          .
+          works exactly like the real portal, flagged so it is never mistaken for a customer. Each college&apos;s portal is at{' '}
+          <span className="font-mono text-xs">{PORTAL_ORIGIN}/i/&lt;slug&gt;</span>; invited staff sign in with the normal
+          NextChapter login and land there. NextChapter admins see every workspace on a demo college.
         </p>
       </div>
 
@@ -55,7 +59,13 @@ export default async function InstitutionsAdminPage() {
                     {c.isDemo && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">Demo</span>}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {c.slug} · {c._count.targetCompanies} target companies · {c._count.scopedJobPostings} alumni jobs
+                    <a href={`${PORTAL_ORIGIN}/i/${c.slug}`} target="_blank" rel="noreferrer" className="font-medium text-foreground underline underline-offset-4">
+                      Open portal
+                    </a>{' '}
+                    · {c.slug} · {c.tier.toLowerCase()} tier · {c._count.members.toLocaleString()} members · {c.includedSeats.toLocaleString()} seats ·{' '}
+                    {SERVICES.filter((sv) => serviceSettingsFrom(c.enabledFeatures)[sv.key].on).length} services on · {c.crmOrganizationId ? (
+                      <a href={`/support/admin/crm/organizations/${c.crmOrganizationId}`} className="underline underline-offset-4">CRM record</a>
+                    ) : 'no CRM record'} · {c._count.targetCompanies} target companies · {c._count.scopedJobPostings} alumni jobs
                   </p>
                 </div>
                 {b.accentColor && <span className="size-5 rounded-full border border-border" style={{ backgroundColor: b.accentColor }} />}
@@ -86,11 +96,25 @@ export default async function InstitutionsAdminPage() {
               </details>
 
               {c.isDemo && (
-                <form action={loadDemoContent.bind(null, c.id)}>
-                  <SubmitButton size="sm" variant="outline" pendingLabel="Loading…">
-                    Load sample content
-                  </SubmitButton>
-                </form>
+                <div className="flex flex-wrap items-center gap-3">
+                  <form action={loadDemoContent.bind(null, c.id)}>
+                    <SubmitButton size="sm" variant="outline" pendingLabel="Loading…">
+                      Load sample content
+                    </SubmitButton>
+                  </form>
+                  {DEMO_TENANTS[c.slug] && (
+                    <form action={resetDemoFixture.bind(null, c.id)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Resetting…" savedLabel="Reset">
+                        Reset to fixture
+                      </SubmitButton>
+                    </form>
+                  )}
+                  {DEMO_TENANTS[c.slug] && (
+                    <p className="text-xs text-muted-foreground">
+                      Reset replaces this demo&apos;s fictional members, staff, flags and gifts with its fixture, then reloads sample content.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )

@@ -17,6 +17,8 @@ export interface CoachShortlistEntry {
   certifications: string[]
   /** Why this coach was suggested, in the member's terms, best first. */
   reasons: string[]
+  /** Set when this is the member's college's own coach. */
+  collegeName: string | null
 }
 
 // Coach-Candidate Matching System, Phase 1. Runs on stated
@@ -54,8 +56,16 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     getCoachingSettings(),
   ])
 
+  // A college's own coaches are offered only to that college's claimed
+  // members, and ahead of everyone else (they're part of what the college pays for).
+  const memberships = await prisma.institutionMember.findMany({
+    where: { candidateId, status: { in: ['CLAIMED', 'ACTIVE'] } },
+    select: { institutionId: true, institution: { select: { name: true, programBrandName: true } } },
+  })
+  const collegeNames = new Map(memberships.map((m) => [m.institutionId, m.institution.programBrandName ?? m.institution.name]))
+
   const allCoaches = await prisma.coach.findMany({
-    where: { isSampleData: false },
+    where: { isSampleData: false, OR: [{ institutionId: null }, { institutionId: { in: [...collegeNames.keys()] } }] },
     select: {
       id: true,
       fullName: true,
@@ -71,6 +81,7 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       gender: true,
       languages: true,
       timezone: true,
+      institutionId: true,
       _count: { select: { clients: true } },
     },
   })
@@ -162,12 +173,14 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       const headroom = Math.max(0, 1 - coach._count.clients / settings.coachMaxActiveClients)
       score += settings.matchWeightMembershipPriorityBoost * headroom
     }
-    return { coach, score, reasons: fit.reasons }
+    const collegeName = coach.institutionId ? (collegeNames.get(coach.institutionId) ?? null) : null
+    return { coach, score, reasons: collegeName ? [`Coach from ${collegeName}`, ...fit.reasons] : fit.reasons, collegeName }
   })
 
-  scored.sort((a, b) => b.score - a.score)
+  // College coaches first, then by fit.
+  scored.sort((a, b) => Number(!!b.collegeName) - Number(!!a.collegeName) || b.score - a.score)
 
-  return scored.slice(0, settings.matchShortlistSize).map(({ coach, reasons }) => ({
+  return scored.slice(0, settings.matchShortlistSize).map(({ coach, reasons, collegeName }) => ({
     id: coach.id,
     fullName: coach.fullName,
     firmName: coach.firmName,
@@ -176,5 +189,6 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     seniorityFit: coach.seniorityFit,
     certifications: coach.certifications,
     reasons: reasons.slice(0, 3),
+    collegeName,
   }))
 }

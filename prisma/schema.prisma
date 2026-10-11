@@ -1655,13 +1655,13 @@ model CandidateProfile {
   // NextChapter Talent: set once this person claims an intake profile.
   intakeCandidate IntakeCandidate?
 
-  @@index([privacyTier])
-  @@index([currentJobStatus])
-  @@index([currentState, currentCity])
-
   undatedEmployment UndatedEmployment[]
 
   coachingStyleResponse CoachingStyleResponse?
+
+  @@index([privacyTier])
+  @@index([currentJobStatus])
+  @@index([currentState, currentCity])
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -1855,9 +1855,6 @@ model WorkHistoryEntry {
 
   references Reference[]
 
-  @@index([candidateId])
-  @@index([companyNameNormalized])
-
   // The directory company this job was at. companyName stays what the resume said.
   // This link is internal (grouping, alumni networks, feedback requests): a job here
   // does NOT make the member visible as an insider — that is MemberEmployment, which
@@ -1865,6 +1862,8 @@ model WorkHistoryEntry {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  @@index([candidateId])
+  @@index([companyNameNormalized])
   @@index([companyId])
 }
 
@@ -1967,9 +1966,6 @@ model EducationEntry {
 
   createdAt DateTime @default(now())
 
-  @@index([candidateId])
-  @@index([schoolNameNormalized])
-
   // The canonical institution this entry is at — set when the entry is created from a
   // resume (and by a backfill for older rows). schoolName stays exactly what the
   // resume said; schoolId is what alumni are grouped by.
@@ -1978,6 +1974,8 @@ model EducationEntry {
   // 'ASSOCIATE' | 'BACHELORS' | 'MASTERS' | 'MBA' | 'DOCTORATE' | 'PROFESSIONAL' | 'OTHER'
   degreeLevel String?
 
+  @@index([candidateId])
+  @@index([schoolNameNormalized])
   @@index([schoolId])
 }
 
@@ -4686,18 +4684,18 @@ model ExclusiveJobPosting {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  // Skills this posting asks for, extracted at import from its full description (a fixed
+  // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
+  // of which only a short excerpt is stored: ~15 MB for the whole board instead of
+  // ~125 MB, and skills are what the skills gap and fit scoring actually use.
+  skills String[] @default([])
+
   @@index([archivedAt, createdAt])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
   @@index([companyId])
   @@index([postedAt])
-
-  // Skills this posting asks for, extracted at import from its full description (a fixed
-  // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
-  // of which only a short excerpt is stored: ~15 MB for the whole board instead of
-  // ~125 MB, and skills are what the skills gap and fit scoring actually use.
-  skills String[] @default([])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -4846,6 +4844,13 @@ model Coach {
   // notification target when admin manually triggers surge outreach (see
   // src/lib/coach/surge.ts).
   isOnCallBench Boolean @default(false)
+
+  // Higher Ed: a college's own coach. They work in this coach portal like any
+  // coach, but only that college's members see them when choosing a coach,
+  // and their sessions with those members count toward the college
+  // (CoachSession.institutionId). Null for NextChapter's own coaches.
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
   clients                         CandidateProfile[]
   sessions                        CoachSession[]
@@ -6677,10 +6682,22 @@ model AdminAccessLog {
   viewedCompanyId   String?
   viewedCompany     Company?          @relation(fields: [viewedCompanyId], references: [id], onDelete: Cascade)
 
+  // Higher Ed (HE-02): a college staff view of one member, or an nc_admin
+  // "View as" on a real institution. viewedInstitutionMemberId is set even
+  // before the member has claimed an account (viewedCandidateId is also set
+  // once they have, which is what "Who viewed my profile" reads). For these
+  // rows adminEmail is the viewer's email, staff or admin, and surface is
+  // the workspace ("alumni", "development", ...). Plain ids, not relations,
+  // to keep the audit log independent of the tenant tables' lifecycle.
+  viewedInstitutionId       String?
+  viewedInstitutionMemberId String?
+
   surface  String // e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view
   reason   String // required, never empty (enforced at the server-action layer)
   viewedAt DateTime @default(now())
 
+  @@index([viewedInstitutionMemberId, viewedAt])
+  @@index([viewedInstitutionId, viewedAt])
   @@index([viewedCandidateId, viewedAt])
   @@index([viewedCompanyId, viewedAt])
   @@index([adminEmail, viewedAt])
@@ -6805,10 +6822,10 @@ model Company {
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
 
-  @@index([industry])
-
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
+
+  @@index([industry])
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
@@ -9330,6 +9347,7 @@ model CrmOrganization {
   // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
+  institution      Institution?
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
@@ -9496,7 +9514,7 @@ model CrmPerson {
   /// Written only by the calendar sweep, which looks 30 days ahead: set when
   /// an upcoming event has them as an attendee, cleared once it has passed,
   /// been moved out of range, or been cancelled.
-  nextMeetingAt DateTime?
+  nextMeetingAt  DateTime?
   /// Meet link of that same upcoming event, when it has one.
   nextMeetingUrl String?
 
@@ -10819,11 +10837,11 @@ model WorkforceBoard {
   partnersCheckedAt DateTime?
   newsCheckedAt     DateTime?
 
-  @@index([state])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([state])
 }
 
 /// A county's labor force and unemployment from the BLS Local Area
@@ -11095,6 +11113,9 @@ enum InstitutionUserRole {
   DEVELOPMENT
   CAREER_SERVICES
   EMPLOYER_RELATIONS // Career Services, Employers tab only
+  COACH // Coaching: career coaches and counselors who run sessions
+  FACULTY // Teaching: faculty who teach courses and Exec Ed programs
+  EXEC_ED // Exec Ed: executive / continuing education staff
   VIEWER // assigned workspace, read-only
 }
 
@@ -11249,36 +11270,41 @@ enum InstitutionEmployerPackageTier {
 }
 
 model Institution {
-  id               String          @id @default(cuid())
-  slug             String          @unique // /i/[slug]
-  name             String
-  programBrandName String?
-  logoUrl          String?
-  accentColor      String?
+  id                String           @id @default(cuid())
+  slug              String           @unique // /i/[slug]
+  name              String
+  programBrandName  String?
+  logoUrl           String?
+  accentColor       String?
   // Email domains that identify this institution's people (SSO and
   // roster matching), e.g. ["washjeff.edu"].
-  domains          String[]        @default([])
-  ssoProvider      String? // 'google' | 'microsoft' | 'saml'
-  ssoConfig        Json?
-  tier             InstitutionTier @default(CAREER)
-  alumniCount      Int?
-  includedSeats    Int             @default(0)
-  licenseStartAt   DateTime?
-  licenseEndAt     DateTime?
+  domains           String[]         @default([])
+  ssoProvider       String? // 'google' | 'microsoft' | 'saml'
+  ssoConfig         Json?
+  tier              InstitutionTier  @default(CAREER)
+  alumniCount       Int?
+  includedSeats     Int              @default(0)
+  licenseStartAt    DateTime?
+  licenseEndAt      DateTime?
   // graceDays (60), fiscalYearStartMonth (7 = July), engagementWeights
   // (empty = the §7 defaults in code), wioa (V2, off). Readers merge this
   // over the code defaults, so a missing key never breaks anything.
-  enabledFeatures  Json            @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
-  givingUrl        String?
+  enabledFeatures   Json             @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
+  givingUrl         String?
+  // The CRM record for this college (a CrmOrganization typed UNIVERSITY).
+  // One college workspace per CRM college; SetNull so removing the CRM
+  // record never deletes a customer workspace.
+  crmOrganizationId String?          @unique
+  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
   // Public, sourced facts shown in the portal: the college profile (photos,
   // published outcomes), its region (unemployment, top employers, the WIOA
   // board, local news). Every figure carries its source and period — see
   // InstitutionProfile in src/lib/higher-ed/profile.ts. Never member data.
-  profile          Json?
-  isDemo           Boolean         @default(false)
-  isSampleData     Boolean         @default(false)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  profile           Json?
+  isDemo            Boolean          @default(false)
+  isSampleData      Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   users             InstitutionUser[]
   members           InstitutionMember[]
@@ -11294,6 +11320,7 @@ model Institution {
   employers         InstitutionEmployer[]
   purchases         InstitutionPurchase[]
   coachSessions     CoachSession[]
+  coaches           Coach[]
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies InstitutionTargetCompany[]
@@ -11310,6 +11337,9 @@ model InstitutionUser {
   invitedEmail  String
   fullName      String?
   role          InstitutionUserRole
+  // VIEWER only: the one workspace this read-only seat may open
+  // ('alumni' | 'development' | 'career' | ...). Null for every other role.
+  workspace     String?
   inviteToken   String              @unique @default(cuid())
   invitedAt     DateTime            @default(now())
   acceptedAt    DateTime?
@@ -12343,13 +12373,13 @@ model GeoOrgLead {
   createdAt         DateTime  @default(now())
   geoArea           GeoArea?  @relation(fields: [geoAreaId], references: [id], onUpdate: NoAction)
 
-  @@index([geoAreaId])
-  @@index([kind, state])
-  @@index([revenue(sort: Desc)])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([geoAreaId])
+  @@index([kind, state])
+  @@index([revenue(sort: Desc)])
 }
 
 model PitchRuleSet {
@@ -12382,13 +12412,13 @@ model AmericanJobCenter {
   workforceBoardId String?
   updatedAt        DateTime @default(now()) @updatedAt
 
-  @@index([state])
-  @@index([countyFips])
-  @@index([workforceBoardId])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([state])
+  @@index([countyFips])
+  @@index([workforceBoardId])
 }
 
 /// A government or regional economic-development body that is not an IRS
@@ -12414,11 +12444,11 @@ model LocalPartnerOrg {
   confidence   String? // high | medium | low
   updatedAt    DateTime @default(now()) @updatedAt
 
-  @@index([kind, state])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([kind, state])
 }
 
 // A company an institution's career or advancement team has flagged as a target:
@@ -12598,18 +12628,18 @@ model CompanyHq {
 // unverified, and a near-miss to an existing school is queued for review rather than
 // merged (see src/lib/education/school-match.ts).
 model School {
-  id               String   @id @default(cuid())
-  name             String // canonical display name
-  canonicalKey     String   @unique // schoolKey(name)
-  aliases          String[] @default([])
+  id                String   @id @default(cuid())
+  name              String // canonical display name
+  canonicalKey      String   @unique // schoolKey(name)
+  aliases           String[] @default([])
   // Optional link to the outreach college directory, for state / sector / size.
-  localCollegeId   String?
-  state            String?
-  verified         Boolean  @default(false)
+  localCollegeId    String?
+  state             String?
+  verified          Boolean  @default(false)
   // 'REVIEW' (looks like a variant of mergeSuggestionId) | 'KEPT_SEPARATE' | 'MERGED'
-  reviewState      String?
+  reviewState       String?
   mergeSuggestionId String?
-  createdAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
 
   educationEntries EducationEntry[]
 
@@ -12766,13 +12796,13 @@ model OfferedWageSummary {
 // public, free). One row per company; exact recipient-name match only
 // (src/lib/companies/federal-contracts.ts). Filled by scripts/sync-federal-contracts.ts.
 model FederalContractSummary {
-  id          String   @id @default(cuid())
-  companyId   String   @unique
+  id          String    @id @default(cuid())
+  companyId   String    @unique
   awards      Int
   totalAmount Float
   topAgency   String?
   latestStart DateTime?
-  checkedAt   DateTime @default(now())
+  checkedAt   DateTime  @default(now())
 }
 
 // Published federal outcomes for a school (U.S. Dept. of Education College Scorecard, public

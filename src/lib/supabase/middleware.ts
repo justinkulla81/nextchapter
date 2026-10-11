@@ -138,8 +138,6 @@ export async function updateSession(request: NextRequest) {
     '/employer/forgot-password',
     '/employer/seats/accept',
     '/employer/invite/accept',
-    '/institution/login',
-    '/institution/forgot-password',
     '/support/admin/login',
     '/support/admin/forgot-password',
   ]
@@ -162,7 +160,6 @@ export async function updateSession(request: NextRequest) {
       '/recruiters': '/recruiters/login',
       '/support/coach': '/support/coach/login',
       '/employer': '/employer/login',
-      '/institution': '/institution/login',
       '/support/admin': '/support/admin/login',
     }).find(([prefix]) => pathStartsWith(request.nextUrl.pathname, prefix))?.[1]
     redirectUrl.pathname = portalLoginPath ?? '/auth/login'

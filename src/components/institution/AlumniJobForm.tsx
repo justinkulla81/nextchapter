@@ -4,10 +4,13 @@ import { useActionState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { postAlumniJob } from '@/app/institution/(app)/jobs/actions'
 
-export function AlumniJobForm() {
-  const [state, action] = useActionState(postAlumniJob, undefined)
+type State = { error?: string; ok?: boolean } | undefined
+
+// `postAction` is the portal's server action, already bound to the college and
+// workspace (see src/app/i/[slug]/(portal)/staff-actions.ts).
+export function AlumniJobForm({ postAction }: { postAction: (prev: State, formData: FormData) => Promise<State> }) {
+  const [state, action] = useActionState(postAction, undefined)
   return (
     <form action={action} className="grid gap-4 rounded-lg border border-border p-4 sm:grid-cols-2">
       <div className="space-y-1">

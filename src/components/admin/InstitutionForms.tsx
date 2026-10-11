@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -8,16 +8,23 @@ import {
   createCollege,
   saveCollegeBranding,
   inviteCollegeStaff,
+  searchCrmColleges,
+  type CrmCollegeOption,
   type InstitutionFormState,
 } from '@/app/support/admin/(portal)/institutions/actions'
 
+// One option per /i/[slug] staff role. VIEWER is left out until the form can
+// pick its one workspace (InstitutionUser.workspace); without it a viewer
+// opens nothing.
 const ROLE_OPTIONS = [
   ['INSTITUTION_ADMIN', 'Administrator'],
   ['CAREER_SERVICES', 'Career services'],
   ['EMPLOYER_RELATIONS', 'Employer relations'],
   ['ALUMNI_RELATIONS', 'Alumni relations'],
   ['DEVELOPMENT', 'Development'],
-  ['VIEWER', 'Viewer'],
+  ['COACH', 'Coach'],
+  ['FACULTY', 'Faculty (Teaching)'],
+  ['EXEC_ED', 'Executive education'],
 ] as const
 
 function Status({ state }: { state: InstitutionFormState }) {
@@ -56,21 +63,83 @@ function BrandFields({ defaults }: { defaults?: { programBrandName: string | nul
   )
 }
 
+const slugFromDomain = (d: string | null) => (d ? d.replace(/\.(edu|org|com)$/, '').split('.').pop()!.replace(/[^a-z0-9-]/g, '') : '')
+
 export function CreateCollegeForm() {
   const [state, action] = useActionState(createCollege, undefined)
+  const [query, setQuery] = useState('')
+  const [options, setOptions] = useState<CrmCollegeOption[]>([])
+  const [picked, setPicked] = useState<CrmCollegeOption | null>(null)
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [domains, setDomains] = useState('')
+
+  useEffect(() => {
+    if (picked || query.trim().length < 2) return setOptions([])
+    const t = setTimeout(() => searchCrmColleges(query).then(setOptions).catch(() => setOptions([])), 200)
+    return () => clearTimeout(t)
+  }, [query, picked])
+
+  function pick(o: CrmCollegeOption) {
+    setPicked(o)
+    setOptions([])
+    setQuery(o.name)
+    setName(o.name)
+    setSlug(slugFromDomain(o.domain))
+    setDomains(o.domain ?? '')
+  }
+
   return (
     <form action={action} className="grid gap-4 rounded-lg border border-border p-4 sm:grid-cols-2">
+      <input type="hidden" name="localCollegeId" value={picked?.id ?? ''} />
+      <div className="relative space-y-1 sm:col-span-2">
+        <Label htmlFor="crmCollege">College from the CRM</Label>
+        <Input
+          id="crmCollege"
+          value={query}
+          autoComplete="off"
+          placeholder="Search the CRM's colleges and universities"
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPicked(null)
+          }}
+        />
+        {options.length > 0 && (
+          <ul className="absolute z-10 mt-1 w-full rounded-md border border-border bg-background shadow-md">
+            {options.map((o) => (
+              <li key={o.id}>
+                <button
+                  type="button"
+                  disabled={!!o.linkedTo}
+                  onClick={() => pick(o)}
+                  className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span>{o.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {[o.location, o.domain, o.linkedTo ? 'already has a workspace' : null].filter(Boolean).join(' · ')}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {picked
+            ? 'Linked to this CRM record. Name, slug and domain were filled from it.'
+            : 'Not in the CRM yet? Type the name below and a CRM record is created for it.'}
+        </p>
+      </div>
       <div className="space-y-1">
         <Label htmlFor="name">College name</Label>
-        <Input id="name" name="name" required placeholder="Washington & Jefferson College" />
+        <Input id="name" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Washington & Jefferson College" />
       </div>
       <div className="space-y-1">
         <Label htmlFor="slug">Slug</Label>
-        <Input id="slug" name="slug" required placeholder="washjeff" />
+        <Input id="slug" name="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="washjeff" />
       </div>
       <div className="space-y-1 sm:col-span-2">
         <Label htmlFor="domains">Email domains (staff and alumni)</Label>
-        <Input id="domains" name="domains" placeholder="washjeff.edu" />
+        <Input id="domains" name="domains" value={domains} onChange={(e) => setDomains(e.target.value)} placeholder="washjeff.edu" />
       </div>
       <BrandFields />
       <label className="flex items-center gap-2 text-sm sm:col-span-2">

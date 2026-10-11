@@ -1,24 +1,12 @@
 import 'server-only'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { adminEmails, isAdminEmail } from './is-admin-email'
 
 // Where every admin-bound notification (digests, alerts, Meeting Prep) lands.
 export const ADMIN_NOTIFICATION_EMAIL = 'justin@launchyournextchapter.com'
 
-function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-}
-
-// Used by candidate-flow entry points (dashboard, onboarding) to bail out
-// before creating a stray CandidateProfile for an admin-only account — an
-// admin has no Employer/Recruiter/Coach row either, so without this check
-// they'd fall through candidate-flow logic exactly like a brand-new signup.
-export function isAdminEmail(email?: string | null): boolean {
-  return !!email && adminEmails().includes(email.toLowerCase())
-}
+export { isAdminEmail }
 
 // Pre-seed admin gate — a plain env-var allowlist checked against the
 // logged-in Supabase user's email. No roles table yet; this is the whole

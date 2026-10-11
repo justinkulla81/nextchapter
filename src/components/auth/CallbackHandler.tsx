@@ -18,7 +18,7 @@ import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidate
 import { finishTalentClaim } from '@/app/in/claim/[token]/actions'
 import { finishAcceptingOutplacementSeat } from '@/app/employer/seats/accept/[token]/actions'
 import { finishAcceptingOutplacementOrgInvite } from '@/app/employer/invite/accept/[token]/actions'
-import { finishAcceptingInstitutionInvite } from '@/app/institution/invite/accept/actions'
+import { finishAcceptingInstitutionInvite } from '@/app/i/invite/actions'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
@@ -75,9 +75,7 @@ export function CallbackHandler() {
             ? 'eqoveriq'
             : nextIsOutplacementOrgInvite
               ? 'employer'
-              : nextIsInstitutionInvite
-                ? 'institution'
-                : undefined
+              : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -285,7 +283,8 @@ export function CallbackHandler() {
         setStatus('error')
         return
       }
-      setPostSecureAccountPath('/institution')
+      // College staff share the main session; land them in their institution's portal.
+      setPostSecureAccountPath(result.slug ? `/i/${result.slug}` : '/')
       setStatus('secure-account')
       return
     }
