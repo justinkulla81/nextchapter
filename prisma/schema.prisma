@@ -9348,6 +9348,7 @@ model CrmOrganization {
   // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
+  institution      Institution?
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
@@ -11291,6 +11292,11 @@ model Institution {
   // over the code defaults, so a missing key never breaks anything.
   enabledFeatures  Json            @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
   givingUrl        String?
+  // The CRM record for this college (a CrmOrganization typed UNIVERSITY).
+  // One college workspace per CRM college; SetNull so removing the CRM
+  // record never deletes a customer workspace.
+  crmOrganizationId String?          @unique
+  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
   // Public, sourced facts shown in the portal: the college profile (photos,
   // published outcomes), its region (unemployment, top employers, the WIOA
   // board, local news). Every figure carries its source and period — see

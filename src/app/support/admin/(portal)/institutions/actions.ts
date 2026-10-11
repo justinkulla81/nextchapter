@@ -35,6 +35,7 @@ export async function createCollege(_prev: InstitutionFormState, formData: FormD
     accentColor: get('accentColor') || null,
     tagline: get('tagline') || null,
     isDemo: formData.get('isDemo') === 'on',
+    localCollegeId: get('localCollegeId') || null,
   })
   if ('error' in created) return { error: created.error }
 
@@ -95,6 +96,39 @@ export async function loadDemoContent(institutionId: string): Promise<void> {
   const r = await seedDemoContent(institutionId, admin?.email ?? 'admin')
   captureServerEvent(admin?.email ?? 'admin', 'institution_demo_seeded', { institutionId, ...r })
   revalidatePath('/support/admin/institutions')
+}
+
+export interface CrmCollegeOption {
+  id: string
+  name: string
+  website: string | null
+  domain: string | null
+  location: string | null
+  linkedTo: string | null
+}
+
+// Type-ahead for the New college form: the CRM's college list (LocalCollege), matched by name.
+export async function searchCrmColleges(query: string): Promise<CrmCollegeOption[]> {
+  await requireAdmin()
+  const q = query.trim()
+  if (q.length < 2) return []
+  const rows = await prisma.localCollege.findMany({
+    where: { name: { contains: q, mode: 'insensitive' } },
+    orderBy: [{ rank: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
+    take: 8,
+    select: { id: true, name: true, website: true, city: true, state: true, crmOrgId: true },
+  })
+  const orgIds = rows.map((r) => r.crmOrgId).filter((id): id is string => !!id)
+  const taken = await prisma.institution.findMany({ where: { crmOrganizationId: { in: orgIds } }, select: { crmOrganizationId: true, name: true } })
+  const takenBy = new Map(taken.map((t) => [t.crmOrganizationId, t.name]))
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    website: r.website,
+    domain: r.website ? r.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase() : null,
+    location: [r.city, r.state].filter(Boolean).join(', ') || null,
+    linkedTo: r.crmOrgId ? takenBy.get(r.crmOrgId) ?? null : null,
+  }))
 }
 
 // Demo colleges that have a fixture (src/lib/higher-ed/demo-tenants.ts) can be

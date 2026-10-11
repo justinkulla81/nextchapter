@@ -19,7 +19,7 @@ export default async function InstitutionsAdminPage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, slug: true, name: true, programBrandName: true, accentColor: true, logoUrl: true, profile: true,
-      isDemo: true, isSampleData: true, tier: true, includedSeats: true, enabledFeatures: true,
+      isDemo: true, isSampleData: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true,
       users: { where: { revokedAt: null }, select: { invitedEmail: true, role: true, acceptedAt: true } },
       _count: { select: { targetCompanies: true, scopedJobPostings: true, members: true } },
     },
@@ -63,8 +63,15 @@ export default async function InstitutionsAdminPage() {
                       Open portal
                     </a>{' '}
                     · {c.slug} · {c.tier.toLowerCase()} tier · {c._count.members.toLocaleString()} members · {c.includedSeats.toLocaleString()} seats ·{' '}
-                    {SERVICES.filter((sv) => serviceSettingsFrom(c.enabledFeatures)[sv.key].on).length} services on · {c._count.targetCompanies} target
-                    companies · {c._count.scopedJobPostings} alumni jobs
+                    {SERVICES.filter((sv) => serviceSettingsFrom(c.enabledFeatures)[sv.key].on).length} services on ·{' '}
+                    {c.crmOrganizationId ? (
+                      <a href={`/support/admin/crm/organizations/${c.crmOrganizationId}`} className="underline underline-offset-4">
+                        CRM record
+                      </a>
+                    ) : (
+                      'no CRM record'
+                    )}{' '}
+                    · {c._count.targetCompanies} target companies · {c._count.scopedJobPostings} alumni jobs
                   </p>
                 </div>
                 {b.accentColor && <span className="size-5 rounded-full border border-border" style={{ backgroundColor: b.accentColor }} />}
