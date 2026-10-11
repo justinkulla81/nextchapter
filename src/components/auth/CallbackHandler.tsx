@@ -18,6 +18,7 @@ import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidate
 import { finishTalentClaim } from '@/app/in/claim/[token]/actions'
 import { finishAcceptingOutplacementSeat } from '@/app/employer/seats/accept/[token]/actions'
 import { finishAcceptingOutplacementOrgInvite } from '@/app/employer/invite/accept/[token]/actions'
+import { finishAcceptingInstitutionInvite } from '@/app/institution/invite/accept/actions'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
@@ -51,6 +52,7 @@ export function CallbackHandler() {
   const nextIsTalentClaim = searchParams.get('next') === 'talent-claim'
   const nextIsOutplacementSeat = searchParams.get('next') === 'outplacement-seat'
   const nextIsOutplacementOrgInvite = searchParams.get('next') === 'outplacement-org-invite'
+  const nextIsInstitutionInvite = searchParams.get('next') === 'institution-invite'
   const inviteToken = searchParams.get('inviteToken')
   // Every non-candidate portal now has its own session cookie (see
   // src/lib/supabase/portal.ts) — this is the single shared handler for
@@ -73,7 +75,9 @@ export function CallbackHandler() {
             ? 'eqoveriq'
             : nextIsOutplacementOrgInvite
               ? 'employer'
-              : undefined
+              : nextIsInstitutionInvite
+                ? 'institution'
+                : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -265,6 +269,23 @@ export function CallbackHandler() {
         return
       }
       setPostSecureAccountPath('/employer')
+      setStatus('secure-account')
+      return
+    }
+    if (nextIsInstitutionInvite) {
+      // A college's career / alumni staff, invited by NextChapter — an admin-generated
+      // magic link, same shape as the employer-portal invite above.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingInstitutionInvite(inviteToken)
+      if (result.error) {
+        console.error('finishAcceptingInstitutionInvite error:', result.error)
+        setStatus('error')
+        return
+      }
+      setPostSecureAccountPath('/institution')
       setStatus('secure-account')
       return
     }
