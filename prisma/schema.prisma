@@ -4687,6 +4687,7 @@ model ExclusiveJobPosting {
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   @@index([archivedAt, createdAt])
+  @@index([createdAt])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
