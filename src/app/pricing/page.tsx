@@ -93,7 +93,7 @@ export default async function PricingPage() {
               <p className="font-semibold text-navy">Higher Education</p>
               <p className="mt-1 text-2xl font-bold text-foreground">Lifetime free</p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Dossier stays live, remain an insider, give references, refer others, quarterly market
+                For anyone who has landed their next role. Dossier stays live, remain an insider, give references, refer others, quarterly market
                 pulse. You may also qualify for a $500 offer bonus.
               </p>
             </div>

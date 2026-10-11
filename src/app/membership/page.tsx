@@ -101,7 +101,7 @@ export default async function MembershipPage() {
         </div>
 
         <div className="mx-auto mt-12 max-w-md text-center">
-          <p className="font-semibold text-navy">Higher Education status is lifetime free.</p>
+          <p className="font-semibold text-navy">NextChapter Higher Education is free for life once you land.</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Landed candidates also qualify for a $500 offer bonus. Membership adds the market check,
             benefits network, and board listings for{' '}

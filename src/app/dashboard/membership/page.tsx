@@ -133,7 +133,7 @@ export default async function MembershipPage() {
             see what&apos;s left
           </Link>
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">Higher Education status is lifetime free once you land.</p>
+        <p className="mt-1 text-sm text-muted-foreground">NextChapter Higher Education is free for life once you land.</p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -231,19 +231,19 @@ export default async function MembershipPage() {
       <div className="space-y-1 border-t border-border pt-8">
         <h2 className="text-xl font-semibold tracking-tight text-foreground">Higher Education</h2>
         <p className="text-sm text-muted-foreground">
-          Once you land your next role, Higher Education status is <span className="font-medium text-foreground">lifetime free</span> —
-          your Dossier stays live, you remain an insider, and you can give references and refer others. You may also
+          Once you land your next role, you join NextChapter Higher Education, <span className="font-medium text-foreground">free for life</span>.
+          Your Dossier stays live, you remain an insider, and you can give references and refer others. You may also
           qualify for a{' '}
           <Link href="/dashboard/got-hired" className="text-primary underline underline-offset-4">
             $500 offer bonus →
           </Link>
-          . Membership below adds ongoing support on top of Higher Education status.
+          . Membership below adds ongoing support on top of it.
         </p>
       </div>
 
       {!isAlum && (
         <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4 text-sm text-muted-foreground">
-          Higher Education status and Membership both become available once you&apos;ve landed your next role.
+          NextChapter Higher Education and Membership both open once you&apos;ve landed your next role.
         </div>
       )}
 
