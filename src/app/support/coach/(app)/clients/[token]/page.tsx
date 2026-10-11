@@ -44,6 +44,19 @@ export default async function CoachClientsPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
+      {coach.functions.length === 0 && coach.skills.length === 0 && coach.coachingStyles.length === 0 && (
+        <div className="mb-6 rounded-lg border border-border bg-card p-4 text-sm">
+          <p className="font-medium text-foreground">Tell members how you coach</p>
+          <p className="mt-1 text-muted-foreground">
+            Members now ask for a coach who pushes them, supports them or holds them accountable, and are matched on
+            function, level and skills too. Add yours so the right people are sent to you.{' '}
+            <Link href={`/support/coach/settings/${token}`} className="font-medium text-foreground underline underline-offset-4">
+              Add your specialties
+            </Link>
+          </p>
+        </div>
+      )}
+
       <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />

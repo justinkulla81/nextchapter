@@ -250,6 +250,15 @@ export function ExclusiveJobPostingForm({
         </div>
       </div>
 
+      <div className="space-y-1">
+        <Label htmlFor="institutionSlug">Only for one college&apos;s alumni (optional)</Label>
+        <Input id="institutionSlug" name="institutionSlug" placeholder="the college's slug, e.g. washjeff" />
+        <p className="text-xs text-muted-foreground">
+          Leave blank for the open board. When set, only that college&apos;s claimed alumni see this role, and it is
+          kept off the open board.
+        </p>
+      </div>
+
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <SubmitButton pendingLabel="Adding…">Add exclusive posting</SubmitButton>

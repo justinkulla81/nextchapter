@@ -86,7 +86,7 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
       latest: w.latestDecision,
     })),
     filings: filingMap.get(companyName) ?? [],
-    federal: federalRow
+    federal: federalRow && federalRow.awards > 0
       ? { awards: federalRow.awards, totalAmount: federalRow.totalAmount, topAgency: federalRow.topAgency }
       : null,
     companyName,

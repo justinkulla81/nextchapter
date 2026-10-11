@@ -8,6 +8,25 @@ import { readFileSync } from 'node:fs'
 import { prisma } from '../src/lib/prisma'
 import { schoolKey } from '../src/lib/education/school-match'
 
+// Flagship campuses that Scorecard lists under a campus-qualified name. Reviewed by hand:
+// each is the main campus of the school our members' resumes name, not a guess. Anything
+// not here and not an exact name match is left unmatched.
+const MAIN_CAMPUS: Record<string, string> = {
+  'The Ohio State University': 'Ohio State University-Main Campus',
+  'Pennsylvania State University': 'Pennsylvania State University-Main Campus',
+  'Purdue University': 'Purdue University-Main Campus',
+  'University of Virginia': 'University of Virginia-Main Campus',
+  'Tulane University': 'Tulane University of Louisiana',
+  'Georgia Institute of Technology': 'Georgia Institute of Technology-Main Campus',
+  'Arizona State University': 'Arizona State University Campus Immersion',
+  'University of Washington': 'University of Washington-Seattle Campus',
+  'Rutgers University': 'Rutgers University-New Brunswick',
+  'University of Pittsburgh': 'University of Pittsburgh-Pittsburgh Campus',
+  'West Chester University': 'West Chester University of Pennsylvania',
+  'North Carolina State University': 'North Carolina State University at Raleigh',
+  'Texas A&M University': 'Texas A&M University-College Station',
+}
+
 function parseLine(line: string): string[] {
   const out: string[] = []
   let cell = ''
@@ -39,11 +58,13 @@ async function main() {
     if (!(need in ix)) throw new Error(`missing column ${need}`)
   }
 
-  const schools = await prisma.school.findMany({ select: { id: true, canonicalKey: true, aliases: true } })
+  const schools = await prisma.school.findMany({ select: { id: true, name: true, canonicalKey: true, aliases: true } })
   const byKey = new Map<string, string>()
   for (const s of schools) {
     byKey.set(s.canonicalKey, s.id)
     for (const a of s.aliases) byKey.set(schoolKey(a), s.id)
+    const campus = MAIN_CAMPUS[s.name]
+    if (campus) byKey.set(schoolKey(campus), s.id)
   }
 
   let matched = 0

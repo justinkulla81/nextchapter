@@ -40,9 +40,19 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
   const error = validateJobBoardSubmission(input, 'admin')
   if (error) return { error }
 
+  // Optional: scope the role to one college's alumni (see src/lib/jobs/alumni-jobs.ts).
+  const slug = (formData.get('institutionSlug') as string | null)?.trim().toLowerCase() || ''
+  let institutionScopeId: string | null = null
+  if (slug) {
+    const institution = await prisma.institution.findUnique({ where: { slug }, select: { id: true } })
+    if (!institution) return { error: `No college found with the slug "${slug}".` }
+    institutionScopeId = institution.id
+  }
+
   const posting = await prisma.exclusiveJobPosting.create({
     data: {
       ...input,
+      institutionScopeId,
       companyId: await linkPostingToCompany(input.companyName),
       salaryCurrency: input.salaryCurrency || 'USD',
       status: 'approved', // admin-added postings are trusted immediately, same as before this feature existed
