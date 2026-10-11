@@ -134,6 +134,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/warn/sync.ts': 'admin WARN tooling',
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
+    'src/lib/higher-ed/demo-seed.ts': "not the CRM: writes crmExchangeRun, a college's CSV import log (Higher Ed)",
+    'src/lib/institution/admin.ts': 'admin-only: creates a college workspace and its CRM college record',
   }
 
   // No known violations. job-contacts.ts used to read CRM affiliations and show real CRM
