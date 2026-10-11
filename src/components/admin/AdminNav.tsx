@@ -142,6 +142,10 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
+        { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
+        { href: '/support/admin/crm/geographies', label: 'Geographies' },
+        { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
+        { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
         { href: '/support/admin/crm/colleges', label: 'Colleges' },
         { href: '/support/admin/crm/search-firms', label: 'Search firms' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },

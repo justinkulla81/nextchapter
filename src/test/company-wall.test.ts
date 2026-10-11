@@ -125,6 +125,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/help/crm-note.ts': 'help request writes a CRM note',
     'src/lib/search-firms/report.ts': 'admin-only: imported by the CRM search-firms pages',
     'src/lib/search-firms/sync.ts': 'admin-only: imported by the CRM search-firms pages',
+    'src/lib/pitch/request.ts': 'admin-only: imported by the CRM pitch builder pages',
     'src/lib/mailing/editions.ts': 'admin mailing',
     'src/lib/mailing/lists.ts': 'admin mailing',
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
