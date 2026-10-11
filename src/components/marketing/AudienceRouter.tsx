@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 // Partners Master Build Script §C3.1, section 7 — "audience router: clean
-// cards: Employers · Coaches · Recruiters · Alumni." Each card's accent
+// cards: Employers · Coaches · Recruiters · Higher Education." Each card's accent
 // uses the same per-surface accent token the partner portals themselves
 // use (§B5), so the color already means the same thing by the time
 // someone reaches that portal.
@@ -10,7 +10,7 @@ const AUDIENCE_CARDS = [
   { label: 'Employers', href: '/outplacement', accent: 'bg-accent-employer', blurb: 'Outplacement that produces proof, not a portal.' },
   { label: 'Coaches', href: '/coaches', accent: 'bg-accent-coach', blurb: 'Stop rebuilding context before every session.' },
   { label: 'Recruiters', href: '/recruiters', accent: 'bg-accent-recruiter', blurb: 'Candidates who arrive with references already done.' },
-  { label: 'Alumni', href: '/membership', accent: 'bg-accent-admin', blurb: 'Never start from zero again.' },
+  { label: 'Higher Education', href: '/membership', accent: 'bg-accent-admin', blurb: 'Never start from zero again.' },
 ] as const
 
 export function AudienceRouter() {

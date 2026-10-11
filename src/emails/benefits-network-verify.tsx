@@ -50,7 +50,7 @@ export default function BenefitsNetworkVerifyEmail({
       <p>Hi there,</p>
       <p>
         {alumName} has proposed listing <strong>{programName}</strong> from{' '}
-        <strong>{institutionName}</strong> on NextChapter&apos;s Alumni Benefits Network — a catalog of discounts
+        <strong>{institutionName}</strong> on NextChapter&apos;s Higher Education Benefits Network — a catalog of discounts
         and programs offered to NextChapter members through alumni relationships.
       </p>
       <p>

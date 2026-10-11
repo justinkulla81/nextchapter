@@ -243,7 +243,7 @@ function buildSections(
     {
       title: 'Misc',
       links: [
-        { href: '/dashboard/benefits-network', label: 'Alumni Career Services and Benefit', icon: Gift },
+        { href: '/dashboard/benefits-network', label: 'Higher Education Career Services and Benefits', icon: Gift },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
         { href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
         {

@@ -9,7 +9,7 @@ import { prisma } from '@/lib/prisma'
 import { BenefitsNetworkFilterBar } from '@/components/dashboard/BenefitsNetworkFilterBar'
 import { BenefitsNetworkListingCard } from '@/components/dashboard/BenefitsNetworkListingCard'
 
-export const metadata: Metadata = { title: 'Alumni Benefits Network' }
+export const metadata: Metadata = { title: 'Higher Education Benefits Network' }
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -43,7 +43,7 @@ export default async function BenefitsNetworkPage({ searchParams }: { searchPara
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Alumni Benefits Network</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Higher Education Benefits Network</h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Discounts and programs offered to NextChapter members, sourced through relationships our own alumni have
             at universities, exec-ed programs, professional associations, and certification bodies. The institution

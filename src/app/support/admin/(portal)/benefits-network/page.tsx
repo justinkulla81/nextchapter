@@ -41,7 +41,7 @@ export default async function BenefitsNetworkAdminPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Alumni Benefits Network</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Higher Education Benefits Network</h1>
         <p className="mt-1 text-muted-foreground">
           Master Build Script §A4.4 guardrails — delisting, member reports, and sustained-poor-feedback review all
           live here. Nothing auto-delists; every removal is a human decision.

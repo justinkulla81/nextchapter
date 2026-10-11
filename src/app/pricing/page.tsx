@@ -87,10 +87,10 @@ export default async function PricingPage() {
         </section>
 
         <section className="mt-14">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Alumni &amp; membership</h2>
+          <h2 className="text-xl font-bold tracking-tight text-navy">Higher Education &amp; membership</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
-              <p className="font-semibold text-navy">Alumni</p>
+              <p className="font-semibold text-navy">Higher Education</p>
               <p className="mt-1 text-2xl font-bold text-foreground">Lifetime free</p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Dossier stays live, remain an insider, give references, refer others, quarterly market

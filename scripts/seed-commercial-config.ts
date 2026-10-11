@@ -123,7 +123,7 @@ const PLAN_DEFAULTS: SeedPlan[] = [
   },
   {
     planKey: 'membership_alumni',
-    name: 'Membership — Alumni (free)',
+    name: 'Membership — Higher Education (free)',
     category: 'MEMBERSHIP',
     priceCents: 0,
     billingPeriod: 'NONE',

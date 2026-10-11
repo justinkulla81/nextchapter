@@ -36,7 +36,7 @@ export const PLAN_LABELS: Record<PlanKey, string> = {
   dtc_coaching_plus: 'Direct-to-consumer — Coaching Plus',
   dtc_coaching_premium: 'Direct-to-consumer — Coaching Premium',
   dtc_executive: 'Direct-to-consumer — Executive',
-  membership_alumni: 'Membership — Alumni (free)',
+  membership_alumni: 'Membership — Higher Education (free)',
   membership_monthly: 'Membership — monthly',
   membership_annual: 'Membership — annual',
 }

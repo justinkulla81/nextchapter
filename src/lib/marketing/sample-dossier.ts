@@ -42,7 +42,7 @@ export const SAMPLE_DOSSIER_SECTIONS: SampleDossierSection[] = [
   {
     id: 'learningGrowth',
     title: 'Learning & Growth Trajectory',
-    body: 'Completed a Kellogg exec-ed Corporate Finance certificate (sourced through the NextChapter Alumni Benefits Network) during the search — logged as evidence of effort, not scored as a competency.',
+    body: 'Completed a Kellogg exec-ed Corporate Finance certificate (sourced through the NextChapter Higher Education Benefits Network) during the search — logged as evidence of effort, not scored as a competency.',
   },
   {
     id: 'fit',

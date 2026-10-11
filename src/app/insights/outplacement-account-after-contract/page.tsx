@@ -23,7 +23,7 @@ const ARTICLE = insight('outplacement-account-after-contract')
 
 // Partners Master Build Script §D2.7's fourth category-narrative piece.
 // Ties directly to a real, shipped capability (Phase 8's free, permanent
-// Alumni tier — Dossier stays live, references stay collected) rather than
+// Higher Education tier — Dossier stays live, references stay collected) rather than
 // asserting anything about a specific competitor's data-retention practice.
 export default function OutplacementAccountAfterContractArticlePage() {
   const jsonLd = articleJsonLd({

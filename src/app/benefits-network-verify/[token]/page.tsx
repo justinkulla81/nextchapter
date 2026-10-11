@@ -29,7 +29,7 @@ export default async function BenefitsNetworkVerifyPage({ params }: { params: Pr
   return (
     <StatusMessage title="Offer confirmed">
       Thank you for confirming {result.institutionName}&apos;s offer. It&apos;s now listed on NextChapter&apos;s
-      Alumni Benefits Network for our members.
+      Higher Education Benefits Network for our members.
     </StatusMessage>
   )
 }

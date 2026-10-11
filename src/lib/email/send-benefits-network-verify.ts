@@ -26,7 +26,7 @@ export async function sendBenefitsNetworkVerifyEmail({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',
       to: institutionEmail,
-      subject: `Confirm ${institutionName}'s offer on NextChapter's Alumni Benefits Network`,
+      subject: `Confirm ${institutionName}'s offer on NextChapter's Higher Education Benefits Network`,
       react: BenefitsNetworkVerifyEmail({ alumName, institutionName, programName, confirmUrl }),
     })
 

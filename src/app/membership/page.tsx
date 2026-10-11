@@ -12,20 +12,20 @@ function formatUsd(cents: number): string {
 
 export const metadata = {
   ...canonical('/membership'),
-  title: 'Alumni & Membership',
+  title: 'Higher Education & Membership',
   description: 'Your Dossier stays alive after you land. Membership keeps your evidence current for the next time.',
 }
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Alumni & Membership — NextChapter',
+  name: 'Higher Education & Membership — NextChapter',
 }
 
 const BEATS = [
   { lead: 'Your Dossier stays alive.', body: 'Not archived, not frozen — an annual refresh keeps it current.' },
   { lead: 'A quarterly market check with comp benchmarking.', body: 'So you know where you stand even when you\'re not looking.' },
-  { lead: 'Benefits from institutions our alumni bring in.', body: 'The Alumni Benefits Network — real programs, sourced by people who work there.' },
+  { lead: 'Benefits from institutions our alumni bring in.', body: 'The Higher Education Benefits Network — real programs, sourced by people who work there.' },
   { lead: 'Board and advisory listings.', body: 'Visibility into opportunities most searches never surface.' },
   { lead: 'Break-glass reactivation, in a day.', body: 'If it happens again, you\'re not starting from zero.' },
 ]
@@ -54,13 +54,13 @@ export default async function MembershipPage() {
               NextChapter
             </Link>
             <ChevronRight className="size-4 text-muted-foreground" />
-            <span className="font-medium text-foreground">Alumni &amp; Membership</span>
+            <span className="font-medium text-foreground">Higher Education &amp; Membership</span>
           </nav>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16 text-center">
-        <p className="text-sm font-semibold tracking-wide text-brand uppercase">Alumni &amp; Membership</p>
+        <p className="text-sm font-semibold tracking-wide text-brand uppercase">Higher Education &amp; Membership</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           Never start from zero again.
         </h1>
@@ -101,7 +101,7 @@ export default async function MembershipPage() {
         </div>
 
         <div className="mx-auto mt-12 max-w-md text-center">
-          <p className="font-semibold text-navy">Alumni status is lifetime free.</p>
+          <p className="font-semibold text-navy">Higher Education status is lifetime free.</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Landed candidates also qualify for a $500 offer bonus. Membership adds the market check,
             benefits network, and board listings for{' '}

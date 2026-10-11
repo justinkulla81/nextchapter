@@ -294,7 +294,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/nen-contests`, label: 'NEN Contests' },
         { href: `${A}/eqoveriq-contributors`, label: 'EQoverIQ Contributors' },
         { href: `${A}/alumni-groups`, label: 'Alumni & Employer Networks' },
-        { href: `${A}/benefits-network`, label: 'Alumni Benefits Network' },
+        { href: `${A}/benefits-network`, label: 'Higher Education Benefits Network' },
       ],
     },
     {
