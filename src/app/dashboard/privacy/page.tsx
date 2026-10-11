@@ -132,6 +132,12 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         />
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        <Link href="/dashboard/recruiter-requests" className="underline underline-offset-4">
+          See recruiter requests waiting on your answer
+        </Link>
+      </p>
+
       {intakeConnections.length > 0 && (
         <div id="my-recruiters" className="space-y-3 border-t border-border pt-8">
           <div>

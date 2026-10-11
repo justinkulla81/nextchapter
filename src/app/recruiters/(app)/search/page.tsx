@@ -186,6 +186,11 @@ export default async function RecruiterSearchPage({
           ← Back home
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Candidate search</h1>
+        <p className="mt-1 text-sm">
+          <Link href="/recruiters/pool" className="underline underline-offset-4">
+            Find candidates who opted in to be found
+          </Link>
+        </p>
         <p className="mt-1 text-muted-foreground">
           Filter and rank the candidates you&apos;ve been introduced to. This is not a browsable database —
           only candidates with an active, consented introduction to you appear here. Names are only shown

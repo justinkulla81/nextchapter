@@ -39,6 +39,7 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
         targetFunction: true,
         targetIndustries: true,
         skillsToBuild: true,
+        coachCommunicationStylePreference: true,
         coachingStyleResponse: { select: { topStyles: true } },
         highestLevelReached: true,
         coachGenderPreference: true,
@@ -114,13 +115,25 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     }),
   ])
 
+  // The older one-question feedback-style preference now counts too: "direct" is asking
+  // for a coach who pushes, "context first" for one who thinks it through with them.
+  // Added to whatever the style questions produced, never replacing it.
+  const styleTop = (candidate.coachingStyleResponse?.topStyles ?? []).filter(isCoachingStyle) as CoachingStyle[]
+  const legacy: CoachingStyle | null =
+    candidate.coachCommunicationStylePreference === 'direct'
+      ? 'PUSH'
+      : candidate.coachCommunicationStylePreference === 'context_first'
+        ? 'STRATEGY'
+        : null
+  if (legacy && !styleTop.includes(legacy)) styleTop.push(legacy)
+
   const member = {
     primaryFunction: candidate.primaryFunction,
     secondaryFunction: candidate.secondaryFunction ?? candidate.targetFunction,
     industries: candidate.targetIndustries,
     levelRankScore: levelRank.score,
     skillsWanted: candidate.skillsToBuild,
-    styleTop: (candidate.coachingStyleResponse?.topStyles ?? []).filter(isCoachingStyle) as CoachingStyle[],
+    styleTop,
     lowSentiment,
   }
   const weights = {
