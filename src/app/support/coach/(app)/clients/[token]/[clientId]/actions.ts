@@ -1,5 +1,6 @@
 'use server'
 
+import { collegeForSession } from '@/lib/higher-ed/coaching'
 import { revalidatePath } from 'next/cache'
 import type { CoachSessionType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -50,6 +51,9 @@ export async function logCoachSession(
     data: {
       candidateId: candidate.id,
       coachId: coach.id,
+      // A college's own coach seeing that college's member: the session counts
+      // toward the college (Career Services › Coaching, ROI).
+      institutionId: await collegeForSession(coach.id, candidate.id),
       durationMinutes: durationMinutes && !Number.isNaN(durationMinutes) ? durationMinutes : null,
       notes,
       directives,

@@ -17,3 +17,12 @@ describe('institution permissions', () => {
     for (const r of ['INSTITUTION_ADMIN', 'DEVELOPMENT', 'VIEWER'] as const) expect(can(r, 'view')).toBe(true)
   })
 })
+
+describe('canAny (one person, several staff roles)', () => {
+  it('grants when any held role grants', async () => {
+    const { canAny } = await import('@/lib/institution/permissions')
+    expect(canAny(['DEVELOPMENT', 'ALUMNI_RELATIONS'], 'post_jobs')).toBe(true)
+    expect(canAny(['DEVELOPMENT', 'COACH', 'FACULTY', 'EXEC_ED'], 'post_jobs')).toBe(false)
+    expect(canAny(['MEMBER', 'VIEWER:career'], 'view')).toBe(false)
+  })
+})

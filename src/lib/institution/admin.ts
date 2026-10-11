@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { cleanAccentColor, cleanImageUrl, cleanSlug } from '@/lib/institution/branding'
 import type { Prisma } from '@prisma/client'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // NextChapter-side creation and tailoring of a college workspace. A college that has not
 // signed is created as a DEMO: it works exactly like the real portal but is flagged so
@@ -119,3 +120,20 @@ export async function seedDemoContent(institutionId: string, addedBy: string): P
   }
   return { targets, jobs }
 }
+
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024
+
+// Stored in the existing public logo bucket under institutions/<id>/, so a demo's logo
+// and hero image are plain public URLs the portal can render.
+export async function uploadInstitutionImage(institutionId: string, file: File | null, kind: 'logo' | 'hero'): Promise<string | null | { error: string }> {
+  if (!file || file.size === 0) return null
+  if (!file.type.startsWith('image/')) return { error: 'The file must be an image.' }
+  if (file.size > MAX_IMAGE_BYTES) return { error: 'Images must be under 3MB.' }
+  const admin = createAdminClient()
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png'
+  const path = `institutions/${institutionId}/${kind}-${crypto.randomUUID()}.${ext}`
+  const { error } = await admin.storage.from('coach-logos').upload(path, file, { contentType: file.type })
+  if (error) return { error: 'The image could not be uploaded. Try again.' }
+  return admin.storage.from('coach-logos').getPublicUrl(path).data.publicUrl
+}
+

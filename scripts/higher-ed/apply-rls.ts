@@ -1,5 +1,7 @@
-// Applies prisma/sql/higher-ed-rls.sql (helper functions, RLS on, policies).
-// Idempotent. Run after any `prisma db push` that touches Higher Ed tables:
+// Applies prisma/sql/higher-ed-rls.sql (helper functions, RLS on, policies)
+// then prisma/sql/higher-ed-views.sql (HE-02 consent views), in one
+// transaction. Idempotent. Run after any `prisma db push` that touches
+// Higher Ed tables:
 //
 //   npm run he:rls
 import { readFileSync } from 'fs'
@@ -9,8 +11,8 @@ import { splitSqlStatements } from './sql-statements'
 
 async function main() {
   const prisma = new PrismaClient({ datasources: { db: { url: process.env.DIRECT_URL } } })
-  const sql = readFileSync(path.join(process.cwd(), 'prisma/sql/higher-ed-rls.sql'), 'utf8')
-  const statements = splitSqlStatements(sql)
+  const files = ['prisma/sql/higher-ed-rls.sql', 'prisma/sql/higher-ed-views.sql']
+  const statements = files.flatMap((f) => splitSqlStatements(readFileSync(path.join(process.cwd(), f), 'utf8')))
   try {
     await prisma.$transaction(
       async (tx) => {
@@ -19,7 +21,7 @@ async function main() {
       },
       { timeout: 60_000, maxWait: 20_000 },
     )
-    console.log(`Applied ${statements.length} statements from higher-ed-rls.sql`)
+    console.log(`Applied ${statements.length} statements from ${files.join(', ')}`)
   } finally {
     await prisma.$disconnect()
   }

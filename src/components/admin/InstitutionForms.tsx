@@ -17,7 +17,11 @@ const ROLE_OPTIONS = [
   ['EMPLOYER_RELATIONS', 'Employer relations'],
   ['ALUMNI_RELATIONS', 'Alumni relations'],
   ['DEVELOPMENT', 'Development'],
-  ['VIEWER', 'Viewer'],
+  // VIEWER is left out until the form can pick its one workspace
+  // (InstitutionUser.workspace); without it a viewer opens nothing.
+  ['COACH', 'Coach'],
+  ['FACULTY', 'Faculty (Teaching)'],
+  ['EXEC_ED', 'Executive education'],
 ] as const
 
 function Status({ state }: { state: InstitutionFormState }) {

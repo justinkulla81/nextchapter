@@ -1,0 +1,48 @@
+import { notFound, redirect } from 'next/navigation'
+import { getInstitutionAccess } from '@/lib/higher-ed/access'
+import { getWorkspace } from '@/lib/higher-ed/workspaces'
+import { ViewAsForm } from '@/components/higher-ed/ViewAsForm'
+
+// /i/[slug]: straight to the first workspace this person holds (spec §4).
+// With none, say so plainly; an nc_admin on a real tenant gets View-as.
+export default async function InstitutionRootPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ denied?: string }>
+}) {
+  const { slug } = await params
+  const { denied } = await searchParams
+  const access = await getInstitutionAccess(slug)
+  if (access === 'signed-out') redirect(`/auth/login?next=${encodeURIComponent(`/i/${slug}`)}`)
+  if (!access) notFound()
+
+  const first = access.workspaces[0]
+  const deniedLabel = denied ? (getWorkspace(denied)?.label ?? denied) : null
+  if (first && !denied) redirect(`/i/${slug}/${getWorkspace(first)!.homePath}`)
+
+  return (
+    <div className="mx-auto max-w-xl space-y-4 py-8">
+      {deniedLabel ? (
+        <>
+          <h1 className="text-xl font-semibold">You don&apos;t have access to {deniedLabel}</h1>
+          <p className="text-sm text-muted-foreground">
+            {first
+              ? 'Use the workspaces on the left. An institution admin can give you this role from Settings.'
+              : `Ask an administrator at ${access.institution.name} to give you a role.`}
+          </p>
+        </>
+      ) : (
+        <>
+          <h1 className="text-xl font-semibold">No workspace at {access.institution.name} yet</h1>
+          <p className="text-sm text-muted-foreground">
+            You&apos;re signed in as {access.email}, which doesn&apos;t hold a staff role, a membership or an approved employer seat here.
+            If you were invited, open the invite link from your email. Otherwise ask an administrator at {access.institution.name}.
+          </p>
+        </>
+      )}
+      {access.isNcAdmin && !access.institution.isDemo && access.mode !== 'view-as' && <ViewAsForm slug={slug} institutionName={access.institution.name} />}
+    </div>
+  )
+}

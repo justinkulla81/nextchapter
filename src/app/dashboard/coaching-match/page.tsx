@@ -32,7 +32,12 @@ async function CoachShortlist({ candidateId }: { candidateId: string }) {
     <div className="space-y-3">
       {shortlist.map((coach) => (
         <div key={coach.id} className="rounded-lg border border-border p-4">
-          <p className="font-medium text-foreground">{coach.fullName}</p>
+          <p className="font-medium text-foreground">
+            {coach.fullName}
+            {coach.collegeName && (
+              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{coach.collegeName}</span>
+            )}
+          </p>
           <p className="text-sm text-muted-foreground">
             {coach.firmName ?? 'Independent'} · {coach.focus}
           </p>

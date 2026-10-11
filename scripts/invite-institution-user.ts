@@ -1,7 +1,8 @@
 // Invites a college staff member to its NextChapter workspace (emails them a magic link).
 //
 //   node --env-file=.env.local --conditions=react-server --import tsx scripts/invite-institution-user.ts <institution-slug> <email> <ROLE> ["Full Name"]
-// ROLE: INSTITUTION_ADMIN | CAREER_SERVICES | EMPLOYER_RELATIONS | ALUMNI_RELATIONS | DEVELOPMENT | VIEWER
+// ROLE: INSTITUTION_ADMIN | CAREER_SERVICES | EMPLOYER_RELATIONS | ALUMNI_RELATIONS | DEVELOPMENT | COACH | FACULTY | EXEC_ED | VIEWER
+// They land in /i/<slug> after accepting.
 import { prisma } from '../src/lib/prisma'
 import { inviteInstitutionUser } from '../src/lib/institution/invite'
 import type { InstitutionUserRole } from '@prisma/client'

@@ -6,6 +6,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { Resend } from 'resend'
 import type { InstitutionUserRole } from '@prisma/client'
 import { ROLE_LABEL } from '@/lib/institution/permissions'
+import { linkCollegeCoach } from '@/lib/higher-ed/coaching'
 
 function resendClient(): Resend | null {
   return process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
@@ -67,8 +68,11 @@ export async function inviteInstitutionUser(input: {
 }
 
 // Called from CallbackHandler once the magic link has made a session.
-export async function finishAcceptingInstitutionInvite(inviteToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient('institution')
+// Staff share the main NextChapter session (no separate portal cookie): the spec
+// lets one person be both college staff and an alum, and /i/[slug] resolves
+// both from the same login. Returns the slug so the caller can land them there.
+export async function finishAcceptingInstitutionInvite(inviteToken: string): Promise<{ error?: string; slug?: string }> {
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -76,12 +80,21 @@ export async function finishAcceptingInstitutionInvite(inviteToken: string): Pro
 
   const invite = await prisma.institutionUser.findUnique({ where: { inviteToken } })
   if (!invite || invite.revokedAt) return { error: 'This invite link is not valid.' }
-  if (invite.acceptedAt) return { error: 'This invite has already been accepted.' }
+  if (invite.acceptedAt) {
+    // Clicking the link twice shouldn't strand them on an error page.
+    const institution = await prisma.institution.findUnique({ where: { id: invite.institutionId }, select: { slug: true } })
+    return invite.userId === user.id ? { slug: institution?.slug } : { error: 'This invite has already been accepted.' }
+  }
   if (user.email.toLowerCase() !== invite.invitedEmail.toLowerCase()) {
     return { error: `This invite was sent to ${invite.invitedEmail}. Log in with that email to accept it.` }
   }
 
   await prisma.institutionUser.update({ where: { id: invite.id }, data: { userId: user.id, acceptedAt: new Date() } })
+  // A college's coach also gets a coach-portal profile tied to the college.
+  if (invite.role === 'COACH') {
+    await linkCollegeCoach({ userId: user.id, email: user.email, fullName: invite.fullName, institutionId: invite.institutionId })
+  }
   captureServerEvent(user.id, 'institution_invite_accepted', { institutionId: invite.institutionId, role: invite.role })
-  return {}
+  const institution = await prisma.institution.findUnique({ where: { id: invite.institutionId }, select: { slug: true } })
+  return { slug: institution?.slug }
 }

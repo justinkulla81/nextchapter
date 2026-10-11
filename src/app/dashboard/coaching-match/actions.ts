@@ -67,6 +67,17 @@ export async function selectCoach(coachId: string) {
     redirect('/dashboard')
   }
 
+  // A college's own coach can only be chosen by that college's members.
+  const coach = await prisma.coach.findUnique({ where: { id: coachId }, select: { institutionId: true } })
+  if (!coach) redirect('/dashboard/coaching-match')
+  if (coach.institutionId) {
+    const member = await prisma.institutionMember.findFirst({
+      where: { candidateId, institutionId: coach.institutionId, status: { in: ['CLAIMED', 'ACTIVE'] } },
+      select: { id: true },
+    })
+    if (!member) redirect('/dashboard/coaching-match')
+  }
+
   await prisma.candidateProfile.update({ where: { id: candidateId }, data: { coachId } })
   captureServerEvent(candidateId, 'coach_matched', { coachId })
   revalidatePath('/dashboard')

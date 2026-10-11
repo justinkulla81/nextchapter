@@ -4848,6 +4848,13 @@ model Coach {
   // src/lib/coach/surge.ts).
   isOnCallBench Boolean @default(false)
 
+  // Higher Ed: a college's own coach. They work in this coach portal like any
+  // coach, but only that college's members see them when choosing a coach,
+  // and their sessions with those members count toward the college
+  // (CoachSession.institutionId). Null for NextChapter's own coaches.
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
   clients                         CandidateProfile[]
   sessions                        CoachSession[]
   coachingOnboardingResponses     CoachingOnboardingResponse[]
@@ -6678,10 +6685,20 @@ model AdminAccessLog {
   viewedCompanyId   String?
   viewedCompany     Company?          @relation(fields: [viewedCompanyId], references: [id], onDelete: Cascade)
 
+  // Higher Ed (HE-02): a college staff view of one member, or an nc_admin
+  // "View as" on a real institution. viewedInstitutionMemberId is set even
+  // before the member has claimed an account (viewedCandidateId is also set
+  // once they have, which is what "Who viewed my profile" reads). Plain ids,
+  // not relations, to keep the audit log independent of the tenant tables.
+  viewedInstitutionId       String?
+  viewedInstitutionMemberId String?
+
   surface  String // e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view
   reason   String // required, never empty (enforced at the server-action layer)
   viewedAt DateTime @default(now())
 
+  @@index([viewedInstitutionMemberId, viewedAt])
+  @@index([viewedInstitutionId, viewedAt])
   @@index([viewedCandidateId, viewedAt])
   @@index([viewedCompanyId, viewedAt])
   @@index([adminEmail, viewedAt])
@@ -11096,6 +11113,9 @@ enum InstitutionUserRole {
   DEVELOPMENT
   CAREER_SERVICES
   EMPLOYER_RELATIONS // Career Services, Employers tab only
+  COACH // a college's own coach: coach portal (Coach.institutionId) + Career Services caseload
+  FACULTY // Teaching: faculty who teach courses and Exec Ed programs
+  EXEC_ED // Exec Ed: executive / continuing education staff
   VIEWER // assigned workspace, read-only
 }
 
@@ -11295,6 +11315,7 @@ model Institution {
   employers         InstitutionEmployer[]
   purchases         InstitutionPurchase[]
   coachSessions     CoachSession[]
+  coaches           Coach[]
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies InstitutionTargetCompany[]
@@ -11311,6 +11332,9 @@ model InstitutionUser {
   invitedEmail  String
   fullName      String?
   role          InstitutionUserRole
+  // VIEWER only: the one workspace this read-only seat may open
+  // ('alumni' | 'development' | 'career' | ...). Null for every other role.
+  workspace     String?
   inviteToken   String              @unique @default(cuid())
   invitedAt     DateTime            @default(now())
   acceptedAt    DateTime?

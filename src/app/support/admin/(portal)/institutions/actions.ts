@@ -3,11 +3,12 @@
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { createInstitution, seedDemoContent, updateInstitutionBranding } from '@/lib/institution/admin'
+import { createInstitution, seedDemoContent, updateInstitutionBranding, uploadInstitutionImage as uploadImage } from '@/lib/institution/admin'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import type { InstitutionUserRole } from '@prisma/client'
+import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
+import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 
 export type InstitutionFormState = { error?: string; ok?: string } | undefined
 
@@ -17,24 +18,10 @@ const ROLES: InstitutionUserRole[] = [
   'EMPLOYER_RELATIONS',
   'ALUMNI_RELATIONS',
   'DEVELOPMENT',
-  'VIEWER',
+  'COACH',
+  'FACULTY',
+  'EXEC_ED',
 ]
-
-const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-
-// Stored in the existing public logo bucket under institutions/<id>/, so a demo's logo
-// and hero image are plain public URLs the portal can render.
-async function uploadImage(institutionId: string, file: File | null, kind: 'logo' | 'hero'): Promise<string | null | { error: string }> {
-  if (!file || file.size === 0) return null
-  if (!file.type.startsWith('image/')) return { error: 'The file must be an image.' }
-  if (file.size > MAX_IMAGE_BYTES) return { error: 'Images must be under 3MB.' }
-  const admin = createAdminClient()
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png'
-  const path = `institutions/${institutionId}/${kind}-${crypto.randomUUID()}.${ext}`
-  const { error } = await admin.storage.from('coach-logos').upload(path, file, { contentType: file.type })
-  if (error) return { error: 'The image could not be uploaded. Try again.' }
-  return admin.storage.from('coach-logos').getPublicUrl(path).data.publicUrl
-}
 
 export async function createCollege(_prev: InstitutionFormState, formData: FormData): Promise<InstitutionFormState> {
   const admin = await requireAdmin()
@@ -107,5 +94,19 @@ export async function loadDemoContent(institutionId: string): Promise<void> {
   if (!inst?.isDemo) return
   const r = await seedDemoContent(institutionId, admin?.email ?? 'admin')
   captureServerEvent(admin?.email ?? 'admin', 'institution_demo_seeded', { institutionId, ...r })
+  revalidatePath('/support/admin/institutions')
+}
+
+// Demo colleges that have a fixture (src/lib/higher-ed/demo-tenants.ts) can be
+// put back to it: fictional members, staff, flags and gifts, then the sample
+// alumni jobs and target companies. Same reset as the portal's demo bar.
+export async function resetDemoFixture(institutionId: string): Promise<void> {
+  const admin = await requireAdmin()
+  const inst = await prisma.institution.findUnique({ where: { id: institutionId }, select: { slug: true, isDemo: true } })
+  const tenant = inst ? DEMO_TENANTS[inst.slug] : undefined
+  if (!inst?.isDemo || !tenant) return
+  const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 120_000, maxWait: 20_000 })
+  const sample = await seedDemoContent(result.institutionId, admin?.email ?? 'admin')
+  captureServerEvent(admin?.email ?? 'admin', 'institution_demo_reset', { institutionId: result.institutionId, slug: inst.slug, members: result.members, ...sample })
   revalidatePath('/support/admin/institutions')
 }

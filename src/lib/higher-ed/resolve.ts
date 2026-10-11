@@ -1,0 +1,158 @@
+// Higher Ed role resolution (spec §2), with no Next.js imports so scripts
+// and tests can run it. The request-facing gate is requireWorkspace() in
+// ./access.ts, which calls this on every request.
+
+import 'server-only'
+import type { InstitutionTier, InstitutionUserRole, Prisma, PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { isAdminEmail } from '@/lib/admin/is-admin-email'
+import { ALL_TOKENS, demoPersonaTokens, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
+
+type Db = PrismaClient | Prisma.TransactionClient
+
+export const DEMO_PREVIEW_COOKIE = 'he_demo_preview'
+// A "View as" on a real tenant lasts this long after its AdminAccessLog row.
+export const VIEW_AS_TTL_MS = 60 * 60 * 1000
+export const VIEW_AS_SURFACE = 'view-as'
+
+export type InstitutionBranding = {
+  id: string
+  slug: string
+  name: string
+  programBrandName: string | null
+  logoUrl: string | null
+  accentColor: string | null
+  isDemo: boolean
+  tier: InstitutionTier
+}
+
+export type InstitutionAccess = {
+  institution: InstitutionBranding
+  userId: string
+  email: string | null
+  // What the person really holds here, before any nc_admin widening.
+  ownTokens: ReadonlySet<AccessToken>
+  // What this request may use: ownTokens, or everything for an nc_admin on
+  // a demo tenant (narrowed by "Preview as") or inside an active View-as.
+  tokens: ReadonlySet<AccessToken>
+  workspaces: WorkspaceKey[]
+  isNcAdmin: boolean
+  // 'own' = the person's own roles; 'demo-admin' = nc_admin on a demo
+  // tenant; 'view-as' = nc_admin with a logged View-as on a real tenant.
+  mode: 'own' | 'demo-admin' | 'view-as'
+  demoPersona: string | null
+  staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null }[]
+  memberId: string | null
+  employerProfileIds: string[]
+}
+
+export async function isNcAdmin(userId: string, email: string | null, db: Db = prisma): Promise<boolean> {
+  if (isAdminEmail(email)) return true
+  const grant = await db.roleGrant.findFirst({
+    where: { userId, role: 'nc_admin', revokedAt: null },
+    select: { id: true },
+  })
+  return !!grant
+}
+
+// Pure resolution against the database. `db` lets the HE-02 verification
+// run it inside a rolled-back transaction.
+export async function resolveInstitutionAccess(
+  args: {
+    slug: string
+    userId: string
+    email: string | null
+    demoPersona?: string | null
+    now?: Date
+  },
+  db: Db = prisma,
+): Promise<InstitutionAccess | null> {
+  const institution = await db.institution.findUnique({
+    where: { slug: args.slug },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true },
+  })
+  if (!institution) return null
+
+  const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
+    db.institutionUser.findMany({
+      where: { institutionId: institution.id, userId: args.userId, revokedAt: null, acceptedAt: { not: null } },
+      select: { id: true, role: true, workspace: true },
+    }),
+    db.institutionMember.findFirst({
+      where: { institutionId: institution.id, candidate: { userId: args.userId }, status: { not: 'OPTED_OUT' } },
+      select: { id: true },
+    }),
+    db.institutionEmployer.findMany({
+      where: {
+        institutionId: institution.id,
+        status: 'APPROVED',
+        employerProfile: {
+          OR: [{ userId: args.userId }, { seats: { some: { userId: args.userId, acceptedAt: { not: null } } } }],
+        },
+      },
+      select: { employerProfileId: true },
+    }),
+    isNcAdmin(args.userId, args.email, db),
+  ])
+
+  const own = new Set<AccessToken>()
+  for (const s of staffUsers) {
+    if (s.role === 'VIEWER') {
+      if (s.workspace) own.add(`VIEWER:${s.workspace}`)
+    } else {
+      own.add(s.role)
+    }
+  }
+  if (member) own.add('MEMBER')
+  if (employerLinks.length) own.add('EMPLOYER')
+
+  let tokens: ReadonlySet<AccessToken> = own
+  let mode: InstitutionAccess['mode'] = 'own'
+  let demoPersona: string | null = null
+
+  if (ncAdmin && institution.isDemo) {
+    // Demo tenant: nc_admin sees every workspace, no View-as logging.
+    demoPersona = args.demoPersona ?? 'all'
+    tokens = demoPersonaTokens(demoPersona)
+    mode = 'demo-admin'
+  } else if (ncAdmin && args.email) {
+    // Real tenant: only inside a View-as the admin started (and logged with
+    // a reason) within the last hour.
+    const now = args.now ?? new Date()
+    const viewAs = await db.adminAccessLog.findFirst({
+      where: {
+        adminEmail: args.email,
+        viewedInstitutionId: institution.id,
+        surface: VIEW_AS_SURFACE,
+        viewedAt: { gte: new Date(now.getTime() - VIEW_AS_TTL_MS) },
+      },
+      select: { id: true },
+    })
+    if (viewAs) {
+      tokens = new Set<AccessToken>([...ALL_TOKENS, ...own])
+      mode = 'view-as'
+    }
+  }
+
+  return {
+    institution,
+    userId: args.userId,
+    email: args.email,
+    ownTokens: own,
+    tokens,
+    workspaces: workspacesFor(tokens, institution.tier),
+    isNcAdmin: ncAdmin,
+    mode,
+    demoPersona,
+    staffUsers,
+    memberId: member?.id ?? null,
+    employerProfileIds: employerLinks.map((l) => l.employerProfileId),
+  }
+}
+
+export class WorkspaceAccessError extends Error {}
+
+// For the reader functions: does this context hold any of these roles?
+export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken[]): boolean {
+  return roles.some((r) => ctx.tokens.has(r))
+}
