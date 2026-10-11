@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { KIND_LABELS, localFirst, money, pct, num } from '@/lib/geo/filters'
+import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 
 type College = { name: string; control: string; level: string; size: string | null; web: string | null }
 type Board = { statewide?: boolean; id: string; name: string; website: string | null; directorName: string | null; directorTitle: string | null; directorEmail: string | null; directorPhone: string | null }
@@ -145,7 +146,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {a.orgLeads.map((l) => (
               <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">
-                <span className="font-medium">{l.name}</span>
+                <span className="font-medium"><FitScoreBadge score={l.fitScore} breakdown={l.fitBreakdown as FitBreakdown} /> {l.name}</span>
                 <span className="text-muted-foreground">{KIND_LABELS[l.kind]} · {money(l.revenue)}</span>
               </li>
             ))}

@@ -6,6 +6,7 @@ import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { GEO_FILTERS, KIND_LABELS, REVENUE_BANDS, geoWhere, money, pct, num } from '@/lib/geo/filters'
 import { STATE_NAMES } from '@/lib/workforce/places'
+import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 import { addLeadToCrm, dismissLead } from './actions'
 
 export const maxDuration = 30
@@ -13,6 +14,7 @@ const BASE = '/support/admin/crm/economic-development'
 const PAGE_SIZE = 100
 const SORTS: Record<string, (d: 'asc' | 'desc') => Prisma.GeoOrgLeadOrderByWithRelationInput> = {
   name: (d) => ({ name: d }),
+  fit: (d) => ({ fitScore: { sort: d, nulls: 'last' } }),
   rev: (d) => ({ revenue: { sort: d, nulls: 'last' } }),
   pop: (d) => ({ geoArea: { population: { sort: d, nulls: 'last' } } }),
   wc: (d) => ({ geoArea: { wcUnemploymentEst: { sort: d, nulls: 'last' } } }),
@@ -99,6 +101,7 @@ export default async function EconomicDevelopmentLeadsPage({ searchParams }: { s
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 {th('Organization', 'name', 'asc')}
+                {th('Fit', 'fit')}
                 <th className="px-3 py-2 font-medium">Type</th>
                 {th('Budget', 'rev')}
                 <th className="px-3 py-2 font-medium">Where</th>
@@ -116,6 +119,7 @@ export default async function EconomicDevelopmentLeadsPage({ searchParams }: { s
                   <td className="px-3 py-2 font-medium">
                     {l.crmOrganizationId ? <Link href={`/support/admin/crm/organizations/${l.crmOrganizationId}`} className="text-brand hover:underline">{l.name}</Link> : l.name}
                   </td>
+                  <td className="px-3 py-2"><FitScoreBadge score={l.fitScore} breakdown={l.fitBreakdown as FitBreakdown} /></td>
                   <td className="px-3 py-2">{KIND_LABELS[l.kind] ?? l.kind}</td>
                   <td className="px-3 py-2 tabular-nums">{money(l.revenue)}</td>
                   <td className="px-3 py-2">
