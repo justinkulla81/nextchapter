@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { exchangeCodeForAdminTokens } from '@/lib/webinars/admin-calendar-oauth'
+import { fetchGoogleUserEmail } from '@/lib/google/oauth'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export async function GET(request: NextRequest) {
@@ -25,9 +26,10 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Singleton — replace whatever connection exists (there's only ever
-    // meant to be one) rather than accumulating rows across reconnects.
-    const existing = await prisma.adminGoogleCalendarConnection.findFirst()
+    // One row per Google account: reconnecting an account replaces its row,
+    // connecting a different one adds another.
+    const googleEmail = (await fetchGoogleUserEmail(tokens.access_token)).toLowerCase()
+    const existing = await prisma.adminGoogleCalendarConnection.findUnique({ where: { googleEmail } })
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
     if (existing) {
       await prisma.adminGoogleCalendarConnection.update({
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
     } else {
       await prisma.adminGoogleCalendarConnection.create({
         data: {
+          googleEmail,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt,
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    captureServerEvent(user?.email ?? 'admin', 'admin_calendar_connected')
+    captureServerEvent(user?.email ?? 'admin', 'admin_calendar_connected', { googleEmail })
     return NextResponse.redirect(new URL('/support/admin/webinars?calendarConnected=1', request.url))
   } catch (err) {
     console.error('Admin Calendar OAuth callback failed:', err)

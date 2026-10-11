@@ -25,9 +25,9 @@ export default async function AdminWebinarsPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [connection, webinars, { longForm, shorts, toolsForYou, aiTips }, podcasts, linkedInTips, motivational, stats] =
+  const [connections, webinars, { longForm, shorts, toolsForYou, aiTips }, podcasts, linkedInTips, motivational, stats] =
     await Promise.all([
-      prisma.adminGoogleCalendarConnection.findFirst(),
+      prisma.adminGoogleCalendarConnection.findMany({ orderBy: { createdAt: 'asc' } }),
       prisma.webinar.findMany({
         where: { cancelledAt: null },
         orderBy: { scheduledAt: 'asc' },
@@ -260,7 +260,7 @@ export default async function AdminWebinarsPage({
             </p>
           )}
 
-          {!connection ? (
+          {connections.length === 0 ? (
             <div className="space-y-2 rounded-lg border border-border p-4">
               <p className="text-sm font-medium text-foreground">Connect Google Calendar</p>
               <p className="text-sm text-muted-foreground">
@@ -273,9 +273,16 @@ export default async function AdminWebinarsPage({
               </a>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Google Calendar connected as {connection.connectedByEmail ?? 'unknown'}.
-            </p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>
+                Google Calendar connected as{' '}
+                {connections.map((c) => c.googleEmail ?? c.connectedByEmail ?? 'unknown').join(', ')}.
+                {connections.length > 1 && ' Webinars are created on the first; meetings are read from all.'}
+              </p>
+              <a href="/api/admin/google-calendar/connect" className="underline underline-offset-4">
+                Connect another Google account
+              </a>
+            </div>
           )}
 
           <WebinarCreateForm />

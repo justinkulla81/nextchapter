@@ -7,7 +7,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
 import { capNotes } from '@/lib/google/meeting-notes'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
+import { getAllAdminCalendarAccess } from '@/lib/webinars/admin-calendar-oauth'
 import {
   normalizeEmail, displayNameFrom, personNameFromDisplay, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
   type SweepContext,
@@ -648,14 +648,13 @@ async function meetingContextFor(personId: string): Promise<{ orgId: string | nu
  */
 export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 'calendar'): Promise<SweepResult> {
   const base: SweepResult = { source: 'calendar', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
-  // getValidAdminAccessToken throws when no calendar is connected; an
-  // unconnected calendar is "nothing to sweep", not an error worth failing on.
-  let token: string
-  try {
-    token = await getValidAdminAccessToken()
-  } catch {
-    return { ...base, reason: 'no_connection' }
-  }
+  // Every connected Google account is swept. None connected is "nothing to
+  // sweep", not an error worth failing on; an account whose token no longer
+  // refreshes is skipped and reported, so the others still run.
+  const accounts = await getAllAdminCalendarAccess()
+  const usable = accounts.filter((a): a is typeof a & { token: string } => !!a.token)
+  if (usable.length === 0) return { ...base, reason: accounts.length ? 'no_valid_token' : 'no_connection' }
+  const accountErrors = accounts.filter((a) => a.error).map((a) => `${a.googleEmail ?? 'unknown account'}: ${a.error}`)
 
   const rollingFrom = new Date(Date.now() - daysBack * DAY)
   const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
@@ -664,8 +663,22 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
   const run = await prisma.crmSyncRun.create({ data: { source: runSource, windowFrom } })
 
   try {
-    const ctx = await buildSweepContext(null)
-    const events = await listCalendarEvents(token, windowFrom, new Date(Date.now() + daysForward * DAY))
+    // Each connected address is you, so one account being invited to a
+    // meeting from the other is not a new person.
+    const ctx = await buildSweepContext(null, usable.flatMap((a) => (a.googleEmail ? [a.googleEmail] : [])))
+    // An event both accounts can see is read once per account on purpose: the
+    // notes doc is only readable from an account it was shared with, and a
+    // notes copy already made is never repeated (see notesDocUrl below).
+    const windowTo = new Date(Date.now() + daysForward * DAY)
+    const items: { ev: Awaited<ReturnType<typeof listCalendarEvents>>[number]; token: string }[] = []
+    for (const account of usable) {
+      try {
+        for (const ev of await listCalendarEvents(account.token, windowFrom, windowTo)) items.push({ ev, token: account.token })
+      } catch (e) {
+        accountErrors.push(`${account.googleEmail ?? 'unknown account'}: ${e instanceof Error ? e.message : String(e)}`)
+      }
+    }
+    if (items.length === 0 && accountErrors.length >= usable.length) throw new Error(accountErrors.join('; '))
     const touched = new Set<string>()
     const personCache = new Map<string, string | null>()
     const result = { ...base }
@@ -682,7 +695,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
 
-    for (const ev of events) {
+    for (const { ev, token } of items) {
       result.scanned++
       const isPast = ev.start.getTime() <= Date.now()
       let logged = false
@@ -772,6 +785,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     await refreshTouchFields([...touched])
     await setUpcomingMeetings(upcoming, new Date(Date.now() + daysForward * DAY))
     result.notesAttached = notesAttached
+    if (accountErrors.length) result.reason = accountErrors.join('; ').slice(0, 300)
     if (notesNeedReconnect) result.notesNeedReconnect = true
     if (notesAttached > 0 || notesNeedReconnect) {
       captureServerEvent('system', 'crm_meeting_notes_synced', {

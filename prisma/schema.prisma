@@ -6290,6 +6290,10 @@ model ContentClick {
 // src/lib/google/oauth.ts's research-inbox client. Only ever one row.
 model AdminGoogleCalendarConnection {
   id               String   @id @default(cuid())
+  /// The Google account this grant belongs to. Several can be connected: the
+  /// CRM meeting sweep reads every one; Webinar scheduling uses the oldest.
+  /// Null only on a row from before accounts were told apart.
+  googleEmail      String?  @unique
   accessToken      String
   refreshToken     String
   expiresAt        DateTime
