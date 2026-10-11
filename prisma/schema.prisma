@@ -12774,3 +12774,23 @@ model FederalContractSummary {
   latestStart DateTime?
   checkedAt   DateTime @default(now())
 }
+
+// Published federal outcomes for a school (U.S. Dept. of Education College Scorecard, public
+// bulk file, free): completion, retention, median earnings, median debt. Linked to a School
+// only on an exact canonical-name match. Filled by scripts/import-college-scorecard.ts.
+// Reference data for research beside our own member outcomes; never per-person.
+model SchoolFederalOutcome {
+  id               String   @id @default(cuid())
+  schoolId         String   @unique
+  unitId           String
+  institutionName  String
+  state            String?
+  enrollment       Int?
+  completionRate   Float?
+  retentionRate    Float?
+  medianEarnings6  Int?
+  medianEarnings10 Int?
+  medianDebt       Int?
+  dataSource       String   @default("College Scorecard")
+  updatedAt        DateTime @updatedAt
+}
