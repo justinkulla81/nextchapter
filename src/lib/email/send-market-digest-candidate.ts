@@ -5,6 +5,7 @@ import MarketDigestCandidateEmail from '@/emails/market-digest-candidate'
 import type { MarketConditions } from '@/lib/market/types'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
+import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendMarketDigestCandidateEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -24,7 +25,7 @@ export async function sendMarketDigestCandidateEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/candidate/${candidate.id}`
+  const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'candidate', candidate.id)
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

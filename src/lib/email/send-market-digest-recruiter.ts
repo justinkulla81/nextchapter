@@ -3,6 +3,7 @@ import { createResend } from '@/lib/email/resend-client'
 import MarketDigestRecruiterEmail from '@/emails/market-digest-recruiter'
 import type { MarketConditions } from '@/lib/market/types'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
+import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendMarketDigestRecruiterEmail(
   recruiter: { id: string; fullName: string; workEmail: string; specialty: string | null },
@@ -16,7 +17,7 @@ export async function sendMarketDigestRecruiterEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const portalUrl = `${appUrl}/recruiters/dashboard`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/recruiter/${recruiter.id}`
+  const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'recruiter', recruiter.id)
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

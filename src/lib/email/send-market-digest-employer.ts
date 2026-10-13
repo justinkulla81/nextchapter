@@ -3,6 +3,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestEmployerEmail from '@/emails/market-digest-employer'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
+import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendMarketDigestEmployerEmail(
   employer: { id: string; userId: string; companyName: string; contactName: string | null },
@@ -21,7 +22,7 @@ export async function sendMarketDigestEmployerEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const portalUrl = `${appUrl}/talent/dashboard`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/employer/${employer.id}`
+  const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'employer', employer.id)
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

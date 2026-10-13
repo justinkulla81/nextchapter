@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import SearchCheckInEmail from '@/emails/search-checkin'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 // Creates the CandidateSearchCheckIn row (and its token) up front, then
 // deletes it again if the send itself fails — the no-login response link
@@ -29,7 +30,7 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
     const linkFor = (answer: string) => `${appUrl}/api/checkin/${checkIn.token}?answer=${answer}`
 
     const resend = createResend(process.env.RESEND_API_KEY)

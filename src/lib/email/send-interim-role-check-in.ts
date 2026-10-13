@@ -2,6 +2,7 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import InterimRoleCheckInEmail from '@/emails/interim-role-check-in'
+import { interimCheckInUrl } from '@/lib/email/signed-links'
 
 export async function sendInterimRoleCheckInEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -18,8 +19,8 @@ export async function sendInterimRoleCheckInEmail(
   if (!email) return { sent: false as const }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const stillActiveUrl = `${appUrl}/api/interim-check-in/${entry.id}?response=active`
-  const endedUrl = `${appUrl}/api/interim-check-in/${entry.id}?response=ended`
+  const stillActiveUrl = interimCheckInUrl(appUrl, entry.id, 'active')
+  const endedUrl = interimCheckInUrl(appUrl, entry.id, 'ended')
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

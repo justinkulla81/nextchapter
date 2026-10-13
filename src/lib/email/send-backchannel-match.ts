@@ -2,6 +2,7 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BackchannelMatchEmail from '@/emails/backchannel-match'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendBackchannelMatchEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -24,7 +25,7 @@ export async function sendBackchannelMatchEmail(
   // Find Full-Time Jobs (see find-my-job/page.tsx) — takes the candidate
   // straight to their applications instead of the top of the Network page.
   const applicationTrackerUrl = `${appUrl}/dashboard/find-my-job#jobs-applied`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

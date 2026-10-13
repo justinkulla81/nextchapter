@@ -1,6 +1,7 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import UnlockRecruiterNetworkNudgeEmail from '@/emails/unlock-recruiter-network-nudge'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendUnlockRecruiterNetworkNudgeEmail(candidate: {
   id: string
@@ -14,7 +15,7 @@ export async function sendUnlockRecruiterNetworkNudgeEmail(candidate: {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const privacyUrl = `${appUrl}/dashboard/privacy`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=recruiterUnlockNudge`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'recruiterUnlockNudge')
 
   try {
     const resend = createResend(process.env.RESEND_API_KEY)
