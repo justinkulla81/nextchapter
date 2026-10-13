@@ -130,5 +130,10 @@
     "@prisma/client@6.19.3": true,
     "@prisma/engines@6.19.3": true,
     "esbuild@0.28.1": true
+  },
+  "overrides": {
+    "pptxgenjs": {
+      "image-size": "^2.0.4"
+    }
   }
 }
