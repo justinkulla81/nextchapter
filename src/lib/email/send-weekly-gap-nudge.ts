@@ -3,6 +3,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendWeeklyGapNudgeEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -22,7 +23,7 @@ export async function sendWeeklyGapNudgeEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const pointsToGo = Math.max(0, weeklyPointsTarget - weeklyPoints)
 

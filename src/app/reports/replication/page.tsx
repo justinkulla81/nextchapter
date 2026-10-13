@@ -13,7 +13,7 @@ const REPO_URL = REPLICATION_REPO_URL
 const REPORT_PATH = '/reports/displacement-report-september-2026'
 const CORRECTIONS_EMAIL = 'jkulla@launchyournextchapter.com'
 const DESCRIPTION =
-  'Code, parameters and derived data to reproduce the NextChapter White Collar Employment Report: the White-Collar Long-Term Unemployment Index, CPS breakdowns, margins of error, SEC AI coding and more.'
+  'Code, parameters and derived data to reproduce the NextChapter White Collar Employment Report: the White-Collar Long-Search Index, CPS breakdowns, margins of error, SEC AI coding and more.'
 
 export const metadata: Metadata = {
   title: { absolute: 'White Collar Employment Report: replication materials | NextChapter' },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 // Mirrors the "What you can reproduce" table in the repository README.
 const REPRODUCIBLE: { output: string; how: string }[] = [
-  { output: 'White-Collar Long-Term Unemployment Index (Exhibit 1), monthly 2015–2026', how: 'code/01_wc_index_monthly.py → data/wc-index.csv' },
+  { output: 'White-Collar Long-Search Index (Exhibit 1), monthly 2015–2026', how: 'code/01_wc_index_monthly.py → data/wc-index.csv' },
   { output: 'Breakdowns by occupation, industry and age; older workers; graduates; blue-collar', how: 'code/02_cps_breakdowns.py, code/03_cps_aggregates.py' },
   { output: '90% margins of error (BLS generalized variance method)', how: 'code/04_margins_of_error.py with data/bls_gvf_parameters.json' },
   { output: 'Seasonal-adjustment robustness (fixed factors, X-13ARIMA-SEATS, STL, 12-month average)', how: 'code/05_seasonal_sensitivity.py, code/x13_wcltu.spc' },

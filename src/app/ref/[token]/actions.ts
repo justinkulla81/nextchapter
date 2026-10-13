@@ -12,6 +12,7 @@ import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { sendReferenceDeclinedNotice } from '@/lib/email/send-reference-declined-notice'
 import type { RelativeRank, HireAgainLevel, DepartureContext, TakeAgainLevel, TrustedScopeLevel } from '@prisma/client'
+import { isTokenExpired } from '@/lib/security/token-ttl'
 
 export type FormState = { error?: string } | undefined
 
@@ -22,8 +23,11 @@ export type FormState = { error?: string } | undefined
 // (nothing left to save over) rather than erroring, since a stray late
 // autosave racing the real submit is expected, not a bug.
 export async function saveReferenceDraft(token: string, page: number, answers: Record<string, string>): Promise<void> {
-  const reference = await prisma.reference.findUnique({ where: { token }, select: { status: true } })
-  if (!reference || reference.status === 'COMPLETED') return
+  const reference = await prisma.reference.findUnique({ where: { token }, select: { status: true, requestedAt: true } })
+  if (!reference || reference.status === 'COMPLETED' || reference.status === 'DECLINED' || reference.status === 'EXPIRED') return
+  // Same lifetime submitReference enforces — an expired link must not keep
+  // accepting autosaved answers.
+  if (isTokenExpired(reference.requestedAt, REFERENCE_TOKEN_EXPIRY_DAYS)) return
 
   await prisma.reference.update({
     where: { token },

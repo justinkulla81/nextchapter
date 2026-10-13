@@ -30,10 +30,11 @@ function row(institutionId: string, memberId: string, type: EngagementEventType,
 }
 
 // One mentor call: both people engaged, differently (spec §7).
-export function mentorCallRows(institutionId: string, requestId: string, mentorMemberId: string, requesterMemberId: string, at: Date): Row[] {
+// Office hours and alumni intros are calls too (sourceTable says which).
+export function mentorCallRows(institutionId: string, requestId: string, mentorMemberId: string, requesterMemberId: string, at: Date, sourceTable = 'MentorRequest'): Row[] {
   return [
-    row(institutionId, mentorMemberId, 'MENTOR_CALL', at, 'MentorRequest', requestId, { points: 5, category: 'VOLUNTEER' }),
-    row(institutionId, requesterMemberId, 'MENTOR_CALL', at, 'MentorRequest', requestId),
+    row(institutionId, mentorMemberId, 'MENTOR_CALL', at, sourceTable, requestId, { points: 5, category: 'VOLUNTEER' }),
+    row(institutionId, requesterMemberId, 'MENTOR_CALL', at, sourceTable, requestId),
   ]
 }
 
@@ -76,6 +77,21 @@ export async function syncEngagement(institutionId: string, now = new Date()): P
   for (const o of milestones) rows.push(row(institutionId, o.memberId, 'MILESTONE_SHARED', o.reportedAt, 'OutcomeReport', o.id))
   for (const g of gifts) rows.push(row(institutionId, g.memberId!, 'GIFT', g.giftDate, 'InstitutionGift', g.id))
 
+  // Office hours that happened, accepted alumni intros and event check-ins:
+  // each side counts only if that member shares engagement.
+  const shares = new Set(members.filter((m) => m.shareEngagement).map((m) => m.id))
+  const [slots, intros, checkins] = await Promise.all([
+    prisma.officeHourSlot.findMany({
+      where: { institutionId, bookedByMemberId: { not: null }, cancelledAt: null, startsAt: { gte: since, lte: now } },
+      select: { id: true, startsAt: true, bookedByMemberId: true, mentor: { select: { memberId: true } } },
+    }),
+    prisma.alumniIntroRequest.findMany({ where: { institutionId, status: 'ACCEPTED', respondedAt: { gte: since } }, select: { id: true, respondedAt: true, requesterMemberId: true, targetMemberId: true } }),
+    prisma.eventRsvp.findMany({ where: { event: { institutionId }, checkedInAt: { gte: since } }, select: { id: true, memberId: true, checkedInAt: true } }),
+  ])
+  for (const s of slots) rows.push(...mentorCallRows(institutionId, s.id, s.mentor.memberId, s.bookedByMemberId!, s.startsAt, 'OfficeHourSlot').filter((r) => shares.has(r.memberId)))
+  for (const i of intros) rows.push(...mentorCallRows(institutionId, i.id, i.targetMemberId, i.requesterMemberId, i.respondedAt!, 'AlumniIntroRequest').filter((r) => shares.has(r.memberId)))
+  for (const c of checkins) if (shares.has(c.memberId)) rows.push(row(institutionId, c.memberId, 'EVENT', c.checkedInAt!, 'EventRsvp', c.id))
+
   if (!rows.length) return { added: 0 }
   const r = await prisma.engagementEvent.createMany({ data: rows, skipDuplicates: true })
   return { added: r.count }
@@ -101,4 +117,34 @@ export async function engagementOverview(institutionId: string): Promise<Engagem
     group by 1 order by 1`
   const order = ['High', 'Medium', 'Low'] as const
   return { tiers: order.map((t) => ({ tier: t, members: tiers.find((x) => x.tier === t)?.members ?? 0 })), byDecade }
+}
+
+// What a college can re-weight (Alumni Relations › Engagement). Stored in
+// enabledFeatures.engagementWeights and applied by v_member_engagement, so a
+// change re-scores the last 12 months. Monthly caps stay in points.
+export const WEIGHT_KEYS: { key: string; label: string; category: CaseEngagementCategory; defaultPoints: number }[] = [
+  { key: 'LOGIN', label: 'Signs in', category: 'COMMUNICATION', defaultPoints: 1 },
+  { key: 'OUTREACH_CLICK', label: 'Opens a link in your email', category: 'COMMUNICATION', defaultPoints: 1 },
+  { key: 'MILESTONE_SHARED', label: 'Shares a milestone', category: 'COMMUNICATION', defaultPoints: 2 },
+  { key: 'TOOL_USE', label: 'A week using the tools', category: 'EXPERIENTIAL', defaultPoints: 2 },
+  { key: 'COACHING_SESSION', label: 'A coaching session', category: 'EXPERIENTIAL', defaultPoints: 3 },
+  { key: 'EVENT', label: 'Attends an event or finishes a program', category: 'EXPERIENTIAL', defaultPoints: 3 },
+  { key: 'MENTOR_CALL', label: 'Gets a mentor call or intro', category: 'EXPERIENTIAL', defaultPoints: 2 },
+  { key: 'MENTOR_CALL_MENTOR', label: 'Gives a mentor call or intro', category: 'VOLUNTEER', defaultPoints: 5 },
+  { key: 'GIFT_PROMPT_CLICK', label: 'Opens a giving link', category: 'PHILANTHROPIC', defaultPoints: 1 },
+  { key: 'GIFT', label: 'Makes a gift', category: 'PHILANTHROPIC', defaultPoints: 10 },
+]
+
+export function engagementWeightsFrom(enabledFeatures: unknown): Record<string, number> {
+  const stored = ((enabledFeatures as { engagementWeights?: Record<string, unknown> } | null)?.engagementWeights ?? {}) as Record<string, unknown>
+  return Object.fromEntries(WEIGHT_KEYS.map((w) => [w.key, typeof stored[w.key] === 'number' && Number.isInteger(stored[w.key]) ? (stored[w.key] as number) : w.defaultPoints]))
+}
+
+export async function saveEngagementWeights(institutionId: string, weights: Record<string, number> | null) {
+  const row = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true } })
+  const clean = weights ? Object.fromEntries(WEIGHT_KEYS.map((w) => [w.key, Math.min(Math.max(Math.round(weights[w.key] ?? w.defaultPoints), 0), 20)])) : {}
+  await prisma.institution.update({
+    where: { id: institutionId },
+    data: { enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), engagementWeights: clean } },
+  })
 }

@@ -6,6 +6,7 @@
 
 import 'server-only'
 import type { CapstoneStatus, EnrollmentStatus, ProgramPayer } from '@prisma/client'
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 
 const DAY = 86_400_000
@@ -64,8 +65,26 @@ export async function saveProgram(args: {
   wioaEligible: boolean
   isActive: boolean
   createdBy: string
+  skills?: string[]
+  cipCode?: string | null
+  hours?: number | null
+  credentialType?: string | null
+  prerequisites?: string | null
 }) {
-  const data = { name: args.name, summary: args.summary, audience: args.audience, credential: args.credential, priceCents: args.priceCents, wioaEligible: args.wioaEligible, isActive: args.isActive }
+  const data = {
+    name: args.name,
+    summary: args.summary,
+    audience: args.audience,
+    credential: args.credential,
+    priceCents: args.priceCents,
+    wioaEligible: args.wioaEligible,
+    isActive: args.isActive,
+    ...(args.skills ? { skills: args.skills } : {}),
+    ...(args.cipCode !== undefined ? { cipCode: args.cipCode } : {}),
+    ...(args.hours !== undefined ? { hours: args.hours } : {}),
+    ...(args.credentialType !== undefined ? { credentialType: args.credentialType } : {}),
+    ...(args.prerequisites !== undefined ? { prerequisites: args.prerequisites } : {}),
+  }
   if (args.id) {
     const r = await prisma.program.updateMany({ where: { id: args.id, institutionId: args.institutionId }, data })
     return r.count ? { id: args.id } : { error: 'That program is gone. Reload the page.' }
@@ -94,7 +113,7 @@ export async function openCohorts(institutionId: string, now = new Date()) {
   const cohorts = await prisma.cohort.findMany({
     where: { program: { institutionId, isActive: true }, startsAt: { gte: new Date(now.getTime() - 14 * DAY) } },
     orderBy: { startsAt: 'asc' },
-    include: { program: { select: { name: true, summary: true, credential: true, priceCents: true, wioaEligible: true } }, _count: { select: { enrollments: { where: { status: { in: ['APPLIED', 'ENROLLED'] } } } } } },
+    include: { program: { select: { name: true, summary: true, credential: true, priceCents: true, wioaEligible: true, skills: true } }, _count: { select: { enrollments: { where: { status: { in: ['APPLIED', 'ENROLLED'] } } } } } },
   })
   return cohorts.map((c) => ({ ...c, seatsLeft: c.seats === null ? null : Math.max(c.seats - c._count.enrollments, 0) })).filter((c) => c.seatsLeft !== 0)
 }
@@ -124,7 +143,7 @@ export async function listEnrollments(institutionId: string, filter: { status?: 
     take: 300,
     include: {
       member: { select: { id: true, firstName: true, lastName: true, classYear: true, email: true } },
-      cohort: { select: { name: true, startsAt: true, program: { select: { name: true, credential: true } } } },
+      cohort: { select: { name: true, startsAt: true, sessionsTotal: true, minAttendancePct: true, requiresCapstone: true, program: { select: { name: true, credential: true } } } },
       corporateClient: { select: { name: true } },
     },
   })
@@ -136,7 +155,7 @@ export async function updateEnrollment(args: { institutionId: string; enrollment
   const now = args.now ?? new Date()
   const e = await prisma.enrollment.findFirst({
     where: { id: args.enrollmentId, cohort: { program: { institutionId: args.institutionId } } },
-    select: { id: true, memberId: true, status: true, enrolledAt: true, cohort: { select: { program: { select: { credential: true, name: true } } } } },
+    select: { id: true, memberId: true, status: true, enrolledAt: true, credentialId: true, sessionsAttended: true, capstoneDone: true, cohort: { select: { sessionsTotal: true, minAttendancePct: true, requiresCapstone: true, program: { select: { credential: true, name: true } } } } },
   })
   if (!e) return { error: 'That enrollment is gone. Reload the page.' }
   if (args.corporateClientId) {
@@ -152,7 +171,11 @@ export async function updateEnrollment(args: { institutionId: string; enrollment
     data.status = args.status
     if (args.status === 'ENROLLED') data.enrolledAt = e.enrolledAt ?? now
     if (args.status === 'COMPLETED') {
+      const blocked = completionBlocker(e.cohort, e)
+      if (blocked) return { error: blocked }
       data.completedAt = now
+      // A public, verifiable credential id (Open Badges): /credentials/<id>.
+      data.credentialId = e.credentialId ?? randomUUID()
       data.enrolledAt = e.enrolledAt ?? now
       data.credentialName = e.cohort.program.credential ?? e.cohort.program.name
     }
@@ -175,7 +198,7 @@ export async function myEnrollments(memberId: string) {
   return prisma.enrollment.findMany({
     where: { memberId, status: { not: 'WITHDREW' } },
     orderBy: { appliedAt: 'desc' },
-    select: { id: true, status: true, payer: true, credentialName: true, completedAt: true, cohort: { select: { name: true, startsAt: true, endsAt: true, modality: true, program: { select: { name: true } } } } },
+    select: { id: true, status: true, payer: true, credentialName: true, credentialId: true, completedAt: true, cohort: { select: { name: true, startsAt: true, endsAt: true, modality: true, program: { select: { name: true } } } } },
   })
 }
 
@@ -303,4 +326,153 @@ export async function wioaReport(institutionId: string, now = new Date()) {
     // Placement rate only over completers whose 180 days are up (or who already placed).
     placementRate: matured.length ? matured.filter((r) => r.placedAt).length / matured.length : null,
   }
+}
+
+// ── Completion rules and attendance ─────────────────────────────────────────
+
+// Why an enrollment can't be marked completed yet, or null.
+export function completionBlocker(
+  cohort: { sessionsTotal: number | null; minAttendancePct: number | null; requiresCapstone: boolean },
+  e: { sessionsAttended: number; capstoneDone: boolean },
+): string | null {
+  if (cohort.minAttendancePct && cohort.sessionsTotal) {
+    const need = Math.ceil((cohort.minAttendancePct / 100) * cohort.sessionsTotal)
+    if (e.sessionsAttended < need) return `Needs ${need} of ${cohort.sessionsTotal} sessions attended (${cohort.minAttendancePct}%); has ${e.sessionsAttended}.`
+  }
+  if (cohort.requiresCapstone && !e.capstoneDone) return 'Needs the capstone marked done first.'
+  return null
+}
+
+export async function setProgress(args: { institutionId: string; enrollmentId: string; sessionsAttended?: number; capstoneDone?: boolean }) {
+  const e = await prisma.enrollment.findFirst({ where: { id: args.enrollmentId, cohort: { program: { institutionId: args.institutionId } } }, select: { id: true, cohort: { select: { sessionsTotal: true } } } })
+  if (!e) return { error: 'That enrollment is gone. Reload the page.' }
+  const max = e.cohort.sessionsTotal ?? 200
+  await prisma.enrollment.update({
+    where: { id: e.id },
+    data: {
+      ...(args.sessionsAttended !== undefined ? { sessionsAttended: Math.min(Math.max(Math.round(args.sessionsAttended), 0), max) } : {}),
+      ...(args.capstoneDone !== undefined ? { capstoneDone: args.capstoneDone } : {}),
+    },
+  })
+  return { ok: true }
+}
+
+export async function setCohortRules(args: { institutionId: string; cohortId: string; sessionsTotal: number | null; minAttendancePct: number | null; requiresCapstone: boolean }) {
+  const r = await prisma.cohort.updateMany({
+    where: { id: args.cohortId, program: { institutionId: args.institutionId } },
+    data: { sessionsTotal: args.sessionsTotal, minAttendancePct: args.minAttendancePct, requiresCapstone: args.requiresCapstone },
+  })
+  return r.count ? { ok: true } : { error: 'That cohort is gone. Reload the page.' }
+}
+
+// ── Non-alum learners ───────────────────────────────────────────────────────
+
+// A corporate client's employee or a community member: a roster row with
+// affiliation LEARNER (never sent alumni email or invitations), enrolled
+// straight into a cohort. An existing roster email is reused.
+export async function addLearner(args: { institutionId: string; cohortId: string; firstName: string; lastName: string; email: string; corporateClientId: string | null; payer: ProgramPayer }) {
+  const cohort = await prisma.cohort.findFirst({ where: { id: args.cohortId, program: { institutionId: args.institutionId } }, select: { id: true } })
+  if (!cohort) return { error: 'Pick a cohort.' }
+  const email = args.email.trim().toLowerCase()
+  const member =
+    (await prisma.institutionMember.findFirst({ where: { institutionId: args.institutionId, email }, select: { id: true } })) ??
+    (await prisma.institutionMember.create({
+      data: { institutionId: args.institutionId, email, firstName: args.firstName || null, lastName: args.lastName || null, affiliation: 'LEARNER', matchMethod: 'MANUAL' },
+      select: { id: true },
+    }))
+  const existing = await prisma.enrollment.findUnique({ where: { cohortId_memberId: { cohortId: args.cohortId, memberId: member.id } }, select: { id: true } })
+  if (existing) return { error: 'They’re already in that cohort.' }
+  const e = await prisma.enrollment.create({
+    data: { cohortId: args.cohortId, memberId: member.id, status: 'ENROLLED', enrolledAt: new Date(), payer: args.payer, corporateClientId: args.payer === 'EMPLOYER' ? args.corporateClientId : null },
+    select: { id: true },
+  })
+  return { id: e.id, memberId: member.id }
+}
+
+// ── Credentials (Open Badges 2.0, hosted verification) ──────────────────────
+
+export async function credentialById(credentialId: string) {
+  return prisma.enrollment.findUnique({
+    where: { credentialId },
+    select: {
+      credentialId: true,
+      credentialName: true,
+      completedAt: true,
+      status: true,
+      member: { select: { firstName: true, lastName: true, email: true } },
+      cohort: { select: { name: true, program: { select: { id: true, name: true, summary: true, skills: true, institution: { select: { slug: true, name: true, logoUrl: true, profile: true } } } } } },
+    },
+  })
+}
+
+// ── State eligible training provider list (ETPL) ────────────────────────────
+
+export type EtplRow = {
+  programId: string
+  name: string
+  cipCode: string | null
+  credentialType: string | null
+  credential: string | null
+  hours: number | null
+  costCents: number
+  modality: string | null
+  prerequisites: string | null
+  wioaEligible: boolean
+  enrolled: number
+  completed: number
+  completionRate: number | null
+  credentialRate: number | null
+  placementRate: number | null // a new job within 180 days of completion, among completers whose window has closed
+}
+
+// The fields and outcomes most state ETPL applications ask for, per program,
+// over every enrollment (not only WIOA-funded). Missing fields are listed
+// on the screen so staff know what to fill in.
+export async function etplRows(institutionId: string, now = new Date()): Promise<EtplRow[]> {
+  const programs = await prisma.program.findMany({
+    where: { institutionId },
+    orderBy: { name: 'asc' },
+    include: {
+      cohorts: {
+        select: {
+          modality: true,
+          enrollments: { where: { status: { in: ['ENROLLED', 'COMPLETED', 'WITHDREW'] } }, select: { status: true, completedAt: true, credentialName: true, memberId: true } },
+        },
+      },
+    },
+  })
+  const out: EtplRow[] = []
+  for (const p of programs) {
+    const ens = p.cohorts.flatMap((c) => c.enrollments)
+    const done = ens.filter((e) => e.status === 'COMPLETED' && e.completedAt)
+    const matured = done.filter((e) => now.getTime() - e.completedAt!.getTime() >= PLACEMENT_WINDOW_DAYS * DAY)
+    let placed = 0
+    for (const e of matured) {
+      const o = await prisma.outcomeReport.findFirst({ where: { memberId: e.memberId, reportedAt: { gte: e.completedAt!, lt: new Date(e.completedAt!.getTime() + PLACEMENT_WINDOW_DAYS * DAY) } }, select: { id: true } })
+      if (o) placed++
+    }
+    const modalities = [...new Set(p.cohorts.map((c) => c.modality).filter(Boolean))]
+    out.push({
+      programId: p.id,
+      name: p.name,
+      cipCode: p.cipCode,
+      credentialType: p.credentialType,
+      credential: p.credential,
+      hours: p.hours,
+      costCents: p.priceCents,
+      modality: modalities.join(', ') || null,
+      prerequisites: p.prerequisites,
+      wioaEligible: p.wioaEligible,
+      enrolled: ens.length,
+      completed: done.length,
+      completionRate: ens.length ? done.length / ens.length : null,
+      credentialRate: done.length ? done.filter((e) => e.credentialName).length / done.length : null,
+      placementRate: matured.length ? placed / matured.length : null,
+    })
+  }
+  return out
+}
+
+export function etplMissing(r: EtplRow): string[] {
+  return [!r.cipCode && 'CIP code', !r.hours && 'hours', !r.credentialType && 'credential type', !r.prerequisites && 'prerequisites (or "none")'].filter(Boolean) as string[]
 }

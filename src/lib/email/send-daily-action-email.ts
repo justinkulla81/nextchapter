@@ -9,6 +9,7 @@ import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import DailyActionEmail from '@/emails/daily-action'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 const QUIET_THRESHOLD_DAYS = 3
 
@@ -44,7 +45,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
 
     const victoriaName = getVictoriaName('daily-email')
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'daily')
 
     const daysSinceCheckIn = candidate.lastCheckInAt
       ? (Date.now() - candidate.lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24)

@@ -72,9 +72,18 @@ left join lateral (
 -- Low / Medium / High tier by percentile within the institution. Members who
 -- turned engagement sharing off are left out entirely.
 create view private.v_member_engagement as
+-- Points per event: the college's own weight (Alumni Relations › Engagement,
+-- enabledFeatures.engagementWeights, keyed by event type; the mentor's side
+-- of a call is MENTOR_CALL_MENTOR), else the points stored at write time.
+-- Weights apply to history too, so changing one re-scores the last 12 months.
 with monthly as (
-  select e."memberId", e."institutionId", e.type, e."caseCategory", date_trunc('month', e."occurredAt") as month, sum(e.points) as pts
+  select e."memberId", e."institutionId", e.type, e."caseCategory", date_trunc('month', e."occurredAt") as month,
+    sum(coalesce(
+      case when (i."enabledFeatures" -> 'engagementWeights' ->> (case when e.type = 'MENTOR_CALL' and e."caseCategory" = 'VOLUNTEER' then 'MENTOR_CALL_MENTOR' else e.type::text end)) ~ '^[0-9]{1,2}$'
+        then (i."enabledFeatures" -> 'engagementWeights' ->> (case when e.type = 'MENTOR_CALL' and e."caseCategory" = 'VOLUNTEER' then 'MENTOR_CALL_MENTOR' else e.type::text end))::int end,
+      e.points)) as pts
   from public."EngagementEvent" e
+  join public."Institution" i on i.id = e."institutionId"
   where e."occurredAt" >= now() - interval '12 months'
   group by 1, 2, 3, 4, 5
 ), capped as (

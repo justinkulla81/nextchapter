@@ -5,6 +5,7 @@ import WeeklyGoalAssignedEmail from '@/emails/weekly-goal-assigned'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 // What's blocking an A, in the same terms as UnlockCandidatePlusCallout on
 // the dashboard — kept in sync deliberately, since this is the email version
@@ -52,7 +53,7 @@ export async function sendWeeklyGoalAssignedEmail(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
   const marketRealityReportUrl = `${appUrl}/dashboard/market-reality`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const {
     lastWeekPoints,

@@ -19,6 +19,7 @@ import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
 import { sendJoinInvites } from '@/lib/higher-ed/invites'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
+import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
 import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
 
 export type FormState = { error?: string; ok?: boolean; message?: string } | undefined
@@ -244,7 +245,7 @@ export async function saveCollegeSettings(slug: string, _prev: FormState, formDa
     where: { id: ctx.institution.id },
     data: {
       givingUrl,
-      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, wioa: formData.get('wioa') === 'on', email: { fromName: fromName || null, replyTo: replyTo || null } },
+      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, wioa: formData.get('wioa') === 'on', ...(US_TIME_ZONES.some((z) => z.key === formData.get('timeZone')) ? { timeZone: String(formData.get('timeZone')) } : {}), email: { fromName: fromName || null, replyTo: replyTo || null } },
     },
     select: { id: true },
   })

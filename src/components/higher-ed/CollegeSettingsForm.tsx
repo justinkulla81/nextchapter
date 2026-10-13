@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
 
 type State = { error?: string; ok?: boolean; message?: string } | undefined
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -14,7 +15,7 @@ export function CollegeSettingsForm({
   canEdit,
 }: {
   action: (prev: State, formData: FormData) => Promise<State>
-  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null; fromName: string; replyTo: string; wioa: boolean }
+  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null; fromName: string; replyTo: string; wioa: boolean; timeZone: string }
   canEdit: boolean
 }) {
   const [state, formAction] = useActionState(action, undefined)
@@ -24,6 +25,7 @@ export function CollegeSettingsForm({
   const [fromName, setFromName] = useState(defaults.fromName)
   const [replyTo, setReplyTo] = useState(defaults.replyTo)
   const [wioa, setWioa] = useState(defaults.wioa)
+  const [tz, setTz] = useState(defaults.timeZone)
   return (
     <form action={formAction} className="grid gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-3">
       <div className="space-y-1.5">
@@ -53,6 +55,17 @@ export function CollegeSettingsForm({
         <Label htmlFor="set-reply">Replies go to</Label>
         <Input id="set-reply" name="replyTo" type="email" value={replyTo} onChange={(e) => setReplyTo(e.target.value)} disabled={!canEdit} placeholder="alumni@yourcollege.edu" />
         <p className="text-xs text-muted-foreground">Every email to alumni carries an unsubscribe link; bounces and spam complaints stop email to that address automatically.</p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="set-tz">Time zone</Label>
+        <select id="set-tz" name="timeZone" value={tz} onChange={(e) => setTz(e.target.value)} disabled={!canEdit} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+          {US_TIME_ZONES.map((z) => (
+            <option key={z.key} value={z.key}>
+              {z.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">Events and office hours are typed and shown in it.</p>
       </div>
       <label className="flex items-start gap-2 text-sm sm:col-span-3">
         <input type="checkbox" name="wioa" checked={wioa} onChange={(e) => setWioa(e.target.checked)} disabled={!canEdit} className="mt-1" />

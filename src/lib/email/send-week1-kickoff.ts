@@ -7,6 +7,7 @@ import { isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import Week1KickoffEmail from '@/emails/week1-kickoff'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 // Same 4 profile-confirm types SuccessSprintCard.tsx's own Priority gate
 // checks — kept as a local literal rather than importing that component's
@@ -56,7 +57,7 @@ export async function sendWeek1Kickoff(candidateId: string) {
     if (!email) return { sent: false as const }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'daily')
 
     const connectionsUnlocked = !!emailConnection && !!calendarConnection && isLinkedInConnected(candidate)
     const profileComplete = PROFILE_UNLOCK_TYPES.every(

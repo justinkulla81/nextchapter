@@ -43,6 +43,7 @@ import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
 import { AssignControl } from './AssignControl'
 import { ConfirmActionButton } from './ConfirmActionButton'
+import { AdminBoard, AlumniEvents, CandidateNetwork, MilestonesFeed, StagePanel, WorkforceEtpl, WorkforceRapid } from './screens-lifecycle'
 import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
@@ -56,13 +57,14 @@ import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
 import { emailSettingsFrom } from '@/lib/higher-ed/outreach'
 import { wioaOn } from '@/lib/higher-ed/programs'
+import { collegeTimeZone } from '@/lib/higher-ed/time-zone'
 import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string }
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string }
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -190,6 +192,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
       <MyProgramCard ctx={ctx} />
+      <StagePanel ctx={ctx} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
@@ -264,6 +267,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
   return (
     <div className="space-y-6">
       <WaitingForYou ctx={ctx} office="alumni" base={base} />
+      <MilestonesFeed ctx={ctx} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Members" value={c.members.toLocaleString()} href={`${base}/members`} />
         <StatTile label="Claimed" value={c.claimed.toLocaleString()} href={`${base}/members?status=CLAIMED`} />
@@ -1100,6 +1104,7 @@ async function SettingsOverview({ ctx }: ScreenProps) {
           fromName: sender.fromName,
           replyTo: sender.replyTo ?? '',
           wioa: wioaOn(i.enabledFeatures),
+          timeZone: collegeTimeZone(i.enabledFeatures, i.profile),
         }}
       />
       <CollegeProfile profile={readProfile(i.profile)} />
@@ -1234,6 +1239,11 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'teaching:capstones': TeachingCapstones,
   'candidate:programs': CandidatePrograms,
   'workforce:home': WorkforceHome,
+  'workforce:rapid': WorkforceRapid,
+  'workforce:etpl': WorkforceEtpl,
+  'candidate:network': CandidateNetwork,
+  'alumni:events': AlumniEvents,
+  'admin:board': AdminBoard,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
   'admin:roster': AdminRoster,

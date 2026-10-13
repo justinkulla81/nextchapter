@@ -41,12 +41,12 @@ const select = 'h-9 w-full rounded-md border border-input bg-background px-2 tex
 
 export function ProgramForm(props: {
   slug: string
-  program?: { id: string; name: string; summary: string | null; audience: string | null; credential: string | null; priceCents: number; wioaEligible: boolean; isActive: boolean }
+  program?: { id: string; name: string; summary: string | null; audience: string | null; credential: string | null; priceCents: number; wioaEligible: boolean; isActive: boolean; skills: string[]; cipCode: string | null; hours: number | null; credentialType: string | null; prerequisites: string | null }
   showWioa: boolean
 }) {
   const p = props.program
   const [state, action] = useActionState<FormResult, FormData>(saveProgramForm.bind(null, props.slug, p?.id ?? null), undefined)
-  const bind = useFields({ name: p?.name ?? '', summary: p?.summary ?? '', audience: p?.audience ?? '', credential: p?.credential ?? '', price: p ? String(p.priceCents / 100) : '' })
+  const bind = useFields({ name: p?.name ?? '', summary: p?.summary ?? '', audience: p?.audience ?? '', credential: p?.credential ?? '', price: p ? String(p.priceCents / 100) : '', skills: p?.skills.join(', ') ?? '', cipCode: p?.cipCode ?? '', hours: p?.hours ? String(p.hours) : '', credentialType: p?.credentialType ?? '', prerequisites: p?.prerequisites ?? '' })
   const [wioa, setWioa] = useState(p?.wioaEligible ?? false)
   const [active, setActive] = useState(p?.isActive ?? true)
   const id = p?.id ?? 'new'
@@ -72,6 +72,40 @@ export function ProgramForm(props: {
         <Label htmlFor={`pp-${id}`}>Price ($, 0 for free)</Label>
         <Input id={`pp-${id}`} inputMode="decimal" {...bind('price')} />
       </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor={`pk-${id}`}>Skills it builds (comma-separated)</Label>
+        <Input id={`pk-${id}`} {...bind('skills')} placeholder="SQL, data analysis, dashboards" />
+        <p className="text-xs text-muted-foreground">Matched to gaps in alumni’s Market Reality reports, so the program is suggested to the people it helps.</p>
+      </div>
+      {props.showWioa && (
+        <details className="sm:col-span-2">
+          <summary className="cursor-pointer text-sm text-muted-foreground">State eligible-provider fields</summary>
+          <div className="grid gap-3 pt-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={`pcip-${id}`}>CIP code</Label>
+              <Input id={`pcip-${id}`} {...bind('cipCode')} placeholder="11.0802" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`ph-${id}`}>Instructional hours</Label>
+              <Input id={`ph-${id}`} inputMode="numeric" {...bind('hours')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`pct-${id}`}>Credential type</Label>
+              <select id={`pct-${id}`} className={select} {...bind('credentialType')}>
+                <option value="">Choose…</option>
+                <option value="certificate">Certificate</option>
+                <option value="industry_certification">Industry certification</option>
+                <option value="badge">Badge</option>
+                <option value="degree">Degree</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`ppr-${id}`}>Prerequisites</Label>
+              <Input id={`ppr-${id}`} {...bind('prerequisites')} placeholder="None" />
+            </div>
+          </div>
+        </details>
+      )}
       <div className="flex flex-col justify-end gap-2 text-sm">
         {props.showWioa && (
           <label className="flex items-center gap-2">

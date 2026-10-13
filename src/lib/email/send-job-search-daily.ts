@@ -15,6 +15,7 @@ import {
 } from '@/lib/job-search-daily/build'
 import JobSearchDailyEmail from '@/emails/job-search-daily'
 import { buildClickUrl, wrapHrefs } from '@/lib/job-search-daily/click-link'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
 
@@ -107,7 +108,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       masthead: candidate.confidentialSearchMode ? 'NextChapter Daily' : 'Job Search Daily',
       weekday,
       appUrl,
-      unsubscribeUrl: `${appUrl}/api/unsubscribe/${candidate.id}?type=jobSearchDaily`,
+      unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'jobSearchDaily'),
     }),
   })
 

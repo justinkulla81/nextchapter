@@ -9,13 +9,16 @@ import type { CheckInKind } from '@prisma/client'
 import { ArrowRight, BarChart3, ClipboardCheck, Mail, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
-import { engagementOverview } from '@/lib/higher-ed/engagement'
+import { engagementOverview, engagementWeightsFrom, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
+import { WeightsForm } from './WeightsForm'
 import { waitingFor } from '@/lib/higher-ed/inbox'
 import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, checkInOverview, pendingCheckIns } from '@/lib/higher-ed/checkins'
 import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { approveCheckIns, sendOutreachBatch } from '@/app/i/[slug]/(portal)/outreach-actions'
 import { AUDIENCES, BATCH, MERGE_FIELDS, audienceCount, listComposed, previewValues } from '@/lib/higher-ed/composer'
 import { OutreachComposer } from './OutreachComposer'
+import { SegmentsSection } from './screens-lifecycle'
+import { listSegments } from '@/lib/higher-ed/segments'
 import { counselors } from '@/lib/higher-ed/caseload'
 import { AssignControl } from './AssignControl'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -158,9 +161,10 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
     suppressed.total += r._count._all
   }
   const canWrite = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
-  const [composed, counts] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) })))])
+  const [composed, builtIn, segments] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) }))), listSegments(id)])
+  const counts = [...builtIn, ...segments.map((s) => ({ key: `segment:${s.id}`, label: s.name, count: s.count }))]
   const editing = searchParams?.edit ? composed.find((c) => c.id === searchParams.edit && !c.sentAt) : undefined
-  const audienceLabel = (k: string) => AUDIENCES.find((a) => a.key === k)?.label ?? k
+  const audienceLabel = (k: string) => counts.find((a) => a.key === k)?.label ?? (k.startsWith('segment:') ? 'A deleted audience' : k)
 
   return (
     <div className="space-y-8">
@@ -181,6 +185,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
           />
         </section>
       )}
+      <SegmentsSection ctx={ctx} />
       {composed.length > 0 && (
         <section aria-labelledby="your-emails" className="space-y-2">
           <h2 id="your-emails" className="text-base font-semibold">
@@ -309,7 +314,8 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
 // ── Alumni Relations › Engagement ───────────────────────────────────────────
 
 export async function AlumniEngagement({ ctx }: Props) {
-  const o = await engagementOverview(ctx.institution.id)
+  const [o, inst] = await Promise.all([engagementOverview(ctx.institution.id), prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })])
+  const canEdit = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
   const total = o.tiers.reduce((n, t) => n + t.members, 0)
   return (
     <div className="space-y-6">
@@ -351,6 +357,14 @@ export async function AlumniEngagement({ ctx }: Props) {
         </div>
       ) : (
         <EmptyState icon={BarChart3} title="No engagement yet" description="Scores start once alumni join and use NextChapter, or once you import gifts." />
+      )}
+      {canEdit && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Change what counts and how much</summary>
+          <div className="pt-3">
+            <WeightsForm slug={ctx.institution.slug} keys={WEIGHT_KEYS} values={engagementWeightsFrom(inst.enabledFeatures)} />
+          </div>
+        </details>
       )}
     </div>
   )

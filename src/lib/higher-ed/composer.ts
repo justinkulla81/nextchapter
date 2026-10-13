@@ -8,6 +8,7 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
+import { segmentFilterFor, segmentWhere } from './segments'
 import { emailSettingsFrom, merge, sendCampaign, withFooter } from './outreach'
 
 export const BATCH = 200
@@ -18,8 +19,9 @@ export const AUDIENCES = [
   { key: 'not_joined', label: 'Not joined yet' },
   { key: 'recent_grads', label: 'Recent grads' },
 ] as const
-export type Audience = (typeof AUDIENCES)[number]['key']
-export const isAudience = (a: unknown): a is Audience => AUDIENCES.some((x) => x.key === a)
+// A built-in audience, or a saved segment ('segment:<id>').
+export type Audience = (typeof AUDIENCES)[number]['key'] | `segment:${string}`
+export const isAudience = (a: unknown): a is Audience => AUDIENCES.some((x) => x.key === a) || (typeof a === 'string' && /^segment:[a-z0-9]+$/.test(a))
 
 export const MERGE_FIELDS = [
   { key: 'firstName', label: 'First name', example: 'Jordan' },
@@ -33,7 +35,16 @@ export function unknownFields(text: string): string[] {
   return [...new Set([...text.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).filter((k) => !known.has(k)))]
 }
 
-export function audienceWhere(institutionId: string, audience: Audience, now = new Date()): Prisma.InstitutionMemberWhereInput {
+// Built-in audiences and saved segments; a missing segment matches no one.
+export async function resolveAudience(institutionId: string, audience: Audience): Promise<Prisma.InstitutionMemberWhereInput> {
+  if (audience.startsWith('segment:')) {
+    const f = await segmentFilterFor(institutionId, audience.slice('segment:'.length))
+    return f ? segmentWhere(institutionId, f) : { id: '__none__' }
+  }
+  return audienceWhere(institutionId, audience as (typeof AUDIENCES)[number]['key'])
+}
+
+export function audienceWhere(institutionId: string, audience: (typeof AUDIENCES)[number]['key'], now = new Date()): Prisma.InstitutionMemberWhereInput {
   const base: Prisma.InstitutionMemberWhereInput = { institutionId, affiliation: { in: ['ALUM', 'STAFF_ALUM'] }, status: { not: 'OPTED_OUT' }, doNotContact: false, emailSuppressedAt: null }
   if (audience === 'joined') return { ...base, status: { in: ['CLAIMED', 'ACTIVE'] } }
   if (audience === 'not_joined') return { ...base, status: { in: ['IMPORTED', 'INVITED'] } }
@@ -42,7 +53,7 @@ export function audienceWhere(institutionId: string, audience: Audience, now = n
 }
 
 export async function audienceCount(institutionId: string, audience: Audience) {
-  return prisma.institutionMember.count({ where: audienceWhere(institutionId, audience) })
+  return prisma.institutionMember.count({ where: await resolveAudience(institutionId, audience) })
 }
 
 export async function saveDraft(args: { institutionId: string; id?: string | null; subject: string; body: string; audience: Audience; createdBy: string }) {
@@ -71,7 +82,7 @@ export async function listComposed(institutionId: string) {
   return Promise.all(
     rows.map(async (r) => {
       const audience = isAudience(r.audience) ? r.audience : 'all'
-      const remaining = await prisma.institutionMember.count({ where: { ...audienceWhere(institutionId, audience), outreachSends: { none: { campaignId: r.id } } } })
+      const remaining = await prisma.institutionMember.count({ where: { AND: [await resolveAudience(institutionId, audience), { outreachSends: { none: { campaignId: r.id } } }] } })
       return { ...r, audience, sent: r._count.sends, remaining }
     }),
   )
@@ -87,7 +98,7 @@ export async function sendNextBatch(args: { institutionId: string; campaignId: s
   const bad = unknownFields(`${c.subject} ${c.body}`)
   if (bad.length) return { error: `Fix the merge fields first: ${bad.map((b) => `{{${b}}}`).join(', ')}.` }
   const members = await prisma.institutionMember.findMany({
-    where: { ...audienceWhere(args.institutionId, c.audience), outreachSends: { none: { campaignId: c.id } } },
+    where: { AND: [await resolveAudience(args.institutionId, c.audience), { outreachSends: { none: { campaignId: c.id } } }] },
     orderBy: { id: 'asc' },
     take: BATCH,
     select: { id: true },

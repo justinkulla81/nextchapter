@@ -19,7 +19,7 @@ export const OPEN_DATA_LICENSES = {
 
 /** The scripts, in the order the README runs them, with what each produces. */
 export const OPEN_DATA_SCRIPTS: { file: string; produces: string }[] = [
-  { file: 'code/01_wc_index_monthly.py', produces: 'White-Collar Long-Term Unemployment Index, monthly 2015 to 2026 (data/wc-index.csv)' },
+  { file: 'code/01_wc_index_monthly.py', produces: 'White-Collar Long-Search Index, monthly 2015 to 2026 (data/wc-index.csv)' },
   { file: 'code/02_cps_breakdowns.py, code/03_cps_aggregates.py', produces: 'Breakdowns by occupation, industry, age; older workers; graduates; blue-collar' },
   { file: 'code/04_margins_of_error.py', produces: '90% margins of error by the BLS generalized variance method' },
   { file: 'code/05_seasonal_sensitivity.py, code/x13_wcltu.spc', produces: 'Seasonal-adjustment robustness: fixed factors, X-13ARIMA-SEATS, STL, 12-month average' },

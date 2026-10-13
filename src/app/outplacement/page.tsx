@@ -33,12 +33,12 @@ const TIER_ROWS: { label: string; core: string; plus: string; premium: string }[
 export const metadata: Metadata = {
   title: 'Outplacement That Relaunches Careers',
   description:
-    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — 35-40% less than incumbent outplacement providers.',
+    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
   alternates: { canonical: '/outplacement' },
   openGraph: {
     title: 'Outplacement That Relaunches Careers — NextChapter',
     description:
-      'Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — 35-40% less than incumbent outplacement providers.',
+      'Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
     url: 'https://launchyournextchapter.com/outplacement',
   },
 }
@@ -49,7 +49,7 @@ const jsonLd = {
   name: 'NextChapter for Outplacement',
   serviceType: 'Outplacement',
   description:
-    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — 35-40% less than incumbent outplacement providers.',
+    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
   provider: { '@type': 'Organization', name: 'NextChapter' },
 }
 
@@ -104,13 +104,13 @@ export default async function OutplacementPage() {
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
               Your departing employees get a verified Executive Dossier and real coaching. You get live
-              reporting, compliance documentation, and a bill that&apos;s 35% smaller.
+              reporting, compliance documentation, and an estimated 35% smaller bill.
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
               See the labor-market backdrop your cohorts are entering in our monthly{' '}
               <Link href="/reports/latest" className="text-brand underline underline-offset-4">White Collar Employment Report</Link>{' '}
               and the{' '}
-              <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Term Unemployment Index</Link>.
+              <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Search Index</Link>.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ export default async function OutplacementPage() {
             </p>
           </div>
           <div>
-            <p className="font-semibold text-navy">35–40% less than the incumbents.</p>
+            <p className="font-semibold text-navy">An estimated 35–40% less than the incumbents.</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               We don&apos;t carry their offices or their sales structure.
             </p>
@@ -215,7 +215,7 @@ export default async function OutplacementPage() {
             </table>
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            For reference: LHH executive outplacement typically runs $8,000–15,000+ per person; LHH/Randstad
+            For reference, industry estimates (not vendor quotes): LHH executive outplacement typically runs $8,000–15,000+ per person; LHH/Randstad
             RiseSmart mid-level $3,500–7,000; virtual-first providers (Careerminds, INTOO) $1,000–3,000.
           </p>
 

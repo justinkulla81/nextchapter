@@ -70,6 +70,7 @@
     "verify:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he-demo.ts",
     "verify:email-safety": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-email-safety.ts",
     "verify:v2": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-v2.ts",
+    "verify:lifecycle": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-lifecycle.ts",
     "check:he-screens": "node scripts/higher-ed/render/run.mjs"
   },
   "dependencies": {

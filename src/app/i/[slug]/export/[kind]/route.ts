@@ -4,9 +4,10 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { suppressionRows, updatesExportRows } from '@/lib/higher-ed/views'
 import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { wioaOn, wioaReport } from '@/lib/higher-ed/programs'
+import { etplRows, wioaOn, wioaReport } from '@/lib/higher-ed/programs'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
+const ETPL_COLUMNS = ['program', 'cip_code', 'credential_type', 'credential', 'hours', 'cost', 'modality', 'prerequisites', 'enrolled', 'completed', 'completion_rate', 'credential_rate', 'placement_rate_180d'] as const
 const WIOA_COLUMNS = ['first_name', 'last_name', 'email', 'program', 'cohort', 'funding', 'status', 'enrolled', 'completed', 'credential', 'placed', 'employer'] as const
 const SUPPRESSION_COLUMNS = ['external_id', 'email', 'first_name', 'last_name', 'since', 'grace_ends'] as const
 
@@ -52,6 +53,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const rows = await suppressionRows(ctx)
     captureServerEvent(ctx.userId, 'he_suppression_exported', { institutionId: ctx.institution.id, rows: rows.length })
     return new NextResponse(csv(SUPPRESSION_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-do-not-solicit-${stamp}.csv`) })
+  }
+
+  if (kind === 'etpl') {
+    const ctx = await requireWorkspace(slug, 'workforce')
+    const rows = (await etplRows(ctx.institution.id)).map((r) => ({
+      program: r.name, cip_code: r.cipCode, credential_type: r.credentialType, credential: r.credential, hours: r.hours, cost: r.costCents / 100, modality: r.modality,
+      prerequisites: r.prerequisites, enrolled: r.enrolled, completed: r.completed, completion_rate: r.completionRate === null ? null : Math.round(r.completionRate * 1000) / 10,
+      credential_rate: r.credentialRate === null ? null : Math.round(r.credentialRate * 1000) / 10, placement_rate_180d: r.placementRate === null ? null : Math.round(r.placementRate * 1000) / 10,
+    }))
+    captureServerEvent(ctx.userId, 'he_etpl_exported', { institutionId: ctx.institution.id, programs: rows.length })
+    return new NextResponse(csv(ETPL_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-etpl-${stamp}.csv`) })
   }
 
   if (kind === 'wioa') {

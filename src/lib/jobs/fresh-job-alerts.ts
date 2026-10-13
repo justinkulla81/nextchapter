@@ -10,6 +10,7 @@ import { postedAgo } from '@/lib/jobs/competition'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
 import FreshJobAlertEmail from '@/emails/fresh-job-alert'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -89,7 +90,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
         postedAgo: postedAgo(p),
       })),
       boardUrl: `${appUrl}/dashboard/find-my-job?view=fresh&src=fresh_job_alert#job-recommendations`,
-      unsubscribeUrl: `${appUrl}/api/unsubscribe/${candidate.id}?type=freshJobAlerts`,
+      unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'freshJobAlerts'),
     }),
   })
   if (error) {

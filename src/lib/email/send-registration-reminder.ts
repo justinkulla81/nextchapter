@@ -5,6 +5,7 @@ import CompleteRegistrationReminderEmail from '@/emails/complete-registration-re
 import { GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
 import { GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/dossier-competencies'
 import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendRegistrationReminderEmail({
   candidateId,
@@ -26,7 +27,7 @@ export async function sendRegistrationReminderEmail({
     if (!candidate.email) return { sent: false as const }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id)
     const composite = await computeMarketRealityCompositeGrade(candidate.id)
 
     const resend = createResend(process.env.RESEND_API_KEY)

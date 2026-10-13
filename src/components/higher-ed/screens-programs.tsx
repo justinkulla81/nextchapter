@@ -30,6 +30,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { StatTile } from './StatTile'
 import { ApplyToCohort, CapstoneControls, CapstoneForm, ClientForm, CohortForm, EnrollmentControls, ProgramForm } from './ProgramForms'
+import { CohortRulesForm, LearnerForm, ProgressControls } from './LifecycleForms'
+import { completionBlocker } from '@/lib/higher-ed/programs'
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { status?: string } }
 
@@ -97,7 +99,17 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
                       <span className="text-muted-foreground">
                         {c._count.enrollments}
                         {c.seats ? ` of ${c.seats}` : ''} enrolled · {c.faculty ? (c.faculty.fullName ?? c.faculty.invitedEmail) : 'No instructor yet'}
+                        {c.minAttendancePct && c.sessionsTotal ? ` · complete at ${c.minAttendancePct}% of ${c.sessionsTotal} sessions` : ''}
+                        {c.requiresCapstone ? ' + capstone' : ''}
                       </span>
+                      {edit && (
+                        <details className="w-full">
+                          <summary className="cursor-pointer text-xs text-muted-foreground">Completion rule</summary>
+                          <div className="pt-2">
+                            <CohortRulesForm slug={ctx.institution.slug} cohortId={c.id} defaults={{ sessionsTotal: c.sessionsTotal, minAttendancePct: c.minAttendancePct, requiresCapstone: c.requiresCapstone }} />
+                          </div>
+                        </details>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -171,6 +183,7 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
   ])
   const count = (s: string) => counts.find((c) => c.status === s)?._count._all ?? 0
   const edit = canEditExec(ctx)
+  const cohortOptions = (await listPrograms(ctx.institution.id)).flatMap((p) => p.cohorts.filter((c) => !c.endsAt || c.endsAt > new Date()).map((c) => ({ id: c.id, label: `${p.name} · ${c.name}` })))
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -189,6 +202,14 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
           )
         })}
       </nav>
+      {edit && cohortOptions.length > 0 && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Enroll someone who isn’t an alum (a client’s employee, a community member)</summary>
+          <div className="pt-3">
+            <LearnerForm slug={ctx.institution.slug} cohorts={cohortOptions} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
+          </div>
+        </details>
+      )}
       {rows.length ? (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {rows.map((e) => (
@@ -209,6 +230,12 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
                 </p>
                 {e.note && <p className="text-xs">&ldquo;{e.note}&rdquo;</p>}
               </div>
+              {edit && e.status === 'ENROLLED' && (e.cohort.sessionsTotal !== null || e.cohort.requiresCapstone) && (
+                <div className="w-full">
+                  <ProgressControls slug={ctx.institution.slug} enrollmentId={e.id} attended={e.sessionsAttended} sessions={e.cohort.sessionsTotal} capstone={e.capstoneDone} needsCapstone={e.cohort.requiresCapstone} />
+                  {completionBlocker(e.cohort, e) && <p className="text-xs text-muted-foreground">Before completing: {completionBlocker(e.cohort, e)}</p>}
+                </div>
+              )}
               {edit && (
                 <EnrollmentControls
                   slug={ctx.institution.slug}
@@ -405,6 +432,14 @@ export async function CandidatePrograms({ ctx }: Props) {
                 </span>
                 <span className="text-muted-foreground">
                   {e.status === 'COMPLETED' ? `Completed${e.credentialName ? `: ${e.credentialName}` : ''}` : `${STATUS_LABELS[e.status]} · starts ${fmt(e.cohort.startsAt)}`}
+                  {e.credentialId && (
+                    <>
+                      {' · '}
+                      <Link href={`/credentials/${e.credentialId}`} className="text-primary hover:underline">
+                        View and share credential
+                      </Link>
+                    </>
+                  )}
                 </span>
               </li>
             ))}

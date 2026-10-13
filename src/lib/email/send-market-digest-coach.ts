@@ -4,6 +4,7 @@ import MarketDigestCoachEmail, { coachDigestSummary } from '@/emails/market-dige
 import type { CoachWeeklyDigest } from '@/lib/coach/weekly-digest'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendMarketDigestCoachEmail(
   coach: { id: string; fullName: string; workEmail: string; accessToken: string },
@@ -20,7 +21,7 @@ export async function sendMarketDigestCoachEmail(
   // The digest shows each consented client's week and new roles; the button
   // takes the coach to the full caseload.
   const caseloadUrl = `${appUrl}/support/coach/caseload/${coach.accessToken}`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/coach/${coach.id}`
+  const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'coach', coach.id)
 
   const clients = digest.clients.map((c) => ({
     ...c,

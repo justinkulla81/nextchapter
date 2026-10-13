@@ -47,6 +47,11 @@ export async function saveProgramForm(slug: string, id: string | null, _prev: Fo
     wioaEligible: f.get('wioaEligible') === 'on',
     isActive: f.get('isActive') !== 'off',
     createdBy: ctx.email ?? ctx.userId,
+    skills: str(f, 'skills').split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
+    cipCode: str(f, 'cipCode') || null,
+    hours: str(f, 'hours') && Number.isInteger(Number(str(f, 'hours'))) ? Number(str(f, 'hours')) : null,
+    credentialType: ['certificate', 'industry_certification', 'badge', 'degree'].includes(str(f, 'credentialType')) ? str(f, 'credentialType') : null,
+    prerequisites: str(f, 'prerequisites') || null,
   })
   if ('error' in r) return { error: r.error }
   captureServerEvent(ctx.userId, 'he_program_saved', { institutionId: ctx.institution.id, programId: r.id, isNew: !id, priceCents, wioaEligible: f.get('wioaEligible') === 'on' })
