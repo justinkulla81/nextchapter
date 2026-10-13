@@ -13,6 +13,7 @@ import { NewsFeed } from '@/components/news/NewsFeed'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
 import { canonical } from '@/lib/seo/canonical'
+import { HERO_STATS } from '@/lib/marketing/hero-stats'
 import { organizationJsonLd, organizationRef } from '@/lib/seo/jsonld'
 
 // The page is otherwise static. Publishing News in the admin clears it at
@@ -34,13 +35,6 @@ const HOMEPAGE_STATS = [
   { value: '15', label: 'Free expert guides' },
   { value: 'Free', label: 'For candidates, always' },
   { value: '4', label: 'Step verified process' },
-]
-
-const heroStats = [
-  { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
-  { value: '24.2%', label: 'Professionals stuck in a mid-career stall' },
-  { value: '15–20%', label: 'Pay cut after an AI-driven layoff' },
-  { value: '8%', label: 'Lower household wealth, 6 years after a layoff' },
 ]
 
 const THREE_BEATS = [
@@ -130,13 +124,18 @@ export default async function Home() {
           </div>
 
           <div className="mt-16 grid gap-4 sm:grid-cols-4">
-            {heroStats.map((stat) => (
+            {HERO_STATS.map((stat) => (
               <div
                 key={stat.label}
                 className="rounded-xl border border-light-gray bg-off-white px-4 py-6 text-center"
               >
                 <p className="text-2xl font-bold text-navy">{stat.value}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  <Link href={stat.sourceUrl} className="underline underline-offset-2">
+                    {stat.source}
+                  </Link>
+                </p>
               </div>
             ))}
           </div>
