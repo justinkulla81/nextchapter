@@ -45,8 +45,8 @@ const items = [
     ...base,
     // Distinct slug so the correction is its own card; both link to the report.
     newsSlug: 'displacement-report-september-2026-v1-2-correction',
-    title: 'Correction and Q3 addendum: NextChapter Displacement Report v1.2',
-    newsTitle: 'Correction and Q3 addendum: NextChapter Displacement Report v1.2',
+    title: 'Correction and Q3 addendum: NextChapter White Collar Employment Report v1.2',
+    newsTitle: 'Correction and Q3 addendum: NextChapter White Collar Employment Report v1.2',
     newsPublishedAt: new Date('2026-10-06T12:00:00Z'),
     newsBlurb:
       'Version 1.2 corrects the SEC AI-attribution count (16 of 170 restructuring filings, up from 2), renames the index to the White-Collar Long-Term Unemployment Index, and adds a Q3 2026 quarterly addendum.',
@@ -54,8 +54,8 @@ const items = [
   {
     ...base,
     newsSlug: 'displacement-report-september-2026-v1-6',
-    title: 'Displacement Report v1.6: immigration, college AI programs, retraining and a correction',
-    newsTitle: 'Displacement Report v1.6: immigration, college AI programs, retraining and a correction',
+    title: 'NextChapter White Collar Employment Report v1.6: immigration, college AI programs, retraining and a correction',
+    newsTitle: 'NextChapter White Collar Employment Report v1.6: immigration, college AI programs, retraining and a correction',
     newsPublishedAt: new Date('2026-10-06T20:00:00Z'),
     newsBlurb:
       "Version 1.6 finds the rise in long job searches is among U.S.-born professionals, not explained by immigration, and corrects our reading of older workers' participation. It also adds career-ladder and training data, AI programs at colleges by career stage, WIOA retraining results and a monthly AI use-case watch.",
@@ -63,8 +63,8 @@ const items = [
   {
     ...base,
     newsSlug: 'displacement-report-september-2026-v1-72',
-    title: 'Displacement Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
-    newsTitle: 'Displacement Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
+    title: 'NextChapter White Collar Employment Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
+    newsTitle: 'NextChapter White Collar Employment Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
     newsPublishedAt: new Date('2026-10-07T20:00:00Z'),
     newsBlurb:
       "The report finds the rise in long job searches is among U.S.-born professionals, not explained by immigration, and corrects our reading of older workers' participation. Version 1.7 adds a check for displacement hidden inside jobs (none found so far), a feature on why AI capability is outrunning organizational change, and a standing change-record policy. Version 1.71 tests AI exposure against outcomes across occupations, tracks bachelor's and master's holders by experience, and adds college costs and student debt. Version 1.72 adds a total factor productivity analysis: no sign of AI in underlying productivity yet. It also includes career-ladder and training data, AI programs at colleges by career stage, WIOA retraining results and a monthly AI use-case watch.",

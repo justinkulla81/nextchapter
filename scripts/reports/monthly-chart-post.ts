@@ -253,7 +253,7 @@ const yearTicks = (from: number, to: number, step: number) =>
 
 const wcIndexChart: ChartDef = {
   id: 'wc-index',
-  label: 'White-Collar Long-Term Unemployment Index, 2019 = 100, monthly 2015 to latest',
+  label: 'White-Collar Long-Search Index, 2019 = 100, monthly 2015 to latest',
   build({ edition, dataDir }) {
     const rows = readWcSeries(dataDir, edition.key)
     const last = [...rows].reverse().find((r) => r.index !== null)!
@@ -265,7 +265,7 @@ const wcIndexChart: ChartDef = {
     const ticksIdx = Array.from({ length: yMaxIdx / stepIdx + 1 }, (_, i) => i * stepIdx)
     return {
       title: `Long-term unemployment among managers and professionals is ${above}% above its 2019 average`,
-      subtitle: `White-Collar Long-Term Unemployment Index: white-collar workers unemployed 27 weeks or more as a share of the white-collar labor force. 2019 average = 100. Latest: ${Math.round(last.index!)} in ${lastLabel}.`,
+      subtitle: `White-Collar Long-Search Index: white-collar workers unemployed 27 weeks or more as a share of the white-collar labor force. 2019 average = 100. Latest: ${Math.round(last.index!)} in ${lastLabel}.`,
       source: `Source: NextChapter calculation from U.S. Census Bureau Current Population Survey microdata, through ${lastLabel}. Seasonally adjusted, 3-month moving average. The gap is October 2025, which was not collected during the federal shutdown.`,
       moeNote: 'Shaded band: 90% margin of error, about ±11% of the index level (BLS generalized variance method).',
       draw: (box, s) => lineChart(box, s, [{ name: 'Index', color: C.blue, points: rows.map((r) => ({ x: r.x, y: r.index })) }], {
