@@ -2262,6 +2262,11 @@ model WorkSample {
   sampleType       String // "case_study" | "writing" | "code" | "design" | "presentation" | "other"
   fileUrl          String?
   externalUrl      String?
+  // sampleType "ai_workflow": hands-on AI use in the candidate's own function,
+  // shown with a before and after result.
+  aiToolsUsed      String?
+  beforeMetric     String?
+  afterMetric      String?
   verified         Boolean  @default(false)
   verifiedByEmail  String?
   createdAt        DateTime @default(now())

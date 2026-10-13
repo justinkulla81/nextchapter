@@ -188,3 +188,23 @@ describe('segments', () => {
     expect(deriveSegments({ ...base, laidOff: false, seniorityBand: 'EXECUTIVE' })).toEqual([])
   })
 })
+
+import { cushionMonths, uiWeeksLeft } from '@/lib/outcomes/runway'
+
+describe('runway', () => {
+  it('estimates unemployment weeks left and says when unknown', () => {
+    expect(uiWeeksLeft({ maxWeeks: 26, durationVaries: false, weeksSinceLastJob: 10 }).weeksLeft).toBe(16)
+    expect(uiWeeksLeft({ maxWeeks: 26, durationVaries: false, weeksSinceLastJob: 40 }).exhausted).toBe(true)
+    expect(uiWeeksLeft({ maxWeeks: null, durationVaries: null, weeksSinceLastJob: 3 }).known).toBe(false)
+    expect(uiWeeksLeft({ maxWeeks: 26, durationVaries: null, weeksSinceLastJob: null }).known).toBe(false)
+  })
+  it('warns when a state varies its weeks', () => {
+    expect(uiWeeksLeft({ maxWeeks: 20, durationVaries: true, weeksSinceLastJob: 1 }).note).toMatch(/unemployment rate/)
+  })
+  it('computes cushion months and handles income covering expenses', () => {
+    expect(cushionMonths({ savingsUsd: 30000, monthlyExpensesUsd: 6000, monthlyIncomeUsd: 1000 }).months).toBeCloseTo(6)
+    expect(cushionMonths({ savingsUsd: 1000, monthlyExpensesUsd: 3000, monthlyIncomeUsd: 3000 }).coveredByIncome).toBe(true)
+    expect(cushionMonths({ savingsUsd: -1, monthlyExpensesUsd: 3000, monthlyIncomeUsd: 0 }).months).toBeNull()
+    expect(cushionMonths({ savingsUsd: 1000, monthlyExpensesUsd: 0, monthlyIncomeUsd: 0 }).months).toBeNull()
+  })
+})

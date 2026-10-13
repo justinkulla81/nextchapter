@@ -8,6 +8,9 @@ import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { RunwayCard, type RunwayStateFacts } from '@/components/dashboard/RunwayCard'
+import { STATE_UI } from '@/lib/data/state-ui'
+import { weeksUnemployed } from '@/lib/outcomes/duration-bucket'
 
 export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
 
@@ -139,6 +142,22 @@ export default async function BenefitsPage() {
   const actionItems = getBenefitsActionPlanItems(profile.benefitsPressures)
   const completedItemIds = new Set(profile.benefitsActionPlanCompletedItems)
 
+  const code = profile.currentState && profile.currentState.length === 2 ? profile.currentState.toUpperCase() : null
+  const ui = code ? STATE_UI[code] : undefined
+  const runwayFacts: RunwayStateFacts | null = ui
+    ? {
+        stateCode: ui.code,
+        agencyName: ui.agencyName.value,
+        fileUrl: ui.fileUrl.value,
+        maxWeeks: ui.maxWeeks.value,
+        maxWeeklyBenefit: ui.maxWeeklyBenefit.value,
+        durationVaries: ui.durationVaries.value,
+        severanceNote: ui.severance.value,
+        asOf: ui.maxWeeks.asOf,
+      }
+    : null
+  const weeksSinceLastJob = weeksUnemployed(profile.lastJobEndedAt, new Date())
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -150,6 +169,8 @@ export default async function BenefitsPage() {
         </p>
         <PageHeaderBoxes pageKey="benefits" candidateId={profile.id} />
       </div>
+
+      <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
 
       {profile.benefitsPressures.length === 0 ? (
         <BenefitsPressureForm />

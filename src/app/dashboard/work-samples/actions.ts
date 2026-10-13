@@ -12,7 +12,7 @@ import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export type FormState = { error?: string } | undefined
 
-const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other']
+const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other', 'ai_workflow']
 const PORTFOLIO_TYPES = ['writing', 'code', 'design', 'other', 'none']
 
 export async function submitWorkSampleType(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -111,12 +111,22 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
       problemStatement: (formData.get('problemStatement') as string | null) || null,
       candidateRole: (formData.get('candidateRole') as string | null) || null,
       outcome: (formData.get('outcome') as string | null) || null,
+      aiToolsUsed: sampleType === 'ai_workflow' ? ((formData.get('aiToolsUsed') as string | null)?.trim() || null) : null,
+      beforeMetric: sampleType === 'ai_workflow' ? ((formData.get('beforeMetric') as string | null)?.trim() || null) : null,
+      afterMetric: sampleType === 'ai_workflow' ? ((formData.get('afterMetric') as string | null)?.trim() || null) : null,
       fileUrl,
       externalUrl,
     },
   })
 
   captureServerEvent(profile.id, 'work_sample_added', { sampleId: sample.id, sampleType })
+  if (sampleType === 'ai_workflow') {
+    captureServerEvent(profile.id, 'portfolio_ai_artifact_created', {
+      sampleId: sample.id,
+      hasBefore: Boolean(sample.beforeMetric),
+      hasAfter: Boolean(sample.afterMetric),
+    })
+  }
 
   try {
     await applyWorkSampleUploadedRewrite(profile.id)
