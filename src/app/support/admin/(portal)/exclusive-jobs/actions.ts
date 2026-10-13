@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { invalidateActiveByLevel } from '@/lib/admin/exclusive-jobs-counts'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -64,6 +65,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
 
   captureServerEvent(posting.id, 'exclusive_job_posted', { companyName: input.companyName })
 
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -71,6 +73,7 @@ export async function archiveExclusiveJobPosting(postingId: string) {
   await requireAdmin()
 
   await prisma.exclusiveJobPosting.update({ where: { id: postingId }, data: { archivedAt: new Date() } })
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -86,6 +89,7 @@ export async function approveJobPosting(postingId: string) {
     source: posting.source,
     companyName: posting.companyName,
   })
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
   // Also refreshes the "Job recommendations" section on every candidate
   // detail page — approving there is a common path into this action too.
@@ -106,6 +110,7 @@ export async function rejectJobPosting(postingId: string, formData: FormData) {
     companyName: posting.companyName,
     reason,
   })
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -113,6 +118,7 @@ export async function reconfirmJobPostingAdmin(postingId: string) {
   await requireAdmin()
 
   await reconfirmJobBoardPosting(postingId)
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -189,6 +195,7 @@ export async function approveAllPendingJobPostings() {
       bulk: true,
     })
   }
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -213,6 +220,7 @@ export async function approveAllPendingForCompany(companyName: string) {
       bulk: true,
     })
   }
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -237,6 +245,7 @@ export async function rejectAllPendingJobPostings() {
       bulk: true,
     })
   }
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
 
@@ -261,5 +270,6 @@ export async function rejectAllPendingForCompany(companyName: string) {
       bulk: true,
     })
   }
+  invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }
