@@ -86,6 +86,7 @@ export default function HowItWorksPage() {
             alt="NextChapter Success Dashboard showing a Market Reality Assessment of B, an A Weekly Search Score, a streak, and completed Search Actions with their point values"
             width={1040}
             height={815}
+            sizes="(min-width: 768px) 768px, 100vw"
             className="w-full"
           />
         </div>
