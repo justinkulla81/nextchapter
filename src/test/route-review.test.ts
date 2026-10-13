@@ -13,8 +13,10 @@ describe('routes to confirm', () => {
     expect(src).toMatch(/RATED[^=]*=\s*\['STRONG', 'MEDIUM'\]/)
     expect(rules).toMatch(/r\.strength !== 'STRONG' && r\.strength !== 'MEDIUM'/)
   })
-  it('only picks routes nobody has asked about or confirmed', () => {
+  it('only picks routes nobody has asked about', () => {
     expect(src).toMatch(/status:\s*'IDENTIFIED'/)
+    // ...which is exactly the set the door rules refuse to count.
+    expect(rules).toMatch(/r\.status !== 'ASKED' && r\.status !== 'INTRO_MADE'/)
   })
   it('targets organizations, not people', () => {
     expect(src).toMatch(/targetOrgId:\s*\{\s*not:\s*null\s*\}/)

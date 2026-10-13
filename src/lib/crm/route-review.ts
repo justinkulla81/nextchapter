@@ -3,11 +3,11 @@ import type { CrmIntroPathStrength, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { orgSlug } from '@/lib/crm/org-slug'
 
-// Routes in that have never been checked. A route counts as a way in once it is
-// rated STRONG or MEDIUM (see warm-doors-rules.ts), but a route still at
-// IDENTIFIED has not been asked about or confirmed by anyone — most were seeded
-// from a spreadsheet note ("route via X"). They sit on the Review List until a
-// person confirms, re-rates, or declines them on the organization page.
+// Routes in that nobody has acted on. A route counts as a warm way in only once
+// someone has asked for the intro (status ASKED or INTRO_MADE — see
+// warm-doors-rules.ts). One still at IDENTIFIED is a note, usually seeded from a
+// spreadsheet ("route via X"). Rated ones sit on the Review List until a person
+// asks, re-rates, or declines them on the organization page.
 //
 // Grouped by target organization: one org with two connectors is one decision.
 

@@ -214,15 +214,15 @@ export default async function CrmNeedsCompletionPage({
         <section aria-labelledby="route-reviews">
           <h2 id="route-reviews" className="text-lg font-semibold">Routes in to confirm ({routeReviews.length})</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Ways in that are rated but that nobody has asked about yet. They count as a warm way in for a candidate who
-            applies there, so check each one: open the organization, then confirm it, re-rate it, or decline it.
+            Ways in that are rated but that nobody has asked about yet. They do not count as a warm way in for a
+            candidate until someone has asked: open the organization, then mark it asked, re-rate it, or decline it.
           </p>
           <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
             {routeReviews.map((g) => (
               <li key={g.org.id} className="px-3 py-2 text-sm">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <Link href={g.org.href} className="font-medium hover:underline">{g.org.name}</Link>
-                  <Link href={g.org.href} className="text-xs text-muted-foreground underline">Open to confirm</Link>
+                  <Link href={g.org.href} className="text-xs text-muted-foreground underline">Open to act</Link>
                 </div>
                 <ul className="mt-1 space-y-1">
                   {g.routes.map((r) => (
