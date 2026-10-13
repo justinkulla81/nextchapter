@@ -1,12 +1,7 @@
 import 'server-only'
-<<<<<<< HEAD
 import { createResend } from '@/lib/email/resend-client'
-import MarketDigestCoachEmail from '@/emails/market-digest-coach'
-=======
-import { Resend } from 'resend'
 import MarketDigestCoachEmail, { coachDigestSummary } from '@/emails/market-digest-coach'
 import type { CoachWeeklyDigest } from '@/lib/coach/weekly-digest'
->>>>>>> 186c3ee5 (Coach weekly digest: per-client sections with their week, flags and new strong-fit roles)
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 
 export async function sendMarketDigestCoachEmail(
@@ -26,9 +21,6 @@ export async function sendMarketDigestCoachEmail(
   const caseloadUrl = `${appUrl}/support/coach/caseload/${coach.accessToken}`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/coach/${coach.id}`
 
-<<<<<<< HEAD
-  const resend = createResend(process.env.RESEND_API_KEY)
-=======
   const clients = digest.clients.map((c) => ({
     ...c,
     fullViewUrl: `${appUrl}${c.fullViewPath}`,
@@ -41,8 +33,7 @@ export async function sendMarketDigestCoachEmail(
         ? `${summary.needAttention} of your clients ${summary.needAttention === 1 ? 'needs' : 'need'} a conversation, ${summary.newRoles} new role${summary.newRoles === 1 ? '' : 's'} to send`
         : `Your clients this week: ${summary.newRoles} new role${summary.newRoles === 1 ? '' : 's'} to send`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
->>>>>>> 186c3ee5 (Coach weekly digest: per-client sections with their week, flags and new strong-fit roles)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
