@@ -162,16 +162,16 @@ How it works (including a "Help for wherever you are" section with each stage's 
 ## 12. What was closed, and what is still open
 
 **Closed**
-- Pay benchmark and review prep now exist (Know your worth, Build your case) and use Track Record, What I Need and Benefits priorities, which had no use before.
-- The daily pop-up now reads the search pattern (no "apply to N" when applications are not working or the search is casual).
-- The phone's bottom bar changes with the situation (Plan, Jobs, My worth or New job as the situational tab).
-- Employer hiring funnels appear on the Privacy page for every employer the member has revealed themselves to.
-- Active versus casual is now collected and used.
+- Pay benchmark and review prep exist (Know your worth, Build your case) and use Track Record, What I Need and Benefits priorities.
+- Pay comparison now also uses public wage filings (DOL) matched to the member's role, across employers and for companies they track, labelled as an estimate.
+- Build your case saves the member's ask (number or level, up to three reasons, walk-away, date) and how it went; an upcoming conversation goes into the weekly plan.
+- Weekly point targets follow the pace: half for casual searchers (in steps of 5), everywhere the target is a target, including the weekly effort that feeds the grade. The grade's thresholds are unchanged.
+- Screening answers are used privately to sharpen the member's own plan, and the visibility rules guarantee no affiliation ever sees them.
+- Workforce boards: members can say they work with a board, and the area brief gives boards and members anonymous status of NextChapter members, layoffs, hiring, news and funding.
+- The daily pop-up reads the search pattern; the phone bar follows the situation; employer funnels appear on Privacy; active vs casual is collected and used.
 
 **Still open**
-- **Workforce boards** have no member link in the data model. Joining one is a product decision (how a member connects, what the board may see).
-- **Red Flags and Benefits & Compensation red-line answers** (restrictive covenant, fired for cause, drug test, background check) are collected but deliberately not shown to anyone: surfacing them to recruiters could harm the member and needs a product and legal decision.
-- **Know your worth** compares pay with *advertised* pay (Adzuna); it is an estimate and says so. Company-level offered wages (H-1B filings) are not matched to the member's role yet.
-- **Build your case** is a read-only page; the member's own ask (number, reasons, walk-away) is guidance, not saved.
-- Weekly points targets are the same for casual and active searchers (the pressure emails are skipped for casual searchers, the target itself is not changed).
-- Database change required before deploy: `prisma/manual/2026-10-13-growing-journey.sql`.
+- Boards receive nothing automatically: the admin previews the brief on the workforce board page. A scheduled send to board contacts is an outbound-marketing decision.
+- Member counts are by state, not by county: members have no county on file, so a local board's brief shows the state's members and, separately, the members who connected to that board.
+- Company-level wages are matched to a role by word, since filings name occupations, not titles.
+- Database change required before deploy: `prisma/manual/2026-10-13-growing-journey.sql` and `prisma/manual/2026-10-13-conversations-and-boards.sql`.

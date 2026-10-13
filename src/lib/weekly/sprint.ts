@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
+import { getPace } from '@/lib/weekly/pace'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
@@ -530,7 +531,7 @@ export async function commitWeeklySprint(
 export async function autoPopulateFirstSprint(candidateId: string) {
   if (await hasStartedSprint(candidateId)) return null
 
-  const target = pointsNeededForA(1)
+  const target = pointsNeededForA(1, await getPace(candidateId))
   const remainingBudget = Math.max(0, target - INTRO_WELCOME_BONUS_POINTS)
 
   const suggestions = await getSuggestedActions(candidateId, 1)

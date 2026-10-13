@@ -1463,6 +1463,8 @@ model CandidateProfile {
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
+  careerConversations            CareerConversation[]
+  workforceBoardConnections      WorkforceBoardConnection[]
   // Outplacement portal (Phase 5, §A7) — the one legitimate link between a
   // purchased seat and a real candidate. NEVER read directly by employer-
   // facing code; see src/lib/employer/candidate-identity-guard.ts and
@@ -10931,6 +10933,8 @@ model WorkforceBoard {
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  connections WorkforceBoardConnection[]
 }
 
 /// A county's labor force and unemployment from the BLS Local Area
@@ -13121,4 +13125,68 @@ model JourneyEvent {
   createdAt   DateTime            @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+// A review, raise, promotion or offer conversation the member is preparing for:
+// their ask, their reasons and their walk-away, and how it went. Private to the
+// member (src/lib/review-prep/conversation.ts, /dashboard/review-prep).
+enum CareerConversationKind {
+  REVIEW
+  RAISE
+  PROMOTION
+  OFFER
+}
+
+enum CareerConversationOutcome {
+  PENDING
+  GOT_IT
+  PARTIAL
+  NOT_NOW
+}
+
+model CareerConversation {
+  id           String                    @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind         CareerConversationKind
+  scheduledFor DateTime?
+  /// Dollars a year, when the ask is a number.
+  askAmount    Int?
+  /// A title or level, when the ask is a step up.
+  askLevel     String?
+  /// Up to three reasons, each a result they can point to.
+  reasons      String[]                  @default([])
+  walkAway     String?                   @db.Text
+  outcome      CareerConversationOutcome @default(PENDING)
+  outcomeNote  String?                   @db.Text
+  decidedAt    DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@index([candidateId, createdAt])
+}
+
+// A member who says they are working with a workforce board (a local American
+// Job Center board). Member-initiated. By default the board sees nothing about
+// them; with shareOutcome on, the board's anonymous counts include that they
+// found work (never a name, never below the minimum group size).
+enum WorkforceBoardConnectionStatus {
+  ACTIVE
+  ENDED
+}
+
+model WorkforceBoardConnection {
+  id           String                         @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  boardId      String
+  board        WorkforceBoard                 @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  status       WorkforceBoardConnectionStatus @default(ACTIVE)
+  connectedAt  DateTime                       @default(now())
+  endedAt      DateTime?
+  shareOutcome Boolean                        @default(false)
+  updatedAt    DateTime                       @updatedAt
+
+  @@unique([candidateId, boardId])
+  @@index([boardId, status])
 }

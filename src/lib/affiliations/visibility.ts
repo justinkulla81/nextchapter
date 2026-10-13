@@ -7,7 +7,7 @@
 
 export type AffiliationKind = 'COACH' | 'OUTPLACEMENT' | 'COLLEGE' | 'RECRUITER' | 'WORKFORCE_BOARD' | 'EMPLOYER_FUNNEL'
 
-export type VisibleField = 'journey' | 'stage' | 'activity' | 'searchDetail' | 'dossier' | 'tone' | 'outcome' | 'mood'
+export type VisibleField = 'journey' | 'stage' | 'activity' | 'searchDetail' | 'dossier' | 'tone' | 'outcome' | 'mood' | 'screening'
 
 // NONE: never. AGGREGATE: counts only, never named. MEMBER: this person, by name.
 export type VisibilityLevel = 'NONE' | 'AGGREGATE' | 'MEMBER'
@@ -28,6 +28,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     tone: member('you agree to share with your coach'),
     outcome: member('you agree to share with your coach'),
     mood: none,
+    screening: none,
   },
   OUTPLACEMENT: {
     journey: none,
@@ -38,6 +39,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     tone: none,
     outcome: agg('you turn on sharing your outcome with your former employer'),
     mood: none,
+    screening: none,
   },
   COLLEGE: {
     journey: agg('you share engagement with the college'),
@@ -48,6 +50,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     tone: none,
     outcome: member('you share your outcome with the college'),
     mood: none,
+    screening: none,
   },
   RECRUITER: {
     journey: none,
@@ -58,6 +61,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     tone: none,
     outcome: none,
     mood: none,
+    screening: none,
   },
   WORKFORCE_BOARD: {
     journey: none,
@@ -66,8 +70,9 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     searchDetail: none,
     dossier: none,
     tone: none,
-    outcome: agg(),
+    outcome: agg('you choose to be counted, anonymously, when you find work'),
     mood: none,
+    screening: none,
   },
   EMPLOYER_FUNNEL: {
     journey: none,
@@ -78,6 +83,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     tone: none,
     outcome: none,
     mood: none,
+    screening: none,
   },
 }
 
@@ -99,6 +105,7 @@ export const FIELD_LABELS: Record<VisibleField, string> = {
   tone: 'How you like to be coached',
   outcome: 'When you land a job',
   mood: 'Your mood check-ins',
+  screening: 'Your screening answers',
 }
 
 // What this affiliation can see, in plain words, given what the member has

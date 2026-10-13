@@ -7,6 +7,9 @@ describe('who sees what', () => {
   it('no one ever sees mood check-ins', () => {
     for (const k of kinds) expect(VISIBILITY[k].mood.level).toBe('NONE')
   })
+  it('no one ever sees the screening answers (non-compete, fired for cause, drug test, background check)', () => {
+    for (const k of kinds) expect(VISIBILITY[k].screening.level).toBe('NONE')
+  })
   it('only a coach sees how someone likes to be coached', () => {
     for (const k of kinds.filter((k) => k !== 'COACH')) expect(VISIBILITY[k].tone.level).toBe('NONE')
   })
@@ -17,6 +20,12 @@ describe('who sees what', () => {
   it('recruiters see the Dossier only after the member opts in', () => {
     expect(visibleTo('RECRUITER', new Set())).toEqual([])
     expect(visibleTo('RECRUITER', new Set(['you opt in to the recruiter database']))).toEqual([{ field: 'dossier', level: 'MEMBER' }])
+  })
+  it('a workforce board sees nothing unless the member opts in, and then only anonymous counts', () => {
+    expect(visibleTo('WORKFORCE_BOARD', new Set())).toEqual([])
+    const granted = visibleTo('WORKFORCE_BOARD', new Set(['you choose to be counted, anonymously, when you find work']))
+    expect(granted).toEqual([{ field: 'outcome', level: 'AGGREGATE' }])
+    for (const r of Object.values(VISIBILITY.WORKFORCE_BOARD)) expect(r.level).not.toBe('MEMBER')
   })
   it('a college sees search detail only when the member shares it', () => {
     expect(visibleTo('COLLEGE', new Set()).some((v) => v.field === 'searchDetail')).toBe(false)

@@ -21,7 +21,7 @@ const COLLEGE_NEEDS: Record<InstitutionConsentScope, string> = {
 
 // The member's real connections and, for each, exactly what it can see right now.
 export async function loadAffiliations(candidateId: string): Promise<AffiliationView[]> {
-  const [p, members, seats, employers] = await Promise.all([
+  const [p, members, seats, employers, boards] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: { recruiterDatabaseOptIn: true, coachDossierConsentedAt: true, coach: { select: { fullName: true } } },
@@ -36,6 +36,7 @@ export async function loadAffiliations(candidateId: string): Promise<Affiliation
     }),
     // Employers the member chose to reveal themselves to: they are in that company's hiring funnel.
     prisma.approvedEmployer.findMany({ where: { candidateId }, select: { id: true, employer: { select: { companyName: true } } } }),
+    prisma.workforceBoardConnection.findMany({ where: { candidateId, status: 'ACTIVE' }, select: { id: true, shareOutcome: true, board: { select: { name: true } } } }),
   ])
 
   const out: AffiliationView[] = []
@@ -61,6 +62,14 @@ export async function loadAffiliations(candidateId: string): Promise<Affiliation
       kind: 'OUTPLACEMENT',
       name: s.contract.org.name,
       sees: visibleTo('OUTPLACEMENT', new Set(s.shareOutcomeWithEmployer ? ['you turn on sharing your outcome with your former employer'] : [])),
+    })
+  }
+  for (const b of boards) {
+    out.push({
+      key: `board-${b.id}`,
+      kind: 'WORKFORCE_BOARD',
+      name: b.board.name,
+      sees: visibleTo('WORKFORCE_BOARD', new Set(b.shareOutcome ? ['you choose to be counted, anonymously, when you find work'] : [])),
     })
   }
   for (const e of employers) {

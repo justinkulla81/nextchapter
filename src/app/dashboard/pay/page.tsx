@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PayPosition } from '@/components/market/PayPosition'
+import { OfferedWagesSection } from '@/components/market/OfferedWagesSection'
 import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import { InlineLoadingState } from '@/components/ui/spinner'
@@ -38,6 +39,15 @@ export default async function PayPage() {
         </h2>
         <Suspense fallback={<InlineLoadingState label="Comparing your pay with the market" />}>
           <PayPosition candidateId={profile.id} />
+        </Suspense>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="filed">
+        <h2 id="filed" className="text-lg font-semibold">
+          What employers have filed to pay
+        </h2>
+        <Suspense fallback={<InlineLoadingState label="Looking up public wage filings" />}>
+          <OfferedWagesSection candidateId={profile.id} />
         </Suspense>
       </section>
 

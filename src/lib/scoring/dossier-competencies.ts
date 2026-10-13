@@ -56,6 +56,7 @@ import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/se
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
 import { getCurrentWeekSprintForRender, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import {
   scoreToGrade,
   CATEGORY_ORDER,
@@ -544,7 +545,7 @@ export async function computeWeeklyEngines(
   weeklyPointsTarget: number
   visibilityBonus: number
 }> {
-  const weeklyPointsTarget = pointsNeededForA(weekNumber)
+  const weeklyPointsTarget = pointsNeededForA(weekNumber, await getPace(candidateId))
   const perEngineTarget = weeklyPointsTarget / 4
 
   const sprint = await getCurrentWeekSprintForRender(candidateId)

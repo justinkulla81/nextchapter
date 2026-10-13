@@ -8,6 +8,7 @@ const base: EngagementSignals = {
   tone: null,
   casual: false,
   workingNow: false,
+  redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }, conversations: [],
   weeksInStage: 1,
   gmail: true,
   calendar: true,
@@ -108,6 +109,23 @@ describe('tone changes how it is said, not what', () => {
   })
   it('the lead uses the member tone', () => {
     expect(engagementLead(s({ gmail: false, tone: 'TOUGH_LOVE' }))!.line).toMatch(/Do the work/)
+  })
+})
+
+describe('screening answers sharpen the member own plan', () => {
+  const rf = { restrictiveCovenant: true, firedForCause: true, noDrugTest: true, noBackgroundCheck: true }
+  it('adds a step for each answer while looking, and nothing otherwise', () => {
+    const items = engagementPlanItems(s({ redFlags: rf })).map((i) => i.text).join(' | ')
+    expect(items).toMatch(/non-compete/)
+    expect(items).toMatch(/why you left your last role/)
+    expect(items).toMatch(/background check/)
+    expect(items).toMatch(/drug test/)
+    expect(engagementPlanItems(s({})).map((i) => i.text).join(' ')).not.toMatch(/non-compete|drug test/)
+    expect(engagementPlanItems(s({ redFlags: rf, stage: 'STAYING' })).map((i) => i.text).join(' ')).not.toMatch(/non-compete/)
+    expect(engagementPlanItems(s({ redFlags: rf, stage: 'EXPLORING' })).map((i) => i.text).join(' ')).not.toMatch(/drug test/)
+  })
+  it('is guidance, never a verdict', () => {
+    for (const i of engagementPlanItems(s({ redFlags: rf }))) expect(i.text).not.toMatch(/disqualif|reject|will not hire/i)
   })
 })
 

@@ -25,6 +25,10 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
       createdAt: true,
       coachingStylePreference: true,
       searchIntensity: true,
+      hasRestrictiveCovenant: true,
+      firedForCause: true,
+      willingToTakeDrugTest: true,
+      willingToTakeBackgroundCheck: true,
       jobSearchDifficultyLevel: true,
       journeyDetails: true,
       skillsAssessmentCompletedAt: true,
@@ -33,7 +37,8 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     },
   })
   const since = p.journeyStageChangedAt ?? p.createdAt
-  const [gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+  const [conversations, gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+    prisma.careerConversation.findMany({ where: { candidateId, outcome: 'PENDING', scheduledFor: { not: null } }, select: { kind: true, scheduledFor: true, outcome: true }, take: 10 }),
     isGmailConnected(candidateId),
     prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null }, select: { id: true } }),
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
@@ -52,6 +57,13 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     tone: p.coachingStylePreference,
     casual: isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
     workingNow: workingNowOf(p.journeyDetails),
+    conversations,
+    redFlags: {
+      restrictiveCovenant: p.hasRestrictiveCovenant === true,
+      firedForCause: p.firedForCause === true,
+      noDrugTest: p.willingToTakeDrugTest === false,
+      noBackgroundCheck: p.willingToTakeBackgroundCheck === false,
+    },
     weeksInStage: Math.max(0, Math.floor((now.getTime() - since.getTime()) / WEEK)),
     gmail,
     calendar: !!calendar,

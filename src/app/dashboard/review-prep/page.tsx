@@ -4,6 +4,9 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { buildCase } from '@/lib/review-prep/case'
 import { Button } from '@/components/ui/button'
+import { ConversationForm, EMPTY_DRAFT } from '@/components/dashboard/ConversationForm'
+import { ConversationOutcome } from '@/components/dashboard/ConversationOutcome'
+import { CONVERSATION_KINDS } from '@/lib/review-prep/conversation'
 
 export const metadata: Metadata = { title: 'Build your case' }
 
@@ -18,12 +21,13 @@ const STRENGTH_COPY = {
 // and gives the three things to settle before they walk in.
 export default async function ReviewPrepPage() {
   const profile = await getDashboardProfile()
-  const [trackRecord, workSamples, quotes, completedReferences, learning] = await Promise.all([
+  const [trackRecord, workSamples, quotes, completedReferences, learning, conversations] = await Promise.all([
     prisma.trackRecordResponse.findUnique({ where: { candidateId: profile.id } }),
     prisma.workSample.findMany({ where: { candidateId: profile.id }, orderBy: { createdAt: 'desc' }, take: 5 }),
     prisma.referenceQuote.findMany({ where: { candidateId: profile.id, approvedByCandidateAt: { not: null } }, orderBy: { approvedByCandidateAt: 'desc' }, take: 3 }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
     prisma.learningBadge.findMany({ where: { candidateId: profile.id }, orderBy: { completedAt: 'desc' }, take: 10 }),
+    prisma.careerConversation.findMany({ where: { candidateId: profile.id }, orderBy: { createdAt: 'desc' }, take: 10 }),
   ])
   const c = buildCase({ trackRecord, workSamples, quotes, completedReferences, learning })
 
@@ -32,7 +36,7 @@ export default async function ReviewPrepPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Build your case</h1>
         <p className="mt-1 text-muted-foreground">
-          For a review, a raise or a promotion conversation. This is what you have already recorded; it never leaves your account unless you share it.
+          For a review, a raise, a promotion or an offer conversation. This is what you have already recorded, and what you save here is private to you.
         </p>
         <p className="mt-2 text-sm font-medium text-foreground">{STRENGTH_COPY[c.strength]}</p>
       </div>
@@ -98,27 +102,66 @@ export default async function ReviewPrepPage() {
         </section>
       )}
 
-      <section className="space-y-3" aria-labelledby="settle">
+      <section className="space-y-4" aria-labelledby="settle">
         <h2 id="settle" className="text-lg font-semibold">
           Settle three things before you walk in
         </h2>
-        <ol className="list-decimal space-y-2 pl-5 text-sm">
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
           <li>
-            <span className="font-medium">The ask.</span> A specific number or level, not &ldquo;more&rdquo;. Start from{' '}
+            <span className="font-medium text-foreground">The ask.</span> A specific number or level, not &ldquo;more&rdquo;. Start from{' '}
             <Link href="/dashboard/pay" className="text-primary underline underline-offset-4">
               where your pay sits
             </Link>
             .
           </li>
           <li>
-            <span className="font-medium">Your reasons.</span> Three results from above, each with a number if you can. Lead with the one your manager cares about most.
+            <span className="font-medium text-foreground">Your reasons.</span> Three results from above, each with a number if you can.
           </li>
           <li>
-            <span className="font-medium">Your alternatives.</span> What you will do if the answer is no: another role, another team, a search. Knowing it changes how you ask.
+            <span className="font-medium text-foreground">Your alternatives.</span> What you will do if the answer is no. Knowing it changes how you ask.
           </li>
         </ol>
-        <p className="text-sm text-muted-foreground">Afterward, write down what was agreed and send it the same day.</p>
+        <ConversationForm draft={EMPTY_DRAFT} suggestions={c.results.slice(0, 3)} />
+        <p className="text-sm text-muted-foreground">Afterward, write down what was agreed and send it the same day. What you save here is private to you.</p>
       </section>
+
+      {conversations.length > 0 && (
+        <section className="space-y-3" aria-labelledby="saved">
+          <h2 id="saved" className="text-lg font-semibold">
+            Your conversations
+          </h2>
+          <ul className="space-y-3">
+            {conversations.map((cv) => (
+              <li key={cv.id} className="rounded-lg border border-border p-4">
+                <p className="text-sm font-medium">
+                  {CONVERSATION_KINDS.find((k) => k.key === cv.kind)?.label}
+                  {cv.askAmount ? `: $${cv.askAmount.toLocaleString('en-US')}` : ''}
+                  {cv.askLevel ? `${cv.askAmount ? ', ' : ': '}${cv.askLevel}` : ''}
+                  {cv.scheduledFor ? ` · ${cv.scheduledFor.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}` : ''}
+                </p>
+                <ConversationOutcome id={cv.id} kind={cv.kind} outcome={cv.outcome} />
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-xs text-muted-foreground">Edit</summary>
+                  <div className="mt-3">
+                    <ConversationForm
+                      suggestions={[]}
+                      draft={{
+                        id: cv.id,
+                        kind: cv.kind,
+                        scheduledFor: cv.scheduledFor ? cv.scheduledFor.toISOString().slice(0, 10) : '',
+                        askAmount: cv.askAmount ? String(cv.askAmount) : '',
+                        askLevel: cv.askLevel ?? '',
+                        reasons: [...cv.reasons, '', '', ''].slice(0, 3),
+                        walkAway: cv.walkAway ?? '',
+                      }}
+                    />
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <Button nativeButton={false} render={<Link href="/dashboard/interview-prep" />}>
         Practice the conversation

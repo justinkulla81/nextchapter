@@ -78,7 +78,7 @@ export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
 export type Visibility = 'show' | 'locked' | 'hide'
 
 export type MenuItemKey =
-  | 'strategy' | 'profile' | 'assessments' | 'marketReality' | 'worth'
+  | 'strategy' | 'profile' | 'assessments' | 'marketReality' | 'worth' | 'local'
   | 'references' | 'portfolio' | 'marketing'
   | 'jobs' | 'companies' | 'interviewPrep' | 'offer' | 'marketIntel'
   | 'network' | 'contacts' | 'community' | 'inbox' | 'recruiter' | 'universities' | 'collegeBenefits'
@@ -98,6 +98,7 @@ export const MENU_LABELS: Record<MenuItemKey, string> = {
   assessments: "Skills & Behavioral Assessments",
   marketReality: "Market Reality Report",
   worth: "Know your worth",
+  local: "Your local market",
   references: "My References",
   portfolio: "My Portfolio",
   marketing: "My Marketing Plan",
@@ -151,6 +152,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   marketReality: { pillar: 'plan' },
   // Where your pay sits. In the manage-your-career menus it is the grow / career item instead.
   worth: { pillar: 'plan', modes: { STAYING: H, LANDED: H } },
+  // What is happening where you live: layoffs, hiring, news, other members (anonymous), your workforce board.
+  local: { pillar: 'plan' },
   // Prove it
   references: { pillar: 'prove' },
   portfolio: { pillar: 'prove' },

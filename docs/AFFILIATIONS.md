@@ -40,10 +40,12 @@ account or the Saturday check-in (`appliesAcrossAffiliations`, enforced in
 An employer hiring funnel appears on the Privacy page for every employer the
 member has chosen to reveal themselves to (`ApprovedEmployer`).
 
-A **workforce board** is defined here but has no member link in the data model:
-nothing records that a member is working with a board, and joining one is a
-product decision (how a member connects, what the board may see) that has not
-been made. It will appear on the Privacy page once that link exists.
+A **workforce board** appears for every board the member says they work with
+(`WorkforceBoardConnection`, set on "Your local market"). The connection is the
+member's own. The board sees nothing about them by name; if they choose "count me,
+anonymously, if I find work", an anonymous count of members who found work can
+include them, and only once at least 10 members are included
+(`src/lib/workforce/area-brief.ts`).
 
 ## Rules the tests hold
 
@@ -51,3 +53,21 @@ been made. It will appear on the Privacy page once that link exists.
 - Only a coach sees how someone likes to be coached.
 - Outplacement never sees an individual.
 - A choice made with one affiliation never changes what another sees.
+
+## Screening answers
+
+The Screening Questions (non-compete, fired for cause, drug test, background check) are
+**never shown to any affiliation**. They only sharpen the member's own weekly plan
+(`redFlagGuidance` in `src/lib/journey/engagement.ts`): read your non-compete, prepare an honest
+answer about leaving, know which roles require a background check or drug test. Using them
+with anyone else would need the member's explicit, per-item consent and a legal review.
+
+## Area brief for boards and members
+
+`getAreaBrief` (`src/lib/workforce/area-brief-data.ts`) gives a board, or a member in its state, the
+anonymous picture of the area: NextChapter members by journey and stage and how many started a job
+in the last 90 days, layoffs filed, roles open on the NextChapter job board, local news and (boards only)
+funding a board could apply for. Counts below 10 are never shown, a hidden cell hides its next
+smallest neighbour too, and members in Confidential Search Mode or with a Stealth or Locked
+privacy tier are not counted. Members see it on "Your local market"; the admin sees what a board would
+receive on the workforce board page. Nothing is sent to a board automatically.

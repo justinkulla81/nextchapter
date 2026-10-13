@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { INTENSITY_OPTIONS, NOT_CASUAL_WHERE, intensityFromTiming, isCasualIntensity, workingNowOf } from '@/lib/journey/intensity'
 import { gateMove, engagementLead, stallsOnApplications, type EngagementSignals } from '@/lib/journey/engagement'
 import { journeyPlanItems, shapePlan } from '@/lib/journey/plan'
+import { CASUAL_PACE, paceFor, pointsNeededForA } from '@/lib/weekly/action-effort'
 
 const base: EngagementSignals = {
-  journey: 'LAID_OFF', stage: 'APPLYING', tone: null, casual: false, workingNow: false, weeksInStage: 6,
+  journey: 'LAID_OFF', stage: 'APPLYING', tone: null, casual: false, workingNow: false, redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }, conversations: [], weeksInStage: 6,
   gmail: true, calendar: true, linkedin: true, completedReferences: 3, requestedReferences: 3, referencesTarget: 3,
   openResumeIssues: 0, hasPersonalityProfile: true, skillsAssessmentDone: true, dossierUnlocked: true,
   outreach: 5, applications: 5, interviews: 0, offers: 0,
@@ -75,5 +76,17 @@ describe('a casual plan is light', () => {
   })
   it('does not change other journeys steps', () => {
     expect(journeyPlanItems('LAID_OFF', 'APPLYING', 1).length).toBeGreaterThan(0)
+  })
+})
+
+describe('the weekly point target follows the pace', () => {
+  it('is the same for active searchers as before', () => {
+    expect([1, 2, 3, 4, 5, 9].map((w) => pointsNeededForA(w))).toEqual([60, 75, 90, 105, 120, 120])
+    expect(pointsNeededForA(3, paceFor(false))).toBe(90)
+  })
+  it('is half for casual searchers, in steps of 5, and never zero', () => {
+    expect(CASUAL_PACE).toBe(0.5)
+    expect([1, 2, 3, 4, 5, 9].map((w) => pointsNeededForA(w, paceFor(true)))).toEqual([30, 40, 45, 55, 60, 60])
+    expect(pointsNeededForA(1, 0.01)).toBe(5)
   })
 })

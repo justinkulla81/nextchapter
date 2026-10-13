@@ -35,6 +35,7 @@ import {
   Gift,
   Sparkles,
   LineChart,
+  MapPin,
   Lock,
   Landmark,
   School,
@@ -134,6 +135,7 @@ function buildSections(o: {
     { key: 'assessments', href: '/dashboard/skills-assessments', label: MENU_LABELS.assessments, icon: ClipboardCheck },
     { key: 'marketReality', href: '/dashboard/market-reality', label: MENU_LABELS.marketReality, icon: LineChart },
     { key: 'worth', href: '/dashboard/pay', label: MENU_LABELS.worth, icon: LineChart },
+    { key: 'local', href: '/dashboard/local-market', label: MENU_LABELS.local, icon: MapPin },
     // Prove it
     { key: 'references', href: '/dashboard/references', label: MENU_LABELS.references, icon: Star },
     {

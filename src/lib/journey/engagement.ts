@@ -10,6 +10,7 @@
 // that opens something new".
 
 import type { CoachingStylePreference } from '@prisma/client'
+import { conversationPlanItem } from '@/lib/review-prep/conversation'
 import type { JourneyStage, JourneyType } from './journey'
 import { getJourney, normalizeJourney } from './journey'
 
@@ -21,6 +22,12 @@ export type EngagementSignals = {
   // fractional, interim or part-time work right now. See ./intensity.ts.
   casual: boolean
   workingNow: boolean
+  // Their own answers to the Screening Questions (restrictive covenant, fired
+  // for cause, drug test, background check). Used only to sharpen this
+  // member's own plan; never shown to anyone else (see affiliations/visibility.ts).
+  redFlags: RedFlags
+  // Saved career conversations (review, raise, promotion, offer), for the plan.
+  conversations: { kind: string; scheduledFor: Date | null; outcome: string }[]
   weeksInStage: number
   gmail: boolean
   calendar: boolean
@@ -38,6 +45,10 @@ export type EngagementSignals = {
   interviews: number
   offers: number
 }
+
+export type RedFlags = { restrictiveCovenant: boolean; firedForCause: boolean; noDrugTest: boolean; noBackgroundCheck: boolean }
+
+export const NO_RED_FLAGS: RedFlags = { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }
 
 export type Step = { key: string; label: string; why: string; unlocks: string; href: string }
 
@@ -286,12 +297,37 @@ export function engagementLead(s: EngagementSignals): EngagementLead | null {
   return { level, line, steps, gate }
 }
 
+// Things to get ahead of before they surprise an employer, from the member's
+// own screening answers. Plain guidance for them alone: these are private, and
+// none of it is legal advice. Only while looking, since that is when it bites.
+export function redFlagGuidance(s: EngagementSignals): { text: string; actionType?: string }[] {
+  const looking = s.stage === 'PREPARING' || s.stage === 'APPLYING' || s.stage === 'INTERVIEWING' || s.stage === 'OFFER'
+  if (!looking) return []
+  const out: { text: string; actionType?: string }[] = []
+  if (s.redFlags.restrictiveCovenant) {
+    out.push({ text: 'Read your non-compete or non-solicit before you apply or accept an offer, and have an employment lawyer check what it covers if you are unsure' })
+  }
+  if (s.redFlags.firedForCause) {
+    out.push({ text: 'Prepare a short, honest answer about why you left your last role, and practice saying it calmly', actionType: 'INTERVIEW_PREP' })
+  }
+  if (s.redFlags.noBackgroundCheck) {
+    out.push({ text: 'Find out which roles you are targeting require a background check, and know what yours would show before an employer does' })
+  }
+  if (s.redFlags.noDrugTest) {
+    out.push({ text: 'Check whether the roles you are targeting require a drug test, so you can decide now which ones fit' })
+  }
+  return out
+}
+
 // Plan items for the weekly plan: the gate's new moves, then the top unlock step.
 export function engagementPlanItems(s: EngagementSignals): { text: string; actionType?: string }[] {
   const items: { text: string; actionType?: string }[] = []
   const gate = gateMove(s)
   if (gate) items.push(...gate.items)
   for (const step of unlockSteps(s).slice(0, 2)) items.push({ text: step.label })
+  items.push(...redFlagGuidance(s))
+  const convo = conversationPlanItem(s.conversations)
+  if (convo) items.unshift(convo)
   return items
 }
 

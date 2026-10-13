@@ -28,8 +28,9 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Have one conversation a month | Network with Contacts |
 | Close one skill gap | Learn New Skills |
 | Check your runway and benefits if a layoff worries you | Benefits & Financial Bridge |
+| See what is happening in your area: layoffs, hiring, news | Your local market |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, My References, My Portfolio, My Marketing Plan, Companies, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, Your local market, My References, My Portfolio, My Marketing Plan, Companies, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
 
 **Visible but locked (turn on by updating your status):** Find a Full-time Job, Interview Prep, Got An Offer 🎉, Executive Recruiter.
 
@@ -58,7 +59,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Line up quiet conversations at target companies | Network with Contacts |
 | Look at interim or fractional work | Find Interim Work |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, Your local market, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
 
 **Visible but locked (turn on by updating your status):** Got An Offer 🎉.
 
@@ -81,6 +82,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Activity | Feature (menu) |
 |---|---|
 | Find and fit-check roles | Find a Full-time Job |
+| See who is hiring and what is filed near you, and connect with your workforce board | Your local market |
 | Reach out to people at target companies | Network with Contacts |
 | Keep your contacts and follow-ups straight | My Contacts |
 | Practice interviews | Interview Prep |
@@ -90,7 +92,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Work with the recruiters and colleges you are connected to | Executive Recruiter |
 | Get support when it is hard | I'm Struggling |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, Your local market, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
 
 **Locked:** nothing.
 
@@ -119,7 +121,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Plan how you will negotiate | Know your worth |
 | Keep other opportunities moving | Find a Full-time Job |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, Your local market, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
 
 **Locked:** nothing.
 
@@ -146,7 +148,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Keep your references ready for the background check | My References |
 | Claim your Offer Bonus when you accept | Got An Offer 🎉 |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Know your worth, Your local market, My References, My Portfolio, My Marketing Plan, Find a Full-time Job, Companies, Interview Prep, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Executive Recruiter, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, Find Interim Work, EQoverIQ — Fractional AI Work, My Stats, Benefits & Financial Bridge, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ.
 
 **Locked:** nothing.
 
@@ -173,7 +175,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Keep your references and proof current | My References |
 | Keep learning | Learn New Skills |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, My References, My Portfolio, My Marketing Plan, Companies, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Learn New Skills, Videos and Webinars, Executive Coach, My Stats, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ, Your first 90 days, Know your worth, Thank the people who helped.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Your local market, My References, My Portfolio, My Marketing Plan, Companies, Got An Offer 🎉, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Learn New Skills, Videos and Webinars, Executive Coach, My Stats, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ, Your first 90 days, Know your worth, Thank the people who helped.
 
 **Locked:** nothing.
 
@@ -201,7 +203,7 @@ How hard someone is looking (actively or casually) is a separate setting that ch
 | Know how you work | Know how you work |
 | Keep references, network and Dossier current, so a downturn does not catch you out | My References |
 
-**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, My References, My Portfolio, My Marketing Plan, Companies, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, My Stats, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ, Know your worth, Build your case, Prove your results, Build new skills, Practice the hard conversation, Know how you work.
+**On the menu:** My Search Strategy, My Profile, Skills & Behavioral Assessments, Market Reality Report, Your local market, My References, My Portfolio, My Marketing Plan, Companies, Market Intelligence, Network with Contacts, My Contacts, NextChapter Community, My Inbox, Universities, Higher Education Career Services and Benefits, Learn New Skills, Videos and Webinars, Executive Coach, My Stats, I'm Struggling, Membership, Help & feedback, Privacy Settings, FAQ, Know your worth, Build your case, Prove your results, Build new skills, Practice the hard conversation, Know how you work.
 
 **Visible but locked (turn on by updating your status):** Find a Full-time Job, Interview Prep, Got An Offer 🎉.
 

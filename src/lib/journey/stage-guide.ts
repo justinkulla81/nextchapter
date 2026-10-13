@@ -45,6 +45,7 @@ export const STAGE_GUIDE: Record<GuideStage, StageGuide> = {
       { activity: 'Have one conversation a month', feature: 'network' },
       { activity: 'Close one skill gap', feature: 'learning' },
       { activity: 'Check your runway and benefits if a layoff worries you', feature: 'benefits' },
+      { activity: 'See what is happening in your area: layoffs, hiring, news', feature: 'local' },
     ],
     emails: ['Monthly "Has anything changed?"', 'Monday plan', 'Market update', 'Unlock steps: what to connect and what it opens'],
     casualNote: null,
@@ -78,6 +79,7 @@ export const STAGE_GUIDE: Record<GuideStage, StageGuide> = {
     },
     activities: [
       { activity: 'Find and fit-check roles', feature: 'jobs' },
+      { activity: 'See who is hiring and what is filed near you, and connect with your workforce board', feature: 'local' },
       { activity: 'Reach out to people at target companies', feature: 'network' },
       { activity: 'Keep your contacts and follow-ups straight', feature: 'contacts' },
       { activity: 'Practice interviews', feature: 'interviewPrep' },
