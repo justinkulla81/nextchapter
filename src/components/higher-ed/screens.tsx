@@ -3,6 +3,8 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
+import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
 import type { ComponentType } from 'react'
 import { ArrowRight, Lock, Users } from 'lucide-react'
@@ -11,6 +13,7 @@ import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import {
   getAlumniHomeCounts,
+  getJourneyMix,
   getRoiInputs,
   listCaseloadActivity,
   listEmployerDossiers,
@@ -222,7 +225,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
 // ── Alumni Relations ────────────────────────────────────────────────────────
 
 async function AlumniHome({ ctx, base }: ScreenProps) {
-  const c = await getAlumniHomeCounts(ctx)
+  const [c, { mix, total }] = await Promise.all([getAlumniHomeCounts(ctx), getJourneyMix(ctx)])
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -231,6 +234,20 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
         <StatTile label="Active seats" value={c.activeSeats.toLocaleString()} />
         <StatTile label="In transition" value={c.inTransition.toLocaleString()} href={`${base}/members?transition=1`} />
       </div>
+      <section aria-labelledby="journey-mix" className="space-y-2">
+        <h2 id="journey-mix" className="text-base font-semibold">
+          Where your alumni are
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Why joined alumni are using {ctx.institution.programBrandName ?? ctx.institution.name}: not only job loss. Counts only, from {total.toLocaleString()} who
+          share their engagement; groups under {MIN_CELL_SIZE} aren&apos;t shown.
+        </p>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {mix.map((m) => (
+            <StatTile key={m.journey} label={getJourney(m.journey).label} value={m.count === null ? `Under ${MIN_CELL_SIZE}` : m.count.toLocaleString()} />
+          ))}
+        </div>
+      </section>
       <div className="grid gap-3 sm:grid-cols-2">
         <StatTile label="New layoff matches" value="—" note="Arrives in HE-08" />
         <StatTile label="Mentor requests this month" value="—" note="Arrives in HE-09" />
@@ -353,7 +370,10 @@ function TransitionTable({ rows }: { rows: Awaited<ReturnType<typeof listOpenTra
 // ── Development ─────────────────────────────────────────────────────────────
 
 async function DevelopmentHome({ ctx }: ScreenProps) {
-  const roi = await getRoiInputs(ctx)
+  const [roi, signals] = await Promise.all([
+    getRoiInputs(ctx),
+    prisma.prospectFlag.count({ where: { institutionId: ctx.institution.id, dismissedAt: null, exportedAt: null } }),
+  ])
   if (!roi) return null
   const dollars = Number(roi.giftCents) / 100
   return (
@@ -365,6 +385,7 @@ async function DevelopmentHome({ ctx }: ScreenProps) {
         <StatTile label="In transition" value={roi.openFlagCount.toLocaleString()} />
         <StatTile label="Gifts imported" value={roi.giftCount.toLocaleString()} />
         <StatTile label="Gift dollars imported" value={dollars.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })} />
+        <StatTile label="Prospect signals waiting" value={signals.toLocaleString()} note="VP-and-up promotions and new employers (matching-gift checks)" />
       </div>
       <p className="text-xs text-muted-foreground">
         As of last gift import: {fmtDate(roi.lastGiftImportAt) ?? 'none yet'}. Giving rate, lift and donor counts by fiscal year arrive in HE-10.
@@ -394,11 +415,20 @@ async function CareerCaseload({ ctx }: ScreenProps) {
   }
   return (
     <div className="space-y-3">
-      <Table caption="Caseload" head={['Name', 'Class', 'Last activity', 'Weekly Search Sprint', 'Next check-in']}>
+      <Table caption="Caseload" head={['Name', 'Class', 'Situation', 'Last activity', 'Weekly Search Sprint', 'Next check-in']}>
         {rows.map((r) => (
           <tr key={r.assignmentId}>
             <td className="px-4 py-2 font-medium">{fullName(r)}</td>
             <td className="px-4 py-2 tabular-nums">{r.classYear ?? '—'}</td>
+            <td className="px-4 py-2">
+              {!r.shareSearchDetail ? (
+                <NotShared />
+              ) : r.journey ? (
+                `${getJourney(r.journey as JourneyType).label}${r.journeyStage ? ` · ${getStage(r.journeyStage as JourneyStage).label}` : ''}`
+              ) : (
+                '—'
+              )}
+            </td>
             <td className="px-4 py-2">{r.shareSearchDetail ? (fmtDate(r.lastActivityAt) ?? 'No activity yet') : <NotShared />}</td>
             <td className="px-4 py-2">
               {!r.shareSearchDetail ? (

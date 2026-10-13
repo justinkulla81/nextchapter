@@ -7,6 +7,9 @@
 import 'server-only'
 import { Prisma, type PrismaClient, type InstitutionAffiliation, type InstitutionMemberStatus, type TransitionFlagState } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import type { CurrentJobStatus } from '@prisma/client'
+import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
+import { effectiveJourney, JOURNEYS, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { holds, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import type { AccessToken } from './workspaces'
 import { logMemberView } from './audit'
@@ -146,6 +149,9 @@ export type CaseloadRow = {
   sprintActionsTotal: number | null
   sprintActionsDone: number | null
   lastCoachingAt: Date | null
+  // Also only when shared: why they're moving and how close to applying.
+  journey: string | null
+  journeyStage: string | null
   nextCheckInAt: Date | null
   nextCheckInKind: string | null
 }
@@ -171,7 +177,7 @@ export async function listCaseloadActivity(ctx: Ctx, db: Db = prisma): Promise<C
   return db.$queryRaw<CaseloadRow[]>`
     select "assignmentId", "counselorId", "memberId", "firstName", "lastName", "classYear", affiliation,
            "shareSearchDetail", "lastActivityAt", "sprintWeekStart", "sprintActionsTotal", "sprintActionsDone",
-           "lastCoachingAt", "nextCheckInAt", "nextCheckInKind"
+           "lastCoachingAt", journey, "journeyStage", "nextCheckInAt", "nextCheckInKind"
     from private.v_caseload_activity
     where "institutionId" = ${ctx.institution.id} ${counselorFilter}
     order by "lastName" nulls last, "firstName" nulls last`
@@ -303,4 +309,29 @@ export async function getAlumniHomeCounts(ctx: Ctx, db: Db = prisma): Promise<Al
     db.$queryRaw<{ n: number }[]>`select count(*)::int as n from private.v_member_transition where "institutionId" = ${institutionId}`,
   ])
   return { members, claimed, activeSeats, inTransition: inTransition[0]?.n ?? 0 }
+}
+
+export type JourneyMix = { journey: JourneyType; count: number | null }[] // null = under the minimum group size
+
+// Alumni Relations home: where joined alumni are, by journey, as counts only.
+// Members who turned engagement sharing off aren't counted, and any group
+// smaller than MIN_CELL_SIZE shows as "fewer than" rather than a number.
+export async function getJourneyMix(ctx: Ctx, db: Db = prisma): Promise<{ mix: JourneyMix; total: number }> {
+  assertHolds(ctx, TRANSITION_ROLES, 'the journey mix')
+  const rows = await db.$queryRaw<{ journey: JourneyType | null; journeyStage: JourneyStage | null; currentJobStatus: CurrentJobStatus | null }[]>`
+    select cp.journey, cp."journeyStage", cp."currentJobStatus"
+    from public."InstitutionMember" m
+    join private.v_member_consent mc on mc."memberId" = m.id and mc."shareEngagement"
+    join public."CandidateProfile" cp on cp.id = m."candidateId"
+    where m."institutionId" = ${ctx.institution.id} and m.status in ('CLAIMED', 'ACTIVE')`
+  const counts = new Map<JourneyType, number>()
+  for (const r of rows) {
+    const j = effectiveJourney(r)
+    if (j) counts.set(j, (counts.get(j) ?? 0) + 1)
+  }
+  const mix = JOURNEYS.map((j) => {
+    const n = counts.get(j.key) ?? 0
+    return { journey: j.key, count: n >= MIN_CELL_SIZE ? n : n === 0 ? 0 : null }
+  })
+  return { mix, total: rows.length }
 }

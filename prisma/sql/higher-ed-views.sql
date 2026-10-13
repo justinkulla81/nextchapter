@@ -139,11 +139,15 @@ select
   case when mc."shareSearchDetail" then sp.total end as "sprintActionsTotal",
   case when mc."shareSearchDetail" then sp.done end as "sprintActionsDone",
   case when mc."shareSearchDetail" then cs."lastCoachingAt" end as "lastCoachingAt",
+  -- The member's journey and stage (src/lib/journey) are search detail too.
+  case when mc."shareSearchDetail" then cp.journey::text end as journey,
+  case when mc."shareSearchDetail" then cp."journeyStage"::text end as "journeyStage",
   ci."nextCheckInAt",
   ci."nextCheckInKind"
 from public."CaseloadAssignment" a
 join public."InstitutionMember" m on m.id = a."memberId"
 join private.v_member_consent mc on mc."memberId" = m.id
+left join public."CandidateProfile" cp on cp.id = m."candidateId"
 left join lateral (
   select max(l."createdAt") as "lastActivityAt"
   from public."CandidateLoginEvent" l

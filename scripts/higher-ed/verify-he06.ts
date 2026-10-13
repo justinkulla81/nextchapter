@@ -74,6 +74,8 @@ async function main() {
     check('Nightly is idempotent', (await clearEndedGrace(new Date('2026-12-30T00:00:00Z'), inst.id)).cleared, 0)
     const emp = await prisma.memberEmployment.findFirst({ where: { candidateId, isCurrent: true }, select: { title: true } })
     check('New job is the current employment', emp?.title, 'VP Operations')
+    const signals = await prisma.prospectFlag.findMany({ where: { memberId: ann.id }, select: { type: true }, orderBy: { type: 'asc' } })
+    check('A VP job at a new employer raises both prospect signals', signals.map((x) => x.type).sort(), ['NEW_EMPLOYER_MATCHING_GIFT', 'PROMOTION_VP_PLUS'])
   } finally {
     await prisma.institution.delete({ where: { id: inst.id } }).catch(() => {})
     if (candidateId) await prisma.candidateProfile.delete({ where: { id: candidateId } }).catch(() => {})

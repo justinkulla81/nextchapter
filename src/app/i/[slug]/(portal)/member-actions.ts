@@ -11,6 +11,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { setConsent } from '@/lib/higher-ed/join'
 import { closeTransitionFlag, graceDaysFrom, openTransitionFlag, reportNewJob } from '@/lib/higher-ed/transition'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { applyJourneyChange } from '@/lib/journey/apply'
 
 const SCOPES: InstitutionConsentScope[] = ['SHARE_ENGAGEMENT', 'SHARE_OUTCOME', 'SHARE_SEARCH_DETAIL_WITH_CAREER', 'SHARE_DOSSIER_WITH_EMPLOYERS']
 const PREVIEW = 'This is a preview: there’s no member record behind it, so nothing was saved.'
@@ -40,6 +41,8 @@ export async function markInTransition(slug: string): Promise<{ error?: string }
   if (!member) return { error: PREVIEW }
   const r = await openTransitionFlag(member.id, 'SELF_REPORTED')
   if (r.created) captureServerEvent(ctx.userId, 'he_transition_reported', { institutionId: ctx.institution.id })
+  // Same change as "I was laid off" anywhere else in NextChapter (src/lib/journey).
+  if (member.candidateId) await applyJourneyChange(member.candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'COLLEGE' })
   revalidatePath(`/i/${slug}`, 'layout')
   return {}
 }
@@ -48,6 +51,7 @@ export async function closeMyTransition(slug: string): Promise<{ error?: string 
   const { ctx, member } = await me(slug)
   if (!member) return { error: PREVIEW }
   if (await closeTransitionFlag(member.id)) captureServerEvent(ctx.userId, 'he_transition_closed', { institutionId: ctx.institution.id })
+  if (member.candidateId) await applyJourneyChange(member.candidateId, { stage: 'PAUSED', source: 'COLLEGE' })
   revalidatePath(`/i/${slug}`, 'layout')
   return {}
 }
@@ -73,6 +77,7 @@ export async function reportMyJob(slug: string, _prev: JobFormState, formData: F
     shareMilestone: formData.get('shareMilestone') === 'on',
     graceDays: graceDaysFrom(member.institution.enabledFeatures),
   })
+  await applyJourneyChange(member.candidateId, { stage: 'LANDED', source: 'COLLEGE', note: `${title} at ${companyName}` })
   captureServerEvent(ctx.userId, 'he_new_job_reported', {
     institutionId: ctx.institution.id,
     outcomeReportId: r.outcomeReportId,

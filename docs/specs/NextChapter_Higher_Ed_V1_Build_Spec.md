@@ -360,3 +360,12 @@ Aligned to "NextChapter Higher Ed Module — Product Design" (Claude Doc). Decis
 - **Candidate:** a status card ("I'm in transition", "I got a job", "I'm no longer looking"), and Privacy & sharing with four switches (history rows) and "Who viewed my profile". The existing `/dashboard` pages show a slim bar in the college's color with a link back to its portal (`CollegeBar`, looked up from the member's own joined membership, not a cookie).
 - **Lifecycle:** `src/lib/higher-ed/transition.ts`. "I got a job" sets the current employment, records an OutcomeReport ("Did <college> help?") and starts the grace period. `/api/cron/higher-ed-nightly` (07:30 UTC) clears ended grace and queues the gratitude ask when the college helped.
 - **Tests:** CSV unit tests; `npm run verify:he06` (imports twice, lifecycle, nightly) runs on a throwaway college that it deletes afterward.
+
+### Journeys (Oct 12, 2026)
+
+Every NextChapter member (direct, college alumni, outplacement seats) has a journey (why they're moving) and a stage (how close to applying); see the Journeys tab of the Product Design doc and `src/lib/journey/`. For colleges:
+
+- **Career Services:** the caseload's Situation column shows journey and stage only when the member shares search detail (`v_caseload_activity`).
+- **Alumni Relations:** home shows the journey mix as counts only, among joined alumni who share engagement; groups under `MIN_CELL_SIZE` show as "Under 5".
+- **Development:** a reported job raises prospect signals (spec §6.4): `PROMOTION_VP_PLUS` for VP-and-up titles and `NEW_EMPLOYER_MATCHING_GIFT` for any new employer, only with outcome sharing on (`raiseProspectSignals` in `transition.ts`). Development home shows how many are waiting; the Signals screen remains HE-10.
+- **The portal's buttons and NextChapter check-ins are one system:** "I'm in transition" = journey Laid off; "I got a job" = stage Landed; "I'm no longer looking" = Paused. Going the other way, "I was laid off" anywhere in NextChapter opens the college's transition flag, and Landed starts its grace period (`src/lib/journey/apply.ts`).

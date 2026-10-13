@@ -60,6 +60,7 @@ export async function reportNewJob(args: {
 }): Promise<{ outcomeReportId: string; flagMoved: boolean }> {
   const now = args.now ?? new Date()
   const company = await getOrCreateCompany(args.companyName)
+  const previous = await prisma.memberEmployment.findFirst({ where: { candidateId: args.candidateId, isCurrent: true }, select: { companyId: true } })
   await prisma.memberEmployment.updateMany({ where: { candidateId: args.candidateId, isCurrent: true }, data: { isCurrent: false } })
   const employment = await prisma.memberEmployment.upsert({
     where: { candidateId_companyId: { candidateId: args.candidateId, companyId: company.id } },
@@ -80,6 +81,12 @@ export async function reportNewJob(args: {
   const moved = await prisma.transitionFlag.updateMany({
     where: { openFlagMemberId: args.memberId, state: 'IN_TRANSITION' },
     data: { state: 'PLACED_GRACE', placedAt: now, graceEndsAt: graceEndsAt(now, args.graceDays) },
+  })
+  await raiseProspectSignals({
+    memberId: args.memberId,
+    employmentId: employment.id,
+    title: args.title,
+    newEmployer: previous?.companyId !== company.id,
   })
   return { outcomeReportId: report.id, flagMoved: moved.count > 0 }
 }
@@ -124,4 +131,24 @@ export async function placeOpenFlag(memberId: string, graceDays: number, now = n
     data: { state: 'PLACED_GRACE', placedAt: now, graceEndsAt: graceEndsAt(now, graceDays) },
   })
   return r.count > 0
+}
+
+// VP and above (spec §6.4): VP, SVP, EVP, Chief / C-suite, President, Head of.
+export function isVpPlus(title: string): boolean {
+  return /\b(vp|svp|evp|vice president|chief|president|head of|c[eiofmt]o)\b/i.test(title)
+}
+
+// Development's signals from a reported job (spec §6.4): a VP-and-up title,
+// and any new employer (worth a matching-gift check). Only for members who
+// share job news with the college; idempotent on (member, type, job).
+async function raiseProspectSignals(args: { memberId: string; employmentId: string; title: string; newEmployer: boolean }) {
+  const [consent] = await prisma.$queryRaw<{ shareOutcome: boolean; institutionId: string }[]>`
+    select "shareOutcome", "institutionId" from private.v_member_consent where "memberId" = ${args.memberId}`
+  if (!consent?.shareOutcome) return
+  const types = [...(isVpPlus(args.title) ? (['PROMOTION_VP_PLUS'] as const) : []), ...(args.newEmployer ? (['NEW_EMPLOYER_MATCHING_GIFT'] as const) : [])]
+  if (!types.length) return
+  await prisma.prospectFlag.createMany({
+    data: types.map((type) => ({ institutionId: consent.institutionId, memberId: args.memberId, type, sourceMemberEmploymentId: args.employmentId })),
+    skipDuplicates: true,
+  })
 }

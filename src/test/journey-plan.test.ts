@@ -41,3 +41,11 @@ describe('daily pop-up', () => {
     expect(kind).not.toBe('APPLY_COMMIT')
   })
 })
+
+describe('VP-and-up promotions (spec §6.4)', () => {
+  it('flags VP, C-suite, President and Head of; not directors or managers', async () => {
+    const { isVpPlus } = await import('@/lib/higher-ed/transition')
+    for (const t of ['VP Operations', 'Senior Vice President, Sales', 'Chief Financial Officer', 'CTO', 'President', 'Head of Product', 'EVP']) expect(isVpPlus(t)).toBe(true)
+    for (const t of ['Director of Operations', 'Product Manager', 'Senior Analyst', 'Vice-chair of nothing']) expect(isVpPlus(t)).toBe(false)
+  })
+})
