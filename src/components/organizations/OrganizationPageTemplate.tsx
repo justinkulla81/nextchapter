@@ -149,7 +149,7 @@ export function OrganizationPageTemplate({ tab, artifact }: { tab: AudienceTab; 
             <>
               {' · '}
               <Link href="/reports/latest" className="underline underline-offset-4">
-                Monthly Displacement Report &amp; WIOA data →
+                Monthly Employment Report &amp; WIOA data →
               </Link>
             </>
           )}

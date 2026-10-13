@@ -1,7 +1,7 @@
 // Referral-first search mix. DISCOURAGE cold applications, ENCOURAGE networking
 // and referrals — never cap or block. Referrals are about 1% of applications
 // but about 40% reach interview, versus about 3% for inbound (Ashby data, as
-// reported in the NextChapter Displacement Report, Sept 2026). The nudge is
+// reported in the NextChapter Employment Report, Sept 2026). The nudge is
 // advisory copy only: it must never disable applying or shame the candidate.
 
 export interface WeeklySearchMix {

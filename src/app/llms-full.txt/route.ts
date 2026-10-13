@@ -23,7 +23,7 @@ export function GET() {
     const html = REPORT_BODIES[r.slug]
     if (!html) continue
     parts.push(
-      `# NextChapter Displacement Report — ${r.month}\n\nURL: ${SITE_URL}${reportPath(r)}\nPublished: ${r.publishedAt}\nAuthor: ${FACTS.founder.name}\n\n${htmlToPlainText(html)}`,
+      `# NextChapter Employment Report — ${r.month}\n\nURL: ${SITE_URL}${reportPath(r)}\nPublished: ${r.publishedAt}\nAuthor: ${FACTS.founder.name}\n\n${htmlToPlainText(html)}`,
     )
   }
 

@@ -116,7 +116,7 @@ export const PAY_CHANGE_SEED: Array<PayBenchmarkRow & { notes: string }> = [
 
 // Reference statistics for UI copy (not used as ranges). All from the BLS
 // Displaced Worker Survey release of 2026-08-27 as relayed by search summaries
-// and the NextChapter Displacement Report (Sept 2026). Verify before publishing.
+// and the NextChapter Employment Report (Sept 2026). Verify before publishing.
 export const REFERENCE_STATS = {
   longTenuredReemployedPct: { all: 66.1, age25to54: 72.9, age55to64: 57.3, age65plus: 38.6 },
   fullTimeReemployedEarningAsMuchOrMorePct: 49,

@@ -98,14 +98,14 @@ export function ReportNewsletterPopup({ placement }: { placement: string }) {
         ) : (
           <div className="space-y-4">
             <h2 id="report-popup-title" className="text-lg font-bold tracking-tight text-navy">
-              Get the Displacement Report monthly
+              Get the Employment Report monthly
             </h2>
             <p className="text-sm text-muted-foreground">
               New data on white-collar job loss and the White-Collar Long-Term Unemployment Index, the week the jobs report comes
               out. Free, unsubscribe any time.
             </p>
             <form action={action} noValidate className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
-              <input type="hidden" name="source" value="displacement-report-popup" />
+              <input type="hidden" name="source" value="employment-report-popup" />
               <div className="hidden" aria-hidden>
                 <label htmlFor="report-popup-website">Website</label>
                 <input id="report-popup-website" name="website" type="text" tabIndex={-1} autoComplete="off" />

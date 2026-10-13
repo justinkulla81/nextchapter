@@ -137,7 +137,7 @@ export default function ForOrganizationsPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             NextChapter is a candidate-first platform that helps people get back to work — and a partner to
             the organizations that hire, place, fund, and serve them. Choose your path below, or read the monthly{' '}
-            <Link href="/reports/latest" className="text-brand underline underline-offset-4">Displacement Report</Link>{' '}
+            <Link href="/reports/latest" className="text-brand underline underline-offset-4">Employment Report</Link>{' '}
             for the labor-market data behind it.
           </p>
         </div>

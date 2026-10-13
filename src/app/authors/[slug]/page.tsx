@@ -88,7 +88,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
             {reports.map((r) => (
               <li key={r.slug}>
                 <Link href={reportPath(r)} className={ITEM_LINK}>
-                  NextChapter Displacement Report — {r.month}
+                  NextChapter Employment Report — {r.month}
                 </Link>
                 <span className="text-sm text-muted-foreground"> · {formatContentDate(r.publishedAt)}</span>
               </li>

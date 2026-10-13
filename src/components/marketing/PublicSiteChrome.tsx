@@ -92,7 +92,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
-          {' · '}<Link href="/reports/latest" className="underline underline-offset-4">Displacement Report</Link>
+          {' · '}<Link href="/reports/latest" className="underline underline-offset-4">Employment Report</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/editorial-standards" className="underline underline-offset-4">Editorial standards</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>

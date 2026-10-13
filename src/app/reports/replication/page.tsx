@@ -13,15 +13,15 @@ const REPO_URL = REPLICATION_REPO_URL
 const REPORT_PATH = '/reports/displacement-report-september-2026'
 const CORRECTIONS_EMAIL = 'jkulla@launchyournextchapter.com'
 const DESCRIPTION =
-  'Code, parameters and derived data to reproduce the NextChapter Displacement Report: the White-Collar Long-Term Unemployment Index, CPS breakdowns, margins of error, SEC AI coding and more.'
+  'Code, parameters and derived data to reproduce the NextChapter Employment Report: the White-Collar Long-Term Unemployment Index, CPS breakdowns, margins of error, SEC AI coding and more.'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Displacement Report: replication materials | NextChapter' },
+  title: { absolute: 'Employment Report: replication materials | NextChapter' },
   description: DESCRIPTION,
   alternates: { canonical: URL },
   openGraph: {
     type: 'website',
-    title: 'Displacement Report: replication materials',
+    title: 'Employment Report: replication materials',
     description: DESCRIPTION,
     url: URL,
     siteName: 'NextChapter',
@@ -52,14 +52,14 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'SoftwareSourceCode',
-      name: 'NextChapter Displacement Report replication materials',
+      name: 'NextChapter Employment Report replication materials',
       description: DESCRIPTION,
       codeRepository: REPO_URL,
       programmingLanguage: 'Python',
       license: 'https://opensource.org/licenses/MIT',
       url: URL,
       author: { '@type': 'Organization', name: 'NextChapter', url: SITE_URL },
-      isPartOf: { '@type': 'Report', name: 'NextChapter Displacement Report: September 2026', url: `${SITE_URL}${REPORT_PATH}` },
+      isPartOf: { '@type': 'Report', name: 'NextChapter Employment Report: September 2026', url: `${SITE_URL}${REPORT_PATH}` },
     },
     {
       '@type': 'BreadcrumbList',
@@ -80,17 +80,17 @@ export default function ReplicationPage() {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
-          <Link href="/reports" className="hover:text-foreground">Displacement Report</Link>
+          <Link href="/reports" className="hover:text-foreground">Employment Report</Link>
           <span aria-hidden> › </span>
           <span className="text-foreground">Replication materials</span>
         </nav>
 
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Displacement Report: replication materials
+          Employment Report: replication materials
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-foreground">
-          The code, parameters and derived data behind the NextChapter Displacement Report are public, so anyone can
+          The code, parameters and derived data behind the NextChapter Employment Report are public, so anyone can
           check our numbers. The scripts download Census Current Population Survey microdata directly and rebuild the
           index, breakdowns and margins of error published in the{' '}
           <Link href={REPORT_PATH} className="text-brand underline underline-offset-4">September 2026 edition</Link>.
@@ -136,7 +136,7 @@ export default function ReplicationPage() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground">
             Journalists, workforce boards, colleges and funders can check every number in the report. The code is
             licensed MIT. The data files and documentation are licensed CC BY 4.0: use them, and credit the
-            &ldquo;NextChapter Displacement Report&rdquo;.
+            &ldquo;NextChapter Employment Report&rdquo;.
           </p>
 
           <h3 className="mt-6 text-base font-bold text-navy">Scripts</h3>

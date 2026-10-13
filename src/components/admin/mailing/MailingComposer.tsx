@@ -179,7 +179,7 @@ export function MailingComposer({
         <div className="flex flex-wrap items-end gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={draft.isReport} disabled={locked} onChange={(e) => update('isReport', e.target.checked)} />
-            This is a Displacement Report edition
+            This is a Employment Report edition
           </label>
           {draft.isReport && (
             <label className="text-xs">

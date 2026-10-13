@@ -11,11 +11,11 @@ export interface GradRoiFact {
 export const GRAD_ROI_FACTS: GradRoiFact[] = [
   {
     text: 'About 43% of master’s programs and 39% of MBA programs have a negative lifetime return on investment.',
-    source: 'FREOPP, May 2024 (via the NextChapter Displacement Report, Sept 2026)',
+    source: 'FREOPP, May 2024 (via the NextChapter Employment Report, Sept 2026)',
   },
   {
     text: 'Federal Grad PLUS loans ended for new borrowers on July 1, 2026. Graduate students can now borrow $20,500 a year ($100,000 total); professional students $50,000 a year ($200,000 total). More of the cost may be out of pocket or private.',
-    source: 'U.S. Department of Education rules, via the NextChapter Displacement Report, Sept 2026',
+    source: 'U.S. Department of Education rules, via the NextChapter Employment Report, Sept 2026',
   },
   {
     text: 'Long-term unemployment has risen faster for master’s degree holders than for other degree levels, so another degree is not a shield against a long search.',
@@ -23,7 +23,7 @@ export const GRAD_ROI_FACTS: GradRoiFact[] = [
   },
   {
     text: 'For loans made on or after July 1, 2027, unemployment deferment ends and forbearance is capped at 9 months in any 24.',
-    source: 'U.S. Department of Education rules, via the NextChapter Displacement Report, Sept 2026',
+    source: 'U.S. Department of Education rules, via the NextChapter Employment Report, Sept 2026',
   },
 ]
 

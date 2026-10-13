@@ -12,7 +12,7 @@ const URL = `${SITE_URL}/reports`
 export const metadata: Metadata = {
   title: { absolute: 'Employment Report: White-Collar Labor Data | NextChapter' },
   description:
-    'The NextChapter Employment Report is a monthly, independent read on the U.S. white-collar labor market — hiring, job changes, search length, AI attribution, what public programs are adding, and the White-Collar Long-Search Index.',
+    'The NextChapter Employment Report (formerly the Displacement Report) is a monthly, independent read on the U.S. white-collar labor market — hiring, job changes, search length, AI attribution, what public programs are adding, and the White-Collar Long-Search Index.',
   alternates: { canonical: '/reports' },
   openGraph: {
     type: 'website',
@@ -152,7 +152,7 @@ export default function ReportsHubPage() {
       </main>
 
       <section className="border-t border-light-gray bg-white px-6 py-16">
-        <NewsletterSignup source="displacement-report" />
+        <NewsletterSignup source="employment-report" />
       </section>
 
       <PublicSiteFooter page="reports" />
