@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
-import { getMessageHtml, listNewsletterMessages, markMessageRead } from '@/lib/google/gmail'
+import { getMessageHtml, listNewsletterMessages } from '@/lib/google/gmail'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
 import { sourceFromUrl } from '@/lib/news/kind'
@@ -35,8 +35,9 @@ function publisherName(url: string): string {
  *   searched for, a new CEO) becomes a likely-opening signal, the way an SEC
  *   8-K does for public companies — unless a filing already covers that seat;
  * - each company gets a Company row and a look for its public job board.
- * An email is marked read only once it was processed; a failure leaves it for
- * tomorrow. With no query set the sweep does nothing.
+ * Each email is handled once: it is recorded in NewsletterMessage after it is
+ * processed (the connection cannot mark mail read), and a failure leaves it
+ * unrecorded so tomorrow tries again. With no query set the sweep does nothing.
  */
 export async function sweepNewsletters(accessToken: string): Promise<NewsletterSweepResult> {
   const result: NewsletterSweepResult = { emails: 0, events: 0, layoffMentions: 0, openings: 0, boardsFound: 0, failed: 0 }
@@ -46,8 +47,16 @@ export async function sweepNewsletters(accessToken: string): Promise<NewsletterS
   const client = getAnthropicClient()
   const companyIds = new Set<string>()
 
-  for (const message of await listNewsletterMessages(accessToken, query)) {
+  const listed = await listNewsletterMessages(accessToken, query)
+  const done = new Set(
+    (await prisma.newsletterMessage.findMany({ where: { messageId: { in: listed.map((m) => m.id) } }, select: { messageId: true } }))
+      .map((m) => m.messageId)
+  )
+
+  for (const message of listed) {
+    if (done.has(message.id)) continue
     try {
+      const before = result.events
       const html = await getMessageHtml(accessToken, message.id)
       if (html) {
         const parsed = newsletterText(html)
@@ -95,7 +104,7 @@ export async function sweepNewsletters(accessToken: string): Promise<NewsletterS
           companyIds.add((await getOrCreateCompany(e.company)).id)
         }
       }
-      await markMessageRead(accessToken, message.id)
+      await prisma.newsletterMessage.createMany({ data: [{ messageId: message.id, events: result.events - before }], skipDuplicates: true })
       result.emails++
     } catch (err) {
       result.failed++
