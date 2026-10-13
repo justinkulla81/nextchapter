@@ -57,6 +57,9 @@ import {
 import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
 import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
+import { SearchEfficiencyCard } from '@/components/dashboard/search-playbook/SearchEfficiencyCard'
+import { loadSearchEfficiency } from '@/lib/dashboard/search-playbook-data'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
@@ -542,6 +545,17 @@ async function FindMyJobBody({
   // this app's slow-load fixes, and a far smaller cost than the whole page
   // appearing to vanish.
   const jobPostings = profile.jobPostings
+  // Applications per conversation over the last four weeks (read-only, no
+  // metered calls). See src/lib/jobs/search-efficiency.ts.
+  const searchEfficiency = await loadSearchEfficiency(profile.id)
+  if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
+    captureServerEvent(profile.id, 'search_efficiency_viewed', {
+      state: searchEfficiency.state,
+      applications: searchEfficiency.applications,
+      conversations: searchEfficiency.conversations,
+      applicationsPerConversation: searchEfficiency.applicationsPerConversation,
+    })
+  }
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
   const activeCount = jobPostings.filter(
@@ -908,6 +922,8 @@ async function FindMyJobBody({
             unlockedContent={<ApplicationTrendsContent trends={applicationTrends} />}
           />
         )}
+
+        <SearchEfficiencyCard efficiency={searchEfficiency} />
 
         <ConversionDiagnosticCard jobPostings={jobPostings} />
 

@@ -24,6 +24,8 @@ import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
 import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardrailCard'
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
+import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
+import { effectiveJourney } from '@/lib/journey/journey'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -160,6 +162,10 @@ export default async function LearningPage() {
           enrolledTitles={enrolledTitles}
         />
       </LearningSection>
+
+      {(profile.isPivoting || effectiveJourney(profile) === 'CAREER_CHANGE') && (
+        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
+      )}
 
       <PayChangeCard />
 
