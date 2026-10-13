@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { formatDisplayName } from '@/lib/format-name'
 import { isKnownBulkSenderAddress } from '@/lib/email-tracking/ats-patterns'
+import { isSuppressed, loadSuppression, looksLikeNonWorkSender } from '@/lib/network/suppressed-senders'
 
 // How far back a meeting/inbound email still counts as "needs a follow-up"
 // — older than this and surfacing it would read as nagging about something
@@ -184,7 +185,7 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
     return buildInterviewItems(landedInterviews, []).slice(0, 10)
   }
 
-  const [meetings, emailActivities, contacts] = await Promise.all([
+  const [meetings, emailActivities, contacts, suppression] = await Promise.all([
     calendarConnection && !calendarConnection.disconnectedAt
       ? prisma.trackedCalendarEvent.findMany({
           where: {
@@ -208,10 +209,17 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
       where: { candidateId, email: { not: null } },
       select: { id: true, name: true, email: true },
     }),
+    loadSuppression(candidateId),
   ])
+  // Flagged family/school/spam senders and obviously automated mail are never
+  // someone waiting on the candidate. A sender who is a saved contact is the
+  // candidate's own call, so only the explicit flag overrides that.
+  const isNotJobRelated = (address: string) =>
+    isSuppressed(suppression, address) || (looksLikeNonWorkSender(address) && !contactEmailSet.has(address.toLowerCase()))
 
   const interviewItems = buildInterviewItems(landedInterviews, meetings)
 
+  const contactEmailSet = new Set(contacts.filter((c) => c.email).map((c) => c.email!.toLowerCase()))
   const contactNameByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.name]))
   const contactIdByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]))
 
@@ -242,6 +250,7 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
   const meetingItems: NeedsFollowUpItem[] = meetings
     .filter((meeting) => {
       const address = meeting.counterpartEmail!.toLowerCase()
+      if (isNotJobRelated(address)) return false
       const lastFollowUp = latestOutboundByAddress.get(address)
       return !lastFollowUp || lastFollowUp < meeting.startTime
     })
@@ -280,6 +289,7 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
         !isKnownBulkSenderAddress(activity.fromAddress) &&
         !isCalendarResponseSubject(activity.subject) &&
         !isBulkSubject(activity.subject) &&
+        !isNotJobRelated(parseAddress(activity.fromAddress).email) &&
         (activity.isRecruiterContact || contactNameByEmail.has(parseAddress(activity.fromAddress).email))
     )
     .filter((activity) => {
@@ -314,7 +324,7 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
     )
     .filter((activity) => {
       const address = parseAddress(activity.fromAddress!).email
-      if (!contactNameByEmail.has(address)) return false
+      if (!contactNameByEmail.has(address) || isSuppressed(suppression, address)) return false
       const reply = latestInboundByAddress.get(address)
       return !reply || reply < activity.detectedAt
     })

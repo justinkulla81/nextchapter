@@ -1509,6 +1509,7 @@ model CandidateProfile {
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
   supportNetworkContacts         SupportNetworkContact[]
+  suppressedSenders              SuppressedSender[]
   outreachLogs                   OutreachLog[]
   surfacedJobs                   SurfacedJob[]
   jobBoardIntroRequests          JobBoardIntroRequest[]
@@ -4434,6 +4435,34 @@ enum ContactEmploymentStatus {
 // One row per person in the candidate's 5x5 Support Network. category is
 // nullable because CSV-imported contacts land unsorted — the candidate
 // slots them into the 5 categories afterward.
+// Why a candidate told us a sender isn't part of their job search.
+enum SuppressedSenderReason {
+  FAMILY_FRIENDS
+  SCHOOL_ACTIVITIES
+  SPAM_BULK
+  NOT_WORK
+}
+
+// "Never treat this person as a networking contact" — written when a
+// candidate flags a false follow-up/suggestion. Keyed on the bare lower-cased
+// address (or, when `isDomain`, a whole domain such as a school district or a
+// newsletter sender). Checked at Gmail/Calendar sync (no follow-up, no
+// auto-added contact) and when building the follow-up and suggestion lists,
+// so one click fixes the sender for good instead of only the single message
+// the way TrackedEmailActivity.dismissedAt does.
+model SuppressedSender {
+  id          String                 @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  value       String // lower-cased email address, or domain when isDomain
+  isDomain    Boolean                @default(false)
+  reason      SuppressedSenderReason
+  createdAt   DateTime               @default(now())
+
+  @@unique([candidateId, value])
+  @@index([candidateId])
+}
+
 model SupportNetworkContact {
   id          String           @id @default(cuid())
   candidateId String

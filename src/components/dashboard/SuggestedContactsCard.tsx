@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { NotJobRelatedPicker } from '@/components/dashboard/NotJobRelatedPicker'
 import type { SuggestedContact } from '@/lib/network/suggested-contacts'
-import { addSuggestedContact, dismissSuggestedContact } from '@/app/dashboard/network/actions'
+import { addSuggestedContact } from '@/app/dashboard/network/actions'
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -54,16 +55,11 @@ export function SuggestedContactsCard({ suggestions }: { suggestions: SuggestedC
                   Add to Contact Book
                 </SubmitButton>
               </form>
-              <form action={dismissSuggestedContact.bind(null, s.sourceId, s.sourceKind)}>
-                <SubmitButton
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs font-medium text-muted-foreground"
-                  title="Not a real contact — don't ask again"
-                >
-                  Not a contact
-                </SubmitButton>
-              </form>
+              <NotJobRelatedPicker
+                sourceId={s.sourceId}
+                sourceKind={s.sourceKind === 'meeting' ? 'meeting' : 'email'}
+                senderLabel={s.name}
+              />
             </div>
           </div>
         ))}

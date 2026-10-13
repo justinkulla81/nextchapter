@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { Bell, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
-import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
-import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
+import { NotJobRelatedPicker } from '@/components/dashboard/NotJobRelatedPicker'
 
 const PAGE_SIZE = 5
 
@@ -24,13 +23,12 @@ function formatDate(date: Date): string {
 // consumer across this page already filters on that field, and the
 // classifier itself no longer recommends bulk/newsletter senders going
 // forward — see isBulk gating in sync-gmail.ts). This is a client component
-// so the row disappears the instant it's clicked instead of waiting on a
+// so the row disappears the instant it's flagged instead of waiting on a
 // full server round-trip. Paginated at 5 per page, same as
 // PriorityContactsCard, so a long list doesn't turn into an unscannable wall.
 export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(0)
-  const [, startTransition] = useTransition()
 
   const visibleItems = items.filter((item) => !dismissedIds.has(item.sourceId))
 
@@ -64,16 +62,15 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
   const effectivePage = Math.min(page, pageCount - 1)
   const pagedItems = visibleItems.slice(effectivePage * PAGE_SIZE, effectivePage * PAGE_SIZE + PAGE_SIZE)
 
-  function handleDismiss(item: NeedsFollowUpItem) {
+  function hideItem(item: NeedsFollowUpItem) {
     setDismissedIds((prev) => new Set(prev).add(item.sourceId))
-    startTransition(() => {
-      const dismiss = item.kind === 'meeting' ? dismissCalendarEvent : dismissEmailActivity
-      dismiss(item.sourceId).catch(() => {
-        // Server dismiss failed — the row stays gone from this session's
-        // view either way (retrying would just re-show something the
-        // candidate already said isn't real); next full page load will
-        // reconcile from the DB if it truly didn't save.
-      })
+  }
+
+  function restoreItem(item: NeedsFollowUpItem) {
+    setDismissedIds((prev) => {
+      const next = new Set(prev)
+      next.delete(item.sourceId)
+      return next
     })
   }
 
@@ -113,7 +110,7 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
                 {formatDate(item.date)} — {item.subject}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               <a
                 href={item.gmailHref}
                 target="_blank"
@@ -122,14 +119,15 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
               >
                 {item.kind === 'meeting' ? 'Send thank-you' : item.kind === 'inbound-email' ? 'Reply' : 'Follow up'}
               </a>
-              <button
-                type="button"
-                onClick={() => handleDismiss(item)}
-                className="h-7 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted"
-                title="Not a real person or conversation — remove from this list and your stats for good"
-              >
-                ✕
-              </button>
+              {item.kind !== 'interview' && (
+                <NotJobRelatedPicker
+                  sourceId={item.sourceId}
+                  sourceKind={item.kind === 'meeting' ? 'meeting' : 'email'}
+                  senderLabel={item.contactName}
+                  onFlagged={() => hideItem(item)}
+                  onFailed={() => restoreItem(item)}
+                />
+              )}
             </div>
           </div>
         ))}
