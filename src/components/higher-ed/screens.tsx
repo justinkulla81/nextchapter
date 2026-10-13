@@ -40,6 +40,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
+import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { BrandingForm } from './BrandingForm'
 import { CareerStatusCard } from './CareerStatusCard'
 import { PrivacyPanel } from './PrivacyPanel'
@@ -228,6 +229,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
   const [c, { mix, total }] = await Promise.all([getAlumniHomeCounts(ctx), getJourneyMix(ctx)])
   return (
     <div className="space-y-6">
+      <WaitingForYou ctx={ctx} office="alumni" base={base} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Members" value={c.members.toLocaleString()} href={`${base}/members`} />
         <StatTile label="Claimed" value={c.claimed.toLocaleString()} href={`${base}/members?status=CLAIMED`} />
@@ -248,10 +250,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
           ))}
         </div>
       </section>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <StatTile label="New layoff matches" value="—" note="Arrives in HE-08" />
-        <StatTile label="Mentor requests this month" value="—" note="Arrives in HE-09" />
-      </div>
+
     </div>
   )
 }
@@ -319,7 +318,7 @@ async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
               <td className="px-4 py-2">{STATUS_LABELS[r.status]}</td>
               <td className="px-4 py-2">{r.shareOutcome ? (r.employer ?? '—') : <NotShared />}</td>
               <td className="px-4 py-2">{r.shareOutcome ? (r.title ?? '—') : <NotShared />}</td>
-              <td className="px-4 py-2 tabular-nums">{r.shareEngagement ? `${r.engagementPoints12mo ?? 0} pts` : <NotShared />}</td>
+              <td className="px-4 py-2 tabular-nums">{r.shareEngagement ? `${r.engagementTier ?? 'Low'} · ${r.engagementPoints12mo ?? 0} pts` : <NotShared />}</td>
             </tr>
           ))}
         </Table>
@@ -408,13 +407,20 @@ async function DevelopmentTransition({ ctx }: ScreenProps) {
 
 // ── Career Services ─────────────────────────────────────────────────────────
 
-async function CareerCaseload({ ctx }: ScreenProps) {
+async function CareerCaseload({ ctx, base }: ScreenProps) {
   const rows = await listCaseloadActivity(ctx)
+  const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
   if (rows.length === 0) {
-    return <EmptyState icon={Users} title="No one on this caseload" description="Assigning members arrives in HE-11." />
+    return (
+      <div className="space-y-6">
+        {waiting}
+        <EmptyState icon={Users} title="No one on this caseload" description="Members you're assigned, or who ask for help in a check-in, show up here." />
+      </div>
+    )
   }
   return (
     <div className="space-y-3">
+      {waiting}
       <Table caption="Caseload" head={['Name', 'Class', 'Situation', 'Last activity', 'Weekly Search Sprint', 'Next check-in']}>
         {rows.map((r) => (
           <tr key={r.assignmentId}>
@@ -1209,7 +1215,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'career:outcomes': OutcomesScreen,
   'employer:home': EmployerDossiers,
   'alumni:region': Region,
-    'career:region': Region,
+  'career:region': Region,
   'alumni:jobs': AlumniJobs,
   'career:jobs': AlumniJobs,
   'career:companies': TargetCompanies,
@@ -1224,4 +1230,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:privacy': CandidatePrivacy,
   'admin:services': SettingsServices,
   'admin:users': SettingsStaff,
+  'alumni:layoffs': AlumniLayoffs,
+  'alumni:outreach': AlumniOutreach,
+  'alumni:engagement': AlumniEngagement,
+  'career:checkins': CareerCheckIns,
 }

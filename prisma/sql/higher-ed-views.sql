@@ -30,6 +30,7 @@ drop view if exists private.v_employer_dossiers;
 drop view if exists private.v_caseload_activity;
 drop view if exists private.v_member_transition;
 drop view if exists private.v_member_directory;
+drop view if exists private.v_member_engagement;
 drop view if exists private.v_member_consent;
 
 -- Current consent per member, with the §14 defaults when no row exists
@@ -65,6 +66,51 @@ left join lateral (
   order by c."changedAt" desc, c."createdAt" desc limit 1
 ) cd on true;
 
+-- v_member_engagement — the engagement score (spec §7): rolling 12 months,
+-- the §7 caps (logins and outreach clicks 4 points a month, tool use 8 a
+-- month, gifts 10 across the window), split into the CASE categories, and a
+-- Low / Medium / High tier by percentile within the institution. Members who
+-- turned engagement sharing off are left out entirely.
+create view private.v_member_engagement as
+with monthly as (
+  select e."memberId", e."institutionId", e.type, e."caseCategory", date_trunc('month', e."occurredAt") as month, sum(e.points) as pts
+  from public."EngagementEvent" e
+  where e."occurredAt" >= now() - interval '12 months'
+  group by 1, 2, 3, 4, 5
+), capped as (
+  -- Monthly caps first, then summed over the 12 months.
+  select "memberId", "institutionId", type, "caseCategory",
+    sum(case type when 'LOGIN' then least(pts, 4) when 'OUTREACH_CLICK' then least(pts, 4) when 'TOOL_USE' then least(pts, 8) else pts end) as pts
+  from monthly
+  group by 1, 2, 3, 4
+), per_member as (
+  select "memberId", "institutionId",
+    sum(case when type = 'GIFT' then least(pts, 10) else pts end)::int as score,
+    sum(case when "caseCategory" = 'VOLUNTEER' then pts else 0 end)::int as volunteer,
+    sum(case when "caseCategory" = 'EXPERIENTIAL' then pts else 0 end)::int as experiential,
+    sum(case when "caseCategory" = 'PHILANTHROPIC' then least(pts, 10) else 0 end)::int as philanthropic,
+    sum(case when "caseCategory" = 'COMMUNICATION' then pts else 0 end)::int as communication
+  from capped
+  group by 1, 2
+)
+-- Every member who shares engagement, scored or not: ranked against the
+-- whole sharing roster, so a zero is always Low and a lone active alum is High.
+select mc."memberId", mc."institutionId",
+  coalesce(pm.score, 0) as score,
+  coalesce(pm.volunteer, 0) as volunteer,
+  coalesce(pm.experiential, 0) as experiential,
+  coalesce(pm.philanthropic, 0) as philanthropic,
+  coalesce(pm.communication, 0) as communication,
+  case
+    when coalesce(pm.score, 0) = 0 then 'Low'
+    when percent_rank() over (partition by mc."institutionId" order by coalesce(pm.score, 0)) >= 0.67 then 'High'
+    when percent_rank() over (partition by mc."institutionId" order by coalesce(pm.score, 0)) >= 0.33 then 'Medium'
+    else 'Low'
+  end as tier
+from private.v_member_consent mc
+left join per_member pm on pm."memberId" = mc."memberId"
+where mc."shareEngagement";
+
 -- v_member_directory — any staff role.
 -- employer/title: only with SHARE_OUTCOME. NextChapter's current employment
 -- record wins over the roster's last-known values when there is one.
@@ -84,7 +130,8 @@ select
   mc."shareEngagement",
   case when mc."shareOutcome" then coalesce(emp."companyName", m."lastKnownEmployer") end as employer,
   case when mc."shareOutcome" then coalesce(emp.title, m."lastKnownTitle") end as title,
-  case when mc."shareEngagement" then coalesce(eng.points, 0) end as "engagementPoints12mo"
+  case when mc."shareEngagement" then coalesce(eng.score, 0) end as "engagementPoints12mo",
+  case when mc."shareEngagement" then coalesce(eng.tier, 'Low') end as "engagementTier"
 from public."InstitutionMember" m
 join private.v_member_consent mc on mc."memberId" = m.id
 left join lateral (
@@ -95,11 +142,7 @@ left join lateral (
   order by me."startDate" desc nulls last
   limit 1
 ) emp on m."candidateId" is not null
-left join lateral (
-  select sum(e.points)::int as points
-  from public."EngagementEvent" e
-  where e."memberId" = m.id and e."occurredAt" >= now() - interval '12 months'
-) eng on true;
+left join private.v_member_engagement eng on eng."memberId" = m.id;
 
 -- v_member_transition — DEVELOPMENT, ALUMNI_RELATIONS, CAREER_SERVICES
 -- (and INSTITUTION_ADMIN). Open flags only. Never the reason or the source.

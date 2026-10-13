@@ -65,6 +65,7 @@ export type DirectoryRow = {
   employer: string | null // null when not shared (see shareOutcome) or unknown
   title: string | null
   engagementPoints12mo: number | null // null when engagement isn't shared
+  engagementTier: 'High' | 'Medium' | 'Low' | null // null when engagement isn't shared
 }
 
 export async function listMemberDirectory(
@@ -87,7 +88,7 @@ export async function listMemberDirectory(
   const [rows, count] = await Promise.all([
     db.$queryRaw<DirectoryRow[]>`
       select "memberId", "firstName", "lastName", "classYear", affiliation, status, "doNotContact",
-             "shareOutcome", "shareEngagement", employer, title, "engagementPoints12mo"
+             "shareOutcome", "shareEngagement", employer, title, "engagementPoints12mo", "engagementTier"
       from private.v_member_directory
       where ${filter}
       order by "lastName" nulls last, "firstName" nulls last, "memberId"
@@ -103,7 +104,7 @@ export async function getMemberForStaff(ctx: Ctx & { workspace: string }, member
   assertHolds(ctx, ANY_STAFF, 'member records')
   const rows = await db.$queryRaw<DirectoryRow[]>`
     select "memberId", "firstName", "lastName", "classYear", affiliation, status, "doNotContact",
-           "shareOutcome", "shareEngagement", employer, title, "engagementPoints12mo"
+           "shareOutcome", "shareEngagement", employer, title, "engagementPoints12mo", "engagementTier"
     from private.v_member_directory
     where "institutionId" = ${ctx.institution.id} and "memberId" = ${memberId}`
   if (!rows[0]) return null

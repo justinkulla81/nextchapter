@@ -173,6 +173,10 @@
     {
       "path": "/api/cron/higher-ed-nightly",
       "schedule": "30 7 * * *"
+    },
+    {
+      "path": "/api/cron/higher-ed-weekly",
+      "schedule": "0 13 * * 1"
     }
   ]
 }
