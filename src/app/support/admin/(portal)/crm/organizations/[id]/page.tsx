@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { orgSlug, canonicalFromSlug } from '@/lib/crm/org-slug'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
@@ -17,9 +18,10 @@ export const maxDuration = 30
 
 export default async function CrmOrganizationPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
-  const { id } = await params
-  const org = await prisma.crmOrganization.findUnique({
-    where: { id },
+  const { id: param } = await params
+  // The URL carries either a readable slug (/organizations/mastercard) or an id.
+  const org = await prisma.crmOrganization.findFirst({
+    where: { OR: [{ id: param }, { canonicalNameNormalized: canonicalFromSlug(param) }] },
     include: {
       affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
       opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
@@ -37,6 +39,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     },
   })
   if (!org) notFound()
+  const id = org.id
+  const slug = orgSlug(org.canonicalNameNormalized)
+  if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
   const pipelines = await prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } })
 
   // Meetings tied to this organization directly or through one of its
