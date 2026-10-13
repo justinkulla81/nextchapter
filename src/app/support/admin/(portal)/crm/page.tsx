@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
+import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/crm-counts'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
 import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
@@ -42,6 +44,12 @@ const DEFAULT_PAGE_SIZE = 100
 // The filters this list was last worked with, kept across sessions. See
 // StickyFilters for why a cookie.
 const STICKY_COOKIE = 'crm_people_filters'
+
+// Names for the quick-edit <datalist>: identical on every render and up to
+// 5000 rows, so memoised for an hour per instance.
+const getOrgNameOptions = ttlCached(60 * 60 * 1000, () =>
+  prisma.crmOrganization.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
+)
 
 function searchTokens(q: string): string[] {
   return q.split(/\s+/).map((t) => t.trim()).filter(Boolean).slice(0, 6)
@@ -233,9 +241,9 @@ export default async function CrmPeoplePage({
         },
       },
     }),
-    prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
-    prisma.crmPerson.count({ where: { deletedAt: { not: null } } }),
-    prisma.crmOrganization.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
+    countPeopleNeedingCompletion(),
+    countRemovedPeople(),
+    getOrgNameOptions(),
   ])
 
   const restoredSummary = restored

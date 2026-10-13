@@ -103,6 +103,9 @@ export default async function CrmQueuePage({
     // "fold CHROs into outplacement for free" effect the People queue gets.
     prisma.crmOrganization.findMany({
       where: { affiliations: { some: { person: { priority: { in: priorityTiers }, deletedAt: null } } } },
+      // Without an orderBy the 400 kept were whichever rows the planner
+      // returned first — arbitrary, and silently dropping the rest.
+      orderBy: [{ priorityScore: 'desc' }, { name: 'asc' }],
       take: 400,
       select: {
         id: true, name: true, queueSnoozedAt: true,
