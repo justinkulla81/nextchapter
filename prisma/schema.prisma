@@ -13126,3 +13126,18 @@ model JourneyEvent {
 
   @@index([candidateId, createdAt])
 }
+
+// One row per allowed request on a rate-limited public endpoint (email-sending
+// forms, the waitlist sink). `key` is an IP or a sha256 of a recipient email —
+// never a raw address. Counted over a sliding window by
+// src/lib/security/rate-limit.ts, which fails OPEN if this table is missing so
+// a deploy can precede the DDL. Rows older than two days are swept at random.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  bucket    String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([bucket, key, createdAt])
+  @@index([createdAt])
+}

@@ -6,6 +6,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendGuideDeliveryEmail } from '@/lib/email/send-guide-delivery'
 import { GUIDES } from '@/lib/constants/guides'
+import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 
 export type GuideLeadFormState = { error?: string; sent?: boolean } | undefined
 
@@ -25,6 +26,11 @@ export async function submitGuideLead(
   const guide = GUIDES.find((g) => g.slug === slug)
   if (!guide) {
     return { error: 'Guide not found.' }
+  }
+
+  if (!(await allowByIp('guide-lead', 15, HOUR_MS))) return { error: RATE_LIMITED_MESSAGE }
+  if (!(await allowByTarget('guide-lead-email', email, 5, DAY_MS))) {
+    return { error: 'We already sent guides to that address today. Check your inbox, or try again tomorrow.' }
   }
 
   const supabase = await createClient()

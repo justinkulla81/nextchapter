@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendFriendReferralEmail } from '@/lib/email/send-friend-referral'
+import { allowByIp, allowByTarget, DAY_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -27,6 +28,14 @@ export async function submitReferral(
   }
   if (friendEmail === yourEmail) {
     return { error: "That's the same email twice — enter your friend's address." }
+  }
+
+  // The per-referrer quota below is keyed on a field the caller types, so
+  // rotating it bypasses it. These two are keyed on what the caller can't vary:
+  // their network, and the address that would receive the email.
+  if (!(await allowByIp('refer', 10, DAY_MS))) return { error: RATE_LIMITED_MESSAGE }
+  if (!(await allowByTarget('refer-friend', friendEmail, 2, DAY_MS))) {
+    return { error: 'That address was already invited recently. Please try again tomorrow.' }
   }
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000)

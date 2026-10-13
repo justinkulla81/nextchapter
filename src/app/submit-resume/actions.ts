@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { cookies } from 'next/headers'
 import { REFERRAL_COOKIE } from '@/lib/candidates/referral'
 import { sendResumeLeadConfirmationEmail } from '@/lib/email/send-resume-lead-confirmation'
+import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 
 export type ResumeLeadFormState = { error?: string; sent?: boolean } | undefined
 
@@ -26,6 +27,13 @@ export async function submitResumeLead(
   }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: 'Enter a valid email.' }
+  }
+
+  // Before the upload: each call writes up to 10 MB to storage and emails
+  // an arbitrary address.
+  if (!(await allowByIp('submit-resume', 10, HOUR_MS))) return { error: RATE_LIMITED_MESSAGE }
+  if (!(await allowByTarget('submit-resume-email', email, 3, DAY_MS))) {
+    return { error: 'We already have a few submissions from that address today. Please try again tomorrow.' }
   }
 
   const file = formData.get('file') as File | null
