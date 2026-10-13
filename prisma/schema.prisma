@@ -4297,6 +4297,7 @@ model TrackedEmailActivity {
   @@unique([connectionId, externalMessageId])
   @@index([candidateId, activityType])
   @@index([candidateId, threadId])
+  @@index([candidateId, detectedAt])
 }
 
 // Prompt 79 — Calendar Connect. Same testing-mode posture as EmailConnection
@@ -4362,6 +4363,7 @@ model TrackedCalendarEvent {
 
   @@unique([connectionId, externalEventId])
   @@index([candidateId, eventType])
+  @@index([candidateId, startTime])
 }
 
 enum ContactEmploymentStatus {
@@ -4491,6 +4493,7 @@ model SupportNetworkContact {
 
   @@unique([candidateId, normalizedKey])
   @@index([candidateId])
+  @@index([candidateId, removedAt])
 }
 
 // Self-reported outreach — no automatic email-BCC-forwarding tracking yet

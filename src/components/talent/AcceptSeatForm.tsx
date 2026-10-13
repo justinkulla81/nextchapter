@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,7 +20,7 @@ export function AcceptSeatForm({ seatToken, invitedEmail }: { seatToken: string;
     setError(null)
     setLoading(true)
 
-    const supabase = createClient('talent')
+    const supabase = await createClientLazy('talent')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: invitedEmail,
       password,

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureForm'
 import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPlanCard'
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
@@ -131,7 +131,7 @@ const TOPICS: Topic[] = [
 const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bridge']
 
 export default async function BenefitsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const isSenior = isBoardReady(profile) && !profile.isPivoting
   const budgetingIndex = TOPICS.findIndex((t) => t.title === 'Budgeting through a search')
   const topics = [...TOPICS.slice(0, budgetingIndex), getWioaTopic(isSenior), ...TOPICS.slice(budgetingIndex)]

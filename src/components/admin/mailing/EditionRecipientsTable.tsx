@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 
 export interface EditionRecipientRow {
   id: string

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Logo } from '@/components/Logo'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { ReportPdfGateDialog } from './ReportPdfGateDialog'

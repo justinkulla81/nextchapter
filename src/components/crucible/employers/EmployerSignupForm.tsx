@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { completeCrucibleEmployerSignupFromSession } from '@/app/noexperience/employers/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,7 +32,7 @@ export function EmployerSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('crucible-employer')
-    const supabase = createClient('nen')
+    const supabase = await createClientLazy('nen')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { generateCoachShortlist } from '@/lib/coach/matching'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
@@ -80,7 +80,7 @@ export default async function CoachingMatchPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   if (profile.coachId) {
     redirect('/dashboard')

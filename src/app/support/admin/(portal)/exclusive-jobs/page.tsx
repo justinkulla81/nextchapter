@@ -2,7 +2,8 @@ import { SENIORITY_GROUPS, seniorityGroupOf } from '@/lib/jobs/job-seniority'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { ChevronDown } from 'lucide-react'
-import type { ExclusiveJobPosting } from '@prisma/client'
+import type { ExclusiveJobPosting, Prisma } from '@prisma/client'
+import { getActiveByLevel } from '@/lib/admin/exclusive-jobs-counts'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import {
@@ -73,13 +74,40 @@ function ScorePill({ scorePercent }: { scorePercent: number }) {
   return <span className="text-lg font-bold text-foreground tabular-nums">{scorePercent}%</span>
 }
 
+// Only the columns the pending review cards, the fit scorer and the by-fit
+// table read — the full row carries large unused text/JSON columns.
+const PENDING_SELECT = {
+  id: true,
+  title: true,
+  companyName: true,
+  location: true,
+  url: true,
+  source: true,
+  createdAt: true,
+  postingType: true,
+  contactName: true,
+  contactEmail: true,
+  salaryMin: true,
+  salaryMax: true,
+  salaryCurrency: true,
+  disclosure: true,
+  audienceTier: true,
+  distribution: true,
+  description: true,
+  targetFunction: true,
+  targetLevel: true,
+  targetRemotePolicy: true,
+  targetLocation: true,
+} satisfies Prisma.ExclusiveJobPostingSelect
+type PendingPosting = Prisma.ExclusiveJobPostingGetPayload<{ select: typeof PENDING_SELECT }>
+
 function PostingCard({
   posting,
   matched,
   total,
   scorePercent,
 }: {
-  posting: ExclusiveJobPosting
+  posting: PendingPosting
   matched: number
   total: number
   scorePercent: number
@@ -162,14 +190,18 @@ async function loadPageData() {
   const live = { status: 'approved', archivedAt: null } as const
   const archivedWhere = { OR: [{ archivedAt: { not: null } }, { status: 'rejected' }] }
   const [pending, activeManaged, activeByLevel, archivedTotal, archived, candidates] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({ where: { status: 'pending', archivedAt: null }, orderBy: { createdAt: 'desc' } }),
+    prisma.exclusiveJobPosting.findMany({
+      where: { status: 'pending', archivedAt: null },
+      orderBy: { createdAt: 'desc' },
+      select: PENDING_SELECT,
+    }),
     // ATS-fed rows never need a person to Archive/"still open — confirm"
     // them individually — the feeds reconfirm or archive them on every run
     // (ats-job-board-feed.ts, the ncrawl import). They're also nearly all
     // of the board (tens of thousands of rows), so they're only counted;
     // genuinely admin-managed rows get a Card.
     prisma.exclusiveJobPosting.findMany({ where: { ...live, source: { not: 'ats_feed' } }, orderBy: { createdAt: 'desc' } }),
-    prisma.exclusiveJobPosting.groupBy({ by: ['source', 'level'], where: live, _count: { _all: true } }),
+    getActiveByLevel(),
     prisma.exclusiveJobPosting.count({ where: archivedWhere }),
     prisma.exclusiveJobPosting.findMany({
       where: archivedWhere,

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { SkillsAssessmentForm } from '@/components/dashboard/SkillsAssessmentForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = { title: 'Skills Inventory' }
 
 export default async function SkillsAssessmentPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   return (
     <div className="space-y-6">

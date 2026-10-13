@@ -1,5 +1,6 @@
 import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 
 // Every existing admin page does one `getUserById` call per row inside a
 // `Promise.all` — fine at today's small scale, but N+1 against the Supabase
@@ -38,6 +39,12 @@ export async function listAllAuthUsers(): Promise<Map<string, AuthUserSummary>> 
 
   return map
 }
+
+// Same map, memoised for 60s per instance. Only for admin read-only views
+// that display emails (candidate list/detail) — callers that must see a
+// just-created user immediately (invites, member lookup) keep using
+// listAllAuthUsers() directly.
+export const listAllAuthUsersCached = ttlCached(60_000, listAllAuthUsers)
 
 export function getAuthEmail(users: Map<string, AuthUserSummary>, userId: string | null): string {
   if (!userId) return '— (token-only, no login)'

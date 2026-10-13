@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { FEEDBACK_STATUS_LABEL, HELP_FORM_KINDS, type HelpFormKind } from '@/lib/help/constants'
 import { HelpFeedbackForm } from '@/components/dashboard/HelpFeedbackForm'
@@ -18,7 +18,7 @@ const FEEDBACK_PILL: Record<string, string> = {
 }
 
 export default async function HelpAndFeedbackPage({ searchParams }: { searchParams: Promise<{ request?: string; kind?: string }> }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const { request: openId, kind } = await searchParams
   const initialKind = HELP_FORM_KINDS.some((k) => k.value === kind) ? (kind as HelpFormKind) : 'help'
 

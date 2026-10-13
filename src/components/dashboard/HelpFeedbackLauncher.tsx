@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageSquare, X } from 'lucide-react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { HelpFeedbackForm } from '@/components/dashboard/HelpFeedbackForm'
 
 /**

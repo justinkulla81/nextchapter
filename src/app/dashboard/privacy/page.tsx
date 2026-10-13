@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
@@ -38,7 +38,7 @@ const CONNECT_ERROR: Record<string, string> = {
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const params = await searchParams
   const [emailConn, calendarConn] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),

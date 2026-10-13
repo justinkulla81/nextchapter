@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { X, ShieldCheck } from 'lucide-react'
 import { Dialog, DialogClose, DialogPopup } from '@/components/ui/dialog'
 import { buttonVariants } from '@/components/ui/button'

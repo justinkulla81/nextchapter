@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { completeRecruiterSignup } from '@/app/recruiters/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,7 +27,7 @@ export function RecruiterSignupForm({ firmToken, invitedFirmName }: { firmToken?
     setLoading(true)
 
     setPendingSignupRoleCookie('recruiter')
-    const supabase = createClient('recruiter')
+    const supabase = await createClientLazy('recruiter')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

@@ -2232,3 +2232,42 @@ export async function setCandidateInvited(personId: string, invited: boolean): P
   revalidatePath(`${CRM}/home`)
   return { message }
 }
+
+/**
+ * Adds an opportunity to an organization from its record page. An organization
+ * can hold any number of them in any pipeline, so this deliberately does not
+ * dedupe on (org, pipeline) the way the capture route does.
+ */
+export async function addOrgOpportunity(orgId: string, pipelineKey: string, formData: FormData): Promise<{ ok: boolean; message: string }> {
+  const admin = await requireAdmin()
+  const title = String(formData.get('title') ?? '').trim()
+  if (!title) return { ok: false, message: 'Give it a title.' }
+
+  const pipeline = await prisma.crmPipeline.findUnique({
+    where: { key: pipelineKey },
+    include: { stages: { orderBy: { sortOrder: 'asc' }, take: 1 } },
+  })
+  const first = pipeline?.stages[0]
+  if (!pipeline || !first) return { ok: false, message: 'That pipeline has no stages yet.' }
+
+  const num = (k: string) => {
+    const n = parseInt(String(formData.get(k) ?? '').replace(/[^0-9]/g, ''), 10)
+    return Number.isFinite(n) ? n : null
+  }
+  const quality = String(formData.get('leadQuality') ?? '').trim()
+  const opp = await prisma.crmOpportunity.create({
+    data: {
+      orgId, pipelineId: pipeline.id, stageId: first.id, title,
+      amountUsdMin: num('amountUsdMin'), amountUsdMax: num('amountUsdMax'),
+      nextStep: String(formData.get('nextStep') ?? '').trim() || null,
+      leadQuality: (['A', 'B', 'C', 'D'].includes(quality) ? quality : 'UNGRADED') as CrmLeadQuality,
+      probability: pipeline.stages[0]?.defaultProbability ?? null,
+    },
+    select: { id: true },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_opportunity_added', { orgId, pipeline: pipelineKey, opportunityId: opp.id, surface: 'org_record' })
+  revalidatePath(`${CRM}/organizations/${orgId}`)
+  revalidatePath(`${CRM}/pipelines/${pipelineKey}`)
+  revalidatePath(`${CRM}/leads`)
+  return { ok: true, message: 'Added.' }
+}

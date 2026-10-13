@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { GraduationCap, Building2, LineChart, Check } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CoachingWaitlistForm } from '@/components/coaching/CoachingWaitlistForm'
@@ -35,7 +35,7 @@ const PRICE_LABEL = '$799/month'
 export default async function PremiumPage() {
   const [profile, {
     data: { user },
-  }] = await Promise.all([getDashboardData(), createClient().then((supabase) => supabase.auth.getUser())])
+  }] = await Promise.all([getDashboardProfile(), createClient().then((supabase) => supabase.auth.getUser())])
 
   const knownContact = user?.email
     ? { email: user.email, firstName: profile.firstName, lastName: profile.lastName }

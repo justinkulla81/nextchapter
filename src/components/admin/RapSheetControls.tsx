@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
 import { decideRapSheet } from '@/app/support/admin/(portal)/crm/rap-sheets/actions'
 

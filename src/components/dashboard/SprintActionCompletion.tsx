@@ -1,7 +1,7 @@
 import 'server-only'
 import Link from 'next/link'
 import {
-  getCurrentWeekSprint,
+  getCurrentWeekSprintForRender,
   getSuggestedActions,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
@@ -101,7 +101,7 @@ export async function SprintActionCompletion({
   pageKey?: PageKey
 }) {
   const [sprint, weeklySprintsCount] = await Promise.all([
-    getCurrentWeekSprint(candidateId),
+    getCurrentWeekSprintForRender(candidateId),
     prisma.weeklySprint.count({ where: { candidateId } }),
   ])
   if (!sprint) return null

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { WhatINeedForm } from '@/components/dashboard/WhatINeedForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,7 +9,7 @@ import type { WorkValueDomain, ImportanceRating, WhatINeedItemRating } from '@/l
 export const metadata: Metadata = { title: 'What I Need' }
 
 export default async function WhatINeedPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const response = await prisma.whatINeedResponse.findUnique({
     where: { candidateId: profile.id },

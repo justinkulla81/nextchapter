@@ -1,12 +1,15 @@
-'use client'
-
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
-import { Play } from 'lucide-react'
 import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, youtubeId, type NewsKind } from '@/lib/news/kind'
-import { NEWS_TAGS, newsTagLabel, type NewsTagKey } from '@/lib/news/tags'
+import { newsTagLabel, type NewsTagKey } from '@/lib/news/tags'
 import type { NewsItemView } from '@/lib/news/published'
+import {
+  NewsFilterGrid, NewsInstagramEmbed, NewsLink, NewsPicture, NewsVideoFrame,
+  type NewsTrack,
+} from './NewsFeedClient'
+
+// Server component: the card markup renders on the server and ships no
+// JavaScript. Only the click/play/filter behaviour lives in NewsFeedClient.
 
 type Placement = 'home' | 'news'
 
@@ -47,16 +50,6 @@ function TakeLink({ item }: { item: NewsItemView }) {
   )
 }
 
-/** A publisher's picture, hotlinked. One that fails to load takes its space with it. */
-function Picture({ src, className }: { src: string; className: string }) {
-  const [broken, setBroken] = useState(false)
-  if (broken) return null
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- remote publisher images, any host
-    <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} className={className} />
-  )
-}
-
 /**
  * The standard card: picture, then what kind of thing it is, then the words.
  *
@@ -64,14 +57,14 @@ function Picture({ src, className }: { src: string; className: string }) {
  * Instagram post with a picture or caption on file uses it too, without a
  * headline — the caption is the content, so it gets the room instead.
  */
-function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: NewsItemView; onOpen: () => void; cta?: string }) {
+function ArticleCard({ item, track, cta = 'Read the article →' }: { item: NewsItemView; track: NewsTrack; cta?: string }) {
   const lines = item.title
     ? (item.imageUrl ? 'line-clamp-2' : 'line-clamp-6')
     : (item.imageUrl ? 'line-clamp-6' : 'line-clamp-[14]')
   const className = `${CARD} group transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`
   const body = (
     <>
-      {item.imageUrl && <Picture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
+      {item.imageUrl && <NewsPicture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
       <div className={BODY}>
         <Meta item={item} />
         {item.title && (
@@ -93,52 +86,31 @@ function ArticleCard({ item, onOpen, cta = 'Read the article →' }: { item: New
   // An item with our take opens its own page here first; that page carries
   // the link out. A NextChapter report is our own page too, so it opens in the
   // same tab. Everything else goes straight to the source in a new tab.
-  if (item.slug) return <Link href={`/news/${item.slug}`} onClick={onOpen} className={className}>{body}</Link>
-  if (item.kind === 'report') return <a href={item.url} onClick={onOpen} className={className}>{body}</a>
-  return <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className={className}>{body}</a>
+  if (item.slug) return <NewsLink href={`/news/${item.slug}`} internal track={track} className={className}>{body}</NewsLink>
+  if (item.kind === 'report') return <NewsLink href={item.url} track={track} className={className}>{body}</NewsLink>
+  return <NewsLink href={item.url} newTab track={track} className={className}>{body}</NewsLink>
 }
 
 const videoHost = (url: string) => (youtubeId(url) ? 'YouTube' : 'Vimeo')
 
-function VideoCard({ item, onOpen, onPlay }: { item: NewsItemView; onOpen: () => void; onPlay: () => void }) {
-  const [playing, setPlaying] = useState(false)
-  const embed = videoEmbedUrl(item.url)
+function VideoCard({ item, track, played }: { item: NewsItemView; track: NewsTrack; played: NewsTrack }) {
   return (
     <article className={CARD}>
-      <div className="relative aspect-video w-full shrink-0 bg-navy">
-        {playing && embed ? (
-          <iframe
-            src={embed} title={item.title ?? 'Video'} allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen className="absolute inset-0 h-full w-full"
-          />
-        ) : (
-          <button
-            type="button" aria-label={`Play video: ${item.title ?? ''}`}
-            onClick={() => { setPlaying(true); onPlay() }}
-            className="group absolute inset-0 h-full w-full cursor-pointer focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none focus-visible:ring-inset"
-          >
-            {item.imageUrl && <Picture src={item.imageUrl} className="absolute inset-0 h-full w-full object-cover" />}
-            <span className="absolute inset-0 bg-navy/20 transition-colors group-hover:bg-navy/35" aria-hidden />
-            <span className="absolute top-1/2 left-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition-transform group-hover:scale-105" aria-hidden>
-              <Play className="ml-0.5 size-6 fill-navy text-navy" />
-            </span>
-          </button>
-        )}
-      </div>
+      <NewsVideoFrame embed={videoEmbedUrl(item.url)} title={item.title} imageUrl={item.imageUrl} played={played} />
       <div className={BODY}>
         <Meta item={item} />
         <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy">
-          <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="hover:underline">
+          <NewsLink href={item.url} newTab track={track} className="hover:underline">
             {item.title}
-          </a>
+          </NewsLink>
         </h3>
         {item.blurb && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.blurb}</p>}
         <div className="mt-auto pt-3">
           <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
           <p className="mt-3 text-sm font-medium">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
+            <NewsLink href={item.url} newTab track={track} className="text-primary hover:underline">
               Watch on {videoHost(item.url)} →
-            </a>
+            </NewsLink>
             <TakeLink item={item} />
           </p>
         </div>
@@ -148,7 +120,7 @@ function VideoCard({ item, onOpen, onPlay }: { item: NewsItemView; onOpen: () =>
 }
 
 /** A Spotify or Apple Podcasts player, at the fixed height each host gives its player. */
-function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
+function PodcastCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
   const embed = podcastEmbed(item.url)
   if (!embed) return null
   return (
@@ -163,18 +135,18 @@ function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
         <Meta item={item} />
         {item.title && (
           <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="hover:underline">
+            <NewsLink href={item.url} newTab track={track} className="hover:underline">
               {item.title}
-            </a>
+            </NewsLink>
           </h3>
         )}
         {item.blurb && <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">{item.blurb}</p>}
         <div className="mt-auto pt-3">
           <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
           <p className="mt-3 text-sm font-medium">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">
+            <NewsLink href={item.url} newTab track={track} className="text-primary hover:underline">
               Listen on {embed.host} →
-            </a>
+            </NewsLink>
             <TakeLink item={item} />
           </p>
         </div>
@@ -184,13 +156,13 @@ function PodcastCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void 
 }
 
 /** The strip under an embedded post: what it is, its topics, and the way out to it. */
-function EmbedFooter({ item, onOpen, href, label }: { item: NewsItemView; onOpen: () => void; href: string; label: string }) {
+function EmbedFooter({ item, track, href, label }: { item: NewsItemView; track: NewsTrack; href: string; label: string }) {
   return (
     <div className="shrink-0 border-t border-border px-5 py-3">
       <Meta item={item} />
       <div className="[&>ul]:mt-2"><Tags tags={item.tags} /></div>
       <p className="mt-2 text-sm font-medium">
-        <a href={href} target="_blank" rel="noopener noreferrer" onClick={onOpen} className="text-primary hover:underline">{label}</a>
+        <NewsLink href={href} newTab track={track} className="text-primary hover:underline">{label}</NewsLink>
         <TakeLink item={item} />
       </p>
     </div>
@@ -201,67 +173,44 @@ function EmbedFooter({ item, onOpen, href, label }: { item: NewsItemView; onOpen
  * LinkedIn's own embed of a post. It does not report its height, so the
  * frame takes what the card has left and scrolls for a long post.
  */
-function LinkedInCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
+function LinkedInCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
   const embed = linkedinEmbedUrl(item.url)
   if (!embed) return null
   return (
     <article className={CARD}>
       <iframe src={embed} title="LinkedIn post" loading="lazy" allowFullScreen className="block min-h-0 w-full flex-1 border-0" />
-      <EmbedFooter item={item} onOpen={onOpen} href={item.url} label="Open on LinkedIn →" />
+      <EmbedFooter item={item} track={track} href={item.url} label="Open on LinkedIn →" />
     </article>
   )
 }
 
-declare global {
-  interface Window { instgrm?: { Embeds: { process: () => void } } }
-}
-
-const IG_SCRIPT_ID = 'instagram-embed-js'
-
-/**
- * Instagram's own embed: its script swaps the blockquote for the post —
- * picture, caption and all — at the post's full height, which scrolls
- * inside the card. Loaded once per page however many posts there are, and
- * only when one is actually on the page. Until it loads (or if it is
- * blocked), the blockquote stays as a plain link.
- */
-function InstagramCard({ item, onOpen }: { item: NewsItemView; onOpen: () => void }) {
+function InstagramCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
   const permalink = instagramPermalink(item.url)
-
-  useEffect(() => {
-    if (!permalink) return
-    if (window.instgrm) { window.instgrm.Embeds.process(); return }
-    const existing = document.getElementById(IG_SCRIPT_ID)
-    const onLoad = () => window.instgrm?.Embeds.process()
-    if (existing) { existing.addEventListener('load', onLoad); return () => existing.removeEventListener('load', onLoad) }
-    const s = document.createElement('script')
-    s.id = IG_SCRIPT_ID
-    s.async = true
-    s.src = 'https://www.instagram.com/embed.js'
-    s.addEventListener('load', onLoad)
-    document.body.appendChild(s)
-  }, [permalink])
-
   if (!permalink) return null
   return (
     <article className={CARD}>
-      <div className="min-h-0 flex-1 overflow-y-auto [&_iframe]:!m-0 [&_iframe]:!w-full [&_iframe]:!max-w-full [&_iframe]:!min-w-0 [&_iframe]:!rounded-none [&_iframe]:!border-0">
-        <blockquote
-          className="instagram-media m-0 p-5"
-          data-instgrm-captioned="" data-instgrm-permalink={permalink} data-instgrm-version="14"
-        >
-          <a href={permalink} target="_blank" rel="noopener noreferrer" onClick={onOpen}
-            className="block text-lg leading-snug font-semibold text-navy hover:underline">
-            {item.title ?? 'View this post on Instagram'}
-          </a>
-        </blockquote>
-      </div>
-      <EmbedFooter item={item} onOpen={onOpen} href={permalink} label="Open on Instagram →" />
+      <NewsInstagramEmbed permalink={permalink} title={item.title} track={track} />
+      <EmbedFooter item={item} track={track} href={permalink} label="Open on Instagram →" />
     </article>
   )
 }
 
-const SELECT = 'h-9 rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-brand'
+function renderCard(item: NewsItemView, placement: Placement) {
+  const props = { itemId: item.id, kind: item.kind, source: item.source, placement }
+  const track: NewsTrack = { event: 'news_item_clicked', props }
+  // A post with its picture or caption on file is laid out like
+  // every other card; one without is shown through its host's embed.
+  if ((item.kind === 'instagram' || item.kind === 'linkedin') && (item.imageUrl || item.blurb)) {
+    const host = item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'
+    return <ArticleCard item={item} track={track} cta={`Open on ${host} →`} />
+  }
+  if (item.kind === 'instagram') return <InstagramCard item={item} track={track} />
+  if (item.kind === 'linkedin') return <LinkedInCard item={item} track={track} />
+  if (item.kind === 'podcast') return <PodcastCard item={item} track={track} />
+  if (item.kind === 'video') return <VideoCard item={item} track={track} played={{ event: 'news_video_played', props }} />
+  if (item.kind === 'report') return <ArticleCard item={item} track={track} cta="Read the report →" />
+  return <ArticleCard item={item} track={track} />
+}
 
 /**
  * The News cards — articles, videos, podcasts, LinkedIn and Instagram posts
@@ -272,101 +221,27 @@ const SELECT = 'h-9 rounded-md border border-input bg-white px-3 text-sm outline
  * so a filtered view can be bookmarked or sent to someone.
  */
 export function NewsFeed({ items, placement, filterable = false }: { items: NewsItemView[]; placement: Placement; filterable?: boolean }) {
-  const posthog = usePostHog()
-  const [kind, setKind] = useState('')
-  const [topic, setTopic] = useState('')
-
-  // Only what is actually there: a filter that can only ever return nothing
-  // is not a choice.
-  const kinds = useMemo(() => NEWS_KINDS.filter((k) => items.some((i) => i.kind === k.key)), [items])
-  const topics = useMemo(() => NEWS_TAGS.filter((t) => items.some((i) => i.tags.includes(t.key))), [items])
-
-  useEffect(() => {
-    if (!filterable) return
-    const q = new URLSearchParams(window.location.search)
-    const k = q.get('type') ?? ''
-    const t = q.get('topic') ?? ''
-    // Read once on arrival, after hydration, so the server and the browser
-    // render the same first page.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (NEWS_KINDS.some((x) => x.key === k)) setKind(k)
-    if (NEWS_TAGS.some((x) => x.key === t)) setTopic(t)
-  }, [filterable])
-
-  const shown = items.filter((i) => (!kind || i.kind === kind) && (!topic || i.tags.includes(topic as NewsTagKey)))
-
-  function change(next: { kind?: string; topic?: string }) {
-    const k = next.kind ?? kind
-    const t = next.topic ?? topic
-    setKind(k)
-    setTopic(t)
-    const q = new URLSearchParams()
-    if (k) q.set('type', k)
-    if (t) q.set('topic', t)
-    window.history.replaceState(null, '', q.size > 0 ? `?${q}` : window.location.pathname)
-    posthog?.capture('news_filter_changed', {
-      type: k || 'all', topic: t || 'all',
-      results: items.filter((i) => (!k || i.kind === k) && (!t || i.tags.includes(t as NewsTagKey))).length,
-    })
+  if (filterable) {
+    return (
+      <NewsFilterGrid
+        cards={items.map((item) => ({ id: item.id, kind: item.kind, tags: item.tags, node: renderCard(item, placement) }))}
+      />
+    )
   }
 
-  const props = (item: NewsItemView) => ({ itemId: item.id, kind: item.kind, source: item.source, placement })
+  if (items.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-white p-10 text-center">
+        <p className="text-muted-foreground">Nothing matches those filters.</p>
+      </div>
+    )
+  }
+
   return (
     <div>
-      {filterable && (kinds.length > 1 || topics.length > 0) && (
-        <div className="mb-8 flex flex-wrap items-end gap-4">
-          {kinds.length > 1 && (
-            <div>
-              <label htmlFor="news-type" className="block text-xs font-medium text-muted-foreground">Type</label>
-              <select id="news-type" value={kind} onChange={(e) => change({ kind: e.target.value })} className={`${SELECT} mt-1`}>
-                <option value="">All types</option>
-                {kinds.map((k) => <option key={k.key} value={k.key}>{k.plural}</option>)}
-              </select>
-            </div>
-          )}
-          {topics.length > 0 && (
-            <div>
-              <label htmlFor="news-topic" className="block text-xs font-medium text-muted-foreground">Topic</label>
-              <select id="news-topic" value={topic} onChange={(e) => change({ topic: e.target.value })} className={`${SELECT} mt-1`}>
-                <option value="">All topics</option>
-                {topics.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-              </select>
-            </div>
-          )}
-          <p className="pb-2 text-sm text-muted-foreground" role="status">
-            {shown.length} of {items.length}
-          </p>
-        </div>
-      )}
-
-      {shown.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-white p-10 text-center">
-          <p className="text-muted-foreground">Nothing matches those filters.</p>
-          <button type="button" onClick={() => change({ kind: '', topic: '' })} className="mt-3 text-sm font-medium text-primary underline underline-offset-4">
-            Show everything
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((item) => {
-            const onOpen = () => posthog?.capture('news_item_clicked', props(item))
-            // A post with its picture or caption on file is laid out like
-            // every other card; one without is shown through its host's embed.
-            if ((item.kind === 'instagram' || item.kind === 'linkedin') && (item.imageUrl || item.blurb)) {
-              const host = item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'
-              return <ArticleCard key={item.id} item={item} onOpen={onOpen} cta={`Open on ${host} →`} />
-            }
-            if (item.kind === 'instagram') return <InstagramCard key={item.id} item={item} onOpen={onOpen} />
-            if (item.kind === 'linkedin') return <LinkedInCard key={item.id} item={item} onOpen={onOpen} />
-            if (item.kind === 'podcast') return <PodcastCard key={item.id} item={item} onOpen={onOpen} />
-            if (item.kind === 'video') {
-              return <VideoCard key={item.id} item={item} onOpen={onOpen} onPlay={() => posthog?.capture('news_video_played', props(item))} />
-            }
-            if (item.kind === 'report') return <ArticleCard key={item.id} item={item} onOpen={onOpen} cta="Read the report →" />
-            return <ArticleCard key={item.id} item={item} onOpen={onOpen} />
-          })}
-        </div>
-      )}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => <Fragment key={item.id}>{renderCard(item, placement)}</Fragment>)}
+      </div>
     </div>
   )
 }

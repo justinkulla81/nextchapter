@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import type { PortalKey } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,7 +41,7 @@ export function LoginForm({
     setError(null)
     setResent(false)
 
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
@@ -64,7 +64,7 @@ export function LoginForm({
   }
 
   async function handleResend() {
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const { error } = await supabase.auth.resend({ type: 'signup', email })
     if (error) {
       setError(error.message)

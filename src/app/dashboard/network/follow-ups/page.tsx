@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Bell, ArrowLeft } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { formatRelativeTime } from '@/lib/format-relative-time'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 export const metadata: Metadata = { title: 'Follow-ups' }
 
 export default async function FollowUpsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const items = await getUnifiedFollowUps(profile.id)
 
   return (

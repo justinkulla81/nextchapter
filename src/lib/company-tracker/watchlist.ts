@@ -77,7 +77,25 @@ async function getTopHirerMatcher(candidateId: string): Promise<(companyName: st
 // small enough to fetch in full and match in JS against each candidate's
 // watchlist, rather than needing a normalized column on ExclusiveJobPosting
 // itself.
-async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: string; source: string })[]> {
+type ActivePosting = WatchlistPosting & { audienceTier: string; source: string }
+// Same live set for every candidate, and every dashboard / find-my-job render needs it:
+// memoised per server instance for a minute (same pattern as ghost-risk-data.ts). Rows are
+// read-only to callers; a new import or approval shows up within the TTL.
+const ACTIVE_TTL_MS = 60_000
+let activeCache: { at: number; rows: Promise<ActivePosting[]> } | null = null
+
+function getActivePostings(): Promise<ActivePosting[]> {
+  if (!activeCache || Date.now() - activeCache.at > ACTIVE_TTL_MS) {
+    const rows = loadActivePostings()
+    activeCache = { at: Date.now(), rows }
+    rows.catch(() => {
+      if (activeCache?.rows === rows) activeCache = null
+    })
+  }
+  return activeCache.rows
+}
+
+async function loadActivePostings(): Promise<ActivePosting[]> {
   return prisma.exclusiveJobPosting.findMany({
     where: {
       archivedAt: null,
@@ -129,11 +147,10 @@ async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPos
 // not whether this candidate can open it yet — see that function for why
 // Candidate+ status doesn't matter there).
 async function matchWatchlistEntries(candidateId: string) {
-  const [entries, boardPostings, surfacedPostings] = await Promise.all([
-    prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
-    getActivePostings(),
-    getSurfacedJobPostings(candidateId),
-  ])
+  const entries = await prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } })
+  // Nothing watched means nothing to match: skip loading the whole live board (~80k rows).
+  if (entries.length === 0) return []
+  const [boardPostings, surfacedPostings] = await Promise.all([getActivePostings(), getSurfacedJobPostings(candidateId)])
 
   return entries.map((entry) => {
     const boardMatches = boardPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { TrackRecordForm } from '@/components/dashboard/TrackRecordForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 export const metadata: Metadata = { title: 'Track Record' }
 
 export default async function TrackRecordPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const response = await prisma.trackRecordResponse.findUnique({
     where: { candidateId: profile.id },

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { ChevronDown } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
@@ -38,7 +38,7 @@ export default async function ContactDirectoryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const [sp, profile] = await Promise.all([searchParams, getDashboardData()])
+  const [sp, profile] = await Promise.all([searchParams, getDashboardProfile()])
 
   const scope: 'mine' | 'nextchapter' | 'all' =
     sp.scope === 'nextchapter' || sp.scope === 'all' ? sp.scope : 'mine'

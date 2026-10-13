@@ -104,3 +104,38 @@ export async function resolveCompanySizeBand(companyName: string): Promise<Resol
   after(() => classifyAndCacheCompanySize(companyName, normalized))
   return { band: null, source: 'unknown' }
 }
+
+// Batched form of resolveCompanySizeBand for a page that resolves a whole list
+// of names: identical per-name semantics (static table first, then the
+// permanent cache, else null now and a background classify), but one
+// findMany for every name that is not in the static table instead of one
+// findUnique per name. Results are index-aligned with `companyNames`.
+export async function resolveCompanySizeBands(companyNames: string[]): Promise<ResolvedCompanySize[]> {
+  const normalized = companyNames.map((n) => normalizeOrgName(n))
+  const results: (ResolvedCompanySize | null)[] = normalized.map((norm) => {
+    if (!norm) return { band: null, source: 'unknown' as const }
+    const staticMatch = COMPANY_SIZE_TIERS.find((tier) => normalizeOrgName(tier.name) === norm)
+    return staticMatch ? { band: staticMatch.sizeBand, source: 'static' as const } : null
+  })
+
+  const lookupKeys = [...new Set(normalized.filter((norm, i) => results[i] === null && norm))]
+  const cachedRows =
+    lookupKeys.length > 0
+      ? await prisma.companySizeLookup.findMany({ where: { companyNameNormalized: { in: lookupKeys } } })
+      : []
+  const cachedByKey = new Map(cachedRows.map((r) => [r.companyNameNormalized, r]))
+
+  const scheduled = new Set<string>()
+  return results.map((resolved, i) => {
+    if (resolved) return resolved
+    const norm = normalized[i]
+    const cached = cachedByKey.get(norm)
+    if (cached) return { band: cached.sizeBand, source: cached.source as 'static' | 'llm' }
+    if (!scheduled.has(norm)) {
+      scheduled.add(norm)
+      const name = companyNames[i]
+      after(() => classifyAndCacheCompanySize(name, norm))
+    }
+    return { band: null, source: 'unknown' as const }
+  })
+}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { completeEqOverIqContributorSignupFromSession } from '@/app/eqoveriq/contributors/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,7 +31,7 @@ export function ContributorSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('eqoveriq-contributor')
-    const supabase = createClient('eqoveriq')
+    const supabase = await createClientLazy('eqoveriq')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

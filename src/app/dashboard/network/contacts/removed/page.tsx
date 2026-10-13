@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { restoreContact } from '@/app/dashboard/network/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -8,7 +8,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 export const metadata: Metadata = { title: 'Removed Contacts' }
 
 export default async function RemovedContactsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const contacts = await prisma.supportNetworkContact.findMany({
     where: { candidateId: profile.id, removedAt: { not: null } },
     orderBy: { name: 'asc' },

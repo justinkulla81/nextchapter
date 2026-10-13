@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { after } from 'next/server'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCommunityFeed } from '@/lib/community/community-feed'
@@ -143,7 +144,7 @@ export default async function SupportNetworkPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const params = await searchParams
   const tab = params.tab === 'messages' ? 'messages' : 'community'
 
@@ -639,14 +640,17 @@ async function CommunityTab({
     )
   }
 
-  const [, , hasIntroduced] = await Promise.all([
-    // Resets the Support Network nav badge's baseline the moment they can
-    // actually see feed content — whether that's the intro-gated preview
-    // below or the full feed further down.
-    prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: { communityLastViewedAt: new Date() },
-    }),
+  // Resets the Support Network nav badge's baseline the moment they can
+  // actually see feed content — whether that's the intro-gated preview below
+  // or the full feed further down. Nothing in this render reads the value
+  // back, so it runs after the response instead of holding it up.
+  after(() =>
+    prisma.candidateProfile
+      .update({ where: { id: candidateId }, data: { communityLastViewedAt: new Date() } })
+      .catch((error) => console.error('Community last-viewed update failed:', error))
+  )
+
+  const [, hasIntroduced] = await Promise.all([
     // Idempotent past the first visit — only creates a membership row for a
     // dimension (city/function/industry/ex-company) that has no row at all yet.
     syncAutoJoinedCommunities(candidateId),

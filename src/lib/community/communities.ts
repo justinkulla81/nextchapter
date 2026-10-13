@@ -15,26 +15,28 @@ interface AutoJoinDimension {
 // re-auto-joined (both cases already have a CommunityMembership row for that
 // type, matched or left, so this loop skips them).
 export async function syncAutoJoinedCommunities(candidateId: string) {
-  const profile = await prisma.candidateProfile.findUnique({
-    where: { id: candidateId },
-    select: {
-      currentCity: true,
-      primaryFunction: true,
-      industryContext: true,
-      layoffCohortId: true,
-      layoffCohort: { select: { companyName: true } },
-    },
-  })
+  // Two independent reads, issued together. Every later write is gated on
+  // what these return, so a member who already has a row for every dimension
+  // they match costs just these two reads and no writes.
+  const [profile, memberships] = await Promise.all([
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        currentCity: true,
+        primaryFunction: true,
+        industryContext: true,
+        layoffCohortId: true,
+        layoffCohort: { select: { companyName: true } },
+      },
+    }),
+    prisma.communityMembership.findMany({
+      where: { candidateId },
+      select: { community: { select: { type: true } } },
+    }),
+  ])
   if (!profile) return
 
-  const existingTypes = new Set(
-    (
-      await prisma.communityMembership.findMany({
-        where: { candidateId },
-        select: { community: { select: { type: true } } },
-      })
-    ).map((m) => m.community.type)
-  )
+  const existingTypes = new Set(memberships.map((m) => m.community.type))
 
   const dimensions: AutoJoinDimension[] = []
   if (profile.currentCity && !existingTypes.has('CITY')) {
@@ -55,16 +57,19 @@ export async function syncAutoJoinedCommunities(candidateId: string) {
     })
   }
 
-  for (const dim of dimensions) {
-    const community = await prisma.community.upsert({
-      where: { type_value: { type: dim.type, value: dim.value } },
-      create: { type: dim.type, value: dim.value, label: dim.label, layoffCohortId: dim.layoffCohortId },
-      update: {},
+  // One dimension type each, so the joins don't depend on one another.
+  await Promise.all(
+    dimensions.map(async (dim) => {
+      const community = await prisma.community.upsert({
+        where: { type_value: { type: dim.type, value: dim.value } },
+        create: { type: dim.type, value: dim.value, label: dim.label, layoffCohortId: dim.layoffCohortId },
+        update: {},
+      })
+      await prisma.communityMembership.create({
+        data: { communityId: community.id, candidateId, joinedVia: 'AUTO' },
+      })
     })
-    await prisma.communityMembership.create({
-      data: { communityId: community.id, candidateId, joinedVia: 'AUTO' },
-    })
-  }
+  )
 }
 
 // Batches every un-acknowledged auto-join into one specific-named banner —

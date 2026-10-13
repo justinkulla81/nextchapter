@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, Target, HandHeart } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isMemberProfilePublic, getMemberDisplayIdentity, extractCandidateIdFromMemberSlug } from '@/lib/contacts/member-profile'
 import { selectDisplayedWorkHistory, sanitizeRoleTitle } from '@/lib/work-history/sanitize'
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function MemberProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const id = extractCandidateIdFromMemberSlug(decodeURIComponent(slug))
-  const viewer = await getDashboardData()
+  const viewer = await getDashboardProfile()
 
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id },

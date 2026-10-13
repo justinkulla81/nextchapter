@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getUpcomingWebinars, getCandidateWebinarRegistrations } from '@/lib/webinars/webinars'
 import { getCarouselVideos, getCarouselPodcasts } from '@/lib/content/curated-content'
 import { getCandidateContentLikeKeys, contentLikeKey, getCandidateFavorites } from '@/lib/content/content-likes'
@@ -23,7 +23,7 @@ function EmptyCarousel({ label = 'Nothing here yet — check back soon.' }: { la
 }
 
 export default async function WebinarsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const [webinars, registeredIds, { longForm, shorts, toolsForYou, aiTips }, podcasts, likedKeys, favorites] = await Promise.all([
     getUpcomingWebinars(profile.id),
     getCandidateWebinarRegistrations(profile.id),

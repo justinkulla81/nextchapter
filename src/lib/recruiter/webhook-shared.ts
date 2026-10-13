@@ -1,6 +1,7 @@
-import { createHmac } from 'crypto'
-
-// Pure helpers shared by the sender and the tests.
+// Pure helpers shared by the sender, the onboarding UI and the tests. Keep this
+// file free of Node built-ins (crypto etc.): WebhookManager imports it in the
+// browser, and a Node import here makes webpack ship a ~100 KB crypto polyfill.
+// The HMAC signer lives in webhook-sign.ts for that reason.
 
 export const FIRM_WEBHOOK_EVENTS = ['lead.created', 'lead.tagged'] as const
 export type FirmWebhookEvent = (typeof FIRM_WEBHOOK_EVENTS)[number] | 'ping'
@@ -8,12 +9,6 @@ export type FirmWebhookEvent = (typeof FIRM_WEBHOOK_EVENTS)[number] | 'ping'
 export const FIRM_WEBHOOK_EVENT_LABELS: Record<(typeof FIRM_WEBHOOK_EVENTS)[number], string> = {
   'lead.created': 'A resume arrives',
   'lead.tagged': 'A resume is read and routed (fit, niche or outside)',
-}
-
-/** Header value: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<body>">. */
-export function signWebhookBody(secret: string, timestamp: number, body: string): string {
-  const mac = createHmac('sha256', secret).update(`${timestamp}.${body}`).digest('hex')
-  return `t=${timestamp},v1=${mac}`
 }
 
 /** https only, and never an address on the machine or a private network. */

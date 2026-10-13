@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -68,7 +68,7 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 }
 
 export default async function LearningPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const weekStart = getMondayOfWeek(new Date())
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
     buildLearningPlan(profile.id),

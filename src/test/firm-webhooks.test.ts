@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createHmac } from 'crypto'
-import { isSafeWebhookUrl, signWebhookBody } from '@/lib/recruiter/webhook-shared'
+import { isSafeWebhookUrl } from '@/lib/recruiter/webhook-shared'
+import { signWebhookBody } from '@/lib/recruiter/webhook-sign'
 
 describe('firm webhooks', () => {
   it('signs "<timestamp>.<body>" with HMAC-SHA256', () => {

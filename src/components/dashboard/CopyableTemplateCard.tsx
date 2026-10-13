@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
 
 export function CopyableTemplateCard({

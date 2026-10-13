@@ -10,7 +10,7 @@ import { INTRO_WELCOME_BONUS_POINTS } from '@/lib/weekly/sprint'
 export default async function WelcomePage() {
   const profile = await getCandidateProfileForUser()
 
-  // Only reachable once an account actually exists — getDashboardData and
+  // Only reachable once an account actually exists — getDashboardProfile and
   // the /onboarding router both send here right after registration, but a
   // direct hit before that (or a second visit after already committing)
   // should bounce to wherever the candidate actually belongs.

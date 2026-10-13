@@ -54,7 +54,7 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
         linkedinConnectionsImportedAt: true,
         linkedInConnection: { select: { disconnectedAt: true } },
         // Set in onboarding/actions.ts, before account creation — see
-        // getDashboardData's own redirect, which guarantees this is
+        // getDashboardProfile's own redirect, which guarantees this is
         // already true for every candidate who can reach this code. This
         // "always unlocked" item therefore reads as already-complete from
         // day one, same as the spec's "so day one isn't a wall of locks."

@@ -69,6 +69,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Unhashed files in public/ otherwise get `max-age=0, must-revalidate`, so a returning
+  // visitor re-checks every image and PDF on every page. A day plus a week of
+  // stale-while-revalidate keeps them warm without pinning a replaced file for long.
+  async headers() {
+    const cacheable = "public, max-age=86400, stale-while-revalidate=604800";
+    return [
+      { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
+      { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
+      { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
+      { source: "/reports/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
+    ];
+  },
   skipTrailingSlashRedirect: true,
 };
 

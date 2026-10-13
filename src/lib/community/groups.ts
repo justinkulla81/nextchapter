@@ -51,39 +51,44 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
     }),
   ])
 
-  const groups: CommunityGroup[] = []
+  // Every group's member count is an independent read — issue them all at
+  // once and assemble in the original chip order afterwards (seniority,
+  // school, up to 3 companies, industry, metro, function).
+  const pending: Promise<CommunityGroup | null>[] = []
+  const addCount = (count: Promise<number>, group: Omit<CommunityGroup, 'memberCount'>) => {
+    pending.push(count.then((memberCount) => (memberCount >= 1 ? { ...group, memberCount } : null)))
+  }
 
-  // Pushed first — §14's primary segmentation axis, so it's the first chip
-  // a candidate sees (function, below, is the secondary axis).
+  // §14's primary segmentation axis, so it's the first chip a candidate sees
+  // (function, below, is the secondary axis).
   if (latestResumeAnalysis?.seniorityBand) {
-    const count = await prisma.communityPost.count({
-      where: {
-        candidateId: { not: candidateId },
-        moderationStatus: 'PUBLISHED',
-        postSeniorityBand: latestResumeAnalysis.seniorityBand,
-      },
-    })
-    if (count >= 1) {
-      groups.push({
+    addCount(
+      prisma.communityPost.count({
+        where: {
+          candidateId: { not: candidateId },
+          moderationStatus: 'PUBLISHED',
+          postSeniorityBand: latestResumeAnalysis.seniorityBand,
+        },
+      }),
+      {
         dimension: 'seniority',
         value: latestResumeAnalysis.seniorityBand,
         label: SENIORITY_BAND_LABEL[latestResumeAnalysis.seniorityBand] ?? latestResumeAnalysis.seniorityBand,
-        memberCount: count,
-      })
-    }
+      }
+    )
   }
 
   if (primarySchool && primarySchool.schoolNameNormalized) {
-    const count = await prisma.candidateProfile.count({
-      where: {
-        id: { not: candidateId },
-        privacyTier: { in: [...VISIBLE_TIERS] },
-        educationHistory: { some: { schoolNameNormalized: primarySchool.schoolNameNormalized, isPrimary: true } },
-      },
-    })
-    if (count >= 1) {
-      groups.push({ dimension: 'school', value: primarySchool.schoolNameNormalized, label: primarySchool.schoolName, memberCount: count })
-    }
+    addCount(
+      prisma.candidateProfile.count({
+        where: {
+          id: { not: candidateId },
+          privacyTier: { in: [...VISIBLE_TIERS] },
+          educationHistory: { some: { schoolNameNormalized: primarySchool.schoolNameNormalized, isPrimary: true } },
+        },
+      }),
+      { dimension: 'school', value: primarySchool.schoolNameNormalized, label: primarySchool.schoolName }
+    )
   }
 
   const seenCompanies = new Set<string>()
@@ -92,40 +97,48 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
     seenCompanies.add(entry.companyNameNormalized)
     if (seenCompanies.size > 3) break
 
-    const count = await prisma.candidateProfile.count({
-      where: {
-        id: { not: candidateId },
-        privacyTier: { in: [...VISIBLE_TIERS] },
-        workHistory: { some: { companyNameNormalized: entry.companyNameNormalized } },
-      },
-    })
-    if (count >= 1) {
-      groups.push({ dimension: 'company', value: entry.companyNameNormalized, label: entry.companyName, memberCount: count })
-    }
+    addCount(
+      prisma.candidateProfile.count({
+        where: {
+          id: { not: candidateId },
+          privacyTier: { in: [...VISIBLE_TIERS] },
+          workHistory: { some: { companyNameNormalized: entry.companyNameNormalized } },
+        },
+      }),
+      { dimension: 'company', value: entry.companyNameNormalized, label: entry.companyName }
+    )
   }
 
   if (profile.industryBucket) {
-    const count = await prisma.candidateProfile.count({
-      where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, industryBucket: profile.industryBucket },
-    })
-    if (count >= 1) groups.push({ dimension: 'industry', value: profile.industryBucket, label: profile.industryBucket, memberCount: count })
+    addCount(
+      prisma.candidateProfile.count({
+        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, industryBucket: profile.industryBucket },
+      }),
+      { dimension: 'industry', value: profile.industryBucket, label: profile.industryBucket }
+    )
   }
 
   // "Other/Remote" isn't a real peer group — excluded per the metro-areas
   // convention (normalizeMetroArea never treats it as a match target).
   if (profile.metroArea && profile.metroArea !== 'Other/Remote') {
-    const count = await prisma.candidateProfile.count({
-      where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, metroArea: profile.metroArea },
-    })
-    if (count >= 1) groups.push({ dimension: 'metro', value: profile.metroArea, label: profile.metroArea, memberCount: count })
+    addCount(
+      prisma.candidateProfile.count({
+        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, metroArea: profile.metroArea },
+      }),
+      { dimension: 'metro', value: profile.metroArea, label: profile.metroArea }
+    )
   }
 
   if (profile.primaryFunction && (PRIMARY_FUNCTION_OPTIONS as readonly string[]).includes(profile.primaryFunction)) {
-    const count = await prisma.candidateProfile.count({
-      where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, primaryFunction: profile.primaryFunction },
-    })
-    if (count >= 1) groups.push({ dimension: 'function', value: profile.primaryFunction, label: profile.primaryFunction, memberCount: count })
+    addCount(
+      prisma.candidateProfile.count({
+        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, primaryFunction: profile.primaryFunction },
+      }),
+      { dimension: 'function', value: profile.primaryFunction, label: profile.primaryFunction }
+    )
   }
+
+  const groups = (await Promise.all(pending)).filter((g): g is CommunityGroup => g !== null)
 
   return groups
 }

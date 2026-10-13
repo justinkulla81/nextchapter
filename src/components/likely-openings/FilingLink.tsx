@@ -1,6 +1,6 @@
 'use client'
 
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 
 // Link out to the SEC filing behind a likely-opening signal, tracked so we
 // can see which surfaces send people to the source.

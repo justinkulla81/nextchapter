@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
+import type { createClient } from '@/lib/supabase/client'
 import { portalForPath } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,7 +54,7 @@ export function ResetPasswordForm() {
     if (status !== 'waiting') return
 
     async function run() {
-      const supabase = createClient(portal)
+      const supabase = await createClientLazy(portal)
       const code = searchParams.get('code')
 
       let sessionError: { message: string } | null = null
@@ -86,7 +87,7 @@ export function ResetPasswordForm() {
     setLoading(true)
     setError(null)
 
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setLoading(false)

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getProfileChecklistItems, type ProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
@@ -31,7 +31,7 @@ export const metadata: Metadata = { title: 'Complete Your Profile' }
 // task list. Redirects away once everything is done — there's nothing left
 // to show.
 export default async function CompleteProfilePage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const items = await getProfileChecklistItems(profile.id)
 
   if (items.every((item) => item.complete)) {

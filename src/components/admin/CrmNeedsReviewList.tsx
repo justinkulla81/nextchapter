@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { approveActivities, discardActivities } from '@/app/support/admin/(portal)/crm/actions'
 import { CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { priorityTierClass } from '@/lib/crm/labels'

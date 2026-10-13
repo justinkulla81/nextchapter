@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,7 +25,7 @@ const UPCOMING_MODULES = [
 ] as const
 
 export default async function SkillsAssessmentsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const [latestWorkStyleResponse, latestPerformanceResponse, completedReferenceCount] = await Promise.all([
     prisma.candidateAssessmentResponse.findFirst({

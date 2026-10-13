@@ -23,7 +23,7 @@ export default async function CrmPipelinesPage() {
         <div>
           <h1 className="text-2xl font-semibold">Pipelines</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Nine workstreams on one stage spine. A person can sit in several at once.
+            {pipelines.length} workstreams on one stage spine. A person or organization can sit in several at once.
           </p>
         </div>
         <Link href="/support/admin/crm/leads" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">

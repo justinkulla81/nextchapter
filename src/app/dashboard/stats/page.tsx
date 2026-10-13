@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { getWhereYouStand } from '@/lib/reports/market-reality-sections'
@@ -15,7 +15,7 @@ import type { Grade } from '@/lib/scoring/grade'
 import { computeBestWeekSentence, computeGradeMovement } from '@/lib/scoring/market-reality-history'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { cn } from '@/lib/utils'
-import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprintForRender, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK, getRecurringTargetCount } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
@@ -66,7 +66,7 @@ function gradeAccent(grade: Grade): StatTileAccent {
 }
 
 export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const weekStartDate = getMondayOfWeek(new Date())
   const params = await searchParams
   const bandParam = typeof params.band === 'string' ? params.band : null
@@ -100,7 +100,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
-    getCurrentWeekSprint(profile.id),
+    getCurrentWeekSprintForRender(profile.id),
     getMoodHistory(profile.id),
     prisma.marketRealitySnapshot.findMany({
       where: { candidateId: profile.id },

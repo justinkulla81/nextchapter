@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma, CrmLeadQuality, CrmEligibility, CrmFunderKind, CrmValueType } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { AdminMultiFilter } from '@/components/admin/AdminMultiFilter'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
@@ -31,6 +32,30 @@ function toInput(d: Date | null | undefined): string {
 function csv(v: string | undefined): string[] {
   return (v ?? '').split(',').filter(Boolean)
 }
+
+// Pipeline definitions, shared stage keys and the state list barely change
+// and were three extra round trips on every load: memoised for 5 minutes.
+const getLeadLookups = ttlCached(5 * 60 * 1000, async () => {
+  const [pipelines, sharedStageKeys, stateRows] = await Promise.all([
+    prisma.crmPipeline.findMany({
+      orderBy: { sortOrder: 'asc' },
+      include: { stages: { orderBy: { sortOrder: 'asc' }, select: { id: true, label: true } } },
+    }),
+    // Bulk stage moves address stages by KEY, because ids belong to one pipeline
+    // and a selection routinely spans several. Only keys shared by every
+    // pipeline are offered, so the option cannot silently apply to a subset.
+    prisma.crmStage.groupBy({
+      by: ['key', 'label'], _count: { _all: true },
+      having: { key: { _count: { gte: 2 } } },
+      orderBy: { key: 'asc' },
+    }),
+    prisma.crmOrganization.findMany({
+      where: { usState: { not: null } }, distinct: ['usState'],
+      select: { usState: true }, orderBy: { usState: 'asc' },
+    }),
+  ])
+  return { pipelines, sharedStageKeys, stateRows }
+})
 
 export default async function CrmLeadsPage({
   searchParams,
@@ -62,11 +87,6 @@ export default async function CrmLeadsPage({
     : sort.sort === 'due' ? [{ nextStepDueAt: { sort: sort.dir, nulls: 'last' } }]
     : [{ priorityScore: sort.dir }, { leadQuality: 'asc' }]
 
-  const pipelines = await prisma.crmPipeline.findMany({
-    orderBy: { sortOrder: 'asc' },
-    include: { stages: { orderBy: { sortOrder: 'asc' }, select: { id: true, label: true } } },
-  })
-
   const where: Prisma.CrmOpportunityWhereInput = {
     ...(status === 'open' ? { outcome: 'OPEN' } : status === 'closed' ? { outcome: { not: 'OPEN' } } : {}),
     ...(q
@@ -86,7 +106,7 @@ export default async function CrmLeadsPage({
     ...(states.length > 0 ? { org: { usState: { in: states } } } : {}),
   }
 
-  const [total, rows, promised, stateRows] = await Promise.all([
+  const [total, rows, promised, { pipelines, sharedStageKeys, stateRows }] = await Promise.all([
     prisma.crmOpportunity.count({ where }),
     prisma.crmOpportunity.findMany({
       where, orderBy, skip: (page - 1) * perPage, take: perPage,
@@ -109,21 +129,10 @@ export default async function CrmLeadsPage({
       },
     }),
     prisma.crmOpportunity.count({ where: { outcome: 'OPEN', committedFollowUpAt: { lt: new Date() } } }),
-    prisma.crmOrganization.findMany({
-      where: { usState: { not: null } }, distinct: ['usState'],
-      select: { usState: true }, orderBy: { usState: 'asc' },
-    }),
+    getLeadLookups(),
   ])
 
   const stagesByPipeline = new Map(pipelines.map((p) => [p.key, p.stages]))
-  // Bulk stage moves address stages by KEY, because ids belong to one pipeline
-  // and a selection routinely spans several. Only keys shared by every
-  // pipeline are offered, so the option cannot silently apply to a subset.
-  const sharedStageKeys = await prisma.crmStage.groupBy({
-    by: ['key', 'label'], _count: { _all: true },
-    having: { key: { _count: { gte: 2 } } },
-    orderBy: { key: 'asc' },
-  })
   const stageKeys = [...new Map(sharedStageKeys.map((s) => [s.key, { key: s.key, label: s.label }])).values()]
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams: Record<string, string> = {

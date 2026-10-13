@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import type { CommunityGroup } from '@/lib/community/groups'
 
 export function CommunityGroupStrip({ groups, otherParams }: { groups: CommunityGroup[]; otherParams: Record<string, string> }) {

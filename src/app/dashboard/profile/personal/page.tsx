@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
@@ -32,7 +32,7 @@ export const metadata: Metadata = { title: 'My Personal Information' }
 // on this page that are genuinely never shared — see coaching-notes.ts and
 // recruiter-report.ts for what name/city/state/salary actually surface to).
 export default async function PersonalInformationPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const supabase = await createClient()
   const {
     data: { user },

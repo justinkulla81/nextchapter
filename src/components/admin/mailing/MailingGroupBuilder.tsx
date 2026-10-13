@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
 import { PERSON_ROLES, PERSON_ROLE_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS } from '@/lib/crm/labels'
 import { EMAIL_HISTORIES, EMAIL_HISTORY_LABELS, EMPTY_AUDIENCE, isEmptyAudience, type AudienceFilter } from '@/lib/mailing/audience'

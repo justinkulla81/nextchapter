@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
@@ -10,7 +11,7 @@ import { getLocalEconomy, type LocalEconomy } from '@/lib/companies/local-econom
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { classifyContactForMember } from '@/lib/jobs/contact-role'
 import { isLinkableCompanyName } from '@/lib/companies/posting-company'
-import { getCandidateContactCountsByCompany } from '@/lib/companies/candidate-contacts-at-company'
+import { getCandidateContactCountsByCompany, loadOwnContactRows } from '@/lib/companies/candidate-contacts-at-company'
 import type { NamedPosting, RankingCandidate, RankingCompany } from '@/lib/companies/company-ranking'
 
 // Loads everything company-ranking.ts scores, for one viewing candidate, in a
@@ -107,16 +108,34 @@ function loadBulk() {
   return bulkCache.data
 }
 
-export async function loadCompanyRankingData(
-  candidateId: string,
-  opts: { includeContacts?: boolean } = {}
-): Promise<{
+type RankingData = {
   candidate: RankingCandidate
   companies: RankingCompany[]
   isCandidatePlus: boolean
   localEconomy: LocalEconomy | null
-}> {
-  const { includeContacts = true } = opts
+}
+
+// Per-request dedupe (primitive keys): the Companies page and the dashboard
+// layout badge both ask for this within one request.
+const loadCompanyRankingDataCached = cache((candidateId: string, includeContacts: boolean) =>
+  loadCompanyRankingDataUncached(candidateId, includeContacts)
+)
+
+export function loadCompanyRankingData(
+  candidateId: string,
+  opts: { includeContacts?: boolean } = {}
+): Promise<RankingData> {
+  return loadCompanyRankingDataCached(candidateId, opts.includeContacts ?? true)
+}
+
+// The directory's company rows (with their newest signal), from the same
+// 10-minute in-process bulk cache the ranking uses. For viewer-independent
+// display data only.
+export async function loadBulkCompanyRows() {
+  return (await loadBulk())[0]
+}
+
+async function loadCompanyRankingDataUncached(candidateId: string, includeContacts: boolean): Promise<RankingData> {
   const now = Date.now()
 
   const [profile, plusStatus, [companyRows, postings, warnRows, allMemberRows], watchlist] = await Promise.all([
@@ -231,15 +250,11 @@ export async function loadCompanyRankingData(
   // their own contact list is read, and only on the personal (not the nav-badge) path.
   const reachByCompany = new Map<string, { recruiters: number; hiringManagers: number }>()
   if (includeContacts) {
-    const mine = await prisma.supportNetworkContact.findMany({
-      where: {
-        candidateId,
-        removedAt: null,
-        title: { not: null },
-        OR: [{ company: { not: null } }, { inferredCompany: { not: null } }],
-      },
-      select: { title: true, company: true, inferredCompany: true },
-    })
+    // Same rows the contact counts above already loaded (shared per request);
+    // the old dedicated query's title/company IS NOT NULL filter is applied here.
+    const mine = (await loadOwnContactRows(candidateId)).filter(
+      (c) => c.title !== null && (c.company !== null || c.inferredCompany !== null)
+    )
     for (const c of mine) {
       const role = classifyContactForMember({
         contactTitle: c.title,

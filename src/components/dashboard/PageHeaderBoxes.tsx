@@ -39,24 +39,29 @@ export async function PageHeaderBoxes({
   // didn't already say.
   hideDailyMessage?: boolean
 }) {
-  const watchlistAlert =
-    !hideDailyMessage && WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
-  const searchStrategyAlert =
-    !hideDailyMessage && pageKey === 'search-strategy' ? await getSearchStrategyDailyMessageOverride(candidateId) : null
+  // A page-supplied override always wins over the computed/rotating message,
+  // so none of the lookups that only feed that message are worth running then.
+  const needsComputedMessage = !hideDailyMessage && !dailyMessageOverride
 
-  const dailyMessage =
-    dailyMessageOverride || hideDailyMessage
-      ? null
-      : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
+  const loadDailyMessage = async () => {
+    const watchlistAlert = WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
+    const searchStrategyAlert =
+      pageKey === 'search-strategy' ? await getSearchStrategyDailyMessageOverride(candidateId) : null
+    return getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
+  }
 
   // "How NextChapter works with Victoria" — dashboard-only, appended below
   // whichever Daily Message content is currently rotating in rather than
   // tied to one specific rotation entry, so it stays visible across the
   // daily rotation until actually watched (see markWelcomeVideoWatched).
-  const showWelcomeVideo =
-    pageKey === 'dashboard' &&
-    !(await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { welcomeVideoWatchedAt: true } }))
-      ?.welcomeVideoWatchedAt
+  // Independent of the message lookups, so they run together.
+  const [dailyMessage, welcomeVideoRow] = await Promise.all([
+    needsComputedMessage ? loadDailyMessage() : Promise.resolve(null),
+    pageKey === 'dashboard'
+      ? prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { welcomeVideoWatchedAt: true } })
+      : Promise.resolve(null),
+  ])
+  const showWelcomeVideo = pageKey === 'dashboard' && !welcomeVideoRow?.welcomeVideoWatchedAt
 
   return (
     <div className="space-y-3">

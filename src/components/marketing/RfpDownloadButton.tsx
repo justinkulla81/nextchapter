@@ -1,6 +1,6 @@
 'use client'
 
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Download, Printer } from 'lucide-react'
 
 // The two real interactive elements on /rfp-template — each fires before

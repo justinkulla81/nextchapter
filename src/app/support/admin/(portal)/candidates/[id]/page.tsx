@@ -2,7 +2,7 @@ import { REFERRER_KINDS, REFERRER_KIND_LABELS } from '@/lib/candidates/referral'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
-import { listAllAuthUsers } from '@/lib/admin/auth-users'
+import { listAllAuthUsersCached } from '@/lib/admin/auth-users'
 import { getAdminCandidateDetail } from '@/lib/admin/candidate-detail'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -121,21 +121,29 @@ async function loadLoginHistory(candidateId: string) {
 }
 
 // Every /dashboard/* page view and link click, recorded by
-// DashboardActivityTracker. Fetches up to 5000 most-recent rows (a
-// generous bound, not a real limit for any real candidate's activity) so
-// the byPage/byDay summary below reflects their real history, not just a
-// recent slice — then keeps only the 50 most recent for the raw event log
-// shown underneath the summary.
+// DashboardActivityTracker. The byPage/byDay summary needs consecutive
+// PAGE_VIEW timestamps (time-on-page is the gap to the next view), so it
+// reads up to 5000 most-recent PAGE_VIEW rows with only the three columns
+// it uses; the raw log underneath is a separate 50-row query across both
+// event types.
 async function loadPageActivity(candidateId: string) {
-  const events = await prisma.candidatePageActivityEvent.findMany({
-    where: { candidateId },
-    orderBy: { createdAt: 'desc' },
-    take: 5000,
-    select: { id: true, eventType: true, path: true, href: true, createdAt: true },
-  })
+  const [recent, pageViews] = await Promise.all([
+    prisma.candidatePageActivityEvent.findMany({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { id: true, eventType: true, path: true, href: true, createdAt: true },
+    }),
+    prisma.candidatePageActivityEvent.findMany({
+      where: { candidateId, eventType: 'PAGE_VIEW', path: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 5000,
+      select: { eventType: true, path: true, createdAt: true },
+    }),
+  ])
   return {
-    recent: events.slice(0, 50),
-    summary: computePageActivitySummary(events),
+    recent,
+    summary: computePageActivitySummary(pageViews),
   }
 }
 
@@ -175,7 +183,27 @@ async function loadJobRecommendations(candidateId: string) {
         priorityMission: true,
       },
     }),
-    prisma.exclusiveJobPosting.findMany({ where: { status: 'pending', archivedAt: null } }),
+    // Only the columns the fit scorer and the recommendation list read.
+    // Capped (newest first) as a safety bound — the pending queue is small
+    // in practice.
+    prisma.exclusiveJobPosting.findMany({
+      where: { status: 'pending', archivedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 3000,
+      select: {
+        id: true,
+        title: true,
+        companyName: true,
+        description: true,
+        location: true,
+        salaryMin: true,
+        salaryMax: true,
+        targetFunction: true,
+        targetLevel: true,
+        targetRemotePolicy: true,
+        targetLocation: true,
+      },
+    }),
   ])
   if (!candidate) return []
   return rankPendingPostingsForCandidate(candidate as AdminFitCandidate, pendingPostings).slice(0, 10)
@@ -185,9 +213,27 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   const viewingAdmin = await requireAdmin()
   const { id } = await params
 
+  // Independent of the candidate detail load below, so it starts now and runs
+  // alongside the first two phases.
+  const stakeholderP = Promise.all([
+    listStakeholderNotes(id, 'COACH'),
+    getRecruiterRelationships(id),
+    listStakeholderNotes(id, 'RECRUITER'),
+    getStakeholderThreads(id, 'RECRUITER'),
+    getEmployerRelationships(id),
+    listStakeholderNotes(id, 'EMPLOYER'),
+    getStakeholderThreads(id, 'EMPLOYER'),
+    getOutplacementRelationship(id),
+    listStakeholderNotes(id, 'OUTPLACEMENT_EMPLOYER'),
+    getAlumniOrgMatches(id),
+    listStakeholderNotes(id, 'ALUMNI_ORG'),
+    getStakeholderThreads(id, 'COACH'),
+  ])
+  stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
+
   const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports] =
     await Promise.all([
-      listAllAuthUsers(),
+      listAllAuthUsersCached(),
       loadJobRecommendations(id),
       loadPrivacyAndEmailTrail(id),
       loadIpAndResume(id),
@@ -235,20 +281,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     alumniMatches,
     alumniNotes,
     coachThreads,
-  ] = await Promise.all([
-    listStakeholderNotes(id, 'COACH'),
-    getRecruiterRelationships(id),
-    listStakeholderNotes(id, 'RECRUITER'),
-    getStakeholderThreads(id, 'RECRUITER'),
-    getEmployerRelationships(id),
-    listStakeholderNotes(id, 'EMPLOYER'),
-    getStakeholderThreads(id, 'EMPLOYER'),
-    getOutplacementRelationship(id),
-    listStakeholderNotes(id, 'OUTPLACEMENT_EMPLOYER'),
-    getAlumniOrgMatches(id),
-    listStakeholderNotes(id, 'ALUMNI_ORG'),
-    getStakeholderThreads(id, 'COACH'),
-  ])
+  ] = await stakeholderP
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">

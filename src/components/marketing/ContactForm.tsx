@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import type { ContactAudience } from '@prisma/client'
 import { submitContactForm, type ContactFormState } from '@/app/contact/actions'
 import { CONTACT_AUDIENCES, SUPPORT_EMAIL } from '@/lib/contact/constants'

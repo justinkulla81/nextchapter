@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 // Fired client-side (not a server component capture with a synthesized
 // identity) so this event lands under PostHog's own real anonymous

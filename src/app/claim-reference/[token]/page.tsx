@@ -1,19 +1,19 @@
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { acceptEmployerReference, declineEmployerReference } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { NOINDEX } from '@/lib/seo/canonical'
 
 export const metadata = NOINDEX
 
-// Prompt 65 section 6 — getDashboardData() both requires the visitor to be
+// Prompt 65 section 6 — getDashboardProfile() both requires the visitor to be
 // signed in (redirects to /auth/login otherwise) and gives us their real
 // candidateId, so claiming always happens as a deliberate, authenticated
 // action by the person the reference is actually about — never anonymously,
 // never on someone else's behalf.
 export default async function ClaimReferencePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const submission = await prisma.employerReferenceSubmission.findUnique({ where: { inviteToken: token } })
 

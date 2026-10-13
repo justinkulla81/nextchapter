@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { requestReassignment } from '@/lib/coach/reassignment'
 
 export type CandidateReassignmentFormState = { error?: string; success?: boolean } | undefined
@@ -13,7 +13,7 @@ export async function requestCandidateReassignment(
   _prevState: CandidateReassignmentFormState,
   formData: FormData
 ): Promise<CandidateReassignmentFormState> {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   if (!profile.coachId) return { error: "You don't have a coach connected yet." }
 
   const reason = (formData.get('reason') as string | null)?.trim() || null

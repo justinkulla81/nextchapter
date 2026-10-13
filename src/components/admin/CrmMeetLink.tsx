@@ -1,6 +1,6 @@
 'use client'
 
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 
 /** Link to a Meet call or its Gemini notes doc; opens in a new tab and counts the click. */
 export function CrmMeetLink({

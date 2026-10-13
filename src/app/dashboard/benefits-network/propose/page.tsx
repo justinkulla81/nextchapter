@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { hasRoleGrant } from '@/lib/auth/role-grants'
 import { BenefitsNetworkProposeForm } from '@/components/dashboard/BenefitsNetworkProposeForm'
 
 export const metadata: Metadata = { title: 'Propose a Benefits Network offer' }
 
 export default async function ProposeBenefitsNetworkListingPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const isAlum = await hasRoleGrant(profile.userId, 'alum')
 
   return (

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 // PostHog on the one real interactive element a comparison page has — the
 // RFP template CTA — per CLAUDE.md's "wire analytics into every new

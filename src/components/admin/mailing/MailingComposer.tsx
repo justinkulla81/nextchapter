@@ -2,8 +2,8 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
-import { createClient } from '@/lib/supabase/client'
+import { posthog } from '@/lib/posthog/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { renderEmail } from '@/lib/mailing/render'
 import { rosterCounts } from '@/lib/mailing/roster'
 import {
@@ -143,7 +143,7 @@ export function MailingComposer({
     try {
       const slot = await createAttachmentUpload(edition.id, file.name, file.size)
       if (!slot.ok) return setMessage({ ok: false, text: slot.message })
-      const { error } = await createClient().storage.from(BUCKET).uploadToSignedUrl(slot.path, slot.token, file, { contentType: 'application/pdf' })
+      const { error } = await (await createClientLazy()).storage.from(BUCKET).uploadToSignedUrl(slot.path, slot.token, file, { contentType: 'application/pdf' })
       if (error) return setMessage({ ok: false, text: `The upload failed: ${error.message}. Try again.` })
       await confirmAttachment(edition.id, slot.path, file.name, file.size)
       posthog.capture('mailing_attachment_uploaded', { editionId: edition.id, bytes: file.size })

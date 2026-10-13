@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { addPersonToLists, removePersonFromList, markReportReceived, unmarkReportReceived } from '@/app/support/admin/(portal)/crm/mailing/actions'
 import type { ListOption } from './MailingListChecklist'
 import { StepTwo } from './MailingPromptQueue'

@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { Button } from '@/components/ui/button'
 import { buildCompanyIndex, matchNameToCompany } from '@/lib/companies/company-links'
 import { keepOrganizationSeparate, linkOrganizationToCompany } from './actions'
@@ -7,6 +8,13 @@ import { keepOrganizationSeparate, linkOrganizationToCompany } from './actions'
 export const maxDuration = 60
 
 const PAGE_LIMIT = 100
+
+// The 12.7k-company name index only changes when the directory grows, so it is
+// built once per 10 minutes per instance. The organisations side stays live,
+// so a Link / Keep separate click still removes its row immediately.
+const getCompanyIndex = ttlCached(10 * 60 * 1000, async () =>
+  buildCompanyIndex(await prisma.company.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } })),
+)
 
 /**
  * CRM organisations that look like a directory company but aren't an identical
@@ -18,8 +26,8 @@ const PAGE_LIMIT = 100
 export default async function CompanyLinksPage() {
   await requireAdmin()
 
-  const [companies, orgs, linkedCount, separateCount] = await Promise.all([
-    prisma.company.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } }),
+  const [index, orgs, linkedCount, separateCount] = await Promise.all([
+    getCompanyIndex(),
     prisma.crmOrganization.findMany({
       where: { companyId: null, OR: [{ companyLinkState: null }, { companyLinkState: { not: 'KEPT_SEPARATE' } }] },
       select: { id: true, name: true, website: true },
@@ -29,7 +37,6 @@ export default async function CompanyLinksPage() {
     prisma.crmOrganization.count({ where: { companyLinkState: 'KEPT_SEPARATE' } }),
   ])
 
-  const index = buildCompanyIndex(companies)
   const suggestions = orgs.flatMap((org) => {
     const m = matchNameToCompany(org.name, index)
     return m.kind === 'close' ? [{ org, candidates: m.candidates }] : []

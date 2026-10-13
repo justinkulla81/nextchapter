@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Minus, Users, TriangleAlert, Check } from 'lucide-react'
+import type { CompanySizeBand, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -11,8 +12,12 @@ import {
   getCandidateContactCountsByCompany,
   getCompaniesWithAnyMemberContact,
 } from '@/lib/companies/candidate-contacts-at-company'
-import { loadCompanyRankingData } from '@/lib/companies/company-ranking-data'
-import { COMPANIES_VISIT_SESSION_MS, getLastCompaniesVisit, getNewStrongCompanyIds } from '@/lib/companies/new-strong-companies'
+import { loadBulkCompanyRows, loadCompanyRankingData } from '@/lib/companies/company-ranking-data'
+import {
+  COMPANIES_VISIT_SESSION_MS,
+  getLastCompaniesVisit,
+  newStrongIdsFromRankingData,
+} from '@/lib/companies/new-strong-companies'
 import type { LocalEconomy } from '@/lib/companies/local-economy'
 import { rankCompanies, type CompanyRanking, type FitBand } from '@/lib/companies/company-ranking'
 import { CompanyDirectoryViewed, RankedCompanyLink } from '@/components/companies/CompanyDirectoryAnalytics'
@@ -74,6 +79,70 @@ function buildQuery(params: SearchParams, overrides: Partial<SearchParams>): str
   return usp.toString()
 }
 
+interface DirectoryRow {
+  id: string
+  name: string
+  canonicalNameNormalized: string
+  industry: string | null
+  sizeBand: CompanySizeBand | null
+  hqMetro: string | null
+  signals: { trajectory: string; openRolesTotal: number; weekStartDate: Date }[]
+  _count: { memberEmployment: number }
+}
+
+async function queryDirectoryRows(nameWhere: Prisma.CompanyWhereInput): Promise<DirectoryRow[]> {
+  return prisma.company.findMany({
+    where: nameWhere,
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      canonicalNameNormalized: true,
+      industry: true,
+      sizeBand: true,
+      hqMetro: true,
+      signals: { orderBy: { weekStartDate: 'desc' }, take: 1, select: { trajectory: true, openRolesTotal: true, weekStartDate: true } },
+      _count: { select: { memberEmployment: true } },
+    },
+  })
+}
+
+// Rows in A–Z order. When the ranking is being loaded anyway, the heavy part
+// (every company with its newest signal) comes from the in-process bulk cache
+// the ranking already uses, and only the ordered id list (so the database's
+// own name ordering is kept exactly) and the per-company member counts are
+// queried here. Falls back to the direct query if the cache lacks a row.
+async function loadDirectoryRows(nameWhere: Prisma.CompanyWhereInput, useBulk: boolean): Promise<DirectoryRow[]> {
+  if (!useBulk) return queryDirectoryRows(nameWhere)
+  const [ids, memberCounts, bulk] = await Promise.all([
+    prisma.company.findMany({ where: nameWhere, orderBy: { name: 'asc' }, select: { id: true } }),
+    prisma.memberEmployment.groupBy({ by: ['companyId'], _count: { _all: true } }),
+    loadBulkCompanyRows(),
+  ])
+  const byId = new Map(bulk.map((c) => [c.id, c]))
+  const countById = new Map(memberCounts.map((m) => [m.companyId, m._count._all]))
+  const rows: DirectoryRow[] = []
+  for (const { id } of ids) {
+    const c = byId.get(id)
+    if (!c) return queryDirectoryRows(nameWhere)
+    rows.push({
+      id: c.id,
+      name: c.name,
+      canonicalNameNormalized: c.canonicalNameNormalized,
+      industry: c.industry,
+      sizeBand: c.sizeBand,
+      hqMetro: c.hqMetro,
+      signals: c.signals.map((s) => ({
+        trajectory: s.trajectory,
+        openRolesTotal: s.openRolesTotal,
+        weekStartDate: s.weekStartDate,
+      })),
+      _count: { memberEmployment: countById.get(c.id) ?? 0 },
+    })
+  }
+  return rows
+}
+
 export default async function CompaniesIndexPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
   const query = params.q?.trim() ?? ''
@@ -89,34 +158,33 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
   // searcher actually has. A–Z stays one click away for looking up a name.
   const sort: 'fit' | 'az' = params.sort === 'az' ? 'az' : 'fit'
 
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
-  // Small table (low hundreds of rows in production) — cheap to fetch in
-  // full and filter/paginate in application code rather than building a
-  // half-dozen conditional Prisma `where` branches for signals that live on
-  // a related, weekly-snapshot table Prisma can't easily filter "latest row
-  // only" against.
-  const allCompanies = await prisma.company.findMany({
-    where: query ? { name: { contains: query, mode: 'insensitive' as const } } : {},
-    orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      canonicalNameNormalized: true,
-      industry: true,
-      sizeBand: true,
-      hqMetro: true,
-      signals: { orderBy: { weekStartDate: 'desc' }, take: 1, select: { trajectory: true, openRolesTotal: true, weekStartDate: true } },
-      _count: { select: { memberEmployment: true } },
-    },
-  })
+  // Ranking is needed for the Best fit order and for the "Strong signals only"
+  // filter; plain A–Z lookups skip it (it is a handful of bulk reads).
+  const needsRanking = sort === 'fit' || filterStrong
+  // Start the independent loads together: the ranking data, the visit marker
+  // (one session window back, so re-rendering this page — filter, paging —
+  // doesn't erase the "New" tags the visit started with) and the AI pay row
+  // don't depend on the company list.
+  const rankingPromise = needsRanking ? loadCompanyRankingData(profile.id) : null
+  const lastVisitPromise = needsRanking
+    ? getLastCompaniesVisit(profile.id, COMPANIES_VISIT_SESSION_MS)
+    : Promise.resolve(null)
+  const aiPayPromise = profile.primaryFunction ? loadAiPayPremium() : Promise.resolve(null)
+
+  // The directory is ~12k rows; filter/paginate in application code rather
+  // than building conditional Prisma `where` branches for signals that live on
+  // a related weekly-snapshot table.
+  const nameWhere = query ? { name: { contains: query, mode: 'insensitive' as const } } : {}
+  const allCompanies = await loadDirectoryRows(nameWhere, needsRanking)
 
   const companyNames = allCompanies.map((c) => c.name)
   const recentCutoff = recentSignalCutoff()
 
-  // Always computed (cheap — one query for the viewer's own contacts,
-  // matched in memory against ~100 companies) since it powers both the
-  // "Your connections" filter and the per-row contact count everyone sees.
+  // Always computed (the member's contacts are loaded once per request and
+  // shared with the ranking) since it powers both the "Your connections"
+  // filter and the per-row contact count everyone sees.
   const [contactCountsByCompany, membersWithContact] = await Promise.all([
     getCandidateContactCountsByCompany(profile.id, companyNames),
     // Only fetched when the filter is actually on — a full contacts-table
@@ -135,22 +203,16 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
     return true
   })
 
-  // Ranking is needed for the Best fit order and for the "Strong signals only"
-  // filter; plain A–Z lookups skip it (it is a handful of bulk reads).
-  const aiPay = profile.primaryFunction
-    ? ((await loadAiPayPremium()).find((r) => r.function === profile.primaryFunction) ?? null)
-    : null
+  const aiPay = ((await aiPayPromise) ?? []).find((r) => r.function === profile.primaryFunction) ?? null
   const rankingById = new Map<string, { rank: number; ranking: CompanyRanking }>()
-  const newStrongIds = new Set<string>()
+  let newStrongIds = new Set<string>()
   let localEconomy: LocalEconomy | null = null
   let ordered = filtered
   let rankingCandidateIncomplete = false
-  if (sort === 'fit' || filterStrong) {
+  if (rankingPromise) {
     const [{ candidate, companies: rankable, localEconomy: economy }, lastVisit] = await Promise.all([
-      loadCompanyRankingData(profile.id),
-      // One session window back, so re-rendering this page (filter, paging)
-      // doesn't erase the "New" tags the visit started with.
-      getLastCompaniesVisit(profile.id, COMPANIES_VISIT_SESSION_MS),
+      rankingPromise,
+      lastVisitPromise,
     ])
     localEconomy = economy
     rankingCandidateIncomplete = !candidate.metroArea || !candidate.primaryFunction || candidate.industries.length === 0
@@ -163,9 +225,8 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
       ordered = [...filtered].sort((a, b) => (rankingById.get(a.id)?.rank ?? 0) - (rankingById.get(b.id)?.rank ?? 0))
     }
     if (filterStrong) ordered = ordered.filter((c) => rankingById.get(c.id)?.ranking.band === 'strong')
-    if (lastVisit) {
-      for (const id of await getNewStrongCompanyIds(profile.id, lastVisit)) newStrongIds.add(id)
-    }
+    // Same ranking input as above (contacts neutralised), not a second load.
+    if (lastVisit) newStrongIds = newStrongIdsFromRankingData(rankable, candidate, lastVisit)
   }
 
   const totalCount = ordered.length

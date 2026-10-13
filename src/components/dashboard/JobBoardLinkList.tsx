@@ -1,6 +1,6 @@
 'use client'
 
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import type { JobBoardRecommendation } from '@/lib/constants/industry-job-boards'
 
 export function JobBoardLinkList({

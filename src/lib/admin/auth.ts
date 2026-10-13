@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { adminEmails, isAdminEmail } from './is-admin-email'
@@ -11,7 +12,9 @@ export { isAdminEmail }
 // Pre-seed admin gate — a plain env-var allowlist checked against the
 // logged-in Supabase user's email. No roles table yet; this is the whole
 // admin surface today, so a full RBAC system would be premature.
-export async function requireAdmin() {
+// cache(): the admin layout and the page under it both call this; it was two Supabase Auth
+// round trips per navigation.
+export const requireAdmin = cache(async function requireAdmin() {
   const supabase = await createClient('admin')
   const {
     data: { user },
@@ -30,7 +33,7 @@ export async function requireAdmin() {
   }
 
   return user
-}
+})
 
 // Target for research-library alerts (PR/media hooks, product-positioning
 // flags) — a dedicated env var if set, otherwise the first allowlisted

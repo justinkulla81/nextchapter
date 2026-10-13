@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import type { SupportNetworkContact } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { orgNamesMatch, normalizeOrgName } from '@/lib/text/org-name-match'
@@ -182,14 +183,20 @@ export async function getSecondDegreeContactsAtCompany(
 // Pre-normalizes each contact row once (see normalizedNamesMatch above) —
 // a candidate with a large real LinkedIn export (27,000+ rows) would
 // otherwise re-normalize the same strings once per company on the page.
-export async function getCandidateContactCountsByCompany(
-  candidateId: string,
-  companyNames: string[]
-): Promise<Map<string, number>> {
-  const ownContacts = await prisma.supportNetworkContact.findMany({
+// One load of the member's own live contacts per request, shared by the
+// per-company counts below and the "who I know here" reach pass in
+// company-ranking-data.ts (a 27k-row member was loading this twice, and the
+// Companies page loads the ranking data on top of its own count call).
+export const loadOwnContactRows = cache((candidateId: string) =>
+  prisma.supportNetworkContact.findMany({
     where: { candidateId, removedAt: null },
-    select: { company: true, inferredCompany: true },
+    select: { title: true, company: true, inferredCompany: true },
   })
+)
+
+// The key index over those rows, built once per request per member.
+const getOwnContactIndex = cache(async (candidateId: string): Promise<Map<string, number[]>> => {
+  const ownContacts = await loadOwnContactRows(candidateId)
 
   // Matching is by KEY, not by comparing every company with every contact. The directory
   // has ~12,000 companies and a LinkedIn export ~27,000 contacts; comparing each pair took
@@ -216,6 +223,14 @@ export async function getCandidateContactCountsByCompany(
       if (tight.length >= 4) addKey(`~${tight}`, row)
     }
   })
+  return rowsByKey
+})
+
+export async function getCandidateContactCountsByCompany(
+  candidateId: string,
+  companyNames: string[]
+): Promise<Map<string, number>> {
+  const rowsByKey = await getOwnContactIndex(candidateId)
 
   const counts = new Map<string, number>()
   for (const companyName of companyNames) {
@@ -229,4 +244,3 @@ export async function getCandidateContactCountsByCompany(
   }
   return counts
 }
-

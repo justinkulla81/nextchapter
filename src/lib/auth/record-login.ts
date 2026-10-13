@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { notifyAdminOfCandidateLogin } from '@/lib/email/send-admin-candidate-login'
 
 // Collapses repeated dashboard page loads within one sitting into a single
-// login event — getDashboardData runs on every candidate page request, but a
+// login event — getDashboardProfile runs on every candidate page request, but a
 // "login history" should read as one row per time they showed up, not one
 // row per click around the app.
 const LOGIN_DEDUPE_WINDOW_MS = 30 * 60 * 1000

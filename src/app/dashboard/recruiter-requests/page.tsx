@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { listRequestsForCandidate } from '@/lib/recruiter/introduction-requests'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { answerRecruiterRequest } from './actions'
@@ -8,7 +8,7 @@ import { answerRecruiterRequest } from './actions'
 export const metadata: Metadata = { title: 'Recruiter requests' }
 
 export default async function RecruiterRequestsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const requests = await listRequestsForCandidate(profile.id)
 
   return (
