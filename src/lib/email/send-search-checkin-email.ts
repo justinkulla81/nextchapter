@@ -48,7 +48,7 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
         engagement,
         appUrl,
         stillSearchingUrl: linkFor('still_searching'),
-        takingABreakUrl: linkFor('taking_a_break'),
+        managingMyCareerUrl: linkFor('managing_my_career'),
         gotAnOfferUrl: linkFor('got_an_offer'),
         pixelUrl: `${appUrl}/api/checkin/${checkIn.token}/pixel`,
         unsubscribeUrl,

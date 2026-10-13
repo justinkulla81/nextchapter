@@ -146,12 +146,19 @@ export const STAGES: { key: JourneyStage; label: string; plan: string; checkInDa
   { key: 'INTERVIEWING', label: 'Interviewing', plan: 'Prep, references and follow-ups.', checkInDays: 7 },
   { key: 'OFFER', label: 'Offer', plan: 'Negotiate and decide.', checkInDays: 7 },
   { key: 'LANDED', label: 'Landed', plan: 'Your first 90 days.', checkInDays: 90 },
-  { key: 'STAYING', label: 'Staying put', plan: 'Grow where you are: reviews, pay, skills and a recession-proof profile.', checkInDays: 30 },
-  { key: 'PAUSED', label: 'Taking a break', plan: 'No plan and no nudges until you pick back up.', checkInDays: 30 },
+  { key: 'STAYING', label: 'Managing your career', plan: 'Grow where you are: reviews, pay, skills and a career that holds up.', checkInDays: 30 },
 ]
 
+// There is no "on a break": someone who is not looking is managing their
+// career, with a plan, a menu and emails of their own. PAUSED stays in the
+// database enum only so old rows keep reading; everything goes through this.
+export function normalizeStage(key: JourneyStage): JourneyStage {
+  return key === 'PAUSED' ? 'STAYING' : key
+}
+
 export function getStage(key: JourneyStage) {
-  return STAGES.find((s) => s.key === key)!
+  const k = normalizeStage(key)
+  return STAGES.find((s) => s.key === k)!
 }
 
 // Stages where the plan sets application targets and the daily pop-up may
@@ -178,7 +185,7 @@ export function effectiveJourney(p: JourneyFields): JourneyType | null {
 }
 
 export function effectiveStage(p: JourneyFields): JourneyStage | null {
-  if (p.journeyStage) return p.journeyStage
+  if (p.journeyStage) return normalizeStage(p.journeyStage)
   const j = effectiveJourney(p)
   return j ? getJourney(j).defaultStage : null
 }
@@ -226,15 +233,14 @@ export const CHECK_IN_ANSWERS = [
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'offer', label: 'I got an offer' },
   { key: 'landed', label: 'I started a new job or got promoted' },
-  { key: 'break', label: "I'm taking a break" },
+  { key: 'managing', label: "I'm not looking right now. I want to manage my career" },
 ] as const
 export type CheckInAnswer = (typeof CHECK_IN_ANSWERS)[number]['key']
 
-export function changeForAnswer(answer: CheckInAnswer, current: { journey: JourneyType | null; stage: JourneyStage | null }): { journey?: JourneyType; stage?: JourneyStage } {
+export function changeForAnswer(answer: CheckInAnswer, _current: { journey: JourneyType | null; stage: JourneyStage | null }): { journey?: JourneyType; stage?: JourneyStage } {
   switch (answer) {
     case 'nothing':
-      // Coming back from a pause counts as picking back up.
-      return current.stage === 'PAUSED' ? { stage: current.journey ? getJourney(current.journey).defaultStage : 'APPLYING' } : {}
+      return {}
     case 'ready':
       return { stage: 'APPLYING' }
     case 'interviewing':
@@ -245,8 +251,8 @@ export function changeForAnswer(answer: CheckInAnswer, current: { journey: Journ
       return { stage: 'OFFER' }
     case 'landed':
       return { stage: 'LANDED' }
-    case 'break':
-      return { stage: 'PAUSED' }
+    case 'managing':
+      return { stage: 'STAYING' }
   }
 }
 
@@ -292,10 +298,14 @@ const DRIVER_FRAMING: Record<MoveDriver, string> = {
 export function reportFraming(journey: JourneyType, stage: JourneyStage | null, driver: MoveDriver | null = null): string {
   const j = normalizeJourney(journey)
   if (j !== 'EXPLORING_MOVE') return REPORT_FRAMING[j]
-  const base = stage && stage !== 'EXPLORING' && stage !== 'PAUSED' ? QUIET_SEARCH_FRAMING : EXPLORING_FRAMING
+  const base = stage && stage !== 'EXPLORING' && stage !== 'STAYING' ? QUIET_SEARCH_FRAMING : EXPLORING_FRAMING
   return base + (driver ? DRIVER_FRAMING[driver] : '')
 }
 
-// Prisma filter for the nudge emails: Paused means no nudges. Members with
-// no stage yet (from before journeys) still get them.
-export const NOT_PAUSED_WHERE = { OR: [{ journeyStage: null }, { journeyStage: { not: 'PAUSED' as const } }] }
+// Not looking for a new job right now: managing their career, or already
+// landed. These members get no job-listing emails (Job Search Daily, fresh
+// job alerts); their plan and emails are about the job they have.
+export function notLookingNow(p: JourneyFields): boolean {
+  const stage = effectiveStage(p)
+  return stage === 'STAYING' || stage === 'LANDED'
+}

@@ -186,8 +186,8 @@ enum JourneyStage {
   INTERVIEWING
   OFFER
   LANDED
-  STAYING // growing where you are: active in-job plan, no application targets
-  PAUSED // taking a break: no plan, no nudges
+  STAYING // managing your career: active in-job plan, menu and emails, no application targets
+  PAUSED // legacy: read as STAYING (normalizeStage); nothing writes it any more
 }
 
 // What changed a member's journey or stage (JourneyEvent.source).

@@ -64,7 +64,7 @@ const ROWS: SeedRow[] = [
     dayOfWeek: 6,
     emailKey: 'SEARCH_CHECKIN',
     title: 'Are You Still Searching?',
-    description: 'A 3-option check-in (still searching / taking a break / got an offer) — see the Search Check-ins admin report for responses.',
+    description: 'A 3-option check-in (still searching / managing my career / got an offer) — see the Search Check-ins admin report for responses.',
     sendHourUtc: 15,
   },
   {

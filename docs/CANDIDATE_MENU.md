@@ -29,6 +29,9 @@ keep their own reason.
 | Work now | Interim, fractional, advisory |
 | Support and settings | Stats, benefits, I'm Struggling, membership, help, privacy |
 
+There is no "on a break" state: someone who is not looking is managing their career, with a plan, a menu
+and emails of their own. (The old paused value is still in the database enum and reads as Managing your career.)
+
 Compared with the five first proposed (personalize, learn, search and apply, network, work), two were added:
 **Prove it**, because references, the Dossier and the résumé are the evidence the whole product runs on, and
 **Coaching**, which is a service available in every situation, not a kind of learning.
@@ -40,9 +43,8 @@ Compared with the five first proposed (personalize, learn, search and apply, net
 | Exploring | Personalize, Prove it, Network, Learn, Coaching first. Job-search tools **locked** until they start applying. |
 | Preparing | Adds Search and apply. Offer tools locked until they are interviewing or have an offer. |
 | Active (applying, interviewing, offer) | Everything. Nothing locked. |
-| Staying put (growing in a job, or going for a promotion before applying elsewhere) | "Grow in your job" first: know your worth, prove your results, build skills, practice the hard conversation, know how you work. Job tools locked. |
+| Managing your career (growing in a job, not looking right now, or going for a promotion before applying elsewhere) | "Grow in your job" first: know your worth, prove your results, build skills, practice the hard conversation, know how you work. Job tools locked. |
 | Landed | "Manage your career": first 90 days, know your worth, thank the people who helped, the Offer Bonus claim. Job-search tools hidden. |
-| Taking a break | Minimal. Job tools locked with an "I'm back" button. |
 
 ## Not built yet
 

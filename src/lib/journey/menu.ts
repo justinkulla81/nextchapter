@@ -14,7 +14,7 @@
 import type { CheckInAnswer, JourneyStage, JourneyType } from './journey'
 import { normalizeJourney } from './journey'
 
-export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED' | 'PAUSED'
+export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED'
 
 // Where in the search someone is, as far as the menu cares. No stage yet (a
 // member from before journeys) sees everything, as an active search does.
@@ -27,11 +27,10 @@ export function menuMode(stage: JourneyStage | null, journey: JourneyType | null
     case 'PREPARING':
       return 'PREPARING'
     case 'STAYING':
+    case 'PAUSED': // legacy value: managing your career
       return 'STAYING'
     case 'LANDED':
       return 'LANDED'
-    case 'PAUSED':
-      return 'PAUSED'
     default:
       return 'ACTIVE' // APPLYING, INTERVIEWING, OFFER, or none yet
   }
@@ -62,7 +61,6 @@ export const PILLAR_ORDER: Record<MenuMode, Pillar[]> = {
   ACTIVE: ['plan', 'prove', 'search', 'network', 'learn', 'coach', 'work', 'support'],
   STAYING: ['grow', 'plan', 'prove', 'network', 'learn', 'coach', 'search', 'support'],
   LANDED: ['career', 'prove', 'network', 'learn', 'coach', 'plan', 'support'],
-  PAUSED: ['plan', 'prove', 'network', 'learn', 'coach', 'search', 'work', 'support'],
 }
 
 export type Visibility = 'show' | 'locked' | 'hide'
@@ -86,7 +84,7 @@ const H = 'hide' as const
 
 // The job-search tools turn on once someone is applying; until then they show
 // as locked (exploring, preparing, staying) so people know what is waiting.
-const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, PAUSED: L, LANDED: H }
+const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, LANDED: H }
 
 export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Personalize
@@ -101,15 +99,15 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Search and apply
   jobs: { pillar: 'search', modes: SEARCH_TOOLS },
   companies: { pillar: 'search', pillarIn: { LANDED: 'career' } },
-  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, PAUSED: L, LANDED: H } },
-  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L, PAUSED: H }, pillarIn: { LANDED: 'career' } },
+  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, STAYING: L, LANDED: H } },
+  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L }, pillarIn: { LANDED: 'career' } },
   marketIntel: { pillar: 'search', pillarIn: { LANDED: 'career' } },
   // Network
   network: { pillar: 'network' },
   contacts: { pillar: 'network' },
   community: { pillar: 'network' },
   inbox: { pillar: 'network' },
-  recruiter: { pillar: 'network', modes: { EXPLORING: L, STAYING: H, LANDED: H, PAUSED: L } },
+  recruiter: { pillar: 'network', modes: { EXPLORING: L, STAYING: H, LANDED: H } },
   universities: { pillar: 'network' },
   collegeBenefits: { pillar: 'network', modes: { LANDED: H } },
   // Learn
@@ -166,7 +164,7 @@ export function statusUnlock(mode: MenuMode): StatusUnlock | null {
     case 'EXPLORING':
     case 'STAYING':
       return {
-        why: 'Job-search tools turn on when you are applying. Your menu and your weekly plan follow your situation, so you only see what helps now.',
+        why: 'Job-search tools turn on when you are looking for a new job. Your menu and your weekly plan follow your situation, so you only see what helps now.',
         answers: [
           { answer: 'ready', label: "I'm ready to start applying", because: 'Turns on Find a Full-time Job and interview practice, and your plan switches to applications and outreach.' },
           { answer: 'laid_off', label: 'I was laid off or let go', because: 'Starts a laid-off plan: benefits and severance first, then a fast search. Also tells a college you joined, if you share that.' },
@@ -179,11 +177,6 @@ export function statusUnlock(mode: MenuMode): StatusUnlock | null {
           { answer: 'ready', label: "I'm ready to start applying", because: 'Moves you into an active search with weekly application and outreach targets.' },
           { answer: 'interviewing', label: "I'm interviewing", because: 'Adds interview practice, reference follow-ups and what to do after each round.' },
         ],
-      }
-    case 'PAUSED':
-      return {
-        why: 'You are on a break, so job-search tools and nudges are off. Tell us when you are back.',
-        answers: [{ answer: 'nothing', label: "I'm back", because: 'Picks your plan and your tools back up where you left them.' }],
       }
     default:
       return null

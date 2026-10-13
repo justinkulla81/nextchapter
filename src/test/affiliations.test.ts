@@ -26,13 +26,13 @@ describe('who sees what', () => {
 
 describe('changes made through one affiliation', () => {
   it('a college "no longer looking" does not pause the whole member', () => {
-    expect(appliesAcrossAffiliations('COLLEGE', { stage: 'PAUSED' })).toBe(false)
+    expect(appliesAcrossAffiliations('COLLEGE', { stage: 'STAYING' })).toBe(false)
   })
   it('facts that are true everywhere still apply: laid off, interviewing, offer, landed', () => {
     expect(appliesAcrossAffiliations('COLLEGE', { journey: 'LAID_OFF', stage: 'APPLYING' })).toBe(true)
     expect(appliesAcrossAffiliations('COLLEGE', { stage: 'LANDED' })).toBe(true)
   })
   it('the member can always change their own situation', () => {
-    expect(appliesAcrossAffiliations('MEMBER', { stage: 'PAUSED' })).toBe(true)
+    expect(appliesAcrossAffiliations('MEMBER', { stage: 'STAYING' })).toBe(true)
   })
 })

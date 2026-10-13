@@ -1,7 +1,7 @@
 // What the Weekly Search Sprint asks for, by journey and stage (Journeys tab
 // of the product design doc). Pure. getSuggestedActions puts these first and
 // then fills from the general task menu, minus applications outside the
-// active stages; Paused gets no plan at all.
+// active stages. Managing your career has its own plan, whatever the journey.
 //
 // Items reuse the task menu's actionTypes where the behavior is the same
 // (tracking companies, coffee chats, courses), so detection and points keep
@@ -130,7 +130,9 @@ export function gateItems(stage: JourneyStage | null, weeksInStage: number): Pla
 export const APPLICATION_ACTION_TYPES = ['JOB_APPLICATION_SUBMITTED']
 
 export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStage | null, weekNumber: number, driver: MoveDriver | null = null): PlanItem[] {
-  if (stage === 'PAUSED') return []
+  // Not looking right now: the plan is about managing the career they have,
+  // whichever journey they started on.
+  if (stage === 'STAYING' || stage === 'PAUSED') return weekNumber <= 1 ? JOURNEY_PLAN.GROWING.firstWeek : JOURNEY_PLAN.GROWING.ongoing
   const stageItems = stage ? (STAGE_PLAN[stage] ?? []) : []
   // Landed and Offer are about the new job, not the search that got there.
   if (stage === 'LANDED' || stage === 'OFFER') return stageItems
@@ -146,7 +148,7 @@ export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStag
 }
 
 // Journey items first, then the general menu: no duplicate types, no
-// application tasks unless the stage is an active search, nothing when Paused.
+// application tasks unless the stage is an active search.
 export function shapePlan<T extends { text: string; actionType?: string }>(
   journey: JourneyType | null,
   stage: JourneyStage | null,
@@ -158,7 +160,6 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   // the next unlock and, in a stalled search, what to try instead. Goes first.
   engagement: PlanItem[] = [],
 ): (T | PlanItem)[] {
-  if (stage === 'PAUSED') return []
   const allowApply = !stage || ACTIVE_SEARCH_STAGES.includes(stage)
   const out: (T | PlanItem)[] = []
   const types = new Set<string>()

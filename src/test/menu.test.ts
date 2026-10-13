@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MENU_RULES, PILLAR_ORDER, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
 import { CHECK_IN_ANSWERS } from '@/lib/journey/journey'
 
-const modes: MenuMode[] = ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING', 'LANDED', 'PAUSED']
+const modes: MenuMode[] = ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING', 'LANDED']
 const keys = Object.keys(MENU_RULES) as MenuItemKey[]
 
 describe('menu mode', () => {
@@ -11,6 +11,7 @@ describe('menu mode', () => {
     expect(menuMode('INTERVIEWING')).toBe('ACTIVE')
     expect(menuMode('OFFER')).toBe('ACTIVE')
     expect(menuMode('STAYING')).toBe('STAYING')
+    expect(menuMode('PAUSED')).toBe('STAYING') // legacy value: managing your career
     expect(menuMode(null)).toBe('ACTIVE')
   })
   it('going for a promotion before applying elsewhere gets the grow-in-your-job menu', () => {

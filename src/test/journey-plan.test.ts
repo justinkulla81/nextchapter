@@ -17,8 +17,14 @@ describe('weekly plan by journey and stage', () => {
   it('someone applying keeps applications', () => {
     expect(shapePlan('LAID_OFF', 'APPLYING', 2, general).map((p) => p.actionType)).toContain('JOB_APPLICATION_SUBMITTED')
   })
-  it('Paused gets no plan', () => {
-    expect(shapePlan('GROWING', 'PAUSED', 3, general)).toEqual([])
+  it('someone managing their career always has a plan, whatever journey they began on', () => {
+    for (const j of ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING'] as const) {
+      const plan = shapePlan(j, 'STAYING', 3, general)
+      expect(plan.length).toBeGreaterThan(2)
+      expect(plan.map((p) => p.actionType)).not.toContain('JOB_APPLICATION_SUBMITTED')
+    }
+    expect(journeyPlanItems('LAID_OFF', 'STAYING', 1).map((p) => p.text)).toContain('Benchmark your pay against the market')
+    expect(journeyPlanItems('LAID_OFF', 'PAUSED', 1)).toEqual(journeyPlanItems('LAID_OFF', 'STAYING', 1))
   })
   it('a laid-off member’s first week starts with benefits and severance', () => {
     expect(journeyPlanItems('LAID_OFF', 'APPLYING', 1).slice(0, 2).map((p) => p.text)).toEqual([

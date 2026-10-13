@@ -1,5 +1,4 @@
 import 'server-only'
-import { NOT_PAUSED_WHERE } from '@/lib/journey/journey'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
@@ -10,8 +9,6 @@ import { sendDailyActionEmail } from '@/lib/email/send-daily-action-email'
 export async function runDailyNudge(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
   const eligible = await prisma.candidateProfile.findMany({
     where: {
-      // Paused means no nudges (src/lib/journey).
-      AND: [NOT_PAUSED_WHERE],
       registrationCompletedAt: { not: null },
       isSampleData: false,
       dailyEmailOptedOut: false,

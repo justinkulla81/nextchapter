@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changeForAnswer, checkInDue, effectiveJourney, effectiveStage, getJourney, getStage, JOURNEYS, moveDriverOf, reportFraming, stageForTiming } from '@/lib/journey/journey'
+import { CHECK_IN_ANSWERS, STAGES, changeForAnswer, checkInDue, effectiveJourney, effectiveStage, getJourney, getStage, JOURNEYS, moveDriverOf, notLookingNow, reportFraming, stageForTiming } from '@/lib/journey/journey'
 import { JOURNEY_TO_SITUATION, SITUATION_TO_JOURNEY } from '@/lib/constants/onboarding'
 
 describe('journeys (Product Design doc, Journeys tab)', () => {
@@ -18,8 +18,18 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
   })
   it('growing in a job is its own journey: not searching, and never silent', () => {
     expect(getJourney('GROWING')).toMatchObject({ searching: false, employed: true, defaultStage: 'STAYING' })
-    expect(getStage('STAYING').label).toBe('Staying put')
-    expect(getStage('PAUSED').label).toBe('Taking a break')
+    expect(getStage('STAYING').label).toBe('Managing your career')
+    // There is no "on a break": a legacy paused row reads as managing your career.
+    expect(getStage('PAUSED').label).toBe('Managing your career')
+    expect(effectiveStage({ journeyStage: 'PAUSED' })).toBe('STAYING')
+    expect(STAGES.map((s) => s.key)).not.toContain('PAUSED')
+  })
+  it('people managing their career or already landed get no job-listing emails; searchers do', () => {
+    expect(notLookingNow({ journeyStage: 'STAYING' })).toBe(true)
+    expect(notLookingNow({ journeyStage: 'PAUSED' })).toBe(true)
+    expect(notLookingNow({ journeyStage: 'LANDED' })).toBe(true)
+    expect(notLookingNow({ journeyStage: 'APPLYING' })).toBe(false)
+    expect(notLookingNow({})).toBe(false)
   })
   it('what is driving a move is read from the journey details', () => {
     expect(moveDriverOf({ moveDriver: 'layoff_worry' })).toBe('layoff_worry')
@@ -51,8 +61,9 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
     expect(changeForAnswer('laid_off', cur)).toEqual({ journey: 'LAID_OFF', stage: 'APPLYING' })
     expect(changeForAnswer('landed', cur)).toEqual({ stage: 'LANDED' })
     expect(changeForAnswer('nothing', cur)).toEqual({})
-    expect(changeForAnswer('nothing', { journey: 'PROMOTION', stage: 'PAUSED' })).toEqual({ stage: 'PREPARING' })
-    expect(changeForAnswer('nothing', { journey: 'GROWING', stage: 'PAUSED' })).toEqual({ stage: 'STAYING' })
+    expect(changeForAnswer('managing', cur)).toEqual({ stage: 'STAYING' })
+    expect(changeForAnswer('nothing', { journey: 'GROWING', stage: 'STAYING' })).toEqual({})
+    expect(CHECK_IN_ANSWERS.map((a) => a.key)).not.toContain('break')
   })
   it('check-ins come at the stage pace: weekly when applying, monthly when exploring', () => {
     const now = new Date('2026-10-12T00:00:00Z')

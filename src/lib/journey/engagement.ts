@@ -257,7 +257,6 @@ export type EngagementLead = {
 // The one block the weekly emails and the dashboard card share. Null when the
 // member is connected, proving it and not stuck: nothing to say.
 export function engagementLead(s: EngagementSignals): EngagementLead | null {
-  if (s.stage === 'PAUSED') return null
   const level = engagementLevel(s)
   const steps = unlockSteps(s).slice(0, 3)
   const gate = gateMove(s)
@@ -268,7 +267,6 @@ export function engagementLead(s: EngagementSignals): EngagementLead | null {
 
 // Plan items for the weekly plan: the gate's new moves, then the top unlock step.
 export function engagementPlanItems(s: EngagementSignals): { text: string; actionType?: string }[] {
-  if (s.stage === 'PAUSED') return []
   const items: { text: string; actionType?: string }[] = []
   const gate = gateMove(s)
   if (gate) items.push(...gate.items)

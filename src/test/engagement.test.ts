@@ -118,8 +118,9 @@ describe('the weekly plan', () => {
     const plan = shapePlan('LAID_OFF', 'APPLYING', 5, general, null, 0, items)
     expect(plan.slice(0, items.length).map((p) => p.text)).toEqual(items.map((i) => i.text))
   })
-  it('gives no plan items to someone on a break', () => {
-    expect(engagementPlanItems(s({ stage: 'PAUSED', gmail: false }))).toEqual([])
-    expect(engagementLead(s({ stage: 'PAUSED', gmail: false }))).toBeNull()
+  it('still helps someone managing their career: connect and prove, but no search gate', () => {
+    const items = engagementPlanItems(s({ stage: 'STAYING', gmail: false }))
+    expect(items.map((i) => i.text)).toContain('Connect Gmail')
+    expect(engagementLead(s({ stage: 'STAYING', gmail: false }))!.gate).toBeNull()
   })
 })

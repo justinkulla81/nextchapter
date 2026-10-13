@@ -1,3 +1,4 @@
+import { notLookingNow } from '@/lib/journey/journey'
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { freshJobAlertsEnabled, sendFreshJobAlert } from '@/lib/jobs/fresh-job-alerts'
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest) {
     },
     select: {
       id: true,
+      journey: true,
+      journeyStage: true,
+      currentJobStatus: true,
       searchCheckIns: {
         where: { respondedAt: { gte: breakCutoff } },
         orderBy: { respondedAt: 'desc' },
@@ -41,6 +45,7 @@ export async function GET(request: NextRequest) {
   let wouldSend = 0
   let failed = 0
   for (const candidate of eligible) {
+    if (notLookingNow(candidate)) continue
     const lastAnswer = candidate.searchCheckIns[0]?.answer
     if (lastAnswer && lastAnswer !== 'STILL_SEARCHING') continue
     try {

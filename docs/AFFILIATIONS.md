@@ -17,10 +17,11 @@ that is true everywhere, and it applies to every affiliation:
 
 An affiliation may **not** change something that is its own status or the
 member's own call. A college's "no longer looking" closes that college's
-do-not-solicit flag; it does not move the member to "Taking a break", because
-that would silence their coach, outplacement and weekly plan. Only the member
-pauses, from their own account or the Saturday check-in
-(`appliesAcrossAffiliations`, enforced in `applyJourneyChange`).
+do-not-solicit flag; it does not move the member to "Managing your career", because
+that would change their coach's, outplacement's and weekly plan's view of them.
+Only the member moves themselves to "Managing your career", from their own
+account or the Saturday check-in (`appliesAcrossAffiliations`, enforced in
+`applyJourneyChange`).
 
 ## Who sees what
 

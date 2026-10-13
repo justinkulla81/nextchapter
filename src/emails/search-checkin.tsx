@@ -8,7 +8,7 @@ interface SearchCheckInEmailProps {
   firstName: string | null
   introCopy?: string | null
   stillSearchingUrl: string
-  takingABreakUrl: string
+  managingMyCareerUrl: string
   gotAnOfferUrl: string
   pixelUrl: string
   unsubscribeUrl: string
@@ -59,7 +59,7 @@ export default function SearchCheckInEmail({
   firstName,
   introCopy,
   stillSearchingUrl,
-  takingABreakUrl,
+  managingMyCareerUrl,
   gotAnOfferUrl,
   pixelUrl,
   unsubscribeUrl,
@@ -81,8 +81,8 @@ export default function SearchCheckInEmail({
       <a href={stillSearchingUrl} style={primaryButton}>
         Nothing yet
       </a>
-      <a href={takingABreakUrl} style={neutralButton}>
-        Taking a break
+      <a href={managingMyCareerUrl} style={neutralButton}>
+        Not looking right now: managing my career
       </a>
       <a href={gotAnOfferUrl} style={successButton}>
         Got an offer! 🎉
