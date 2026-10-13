@@ -1,4 +1,3 @@
-import { contactStrength, type ContactStrength } from '@/lib/crm/contact-strength'
 
 // The pure half of warm-doors.ts: what counts as a strong candidate and what
 // counts as a warm way in. No I/O, so every threshold is unit-tested
@@ -20,14 +19,14 @@ export interface DoorPerson {
   id: string
   fullName: string
   title: string | null
-  warmth: string
-  connectedAt: Date | null
-  linkedinDegree: string | null
-  firstRepliedAt: Date | null
-  lastTouchedAt: Date | null
-  touchCount: number
-  notes: string | null
+  /** Most recent real inbound email or LinkedIn message from them, or null. */
+  lastReplyAt: Date | null
 }
+
+/** A contact only counts as a way in if they have actually written back this recently. */
+export const REPLY_WINDOW_DAYS = 365
+/** A reply this recent is a close contact; older within the window is a warm one. */
+export const CLOSE_REPLY_DAYS = 90
 
 export interface DoorRoute {
   id: string
@@ -43,23 +42,26 @@ export interface Door {
   personId: string | null
   name: string
   title: string | null
-  strength: ContactStrength
+  strength: 'hot' | 'warm'
   note: string
 }
 
 /**
- * Only warm ways in count. A directory entry nobody has touched, or a route
- * that is weak, unverified or already declined, is not a door — the point is
- * that Justin can pick up the phone today and it helps.
+ * Only real ways in count. A contact is a door only if they replied to us in
+ * the last year — not because they were imported as WARM, are a LinkedIn
+ * connection, or we once emailed them. A route is a door when it is strong or
+ * medium and has not been declined. Anything else is not a way to help today.
  */
 export function classifyDoors(people: DoorPerson[], routes: DoorRoute[], now: Date = new Date()): Door[] {
   const doors: Door[] = []
   for (const p of people) {
-    const strength = contactStrength({ ...p, linkedinDegree: p.linkedinDegree }, now)
-    if (strength !== 'hot' && strength !== 'warm') continue
+    if (!p.lastReplyAt) continue
+    const days = (now.getTime() - p.lastReplyAt.getTime()) / 86_400_000
+    if (days < 0 || days > REPLY_WINDOW_DAYS) continue
+    const close = days <= CLOSE_REPLY_DAYS
     doors.push({
-      kind: 'contact', personId: p.id, name: p.fullName, title: p.title, strength,
-      note: strength === 'hot' ? 'Close contact' : 'Warm contact',
+      kind: 'contact', personId: p.id, name: p.fullName, title: p.title, strength: close ? 'hot' : 'warm',
+      note: `Replied ${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'} ago`,
     })
   }
   for (const r of routes) {
