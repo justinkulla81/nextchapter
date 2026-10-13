@@ -21,7 +21,7 @@ const TITLE=/chief (people|human|talent|hr)|chro|human resources|\bhr\b|people (
   let i=0,searches=0,people=0,stop=false;
   async function worker(){ while(!stop){ const e=list[i++]; if(!e) return;
     const qs=new URLSearchParams({limit:'10',seniority:'senior,executive',department:'hr,executive,management',type:'personal',api_key:KEY});
-    e.dom?qs.set('domain',e.dom):qs.set('company',e.employer);
+    if(e.dom)qs.set('domain',e.dom);else qs.set('company',e.employer);
     let j=null; for(let a=0;a<5;a++){const res=await fetch('https://api.hunter.io/v2/domain-search?'+qs);const t=await res.text();if(/too_many/.test(t)||res.status===202){await sleep(6000);continue}try{j=JSON.parse(t)}catch{}break}
     searches++;
     const em=((j&&j.data&&j.data.emails)||[]).filter(x=>TITLE.test(x.position||'')&&!have.has((x.value||'').toLowerCase()));

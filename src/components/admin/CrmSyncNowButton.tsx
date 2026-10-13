@@ -45,6 +45,8 @@ export function CrmSyncNowButton({ needsReconnect = false }: { needsReconnect?: 
         if (data.needsReconnect && !justReconnected) {
           setLeaving(true)
           posthog.capture('crm_google_reconnect_redirected', { from: pathname })
+          // Full-page navigation on purpose: this is an API route that 302s to Google, not a Next page.
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.assign(`/api/google/oauth/start?from=${encodeURIComponent(pathname)}`)
           return
         }

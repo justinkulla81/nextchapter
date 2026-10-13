@@ -5,7 +5,6 @@ process.env.DATABASE_URL=env.DATABASE_URL;
 const {PrismaClient}=require(root+'/node_modules/@prisma/client');
 const db=new PrismaClient(); const KEY=env.HUNTER_API_KEY;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const EXCL=['INVESTOR_ANGEL','INVESTOR_VC','HIGHER_ED_ADMIN','HIGHER_ED_CAREER','HIGHER_ED_DEVELOPMENT','HIGHER_ED_EXEC_ED','ALUMNI_OFFICE','ADVISOR','RECRUITER_PROSPECT','OUTPLACEMENT_BUYER'];
 (async()=>{
   const prior=new Set((fs.readFileSync('crm-email-find.csv','utf8')+fs.readFileSync('crm-email-find-2.csv','utf8')+fs.readFileSync('crm-email-find-3.csv','utf8')+fs.readFileSync('crm-email-find-4.csv','utf8')).split('\n').slice(1).map(l=>(l.match(/^"([^"]+)"/)||[])[1]).filter(Boolean));
   const rows0=await db.$queryRawUnsafe(`
@@ -35,7 +34,6 @@ const EXCL=['INVESTOR_ANGEL','INVESTOR_VC','HIGHER_ED_ADMIN','HIGHER_ED_CAREER',
       if(done%20===0) await refresh();
       if(remaining<=FLOOR){stop=true;return}
       const r=rows[i++]; if(!r)return;
-      const excluded=r.roles.some(x=>EXCL.includes(x));
       let note='',found=null;
       const fn=r.firstName||(r.fullName||'').split(' ')[0], ln=r.lastName||(r.fullName||'').split(' ').slice(1).join(' ');
       if(!(r.dom||r.org)||!fn||!ln){note=!fn||!ln?'no first/last name':'no organization';}

@@ -15,7 +15,7 @@ import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
 import { kindsForOrgTypes } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
-import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
+import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 

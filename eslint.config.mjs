@@ -24,6 +24,16 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // CommonJS one-off scripts: require() is their module system.
+  {
+    files: ['**/*.cjs'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  // Email HTML can't use next/image — mail clients need a plain <img>.
+  {
+    files: ['src/emails/**'],
+    rules: { '@next/next/no-img-element': 'off' },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -33,6 +43,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Scratch drop folder for incoming report assets — not app code.
     "incoming-report/**",
+    // Minified, generated report chart bundle — not hand-written source.
+    "public/reports/**",
   ]),
 ]);
 
