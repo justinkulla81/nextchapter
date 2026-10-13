@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 const EXAMPLES = [
-  { before: '/marketing/headshot-chris-before-v3.png', after: '/marketing/headshot-chris-after-v3.png' },
-  { before: '/marketing/headshot-sarah-before-v3.png', after: '/marketing/headshot-sarah-after-v3.png' },
+  { before: '/marketing/headshot-chris-before-v4.jpg', after: '/marketing/headshot-chris-after-v4.jpg' },
+  { before: '/marketing/headshot-sarah-before-v4.jpg', after: '/marketing/headshot-sarah-after-v4.jpg' },
 ]
 
 // Before/after labels are baked into these photos, so the pair renders as a

@@ -9574,6 +9574,7 @@ model CrmPerson {
   @@index([lastTouchedAt])
   @@index([fullName])
   @@index([awaitingReplySince])
+  @@index([nextFollowUpAt])
 }
 
 // Many-to-many between people and organizations. The single change that makes
@@ -10752,6 +10753,8 @@ model WarnNotice {
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])
+  @@index([noticeDate])
+  @@index([workforceBoardId, noticeDate])
   @@index([companyId])
   @@index([companyMatchStatus])
 }
