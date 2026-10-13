@@ -106,6 +106,9 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self'",
+      // Violations land in the Vercel logs as "CSP violation: ..." — see
+      // src/app/api/csp-report/route.ts. Check them before enforcing.
+      "report-uri /api/csp-report",
     ].join("; ");
     const security = [
       { key: "Content-Security-Policy-Report-Only", value: csp },
