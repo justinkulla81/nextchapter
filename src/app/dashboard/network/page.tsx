@@ -37,6 +37,9 @@ import { PriorityContactsCard } from '@/components/dashboard/PriorityContactsCar
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { SearchMixNudgeCard } from '@/components/dashboard/SearchMixNudgeCard'
+import { getWeeklySearchMix } from '@/lib/outcomes/weekly-search-mix'
+import { computeSearchMixNudge } from '@/lib/outcomes/search-mix'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { EmailActivitySyncButton, EmailActivityForceResyncButton } from '@/components/dashboard/EmailActivityControls'
 import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActivityControls'
@@ -44,6 +47,14 @@ import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
 
 export const metadata: Metadata = { title: 'Network with My Contacts' }
+
+async function SearchMixNudge({ candidateId }: { candidateId: string }) {
+  const mix = await getWeeklySearchMix(candidateId)
+  const nudge = computeSearchMixNudge(mix)
+  if (nudge.level === 'none') return null
+  const weekKey = new Date().toISOString().slice(0, 10).slice(0, 8) + String(Math.floor((new Date().getUTCDate() - 1) / 7))
+  return <SearchMixNudgeCard nudge={nudge} weekKey={weekKey} />
+}
 
 // Mirrors activity-reconciliation.ts's NETWORKING_EMAIL_TYPES.
 const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
@@ -625,6 +636,10 @@ export default async function NetworkPage({
           }}
         />
       </div>
+
+      <Suspense fallback={null}>
+        <SearchMixNudge candidateId={profile.id} />
+      </Suspense>
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
         <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} />
