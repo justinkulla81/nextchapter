@@ -36,19 +36,41 @@ export interface JobsRollup {
   }
 }
 
-// One broad fetch per model + in-memory reduction, following the same
-// pattern as src/lib/admin/metrics.ts rather than raw SQL/groupBy — keeps
-// this consistent with the only other computed-aggregate admin view.
+// Counts and groupBys in SQL: the exclusive board table is ~97k rows, so
+// never pull it into JS just to tally it.
 export async function getJobsRollup(): Promise<JobsRollup> {
-  const [tracked, surfaced, board, recentClicks, byCompany, byTitle] = await Promise.all([
-    prisma.jobPosting.findMany({
-      select: { appliedAt: true, interviewLandedAt: true, offerReceivedAt: true },
+  const [
+    trackedTotal,
+    trackedApplied,
+    trackedInterviewing,
+    trackedOffered,
+    surfacedTotal,
+    surfacedUnreacted,
+    surfacedInterested,
+    surfacedNotInterested,
+    reasonRows,
+    boardRows,
+    recentClicks,
+    byCompany,
+    byTitle,
+  ] = await Promise.all([
+    prisma.jobPosting.count(),
+    prisma.jobPosting.count({ where: { appliedAt: { not: null } } }),
+    prisma.jobPosting.count({ where: { interviewLandedAt: { not: null } } }),
+    prisma.jobPosting.count({ where: { offerReceivedAt: { not: null } } }),
+    prisma.surfacedJob.count(),
+    prisma.surfacedJob.count({ where: { reaction: null } }),
+    prisma.surfacedJob.count({ where: { reaction: 'INTERESTED' } }),
+    prisma.surfacedJob.count({ where: { reaction: 'NOT_INTERESTED' } }),
+    prisma.surfacedJob.groupBy({
+      by: ['reactionReason'],
+      where: { reactionReason: { not: null } },
+      _count: { _all: true },
     }),
-    prisma.surfacedJob.findMany({
-      select: { reaction: true, reactionReason: true },
-    }),
-    prisma.exclusiveJobPosting.findMany({
-      select: { status: true, source: true, archivedAt: true },
+    prisma.exclusiveJobPosting.groupBy({
+      by: ['source', 'status'],
+      where: { archivedAt: null },
+      _count: { _all: true },
     }),
     prisma.jobClickEvent.findMany({
       orderBy: { createdAt: 'desc' },
@@ -78,37 +100,39 @@ export async function getJobsRollup(): Promise<JobsRollup> {
     }),
   ])
 
-  const reasonCounts = new Map<string, number>()
-  for (const j of surfaced) {
-    if (j.reactionReason) reasonCounts.set(j.reactionReason, (reasonCounts.get(j.reactionReason) ?? 0) + 1)
-  }
-
   const sourceCounts = new Map<string, number>()
-  for (const p of board) {
-    if (p.archivedAt) continue
-    sourceCounts.set(p.source, (sourceCounts.get(p.source) ?? 0) + 1)
+  let boardTotal = 0
+  let boardPending = 0
+  let boardApproved = 0
+  for (const r of boardRows) {
+    const n = r._count._all
+    boardTotal += n
+    if (r.status === 'pending') boardPending += n
+    if (r.status === 'approved') boardApproved += n
+    sourceCounts.set(r.source, (sourceCounts.get(r.source) ?? 0) + n)
   }
 
   return {
     tracked: {
-      total: tracked.length,
-      applied: tracked.filter((j) => j.appliedAt !== null).length,
-      interviewing: tracked.filter((j) => j.interviewLandedAt !== null).length,
-      offered: tracked.filter((j) => j.offerReceivedAt !== null).length,
+      total: trackedTotal,
+      applied: trackedApplied,
+      interviewing: trackedInterviewing,
+      offered: trackedOffered,
     },
     surfaced: {
-      total: surfaced.length,
-      unreacted: surfaced.filter((j) => j.reaction === null).length,
-      interested: surfaced.filter((j) => j.reaction === 'INTERESTED').length,
-      notInterested: surfaced.filter((j) => j.reaction === 'NOT_INTERESTED').length,
-      reasonBreakdown: Array.from(reasonCounts.entries())
-        .map(([reason, count]) => ({ reason, count }))
+      total: surfacedTotal,
+      unreacted: surfacedUnreacted,
+      interested: surfacedInterested,
+      notInterested: surfacedNotInterested,
+      reasonBreakdown: reasonRows
+        .filter((r): r is typeof r & { reactionReason: string } => !!r.reactionReason)
+        .map((r) => ({ reason: r.reactionReason, count: r._count._all }))
         .sort((a, b) => b.count - a.count),
     },
     board: {
-      total: board.filter((p) => !p.archivedAt).length,
-      pending: board.filter((p) => p.status === 'pending' && !p.archivedAt).length,
-      approved: board.filter((p) => p.status === 'approved' && !p.archivedAt).length,
+      total: boardTotal,
+      pending: boardPending,
+      approved: boardApproved,
       bySource: Array.from(sourceCounts.entries())
         .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count),
