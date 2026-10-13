@@ -18,7 +18,17 @@ export function mergeRuleSet(type: CustomerType, saved: Partial<RuleSet> | null)
     out.push({ ...d, enabled: s.enabled, title: s.title, kicker: s.kicker, bullets: s.bullets })
     byId.delete(s.id)
   }
-  for (const d of byId.values()) out.push(d)
+  // A default slide the saved rules never saw goes right after the slide that precedes it in
+  // the defaults, so a new main-deck slide does not land behind the appendix.
+  const baseIds = base.slides.map((s) => s.id)
+  for (const d of byId.values()) {
+    let at = out.length
+    for (let k = baseIds.indexOf(d.id) - 1; k >= 0; k--) {
+      const j = out.findIndex((x) => x.id === baseIds[k])
+      if (j >= 0) { at = j + 1; break }
+    }
+    out.splice(at, 0, d)
+  }
   return {
     ...base,
     buyer: saved.buyer ?? base.buyer, angle: saved.angle ?? base.angle, tone: saved.tone ?? base.tone, ask: saved.ask ?? base.ask,

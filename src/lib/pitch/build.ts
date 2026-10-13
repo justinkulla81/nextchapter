@@ -1,5 +1,6 @@
 import type { Brand, Deck, DeckSlide, Demo, Fact, PersonCard, RuleSet, SlideRule } from './types'
 import { NATIONAL } from './national'
+import { FIXED_FACTS } from './report-facts'
 
 // The generator turns a rule set plus (optionally) a local area into a Deck:
 // plain data that the PPTX and PDF renderers both draw. Nothing here calls an
@@ -76,6 +77,8 @@ export function fill(s: string, t: Record<string, string>): string {
 
 function statsFor(rule: SlideRule, i: BuildInput, t: Record<string, string>): Fact[] {
   const a = i.area
+  // Slides that quote a fixed report exhibit carry their own numbers, with or without an area.
+  if (FIXED_FACTS[rule.id]) return FIXED_FACTS[rule.id]
   if (rule.id === 'white-collar' || !a) {
     const w = NATIONAL.whiteCollar
     return [
@@ -136,8 +139,10 @@ export function buildDeck(i: BuildInput): Deck {
       // A county with no filings on file is "no data", not "no layoffs": state sources are
       // incomplete and not every filing could be placed. Never print "0 workers" as a fact.
       bullets: r.bullets.filter((b) => !(noLayoffData && /\{\{layoffs(12|90)\}\}/.test(b))).map((b) => fill(b, t)),
-      appendix: r.appendix, constituent: r.constituent,
+      appendix: r.appendix, constituent: r.constituent, source: r.source, callout: r.callout,
     }
+    // A boxed note on the slide (counsel review, for example) always travels with the deck as a warning too.
+    if (r.callout) warnings.push(`${fill(r.title, t)}: ${r.callout}`)
     if (noLayoffData && r.bullets.some((b) => /\{\{layoffs(12|90)\}\}/.test(b))) {
       warnings.push(`No layoff filings on file for ${t.area}: bullets that cite layoff counts were left out of "${fill(r.title, t)}". State data may be incomplete; add a layoff by hand or check the state's WARN page.`)
     }

@@ -30,6 +30,8 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
           <button name="move" value={`${s.id}:down`} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted" aria-label={`Move ${s.id} down`}>Move down</button>
         </div>
       </div>
+      {s.callout && <p role="note" className="mt-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">Printed on this slide and added to every deck&apos;s warnings, and it cannot be edited here: {s.callout}</p>}
+      {s.source && <p className="mt-1 text-xs text-muted-foreground">Citation printed on the slide: {s.source}</p>}
       {s.why && <p className="mt-1 text-xs text-muted-foreground">{s.why}{s.needsGeo ? ' Left out of generic decks automatically.' : ''}</p>}
       <div className="mt-3 grid gap-3 md:grid-cols-3">
         <label className="space-y-1 text-xs md:col-span-2">Title<input name={`title_${s.id}`} defaultValue={s.title} className={field} /></label>
