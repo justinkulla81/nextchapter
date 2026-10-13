@@ -29,6 +29,16 @@ describe('isRelevant', () => {
     expect(isRelevant({ title: 'Annual guidance', agencyCode: 'DOL-ETA' })).toBe(true)
     expect(isRelevant({ title: 'Reemployment services pilot', agencyCode: 'HHS-NIH' })).toBe(true)
   })
+  it('rejects guidance letters and planning documents even from Labor', () => {
+    expect(isRelevant({ title: 'Training and Employment Guidance Letter (02-26) for FY 2026', agencyCode: 'DOL-ETA' })).toBe(false)
+    expect(isRelevant({ title: 'FY2027 State Workforce Agency UI Resource Planning Targets and Guidelines', agencyCode: 'DOL-ETA' })).toBe(false)
+  })
+  it('keeps the Dislocated Worker Grant program page', () => {
+    expect(isRelevant({ title: 'Updated National Dislocated Worker Grant Program Guidance and Application Information', agencyCode: 'DOL-ETA' })).toBe(true)
+  })
+  it('does not let a bare "workforce development" in from another agency', () => {
+    expect(isRelevant({ title: 'Innovative Water Infrastructure Workforce Development Grant', agencyCode: 'EPA' })).toBe(false)
+  })
   it('rejects a loose full-text hit from an unrelated agency', () => {
     expect(isRelevant({ title: 'HEAL Initiative: Chronic Pain and OUD', agencyCode: 'HHS-NIH11' })).toBe(false)
   })

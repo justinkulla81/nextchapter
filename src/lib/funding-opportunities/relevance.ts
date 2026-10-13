@@ -92,13 +92,26 @@ export function parseUsDate(s: unknown): Date | null {
 }
 
 /**
- * Relevant means the title names the subject, or the Department of Labor issued
- * it (its grants are on-subject by construction). Grants.gov's full-text search
- * is loose — an NIH pain-management grant "matches" dislocated worker — so a hit
- * returned by several keywords is not evidence of anything.
+ * Guidance letters, planning targets and the like: published by the same
+ * agencies as the grants, but nothing anyone applies to.
+ */
+const NOT_AN_OPPORTUNITY = /guidance letter|\bTEGL\b|\bTEN\b\s*\d|\bUIPL\b|resource planning|planning targets|targets and guidelines/i
+
+/** A title must name the subject strongly unless the Labor Department issued it. */
+const MIN_TITLE_SCORE = 4
+
+/**
+ * Relevant means: not a guidance document, and either the Department of Labor
+ * issued it (its grants are on-subject by construction) or the title names the
+ * subject strongly. One bare "workforce development" is not enough — it is how an
+ * EPA water grant gets in. Grants.gov's full-text search is loose too (an NIH
+ * pain-management grant "matches" dislocated worker), so a hit returned by
+ * several keywords is not evidence of anything.
  */
 export function isRelevant(n: Pick<FundingNotice, 'title' | 'agencyCode'>): boolean {
-  return titleScore(n.title) > 0 || /^DOL(-|$)/i.test(n.agencyCode ?? '')
+  if (NOT_AN_OPPORTUNITY.test(n.title)) return false
+  if (/^DOL(-|$)/i.test(n.agencyCode ?? '')) return true
+  return titleScore(n.title) >= MIN_TITLE_SCORE
 }
 
 /**
