@@ -130,7 +130,6 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/mailing/lists.ts': 'admin mailing',
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
-    'src/lib/warn/layoff-alert.ts': 'admin WARN tooling: emails only the fixed NextChapter inbox, never a candidate',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
     'src/lib/warn/layoff-alert.ts': 'admin WARN tooling: emails the owner about a new layoff; imported only by WARN sync, news-check and the SEC 8-K check',
     'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: imported only by the warn-sync cron',
