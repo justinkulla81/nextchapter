@@ -19,7 +19,9 @@ const domainOf = (email: string) => email.split('@')[1]?.toLowerCase().trim() ??
  * addresses only feed the learning; a generic inbox (careers@) never does.
  *
  * Also guesses for named college leaders whose page showed no email, and
- * clears any guess for someone whose real address has since arrived.
+ * clears any guess for someone whose real address has since arrived. A person
+ * whose guess Hunter marked undeliverable (emailVerifiedStatus) is not
+ * guessed for again.
  */
 export async function guessUniversityEmails(): Promise<{ people: number; collegeContacts: number; cleared: number; domains: number }> {
   const [crmKnown, collegeKnown] = await Promise.all([
@@ -36,7 +38,7 @@ export async function guessUniversityEmails(): Promise<{ people: number; college
   const orgs = await prisma.crmOrganization.findMany({
     select: {
       id: true, name: true, website: true, orgTypes: true,
-      affiliations: { where: { isCurrent: true }, select: { person: { select: { id: true, fullName: true, email: true, guessedEmail: true, deletedAt: true } } } },
+      affiliations: { where: { isCurrent: true }, select: { person: { select: { id: true, fullName: true, email: true, guessedEmail: true, deletedAt: true, emailVerifiedStatus: true } } } },
     },
   })
   const colleges = await prisma.localCollege.findMany({ where: { crmOrgId: { not: null } }, select: { crmOrgId: true, website: true } })
@@ -75,7 +77,8 @@ export async function guessUniversityEmails(): Promise<{ people: number; college
         }
         continue
       }
-      if (!domain || !pattern || person.guessedEmail) continue
+      // Hunter already said the guess for this person bounces; a second guess from the same format would too.
+      if (!domain || !pattern || person.guessedEmail || person.emailVerifiedStatus === 'undeliverable') continue
       const guess = applyTemplate(pattern.template, person.fullName, domain)
       // Never guess an address that already belongs to someone else.
       if (!guess || (await findEmailOwner(guess, { includeDeleted: true }))) continue
@@ -135,7 +138,8 @@ export async function guessHrLeaderEmails(maxLookups = 150): Promise<{ people: n
   const common: DomainPattern = { template: commonTemplate as DomainPattern['template'], examples: 0, matching: 0 }
 
   const leaders = await prisma.crmPerson.findMany({
-    where: { deletedAt: null, email: null, guessedEmail: null },
+    // Not someone whose guessed address Hunter has already marked undeliverable.
+    where: { deletedAt: null, email: null, guessedEmail: null, OR: [{ emailVerifiedStatus: null }, { emailVerifiedStatus: { not: 'undeliverable' } }] },
     select: {
       id: true, fullName: true,
       affiliations: {
