@@ -19,6 +19,9 @@ import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
+import { loadSearchPlaybook } from '@/lib/dashboard/search-playbook-data'
+import { SearchPlaybookCard } from '@/components/dashboard/search-playbook/SearchPlaybookCard'
+import { captureServerEvent } from '@/lib/posthog/server'
 import {
   getCurrentWeekSprintForRender,
   getSuggestedActions,
@@ -147,6 +150,7 @@ export default async function DashboardPage() {
     dossierCompleteness,
     dossierStatus,
     resumeFixes,
+    searchPlaybook,
   ] = await Promise.all([
     getVerifiedSessionUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -188,8 +192,24 @@ export default async function DashboardPage() {
     // resume-fix items the Market Reality Report itself shows (see
     // getResumeFixes), not a separate invented list.
     getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
+    // Journey-aware search plan: what to change at this point in the search.
+    // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
+    loadSearchPlaybook(profile),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
+
+  if (searchPlaybook) {
+    const position = searchPlaybook
+    after(() =>
+      captureServerEvent(profile.id, 'search_playbook_viewed', {
+        journey: position.journey,
+        weeks: position.clock.weeks,
+        basis: position.clock.basis,
+        milestoneWeek: position.current?.atWeek ?? null,
+        longTermUnemployed: position.isLongTermUnemployed,
+      })
+    )
+  }
 
   // getResumeFixes (Market Reality Report's resumeRewrites) is null for any
   // candidate whose latest report predates that field or hasn't regenerated
@@ -410,6 +430,8 @@ export default async function DashboardPage() {
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
 
       {stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
+
+      {searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
 
       {(showGotHiredCTA || needsCoachingForm) && (
         <div className="space-y-4">
