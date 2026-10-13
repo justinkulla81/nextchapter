@@ -3,7 +3,8 @@ import { randomBytes, randomUUID } from 'crypto'
 import type { Prisma } from '@prisma/client'
 import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { FIRM_WEBHOOK_EVENTS, isSafeWebhookUrl, signWebhookBody, type FirmWebhookEvent } from './webhook-shared'
+import { FIRM_WEBHOOK_EVENTS, isSafeWebhookUrl, type FirmWebhookEvent } from './webhook-shared'
+import { signWebhookBody } from './webhook-sign'
 
 export { FIRM_WEBHOOK_EVENTS, isSafeWebhookUrl, signWebhookBody }
 export type { FirmWebhookEvent }
