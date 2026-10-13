@@ -74,3 +74,30 @@ describe('isNoMeetingNight', () => {
     expect(isNoMeetingNight(new Date('2026-10-09T00:00:00Z'))).toBe(false) // Thu 8 PM ET
   })
 })
+
+describe('sendMeetingPrepDigestEmail', () => {
+  const sendSpy = vi.fn(async (_p: { subject: string; html: string }) => ({ data: { id: 'x' }, error: null, headers: null }))
+  const item = (name: string, org: string, hour: number) => ({
+    content: sample as never,
+    meta: { personId: name, personName: name, orgName: org, meetingTitle: null, meetingAt: new Date(Date.UTC(2026, 9, 14, hour)) },
+  })
+
+  it('sends several briefs as one email, in meeting order', async () => {
+    vi.resetModules()
+    vi.doMock('@/lib/email/resend-client', () => ({ createResend: () => ({ emails: { send: sendSpy } }) }))
+    vi.stubEnv('RESEND_API_KEY', 'k')
+    const { sendMeetingPrepDigestEmail } = await import('@/lib/crm/meeting-prep/email')
+    sendSpy.mockClear()
+    const ok = await sendMeetingPrepDigestEmail([item('Zed Late', 'B Co', 18), item('Amy Early', 'A Co', 14)])
+    expect(ok).toBe(true)
+    expect(sendSpy).toHaveBeenCalledTimes(1)
+    const payload = sendSpy.mock.calls[0][0]
+    expect(payload.subject).toBe('Meeting Prep: 2 meetings today — Amy Early, Zed Late')
+    expect(payload.html.indexOf('Amy Early')).toBeLessThan(payload.html.indexOf('Zed Late'))
+  })
+
+  it('sends nothing for an empty list', async () => {
+    const { sendMeetingPrepDigestEmail } = await import('@/lib/crm/meeting-prep/email')
+    expect(await sendMeetingPrepDigestEmail([])).toBe(false)
+  })
+})

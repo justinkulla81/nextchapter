@@ -54,6 +54,26 @@ async function send(subject: string, html: string): Promise<boolean> {
 export const sendMeetingPrepEmail = (c: MeetingPrepContent, m: MeetingPrepMeta) =>
   send(`Meeting Prep: ${m.personName}${m.orgName ? ` (${m.orgName})` : ''}${m.meetingAt ? ` — ${when(m.meetingAt)}` : ''}`, renderMeetingPrepHtml(c, m))
 
+const subjectFor = (m: MeetingPrepMeta) =>
+  `${m.personName}${m.orgName ? ` (${m.orgName})` : ''}`
+
+/**
+ * The 6:30 AM delivery: every approved brief for the day in ONE email, so two
+ * meetings cost one send instead of two. A single brief keeps its own subject.
+ */
+export function sendMeetingPrepDigestEmail(items: { content: MeetingPrepContent; meta: MeetingPrepMeta }[]): Promise<boolean> {
+  if (items.length === 0) return Promise.resolve(false)
+  if (items.length === 1) return sendMeetingPrepEmail(items[0].content, items[0].meta)
+  const ordered = [...items].sort((a, b) => (a.meta.meetingAt?.getTime() ?? 0) - (b.meta.meetingAt?.getTime() ?? 0))
+  const toc = ordered.map((i) => `<li style="margin:3px 0"><b>${esc(subjectFor(i.meta))}</b>${i.meta.meetingAt ? ` · ${esc(when(i.meta.meetingAt))}` : ''}</li>`).join('')
+  const html = wrap(`
+    <h1 style="font-size:18px;margin:0 0 6px">Meeting Prep: ${ordered.length} meetings today</h1>
+    <ul style="margin:4px 0 0;padding-left:18px">${toc}</ul>
+    ${ordered.map((i) => `<hr style="border:0;border-top:2px solid #ddd;margin:28px 0 20px">${renderMeetingPrepHtml(i.content, i.meta)}`).join('')}
+  `)
+  return send(`Meeting Prep: ${ordered.length} meetings today — ${ordered.map((i) => i.meta.personName).join(', ')}`.slice(0, 120), html)
+}
+
 export interface OfferRow { personId: string; personName: string; orgName: string | null; title: string | null; at: Date; role: string | null }
 
 /** The night-before email: tomorrow's pitches, with one button to choose which get Meeting Prep. */
