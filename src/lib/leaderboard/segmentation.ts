@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 import { SENIORITY_BANDS, SENIORITY_BAND_LABEL } from '@/lib/leaderboard/boards'
@@ -15,14 +16,14 @@ export { SENIORITY_BANDS, SENIORITY_BAND_LABEL }
 // (both are private helpers not meant for cross-module reuse; this is the
 // third real call site of the same one-line query, not worth a shared
 // helper module of its own).
-export async function getSeniorityBand(candidateId: string): Promise<SeniorityBand | null> {
+export const getSeniorityBand = cache(async (candidateId: string): Promise<SeniorityBand | null> => {
   const analysis = await prisma.resumeAnalysis.findFirst({
     where: { candidateId },
     orderBy: { createdAt: 'desc' },
     select: { seniorityBand: true },
   })
   return (analysis?.seniorityBand as SeniorityBand | undefined) ?? null
-}
+})
 
 // Bulk version for ranking a whole board — one query for every candidate's
 // latest seniority band instead of N. groupBy + a per-candidate max date

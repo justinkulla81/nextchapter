@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
-import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
-import { createClient } from '@/lib/supabase/server'
+import { getDashboardProfile, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
 import { hasRoleGrant } from '@/lib/auth/role-grants'
 import { getMembershipSubscription } from '@/lib/membership/subscription'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
@@ -89,7 +88,7 @@ const TIER_COPY: Record<
 const TIER_ORDER = ['dtc_free', 'dtc_resume', 'dtc_coaching_plus', 'dtc_coaching_premium', 'dtc_executive']
 
 export default async function MembershipPage() {
-  const [profile, { data: { user } }] = await Promise.all([getDashboardProfile(), createClient().then((s) => s.auth.getUser())])
+  const [profile, user] = await Promise.all([getDashboardProfile(), getVerifiedSessionUser()])
 
   const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, dossierCompleteness, ...dtcPlans] =
     await Promise.all([

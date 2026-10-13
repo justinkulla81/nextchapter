@@ -54,7 +54,7 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
-import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprintForRender, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
@@ -547,7 +547,7 @@ export async function computeWeeklyEngines(
   const weeklyPointsTarget = pointsNeededForA(weekNumber)
   const perEngineTarget = weeklyPointsTarget / 4
 
-  const sprint = await getCurrentWeekSprint(candidateId)
+  const sprint = await getCurrentWeekSprintForRender(candidateId)
   const committedActions = sprint ? (sprint.committedActions as unknown as CommittedAction[]) : []
 
   const pointsByEngine: Record<WeeklyEngineKey, number> = { learning: 0, effort: 0, working: 0, connecting: 0 }

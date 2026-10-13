@@ -3,9 +3,8 @@ import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
@@ -19,7 +18,7 @@ import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActiv
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
 import {
-  getCurrentWeekSprint,
+  getCurrentWeekSprintForRender,
   getSuggestedActions,
   getMondayOfWeek,
   getCandidateWeekNumber,
@@ -102,7 +101,6 @@ async function SessionImpactSection({ candidateId }: { candidateId: string }) {
 
 export default async function DashboardPage() {
   const profile = await getDashboardData()
-  const supabase = await createClient()
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // The registration-time after() callback in getDashboardData that
@@ -124,9 +122,7 @@ export default async function DashboardPage() {
   // instead of one-by-one turns ~9 sequential round trips into one parallel
   // batch, which is where most of this page's load time was going.
   const [
-    {
-      data: { user },
-    },
+    user,
     weeklyProgress,
     marketRealityGrade,
     checkInSummary,
@@ -146,7 +142,7 @@ export default async function DashboardPage() {
     dossierStatus,
     resumeFixes,
   ] = await Promise.all([
-    supabase.auth.getUser(),
+    getVerifiedSessionUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
     // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
     // is the single orchestrator (scoring/market-reality/probability.ts);
@@ -154,7 +150,7 @@ export default async function DashboardPage() {
     // would be a second, parallel computation of the starting-band input.
     computeProbabilityGrade(profile.id),
     getCheckInSummary(profile.id),
-    getCurrentWeekSprint(profile.id),
+    getCurrentWeekSprintForRender(profile.id),
     getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
