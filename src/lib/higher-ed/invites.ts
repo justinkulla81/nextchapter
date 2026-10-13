@@ -4,7 +4,7 @@
 // outbox) and the link works for testing.
 
 import 'server-only'
-import { createResend } from '@/lib/email/resend-client'
+import { sendCampaign } from './outreach'
 import { prisma } from '@/lib/prisma'
 
 const BATCH = 100
@@ -25,6 +25,7 @@ export function invitableWhere(institutionId: string) {
     status: { in: ['IMPORTED' as const] },
     candidateId: null,
     doNotContact: false,
+    emailSuppressedAt: null,
     outreachSends: { none: {} },
   }
 }
@@ -52,42 +53,22 @@ export async function sendJoinInvites(args: { institutionId: string; createdBy: 
 
 ${inst.name} now gives every alum ${brand}: a clear read on your job market, a plan for this week, coaching, and alumni who'll take your call. It's free, and what you do in it stays yours.
 
-Join in one click: {{joinUrl}}
+Join in one click: {{link}}
 
 ${inst.name} Alumni Relations`
 
-  const campaign = await prisma.outreachCampaign.create({
-    data: { institutionId: args.institutionId, type: 'WELCOME', subject, body, createdBy: args.createdBy, sentAt: new Date() },
-    select: { id: true },
+  // The shared sender: college name and reply-to, unsubscribe link and
+  // header, suppressed addresses skipped. Its default {{link}} is the join link.
+  const r = await sendCampaign({
+    institutionId: args.institutionId,
+    type: 'WELCOME',
+    subject,
+    body,
+    createdBy: args.createdBy,
+    recipients: members.map((m) => ({ memberId: m.id })),
   })
-  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
-
-  let sent = 0
-  for (const m of members) {
-    const send = await prisma.outreachSend.create({
-      data: { campaignId: campaign.id, memberId: m.id, email: m.email },
-      select: { id: true, claimToken: true },
-    })
-    const url = joinUrl(inst.slug, send.claimToken)
-    let providerMessageId: string | null = null
-    if (resend) {
-      const text = body.replace('{{firstName}}', m.firstName ?? 'there').replace('{{joinUrl}}', url)
-      const result = await resend.emails.send({
-        from: `${brand} <support@launchyournextchapter.com>`,
-        to: m.email,
-        subject,
-        text,
-      })
-      if (result.error) {
-        // Not sent: drop the row so the next batch retries this alum.
-        await prisma.outreachSend.delete({ where: { id: send.id } })
-        continue
-      }
-      providerMessageId = result.data?.id ?? null
-    }
-    await prisma.outreachSend.update({ where: { id: send.id }, data: { sentAt: new Date(), providerMessageId } })
-    await prisma.institutionMember.update({ where: { id: m.id }, data: { status: 'INVITED' } })
-    sent++
-  }
+  const invited = [...r.sendIds.keys()]
+  if (invited.length) await prisma.institutionMember.updateMany({ where: { id: { in: invited }, status: 'IMPORTED' }, data: { status: 'INVITED' } })
+  const sent = r.sent
   return { sent, remaining: await countInvitable(args.institutionId), demo: inst.isDemo }
 }

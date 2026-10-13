@@ -11474,6 +11474,11 @@ model InstitutionMember {
   status        InstitutionMemberStatus       @default(IMPORTED)
   claimedAt     DateTime? // §7 metrics count gifts and tool use after this date
   doNotContact  Boolean                       @default(false) // imported, never emailed
+  // Set when the alum unsubscribes, or their address hard-bounces or marks
+  // a college email as spam (Resend webhook). Never cleared by a roster
+  // import; sendCampaign skips anyone with it set.
+  emailSuppressedAt     DateTime?
+  emailSuppressedReason String? // 'UNSUBSCRIBED' | 'BOUNCED' | 'COMPLAINED'
 
   lastKnownEmployer           String?
   // normalizeOrgName(lastKnownEmployer) — what the layoff-match job compares

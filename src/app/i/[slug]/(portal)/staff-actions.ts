@@ -235,16 +235,19 @@ export async function saveCollegeSettings(slug: string, _prev: FormState, formDa
   if (!Number.isInteger(graceDays) || graceDays < 0 || graceDays > 365) return { error: 'Grace period is 0 to 365 days.' }
   if (!(fiscalYearStartMonth >= 1 && fiscalYearStartMonth <= 12)) return { error: 'Pick the month your fiscal year starts.' }
   if (givingUrl && !/^https:\/\/\S+$/.test(givingUrl)) return { error: 'The giving page must be an https:// link.' }
+  const fromName = String(formData.get('fromName') ?? '').trim().replace(/["<>\r\n]/g, '').slice(0, 80)
+  const replyTo = String(formData.get('replyTo') ?? '').trim().toLowerCase()
+  if (replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) return { error: 'Replies go to must be an email address, like alumni@yourcollege.edu.' }
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   await prisma.institution.update({
     where: { id: ctx.institution.id },
     data: {
       givingUrl,
-      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth },
+      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, email: { fromName: fromName || null, replyTo: replyTo || null } },
     },
     select: { id: true },
   })
-  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth })
+  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth, hasFromName: !!fromName, hasReplyTo: !!replyTo })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved.' }
 }

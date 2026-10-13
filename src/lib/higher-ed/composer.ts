@@ -6,9 +6,9 @@
 
 import 'server-only'
 import type { Prisma } from '@prisma/client'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
-import { merge, sendCampaign } from './outreach'
+import { emailSettingsFrom, merge, sendCampaign, withFooter } from './outreach'
 
 export const BATCH = 200
 
@@ -34,7 +34,7 @@ export function unknownFields(text: string): string[] {
 }
 
 export function audienceWhere(institutionId: string, audience: Audience, now = new Date()): Prisma.InstitutionMemberWhereInput {
-  const base: Prisma.InstitutionMemberWhereInput = { institutionId, affiliation: { in: ['ALUM', 'STAFF_ALUM'] }, status: { not: 'OPTED_OUT' }, doNotContact: false }
+  const base: Prisma.InstitutionMemberWhereInput = { institutionId, affiliation: { in: ['ALUM', 'STAFF_ALUM'] }, status: { not: 'OPTED_OUT' }, doNotContact: false, emailSuppressedAt: null }
   if (audience === 'joined') return { ...base, status: { in: ['CLAIMED', 'ACTIVE'] } }
   if (audience === 'not_joined') return { ...base, status: { in: ['IMPORTED', 'INVITED'] } }
   if (audience === 'recent_grads') return { ...base, classYear: { gte: now.getUTCFullYear() - 5 } }
@@ -118,15 +118,21 @@ export function previewValues(college: string, slug: string) {
 export async function sendTestToSelf(args: { institutionId: string; campaignId: string; to: string }) {
   const [c, inst] = await Promise.all([
     prisma.outreachCampaign.findFirst({ where: { id: args.campaignId, institutionId: args.institutionId }, select: { id: true, subject: true, body: true } }),
-    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { slug: true, name: true, programBrandName: true, isDemo: true } }),
+    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { slug: true, name: true, programBrandName: true, isDemo: true, enabledFeatures: true } }),
   ])
   if (!c) return { error: 'That email is gone. Reload the page.' }
   const values = previewValues(inst.name, inst.slug)
   const subject = `[Test] ${merge(c.subject, values)}`
-  const text = merge(c.body, values)
+  const text = withFooter(merge(c.body, values), inst.name, `${appUrl()}/i/${inst.slug}/unsubscribe?t=example`)
   if (inst.isDemo || !process.env.RESEND_API_KEY) return { demo: true, subject, text }
-  const brand = inst.programBrandName ?? inst.name
-  const r = await new Resend(process.env.RESEND_API_KEY).emails.send({ from: `${brand} <support@launchyournextchapter.com>`, to: args.to, subject, text })
+  const sender = emailSettingsFrom(inst.enabledFeatures, inst)
+  const r = await createResend(process.env.RESEND_API_KEY).emails.send({
+    from: `${sender.fromName.replace(/["<>\r\n]/g, '')} <support@launchyournextchapter.com>`,
+    to: args.to,
+    ...(sender.replyTo ? { replyTo: sender.replyTo } : {}),
+    subject,
+    text,
+  })
   if (r.error) return { error: 'The test didn’t send. Try again in a minute.' }
   await prisma.outreachSend.create({ data: { campaignId: c.id, memberId: null, email: args.to, sentAt: new Date(), providerMessageId: r.data?.id ?? null } })
   return { demo: false, subject, text }

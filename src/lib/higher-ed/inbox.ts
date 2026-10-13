@@ -2,7 +2,7 @@
 // same list shows on the office's home and goes out in its weekly email.
 
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import type { CheckInKind, InstitutionUserRole } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { pendingCheckIns } from './checkins'
@@ -54,7 +54,7 @@ export async function sendWeeklyDigests(): Promise<{ emails: number; colleges: n
     where: { isDemo: false },
     select: { id: true, slug: true, name: true, users: { where: { acceptedAt: { not: null }, revokedAt: null }, select: { invitedEmail: true, role: true } } },
   })
-  const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+  const resend = process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
   let emails = 0
   let reached = 0
   for (const c of colleges) {

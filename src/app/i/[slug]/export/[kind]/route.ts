@@ -5,7 +5,7 @@ import { suppressionRows, updatesExportRows } from '@/lib/higher-ed/views'
 import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { captureServerEvent } from '@/lib/posthog/server'
 
-const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active'] as const
+const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
 const SUPPRESSION_COLUMNS = ['external_id', 'email', 'first_name', 'last_name', 'since', 'grace_ends'] as const
 
 const day = (v: unknown) => (v instanceof Date ? v.toISOString().slice(0, 10) : v)

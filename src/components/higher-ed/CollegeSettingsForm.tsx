@@ -14,13 +14,15 @@ export function CollegeSettingsForm({
   canEdit,
 }: {
   action: (prev: State, formData: FormData) => Promise<State>
-  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null }
+  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null; fromName: string; replyTo: string }
   canEdit: boolean
 }) {
   const [state, formAction] = useActionState(action, undefined)
   const [grace, setGrace] = useState(String(defaults.graceDays))
   const [month, setMonth] = useState(String(defaults.fiscalYearStartMonth))
   const [giving, setGiving] = useState(defaults.givingUrl ?? '')
+  const [fromName, setFromName] = useState(defaults.fromName)
+  const [replyTo, setReplyTo] = useState(defaults.replyTo)
   return (
     <form action={formAction} className="grid gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-3">
       <div className="space-y-1.5">
@@ -41,6 +43,15 @@ export function CollegeSettingsForm({
       <div className="space-y-1.5">
         <Label htmlFor="set-giving">Giving page</Label>
         <Input id="set-giving" name="givingUrl" type="url" placeholder="https://" value={giving} onChange={(e) => setGiving(e.target.value)} disabled={!canEdit} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="set-from">Emails to alumni come from</Label>
+        <Input id="set-from" name="fromName" value={fromName} onChange={(e) => setFromName(e.target.value)} disabled={!canEdit} placeholder="W&J Alumni Relations" />
+      </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor="set-reply">Replies go to</Label>
+        <Input id="set-reply" name="replyTo" type="email" value={replyTo} onChange={(e) => setReplyTo(e.target.value)} disabled={!canEdit} placeholder="alumni@yourcollege.edu" />
+        <p className="text-xs text-muted-foreground">Every email to alumni carries an unsubscribe link; bounces and spam complaints stop email to that address automatically.</p>
       </div>
       <div className="flex items-center gap-3 sm:col-span-3">
         {canEdit ? <SubmitButton pendingLabel="Saving…">Save settings</SubmitButton> : <p className="text-xs text-muted-foreground">Only an institution admin can change these.</p>}

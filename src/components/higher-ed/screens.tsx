@@ -53,6 +53,7 @@ import { CollegeSettingsForm } from './CollegeSettingsForm'
 import { listProfileViews } from '@/lib/higher-ed/audit'
 import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
+import { emailSettingsFrom } from '@/lib/higher-ed/outreach'
 import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
@@ -1114,6 +1115,7 @@ async function SettingsOverview({ ctx }: ScreenProps) {
   if (!i) return null
   const features = (i.enabledFeatures ?? {}) as { graceDays?: number; fiscalYearStartMonth?: number }
   const checklist = <LaunchChecklist ctx={ctx} />
+  const sender = emailSettingsFrom(i.enabledFeatures, i)
   const facts: [string, string][] = [
     ['Name', i.name],
     ['Program name', i.programBrandName ?? '—'],
@@ -1146,7 +1148,13 @@ async function SettingsOverview({ ctx }: ScreenProps) {
       <CollegeSettingsForm
         action={saveCollegeSettings.bind(null, i.slug)}
         canEdit={ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly}
-        defaults={{ graceDays: graceDaysFrom(i.enabledFeatures), fiscalYearStartMonth: features.fiscalYearStartMonth ?? 7, givingUrl: i.givingUrl }}
+        defaults={{
+          graceDays: graceDaysFrom(i.enabledFeatures),
+          fiscalYearStartMonth: features.fiscalYearStartMonth ?? 7,
+          givingUrl: i.givingUrl,
+          fromName: sender.fromName,
+          replyTo: sender.replyTo ?? '',
+        }}
       />
       <CollegeProfile profile={readProfile(i.profile)} />
     </div>

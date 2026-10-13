@@ -67,6 +67,7 @@
     "verify:release3": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release3.ts",
     "verify:release4": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release4.ts",
     "verify:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he-demo.ts",
+    "verify:email-safety": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-email-safety.ts",
     "check:he-screens": "node scripts/higher-ed/render/build.mjs scripts/higher-ed/render/screens.tsx && node --env-file=.env.local scripts/higher-ed/render/.out.cjs; s=$?; rm -f scripts/higher-ed/render/.out.cjs; exit $s"
   },
   "dependencies": {

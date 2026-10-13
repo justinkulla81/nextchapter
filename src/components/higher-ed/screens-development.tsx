@@ -301,7 +301,7 @@ export async function DevelopmentCrm({ ctx }: Props) {
         </h2>
         <p className="max-w-3xl text-sm text-muted-foreground">
           The updates file has one row per alum with a CRM id: new employer and title (only for alumni who share their outcome), in transition,
-          do-not-solicit, approved prospect signals, engagement tier and last active. The suppression list is everyone you shouldn&apos;t ask right now.
+          do-not-solicit, approved prospect signals, engagement tier, last active, and email status (unsubscribed, bounced or marked as spam) so your CRM stops mailing those addresses too. The suppression list is everyone you shouldn&apos;t ask right now.
         </p>
         <div className="flex flex-wrap gap-2">
           <a href={`/i/${slug}/export/updates`} download className={cn(buttonVariants(), 'gap-2')}>
