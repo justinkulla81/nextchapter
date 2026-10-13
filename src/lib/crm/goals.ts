@@ -42,6 +42,7 @@ const ROLE_TO_GOAL: Partial<Record<CrmPersonRole, CrmGoal>> = {
   BD_PARTNER: 'BD',
   HIRING_MANAGER: 'BD', // also covers the old CHRO_HR, folded into this role
   OUTPLACEMENT_BUYER: 'SALES',
+  LEARNING_DEV_HEAD: 'SALES', // the buyer of retention and development support
   EMPLOYEE_CANDIDATE: 'FULL_TIME_RECRUITING',
   COACH_PROSPECT: 'ECOSYSTEM_RECRUITING',
   RECRUITER_PROSPECT: 'ECOSYSTEM_RECRUITING',
