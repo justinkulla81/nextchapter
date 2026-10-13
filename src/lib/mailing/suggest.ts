@@ -24,6 +24,7 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
 
 const PIPELINE_LISTS: Record<string, string> = {
   fundraising: 'investors',
+  grants: 'investors',
   job_seekers: 'candidates',
   candidate_membership: 'candidates',
   outplacement: 'leads',

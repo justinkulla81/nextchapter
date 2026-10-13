@@ -103,6 +103,7 @@ export function rolesForGoal(goal: CrmGoal): CrmPersonRole[] {
 /** Pipeline key to the outcome it serves. */
 export const PIPELINE_GOAL: Record<string, CrmGoal> = {
   fundraising: 'FUNDRAISING',
+  grants: 'FUNDRAISING',
   bd_partnerships: 'BD',
   outplacement: 'SALES',
   coach_recruiting: 'ECOSYSTEM_RECRUITING',

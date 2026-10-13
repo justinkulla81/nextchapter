@@ -41,7 +41,7 @@ describe('rolesForGoal', () => {
 describe('PIPELINE_GOAL', () => {
   it('covers every pipeline that exists', () => {
     const keys = ['fundraising', 'bd_partnerships', 'outplacement', 'coach_recruiting',
-      'recruiter_recruiting', 'hiring_managers', 'employee_recruiting', 'policy_advisers', 'job_seekers']
+      'recruiter_recruiting', 'hiring_managers', 'employee_recruiting', 'policy_advisers', 'job_seekers', 'grants']
     for (const k of keys) expect(GOALS).toContain(PIPELINE_GOAL[k])
   })
 })

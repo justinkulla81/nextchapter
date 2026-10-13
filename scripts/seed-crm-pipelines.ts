@@ -53,6 +53,9 @@ const PIPELINES: { key: string; label: string; stages: StageSeed[] }[] = [
   // is the independent journey of an already-signed-up, still-free candidate
   // moving to a paid plan.
   { key: 'candidate_membership', label: 'Candidate membership', stages: spine('Considering upgrade', 'Paid member') },
+  // Non-equity money: grants, challenges, innovation funds. Kept apart from
+  // fundraising so an award with a reporting duty isn't graded like a term sheet.
+  { key: 'grants', label: 'Grants & programs', stages: spine('Application in', 'Awarded') },
 ]
 
 async function main() {

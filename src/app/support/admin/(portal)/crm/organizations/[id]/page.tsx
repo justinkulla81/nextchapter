@@ -9,6 +9,8 @@ import { CrmCollegeProfile } from '@/components/admin/CrmCollegeProfile'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
+import { CrmAddOrgOpportunity } from '@/components/admin/CrmOrgOpportunities'
+import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -35,6 +37,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     },
   })
   if (!org) notFound()
+  const pipelines = await prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } })
 
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by
@@ -221,19 +224,44 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         </section>
       )}
 
-      {org.opportunities.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">Pipelines</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {org.opportunities.map((o) => (
-              <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <span>{o.title}</span>
-                <span className="text-xs text-muted-foreground">{o.pipeline.label} · {o.stage.label}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Opportunities ({org.opportunities.length})</h2>
+        {OPPORTUNITY_KINDS.map((kind) => {
+          const opps = org.opportunities.filter((o) => kindForPipeline(o.pipeline.key)?.key === kind.key)
+          if (opps.length === 0 && !kind.alwaysShown) return null
+          const choices = kind.pipelineKeys
+            .map((k) => pipelines.find((p) => p.key === k))
+            .filter((p): p is { key: string; label: string } => Boolean(p))
+          return (
+            <div key={kind.key}>
+              <div className="mb-1 flex items-baseline justify-between gap-2">
+                <h3 className="text-sm font-semibold">
+                  {kind.label} <span className="font-normal text-muted-foreground">({opps.length}) · {kind.blurb}</span>
+                </h3>
+                {choices.length > 0 && <CrmAddOrgOpportunity orgId={org.id} pipelines={choices} />}
+              </div>
+              {opps.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">None yet.</p>
+              ) : (
+                <ul className="rounded-lg border border-border divide-y divide-border">
+                  {opps.map((o) => (
+                    <li key={o.id} className="p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
+                        <span className="text-xs text-muted-foreground">
+                          {o.pipeline.label} · {o.stage.label}
+                          {o.amountUsdMax ? ` · ${o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}$${o.amountUsdMax.toLocaleString()}` : ''}
+                        </span>
+                      </div>
+                      {o.nextStep && <p className="mt-1 text-xs text-muted-foreground">{o.nextStep}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )
+        })}
+      </section>
     </div>
   )
 }
