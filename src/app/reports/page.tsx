@@ -10,19 +10,19 @@ import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } fro
 const URL = `${SITE_URL}/reports`
 
 export const metadata: Metadata = {
-  title: { absolute: 'Displacement Report: White-Collar Labor Data | NextChapter' },
+  title: { absolute: 'Employment Report: White-Collar Labor Data | NextChapter' },
   description:
-    'The NextChapter Displacement Report is a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution, the safety net, and the White-Collar Long-Term Unemployment Index.',
+    'The NextChapter Employment Report is a monthly, independent read on the U.S. white-collar labor market — hiring, job changes, search length, AI attribution, what public programs are adding, and the White-Collar Long-Search Index.',
   alternates: { canonical: '/reports' },
   openGraph: {
     type: 'website',
-    title: 'NextChapter Displacement Report',
-    description: 'Monthly, independent data on white-collar job loss, AI and long-term unemployment.',
+    title: 'NextChapter Employment Report',
+    description: 'Monthly, independent data on how people are working, being hired and changing jobs, AI and public programs.',
     url: URL,
     siteName: 'NextChapter',
     images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png`, width: 1200, height: 630 }],
   },
-  twitter: { card: 'summary_large_image', title: 'NextChapter Displacement Report' },
+  twitter: { card: 'summary_large_image', title: 'NextChapter Employment Report' },
 }
 
 const monthShortLabel = (iso: string) =>
@@ -44,10 +44,10 @@ export default function ReportsHubPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'NextChapter Displacement Report',
+    name: 'NextChapter Employment Report',
     url: URL,
     description:
-      'Monthly, independent data on the U.S. white-collar labor market: layoffs, long-term unemployment, AI attribution and the White-Collar Long-Term Unemployment Index.',
+      'Monthly, independent data on the U.S. white-collar labor market: hiring, job changes, search length, AI attribution, public programs and the White-Collar Long-Search Index.',
     isPartOf: { '@type': 'WebSite', name: 'NextChapter', url: SITE_URL },
   }
 
@@ -57,10 +57,10 @@ export default function ReportsHubPage() {
       <PublicSiteHeader current="reports" />
 
       <main className="mx-auto w-full max-w-4xl px-6 py-14">
-        <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">NextChapter Displacement Report</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">NextChapter Employment Report</h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-          An independent, monthly read on the U.S. white-collar labor market — layoffs, long-term unemployment, how
-          often AI is actually blamed, and the safety net. Every figure comes from public data, with the methods and
+          An independent, monthly read on the U.S. white-collar labor market — hiring and job changes, how long
+          searches take, how often AI is actually cited, and what public programs are adding. Every figure comes from public data, with the methods and
           data files published.
         </p>
 
@@ -70,10 +70,10 @@ export default function ReportsHubPage() {
             href="/reports/white-collar-index"
             className="group rounded-xl border border-light-gray bg-white p-6 transition-colors hover:border-brand"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand">White-Collar Long-Term Unemployment Index</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand">White-Collar Long-Search Index</p>
             <div className="mt-3 text-5xl font-bold tracking-tight text-navy tabular-nums">{latestIndex}</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {monthLabel(idx.month)} · 2019 = 100. Long-term unemployment among managers and professionals.
+              {monthLabel(idx.month)} · 2019 = 100. Long-term unemployment (27+ weeks) among managers and professionals.
             </p>
             <p className="mt-4 text-sm font-semibold text-brand group-hover:underline">See the index and history →</p>
           </Link>

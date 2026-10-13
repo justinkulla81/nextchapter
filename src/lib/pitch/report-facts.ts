@@ -1,17 +1,17 @@
 import type { Fact } from './types'
 
-// Figures quoted from the NextChapter Displacement Report, September 2026
-// (version 1.72, published October 5, 2026). Every value below is copied from
+// Figures quoted from the NextChapter Employment Report, September 2026
+// (version 1.8, published October 13, 2026; figures unchanged from v1.72). Every value below is copied from
 // a named exhibit; nothing is derived here. Update this file, not the slide
 // rules, when a new edition changes a number. Keyed by slide id.
 
-export const REPORT_EDITION = 'NextChapter Displacement Report, September 2026 (v1.72)'
+export const REPORT_EDITION = 'NextChapter Employment Report, September 2026 (v1.8)'
 
 /** Slide-level citations, one per exhibit used. */
 export const SOURCES = {
-  midcareer: `${REPORT_EDITION}, Ch. 06 Exhibit 19 (p. 15) and Ch. 14 Exhibit 33 (p. 26). NextChapter calculation from Census CPS microdata, January to August, not seasonally adjusted; margins are 90%.`,
-  wioa: `${REPORT_EDITION}, Ch. 13 Exhibit 32 (p. 25). DOL Employment and Training Administration, PY2024 WIOA National Performance Summary (Nov 2025); Federal Register WIOA allotments notice (Apr 2026). Training share is a NextChapter calculation.`,
-  aiRules: `${REPORT_EDITION}, Ch. 03 (p. 9), Ch. 08 (p. 17) and Ch. 13 (p. 24); Littler (Oct 2026) as cited in the report.`,
+  midcareer: `${REPORT_EDITION}, Ch. 06 Exhibit 19 and Ch. 14 Exhibit 33. NextChapter calculation from Census CPS microdata, January to August, not seasonally adjusted; margins are 90%.`,
+  wioa: `${REPORT_EDITION}, Ch. 13 Exhibit 32. DOL Employment and Training Administration, PY2024 WIOA National Performance Summary (Nov 2025); Federal Register WIOA allotments notice (Apr 2026). Training share is a NextChapter calculation.`,
+  aiRules: `${REPORT_EDITION}, Ch. 03, Ch. 08 and Ch. 13; Littler (Oct 2026) as cited in the report.`,
 } as const
 
 export const FIXED_FACTS: Record<string, Fact[]> = {

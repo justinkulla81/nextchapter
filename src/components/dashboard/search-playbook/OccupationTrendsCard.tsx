@@ -19,7 +19,7 @@ function Line({ t }: { t: TrendLine }) {
 }
 
 // Where the work is moving, for people thinking about a pivot. Measured
-// numbers from the Displacement Report, never a prediction for one person.
+// numbers from the Employment Report, never a prediction for one person.
 export function OccupationTrendsCard({ currentFunction, targetFunction }: { currentFunction: string | null; targetFunction: string | null }) {
   const { from, to, readout } = comparePivot(currentFunction, targetFunction)
   const showSingle = from.length > 0 && to.length === 0

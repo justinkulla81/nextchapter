@@ -1,5 +1,5 @@
 // Occupation trend data behind the Pivot Path trend panel. Source: NextChapter
-// Displacement Report, September 2026 edition (v1.71+), Chapter 04 and the
+// Employment Report, September 2026 edition (v1.71+), Chapter 04 and the
 // exposure test; replication code code/11_exposure_vs_outcomes.py and data
 // data/exposure_test_results.json in the replication repository. Census CPS
 // basic monthly microdata, January to August of each year (NextChapter
@@ -22,8 +22,8 @@ export interface OccupationTrendRow {
 
 export const OCCUPATION_TRENDS_SOURCE = {
   edition: 'September 2026',
-  version: '1.72',
-  title: 'NextChapter Displacement Report',
+  version: '1.8',
+  title: 'NextChapter Employment Report',
   note: 'NextChapter calculation from Census CPS microdata; AI exposure from Eloundou et al. (2024)',
   url: 'https://launchyournextchapter.com/reports/displacement-report-september-2026',
 } as const
