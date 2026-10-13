@@ -5,10 +5,11 @@ import { getRecruiterDigestAdminEmail } from '@/lib/admin/auth'
 import { sendRecruiterDailyDigestEmail } from '@/lib/email/send-recruiter-daily-digest'
 import { sendAdminRecruiterDigestEmail } from '@/lib/email/send-admin-recruiter-digest'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

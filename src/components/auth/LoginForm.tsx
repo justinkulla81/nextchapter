@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { GoogleButton } from './GoogleButton'
+import { safeNext } from '@/lib/auth/safe-next'
 
 export function LoginForm({
   defaultNext = '/dashboard',
@@ -60,7 +61,7 @@ export function LoginForm({
 
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
-    router.push(searchParams.get('next') ?? defaultNext)
+    router.push(safeNext(searchParams.get('next'), defaultNext))
   }
 
   async function handleResend() {

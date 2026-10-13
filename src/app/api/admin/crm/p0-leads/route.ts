@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { importP0Leads, parseP0Leads } from '@/lib/crm/p0-leads'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 60
 
@@ -19,7 +20,7 @@ export function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!process.env.NC_ATS_API_KEY || request.headers.get('authorization') !== `Bearer ${process.env.NC_ATS_API_KEY}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.NC_ATS_API_KEY)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

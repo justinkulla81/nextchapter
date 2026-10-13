@@ -7,6 +7,7 @@ import { runMidweekCheckin } from '@/lib/email/dispatch/run-midweek-checkin'
 import { runGapNudge } from '@/lib/email/dispatch/run-gap-nudge'
 import { runSearchCheckin } from '@/lib/email/dispatch/run-search-checkin'
 import { runFinishLine } from '@/lib/email/dispatch/run-finish-line'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires once daily at 13:00 UTC (see vercel.json) — Vercel Hobby plan caps
 // cron jobs at once/day, so an hourly dispatcher (this route's original
@@ -22,7 +23,7 @@ import { runFinishLine } from '@/lib/email/dispatch/run-finish-line'
 // where per-row hour matching can be restored.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

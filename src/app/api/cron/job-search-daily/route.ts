@@ -4,6 +4,7 @@ import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendJobSearchDaily } from '@/lib/email/send-job-search-daily'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -13,7 +14,7 @@ const BREAK_ANSWER_WINDOW_DAYS = 30
 // weekday-rotation email from candidate-email-dispatch, which it's sent on
 // top of (founder decision, 2026-10-07). Own opt-out flag, own send-log key.
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

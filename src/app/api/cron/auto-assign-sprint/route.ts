@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, getSuggestedActions, commitWeeklySprint } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires Monday ~5am ET (fixed UTC time, see vercel.json — drifts an hour
 // across the DST transition, accepted tradeoff over a wall-clock-exact
@@ -14,7 +15,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 // WeeklySprint row this creates) — this route only does assignment.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

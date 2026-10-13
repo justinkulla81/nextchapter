@@ -1,7 +1,9 @@
 import sharp from 'sharp'
 import { prisma } from '@/lib/prisma'
 import { localFirst } from '@/lib/geo/filters'
-import { buildDeck, type AreaInput, type WarnInput } from './build'
+import { buildDeck, type AreaInput, type FundingInput, type WarnInput } from './build'
+import { kindsForCustomerType } from '@/lib/funding-opportunities/eligibility'
+import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { resolveBrand, type ColorMode } from './brand'
 import { loadRuleSet } from './store'
 import { CUSTOMER_TYPES, type CustomerType, type Deck, type PersonCard } from './types'
@@ -98,7 +100,12 @@ export async function buildFromParams(sp: Params, headshotOrigin?: string): Prom
   }
   if (headshotOrigin && people.some((p) => p.name === JUSTIN.name)) { /* headshot loaded by the route */ }
 
-  const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, people })
+  // Open grants this customer type could pursue. The table is applied by hand, so
+  // a missing one just means no funding slide.
+  const funding: FundingInput[] = (await opportunitiesForKinds(kindsForCustomerType(type), { limit: 5 }).catch(() => []))
+    .map((o) => ({ title: o.title, agency: o.agency, closesAt: o.closesAt, eligibility: o.eligibility, url: o.url }))
+
+  const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, funding, people })
   return { deck, edited, brandNote: note, options, lead: lead ? { id: lead.id, name: lead.name } : null }
 }
 

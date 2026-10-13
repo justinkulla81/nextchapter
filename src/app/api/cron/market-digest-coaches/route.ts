@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCoachEmail } from '@/lib/email/send-market-digest-coach'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const MAX_ROLE_LINES = 3
 
@@ -10,7 +11,7 @@ const MAX_ROLE_LINES = 3
 // score, only the deduped set of target roles across a coach's clients.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

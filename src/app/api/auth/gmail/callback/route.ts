@@ -9,7 +9,7 @@ import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
-import { consumeOAuthReturnState } from '@/lib/google/oauth-return-path'
+import { consumeOAuthReturnStateStrict } from '@/lib/google/oauth-return-path'
 
 // Backgrounded first-sync (below) can still take a while on a heavy real
 // inbox, so this gets real headroom rather than the platform default.
@@ -21,7 +21,13 @@ export async function GET(request: NextRequest) {
   // from, not a hardcoded /dashboard/network regardless of origin. Also the
   // real CSRF check on Google's `state` param, which previously existed
   // but was never actually validated anywhere.
-  const returnTo = await consumeOAuthReturnState(request.nextUrl.searchParams.get('state'), '/dashboard/network')
+  const { returnTo, valid: stateValid } = await consumeOAuthReturnStateStrict(
+    request.nextUrl.searchParams.get('state'),
+    '/dashboard/network',
+  )
+  if (!stateValid) {
+    return NextResponse.redirect(new URL(`${returnTo}?gmailError=invalid_state`, request.url))
+  }
 
   const supabase = await createClient()
   const {

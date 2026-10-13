@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { computePopulationSnapshotRows, upsertPopulationSnapshotRows } from '@/lib/analytics/population-metrics'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Weekly population-report snapshot — Phase 2 Master Script, Part B,
 // Prompt 6. Monday 00:15 UTC (see vercel.json) — deliberately earlier than
@@ -19,7 +20,7 @@ import { computePopulationSnapshotRows, upsertPopulationSnapshotRows } from '@/l
 // overwritten rather than left half-stale.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

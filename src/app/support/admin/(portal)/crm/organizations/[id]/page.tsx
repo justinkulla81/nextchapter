@@ -11,6 +11,9 @@ import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
 import { CrmAddOrgOpportunity } from '@/components/admin/CrmOrgOpportunities'
+import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
+import { kindsForOrgTypes } from '@/lib/funding-opportunities/eligibility'
+import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
@@ -42,6 +45,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const id = org.id
   const slug = orgSlug(org.canonicalNameNormalized)
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
+  // Open federal grants this organization could apply for. The table is applied
+  // by hand, so a missing one reads as "none" rather than breaking the page.
+  const funding = await opportunitiesForKinds(kindsForOrgTypes(org.orgTypes)).catch(() => [])
   // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by
@@ -350,6 +356,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
               </ul>
             </section>
           )}
+
+          <CrmFundingMatches opportunities={funding} />
 
           {org.deadlines.length > 0 && (
             <section>

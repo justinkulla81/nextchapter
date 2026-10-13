@@ -13,6 +13,8 @@ const DAY = 86_400_000
 // Fetch a buffer beyond the display count so filtering out snoozed-and-still-
 // stale rows in JS (see isSnoozedStale below) doesn't leave a band short.
 const FETCH_BUFFER = 15
+// How many priority organizations the page loads and groups; beyond this the page says so.
+const PRIORITY_ORG_CAP = 400
 
 /** True once a row should stay hidden: snoozed, and nothing newer has come up since. */
 function isSnoozedStale(queueSnoozedAt: Date | null, drivingAt: Date | null): boolean {
@@ -50,7 +52,7 @@ export default async function CrmQueuePage({
   const includeP2 = sp.p2 === '1'
   const priorityTiers: CrmPriorityTier[] = includeP2 ? ['P0', 'P1', 'P2'] : ['P0', 'P1']
 
-  const [promisedRaw, overdueStepsRaw, upcoming, pastDue, priorityOrgsRaw] = await Promise.all([
+  const [promisedRaw, overdueStepsRaw, upcoming, pastDue, priorityOrgsRaw, priorityOrgsTotal] = await Promise.all([
     prisma.crmOpportunity.findMany({
       where: { outcome: 'OPEN', committedFollowUpAt: { lt: now } },
       orderBy: { committedFollowUpAt: 'asc' },
@@ -106,7 +108,7 @@ export default async function CrmQueuePage({
       // Without an orderBy the 400 kept were whichever rows the planner
       // returned first — arbitrary, and silently dropping the rest.
       orderBy: [{ priorityScore: 'desc' }, { name: 'asc' }],
-      take: 400,
+      take: PRIORITY_ORG_CAP,
       select: {
         id: true, name: true, queueSnoozedAt: true,
         outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
@@ -122,6 +124,11 @@ export default async function CrmQueuePage({
           },
         },
       },
+    }),
+    // Exact total, so a cut at PRIORITY_ORG_CAP is announced instead of silent
+    // (with P2 included, ~1,000 orgs qualify against a 400-row cap).
+    prisma.crmOrganization.count({
+      where: { affiliations: { some: { person: { priority: { in: priorityTiers }, deletedAt: null } } } },
     }),
   ])
 
@@ -177,6 +184,13 @@ export default async function CrmQueuePage({
           <Link href="/support/admin/crm/leads" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All leads</Link>
         </nav>
       </header>
+
+      {priorityOrgsTotal > PRIORITY_ORG_CAP && (
+        <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          Showing the {PRIORITY_ORG_CAP} highest-scored of {priorityOrgsTotal.toLocaleString()} organizations with a{' '}
+          {includeP2 ? 'P0/P1/P2' : 'P0/P1'} person.{includeP2 ? ' Hide P2 to see the top tier only.' : ''}
+        </p>
+      )}
 
       {totalItems === 0 && pastDue.length === 0 && (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">

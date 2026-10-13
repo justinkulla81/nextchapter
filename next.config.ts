@@ -74,13 +74,45 @@ const nextConfig: NextConfig = {
   // stale-while-revalidate keeps them warm without pinning a replaced file for long.
   async headers() {
     const cacheable = "public, max-age=86400, stale-while-revalidate=604800";
+    const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseWs = supabase.replace(/^https:/, "wss:");
+    const isProd = process.env.NODE_ENV === "production";
+    // Report-Only first: next/script and inline JSON-LD need 'unsafe-inline',
+    // and admin-curated embeds can hit frame-src. Watch the console for
+    // violations for a few days, then rename the header key to enforce.
+    const csp = [
+      "default-src 'self'",
+      `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://www.googletagmanager.com https://www.google-analytics.com`,
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      `media-src 'self' blob: ${supabase}`,
+      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net`,
+      "frame-src 'self' https:",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+    ].join("; ");
+    const security = [
+      { key: "Content-Security-Policy-Report-Only", value: csp },
+      { key: "Strict-Transport-Security", value: "max-age=63072000" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+    ];
     return [
+      { source: "/:path*", headers: security },
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/reports/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
     ];
   },
+  poweredByHeader: false,
   skipTrailingSlashRedirect: true,
 };
 

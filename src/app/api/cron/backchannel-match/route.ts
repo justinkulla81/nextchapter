@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { orgNamesMatchStrict } from '@/lib/text/org-name-match'
 import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires daily — for each candidate, finds the first still-unnotified applied
 // job whose company matches someone already in their network, sends one
@@ -22,7 +23,7 @@ import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
 // claim mailed to the candidate.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

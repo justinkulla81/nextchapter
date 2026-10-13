@@ -2,20 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { exchangeCodeForTokens, fetchGoogleUserEmail } from '@/lib/google/oauth'
 import { prisma } from '@/lib/prisma'
 import { ADMIN_HOST } from '@/proxy'
+import { verifyAdminOAuthState } from '@/lib/google/admin-oauth-state'
 
-// state is "<random>:<encoded return path>:<encoded admin email>", minted by
-// /start (see its own comment for why this callback trusts state's contents
-// instead of calling requireAdmin() — the short version: it can't. Google
-// redirects here on whatever host NEXT_PUBLIC_APP_URL resolves to, which is
-// the apex domain, but the admin session cookie is host-only scoped to
-// admin.launchyournextchapter.com and is never present on this request).
-function parseState(state: string | null): { returnPath: string; adminEmail: string | null } {
-  const parts = state?.split(':') ?? []
-  const decodedPath = parts[1] ? decodeURIComponent(parts[1]) : ''
-  const returnPath = decodedPath.startsWith('/support/admin/') ? decodedPath : '/support/admin/digest'
-  const adminEmail = parts[2] ? decodeURIComponent(parts[2]) || null : null
-  return { returnPath, adminEmail }
-}
+// state is a signed, expiring blob minted by /start (admin-gated); see
+// src/lib/google/admin-oauth-state.ts for why this callback verifies a
+// signature instead of calling requireAdmin() — the admin session cookie is
+// host-only on the admin subdomain and is never present on this request.
 
 // Every redirect back to the app must target the admin subdomain explicitly
 // — building it from request.url would inherit the apex domain (where
@@ -29,7 +21,12 @@ function adminUrl(path: string): URL {
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
-  const { returnPath, adminEmail } = parseState(request.nextUrl.searchParams.get('state'))
+  const verified = verifyAdminOAuthState(request.nextUrl.searchParams.get('state'))
+  if (!verified) {
+    // Forged, expired or missing state: never exchange the code.
+    return NextResponse.redirect(adminUrl('/support/admin/digest?googleError=invalid_state'))
+  }
+  const { returnPath, adminEmail } = verified
 
   if (error || !code) {
     return NextResponse.redirect(adminUrl(`${returnPath}?googleError=denied`))

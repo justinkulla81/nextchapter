@@ -3,14 +3,15 @@ import type { Prisma, CrmPersonRole, CrmLeadQuality, CrmWarmth } from '@prisma/c
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { neutralizeFormula } from '@/lib/admin/csv-export'
 
 export const maxDuration = 60
 
 /** RFC-4180 quoting — the notes field routinely contains commas and quotes. */
 function csvCell(v: unknown): string {
   if (v === null || v === undefined) return ''
-  const s = String(v)
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  const s = neutralizeFormula(String(v))
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
 // Downloads the current filtered view, using the SAME column names the

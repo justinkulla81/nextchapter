@@ -19,12 +19,24 @@ export interface AreaInput {
   news: { title: string; url: string; publisher?: string; publishedAt?: string }[]
 }
 export interface WarnInput { employer: string; employees: number | null; noticeDate: Date | null; effectiveDate: Date | null; industry: string | null }
+/** One open grant a customer could pursue, already matched to the deck's customer type. */
+export interface FundingInput {
+  title: string
+  agency: string
+  closesAt: Date | null
+  /** DIRECT = they can apply; VIA_PARTNER = they apply and NextChapter delivers; UNKNOWN = unconfirmed. */
+  eligibility: 'DIRECT' | 'VIA_PARTNER' | 'UNKNOWN'
+  url: string
+}
+
 export interface BuildInput {
   rules: RuleSet
   brand: Brand
   /** null = a generic deck: no local numbers, no local slides. */
   area: AreaInput | null
   warn?: WarnInput[]
+  /** Open grants for this customer type. Empty or absent drops the funding slide. */
+  funding?: FundingInput[]
   people?: PersonCard[]
   now?: Date
 }
@@ -143,6 +155,17 @@ export function buildDeck(i: BuildInput): Deck {
         break
       }
       case 'people': s.people = i.people ?? []; break
+      case 'funding': {
+        s.head = ['Grant', 'Issued by', 'Closes', 'How to pursue']
+        s.rows = (i.funding ?? []).slice(0, r.appendix ? 10 : 5).map((f) => [
+          f.title.length > 90 ? `${f.title.slice(0, 87)}...` : f.title,
+          f.agency,
+          dateStr(f.closesAt) || 'Open',
+          f.eligibility === 'DIRECT' ? 'Apply directly' : f.eligibility === 'VIA_PARTNER' ? 'You apply, NextChapter delivers' : 'Check eligibility',
+        ])
+        if (!s.rows.length) continue
+        break
+      }
       case 'warn': {
         s.head = ['Employer', 'Workers', 'Notice date', 'Effective']
         s.rows = (i.warn ?? []).slice(0, r.appendix ? 15 : 6).map((w) => [w.employer, w.employees == null ? 'n/a' : num(w.employees), dateStr(w.noticeDate), dateStr(w.effectiveDate)])

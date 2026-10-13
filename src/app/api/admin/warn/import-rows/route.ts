@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { importScrapedState } from '@/lib/warn/sync'
 import { SCRAPED_STATES, type ScrapedNotice } from '@/lib/warn/sources'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -11,7 +12,7 @@ export const maxDuration = 300
  * accepted, and each notice's source is recorded as that state's own page.
  */
 export async function POST(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

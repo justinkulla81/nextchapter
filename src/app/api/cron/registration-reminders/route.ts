@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendRegistrationReminderEmail } from '@/lib/email/send-registration-reminder'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Day offsets (from assessmentCompletedAt) at which reminder N (0-indexed)
 // fires: day 1, day 7, then weekly through day 56 — 9 emails max, then we
@@ -14,7 +15,7 @@ function daysSince(date: Date): number {
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

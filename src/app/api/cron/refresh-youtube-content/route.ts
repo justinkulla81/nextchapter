@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { refreshYouTubeVideos } from '@/lib/content/youtube-ingest'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // 60 was enough for the original ~5 sequential keyword searches, but the
 // Shorts-duration pass + 10 AI-tool topic searches (see youtube-ingest.ts)
@@ -14,7 +15,7 @@ export const maxDuration = 300
 // configured yet (see refreshYouTubeVideos).
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

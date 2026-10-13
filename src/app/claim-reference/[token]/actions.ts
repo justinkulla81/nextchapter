@@ -6,19 +6,31 @@ import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
 import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 
 // The one moment an EmployerReferenceSubmission becomes a real Reference
 // row — before this, nothing here is reachable by Dossier, Coaching Notes,
 // or anywhere else that queries Reference (see Prompt 65 section 1 and the
-// schema comment on EmployerReferenceSubmission). candidateId comes from
-// the authenticated caller (claim-reference/[token]/page.tsx passes
-// profile.id), never from the submission itself, so this can only ever be
-// attached to the person who's actually signed in and chose to accept it.
-export async function acceptEmployerReference(submissionId: string, candidateId: string): Promise<void> {
-  const submission = await prisma.employerReferenceSubmission.findUnique({ where: { id: submissionId } })
-  if (!submission || submission.status !== 'pending') {
-    redirect('/dashboard')
-  }
+// schema comment on EmployerReferenceSubmission).
+//
+// A Server Action is a public POST endpoint, so nothing the caller passes is
+// trusted: the candidate is resolved from the signed-in session here (never a
+// client-supplied id), and the submission is looked up by its inviteToken —
+// the secret that was emailed to the employee — not its guessable row id.
+// Without this, anyone holding any submission id could attach a fabricated
+// reference to an arbitrary candidate.
+async function resolveClaim(inviteToken: string) {
+  const profile = await getDashboardProfile()
+  const submission = await prisma.employerReferenceSubmission.findUnique({ where: { inviteToken } })
+  if (!submission || submission.status !== 'pending') return null
+  return { candidateId: profile.id, submission }
+}
+
+export async function acceptEmployerReference(inviteToken: string): Promise<void> {
+  const claim = await resolveClaim(inviteToken)
+  if (!claim) redirect('/dashboard')
+  const { candidateId, submission } = claim
+  const submissionId = submission.id
 
   const reference = await prisma.reference.create({
     data: {
@@ -96,11 +108,11 @@ export async function acceptEmployerReference(submissionId: string, candidateId:
   redirect('/dashboard/references')
 }
 
-export async function declineEmployerReference(submissionId: string, candidateId: string): Promise<void> {
-  const submission = await prisma.employerReferenceSubmission.findUnique({ where: { id: submissionId } })
-  if (!submission || submission.status !== 'pending') {
-    redirect('/dashboard')
-  }
+export async function declineEmployerReference(inviteToken: string): Promise<void> {
+  const claim = await resolveClaim(inviteToken)
+  if (!claim) redirect('/dashboard')
+  const { candidateId, submission } = claim
+  const submissionId = submission.id
 
   await prisma.employerReferenceSubmission.update({
     where: { id: submissionId },

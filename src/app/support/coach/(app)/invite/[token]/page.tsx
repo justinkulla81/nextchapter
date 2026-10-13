@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import { getCoachByToken } from '@/lib/coach/access'
 import { CopyLinkButton } from '@/components/dashboard/CopyLinkButton'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 
@@ -9,7 +9,7 @@ export default async function CoachInvitePage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const coach = await prisma.coach.findUnique({ where: { accessToken: token } })
+  const coach = await getCoachByToken(token)
 
   if (!coach) {
     return (

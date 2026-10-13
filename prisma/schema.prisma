@@ -9603,6 +9603,7 @@ model CrmPerson {
   @@index([lastTouchedAt])
   @@index([fullName])
   @@index([awaitingReplySince])
+  @@index([nextFollowUpAt])
 }
 
 // Many-to-many between people and organizations. The single change that makes
@@ -10781,6 +10782,8 @@ model WarnNotice {
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])
+  @@index([noticeDate])
+  @@index([workforceBoardId, noticeDate])
   @@index([companyId])
   @@index([companyMatchStatus])
 }
@@ -12976,4 +12979,34 @@ model HireOutcome {
 
   @@index([candidateId, hiredAt])
   @@index([enrollmentBucket])
+}
+
+/// Open federal grants and solicitations found by /api/cron/funding-opportunities,
+/// with how NextChapter or its customers could pursue each. Read with raw SQL
+/// (src/lib/funding-opportunities/store.ts) so the app keeps working before the
+/// table exists; apply prisma/manual/funding-opportunities.sql by hand.
+model FundingOpportunity {
+  id              String    @id
+  source          String
+  externalId      String
+  title           String
+  kind            String
+  audience        String
+  eligibility     String
+  applicantKinds  String[]  @default([])
+  partnerKinds    String[]  @default([])
+  eligibilityNote String?
+  agency          String
+  orgId           String?
+  url             String
+  state           String?
+  postedAt        DateTime?
+  closesAt        DateTime?
+  awardCeiling    Float?
+  firstSeenAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+
+  @@unique([source, externalId])
+  @@index([closesAt])
+  @@index([audience, eligibility])
 }

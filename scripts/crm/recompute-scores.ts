@@ -14,6 +14,7 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { computePriority, bestWarmPath, warmPathFromContacts } from '../../src/lib/crm/scoring'
+import { kindsForOrgTypes, matchesOrgKinds, nextCloseAmong, type ApplicantKind, type Eligibility } from '../../src/lib/funding-opportunities/eligibility'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
@@ -27,6 +28,18 @@ async function main() {
     stageMax.set(p.id, Math.max(...p.stages.map((s) => s.sortOrder), 1))
   }
 
+  // Open federal grants an organization could apply for (or partner on), from
+  // the table the funding-opportunities cron fills. Absent table = no signal.
+  type OpenGrant = { eligibility: Eligibility; applicantKinds: ApplicantKind[]; closesAt: Date | null }
+  let openGrants: OpenGrant[] = []
+  try {
+    openGrants = await prisma.$queryRaw<OpenGrant[]>`
+      SELECT "eligibility", "applicantKinds", "closesAt" FROM "FundingOpportunity"
+      WHERE "audience" = 'CUSTOMERS' AND "closesAt" IS NOT NULL AND "closesAt" >= ${NOW}`
+  } catch {
+    console.log('FundingOpportunity table not applied — no funding signal in this run')
+  }
+
   // ── opportunities ──
   const opps = await prisma.crmOpportunity.findMany({
     where: { outcome: 'OPEN' },
@@ -36,6 +49,7 @@ async function main() {
       stage: { select: { sortOrder: true } },
       org: {
         select: {
+          orgTypes: true,
           investorProfile: { select: { preconditionLeadTimeDays: true } },
           deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1, select: { dueAt: true } },
           affiliations: { select: { person: { select: { connectedAt: true, lastTouchedAt: true } } } },
@@ -45,6 +59,11 @@ async function main() {
       activities: { orderBy: { occurredAt: 'desc' }, take: 1, select: { occurredAt: true } },
     },
   })
+
+  const fundingFor = (orgTypes: string[]): Date | null => {
+    const kinds = kindsForOrgTypes(orgTypes)
+    return kinds.length ? nextCloseAmong(openGrants.filter((g) => matchesOrgKinds({ eligibility: g.eligibility, kinds: g.applicantKinds }, kinds)), NOW) : null
+  }
 
   const oppUpdates = opps.map((o) => {
     const contacts = o.org?.affiliations.map((a) => a.person) ?? []
@@ -57,6 +76,7 @@ async function main() {
       eligibility: o.eligibility,
       warmPath: bestWarmPath(contacts, o.org?.introPathsAsTarget ?? []),
       nextDueAt: o.org?.deadlines[0]?.dueAt ?? o.nextStepDueAt ?? null,
+      fundingCloseAt: fundingFor(o.org?.orgTypes ?? []),
       committedFollowUpAt: o.committedFollowUpAt,
       stageProgress: o.stage.sortOrder / (stageMax.get(o.pipelineId) ?? 1),
       preconditionLeadTimeDays: o.org?.investorProfile?.preconditionLeadTimeDays ?? null,
