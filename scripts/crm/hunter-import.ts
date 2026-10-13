@@ -18,6 +18,8 @@
  *   - People from Domain Search go in through addContactToCrm, and a new one
  *     is flagged for the Review List — a person confirms it, nothing is
  *     merged on a guess.
+ *   - Domain Search rows are imported only when the title is HR / people /
+ *     talent / workforce, or a partner / director / founder at a funder.
  *   - Nothing is deleted, and a removed person is never brought back.
  *
  * Needs the four CrmPerson verification columns (prisma/manual/hunter-verification.sql).
@@ -31,6 +33,21 @@ import { goalsForRoles } from '@/lib/crm/goals'
 import type { CrmPersonRole } from '@prisma/client'
 
 const MIN_CONFIDENCE = 70
+
+/**
+ * Domain Search returns everyone senior at an organization. Only two kinds of
+ * person are leads: the HR / people / talent / workforce leader (the buyer),
+ * and a partner, director or founder at a funder or fund (the investor).
+ * Everyone else is off-target and is not imported.
+ */
+const HR_TITLE = /human resources|\bhr\b|people (officer|operations|team|partner|&|and)|chief people|head of people|vp.*people|talent|recruit|workforce|employee (relations|experience)|labor relations|total rewards|learning|organizational (development|effectiveness)|culture|human capital|\bchro\b|hrbp|benefits|compensation/i
+const FUNDER_TITLE = /partner|managing director|principal|founder|co-founder|cofounder|\bceo\b|chief executive|president|chair|investor|general partner|venture|program officer|vice president|\bvp\b|director/i
+const FUNDER_TYPES = ['VC_FUND', 'FUNDER_GRANT', 'ANGEL_SYNDICATE']
+
+export function isTargetTitle(title: string, orgTypes: string[]): boolean {
+  if (HR_TITLE.test(title)) return true
+  return orgTypes.some((t) => FUNDER_TYPES.includes(t)) && FUNDER_TITLE.test(title)
+}
 
 function parseCsv(text: string): Record<string, string>[] {
   const rows: string[][] = []
@@ -71,7 +88,7 @@ async function main() {
   const hasCols = cols.length > 0
 
   const stamp = new Date()
-  const n = { verifiedRecorded: 0, guessPromoted: 0, foundSet: 0, skippedOwned: 0, skippedNotValid: 0, skippedHasEmail: 0, domainAdded: 0, domainMatched: 0, domainReview: 0, domainRemoved: 0, domainSkipped: 0, warnAdded: 0, warnMatched: 0, warnReview: 0, warnSkipped: 0 }
+  const n = { verifiedRecorded: 0, guessPromoted: 0, foundSet: 0, skippedOwned: 0, skippedNotValid: 0, skippedHasEmail: 0, domainAdded: 0, domainMatched: 0, domainReview: 0, domainRemoved: 0, domainSkipped: 0, domainOffTarget: 0, warnAdded: 0, warnMatched: 0, warnReview: 0, warnSkipped: 0 }
 
   // 1. Verifier results on guessed and real addresses.
   for (const r of read(dir, '1-verified-emails.csv')) {
@@ -119,7 +136,9 @@ async function main() {
     const org = await prisma.crmOrganization.findUnique({ where: { id: r.orgId }, select: { id: true, name: true, orgTypes: true } })
     if (!org) { n.domainSkipped++; continue }
     if (await findEmailOwner(r.email)) { n.skippedOwned++; continue }
-    const roles = rolesFor(r.orgTypes ? r.orgTypes.split('|') : org.orgTypes)
+    const orgTypes = r.orgTypes ? r.orgTypes.split('|') : org.orgTypes
+    if (!isTargetTitle(r.position ?? '', orgTypes)) { n.domainOffTarget++; continue }
+    const roles = rolesFor(orgTypes)
     n.domainAdded++
     if (!apply) continue
     const res = await addContactToCrm({
@@ -150,6 +169,7 @@ async function main() {
   for (const r of warnRows) {
     if (status(r.verification) !== 'deliverable' || Number(r.confidence) < MIN_CONFIDENCE || !r.first || !r.last) { n.warnSkipped++; continue }
     if (await findEmailOwner(r.email)) { n.skippedOwned++; continue }
+    if (!HR_TITLE.test(r.position ?? '')) { n.warnSkipped++; continue }
     n.warnAdded++
     if (!apply) continue
     const org = await ensureOrg({ name: r.employer, type: 'EMPLOYER', website: r.domain ? `https://${r.domain}` : null, state: r.state || null })
