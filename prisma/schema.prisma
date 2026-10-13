@@ -13504,6 +13504,35 @@ model NewsletterMessage {
   @@index([processedAt])
 }
 
+/// One record per scheduled-job invocation (every route under /api/cron).
+///
+/// A function killed at its time limit never gets to write "finished", so a
+/// row still RUNNING past its maxDuration is a job that was cut off — the
+/// job-health watchdog flips those to TIMED_OUT and alerts.
+model CronRun {
+  id         String    @id @default(cuid())
+  job        String
+  status     String    @default("RUNNING") // RUNNING | OK | FAILED | TIMED_OUT
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
+  error      String?   @db.Text
+  /// schedule | retry | manual — a retry is only ever attempted once per failure.
+  trigger    String    @default("schedule")
+
+  @@index([job, startedAt(sort: Desc)])
+  @@index([status, startedAt])
+}
+
+/// When the watchdog last emailed about a job, so a job that stays broken is
+/// reminded about once a day rather than every 15 minutes. Deleted when the
+/// job recovers.
+model CronJobAlert {
+  job        String   @id
+  reason     String
+  alertedAt  DateTime @default(now())
+}
+
 // ── Lifecycle features: intros, office hours, events, segments, rapid response
 
 // "3 W&J alumni work at Highmark. Ask one for an intro." The target alum

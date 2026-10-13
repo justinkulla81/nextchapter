@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { runMorningMotivation } from '@/lib/email/dispatch/run-morning-motivation'
 import { runMarketUpdate } from '@/lib/email/dispatch/run-market-update'
@@ -7,7 +7,7 @@ import { runMidweekCheckin } from '@/lib/email/dispatch/run-midweek-checkin'
 import { runGapNudge } from '@/lib/email/dispatch/run-gap-nudge'
 import { runSearchCheckin } from '@/lib/email/dispatch/run-search-checkin'
 import { runFinishLine } from '@/lib/email/dispatch/run-finish-line'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Fires once daily at 13:00 UTC (see vercel.json) — Vercel Hobby plan caps
 // cron jobs at once/day, so an hourly dispatcher (this route's original
@@ -21,12 +21,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 // within Hobby's ±59min window) — it stays in the schema/admin UI as
 // forward-compatible metadata for the day this project upgrades to Pro,
 // where per-row hour matching can be restored.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('candidate-email-dispatch', async () => {
   const now = new Date()
   const row = await prisma.candidateEmailSchedule.findFirst({
     where: { dayOfWeek: now.getUTCDay(), isActive: true },
@@ -68,5 +63,8 @@ export async function GET(request: NextRequest) {
       const result = await runFinishLine(introCopy, eligiblePrivacyTiers)
       return NextResponse.json({ dispatched: row.emailKey, ...result })
     }
+    default:
+      // An unknown key used to fall out of the switch with no response at all.
+      return NextResponse.json({ error: `Unknown email key ${row.emailKey}` }, { status: 422 })
   }
-}
+})

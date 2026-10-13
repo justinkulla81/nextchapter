@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { offerTomorrowsPitches } from '@/lib/crm/meeting-prep/offer'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('meeting-prep-offer', async () => {
   const result = await offerTomorrowsPitches()
   // Vercel only logs the request line; the result is what tells a quiet night from a failure.
   console.log('meeting-prep-offer', JSON.stringify(result))
   return NextResponse.json(result)
-}
+})

@@ -1,18 +1,13 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterDatabaseRows, bucketRecruiterDatabaseRows } from '@/lib/admin/recruiter-database'
 import { getRecruiterDigestAdminEmail } from '@/lib/admin/auth'
 import { sendRecruiterDailyDigestEmail } from '@/lib/email/send-recruiter-daily-digest'
 import { sendAdminRecruiterDigestEmail } from '@/lib/email/send-admin-recruiter-digest'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('notify-recruiters-new-candidates', async () => {
   const { pendingNotify } = bucketRecruiterDatabaseRows(await getRecruiterDatabaseRows())
   if (pendingNotify.length === 0) {
     return NextResponse.json({ candidates: 0, recruitersNotified: 0, adminNotified: false })
@@ -84,4 +79,4 @@ export async function GET(request: NextRequest) {
   })
 
   return NextResponse.json({ candidates: pendingNotify.length, recruitersNotified, adminNotified })
-}
+})

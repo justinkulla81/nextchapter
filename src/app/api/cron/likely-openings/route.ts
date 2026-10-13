@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ingestLikelyOpenings } from '@/lib/likely-openings/ingest'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -13,10 +13,7 @@ export const maxDuration = 300
  * (the 60-day backfill runs from scripts/backfill-likely-openings.ts, which
  * has no time limit).
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('likely-openings', async (request: NextRequest) => {
   const days = Math.min(60, Math.max(1, Number(request.nextUrl.searchParams.get('days')) || 4))
   const stats = await ingestLikelyOpenings({
     days,
@@ -37,4 +34,4 @@ export async function GET(request: NextRequest) {
     stoppedEarly: stats.stoppedEarly,
   })
   return NextResponse.json(stats)
-}
+})

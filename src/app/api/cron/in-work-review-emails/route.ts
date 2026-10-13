@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendInWorkReviewEmail } from '@/lib/email/send-in-work-review-email'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
@@ -24,10 +24,7 @@ function intEnv(name: string, fallback: number): number {
   return Number.isFinite(n) && n >= 0 ? n : fallback
 }
 
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('in-work-review-emails', async (request: NextRequest) => {
 
   const flagOn = process.env.IN_WORK_REVIEW_EMAILS_ENABLED === 'true'
   const dryRunParam = request.nextUrl.searchParams.get('dryRun')
@@ -132,4 +129,4 @@ export async function GET(request: NextRequest) {
   }
   captureServerEvent('cron', 'in_work_review_emails_run', summary)
   return NextResponse.json(summary)
-}
+})

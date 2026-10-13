@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -14,10 +14,7 @@ export const maxDuration = 300
  * forward from its own bookmark (see syncGmailConnection); a mailbox that's
  * behind catches up across successive runs rather than in one.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('gmail-sync', async () => {
 
   const started = Date.now()
   // Leave headroom under maxDuration for the day in flight to finish.
@@ -40,4 +37,4 @@ export async function GET(request: NextRequest) {
     }
   }
   return NextResponse.json({ connections: connections.length, ran: results.length, results, ms: Date.now() - started })
-}
+})

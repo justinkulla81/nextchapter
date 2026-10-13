@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { clearDossierGeneratedCache } from '@/lib/reports/dossier-refresh'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 const REFRESH_INTERVAL_DAYS = 365
 
@@ -17,12 +17,7 @@ function appUrl(): string {
 // in src/app/dashboard/recruiter-report/actions.ts). Runs daily, scans for
 // members due (never refreshed, or refreshed >365 days ago) — same daily-
 // scan-for-individually-due-rows shape as interim-role-reverify.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('membership-dossier-refresh', async () => {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - REFRESH_INTERVAL_DAYS)
 
@@ -62,4 +57,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: due.length, refreshed: refreshedCount })
-}
+})
