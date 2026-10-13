@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 import { prisma } from '@/lib/prisma'
+import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/crm-counts'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
@@ -29,7 +30,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     }),
     // Review List = records to complete or merge + sign-ups to link + search firms to match.
     Promise.all([
-      prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
+      countPeopleNeedingCompletion(),
       prisma.candidateIdentityMatch.count({ where: { source: 'CRM_INVITE', status: 'PENDING' } }),
       prisma.searchFirm.count({ where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } } }),
     ]).then(([a, b, c]) => a + b + c),
@@ -59,7 +60,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     // you. See AdminNav's badgeTone.
     prisma.crmPerson.count({ where: { deletedAt: null } }),
     prisma.crmOrganization.count(),
-    prisma.crmPerson.count({ where: { deletedAt: { not: null } } }),
+    countRemovedPeople(),
     // The one state on the Layoff notices page actually waiting on review —
     // mirrors that page's own default filter (status: 'pending').
     prisma.warnNotice.count({ where: { promotedAt: null, dismissedAt: null } }),

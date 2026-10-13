@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { LinkButtonGroup } from '@/components/admin/LinkButtonGroup'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
@@ -37,6 +38,10 @@ const CONTACT_FILTERS = [
   { key: 'personal', label: 'Leader with own email' },
 ] as const
 
+const getCollegeStates = ttlCached(10 * 60 * 1000, () =>
+  prisma.localCollege.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
+)
+
 /** Carnegie 2021 basic classes, shortened. */
 function carnegieLabel(c: number | null): string | null {
   if (c == null) return null
@@ -63,7 +68,11 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
   const theme = sp.theme && sp.theme in INTEREST_THEMES ? (sp.theme as InterestTheme) : ''
   const rel = RELATIONSHIP_FILTERS.some((r) => r.key === sp.rel) ? sp.rel! : ''
   // Colleges whose CRM organization has a deal, for the filter and the column.
-  const dealOrgs = await prisma.crmOrganization.findMany({ where: { dealStatus: { not: null } }, select: { id: true } })
+  // (Only needed for the "Has a deal" filter — LocalCollege.crmOrgId is a
+  // plain column, not a relation, so it cannot be filtered through one.)
+  const dealOrgs = rel === 'deal'
+    ? await prisma.crmOrganization.findMany({ where: { dealStatus: { not: null } }, select: { id: true } })
+    : []
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
@@ -81,38 +90,65 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
       ],
     } : {}),
   }
-  // Contact filters and the contact/interest sorts need every match in hand;
-  // there are at most a few thousand colleges, so that is cheap.
-  const [all, states] = await Promise.all([
-    prisma.localCollege.findMany({ where, orderBy: { rank: 'asc' } }),
-    prisma.localCollege.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
+  // Filters/sorts need every match, but only a few columns of each: the heavy
+  // rows (full college + contacts) are loaded for the visible page alone.
+  const needParts = sort === 'contacts' || sort === 'interest'
+  const [matches, states] = await Promise.all([
+    prisma.localCollege.findMany({
+      where,
+      orderBy: { rank: 'asc' },
+      select: { id: true, name: true, rank: true, ...(needParts ? { scoreParts: true } : {}) },
+    }),
+    getCollegeStates(),
   ])
-  const contacts = await prisma.collegeContact.findMany({ where: { collegeId: { in: all.map((c) => c.id) } } })
+  // The contact filters are the only thing that needs contacts for every match.
+  const filterContacts = contactsFilter
+    ? await prisma.collegeContact.findMany({
+        where: { collegeId: { in: matches.map((c) => c.id) }, name: { not: null } },
+        select: { collegeId: true, name: true, email: true },
+      })
+    : []
+  const leadersById = new Map<string, typeof filterContacts>()
+  for (const c of filterContacts) {
+    if (c.name) leadersById.set(c.collegeId, [...(leadersById.get(c.collegeId) ?? []), c])
+  }
+  const hasLeader = (id: string) => (leadersById.get(id) ?? []).length > 0
+  const hasPersonal = (id: string) => (leadersById.get(id) ?? []).some((c) => isPersonalEmail(c.email, c.name))
+
+  let ranked = matches.filter((c) =>
+    contactsFilter === 'leader' ? hasLeader(c.id)
+    : contactsFilter === 'personal' ? hasPersonal(c.id)
+    : true)
+  const partsOf = (c: { scoreParts?: unknown }) => (c.scoreParts ?? {}) as unknown as ScoreParts
+  if (sort === 'contacts') ranked = [...ranked].sort((a, b) => (partsOf(b).contacts ?? 0) - (partsOf(a).contacts ?? 0) || (a.rank ?? 0) - (b.rank ?? 0))
+  if (sort === 'interest') ranked = [...ranked].sort((a, b) => (partsOf(b).interest ?? 0) - (partsOf(a).interest ?? 0) || (a.rank ?? 0) - (b.rank ?? 0))
+  if (sort === 'name') ranked = [...ranked].sort((a, b) => a.name.localeCompare(b.name))
+
+  const total = ranked.length
+  const totalPages = Math.max(1, Math.ceil(total / perPage))
+  const pageIds = ranked.slice((page - 1) * perPage, page * perPage).map((c) => c.id)
+
+  // Full rows, contacts, boards and deal statuses for just this page, in one go.
+  const pageRowsRaw = await prisma.localCollege.findMany({ where: { id: { in: pageIds } } })
+  const rowById = new Map(pageRowsRaw.map((c) => [c.id, c]))
+  const pageRows = pageIds.map((id) => rowById.get(id)).filter((c): c is NonNullable<typeof c> => !!c)
+  const pageStates = [...new Set(pageRows.map((c) => c.state))]
+  const [contacts, boards, orgs] = await Promise.all([
+    prisma.collegeContact.findMany({ where: { collegeId: { in: pageIds } } }),
+    // The board for each college on the page, for the link to its area.
+    prisma.workforceBoard.findMany({
+      where: { state: { in: pageStates } },
+      select: { id: true, name: true, state: true, counties: true, placeCounties: true, statewide: true },
+    }),
+    prisma.crmOrganization.findMany({
+      where: { id: { in: pageRows.map((c) => c.crmOrgId).filter((id): id is string => !!id) } },
+      select: { id: true, dealStatus: true },
+    }),
+  ])
   const byCollege = new Map<string, typeof contacts>()
   for (const c of contacts) byCollege.set(c.collegeId, [...(byCollege.get(c.collegeId) ?? []), c])
-  const leaders = (id: string) => (byCollege.get(id) ?? []).filter((c) => c.name)
-  const personal = (id: string) => leaders(id).filter((c) => isPersonalEmail(c.email, c.name))
-
-  let rows = all.filter((c) =>
-    contactsFilter === 'leader' ? leaders(c.id).length > 0
-    : contactsFilter === 'personal' ? personal(c.id).length > 0
-    : true)
-  const parts = (c: (typeof all)[number]) => (c.scoreParts ?? {}) as unknown as ScoreParts
-  if (sort === 'contacts') rows = [...rows].sort((a, b) => (parts(b).contacts ?? 0) - (parts(a).contacts ?? 0) || (a.rank ?? 0) - (b.rank ?? 0))
-  if (sort === 'interest') rows = [...rows].sort((a, b) => (parts(b).interest ?? 0) - (parts(a).interest ?? 0) || (a.rank ?? 0) - (b.rank ?? 0))
-  if (sort === 'name') rows = [...rows].sort((a, b) => a.name.localeCompare(b.name))
-
-  const total = rows.length
-  const totalPages = Math.max(1, Math.ceil(total / perPage))
-  const pageRows = rows.slice((page - 1) * perPage, page * perPage)
-
-  // The board for each college on the page, for the link to its area.
-  const pageStates = [...new Set(pageRows.map((c) => c.state))]
-  const boards = await prisma.workforceBoard.findMany({
-    where: { state: { in: pageStates } },
-    select: { id: true, name: true, state: true, counties: true, placeCounties: true, statewide: true },
-  })
-  const boardFor = (c: (typeof all)[number]) => {
+  const parts = (c: (typeof pageRows)[number]) => (c.scoreParts ?? {}) as unknown as ScoreParts
+  const boardFor = (c: (typeof pageRows)[number]) => {
     const inState = boards.filter((b) => b.state === c.state)
     const local = inState.filter((b) => !b.statewide)
     return (local.length ? local : inState).find((b) => {
@@ -120,11 +156,6 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
       return keys === 'all' || (!!c.countyKey && keys.includes(c.countyKey))
     })
   }
-
-  const orgs = await prisma.crmOrganization.findMany({
-    where: { id: { in: pageRows.map((c) => c.crmOrgId).filter((id): id is string => !!id) } },
-    select: { id: true, dealStatus: true },
-  })
   const dealByOrg = new Map(orgs.map((o) => [o.id, o.dealStatus]))
 
   const params: Record<string, string> = { q, state, tier, sort, contacts: contactsFilter, theme, rel, per: String(perPage) }

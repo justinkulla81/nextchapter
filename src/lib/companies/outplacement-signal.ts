@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import type { Trajectory } from '@/lib/companies/signals'
 import { suppressSmallCells, type MaybeSuppressed } from '@/lib/admin/cell-suppression'
 import { getCurrentlySearchingCountRaw, getCurrentlySearchingCountsByCompanyRaw } from '@/lib/companies/nervous-employee-panel'
@@ -127,18 +128,19 @@ export interface RankedCompanyRow {
 // Four bulk queries total regardless of company count (batched, not one
 // round trip per company) — the same "don't recompute per row" discipline
 // PopulationSnapshot/company-signals.ts already apply elsewhere.
-export async function listCompaniesRankedByOutplacementSignal(): Promise<RankedCompanyRow[]> {
-  const [companies, allSignals, currentEmploymentGrouped, searchingByCompany] = await Promise.all([
+async function loadRankedCompanies(): Promise<RankedCompanyRow[]> {
+  const [companies, latestSignals, currentEmploymentGrouped, searchingByCompany] = await Promise.all([
     prisma.company.findMany({ select: { id: true, name: true, industry: true } }),
-    prisma.companySignal.findMany({ orderBy: { weekStartDate: 'desc' } }),
+    // Latest signal per company only (DISTINCT ON), not the whole history.
+    prisma.$queryRaw<{ companyId: string; trajectory: string; rolesDelta12wk: number }[]>`
+      SELECT DISTINCT ON ("companyId") "companyId", "trajectory", "rolesDelta12wk"
+      FROM "CompanySignal"
+      ORDER BY "companyId", "weekStartDate" DESC`,
     prisma.memberEmployment.groupBy({ by: ['companyId'], where: { isCurrent: true }, _count: { candidateId: true } }),
     getCurrentlySearchingCountsByCompanyRaw(),
   ])
 
-  const latestSignalByCompany = new Map<string, (typeof allSignals)[number]>()
-  for (const s of allSignals) {
-    if (!latestSignalByCompany.has(s.companyId)) latestSignalByCompany.set(s.companyId, s)
-  }
+  const latestSignalByCompany = new Map(latestSignals.map((s) => [s.companyId, s]))
   const currentEmployerByCompany = new Map(currentEmploymentGrouped.map((g) => [g.companyId, g._count.candidateId]))
 
   const rows: RankedCompanyRow[] = companies.map((c) => {
@@ -154,3 +156,7 @@ export async function listCompaniesRankedByOutplacementSignal(): Promise<RankedC
 
   return rows.sort((a, b) => b.signal.compositeScore - a.signal.compositeScore)
 }
+
+// Ranking is identical for every admin request and ~12.7k companies wide, so
+// memoise it for a few minutes per instance.
+export const listCompaniesRankedByOutplacementSignal = ttlCached(5 * 60 * 1000, loadRankedCompanies)

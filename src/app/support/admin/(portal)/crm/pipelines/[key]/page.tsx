@@ -8,6 +8,11 @@ import { qualityClass, formatDate, ELIGIBILITY_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 
+// Cards rendered per stage (highest priority first). Counts stay exact; the
+// rest are one click away in All leads. Each card carries a client-side stage
+// select, so a stage with hundreds of deals made this page very heavy.
+const CARDS_PER_STAGE = 50
+
 function money(min: number | null, max: number | null): string | null {
   const fmt = (n: number) => (n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(n % 1_000_000 ? 1 : 0)}M` : `$${Math.round(n / 1000)}K`)
   if (min && max && min !== max) return `${fmt(min)}–${fmt(max)}`
@@ -95,7 +100,7 @@ export default async function CrmPipelineBoardPage({ params }: { params: Promise
                         Empty
                       </p>
                     ) : (
-                      cards.map((o) => {
+                      cards.slice(0, CARDS_PER_STAGE).map((o) => {
                         const amount = money(o.amountUsdMin, o.amountUsdMax)
                         const score = o.priorityOverride ?? o.priorityScore
                         return (
@@ -139,6 +144,14 @@ export default async function CrmPipelineBoardPage({ params }: { params: Promise
                           </article>
                         )
                       })
+                    )}
+                    {cards.length > CARDS_PER_STAGE && (
+                      <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                        {cards.length - CARDS_PER_STAGE} more, lower priority —{' '}
+                        <Link href={`/support/admin/crm/leads?pipeline=${encodeURIComponent(pipeline.key)}&status=all`} className="underline">
+                          see them in All leads
+                        </Link>
+                      </p>
                     )}
                   </div>
                 </section>

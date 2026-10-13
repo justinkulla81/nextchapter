@@ -3,6 +3,7 @@ import type { CrmPriorityTier } from '@prisma/client'
 import { LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
@@ -67,32 +68,11 @@ function when(d: Date): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: TZ })
 }
 
-/**
- * The CRM front page: is outreach happening, and what came back.
- *
- * Deliberately a read-out, not another worklist — the queues are where you
- * act. This answers "how was the week" in one screen: the email trend on
- * top, the numbers that move beneath it, then every email in order. Each
- * number links to the filtered People view it summarises.
- */
-export default async function CrmHomePage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | undefined>>
-}) {
-  await requireAdmin()
-  const sp = await searchParams
-  const before = sp.before ? new Date(sp.before) : null
-
-  const now = new Date()
-  // Nothing before the CRM's cutoff exists as activity, so the chart never
-  // reaches back past it — an empty June would read as a slow June.
-  // A day wider than the window, so the first local day is complete whatever
-  // the offset; rows outside the listed days are simply not plotted.
-  const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
-  const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
-
-  const [daily, feedRows, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily, inviteRows, signupRows] =
+// The slow-changing stat block: identical for every request, so it is
+// memoised for 60s per instance (the feed below is not — it pages by
+// `before`).
+async function loadHomeStats(chartStart: Date, weekAgo: Date) {
+  const [daily, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily] =
     await Promise.all([
       prisma.$queryRaw<{ day: string; direction: string; n: number }[]>`
         SELECT to_char((a."occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS day,
@@ -104,22 +84,6 @@ export default async function CrmHomePage({
         JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
         WHERE a.type = 'EMAIL' AND a."needsReview" = false AND a."occurredAt" >= ${chartStart}
         GROUP BY 1, 2`,
-      prisma.crmActivity.findMany({
-        where: {
-          type: 'EMAIL',
-          needsReview: false,
-          occurredAt: { gte: CRM_ACTIVITY_CUTOFF, ...(before ? { lt: before } : {}) },
-          person: { deletedAt: null },
-        },
-        orderBy: { occurredAt: 'desc' },
-        // Rows, not messages — a group email is one row per person on it, so
-        // over-fetch and fold them back into messages below.
-        take: FEED_SIZE * 3,
-        select: {
-          id: true, occurredAt: true, direction: true, subject: true, body: true, sourceRef: true,
-          person: { select: { id: true, fullName: true, priority: true } },
-        },
-      }),
       // Origin allowlist — see ADDED_SOURCES. A SYNC-sourced person (no
       // CrmSourceRecord) only counts once they have at least one CONFIRMED
       // activity: since the mention-gate change, an inbound message that
@@ -154,10 +118,11 @@ export default async function CrmHomePage({
       // "Updated" means a person edited the record — every field change is
       // logged as FIELD_CHANGED. The sync rewriting touch counts is not an
       // update anyone made, and updatedAt can't tell the two apart.
-      prisma.crmActivity.findMany({
-        where: { type: { in: ['FIELD_CHANGED', 'STAGE_CHANGED'] }, occurredAt: { gte: weekAgo }, person: { deletedAt: null } },
-        distinct: ['personId'], select: { personId: true },
-      }).then((r) => r.length),
+      prisma.$queryRaw<{ n: number }[]>`
+        SELECT COUNT(DISTINCT a."personId")::int AS n
+        FROM "CrmActivity" a
+        JOIN "CrmPerson" p ON p.id = a."personId" AND p."deletedAt" IS NULL
+        WHERE a.type IN ('FIELD_CHANGED', 'STAGE_CHANGED') AND a."occurredAt" >= ${weekAgo}`.then((r) => r[0]?.n ?? 0),
       prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null } }, _count: { _all: true } }),
       prisma.crmPerson.groupBy({ by: ['priority'], where: { deletedAt: null, priority: { not: null }, lastTouchedAt: null }, _count: { _all: true } }),
       prisma.$queryRaw<{ direction: string; n: number; people: number }[]>`
@@ -222,6 +187,54 @@ export default async function CrmHomePage({
         FROM "CrmPerson" p
         WHERE p."deletedAt" IS NULL AND p."candidateInvitedAt" >= ${chartStart}
         GROUP BY 1`,
+    ])
+  return { daily, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response, needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily }
+}
+const getHomeStats = ttlCached(60_000, loadHomeStats)
+
+/**
+ * The CRM front page: is outreach happening, and what came back.
+ *
+ * Deliberately a read-out, not another worklist — the queues are where you
+ * act. This answers "how was the week" in one screen: the email trend on
+ * top, the numbers that move beneath it, then every email in order. Each
+ * number links to the filtered People view it summarises.
+ */
+export default async function CrmHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  await requireAdmin()
+  const sp = await searchParams
+  const before = sp.before ? new Date(sp.before) : null
+
+  const now = new Date()
+  // Nothing before the CRM's cutoff exists as activity, so the chart never
+  // reaches back past it — an empty June would read as a slow June.
+  // A day wider than the window, so the first local day is complete whatever
+  // the offset; rows outside the listed days are simply not plotted.
+  const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
+  const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
+
+  const [stats0, feedRows, inviteRows, signupData, possibleSignups, mailingPrompts] = await Promise.all([
+    getHomeStats(chartStart, weekAgo),
+      prisma.crmActivity.findMany({
+        where: {
+          type: 'EMAIL',
+          needsReview: false,
+          occurredAt: { gte: CRM_ACTIVITY_CUTOFF, ...(before ? { lt: before } : {}) },
+          person: { deletedAt: null },
+        },
+        orderBy: { occurredAt: 'desc' },
+        // Rows, not messages — a group email is one row per person on it, so
+        // over-fetch and fold them back into messages below.
+        take: FEED_SIZE * 3,
+        select: {
+          id: true, occurredAt: true, direction: true, subject: true, body: true, sourceRef: true,
+          person: { select: { id: true, fullName: true, priority: true } },
+        },
+      }),
       // The feed's other two kinds of event: people you invited to join, and
       // people who finished registering. Same page window as the emails.
       prisma.crmPerson.findMany({
@@ -238,8 +251,29 @@ export default async function CrmHomePage({
         orderBy: { registrationCompletedAt: 'desc' },
         take: FEED_SIZE,
         select: { id: true, firstName: true, lastName: true, email: true, leadSource: true, registrationCompletedAt: true },
+      }).then(async (rows) => ({
+        rows,
+        // A sign-up shows the CRM person it belongs to, when there is one.
+        people: rows.length
+          ? await prisma.crmPerson.findMany({
+              where: { deletedAt: null, candidateId: { in: rows.map((c) => c.id) } },
+              select: { id: true, fullName: true, priority: true, candidateId: true, candidateInvitedAt: true },
+            })
+          : [],
+      })),
+      // New sign-ups that look like someone you invited, not yet confirmed.
+      prisma.candidateIdentityMatch.findMany({
+        where: { source: 'CRM_INVITE', status: 'PENDING' },
+        select: { sourceRecordId: true, matchedName: true },
       }),
+      // The newest few "Add to a mailing list?" cards; the full queue has the rest.
+      loadPromptCards(5).catch(() => null),
     ])
+  const {
+    daily, addedWeek, approvedWeek, updatedWeek, tiers, tiersNeverContacted, weekTotals, response,
+    needsReviewCount, invitedTotal, invitedJoined, realCandidates, candidatesBySource, invitesDaily,
+  } = stats0
+  const signupRows = signupData.rows
 
   // Every day in the window, including silent ones — a gap in the line is
   // a day with no email, and that is worth seeing as a zero.
@@ -292,13 +326,7 @@ export default async function CrmHomePage({
     invitesByDay.set(key, day)
   }
 
-  // A sign-up shows the CRM person it belongs to, when there is one.
-  const signupPeople = signupRows.length
-    ? await prisma.crmPerson.findMany({
-        where: { deletedAt: null, candidateId: { in: signupRows.map((c) => c.id) } },
-        select: { id: true, fullName: true, priority: true, candidateId: true, candidateInvitedAt: true },
-      })
-    : []
+  const signupPeople = signupData.people
   const personByCandidate = new Map(signupPeople.map((p) => [p.candidateId, p]))
 
   type Entry =
@@ -385,15 +413,6 @@ export default async function CrmHomePage({
       href: '/support/admin/candidates',
     },
   ]
-
-  // New sign-ups that look like someone you invited, not yet confirmed.
-  const possibleSignups = await prisma.candidateIdentityMatch.findMany({
-    where: { source: 'CRM_INVITE', status: 'PENDING' },
-    select: { sourceRecordId: true, matchedName: true },
-  })
-
-  // The newest few "Add to a mailing list?" cards; the full queue has the rest.
-  const mailingPrompts = await loadPromptCards(5).catch(() => null)
 
   return (
     <div className="space-y-6">

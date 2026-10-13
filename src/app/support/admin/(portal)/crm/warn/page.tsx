@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { AdminCollapsibleSection } from '@/components/admin/AdminCollapsibleSection'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
@@ -23,6 +24,41 @@ const SORTS = ['employees', 'employer', 'state', 'industry', 'noticeDate', 'effe
 function monthLabel(d: Date): string {
   return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
 }
+
+// Filter-independent stats (national totals, per-state and per-industry
+// counts, 12-month chart, company names for the add-by-hand datalist): the
+// same for every request and only move when the daily sync lands, so they are
+// memoised for 5 minutes per instance (keyed by calendar month).
+async function loadWarnStats(now: Date) {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastYearStart = new Date(now.getFullYear() - 1, 0, 1)
+  const lastYearEnd = new Date(now.getFullYear(), 0, 1)
+  const chartStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+
+  const [counts, industryRows, thisMonth, lastYear, monthlyRows, companyNames] = await Promise.all([
+    prisma.warnNotice.groupBy({ by: ['state'], _count: { _all: true }, where: { state: { not: null } } }),
+    // One pass for both the industry filter options and the top-10 card.
+    prisma.warnNotice.groupBy({
+      by: ['industry'], where: { industry: { not: null } },
+      _count: { _all: true }, _sum: { employees: true },
+    }),
+    prisma.warnNotice.aggregate({ where: { noticeDate: { gte: monthStart } }, _count: { _all: true }, _sum: { employees: true } }),
+    prisma.warnNotice.aggregate({ where: { noticeDate: { gte: lastYearStart, lt: lastYearEnd } }, _count: { _all: true }, _sum: { employees: true } }),
+    // Bucketed in SQL by calendar month instead of shipping every notice.
+    prisma.$queryRaw<{ y: number; m: number; roles: number; n: number }[]>`
+      SELECT EXTRACT(YEAR FROM "noticeDate")::int AS y,
+             EXTRACT(MONTH FROM "noticeDate")::int - 1 AS m,
+             COALESCE(SUM("employees"), 0)::int AS roles,
+             COUNT(*)::int AS n
+      FROM "WarnNotice"
+      WHERE "noticeDate" >= ${chartStart}
+      GROUP BY 1, 2`,
+    prisma.company.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
+  ])
+  const topIndustries = [...industryRows].sort((a, b) => b._count._all - a._count._all).slice(0, 10)
+  return { counts, industryCounts: industryRows, thisMonth, lastYear, topIndustries, monthlyRows, companyNames }
+}
+const getWarnStats = ttlCached(5 * 60 * 1000, loadWarnStats, (now) => `${now.getFullYear()}-${now.getMonth()}`)
 
 export default async function WarnReviewPage({
   searchParams,
@@ -64,13 +100,9 @@ export default async function WarnReviewPage({
     : [{ employees: { sort: sort.dir, nulls: 'last' } }, { noticeDate: 'desc' }]
 
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const lastYearStart = new Date(now.getFullYear() - 1, 0, 1)
-  const lastYearEnd = new Date(now.getFullYear(), 0, 1)
-  const chartStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
-
-  const [total, rows, counts, industryCounts, runs, ambiguous, thisMonth, lastYear, topIndustries, monthlyRows, companyNames] =
+  const [{ counts, industryCounts, thisMonth, lastYear, topIndustries, monthlyRows, companyNames }, total, rows, runs, ambiguous] =
     await Promise.all([
+      getWarnStats(now),
       prisma.warnNotice.count({ where }),
       prisma.warnNotice.findMany({
         where,
@@ -79,23 +111,12 @@ export default async function WarnReviewPage({
         take: perPage,
         include: { company: { select: { id: true, name: true, priority: true, chroName: true, chroEmail: true, chroLinkedinUrl: true } } },
       }),
-      prisma.warnNotice.groupBy({ by: ['state'], _count: { _all: true }, where: { state: { not: null } } }),
-      prisma.warnNotice.groupBy({ by: ['industry'], _count: { _all: true }, where: { industry: { not: null } } }),
       prisma.warnSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 4 }),
       prisma.warnNotice.findMany({
         where: { companyMatchStatus: 'AMBIGUOUS' },
         select: { id: true, employer: true, companyMatchCandidates: true },
         orderBy: { fetchedAt: 'desc' },
       }),
-      prisma.warnNotice.aggregate({ where: { noticeDate: { gte: monthStart } }, _count: { _all: true }, _sum: { employees: true } }),
-      prisma.warnNotice.aggregate({ where: { noticeDate: { gte: lastYearStart, lt: lastYearEnd } }, _count: { _all: true }, _sum: { employees: true } }),
-      prisma.warnNotice.groupBy({
-        by: ['industry'], where: { industry: { not: null } },
-        _count: { _all: true }, _sum: { employees: true },
-        orderBy: { _count: { industry: 'desc' } }, take: 10,
-      }),
-      prisma.warnNotice.findMany({ where: { noticeDate: { gte: chartStart } }, select: { noticeDate: true, employees: true } }),
-      prisma.company.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
     ])
   const boardIds = [...new Set(rows.map((r) => r.workforceBoardId).filter((id): id is string => !!id))]
   const boards = boardIds.length
@@ -125,12 +146,10 @@ export default async function WarnReviewPage({
   }
   const bucketIndex = new Map(monthlyBuckets.map((b, i) => [b.month, i]))
   for (const r of monthlyRows) {
-    if (!r.noticeDate) continue
-    const key = `${r.noticeDate.getFullYear()}-${r.noticeDate.getMonth()}`
-    const idx = bucketIndex.get(key)
+    const idx = bucketIndex.get(`${r.y}-${r.m}`)
     if (idx === undefined) continue
-    monthlyBuckets[idx].roles += r.employees ?? 0
-    monthlyBuckets[idx].count += 1
+    monthlyBuckets[idx].roles += r.roles
+    monthlyBuckets[idx].count += r.n
   }
 
   return (

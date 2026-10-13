@@ -42,37 +42,25 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const id = org.id
   const slug = orgSlug(org.canonicalNameNormalized)
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
-  const pipelines = await prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } })
-
+  // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by
-  // event to show each call once with everyone who was on it.
-  const meetingRows = await prisma.crmActivity.findMany({
-    where: { type: 'MEETING', OR: [{ orgId: id }, { opportunity: { orgId: id } }] },
-    orderBy: { occurredAt: 'desc' },
-    take: 60,
-    select: {
-      id: true, subject: true, occurredAt: true, sourceRef: true, body: true, meetUrl: true, notesDocUrl: true,
-      person: { select: { id: true, fullName: true } },
-      opportunity: { select: { id: true, title: true } },
-    },
-  })
-  const meetings = [...meetingRows.reduce((m, a) => {
-    const key = a.sourceRef?.split(':')[0] ?? a.id
-    const cur = m.get(key)
-    if (cur) {
-      if (a.person && !cur.people.some((p) => p.id === a.person!.id)) cur.people.push(a.person)
-      if (!cur.body && a.body) { cur.body = a.body; cur.notesDocUrl = a.notesDocUrl }
-    } else {
-      m.set(key, { ...a, people: a.person ? [a.person] : [] })
-    }
-    return m
-  }, new Map<string, (typeof meetingRows)[number] & { people: { id: string; fullName: string }[] }>()).values()].slice(0, 20)
-
+  // event (below) to show each call once with everyone who was on it.
   // Candidates who have worked here: free-text work history matched on the same
   // normalized name the organization is keyed by, plus employment rows on the
   // linked directory Company. One person can appear in both, so merge by id.
-  const [historyRows, employmentRows] = await Promise.all([
+  const [pipelines, meetingRows, historyRows, employmentRows] = await Promise.all([
+    prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }),
+    prisma.crmActivity.findMany({
+      where: { type: 'MEETING', OR: [{ orgId: id }, { opportunity: { orgId: id } }] },
+      orderBy: { occurredAt: 'desc' },
+      take: 60,
+      select: {
+        id: true, subject: true, occurredAt: true, sourceRef: true, body: true, meetUrl: true, notesDocUrl: true,
+        person: { select: { id: true, fullName: true } },
+        opportunity: { select: { id: true, title: true } },
+      },
+    }),
     prisma.workHistoryEntry.findMany({
       where: { companyNameNormalized: org.canonicalNameNormalized },
       select: { candidateId: true, roleTitle: true, startDate: true, endDate: true, isCurrent: true, candidate: { select: { firstName: true, lastName: true } } },
@@ -87,6 +75,18 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         })
       : Promise.resolve([]),
   ])
+  const meetings = [...meetingRows.reduce((m, a) => {
+    const key = a.sourceRef?.split(':')[0] ?? a.id
+    const cur = m.get(key)
+    if (cur) {
+      if (a.person && !cur.people.some((p) => p.id === a.person!.id)) cur.people.push(a.person)
+      if (!cur.body && a.body) { cur.body = a.body; cur.notesDocUrl = a.notesDocUrl }
+    } else {
+      m.set(key, { ...a, people: a.person ? [a.person] : [] })
+    }
+    return m
+  }, new Map<string, (typeof meetingRows)[number] & { people: { id: string; fullName: string }[] }>()).values()].slice(0, 20)
+
   const alumni = new Map<string, { id: string; name: string; title: string; startDate: Date | null; endDate: Date | null; isCurrent: boolean }>()
   for (const r of [
     ...historyRows.map((h) => ({ ...h, title: h.roleTitle })),

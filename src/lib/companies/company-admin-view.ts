@@ -133,10 +133,16 @@ export interface CoverageGapCompany {
 }
 
 export async function listIntelCoverageGaps(limit = 20): Promise<CoverageGapCompany[]> {
-  const [watchlistGrouped, companies] = await Promise.all([
-    prisma.companyWatchlistEntry.groupBy({ by: ['companyNameNormalized'], _count: { candidateId: true } }),
-    prisma.company.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } }),
-  ])
+  const watchlistGrouped = await prisma.companyWatchlistEntry.groupBy({
+    by: ['companyNameNormalized'],
+    _count: { candidateId: true },
+  })
+  const companies = watchlistGrouped.length
+    ? await prisma.company.findMany({
+        where: { canonicalNameNormalized: { in: watchlistGrouped.map((g) => g.companyNameNormalized) } },
+        select: { id: true, name: true, canonicalNameNormalized: true },
+      })
+    : []
 
   const companyByNorm = new Map(companies.map((c) => [c.canonicalNameNormalized, c]))
   const targetsWithCompany = watchlistGrouped
