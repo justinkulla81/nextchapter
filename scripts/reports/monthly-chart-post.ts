@@ -10,7 +10,7 @@
  *
  * Each image carries: a title that says what the chart shows, the source and
  * period, the margin-of-error note where the chart shows a survey estimate,
- * "NextChapter Displacement Report <Month Year>" and launchyournextchapter.com/reports.
+ * "NextChapter Employment Report <Month Year>" and launchyournextchapter.com/reports.
  *
  * Options
  *   --list               print available charts and exit
@@ -424,7 +424,7 @@ const CHARTS: ChartDef[] = [wcIndexChart, wcRateChart, hiresChart, productivityC
 
 function render(spec: ChartSpec, edition: Edition, s: Style): string {
   const inner = s.w - s.pad * 2
-  const kicker = `NextChapter Displacement Report ${edition.month}`
+  const kicker = `NextChapter Employment Report ${edition.month}`
   const titleLines = wrap(spec.title, s.title, inner, 0.57)
   const subLines = s.showSubtitle ? wrap(spec.subtitle, s.subtitle, inner) : []
   const srcText = !s.showSubtitle && spec.compact ? spec.compact.source : spec.source
@@ -461,7 +461,7 @@ function render(spec: ChartSpec, edition: Edition, s: Style): string {
   let foot = `<line x1="${s.pad}" x2="${s.w - s.pad}" y1="${ruleY}" y2="${ruleY}" stroke="${C.rule}" stroke-width="1.5"/>`
   if (moeLines.length) foot += textLines(moeLines, s.pad, moeY, s.small, 1.3, { fill: C.muted })
   foot += textLines(srcLines, s.pad, srcY, s.small, 1.3, { fill: C.muted })
-  foot += `<text x="${s.pad}" y="${brandY}" font-size="${s.foot}" font-weight="700" fill="${C.ink}">${esc(`NextChapter Displacement Report ${edition.month}`)}</text>`
+  foot += `<text x="${s.pad}" y="${brandY}" font-size="${s.foot}" font-weight="700" fill="${C.ink}">${esc(`NextChapter Employment Report ${edition.month}`)}</text>`
   foot += `<text x="${s.w - s.pad}" y="${brandY}" font-size="${s.foot}" font-weight="700" text-anchor="end" fill="${C.blue}">launchyournextchapter.com/reports</text>`
 
   const chart = spec.draw({ x: s.pad, y: chartTop, w: inner, h: chartBottom - chartTop }, s)

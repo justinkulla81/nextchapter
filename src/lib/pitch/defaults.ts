@@ -34,7 +34,7 @@ const BASE: S[] = [
     bullets: [
       'NextChapter is an AI-powered career-transition platform for laid-off and displaced white-collar workers.',
       'It pairs each person with a coach and a recruiter, and gives employers a hiring portal.',
-      'We publish the NextChapter Displacement Report each month, with the method and code open.',
+      'We publish the NextChapter Employment Report each month, with the method and code open.',
     ],
     why: 'Establishes who is speaking, in three sentences.',
   }],
@@ -61,7 +61,7 @@ const BASE: S[] = [
   ['evidence', 'Solution', 'bullets', {
     title: 'What you can check today', kicker: 'Evidence',
     bullets: [
-      'Every figure in our monthly Displacement Report is sourced, with the method and code published.',
+      'Every figure in our monthly Employment Report is sourced, with the method and code published.',
       'The numbers in this deck come from the Bureau of Labor Statistics, the Census Bureau and state layoff filings; sources are in the appendix.',
       'County white-collar and blue-collar unemployment are labeled as estimates wherever they appear.',
       OPEN_DATA_EVIDENCE_BULLET,
@@ -100,7 +100,7 @@ const BASE: S[] = [
       'Unemployment: Bureau of Labor Statistics Local Area Unemployment Statistics, latest month.',
       'Income and occupations: Census Bureau American Community Survey, 5-year estimates.',
       'Colleges: National Center for Education Statistics IPEDS. Layoffs: state WARN filings.',
-      'White-collar and blue-collar unemployment for a county are ESTIMATES: the county rate split by its white-collar share, using the national ratio from our Displacement Report.',
+      'White-collar and blue-collar unemployment for a county are ESTIMATES: the county rate split by its white-collar share, using the national ratio from our Employment Report.',
       'Demo screens show sample data, not real people or results.',
     ],
     appendix: true,
@@ -132,7 +132,7 @@ const NO_PRICE = ''
 
 interface ExtraOpts { kind?: SlideRule['kind']; section?: SlideRule['section'] }
 
-const COUNSEL = 'Counsel review required. This summarizes rules as reported in the NextChapter Displacement Report. It is not legal advice and does not state what any employer must do or promise compliance with any law. Dates and terms must be confirmed against the primary text.'
+const COUNSEL = 'Counsel review required. This summarizes rules as reported in the NextChapter Employment Report. It is not legal advice and does not state what any employer must do or promise compliance with any law. Dates and terms must be confirmed against the primary text.'
 
 /** "Next to WIOA, not against it": one slide for four customer types. Numbers come from report Exhibit 32. */
 const wioaSlide = (who: string, bullets: string[], extra: Patch = {}): Patch => ({
@@ -400,7 +400,7 @@ const SPEC: Record<CustomerType, Spec> = {
     offer: { name: 'Transition benefit for departing employees', scope: ['Every departing employee gets coaching and job-search tools', 'A custom landing page for departing employees', 'Aggregate reporting to HR, never individual data without consent'], theyProvide: ['The list of affected employees or an invitation link', 'A named HR owner'], term: '6 months from notice', price: NO_PRICE },
     reviewNotes: [
       'AI layoff disclosure slides: counsel review is required before any use. State only what the report states, never a legal conclusion or a compliance promise.',
-      'SB 947, Connecticut SB 5 and the Colorado AG comment date (appendix slide) are not in the text of report v1.72. Confirm each against the primary source before presenting.',
+      'SB 947, Connecticut SB 5 and the Colorado AG comment date (appendix slide) are not in the text of report v1.8. Confirm each against the primary source before presenting.',
     ],
     packages: [
       pkg('standard', 'Transition benefit', 'A single layoff event', ['Landing page for departing employees', 'Coaching and job-search tools for each person', 'Aggregate report to HR']),

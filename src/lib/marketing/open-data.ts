@@ -1,5 +1,5 @@
 /**
- * Open data and methodology: the facts about the Displacement Report's public
+ * Open data and methodology: the facts about the Employment Report's public
  * replication repository, in one place for the public page and for pitch
  * leave-behinds.
  *
@@ -14,7 +14,7 @@ export const OPEN_DATA_PAGE_PATH = '/reports/replication#open-data'
 
 export const OPEN_DATA_LICENSES = {
   code: 'MIT License',
-  data: 'CC BY 4.0 (attribute "NextChapter Displacement Report")',
+  data: 'CC BY 4.0 (attribute "NextChapter Employment Report")',
 } as const
 
 /** The scripts, in the order the README runs them, with what each produces. */
@@ -56,7 +56,7 @@ export const OPEN_DATA_SOURCES: string[] = [
 export const OPEN_DATA_LEAVE_BEHIND = {
   title: 'Check our numbers',
   lines: [
-    'The code and data behind the NextChapter Displacement Report are public.',
+    'The code and data behind the NextChapter Employment Report are public.',
     'Code is MIT licensed. Data and documentation are CC BY 4.0.',
     'Every exhibit lists its source and period, with margins of error on survey estimates. Known limitations are published with the method.',
     `Repository: ${REPLICATION_REPO_URL}`,

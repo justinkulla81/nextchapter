@@ -3,7 +3,7 @@
  *
  * One source for the public report landing page, the pitch copy library and
  * social posts, so the figures cannot drift. Every figure is from the
- * NextChapter Displacement Report, September 2026 edition (v1.72), with its
+ * NextChapter Employment Report, September 2026 edition (v1.8), with its
  * source and period attached.
  *
  * Voice (feedback_marketing_copy_voice): plain, declarative, no euphemisms.
@@ -67,11 +67,11 @@ export const LONGER_SEARCH_BODY: string[] = [
 
 /** Two sentences for a pitch deck, email or leave-behind. Same figures, same sources. */
 export const LONGER_SEARCH_SHORT =
-  'A longer search is not a personal failure. White-collar workers unemployed 27 weeks or more rose to 0.75% of the white-collar labor force in January to August 2026, from 0.56% a year earlier (NextChapter Displacement Report, from Census CPS microdata).'
+  'A longer search is not a personal failure. White-collar workers unemployed 27 weeks or more rose to 0.75% of the white-collar labor force in January to August 2026, from 0.56% a year earlier (NextChapter Employment Report, from Census CPS microdata).'
 
 /** For the pitch copy library: a bullet that fits a "Why now" or "Problem" slide. */
 export const LONGER_SEARCH_PITCH_BULLET =
-  'Long searches are rising: 0.75% of the white-collar labor force was out 27 weeks or more in January to August 2026, against 0.56% a year earlier (NextChapter Displacement Report).'
+  'Long searches are rising: 0.75% of the white-collar labor force was out 27 weeks or more in January to August 2026, against 0.56% a year earlier (NextChapter Employment Report).'
 
 /** What this message must not say. Shown to whoever edits the copy. */
 export const LONGER_SEARCH_GUARDRAILS: string[] = [
