@@ -7,6 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { INTAKE_MAX_FILE_BYTES } from '@/lib/recruiter/intake/constants'
 import { ingestIntake, intakeFileType, processIntakeResume, sendSubmissionConfirmation } from '@/lib/recruiter/intake/pipeline'
 import { allowByIp, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 export type InboundFormState = { error?: string; sent?: boolean; firstName?: string } | undefined
 
@@ -31,6 +32,9 @@ export async function submitInbound(_prev: InboundFormState, formData: FormData)
   if (!file || file.size === 0) return { error: 'Attach your resume.' }
   if (file.size > INTAKE_MAX_FILE_BYTES) return { error: 'That file is over 10 MB. Please upload a smaller PDF or Word file.' }
   if (!intakeFileType(file.name)) return { error: 'Please upload a PDF or Word (.docx) file.' }
+  // The extension is just a name; check the bytes before they reach the parser.
+  const upload = await validateUpload(file, 'resume', INTAKE_MAX_FILE_BYTES)
+  if (!upload.ok) return { error: upload.error }
 
   // Each accepted submission is a storage write, a Haiku parse and an email,
   // and the per-email cap below is bypassed by varying the address.

@@ -11,6 +11,7 @@ import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants
 import { COACHING_STYLES } from '@/lib/coach/coaching-style'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 export type BrandingFormState = { error?: string } | undefined
 
@@ -32,15 +33,13 @@ export async function updateCoachBranding(
   let logoUrl: string | undefined
 
   if (file && file.size > 0) {
-    if (file.size > 2 * 1024 * 1024) {
-      return { error: 'Logo must be under 2MB.' }
-    }
+    const check = await validateUpload(file, 'image', 2 * 1024 * 1024)
+    if (!check.ok) return { error: check.error }
     const admin = createAdminClient()
-    const ext = file.name.split('.').pop()
-    const path = `${coach.id}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`
+    const path = `${coach.id}/${crypto.randomUUID()}.${check.ext}`
     const { error: uploadError } = await admin.storage
       .from('coach-logos')
-      .upload(path, file, { contentType: file.type || undefined })
+      .upload(path, file, { contentType: check.contentType })
     if (uploadError) {
       return { error: 'Something went wrong uploading your logo. Please try again.' }
     }

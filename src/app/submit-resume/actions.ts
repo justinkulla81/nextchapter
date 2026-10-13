@@ -9,6 +9,7 @@ import { cookies } from 'next/headers'
 import { REFERRAL_COOKIE } from '@/lib/candidates/referral'
 import { sendResumeLeadConfirmationEmail } from '@/lib/email/send-resume-lead-confirmation'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 export type ResumeLeadFormState = { error?: string; sent?: boolean } | undefined
 
@@ -44,16 +45,14 @@ export async function submitResumeLead(
     if (file.size > MAX_FILE_SIZE) {
       return { error: 'File is too large — please upload a resume under 10MB.' }
     }
-    const ext = file.name.split('.').pop()?.toLowerCase()
-    if (ext !== 'pdf' && ext !== 'docx') {
-      return { error: 'Please upload a PDF or DOCX file.' }
-    }
+    const check = await validateUpload(file, 'resume', MAX_FILE_SIZE)
+    if (!check.ok) return { error: check.error }
 
     const admin = createAdminClient()
-    const path = `leads/${crypto.randomUUID()}.${ext}`
+    const path = `leads/${crypto.randomUUID()}.${check.ext}`
     const { error: uploadError } = await admin.storage
       .from('resumes')
-      .upload(path, file, { contentType: file.type || undefined })
+      .upload(path, file, { contentType: check.contentType })
 
     if (uploadError) {
       return { error: 'Something went wrong uploading your file. Please try again.' }
