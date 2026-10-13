@@ -1,4 +1,4 @@
-// The NextChapter Displacement Report: the list of published editions.
+// The NextChapter Employment Report (formerly the Displacement Report): the list of published editions.
 //
 // This is the one place a new edition is registered. Adding next month is a
 // single entry at the top of REPORT_EDITIONS; the hub, the sitemap, the news
@@ -29,10 +29,10 @@ export const REPORT_EDITIONS: ReportEdition[] = [
   {
     slug: 'displacement-report-september-2026',
     month: 'September 2026',
-    title: 'Fewer layoffs, longer searches',
-    dek: 'Hiring stalled and announced layoffs fell in September 2026, but long-term unemployment among managers and professionals rose about a third from a year earlier. The monthly read on white-collar job loss, AI, and the safety net.',
+    title: 'Jobs are growing, and some searches are taking longer',
+    dek: 'The economy added 612,000 jobs in the first nine months of 2026 and there is about one opening per unemployed person, while long searches among managers and professionals were about a third more common than a year earlier. The monthly read on how people are working, being hired and changing jobs, with what public programs and technology are adding.',
     publishedAt: '2026-10-05',
-    updatedAt: '2026-10-06',
+    updatedAt: '2026-10-13',
     ogImage: '/reports/displacement-report-2026-09-og.png',
   },
 ]
