@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
@@ -27,7 +27,7 @@ export default async function UniversityAlumniPage({
 }) {
   const { schoolNameNormalized: rawParam } = await params
   const schoolNameNormalized = decodeURIComponent(rawParam)
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   // Only ever reachable for a school this candidate has themselves — same
   // "your own contacts/education" gating spirit as the rest of Contacts.

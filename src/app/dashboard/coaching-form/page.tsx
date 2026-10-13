@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getCoachTemplate, hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { hasSubmittedConfidentialDisclosure } from '@/lib/coach/confidential-disclosure'
 import { prisma } from '@/lib/prisma'
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Coaching Intake Form' }
 
 
 export default async function DashboardCoachingFormPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   if (!profile.coachId || !profile.coachDossierConsentedAt) {
     redirect('/dashboard')

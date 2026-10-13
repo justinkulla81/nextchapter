@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Minus, Users, TriangleAlert, Check } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -89,7 +89,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
   // searcher actually has. A–Z stays one click away for looking up a name.
   const sort: 'fit' | 'az' = params.sort === 'az' ? 'az' : 'fit'
 
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   // Small table (low hundreds of rows in production) — cheap to fetch in
   // full and filter/paginate in application code rather than building a

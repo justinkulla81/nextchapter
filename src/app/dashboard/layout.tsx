@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
@@ -59,6 +59,12 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     activeMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
+    resumeCount,
+    coverLetterCount,
+    marketRealityReportCount,
+    workSampleCount,
+    completedReferenceCount,
+    profile,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -73,6 +79,13 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     isActiveMember(profileId),
     getHelpRepliesWaiting(profileId),
     getNewStrongCompaniesCountForBadge(profileId),
+    // Counts, not the wide profile: the nav badge only needs how many of each exist.
+    prisma.resume.count({ where: { candidateId: profileId } }),
+    prisma.jobPosting.count({ where: { candidateId: profileId, AND: [{ coverLetter: { not: null } }, { coverLetter: { not: '' } }] } }),
+    prisma.marketRealityReport.count({ where: { candidateId: profileId } }),
+    prisma.workSample.count({ where: { candidateId: profileId } }),
+    prisma.reference.count({ where: { candidateId: profileId, status: 'COMPLETED' } }),
+    getDashboardProfile(),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
@@ -86,20 +99,17 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   // direction as EQoverIQ's own "never offer this to a new grad" nav gate.
   const isEarlyCareer = latestSeniorityBand ? latestSeniorityBand === 'EARLY' : null
 
-  // Re-fetches the same cached profile (see getDashboardData's cache() wrap)
-  // for the fields buildPortfolioAssetChecklist needs — cheap, request-memoized.
-  const profile = await getDashboardData()
   // See buildPortfolioAssetChecklist — the Portfolio page computes this
   // same checklist from the same shape of inputs, so the nav badge and the
   // page's own "X of 8 assets" count can never disagree.
   const portfolioAssetCount = buildPortfolioAssetChecklist({
-    hasResume: profile.resumes.length > 0,
-    hasCoverLetter: profile.jobPostings.some((j) => !!j.coverLetter),
+    hasResume: resumeCount > 0,
+    hasCoverLetter: coverLetterCount > 0,
     hasNarrative: narrativeCount > 0,
-    hasMarketRealityReport: profile.marketRealityReports.length > 0,
+    hasMarketRealityReport: marketRealityReportCount > 0,
     hasMarketRealitySnapshot: marketRealitySnapshotCount > 0,
-    hasWorkSample: profile.workSamples.length > 0,
-    hasCompletedReference: profile.references.some((r) => r.status === 'COMPLETED'),
+    hasWorkSample: workSampleCount > 0,
+    hasCompletedReference: completedReferenceCount > 0,
     hasLearningBadge: learningBadgeCount > 0,
   }).filter((a) => a.done).length
 
@@ -141,7 +151,7 @@ async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<nu
 // read the (cached) profile without threading an extra param through
 // DashboardNavWithBadges' props.
 async function getSupportNetworkUnreadCountForBadge(profileId: string) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   return getSupportNetworkUnreadCount(profileId, profile.communityLastViewedAt)
 }
 // The EQoverIQ nav gate's real signal — resume-derived, not self-reported,
@@ -167,7 +177,7 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   // Dashboard-wide hard gate (see access-gate.ts) — only ever applies to
   // candidates created after this shipped (profile.subjectToHardGate) and

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { getWhereYouStand } from '@/lib/reports/market-reality-sections'
@@ -66,7 +66,7 @@ function gradeAccent(grade: Grade): StatTileAccent {
 }
 
 export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const weekStartDate = getMondayOfWeek(new Date())
   const params = await searchParams
   const bandParam = typeof params.band === 'string' ? params.band : null

@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { Building2, TrendingUp, TrendingDown, Minus, Users, Lock, MessageSquare, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { CompanyMetaLine, CompanyMetaLineSkeleton } from '@/components/companies/CompanyMetaLine'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import {
@@ -68,10 +68,10 @@ function InsiderLine({ insider }: { insider: InsiderSummary }) {
 
 export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  // Independent of each other — no need for getDashboardData to finish
+  // Independent of each other — no need for getDashboardProfile to finish
   // before the company row lookup starts.
   const [profile, companyRow] = await Promise.all([
-    getDashboardData(),
+    getDashboardProfile(),
     // Admin-only working notes (priority, named HR contact) are stripped before any
     // component can see the row — see toCandidateCompany.
     prisma.company

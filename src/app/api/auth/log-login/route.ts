@@ -14,7 +14,7 @@ import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 // logins share this same LoginForm) since CandidateLoginEvent only tracks
 // candidate app usage.
 //
-// Shares recordCandidateLoginIfDue with getDashboardData's after() callback
+// Shares recordCandidateLoginIfDue with getDashboardProfile's after() callback
 // rather than inserting directly — this route fires client-side right before
 // navigating to /dashboard, so its request routinely races the dashboard
 // SSR's own login-recording call. Two independent unguarded inserts for the

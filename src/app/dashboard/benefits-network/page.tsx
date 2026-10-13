@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getCatalogListings, type BenefitsNetworkFilters } from '@/lib/benefits-network/listings'
 import { getCandidateSkillGapTags, findMatchedSkillGap } from '@/lib/benefits-network/skill-match'
 import { isActiveMember } from '@/lib/membership/subscription'
@@ -18,7 +18,7 @@ function firstValue(v: string | string[] | undefined): string | undefined {
 }
 
 export default async function BenefitsNetworkPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const params = await searchParams
 
   const filters: BenefitsNetworkFilters = {

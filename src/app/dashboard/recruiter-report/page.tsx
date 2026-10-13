@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { FileText } from 'lucide-react'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getRecruiterReportData } from '@/lib/reports/recruiter-report'
 import { getDossierSections, getDossierSectionCompleteness } from '@/lib/reports/dossier-sections'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
@@ -75,7 +75,7 @@ function DossierSkeleton() {
 }
 
 export default async function RecruiterReportPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const data = await getRecruiterReportData(profile.id)
 
   return (

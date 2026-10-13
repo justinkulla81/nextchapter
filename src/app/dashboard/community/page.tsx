@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCommunityFeed } from '@/lib/community/community-feed'
@@ -143,7 +143,7 @@ export default async function SupportNetworkPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const params = await searchParams
   const tab = params.tab === 'messages' ? 'messages' : 'community'
 

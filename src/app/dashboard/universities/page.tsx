@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 
 export const metadata: Metadata = { title: 'Universities' }
 
 export default async function UniversitiesIndexPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   // The candidate's own school(s) — named explicitly, not a generic "your
   // university" label, and there can genuinely be more than one (undergrad

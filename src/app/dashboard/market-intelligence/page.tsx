@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Lock, TrendingUp, TrendingDown, Minus, Users, DollarSign, Building2, Sparkles, Mail } from 'lucide-react'
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -52,7 +52,7 @@ export default async function MarketIntelligencePage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const sp = await searchParams
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const tier = await getCandidateMarketIntelTier(profile.id)
 
   const canCompBands = tierMeetsFeature(tier, 'comp_bands')

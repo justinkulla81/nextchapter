@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { after } from 'next/server'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateWalkthroughSession } from '@/lib/walkthrough/session'
 import { getMechanicalBatchFindings } from '@/lib/walkthrough/mechanical-findings'
@@ -46,7 +46,7 @@ export default async function ResumeWalkthroughPage({
 }: {
   searchParams: Promise<{ step?: string }>
 }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const session = await getOrCreateWalkthroughSession(profile.id)
   const { step: stepParam } = await searchParams
 

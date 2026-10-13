@@ -242,7 +242,7 @@ export async function setResumeBookOptIn(optIn: boolean): Promise<void> {
 export type DeactivateAccountFormState = { error?: string } | undefined
 
 // Deliberately NOT a delete — see deactivatedAt's own schema comment. Every
-// row stays intact; this only blocks dashboard access (getDashboardData)
+// row stays intact; this only blocks dashboard access (getDashboardProfile)
 // and signs the session out. Real deletion only ever happens by request to
 // support@launchyournextchapter.com, per the Danger Zone's own copy.
 export async function deactivateMyAccount(

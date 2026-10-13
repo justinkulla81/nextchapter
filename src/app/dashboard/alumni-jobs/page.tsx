@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { listAlumniJobs } from '@/lib/jobs/alumni-jobs'
 
 export const metadata: Metadata = { title: 'Alumni jobs' }
 
 export default async function AlumniJobsPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const jobs = await listAlumniJobs(profile.id)
 
   return (

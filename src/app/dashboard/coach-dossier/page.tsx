@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getDossierSections } from '@/lib/reports/dossier-sections'
 import { getCoachingNotes } from '@/lib/coach/coaching-notes'
@@ -35,7 +35,7 @@ function DossierSkeleton() {
 
 
 export default async function CoachDossierPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   if (!profile.coachId) {
     return (

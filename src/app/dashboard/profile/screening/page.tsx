@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { RedFlagsQuestionsForm } from '@/components/dashboard/RedFlagsQuestionsForm'
 import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
 import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
@@ -20,7 +20,7 @@ const RED_FLAGS_POINTS = estimateActionEffort({ actionType: 'RED_FLAGS_CONFIRMED
 // puts the most sensitive item (demographic self-ID — protected-class
 // data) in the middle, flanked by the two less-invasive sections.
 export default async function ScreeningPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const redFlagsAnswered = !!profile.redFlagsBonusAt
 
   return (

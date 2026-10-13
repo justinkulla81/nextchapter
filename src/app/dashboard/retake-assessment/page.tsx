@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { AssessmentForm } from '@/components/onboarding/AssessmentForm'
 import { KnownForForm } from '@/components/dashboard/KnownForForm'
@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'How I Work Best' }
 const RETAKE_COOLDOWN_DAYS = 7
 
 export default async function RetakeAssessmentPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const latestResponse = await prisma.candidateAssessmentResponse.findFirst({
     where: { candidateId: profile.id },

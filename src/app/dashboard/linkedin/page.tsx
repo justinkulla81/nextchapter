@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'LinkedIn' }
 
 
 export default async function LinkedInPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const postGeneratorUnlocked = profile.linkedinUsageFrequency !== null
 
   return (

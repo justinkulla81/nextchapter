@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PerformanceAssessmentForm } from '@/components/dashboard/PerformanceAssessmentForm'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { HOW_I_PERFORM_ITEMS } from '@/lib/constants/how-i-perform-items'
 export const metadata: Metadata = { title: 'How I Perform' }
 
 export default async function HowIPerformPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
 
   const latestResponse = await prisma.performanceAssessmentResponse.findFirst({
     where: { candidateId: profile.id },

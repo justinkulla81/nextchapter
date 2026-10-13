@@ -19,7 +19,7 @@ import { getClientIp } from '@/lib/http/client-ip'
 // fetch running twice on every single page load — cache() dedupes repeat
 // calls within one request to a single execution, so the second call is
 // free. Request-scoped only: a fresh navigation gets a fresh (uncached) run.
-export const getDashboardData = cache(async () => {
+export const getDashboardProfile = cache(async () => {
   const supabase = await createClient()
   // proxy.ts already verified this session with Supabase Auth on this same request (and
   // refreshed its cookie), so a second getUser() here was a duplicate network round trip
@@ -44,21 +44,9 @@ export const getDashboardData = cache(async () => {
   let profile = await prisma.candidateProfile.findUnique({
     where: { userId: user.id },
     include: {
-      references: true,
-      workSamples: true,
-      workHistory: true,
-      employerInteractions: true,
-      resumes: { orderBy: { uploadedAt: 'desc' } },
-      jobPostings: { orderBy: { createdAt: 'desc' } },
-      communityPosts: { where: { isActive: true }, orderBy: { createdAt: 'desc' } },
-      surfacedJobs: { select: { reaction: true } },
-      linkedInActivityLogs: true,
-      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
-      assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
-      performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
-      _count: { select: { weeklySprints: true } },
       coach: { select: { focus: true } },
       linkedInConnection: { select: { disconnectedAt: true } },
+      _count: { select: { weeklySprints: true } },
     },
   })
 
@@ -106,4 +94,31 @@ export const getDashboardData = cache(async () => {
   }
 
   return profile
+})
+
+// The wide version: the profile plus every relation the heavier pages read (all resumes, all
+// job postings with their text, community posts, activity logs, ...). Loaded as ONE extra
+// query keyed on the already-resolved profile id — no second auth call, redirect pass or
+// registration sync — and only by pages that actually read those relations. Every other
+// dashboard page, and the layout, use getDashboardProfile() above.
+export const getDashboardData = cache(async () => {
+  const profile = await getDashboardProfile()
+  const relations = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: profile.id },
+    select: {
+      references: true,
+      workSamples: true,
+      workHistory: true,
+      employerInteractions: true,
+      resumes: { orderBy: { uploadedAt: 'desc' } },
+      jobPostings: { orderBy: { createdAt: 'desc' } },
+      communityPosts: { where: { isActive: true }, orderBy: { createdAt: 'desc' } },
+      surfacedJobs: { select: { reaction: true } },
+      linkedInActivityLogs: true,
+      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
+      assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+    },
+  })
+  return { ...profile, ...relations }
 })

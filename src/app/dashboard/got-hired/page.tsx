@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
@@ -26,7 +26,7 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
 }
 
 export default async function GotHiredPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const [latestClaim, dossierStatus] = await Promise.all([
     prisma.bountyClaim.findFirst({
       where: { candidateId: profile.id },

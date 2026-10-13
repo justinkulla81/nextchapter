@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Interview Prep' }
 
 
 export default async function InterviewPrepPage() {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const [narrative, weaknessGuidance] = await Promise.all([
     getDefaultNarrative(profile.id),
     detectNarrativeWeaknesses(profile.id),

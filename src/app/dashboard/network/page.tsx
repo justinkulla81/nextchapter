@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense, cache } from 'react'
+import { after } from 'next/server'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import type { EmailActivityType, OutreachChannel } from '@prisma/client'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
@@ -132,7 +133,7 @@ function AutomaticTrackingSkeleton() {
 // boundaries so they can sit apart — share one execution of this instead of
 // each triggering its own live Gmail/Calendar sync.
 const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData(
-  profile: Awaited<ReturnType<typeof getDashboardData>>,
+  profile: Awaited<ReturnType<typeof getDashboardProfile>>,
   outreachLogs: SelfLoggedOutreach[]
 ) {
   const [emailConnection, calendarConnection, jobRelevantContactEmails] = await Promise.all([
@@ -142,17 +143,26 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
   ])
 
   // Auto-syncs on every visit instead of requiring the manual buttons below —
-  // both sync functions self-throttle to once per 5 minutes.
-  await Promise.all([
-    emailConnection
-      ? syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-      : null,
-    calendarConnection
-      ? syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
-          console.error('Calendar auto-sync failed:', error)
-        )
-      : null,
-  ])
+  // both sync functions self-throttle to once per 5 minutes. For a connection that has
+  // synced before, run it after the response (same as find-my-job) so the stats render
+  // from what is already tracked instead of waiting on a live paginated Gmail/Calendar
+  // API call; anything new appears on the next load. A connection that has NEVER synced
+  // is awaited inline, so a just-connected account doesn't open to an empty page.
+  const runSyncs = () =>
+    Promise.all([
+      emailConnection
+        ? syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+        : null,
+      calendarConnection
+        ? syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
+            console.error('Calendar auto-sync failed:', error)
+          )
+        : null,
+    ])
+  const neverSynced =
+    (!!emailConnection && !emailConnection.lastSyncAt) || (!!calendarConnection && !calendarConnection.lastSyncAt)
+  if (neverSynced) await runSyncs()
+  else after(runSyncs)
 
   const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
@@ -292,7 +302,7 @@ async function NetworkingStatsCard({
   profile,
   outreachLogs,
 }: {
-  profile: Awaited<ReturnType<typeof getDashboardData>>
+  profile: Awaited<ReturnType<typeof getDashboardProfile>>
   outreachLogs: SelfLoggedOutreach[]
 }) {
   const { networkingStatTiles } = await loadAutomaticTrackingData(profile, outreachLogs)
@@ -320,7 +330,7 @@ async function TotalOutreachCard({
   outreachLogs,
   outreachMix,
 }: {
-  profile: Awaited<ReturnType<typeof getDashboardData>>
+  profile: Awaited<ReturnType<typeof getDashboardProfile>>
   outreachLogs: SelfLoggedOutreach[]
   outreachMix: ReturnType<typeof computeOutreachRelationshipMix>
 }) {
@@ -371,7 +381,7 @@ async function AutomaticTrackingSection({
   outreachLogs,
   params,
 }: {
-  profile: Awaited<ReturnType<typeof getDashboardData>>
+  profile: Awaited<ReturnType<typeof getDashboardProfile>>
   outreachLogs: SelfLoggedOutreach[]
   params: NetworkSearchParams
 }) {
@@ -539,11 +549,14 @@ export default async function NetworkPage({
 }: {
   searchParams: Promise<NetworkSearchParams>
 }) {
-  const profile = await getDashboardData()
+  const profile = await getDashboardProfile()
   const params = await searchParams
-  const [rawContacts, backchannelMatches, needsFollowUp, outreachLogs, alumniGroups] = await Promise.all([
+  const [rawPriorityContacts, starredCount, contactCount, backchannelMatches, needsFollowUp, outreachLogs, alumniGroups] = await Promise.all([
+    // Only the starred contacts nobody has reached out to yet (the Priority Contacts card).
+    // This used to load every contact the member has (up to ~27k rows with a per-row
+    // outreach include) and filter in JS just to find these and count the starred ones.
     prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id, removedAt: null },
+      where: { candidateId: profile.id, removedAt: null, isPriority: true, outreachLogs: { none: {} } },
       orderBy: { createdAt: 'desc' },
       include: {
         outreachLogs: { select: { id: true }, take: 1 },
@@ -552,6 +565,10 @@ export default async function NetworkPage({
         _count: { select: { outreachLogs: true } },
       },
     }),
+    prisma.supportNetworkContact.count({
+      where: { candidateId: profile.id, removedAt: null, priorityPointsAwardedAt: { not: null } },
+    }),
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: null } }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
     // Powers the Total Outreach headline card below — every manually logged
@@ -573,12 +590,14 @@ export default async function NetworkPage({
     getMatchedAlumniGroups(profile.id),
   ])
   const outreachMix = computeOutreachRelationshipMix(outreachLogs.map((l) => l.contact?.relationshipTags ?? []))
-  const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0, outreachCount: c._count.outreachLogs }))
   // Drops off this list the moment an outreach is logged against them — see
   // toggleContactPriority's comment for why (they belong in Needs a
   // Follow-up from then on instead).
-  const priorityContacts = contacts.filter((c) => c.isPriority && !c.hasReachedOut)
-  const starredCount = contacts.filter((c) => c.priorityPointsAwardedAt).length
+  const priorityContacts = rawPriorityContacts.map((c) => ({
+    ...c,
+    hasReachedOut: c.outreachLogs.length > 0,
+    outreachCount: c._count.outreachLogs,
+  }))
 
   if (!profile.networkComfortLevel) {
     return (
@@ -634,7 +653,7 @@ export default async function NetworkPage({
         href="/dashboard/network/contacts?buildList=1#import"
         className="inline-flex h-10 w-fit items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
       >
-        Go to / Add to Networking List ({contacts.length.toLocaleString()})
+        Go to / Add to Networking List ({contactCount.toLocaleString()})
       </Link>
 
       <MarkBackchannelViewedOnMount />
