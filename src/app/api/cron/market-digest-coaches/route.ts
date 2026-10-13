@@ -4,6 +4,7 @@ import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCoachEmail } from '@/lib/email/send-market-digest-coach'
 import { buildCoachWeeklyDigest } from '@/lib/coach/weekly-digest'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const MAX_ROLE_LINES = 3
@@ -72,5 +73,7 @@ export async function GET(request: NextRequest) {
     if (nugget) await markItemsSent([nugget.id], 'COACH')
   }
 
-  return NextResponse.json({ checked: coaches.length, sent: sentCount })
+  const summary = { checked: coaches.length, sent: sentCount }
+  captureServerEvent('cron', 'coach_market_digest_run', summary)
+  return NextResponse.json(summary)
 }
