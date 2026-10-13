@@ -59,6 +59,8 @@ export async function renderPptx(deck: Deck, opts: { headshot?: string } = {}): 
     head(s, d)
     footer(s, n)
     const top = 1.95
+    // Slides with a citation or a boxed note leave room for them above the footer.
+    const bottom = d.callout ? 5.75 : d.source ? 6.45 : 6.7
 
     switch (d.kind) {
       case 'stats': {
@@ -77,7 +79,7 @@ export async function renderPptx(deck: Deck, opts: { headshot?: string } = {}): 
         if (d.bullets.length) {
           const rows = Math.ceil(f.length / cols)
           const by = top + rows * 2.15 + 0.1
-          s.addText(d.bullets.map((t) => ({ text: t, options: { bullet: true, breakLine: true } })), { x: 0.6, y: by, w: W - 1.2, h: 6.7 - by, fontFace: FONT, fontSize: 20, color: INK, valign: 'top', paraSpaceAfter: 10, fit: 'shrink' })
+          s.addText(d.bullets.map((t) => ({ text: t, options: { bullet: true, breakLine: true } })), { x: 0.6, y: by, w: W - 1.2, h: bottom - by, fontFace: FONT, fontSize: 20, color: INK, valign: 'top', paraSpaceAfter: 10, fit: 'shrink' })
         }
         break
       }
@@ -178,10 +180,16 @@ export async function renderPptx(deck: Deck, opts: { headshot?: string } = {}): 
         const bullets = d.bullets
         if (bullets.length) {
           s.addText(bullets.map((t) => ({ text: t, options: { bullet: true, breakLine: true } })), {
-            x: 0.6, y: top, w: W - 1.2, h: 4.7, fontFace: FONT, fontSize: bullets.length > 5 ? 20 : 26, color: INK, valign: 'top', paraSpaceAfter: 18, fit: 'shrink',
+            x: 0.6, y: top, w: W - 1.2, h: bottom - top, fontFace: FONT, fontSize: bullets.length > 5 || (d.callout && bullets.length > 3) ? 20 : 26, color: INK, valign: 'top', paraSpaceAfter: 18, fit: 'shrink',
           })
         }
       }
+    }
+    if (d.callout) {
+      s.addText(d.callout, { x: 0.6, y: 5.85, w: W - 1.2, h: 0.62, fontFace: FONT, fontSize: 11, bold: true, color: '7A4B00', fill: { color: 'FFF4DB' }, line: { color: 'E0A100', width: 1 }, valign: 'middle', margin: 8, fit: 'shrink' })
+    }
+    if (d.source) {
+      s.addText(`Source: ${d.source}`, { x: 0.6, y: 6.5, w: W - 1.2, h: 0.42, fontFace: FONT, fontSize: 9, color: MUTED, valign: 'top', fit: 'shrink' })
     }
   })
   const out = await p.write({ outputType: 'nodebuffer' })

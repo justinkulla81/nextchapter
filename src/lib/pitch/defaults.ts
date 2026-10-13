@@ -1,5 +1,6 @@
 import type { CustomerType, OfferTerms, Package, RuleSet, SlideRule } from './types'
 import { CUSTOMER_LABELS } from './types'
+import { SOURCES } from './report-facts'
 
 // Default rule sets. The admin tool stores edits as overrides; "Reset to
 // default" deletes the override. Copy rules: plain, declarative, numbers over
@@ -106,12 +107,28 @@ interface Spec {
   packages: Package[]
   reviewNotes?: string[]
   patches: Record<string, Patch>
-  /** [afterSlideId, id, patch] */
-  extra: [string, string, Patch][]
+  /** [afterSlideId, id, patch, options]. Options set the kind and section when the id prefix is not enough. */
+  extra: [string, string, Patch, ExtraOpts?][]
   off?: string[]
 }
 
 const NO_PRICE = ''
+
+interface ExtraOpts { kind?: SlideRule['kind']; section?: SlideRule['section'] }
+
+const COUNSEL = 'Counsel review required. This summarizes rules as reported in the NextChapter Displacement Report. It is not legal advice and does not state what any employer must do or promise compliance with any law. Dates and terms must be confirmed against the primary text.'
+
+/** "Next to WIOA, not against it": one slide for four customer types. Numbers come from report Exhibit 32. */
+const wioaSlide = (who: string, bullets: string[], extra: Patch = {}): Patch => ({
+  title: 'Built to sit next to WIOA, not against it',
+  kicker: 'The Dislocated Worker program',
+  bullets,
+  source: SOURCES.wioa,
+  why: `Positions NextChapter beside the Dislocated Worker program for ${who}. The four numbers come from report Exhibit 32 and cannot be edited here. Typical program outcomes are pitched at middle-wage jobs, which is the gap the professional track fills.`,
+  ...extra,
+})
+const WIOA_STAT = 'The program is flat and trains about 1 in 5. Its typical outcomes are pitched at middle-wage jobs.'
+const WIOA_NOTE = 'WIOA slide: Individual Training Account and on-the-job training use is set by each board\'s own policy and state guidance, so confirm it with the board before presenting. The geo data has no board program-year counts; add the board\'s own served and trained numbers to the slide if you have them, and never show a zero.'
 
 const SPEC: Record<CustomerType, Spec> = {
   // ───────────────────────────── Higher education ─────────────────────────────
@@ -126,7 +143,11 @@ const SPEC: Record<CustomerType, Spec> = {
       pkg('advancement', 'Advancement', 'Alumni relations and development working together', ['Everything in Career', 'Alumni Relations workspace: layoff alerts, outreach, mentors, coaching packages', 'Development workspace: who is in transition and who not to solicit, with no search detail shown', 'Gratitude-ask timing after a placed alumnus has settled in']),
       pkg('institution', 'Institution', 'A campus-wide program across alumni, students and families', ['Everything in Advancement', 'Students, parents and spouse seats', 'Single sign-on and roster import', 'Outcome and ROI reporting for leadership, with data export']),
     ],
-    reviewNotes: ['Higher Ed copy follows the V1 build spec. Confirm which screens and tiers are live, and what each tier includes, before presenting.'],
+    reviewNotes: [
+      'Higher Ed copy follows the V1 build spec. Confirm which screens and tiers are live, and what each tier includes, before presenting.',
+      'Mid-career alumni slide: figures are quoted from the September 2026 report (Exhibit 19, Exhibit 33). Check them against the current edition before presenting.',
+      WIOA_NOTE,
+    ],
     patches: {
       summary: { bullets: ['Laid-off alumni are an unserved group at {{org}}; white-collar unemployment in {{area}} is an estimated {{wcEst}}.', 'NextChapter coaches each alumnus back to work and gives career services, alumni relations and development one shared, consent-based view.', 'Proposal: a 90-day alumni pilot in one of three packages. Ask: a call with career services and alumni relations.'] },
       problem: { bullets: ['Career centers are built for students and recent graduates, not for a 45-year-old alumnus who lost a director role.', 'Alumni ask the college for help and there is no program to send them to.', 'Alumni relations, development and career services each hear a piece of the story and none sees the whole.'] },
@@ -140,6 +161,16 @@ const SPEC: Record<CustomerType, Spec> = {
       'a-faq': { bullets: ['Does this replace career services? No. It gives your staff caseloads, check-ins and reports; people still do the human work.', 'Who owns the alumni data? The institution owns its roster; each alumnus owns their own search data and chooses what to share.', 'Can development use this to solicit alumni who just lost a job? No. They see a do-not-solicit flag and nothing else.', 'What do we need to start? A roster, your email domain, and one owner in career services and one in alumni relations.', 'What does it cost? We scope it with you after the first call.'] },
     },
     extra: [
+      ['white-collar', 'h-midcareer', {
+        title: 'Long-term unemployment is rising fastest for experienced degree holders', kicker: 'For alumni relations, advancement and career services',
+        bullets: [
+          'Master\'s holders and degree holders with 25+ years of experience had the fastest rise in long-term unemployment this year.',
+          'Of unemployed degree holders with 25+ years of experience, 35.1% have been out 27 weeks or more, the highest share of any experience group.',
+          'Our offer is alumni advancement and career services at every career stage, not only new-graduate placement: the Career, Advancement and Institution packages.',
+        ],
+        source: SOURCES.midcareer,
+        why: 'The mid-career alumni angle. Master\'s holders and 25+ year degree holders are the groups the report finds rising fastest, and new-graduate placement alone does not reach them. The four numbers come from report Exhibits 19 and 33 and cannot be edited here. No prices.',
+      }, { kind: 'stats', section: 'Data' }],
       ['measure', 'f-funding', { title: 'Open funding you could pursue', kicker: 'Federal grants open now', bullets: ['Grants that fit what this program does, open today and matched to colleges.', 'Where {{org}} applies and NextChapter delivers the reemployment services, we write the service plan and the reporting.'], why: 'Real open federal grants the college is eligible for. Only grants it can apply for, directly or with us as the delivery partner. Dropped automatically when none are open.' }],
       ['how', ...demo('d-career', 'Career services: who needs help this week', 'Career Services · Caseload', [['In transition', '38'], ['Active in search', '24'], ['Placed, last 90 days', '9'], ['Awaiting outreach', '5']], ['Alumnus', 'Stage', 'Last activity', 'Next step'], [['Class of 2009, operations', 'Active search', '2 days ago', 'Check-in Thursday'], ['Class of 2002, finance', 'Interviewing', 'Today', 'Mock interview'], ['Class of 2014, marketing', 'Stalled', '19 days ago', 'Outreach'], ['Class of 1998, engineering', 'Placed', '6 days ago', 'Gratitude timing']])],
       ['d-career', ...demo('d-alumni-relations', 'Alumni relations: a layoff near your alumni', 'Alumni Relations · Local market', [['Layoff notices, 90 days', '4'], ['Alumni possibly affected', '7'], ['Mentors available', '31'], ['Outreach sent', '5']], ['Notice', 'Workers', 'Alumni match', 'Action'], [['Example Corp, regional office', '420', '4', 'Send outreach'], ['Sample Health Systems', '180', '2', 'Send outreach'], ['Demo Logistics', '95', '1', 'Review'], ['Illustrative Bank', '60', '0', 'None']])],
@@ -150,6 +181,11 @@ const SPEC: Record<CustomerType, Spec> = {
       ['c-alumni-relations', ...aud('development', 'development and advancement', 'to protect donor relationships through a job loss', 'a do-not-solicit flag, the transition and placement dates, and a gratitude-ask window; never the reason or search detail', 'who not to ask, and who is ready to be thanked')],
       ['c-development', ...aud('employers', 'employer relations', 'hiring partners who trust your graduates', 'employer approvals, featured and basic job-post packages, and introductions to alumni who agreed to share', 'roles posted and introductions made')],
       ['c-employers', ...aud('leadership', 'institution leadership', 'evidence that alumni outcomes are improving', 'outcome and engagement reporting, branding and roster controls, exports', 'a dashboard for the board, with consent respected')],
+      ['a-board', 'w-wioa', wioaSlide('colleges whose alumni are dislocated workers', [
+        WIOA_STAT,
+        'Alumni who are dislocated workers can co-enrol with {{board}}. The professional track can ride on Individual Training Accounts and on-the-job training where the board\'s policy allows.',
+        'The board keeps WIOA services; {{org}} keeps the alumni relationship.',
+      ], { appendix: true, needsGeo: false }), { kind: 'stats', section: 'Appendix' }],
     ],
     off: ['a-datacenters'],
   },
@@ -161,6 +197,7 @@ const SPEC: Record<CustomerType, Spec> = {
     tone: 'Regional, data first, works alongside the workforce board and never competes with it',
     ask: 'A 30-minute call, then a co-branded regional talent-transition page',
     offer: { name: 'Regional talent-transition pilot', scope: ['A co-branded page for people affected by layoffs in the region', 'Coaching and job-search tools for each participant', 'A regional talent brief for your board and employers'], theyProvide: ['An introduction to the workforce board and two or three employers', 'One named owner'], term: '6 months', price: NO_PRICE },
+    reviewNotes: [WIOA_NOTE],
     packages: [
       pkg('page', 'Regional talent page', 'A fast, visible start', ['Co-branded page for people affected by layoffs', 'Coaching and job-search tools for every participant', 'Monthly participation report']),
       pkg('retention', 'Retention partnership', 'A retention team that visits employers', ['Everything in the talent page', 'A response kit when a local employer announces cuts', 'Quarterly regional talent brief for your board and employers']),
@@ -179,6 +216,11 @@ const SPEC: Record<CustomerType, Spec> = {
     },
     extra: [
       ['measure', 'f-funding', { title: 'Open funding you could pursue', kicker: 'Federal grants open now', bullets: ['Grants that fit what this program does, open today and matched to regional organizations.', 'Where {{org}} or the workforce board applies and NextChapter delivers the reemployment services, we write the service plan and the reporting.'], why: 'Real open federal grants the college is eligible for. Only grants it can apply for, directly or with us as the delivery partner. Dropped automatically when none are open.' }],
+      ['fit', 'w-wioa', wioaSlide('economic development organizations', [
+        WIOA_STAT,
+        'Our offer is a professional-track complement. It can ride on Individual Training Accounts and on-the-job training, and on co-enrolment with {{board}}, where the board\'s policy allows.',
+        '{{org}} can send affected professionals to {{board}} for WIOA services and to NextChapter for the professional track.',
+      ]), { kind: 'stats' }],
       ['how', ...demo('d-region', 'Regional talent dashboard', 'Regional program · Talent transition', [['Affected workers enrolled', '214'], ['Active in search', '148'], ['Hired in the region', '41'], ['Hired elsewhere', '6']], ['Layoff event', 'Workers', 'Enrolled', 'Hired locally'], [['Employer A, headquarters', '420', '96', '18'], ['Employer B, regional office', '180', '61', '14'], ['Employer C, plant offices', '95', '33', '7'], ['Employer D, shared services', '60', '24', '2']])],
       ['d-region', ...demo('d-employer-view', 'Local employers see a vetted pool', 'Hiring portal · Regional pool', [['Candidates in the pool', '148'], ['Employers browsing', '17'], ['Introductions made', '23'], ['Interviews', '11']], ['Function', 'Level', 'Candidates', 'Open local roles'], [['Finance and accounting', 'Manager to director', '22', '9'], ['Operations', 'Manager to VP', '31', '14'], ['Marketing', 'Manager', '18', '6'], ['IT and data', 'Senior', '27', '19']])],
       ['who', ...aud('residents', 'laid-off residents', 'a credible path back to work close to home', 'a market reality check, a weekly plan, coaching and introductions to local employers', 'their own progress and local roles that fit')],
@@ -229,6 +271,7 @@ const SPEC: Record<CustomerType, Spec> = {
     tone: 'Compliance-aware, respectful of public-sector constraints, specific about performance measures',
     ask: 'A call with the director and the Rapid Response coordinator',
     offer: { name: 'Rapid Response and dislocated-worker pilot', scope: ['NextChapter available at the next Rapid Response events', 'Coaching and job-search tools for dislocated workers', 'Participation reporting for the board'], theyProvide: ['A named owner', 'The next two layoff events for the pilot'], term: '90 days', price: NO_PRICE },
+    reviewNotes: [WIOA_NOTE],
     packages: [
       pkg('rr', 'Rapid Response add-on', 'A first step at your next layoff event', ['NextChapter introduced at the Rapid Response session', 'Self-serve tools and coaching for attendees', 'Participation report for the event']),
       pkg('program', 'Dislocated-worker program', 'White-collar clients who drop out of standard pathways', ['Everything in the add-on', 'Ongoing coaching between one-stop visits', 'Referrals to WIOA training where eligible', 'Monthly report for the board']),
@@ -246,6 +289,11 @@ const SPEC: Record<CustomerType, Spec> = {
       'a-faq': { bullets: ['Is this WIOA-funded? Not by default. We can scope a pilot on local, state or philanthropic funds.', 'Do you replace career advisors? No. Advisors keep the people who need training and supportive services.', 'What data does the board receive? Participation and outcomes in aggregate.'] },
     },
     extra: [
+      ['fit', 'w-wioa', wioaSlide('workforce boards', [
+        WIOA_STAT,
+        'Our offer is a professional-track complement for your dislocated workers. It can ride on Individual Training Accounts and on-the-job training, and on co-enrolment with your WIOA services, where your policy allows.',
+        'People stay enrolled with the board. We add coaching and a white-collar track, and refer back for training and supportive services. We do not bill WIOA.',
+      ]), { kind: 'stats' }],
       ['how', ...demo('d-rapid', 'Rapid Response session report', 'Board report · Rapid Response', [['Attended session', '120'], ['Signed up', '87'], ['Active at 30 days', '58'], ['Reported a new job', '14']], ['Event', 'Date', 'Signed up', 'Active at 30 days'], [['Employer A layoff', 'Sep 04', '41', '28'], ['Employer B layoff', 'Aug 19', '29', '19'], ['Employer C layoff', 'Aug 02', '17', '11']])],
       ['who', ...aud('workers', 'dislocated workers', 'support after the session ends', 'a plan, coaching and employer introductions', 'their own progress')],
       ['c-workers', ...aud('rr', 'the Rapid Response team', 'a follow-up that does not add to their workload', 'a ready add-on for each event', 'sign-up and activity after each event')],
@@ -262,6 +310,7 @@ const SPEC: Record<CustomerType, Spec> = {
     tone: 'Mission-aligned, funding-aware',
     ask: 'An intro call and a joint funding conversation',
     offer: { name: 'Program add-on pilot', scope: ['A white-collar track for your participants', 'Coaching and job-search tools', 'Outcome reporting you can use in grant reports'], theyProvide: ['A cohort of participants', 'A named program owner'], term: '90 days', price: NO_PRICE },
+    reviewNotes: [WIOA_NOTE],
     packages: [
       pkg('addon', 'Program add-on', 'Trying it with one cohort', ['Coaching and tools for a cohort', 'Cohort progress report']),
       pkg('track', 'White-collar track', 'A standing track for professionals', ['Everything in the add-on', 'Track curriculum alongside your programs', 'Grant-ready outcome reporting']),
@@ -279,6 +328,11 @@ const SPEC: Record<CustomerType, Spec> = {
       'a-faq': { bullets: ['Will staff need training? A short onboarding is included.', 'Can this be grant-funded? Often; we will help you scope it.', 'Who owns participant data? You and the participant, under your policies.'] },
     },
     extra: [
+      ['fit', 'w-wioa', wioaSlide('workforce nonprofits', [
+        WIOA_STAT,
+        'Participants who are also enrolled with {{board}} keep their WIOA services. The professional track can ride on Individual Training Accounts and on-the-job training, and on co-enrolment, where the board\'s policy allows.',
+        'Outcome reports show the professional track on its own, next to WIOA outcomes, for your funders.',
+      ]), { kind: 'stats' }],
       ['how', ...demo('d-cohort', 'Program cohort view', 'Program · White-collar track', [['Enrolled', '36'], ['Active this week', '27'], ['Interviewing', '11'], ['Placed', '6']], ['Participant', 'Stage', 'Last activity', 'Support needed'], [['Participant 1, operations', 'Interviewing', 'Today', 'None'], ['Participant 2, finance', 'Active', '2 days ago', 'Resume'], ['Participant 3, marketing', 'Stalled', '14 days ago', 'Check-in'], ['Participant 4, HR', 'Placed', '5 days ago', 'None']])],
       ['who', ...aud('participants', 'participants', 'a path that fits their experience', 'a plan, coaching and tools', 'their own progress')],
       ['c-participants', ...aud('staff', 'program staff', 'to serve more people without more hours', 'a ready track and a cohort view', 'who needs a check-in')],
@@ -328,6 +382,10 @@ const SPEC: Record<CustomerType, Spec> = {
     tone: 'Respectful of the people affected, no hype, quick to act',
     ask: 'A call this week, before the effective date',
     offer: { name: 'Transition benefit for departing employees', scope: ['Every departing employee gets coaching and job-search tools', 'A custom landing page for departing employees', 'Aggregate reporting to HR, never individual data without consent'], theyProvide: ['The list of affected employees or an invitation link', 'A named HR owner'], term: '6 months from notice', price: NO_PRICE },
+    reviewNotes: [
+      'AI layoff disclosure slides: counsel review is required before any use. State only what the report states, never a legal conclusion or a compliance promise.',
+      'SB 947, Connecticut SB 5 and the Colorado AG comment date (appendix slide) are not in the text of report v1.72. Confirm each against the primary source before presenting.',
+    ],
     packages: [
       pkg('standard', 'Transition benefit', 'A single layoff event', ['Landing page for departing employees', 'Coaching and job-search tools for each person', 'Aggregate report to HR']),
       pkg('plus', 'Transition plus manager support', 'A layoff where managers deliver the news', ['Everything in the standard benefit', 'Guidance for managers who stay', 'A FAQ for departing and remaining employees']),
@@ -345,6 +403,42 @@ const SPEC: Record<CustomerType, Spec> = {
       'a-faq': { bullets: ['Can HR see who is struggling? Only in aggregate; individuals choose what to share.', 'How fast can it start? Within days of an agreed scope.', 'Does it replace severance? No. It sits beside it.'] },
     },
     extra: [
+      ['cost', 'e-ai-rules', {
+        title: 'AI-related layoff disclosure rules are arriving', kicker: 'What is changing',
+        bullets: [
+          'California SB 951, signed September 30, 2026 and effective January 1, 2027, will require Cal-WARN layoff notices to state when a mass layoff is caused "in whole or in substantial part" by AI or other automated technology.',
+          'Notices will say how many jobs, which functions and what kind of technology. The state will publish quarterly summaries. New York has asked a similar voluntary question since March 2025.',
+          'A federal bill, the AI-Related Job Impacts Clarity Act, would require large employers to report AI-related layoffs to the Labor Department.',
+          'Colorado replaced its AI Act with a narrower law effective January 2027.',
+        ],
+        source: SOURCES.aiRules, callout: COUNSEL,
+        why: 'What is changing, in the report\'s own words and with its chapter cited. Wording stays as the report states it. The counsel-review note prints on the slide and cannot be removed from here.',
+      }],
+      ['solution', 'e-disclosure', {
+        title: 'A documented transition package and a disclosure-ready summary', kicker: 'The offer',
+        bullets: [
+          'A documented transition-support package for each affected group: coaching, job-search tools and a landing page, with start dates and participation recorded.',
+          'A disclosure-ready summary of what {{org}} is doing for affected people: who was offered support, what it includes and how many started, in aggregate.',
+          'The summary describes the support. It does not state a legal conclusion; counsel decides what is filed or said.',
+          'Individual detail is shared only with the person\'s consent.',
+        ],
+        callout: COUNSEL,
+        why: 'The offer that answers the rules: a package that is documented, plus a plain summary of it. No compliance promise. The counsel-review note prints on the slide.',
+      }],
+      ['a-faq', 'a-ai-rules', {
+        title: 'Appendix: AI layoff disclosure, dates to watch', kicker: 'Appendix', appendix: true,
+        bullets: [
+          'California SB 951: signed September 30, 2026; effective January 1, 2027.',
+          'California SB 947, "No Robo Bosses": signed September 30; effective July 1, 2027.',
+          'Connecticut SB 5: in effect October 1.',
+          'Colorado: Attorney General rule comments close October 26.',
+          'Federal: the AI-Related Job Impacts Clarity Act is proposed, not enacted.',
+          'New York: a voluntary AI question on WARN notices since March 2025.',
+        ],
+        source: `${SOURCES.aiRules} SB 947, Connecticut SB 5 and the Colorado date are not in the report text; confirm them against the primary source.`,
+        callout: COUNSEL,
+        why: 'Optional appendix for the employer who asks for dates. Counsel review required; confirm every date against the primary text before sending.',
+      }, { section: 'Appendix' }],
       ['how', ...demo('d-hr', 'HR view: aggregate progress', 'HR dashboard · Transition benefit', [['Invited', '120'], ['Started', '87'], ['Interviewing', '34'], ['New role reported', '22']], ['Week', 'Started', 'Active', 'Interviewing'], [['Week 1', '41', '39', '2'], ['Week 2', '63', '55', '9'], ['Week 4', '82', '61', '24'], ['Week 6', '87', '58', '34']])],
       ['who', ...aud('departing', 'departing employees', 'dignity, a plan and fast help', 'a plan, coaching and introductions from day one', 'their own progress')],
       ['c-departing', ...aud('hr', 'your HR team', 'a transition that reflects well on the company', 'a landing page, a FAQ and an aggregate report', 'participation and outcomes in aggregate')],
@@ -370,11 +464,12 @@ function build(spec: Spec): SlideRule[] {
     id, section, kind, enabled: true, title: '', bullets: [], ...p, ...(spec.patches[id] ?? {}), ...(spec.off?.includes(id) ? { enabled: false } : {}),
   }))
   // insert per-type extra slides after the slide they name, in order
-  for (const [after, id, patch] of spec.extra) {
+  for (const [after, id, patch, opts] of spec.extra) {
     const i = rules.findIndex((r) => r.id === after)
     const at = i < 0 ? rules.findIndex((r) => r.id === 'solution') : i
-    const kind: SlideRule['kind'] = id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : 'bullets'
-    rules.splice(at + 1, 0, { id, section: 'Solution', kind, enabled: true, title: '', bullets: [], ...patch })
+    const kind: SlideRule['kind'] = opts?.kind ?? (id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : 'bullets')
+    const section: SlideRule['section'] = opts?.section ?? (patch.appendix ? 'Appendix' : 'Solution')
+    rules.splice(at + 1, 0, { id, section, kind, enabled: true, title: '', bullets: [], ...patch })
   }
   return rules
 }
