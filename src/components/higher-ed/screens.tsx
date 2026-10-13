@@ -25,6 +25,9 @@ import { Label } from '@/components/ui/label'
 import { DoNotSolicitBadge } from './DoNotSolicitBadge'
 import { StatTile } from './StatTile'
 import { RegionScreen } from './RegionScreen'
+import { OutcomesScreen } from './OutcomesScreen'
+import { MentorsScreen } from './MentorsScreen'
+import { MentorStatsScreen } from './MentorStatsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
 import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
@@ -48,7 +51,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string }
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string }
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -1166,11 +1169,14 @@ export const COMING_DESCRIPTIONS: Record<string, string> = {
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
+  'candidate:mentors': MentorsScreen,
   'alumni:home': AlumniHome,
+  'alumni:mentors': MentorStatsScreen,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentHome,
   'development:transition': DevelopmentTransition,
   'career:home': CareerCaseload,
+  'career:outcomes': OutcomesScreen,
   'employer:home': EmployerDossiers,
   'alumni:region': Region,
     'career:region': Region,

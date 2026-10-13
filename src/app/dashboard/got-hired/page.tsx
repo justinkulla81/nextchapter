@@ -6,6 +6,8 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { EmployerOutcomeSharingCard } from '@/components/dashboard/EmployerOutcomeSharingCard'
+import { AgeBandForm, HireOutcomeForm, LastJobEndedForm } from '@/components/dashboard/HireOutcomeForm'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
 
@@ -27,12 +29,16 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
 
 export default async function GotHiredPage() {
   const profile = await getDashboardProfile()
-  const [latestClaim, dossierStatus] = await Promise.all([
+  const [latestClaim, dossierStatus, seats] = await Promise.all([
     prisma.bountyClaim.findFirst({
       where: { candidateId: profile.id },
       orderBy: { createdAt: 'desc' },
     }),
     isDossierUnlocked(profile.id),
+    prisma.outplacementSeat.findMany({
+      where: { candidateId: profile.id, status: 'ACTIVATED' },
+      select: { id: true, shareOutcomeWithEmployer: true, contract: { select: { org: { select: { name: true, programBrandName: true } } } } },
+    }),
   ])
 
   return (
@@ -45,6 +51,36 @@ export default async function GotHiredPage() {
         </p>
         <PageHeaderBoxes pageKey="got-hired" candidateId={profile.id} />
       </div>
+
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Where you are in your search</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add your last day worked so we compare you with people at the same stage, not with everyone.
+            </p>
+          </div>
+          <LastJobEndedForm current={profile.lastJobEndedAt ? profile.lastJobEndedAt.toISOString().slice(0, 10) : null} />
+          <AgeBandForm current={profile.ageBand} />
+        </CardContent>
+      </Card>
+
+      <EmployerOutcomeSharingCard
+        seats={seats.map((st) => ({ seatId: st.id, orgName: st.contract.org.programBrandName ?? st.contract.org.name, share: st.shareOutcomeWithEmployer }))}
+      />
+
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Tell us how it came together</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Full-time, interim, fractional or advisory work all count. This is separate from the Offer Bonus below and needs no
+              offer letter.
+            </p>
+          </div>
+          <HireOutcomeForm />
+        </CardContent>
+      </Card>
 
       {latestClaim && latestClaim.status !== 'REJECTED' ? (
         <Card>

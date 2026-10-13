@@ -9,6 +9,8 @@ import {
   getBoomerangSignal,
 } from '@/lib/employer/outplacement-reporting'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { OutcomeScorecardCard } from '@/components/employer/OutcomeScorecardCard'
+import { getEmployerOutcomeScorecard } from '@/lib/employer/outcome-scorecard-server'
 import { cn } from '@/lib/utils'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
@@ -53,12 +55,13 @@ export default async function EmployerReportingPage({
 
   const activeContract = contracts.find((c) => c.id === params.contractId) ?? contracts[0]
 
-  const [utilization, engagement, benchmarks, sentiment, boomerang] = await Promise.all([
+  const [utilization, engagement, benchmarks, sentiment, boomerang, outcomeScorecard] = await Promise.all([
     getSeatUtilization(orgUser, activeContract.id),
     getEngagementAggregates(orgUser, activeContract.id),
     getTimeToPlacementBenchmarks(orgUser),
     getAlumniSentiment(orgUser),
     getBoomerangSignal(orgUser),
+    getEmployerOutcomeScorecard(orgUser, activeContract.id),
   ])
 
   return (
@@ -90,6 +93,8 @@ export default async function EmployerReportingPage({
           ))}
         </div>
       )}
+
+      {outcomeScorecard && <OutcomeScorecardCard scorecard={outcomeScorecard} />}
 
       <Card>
         <CardHeader>

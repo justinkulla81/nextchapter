@@ -75,11 +75,17 @@ export default async function WorkSamplesPage() {
     )
   }
 
+  const aiWorkflowCount = profile.workSamples.filter((w) => w.sampleType === 'ai_workflow').length
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
         <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
+        <p className="text-sm text-muted-foreground">
+          AI workflows shipped: {aiWorkflowCount} of 3. Employers look for hands-on AI use in your own function, shown with a before and
+          after result.
+        </p>
       </div>
 
       <WorkSampleForm />
@@ -93,6 +99,12 @@ export default async function WorkSamplesPage() {
                 <div className="space-y-1">
                   <p className="font-medium">{sample.title}</p>
                   <p className="text-sm text-muted-foreground">{sample.description}</p>
+                  {sample.sampleType === 'ai_workflow' && (sample.beforeMetric || sample.afterMetric) && (
+                    <p className="text-sm text-foreground">
+                      Before: {sample.beforeMetric ?? 'not given'}. After: {sample.afterMetric ?? 'not given'}.
+                      {sample.aiToolsUsed ? ` Tools: ${sample.aiToolsUsed}.` : ''}
+                    </p>
+                  )}
                   {(sample.fileUrl || sample.externalUrl) && (
                     <a
                       href={sample.fileUrl ?? sample.externalUrl ?? '#'}

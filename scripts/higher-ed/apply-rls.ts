@@ -11,7 +11,7 @@ import { splitSqlStatements } from './sql-statements'
 
 async function main() {
   const prisma = new PrismaClient({ datasources: { db: { url: process.env.DIRECT_URL } } })
-  const files = ['prisma/sql/higher-ed-rls.sql', 'prisma/sql/higher-ed-views.sql']
+  const files = ['prisma/sql/higher-ed-rls.sql', 'prisma/sql/higher-ed-views.sql', 'prisma/sql/employer-outcomes.sql']
   const statements = files.flatMap((f) => splitSqlStatements(readFileSync(path.join(process.cwd(), f), 'utf8')))
   try {
     await prisma.$transaction(

@@ -40,6 +40,8 @@ const TRANSITION_ROLES: AccessToken[] = [
   'VIEWER:career',
 ]
 const ROI_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'DEVELOPMENT', 'VIEWER:development']
+// Aggregate re-employment outcomes by unemployment-duration bucket (never member rows).
+const OUTCOMES_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'DEVELOPMENT', 'VIEWER:career', 'VIEWER:development']
 // Sees every open caseload (the Career Services director).
 const CASELOAD_ALL_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'VIEWER:career']
 
@@ -213,6 +215,78 @@ export async function getRoiInputs(ctx: Ctx, db: Db = prisma): Promise<RoiInputs
     from private.v_roi_inputs
     where "institutionId" = ${ctx.institution.id}`
   return rows[0] ?? null
+}
+
+export type OutcomesByBucketRow = {
+  bucket: string
+  members: number
+  personWeeks: number
+  reemployed: number
+  hiresAll: number
+  interimHires: number
+  warmSourced: number
+  withPay: number
+  tookCut: number
+  medianPayRetention: number | null
+}
+
+// Career Services "Outcomes" tab (outcomes release). Aggregates only; consent
+// (SHARE_OUTCOME) is applied in the SQL view. The caller must still suppress
+// small cells (src/lib/outcomes/institution-outcomes.ts does).
+export async function getOutcomesByBucket(ctx: Ctx, db: Db = prisma): Promise<OutcomesByBucketRow[]> {
+  assertHolds(ctx, OUTCOMES_ROLES, 'outcomes')
+  return db.$queryRaw<OutcomesByBucketRow[]>`
+    select bucket, members, "personWeeks", reemployed, "hiresAll", "interimHires", "warmSourced", "withPay", "tookCut", "medianPayRetention"
+    from private.v_outcomes_by_bucket
+    where "institutionId" = ${ctx.institution.id}`
+}
+
+export type MentorStats = {
+  activeMentors: number
+  requestsThisMonth: number
+  acceptedThisMonth: number
+  completedThisMonth: number
+  completedAllTime: number
+  topIndustries: { tag: string; mentors: number }[]
+  topFunctions: { tag: string; mentors: number }[]
+}
+
+const MENTOR_STAFF_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'VIEWER:alumni']
+const MIN_TAG_MENTORS = 3 // a tag with fewer mentors could point at one person
+
+// Alumni Relations "Mentors" tab. Counts only: no mentor or requester names, no
+// request notes. Tags shown only when at least three mentors share them.
+export async function getMentorStats(ctx: Ctx, db: Db = prisma): Promise<MentorStats> {
+  assertHolds(ctx, MENTOR_STAFF_ROLES, 'mentor stats')
+  const institutionId = ctx.institution.id
+  const now = new Date()
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const [mentors, requests, completedAllTime] = await Promise.all([
+    db.institutionMentor.findMany({ where: { institutionId, isActive: true }, select: { industries: true, functions: true } }),
+    db.mentorRequest.findMany({ where: { mentor: { institutionId }, requestedAt: { gte: monthStart } }, select: { status: true } }),
+    db.mentorRequest.count({ where: { mentor: { institutionId }, status: 'COMPLETED' } }),
+  ])
+  const tally = (key: 'industries' | 'functions') => {
+    const m = new Map<string, { tag: string; mentors: number }>()
+    for (const x of mentors) {
+      for (const t of new Set(x[key].map((v) => v.toLowerCase()))) {
+        const original = x[key].find((v) => v.toLowerCase() === t) ?? t
+        const e = m.get(t) ?? { tag: original, mentors: 0 }
+        e.mentors += 1
+        m.set(t, e)
+      }
+    }
+    return [...m.values()].filter((e) => e.mentors >= MIN_TAG_MENTORS).sort((a, b) => b.mentors - a.mentors).slice(0, 6)
+  }
+  return {
+    activeMentors: mentors.length,
+    requestsThisMonth: requests.length,
+    acceptedThisMonth: requests.filter((r) => r.status === 'ACCEPTED' || r.status === 'COMPLETED').length,
+    completedThisMonth: requests.filter((r) => r.status === 'COMPLETED').length,
+    completedAllTime,
+    topIndustries: tally('industries'),
+    topFunctions: tally('functions'),
+  }
 }
 
 export type AlumniHomeCounts = { members: number; claimed: number; activeSeats: number; inTransition: number }
