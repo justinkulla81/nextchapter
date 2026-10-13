@@ -1,3 +1,4 @@
+import { STAGE_GUIDE, STAGE_ORDER, stageName } from '@/lib/journey/stage-guide'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -114,6 +115,31 @@ export default function HowItWorksPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mx-auto mt-20 max-w-4xl">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-navy">Help for wherever you are</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+            Your plan, your menu and your emails follow your situation, so you only see what helps right now. Looking casually while you do
+            fractional work? Same tools, a lighter pace.
+          </p>
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2">
+            {STAGE_ORDER.map((stage) => {
+              const g = STAGE_GUIDE[stage]
+              return (
+                <li key={stage} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold tracking-widest text-brand uppercase">{stageName(stage)}</p>
+                  <h3 className="mt-1 font-semibold text-navy">{g.marketing.headline}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{g.marketing.body}</p>
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foreground">
+                    {g.activities.slice(0, 3).map((a) => (
+                      <li key={a.activity}>{a.activity}</li>
+                    ))}
+                  </ul>
+                </li>
+              )
+            })}
+          </ol>
         </div>
 
         <div className="mx-auto mt-16 max-w-2xl text-center">

@@ -101,6 +101,16 @@ describe('daily pop-up', () => {
   })
 })
 
+describe('daily pop-up and stalled searches', () => {
+  const args = { appliedThisWeek: 0, weeklyGoal: 15, checkedInThisWeek: true, lastShownByKind: {} }
+  it('asks to apply by default in an active search', () => {
+    expect(chooseCheckInKind({ ...args, lastShownByKind: { NETWORK_COMMIT: new Date() } })).toBe('APPLY_COMMIT')
+  })
+  it('asks for a conversation instead when applications are not working, or the search is casual', () => {
+    expect(chooseCheckInKind({ ...args, skipApply: true })).toBe('NETWORK_COMMIT')
+  })
+})
+
 describe('VP-and-up promotions (spec §6.4)', () => {
   it('flags VP, C-suite, President and Head of; not directors or managers', async () => {
     const { isVpPlus } = await import('@/lib/higher-ed/transition')

@@ -17,6 +17,10 @@ export type EngagementSignals = {
   journey: JourneyType | null
   stage: JourneyStage | null
   tone: CoachingStylePreference | null
+  // Looking casually (open to the right thing) rather than actively; and doing
+  // fractional, interim or part-time work right now. See ./intensity.ts.
+  casual: boolean
+  workingNow: boolean
   weeksInStage: number
   gmail: boolean
   calendar: boolean
@@ -165,15 +169,25 @@ export type GateMove = { headline: string; body: string; cta: string; href: stri
 
 const MIN_WEEKS_FOR_GATE = 3
 
+// True when more applications is the advice that has stopped working: the gate
+// is open and applications are not turning into interviews or offers.
+export function stallsOnApplications(s: EngagementSignals): boolean {
+  const move = gateMove(s)
+  const pattern = searchPattern(s)
+  return !!move && (pattern === 'APPLYING_NO_INTERVIEWS' || pattern === 'INTERVIEWS_NO_OFFERS')
+}
+
 // When a search has run a while without the result it should have, the next
 // move changes with what is actually happening. Different things to try, by
 // pattern and how long it has run, never the same advice again.
-export function gateMove(s: EngagementSignals): GateMove | null {
+function gateMoveFor(s: EngagementSignals): GateMove | null {
   const pattern = searchPattern(s)
   if (!pattern || pattern === 'MOVING') return null
-  const w = s.weeksInStage
+  // A casual search runs at half the pace: the gates open twice as late, and a
+  // search that has not "started" is not a problem for someone who is open, not pushing.
+  const w = s.casual ? Math.floor(s.weeksInStage / 2) : s.weeksInStage
   if (pattern === 'NOT_STARTED') {
-    if (w < 1) return null
+    if (s.casual || w < 1) return null
     return {
       headline: 'Your search has not started yet',
       body: 'Nothing is logged: no applications and no conversations. The first five reach-outs matter more than the next five hours of reading.',
@@ -231,6 +245,13 @@ export function gateMove(s: EngagementSignals): GateMove | null {
       { text: 'Ask for feedback after your last interview', actionType: 'FOLLOW_UP_NOTE_SENT' },
     ],
   }
+}
+
+export function gateMove(s: EngagementSignals): GateMove | null {
+  const move = gateMoveFor(s)
+  if (!move || !s.casual) return move
+  // The headline shows the real weeks, not the halved count the gate used.
+  return { ...move, headline: move.headline.replace(/^\d+ weeks/, `${s.weeksInStage} weeks`), body: `${move.body} You are looking casually, so make one change, not a full push.` }
 }
 
 // The tone preference decides how the same fact is said, never what is said.

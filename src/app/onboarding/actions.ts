@@ -16,6 +16,7 @@ import {
   SITUATION_TO_JOURNEY,
   type SituationKey,
 } from '@/lib/constants/onboarding'
+import { INTENSITY_OPTIONS, intensityFromTiming } from '@/lib/journey/intensity'
 import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { APPLY_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForTiming, type ApplyTiming, type MoveDriver } from '@/lib/journey/journey'
@@ -213,6 +214,9 @@ export async function updateLocationAndSearchStatus(
   const travelWillingness = formData.get('travelWillingness') === 'on'
   const aiDisplacementReason = (formData.get('aiDisplacementReason') as string | null) || null
 
+  const intensityRaw = formData.get('searchIntensity') as string | null
+  const searchIntensityPicked = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
+  const workingNow = formData.get('workingNow') === 'on'
   const coachingStyleRaw = formData.get('coachingStylePreference') as string | null
   const coachingStylePreference = COACHING_STYLE_OPTIONS.find((o) => o.value === coachingStyleRaw)?.value ?? null
   const moveDriverRaw = formData.get('moveDriver') as string | null
@@ -246,6 +250,8 @@ export async function updateLocationAndSearchStatus(
     }
   } else if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
     return { error: 'Please tell us how long you have been searching before continuing.' }
+  } else if (!searchIntensityPicked) {
+    return { error: 'Please tell us how actively you are looking before continuing.' }
   }
   if (searching && !justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
     return { error: 'Please answer both search-status questions, or check "I just started" above.' }
@@ -273,6 +279,13 @@ export async function updateLocationAndSearchStatus(
       onboardingSearchStatusConfirmedAt: now,
       networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
       ...(coachingStylePreference ? { coachingStylePreference } : {}),
+      // Employed members: how soon they want to apply is how hard they are looking.
+      // Everyone else tells us directly (active, or casual and open to the right thing).
+      ...(employed && searching && applyTiming
+        ? { searchIntensity: intensityFromTiming(applyTiming) }
+        : searchIntensityPicked
+          ? { searchIntensity: searchIntensityPicked }
+          : {}),
       networkComfortBonusAt: now,
       onboardingComfortConfirmedAt: now,
     },
@@ -284,6 +297,8 @@ export async function updateLocationAndSearchStatus(
       details: { applyTiming, ...(journey === 'EXPLORING_MOVE' && moveDriver ? { moveDriver } : {}) },
       source: 'ONBOARDING',
     })
+  } else if (searching && !employed && workingNow) {
+    await applyJourneyChange(candidateId, { details: { workingNow: true }, source: 'ONBOARDING' })
   }
 
   revalidatePath('/onboarding', 'layout')

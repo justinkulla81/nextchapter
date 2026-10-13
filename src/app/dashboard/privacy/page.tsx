@@ -105,7 +105,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity} />
       </div>
 
       <AffiliationVisibilityCard affiliations={affiliations} />

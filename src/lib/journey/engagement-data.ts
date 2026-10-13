@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { DOSSIER_REFERENCE_TARGET, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { effectiveJourney, effectiveStage } from './journey'
+import { workingNowOf } from './intensity'
 import { engagementLead, engagementPlanItems, type EngagementSignals } from './engagement'
 
 const WEEK = 7 * 86_400_000
@@ -22,6 +24,9 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
       journeyStageChangedAt: true,
       createdAt: true,
       coachingStylePreference: true,
+      searchIntensity: true,
+      jobSearchDifficultyLevel: true,
+      journeyDetails: true,
       skillsAssessmentCompletedAt: true,
       linkedinConnectionsImportedAt: true,
       linkedInConnection: { select: { disconnectedAt: true } },
@@ -45,6 +50,8 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     journey: effectiveJourney(p),
     stage: effectiveStage(p),
     tone: p.coachingStylePreference,
+    casual: isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
+    workingNow: workingNowOf(p.journeyDetails),
     weeksInStage: Math.max(0, Math.floor((now.getTime() - since.getTime()) / WEEK)),
     gmail,
     calendar: !!calendar,

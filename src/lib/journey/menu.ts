@@ -63,10 +63,22 @@ export const PILLAR_ORDER: Record<MenuMode, Pillar[]> = {
   LANDED: ['career', 'prove', 'network', 'learn', 'coach', 'plan', 'support'],
 }
 
+// The phone's bottom bar has room for four tabs: Home, one situational tab,
+// Network and Profile. The situational tab is the main thing to do right now.
+export type MobileTab = 'jobs' | 'plan' | 'worth' | 'first90'
+
+export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
+  EXPLORING: 'plan',
+  PREPARING: 'jobs',
+  ACTIVE: 'jobs',
+  STAYING: 'worth',
+  LANDED: 'first90',
+}
+
 export type Visibility = 'show' | 'locked' | 'hide'
 
 export type MenuItemKey =
-  | 'strategy' | 'profile' | 'assessments' | 'marketReality'
+  | 'strategy' | 'profile' | 'assessments' | 'marketReality' | 'worth'
   | 'references' | 'portfolio' | 'marketing'
   | 'jobs' | 'companies' | 'interviewPrep' | 'offer' | 'marketIntel'
   | 'network' | 'contacts' | 'community' | 'inbox' | 'recruiter' | 'universities' | 'collegeBenefits'
@@ -74,10 +86,55 @@ export type MenuItemKey =
   | 'coach'
   | 'interim' | 'eqoveriq'
   | 'stats' | 'benefits' | 'struggling' | 'membership' | 'help' | 'privacy' | 'faq'
-  | 'growWorth' | 'growResults' | 'growSkills' | 'growConversation' | 'growStyle'
+  | 'growWorth' | 'growCase' | 'growResults' | 'growSkills' | 'growConversation' | 'growStyle'
   | 'careerFirst90' | 'careerWorth' | 'careerNetwork'
 
 type Rule = { pillar: Pillar; modes?: Partial<Record<MenuMode, Visibility>>; pillarIn?: Partial<Record<MenuMode, Pillar>> }
+
+// What each tool is called in the menu. The sidebar and the stage guide both read this.
+export const MENU_LABELS: Record<MenuItemKey, string> = {
+  strategy: "My Search Strategy",
+  profile: "My Profile",
+  assessments: "Skills & Behavioral Assessments",
+  marketReality: "Market Reality Report",
+  worth: "Know your worth",
+  references: "My References",
+  portfolio: "My Portfolio",
+  marketing: "My Marketing Plan",
+  jobs: "Find a Full-time Job",
+  companies: "Companies",
+  interviewPrep: "Interview Prep",
+  offer: "Got An Offer 🎉",
+  marketIntel: "Market Intelligence",
+  network: "Network with Contacts",
+  contacts: "My Contacts",
+  community: "NextChapter Community",
+  inbox: "My Inbox",
+  recruiter: "Executive Recruiter",
+  universities: "Universities",
+  collegeBenefits: "Higher Education Career Services and Benefits",
+  learning: "Learn New Skills",
+  webinars: "Videos and Webinars",
+  coach: "Executive Coach",
+  interim: "Find Interim Work",
+  eqoveriq: "EQoverIQ — Fractional AI Work",
+  stats: "My Stats",
+  benefits: "Benefits & Financial Bridge",
+  struggling: "I'm Struggling",
+  membership: "Membership",
+  help: "Help & feedback",
+  privacy: "Privacy Settings",
+  faq: "FAQ",
+  growWorth: "Know your worth",
+  growCase: "Build your case",
+  growResults: "Prove your results",
+  growSkills: "Build new skills",
+  growConversation: "Practice the hard conversation",
+  growStyle: "Know how you work",
+  careerFirst90: "Your first 90 days",
+  careerWorth: "Know your worth",
+  careerNetwork: "Thank the people who helped",
+}
 
 const L = 'locked' as const
 const H = 'hide' as const
@@ -92,6 +149,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   profile: { pillar: 'plan' },
   assessments: { pillar: 'plan' },
   marketReality: { pillar: 'plan' },
+  // Where your pay sits. In the manage-your-career menus it is the grow / career item instead.
+  worth: { pillar: 'plan', modes: { STAYING: H, LANDED: H } },
   // Prove it
   references: { pillar: 'prove' },
   portfolio: { pillar: 'prove' },
@@ -128,6 +187,7 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   faq: { pillar: 'support' },
   // Manage your career (staying in a job, going for a promotion)
   growWorth: { pillar: 'grow' },
+  growCase: { pillar: 'grow' },
   growResults: { pillar: 'grow' },
   growSkills: { pillar: 'grow' },
   growConversation: { pillar: 'grow' },

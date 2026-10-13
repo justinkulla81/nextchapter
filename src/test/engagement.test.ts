@@ -6,6 +6,8 @@ const base: EngagementSignals = {
   journey: 'LAID_OFF',
   stage: 'APPLYING',
   tone: null,
+  casual: false,
+  workingNow: false,
   weeksInStage: 1,
   gmail: true,
   calendar: true,

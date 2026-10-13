@@ -36,7 +36,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 
 ## 3. Statuses (how close you are to applying): 7
 
-There is **no "on a break"**. Someone who is not looking is *managing their career*.
+There is **no "on a break"**. Someone who is not looking is *managing their career*. Each stage's key activities, the feature for each, the menu, the emails and the marketing text are in `docs/CANDIDATE_STAGES.md` (generated from code: `npm run docs:stages`).
 
 | Stage | What the plan does | Check-in pace | Menu mode |
 |---|---|---|---|
@@ -52,6 +52,23 @@ Application tasks and the daily "apply" pop-up appear only in Applying, Intervie
 database reads as Managing your career. Managing-your-career and Landed members get no job-listing emails (Job Search Daily,
 fresh job alerts).
 
+### Active or casual (how hard you are looking)
+
+A second setting, separate from the stage. Someone doing fractional or interim work who is open to something better looks *casually*;
+someone who needs a role soon looks *actively*. Asked in onboarding (employed members: their "when do you want to start applying?" answer sets it)
+and changeable on Privacy.
+
+| | Actively looking | Casually looking |
+|---|---|---|
+| Weekly plan | Applications, outreach, gates | Light: look through strong-fit roles, one conversation, keep references and Dossier current; no application volume |
+| Stalled-search steps | Weeks 3, 6, 9, 13 | Twice as late (6, 12, 18, 26); "one change, not a full push" |
+| Search not started | Prompted to send the first five messages | Not treated as a problem |
+| Daily pop-up | Asks for applications unless that advice has stopped working | Never asks for applications; asks for a conversation |
+| Emails | Everything | No daily, midweek or Friday progress emails; keeps the Monday plan, Saturday check-in and job alerts |
+| Victoria's tone | Follows tenure and preference | Stays gentle |
+
+Once a casual searcher is interviewing, application tasks come back; the lighter email cadence stays.
+
 ### How status changes
 - **"Has anything changed?"** (dashboard, Saturday email, college check-ins). Answers: Nothing yet; I'm ready to start applying;
   I'm interviewing; I was laid off; I got an offer; I started a new job or got promoted; **I'm not looking right now, I want to manage my career**.
@@ -63,7 +80,7 @@ fresh job alerts).
 ## 4. Onboarding
 
 Situation (pick a journey) → Résumé → Confirm what we read → Location, search status (timing for employed journeys; what's behind the move),
-**how you like to be pushed** (tough love / gentle / a mix), comfort reaching out → Contract (notification tier, SMS) →
+**how actively you are looking** (actively, or casually and open to the right thing; plus whether you are doing fractional or interim work now), **how you like to be pushed** (tough love / gentle / a mix), comfort reaching out → Contract (notification tier, SMS) →
 Coach consent and coaching form (only with a coach) → Score reveal → Create account → Welcome (first weekly plan).
 Optional later: How I Work Best.
 
@@ -88,7 +105,7 @@ Existing locks stay: Gmail (Network, Jobs, Interim, Contacts), LinkedIn (Marketi
 
 ## 6. Personalization (what shapes what a member sees)
 
-Journey · stage · what's behind the move · feedback tone · connections · results so far. These drive: the weekly plan, the Market
+Journey · stage · active or casual · what's behind the move · feedback tone · connections · results so far. These drive: the weekly plan, the Market
 Reality Report framing, Search Strategy wording, the dashboard card, the menu, connect-account reasons ("why connect Gmail" says something different
 to a laid-off member than to someone managing their career), the check-in pace, and every weekly email.
 
@@ -131,6 +148,7 @@ Certified Executive Dossier with share links (7 days / 30 days / never), recruit
 **Network:** contact list, LinkedIn CSV import, outreach logging, follow-up queue, Gmail and Calendar activity, community (posts, encouragement, leaderboards), inbox, colleges and benefits network.
 **Learn and coach:** skills, courses, certificates, AI-project logging, videos and webinars; executive coach and coach match, coaching form and dossier mirror.
 **Work now:** interim, fractional and board roles, launch-plan tracker, EQoverIQ.
+**Know your worth and build your case:** Know your worth (`/dashboard/pay`: where your pay sits against advertised pay for your role, the market for your role, what matters besides pay from What I Need and your benefits priorities) and Build your case (`/dashboard/review-prep`: Track Record, work samples, approved reference quotes and learning turned into a case for a review, raise or promotion, with what is missing and three things to settle before you walk in).
 **Understand yourself:** Market Reality Report (with ATS matrix), Skills Inventory, Work Interests, How I Perform, Track Record, What I Need, How I Work Best.
 **Support:** I'm Struggling, benefits and financial bridge (runway), help and feedback.
 **Privacy:** privacy tier, Confidential Search Mode (default on for employed journeys), coach access, share links, college outcome sharing, account deletion.
@@ -139,13 +157,21 @@ Certified Executive Dossier with share links (7 days / 30 days / never), recruit
 
 Homepage (coach hero, "a coach that has read everything you have done", "searching for too long? the plan changes", the journey cards), nine path pages at
 `/start/[path]` (thinking about a move, managing my career, laid off, resigned, returning, promotion, career change, new grad, next act, **searching too long**),
-How it works, college alumni pages, `/why-stuck`, `/layoffs`, `/unemployment-benefits/[state]`, reports, news, pricing, FAQ.
+How it works (including a "Help for wherever you are" section with each stage's marketing text and key activities), college alumni pages, `/why-stuck`, `/layoffs`, `/unemployment-benefits/[state]`, reports, news, pricing, FAQ.
 
-## 12. Known gaps
+## 12. What was closed, and what is still open
 
-- No dedicated **pay-benchmark** or **review-prep** page yet; "Know your worth" opens the Market Reality Report and "Practice the hard conversation" opens Interview Prep.
-- Workforce board and company hiring funnel are defined in the visibility rules but have no member link in the data yet.
-- Time gates reach the plan, dashboard card and three emails; the daily pop-up does not yet use the stalled-search pattern.
-- Track Record, What I Need, Red Flags and Benefits Priorities collect data that (per `docs/OPEN_ITEMS.md`, 2026-08-14) did not feed scoring or reports.
-- The mobile bottom bar does not change by status.
+**Closed**
+- Pay benchmark and review prep now exist (Know your worth, Build your case) and use Track Record, What I Need and Benefits priorities, which had no use before.
+- The daily pop-up now reads the search pattern (no "apply to N" when applications are not working or the search is casual).
+- The phone's bottom bar changes with the situation (Plan, Jobs, My worth or New job as the situational tab).
+- Employer hiring funnels appear on the Privacy page for every employer the member has revealed themselves to.
+- Active versus casual is now collected and used.
+
+**Still open**
+- **Workforce boards** have no member link in the data model. Joining one is a product decision (how a member connects, what the board may see).
+- **Red Flags and Benefits & Compensation red-line answers** (restrictive covenant, fired for cause, drug test, background check) are collected but deliberately not shown to anyone: surfacing them to recruiters could harm the member and needs a product and legal decision.
+- **Know your worth** compares pay with *advertised* pay (Adzuna); it is an estimate and says so. Company-level offered wages (H-1B filings) are not matched to the member's role yet.
+- **Build your case** is a read-only page; the member's own ask (number, reasons, walk-away) is guidance, not saved.
+- Weekly points targets are the same for casual and active searchers (the pressure emails are skipped for casual searchers, the target itself is not changed).
 - Database change required before deploy: `prisma/manual/2026-10-13-growing-journey.sql`.

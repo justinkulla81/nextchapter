@@ -43,7 +43,7 @@ import {
 } from 'lucide-react'
 import { connectReason } from '@/lib/journey/engagement'
 import type { JourneyStage, JourneyType } from '@/lib/journey/journey'
-import { PILLAR_ORDER, PILLAR_TITLES, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
+import { MENU_LABELS, MOBILE_TAB, PILLAR_ORDER, PILLAR_TITLES, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
 import { StatusUnlockBox } from '@/components/dashboard/StatusUnlockBox'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
@@ -129,39 +129,40 @@ function buildSections(o: {
 
   const items: MenuLink[] = [
     // Personalize
-    { key: 'strategy', href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
-    { key: 'profile', href: '/dashboard/profile', label: 'My Profile', icon: User },
-    { key: 'assessments', href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
-    { key: 'marketReality', href: '/dashboard/market-reality', label: 'Market Reality Report', icon: LineChart },
+    { key: 'strategy', href: '/dashboard/search-strategy', label: MENU_LABELS.strategy, icon: Target },
+    { key: 'profile', href: '/dashboard/profile', label: MENU_LABELS.profile, icon: User },
+    { key: 'assessments', href: '/dashboard/skills-assessments', label: MENU_LABELS.assessments, icon: ClipboardCheck },
+    { key: 'marketReality', href: '/dashboard/market-reality', label: MENU_LABELS.marketReality, icon: LineChart },
+    { key: 'worth', href: '/dashboard/pay', label: MENU_LABELS.worth, icon: LineChart },
     // Prove it
-    { key: 'references', href: '/dashboard/references', label: 'My References', icon: Star },
+    { key: 'references', href: '/dashboard/references', label: MENU_LABELS.references, icon: Star },
     {
       key: 'portfolio',
       href: '/dashboard/portfolio',
-      label: 'My Portfolio',
+      label: MENU_LABELS.portfolio,
       icon: FolderOpen,
       badge: o.portfolioAssetCount > 0 ? String(o.portfolioAssetCount) : undefined,
     },
-    { key: 'marketing', href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
+    { key: 'marketing', href: '/dashboard/marketing-plan', label: MENU_LABELS.marketing, icon: Megaphone, ...linkedInLock },
     // Search and apply
-    { key: 'jobs', href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+    { key: 'jobs', href: '/dashboard/find-my-job', label: MENU_LABELS.jobs, icon: Briefcase, ...gmailLock },
     {
       key: 'companies',
       href: '/dashboard/companies',
-      label: 'Companies',
+      label: MENU_LABELS.companies,
       icon: Landmark,
       // Companies that newly became a strong fit since the member last opened
       // the directory — see countNewStrongCompanies.
       badge: o.newStrongCompaniesCount > 0 ? String(o.newStrongCompaniesCount) : undefined,
     },
-    { key: 'interviewPrep', href: '/dashboard/interview-prep', label: 'Interview Prep', icon: MessageSquare },
-    { key: 'offer', href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
-    { key: 'marketIntel', href: '/dashboard/premium', label: 'Market Intelligence', icon: LineChart, badge: 'Premium' },
+    { key: 'interviewPrep', href: '/dashboard/interview-prep', label: MENU_LABELS.interviewPrep, icon: MessageSquare },
+    { key: 'offer', href: '/dashboard/got-hired', label: MENU_LABELS.offer, icon: PartyPopper },
+    { key: 'marketIntel', href: '/dashboard/premium', label: MENU_LABELS.marketIntel, icon: LineChart, badge: 'Premium' },
     // Network
     {
       key: 'network',
       href: '/dashboard/network',
-      label: 'Network with Contacts',
+      label: MENU_LABELS.network,
       icon: Users,
       // People who've met with or heard from the candidate with no thank-you or
       // follow-up sent yet (needs-follow-up.ts): a specific, live reason to visit.
@@ -171,7 +172,7 @@ function buildSections(o: {
     {
       key: 'contacts',
       href: '/dashboard/network/contacts',
-      label: 'My Contacts',
+      label: MENU_LABELS.contacts,
       icon: Contact,
       badge: o.activeContactsCount > 0 ? String(o.activeContactsCount) : undefined,
       ...gmailLock,
@@ -179,56 +180,57 @@ function buildSections(o: {
     {
       key: 'community',
       href: '/dashboard/community',
-      label: 'NextChapter Community',
+      label: MENU_LABELS.community,
       icon: MessageCircle,
       badge: o.supportNetworkUnreadCount > 0 ? String(o.supportNetworkUnreadCount) : undefined,
     },
     {
       key: 'inbox',
       href: '/dashboard/messages',
-      label: 'My Inbox',
+      label: MENU_LABELS.inbox,
       icon: Inbox,
       badge: o.messagesUnreadCount > 0 ? String(o.messagesUnreadCount) : undefined,
     },
-    { key: 'recruiter', href: '/dashboard/premium', label: 'Executive Recruiter', icon: Building2, badge: 'Premium', ...membershipLock },
-    { key: 'universities', href: '/dashboard/universities', label: 'Universities', icon: School },
-    { key: 'collegeBenefits', href: '/dashboard/benefits-network', label: 'Higher Education Career Services and Benefits', icon: Gift },
+    { key: 'recruiter', href: '/dashboard/premium', label: MENU_LABELS.recruiter, icon: Building2, badge: 'Premium', ...membershipLock },
+    { key: 'universities', href: '/dashboard/universities', label: MENU_LABELS.universities, icon: School },
+    { key: 'collegeBenefits', href: '/dashboard/benefits-network', label: MENU_LABELS.collegeBenefits, icon: Gift },
     // Learn
-    { key: 'learning', href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
-    { key: 'webinars', href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
+    { key: 'learning', href: '/dashboard/learning', label: MENU_LABELS.learning, icon: BookOpen, ...skillsLock },
+    { key: 'webinars', href: '/dashboard/webinars', label: MENU_LABELS.webinars, icon: Video, ...skillsLock },
     // Coaching: a real monetization surface, kept visible in every situation.
-    { key: 'coach', href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
+    { key: 'coach', href: '/dashboard/premium', label: MENU_LABELS.coach, icon: GraduationCap, badge: 'Premium', ...membershipLock },
     // Work now
-    { key: 'interim', href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
+    { key: 'interim', href: '/dashboard/interim-work', label: MENU_LABELS.interim, icon: Repeat, ...gmailLock },
     // Only offered once we positively know the candidate is NOT entry-level
     // (isEarlyCareer === null fails closed): EQoverIQ's audience is senior only.
     ...(o.isEarlyCareer === false
-      ? [{ key: 'eqoveriq' as const, href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
+      ? [{ key: 'eqoveriq' as const, href: '/eqoveriq', label: MENU_LABELS.eqoveriq, icon: Sparkles }]
       : []),
     // Support and settings
-    { key: 'stats', href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
-    { key: 'benefits', href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
-    { key: 'struggling', href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
-    { key: 'membership', href: '/dashboard/membership', label: 'Membership', icon: Award },
+    { key: 'stats', href: '/dashboard/stats', label: MENU_LABELS.stats, icon: BarChart3 },
+    { key: 'benefits', href: '/dashboard/benefits', label: MENU_LABELS.benefits, icon: HeartHandshake },
+    { key: 'struggling', href: '/dashboard/support', label: MENU_LABELS.struggling, icon: LifeBuoy },
+    { key: 'membership', href: '/dashboard/membership', label: MENU_LABELS.membership, icon: Award },
     {
       key: 'help',
       href: '/dashboard/help',
-      label: 'Help & feedback',
+      label: MENU_LABELS.help,
       icon: MessageSquare,
       badge: o.helpRepliesWaiting > 0 ? String(o.helpRepliesWaiting) : undefined,
     },
-    { key: 'privacy', href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
-    { key: 'faq', href: '/faq', label: 'FAQ', icon: HelpCircle },
+    { key: 'privacy', href: '/dashboard/privacy', label: MENU_LABELS.privacy, icon: Shield },
+    { key: 'faq', href: '/faq', label: MENU_LABELS.faq, icon: HelpCircle },
     // Manage your career (staying put)
-    { key: 'growWorth', href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
-    { key: 'growResults', href: '/dashboard/track-record', label: 'Prove your results', icon: ClipboardCheck },
-    { key: 'growSkills', href: '/dashboard/learning', label: 'Build new skills', icon: BookOpen, ...skillsLock },
-    { key: 'growConversation', href: '/dashboard/interview-prep', label: 'Practice the hard conversation', icon: MessageCircle },
-    { key: 'growStyle', href: '/dashboard/how-i-perform', label: 'Know how you work', icon: User },
+    { key: 'growWorth', href: '/dashboard/pay', label: MENU_LABELS.growWorth, icon: LineChart },
+    { key: 'growCase', href: '/dashboard/review-prep', label: MENU_LABELS.growCase, icon: ClipboardCheck },
+    { key: 'growResults', href: '/dashboard/track-record', label: MENU_LABELS.growResults, icon: ClipboardCheck },
+    { key: 'growSkills', href: '/dashboard/learning', label: MENU_LABELS.growSkills, icon: BookOpen, ...skillsLock },
+    { key: 'growConversation', href: '/dashboard/interview-prep', label: MENU_LABELS.growConversation, icon: MessageCircle },
+    { key: 'growStyle', href: '/dashboard/how-i-perform', label: MENU_LABELS.growStyle, icon: User },
     // Manage your career (just landed)
-    { key: 'careerFirst90', href: '/dashboard', label: 'Your first 90 days', icon: Home },
-    { key: 'careerWorth', href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
-    { key: 'careerNetwork', href: '/dashboard/network', label: 'Thank the people who helped', icon: Users, ...gmailLock },
+    { key: 'careerFirst90', href: '/dashboard', label: MENU_LABELS.careerFirst90, icon: Home },
+    { key: 'careerWorth', href: '/dashboard/pay', label: MENU_LABELS.careerWorth, icon: LineChart },
+    { key: 'careerNetwork', href: '/dashboard/network', label: MENU_LABELS.careerNetwork, icon: Users, ...gmailLock },
   ]
 
   // Tools the member's current situation turns off: muted, with the reason and
@@ -428,12 +430,21 @@ function NavContent({
 // destinations (Prompt 83 point 11 predates that lock and never applied it
 // here — mobile could always tap through to a page the desktop sidebar
 // treated as locked, an inconsistency this closes).
-const MOBILE_TABS = [
-  { href: '/dashboard', label: 'Home', icon: Home },
-  { href: '/dashboard/find-my-job', label: 'Jobs', icon: Briefcase, locksOn: 'gmail' as const },
-  { href: '/dashboard/network', label: 'Network', icon: Users, locksOn: 'gmail' as const },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
-] as const
+const SITUATIONAL_TAB = {
+  jobs: { href: '/dashboard/find-my-job', label: 'Jobs', icon: Briefcase, locksOn: 'gmail' as const },
+  plan: { href: '/dashboard/search-strategy', label: 'Plan', icon: Target },
+  worth: { href: '/dashboard/pay', label: 'My worth', icon: LineChart },
+  first90: { href: '/dashboard/got-hired', label: 'New job', icon: PartyPopper },
+} as const
+
+function mobileTabs(mode: MenuMode) {
+  return [
+    { href: '/dashboard', label: 'Home', icon: Home },
+    SITUATIONAL_TAB[MOBILE_TAB[mode]],
+    { href: '/dashboard/network', label: 'Network', icon: Users, locksOn: 'gmail' as const },
+    { href: '/dashboard/profile', label: 'Profile', icon: User },
+  ] as readonly { href: string; label: string; icon: LucideIcon; locksOn?: 'gmail' }[]
+}
 
 export function DashboardNav({
   portfolioAssetCount = 0,
@@ -491,7 +502,8 @@ export function DashboardNav({
   }
 
   const isMobileTabActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const onKnownMobileTab = MOBILE_TABS.some((t) => isMobileTabActive(t.href))
+  const tabs = mobileTabs(menuMode(stage, journey))
+  const onKnownMobileTab = tabs.some((t) => isMobileTabActive(t.href))
 
   return (
     <>
@@ -542,7 +554,7 @@ export function DashboardNav({
         aria-label="Primary"
         className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
-        {MOBILE_TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = isMobileTabActive(tab.href)
           const Icon = tab.icon
           const locked = 'locksOn' in tab && tab.locksOn === 'gmail' && !hasEmailConnection

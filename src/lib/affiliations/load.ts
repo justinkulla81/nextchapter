@@ -21,7 +21,7 @@ const COLLEGE_NEEDS: Record<InstitutionConsentScope, string> = {
 
 // The member's real connections and, for each, exactly what it can see right now.
 export async function loadAffiliations(candidateId: string): Promise<AffiliationView[]> {
-  const [p, members, seats] = await Promise.all([
+  const [p, members, seats, employers] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: { recruiterDatabaseOptIn: true, coachDossierConsentedAt: true, coach: { select: { fullName: true } } },
@@ -34,6 +34,8 @@ export async function loadAffiliations(candidateId: string): Promise<Affiliation
       where: { candidateId, status: { not: 'INVITED' } },
       select: { id: true, shareOutcomeWithEmployer: true, contract: { select: { org: { select: { name: true } } } } },
     }),
+    // Employers the member chose to reveal themselves to: they are in that company's hiring funnel.
+    prisma.approvedEmployer.findMany({ where: { candidateId }, select: { id: true, employer: { select: { companyName: true } } } }),
   ])
 
   const out: AffiliationView[] = []
@@ -59,6 +61,14 @@ export async function loadAffiliations(candidateId: string): Promise<Affiliation
       kind: 'OUTPLACEMENT',
       name: s.contract.org.name,
       sees: visibleTo('OUTPLACEMENT', new Set(s.shareOutcomeWithEmployer ? ['you turn on sharing your outcome with your former employer'] : [])),
+    })
+  }
+  for (const e of employers) {
+    out.push({
+      key: `employer-${e.id}`,
+      kind: 'EMPLOYER_FUNNEL',
+      name: e.employer.companyName,
+      sees: visibleTo('EMPLOYER_FUNNEL', new Set(['you apply to or accept an introduction from that employer'])),
     })
   }
   out.push({

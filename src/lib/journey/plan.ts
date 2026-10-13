@@ -126,6 +126,15 @@ export function gateItems(stage: JourneyStage | null, weeksInStage: number): Pla
   return SEARCH_GATES.filter((g) => weeksInStage >= g.fromWeek).flatMap((g) => g.items)
 }
 
+// Looking casually while in an active stage: open to the right thing, not in a
+// hurry, maybe already earning from fractional or interim work. A light plan
+// that keeps the right opportunity able to find them, with no application volume.
+const CASUAL_PLAN: PlanItem[] = [
+  T('Look through this week’s strongest-fit roles and save any worth a second look'),
+  T('Have one conversation about what you do and what you would say yes to', 'OUTREACH_CALL'),
+  T('Keep your references and Executive Dossier current so the right thing can find you', 'REFERENCE_REQUESTED'),
+]
+
 // Task-menu types that are about applying for jobs.
 export const APPLICATION_ACTION_TYPES = ['JOB_APPLICATION_SUBMITTED']
 
@@ -159,12 +168,16 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   // What this member's real results and connections call for (engagement.ts):
   // the next unlock and, in a stalled search, what to try instead. Goes first.
   engagement: PlanItem[] = [],
+  casual = false,
 ): (T | PlanItem)[] {
-  const allowApply = !stage || ACTIVE_SEARCH_STAGES.includes(stage)
+  // Casual searchers get a light plan and no application volume, until they are
+  // actually interviewing or have an offer.
+  const lightTouch = casual && (stage === 'PREPARING' || stage === 'APPLYING')
+  const allowApply = (!stage || ACTIVE_SEARCH_STAGES.includes(stage)) && !lightTouch
   const out: (T | PlanItem)[] = []
   const types = new Set<string>()
   const texts = new Set<string>()
-  for (const item of [...engagement, ...journeyPlanItems(journey, stage, weekNumber, driver), ...gateItems(stage, weeksInStage), ...general]) {
+  for (const item of [...engagement, ...(lightTouch ? CASUAL_PLAN : []), ...journeyPlanItems(journey, stage, weekNumber, driver), ...gateItems(stage, weeksInStage), ...general]) {
     if (!allowApply && item.actionType && APPLICATION_ACTION_TYPES.includes(item.actionType)) continue
     if (item.actionType ? types.has(item.actionType) : texts.has(item.text)) continue
     if (item.actionType) types.add(item.actionType)

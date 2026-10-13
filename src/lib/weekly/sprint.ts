@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
@@ -256,7 +257,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     getGeneralSuggestedActions(candidateId, weekNumber),
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
-      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true },
+      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true },
     }),
   ])
   if (!p) return general
@@ -266,7 +267,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
   const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement)
+  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {

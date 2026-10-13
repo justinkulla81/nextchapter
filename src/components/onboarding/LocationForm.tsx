@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS, COACHING_STYLE_OPTIONS } from '@/lib/constants/onboarding'
 
 const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDurationBucket, string][]).map(
@@ -37,6 +38,7 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const searching = journey ? getJourney(journey).searching : true
   const [applyTiming, setApplyTiming] = useState<ApplyTiming | null>(null)
   const [moveDriver, setMoveDriver] = useState<MoveDriver | null>(null)
+  const [searchIntensity, setSearchIntensity] = useState<string | null>(profile.searchIntensity)
   const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
   const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
     profile.networkComfortLevel
@@ -150,6 +152,27 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
                 onChange={setAiDisplacementReason}
                 responsive
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>How actively are you looking?</Label>
+              <ChoiceButtons
+                name="searchIntensity"
+                options={INTENSITY_OPTIONS.map((o) => ({ value: o.key, label: `${o.label}: ${o.hint}` }))}
+                value={searchIntensity as (typeof INTENSITY_OPTIONS)[number]['key'] | null}
+                onChange={setSearchIntensity}
+                columns={2}
+                responsive
+              />
+              <p className="text-sm text-muted-foreground">
+                Casually looking means a lighter plan and fewer nudges, with the same tools. You can change this any time.
+              </p>
+              <div className="flex items-center gap-2">
+                <Checkbox id="workingNow" name="workingNow" value="on" />
+                <Label htmlFor="workingNow" className="font-normal">
+                  I&apos;m earning from fractional, interim or part-time work right now
+                </Label>
+              </div>
             </div>
           </>
         )}

@@ -1,3 +1,5 @@
+import { loadEngagementSignals } from '@/lib/journey/engagement-data'
+import { stallsOnApplications } from '@/lib/journey/engagement'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -57,7 +59,11 @@ export async function getCheckInPrompt(candidateId: string): Promise<CheckInProm
 
   const lastShownByKind: Partial<Record<CheckInKind, Date>> = {}
   for (const r of recent) if (!lastShownByKind[r.kind]) lastShownByKind[r.kind] = r.shownAt
-  const kind = chooseCheckInKind({ appliedThisWeek: activity.applied, weeklyGoal, checkedInThisWeek: activity.checkedInThisWeek, lastShownByKind, activeSearch })
+  // What the results say (src/lib/journey/engagement.ts): no more "apply to N"
+  // when applications are not turning into interviews, or for a casual search.
+  const signals = await loadEngagementSignals(candidateId).catch(() => null)
+  const skipApply = !!signals && (signals.casual || stallsOnApplications(signals))
+  const kind = chooseCheckInKind({ appliedThisWeek: activity.applied, weeklyGoal, checkedInThisWeek: activity.checkedInThisWeek, lastShownByKind, activeSearch, skipApply })
 
   return {
     kind,

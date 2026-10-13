@@ -140,12 +140,12 @@ export function getJourney(key: JourneyType): JourneyConfig {
 }
 
 export const STAGES: { key: JourneyStage; label: string; plan: string; checkInDays: number }[] = [
-  { key: 'EXPLORING', label: 'Exploring', plan: 'Learn your market. No application targets.', checkInDays: 30 },
-  { key: 'PREPARING', label: 'Preparing', plan: 'Résumé, Dossier, targets and your story.', checkInDays: 14 },
-  { key: 'APPLYING', label: 'Applying', plan: 'Applications and reach-outs every week.', checkInDays: 7 },
-  { key: 'INTERVIEWING', label: 'Interviewing', plan: 'Prep, references and follow-ups.', checkInDays: 7 },
-  { key: 'OFFER', label: 'Offer', plan: 'Negotiate and decide.', checkInDays: 7 },
-  { key: 'LANDED', label: 'Landed', plan: 'Your first 90 days.', checkInDays: 90 },
+  { key: 'EXPLORING', label: 'Exploring', plan: 'Learn your market and your worth. No application targets.', checkInDays: 30 },
+  { key: 'PREPARING', label: 'Preparing', plan: 'Get ready: résumé, proof, targets and your story.', checkInDays: 14 },
+  { key: 'APPLYING', label: 'Applying', plan: 'Apply and reach out every week.', checkInDays: 7 },
+  { key: 'INTERVIEWING', label: 'Interviewing', plan: 'Prepare for each round, keep references warm, follow up.', checkInDays: 7 },
+  { key: 'OFFER', label: 'Offer', plan: 'Know your worth, negotiate and decide.', checkInDays: 7 },
+  { key: 'LANDED', label: 'Landed', plan: 'Start strong: your first 90 days, and thank the people who helped.', checkInDays: 90 },
   { key: 'STAYING', label: 'Managing your career', plan: 'Grow where you are: reviews, pay, skills and a career that holds up.', checkInDays: 30 },
 ]
 

@@ -45,9 +45,13 @@ export function chooseCheckInKind(args: {
   // Only asked to apply in an active search (src/lib/journey): someone
   // exploring or preparing isn't asked for applications.
   activeSearch?: boolean
+  // Don't ask for more applications when that is the advice that is not
+  // working (applications but no interviews), or for someone looking casually.
+  // They are asked for a conversation instead.
+  skipApply?: boolean
 }): CheckInKind {
   const eligible: CheckInKind[] = []
-  if ((args.activeSearch ?? true) && args.appliedThisWeek < args.weeklyGoal) eligible.push('APPLY_COMMIT')
+  if ((args.activeSearch ?? true) && !args.skipApply && args.appliedThisWeek < args.weeklyGoal) eligible.push('APPLY_COMMIT')
   eligible.push('NETWORK_COMMIT')
   if (!args.checkedInThisWeek) eligible.push('MOOD')
   return eligible.sort((a, b) => (args.lastShownByKind[a]?.getTime() ?? 0) - (args.lastShownByKind[b]?.getTime() ?? 0))[0]

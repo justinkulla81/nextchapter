@@ -1,3 +1,4 @@
+import { NOT_CASUAL_WHERE } from '@/lib/journey/intensity'
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -9,6 +10,8 @@ import { sendMidweekCheckin } from '@/lib/email/send-midweek-checkin'
 export async function runMidweekCheckin(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
   const eligible = await prisma.candidateProfile.findMany({
     where: {
+      // Looking casually: no progress-pushing emails (src/lib/journey/intensity.ts).
+      AND: [NOT_CASUAL_WHERE],
       registrationCompletedAt: { not: null },
       isSampleData: false,
       dailyEmailOptedOut: false,

@@ -1,6 +1,7 @@
 'use server'
 
 import { applyJourneyChange } from '@/lib/journey/apply'
+import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { JOURNEYS, MOVE_DRIVERS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -359,6 +360,9 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  const intensityRaw = formData.get('searchIntensity') as string | null
+  const searchIntensity = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
+  if (searchIntensity) await prisma.candidateProfile.update({ where: { id: profile.id }, data: { searchIntensity } })
   const driverRaw = formData.get('moveDriver') as string | null
   const moveDriver = MOVE_DRIVERS.find((d) => d.key === driverRaw)?.key ?? null
   await applyJourneyChange(profile.id, {

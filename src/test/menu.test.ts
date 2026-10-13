@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MENU_RULES, PILLAR_ORDER, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
+import { MENU_RULES, MOBILE_TAB, PILLAR_ORDER, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
 import { CHECK_IN_ANSWERS } from '@/lib/journey/journey'
 
 const modes: MenuMode[] = ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING', 'LANDED']
@@ -18,6 +18,16 @@ describe('menu mode', () => {
     expect(menuMode('PREPARING', 'PROMOTION')).toBe('STAYING')
     expect(menuMode('APPLYING', 'PROMOTION')).toBe('ACTIVE')
     expect(menuMode('PREPARING', 'LAID_OFF')).toBe('PREPARING')
+  })
+})
+
+describe('the phone bar follows the situation', () => {
+  it('one situational tab: jobs when searching, plan when exploring, worth when managing a career', () => {
+    expect(MOBILE_TAB.ACTIVE).toBe('jobs')
+    expect(MOBILE_TAB.PREPARING).toBe('jobs')
+    expect(MOBILE_TAB.EXPLORING).toBe('plan')
+    expect(MOBILE_TAB.STAYING).toBe('worth')
+    expect(MOBILE_TAB.LANDED).toBe('first90')
   })
 })
 

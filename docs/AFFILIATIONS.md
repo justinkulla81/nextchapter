@@ -37,9 +37,13 @@ account or the Saturday check-in (`appliesAcrossAffiliations`, enforced in
 \* after the member agrees to share with their coach.
 † only members who share engagement with the college; groups under the minimum size are hidden.
 
-Workforce board and employer hiring funnel are defined here but have no
-member link in the data model yet, so they do not appear on the Privacy page
-until one exists.
+An employer hiring funnel appears on the Privacy page for every employer the
+member has chosen to reveal themselves to (`ApprovedEmployer`).
+
+A **workforce board** is defined here but has no member link in the data model:
+nothing records that a member is working with a board, and joining one is a
+product decision (how a member connects, what the board may see) that has not
+been made. It will appear on the Privacy page once that link exists.
 
 ## Rules the tests hold
 

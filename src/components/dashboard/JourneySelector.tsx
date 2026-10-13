@@ -5,17 +5,30 @@ import { updateJourney } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType, type MoveDriver } from '@/lib/journey/journey'
 
 // "Your situation" on Privacy: why you're moving and how close you are to
 // applying. Your plan and check-ins follow both.
-export function JourneySelector({ journey, stage, moveDriver }: { journey: JourneyType | null; stage: JourneyStage | null; moveDriver: MoveDriver | null }) {
+export function JourneySelector({
+  journey,
+  stage,
+  moveDriver,
+  intensity,
+}: {
+  journey: JourneyType | null
+  stage: JourneyStage | null
+  moveDriver: MoveDriver | null
+  intensity: string | null
+}) {
   const [state, formAction, pending] = useActionState(updateJourney, undefined)
   const [j, setJ] = useState<JourneyType>(journey ?? 'EXPLORING_MOVE')
   const [s, setS] = useState<JourneyStage>(stage ?? getJourney(journey ?? 'EXPLORING_MOVE').defaultStage)
   const [d, setD] = useState<MoveDriver | null>(moveDriver)
-  const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver)
+  const [i, setI] = useState<string | null>(intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null)
+  const initialI = intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null
+  const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver) && i === initialI
 
   return (
     <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
@@ -65,6 +78,19 @@ export function JourneySelector({ journey, stage, moveDriver }: { journey: Journ
             value={d}
             onChange={setD}
             columns={3}
+            responsive
+          />
+        </div>
+      )}
+      {getJourney(j).searching && s !== 'STAYING' && s !== 'LANDED' && (
+        <div className="space-y-1.5">
+          <Label>How actively are you looking?</Label>
+          <ChoiceButtons
+            name="searchIntensity"
+            options={INTENSITY_OPTIONS.map((x) => ({ value: x.key, label: `${x.label}: ${x.hint}` }))}
+            value={i as (typeof INTENSITY_OPTIONS)[number]['key'] | null}
+            onChange={setI}
+            columns={2}
             responsive
           />
         </div>
