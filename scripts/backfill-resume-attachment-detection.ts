@@ -15,9 +15,11 @@
 //      npm run backfill:resume-detection                 (apply updates)
 
 import { PrismaClient } from '@prisma/client'
+import { tokenCryptoExtension } from '../src/lib/security/token-crypto-extension'
 import { matchResumeShared } from '../src/lib/email-tracking/ats-patterns'
 
-const prisma = new PrismaClient()
+// Extension decrypts OAuth tokens on read (see src/lib/security/token-crypto.ts).
+const prisma = new PrismaClient().$extends(tokenCryptoExtension) as unknown as PrismaClient
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const BODY_PREVIEW_MAX_CHARS = 4000

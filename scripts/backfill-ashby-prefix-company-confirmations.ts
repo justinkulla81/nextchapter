@@ -11,6 +11,7 @@
 //      npx tsx --env-file=.env.local scripts/backfill-ashby-prefix-company-confirmations.ts
 
 import { PrismaClient } from '@prisma/client'
+import { tokenCryptoExtension } from '../src/lib/security/token-crypto-extension'
 import { guessCompanyFromConfirmationText, guessTitleFromConfirmationSubject } from '../src/lib/email-tracking/ats-patterns'
 import { normalizeOrgName, orgNamesMatch } from '../src/lib/text/org-name-match'
 
@@ -20,7 +21,8 @@ interface GmailPart {
   parts?: GmailPart[]
 }
 
-const prisma = new PrismaClient()
+// Extension decrypts OAuth tokens on read (see src/lib/security/token-crypto.ts).
+const prisma = new PrismaClient().$extends(tokenCryptoExtension) as unknown as PrismaClient
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const DRY_RUN = process.argv.includes('--dry-run')
 

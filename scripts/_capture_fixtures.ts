@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { tokenCryptoExtension } from '../src/lib/security/token-crypto-extension'
+// Extension decrypts OAuth tokens on read (see src/lib/security/token-crypto.ts).
+const prisma = new PrismaClient().$extends(tokenCryptoExtension) as unknown as PrismaClient
 
 async function refreshAccessToken(refreshToken: string): Promise<string> {
   const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID!
