@@ -134,6 +134,9 @@
   "overrides": {
     "pptxgenjs": {
       "image-size": "^2.0.4"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.2"
     }
   }
 }
