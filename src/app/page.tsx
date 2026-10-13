@@ -43,6 +43,23 @@ const heroStats = [
   { value: '8%', label: 'Lower household wealth, 6 years after a layoff' },
 ]
 
+// The coach is only as good as what it can see. These are the four streams it
+// reads, and what each makes possible.
+const COACH_DATA = [
+  { title: 'Your work', body: 'Your résumé, references, work samples and Executive Dossier: the proof of what you have done.' },
+  { title: 'Your applications', body: 'Connect Gmail and Calendar and your applications, interviews and follow-ups are tracked for you.' },
+  { title: 'Your networking', body: 'Your contacts, outreach and replies, plus the colleges, recruiters and communities you are part of.' },
+  { title: 'Your learning', body: 'The skills you have, the ones worth building, and the courses and coaching you finish.' },
+]
+
+// When a search runs long the plan changes, not just the wording of a reminder.
+const WHEN_STUCK = [
+  { when: 'Week 3', body: 'Applications but no interviews: we run the résumé against the roles you want.' },
+  { when: 'Week 6', body: 'Still nothing: widen the targets and bring in interim or fractional work.' },
+  { when: 'Week 9', body: 'A human coach reviews what is not working, and someone who hires critiques your pitch.' },
+  { when: 'Week 13', body: 'Test a different lane, and check your runway so you can choose with a clear head.' },
+]
+
 const THREE_BEATS = [
   {
     title: 'Know where you stand.',
@@ -94,11 +111,12 @@ export default async function Home() {
 
         <div className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-6xl">
-            Your resume is the least complete thing about you.
+            The best coach you&apos;ve ever had, built on all your data.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Whether you're out of work, thinking about a move, or growing where you are, NextChapter
-            shows you exactly how the market reads you — then helps you build the evidence that changes it.
+            Your résumé is the least complete thing about you. NextChapter&apos;s coach works from your
+            work, your applications, your networking and your learning, and tailors every step to your
+            job search strategy, whether you&apos;re out of work, thinking about a move, or growing in the job you have.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
@@ -178,6 +196,46 @@ export default async function Home() {
                 </Link>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* The coach that knows your whole search, and what changes when a search runs long. */}
+      <section className="bg-white py-20">
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-navy">
+            A coach that has read everything you have done.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+            Most coaches start from what you tell them in an hour. Victoria, NextChapter&apos;s AI coach, starts from your actual
+            work, applications, networking and learning, so every plan, email and nudge fits your search and not a template. Direct
+            when you want direct, gentle when you want gentle.
+          </p>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {COACH_DATA.map((d) => (
+              <div key={d.title} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
+                <h3 className="font-semibold text-navy">{d.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-14 rounded-xl border border-light-gray bg-off-white p-6">
+            <h3 className="text-xl font-semibold text-navy">Searching for too long? The plan changes.</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A long search gets different things to try as the weeks pass, based on what is actually happening: no interviews, interviews
+              but no offers, or a search that has not really started. Members who connect their accounts and do the work get the most.
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              {WHEN_STUCK.map((w) => (
+                <li key={w.when} className="text-sm">
+                  <span className="font-semibold text-navy">{w.when}.</span>{' '}
+                  <span className="text-muted-foreground">{w.body}</span>
+                </li>
+              ))}
+            </ul>
+            <Link href="/start/searching-too-long" className="mt-4 inline-block text-sm font-medium text-primary underline underline-offset-4">
+              Been searching a while? Start here →
+            </Link>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { effectiveJourney } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
@@ -130,6 +130,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       helpRepliesWaiting={helpRepliesWaiting}
       newStrongCompaniesCount={newStrongCompaniesCount}
       journey={effectiveJourney(profile)}
+      stage={effectiveStage(profile)}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />

@@ -69,6 +69,17 @@ export const PERSONAS: Persona[] = [
     ],
   },
   {
+    slug: 'searching-too-long',
+    label: 'Searching too long',
+    hook: 'Months in and nothing is moving? Change the plan, not just the effort.',
+    headline: 'When a search stalls, you need new things to try.',
+    situation: 'just_laid_off',
+    body: [
+      "A long search is exhausting, and the usual advice is to push harder. That's rarely the problem. A search that is stuck usually has one thing to change: the résumé, the targets, the people you're talking to, or how you interview.",
+      'NextChapter reads what is actually happening, whether that is applications but no interviews, interviews but no offers, or a search that never really got going, and gives you different things to try as the weeks pass. It tells you the truth the way you ask for it, direct or gentle, and it is there for the hard weeks too.',
+    ],
+  },
+  {
     slug: 'promotion',
     label: 'Going for a promotion',
     hook: 'Build the case for the next level, inside or outside.',

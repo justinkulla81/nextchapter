@@ -42,7 +42,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { connectReason } from '@/lib/journey/engagement'
-import { normalizeJourney, type JourneyType } from '@/lib/journey/journey'
+import type { JourneyStage, JourneyType } from '@/lib/journey/journey'
+import { PILLAR_ORDER, PILLAR_TITLES, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
+import { StatusUnlockBox } from '@/components/dashboard/StatusUnlockBox'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 
@@ -83,200 +85,172 @@ interface NavSection {
   links: NavLink[]
 }
 
-// Prompt 83 point 8 — "Priority" used to sit on 5 sidebar items at once,
-// which meant it conveyed nothing. Position in the list already carries
-// priority (each section is authored most-important-first), so the static
-// label is gone; only a real, live, differentiated signal (an unread count,
-// a genuinely new backchannel match) still earns a badge.
-function buildSections(
-  portfolioAssetCount: number,
-  supportNetworkUnreadCount: number,
-  messagesUnreadCount: number,
-  needsFollowUpCount: number,
-  activeContactsCount: number,
-  hasEmailConnection: boolean,
-  linkedInConnected: boolean,
-  skillsAssessmentCompleted: boolean,
-  isEarlyCareer: boolean | null,
-  isActiveMember: boolean,
-  helpRepliesWaiting: number,
-  newStrongCompaniesCount: number,
+type MenuLink = NavLink & { key: MenuItemKey }
+
+// What the sidebar shows follows the member's situation (src/lib/journey/menu.ts):
+// each tool is shown, locked until their status changes, or hidden. Position in
+// a section is priority, most important first. Only a real, live signal (an
+// unread count, a new strong-fit company) earns a badge.
+function buildSections(o: {
+  portfolioAssetCount: number
+  supportNetworkUnreadCount: number
+  messagesUnreadCount: number
+  needsFollowUpCount: number
+  activeContactsCount: number
+  hasEmailConnection: boolean
+  linkedInConnected: boolean
+  skillsAssessmentCompleted: boolean
+  isEarlyCareer: boolean | null
+  isActiveMember: boolean
+  helpRepliesWaiting: number
+  newStrongCompaniesCount: number
   journey: JourneyType | null
-): NavSection[] {
-  const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
+  stage: JourneyStage | null
+}): { sections: NavSection[]; statusLocked: string[]; mode: MenuMode } {
+  const { journey } = o
+  const mode = menuMode(o.stage, o.journey)
+  const unlock = statusUnlock(mode)
+
+  const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = o.hasEmailConnection
     ? {}
     : { muted: true, disabled: true, lockReason: `Unlocks once you connect Gmail. ${connectReason(journey, 'gmail')} Connect on your Privacy page.` }
-  const linkedInLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = linkedInConnected
+  const linkedInLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = o.linkedInConnected
     ? {}
-    : {
-        muted: true,
-        disabled: true,
-        lockReason: `Unlocks once you connect LinkedIn. ${connectReason(journey, 'linkedin')} Connect on your Profile page.`,
-      }
-  const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = skillsAssessmentCompleted
+    : { muted: true, disabled: true, lockReason: `Unlocks once you connect LinkedIn. ${connectReason(journey, 'linkedin')} Connect on your Profile page.` }
+  const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = o.skillsAssessmentCompleted
     ? {}
     : { muted: true, disabled: true, lockReason: 'Unlocks once you complete the Skills Assessment' }
-  // Real isActiveMember() gate (src/lib/membership/subscription.ts) — the
-  // same one that already gates Board & Advisory roles on Interim Work.
-  // Deliberately NOT gated on anything /dashboard/premium-related — that's
-  // a separate, not-yet-live waitlist product with no real access control
-  // of its own today.
-  const membershipLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = isActiveMember
+  // Real isActiveMember() gate (src/lib/membership/subscription.ts) — the same
+  // one that gates Board & Advisory roles on Interim Work. Deliberately NOT
+  // gated on /dashboard/premium: that is a separate waitlist product.
+  const membershipLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = o.isActiveMember
     ? {}
     : { muted: true, disabled: true, lockReason: 'Unlocks once you activate your NextChapter Membership' }
 
-  return [
+  const items: MenuLink[] = [
+    // Personalize
+    { key: 'strategy', href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
+    { key: 'profile', href: '/dashboard/profile', label: 'My Profile', icon: User },
+    { key: 'assessments', href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+    { key: 'marketReality', href: '/dashboard/market-reality', label: 'Market Reality Report', icon: LineChart },
+    // Prove it
+    { key: 'references', href: '/dashboard/references', label: 'My References', icon: Star },
     {
-      title: null,
-      links: [{ href: '/dashboard', label: 'Success Dashboard (Homepage)', icon: Home }],
+      key: 'portfolio',
+      href: '/dashboard/portfolio',
+      label: 'My Portfolio',
+      icon: FolderOpen,
+      badge: o.portfolioAssetCount > 0 ? String(o.portfolioAssetCount) : undefined,
     },
-    // People growing where they are (or going for a promotion) get the tools for
-    // that first: know your worth, prove your results, build skills, practice
-    // the hard conversation. Job-search tools stay below for when that changes.
-    ...(journey && ['GROWING', 'PROMOTION'].includes(normalizeJourney(journey))
-      ? [
-          {
-            title: 'Grow in your job',
-            links: [
-              { href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
-              { href: '/dashboard/track-record', label: 'Prove your results', icon: ClipboardCheck },
-              { href: '/dashboard/learning', label: 'Build new skills', icon: BookOpen, ...skillsLock },
-              { href: '/dashboard/interview-prep', label: 'Practice the hard conversation', icon: MessageCircle },
-              { href: '/dashboard/how-i-perform', label: 'Know how you work', icon: User },
-            ],
-          },
-        ]
+    { key: 'marketing', href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
+    // Search and apply
+    { key: 'jobs', href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+    {
+      key: 'companies',
+      href: '/dashboard/companies',
+      label: 'Companies',
+      icon: Landmark,
+      // Companies that newly became a strong fit since the member last opened
+      // the directory — see countNewStrongCompanies.
+      badge: o.newStrongCompaniesCount > 0 ? String(o.newStrongCompaniesCount) : undefined,
+    },
+    { key: 'interviewPrep', href: '/dashboard/interview-prep', label: 'Interview Prep', icon: MessageSquare },
+    { key: 'offer', href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
+    { key: 'marketIntel', href: '/dashboard/premium', label: 'Market Intelligence', icon: LineChart, badge: 'Premium' },
+    // Network
+    {
+      key: 'network',
+      href: '/dashboard/network',
+      label: 'Network with Contacts',
+      icon: Users,
+      // People who've met with or heard from the candidate with no thank-you or
+      // follow-up sent yet (needs-follow-up.ts): a specific, live reason to visit.
+      badge: o.needsFollowUpCount > 0 ? String(o.needsFollowUpCount) : undefined,
+      ...gmailLock,
+    },
+    {
+      key: 'contacts',
+      href: '/dashboard/network/contacts',
+      label: 'My Contacts',
+      icon: Contact,
+      badge: o.activeContactsCount > 0 ? String(o.activeContactsCount) : undefined,
+      ...gmailLock,
+    },
+    {
+      key: 'community',
+      href: '/dashboard/community',
+      label: 'NextChapter Community',
+      icon: MessageCircle,
+      badge: o.supportNetworkUnreadCount > 0 ? String(o.supportNetworkUnreadCount) : undefined,
+    },
+    {
+      key: 'inbox',
+      href: '/dashboard/messages',
+      label: 'My Inbox',
+      icon: Inbox,
+      badge: o.messagesUnreadCount > 0 ? String(o.messagesUnreadCount) : undefined,
+    },
+    { key: 'recruiter', href: '/dashboard/premium', label: 'Executive Recruiter', icon: Building2, badge: 'Premium', ...membershipLock },
+    { key: 'universities', href: '/dashboard/universities', label: 'Universities', icon: School },
+    { key: 'collegeBenefits', href: '/dashboard/benefits-network', label: 'Higher Education Career Services and Benefits', icon: Gift },
+    // Learn
+    { key: 'learning', href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
+    { key: 'webinars', href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
+    // Coaching: a real monetization surface, kept visible in every situation.
+    { key: 'coach', href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
+    // Work now
+    { key: 'interim', href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
+    // Only offered once we positively know the candidate is NOT entry-level
+    // (isEarlyCareer === null fails closed): EQoverIQ's audience is senior only.
+    ...(o.isEarlyCareer === false
+      ? [{ key: 'eqoveriq' as const, href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
       : []),
+    // Support and settings
+    { key: 'stats', href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
+    { key: 'benefits', href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
+    { key: 'struggling', href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
+    { key: 'membership', href: '/dashboard/membership', label: 'Membership', icon: Award },
     {
-      title: 'Connecting',
-      links: [
-        {
-          href: '/dashboard/network',
-          label: 'Network with Contacts',
-          icon: Users,
-          // Same count NeedsFollowUpCard's own header shows on the Network
-          // page (see needs-follow-up.ts) — people who've met with or heard
-          // from the candidate with no thank-you/follow-up sent yet. A
-          // specific, live reason to visit right now, unlike the old static
-          // "Priority" label every item here used to carry.
-          badge: needsFollowUpCount > 0 ? String(needsFollowUpCount) : undefined,
-          ...gmailLock,
-        },
-        { href: '/dashboard/references', label: 'My References', icon: Star },
-        {
-          href: '/dashboard/community',
-          label: 'NextChapter Community',
-          icon: MessageCircle,
-          badge: supportNetworkUnreadCount > 0 ? String(supportNetworkUnreadCount) : undefined,
-        },
-        {
-          href: '/dashboard/messages',
-          label: 'My Inbox',
-          icon: Inbox,
-          badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
-        },
-        // Deliberately protected during this redesign, not incidentally
-        // preserved — Executive Coach stays a top-level, expanded-by-
-        // default Connecting item with its own distinct "Premium" badge,
-        // not folded into a generic collapsed catch-all category. Real
-        // monetization surface area (see Prompt 78's negotiation
-        // coaching, the coaching-commission revenue stream). Executive
-        // Coach, Executive Recruiter, and Market Intelligence now all route
-        // to the same /dashboard/premium waitlist page — one bundled
-        // account tier instead of three separate asks. Executive Coach/
-        // Executive Recruiter are additionally gated on real Membership
-        // (Market Intelligence isn't — out of scope for that gate).
-        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
-        {
-          href: '/dashboard/premium',
-          label: 'Executive Recruiter',
-          icon: Building2,
-          badge: 'Premium',
-          ...membershipLock,
-        },
-      ],
+      key: 'help',
+      href: '/dashboard/help',
+      label: 'Help & feedback',
+      icon: MessageSquare,
+      badge: o.helpRepliesWaiting > 0 ? String(o.helpRepliesWaiting) : undefined,
     },
-    {
-      title: 'Working and Learning',
-      links: [
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
-        // Only ever shown once we positively know the candidate is NOT
-        // entry-level (ResumeAnalysis.seniorityBand !== 'EARLY') —
-        // isEarlyCareer === null (no resume analysis yet) fails closed,
-        // same direction as "never offer this to a new grad" requires.
-        // EQoverIQ's own audience is explicitly senior/experienced-
-        // professional-only; Interim Work right below stays unconditionally
-        // visible to everyone regardless of this check.
-        ...(isEarlyCareer === false
-          ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
-          : []),
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
-        { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
-        { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
-        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
-      ],
-    },
-    {
-      title: 'Personalize',
-      links: [
-        { href: '/dashboard/profile', label: 'My Profile', icon: User },
-        { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
-        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
-        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
-        { href: '/dashboard/membership', label: 'Membership', icon: Award },
-      ],
-    },
-    {
-      title: 'Data',
-      links: [
-        {
-          href: '/dashboard/companies',
-          label: 'Companies',
-          icon: Landmark,
-          // Companies that newly became a strong fit since the member last
-          // opened the directory — see countNewStrongCompanies.
-          badge: newStrongCompaniesCount > 0 ? String(newStrongCompaniesCount) : undefined,
-        },
-        { href: '/dashboard/universities', label: 'Universities', icon: School },
-        {
-          href: '/dashboard/portfolio',
-          label: 'My Portfolio',
-          icon: FolderOpen,
-          badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
-        },
-        {
-          href: '/dashboard/network/contacts',
-          label: 'My Contacts',
-          icon: Contact,
-          badge: activeContactsCount > 0 ? String(activeContactsCount) : undefined,
-          ...gmailLock,
-        },
-        { href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
-        {
-          href: '/dashboard/premium',
-          label: 'Market Intelligence',
-          icon: LineChart,
-          badge: 'Premium',
-        },
-      ],
-    },
-    {
-      title: 'Misc',
-      links: [
-        { href: '/dashboard/benefits-network', label: 'Higher Education Career Services and Benefits', icon: Gift },
-        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
-        { href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
-        {
-          href: '/dashboard/help',
-          label: 'Help & feedback',
-          icon: MessageSquare,
-          badge: helpRepliesWaiting > 0 ? String(helpRepliesWaiting) : undefined,
-        },
-        { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
-        { href: '/faq', label: 'FAQ', icon: HelpCircle },
-      ],
-    },
+    { key: 'privacy', href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
+    { key: 'faq', href: '/faq', label: 'FAQ', icon: HelpCircle },
+    // Grow in your job (staying put)
+    { key: 'growWorth', href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
+    { key: 'growResults', href: '/dashboard/track-record', label: 'Prove your results', icon: ClipboardCheck },
+    { key: 'growSkills', href: '/dashboard/learning', label: 'Build new skills', icon: BookOpen, ...skillsLock },
+    { key: 'growConversation', href: '/dashboard/interview-prep', label: 'Practice the hard conversation', icon: MessageCircle },
+    { key: 'growStyle', href: '/dashboard/how-i-perform', label: 'Know how you work', icon: User },
+    // Manage your career (just landed)
+    { key: 'careerFirst90', href: '/dashboard', label: 'Your first 90 days', icon: Home },
+    { key: 'careerWorth', href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
+    { key: 'careerNetwork', href: '/dashboard/network', label: 'Thank the people who helped', icon: Users, ...gmailLock },
   ]
+
+  // Tools the member's current situation turns off: muted, with the reason and
+  // a way to update their status (shown in the explainer under the menu).
+  const statusLocked: string[] = []
+  const sections: NavSection[] = [{ title: null, links: [{ href: '/dashboard', label: 'Success Dashboard (Homepage)', icon: Home }] }]
+  for (const pillar of PILLAR_ORDER[mode]) {
+    const links: NavLink[] = []
+    for (const { key, ...link } of items) {
+      if (itemPillar(key, mode) !== pillar) continue
+      const v = itemVisibility(key, mode)
+      if (v === 'hide') continue
+      if (v === 'locked') {
+        statusLocked.push(link.label)
+        links.push({ ...link, muted: true, disabled: true, lockReason: unlock ? `${unlock.why} Use "Turn on more tools" below to update your status.` : undefined })
+      } else {
+        links.push(link)
+      }
+    }
+    if (links.length > 0) sections.push({ title: PILLAR_TITLES[pillar], links })
+  }
+  return { sections, statusLocked, mode }
 }
 
 function NavContent({
@@ -295,6 +269,7 @@ function NavContent({
   helpRepliesWaiting,
   newStrongCompaniesCount,
   journey,
+  stage,
   collapsedSections,
   onToggleSection,
 }: {
@@ -313,11 +288,12 @@ function NavContent({
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
   journey: JourneyType | null
+  stage: JourneyStage | null
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(
+  const { sections, statusLocked, mode } = buildSections({
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
@@ -330,8 +306,9 @@ function NavContent({
     isActiveMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
-    journey
-  )
+    journey,
+    stage,
+  })
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -433,6 +410,7 @@ function NavContent({
         </div>
         )
       })}
+      {statusLocked.length > 0 && <StatusUnlockBox mode={mode} lockedTools={statusLocked} />}
       <div className="mt-auto px-2">
         <form action={signOut}>
           <SignOutButton />
@@ -471,6 +449,7 @@ export function DashboardNav({
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
   journey = null,
+  stage = null,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -485,6 +464,7 @@ export function DashboardNav({
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
   journey?: JourneyType | null
+  stage?: JourneyStage | null
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -534,6 +514,7 @@ export function DashboardNav({
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
           journey={journey}
+          stage={stage}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -642,6 +623,7 @@ export function DashboardNav({
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
               journey={journey}
+              stage={stage}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />
