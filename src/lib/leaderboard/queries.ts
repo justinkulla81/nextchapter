@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import type { LeaderboardBoard, LeaderboardDisplayMode } from '@prisma/client'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
@@ -83,7 +84,21 @@ function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-async function getEligibleCandidatePool(filter: BoardFilter): Promise<EligibleCandidate[]> {
+// Per-request dedupe only (React cache(), primitive keys). Deliberately NOT a
+// cross-request TTL: opt-out must be immediate and retroactive (§18), and the
+// pool decides who is publicly shown, so a stale pool could expose someone who
+// just opted out. The Stats page asks for the same pool ~17 times per render
+// (6 boards + personal bests + badges); this collapses that to one load.
+const getEligibleCandidatePoolCached = cache(
+  (fn: string | null, band: SeniorityBand | null): Promise<EligibleCandidate[]> =>
+    loadEligibleCandidatePool({ function: fn ?? undefined, seniorityBand: band ?? undefined })
+)
+
+function getEligibleCandidatePool(filter: BoardFilter): Promise<EligibleCandidate[]> {
+  return getEligibleCandidatePoolCached(filter.function ?? null, filter.seniorityBand ?? null)
+}
+
+async function loadEligibleCandidatePool(filter: BoardFilter): Promise<EligibleCandidate[]> {
   const rows = await prisma.candidateProfile.findMany({
     where: {
       confidentialSearchMode: false,
@@ -340,7 +355,27 @@ async function computeRawForBoard(board: LeaderboardBoard, candidateIds: string[
 // module, badge computation, personal bests) goes through.
 // requestingCandidateId is who's asking — used only to compute `own`, never
 // to change what's eligible/public.
-export async function computeBoard(
+export function computeBoard(
+  board: LeaderboardBoard,
+  filter: BoardFilter,
+  requestingCandidateId: string | null
+): Promise<BoardResult> {
+  return computeBoardCached(board, filter.function ?? null, filter.seniorityBand ?? null, requestingCandidateId)
+}
+
+// Per-request dedupe: the Stats page's computeAllBoards, personal bests and
+// Top-3 badge pass all request the same (board, filter, viewer) tuple.
+const computeBoardCached = cache(
+  (
+    board: LeaderboardBoard,
+    fn: string | null,
+    band: SeniorityBand | null,
+    requestingCandidateId: string | null
+  ): Promise<BoardResult> =>
+    computeBoardUncached(board, { function: fn ?? undefined, seniorityBand: band ?? undefined }, requestingCandidateId)
+)
+
+async function computeBoardUncached(
   board: LeaderboardBoard,
   filter: BoardFilter,
   requestingCandidateId: string | null
