@@ -250,23 +250,6 @@ export const FOUNDATIONS: Foundation[] = [
     status: 'TO VERIFY',
     flag: 'No how-to-apply page found on the company site. Invitation-only and nonprofit-only are secondary claims. Treat as excluding for-profits until read.',
   },
-  {
-    id: 'panorama-ipm',
-    name: 'Innovative Postsecondary Models Fund (administered by Panorama Global)',
-    program: 'Pooled fund from eight foundations (Ascendium, College Futures, ECMC, Gates, Haas Jr. Fund, Lumina, Raikes, Strada). Four themes include Career and Workforce Alignment.',
-    whatItFunds: 'Innovative postsecondary models that award degrees or credentials of value and serve U.S. learners.',
-    whoCanApply:
-      'Open RFP, now closed. Its FAQ says a nonprofit is not required and the fund will consider "nonprofit organizations, for-profit organizations, and international organizations." Accreditation is not required. The model must award credentials of value and have enrolled learners by March 31, 2027; post-baccalaureate certificate models are ineligible.',
-    grantSize: '7 to 10 grants of $750,000 to $1,000,000, February 2027 to July 2028.',
-    forProfit: 'ELIGIBLE',
-    access: 'OPEN_CALLS',
-    accessPath: 'DIRECT',
-    route: 'Direct route for a for-profit, but the round closed September 14, 2026 (applicants notified by November 30, 2026). NextChapter does not award credentials today, so fit in a future round is doubtful; sign up for updates.',
-    sourceUrl: 'https://panoramaglobal.org/request-for-proposals-innovative-postsecondary-models-fund/',
-    dateChecked: CHECKED,
-    status: 'VERIFIED',
-    flag: 'The one item that names for-profits as eligible. Closed. Credential-awarding requirement is a likely mismatch.',
-  },
 ]
 
 /** Foundations a for-profit cannot approach directly, by their own published wording. */

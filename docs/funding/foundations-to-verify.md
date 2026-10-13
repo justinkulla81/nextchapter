@@ -25,7 +25,6 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 | Ascendium Education Group | VERIFIED | Not stated | Invitation only; rare RFPs | Nonprofit partner |
 | Gates Foundation | VERIFIED | **Allows for-profits** in principle, with conditions | Invitation only; occasional RFPs | College or board |
 | Ballmer Group | VERIFIED | Not stated | Invitation only (no unsolicited applications) | Not accessible directly |
-| Innovative Postsecondary Models Fund | VERIFIED | **Allows for-profits** | Open RFP, closed September 14, 2026 | Direct (closed; credential requirement likely mismatch) |
 | Markle Foundation | TO VERIFY | Unknown | Unknown | Not accessible (provisional) |
 | Google.org | TO VERIFY | Not stated on pages read | No public U.S. application route found | Nonprofit partner (provisional) |
 | JPMorganChase | TO VERIFY | Unknown (secondary says nonprofits only) | Invitation only (secondary) | Nonprofit partner (provisional) |
@@ -82,7 +81,7 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 - Program: Postsecondary Success (Innovation, Transformation, Data and information, Policy). 2026 AI Transformation Learning Grants, closed September 11, 2026, about $150,000 to $200,000 each for up to eight institutions.
 - Who can apply: its funding page says "We generally do not accept unsolicited proposals" and that it identifies organizations to carry out projects it starts. The same page says its charitable funding to organizations, "including private sector organizations", comes with public-access conditions. The grant opportunities page says most grants go to 501(c)(3) and other tax-exempt organizations identified by staff. The AI call was for "broad-access colleges and universities."
 - For-profit: allows for-profits in principle, with conditions.
-- Access path: college or board. Gates also funds the Innovative Postsecondary Models Fund below.
+- Access path: college or board.
 - Source: https://www.gatesfoundation.org/about/our-funding (also https://www.gatesfoundation.org/about/how-we-work/grant-opportunities and https://usprogram.gatesfoundation.org/news-and-insights/newsletter/postsecondary-success-notes-august-2026)
 
 ### Ballmer Group: VERIFIED (2026-10-13)
@@ -91,14 +90,6 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 - For-profit: does not state.
 - Access path: not accessible directly. Focus is children and families.
 - Source: https://ballmergroup.org/our-grants/
-
-### Innovative Postsecondary Models Fund (Panorama Global): VERIFIED (2026-10-13). ALLOWS FOR-PROFITS. CLOSED
-- Program: pooled fund from Ascendium, College Futures Foundation, ECMC Foundation, Gates, Haas Jr. Fund, Lumina, Raikes and Strada. Four themes, including Career and Workforce Alignment.
-- Grants: 7 to 10 grants of $750,000 to $1,000,000, February 2027 to July 2028.
-- Who can apply: open RFP. FAQ: a nonprofit is not required; it will consider "nonprofit organizations, for-profit organizations, and international organizations." Fiscally sponsored applicants and unaccredited providers can apply. Requirements: the model awards degrees or credentials of value, serves U.S. learners, and has enrolled learners by March 31, 2027. Post-baccalaureate certificate models are not eligible.
-- Status: "closed to new applications" (deadline September 14, 2026). Applicants hear by November 30, 2026; awards January 2027.
-- Access path: direct. Fit is doubtful because NextChapter does not award credentials. Watch for a second round.
-- Source: https://panoramaglobal.org/request-for-proposals-innovative-postsecondary-models-fund/
 
 ### Markle Foundation: TO VERIFY
 - Program: Skillful and the Rework America Alliance. Search-result snippets from markle.org say Skillful is a nonprofit initiative of Markle and that the alliance was transferred to Jobs for the Future (scheduled December 2023). Secondary sources describe a focus on workers without four-year degrees.
@@ -121,8 +112,13 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 
 ## What this means
 
-- Of the nine VERIFIED rows, two allow for-profits (Gates, in principle and by invitation only; the Innovative Postsecondary Models Fund, now closed), two exclude them by their own wording (Walmart.org and Siegel), and five do not say. Every route found is either closed or invitation only.
-- The OpenAI Foundation Economic Futures program is the one live-looking direct route: its stated work covers career transitions and pilots, but no call has opened and eligibility is not stated. Watch its news page.
-- Four funders (Ascendium, Gates, Lumina, Strada) sit in the Innovative Postsecondary Models Fund. A college or nonprofit grantee of any of them is the realistic path.
-- The most practical first step is not to ask any of them for a grant. It is to list the colleges, boards and nonprofits NextChapter works with that already hold these funders' grants, and ask whether a NextChapter provider line fits their next proposal.
-- Three rows stay TO VERIFY (Markle, Google.org, JPMorganChase). Do not approach them until read on the funders' own pages.
+- Of the eight VERIFIED rows, one allows for-profits in principle (Gates, by invitation only), two exclude them by their own wording (Walmart.org and Siegel), and five do not say. Every route found is invitation only or not yet open.
+- **OpenAI Foundation:** the earlier "wide range of other organizations" line came from a news report and is not on the foundation's own page. No call had opened as of October 13, 2026. Its stated work covers job search support, translating experience into new roles and pilots, so watch its news page.
+- **Gates:** the 2026 AI Transformation Learning Grants (about $150,000 to $200,000 each, for broad-access colleges and universities) closed September 11, 2026.
+- **Practical route:** for a for-profit, funding runs mostly through college or nonprofit grantees, which fits the Texas pattern (colleges and boards win the grant, NextChapter is the professional-track provider inside it). Ascendium, Gates, Lumina and Strada all fund college and workforce-board grantees.
+- The most practical first step is not to ask any funder for a grant. It is to list the colleges, boards and nonprofits NextChapter works with that already hold these funders' grants, and ask whether a NextChapter provider line fits their next proposal.
+- **Still unverified, and why:**
+  - **Markle:** every markle.org page blocked the automated read (403). Someone needs to read it in a normal browser.
+  - **Google.org and JPMorganChase:** no page that loaded says who can apply or how. Treat JPMorganChase as excluding for-profits until it is read on its own pages.
+  - Do not approach any of the three until they are read on the funders' own pages.
+- **Removed:** the Panorama Innovative Postsecondary Models Fund was dropped on 2026-10-13. It was the only fund found that names for-profits as eligible, but the round closed September 14, 2026 and its model must award credentials, which NextChapter does not.
