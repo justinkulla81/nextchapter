@@ -1,8 +1,8 @@
 'use client'
 
-import { APPLY_TIMING, effectiveJourney, getJourney, type ApplyTiming } from '@/lib/journey/journey'
+import { APPLY_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, type ApplyTiming, type MoveDriver } from '@/lib/journey/journey'
 import { useActionState, useState } from 'react'
-import type { CandidateProfile, GapDurationBucket, NetworkComfortLevel } from '@prisma/client'
+import type { CandidateProfile, CoachingStylePreference, GapDurationBucket, NetworkComfortLevel } from '@prisma/client'
 import { updateLocationAndSearchStatus } from '@/app/onboarding/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
-import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS } from '@/lib/constants/onboarding'
+import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS, COACHING_STYLE_OPTIONS } from '@/lib/constants/onboarding'
 
 const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDurationBucket, string][]).map(
   ([value, label]) => ({ value, label })
@@ -34,10 +34,15 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   // long they've been out of work (src/lib/journey/journey.ts).
   const journey = effectiveJourney(profile)
   const employed = journey ? getJourney(journey).employed : false
+  const searching = journey ? getJourney(journey).searching : true
   const [applyTiming, setApplyTiming] = useState<ApplyTiming | null>(null)
+  const [moveDriver, setMoveDriver] = useState<MoveDriver | null>(null)
   const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
   const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
     profile.networkComfortLevel
+  )
+  const [coachingStylePreference, setCoachingStylePreference] = useState<CoachingStylePreference | null>(
+    profile.coachingStylePreference
   )
 
   return (
@@ -103,87 +108,109 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         </Label>
       </div>
 
-      <div className="border-t border-border pt-5">
-        <h2 className="text-sm font-semibold text-foreground">Where are you in your search?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">This tells us which part of the process to focus on first.</p>
-      </div>
-
-      {employed ? (
-        <div className="space-y-2">
-          <Label>When do you want to start applying?</Label>
-          <ChoiceButtons
-            name="applyTiming"
-            options={APPLY_TIMING.map((t) => ({ value: t.key, label: t.label }))}
-            value={applyTiming}
-            onChange={setApplyTiming}
-            responsive
-          />
-        </div>
-      ) : (
+      {searching && (
         <>
-          <div className="space-y-2">
-            <Label>How long have you been searching?</Label>
-            <ChoiceButtons
-              name="gapDuration"
-              options={GAP_DURATION_OPTIONS}
-              value={gapDuration}
-              onChange={setGapDuration}
-              responsive
-            />
-          </div>
+        <div className="border-t border-border pt-5">
+          <h2 className="text-sm font-semibold text-foreground">Where are you in your search?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">This tells us which part of the process to focus on first.</p>
+        </div>
 
+        {employed ? (
           <div className="space-y-2">
-            <Label>
-              Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
-            </Label>
+            <Label>When do you want to start applying?</Label>
             <ChoiceButtons
-              name="aiDisplacementReason"
-              options={AI_DISPLACEMENT_OPTIONS}
-              value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
-              onChange={setAiDisplacementReason}
+              name="applyTiming"
+              options={APPLY_TIMING.map((t) => ({ value: t.key, label: t.label }))}
+              value={applyTiming}
+              onChange={setApplyTiming}
               responsive
             />
           </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label>How long have you been searching?</Label>
+              <ChoiceButtons
+                name="gapDuration"
+                options={GAP_DURATION_OPTIONS}
+                value={gapDuration}
+                onChange={setGapDuration}
+                responsive
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <ChoiceButtons
+                name="aiDisplacementReason"
+                options={AI_DISPLACEMENT_OPTIONS}
+                value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
+                onChange={setAiDisplacementReason}
+                responsive
+              />
+            </div>
+          </>
+        )}
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="justStartedSearch"
+            name="justStartedSearch"
+            value="on"
+            defaultChecked={justStartedSearch}
+            onCheckedChange={(checked) => setJustStartedSearch(checked === true)}
+          />
+          <Label htmlFor="justStartedSearch" className="font-normal">
+            I just started my search — no applications or interviews yet
+          </Label>
+        </div>
+
+        {!justStartedSearch && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="jobsAppliedCount">How many roles have you applied to?</Label>
+              <Input id="jobsAppliedCount" name="jobsAppliedCount" type="number" min={0} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="interviewsCount">How many interviews have you had?</Label>
+              <Input
+                id="interviewsCount"
+                name="interviewsCount"
+                type="number"
+                min={0}
+                defaultValue={profile.interviewsReceivedCount ?? ''}
+              />
+            </div>
+          </div>
+        )}
         </>
       )}
 
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="justStartedSearch"
-          name="justStartedSearch"
-          value="on"
-          defaultChecked={justStartedSearch}
-          onCheckedChange={(checked) => setJustStartedSearch(checked === true)}
-        />
-        <Label htmlFor="justStartedSearch" className="font-normal">
-          I just started my search — no applications or interviews yet
-        </Label>
-      </div>
-
-      {!justStartedSearch && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="jobsAppliedCount">How many roles have you applied to?</Label>
-            <Input id="jobsAppliedCount" name="jobsAppliedCount" type="number" min={0} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="interviewsCount">How many interviews have you had?</Label>
-            <Input
-              id="interviewsCount"
-              name="interviewsCount"
-              type="number"
-              min={0}
-              defaultValue={profile.interviewsReceivedCount ?? ''}
-            />
-          </div>
+      {searching && journey === 'EXPLORING_MOVE' && (
+        <div className="space-y-2">
+          <Label>
+            What&apos;s behind the move? <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <ChoiceButtons
+            name="moveDriver"
+            options={MOVE_DRIVERS.map((d) => ({ value: d.key, label: d.label }))}
+            value={moveDriver}
+            onChange={setMoveDriver}
+            columns={3}
+            responsive
+          />
         </div>
       )}
 
       <div className="border-t border-border pt-5">
         <h2 className="text-sm font-semibold text-foreground">One more thing</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          How comfortable do you feel letting your network know you&apos;re looking for a role?
+          {searching
+            ? "How comfortable do you feel letting your network know you're looking for a role?"
+            : 'How comfortable do you feel reaching out to people in your network about your career?'}
         </p>
       </div>
 
@@ -195,6 +222,23 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         columns={2}
         responsive
       />
+
+      <div className="space-y-2">
+        <Label>
+          When you&apos;re stuck, what kind of push works better for you? <span className="text-muted-foreground">(optional)</span>
+        </Label>
+        <p className="text-sm text-muted-foreground">
+          This sets how direct your coaching feedback is. You can change it any time on your profile.
+        </p>
+        <ChoiceButtons
+          name="coachingStylePreference"
+          options={COACHING_STYLE_OPTIONS}
+          value={coachingStylePreference}
+          onChange={setCoachingStylePreference}
+          columns={3}
+          responsive
+        />
+      </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

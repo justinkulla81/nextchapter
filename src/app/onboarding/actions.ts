@@ -9,6 +9,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { ensureUser } from '@/lib/auth/ensure-user'
 import { Prisma, type GapDurationBucket, type NetworkComfortLevel } from '@prisma/client'
 import {
+  COACHING_STYLE_OPTIONS,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   GAP_DURATION_LABELS,
   SITUATION_TO_JOB_STATUS,
@@ -17,7 +18,7 @@ import {
 } from '@/lib/constants/onboarding'
 import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import { applyJourneyChange } from '@/lib/journey/apply'
-import { APPLY_TIMING, effectiveJourney, getJourney, stageForTiming, type ApplyTiming } from '@/lib/journey/journey'
+import { APPLY_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForTiming, type ApplyTiming, type MoveDriver } from '@/lib/journey/journey'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -212,6 +213,11 @@ export async function updateLocationAndSearchStatus(
   const travelWillingness = formData.get('travelWillingness') === 'on'
   const aiDisplacementReason = (formData.get('aiDisplacementReason') as string | null) || null
 
+  const coachingStyleRaw = formData.get('coachingStylePreference') as string | null
+  const coachingStylePreference = COACHING_STYLE_OPTIONS.find((o) => o.value === coachingStyleRaw)?.value ?? null
+  const moveDriverRaw = formData.get('moveDriver') as string | null
+  const moveDriver = (MOVE_DRIVERS.find((d) => d.key === moveDriverRaw)?.key ?? null) as MoveDriver | null
+
   const justStartedSearch = formData.get('justStartedSearch') === 'on'
   const gapDuration = formData.get('gapDuration') as string | null
   const jobsAppliedCountRaw = formData.get('jobsAppliedCount')
@@ -229,15 +235,19 @@ export async function updateLocationAndSearchStatus(
   })
   const journey = effectiveJourney(profileJourney)
   const employed = journey ? getJourney(journey).employed : false
+  // Someone growing where they are isn't searching: no timing, no search history.
+  const searching = journey ? getJourney(journey).searching : true
   const applyTiming = formData.get('applyTiming') as ApplyTiming | null
-  if (employed) {
+  if (!searching) {
+    // nothing to ask
+  } else if (employed) {
     if (!applyTiming || !APPLY_TIMING.some((t) => t.key === applyTiming)) {
       return { error: 'Please tell us when you want to start applying.' }
     }
   } else if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
     return { error: 'Please tell us how long you have been searching before continuing.' }
   }
-  if (!justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
+  if (searching && !justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
     return { error: 'Please answer both search-status questions, or check "I just started" above.' }
   }
   if (!networkComfortLevel || !NETWORK_COMFORT_LEVELS.includes(networkComfortLevel as NetworkComfortLevel)) {
@@ -256,19 +266,24 @@ export async function updateLocationAndSearchStatus(
       travelWillingness,
       aiDisplacementReason,
       onboardingLocationConfirmedAt: now,
-      justStartedSearch,
+      justStartedSearch: searching ? justStartedSearch : true,
       gapDuration: employed ? null : (gapDuration as GapDurationBucket),
-      jobsAppliedBucket: deriveJobsAppliedBucket(jobsAppliedCount as number),
-      interviewsReceivedCount: interviewsCount,
+      jobsAppliedBucket: deriveJobsAppliedBucket(searching ? (jobsAppliedCount as number) : 0),
+      interviewsReceivedCount: searching ? interviewsCount : 0,
       onboardingSearchStatusConfirmedAt: now,
       networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
+      ...(coachingStylePreference ? { coachingStylePreference } : {}),
       networkComfortBonusAt: now,
       onboardingComfortConfirmedAt: now,
     },
   })
 
-  if (employed && journey && applyTiming) {
-    await applyJourneyChange(candidateId, { stage: stageForTiming(journey, applyTiming), details: { applyTiming }, source: 'ONBOARDING' })
+  if (employed && searching && journey && applyTiming) {
+    await applyJourneyChange(candidateId, {
+      stage: stageForTiming(journey, applyTiming),
+      details: { applyTiming, ...(journey === 'EXPLORING_MOVE' && moveDriver ? { moveDriver } : {}) },
+      source: 'ONBOARDING',
+    })
   }
 
   revalidatePath('/onboarding', 'layout')

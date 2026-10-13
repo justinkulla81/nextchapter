@@ -5,15 +5,17 @@ import { updateJourney } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { JOURNEYS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType, type MoveDriver } from '@/lib/journey/journey'
 
 // "Your situation" on Privacy: why you're moving and how close you are to
 // applying. Your plan and check-ins follow both.
-export function JourneySelector({ journey, stage }: { journey: JourneyType | null; stage: JourneyStage | null }) {
+export function JourneySelector({ journey, stage, moveDriver }: { journey: JourneyType | null; stage: JourneyStage | null; moveDriver: MoveDriver | null }) {
   const [state, formAction, pending] = useActionState(updateJourney, undefined)
   const [j, setJ] = useState<JourneyType>(journey ?? 'EXPLORING_MOVE')
   const [s, setS] = useState<JourneyStage>(stage ?? getJourney(journey ?? 'EXPLORING_MOVE').defaultStage)
-  const unchanged = j === journey && s === stage
+  const [d, setD] = useState<MoveDriver | null>(moveDriver)
+  const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver)
 
   return (
     <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
@@ -54,6 +56,19 @@ export function JourneySelector({ journey, stage }: { journey: JourneyType | nul
           Save situation
         </SubmitButton>
       </div>
+      {j === 'EXPLORING_MOVE' && (
+        <div className="space-y-1.5">
+          <Label>What&apos;s behind the move?</Label>
+          <ChoiceButtons
+            name="moveDriver"
+            options={MOVE_DRIVERS.map((x) => ({ value: x.key, label: x.label }))}
+            value={d}
+            onChange={setD}
+            columns={3}
+            responsive
+          />
+        </div>
+      )}
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
     </form>
   )

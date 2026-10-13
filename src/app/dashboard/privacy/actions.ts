@@ -1,7 +1,7 @@
 'use server'
 
 import { applyJourneyChange } from '@/lib/journey/apply'
-import { JOURNEYS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
+import { JOURNEYS, MOVE_DRIVERS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -359,7 +359,15 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
 
   const profile = await getOrCreateCandidateProfile(user.id)
-  await applyJourneyChange(profile.id, { journey, stage, source: 'SETTINGS', isCheckIn: true })
+  const driverRaw = formData.get('moveDriver') as string | null
+  const moveDriver = MOVE_DRIVERS.find((d) => d.key === driverRaw)?.key ?? null
+  await applyJourneyChange(profile.id, {
+    journey,
+    stage,
+    details: journey === 'EXPLORING_MOVE' && moveDriver ? { moveDriver } : undefined,
+    source: 'SETTINGS',
+    isCheckIn: true,
+  })
 
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')

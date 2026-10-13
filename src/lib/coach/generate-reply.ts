@@ -48,7 +48,8 @@ export async function generateCoachReply(
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
-    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity),
+    candidate.coachingStylePreference
   )
 
   const contextBlock = `

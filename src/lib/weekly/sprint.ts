@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -253,9 +253,15 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true },
+    }),
   ])
-  return p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+  if (!p) return general
+  const since = p.journeyStageChangedAt ?? p.createdAt
+  const weeksInStage = Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
+  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage)
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {

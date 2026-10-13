@@ -21,12 +21,14 @@ export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
 // pages (/start/[persona]) and the onboarding situation step. Each is a
 // journey (src/lib/journey/journey.ts). Old keys stay valid so existing links
 // keep working: 'just_resigned' and 'just_laid_off' share the Laid off
-// journey, and 'worried_let_go' is now "Thinking about a move".
+// journey, and 'ready_to_move' and 'worried_let_go' are both "Thinking about a
+// move" (how soon is the stage; what's driving it is journeyDetails.moveDriver).
 export const SITUATION_TO_JOURNEY = {
   just_laid_off: 'LAID_OFF',
   just_resigned: 'LAID_OFF',
-  ready_to_move: 'READY_TO_MOVE',
+  ready_to_move: 'EXPLORING_MOVE',
   worried_let_go: 'EXPLORING_MOVE',
+  growing_in_job: 'GROWING',
   looking_for_promotion: 'PROMOTION',
   career_pivot: 'CAREER_CHANGE',
   just_graduated: 'STUDENT_NEW_GRAD',
@@ -43,6 +45,7 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
   just_resigned: 'RESIGNED',
   ready_to_move: 'EMPLOYED_CONSIDERING_MOVE',
   worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
+  growing_in_job: 'EMPLOYED_CONSIDERING_MOVE',
   looking_for_promotion: 'SEEKING_PROMOTION',
   career_pivot: 'CAREER_PIVOT',
   just_graduated: 'NEW_GRADUATE_FIRST_JOB',
@@ -53,8 +56,9 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
 // The card to pre-select for a member re-visiting the picker.
 export const JOURNEY_TO_SITUATION: Record<JourneyType, SituationKey> = {
   LAID_OFF: 'just_laid_off',
-  READY_TO_MOVE: 'ready_to_move',
+  READY_TO_MOVE: 'worried_let_go', // legacy; same card as Thinking about a move
   EXPLORING_MOVE: 'worried_let_go',
+  GROWING: 'growing_in_job',
   PROMOTION: 'looking_for_promotion',
   CAREER_CHANGE: 'career_pivot',
   STUDENT_NEW_GRAD: 'just_graduated',

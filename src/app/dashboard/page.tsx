@@ -354,6 +354,7 @@ export default async function DashboardPage() {
           weekStartDate={weekStartDate}
           marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
           hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
+          title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
         />
 
         {/* Build Your Dossier — the real §7.2 dossier-completeness checklist

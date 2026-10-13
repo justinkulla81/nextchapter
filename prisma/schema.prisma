@@ -162,13 +162,14 @@ enum SearchIntensity {
 }
 
 // Journeys (Product Design doc, Journeys tab): why someone is moving. One of
-// eight paths, each with its own onboarding follow-ups, to-dos and check-in
+// nine paths, each with its own onboarding follow-ups, to-dos and check-in
 // pace. Replaces CurrentJobStatus as the thing the product branches on;
 // CurrentJobStatus is still written alongside it (mapped) for older readers.
 enum JourneyType {
   LAID_OFF // laid off, let go, or resigned without the next job
-  READY_TO_MOVE // employed, wants a new job now
-  EXPLORING_MOVE // employed and thinking about it (includes "worried I'll be let go")
+  READY_TO_MOVE // legacy: merged into EXPLORING_MOVE (read through normalizeJourney)
+  EXPLORING_MOVE // employed and thinking about a move: curious, unhappy, ready, or worried about a layoff (journeyDetails.moveDriver)
+  GROWING // employed and staying: reviews, raises, promotion, new skills, recession-proofing
   PROMOTION // the next level, inside or outside
   CAREER_CHANGE // new function or industry
   STUDENT_NEW_GRAD // internship or first job, up to five years out
@@ -185,7 +186,8 @@ enum JourneyStage {
   INTERVIEWING
   OFFER
   LANDED
-  PAUSED
+  STAYING // growing where you are: active in-job plan, no application targets
+  PAUSED // taking a break: no plan, no nudges
 }
 
 // What changed a member's journey or stage (JourneyEvent.source).

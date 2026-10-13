@@ -7,7 +7,7 @@
 // hides raw scores/jargon). This one shows everything to the candidate about
 // themselves — no hiding.
 
-import { effectiveJourney, effectiveStage, getJourney, getStage, REPORT_FRAMING } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, getJourney, getStage, moveDriverOf, reportFraming } from '@/lib/journey/journey'
 import 'server-only'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
@@ -386,7 +386,8 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
 
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
-    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity),
+    candidate.coachingStylePreference
   )
 
   // Skills the member's best-fit open roles ask for that their resume doesn't show.
@@ -438,7 +439,7 @@ Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.c
 Journey: ${(() => {
     const j = effectiveJourney(candidate)
     const st = effectiveStage(candidate)
-    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${REPORT_FRAMING[j]}` : 'not specified'
+    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${reportFraming(j, st, moveDriverOf(candidate.journeyDetails))}` : 'not specified'
   })()}
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}

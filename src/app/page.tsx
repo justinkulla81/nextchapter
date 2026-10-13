@@ -66,8 +66,8 @@ const THREE_BEATS = [
 
 const HOW_IT_WORKS_STEPS = [
   { title: 'Market Reality Assessment', description: 'A clearer view of where you stand and what to do next.' },
-  { title: 'Search Sprint', description: 'A clear weekly plan, not a guessing game.' },
-  { title: 'Weekly Search Score', description: 'Momentum you can actually see, points that never feel abstract.' },
+  { title: 'Weekly plan', description: 'A weekly plan for where you are: searching, preparing, or growing in your job.' },
+  { title: 'Weekly score', description: 'Momentum you can actually see, points that never feel abstract.' },
   { title: 'Executive Dossier', description: 'Helps employers see what your résumé leaves out.' },
 ]
 
@@ -97,8 +97,8 @@ export default async function Home() {
             Your resume is the least complete thing about you.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            NextChapter shows you exactly how the market reads your search — then helps you build the
-            evidence that changes it.
+            Whether you're out of work, thinking about a move, or growing where you are, NextChapter
+            shows you exactly how the market reads you — then helps you build the evidence that changes it.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
@@ -187,6 +187,9 @@ export default async function Home() {
       <section className="bg-off-white py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-navy">Which one sounds like you?</h2>
+          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+            Out of work, working and thinking about a move, or happy where you are and want to grow: there&apos;s a plan for each.
+          </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             {PERSONAS.map((persona) => (
               <Link

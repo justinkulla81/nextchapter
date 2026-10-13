@@ -12,7 +12,7 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -98,11 +98,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
+            Why you&apos;re moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">
