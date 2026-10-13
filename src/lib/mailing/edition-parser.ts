@@ -1,9 +1,13 @@
 /**
- * Which month's Displacement Report an email carried, from what Gmail shows
- * of it: attachment filenames and the body text.
+ * Which month's report an email carried (the NextChapter Employment Report,
+ * formerly the Displacement Report), from what Gmail shows of it: attachment
+ * filenames and the body text.
  *
- * A report attachment is named `displacement-report-2026-09.pdf` or
- * `NextChapter-Displacement-Report-2026-09.pdf`; a link points somewhere
+ * A report attachment is named `employment-report-2026-10.pdf` or
+ * `NextChapter-Employment-Report-2026-10.pdf`, or, for editions published
+ * under the former name, `displacement-report-2026-09.pdf` or
+ * `NextChapter-Displacement-Report-2026-09.pdf`. Both prefixes are accepted
+ * so old sends keep resolving and new ones are recognized. A link points somewhere
  * under launchyournextchapter.com/reports/. The month is read as YYYY-MM, or
  * as a month name and year ("september-2026"), which is how the report's own
  * pages are slugged. Returns 'YYYY-MM', or null when nothing matches.
@@ -14,7 +18,8 @@ const MONTHS = [
   'july', 'august', 'september', 'october', 'november', 'december',
 ]
 
-const FILENAME_PREFIX = /^(?:nextchapter-)?displacement-report-/i
+// Accepts the current name and the former one (editions through September 2026).
+const FILENAME_PREFIX = /^(?:nextchapter-)?(?:employment|displacement)-report-/i
 const REPORT_URL = /(?:https?:\/\/)?(?:www\.)?launchyournextchapter\.com\/reports\/[^\s"'<>)\]]+/gi
 
 /** 'YYYY-MM' from text like "2026-09", "2026_09" or "september-2026". */

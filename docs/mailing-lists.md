@@ -13,8 +13,8 @@ Admin → Ecosystem → **Monthly Update** (`/support/admin/crm/mailing`).
   for this send. It's stored, and it's frozen once sending starts.
 - **Report receipts** (`CrmReportSend`): who got which report month, sent by
   the system (✉︎) or by hand (✋). Manual sends are detected by the Gmail
-  sync from a `displacement-report-*.pdf` /
-  `NextChapter-Displacement-Report-*.pdf` attachment or a
+  sync from a `employment-report-*.pdf` / `displacement-report-*.pdf` (the report's former name, editions through September 2026) /
+  `NextChapter-Employment-Report-*.pdf` / `NextChapter-Displacement-Report-*.pdf` attachment or a
   `launchyournextchapter.com/reports/…` link.
 - **"Add to a mailing list?"** (`MailingListPrompt`): raised by the Gmail
   sync after an email you sent someone who isn't on the lists that fit them.

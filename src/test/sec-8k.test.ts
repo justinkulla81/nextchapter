@@ -25,8 +25,8 @@ describe('sec 8-K Item 2.05', () => {
 
   it('tells a layoff from a plant closure, and reads the headcount', () => {
     expect(readLayoffFiling('The Board approved a reduction in force of approximately 250 employees, about 8% of the workforce.'))
-      .toEqual({ isLayoff: true, employees: 250 })
+      .toEqual({ isLayoff: true, employees: 250, percent: 8 })
     expect(readLayoffFiling('The Company will close its Ohio facility and record an impairment charge.').isLayoff).toBe(false)
-    expect(readLayoffFiling('A workforce reduction will be announced.')).toEqual({ isLayoff: true, employees: null })
+    expect(readLayoffFiling('A workforce reduction will be announced.')).toEqual({ isLayoff: true, employees: null, percent: null })
   })
 })

@@ -15,6 +15,19 @@ export interface HeadlineLayoff {
   company: string
   companyKey: string
   employees: number | null
+  /** The share of the workforce, when the text gives one ("30% of its staff"). */
+  percent: number | null
+}
+
+const WORKFORCE = String.raw`(?:workforce|work force|staff|employees|headcount|team|personnel|jobs|people|roles|positions)`
+const PERCENT_OF = new RegExp(String.raw`(\d{1,3}(?:\.\d+)?)\s?(?:%|percent|per cent)\s+of\s+(?:its |the |their |our )?(?:[A-Za-z]+ ){0,2}?${WORKFORCE}\b`, 'i')
+const PERCENT_BY = new RegExp(String.raw`${WORKFORCE}\s+by\s+(?:about |around |nearly |roughly |some )?(\d{1,3}(?:\.\d+)?)\s?(?:%|percent|per cent)`, 'i')
+
+/** A percentage of the workforce, never a stock move or a rate ("falls 5% after layoffs"). */
+export function readPercent(text: string): number | null {
+  const m = text.match(PERCENT_OF) ?? text.match(PERCENT_BY)
+  const n = m ? parseFloat(m[1]) : NaN
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : null
 }
 
 const NAME = String.raw`(?<co>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,4}?)`
@@ -84,7 +97,7 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   if (company.length < 2 || NOT_A_NAME.test(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
-  return { company, companyKey, employees: count(m!.groups?.n, m!.groups?.k) }
+  return { company, companyKey, employees: count(m!.groups?.n, m!.groups?.k), percent: readPercent(h) }
 }
 
 /** "CNBC on MSN" and "CNBC" are one publisher, for telling two sources from one. */

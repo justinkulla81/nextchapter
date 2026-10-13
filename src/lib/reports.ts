@@ -4,6 +4,34 @@
 // single entry at the top of REPORT_EDITIONS; the hub, the sitemap, the news
 // feed and /reports/latest all read from here.
 
+/** The report's name from the October 2026 edition on. */
+export const REPORT_NAME = 'NextChapter Employment Report'
+
+/**
+ * The name editions through September 2026 were published under. Keep it for
+ * citing those editions by their published title; new editions and new copy use
+ * REPORT_NAME.
+ */
+export const REPORT_LEGACY_NAME = 'NextChapter Displacement Report'
+
+/** URL-slug prefix for editions published under the current name. */
+export const REPORT_SLUG_PREFIX = 'employment-report-'
+
+const MONTH_SLUGS = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december',
+]
+
+/**
+ * The slug for a new edition, e.g. reportSlugFor(2026, 10) is
+ * 'employment-report-october-2026'. Month is 1 to 12.
+ */
+export function reportSlugFor(year: number, month: number): string {
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new Error(`Invalid report year: ${year}`)
+  if (!Number.isInteger(month) || month < 1 || month > 12) throw new Error(`Invalid report month: ${month}`)
+  return `${REPORT_SLUG_PREFIX}${MONTH_SLUGS[month - 1]}-${year}`
+}
+
 /** The production origin, spelled out so absolute URLs (JSON-LD, OG, feeds) agree. */
 export const SITE_URL = 'https://launchyournextchapter.com'
 
