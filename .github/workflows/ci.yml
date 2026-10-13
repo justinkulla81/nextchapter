@@ -1,0 +1,27 @@
+name: CI
+
+# Typecheck, unit tests and lint on every PR and push to main. `next build` is
+# deliberately not run here: static generation needs a live DATABASE_URL, and
+# Vercel's own build already covers it. The lint step skips one test file that
+# predates this workflow and has known `no-explicit-any` errors; remove the
+# ignore once those are fixed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: 'npm'
+      # postinstall runs `prisma generate`, which the typecheck needs.
+      - run: npm ci
+      - run: npx tsc --noEmit -p .
+      - run: npx vitest run
+      - run: npx eslint src --ignore-pattern src/test/token-crypto-extension.test.ts

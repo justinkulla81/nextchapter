@@ -770,3 +770,31 @@ ${text}`
     return { error: "We couldn't reach the AI polish just now. Your draft is unchanged; try again in a moment." }
   }
 }
+
+// Undo for flagNotJobRelated. Lifts the block for future mail only: contacts we
+// removed and mail we dismissed when it was flagged stay as they are, since we
+// can't tell those apart from ones the candidate cleared on their own.
+export async function unblockSender(suppressedSenderId: string): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  try {
+    const row = await prisma.suppressedSender.findFirst({
+      where: { id: suppressedSenderId, candidateId: profile.id },
+      select: { value: true, isDomain: true, reason: true },
+    })
+    if (!row) return {}
+    await prisma.suppressedSender.delete({ where: { id: suppressedSenderId } })
+    captureServerEvent(profile.id, 'sender_unblocked', {
+      suppressedSenderId,
+      reason: row.reason,
+      scope: row.isDomain ? 'domain' : 'address',
+    })
+  } catch (error) {
+    console.error('Failed to unblock sender:', error)
+    return { error: "We couldn't unblock that sender just now. Try again in a moment." }
+  }
+  revalidatePath('/dashboard/network/blocked-senders')
+  revalidatePath('/dashboard/network')
+  return {}
+}
