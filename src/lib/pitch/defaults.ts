@@ -1,6 +1,21 @@
 import type { CustomerType, OfferTerms, Package, RuleSet, SlideRule } from './types'
 import { CUSTOMER_LABELS } from './types'
 import { SOURCES } from './report-facts'
+import { OPEN_DATA_EVIDENCE_BULLET, OPEN_DATA_LEAVE_BEHIND } from '@/lib/marketing/open-data'
+import { LONGER_SEARCH_PITCH_BULLET, LONGER_SEARCH_SHORT } from '@/lib/marketing/longer-search-message'
+
+/**
+ * Reusable approved blocks for decks, emails and one-pagers. Not slides: use
+ * them where a rule set or an email template needs a sentence. Sources and
+ * guardrails live next to the figures in src/lib/marketing.
+ */
+export const PITCH_MESSAGE_BLOCKS = {
+  /** "A longer search is not a personal failure": one line with the report figure and its source. */
+  longerSearch: LONGER_SEARCH_SHORT,
+  longerSearchBullet: LONGER_SEARCH_PITCH_BULLET,
+  /** Leave-behind: how a buyer can check the numbers. */
+  openData: OPEN_DATA_LEAVE_BEHIND,
+} as const
 
 // Default rule sets. The admin tool stores edits as overrides; "Reset to
 // default" deletes the override. Copy rules: plain, declarative, numbers over
@@ -49,6 +64,7 @@ const BASE: S[] = [
       'Every figure in our monthly Displacement Report is sourced, with the method and code published.',
       'The numbers in this deck come from the Bureau of Labor Statistics, the Census Bureau and state layoff filings; sources are in the appendix.',
       'County white-collar and blue-collar unemployment are labeled as estimates wherever they appear.',
+      OPEN_DATA_EVIDENCE_BULLET,
     ],
     why: 'No pilot results yet, so this slide proves rigor instead. Add real results here once you have them.',
   }],

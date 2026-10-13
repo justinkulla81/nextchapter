@@ -4,9 +4,12 @@ import { StructuredData } from '@/components/StructuredData'
 import { Button } from '@/components/ui/button'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { SITE_URL } from '@/lib/reports'
+import {
+  OPEN_DATA_LEAVE_BEHIND, OPEN_DATA_LIMITATIONS, OPEN_DATA_SCRIPTS, OPEN_DATA_SOURCES, REPLICATION_REPO_URL,
+} from '@/lib/marketing/open-data'
 
 const URL = `${SITE_URL}/reports/replication`
-const REPO_URL = 'https://github.com/justinkulla81/nextchapter-displacement-report'
+const REPO_URL = REPLICATION_REPO_URL
 const REPORT_PATH = '/reports/displacement-report-september-2026'
 const CORRECTIONS_EMAIL = 'jkulla@launchyournextchapter.com'
 const DESCRIPTION =
@@ -126,6 +129,48 @@ export default function ReplicationPage() {
             Code: MIT License. Data files and documentation: CC BY 4.0. Census microdata are not redistributed; the
             scripts fetch them with a free Census API key.
           </p>
+        </section>
+
+        <section id="open-data" className="mt-12 scroll-mt-24">
+          <h2 className="text-xl font-bold tracking-tight text-navy">Open data and methodology</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground">
+            Journalists, workforce boards, colleges and funders can check every number in the report. The code is
+            licensed MIT. The data files and documentation are licensed CC BY 4.0: use them, and credit the
+            &ldquo;NextChapter Displacement Report&rdquo;.
+          </p>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Scripts</h3>
+          <ul className="mt-3 divide-y divide-light-gray border-y border-light-gray text-sm">
+            {OPEN_DATA_SCRIPTS.map((s) => (
+              <li key={s.file} className="grid gap-1 py-2.5 sm:grid-cols-[minmax(0,2fr)_3fr] sm:gap-4">
+                <span className="font-mono text-xs leading-relaxed text-muted-foreground">{s.file}</span>
+                <span className="text-foreground">{s.produces}</span>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Where the underlying data comes from</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-relaxed text-foreground">
+            {OPEN_DATA_SOURCES.map((s) => <li key={s}>{s}</li>)}
+          </ul>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Known limitations</h3>
+          <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
+            {OPEN_DATA_LIMITATIONS.map((l) => <li key={l}>{l}</li>)}
+          </ul>
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            The full methodology, variable dictionary and seasonal factors are in the repository&apos;s{' '}
+            <a href={`${REPO_URL}/blob/main/methodology/methodology.md`} className="text-brand underline underline-offset-4">methodology folder</a>.
+            The report states what its numbers can and cannot show, including that it does not establish a cause
+            for the rise in long searches.
+          </p>
+
+          <div className="mt-6 rounded-xl border border-light-gray bg-off-white p-5">
+            <h3 className="text-base font-bold text-navy">{OPEN_DATA_LEAVE_BEHIND.title}</h3>
+            <ul className="mt-2 space-y-1 text-sm leading-relaxed text-foreground">
+              {OPEN_DATA_LEAVE_BEHIND.lines.map((l) => <li key={l}>{l}</li>)}
+            </ul>
+          </div>
         </section>
 
         <section className="mt-12">
