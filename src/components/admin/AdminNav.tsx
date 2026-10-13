@@ -330,6 +330,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         // this same page — see Market Pulse's own page.tsx comment.
         { href: `${A}/digest`, label: 'Market Pulse' },
         { href: `${A}/tracking-testers`, label: 'Gmail/Calendar Testers' },
+        { href: `${A}/job-health`, label: 'Background job health' },
       ],
     },
   ]

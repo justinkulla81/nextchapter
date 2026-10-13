@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { orgNamesMatchStrict } from '@/lib/text/org-name-match'
 import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Fires daily — for each candidate, finds the first still-unnotified applied
 // job whose company matches someone already in their network, sends one
@@ -21,12 +21,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 // to share a substring. Strict equality misses some real abbreviations
 // ("Hyland" for "Hyland Software") but that's a missed nudge, not a false
 // claim mailed to the candidate.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('backchannel-match', async () => {
   // Selects every applied job with a company name (not just still-unnotified
   // ones) so the email can tell the candidate how many OTHER companies
   // they've applied to also have a network connection, beyond the one this
@@ -100,4 +95,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: eligible.length, sent: sentCount })
-}
+})

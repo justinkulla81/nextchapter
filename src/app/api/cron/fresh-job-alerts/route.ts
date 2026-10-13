@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { freshJobAlertsEnabled, sendFreshJobAlert } from '@/lib/jobs/fresh-job-alerts'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -11,10 +11,7 @@ const BREAK_ANSWER_WINDOW_DAYS = 30
 // Instant new-job alerts — daily at 21:00 UTC (5pm ET), after the morning's
 // crawl import, for strong fits posted in the last 24 hours. Sends nothing
 // until FRESH_JOB_ALERTS_ENABLED=true; until then it reports who would get one.
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('fresh-job-alerts', async () => {
 
   const breakCutoff = new Date(Date.now() - BREAK_ANSWER_WINDOW_DAYS * 86_400_000)
   const eligible = await prisma.candidateProfile.findMany({
@@ -56,4 +53,4 @@ export async function GET(request: NextRequest) {
   const summary = { enabled, checked: eligible.length, sent, wouldSend, failed }
   captureServerEvent('cron', 'fresh_job_alerts_run', summary)
   return NextResponse.json(summary)
-}
+})

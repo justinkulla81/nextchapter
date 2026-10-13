@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -12,10 +12,7 @@ export const maxDuration = 300
  * calendar's results, since the calendar is often the more accurate
  * last-contacted signal for anyone you've actually met.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
 
   // The cron fires hourly; the SETTING decides whether a sweep is actually
   // due. Putting the schedule in the database rather than in vercel.json makes
@@ -81,4 +78,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json(results)
-}
+})

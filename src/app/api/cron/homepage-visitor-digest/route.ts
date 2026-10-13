@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { startOfUTCDay } from '@/lib/daily/mood'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
@@ -7,14 +7,9 @@ import { isLoopbackIp } from '@/lib/http/trusted-ips'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { classifyUserAgent, USER_AGENT_CLASS_SORT_ORDER } from '@/lib/http/user-agent'
 import { candidateDisplayName } from '@/lib/messaging/threads'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('homepage-visitor-digest', async () => {
   const adminEmail = getAccountActivityAdminEmail()
   if (!adminEmail) {
     return NextResponse.json({ visitors: 0, sent: false, reason: 'no admin email configured' })
@@ -155,4 +150,4 @@ export async function GET(request: NextRequest) {
   const result = await sendHomepageVisitorDigestEmail(adminEmail, dateLabel, visitors)
 
   return NextResponse.json({ visitors: visitors.length, sent: result.sent })
-}
+})

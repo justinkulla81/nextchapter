@@ -5,7 +5,7 @@ import { runSec8kCheck } from '@/lib/warn/sec-8k-run'
 import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { matchNoticesToBoards } from '@/lib/workforce/match'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -23,10 +23,7 @@ export const maxDuration = 300
  * The news check runs after the filings so it can see what they already cover.
  * Last, new notices get their local workforce board, in whatever time is left.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('warn-sync', async (request: NextRequest) => {
   const started = Date.now()
   // ?promote=0 stages notices without creating leads, for a dry look.
   const promote = request.nextUrl.searchParams.get('promote') !== '0'
@@ -76,4 +73,4 @@ export async function GET(request: NextRequest) {
     boards = { error: e instanceof Error ? e.message : String(e) }
   }
   return NextResponse.json({ results, known, sec, news, primary, boards })
-}
+})

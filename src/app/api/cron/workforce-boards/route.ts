@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { syncWorkforceBoards } from '@/lib/workforce/directory'
 import { matchNoticesToBoards } from '@/lib/workforce/match'
 import { rankColleges } from '@/lib/workforce/college-rank'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -12,10 +12,7 @@ export const maxDuration = 300
  * waiting for a board. ?state=TX refreshes one state; ?budgetMs=0 only
  * matches; ?matchMs= sets how long matching may run.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('workforce-boards', async (request: NextRequest) => {
   const state = request.nextUrl.searchParams.get('state')?.toUpperCase()
   const budget = Number(request.nextUrl.searchParams.get('budgetMs') ?? 200_000)
   const boards = budget > 0 ? await syncWorkforceBoards(budget, state ? [state] : undefined) : {}
@@ -23,4 +20,4 @@ export async function GET(request: NextRequest) {
   // Re-rank colleges against this week's layoffs.
   const colleges = await rankColleges().catch((e) => ({ error: e instanceof Error ? e.message : String(e) }))
   return NextResponse.json({ boards, notices, colleges })
-}
+})

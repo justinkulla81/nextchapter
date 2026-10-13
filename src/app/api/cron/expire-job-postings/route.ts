@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Fires daily, 30 minutes before the ats-job-board-feed cron — freshness
 // enforcement runs on the same cadence as the fetch that repopulates the
@@ -13,16 +13,11 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 // expiresAt moves forward is a genuine reconfirmJobBoardPosting call (see
 // src/lib/jobs/job-board-submission.ts) or the ATS feed re-finding the same
 // URL still live — never a bare "bump."
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('expire-job-postings', async () => {
   const result = await prisma.exclusiveJobPosting.updateMany({
     where: { archivedAt: null, expiresAt: { lt: new Date() } },
     data: { archivedAt: new Date() },
   })
 
   return NextResponse.json({ expired: result.count })
-}
+})

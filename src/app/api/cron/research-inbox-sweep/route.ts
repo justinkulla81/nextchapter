@@ -1,20 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
 import { listAlertMessages, getMessageHtml, markMessageRead, extractAlertUrls } from '@/lib/google/gmail'
 import { ingestResearchUrl } from '@/lib/research/ingest'
 import { sweepNewsletters } from '@/lib/research/newsletter-sweep'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 120
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('research-inbox-sweep', async () => {
   const connection = await getActiveGoogleConnection()
   if (!connection) {
     return NextResponse.json({ swept: 0, ingested: 0, reason: 'no_connection' })
@@ -70,4 +65,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ messagesSwept, ingested, newsletters })
-}
+})

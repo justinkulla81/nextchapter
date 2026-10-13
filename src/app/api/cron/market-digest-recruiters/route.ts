@@ -1,16 +1,11 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestRecruiterEmail } from '@/lib/email/send-market-digest-recruiter'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('market-digest-recruiters', async () => {
   const recruiters = await prisma.recruiter.findMany({
     where: { isSampleData: false, marketDigestOptedOut: false },
     select: { id: true, fullName: true, workEmail: true, specialty: true },
@@ -40,4 +35,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: recruiters.length, sent: sentCount })
-}
+})

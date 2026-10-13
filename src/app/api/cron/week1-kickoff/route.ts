@@ -1,18 +1,13 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendWeek1Kickoff } from '@/lib/email/send-week1-kickoff'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Fires daily — independent of the weekly candidate-email-dispatch cron,
 // since this one-time onboarding email depends on days-since-registration,
 // not day-of-week. lastDailyEmailSentAt is the "already sent today" guard,
 // shared with the legacy field name from before the weekly-cadence split.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('week1-kickoff', async () => {
   const startOfTodayUTC = new Date()
   startOfTodayUTC.setUTCHours(0, 0, 0, 0)
 
@@ -43,4 +38,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: eligible.length, sent: sentCount })
-}
+})

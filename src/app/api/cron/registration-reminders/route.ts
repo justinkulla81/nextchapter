@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendRegistrationReminderEmail } from '@/lib/email/send-registration-reminder'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Day offsets (from assessmentCompletedAt) at which reminder N (0-indexed)
 // fires: day 1, day 7, then weekly through day 56 — 9 emails max, then we
@@ -13,12 +13,7 @@ function daysSince(date: Date): number {
   return (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
 }
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('registration-reminders', async () => {
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       assessmentComplete: true,
@@ -80,4 +75,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: eligible.length, sent: sentCount })
-}
+})

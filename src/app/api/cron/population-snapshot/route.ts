@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { computePopulationSnapshotRows, upsertPopulationSnapshotRows } from '@/lib/analytics/population-metrics'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Weekly population-report snapshot — Phase 2 Master Script, Part B,
 // Prompt 6. Monday 00:15 UTC (see vercel.json) — deliberately earlier than
@@ -18,12 +18,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 // against PopulationSnapshot's real unique constraint on those three
 // columns, so a partial prior run (e.g. a mid-run crash) is safely
 // overwritten rather than left half-stale.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('population-snapshot', async () => {
   const weekStartDate = getMondayOfWeek(new Date())
 
   let rows: Awaited<ReturnType<typeof computePopulationSnapshotRows>> = []
@@ -40,4 +35,4 @@ export async function GET(request: NextRequest) {
   const written = await upsertPopulationSnapshotRows(weekStartDate, rows)
 
   return NextResponse.json({ weekStartDate: weekStartDate.toISOString(), computed: rows.length, written })
-}
+})

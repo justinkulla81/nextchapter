@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { computeAllCompanySignals } from '@/lib/companies/signals'
@@ -7,7 +7,7 @@ import { getOrCreateCompany, lookupCompanyByNormalizedName } from '@/lib/compani
 import type { Prisma } from '@prisma/client'
 import { syncCompanyGraph } from '@/lib/companies/company-graph-sync'
 import { sweepCompanyIndustries } from '@/lib/companies/industry-sweep'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // The signals write used to be one find + one upsert per company, run one at a
 // time. With ~5,000 employers that outran the platform's 300-second limit around
@@ -28,12 +28,7 @@ const INDUSTRY_SWEEP_DEADLINE_MS = 150_000
 // week overwrites cleanly" convention as population-snapshot's cron — a
 // mid-run crash just gets overwritten cleanly on the next run, not left
 // half-stale.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('company-signals', async () => {
   const weekStartDate = getMondayOfWeek(new Date())
   const now = new Date()
 
@@ -151,4 +146,4 @@ export async function GET(request: NextRequest) {
     outcomesWritten,
     outcomeErrors,
   })
-}
+})
