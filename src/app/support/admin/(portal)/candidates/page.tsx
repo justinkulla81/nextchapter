@@ -4,7 +4,7 @@ import type { Prisma, CurrentJobStatus, SearchIntensity } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
+import { listAllAuthUsersCached, getAuthEmail } from '@/lib/admin/auth-users'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { getDossierGateSummaries, type DossierGateSummary } from '@/lib/admin/candidate-progress'
@@ -40,22 +40,33 @@ interface Row {
   dossier: DossierGateSummary | null
 }
 
-// One signed URL per candidate's latest resume, generated in parallel —
-// same pattern as the candidate detail page's own loadIpAndResume, scaled
-// to a page of rows instead of one candidate. Only fetched for the current
-// page (25 rows), not the full 85-candidate table.
+// Latest resume per candidate in one query, then one batched signed-URL call
+// (createSignedUrls) instead of a findFirst + createSignedUrl per row. Only
+// fetched for the current page (25 rows).
 async function loadResumeLinks(candidateIds: string[]): Promise<Map<string, string>> {
   if (candidateIds.length === 0) return new Map()
+  const resumes = await prisma.resume.findMany({
+    where: { candidateId: { in: candidateIds } },
+    orderBy: { uploadedAt: 'desc' },
+    distinct: ['candidateId'],
+    select: { candidateId: true, filePath: true },
+  })
+  if (resumes.length === 0) return new Map()
   const admin = createAdminClient()
-  const entries = await Promise.all(
-    candidateIds.map(async (candidateId) => {
-      const resume = await prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' } })
-      if (!resume) return null
-      const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
-      return data?.signedUrl ? ([candidateId, data.signedUrl] as const) : null
-    })
+  const { data } = await admin.storage.from('resumes').createSignedUrls(
+    resumes.map((r) => r.filePath),
+    60 * 10
   )
-  return new Map(entries.filter((e): e is readonly [string, string] => e !== null))
+  const urlByPath = new Map<string, string>()
+  for (const d of data ?? []) {
+    if (d.path && d.signedUrl) urlByPath.set(d.path, d.signedUrl)
+  }
+  const out = new Map<string, string>()
+  for (const r of resumes) {
+    const url = urlByPath.get(r.filePath)
+    if (url) out.set(r.candidateId, url)
+  }
+  return out
 }
 
 export default async function AdminCandidatesPage({
@@ -114,7 +125,7 @@ export default async function AdminCandidatesPage({
       },
     }),
     prisma.candidateProfile.count({ where }),
-    listAllAuthUsers(),
+    listAllAuthUsersCached(),
   ])
 
   const candidateIds = candidates.map((c) => c.id)
