@@ -36,6 +36,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Static assets and public text/data files never need a session refresh
+    // (sitemap.xml, robots.txt, llms.txt, ads/verification .txt, feed.xml,
+    // guide PDFs, fonts). None of them sit behind auth.
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|xml|txt|json|woff2)$).*)',
   ],
 }
