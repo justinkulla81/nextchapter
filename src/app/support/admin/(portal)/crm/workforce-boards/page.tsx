@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { ttlCached } from '@/lib/admin/ttl-cache'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { LinkButtonGroup } from '@/components/admin/LinkButtonGroup'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
@@ -33,25 +35,13 @@ function daysAgo(days: number): Date {
 }
 
 
-export default async function WorkforceBoardsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | undefined>>
-}) {
-  await requireAdmin()
-  const sp = await searchParams
-  const q = (sp.q ?? '').trim()
-  const state = sp.state ?? ''
-  const sort: ReportSort | 'fit' = SORTS.some((s) => s.key === sp.sort) ? (sp.sort as ReportSort | 'fit') : 'jobs'
-  const sortDef = SORTS.find((s) => s.key === sort)!
-  const dir: 'asc' | 'desc' = sp.dir === 'asc' || sp.dir === 'desc' ? sp.dir : sortDef.defaultDir
-  const windowKey = WINDOWS.some((w) => w.key === sp.window) ? sp.window! : '12m'
-  const windowDays = WINDOWS.find((w) => w.key === windowKey)!.days
-  const includeEmpty = sp.empty === '1'
-  const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
-  const perPage = readPageSize(sp.per)
-
-  const [allBoards, notices, states, labor, fitRows] = await Promise.all([
+// The report's source data depends only on the state filter and date window,
+// not on search/sort/page, and is the same for every request: memoised for 5
+// minutes per instance.
+const loadBoardData = ttlCached(
+  5 * 60 * 1000,
+  async (state: string, windowDays: number | null) => {
+    const [allBoards, notices, states, labor, fitRows] = await Promise.all([
     prisma.workforceBoard.findMany({
       where: state ? { state } : {},
       orderBy: { name: 'asc' },
@@ -74,9 +64,34 @@ export default async function WorkforceBoardsPage({
       where: state ? { state } : {},
       select: { state: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
     }),
-    // Internal fit score and its reasons (scripts/geo/score-partners.ts, refreshed weekly).
-    prisma.$queryRaw<{ id: string; fitScore: number | null; fitBreakdown: FitBreakdown }[]>`select id, "fitScore", "fitBreakdown" from "WorkforceBoard" where "fitScore" is not null`.catch(() => []),
-  ])
+    // Internal fit score (scripts/geo/score-partners.ts, refreshed weekly).
+    // Scores only here; the reasons JSON is fetched for the visible page below.
+    prisma.$queryRaw<{ id: string; fitScore: number }[]>`select id, "fitScore" from "WorkforceBoard" where "fitScore" is not null`.catch(() => []),
+    ])
+    return { allBoards, notices, states, labor, fitRows }
+  },
+  (state, windowDays) => `${state}|${windowDays ?? 'all'}`,
+)
+
+export default async function WorkforceBoardsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  await requireAdmin()
+  const sp = await searchParams
+  const q = (sp.q ?? '').trim()
+  const state = sp.state ?? ''
+  const sort: ReportSort | 'fit' = SORTS.some((s) => s.key === sp.sort) ? (sp.sort as ReportSort | 'fit') : 'jobs'
+  const sortDef = SORTS.find((s) => s.key === sort)!
+  const dir: 'asc' | 'desc' = sp.dir === 'asc' || sp.dir === 'desc' ? sp.dir : sortDef.defaultDir
+  const windowKey = WINDOWS.some((w) => w.key === sp.window) ? sp.window! : '12m'
+  const windowDays = WINDOWS.find((w) => w.key === windowKey)!.days
+  const includeEmpty = sp.empty === '1'
+  const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  const perPage = readPageSize(sp.per)
+
+  const { allBoards, notices, states, labor, fitRows } = await loadBoardData(state, windowDays)
   const fitById = new Map(fitRows.map((f) => [f.id, f]))
   // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
   const boards = visibleBoards(allBoards)
@@ -97,6 +112,11 @@ export default async function WorkforceBoardsPage({
   const anyReported = rows.some((r) => r.reportedJobs > 0)
   const totalPages = Math.max(1, Math.ceil(rows.length / perPage))
   const pageRows = rows.slice((page - 1) * perPage, page * perPage)
+  // The reasons behind each score, for the boards actually shown.
+  const breakdownRows = pageRows.length
+    ? await prisma.$queryRaw<{ id: string; fitBreakdown: FitBreakdown }[]>`select id, "fitBreakdown" from "WorkforceBoard" where "fitScore" is not null and id in (${Prisma.join(pageRows.map((r) => r.board.id))})`.catch(() => [])
+    : []
+  const breakdownById = new Map(breakdownRows.map((f) => [f.id, f.fitBreakdown]))
 
   const params: Record<string, string> = {
     q, state, sort, dir, window: windowKey, per: String(perPage), ...(includeEmpty ? { empty: '1' } : {}),
@@ -268,7 +288,7 @@ export default async function WorkforceBoardsPage({
                         </details>
                       )}
                     </td>
-                    <td className="px-2 py-2 text-right"><FitScoreBadge score={fitById.get(b.id)?.fitScore} breakdown={fitById.get(b.id)?.fitBreakdown} /></td>
+                    <td className="px-2 py-2 text-right"><FitScoreBadge score={fitById.get(b.id)?.fitScore} breakdown={breakdownById.get(b.id)} /></td>
                     <td className="min-w-64 space-y-0.5 px-3 py-2 text-xs">
                       <BoardContact role={b.directorTitle ?? 'Director'} name={b.directorName} email={b.directorEmail} phone={b.directorPhone} />
                       <BoardContact role="Board chair" name={b.chairName} email={b.chairEmail} phone={b.chairPhone} />
