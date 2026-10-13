@@ -4,7 +4,7 @@ import { rateProspect, isDecisionMakerTitle, type ProspectInput } from '@/lib/cr
 const base: ProspectInput = {
   layoff: { notices: 0, employees: null, daysSinceLatest: null, hiringAgain: false },
   openRoles: 0, seniorRoles: 0,
-  candidatesWhoWant: 0, candidatesApplied: 0, candidatesWhoWorkedHere: 0,
+  candidatesApplied: 0, candidatesWhoWorkedHere: 0,
   contacts: 0, decisionMakers: 0, routesIn: 0, meetings: 0, daysSinceLastTouch: null,
   inTheNews: 0, leadQuality: 'UNGRADED', dealStatus: null, opportunities: 0,
 }
@@ -21,7 +21,7 @@ describe('rateProspect', () => {
     const r = rateProspect({
       ...base,
       layoff: { notices: 4, employees: 5000, daysSinceLatest: 10, hiringAgain: false },
-      openRoles: 80, seniorRoles: 20, candidatesWhoWant: 50, candidatesApplied: 9, candidatesWhoWorkedHere: 9,
+      openRoles: 80, seniorRoles: 20, candidatesApplied: 12, candidatesWhoWorkedHere: 9,
       contacts: 9, decisionMakers: 4, routesIn: 3, meetings: 5, inTheNews: 3, leadQuality: 'A', dealStatus: 'CUSTOMER',
     })
     expect(r.score).toBeLessThanOrEqual(100)

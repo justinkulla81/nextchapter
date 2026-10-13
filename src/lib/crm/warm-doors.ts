@@ -4,15 +4,17 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { orgSlug } from '@/lib/crm/org-slug'
 import {
-  classifyDoors, isStrongBackground, interestKind,
+  classifyDoors, isStrongBackground,
   type Door, type DoorPerson, type DoorRoute,
 } from '@/lib/crm/warm-doors-rules'
 
-// "Warm doors": a strong candidate wants to work at an organization where we
-// already have a warm way in, so Justin can help them get the job. Built from
-// what we already hold — the candidate watchlist and applications on one side,
-// the CRM's people and routes in on the other — with no new tables and no
-// metered calls.
+// "Warm doors": a strong candidate has applied to an organization where we
+// already have a warm way in, so Justin can backchannel and help them get the
+// job. Built from what we already hold — applications on one side, the CRM's
+// people and routes in on the other — with no new tables and no metered calls.
+//
+// Applications only: a candidate's watchlist is private search data the CRM
+// must not read (src/test/company-wall.test.ts).
 //
 // Whose contacts: only OUR CRM. A candidate's own contact list is private to
 // them and is never read here; the existing backchannel feature already shows
@@ -29,8 +31,8 @@ const MAX_CANDIDATES_CHECKED = 150
 export interface WarmDoorItem {
   candidate: { id: string; name: string }
   org: { id: string; name: string; slug: string | null }
-  kind: 'applied' | 'watchlist'
-  application: { title: string | null; appliedAt: Date } | null
+  kind: 'applied'
+  application: { title: string | null; appliedAt: Date }
   /** The interest began inside the "new" window. */
   isNew: boolean
   doors: Door[]
@@ -86,30 +88,22 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
   if (withDoor.length === 0) return []
   const orgByKey = new Map(withDoor.map((o) => [o.canonicalNameNormalized, o]))
 
-  // 2. Candidates who want to work at one of them, by watchlist or application.
-  const keys = [...orgByKey.keys()]
-  const [watch, applied] = await Promise.all([
-    prisma.companyWatchlistEntry.findMany({
-      where: { companyNameNormalized: { in: keys } },
-      select: { candidateId: true, companyNameNormalized: true, createdAt: true },
-    }),
-    // Application company names are free text, so match on the org's display
-    // name and re-check on the normalized form.
-    prisma.jobPosting.findMany({
-      where: {
-        appliedAt: { not: null }, declinedAt: null, offerReceivedAt: null,
-        OR: withDoor.map((o) => ({ companyName: { equals: o.name, mode: 'insensitive' as const } })),
-      },
-      select: { candidateId: true, companyName: true, title: true, appliedAt: true },
-    }),
-  ])
+  // 2. Candidates with a live application at one of them. Application company
+  // names are free text, so match on the org's display name and re-check on the
+  // normalized form.
+  const applied = await prisma.jobPosting.findMany({
+    where: {
+      appliedAt: { not: null }, declinedAt: null, offerReceivedAt: null,
+      OR: withDoor.map((o) => ({ companyName: { equals: o.name, mode: 'insensitive' as const } })),
+    },
+    select: { candidateId: true, companyName: true, title: true, appliedAt: true },
+  })
 
-  type Interest = { candidateId: string; orgKey: string; kind: 'applied' | 'watchlist'; at: Date; title: string | null }
+  type Interest = { candidateId: string; orgKey: string; at: Date; title: string | null }
   const interests: Interest[] = []
-  for (const w of watch) interests.push({ candidateId: w.candidateId, orgKey: w.companyNameNormalized, kind: 'watchlist', at: w.createdAt, title: null })
   for (const a of applied) {
     const key = normalizeOrgName(a.companyName ?? '')
-    if (orgByKey.has(key) && a.appliedAt) interests.push({ candidateId: a.candidateId, orgKey: key, kind: 'applied', at: a.appliedAt, title: a.title })
+    if (orgByKey.has(key) && a.appliedAt) interests.push({ candidateId: a.candidateId, orgKey: key, at: a.appliedAt, title: a.title })
   }
   if (interests.length === 0) return []
 
@@ -128,7 +122,7 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
   }))
   const strong = new Map(unlocked.filter((x): x is NonNullable<typeof x> => x !== null).map((x) => [x.p.id, x]))
 
-  // 4. One item per candidate and organization; an application outranks a watch.
+  // 4. One item per candidate and organization (their most recent application).
   const items = new Map<string, WarmDoorItem>()
   for (const i of interests) {
     const s = strong.get(i.candidateId)
@@ -139,20 +133,16 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
     const item: WarmDoorItem = prev ?? {
       candidate: { id: s.p.id, name: [s.p.firstName, s.p.lastName].filter(Boolean).join(' ') || 'Unnamed' },
       org: { id: org.id, name: org.name, slug: orgSlug(org.canonicalNameNormalized) },
-      kind: i.kind,
-      application: null,
+      kind: 'applied',
+      application: { title: i.title, appliedAt: i.at },
       isNew: false,
       doors: doorsByOrg.get(org.id) ?? [],
       strong: { background: s.background, workDone: s.workDone },
     }
-    if (i.kind === 'applied') {
-      item.kind = 'applied'
-      if (!item.application || i.at > item.application.appliedAt) item.application = { title: i.title, appliedAt: i.at }
-    }
+    if (i.at > item.application.appliedAt) item.application = { title: i.title, appliedAt: i.at }
     item.isNew = item.isNew || i.at >= newSince
     items.set(key, item)
   }
 
-  return [...items.values()].sort((a, b) =>
-    interestKind(b) - interestKind(a) || Number(b.isNew) - Number(a.isNew) || a.candidate.name.localeCompare(b.candidate.name))
+  return [...items.values()].sort((a, b) => Number(b.isNew) - Number(a.isNew) || a.candidate.name.localeCompare(b.candidate.name))
 }

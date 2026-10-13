@@ -73,8 +73,3 @@ export function classifyDoors(people: DoorPerson[], routes: DoorRoute[], now: Da
   }
   return doors.sort((a, b) => (a.strength === b.strength ? 0 : a.strength === 'hot' ? -1 : 1))
 }
-
-/** Sort weight: someone who has already applied is where a backchannel helps most. */
-export function interestKind(item: { kind: 'applied' | 'watchlist' }): number {
-  return item.kind === 'applied' ? 1 : 0
-}

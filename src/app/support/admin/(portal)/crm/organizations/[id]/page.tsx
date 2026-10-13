@@ -127,7 +127,6 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     layoff: demand.layoffSummary,
     openRoles: demand.openJobs.length,
     seniorRoles: demand.seniorRoles,
-    candidatesWhoWant: demand.watchlistCount,
     candidatesApplied: demand.appliedCount,
     candidatesWhoWorkedHere: alumniList.length,
     contacts: org.affiliations.length,
@@ -223,7 +222,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {warmDoors.length > 0 && (
         <section aria-label="Strong candidates with a warm way in" className="rounded-lg border border-border bg-muted/40 p-4">
-          <h2 className="text-sm font-semibold">Strong candidates who want to work here, and we know someone ({warmDoors.length})</h2>
+          <h2 className="text-sm font-semibold">Strong candidates who applied here, and we know someone ({warmDoors.length})</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Good background and real work done in NextChapter. Reach out through the contact below to help them land it.
           </p>
@@ -233,9 +232,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
                 <div className="flex flex-wrap items-baseline gap-x-3">
                   <Link href={`/support/admin/candidates/${w.candidate.id}`} className="font-medium hover:underline">{w.candidate.name}</Link>
                   <span className="text-xs text-muted-foreground">
-                    {w.kind === 'applied' && w.application
-                      ? `Applied${w.application.title ? ` — ${w.application.title}` : ''} · ${formatDate(w.application.appliedAt)} · backchannel now`
-                      : 'Watching this company'}
+                    Applied{w.application.title ? ` — ${w.application.title}` : ''} · {formatDate(w.application.appliedAt)} · backchannel now
                     {w.isNew && ' · new'}
                   </span>
                 </div>
@@ -361,16 +358,15 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         <h2 className="text-lg font-semibold">Candidates</h2>
 
         <div>
-          <h3 className="mb-2 text-sm font-semibold">Want to work here ({demand.wantToWork.length})</h3>
+          <h3 className="mb-2 text-sm font-semibold">Applied here ({demand.wantToWork.length})</h3>
           {demand.wantToWork.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No candidate has put this organization on their watchlist or applied here.</p>
+            <p className="text-sm text-muted-foreground">No candidate has applied to a job at this organization.</p>
           ) : (
             <ul className="divide-y divide-border rounded-lg border border-border">
               {demand.wantToWork.map((c) => (
                 <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
                   <Link href={`/support/admin/candidates/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
                   <span className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                    {c.onWatchlist && <span>Watching{c.watchedAt ? ` since ${formatDate(c.watchedAt)}` : ''}</span>}
                     {c.applied.map((a, i) => (
                       <span key={i}>
                         {a.outcome === 'offer' ? 'Offer' : a.outcome === 'interview' ? 'Interviewing' : a.outcome === 'declined' ? 'Declined' : 'Applied'}

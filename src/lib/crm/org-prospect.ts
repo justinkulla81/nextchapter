@@ -21,8 +21,7 @@ export interface ProspectInput {
   openRoles: number
   /** Of those, Director and above. */
   seniorRoles: number
-  /** Candidates who put this organization on their watchlist / who applied. */
-  candidatesWhoWant: number
+  /** Candidates with a job application here, and candidates who worked here. */
   candidatesApplied: number
   candidatesWhoWorkedHere: number
   /** People in the CRM here. */
@@ -103,13 +102,12 @@ function hiring(i: ProspectInput): ProspectComponent {
 }
 
 function candidates(i: ProspectInput): ProspectComponent {
-  const interest = i.candidatesWhoWant + i.candidatesApplied
+  const interest = i.candidatesApplied
   let points = interest >= 10 ? 10 : interest >= 3 ? 7 : interest >= 1 ? 4 : 0
   if (i.candidatesWhoWorkedHere >= 3) points += 5
   else if (i.candidatesWhoWorkedHere >= 1) points += 2
   const parts: string[] = []
-  if (i.candidatesWhoWant) parts.push(`${plural(i.candidatesWhoWant, 'candidate')} want to work here`)
-  if (i.candidatesApplied) parts.push(`${i.candidatesApplied} applied`)
+  if (i.candidatesApplied) parts.push(`${plural(i.candidatesApplied, 'candidate')} applied here`)
   if (i.candidatesWhoWorkedHere) parts.push(`${i.candidatesWhoWorkedHere} worked here`)
   return {
     key: 'candidates',
