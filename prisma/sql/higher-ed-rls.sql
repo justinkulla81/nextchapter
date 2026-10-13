@@ -175,7 +175,7 @@ begin
     'EngagementEvent', 'InstitutionMentor', 'MentorRequest', 'InstitutionGift',
     'CrmExchangeRun', 'OutcomeReport', 'ProspectFlag', 'ResilienceFund',
     'FundAward', 'CaseloadAssignment', 'CheckIn', 'InstitutionEmployer',
-    'InstitutionPurchase'
+    'InstitutionPurchase', 'DossierIntroRequest'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     -- Supabase anonymous sign-ins also get the `authenticated` role. This

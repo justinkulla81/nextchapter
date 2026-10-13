@@ -67,8 +67,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'coaching', label: 'Coaching', comingIn: null },
-      { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
+      { key: 'jobs', label: 'Alumni jobs', comingIn: null },
       { key: 'mentors', label: 'Mentors', comingIn: null },
+      { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
     ],
   },
   {
@@ -120,9 +121,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'companies', label: 'Target companies', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'checkins', label: 'Check-ins', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
-      { key: 'students', label: 'Student tools', comingIn: 'HE-11', requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'students', label: 'Student tools', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'region', label: 'Local market', comingIn: null },
-      { key: 'employers', label: 'Employers', comingIn: 'HE-11' },
+      { key: 'employers', label: 'Employers', comingIn: null },
     ],
   },
   {
@@ -162,7 +163,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'employer',
     tabs: [
       { key: 'home', label: 'Shared Dossiers', comingIn: null },
-      { key: 'page', label: 'Employer page and roles', comingIn: 'HE-13' },
+      { key: 'page', label: 'Employer page and roles', comingIn: null },
     ],
   },
   {

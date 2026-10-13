@@ -15,7 +15,6 @@ import {
   getAlumniHomeCounts,
   getJourneyMix,
   listCaseloadActivity,
-  listEmployerDossiers,
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
@@ -29,7 +28,6 @@ import { StatTile } from './StatTile'
 import { RegionScreen } from './RegionScreen'
 import { OutcomesScreen } from './OutcomesScreen'
 import { MentorsScreen } from './MentorsScreen'
-import { MentorStatsScreen } from './MentorStatsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
 import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
@@ -40,6 +38,7 @@ import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
+import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
 import { CareerStatusCard } from './CareerStatusCard'
@@ -182,6 +181,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
         )}
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
+      <IntroRequestsCard ctx={ctx} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
@@ -226,10 +226,16 @@ async function CandidateHome({ ctx }: ScreenProps) {
           <p className="mt-1 text-sm text-muted-foreground">
             {fund ? `${fund.name}: ${fund.description ?? 'coaching for alumni between jobs'}.` : `Help the next ${ctx.institution.name} alum through a hard stretch.`}
           </p>
-          <a href={`/i/${ctx.institution.slug}/give`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-            Make a gift
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </a>
+          <div className="mt-2 flex flex-wrap gap-4">
+            <a href={`/i/${ctx.institution.slug}/give`} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+              Make a gift
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </a>
+            <Link href={`/i/${ctx.institution.slug}/candidate/mentors`} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+              Take a call from an alum
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
         </section>
       )}
       {career && (
@@ -453,26 +459,6 @@ async function CareerCaseload({ ctx, base }: ScreenProps) {
 }
 
 // ── Employer ────────────────────────────────────────────────────────────────
-
-async function EmployerDossiers({ ctx }: ScreenProps) {
-  const rows = await listEmployerDossiers(ctx)
-  if (rows.length === 0) {
-    return <EmptyState icon={Users} title="No shared Dossiers yet" description="Members appear here only after they choose to share their Dossier with employers." />
-  }
-  return (
-    <ul className="grid gap-3 sm:grid-cols-2">
-      {rows.map((r) => (
-        <li key={r.memberId} className="rounded-lg border border-border bg-card p-4">
-          <p className="font-semibold">{fullName(r)}</p>
-          <p className="text-xs text-muted-foreground">
-            {[r.classYear && `Class of ${r.classYear}`, r.degree, r.major].filter(Boolean).join(' · ')}
-          </p>
-          {r.dossierSummary && <p className="mt-2 text-sm">{r.dossierSummary}</p>}
-        </li>
-      ))}
-    </ul>
-  )
-}
 
 // ── Local market (Alumni Relations, Development, Career Services) ───────────
 
@@ -1221,7 +1207,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
   'candidate:mentors': MentorsScreen,
   'alumni:home': AlumniHome,
-  'alumni:mentors': MentorStatsScreen,
+  'alumni:mentors': AlumniMentors,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentRoi,
   'development:signals': DevelopmentSignals,
@@ -1230,7 +1216,11 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:transition': DevelopmentTransition,
   'career:home': CareerCaseload,
   'career:outcomes': OutcomesScreen,
-  'employer:home': EmployerDossiers,
+  'employer:home': EmployerDossiersWithIntros,
+  'employer:page': EmployerPage,
+  'candidate:jobs': CandidateJobs,
+  'career:employers': CareerEmployers,
+  'career:students': CareerStudents,
   'alumni:region': Region,
   'career:region': Region,
   'alumni:jobs': AlumniJobs,

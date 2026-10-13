@@ -2690,6 +2690,7 @@ model EmployerProfile {
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
+  dossierIntroRequests DossierIntroRequest[]
 }
 
 // Team seats, additive to the original single-owner EmployerProfile.userId
@@ -11350,6 +11351,12 @@ enum InstitutionEmployerStatus {
   REJECTED
 }
 
+enum DossierIntroStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+}
+
 enum InstitutionEmployerPackageTier {
   BASIC
   FEATURED // posts pin to the top while featuredUntil is in the future
@@ -11410,6 +11417,7 @@ model Institution {
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies InstitutionTargetCompany[]
+  dossierIntroRequests DossierIntroRequest[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11498,6 +11506,7 @@ model InstitutionMember {
   @@index([institutionId, classYear])
   @@index([institutionId, lastName, firstName])
   @@index([institutionId, lastKnownEmployerNormalized])
+  dossierIntroRequests DossierIntroRequest[]
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -11865,6 +11874,31 @@ model InstitutionEmployer {
 
   @@unique([institutionId, employerProfileId])
   @@index([employerProfileId, status])
+}
+
+// An approved employer asks to meet a member who shares their Dossier with
+// employers (spec §5.5). The member accepts or declines; only an accepted
+// request shows the employer the member's email.
+model DossierIntroRequest {
+  id                String             @id @default(cuid())
+  institutionId     String
+  institution       Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  employerProfileId String
+  employerProfile   EmployerProfile    @relation(fields: [employerProfileId], references: [id], onDelete: Cascade)
+  memberId          String
+  member            InstitutionMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  requestedBy       String // Supabase auth.users id of the employer seat
+  note              String?            @db.Text
+  status            DossierIntroStatus @default(REQUESTED)
+  requestedAt       DateTime           @default(now())
+  respondedAt       DateTime?
+  isSampleData      Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([employerProfileId, memberId])
+  @@index([memberId, status])
+  @@index([institutionId, status])
 }
 
 // Premium coaching and spouse seats bought through Stripe Checkout

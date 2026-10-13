@@ -64,7 +64,8 @@
     "verify:he06": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he06.ts",
     "verify:journeys": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-journeys.ts",
     "verify:release2": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release2.ts",
-    "verify:release3": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release3.ts"
+    "verify:release3": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release3.ts",
+    "verify:release4": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release4.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
