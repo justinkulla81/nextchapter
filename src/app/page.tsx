@@ -425,7 +425,7 @@ export default async function Home() {
             </Link>
             {' · '}
             <Link href="/reports/latest" className="underline underline-offset-4">
-              Displacement Report
+              White Collar Employment Report
             </Link>
             {' · '}
             <Link href="/faq" className="underline underline-offset-4">

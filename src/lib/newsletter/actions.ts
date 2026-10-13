@@ -12,7 +12,7 @@ export type NewsletterState = { error?: string; subscribed?: boolean; email?: st
 const SOURCES = new Set([
   'home', 'how-it-works', 'why-stuck', 'news', 'resources',
   'displacement-report', 'displacement-report-popup', 'displacement-report-pdf',
-  // The same three signup spots under the report's current name (Employment Report).
+  // The same three signup spots under the report's current name (White Collar Employment Report).
   'employment-report', 'employment-report-popup', 'employment-report-pdf',
   'site-footer',
 ])

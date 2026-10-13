@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- standalone CommonJS Playwright script, run with node */
-// Build the PDF edition of the NextChapter Employment Report (formerly the Displacement Report) from its HTML page.
+// Build the PDF edition of the NextChapter White Collar Employment Report (published as the Displacement Report through October 12, 2026) from its HTML page.
 // Usage: node nc_build_pdf.js <report.html> <output.pdf> "<Month YYYY>" "<version>"
 // Requires: npm i playwright (and `npx playwright install chromium` once).
 const { chromium } = require('playwright');
@@ -24,7 +24,7 @@ const fs = require('fs');
     path: out, format: 'Letter', printBackground: true, scale: 0.85,
     margin: { top: '0.7in', bottom: '0.7in', left: '0.7in', right: '0.7in' },
     displayHeaderFooter: true,
-    headerTemplate: `<div style="${small}"><span>NextChapter Employment Report</span><span>${month} · Version ${version}</span></div>`,
+    headerTemplate: `<div style="${small}"><span>NextChapter White Collar Employment Report</span><span>${month} · Version ${version}</span></div>`,
     footerTemplate: `<div style="${small}"><span>launchyournextchapter.com/reports</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`,
   });
   await browser.close();

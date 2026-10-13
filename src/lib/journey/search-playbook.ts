@@ -3,8 +3,8 @@
 // laid off counts weeks since their last day; everyone else counts weeks
 // since they started applying. Nothing here assumes a member is out of work.
 //
-// Evidence lines quote the NextChapter Employment Report, September 2026
-// (v1.8), and are shown only where they apply to that journey.
+// Evidence lines quote the NextChapter White Collar Employment Report, September 2026
+// (Version 1.72), and are shown only where they apply to that journey.
 
 import type { JourneyStage, JourneyType } from '@prisma/client'
 import { ACTIVE_SEARCH_STAGES } from './journey'

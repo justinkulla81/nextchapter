@@ -63,14 +63,14 @@ export function cushionMonths(i: CushionInput): CushionResult {
 export const RUNWAY_FACTS = [
   {
     text: 'For federal student loans made on or after July 1, 2027, unemployment and economic-hardship deferment end, and forbearance is capped at 9 months in any 24. Loans made earlier can still be deferred for unemployment.',
-    source: 'U.S. Department of Education rules, via the NextChapter Displacement Report, Sept 2026',
+    source: 'U.S. Department of Education rules, via the NextChapter White Collar Employment Report, Sept 2026',
   },
   {
     text: 'About 39% of people on unemployment insurance use up their benefits, and claimants drew benefits for 15.8 weeks on average.',
-    source: 'U.S. Department of Labor ETA data, via the NextChapter Displacement Report, Sept 2026',
+    source: 'U.S. Department of Labor ETA data, via the NextChapter White Collar Employment Report, Sept 2026',
   },
   {
     text: 'Some states delay or offset unemployment benefits while you are paid severance. Check your state’s rule before you file.',
-    source: 'NextChapter Displacement Report, Sept 2026',
+    source: 'NextChapter White Collar Employment Report, Sept 2026',
   },
 ] as const

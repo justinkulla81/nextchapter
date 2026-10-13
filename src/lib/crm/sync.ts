@@ -308,7 +308,7 @@ async function getOrCreatePerson(
 }
 
 /**
- * After an email you sent is logged: a Displacement Report attachment or
+ * After an email you sent is logged: a White Collar Employment Report attachment or
  * link marks that person as having received that month's report (MANUAL),
  * and anyone not yet on the lists that fit them gets an "Add to a mailing
  * list?" card. Mail that doesn't mention NextChapter (needsReview) raises

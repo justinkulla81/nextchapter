@@ -61,7 +61,7 @@ export default function UnemploymentBenefitsHub() {
         {report && (
           <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             How many people run out of benefits before finding work: see unemployment-insurance exhaustion in the{' '}
-            <Link href={`${reportPath(report)}#safetynet`} className={LINK}>{report.month} Displacement Report</Link>.
+            <Link href={`${reportPath(report)}#safetynet`} className={LINK}>{report.month} White Collar Employment Report</Link>.
           </p>
         )}
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
