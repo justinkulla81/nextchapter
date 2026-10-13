@@ -39,6 +39,7 @@ import {
   Landmark,
   School,
   MessageSquare,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -98,7 +99,8 @@ function buildSections(
   isEarlyCareer: boolean | null,
   isActiveMember: boolean,
   helpRepliesWaiting: number,
-  newStrongCompaniesCount: number
+  newStrongCompaniesCount: number,
+  showInWork: boolean
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -180,6 +182,9 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        // Only for employed journeys (PROMOTION, READY_TO_MOVE, EXPLORING_MOVE,
+        // NEXT_ACT): reviews, raises, promotion and feedback.
+        ...(showInWork ? [{ href: '/dashboard/in-work', label: 'Reviews, Raises and Promotion', icon: TrendingUp }] : []),
         // Only ever shown once we positively know the candidate is NOT
         // entry-level (ResumeAnalysis.seniorityBand !== 'EARLY') —
         // isEarlyCareer === null (no resume analysis yet) fails closed,
@@ -274,6 +279,7 @@ function NavContent({
   isActiveMember,
   helpRepliesWaiting,
   newStrongCompaniesCount,
+  showInWork,
   collapsedSections,
   onToggleSection,
 }: {
@@ -291,6 +297,7 @@ function NavContent({
   isActiveMember: boolean
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
+  showInWork: boolean
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -307,7 +314,8 @@ function NavContent({
     isEarlyCareer,
     isActiveMember,
     helpRepliesWaiting,
-    newStrongCompaniesCount
+    newStrongCompaniesCount,
+    showInWork
   )
 
   return (
@@ -450,6 +458,7 @@ export function DashboardNav({
   isActiveMember = false,
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
+  showInWork = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -463,6 +472,7 @@ export function DashboardNav({
   isActiveMember?: boolean
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
+  showInWork?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -511,6 +521,7 @@ export function DashboardNav({
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
+          showInWork={showInWork}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -618,6 +629,7 @@ export function DashboardNav({
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
+          showInWork={showInWork}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

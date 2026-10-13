@@ -15,6 +15,10 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/in-work-review-emails",
+      "schedule": "15 13 * * *"
+    },
+    {
       "path": "/api/cron/job-search-daily",
       "schedule": "0 12 * * *"
     },
