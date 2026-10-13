@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getRecruiterByToken } from '@/lib/recruiter/access'
 
 export type CalibrationFormState = { error?: string; memo?: string } | undefined
 
@@ -22,7 +23,7 @@ export async function generateCalibrationMemo(
   _prevState: CalibrationFormState,
   formData: FormData
 ): Promise<CalibrationFormState> {
-  const recruiter = await prisma.recruiter.findUnique({ where: { accessToken: token } })
+  const recruiter = await getRecruiterByToken(token)
   if (!recruiter) return { error: 'This link is not valid.' }
 
   const briefText = (formData.get('brief') as string | null)?.trim()

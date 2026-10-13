@@ -7,6 +7,7 @@ import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
 import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { TOKEN_TTL_DAYS, isTokenExpired } from '@/lib/security/token-ttl'
 
 // The one moment an EmployerReferenceSubmission becomes a real Reference
 // row — before this, nothing here is reachable by Dossier, Coaching Notes,
@@ -23,6 +24,7 @@ async function resolveClaim(inviteToken: string) {
   const profile = await getDashboardProfile()
   const submission = await prisma.employerReferenceSubmission.findUnique({ where: { inviteToken } })
   if (!submission || submission.status !== 'pending') return null
+  if (isTokenExpired(submission.createdAt, TOKEN_TTL_DAYS.employerReferenceClaim)) return null
   return { candidateId: profile.id, submission }
 }
 

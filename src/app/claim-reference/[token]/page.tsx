@@ -3,6 +3,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { acceptEmployerReference, declineEmployerReference } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { NOINDEX } from '@/lib/seo/canonical'
+import { TOKEN_TTL_DAYS, isTokenExpired } from '@/lib/security/token-ttl'
 
 export const metadata = NOINDEX
 
@@ -21,6 +22,14 @@ export default async function ClaimReferencePage({ params }: { params: Promise<{
     return (
       <StatusMessage title="This link isn't valid">
         Double check the link in your email, or ask the person who sent it to resend it.
+      </StatusMessage>
+    )
+  }
+
+  if (submission.status === 'pending' && isTokenExpired(submission.createdAt, TOKEN_TTL_DAYS.employerReferenceClaim)) {
+    return (
+      <StatusMessage title="This link has expired">
+        Ask {submission.submitterName} to send the reference again.
       </StatusMessage>
     )
   }
