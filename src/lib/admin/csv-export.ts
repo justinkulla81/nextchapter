@@ -18,6 +18,17 @@
 //   const rows = await buildPrevalenceRows(filters)
 //   return new NextResponse(rowsToCsv(rows), { headers: csvContentHeaders('issue-prevalence.csv') })
 
+// Spreadsheet formula injection: a cell starting with = + - @ (or tab/CR) is
+// executed by Excel/Sheets when an admin opens the export, and several of
+// these columns carry public input (contact-form names, extension captures).
+// Prefix a single quote so it stays text. Plain numbers and phone-style
+// "+1 555…" values are left alone so exports still round-trip.
+export function neutralizeFormula(s: string): string {
+  if (!/^[=+\-@\t\r]/.test(s)) return s
+  if (/^-?\d+(\.\d+)?$/.test(s) || /^\+[\d\s().-]+$/.test(s)) return s
+  return `'${s}`
+}
+
 // RFC 4180-style field escaping: quote any field containing a comma, quote
 // character, or newline, and double any embedded quote characters.
 function escapeCsvField(value: unknown): string {
@@ -33,6 +44,8 @@ function escapeCsvField(value: unknown): string {
   } else {
     str = String(value)
   }
+
+  str = neutralizeFormula(str)
 
   if (/[",\r\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`

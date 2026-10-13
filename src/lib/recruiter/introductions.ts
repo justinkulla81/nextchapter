@@ -33,7 +33,10 @@ import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 // this Prisma filter (OR null / in the future) is checked at read time,
 // same enforcement point as the pre-existing confidentialSearchMode check
 // below it.
-const NOT_EXPIRED = { OR: [{ consentExpiresAt: null }, { consentExpiresAt: { gt: new Date() } }] }
+// A function, not a constant: `new Date()` in a module-level object is frozen
+// at cold start, so a warm instance would keep honoring consents that expired
+// after boot.
+const notExpired = () => ({ OR: [{ consentExpiresAt: null }, { consentExpiresAt: { gt: new Date() } }] })
 
 // §A1.2.4 / §E4 item 9 — "An identity holding two role grants ... cannot
 // resolve its own candidate record from any org-side surface," generalized
@@ -63,7 +66,7 @@ export async function getConsentedCandidateIds(recruiterId: string): Promise<str
       status: 'CONSENTED',
       candidate: { confidentialSearchMode: false },
       ...(ownCandidateId ? { candidateId: { not: ownCandidateId } } : {}),
-      ...NOT_EXPIRED,
+      ...notExpired(),
     },
     select: { candidateId: true },
   })
@@ -80,7 +83,7 @@ export async function isCandidateConsentedForRecruiter(candidateId: string, recr
       candidateId,
       status: 'CONSENTED',
       candidate: { confidentialSearchMode: false },
-      ...NOT_EXPIRED,
+      ...notExpired(),
     },
     select: { id: true },
   })

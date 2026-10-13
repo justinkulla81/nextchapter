@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { safeNext } from '@/lib/auth/safe-next'
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -106,7 +107,7 @@ export function ResetPasswordForm() {
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
     const next = searchParams.get('next')
-    router.push(next && next.startsWith('/') ? next : '/dashboard')
+    router.push(safeNext(next, '/dashboard'))
   }
 
   if (status === 'waiting') {

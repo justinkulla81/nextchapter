@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires daily, 30 minutes before the ats-job-board-feed cron — freshness
 // enforcement runs on the same cadence as the fetch that repopulates the
@@ -14,7 +15,7 @@ import { prisma } from '@/lib/prisma'
 // URL still live — never a bare "bump."
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

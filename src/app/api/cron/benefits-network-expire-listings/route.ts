@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // §A4.4 "every offer has ... a review date, and auto-expiry." The catalog
 // query itself already filters out expired listings in real time (see
@@ -10,7 +11,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 // still labeled "Listed."
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

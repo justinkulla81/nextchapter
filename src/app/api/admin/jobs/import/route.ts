@@ -6,6 +6,7 @@ import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -164,7 +165,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.NC_ATS_API_KEY}`) {
+  if (!isBearerAuthorized(authHeader, process.env.NC_ATS_API_KEY)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

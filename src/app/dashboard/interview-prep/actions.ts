@@ -200,9 +200,22 @@ export async function updateComfortCheck(fields: {
   const profile = await getAuthedProfile()
   if (!profile) return
 
+  // A Server Action is a public POST endpoint, so the TS type above isn't
+  // enforced at runtime — pick and clamp each field instead of spreading the
+  // caller's object into the update (which would let a candidate set any
+  // CandidateProfile column).
+  const rating = (v: unknown) => {
+    const n = Math.round(Number(v))
+    return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : undefined
+  }
+  const storyComfort = rating(fields?.storyComfort)
+  const interviewComfort = rating(fields?.interviewComfort)
+  const elevatorPitchReady = rating(fields?.elevatorPitchReady)
+  if (storyComfort === undefined || interviewComfort === undefined || elevatorPitchReady === undefined) return
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: fields,
+    data: { storyComfort, interviewComfort, elevatorPitchReady },
   })
 
   // One-time points award for the first Comfort Check submission — mirrors

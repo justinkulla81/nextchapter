@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { freshJobAlertsEnabled, sendFreshJobAlert } from '@/lib/jobs/fresh-job-alerts'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -11,7 +12,7 @@ const BREAK_ANSWER_WINDOW_DAYS = 30
 // crawl import, for strong fits posted in the last 24 hours. Sends nothing
 // until FRESH_JOB_ALERTS_ENABLED=true; until then it reports who would get one.
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

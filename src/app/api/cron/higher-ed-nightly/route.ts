@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clearEndedGrace } from '@/lib/higher-ed/transition'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 120
 
@@ -8,7 +9,7 @@ export const maxDuration = 120
 // clear (fundraising may ask again), and where the alum said the college
 // helped, the gratitude ask goes to Development for approval. Idempotent.
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const startedAt = new Date()

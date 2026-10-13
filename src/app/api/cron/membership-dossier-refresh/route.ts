@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { clearDossierGeneratedCache } from '@/lib/reports/dossier-refresh'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const REFRESH_INTERVAL_DAYS = 365
 
@@ -18,7 +19,7 @@ function appUrl(): string {
 // scan-for-individually-due-rows shape as interim-role-reverify.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

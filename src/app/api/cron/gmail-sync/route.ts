@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -14,7 +15,7 @@ export const maxDuration = 300
  * behind catches up across successive runs rather than in one.
  */
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

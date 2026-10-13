@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { runAtsJobBoardFeed } from '@/lib/jobs/ats-job-board-feed'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 120
 
@@ -9,7 +10,7 @@ export const maxDuration = 120
 // 'pending' with no named contact.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

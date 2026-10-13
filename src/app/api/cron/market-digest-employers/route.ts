@@ -4,12 +4,13 @@ import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discove
 import { candidateDisplayName } from '@/lib/talent/candidate-identity'
 import { sendMarketDigestEmployerEmail } from '@/lib/email/send-market-digest-employer'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const MAX_MATCH_LINES = 3
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

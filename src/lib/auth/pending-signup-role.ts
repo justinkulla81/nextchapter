@@ -17,7 +17,7 @@ const MAX_AGE_SECONDS = 60 * 60 // matches how long a confirmation link stays cl
 export type PendingSignupRole = 'recruiter' | 'employer' | 'coach' | 'crucible-employer' | 'eqoveriq-contributor'
 
 export function setPendingSignupRoleCookie(role: PendingSignupRole) {
-  document.cookie = `${COOKIE_NAME}=${role}; path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax`
+  document.cookie = `${COOKIE_NAME}=${role}; path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`
 }
 
 export function readPendingSignupRoleCookie(): PendingSignupRole | null {

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendTodaysApprovedRapSheets } from '@/lib/crm/rap-sheet/deliver'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const result = await sendTodaysApprovedRapSheets()

@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { consumeOAuthReturnState } from '@/lib/google/oauth-return-path'
+import { consumeOAuthReturnStateStrict } from '@/lib/google/oauth-return-path'
 
 // Backgrounded first-sync (below) can still take a while on a heavy real
 // calendar, so this gets real headroom rather than the platform default.
@@ -17,7 +17,13 @@ export async function GET(request: NextRequest) {
   // See gmail/callback/route.ts's identical comment — resolved once so
   // every redirect below returns to wherever the candidate started, and
   // doubles as the real CSRF check on Google's `state` param.
-  const returnTo = await consumeOAuthReturnState(request.nextUrl.searchParams.get('state'), '/dashboard/network')
+  const { returnTo, valid: stateValid } = await consumeOAuthReturnStateStrict(
+    request.nextUrl.searchParams.get('state'),
+    '/dashboard/network',
+  )
+  if (!stateValid) {
+    return NextResponse.redirect(new URL(`${returnTo}?calendarError=invalid_state`, request.url))
+  }
 
   const supabase = await createClient()
   const {

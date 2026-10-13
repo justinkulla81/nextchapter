@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { safeNext } from '@/lib/auth/safe-next'
 
 export type ForgotPasswordState = { error?: string; sent?: boolean } | undefined
 
@@ -27,12 +28,12 @@ export async function requestPasswordReset(
   // employer/admin after they set a new password, instead of always landing
   // on the candidate dashboard. Only a same-origin relative path is trusted.
   const next = (formData.get('next') as string | null) ?? ''
-  const safeNext = next.startsWith('/') ? next : '/dashboard'
+  const safeNextPath = safeNext(next, '/dashboard')
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const admin = createAdminClient()
   const { error } = await admin.auth.resetPasswordForEmail(email, {
-    redirectTo: `${appUrl}/auth/reset-password?next=${encodeURIComponent(safeNext)}`,
+    redirectTo: `${appUrl}/auth/reset-password?next=${encodeURIComponent(safeNextPath)}`,
   })
 
   if (error) {

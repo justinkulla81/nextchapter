@@ -30,6 +30,7 @@ import type {
   CrmFunderKind, CrmValueType,
   CrmOrgType, CrmGoal, CrmEligibility, CrmOpportunityOutcome, CrmPriorityTier, Prisma,
 } from '@prisma/client'
+import { safeFetch } from '@/lib/http/safe-fetch'
 
 const CRM = '/support/admin/crm'
 
@@ -1144,16 +1145,11 @@ export async function checkDeadlineForNewDate(deadlineId: string): Promise<DateC
   if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
     return { ok: false, message: 'Only http and https links can be checked.' }
   }
-  // These URLs are admin-entered rather than user-supplied, but a fetch from
-  // the server to an internal address is worth refusing regardless.
-  if (/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|\[?::1)/i.test(parsed.hostname)) {
-    return { ok: false, message: 'That link points at an internal address, so it will not be fetched.' }
-  }
 
   let text: string
   try {
-    const res = await fetch(parsed.toString(), {
-      redirect: 'follow',
+    // safeFetch validates the host (DNS-resolved) and every redirect hop.
+    const res = await safeFetch(parsed.toString(), {
       signal: AbortSignal.timeout(12_000),
       headers: { 'User-Agent': 'NextChapterAdmin/1.0 (deadline check)' },
     })

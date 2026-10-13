@@ -7,6 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { addBoardContactsToCrm } from '@/lib/workforce/board-crm'
 import { addCollegeContactsToCrm } from '@/lib/workforce/college-crm'
 import { guessHrLeaderEmails, guessUniversityEmails } from '@/lib/crm/guess-emails'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -30,7 +31,7 @@ export const maxDuration = 300
  * Each step has its own budget and a failure in one does not stop the rest.
  */
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const run = async <T,>(fn: () => Promise<T>) => {

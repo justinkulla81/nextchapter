@@ -1,4 +1,5 @@
 import 'server-only'
+import { safeFetch } from '@/lib/http/safe-fetch'
 import * as cheerio from 'cheerio'
 
 export interface FetchArticleResult {
@@ -44,7 +45,7 @@ const BROWSER_HEADERS = {
 export async function fetchArticle(url: string): Promise<FetchArticleResult> {
   let html: string
   try {
-    const response = await fetch(url, {
+    const response = await safeFetch(url, {
       signal: AbortSignal.timeout(8000),
       headers: BROWSER_HEADERS,
     })

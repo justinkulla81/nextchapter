@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { importRenderedState } from '@/lib/warn/sync'
 import { RENDERED_STATES } from '@/lib/warn/sources'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -12,7 +13,7 @@ export const maxDuration = 300
  * responsibility is producing HTML that a scripted fetch cannot get.
  */
 export async function POST(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

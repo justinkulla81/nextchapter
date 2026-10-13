@@ -13,7 +13,7 @@ export const metadata = NOINDEX
 // never on someone else's behalf.
 export default async function ClaimReferencePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const profile = await getDashboardProfile()
+  await getDashboardProfile() // requires sign-in; the actions re-resolve the candidate themselves
 
   const submission = await prisma.employerReferenceSubmission.findUnique({ where: { inviteToken: token } })
 
@@ -82,10 +82,10 @@ export default async function ClaimReferencePage({ params }: { params: Promise<{
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <form action={acceptEmployerReference.bind(null, submission.id, profile.id)}>
+        <form action={acceptEmployerReference.bind(null, token)}>
           <SubmitButton pendingLabel="Adding…">Accept this reference</SubmitButton>
         </form>
-        <form action={declineEmployerReference.bind(null, submission.id, profile.id)}>
+        <form action={declineEmployerReference.bind(null, token)}>
           <SubmitButton variant="outline" pendingLabel="Declining…">
             Decline
           </SubmitButton>

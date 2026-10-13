@@ -5,6 +5,7 @@ import { generateMarketRealitySnapshot } from '@/lib/scoring/market-reality-snap
 import { runWeeklyCalibrationCheck } from '@/lib/scoring/market-reality/calibration'
 import { sendGradeCalibratedUpEmail } from '@/lib/email/send-grade-calibrated-up-email'
 import type { Grade } from '@/lib/scoring/grade'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires Monday afternoon (see vercel.json) — well after auto-assign-sprint's
 // ~5am ET run, so every candidate already has this week's Search Actions
@@ -19,7 +20,7 @@ import type { Grade } from '@/lib/scoring/grade'
 // is reflected before the candidate's next dashboard load.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

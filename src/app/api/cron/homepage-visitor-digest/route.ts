@@ -7,10 +7,11 @@ import { isLoopbackIp } from '@/lib/http/trusted-ips'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { classifyUserAgent, USER_AGENT_CLASS_SORT_ORDER } from '@/lib/http/user-agent'
 import { candidateDisplayName } from '@/lib/messaging/threads'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

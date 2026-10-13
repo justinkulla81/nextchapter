@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendWeek1Kickoff } from '@/lib/email/send-week1-kickoff'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // Fires daily — independent of the weekly candidate-email-dispatch cron,
 // since this one-time onboarding email depends on days-since-registration,
@@ -8,7 +9,7 @@ import { sendWeek1Kickoff } from '@/lib/email/send-week1-kickoff'
 // shared with the legacy field name from before the weekly-cadence split.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

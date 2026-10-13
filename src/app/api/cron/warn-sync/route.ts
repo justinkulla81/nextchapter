@@ -3,6 +3,7 @@ import { syncAllWarnStates, promoteNoticesForKnownOrgs } from '@/lib/warn/sync'
 import { runLayoffNewsCheck } from '@/lib/warn/news-check'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { matchNoticesToBoards } from '@/lib/workforce/match'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -21,7 +22,7 @@ export const maxDuration = 300
  * Last, new notices get their local workforce board, in whatever time is left.
  */
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const started = Date.now()

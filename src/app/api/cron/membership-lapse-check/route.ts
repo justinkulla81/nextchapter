@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { revokeRoleGrant } from '@/lib/auth/role-grants'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 // §A2.4 break-glass reactivation needs something real to react against —
 // this is the flip side: an ACTIVE MembershipSubscription whose
@@ -11,7 +12,7 @@ import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 // (src/app/dashboard/membership/actions.ts) is the only path back to ACTIVE.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

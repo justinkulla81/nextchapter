@@ -77,3 +77,25 @@ export async function consumeOAuthReturnState(returnedState: string | null, fall
     return fallback
   }
 }
+
+// Strict variant for the callbacks that bind a Google account to the signed-in
+// candidate. A missing or mismatched nonce means the callback wasn't preceded
+// by this browser's own /start (login CSRF: an attacker feeding a victim a
+// callback URL carrying the attacker's `code`), so the caller must abort
+// before exchanging the code, not just fall back to a default return page.
+export async function consumeOAuthReturnStateStrict(
+  returnedState: string | null,
+  fallback: string,
+): Promise<{ returnTo: string; valid: boolean }> {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get(COOKIE_NAME)?.value
+  cookieStore.delete(COOKIE_NAME)
+  if (!raw) return { returnTo: fallback, valid: false }
+  try {
+    const parsed = JSON.parse(raw) as StoredOAuthReturnState
+    const valid = !!returnedState && parsed.nonce === returnedState
+    return { returnTo: valid && isSafeReturnPath(parsed.returnTo) ? parsed.returnTo : fallback, valid }
+  } catch {
+    return { returnTo: fallback, valid: false }
+  }
+}

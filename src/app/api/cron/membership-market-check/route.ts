@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { runQuarterlyMarketCheck } from '@/lib/membership/market-check'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const CHECK_INTERVAL_DAYS = 89 // quarterly, with a couple days' slack
 
@@ -15,7 +16,7 @@ function appUrl(): string {
 // membership-dossier-refresh above.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

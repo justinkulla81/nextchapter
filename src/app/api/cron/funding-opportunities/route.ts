@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { syncFundingOpportunities } from '@/lib/funding-opportunities/sync'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -8,7 +9,7 @@ export const maxDuration = 300
 // our subject area, filed in the CRM as a note and a deadline on the issuing
 // agency. ?dryRun=1 searches and reports without writing.
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const dryRun = request.nextUrl.searchParams.get('dryRun') === '1'

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { syncFederalContracts } from '@/lib/companies/federal-contracts-sync'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -7,7 +8,7 @@ export const maxDuration = 300
 // (USAspending.gov, free, no key; no AI call). Stops at its own deadline so a slow API
 // cannot run the function out of time; the rest is picked up the next night.
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const result = await syncFederalContracts({ limit: 150, deadlineMs: 240_000 })

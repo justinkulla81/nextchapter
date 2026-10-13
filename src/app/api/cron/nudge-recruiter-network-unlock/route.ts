@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterDatabaseRows, bucketRecruiterDatabaseRows } from '@/lib/admin/recruiter-database'
 import { sendUnlockRecruiterNetworkNudgeEmail } from '@/lib/email/send-unlock-recruiter-network-nudge'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const RENUDGE_AFTER_DAYS = 14
 
@@ -12,7 +13,7 @@ const RENUDGE_AFTER_DAYS = 14
 // recruiterUnlockNudgedAt so this doesn't re-send every week forever.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

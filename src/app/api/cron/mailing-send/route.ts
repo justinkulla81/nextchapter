@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runSendBatch } from '@/lib/mailing/editions'
 import { syncWebsiteSignups } from '@/lib/mailing/lists'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
@@ -11,7 +12,7 @@ export const maxDuration = 300
  * step with the Monthly Update list.
  */
 export async function GET(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const signups = await syncWebsiteSignups()

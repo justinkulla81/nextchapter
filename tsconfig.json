@@ -36,7 +36,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     ".next-audit/types/**/*.ts",
-    ".next-audit/dev/types/**/*.ts"
+    ".next-audit/dev/types/**/*.ts",
+    ".next-verify-sec/types/**/*.ts",
+    ".next-verify-sec/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

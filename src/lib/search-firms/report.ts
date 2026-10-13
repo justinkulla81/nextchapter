@@ -2,6 +2,7 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { contactRank, type FirmSegment } from './match'
+import { neutralizeFormula } from '@/lib/admin/csv-export'
 
 export interface FirmContact {
   personId: string
@@ -88,8 +89,8 @@ export async function loadFirmRows(filter: FirmFilter = 'live', q = '', contacts
 /** RFC-4180 quoting. */
 export function csvCell(v: unknown): string {
   if (v === null || v === undefined) return ''
-  const s = String(v)
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  const s = neutralizeFormula(String(v))
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
 export const CSV_HEADERS = [

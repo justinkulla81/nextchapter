@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendInterimRoleCheckInEmail } from '@/lib/email/send-interim-role-check-in'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const REVERIFY_INTERVAL_DAYS = 30
 
@@ -11,7 +12,7 @@ const REVERIFY_INTERVAL_DAYS = 30
 // (sanitize.ts) depends on this being accurate, not stale.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

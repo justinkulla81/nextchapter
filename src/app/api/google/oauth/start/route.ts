@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { requireAdmin } from '@/lib/admin/auth'
 import { buildGoogleAuthUrl } from '@/lib/google/oauth'
+import { mintAdminOAuthState } from '@/lib/google/admin-oauth-state'
 
 // Admin-gated here — but NOT re-checked on the callback, because it
 // structurally can't be: Google redirects back to whatever host
@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
   const admin = await requireAdmin()
   const from = request.nextUrl.searchParams.get('from')
   const validFrom = from && from.startsWith('/support/admin/') ? from : null
-  const random = crypto.randomBytes(16).toString('hex')
-  const state = `${random}:${encodeURIComponent(validFrom ?? '')}:${encodeURIComponent(admin?.email ?? '')}`
 
   try {
+    // Signed + expiring, so the callback only accepts a state this
+    // admin-gated route minted (see admin-oauth-state.ts).
+    const state = mintAdminOAuthState({ returnPath: validFrom ?? '/support/admin/digest', adminEmail: admin?.email ?? null })
     const url = buildGoogleAuthUrl(state)
     return NextResponse.redirect(url)
   } catch {

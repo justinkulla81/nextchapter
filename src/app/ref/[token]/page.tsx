@@ -1,9 +1,13 @@
 import { prisma } from '@/lib/prisma'
+import { NOINDEX } from '@/lib/seo/canonical'
 import { ReferenceSubmissionForm } from '@/components/references/ReferenceSubmissionForm'
 import { DeclineReferenceControl } from '@/components/references/DeclineReferenceControl'
 import { submitReference, saveReferenceDraft } from './actions'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
+
+// Token-addressed page showing a candidate's name and work history.
+export const metadata = NOINDEX
 
 export default async function ReferenceTokenPage({
   params,

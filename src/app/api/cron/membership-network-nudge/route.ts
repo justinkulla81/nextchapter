@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const NUDGE_INTERVAL_DAYS = 30
 
@@ -14,7 +15,7 @@ function appUrl(): string {
 // per-row try/catch, update a timestamp on success).
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
