@@ -6,6 +6,7 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { HireOutcomeForm, LastJobEndedForm } from '@/components/dashboard/HireOutcomeForm'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
 
@@ -45,6 +46,31 @@ export default async function GotHiredPage() {
         </p>
         <PageHeaderBoxes pageKey="got-hired" candidateId={profile.id} />
       </div>
+
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Where you are in your search</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add your last day worked so we compare you with people at the same stage, not with everyone.
+            </p>
+          </div>
+          <LastJobEndedForm current={profile.lastJobEndedAt ? profile.lastJobEndedAt.toISOString().slice(0, 10) : null} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Tell us how it came together</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Full-time, interim, fractional or advisory work all count. This is separate from the Offer Bonus below and needs no
+              offer letter.
+            </p>
+          </div>
+          <HireOutcomeForm />
+        </CardContent>
+      </Card>
 
       {latestClaim && latestClaim.status !== 'REJECTED' ? (
         <Card>

@@ -534,6 +534,12 @@ model CandidateProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Outcomes release: last day of the most recent job. Weeks unemployed at
+  // enrollment is derived from this and bucketed (see src/lib/outcomes). Null
+  // when unknown or still employed; never guessed.
+  lastJobEndedAt DateTime?
+  hireOutcomes   HireOutcome[]
+
   // One real row (see scripts/create-system-account.ts), backed by a real
   // Supabase auth user, that authors admin-originated CommunityPosts (see
   // src/lib/community/admin-story.ts) so ADMIN_STORY posts can use the same
@@ -4773,6 +4779,13 @@ model PivotIdea {
   description         String
   rationale           String
   salaryConsideration String?
+  // Structured pay-change estimate (a range, never a point number) for the
+  // path this idea sits on. Null until a benchmark-backed estimate exists.
+  pathType                PivotPathType?
+  expectedPayDeltaLowPct  Float?
+  expectedPayDeltaHighPct Float?
+  payDeltaBasis           String?
+  payDeltaConfidence      OutcomeConfidence?
   generatedAt         DateTime @default(now())
 
   rating       Int? // 1-4, 4 = "I really love it"
@@ -12824,4 +12837,116 @@ model SchoolFederalOutcome {
   medianDebt       Int?
   dataSource       String   @default("College Scorecard")
   updatedAt        DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Outcomes release. Public benchmarks plus an outcome record per hire, used to
+// report duration-adjusted re-employment uplift and pay retention instead of a
+// raw time-to-offer (which adverse selection and stigma make misleading).
+// ---------------------------------------------------------------------------
+
+enum DurationBucket {
+  W0_4
+  W5_13
+  W14_26
+  W27_52
+  W53_PLUS
+}
+
+enum PivotPathType {
+  KEEP_SENIORITY
+  RESET
+}
+
+enum OutcomeConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum HireOutcomeType {
+  PERMANENT
+  INTERIM
+  FRACTIONAL
+  ADVISORY
+}
+
+enum HireSource {
+  REFERRAL
+  NETWORK_CONVERSATION
+  ALUMNI_OR_MENTOR
+  RECRUITER
+  INBOUND_APPLICATION
+  OTHER
+}
+
+// Public re-employment benchmark by unemployment-duration bucket. Every row
+// carries its source; rows seeded from estimates are flagged isSampleData.
+model DurationBenchmark {
+  id                     String            @id @default(cuid())
+  bucket                 DurationBucket
+  group                  String            @default("all") // e.g. 'all', 'white-collar', '55-64', 'college-degree'
+  weeklyReemploymentRate Float // probability of re-employment per week, 0-1
+  sourceTitle            String
+  sourceUrl              String?
+  asOf                   String? // e.g. '2026-08'
+  confidence             OutcomeConfidence @default(LOW)
+  notes                  String?
+  isSampleData           Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@unique([bucket, group, sourceTitle])
+  @@index([bucket, group])
+}
+
+// Public pay-change benchmark for a pivot path. Ranges, never point estimates.
+model PayChangeBenchmark {
+  id           String            @id @default(cuid())
+  pathType     PivotPathType
+  group        String // e.g. 'long-tenured displaced workers', 'occupation switchers'
+  lowPct       Float
+  highPct      Float
+  medianPct    Float?
+  sampleSize   Int?
+  confidence   OutcomeConfidence @default(LOW)
+  sourceTitle  String
+  sourceUrl    String?
+  asOf         String?
+  notes        String?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([pathType, group, sourceTitle])
+  @@index([pathType])
+}
+
+// One row per re-employment event. Captures what the benchmark comparison and
+// the guardrail metrics need. Pay fields are optional and candidate-reported.
+model HireOutcome {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  outcomeType HireOutcomeType @default(PERMANENT)
+  source      HireSource      @default(OTHER)
+  hiredAt     DateTime
+
+  // Snapshot at hire, so later edits to the profile never rewrite history.
+  weeksUnemployedAtHire Int?
+  enrollmentBucket      DurationBucket?
+  priorBasePayUsd       Int?
+  newBasePayUsd         Int?
+  levelRetained         Boolean? // same level or higher than the prior role
+  retained6Months       Boolean?
+  retained6MonthsAt     DateTime?
+
+  bountyClaimId String? // link to the existing got-hired claim when there is one
+  isSampleData  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([candidateId, hiredAt])
+  @@index([enrollmentBucket])
 }
