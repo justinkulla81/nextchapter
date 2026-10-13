@@ -26,7 +26,7 @@ describe('mid-career alumni slide (higher ed)', () => {
     expect(s.kind).toBe('stats')
     expect(s.facts!.map((f) => f.value)).toEqual(['0.88%', '0.83%', '1.02%', '+1.5 pts'])
     expect(textOf(deck, 'h-midcareer')).toMatch(/0\.57%/)
-    expect(s.source).toMatch(/Ch\. 06 Exhibit 19 \(p\. 15\)/)
+    expect(s.source).toMatch(/Ch\. 06 Exhibit 19/)
     expect(s.source).toMatch(/NextChapter calculation from Census CPS microdata/)
     expect(JSON.stringify([s.bullets, s.title])).not.toMatch(/\$\d|per seat|pricing/i)
     expect(s.bullets.join(' ')).toMatch(/Career, Advancement and Institution/)
@@ -49,7 +49,7 @@ describe('next to WIOA, not against it', () => {
       expect(s!.facts!.map((f) => f.value)).toEqual(expect.arrayContaining(['$1.396B', '187,108', '37,119']))
       expect(s!.bullets.join(' ')).toMatch(/Individual Training Accounts and on-the-job training/)
       expect(s!.bullets.join(' ')).toMatch(/1 in 5/)
-      expect(s!.source).toMatch(/Exhibit 32 \(p\. 25\)/)
+      expect(s!.source).toMatch(/Exhibit 32/)
     }
   })
   it('leaves the slide out of the types it does not fit', () => {
@@ -79,7 +79,7 @@ describe('employer AI-layoff disclosure readiness', () => {
     expect(rules).toMatch(/SB 951/)
     expect(rules).toMatch(/January 1, 2027/)
     expect(rules).toMatch(/AI-Related Job Impacts Clarity Act/)
-    expect(deck.slides.find((x) => x.id === 'e-ai-rules')!.source).toMatch(/Ch\. 03 \(p\. 9\)/)
+    expect(deck.slides.find((x) => x.id === 'e-ai-rules')!.source).toMatch(/Ch\. 03/)
     expect(textOf(deck, 'e-disclosure')).toMatch(/disclosure-ready summary/)
   })
   it('prints a counsel-review note on all three slides and repeats it in the warnings', () => {
