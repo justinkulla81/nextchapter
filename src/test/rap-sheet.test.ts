@@ -9,7 +9,7 @@ vi.mock('@/lib/google/admin-calendar', () => ({ listCalendarEvents: vi.fn() }))
 vi.mock('@/lib/webinars/admin-calendar-oauth', () => ({ getValidAdminAccessToken: vi.fn() }))
 
 import { easternDayBounds, isNoMeetingNight } from '@/lib/crm/rap-sheet/offer'
-import { parseRapSheet } from '@/lib/crm/rap-sheet/generate'
+import { describeParseFailure, parseRapSheet } from '@/lib/crm/rap-sheet/generate'
 import { renderRapSheetHtml } from '@/lib/crm/rap-sheet/email'
 
 describe('easternDayBounds', () => {
@@ -37,6 +37,19 @@ describe('parseRapSheet', () => {
   it('rejects output missing the pitch', () => {
     expect(parseRapSheet('{"headline":"h"}')).toBeNull()
     expect(parseRapSheet('no json')).toBeNull()
+  })
+})
+
+describe('describeParseFailure', () => {
+  it('names truncation and keeps the start of the reply', () => {
+    const msg = describeParseFailure('max_tokens', '{"headline":"h","whoTheyAre":"cut off')
+    expect(msg).toContain('ran out of room')
+    expect(msg).toContain('stop_reason=max_tokens')
+    expect(msg).toContain('{"headline":"h"')
+  })
+  it('distinguishes empty and prose replies', () => {
+    expect(describeParseFailure('end_turn', '  ')).toContain('returned no text')
+    expect(describeParseFailure('end_turn', 'Here is a summary')).toContain('did not return a usable')
   })
 })
 

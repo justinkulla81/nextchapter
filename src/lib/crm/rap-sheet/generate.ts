@@ -9,6 +9,8 @@ import type { RapSheetContent } from './types'
 export const RAP_SHEET_MODEL = 'claude-haiku-4-5-20251001'
 const MAX_SEARCHES = 5
 const MAX_CONTINUATIONS = 3
+// The briefing is a large JSON object; 4000 tokens truncated it mid-object on news-heavy prospects.
+const MAX_TOKENS = 8000
 
 const PRODUCT = `NextChapter helps laid-off and displaced white-collar professionals land their next role: a candidate platform (job search plan, coaching, a daily job email, résumé and narrative tools, a network of coaches and recruiters) plus programs sold to institutions. Buyers and partners include workforce boards, economic-development and chamber organizations, universities and alumni offices, outplacement buyers, employers doing layoffs, and funders. The founder, Justin Kulla, is pitching them.`
 
@@ -48,7 +50,18 @@ export function parseRapSheet(raw: string): RapSheetContent | null {
   }
 }
 
-/** Research and write one Meeting Prep. This is the metered step: one Claude call with up to MAX_SEARCHES web searches. */
+/** Why a reply could not be parsed, in words that say what to fix. Keeps the start of the reply so the cause is visible on the sheet row. */
+export function describeParseFailure(stopReason: string | null | undefined, raw: string): string {
+  const head = raw.trim().replace(/\s+/g, ' ').slice(0, 200)
+  const why = stopReason === 'max_tokens'
+    ? 'The model ran out of room before finishing the Meeting Prep'
+    : !raw.trim()
+      ? 'The model returned no text'
+      : 'The model did not return a usable Meeting Prep'
+  return `${why} (stop_reason=${stopReason ?? 'unknown'}${head ? `; reply began: "${head}"` : ''}).`
+}
+
+/** Research and write one Meeting Prep. This is the metered step: one Claude call with up to MAX_SEARCHES web searches, plus one cheap no-search retry if the reply can't be parsed. */
 export async function buildRapSheetContent(personId: string, meeting: { title: string | null; at: Date | null }): Promise<RapSheetContent> {
   const ctx = await gatherRapSheetContext(personId)
   const when = meeting.at ? meeting.at.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'short' }) + ' ET' : 'upcoming'
@@ -60,15 +73,34 @@ export async function buildRapSheetContent(personId: string, meeting: { title: s
 
   const client = getAnthropicClient()
   let text = ''
+  let stopReason: string | null = null
+  let lastContent: Anthropic.ContentBlock[] = []
   for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
-    const res = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: 4000, system: SYSTEM, tools, messages })
+    const res = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
     text = res.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
+    stopReason = res.stop_reason
+    lastContent = res.content
     if (res.stop_reason !== 'pause_turn') break
     messages.push({ role: 'assistant', content: res.content })
   }
   const parsed = parseRapSheet(text)
-  if (!parsed) throw new Error('The model did not return a usable Meeting Prep.')
-  return parsed
+  if (parsed) return parsed
+
+  // Retry once without more searching: the research is already in the conversation, so ask for the JSON alone.
+  console.error('[rap-sheet] unparseable reply, retrying', { personId, stopReason, head: text.slice(0, 300) })
+  if (lastContent.length > 0) {
+    messages.push({ role: 'assistant', content: lastContent })
+    messages.push({
+      role: 'user',
+      content: 'Do not search again. Using the research above, reply with ONLY the complete JSON object in the required shape: no prose, no code fence. Keep every string concise so the whole object fits.',
+    })
+    const retry = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
+    const retryText = retry.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
+    const retryParsed = parseRapSheet(retryText)
+    if (retryParsed) return retryParsed
+    throw new Error(describeParseFailure(retry.stop_reason, retryText))
+  }
+  throw new Error(describeParseFailure(stopReason, text))
 }
 
 /** Build (or rebuild) the sheet row's content. Never throws; failures land on the row. */
