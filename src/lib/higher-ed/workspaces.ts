@@ -68,7 +68,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'coaching', label: 'Coaching', comingIn: null },
       { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
-      { key: 'mentors', label: 'Mentors', comingIn: 'HE-09' },
+      { key: 'mentors', label: 'Mentors', comingIn: null },
     ],
   },
   {
