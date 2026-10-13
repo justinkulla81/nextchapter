@@ -23,6 +23,7 @@ import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLaunche
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
 import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
+import { isInWorkMember } from '@/lib/in-work/constants'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -128,6 +129,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       isActiveMember={activeMember}
       helpRepliesWaiting={helpRepliesWaiting}
       newStrongCompaniesCount={newStrongCompaniesCount}
+      showInWork={isInWorkMember(profile)}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />

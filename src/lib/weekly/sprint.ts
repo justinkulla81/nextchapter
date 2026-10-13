@@ -51,6 +51,9 @@ export interface CommittedAction {
   // created it; fromCoach is what SuccessSprintCard actually renders on.
   fromCoach?: boolean
   coachSessionId?: string
+  // Pushed in from an In-work feedback action item (src/lib/in-work/
+  // sprint-link.ts). Text-only, 0 points, no actionType.
+  fromInWork?: boolean
 }
 
 export interface SuggestedAction {

@@ -1721,6 +1721,15 @@ model CandidateProfile {
   undatedEmployment UndatedEmployment[]
 
   coachingStyleResponse CoachingStyleResponse?
+
+  // In-work track (Prisma-virtual back-relations; add no columns here).
+  inWorkProfile       InWorkProfile?
+  inWorkWins          InWorkWin[]
+  inWorkPreps         InWorkPrep[]
+  inWorkPromotionPlan InWorkPromotionPlan?
+  inWorkFeedback      InWorkFeedback[]
+  inWorkOutcomes      InWorkOutcome[]
+  inWorkEmailSends    InWorkEmailSend[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -13119,4 +13128,126 @@ model JourneyEvent {
   createdAt   DateTime            @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+
+// ─── In-work track ────────────────────────────────────────────────────────
+// For members who have a job: impact log, review prep, raise and promotion
+// planning, feedback, outcomes, and the twice-yearly review-cycle emails.
+// Everything here is private to the member. Nothing in these tables is read
+// by employer, recruiter, coach or community surfaces. Plain TEXT columns
+// (validated in src/lib/in-work/constants.ts) rather than Postgres enums, so
+// adding a category later needs no DDL. SQL: prisma/manual/2026-10-13-in-work-track.sql
+
+// One row per member: when their reviews happen and whether they want the
+// prompts. No row means defaults (half-yearly, February and August, prompts on).
+model InWorkProfile {
+  id             String           @id @default(cuid())
+  candidateId    String           @unique
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  cadence        String           @default("HALF_YEARLY") // HALF_YEARLY | ANNUAL | QUARTERLY
+  anchorMonth    Int? // 1-12; the first review month. Null = default (2, so February and August)
+  nextReviewDate DateTime?        @db.Date // exact date when the member knows it
+  promptsEnabled Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+// Impact log: one win with its number and who it helped.
+model InWorkWin {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  what        String           @db.Text
+  result      String           @db.Text
+  whoBenefited String?
+  occurredOn  DateTime         @db.Date
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, occurredOn])
+}
+
+// Review prep worksheet, one per review cycle (cycleKey "YYYY-MM").
+model InWorkPrep {
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  cycleKey         String
+  checklist        Json             @default("{}") // { [itemKey]: boolean }
+  wins             String?          @db.Text
+  goals            String?          @db.Text
+  theAsk           String?          @db.Text
+  evidence         String?          @db.Text
+  managerQuestions Json             @default("[]") // string[], three questions
+  startedAt        DateTime         @default(now())
+  completedAt      DateTime?
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([candidateId, cycleKey])
+}
+
+// Next-level gap checklist, stretch ask and visibility plan. One per member.
+model InWorkPromotionPlan {
+  id              String           @id @default(cuid())
+  candidateId     String           @unique
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  targetLevel     String?
+  gapItems        Json             @default("[]") // [{ id, text, done }]
+  stretchScope    String?          @db.Text
+  stretchDecider  String?
+  plan30          String?          @db.Text
+  plan60          String?          @db.Text
+  plan90          String?          @db.Text
+  visibilityItems Json             @default("[]") // [{ id, text, done }]
+  updatedAt       DateTime         @updatedAt
+}
+
+// Feedback received. actionItems is [{ id, text, done, sprintAddedAt? }].
+model InWorkFeedback {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  source      String // MANAGER | SKIP_LEVEL | PEER | DIRECT_REPORT | CLIENT | OTHER
+  receivedOn  DateTime         @db.Date
+  whatWasSaid String           @db.Text
+  category    String // STRENGTH | GROWTH_AREA | COMMUNICATION | RESULTS | BEHAVIOR | OTHER
+  actionItems Json             @default("[]")
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, receivedOn])
+}
+
+// What came out of a review. History is kept across cycles; the next prep
+// starts from the latest row.
+model InWorkOutcome {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  cycleKey      String?
+  reviewedOn    DateTime         @db.Date
+  rating        String? // free text so it fits any company's scale
+  raiseReceived Boolean?
+  raisePercent  Float?
+  promoted      Boolean          @default(false)
+  newTitle      String?
+  notes         String?          @db.Text
+  followUps     Json             @default("[]") // [{ id, text, done }]
+  createdAt     DateTime         @default(now())
+
+  @@index([candidateId, reviewedOn])
+}
+
+// Claim-before-send record for the review-cycle emails: the unique key is the
+// idempotency guard, and sentAt feeds the per-run volume guard.
+model InWorkEmailSend {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  cycleKey      String
+  kind          String // PREPARE | RESPOND
+  resendEmailId String?
+  sentAt        DateTime         @default(now())
+
+  @@unique([candidateId, cycleKey, kind])
+  @@index([sentAt])
 }

@@ -9,6 +9,18 @@ export async function GET(
   const { candidateId } = await params
   const type = request.nextUrl.searchParams.get('type')
 
+  // In-work review emails keep their own opt-out on InWorkProfile.
+  if (type === 'inWork') {
+    await prisma.inWorkProfile
+      .upsert({ where: { candidateId }, create: { candidateId, promptsEnabled: false }, update: { promptsEnabled: false } })
+      .catch(() => {})
+    captureServerEvent(candidateId, 'in_work_review_emails_unsubscribed', {})
+    return new NextResponse(
+      `<!doctype html><html><body style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 64px auto; padding: 0 24px; color: #111;"><p>You won't receive review reminders anymore. Your other NextChapter emails are unchanged. You can turn them back on in your workspace.</p></body></html>`,
+      { headers: { 'content-type': 'text/html' } }
+    )
+  }
+
   const data =
     type === 'daily'
       ? { dailyEmailOptedOut: true }
