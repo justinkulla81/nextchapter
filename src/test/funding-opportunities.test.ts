@@ -132,3 +132,11 @@ describe('toLead', () => {
     expect(lead.person).toBeNull()
   })
 })
+
+describe('eligibility on the CRM note', () => {
+  it('says how we can pursue it in the headline and why in the summary', () => {
+    const lead = toLead(notice({ eligibility: 'VIA_PARTNER', eligibilityNote: 'Only state agencies can apply.' }), NOW)
+    expect(lead.trigger.headline).toMatch(/^\[For customers to win · via partner\]/)
+    expect(lead.trigger.summary).toMatch(/Only state agencies can apply/)
+  })
+})

@@ -76,7 +76,7 @@ export async function renderPdf(deck: Deck, opts: { headshot?: string } = {}): P
             {d.kind === 'stats' && d.bullets.length > 0 && (
               <View style={{ marginTop: 22 }}>{d.bullets.map((b, k) => (<View key={k} style={s.bullet}><Text style={s.dot}>•</Text><Text style={[s.btext, { fontSize: 17 }]}>{b}</Text></View>))}</View>
             )}
-            {['warn', 'employers', 'colleges', 'datacenters', 'board', 'constituents'].includes(d.kind) && <Table d={d} />}
+            {['warn', 'employers', 'colleges', 'datacenters', 'board', 'constituents', 'funding'].includes(d.kind) && <Table d={d} />}
             {d.kind === 'offer' && d.offer && (
               <View style={{ flexDirection: 'row', gap: 14 }}>
                 {[['Every package includes', d.offer.scope], ['What we need from you', d.offer.theyProvide], ['How we start', [d.offer.name, `Length: ${d.offer.term || 'to be agreed'}`, 'Scope agreed with you on a first call', ...(d.offer.price.trim() ? [`Price: ${d.offer.price.trim()}`] : [])].filter(Boolean)]].map(([t, items], k) => (

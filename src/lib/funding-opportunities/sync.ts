@@ -1,8 +1,9 @@
 import 'server-only'
 import { importP0Leads } from '@/lib/crm/p0-leads'
 import { GRANT_KEYWORDS, SAM_NAICS, isLive, isRelevant, toLead, type FundingNotice } from './relevance'
-import { noticesFromHits, searchGrantsGov } from './grants-gov'
+import { fetchGrantDetail, noticesFromHits, searchGrantsGov, withEligibility } from './grants-gov'
 import { noticesFromSam, searchSam } from './sam-gov'
+import { upsertOpportunities } from './store'
 
 const LOOKBACK_DAYS = 30
 const MAX_NEW_PER_RUN = 25
@@ -18,6 +19,11 @@ export interface FundingSyncResult {
   alreadyLogged: number
   capped: boolean
   filedTitles: string[]
+  /** Read for eligibility and dropped: nothing NextChapter or a customer can pursue. */
+  excluded: { title: string; reason: string }[]
+  byEligibility: Record<string, number>
+  /** 'ok', or why the queryable store was not written (table not applied yet). */
+  store: string
 }
 
 /**
@@ -35,6 +41,7 @@ export async function syncFundingOpportunities(opts: { dryRun?: boolean; now?: D
     grants: { searched: 0, failed: [], candidates: 0 },
     sam: { searched: 0, failed: [], candidates: 0, skipped: null },
     relevant: 0, filed: 0, alreadyLogged: 0, capped: false, filedTitles: [],
+    excluded: [], byEligibility: {}, store: 'not written (dry run)',
   }
 
   // ── Grants.gov ──
@@ -75,12 +82,44 @@ export async function syncFundingOpportunities(opts: { dryRun?: boolean; now?: D
     result.sam.candidates = sam.length
   }
 
-  const relevant = [...grants.filter(isRelevant), ...sam]
-    .filter((n) => isLive(n, now, LOOKBACK_DAYS))
+  const candidates = [...grants.filter(isRelevant), ...sam].filter((n) => isLive(n, now, LOOKBACK_DAYS))
+
+  // Read each grant's eligibility (one detail request each; few survive the
+  // filter above). A failed read leaves it UNKNOWN, flagged, not dropped.
+  const classified: FundingNotice[] = []
+  for (const n of candidates) {
+    if (n.eligibility || n.source !== 'grants.gov' || !n.externalId) { classified.push(n); continue }
+    try {
+      classified.push(withEligibility(n, await fetchGrantDetail(n.externalId)))
+    } catch (e) {
+      console.error('Grants.gov detail failed', n.id, e instanceof Error ? e.message : e)
+      classified.push({ ...n, eligibility: 'UNKNOWN', eligibilityNote: 'Eligibility could not be read. Check the notice before pursuing.' })
+    }
+    await sleep(PAUSE_MS)
+  }
+
+  // Nothing we cannot pursue, alone or through a partner, reaches the CRM.
+  const relevant = classified.filter((n) => {
+    if (n.eligibility !== 'NOT_ELIGIBLE') return true
+    result.excluded.push({ title: n.title, reason: n.eligibilityNote ?? 'not eligible' })
+    return false
+  })
   result.relevant = relevant.length
+  for (const n of relevant) result.byEligibility[n.eligibility ?? 'UNKNOWN'] = (result.byEligibility[n.eligibility ?? 'UNKNOWN'] ?? 0) + 1
 
   const leads = relevant.slice(0, MAX_NEW_PER_RUN * 4).map((n) => ({ n, lead: toLead(n, now) }))
   const imported = await importP0Leads(leads.map((l) => l.lead), opts.dryRun ?? false)
+
+  // The queryable copy (org page, pitch slide, rank). Never fatal: the CRM
+  // notes above are the record, and the table may not be applied yet.
+  if (!opts.dryRun) {
+    try {
+      const n = await upsertOpportunities(leads.map((l, i) => ({ notice: l.n, orgId: imported[i]?.org.id || null })))
+      result.store = `ok (${n} upserted)`
+    } catch (e) {
+      result.store = `unavailable: ${e instanceof Error ? e.message.split('\n')[0].slice(0, 160) : 'error'} — apply prisma/manual/funding-opportunities.sql`
+    }
+  }
 
   let filed = 0
   imported.forEach((r, i) => {

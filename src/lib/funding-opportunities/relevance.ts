@@ -5,6 +5,7 @@
  * and so the two sources (Grants.gov, SAM.gov) cannot drift apart.
  */
 import type { P0Lead } from '@/lib/crm/p0-leads-parse'
+import type { ApplicantKind, Eligibility } from './eligibility'
 
 /**
  * Grants.gov full-text keywords, one search each. An explicit list: adding a
@@ -71,6 +72,14 @@ export interface FundingNotice {
   matched: string[]
   /** Issuer's agency code where the source gives one (Grants.gov: "DOL-ETA"). */
   agencyCode?: string
+  /** The source's own record id (Grants.gov numeric id) where it differs from `id`. */
+  externalId?: string
+  /** Set once the notice has been read for eligibility; absent means not yet classified. */
+  eligibility?: Eligibility
+  applicantKinds?: ApplicantKind[]
+  partnerKinds?: ApplicantKind[]
+  eligibilityNote?: string
+  awardCeiling?: number | null
   contact: { fullName: string; title: string | null; email: string | null; phone: string | null } | null
 }
 
@@ -83,6 +92,13 @@ export type Audience = 'CUSTOMERS' | 'US'
 
 export function audienceOf(kind: NoticeKind): Audience {
   return kind === 'GRANT' || kind === 'FORECAST' ? 'CUSTOMERS' : 'US'
+}
+
+const ELIGIBILITY_TAG: Record<Eligibility, string> = {
+  DIRECT: 'we can apply',
+  VIA_PARTNER: 'via partner',
+  NOT_ELIGIBLE: 'not eligible',
+  UNKNOWN: 'eligibility unconfirmed',
 }
 
 const AUDIENCE_TAG: Record<Audience, string> = {
@@ -165,7 +181,7 @@ export function toLead(n: FundingNotice, now: Date): P0Lead {
   return {
     trigger: {
       kind: 'RFP',
-      headline: `[${AUDIENCE_TAG[audienceOf(n.kind)]}] ${KIND_LABEL[n.kind]} — ${n.title}`.slice(0, 280),
+      headline: `[${AUDIENCE_TAG[audienceOf(n.kind)]}${n.eligibility ? ` · ${ELIGIBILITY_TAG[n.eligibility]}` : ''}] ${KIND_LABEL[n.kind]} — ${n.title}`.slice(0, 280),
       sourceUrl: n.url,
       publishedAt: n.postedAt,
       state: n.state,
@@ -173,7 +189,7 @@ export function toLead(n: FundingNotice, now: Date): P0Lead {
       city: n.city,
       employees: null,
       deadline,
-      summary: `${AUDIENCE_TAG[audienceOf(n.kind)]}. ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} ${n.id}. Matched: ${n.matched.join(', ')}.`,
+      summary: `${AUDIENCE_TAG[audienceOf(n.kind)]}.${n.eligibilityNote ? ` ${n.eligibilityNote}` : ''} ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} ${n.id}. Matched: ${n.matched.join(', ')}.`,
     },
     org: { name: n.agency, type: n.agencyType, website: null, city: n.city, state: n.state },
     person: n.contact

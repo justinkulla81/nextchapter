@@ -56,6 +56,13 @@ export interface ScoreInput {
    * of establishing a state presence are not the same opportunity.
    */
   preconditionLeadTimeDays?: number | null
+  /**
+   * Soonest close among open federal grants this organization could apply for
+   * (or partner on). Null when none is inside the window. A smaller signal than
+   * the organization's own deadline: a national grant matches every board and
+   * college at once, so it nudges rather than reorders.
+   */
+  fundingCloseAt?: Date | null
   /** Most recent touch of any kind, or null if never contacted. */
   lastTouchedAt: Date | null
   /** Used as the staleness floor when nothing has ever been logged. */
@@ -84,6 +91,7 @@ export interface ScoreBreakdown {
   quality: number
   warmPath: number
   deadline: number
+  funding: number
   momentum: number
   staleness: number
   multiplier: number
@@ -126,6 +134,9 @@ export function staleness(lastTouchedAt: Date | null, createdAt: Date, now: Date
   return Math.min(days, 90) / 90
 }
 
+/** Points a matched open grant can add; the organization's own deadline is worth 20. */
+export const FUNDING_WEIGHT = 6
+
 export function computePriority(input: ScoreInput): ScoreBreakdown {
   const now = input.now ?? new Date()
 
@@ -140,6 +151,7 @@ export function computePriority(input: ScoreInput): ScoreBreakdown {
   const quality = 35 * (QUALITY_WEIGHT[input.quality] ?? 0.3)
   const warmPath = 20 * clamp01(Math.max(input.warmPath, warmthToPathStrength(input.warmth)))
   const deadline = 20 * urgency
+  const funding = FUNDING_WEIGHT * deadlineUrgency(input.fundingCloseAt ?? null, now)
   const momentum = 15 * clamp01(input.stageProgress)
   const stale = 10 * staleness(input.lastTouchedAt, input.createdAt, now)
   // A flat bump, not a percentage of anything else — the point is that a row
@@ -148,14 +160,14 @@ export function computePriority(input: ScoreInput): ScoreBreakdown {
   // guarantee.
   const curation = input.isCategorized ? 5 : 0
 
-  const base = quality + warmPath + deadline + momentum + curation - stale
+  const base = quality + warmPath + deadline + funding + momentum + curation - stale
   const multiplier = ELIGIBILITY_MULTIPLIER[input.eligibility] ?? 1
   // A discount, not a disqualification: a valuable program with a long
   // runway should still surface, just below one you could act on this month.
   const precondition = 1 - preconditionPenalty(input.preconditionLeadTimeDays)
   const score = Math.max(0, Math.round(base * multiplier * precondition * 10) / 10)
 
-  return { score, quality, warmPath, deadline, momentum, staleness: stale, multiplier, precondition, curation }
+  return { score, quality, warmPath, deadline, funding, momentum, staleness: stale, multiplier, precondition, curation }
 }
 
 /**

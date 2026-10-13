@@ -1,3 +1,4 @@
+import { classifySetAside } from './eligibility'
 import { agencyFromSamPath, parseUsDate, titleScore, type FundingNotice, type NoticeKind } from './relevance'
 
 // SAM.gov Get Opportunities v2. Needs SAM_API_KEY (free; register at sam.gov →
@@ -17,6 +18,8 @@ interface SamOpp {
   type?: string
   baseType?: string
   responseDeadLine?: string | null
+  typeOfSetAside?: string | null
+  typeOfSetAsideDescription?: string | null
   uiLink?: string
   officeAddress?: { city?: string; state?: string }
   pointOfContact?: { fullName?: string; title?: string; email?: string; phone?: string; type?: string }[]
@@ -60,6 +63,7 @@ export function noticesFromSam(byNaics: Record<string, SamOpp[]>): FundingNotice
       // Only a contact the notice itself publishes; a primary one first.
       const poc = (o.pointOfContact ?? []).filter((p) => p.fullName?.trim())
       const best = poc.find((p) => p.type === 'primary') ?? poc[0]
+      const elig = classifySetAside(o.typeOfSetAside, o.typeOfSetAsideDescription)
       byId.set(o.noticeId, {
         source: 'sam.gov',
         id: o.solicitationNumber || o.noticeId,
@@ -73,6 +77,11 @@ export function noticesFromSam(byNaics: Record<string, SamOpp[]>): FundingNotice
         state: o.officeAddress?.state && /^[A-Za-z]{2}$/.test(o.officeAddress.state) ? o.officeAddress.state.toUpperCase() : null,
         city: o.officeAddress?.city?.trim() || null,
         matched: [`NAICS ${ncode}`],
+        externalId: o.noticeId,
+        eligibility: elig.eligibility,
+        applicantKinds: elig.kinds,
+        partnerKinds: elig.partnerKinds,
+        eligibilityNote: elig.note,
         contact: best
           ? { fullName: best.fullName!.trim(), title: best.title?.trim() || null, email: best.email?.trim() || null, phone: best.phone?.trim() || null }
           : null,

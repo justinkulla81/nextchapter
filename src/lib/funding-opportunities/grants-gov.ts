@@ -1,4 +1,5 @@
 import { parseUsDate, type FundingNotice } from './relevance'
+import { classifyGrant } from './eligibility'
 
 // Grants.gov search2: public, no key. One request per keyword, sequential and
 // paced, with every keyword that returned a notice recorded on it.
@@ -53,9 +54,57 @@ export function noticesFromHits(byKeyword: Record<string, Hit[]>): FundingNotice
         city: null,
         matched: [keyword],
         agencyCode: h.agencyCode,
+        externalId: h.id,
         contact: null,
       })
     }
   }
   return [...byId.values()]
+}
+
+const DETAIL_API = 'https://api.grants.gov/v1/api/fetchOpportunity'
+
+export interface GrantDetail {
+  applicantTypeIds: string[]
+  eligibilityText: string
+  awardCeiling: number | null
+}
+
+/** Markup and entities out: Grants.gov prose carries `for&#8208;profit` and `&nbsp;`. */
+export function plainText(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&#(\d+);/g, (_, n: string) => {
+      const c = Number(n)
+      return c >= 8208 && c <= 8213 ? '-' : String.fromCharCode(c)
+    })
+}
+
+/** Applicant types and the eligibility prose for one opportunity (its Grants.gov id, not its number). */
+export async function fetchGrantDetail(opportunityId: string): Promise<GrantDetail> {
+  const res = await fetch(DETAIL_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ opportunityId: Number(opportunityId) }),
+    signal: AbortSignal.timeout(20_000),
+  })
+  if (!res.ok) throw new Error(`Grants.gov detail ${res.status}`)
+  const json = (await res.json()) as {
+    data?: { synopsis?: { applicantTypes?: { id?: string }[]; applicantEligibilityDesc?: string; awardCeiling?: number | string } }
+  }
+  const syn = json.data?.synopsis
+  const ceiling = Number(syn?.awardCeiling)
+  return {
+    applicantTypeIds: (syn?.applicantTypes ?? []).map((t) => String(t.id ?? '')).filter(Boolean),
+    eligibilityText: plainText(syn?.applicantEligibilityDesc ?? ''),
+    awardCeiling: Number.isFinite(ceiling) && ceiling > 0 ? ceiling : null,
+  }
+}
+
+/** The notice with its eligibility read. Pure; the fetch is separate so it can be tested. */
+export function withEligibility(n: FundingNotice, d: GrantDetail): FundingNotice {
+  const r = classifyGrant(d.applicantTypeIds, d.eligibilityText)
+  return { ...n, eligibility: r.eligibility, applicantKinds: r.kinds, partnerKinds: r.partnerKinds, eligibilityNote: r.note, awardCeiling: d.awardCeiling }
 }
