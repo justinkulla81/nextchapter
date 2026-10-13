@@ -26,6 +26,8 @@ export function invitableWhere(institutionId: string) {
     candidateId: null,
     doNotContact: false,
     emailSuppressedAt: null,
+    // Program learners who aren't alumni never get the alumni invitation.
+    affiliation: { not: 'LEARNER' as const },
     outreachSends: { none: {} },
   }
 }

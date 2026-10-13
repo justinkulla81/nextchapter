@@ -70,6 +70,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'coaching', label: 'Coaching', comingIn: null },
       { key: 'jobs', label: 'Alumni jobs', comingIn: null },
+      { key: 'network', label: 'Network', comingIn: null },
       { key: 'mentors', label: 'Mentors', comingIn: null },
       { key: 'programs', label: 'Programs', comingIn: null },
       { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
@@ -90,6 +91,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'layoffs', label: 'Layoff alerts', comingIn: null },
       { key: 'outreach', label: 'Outreach', comingIn: null },
       { key: 'mentors', label: 'Mentors', comingIn: null },
+      { key: 'events', label: 'Events', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: null },
     ],
   },
@@ -182,6 +184,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'users', label: 'Staff', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
+      { key: 'board', label: 'Board report', comingIn: null },
     ],
   },
   {
@@ -196,7 +199,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'workforce',
     minTier: 'INSTITUTION',
     feature: 'wioa',
-    tabs: [{ key: 'home', label: 'WIOA participants', comingIn: null }],
+    tabs: [
+      { key: 'home', label: 'WIOA participants', comingIn: null },
+      { key: 'rapid', label: 'Rapid response', comingIn: null },
+      { key: 'etpl', label: 'Eligible-provider listing', comingIn: null },
+    ],
   },
 ]
 

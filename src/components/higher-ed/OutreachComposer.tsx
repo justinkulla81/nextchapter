@@ -60,13 +60,23 @@ export function OutreachComposer(props: {
       <div className="space-y-4">
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium">Who it goes to</legend>
-          <div className="flex flex-wrap gap-2">
-            {props.audiences.map((a) => (
-              <Button key={a.key} type="button" size="sm" variant={audience === a.key ? 'default' : 'outline'} aria-pressed={audience === a.key} onClick={() => setAudience(a.key)}>
-                {a.label} ({a.count.toLocaleString()})
-              </Button>
-            ))}
-          </div>
+          {props.audiences.length <= 4 ? (
+            <div className="flex flex-wrap gap-2">
+              {props.audiences.map((a) => (
+                <Button key={a.key} type="button" size="sm" variant={audience === a.key ? 'default' : 'outline'} aria-pressed={audience === a.key} onClick={() => setAudience(a.key)}>
+                  {a.label} ({a.count.toLocaleString()})
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <select aria-label="Who it goes to" value={audience} onChange={(e) => setAudience(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+              {props.audiences.map((a) => (
+                <option key={a.key} value={a.key}>
+                  {a.label} ({a.count.toLocaleString()})
+                </option>
+              ))}
+            </select>
+          )}
           <p className="text-xs text-muted-foreground">Never includes do-not-contact or opted-out alumni.</p>
         </fieldset>
         <div className="space-y-1.5">

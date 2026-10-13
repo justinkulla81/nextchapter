@@ -16,6 +16,8 @@ import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { approveCheckIns, sendOutreachBatch } from '@/app/i/[slug]/(portal)/outreach-actions'
 import { AUDIENCES, BATCH, MERGE_FIELDS, audienceCount, listComposed, previewValues } from '@/lib/higher-ed/composer'
 import { OutreachComposer } from './OutreachComposer'
+import { SegmentsSection } from './screens-lifecycle'
+import { listSegments } from '@/lib/higher-ed/segments'
 import { counselors } from '@/lib/higher-ed/caseload'
 import { AssignControl } from './AssignControl'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -158,9 +160,10 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
     suppressed.total += r._count._all
   }
   const canWrite = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
-  const [composed, counts] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) })))])
+  const [composed, builtIn, segments] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) }))), listSegments(id)])
+  const counts = [...builtIn, ...segments.map((s) => ({ key: `segment:${s.id}`, label: s.name, count: s.count }))]
   const editing = searchParams?.edit ? composed.find((c) => c.id === searchParams.edit && !c.sentAt) : undefined
-  const audienceLabel = (k: string) => AUDIENCES.find((a) => a.key === k)?.label ?? k
+  const audienceLabel = (k: string) => counts.find((a) => a.key === k)?.label ?? (k.startsWith('segment:') ? 'A deleted audience' : k)
 
   return (
     <div className="space-y-8">
@@ -181,6 +184,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
           />
         </section>
       )}
+      <SegmentsSection ctx={ctx} />
       {composed.length > 0 && (
         <section aria-labelledby="your-emails" className="space-y-2">
           <h2 id="your-emails" className="text-base font-semibold">

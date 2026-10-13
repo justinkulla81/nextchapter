@@ -176,7 +176,8 @@ begin
     'CrmExchangeRun', 'OutcomeReport', 'ProspectFlag', 'ResilienceFund',
     'FundAward', 'CaseloadAssignment', 'CheckIn', 'InstitutionEmployer',
     'InstitutionPurchase', 'DossierIntroRequest',
-    'Program', 'Cohort', 'Enrollment', 'CorporateClient', 'Capstone'
+    'Program', 'Cohort', 'Enrollment', 'CorporateClient', 'Capstone',
+    'AlumniIntroRequest', 'OfficeHourSlot', 'CollegeEvent', 'EventRsvp', 'Segment', 'RapidResponse'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     -- Supabase anonymous sign-ins also get the `authenticated` role. This

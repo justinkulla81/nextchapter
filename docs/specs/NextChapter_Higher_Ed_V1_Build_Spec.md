@@ -420,3 +420,18 @@ Built: `Program`, `Cohort`, `Enrollment` (payer: self-pay, employer, Resilience 
 - **Workforce board:** only when Admin turns WIOA on (`enabledFeatures.wioa`, feature-gated in `workspacesFor`). WIOA-voucher and board-contract participants with completion, credential and placement (an OutcomeReport within 180 days after completion), CSV at `/i/<slug>/export/wioa`. Employer only with outcome sharing.
 - **Not built (deliberately):** SSN vault, invoices and billing, attendance and assessments, wage-record matching, the state performance export, enrolling non-alumni employees of corporate clients (needs a non-alum learner affiliation).
 - `npm run verify:v2`; the demo seeds three programs, five cohorts, about 20 enrollments (WIOA completers placed), two clients and three capstones.
+
+### The college at every stage of a move, Oct 13, 2026
+
+The seven journey stages (Exploring → Preparing → Applying → Interviewing → Offer → Landed, and Paused) each get something from the college. `src/lib/higher-ed/lifecycle.ts`, `outcomes-report.ts`, `segments.ts`, `rapid-response.ts`; screens in `screens-lifecycle.tsx`.
+
+- **Stage panel** on the alum's home ("From <college>, for where you are"), from `stageHelp()`: Exploring → outcomes by major, groups, events, programs; Preparing → programs, office hours, mentors; Applying → alumni jobs, intros; Interviewing → an alum inside, office hours; Offer → sanity-check the offer; Landed → share a milestone, give back; Paused → nothing. Plus **program recommendations**: the latest Market Reality report's gap areas and the alum's growth areas matched to `Program.skills`.
+- **Candidate › Network:** alumni intros at a company (`AlumniIntroRequest`; targets are joined alumni who share their employer; five open asks at a time; emails on accept), office hours (`OfficeHourSlot`; mentors post slots, alumni book one at a time, two upcoming max), events (`CollegeEvent`, `EventRsvp`), groups (class, major, metro: where at least two work, mentors, milestones), what grads with my major do, and the milestones feed.
+- **Engagement:** completed office hours and accepted intros score as MENTOR_CALL for both sides, event check-ins as EVENT (nightly sync, with consent).
+- **Alumni Relations:** Events tab (create, RSVP list, check-in, cancel); milestones on home; saved audiences (`Segment`) usable in the composer (`segment:<id>`).
+- **Standing out:** public `/i/<slug>/outcomes` (rolling 12 months, counts under MIN_CELL_SIZE withheld, employers only with five or more, by major, peers), Admin › Board report (printable).
+- **Exec Ed:** non-alum learners (`InstitutionAffiliation.LEARNER`, never sent alumni email or invites), completion rules per cohort (sessions × attendance % + capstone) blocking "Mark completed", and credentials: `/credentials/<id>` (public verification, Add to LinkedIn) with Open Badges 2.0 JSON at `/api/credentials/<id>`, `/api/credentials/class/<programId>`, `/api/credentials/issuer/<slug>`.
+- **Workforce board:** Rapid response (recent WARN filings in the college's region; an offer with a public, rate-limited sign-up at `/i/<slug>/rapid/<id>` that creates WIOA applications, reusing roster emails, else learners) and an Eligible-provider listing helper (CIP, hours, credential type, cost, completion, credential and 180-day placement rates; CSV at `/export/etpl`).
+- **Times** typed by staff and mentors are US Eastern (`zonedToUtc`) until colleges can set a time zone.
+- **Not built:** AI-drafted outreach (cost per use, needs approval), live CRM and Handshake connectors (need vendor credentials), wage-record matching (needs the SSN decision).
+- `npm run verify:lifecycle`.

@@ -30,10 +30,11 @@ function row(institutionId: string, memberId: string, type: EngagementEventType,
 }
 
 // One mentor call: both people engaged, differently (spec §7).
-export function mentorCallRows(institutionId: string, requestId: string, mentorMemberId: string, requesterMemberId: string, at: Date): Row[] {
+// Office hours and alumni intros are calls too (sourceTable says which).
+export function mentorCallRows(institutionId: string, requestId: string, mentorMemberId: string, requesterMemberId: string, at: Date, sourceTable = 'MentorRequest'): Row[] {
   return [
-    row(institutionId, mentorMemberId, 'MENTOR_CALL', at, 'MentorRequest', requestId, { points: 5, category: 'VOLUNTEER' }),
-    row(institutionId, requesterMemberId, 'MENTOR_CALL', at, 'MentorRequest', requestId),
+    row(institutionId, mentorMemberId, 'MENTOR_CALL', at, sourceTable, requestId, { points: 5, category: 'VOLUNTEER' }),
+    row(institutionId, requesterMemberId, 'MENTOR_CALL', at, sourceTable, requestId),
   ]
 }
 
@@ -75,6 +76,21 @@ export async function syncEngagement(institutionId: string, now = new Date()): P
   for (const c of clicks) rows.push(row(institutionId, c.memberId!, 'OUTREACH_CLICK', (c.clickedAt ?? c.claimedAt)!, 'OutreachSend', c.id))
   for (const o of milestones) rows.push(row(institutionId, o.memberId, 'MILESTONE_SHARED', o.reportedAt, 'OutcomeReport', o.id))
   for (const g of gifts) rows.push(row(institutionId, g.memberId!, 'GIFT', g.giftDate, 'InstitutionGift', g.id))
+
+  // Office hours that happened, accepted alumni intros and event check-ins:
+  // each side counts only if that member shares engagement.
+  const shares = new Set(members.filter((m) => m.shareEngagement).map((m) => m.id))
+  const [slots, intros, checkins] = await Promise.all([
+    prisma.officeHourSlot.findMany({
+      where: { institutionId, bookedByMemberId: { not: null }, cancelledAt: null, startsAt: { gte: since, lte: now } },
+      select: { id: true, startsAt: true, bookedByMemberId: true, mentor: { select: { memberId: true } } },
+    }),
+    prisma.alumniIntroRequest.findMany({ where: { institutionId, status: 'ACCEPTED', respondedAt: { gte: since } }, select: { id: true, respondedAt: true, requesterMemberId: true, targetMemberId: true } }),
+    prisma.eventRsvp.findMany({ where: { event: { institutionId }, checkedInAt: { gte: since } }, select: { id: true, memberId: true, checkedInAt: true } }),
+  ])
+  for (const s of slots) rows.push(...mentorCallRows(institutionId, s.id, s.mentor.memberId, s.bookedByMemberId!, s.startsAt, 'OfficeHourSlot').filter((r) => shares.has(r.memberId)))
+  for (const i of intros) rows.push(...mentorCallRows(institutionId, i.id, i.targetMemberId, i.requesterMemberId, i.respondedAt!, 'AlumniIntroRequest').filter((r) => shares.has(r.memberId)))
+  for (const c of checkins) if (shares.has(c.memberId)) rows.push(row(institutionId, c.memberId, 'EVENT', c.checkedInAt!, 'EventRsvp', c.id))
 
   if (!rows.length) return { added: 0 }
   const r = await prisma.engagementEvent.createMany({ data: rows, skipDuplicates: true })

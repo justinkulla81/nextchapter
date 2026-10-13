@@ -10882,6 +10882,7 @@ model WarnNotice {
   @@index([workforceBoardId, noticeDate])
   @@index([companyId])
   @@index([companyMatchStatus])
+  rapidResponses RapidResponse[]
 }
 
 enum WarnCompanyMatchStatus {
@@ -11257,6 +11258,7 @@ enum InstitutionAffiliation {
   STUDENT
   PARENT
   STAFF_ALUM
+  LEARNER // not an alum: a corporate client's employee or a community member in a program
 }
 
 enum InstitutionMemberMatchMethod {
@@ -11492,6 +11494,11 @@ model Institution {
   programs         Program[]
   corporateClients CorporateClient[]
   capstones        Capstone[]
+  alumniIntroRequests AlumniIntroRequest[]
+  officeHourSlots     OfficeHourSlot[]
+  collegeEvents       CollegeEvent[]
+  segments            Segment[]
+  rapidResponses      RapidResponse[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11589,6 +11596,10 @@ model InstitutionMember {
   @@index([institutionId, lastKnownEmployerNormalized])
   dossierIntroRequests DossierIntroRequest[]
   enrollments Enrollment[]
+  introsRequested AlumniIntroRequest[] @relation("IntroRequester")
+  introsReceived  AlumniIntroRequest[] @relation("IntroTarget")
+  officeHoursBooked OfficeHourSlot[]
+  eventRsvps      EventRsvp[]
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -11750,6 +11761,7 @@ model InstitutionMentor {
   requests MentorRequest[]
 
   @@index([institutionId, isActive])
+  officeHourSlots OfficeHourSlot[]
 }
 
 model MentorRequest {
@@ -13233,6 +13245,13 @@ model Program {
   credential    String? // what completers earn, e.g. "AI-Ready Professional Certificate"
   priceCents    Int         @default(0)
   wioaEligible  Boolean     @default(false) // on the state's eligible training provider list
+  // Skills it builds, matched against an alum's Market Reality gaps.
+  skills        String[]    @default([])
+  // State eligible-provider (ETPL) listing fields.
+  cipCode        String?
+  hours          Int?
+  credentialType String? // 'certificate' | 'industry_certification' | 'badge' | 'degree'
+  prerequisites  String?
   isActive      Boolean     @default(true)
   createdBy     String
   isSampleData  Boolean     @default(false)
@@ -13255,6 +13274,11 @@ model Cohort {
   seats         Int?
   modality      String? // 'online' | 'in_person' | 'hybrid'
   facultyUserId String? // InstitutionUser (FACULTY) who teaches it
+  // Completion rule: attend at least minAttendancePct of sessionsTotal, and
+  // finish the capstone when requiresCapstone.
+  sessionsTotal     Int?
+  minAttendancePct  Int?
+  requiresCapstone  Boolean @default(false)
   faculty       InstitutionUser? @relation(fields: [facultyUserId], references: [id], onDelete: SetNull)
   isSampleData  Boolean          @default(false)
   createdAt     DateTime         @default(now())
@@ -13283,6 +13307,12 @@ model Enrollment {
   completedAt       DateTime?
   withdrewAt        DateTime?
   credentialName    String?
+  // Public, verifiable credential (Open Badges 2.0) issued at completion.
+  credentialId      String?           @unique
+  sessionsAttended  Int               @default(0)
+  capstoneDone      Boolean           @default(false)
+  rapidResponseId   String?
+  rapidResponse     RapidResponse?    @relation(fields: [rapidResponseId], references: [id], onDelete: SetNull)
   isSampleData      Boolean           @default(false)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -13473,3 +13503,131 @@ model NewsletterMessage {
 
   @@index([processedAt])
 }
+
+// ── Lifecycle features: intros, office hours, events, segments, rapid response
+
+// "3 W&J alumni work at Highmark. Ask one for an intro." The target alum
+// accepts or declines; emails are swapped only on accept.
+model AlumniIntroRequest {
+  id                String             @id @default(cuid())
+  institutionId     String
+  institution       Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  requesterMemberId String
+  requester         InstitutionMember  @relation("IntroRequester", fields: [requesterMemberId], references: [id], onDelete: Cascade)
+  targetMemberId    String
+  target            InstitutionMember  @relation("IntroTarget", fields: [targetMemberId], references: [id], onDelete: Cascade)
+  companyName       String
+  purpose           String // 'exploring' | 'applying' | 'interviewing' | 'offer'
+  note              String?            @db.Text
+  status            DossierIntroStatus @default(REQUESTED)
+  requestedAt       DateTime           @default(now())
+  respondedAt       DateTime?
+  isSampleData      Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([requesterMemberId, targetMemberId, companyName])
+  @@index([targetMemberId, status])
+  @@index([institutionId, requestedAt])
+}
+
+// A mentor's bookable 20-minute slot.
+model OfficeHourSlot {
+  id               String             @id @default(cuid())
+  institutionId    String
+  institution      Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  mentorId         String
+  mentor           InstitutionMentor  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  startsAt         DateTime
+  minutes          Int                @default(20)
+  topic            String?
+  bookedByMemberId String?
+  bookedBy         InstitutionMember? @relation(fields: [bookedByMemberId], references: [id], onDelete: SetNull)
+  bookedAt         DateTime?
+  bookingNote      String?            @db.Text
+  cancelledAt      DateTime?
+  isSampleData     Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([institutionId, startsAt])
+  @@index([mentorId, startsAt])
+}
+
+model CollegeEvent {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?     @db.Text
+  kind          String // 'panel' | 'employer_night' | 'workshop' | 'networking'
+  startsAt      DateTime
+  endsAt        DateTime?
+  location      String?
+  url           String?
+  capacity      Int?
+  createdBy     String
+  cancelledAt   DateTime?
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  rsvps EventRsvp[]
+
+  @@index([institutionId, startsAt])
+}
+
+model EventRsvp {
+  id           String            @id @default(cuid())
+  eventId      String
+  event        CollegeEvent      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status       String            @default("GOING") // 'GOING' | 'CANCELLED'
+  checkedInAt  DateTime?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([eventId, memberId])
+  @@index([memberId])
+}
+
+// A saved audience for outreach: filters over the roster.
+model Segment {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  filters       Json // see src/lib/higher-ed/segments.ts
+  createdBy     String
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([institutionId])
+}
+
+// A joint college and workforce-board offer to workers hit by a layoff,
+// alumni or not, with a public sign-up page.
+model RapidResponse {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  warnNoticeId  String?
+  warnNotice    WarnNotice? @relation(fields: [warnNoticeId], references: [id], onDelete: SetNull)
+  employerName  String
+  title         String
+  message       String      @db.Text
+  programIds    String[]    @default([])
+  isActive      Boolean     @default(true)
+  createdBy     String
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  enrollments Enrollment[]
+
+  @@index([institutionId, isActive])
+}
+
