@@ -27,11 +27,13 @@ export async function listAlertMessages(accessToken: string): Promise<GmailMessa
 }
 
 /**
- * Unread newsletters from the senders in `senderQuery` (a Gmail search such as
- * "from:(newsletter@example.com OR news@example.org)"), newest first.
+ * Newsletters from the senders in `senderQuery` (a Gmail search such as
+ * "from:(newsletter@example.com OR news@example.org)") from the last few days,
+ * newest first, read or not: an issue opened before the sweep runs still counts.
+ * The caller remembers which it has handled (see NewsletterMessage).
  */
 export async function listNewsletterMessages(accessToken: string, senderQuery: string): Promise<GmailMessageSummary[]> {
-  const params = new URLSearchParams({ q: `is:unread ${senderQuery}`, maxResults: '10' })
+  const params = new URLSearchParams({ q: `${senderQuery} newer_than:3d`, maxResults: '10' })
   const response = await fetch(`${GMAIL_API_BASE}/messages?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
