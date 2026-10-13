@@ -1,5 +1,7 @@
 'use server'
 
+import { applyJourneyChange } from '@/lib/journey/apply'
+import { JOURNEYS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -9,12 +11,10 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
-import type { PrivacyTier, NotificationTier, CurrentJobStatus } from '@prisma/client'
+import type { PrivacyTier, NotificationTier } from '@prisma/client'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
 const VALID_NOTIFICATION_TIERS: NotificationTier[] = ['FULL', 'ESSENTIALS', 'MINIMAL']
-const VALID_JOB_STATUSES = Object.keys(CURRENT_JOB_STATUS_LABELS) as CurrentJobStatus[]
 
 export type FormState = { error?: string } | undefined
 
@@ -75,51 +75,6 @@ export async function updatePrivacyTier(
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/community')
-}
-
-// currentJobStatus is otherwise write-once, set only by updateSituation at
-// onboarding (src/app/onboarding/actions.ts) — this is the one place a
-// member can change it afterward. Deliberately only writes
-// currentJobStatus: confidentialSearchMode and confidentialModeEnteredJobStatus
-// are left untouched here, matching spec §11 ("Persona changed ... Prompt,
-// never auto-switch") — evaluatePassiveToActivePrompt
-// (src/lib/dashboard/passive-to-active-prompt.ts) reads the resulting
-// mismatch between confidentialModeEnteredJobStatus and currentJobStatus to
-// decide whether to show that prompt, and the member drives any mode change
-// themselves via setConfidentialSearchMode below.
-export async function updateCurrentJobStatus(
-  _prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: 'You need to be logged in to change this.' }
-  }
-
-  const jobStatus = formData.get('currentJobStatus') as CurrentJobStatus | null
-  if (!jobStatus || !VALID_JOB_STATUSES.includes(jobStatus)) {
-    return { error: 'Please choose a valid option.' }
-  }
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  if (profile.currentJobStatus === jobStatus) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { currentJobStatus: jobStatus },
-  })
-
-  captureServerEvent(profile.id, 'current_job_status_updated', {
-    previousStatus: profile.currentJobStatus,
-    newStatus: jobStatus,
-  })
-
-  revalidatePath('/dashboard/privacy')
-  revalidatePath('/dashboard')
 }
 
 export async function updateNotificationTier(
@@ -388,3 +343,24 @@ export async function setConfidentialSearchMode(
 // Profile picture upload/remove/visibility-toggle actions live in
 // ../actions.ts (uploadMyProfilePicture etc.) — the UI moved to the Profile
 // page, so the actions did too.
+
+// "Your situation": the member's journey and stage (src/lib/journey). Same
+// rule as before: it never changes Confidential Search Mode on its own.
+export async function updateJourney(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to change this.' }
+
+  const journey = formData.get('journey') as JourneyType | null
+  const stage = formData.get('stage') as JourneyStage | null
+  if (!journey || !JOURNEYS.some((j) => j.key === journey)) return { error: 'Please choose a valid situation.' }
+  if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await applyJourneyChange(profile.id, { journey, stage, source: 'SETTINGS', isCheckIn: true })
+
+  revalidatePath('/dashboard/privacy')
+  revalidatePath('/dashboard')
+}

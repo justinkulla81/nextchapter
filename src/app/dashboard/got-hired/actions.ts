@@ -1,5 +1,7 @@
 'use server'
 
+import { applyJourneyChange } from '@/lib/journey/apply'
+import { graceDaysFrom, reportNewJob } from '@/lib/higher-ed/transition'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
@@ -78,6 +80,26 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   })
 
   captureServerEvent(profile.id, 'hired_submitted')
+
+  // Landed (src/lib/journey/apply.ts). For college alumni, the new job is also
+  // recorded with each college they've joined (employment, outcome, grace).
+  const memberships = await prisma.institutionMember.findMany({
+    where: { candidateId: profile.id, status: { in: ['CLAIMED', 'ACTIVE'] } },
+    select: { id: true, institution: { select: { enabledFeatures: true } } },
+  })
+  for (const m of memberships) {
+    await reportNewJob({
+      memberId: m.id,
+      candidateId: profile.id,
+      companyName,
+      title: roleTitle,
+      startDate,
+      helpedByInstitution: null,
+      shareMilestone: false,
+      graceDays: graceDaysFrom(m.institution.enabledFeatures),
+    })
+  }
+  await applyJourneyChange(profile.id, { stage: 'LANDED', source: 'GOT_HIRED', note: `${roleTitle} at ${companyName}` })
 
   revalidatePath('/dashboard/got-hired')
   return { submitted: true }

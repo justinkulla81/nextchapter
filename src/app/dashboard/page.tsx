@@ -1,4 +1,6 @@
 import type { MarketRealityReport } from '@prisma/client'
+import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
+import { checkInDue, effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
 import { after } from 'next/server'
@@ -101,6 +103,10 @@ async function SessionImpactSection({ candidateId }: { candidateId: string }) {
 
 export default async function DashboardPage() {
   const profile = await getDashboardData()
+  // Journey and stage (src/lib/journey): the header's goal, the plan line, and
+  // whether "Has anything changed?" is due at this stage's pace.
+  const journeyNow = effectiveJourney(profile)
+  const stageNow = effectiveStage(profile)
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // The registration-time after() callback in getDashboardData that
@@ -254,9 +260,21 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          NextChapter&apos;s goal is to get you a job. Let&apos;s go!
+          {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
         </p>
+        {journeyNow && stageNow && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {getJourney(journeyNow).label} · {getStage(stageNow).label}: {getStage(stageNow).plan}{' '}
+            <Link href="/dashboard/privacy" className="font-medium text-primary hover:underline">
+              Change
+            </Link>
+          </p>
+        )}
       </div>
+
+      {journeyNow && stageNow && checkInDue(profile) && (
+        <JourneyCheckInCard journeyLabel={getJourney(journeyNow).label} stageLabel={getStage(stageNow).label} />
+      )}
 
       <PageHeaderBoxes
         pageKey="dashboard"

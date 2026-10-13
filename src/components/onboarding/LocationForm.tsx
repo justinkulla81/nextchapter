@@ -1,5 +1,6 @@
 'use client'
 
+import { APPLY_TIMING, effectiveJourney, getJourney, type ApplyTiming } from '@/lib/journey/journey'
 import { useActionState, useState } from 'react'
 import type { CandidateProfile, GapDurationBucket, NetworkComfortLevel } from '@prisma/client'
 import { updateLocationAndSearchStatus } from '@/app/onboarding/actions'
@@ -29,6 +30,11 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [travelWillingness, setTravelWillingness] = useState(profile.travelWillingness)
   const [justStartedSearch, setJustStartedSearch] = useState(profile.justStartedSearch)
   const [gapDuration, setGapDuration] = useState<GapDurationBucket | null>(profile.gapDuration)
+  // Employed journeys are asked when they want to start applying, not how
+  // long they've been out of work (src/lib/journey/journey.ts).
+  const journey = effectiveJourney(profile)
+  const employed = journey ? getJourney(journey).employed : false
+  const [applyTiming, setApplyTiming] = useState<ApplyTiming | null>(null)
   const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
   const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
     profile.networkComfortLevel
@@ -102,29 +108,44 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         <p className="mt-1 text-sm text-muted-foreground">This tells us which part of the process to focus on first.</p>
       </div>
 
-      <div className="space-y-2">
-        <Label>How long have you been searching?</Label>
-        <ChoiceButtons
-          name="gapDuration"
-          options={GAP_DURATION_OPTIONS}
-          value={gapDuration}
-          onChange={setGapDuration}
-          responsive
-        />
-      </div>
+      {employed ? (
+        <div className="space-y-2">
+          <Label>When do you want to start applying?</Label>
+          <ChoiceButtons
+            name="applyTiming"
+            options={APPLY_TIMING.map((t) => ({ value: t.key, label: t.label }))}
+            value={applyTiming}
+            onChange={setApplyTiming}
+            responsive
+          />
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label>How long have you been searching?</Label>
+            <ChoiceButtons
+              name="gapDuration"
+              options={GAP_DURATION_OPTIONS}
+              value={gapDuration}
+              onChange={setGapDuration}
+              responsive
+            />
+          </div>
 
-      <div className="space-y-2">
-        <Label>
-          Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
-        </Label>
-        <ChoiceButtons
-          name="aiDisplacementReason"
-          options={AI_DISPLACEMENT_OPTIONS}
-          value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
-          onChange={setAiDisplacementReason}
-          responsive
-        />
-      </div>
+          <div className="space-y-2">
+            <Label>
+              Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <ChoiceButtons
+              name="aiDisplacementReason"
+              options={AI_DISPLACEMENT_OPTIONS}
+              value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
+              onChange={setAiDisplacementReason}
+              responsive
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex items-center gap-2">
         <Checkbox

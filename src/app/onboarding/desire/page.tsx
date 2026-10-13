@@ -3,7 +3,8 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { SituationForm } from '@/components/onboarding/SituationForm'
-import { JOB_STATUS_TO_SITUATION } from '@/lib/constants/onboarding'
+import { JOURNEY_TO_SITUATION } from '@/lib/constants/onboarding'
+import { effectiveJourney } from '@/lib/journey/journey'
 
 export default async function SituationPickerPage() {
   const user = await getCurrentUser()
@@ -33,9 +34,8 @@ export default async function SituationPickerPage() {
   // own action already redirects on to /onboarding/resume after a (first or
   // changed) submit, so nothing forward-flow depends on this page
   // self-redirecting on load.
-  const initialSituation = profile?.currentJobStatus
-    ? (JOB_STATUS_TO_SITUATION[profile.currentJobStatus] ?? null)
-    : null
+  const journey = profile ? effectiveJourney(profile) : null
+  const initialSituation = journey ? JOURNEY_TO_SITUATION[journey] : null
 
   return (
     <div className="space-y-6">

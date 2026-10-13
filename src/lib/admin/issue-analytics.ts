@@ -54,7 +54,7 @@ import type { SeniorityBand, FunctionFamily } from '@/lib/scoring/resume-analysi
 import { SENIORITY_BAND_DEFINITIONS, FUNCTION_FAMILY_DEFINITIONS } from '@/lib/scoring/resume-analysis/weights'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { METRO_AREA_NAMES } from '@/lib/constants/metro-areas'
-import { CURRENT_JOB_STATUS_LABELS, GAP_DURATION_LABELS, SITUATION_TO_JOB_STATUS } from '@/lib/constants/onboarding'
+import { CURRENT_JOB_STATUS_LABELS, GAP_DURATION_LABELS } from '@/lib/constants/onboarding'
 import { suppressSmallCells, isSuppressedCell, MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { findSegmentDeviations } from '@/lib/admin/stats'
 import {
@@ -84,9 +84,16 @@ export type PersonaValue =
   | 'looking_for_promotion'
   | 'other'
 
-const JOB_STATUS_TO_PERSONA: Partial<Record<CurrentJobStatus, PersonaValue>> = Object.fromEntries(
-  Object.entries(SITUATION_TO_JOB_STATUS).map(([situation, status]) => [status, situation])
-) as Partial<Record<CurrentJobStatus, PersonaValue>>
+// Explicit, not reversed from SITUATION_TO_JOB_STATUS: several journeys now
+// share EMPLOYED_CONSIDERING_MOVE, and a reverse map would pick one at random.
+const JOB_STATUS_TO_PERSONA: Partial<Record<CurrentJobStatus, PersonaValue>> = {
+  EMPLOYED_CONSIDERING_MOVE: 'worried_let_go',
+  RESIGNED: 'just_resigned',
+  LAID_OFF: 'just_laid_off',
+  CAREGIVER_LEAVE_SABBATICAL: 'reentering_workforce',
+  CAREER_PIVOT: 'career_pivot',
+  SEEKING_PROMOTION: 'looking_for_promotion',
+}
 
 export const PERSONA_LABELS: Record<PersonaValue, string> = {
   worried_let_go: 'Worried about being let go',

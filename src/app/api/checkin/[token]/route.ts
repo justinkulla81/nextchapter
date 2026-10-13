@@ -2,6 +2,8 @@ import type { NextRequest } from 'next/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import type { SearchCheckInAnswer } from '@prisma/client'
+import { applyJourneyChange } from '@/lib/journey/apply'
+import { changeForAnswer, effectiveJourney, effectiveStage, type CheckInAnswer } from '@/lib/journey/journey'
 
 // No-login response link for the Saturday "Are you still searching?" email
 // — same access-control shape as /ref/[token] (an unguessable cuid token
@@ -11,6 +13,11 @@ const ANSWER_MAP: Record<string, SearchCheckInAnswer> = {
   still_searching: 'STILL_SEARCHING',
   taking_a_break: 'TAKING_A_BREAK',
   got_an_offer: 'GOT_AN_OFFER',
+}
+const EMAIL_TO_CHECK_IN: Record<SearchCheckInAnswer, CheckInAnswer> = {
+  STILL_SEARCHING: 'nothing',
+  TAKING_A_BREAK: 'break',
+  GOT_AN_OFFER: 'offer',
 }
 const ANSWER_SLUG: Record<SearchCheckInAnswer, string> = {
   STILL_SEARCHING: 'still_searching',
@@ -42,6 +49,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       where: { token },
       data: { answer, respondedAt: new Date() },
     })
+    // The email promises the answer changes things; now it does
+    // (src/lib/journey/apply.ts): a break pauses, an offer moves to Offer.
+    const profile = await prisma.candidateProfile.findUnique({
+      where: { id: checkIn.candidateId },
+      select: { journey: true, journeyStage: true, currentJobStatus: true },
+    })
+    if (profile) {
+      await applyJourneyChange(checkIn.candidateId, {
+        ...changeForAnswer(EMAIL_TO_CHECK_IN[answer], { journey: effectiveJourney(profile), stage: effectiveStage(profile) }),
+        source: 'SEARCH_CHECKIN_EMAIL',
+        isCheckIn: true,
+      })
+    }
     redirect(`/checkin/thanks?answer=${rawAnswer}`)
   }
 

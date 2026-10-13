@@ -114,3 +114,14 @@ export async function clearEndedGrace(now = new Date(), institutionId?: string):
   }
   return { cleared: due.length, gratitudePending }
 }
+
+// A member reported landing without the job details (a check-in answer): the
+// open flag still moves to its grace period. "I got a job" with details uses
+// reportNewJob instead.
+export async function placeOpenFlag(memberId: string, graceDays: number, now = new Date()): Promise<boolean> {
+  const r = await prisma.transitionFlag.updateMany({
+    where: { openFlagMemberId: memberId, state: 'IN_TRANSITION' },
+    data: { state: 'PLACED_GRACE', placedAt: now, graceEndsAt: graceEndsAt(now, graceDays) },
+  })
+  return r.count > 0
+}

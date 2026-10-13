@@ -11,7 +11,8 @@ import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabase
 import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
-import { CurrentJobStatusSelector } from '@/components/dashboard/CurrentJobStatusSelector'
+import { JourneySelector } from '@/components/dashboard/JourneySelector'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -97,11 +98,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            What best describes you today. Update this any time it changes — it won&apos;t change your
-            Confidential Search Mode setting below on its own.
+            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
+            won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <CurrentJobStatusSelector current={profile.currentJobStatus} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

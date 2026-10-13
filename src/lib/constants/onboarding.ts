@@ -1,5 +1,6 @@
 import type {
   CurrentJobStatus,
+  JourneyType,
   GapDurationBucket,
   PublicDisclosureComfort,
   ReferralRecency,
@@ -16,33 +17,50 @@ export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
   SEEKING_PROMOTION: 'Employed, Seeking a Promotion',
 }
 
-// Keys used by the homepage's situational entry cards and the persona
-// landing pages (/start/[persona]) — shared with the onboarding
-// circumstances step so a click on either entry point can pre-fill (and
-// skip re-asking) the equivalent CurrentJobStatus question.
-export const SITUATION_TO_JOB_STATUS = {
-  worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
-  just_resigned: 'RESIGNED',
+// Keys used by the homepage's situational entry cards, the persona landing
+// pages (/start/[persona]) and the onboarding situation step. Each is a
+// journey (src/lib/journey/journey.ts). Old keys stay valid so existing links
+// keep working: 'just_resigned' and 'just_laid_off' share the Laid off
+// journey, and 'worried_let_go' is now "Thinking about a move".
+export const SITUATION_TO_JOURNEY = {
   just_laid_off: 'LAID_OFF',
-  reentering_workforce: 'CAREGIVER_LEAVE_SABBATICAL',
-  career_pivot: 'CAREER_PIVOT',
+  just_resigned: 'LAID_OFF',
+  ready_to_move: 'READY_TO_MOVE',
+  worried_let_go: 'EXPLORING_MOVE',
+  looking_for_promotion: 'PROMOTION',
+  career_pivot: 'CAREER_CHANGE',
+  just_graduated: 'STUDENT_NEW_GRAD',
+  reentering_workforce: 'RETURNING',
+  next_act: 'NEXT_ACT',
+} as const satisfies Record<string, JourneyType>
+
+export type SituationKey = keyof typeof SITUATION_TO_JOURNEY
+
+// The job status each key writes, for code that still reads currentJobStatus.
+// Same as the journey's own mapping, except a resignation stays RESIGNED.
+export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
+  just_laid_off: 'LAID_OFF',
+  just_resigned: 'RESIGNED',
+  ready_to_move: 'EMPLOYED_CONSIDERING_MOVE',
+  worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
   looking_for_promotion: 'SEEKING_PROMOTION',
-} as const satisfies Record<string, CurrentJobStatus>
+  career_pivot: 'CAREER_PIVOT',
+  just_graduated: 'NEW_GRADUATE_FIRST_JOB',
+  reentering_workforce: 'CAREGIVER_LEAVE_SABBATICAL',
+  next_act: 'EMPLOYED_CONSIDERING_MOVE',
+}
 
-// 'just_graduated' is a real SituationKey (a real button, a real choice)
-// but deliberately has NO CurrentJobStatus mapping — that persona doesn't
-// go through the normal resume/report flow at all yet (waitlist only, see
-// updateSituation's own comment), so there's no profile field to write for
-// it. Keep this union in sync with SITUATION_TO_JOB_STATUS's keys plus
-// this one exception.
-export type SituationKey = keyof typeof SITUATION_TO_JOB_STATUS | 'just_graduated'
-
-// Reverse of the above — lets a page that already knows a candidate's
-// currentJobStatus (e.g. re-visiting the situation picker to change a prior
-// answer) pre-select the matching button instead of showing nothing chosen.
-export const JOB_STATUS_TO_SITUATION: Partial<Record<CurrentJobStatus, SituationKey>> = Object.fromEntries(
-  Object.entries(SITUATION_TO_JOB_STATUS).map(([situation, jobStatus]) => [jobStatus, situation])
-) as Partial<Record<CurrentJobStatus, SituationKey>>
+// The card to pre-select for a member re-visiting the picker.
+export const JOURNEY_TO_SITUATION: Record<JourneyType, SituationKey> = {
+  LAID_OFF: 'just_laid_off',
+  READY_TO_MOVE: 'ready_to_move',
+  EXPLORING_MOVE: 'worried_let_go',
+  PROMOTION: 'looking_for_promotion',
+  CAREER_CHANGE: 'career_pivot',
+  STUDENT_NEW_GRAD: 'just_graduated',
+  RETURNING: 'reentering_workforce',
+  NEXT_ACT: 'next_act',
+}
 
 export const SITUATION_SESSION_KEY = 'nc_situation'
 

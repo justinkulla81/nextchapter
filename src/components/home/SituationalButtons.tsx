@@ -2,51 +2,12 @@
 
 import Link from 'next/link'
 import { usePostHog } from '@/lib/posthog/client'
-import { ArrowRight, Shield, DoorOpen, Briefcase, RefreshCw, GraduationCap, TrendingUp, type LucideIcon } from 'lucide-react'
-import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
+import { ArrowRight } from 'lucide-react'
+import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
+import { JOURNEY_CARDS } from '@/components/onboarding/journey-cards'
 
-// Career Pivot is deliberately not one of these — it's a cross-cutting
-// question asked in Search Strategy (someone can be laid off AND pivoting),
-// not its own situation. "Pivoter" survives only as a separate SEO landing
-// page, not a product-level classification here.
-const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; description: string }[] = [
-  {
-    situation: 'worried_let_go',
-    icon: Shield,
-    label: "I'm worried I'll be let go",
-    description: 'Get ready and start building proof before you need it.',
-  },
-  {
-    situation: 'just_resigned',
-    icon: DoorOpen,
-    label: 'Resigned',
-    description: 'Land on your feet — get your baseline grade now.',
-  },
-  {
-    situation: 'just_laid_off',
-    icon: Briefcase,
-    label: 'I was just laid off',
-    description: "Start your search with a plan, not a guessing game.",
-  },
-  {
-    situation: 'reentering_workforce',
-    icon: RefreshCw,
-    label: "I'm re-entering the workforce",
-    description: 'Prove your value after a break, starting today.',
-  },
-  {
-    situation: 'looking_for_promotion',
-    icon: TrendingUp,
-    label: 'Looking for a promotion',
-    description: 'Still employed — build leverage for the ask, not an exit plan.',
-  },
-  {
-    situation: 'just_graduated',
-    icon: GraduationCap,
-    label: 'Just graduated',
-    description: "Coming soon — join the waitlist.",
-  },
-]
+// The same eight journey cards as onboarding (journey-cards.ts).
+const SITUATIONS = JOURNEY_CARDS
 
 export function SituationalButtons() {
   const posthog = usePostHog()
@@ -59,7 +20,7 @@ export function SituationalButtons() {
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
         Pick one and start now — we&apos;ll skip straight to what matters for your situation.
       </p>
-      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {SITUATIONS.map(({ situation, icon: Icon, label, description }) => (
           <Link
             key={situation}

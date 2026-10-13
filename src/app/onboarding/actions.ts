@@ -12,9 +12,12 @@ import {
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   GAP_DURATION_LABELS,
   SITUATION_TO_JOB_STATUS,
+  SITUATION_TO_JOURNEY,
   type SituationKey,
 } from '@/lib/constants/onboarding'
 import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
+import { applyJourneyChange } from '@/lib/journey/apply'
+import { APPLY_TIMING, effectiveJourney, getJourney, stageForTiming, type ApplyTiming } from '@/lib/journey/journey'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -68,21 +71,6 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
 
   const situation = formData.get('situation') as SituationKey | null
 
-  // "Just graduated" isn't built yet — no CurrentJobStatus mapping, no
-  // resume/report flow. Captures an email to a waitlist instead of writing
-  // a profile field, then diverts straight to a "we'll let you know" page.
-  if (situation === 'just_graduated') {
-    const email = (formData.get('waitlistEmail') as string | null)?.trim()
-    if (!email || !email.includes('@')) {
-      return { error: 'Please enter a valid email so we can let you know when this launches.' }
-    }
-    await prisma.waitlistSignup.create({
-      data: { audience: 'new_grad_onboarding', payload: { candidateId, email } },
-    })
-    captureServerEvent(candidateId, 'new_grad_waitlist_joined')
-    redirect('/onboarding/waitlist-thanks')
-  }
-
   if (!situation || !(situation in SITUATION_TO_JOB_STATUS)) {
     return { error: 'Please choose the option that best describes you.' }
   }
@@ -91,8 +79,12 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   // write as currentJobStatus, since this is the one place that value gets
   // finalized. See src/lib/confidential-mode.ts for the persona-mapping
   // rationale (lossy — no real 4-value persona field exists yet).
+  const journey = SITUATION_TO_JOURNEY[situation]
   const jobStatus = SITUATION_TO_JOB_STATUS[situation]
-  const confidentialSearchMode = defaultConfidentialSearchMode(jobStatus)
+  const confidentialSearchMode = getJourney(journey).confidentialByDefault || defaultConfidentialSearchMode(jobStatus)
+  // Journey and its starting stage first; the write below then sets the exact
+  // job status (a resignation stays RESIGNED).
+  await applyJourneyChange(candidateId, { journey, source: 'ONBOARDING' })
 
   try {
     await prisma.$transaction([
@@ -122,7 +114,7 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
     return { error: 'Something went wrong saving your answer. Please try again.' }
   }
 
-  captureServerEvent(candidateId, 'onboarding_started')
+  captureServerEvent(candidateId, 'onboarding_started', { journey, situation })
 
   revalidatePath('/onboarding', 'layout')
   // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
@@ -231,7 +223,18 @@ export async function updateLocationAndSearchStatus(
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
   }
-  if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
+  const profileJourney = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    select: { journey: true, journeyStage: true, currentJobStatus: true },
+  })
+  const journey = effectiveJourney(profileJourney)
+  const employed = journey ? getJourney(journey).employed : false
+  const applyTiming = formData.get('applyTiming') as ApplyTiming | null
+  if (employed) {
+    if (!applyTiming || !APPLY_TIMING.some((t) => t.key === applyTiming)) {
+      return { error: 'Please tell us when you want to start applying.' }
+    }
+  } else if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
     return { error: 'Please tell us how long you have been searching before continuing.' }
   }
   if (!justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
@@ -254,7 +257,7 @@ export async function updateLocationAndSearchStatus(
       aiDisplacementReason,
       onboardingLocationConfirmedAt: now,
       justStartedSearch,
-      gapDuration: gapDuration as GapDurationBucket,
+      gapDuration: employed ? null : (gapDuration as GapDurationBucket),
       jobsAppliedBucket: deriveJobsAppliedBucket(jobsAppliedCount as number),
       interviewsReceivedCount: interviewsCount,
       onboardingSearchStatusConfirmedAt: now,
@@ -263,6 +266,10 @@ export async function updateLocationAndSearchStatus(
       onboardingComfortConfirmedAt: now,
     },
   })
+
+  if (employed && journey && applyTiming) {
+    await applyJourneyChange(candidateId, { stage: stageForTiming(journey, applyTiming), details: { applyTiming }, source: 'ONBOARDING' })
+  }
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/contract')

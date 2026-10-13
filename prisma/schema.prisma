@@ -161,6 +161,43 @@ enum SearchIntensity {
   OPEN
 }
 
+// Journeys (Product Design doc, Journeys tab): why someone is moving. One of
+// eight paths, each with its own onboarding follow-ups, to-dos and check-in
+// pace. Replaces CurrentJobStatus as the thing the product branches on;
+// CurrentJobStatus is still written alongside it (mapped) for older readers.
+enum JourneyType {
+  LAID_OFF // laid off, let go, or resigned without the next job
+  READY_TO_MOVE // employed, wants a new job now
+  EXPLORING_MOVE // employed and thinking about it (includes "worried I'll be let go")
+  PROMOTION // the next level, inside or outside
+  CAREER_CHANGE // new function or industry
+  STUDENT_NEW_GRAD // internship or first job, up to five years out
+  RETURNING // after caregiving, health, sabbatical, a move
+  NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
+}
+
+// How close someone is to applying. Shared by every journey; sets the plan
+// and the check-in pace.
+enum JourneyStage {
+  EXPLORING
+  PREPARING
+  APPLYING
+  INTERVIEWING
+  OFFER
+  LANDED
+  PAUSED
+}
+
+// What changed a member's journey or stage (JourneyEvent.source).
+enum JourneyChangeSource {
+  ONBOARDING
+  CHECK_IN // "Has anything changed?" in the app
+  SEARCH_CHECKIN_EMAIL // the Saturday email's buttons
+  SETTINGS // "Your situation" on Privacy & sharing
+  GOT_HIRED // the Offer Bonus claim
+  COLLEGE // a college portal action (I'm in transition / I got a job)
+}
+
 enum CurrentJobStatus {
   EMPLOYED_CONSIDERING_MOVE
   LAID_OFF
@@ -764,6 +801,19 @@ model CandidateProfile {
 
   // Part 1: Your Situation
   currentJobStatus   CurrentJobStatus?
+  // Journeys: why they're moving and how close they are to applying. Null
+  // until set; readers use effectiveJourney()/effectiveStage() in
+  // src/lib/journey/journey.ts, which derive both from currentJobStatus for
+  // members who joined before journeys existed. journeyDetails holds the
+  // journey's own follow-up answers (what's prompting a move, inside or
+  // outside for a promotion, from/to for a career change, graduation date).
+  journey               JourneyType?
+  journeyStage          JourneyStage?
+  journeyChangedAt      DateTime?
+  journeyStageChangedAt DateTime?
+  journeyCheckedAt      DateTime? // last answered "Has anything changed?"
+  journeyDetails        Json?
+  journeyEvents         JourneyEvent[]
   gapDuration        GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
   // DEPRECATED — question removed from Your Situation page (Batch 24); the
   // "how difficult has your search been" question below covers this signal
@@ -13013,4 +13063,22 @@ model FundingOpportunity {
   @@unique([source, externalId])
   @@index([closesAt])
   @@index([audience, eligibility])
+
+
+// History of journey and stage changes, newest last: what changed, from what,
+// and what changed it. Feeds the dashboard's "since you started" view and the
+// college's outcome reporting (with consent).
+model JourneyEvent {
+  id          String              @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  fromJourney JourneyType?
+  toJourney   JourneyType?
+  fromStage   JourneyStage?
+  toStage     JourneyStage?
+  source      JourneyChangeSource
+  note        String?
+  createdAt   DateTime            @default(now())
+
+  @@index([candidateId, createdAt])
 }

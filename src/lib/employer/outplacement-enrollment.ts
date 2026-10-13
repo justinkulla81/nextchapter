@@ -1,4 +1,5 @@
 import 'server-only'
+import { applyJourneyChange } from '@/lib/journey/apply'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
@@ -95,6 +96,7 @@ async function enrollOneSeat(
         activatedAt: new Date(),
       },
     })
+    await startOutplacementJourney(existing.id)
     await sendOutplacementSeatLinkedEmail(email, orgName)
     return { email, outcome: 'linked' }
   }
@@ -263,6 +265,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       where: { id: seat.id },
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
+    await startOutplacementJourney(nowRegistered.id)
     return {}
   }
 
@@ -273,6 +276,13 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
   })
 
   captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id })
+  await startOutplacementJourney(profile.id)
 
   return {}
+}
+
+// An outplacement seat means the job ended: the member starts (or switches
+// to) the Laid off journey, actively applying (src/lib/journey).
+async function startOutplacementJourney(candidateId: string): Promise<void> {
+  await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
 }
