@@ -13487,6 +13487,8 @@ model CronRun {
   finishedAt DateTime?
   durationMs Int?
   error      String?   @db.Text
+  /// schedule | retry | manual — a retry is only ever attempted once per failure.
+  trigger    String    @default("schedule")
 
   @@index([job, startedAt(sort: Desc)])
   @@index([status, startedAt])

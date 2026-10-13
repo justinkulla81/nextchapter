@@ -1,8 +1,11 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { loadJobStatuses } from '@/lib/cron/watchdog'
 import { UNHEALTHY, type JobHealth } from '@/lib/cron/health'
+import { RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { runJobNow } from './actions'
 
-export const maxDuration = 30
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 const LABEL: Record<JobHealth, string> = {
@@ -78,6 +81,7 @@ export default async function JobHealthPage() {
                 <th scope="col" className="py-2 pr-4">Last started</th>
                 <th scope="col" className="py-2 pr-4">Took</th>
                 <th scope="col" className="py-2 pr-4">Detail</th>
+                <th scope="col" className="py-2 pr-4">Run again</th>
               </tr>
             </thead>
             <tbody>
@@ -92,7 +96,22 @@ export default async function JobHealthPage() {
                   <td className="py-2 pr-4 whitespace-nowrap">
                     {s.lastDurationMs == null ? '—' : `${(s.lastDurationMs / 1000).toFixed(1)} s`}
                   </td>
-                  <td className="py-2 pr-4">{UNHEALTHY.has(s.health) ? s.detail : ''}</td>
+                  <td className="py-2 pr-4">
+                    {UNHEALTHY.has(s.health) ? s.detail : ''}
+                    {s.lastTrigger === 'retry' ? ' This was the automatic retry.' : ''}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {RERUN_SAFE_JOBS.has(s.job) ? (
+                      <form action={runJobNow}>
+                        <input type="hidden" name="job" value={s.job} />
+                        <SubmitButton size="sm" variant="outline" pendingLabel="Running…" savedLabel="Finished" aria-label={`Run ${s.job} now`}>
+                          Run now
+                        </SubmitButton>
+                      </form>
+                    ) : (
+                      <span className="text-muted-foreground">Emails people, so it only runs on schedule</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -101,7 +120,7 @@ export default async function JobHealthPage() {
       )}
 
       <p className="text-sm">
-        The checker itself is the <code>job-health</code> job, which runs every 15 minutes. If it shows as overdue, nothing is watching the others.
+        A failed or cut-off data-sync job is retried once automatically. Jobs that email people are never retried or run by hand, so nothing is sent twice. The checker itself is the <code>job-health</code> job, which runs every 15 minutes. If it shows as overdue, nothing is watching the others.
       </p>
     </div>
   )

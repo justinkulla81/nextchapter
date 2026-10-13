@@ -2,7 +2,8 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { cronSchedules } from './schedule'
+import { cronSchedules, RERUN_SAFE_JOBS } from './schedule'
+import { invokeCron } from './invoke'
 import { assessJob, STUCK_AFTER_MS, UNHEALTHY, type JobHealth } from './health'
 
 const ALERT_TO = 'justin@launchyournextchapter.com'
@@ -11,6 +12,10 @@ const SITE = 'https://launchyournextchapter.com'
 const REALERT_MS = 24 * 3_600_000
 /** Run rows are only history; keep a month. */
 const KEEP_DAYS = 30
+const RETRY_WINDOW_MS = 6 * 3_600_000
+const MAX_RETRIES_PER_TICK = 1
+/** The watchdog's own function limit is 300s; leave room to finish after retries. */
+const RETRY_BUDGET_MS = 200_000
 
 export interface JobStatus {
   job: string
@@ -19,6 +24,7 @@ export interface JobStatus {
   detail: string
   lastStartedAt: Date | null
   lastDurationMs: number | null
+  lastTrigger: string | null
 }
 
 export async function loadJobStatuses(now = new Date()): Promise<JobStatus[]> {
@@ -30,7 +36,7 @@ export async function loadJobStatuses(now = new Date()): Promise<JobStatus[]> {
         prisma.cronRun.findFirst({
           where: { job: s.job },
           orderBy: { startedAt: 'desc' },
-          select: { status: true, startedAt: true, error: true, durationMs: true },
+          select: { status: true, startedAt: true, error: true, durationMs: true, trigger: true },
         }),
       ),
     ),
@@ -38,7 +44,7 @@ export async function loadJobStatuses(now = new Date()): Promise<JobStatus[]> {
   return schedules.map((s, i) => {
     const latest = latestRuns[i]
     const { health, detail } = assessJob(s, latest, first?.startedAt ?? null, now)
-    return { job: s.job, schedule: s.schedule, health, detail, lastStartedAt: latest?.startedAt ?? null, lastDurationMs: latest?.durationMs ?? null }
+    return { job: s.job, schedule: s.schedule, health, detail, lastStartedAt: latest?.startedAt ?? null, lastDurationMs: latest?.durationMs ?? null, lastTrigger: latest?.trigger ?? null }
   })
 }
 
@@ -55,8 +61,23 @@ export async function runJobWatchdog(now = new Date()) {
     data: { status: 'TIMED_OUT', finishedAt: now, error: 'Cut off at the function time limit before finishing.' },
   })
 
-  const statuses = await loadJobStatuses(now)
-  const bad = statuses.filter((s) => UNHEALTHY.has(s.health))
+  let statuses = await loadJobStatuses(now)
+  let bad = statuses.filter((s) => UNHEALTHY.has(s.health))
+
+  // One automatic retry per failure, for jobs that are safe to repeat, and only
+  // while the failure is recent. A retry that fails too is the latest run with
+  // trigger "retry", so it is not retried again — it goes to the email instead.
+  const retried: string[] = []
+  const deadline = now.getTime() + RETRY_BUDGET_MS
+  for (const s of bad) {
+    if (retried.length >= MAX_RETRIES_PER_TICK || Date.now() > deadline) break
+    if (!(s.health === 'failed' || s.health === 'timed_out') || !RERUN_SAFE_JOBS.has(s.job)) continue
+    if (s.lastTrigger === 'retry' || !s.lastStartedAt || now.getTime() - s.lastStartedAt.getTime() > RETRY_WINDOW_MS) continue
+    retried.push(s.job)
+    await invokeCron(s.job, 'retry', RETRY_BUDGET_MS)
+  }
+  if (retried.length) statuses = await loadJobStatuses(new Date())
+  bad = statuses.filter((s) => UNHEALTHY.has(s.health))
   const badJobs = new Set(bad.map((s) => s.job))
 
   await prisma.cronJobAlert.deleteMany({ where: { job: { notIn: [...badJobs] } } })
@@ -97,8 +118,8 @@ export async function runJobWatchdog(now = new Date()) {
 
   await prisma.cronRun.deleteMany({ where: { startedAt: { lt: new Date(now.getTime() - KEEP_DAYS * 86_400_000) } } })
 
-  const result = { marked_timed_out: cutoff.count, unhealthy: bad.length, alerted: emailed ? toAlert.length : 0 }
-  if (cutoff.count || toAlert.length) {
+  const result = { marked_timed_out: cutoff.count, retried, unhealthy: bad.length, alerted: emailed ? toAlert.length : 0 }
+  if (cutoff.count || toAlert.length || retried.length) {
     captureServerEvent('cron', 'job_health_checked', { ...result, jobs: bad.map((s) => ({ job: s.job, health: s.health })) })
   }
   return result

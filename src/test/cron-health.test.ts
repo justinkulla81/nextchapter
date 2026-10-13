@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { assessJob } from '@/lib/cron/health'
-import { intervalMinutes, maxGapMinutes, cronSchedules } from '@/lib/cron/schedule'
+import { intervalMinutes, maxGapMinutes, cronSchedules, RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 
 const now = new Date('2026-10-13T12:00:00Z')
 const min = (n: number) => new Date(now.getTime() - n * 60_000)
@@ -41,5 +41,15 @@ describe('assessJob', () => {
     expect(assessJob(daily, null, min(30), now).health).toBe('waiting')
     expect(assessJob(daily, null, min(4000), now).health).toBe('overdue')
     expect(assessJob(daily, null, null, now).health).toBe('waiting')
+  })
+})
+
+describe('RERUN_SAFE_JOBS', () => {
+  it('only names configured jobs, and never a job that emails people', () => {
+    const configured = new Set(cronSchedules().map((j) => j.job))
+    for (const j of RERUN_SAFE_JOBS) expect(configured.has(j)).toBe(true)
+    for (const j of ['job-search-daily', 'candidate-email-dispatch', 'mailing-send', 'market-reality-snapshot', 'interim-role-reverify']) {
+      expect(RERUN_SAFE_JOBS.has(j)).toBe(false)
+    }
   })
 })

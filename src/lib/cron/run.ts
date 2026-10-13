@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
+const TRIGGERS = new Set(['retry', 'manual'])
+function triggerFrom(request: NextRequest): string {
+  const t = request.nextUrl.searchParams.get('trigger') ?? ''
+  return TRIGGERS.has(t) ? t : 'schedule'
+}
+
 type Handler = (request: NextRequest) => Promise<Response> | Response
 
 /**
@@ -24,7 +30,7 @@ export function withCronRun(job: string, handler: Handler) {
     }
     const started = Date.now()
     const runId = await prisma.cronRun
-      .create({ data: { job }, select: { id: true } })
+      .create({ data: { job, trigger: triggerFrom(request) }, select: { id: true } })
       .then((r) => r.id)
       .catch((e) => {
         console.error('Cron ledger: could not record start of', job, e)
