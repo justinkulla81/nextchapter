@@ -1,9 +1,9 @@
 const STATS = [
   {
-    value: '~24%',
-    label: 'Of unemployed workers fall into long-term unemployment — jobless 27+ weeks.',
-    href: 'https://www.minneapolisfed.org/article/2025/the-journey-to-long-term-unemployment',
-    source: 'Minneapolis Fed',
+    value: '27.1%',
+    label: 'Of unemployed people had been jobless 27+ weeks in September 2026, up from 23.6% a year earlier.',
+    href: '/reports/displacement-report-september-2026',
+    source: 'NextChapter, September 2026 report (BLS)',
   },
   {
     value: '6.5 months',
@@ -12,10 +12,10 @@ const STATS = [
     source: 'Dexian',
   },
   {
-    value: '23-27%',
-    label: 'Of mid-career professionals go 5+ years without a meaningful raise or promotion.',
-    href: 'https://www.cbsnews.com/news/mid-career-stall-white-collar-workers-pay-promotions/',
-    source: 'CBS News',
+    value: '24.2%',
+    label: 'Of mid-career professionals went 5+ years without a meaningful raise or promotion, as of June 2026.',
+    href: '/reports/displacement-report-september-2026',
+    source: 'NextChapter, September 2026 report',
   },
   {
     value: '73%',
