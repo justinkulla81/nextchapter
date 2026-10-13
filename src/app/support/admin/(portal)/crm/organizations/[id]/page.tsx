@@ -22,7 +22,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     where: { id },
     include: {
       affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
-      opportunities: { include: { pipeline: true, stage: true } },
+      opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
       deadlines: { orderBy: [{ dueAt: 'asc' }] },
       researchItems: true,
       introPathsAsTarget: {
@@ -194,18 +194,31 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
                     </div>
                     {opps.length > 0 && (
                       <ul className="mt-2 space-y-2">
-                        {opps.map((o) => (
-                          <li key={o.id} className="text-sm">
-                            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                              <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
-                              <span className="text-xs text-muted-foreground">
-                                {o.stage.label}
-                                {o.amountUsdMax ? ` · ${o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}$${o.amountUsdMax.toLocaleString()}` : ''}
-                              </span>
-                            </div>
-                            {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
-                          </li>
-                        ))}
+                        {opps.map((o) => {
+                          const due = o.committedFollowUpAt ?? o.nextStepDueAt ?? o.deadlines[0]?.dueAt ?? null
+                          const dueLabel = o.committedFollowUpAt ? 'Promised' : o.nextStepDueAt ? 'Next step' : o.deadlines[0]?.dueAt ? 'Deadline' : null
+                          return (
+                            <li key={o.id} className="text-sm">
+                              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                                <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
+                                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                  <span className={`rounded px-1.5 py-0.5 font-semibold ${qualityClass(o.leadQuality)}`} title="Rating">
+                                    {o.leadQuality === 'UNGRADED' ? 'Ungraded' : o.leadQuality}
+                                  </span>
+                                  <span title="Priority score">Score {o.priorityOverride ?? Math.round(o.priorityScore)}</span>
+                                  <span title="Stage">{o.stage.label}</span>
+                                  <span title="Date">
+                                    {due && dueLabel ? `${dueLabel} ${formatDate(due)}` : `Added ${formatDate(o.createdAt)}`}
+                                  </span>
+                                  {o.amountUsdMax ? (
+                                    <span>{o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}${o.amountUsdMax.toLocaleString()}</span>
+                                  ) : null}
+                                </span>
+                              </div>
+                              {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
+                            </li>
+                          )
+                        })}
                       </ul>
                     )}
                   </div>
