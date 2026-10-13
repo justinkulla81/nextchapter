@@ -4,7 +4,7 @@
 // requests, and their page and roles.
 
 import Link from 'next/link'
-import { Briefcase, Building2, Handshake, Star, Users } from 'lucide-react'
+import { Briefcase, Building2, Star, Users } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { listEmployerDossiers } from '@/lib/higher-ed/views'
@@ -23,7 +23,6 @@ type Props = { ctx: WorkspaceContext; base: string; searchParams?: { q?: string 
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const fmt = (d: Date | null | undefined) => (d ? dateFmt.format(new Date(d)) : null)
-const yr = (y: number | null) => (y ? ` '${String(y).slice(2)}` : '')
 
 // ── Candidate › Alumni jobs ─────────────────────────────────────────────────
 

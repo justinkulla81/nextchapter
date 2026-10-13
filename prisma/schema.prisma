@@ -13101,7 +13101,7 @@ model FundingOpportunity {
   @@unique([source, externalId])
   @@index([closesAt])
   @@index([audience, eligibility])
-
+}
 
 // History of journey and stage changes, newest last: what changed, from what,
 // and what changed it. Feeds the dashboard's "since you started" view and the
