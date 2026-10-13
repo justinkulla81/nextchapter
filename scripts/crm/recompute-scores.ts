@@ -14,7 +14,7 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { computePriority, bestWarmPath, warmPathFromContacts } from '../../src/lib/crm/scoring'
-import { kindsForOrgTypes, matchesOrgKinds, nextCloseAmong, type ApplicantKind, type Eligibility } from '../../src/lib/funding-opportunities/eligibility'
+import { kindsForOrg, matchesOrgKinds, nextCloseAmong, type ApplicantKind, type Eligibility } from '../../src/lib/funding-opportunities/eligibility'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
@@ -40,6 +40,9 @@ async function main() {
     console.log('FundingOpportunity table not applied — no funding signal in this run')
   }
 
+  // Workforce boards by name, so a government org counts as a grantee only if it is one.
+  const boardNames = new Set((await prisma.workforceBoard.findMany({ select: { name: true } })).map((b) => b.name.toLowerCase()))
+
   // ── opportunities ──
   const opps = await prisma.crmOpportunity.findMany({
     where: { outcome: 'OPEN' },
@@ -49,6 +52,7 @@ async function main() {
       stage: { select: { sortOrder: true } },
       org: {
         select: {
+          name: true,
           orgTypes: true,
           investorProfile: { select: { preconditionLeadTimeDays: true } },
           deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1, select: { dueAt: true } },
@@ -60,8 +64,9 @@ async function main() {
     },
   })
 
-  const fundingFor = (orgTypes: string[]): Date | null => {
-    const kinds = kindsForOrgTypes(orgTypes)
+  const fundingFor = (org: { name: string; orgTypes: string[] } | null | undefined): Date | null => {
+    if (!org) return null
+    const kinds = kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory: boardNames.has(org.name.toLowerCase()) })
     return kinds.length ? nextCloseAmong(openGrants.filter((g) => matchesOrgKinds({ eligibility: g.eligibility, kinds: g.applicantKinds }, kinds)), NOW) : null
   }
 
@@ -76,7 +81,7 @@ async function main() {
       eligibility: o.eligibility,
       warmPath: bestWarmPath(contacts, o.org?.introPathsAsTarget ?? []),
       nextDueAt: o.org?.deadlines[0]?.dueAt ?? o.nextStepDueAt ?? null,
-      fundingCloseAt: fundingFor(o.org?.orgTypes ?? []),
+      fundingCloseAt: fundingFor(o.org),
       committedFollowUpAt: o.committedFollowUpAt,
       stageProgress: o.stage.sortOrder / (stageMax.get(o.pipelineId) ?? 1),
       preconditionLeadTimeDays: o.org?.investorProfile?.preconditionLeadTimeDays ?? null,

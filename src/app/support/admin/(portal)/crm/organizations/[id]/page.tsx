@@ -12,7 +12,7 @@ import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
 import { CrmAddOrgOpportunity } from '@/components/admin/CrmOrgOpportunities'
 import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
-import { kindsForOrgTypes } from '@/lib/funding-opportunities/eligibility'
+import { kindsForOrg } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
@@ -47,7 +47,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
   // Open federal grants this organization could apply for. The table is applied
   // by hand, so a missing one reads as "none" rather than breaking the page.
-  const funding = await opportunitiesForKinds(kindsForOrgTypes(org.orgTypes)).catch(() => [])
+  const inBoardDirectory = org.orgTypes.includes('GOVERNMENT')
+    ? Boolean(await prisma.workforceBoard.findFirst({ where: { name: { equals: org.name, mode: 'insensitive' } }, select: { id: true } }).catch(() => null))
+    : false
+  const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory })).catch(() => [])
   // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by

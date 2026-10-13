@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { plainText } from '@/lib/funding-opportunities/grants-gov'
-import { classifyGrant, classifySetAside, kindsForCustomerType, kindsForOrgTypes, matchesOrgKinds, applicantKindsFromGrant } from '@/lib/funding-opportunities/eligibility'
+import { classifyGrant, classifySetAside, kindsForCustomerType, kindsForOrg, isWorkforceBoardOrStateAgency, matchesOrgKinds, applicantKindsFromGrant } from '@/lib/funding-opportunities/eligibility'
 
 describe('classifyGrant', () => {
   it('open to for-profits or unrestricted is direct', () => {
@@ -52,14 +52,14 @@ describe('classifySetAside', () => {
 describe('matching', () => {
   const opp = { eligibility: 'VIA_PARTNER' as const, kinds: ['STATE_GOV' as const, 'NONPROFIT' as const] }
   it('maps org types and deck types to applicant kinds', () => {
-    expect(kindsForOrgTypes(['UNIVERSITY'])).toEqual(['HIGHER_ED'])
-    expect(kindsForOrgTypes(['GOVERNMENT'])).toEqual(['STATE_GOV', 'LOCAL_GOV'])
-    expect(kindsForOrgTypes(['EMPLOYER'])).toEqual([])
+    expect(kindsForOrg({ orgTypes: ['UNIVERSITY'], name: 'State University' })).toEqual(['HIGHER_ED'])
+    expect(kindsForOrg({ orgTypes: ['GOVERNMENT'], name: 'San Diego Workforce Development Board' })).toEqual(['STATE_GOV', 'LOCAL_GOV'])
+    expect(kindsForOrg({ orgTypes: ['EMPLOYER'], name: 'Acme' })).toEqual([])
     expect(kindsForCustomerType('HIGHER_ED')).toEqual(['HIGHER_ED'])
   })
   it('matches only organizations of an eligible kind', () => {
-    expect(matchesOrgKinds(opp, kindsForOrgTypes(['NONPROFIT']))).toBe(true)
-    expect(matchesOrgKinds(opp, kindsForOrgTypes(['UNIVERSITY']))).toBe(false)
+    expect(matchesOrgKinds(opp, kindsForOrg({ orgTypes: ['NONPROFIT'], name: 'A Nonprofit' }))).toBe(true)
+    expect(matchesOrgKinds(opp, kindsForOrg({ orgTypes: ['UNIVERSITY'], name: 'State University' }))).toBe(false)
   })
   it('lets unrestricted notices fit any customer, and never matches not-eligible', () => {
     expect(matchesOrgKinds({ eligibility: 'DIRECT', kinds: ['UNRESTRICTED'] }, ['HIGHER_ED'])).toBe(true)
@@ -71,5 +71,20 @@ describe('plainText', () => {
   it('turns Grants.gov entities into text the rules can read', () => {
     expect(plainText('for&#8208;profit and&nbsp;nonprofit <b>entities</b>')).toBe('for-profit and nonprofit  entities ')
     expect(classifyGrant([], plainText('for&#8208;profit organizations are not eligible.')).kinds).not.toContain('FOR_PROFIT')
+  })
+})
+
+describe('workforce boards and state agencies only', () => {
+  it('trusts the board directory, even for a city that runs its board', () => {
+    expect(isWorkforceBoardOrStateAgency('City of Shreveport', true)).toBe(true)
+    expect(isWorkforceBoardOrStateAgency('City of Shreveport', false)).toBe(false)
+  })
+  it('catches boards and state agencies the directory does not list', () => {
+    for (const n of ['Nevadaworks', 'WorkSource Atlanta Board', 'EmployIndy', 'Mississippi Department of Employment Security', 'State of Ohio Office of Workforce Transformation', 'LWIA 7'])
+      expect(isWorkforceBoardOrStateAgency(n, false)).toBe(true)
+  })
+  it('leaves out government bodies that are not grantees for workforce grants', () => {
+    for (const n of ['Federal Reserve Banks', 'International Monetary Fund', 'National Governors Association (NGA)', 'U.S. Census Bureau', 'National Science Foundation', 'NIST'])
+      expect(kindsForOrg({ orgTypes: ['GOVERNMENT'], name: n })).toEqual([])
   })
 })

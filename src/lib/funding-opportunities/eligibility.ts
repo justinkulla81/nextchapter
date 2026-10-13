@@ -128,11 +128,28 @@ const LABEL: Record<ApplicantKind, string> = {
 }
 export const label = (k: ApplicantKind) => LABEL[k]
 
-/** The applicant kinds a CRM organization of these types can be. */
-export function kindsForOrgTypes(orgTypes: string[]): ApplicantKind[] {
+/**
+ * Is this government organization a workforce board or a state agency — the
+ * ones a workforce grant is for? The board directory is the source of truth
+ * (a city that runs its board, like Shreveport, is a board); the name patterns
+ * only catch a board or state agency the directory does not list. A central
+ * bank, the IMF or the Census Bureau is government in the CRM but not a
+ * grantee for this.
+ */
+const BOARD_NAME = /workforce|career ?source|job ?center|\bwdb\b|\bwib\b|\bwda\b|\blwda\b|\blwia\b|works|means ?jobs|mass ?hire|@work|employ|jobs? (and|&) training|career ?link|workplace|region \d+ board/i
+const STATE_AGENCY_NAME = /^(state of|commonwealth of)\b|\b(department|dept\.?|division|commission|agency|bureau|office|council)\b of\b.*(labor|workforce|employment|economic|commerce|career|human services|jobs)|employment security/i
+
+export function isWorkforceBoardOrStateAgency(name: string, inBoardDirectory: boolean): boolean {
+  return inBoardDirectory || BOARD_NAME.test(name) || STATE_AGENCY_NAME.test(name)
+}
+
+/** The applicant kinds a CRM organization can be. */
+export function kindsForOrg(org: { orgTypes: string[]; name: string; inBoardDirectory?: boolean }): ApplicantKind[] {
   const out = new Set<ApplicantKind>()
-  for (const t of orgTypes) {
-    if (t === 'GOVERNMENT') { out.add('STATE_GOV'); out.add('LOCAL_GOV') }
+  for (const t of org.orgTypes) {
+    if (t === 'GOVERNMENT') {
+      if (isWorkforceBoardOrStateAgency(org.name, org.inBoardDirectory ?? false)) { out.add('STATE_GOV'); out.add('LOCAL_GOV') }
+    }
     else if (t === 'UNIVERSITY') out.add('HIGHER_ED')
     else if (t === 'NONPROFIT' || t === 'FOUNDATION') out.add('NONPROFIT')
   }
