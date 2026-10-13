@@ -58,8 +58,7 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
         <section className="space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight">{inst.name} has your back, for every career move</h1>
           <p className="text-lg text-muted-foreground">
-            Free for {inst.name} alumni: a clear read on your job market, a plan for this week, coaching, and alumni who&apos;ll take your call. Your
-            search stays yours; {inst.name} sees only what you choose to share.
+            {`Free for ${inst.name} alumni: a clear read on your job market, a plan for this week, coaching, and alumni who'll take your call. Your search stays yours; ${inst.name} sees only what you choose to share.`}
           </p>
           <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className={buttonVariants({ size: 'lg' })}>
             Join with your alumni email

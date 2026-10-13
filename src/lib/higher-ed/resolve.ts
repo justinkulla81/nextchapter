@@ -46,6 +46,11 @@ export type InstitutionAccess = {
   employerProfileIds: string[]
 }
 
+async function demoFeaturedMember(db: Db, institution: { id: string; slug: string }): Promise<string | null> {
+  const m = await db.institutionMember.findFirst({ where: { id: `${institution.slug}_member_featured`, institutionId: institution.id }, select: { id: true } })
+  return m?.id ?? null
+}
+
 export async function isNcAdmin(userId: string, email: string | null, db: Db = prisma): Promise<boolean> {
   if (isAdminEmail(email)) return true
   const grant = await db.roleGrant.findFirst({
@@ -145,7 +150,8 @@ export async function resolveInstitutionAccess(
     mode,
     demoPersona,
     staffUsers,
-    memberId: member?.id ?? null,
+    // On a demo, previewing as an alum acts as the seeded featured alum.
+    memberId: member?.id ?? (mode === 'demo-admin' ? await demoFeaturedMember(db, institution) : null),
     employerProfileIds: employerLinks.map((l) => l.employerProfileId),
   }
 }

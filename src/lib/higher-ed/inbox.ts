@@ -20,7 +20,7 @@ export async function waitingFor(id: string, office: 'alumni' | 'career', base: 
       prisma.layoffMatch.count({ where: { institutionId: id, outreachStatus: 'NEW' } }),
       pendingCheckIns(id),
     ])
-    if (layoffs) items.push({ key: 'layoffs', text: `${layoffs} alumni at companies with new layoff notices`, href: `${base}/layoffs` })
+    if (layoffs) items.push({ key: 'layoffs', text: `${layoffs} ${layoffs === 1 ? 'alum' : 'alumni'} at companies with new layoff notices`, href: `${base}/layoffs` })
     const annual = pending.find((p) => p.kind === 'CUSTOM')?.count ?? 0
     if (annual) items.push({ key: 'annual', text: `${annual.toLocaleString()} annual check-ins ready to send`, href: `${base}/outreach` })
   } else {
@@ -33,7 +33,7 @@ export async function waitingFor(id: string, office: 'alumni' | 'career', base: 
     ])
     const early = pending.filter((p) => EARLY.includes(p.kind)).reduce((n, p) => n + p.count, 0)
     if (early) items.push({ key: 'early', text: `${early} early-career check-ins ready to send`, href: `${base}/checkins` })
-    if (followUps) items.push({ key: 'followups', text: `${followUps} alumni asked for help in a check-in`, href: `${base}/checkins` })
+    if (followUps) items.push({ key: 'followups', text: `${followUps} ${followUps === 1 ? 'alum' : 'alumni'} asked for help in a check-in`, href: `${base}/checkins` })
   }
   return items
 }

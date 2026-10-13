@@ -13,7 +13,7 @@ import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
 import { AUDIENCE_LABELS, getService, PRICING_LABELS, type Audience, type Pricing, type ServiceSetting } from '@/lib/higher-ed/services'
 import { DEMO_PERSONAS } from '@/lib/higher-ed/workspaces'
-import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
+import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { seedDemoContent } from '@/lib/institution/admin'
 import { logViewAs } from '@/lib/higher-ed/audit'
@@ -47,6 +47,16 @@ export async function resetDemoData(slug: string): Promise<{ error?: string; mem
   captureServerEvent(access.userId, 'he_demo_reset', { institutionId: result.institutionId, slug, members: result.members })
   revalidatePath(`/i/${slug}`, 'layout')
   return { members: result.members }
+}
+
+// "Skip ahead 60 days": quiet periods end as if two months passed, and
+// thank-you asks appear for alumni who said the college helped.
+export async function skipDemoAhead(slug: string): Promise<{ error?: string; message?: string }> {
+  const access = await requireDemoAdmin(slug)
+  const r = await advanceDemoTime(access.institution.id, 60)
+  captureServerEvent(access.userId, 'he_demo_time_advanced', { institutionId: access.institution.id, days: 60, ...r })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { message: `Skipped ahead 60 days: ${r.cleared} quiet ${r.cleared === 1 ? 'period' : 'periods'} ended, ${r.gratitudePending} thank-you ${r.gratitudePending === 1 ? 'ask' : 'asks'} now in Development › Signals.` }
 }
 
 export async function startViewAs(slug: string, _prev: { error?: string } | null, formData: FormData): Promise<{ error?: string } | null> {

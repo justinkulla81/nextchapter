@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import { DEMO_PERSONAS } from '@/lib/higher-ed/workspaces'
-import { resetDemoData, setDemoPersona } from '@/app/i/[slug]/(portal)/actions'
+import { resetDemoData, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
 
 // "Demo mode" banner (spec §4). Everyone on a demo tenant sees the banner;
 // only an nc_admin gets the Preview-as and Reset controls.
@@ -61,6 +61,20 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
               </SubmitButton>
             </form>
 
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending}
+              className={cn(pending && 'cursor-wait')}
+              onClick={() =>
+                startTransition(async () => {
+                  const r = await skipDemoAhead(slug)
+                  setMessage(r.error ?? r.message ?? null)
+                })
+              }
+            >
+              Skip ahead 60 days
+            </Button>
             {confirming ? (
               <span className="flex items-center gap-2">
                 <span>Delete and reseed all of this demo&apos;s data?</span>
