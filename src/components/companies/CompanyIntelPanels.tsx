@@ -159,7 +159,7 @@ export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { compa
                     signalType={f.signalType}
                     href={f.filingUrl}
                     source="company_page"
-                    label="Read the filing"
+                    label={f.source === 'news' ? 'Read the report' : 'Read the filing'}
                   />
                 </li>
               ))}

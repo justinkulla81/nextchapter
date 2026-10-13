@@ -206,7 +206,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .map(toJobItem)
   const lockedCount = fitting.length - openable.length
 
-  // ── Likely openings (SEC filings), not posted yet ─────────────────────
+  // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their
   // function), never the same filing twice.
   const likelyOpenings: DailyItem[] = (await getLikelyOpeningsForCandidate(candidate, { limit: 10 }))
@@ -215,7 +215,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .map((o) => ({
       key: `lo:${o.id}`,
       title: `${o.companyName}: ${o.summary}`,
-      detail: [o.reason, 'from an SEC filing — reach out before it is posted'].filter(Boolean).join(' · '),
+      detail: [o.reason, `${o.source === 'news' ? 'from a news report' : 'from an SEC filing'} — reach out before it is posted`].filter(Boolean).join(' · '),
       href: o.filingUrl,
     }))
 

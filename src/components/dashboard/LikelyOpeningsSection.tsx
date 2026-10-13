@@ -1,5 +1,6 @@
 import type { CandidateProfile } from '@prisma/client'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
+import { sourceLinkLabel } from '@/lib/likely-openings/roles'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 
 const TYPE_LABEL = {
@@ -9,7 +10,7 @@ const TYPE_LABEL = {
 } as const
 
 /**
- * Roles that aren't posted yet: SEC filings that usually come before a
+ * Roles that aren't posted yet: SEC filings and news reports that usually come before a
  * senior search (an officer leaving, a new CEO rebuilding the team, a fresh
  * raise). Reaching out now puts a member in before any posting exists.
  */
@@ -22,7 +23,7 @@ export async function LikelyOpeningsSection({ profile }: { profile: CandidatePro
       <div>
         <h2 className="text-lg font-semibold tracking-tight">Likely openings — not posted yet</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          From public SEC filings. These usually come before a search starts — reach out now, before there&apos;s a
+          From public SEC filings and news reports. These usually come before a search starts — reach out now, before there&apos;s a
           posting and a crowd.
         </p>
       </div>
@@ -38,7 +39,7 @@ export async function LikelyOpeningsSection({ profile }: { profile: CandidatePro
             <p className="text-muted-foreground">{o.summary}</p>
             <p className="text-xs text-muted-foreground">
               {o.reason && <>{o.reason} · </>}
-              Filed {o.filingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ·{' '}
+              {o.source === 'news' ? 'Reported' : 'Filed'} {o.filingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ·{' '}
               <TrackedLink
                 href={o.filingUrl}
                 external
@@ -46,7 +47,7 @@ export async function LikelyOpeningsSection({ profile }: { profile: CandidatePro
                 properties={{ likelyOpeningId: o.id, companyName: o.companyName, signalType: o.signalType, source: 'find_my_job' }}
                 className="text-primary underline underline-offset-4"
               >
-                Read the SEC filing
+                {sourceLinkLabel(o.source)}
               </TrackedLink>
             </p>
           </li>

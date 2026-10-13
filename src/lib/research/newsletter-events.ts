@@ -31,6 +31,7 @@ const eventSchema = z.object({
       summary: z.string(),
       employees: z.number().nullable(),
       role: z.string().nullable(),
+      direction: z.enum(['departure', 'appointment', 'search']).nullable(),
       linkIndex: z.number().nullable(),
     })
   ),
@@ -67,7 +68,7 @@ function prompt(n: NewsletterText): string {
 - layoff: a company cutting staff (give the headcount in "employees" when stated, else null).
 - acquisition: a company acquiring another, including acqui-hires where the team joins the buyer. Name the company that is ACQUIRED or whose team moves, not the buyer, unless the buyer is also hiring or cutting.
 - shutdown: a product or service closing down.
-- exec_change: a named executive leaving, being demoted or being hired, or an executive search under way ("role" is the seat, e.g. "CFO").
+- exec_change: a named executive leaving, being demoted or being hired, or an executive search under way ("role" is the seat, e.g. "CFO"; "direction" is "departure" if they left or were removed or demoted out of the seat, "appointment" if a permanent new person took it, "search" if the company is looking for someone to fill it; null for other kinds).
 Everything else (funding rounds, product launches, opinion, lawsuits) is "other" — skip it or mark it other.
 
 For each event: company (its common name, no suffix), kind, summary (one plain sentence for a job seeker naming the company), employees, role, and linkIndex — the number of the link below that points to that story, or null if none clearly does.
@@ -85,6 +86,7 @@ export interface ExtractedEvent {
   summary: string
   employees: number | null
   role: string | null
+  direction: 'departure' | 'appointment' | 'search' | null
   url: string | null
 }
 
@@ -97,7 +99,10 @@ export function eventsFromRead(read: NewsletterEvents, links: { url: string }[])
     if (company.length < 2 || !e.summary.trim()) continue
     const url = e.linkIndex != null && Number.isInteger(e.linkIndex) ? links[e.linkIndex]?.url ?? null : null
     const employees = e.employees != null && e.employees > 0 && e.employees < 500_000 ? Math.round(e.employees) : null
-    out.push({ company, kind: e.kind, summary: e.summary.trim(), employees, role: e.role?.trim() || null, url })
+    out.push({
+      company, kind: e.kind, summary: e.summary.trim(), employees, role: e.role?.trim() || null,
+      direction: e.kind === 'exec_change' ? e.direction : null, url,
+    })
   }
   return out
 }

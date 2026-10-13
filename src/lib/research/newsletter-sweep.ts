@@ -6,12 +6,14 @@ import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
 import { sourceFromUrl } from '@/lib/news/kind'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { newsSignalFromEvent } from '@/lib/likely-openings/news-signal'
 import { EVENT_LABELS, extractNewsletterEvents, newsletterText } from './newsletter-events'
 
 export interface NewsletterSweepResult {
   emails: number
   events: number
   layoffMentions: number
+  openings: number
   boardsFound: number
   failed: number
 }
@@ -29,12 +31,15 @@ function publisherName(url: string): string {
  *   topic-search result, for a person to decide on;
  * - a layoff with a story link is also a layoff-news mention, so it counts as
  *   a report in the daily layoff check (two publishers add it to the tracker);
+ * - an executive change at a named officer seat (a CFO leaving or being
+ *   searched for, a new CEO) becomes a likely-opening signal, the way an SEC
+ *   8-K does for public companies — unless a filing already covers that seat;
  * - each company gets a Company row and a look for its public job board.
  * An email is marked read only once it was processed; a failure leaves it for
  * tomorrow. With no query set the sweep does nothing.
  */
 export async function sweepNewsletters(accessToken: string): Promise<NewsletterSweepResult> {
-  const result: NewsletterSweepResult = { emails: 0, events: 0, layoffMentions: 0, boardsFound: 0, failed: 0 }
+  const result: NewsletterSweepResult = { emails: 0, events: 0, layoffMentions: 0, openings: 0, boardsFound: 0, failed: 0 }
   const query = process.env.NEWSLETTER_SENDER_QUERY?.trim()
   if (!query || !process.env.ANTHROPIC_API_KEY) return result
 
@@ -69,6 +74,23 @@ export async function sweepNewsletters(accessToken: string): Promise<NewsletterS
               },
             })
             result.layoffMentions++
+          }
+          if (e.kind === 'exec_change') {
+            const row = newsSignalFromEvent(e)
+            if (row) {
+              // An SEC filing for the same seat in the last month already says it.
+              const covered = await prisma.likelyOpening.findFirst({
+                where: {
+                  companyNameNormalized: row.companyNameNormalized, signalType: row.signalType, roles: { hasSome: row.roles },
+                  filingDate: { gte: new Date(Date.now() - 30 * 86_400_000) },
+                },
+                select: { id: true },
+              })
+              if (!covered) {
+                const res = await prisma.likelyOpening.createMany({ data: [row], skipDuplicates: true })
+                result.openings += res.count
+              }
+            }
           }
           companyIds.add((await getOrCreateCompany(e.company)).id)
         }
