@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { applicationsToAsk, chooseCheckInKind, isPromptDue, type CheckInKind } from '@/lib/daily/check-in-schedule'
+import { ACTIVE_SEARCH_STAGES, effectiveStage } from '@/lib/journey/journey'
 
 const DEFAULT_WEEKLY_APPLICATION_GOAL = 15
 const NETWORKING_EMAIL_TYPES = ['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'INTRO_REQUEST', 'NETWORKING_OUTREACH'] as const
@@ -45,15 +46,19 @@ export async function getCheckInPrompt(candidateId: string): Promise<CheckInProm
 
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
-    select: { firstName: true, applicationVolumeGoal: true },
+    select: { firstName: true, applicationVolumeGoal: true, journey: true, journeyStage: true, currentJobStatus: true },
   })
   if (!candidate) return null
+  // Paused means no nudges (src/lib/journey).
+  const stage = effectiveStage(candidate)
+  if (stage === 'PAUSED') return null
+  const activeSearch = !stage || ACTIVE_SEARCH_STAGES.includes(stage)
   const weeklyGoal = candidate.applicationVolumeGoal && candidate.applicationVolumeGoal > 0 ? candidate.applicationVolumeGoal : DEFAULT_WEEKLY_APPLICATION_GOAL
   const activity = await getWeekToDateActivity(candidateId, now)
 
   const lastShownByKind: Partial<Record<CheckInKind, Date>> = {}
   for (const r of recent) if (!lastShownByKind[r.kind]) lastShownByKind[r.kind] = r.shownAt
-  const kind = chooseCheckInKind({ appliedThisWeek: activity.applied, weeklyGoal, checkedInThisWeek: activity.checkedInThisWeek, lastShownByKind })
+  const kind = chooseCheckInKind({ appliedThisWeek: activity.applied, weeklyGoal, checkedInThisWeek: activity.checkedInThisWeek, lastShownByKind, activeSearch })
 
   return {
     kind,

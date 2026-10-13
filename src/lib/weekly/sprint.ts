@@ -1,5 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
+import { shapePlan } from '@/lib/journey/plan'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -245,7 +247,18 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 // week's target. Previously capped at 1.5x the week's ramp target, which
 // silently hid real, still-open actions (e.g. "Apply to a new job") behind
 // whichever items happened to round-robin in first.
+// The week's plan, by journey and stage (src/lib/journey/plan.ts): the
+// journey's own steps first, then the general menu below, without
+// application tasks outside an active search and with nothing while Paused.
 export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
+  const [general, p] = await Promise.all([
+    getGeneralSuggestedActions(candidateId, weekNumber),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+  ])
+  return p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+}
+
+async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {
 
   // The two work-status confirmations are real, unfinished one-time setup
   // steps (see SalaryConfirmForm / WorkAuthorizationConfirmForm) — surface them until

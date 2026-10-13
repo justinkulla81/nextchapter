@@ -42,9 +42,12 @@ export function chooseCheckInKind(args: {
   weeklyGoal: number
   checkedInThisWeek: boolean
   lastShownByKind: Partial<Record<CheckInKind, Date>>
+  // Only asked to apply in an active search (src/lib/journey): someone
+  // exploring or preparing isn't asked for applications.
+  activeSearch?: boolean
 }): CheckInKind {
   const eligible: CheckInKind[] = []
-  if (args.appliedThisWeek < args.weeklyGoal) eligible.push('APPLY_COMMIT')
+  if ((args.activeSearch ?? true) && args.appliedThisWeek < args.weeklyGoal) eligible.push('APPLY_COMMIT')
   eligible.push('NETWORK_COMMIT')
   if (!args.checkedInThisWeek) eligible.push('MOOD')
   return eligible.sort((a, b) => (args.lastShownByKind[a]?.getTime() ?? 0) - (args.lastShownByKind[b]?.getTime() ?? 0))[0]
