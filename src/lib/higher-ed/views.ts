@@ -40,6 +40,8 @@ const TRANSITION_ROLES: AccessToken[] = [
   'VIEWER:career',
 ]
 const ROI_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'DEVELOPMENT', 'VIEWER:development']
+// Aggregate re-employment outcomes by unemployment-duration bucket (never member rows).
+const OUTCOMES_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'DEVELOPMENT', 'VIEWER:career', 'VIEWER:development']
 // Sees every open caseload (the Career Services director).
 const CASELOAD_ALL_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'VIEWER:career']
 
@@ -213,6 +215,30 @@ export async function getRoiInputs(ctx: Ctx, db: Db = prisma): Promise<RoiInputs
     from private.v_roi_inputs
     where "institutionId" = ${ctx.institution.id}`
   return rows[0] ?? null
+}
+
+export type OutcomesByBucketRow = {
+  bucket: string
+  members: number
+  personWeeks: number
+  reemployed: number
+  hiresAll: number
+  interimHires: number
+  warmSourced: number
+  withPay: number
+  tookCut: number
+  medianPayRetention: number | null
+}
+
+// Career Services "Outcomes" tab (outcomes release). Aggregates only; consent
+// (SHARE_OUTCOME) is applied in the SQL view. The caller must still suppress
+// small cells (src/lib/outcomes/institution-outcomes.ts does).
+export async function getOutcomesByBucket(ctx: Ctx, db: Db = prisma): Promise<OutcomesByBucketRow[]> {
+  assertHolds(ctx, OUTCOMES_ROLES, 'outcomes')
+  return db.$queryRaw<OutcomesByBucketRow[]>`
+    select bucket, members, "personWeeks", reemployed, "hiresAll", "interimHires", "warmSourced", "withPay", "tookCut", "medianPayRetention"
+    from private.v_outcomes_by_bucket
+    where "institutionId" = ${ctx.institution.id}`
 }
 
 export type AlumniHomeCounts = { members: number; claimed: number; activeSeats: number; inTransition: number }

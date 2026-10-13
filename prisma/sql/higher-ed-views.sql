@@ -24,6 +24,7 @@ create schema if not exists private;
 
 -- Dropped and recreated (not just "create or replace") so a column change
 -- in a later step applies cleanly. Nothing outside this file depends on them.
+drop view if exists private.v_outcomes_by_bucket;
 drop view if exists private.v_roi_inputs;
 drop view if exists private.v_employer_dossiers;
 drop view if exists private.v_caseload_activity;
@@ -208,6 +209,85 @@ select
   (select max(r."completedAt") from public."CrmExchangeRun" r
     where r."institutionId" = i.id and r.direction = 'IMPORT_GIFTS' and r.status in ('SUCCEEDED', 'PARTIAL')) as "lastGiftImportAt"
 from public."Institution" i;
+
+-- v_outcomes_by_bucket — CAREER_SERVICES, INSTITUTION_ADMIN, DEVELOPMENT.
+-- Aggregates only, one row per (institution, unemployment-duration bucket);
+-- never a member row. Only members whose SHARE_OUTCOME consent is on are
+-- counted (consent applied here, in SQL). The server suppresses any cell with
+-- fewer than 10 people (src/lib/outcomes/small-cell.ts).
+--
+-- Exposure model: a member is "at risk" from the week they joined (weeks
+-- since their last job at claim) until the week they were re-employed in a
+-- PERMANENT role, or until now. Person-weeks in a bucket let the server
+-- compare actual re-employment with the public benchmark for that same
+-- bucket, which removes the adverse-selection penalty of enrolling people
+-- who have already searched a long time. Interim, fractional and advisory
+-- work is counted separately and is never treated as a permanent hire.
+create view private.v_outcomes_by_bucket as
+with buckets(bucket, lo, hi) as (
+  values ('W0_4'::text, 0, 5), ('W5_13', 5, 14), ('W14_26', 14, 27), ('W27_52', 27, 53), ('W53_PLUS', 53, 100000)
+),
+cohort as (
+  select
+    m.id as member_id,
+    m."institutionId",
+    coalesce(m."claimedAt", m."createdAt") as joined_at,
+    cp."lastJobEndedAt",
+    (select min(h."hiredAt") from public."HireOutcome" h
+       where h."candidateId" = cp.id and h."outcomeType" = 'PERMANENT') as perm_hired_at
+  from public."InstitutionMember" m
+  join public."CandidateProfile" cp on cp.id = m."candidateId"
+  join private.v_member_consent mc on mc."memberId" = m.id and mc."shareOutcome"
+  where cp."lastJobEndedAt" is not null
+),
+cohort_wk as (
+  select c.member_id, c."institutionId",
+    greatest(0, floor(extract(epoch from (c.joined_at - c."lastJobEndedAt")) / 604800))::int as start_wk,
+    (c.perm_hired_at is not null and c.perm_hired_at >= c.joined_at) as hired_in_window,
+    case when c.perm_hired_at is not null and c.perm_hired_at >= c.joined_at
+         then floor(extract(epoch from (c.perm_hired_at - c."lastJobEndedAt")) / 604800)::int
+         else floor(extract(epoch from (now() - c."lastJobEndedAt")) / 604800)::int end as end_wk
+  from cohort c
+),
+exposure as (
+  select
+    cw."institutionId", b.bucket,
+    count(*) filter (where least(cw.end_wk, b.hi) - greatest(cw.start_wk, b.lo) > 0)::int as members,
+    coalesce(sum(greatest(0, least(cw.end_wk, b.hi) - greatest(cw.start_wk, b.lo))), 0)::int as person_weeks,
+    count(*) filter (where cw.hired_in_window and cw.end_wk >= b.lo and cw.end_wk < b.hi)::int as reemployed
+  from cohort_wk cw cross join buckets b
+  group by cw."institutionId", b.bucket
+),
+hires as (
+  select
+    m."institutionId",
+    coalesce(h."enrollmentBucket"::text, 'UNKNOWN') as bucket,
+    count(*)::int as hires_all,
+    count(*) filter (where h."outcomeType" in ('INTERIM', 'FRACTIONAL', 'ADVISORY'))::int as interim_hires,
+    count(*) filter (where h.source in ('REFERRAL', 'NETWORK_CONVERSATION', 'ALUMNI_OR_MENTOR'))::int as warm_sourced,
+    count(*) filter (where h."priorBasePayUsd" > 0 and h."newBasePayUsd" > 0)::int as with_pay,
+    count(*) filter (where h."priorBasePayUsd" > 0 and h."newBasePayUsd" > 0 and h."newBasePayUsd" < h."priorBasePayUsd")::int as took_cut,
+    percentile_cont(0.5) within group (order by h."newBasePayUsd"::float8 / h."priorBasePayUsd")
+      filter (where h."priorBasePayUsd" > 0 and h."newBasePayUsd" > 0) as median_pay_retention
+  from public."HireOutcome" h
+  join public."InstitutionMember" m on m."candidateId" = h."candidateId"
+  join private.v_member_consent mc on mc."memberId" = m.id and mc."shareOutcome"
+  group by m."institutionId", coalesce(h."enrollmentBucket"::text, 'UNKNOWN')
+)
+select
+  coalesce(e."institutionId", h."institutionId") as "institutionId",
+  coalesce(e.bucket, h.bucket) as bucket,
+  coalesce(e.members, 0) as "members",
+  coalesce(e.person_weeks, 0) as "personWeeks",
+  coalesce(e.reemployed, 0) as "reemployed",
+  coalesce(h.hires_all, 0) as "hiresAll",
+  coalesce(h.interim_hires, 0) as "interimHires",
+  coalesce(h.warm_sourced, 0) as "warmSourced",
+  coalesce(h.with_pay, 0) as "withPay",
+  coalesce(h.took_cut, 0) as "tookCut",
+  h.median_pay_retention as "medianPayRetention"
+from exposure e
+full join hires h on h."institutionId" = e."institutionId" and h.bucket = e.bucket;
 
 -- Server-only: no API role may read these, even though `authenticated` has
 -- USAGE on the schema for the RLS helper functions.

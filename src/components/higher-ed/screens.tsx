@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label'
 import { DoNotSolicitBadge } from './DoNotSolicitBadge'
 import { StatTile } from './StatTile'
 import { RegionScreen } from './RegionScreen'
+import { OutcomesScreen } from './OutcomesScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
 import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
@@ -1171,6 +1172,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:home': DevelopmentHome,
   'development:transition': DevelopmentTransition,
   'career:home': CareerCaseload,
+  'career:outcomes': OutcomesScreen,
   'employer:home': EmployerDossiers,
   'alumni:region': Region,
     'career:region': Region,

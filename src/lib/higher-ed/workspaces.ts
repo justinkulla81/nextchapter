@@ -118,6 +118,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'coaching', label: 'Coaching', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'jobs', label: 'Alumni jobs', comingIn: null, requiredRoles: POST_JOBS },
       { key: 'companies', label: 'Target companies', comingIn: null, requiredRoles: TARGET_COMPANIES },
+      { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'checkins', label: 'Check-ins', comingIn: 'HE-11', requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'students', label: 'Student tools', comingIn: 'HE-11', requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'region', label: 'Local market', comingIn: null },

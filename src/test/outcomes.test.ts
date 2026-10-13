@@ -127,3 +127,41 @@ describe('pay change estimate', () => {
     expect(e.confidence).toBe('LOW')
   })
 })
+
+import { buildInstitutionOutcomes, type OutcomeViewRow } from '@/lib/outcomes/institution-outcomes'
+
+describe('institution outcomes', () => {
+  const row = (over: Partial<OutcomeViewRow>): OutcomeViewRow => ({
+    bucket: 'W27_52', members: 12, personWeeks: 200, reemployed: 10, hiresAll: 12, interimHires: 2,
+    warmSourced: 6, withPay: 11, tookCut: 4, medianPayRetention: 0.92, ...over,
+  })
+  it('suppresses buckets under the privacy floor and shows nothing from them', () => {
+    const s = buildInstitutionOutcomes([row({ bucket: 'W0_4', members: 9, reemployed: 8 })], [])
+    const r = s.rows.find((x) => x.bucket === 'W0_4')!
+    expect(r.suppressed).toBe(true)
+    expect(r.reemployed).toBeNull()
+    expect(r.uplift).toBeNull()
+    expect(s.allSuppressed).toBe(true)
+  })
+  it('compares within the same bucket and flags a missing benchmark honestly', () => {
+    const s = buildInstitutionOutcomes([row({}), row({ bucket: 'W53_PLUS' })], [{ bucket: 'W27_52', weeklyReemploymentRate: 0.025 }])
+    const a = s.rows.find((x) => x.bucket === 'W27_52')!
+    expect(a.uplift).toBeCloseTo(2)
+    expect(a.benchmarkPending).toBe(false)
+    const b = s.rows.find((x) => x.bucket === 'W53_PLUS')!
+    expect(b.benchmarkPending).toBe(true)
+    expect(b.uplift).toBeNull()
+  })
+  it('pools only visible, benchmarked buckets', () => {
+    const s = buildInstitutionOutcomes([row({}), row({ bucket: 'W53_PLUS', reemployed: 1 })], [{ bucket: 'W27_52', weeklyReemploymentRate: 0.025 }])
+    expect(s.pooledUplift).toBeCloseTo(2)
+    expect(s.totalMembers).toBe(24)
+  })
+  it('hides pay and source detail when too few hires report it', () => {
+    const s = buildInstitutionOutcomes([row({ withPay: 5, hiresAll: 6 })], [])
+    const r = s.rows.find((x) => x.bucket === 'W27_52')!
+    expect(r.medianPayRetention).toBeNull()
+    expect(r.tookCutShare).toBeNull()
+    expect(r.warmShare).toBeNull()
+  })
+})
