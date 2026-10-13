@@ -280,9 +280,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         </div>
 
         <aside className="space-y-6">
-          <details open={org.introPathsAsTarget.length > 0} className="rounded-lg border border-border p-3">
+          <details open={org.introPathsAsTarget.length > 0} className={org.introPathsAsTarget.length > 0 ? 'rounded-lg border border-border p-3' : 'text-muted-foreground'}>
             <summary className="cursor-pointer text-sm font-semibold">
-              Routes in ({org.introPathsAsTarget.length})
+              {org.introPathsAsTarget.length > 0 ? `Routes in (${org.introPathsAsTarget.length})` : 'Add a route in'}
             </summary>
             <div className="mt-3">
               <CrmIntroPaths

@@ -66,9 +66,11 @@ export function CrmIntroPaths({
           if someone else could <em>also</em> make an introduction.
         </p>
       ) : paths.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-          No route recorded yet.
-        </p>
+        compact ? null : (
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+            No route recorded yet.
+          </p>
+        )
       ) : (
         <ul className="space-y-2">
           {paths.map((p) => <PathRow key={p.id} path={p} />)}
