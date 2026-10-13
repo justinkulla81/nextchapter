@@ -26,6 +26,22 @@ export async function listAlertMessages(accessToken: string): Promise<GmailMessa
   return data.messages ?? []
 }
 
+/**
+ * Unread newsletters from the senders in `senderQuery` (a Gmail search such as
+ * "from:(newsletter@example.com OR news@example.org)"), newest first.
+ */
+export async function listNewsletterMessages(accessToken: string, senderQuery: string): Promise<GmailMessageSummary[]> {
+  const params = new URLSearchParams({ q: `is:unread ${senderQuery}`, maxResults: '10' })
+  const response = await fetch(`${GMAIL_API_BASE}/messages?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!response.ok) {
+    throw new Error(`Gmail newsletter list failed: ${response.status} ${await response.text()}`)
+  }
+  const data = (await response.json()) as { messages?: { id: string }[] }
+  return data.messages ?? []
+}
+
 interface GmailPart {
   mimeType?: string
   body?: { data?: string }

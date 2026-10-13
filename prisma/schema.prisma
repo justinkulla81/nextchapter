@@ -5907,7 +5907,7 @@ model ResearchLibraryItem {
   id              String   @id @default(cuid())
   url             String
   dateFound       DateTime @default(now())
-  // 'inbox' | 'manual' | 'discovery'
+  // 'inbox' | 'manual' | 'discovery' | 'newsletter'
   ingestionSource String
 
   title          String?
@@ -6841,6 +6841,12 @@ model Company {
   // an explicit "not available yet" state for this field rather than a
   // guess, same treatment as the WARN-dependent contraction signal.
   atsPlatform             String?
+  // The company's public job-board token on that platform (Greenhouse, Lever or
+  // Ashby), found by probing the platform's public API — see
+  // src/lib/market/ats-discovery.ts. Null = none found or not looked for yet.
+  // atsCheckedAt stamps the last probe so a miss is not retried every run.
+  atsToken                String?
+  atsCheckedAt            DateTime?
   // Phase 9 — real, admin-set-only PE/VC ownership flag (see enum comment
   // above for why nothing here is ever auto-detected). Null = not yet
   // reviewed by an admin, shown to candidates as "Unknown", never as a

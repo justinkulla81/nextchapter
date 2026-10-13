@@ -190,7 +190,7 @@ export async function addExistingItemToNews(id: string) {
   // A link the topic search found already carries the publisher's own
   // headline and snippet, which covers a publisher that blocks the fetch.
   // Only for those rows: on every other row `summary` is our internal note.
-  const found = item.ingestionSource === 'discovery'
+  const found = item.ingestionSource === 'discovery' || item.ingestionSource === 'newsletter'
   const news = {
     newsKind: meta.kind,
     newsTitle: meta.title ?? item.title,

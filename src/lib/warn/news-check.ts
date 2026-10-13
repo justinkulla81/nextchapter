@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { searchTopic } from '@/lib/news/discover'
 import { readLayoffHeadline, publisherKey, sameEmployer } from './news-headline'
 import { findLayoffContacts } from './layoff-contacts-run'
+import { getOrCreateCompany } from '@/lib/companies/company-lookup'
+import { discoverAtsBoards } from '@/lib/market/ats-discovery'
 
 const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']
 
@@ -56,6 +58,16 @@ async function lookUpContacts(
   } catch (e) {
     console.error('Layoff contact lookup failed for', company, e)
     return 0
+  }
+}
+
+/** A company in a confirmed layoff story: make sure it has a Company row and look for its job board. */
+async function trackJobBoard(company: string): Promise<void> {
+  try {
+    const row = await getOrCreateCompany(company)
+    await discoverAtsBoards([row.id])
+  } catch (e) {
+    console.error('Job board lookup failed for', company, e)
   }
 }
 
@@ -124,6 +136,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
       if (publishers.size >= 2) {
         const looked = (await prisma.layoffNewsMention.count({ where: { noticeId: covering.id } })) > 0
         await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: covering.id } })
+        if (!looked) await trackJobBoard(mentions[0].company)
         if (!looked) await lookUpContacts(mentions[0].company, covering.employees, when, covering.promotedOrgId, mentions.map((m) => m.url), result)
       }
       continue
@@ -158,6 +171,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: notice.id } })
     // The rule: every layoff we add looks for a real named contact in its own
     // coverage, once, here. A failure never blocks the layoff.
+    await trackJobBoard(company)
     const contacts = await lookUpContacts(company, employees, when, null, mentions.map((m) => m.url), result)
     result.added.push({ company, employees, publishers: publishers.size, contacts })
   }

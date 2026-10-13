@@ -168,6 +168,11 @@ export default async function AdminDigestPage({
             Topic search
             {r.discoveryTopic && <span className="block text-xs text-muted-foreground">{r.discoveryTopic}</span>}
           </span>
+        ) : r.ingestionSource === 'newsletter' ? (
+          <span>
+            Newsletter
+            {r.discoveryTopic && <span className="block text-xs text-muted-foreground">{r.discoveryTopic}</span>}
+          </span>
         ) : r.ingestionSource === 'inbox' ? 'Inbox' : 'Manual',
     },
     {

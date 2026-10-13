@@ -5,7 +5,7 @@ import { safeImageUrl } from './kind'
 import { DISCOVERY_TOPICS } from './discovery-topics'
 
 /**
- * How many new links one topic may add in one run. Eleven topics at three
+ * How many new links one topic may add in one run. Fourteen topics at three
  * each is the most a day can add — enough to see what is being written,
  * few enough to read.
  */
