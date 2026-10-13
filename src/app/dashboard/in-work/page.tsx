@@ -19,7 +19,24 @@ export default async function InWorkPage({
 }) {
   const sp = await searchParams
   const profile = await getDashboardProfile()
-  const data = await loadWorkspace(profile)
+  // The workspace tables are applied by hand (prisma/manual/2026-10-13-in-work-track.sql).
+  // Until they exist, show a plain notice instead of an error page.
+  let data: Awaited<ReturnType<typeof loadWorkspace>>
+  try {
+    data = await loadWorkspace(profile)
+  } catch (err) {
+    const code = (err as { code?: string } | null)?.code
+    const message = err instanceof Error ? err.message : ''
+    if (code === 'P2021' || code === 'P2022' || /does not exist/i.test(message)) {
+      return (
+        <div className="mx-auto max-w-2xl space-y-2 p-6">
+          <h1 className="text-xl font-semibold">Reviews, Raises and Promotion</h1>
+          <p className="text-sm text-muted-foreground">This workspace is being set up and is not available yet. Please check back soon.</p>
+        </div>
+      )
+    }
+    throw err
+  }
 
   const tabParam = first(sp.tab)
   const initialTab: InWorkTab = TABS.includes(tabParam as InWorkTab) ? (tabParam as InWorkTab) : 'overview'
