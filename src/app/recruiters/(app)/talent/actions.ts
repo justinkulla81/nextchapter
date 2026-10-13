@@ -39,17 +39,16 @@ export async function createTalentFirm(_prev: TalentFormState, formData: FormDat
     return { error: 'That page address is taken. Try another.' }
   }
 
-  // An admin may already have created this firm by name (Phase 3 admin
-  // tooling). Joining it as admin would hand over someone else's firm, so
-  // only claim it when it has no members yet.
-  const byName = await prisma.recruiterFirm.findUnique({ where: { name }, include: { recruiters: { select: { id: true } } } })
-  if (byName && byName.recruiters.length > 0) {
-    return { error: 'A firm with that name is already on NextChapter. Ask its admin to invite you.' }
+  // A firm of this name may already exist: made by an admin (possibly already
+  // verified, with export destinations), or by someone else. Typing a name
+  // must never hand it over — an admin-made firm is claimed only through the
+  // setup link made for it (src/lib/recruiter/firm-invite.ts), and a firm
+  // that has members is joined by invitation.
+  if (await prisma.recruiterFirm.findUnique({ where: { name }, select: { id: true } })) {
+    return { error: 'A firm with that name is already on NextChapter. Use the setup link you were sent, or ask its admin to invite you.' }
   }
 
-  const firm = byName
-    ? await prisma.recruiterFirm.update({ where: { id: byName.id }, data: { slug } })
-    : await prisma.recruiterFirm.create({ data: { name, slug } })
+  const firm = await prisma.recruiterFirm.create({ data: { name, slug } })
 
   const recruiterSlug = slugify(ctx.recruiter.fullName) || 'me'
   await prisma.recruiter.update({
@@ -57,7 +56,7 @@ export async function createTalentFirm(_prev: TalentFormState, formData: FormDat
     data: { recruiterFirmId: firm.id, firmRole: 'ADMIN', firmName: name, intakeSlug: recruiterSlug },
   })
 
-  captureServerEvent(ctx.recruiter.id, 'talent_firm_created', { recruiterId: ctx.recruiter.id, firmId: firm.id, claimedExisting: !!byName })
+  captureServerEvent(ctx.recruiter.id, 'talent_firm_created', { recruiterId: ctx.recruiter.id, firmId: firm.id })
   revalidatePath('/recruiters/talent')
   redirect('/recruiters/talent/setup')
 }
@@ -141,24 +140,47 @@ export async function inviteRecruiterToFirm(_prev: TalentFormState, formData: Fo
     update: { role, acceptedAt: null },
   })
 
-  // Already has a recruiter login: join them now; the email just tells them.
-  if (existingRecruiter) {
-    await prisma.recruiter.update({
-      where: { id: existingRecruiter.id },
-      data: {
-        recruiterFirmId: ctx.firm.id,
-        firmRole: role,
-        firmName: ctx.firm.name,
-        intakeSlug: existingRecruiter.intakeSlug ?? (slugify(existingRecruiter.fullName) || null),
-      },
-    })
-    await prisma.recruiterFirmInvite.update({ where: { id: invite.id }, data: { acceptedAt: new Date() } })
+  // An existing recruiter is never moved by someone else's invite: joining a
+  // firm points their intake candidates at that firm's admins, so it takes
+  // their own accept click (acceptFirmInvite). Their email gets a link that
+  // goes straight to it; new people get the signup link as before.
+  const sent = await sendRecruiterFirmInvite({
+    to: email,
+    firmName: ctx.firm.name,
+    inviterName: ctx.recruiter.fullName,
+    token: invite.token,
+    ...(existingRecruiter ? { existingAccount: true } : {}),
+  })
+  captureServerEvent(ctx.recruiter.id, 'talent_recruiter_invited', { firmId: ctx.firm.id, role, existingAccount: !!existingRecruiter, emailSent: sent.sent })
+  revalidatePath('/recruiters/talent/setup')
+  return { success: existingRecruiter ? `Invite sent to ${email}. They join when they accept it.` : `Invite sent to ${email}.` }
+}
+
+// The signed-in recruiter accepts an invitation addressed to their own work
+// email. Both halves are checked here, not in the page: the invite must be
+// for this recruiter's address, and they must not already be on a firm.
+export async function acceptFirmInvite(token: string): Promise<TalentFormState> {
+  const ctx = await getTalentContext()
+  if (ctx.firm) return { error: 'You already belong to a firm.' }
+  const invite = await prisma.recruiterFirmInvite.findUnique({ where: { token }, include: { firm: { select: { id: true, name: true } } } })
+  if (!invite || invite.acceptedAt) return { error: 'This invitation is no longer valid.' }
+  if (invite.email.toLowerCase() !== ctx.recruiter.workEmail.toLowerCase()) {
+    return { error: `This invitation was sent to ${invite.email}. Log in with that address to accept it.` }
   }
 
-  const sent = await sendRecruiterFirmInvite({ to: email, firmName: ctx.firm.name, inviterName: ctx.recruiter.fullName, token: invite.token })
-  captureServerEvent(ctx.recruiter.id, 'talent_recruiter_invited', { firmId: ctx.firm.id, role, joinedImmediately: !!existingRecruiter, emailSent: sent.sent })
-  revalidatePath('/recruiters/talent/setup')
-  return { success: existingRecruiter ? `${email} joined your team.` : `Invite sent to ${email}.` }
+  await prisma.recruiter.update({
+    where: { id: ctx.recruiter.id },
+    data: {
+      recruiterFirmId: invite.firmId,
+      firmRole: invite.role,
+      firmName: invite.firm.name,
+      intakeSlug: ctx.recruiter.intakeSlug ?? (slugify(ctx.recruiter.fullName) || null),
+    },
+  })
+  await prisma.recruiterFirmInvite.update({ where: { id: invite.id }, data: { acceptedAt: new Date() } })
+  captureServerEvent(ctx.recruiter.id, 'talent_firm_invite_accepted', { recruiterId: ctx.recruiter.id, firmId: invite.firmId, role: invite.role })
+  revalidatePath('/recruiters/talent')
+  redirect('/recruiters/talent')
 }
 
 export async function changeMemberRole(recruiterId: string, role: RecruiterFirmRole) {

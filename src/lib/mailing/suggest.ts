@@ -17,6 +17,7 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   HIGHER_ED_EXEC_ED: 'leads',
   HIGHER_ED_ADMIN: 'leads',
   OUTPLACEMENT_BUYER: 'leads',
+  LEARNING_DEV_HEAD: 'leads',
   COACH_PROSPECT: 'ecosystem',
   RECRUITER_PROSPECT: 'ecosystem',
   FRIENDS_FAMILY: 'friends_family',
