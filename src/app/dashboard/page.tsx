@@ -29,6 +29,7 @@ import {
 } from '@/lib/weekly/sprint'
 import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
+import { EngagementCard } from '@/components/dashboard/EngagementCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
@@ -275,6 +276,10 @@ export default async function DashboardPage() {
       {journeyNow && stageNow && checkInDue(profile) && (
         <JourneyCheckInCard journeyLabel={getJourney(journeyNow).label} stageLabel={getStage(stageNow).label} />
       )}
+
+      <Suspense fallback={null}>
+        <EngagementCard candidateId={profile.id} />
+      </Suspense>
 
       <PageHeaderBoxes
         pageKey="dashboard"

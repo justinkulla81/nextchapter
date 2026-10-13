@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import SearchCheckInEmail from '@/emails/search-checkin'
+import { getEngagementLead } from '@/lib/journey/engagement-data'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // Creates the CandidateSearchCheckIn row (and its token) up front, then
 // deletes it again if the send itself fails — the no-login response link
@@ -32,6 +34,8 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
     const linkFor = (answer: string) => `${appUrl}/api/checkin/${checkIn.token}?answer=${answer}`
 
+    const engagement = await getEngagementLead(candidateId).catch(() => null)
+
     const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
@@ -41,6 +45,8 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
       react: SearchCheckInEmail({
         firstName: candidate.firstName,
         introCopy: introCopy ?? null,
+        engagement,
+        appUrl,
         stillSearchingUrl: linkFor('still_searching'),
         takingABreakUrl: linkFor('taking_a_break'),
         gotAnOfferUrl: linkFor('got_an_offer'),
@@ -56,6 +62,14 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
     }
 
     await recordCandidateEmailSent(candidateId, 'SEARCH_CHECKIN')
+    if (engagement) {
+      captureServerEvent(candidateId, 'engagement_lead_emailed', {
+        email: 'SEARCH_CHECKIN',
+        level: engagement.level,
+        steps: engagement.steps.map((x) => x.key),
+        gate: engagement.gate?.headline ?? null,
+      })
+    }
 
     return { sent: true as const }
   } catch (error) {

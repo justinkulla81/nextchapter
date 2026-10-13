@@ -154,13 +154,16 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   general: T[],
   driver: MoveDriver | null = null,
   weeksInStage = 0,
+  // What this member's real results and connections call for (engagement.ts):
+  // the next unlock and, in a stalled search, what to try instead. Goes first.
+  engagement: PlanItem[] = [],
 ): (T | PlanItem)[] {
   if (stage === 'PAUSED') return []
   const allowApply = !stage || ACTIVE_SEARCH_STAGES.includes(stage)
   const out: (T | PlanItem)[] = []
   const types = new Set<string>()
   const texts = new Set<string>()
-  for (const item of [...journeyPlanItems(journey, stage, weekNumber, driver), ...gateItems(stage, weeksInStage), ...general]) {
+  for (const item of [...engagement, ...journeyPlanItems(journey, stage, weekNumber, driver), ...gateItems(stage, weeksInStage), ...general]) {
     if (!allowApply && item.actionType && APPLICATION_ACTION_TYPES.includes(item.actionType)) continue
     if (item.actionType ? types.has(item.actionType) : texts.has(item.text)) continue
     if (item.actionType) types.add(item.actionType)

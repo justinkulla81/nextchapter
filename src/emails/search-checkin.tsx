@@ -1,6 +1,10 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import EngagementBlock from '@/emails/engagement-block'
+import type { EngagementLead } from '@/lib/journey/engagement'
 
 interface SearchCheckInEmailProps {
+  engagement?: EngagementLead | null
+  appUrl?: string
   firstName: string | null
   introCopy?: string | null
   stillSearchingUrl: string
@@ -50,6 +54,8 @@ const footer: React.CSSProperties = {
 // form. See overlap with Sunday's Finish Line email, which now carries the
 // old "week in review" content this replaces on Saturday.
 export default function SearchCheckInEmail({
+  engagement = null,
+  appUrl = '',
   firstName,
   introCopy,
   stillSearchingUrl,
@@ -69,6 +75,8 @@ export default function SearchCheckInEmail({
         layoff or a new job? Update your situation in NextChapter.
       </p>
       {introCopy && <p>{introCopy}</p>}
+
+      <EngagementBlock lead={engagement} appUrl={appUrl} />
 
       <a href={stillSearchingUrl} style={primaryButton}>
         Nothing yet

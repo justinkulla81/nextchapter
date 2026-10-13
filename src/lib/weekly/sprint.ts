@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
+import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -259,9 +260,13 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }),
   ])
   if (!p) return general
+  // What this member's connections and results call for comes first. When a
+  // search is stalled the engagement gate picks the new things to try from the
+  // real pattern, so the time-only gates are skipped (weeksInStage 0).
+  const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
-  const weeksInStage = Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage)
+  const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
+  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement)
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {

@@ -12,6 +12,8 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
+import { loadAffiliations } from '@/lib/affiliations/load'
+import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
@@ -40,6 +42,7 @@ const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short'
 
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
+  const affiliations = await loadAffiliations(profile.id)
   const params = await searchParams
   const [emailConn, calendarConn] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
@@ -104,6 +107,8 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         </div>
         <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} />
       </div>
+
+      <AffiliationVisibilityCard affiliations={affiliations} />
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

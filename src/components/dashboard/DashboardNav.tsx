@@ -41,6 +41,8 @@ import {
   MessageSquare,
   type LucideIcon,
 } from 'lucide-react'
+import { connectReason } from '@/lib/journey/engagement'
+import { normalizeJourney, type JourneyType } from '@/lib/journey/journey'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 
@@ -98,17 +100,18 @@ function buildSections(
   isEarlyCareer: boolean | null,
   isActiveMember: boolean,
   helpRepliesWaiting: number,
-  newStrongCompaniesCount: number
+  newStrongCompaniesCount: number,
+  journey: JourneyType | null
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
-    : { muted: true, disabled: true, lockReason: GMAIL_LOCK_REASON }
+    : { muted: true, disabled: true, lockReason: `Unlocks once you connect Gmail. ${connectReason(journey, 'gmail')} Connect on your Privacy page.` }
   const linkedInLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = linkedInConnected
     ? {}
     : {
         muted: true,
         disabled: true,
-        lockReason: 'Unlocks once you connect LinkedIn — we can then analyze your network for the right people to reach out to. Connect on your Profile page.',
+        lockReason: `Unlocks once you connect LinkedIn. ${connectReason(journey, 'linkedin')} Connect on your Profile page.`,
       }
   const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = skillsAssessmentCompleted
     ? {}
@@ -127,6 +130,23 @@ function buildSections(
       title: null,
       links: [{ href: '/dashboard', label: 'Success Dashboard (Homepage)', icon: Home }],
     },
+    // People growing where they are (or going for a promotion) get the tools for
+    // that first: know your worth, prove your results, build skills, practice
+    // the hard conversation. Job-search tools stay below for when that changes.
+    ...(journey && ['GROWING', 'PROMOTION'].includes(normalizeJourney(journey))
+      ? [
+          {
+            title: 'Grow in your job',
+            links: [
+              { href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
+              { href: '/dashboard/track-record', label: 'Prove your results', icon: ClipboardCheck },
+              { href: '/dashboard/learning', label: 'Build new skills', icon: BookOpen, ...skillsLock },
+              { href: '/dashboard/interview-prep', label: 'Practice the hard conversation', icon: MessageCircle },
+              { href: '/dashboard/how-i-perform', label: 'Know how you work', icon: User },
+            ],
+          },
+        ]
+      : []),
     {
       title: 'Connecting',
       links: [
@@ -274,6 +294,7 @@ function NavContent({
   isActiveMember,
   helpRepliesWaiting,
   newStrongCompaniesCount,
+  journey,
   collapsedSections,
   onToggleSection,
 }: {
@@ -291,6 +312,7 @@ function NavContent({
   isActiveMember: boolean
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
+  journey: JourneyType | null
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -307,7 +329,8 @@ function NavContent({
     isEarlyCareer,
     isActiveMember,
     helpRepliesWaiting,
-    newStrongCompaniesCount
+    newStrongCompaniesCount,
+    journey
   )
 
   return (
@@ -434,9 +457,6 @@ const MOBILE_TABS = [
   { href: '/dashboard/profile', label: 'Profile', icon: User },
 ] as const
 
-const GMAIL_LOCK_REASON =
-  'Unlocks once you connect Gmail — we can then track your outreach and application cadence automatically. Connect on your Profile page.'
-
 export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
@@ -450,6 +470,7 @@ export function DashboardNav({
   isActiveMember = false,
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
+  journey = null,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -463,6 +484,7 @@ export function DashboardNav({
   isActiveMember?: boolean
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
+  journey?: JourneyType | null
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -511,6 +533,7 @@ export function DashboardNav({
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
+          journey={journey}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -548,7 +571,7 @@ export function DashboardNav({
               <div
                 key={tab.href}
                 aria-disabled="true"
-                title={GMAIL_LOCK_REASON}
+                title={`Unlocks once you connect Gmail. ${connectReason(journey, 'gmail')} Connect on your Privacy page.`}
                 className="flex flex-1 cursor-not-allowed flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted-foreground/60"
               >
                 <span className="relative">
@@ -618,6 +641,7 @@ export function DashboardNav({
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
+              journey={journey}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />
