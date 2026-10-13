@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { agencyFromSamPath, isLive, isRelevant, meaningfulDeadline, parseUsDate, titleScore, toLead, type FundingNotice } from '@/lib/funding-opportunities/relevance'
+import { audienceOf, agencyFromSamPath, isLive, isRelevant, meaningfulDeadline, parseUsDate, titleScore, toLead, type FundingNotice } from '@/lib/funding-opportunities/relevance'
 import { noticesFromHits } from '@/lib/funding-opportunities/grants-gov'
 import { noticesFromSam } from '@/lib/funding-opportunities/sam-gov'
 
@@ -103,6 +103,22 @@ describe('noticesFromSam', () => {
     const out = noticesFromSam({ '561311': [opp], '541612': [opp] })
     expect(out).toHaveLength(1)
     expect([...out[0].matched].sort()).toEqual(['NAICS 541612', 'NAICS 561311'])
+  })
+})
+
+describe('audience', () => {
+  it('tags grants as for customers to win and solicitations as ours to bid', () => {
+    expect(audienceOf('GRANT')).toBe('CUSTOMERS')
+    expect(audienceOf('FORECAST')).toBe('CUSTOMERS')
+    expect(audienceOf('RFP')).toBe('US')
+    expect(audienceOf('RFI')).toBe('US')
+  })
+  it('carries the tag into the CRM note', () => {
+    const grant = toLead(notice(), NOW)
+    expect(grant.trigger.headline).toMatch(/^\[For customers to win\]/)
+    expect(grant.why).toMatch(/Workforce boards, states and nonprofits can apply/)
+    const rfp = toLead(notice({ source: 'sam.gov', kind: 'RFP' }), NOW)
+    expect(rfp.trigger.headline).toMatch(/^\[For us to bid\]/)
   })
 })
 

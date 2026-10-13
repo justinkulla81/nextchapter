@@ -74,6 +74,22 @@ export interface FundingNotice {
   contact: { fullName: string; title: string | null; email: string | null; phone: string | null } | null
 }
 
+/**
+ * Who can win it. A grant is awarded to states, workforce boards, colleges and
+ * nonprofits — our customers and partners — so we file it as one for them to
+ * win and a reason to call them. A solicitation or RFI is ours to bid on.
+ */
+export type Audience = 'CUSTOMERS' | 'US'
+
+export function audienceOf(kind: NoticeKind): Audience {
+  return kind === 'GRANT' || kind === 'FORECAST' ? 'CUSTOMERS' : 'US'
+}
+
+const AUDIENCE_TAG: Record<Audience, string> = {
+  CUSTOMERS: 'For customers to win',
+  US: 'For us to bid',
+}
+
 const KIND_LABEL: Record<NoticeKind, string> = {
   GRANT: 'Grant open',
   FORECAST: 'Grant forecast',
@@ -149,7 +165,7 @@ export function toLead(n: FundingNotice, now: Date): P0Lead {
   return {
     trigger: {
       kind: 'RFP',
-      headline: `${KIND_LABEL[n.kind]} — ${n.title}`.slice(0, 280),
+      headline: `[${AUDIENCE_TAG[audienceOf(n.kind)]}] ${KIND_LABEL[n.kind]} — ${n.title}`.slice(0, 280),
       sourceUrl: n.url,
       publishedAt: n.postedAt,
       state: n.state,
@@ -157,13 +173,13 @@ export function toLead(n: FundingNotice, now: Date): P0Lead {
       city: n.city,
       employees: null,
       deadline,
-      summary: `${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} ${n.id}. Matched: ${n.matched.join(', ')}.`,
+      summary: `${AUDIENCE_TAG[audienceOf(n.kind)]}. ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} ${n.id}. Matched: ${n.matched.join(', ')}.`,
     },
     org: { name: n.agency, type: n.agencyType, website: null, city: n.city, state: n.state },
     person: n.contact
       ? { fullName: n.contact.fullName, title: n.contact.title, linkedinUrl: null, email: n.contact.email, role: 'GRANTS', quote: null, phone: n.contact.phone }
       : null,
     p0: false,
-    why: `${KIND_LABEL[n.kind]} on ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} in our subject area${deadline ? `, closes ${deadline.toISOString().slice(0, 10)}` : ''}.`,
+    why: `${KIND_LABEL[n.kind]} on ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} in our subject area${deadline ? `, closes ${deadline.toISOString().slice(0, 10)}` : ''}. ${audienceOf(n.kind) === 'CUSTOMERS' ? 'Workforce boards, states and nonprofits can apply: a reason to call them, not a bid for us.' : 'A contract we could bid on.'}`,
   }
 }
