@@ -133,7 +133,7 @@ strongest.
 ### Coaching
 | Activity | Pts | Stages | Why |
 |---|---|---|---|
-| Talk to Victoria; daily check-in | 3 | All | The one who has read everything; tone set by you |
+| Daily mood check-in (3); talk to Victoria (no points) | 3 | All | The one who has read everything; tone set by you |
 | Book a coaching session | n/a | Applying (gate at week 9), Managing | A person who sees what the data cannot |
 | Pitch practice with a coach | 20 | Interviewing | Practice with feedback |
 
@@ -198,7 +198,7 @@ Seven principles. Every move below follows from one of them.
 |---|---|---|---|
 | Week 1 kickoff | Day 1 after registration | New members | Sets the tone and the first week |
 | Registration reminder | Daily until done | Finished the assessment, never confirmed | The report is waiting |
-| Daily action ("your one thing") | Daily | Active searchers (not casual, not managing/landed job emails) | One concrete step; reset framing after 3 days without a check-in |
+| Daily action ("your one thing") | Daily | Everyone except casual searchers | One concrete step; reset framing after 3 days without a check-in |
 | Monday "your new week is set" | Monday | All with a prior week | Last week, this week's target and plan, plus the unlock block |
 | Midweek check-in | Midweek | Active searchers | Course-correct before Friday |
 | Friday gap nudge | Friday | Active searchers behind target | Close the gap, plus the unlock block |
