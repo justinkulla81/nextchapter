@@ -27,6 +27,7 @@ import { StatTile } from './StatTile'
 import { RegionScreen } from './RegionScreen'
 import { OutcomesScreen } from './OutcomesScreen'
 import { MentorsScreen } from './MentorsScreen'
+import { MentorStatsScreen } from './MentorStatsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
 import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
@@ -1170,6 +1171,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
   'candidate:mentors': MentorsScreen,
   'alumni:home': AlumniHome,
+  'alumni:mentors': MentorStatsScreen,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentHome,
   'development:transition': DevelopmentTransition,

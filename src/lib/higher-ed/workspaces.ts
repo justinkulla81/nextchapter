@@ -85,7 +85,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'layoffs', label: 'Layoff alerts', comingIn: 'HE-08' },
       { key: 'outreach', label: 'Outreach', comingIn: 'HE-08' },
-      { key: 'mentors', label: 'Mentors', comingIn: 'HE-09' },
+      { key: 'mentors', label: 'Mentors', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: 'HE-07' },
     ],
   },

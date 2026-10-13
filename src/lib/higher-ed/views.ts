@@ -241,6 +241,54 @@ export async function getOutcomesByBucket(ctx: Ctx, db: Db = prisma): Promise<Ou
     where "institutionId" = ${ctx.institution.id}`
 }
 
+export type MentorStats = {
+  activeMentors: number
+  requestsThisMonth: number
+  acceptedThisMonth: number
+  completedThisMonth: number
+  completedAllTime: number
+  topIndustries: { tag: string; mentors: number }[]
+  topFunctions: { tag: string; mentors: number }[]
+}
+
+const MENTOR_STAFF_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'VIEWER:alumni']
+const MIN_TAG_MENTORS = 3 // a tag with fewer mentors could point at one person
+
+// Alumni Relations "Mentors" tab. Counts only: no mentor or requester names, no
+// request notes. Tags shown only when at least three mentors share them.
+export async function getMentorStats(ctx: Ctx, db: Db = prisma): Promise<MentorStats> {
+  assertHolds(ctx, MENTOR_STAFF_ROLES, 'mentor stats')
+  const institutionId = ctx.institution.id
+  const now = new Date()
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const [mentors, requests, completedAllTime] = await Promise.all([
+    db.institutionMentor.findMany({ where: { institutionId, isActive: true }, select: { industries: true, functions: true } }),
+    db.mentorRequest.findMany({ where: { mentor: { institutionId }, requestedAt: { gte: monthStart } }, select: { status: true } }),
+    db.mentorRequest.count({ where: { mentor: { institutionId }, status: 'COMPLETED' } }),
+  ])
+  const tally = (key: 'industries' | 'functions') => {
+    const m = new Map<string, { tag: string; mentors: number }>()
+    for (const x of mentors) {
+      for (const t of new Set(x[key].map((v) => v.toLowerCase()))) {
+        const original = x[key].find((v) => v.toLowerCase() === t) ?? t
+        const e = m.get(t) ?? { tag: original, mentors: 0 }
+        e.mentors += 1
+        m.set(t, e)
+      }
+    }
+    return [...m.values()].filter((e) => e.mentors >= MIN_TAG_MENTORS).sort((a, b) => b.mentors - a.mentors).slice(0, 6)
+  }
+  return {
+    activeMentors: mentors.length,
+    requestsThisMonth: requests.length,
+    acceptedThisMonth: requests.filter((r) => r.status === 'ACCEPTED' || r.status === 'COMPLETED').length,
+    completedThisMonth: requests.filter((r) => r.status === 'COMPLETED').length,
+    completedAllTime,
+    topIndustries: tally('industries'),
+    topFunctions: tally('functions'),
+  }
+}
+
 export type AlumniHomeCounts = { members: number; claimed: number; activeSeats: number; inTransition: number }
 
 // Alumni Relations home (spec §5.2). Roster counts are the college's own
