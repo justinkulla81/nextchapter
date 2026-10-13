@@ -100,9 +100,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'ROI dashboard', comingIn: null },
       { key: 'transition', label: 'In transition', comingIn: null },
-      { key: 'signals', label: 'Signals', comingIn: 'HE-10' },
-      { key: 'fund', label: 'Resilience Fund', comingIn: 'HE-10' },
-      { key: 'crm', label: 'CRM exchange', comingIn: 'HE-05' },
+      { key: 'signals', label: 'Signals', comingIn: null },
+      { key: 'fund', label: 'Resilience Fund', comingIn: null },
+      { key: 'crm', label: 'CRM exchange', comingIn: null },
     ],
   },
   {

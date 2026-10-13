@@ -28,7 +28,10 @@ export function LayoffInbox({ slug, groups, isDemo, readOnly }: { slug: string; 
   const toggle = (ids: string[], on: boolean) =>
     setPicked((p) => {
       const n = new Set(p)
-      for (const id of ids) (on ? n.add(id) : n.delete(id))
+      for (const id of ids) {
+        if (on) n.add(id)
+        else n.delete(id)
+      }
       return n
     })
   const run = (fn: () => Promise<{ error?: string; message?: string }>) =>

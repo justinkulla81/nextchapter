@@ -336,3 +336,95 @@ export async function getJourneyMix(ctx: Ctx, db: Db = prisma): Promise<{ mix: J
   })
   return { mix, total: rows.length }
 }
+
+// ── Development › Signals (HE-10) ───────────────────────────────────────────
+
+export type SignalRow = {
+  id: string
+  kind: 'PROMOTION_VP_PLUS' | 'NEW_EMPLOYER_MATCHING_GIFT' | 'EXIT' | 'GRATITUDE'
+  memberId: string
+  firstName: string | null
+  lastName: string | null
+  classYear: number | null
+  employer: string | null // null unless SHARE_OUTCOME
+  title: string | null
+  detectedAt: Date
+  approvedAt: Date | null
+  doNotSolicit: boolean // an open transition flag: no asks until it clears
+}
+
+// Prospect flags waiting (not dismissed or exported) and gratitude asks
+// pending approval. Prospect flags are raised only for members who share
+// their outcome; the gratitude ask exists only because the alum said the
+// college helped. Employer and title still come through the directory view.
+export async function listSignals(ctx: Ctx, db: Db = prisma): Promise<SignalRow[]> {
+  assertHolds(ctx, ROI_ROLES, 'signals')
+  const id = ctx.institution.id
+  return db.$queryRaw<SignalRow[]>`
+    select * from (
+      select f.id, f.type::text as kind, f."memberId", d."firstName", d."lastName", d."classYear", d.employer, d.title,
+             f."detectedAt", f."approvedAt", (t."flagId" is not null and t."doNotSolicit") as "doNotSolicit"
+      from public."ProspectFlag" f
+      join private.v_member_directory d on d."memberId" = f."memberId"
+      left join private.v_member_transition t on t."memberId" = f."memberId"
+      where f."institutionId" = ${id} and f."dismissedAt" is null and f."exportedAt" is null
+      union all
+      select o.id, 'GRATITUDE' as kind, o."memberId", d."firstName", d."lastName", d."classYear", d.employer, d.title,
+             o."reportedAt" as "detectedAt", null as "approvedAt", (t."flagId" is not null and t."doNotSolicit") as "doNotSolicit"
+      from public."OutcomeReport" o
+      join private.v_member_directory d on d."memberId" = o."memberId"
+      left join private.v_member_transition t on t."memberId" = o."memberId"
+      where d."institutionId" = ${id} and o."gratitudeStatus" = 'PENDING'
+    ) s
+    order by "detectedAt" desc`
+}
+
+// ── CRM updates export (spec §9) ────────────────────────────────────────────
+
+export type UpdatesExportRow = {
+  external_id: string | null
+  email: string
+  employer: string | null
+  title: string | null
+  start_date: Date | null
+  in_transition: boolean
+  do_not_solicit: boolean
+  prospect_flag: string | null
+  engagement_tier: string | null
+  last_active: Date | null
+}
+
+// One row per alum the college has a CRM id for. Employer, title and start
+// date only with SHARE_OUTCOME; tier and last active only with
+// SHARE_ENGAGEMENT; the prospect flag only once Development approved it.
+export async function updatesExportRows(ctx: Ctx, db: Db = prisma): Promise<UpdatesExportRow[]> {
+  assertHolds(ctx, ['INSTITUTION_ADMIN', 'DEVELOPMENT'], 'the CRM updates export')
+  const id = ctx.institution.id
+  return db.$queryRaw<UpdatesExportRow[]>`
+    select m."externalId" as external_id, m.email,
+      d.employer, d.title,
+      case when d."shareOutcome" then (select me."startDate" from public."MemberEmployment" me
+        where me."candidateId" = m."candidateId" and me."isCurrent" order by me."updatedAt" desc limit 1) end as start_date,
+      (t."flagId" is not null and t.state = 'IN_TRANSITION') as in_transition,
+      coalesce(t."doNotSolicit", false) as do_not_solicit,
+      (select f.type::text from public."ProspectFlag" f where f."memberId" = m.id and f."approvedAt" is not null and f."dismissedAt" is null
+        order by f."approvedAt" desc limit 1) as prospect_flag,
+      case when d."shareEngagement" then d."engagementTier" end as engagement_tier,
+      case when d."shareEngagement" then (select max(e."occurredAt") from public."EngagementEvent" e where e."memberId" = m.id) end as last_active
+    from public."InstitutionMember" m
+    join private.v_member_directory d on d."memberId" = m.id
+    left join private.v_member_transition t on t."memberId" = m.id
+    where m."institutionId" = ${id} and m."externalId" is not null
+    order by m."externalId"`
+}
+
+// Suppression list: everyone with an open do-not-solicit flag, for the
+// CRM's no-ask code. No reason, no source.
+export async function suppressionRows(ctx: Ctx, db: Db = prisma) {
+  assertHolds(ctx, TRANSITION_ROLES, 'the suppression list')
+  return db.$queryRaw<{ external_id: string | null; email: string; first_name: string | null; last_name: string | null; since: Date; grace_ends: Date | null }[]>`
+    select m."externalId" as external_id, m.email, t."firstName" as first_name, t."lastName" as last_name, t.since, t."graceEndsAt" as grace_ends
+    from private.v_member_transition t join public."InstitutionMember" m on m.id = t."memberId"
+    where t."institutionId" = ${ctx.institution.id} and t."doNotSolicit"
+    order by t.since`
+}

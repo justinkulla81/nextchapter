@@ -183,7 +183,18 @@ export type ImportState =
 const MAX_CSV_BYTES = 10 * 1024 * 1024
 
 export async function uploadCrmFile(slug: string, kind: 'roster' | 'gifts', _prev: ImportState, formData: FormData): Promise<ImportState> {
-  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  return runCrmImport(await requireWorkspace(slug, 'admin', { write: true }), kind, formData)
+}
+
+// Development uploads gifts from its own CRM exchange tab.
+export async function uploadGiftsFromDevelopment(slug: string, _prev: ImportState, formData: FormData): Promise<ImportState> {
+  const ctx = await requireWorkspace(slug, 'development', { write: true })
+  if (!ctx.tokens.has('DEVELOPMENT') && !ctx.tokens.has('INSTITUTION_ADMIN')) return { error: 'Only Development or a college admin can upload gifts.' }
+  return runCrmImport(ctx, 'gifts', formData)
+}
+
+async function runCrmImport(ctx: WorkspaceContext, kind: 'roster' | 'gifts', formData: FormData): Promise<ImportState> {
+  const slug = ctx.institution.slug
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) return { error: 'Choose a CSV file.' }
   if (file.size > MAX_CSV_BYTES) return { error: 'That file is over 10MB. Split it and upload the parts.' }

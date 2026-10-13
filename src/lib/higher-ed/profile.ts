@@ -14,6 +14,9 @@ export type InstitutionProfile = {
   heroImageUrl?: string
   tagline?: string
   college?: {
+    // The federal IPEDS unit id: links the college to its CollegeProfile
+    // record for the peer benchmark (College Scorecard / IPEDS data).
+    unitid?: string
     shortName?: string
     city?: string
     state?: string // two-letter

@@ -62,6 +62,7 @@ export const WASHJEFF_TENANT: DemoTenant = {
   },
   profile: {
     college: {
+      unitid: '216667',
       shortName: 'W&J',
       city: 'Washington',
       state: 'PA',

@@ -57,6 +57,9 @@ export async function WaitingForYou({ ctx, office, base }: Props & { office: 'al
 
 // ── Alumni Relations › Layoff alerts ────────────────────────────────────────
 
+const DAY = 86_400_000
+const daysAgo = (n: number) => new Date(new Date().getTime() - n * DAY)
+
 export async function AlumniLayoffs({ ctx }: Props) {
   const id = ctx.institution.id
   const [fresh, recent] = await Promise.all([
@@ -70,7 +73,7 @@ export async function AlumniLayoffs({ ctx }: Props) {
       orderBy: [{ matchedAt: 'desc' }],
     }),
     prisma.layoffMatch.findMany({
-      where: { institutionId: id, outreachStatus: 'SENT', updatedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
+      where: { institutionId: id, outreachStatus: 'SENT', updatedAt: { gte: daysAgo(90) } },
       select: { id: true, warnNotice: { select: { employer: true } }, outreachSend: { select: { sentAt: true, clickedAt: true, claimedAt: true } } },
     }),
   ])

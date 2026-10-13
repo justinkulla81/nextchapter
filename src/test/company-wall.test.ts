@@ -137,6 +137,9 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/higher-ed/demo-seed.ts': "not the CRM: writes crmExchangeRun, a college's CSV import log (Higher Ed)",
     'src/lib/higher-ed/crm-import.ts': "not the CRM: writes crmExchangeRun, a college's CSV import log (Higher Ed)",
     'src/components/higher-ed/screens.tsx': "not the CRM: lists crmExchangeRun, a college's CSV import history, to that college's admin",
+    'src/components/higher-ed/screens-development.tsx': "not the CRM: lists crmExchangeRun, a college's CSV import/export history, to that college's Development office",
+    'src/app/i/[slug]/export/[kind]/route.ts': "not the CRM: logs crmExchangeRun for a college's own CSV export (Higher Ed)",
+    'src/lib/higher-ed/roi.ts': "not the CRM: reads crmExchangeRun for the college's last gift import date (Higher Ed)",
     'src/lib/institution/admin.ts': 'admin-only: creates a college workspace and its CRM college record',
   }
 

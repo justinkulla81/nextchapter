@@ -14,7 +14,6 @@ import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import {
   getAlumniHomeCounts,
   getJourneyMix,
-  getRoiInputs,
   listCaseloadActivity,
   listEmployerDossiers,
   listMemberDirectory,
@@ -41,6 +40,7 @@ import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
+import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
 import { CareerStatusCard } from './CareerStatusCard'
 import { PrivacyPanel } from './PrivacyPanel'
@@ -50,6 +50,7 @@ import { CollegeSettingsForm } from './CollegeSettingsForm'
 import { listProfileViews } from '@/lib/higher-ed/audit'
 import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
+import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
@@ -156,6 +157,11 @@ async function CandidateHome({ ctx }: ScreenProps) {
     : null
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
+  // "Give back" only for a joined alum who isn't between jobs or in their
+  // quiet period, and only when the college has a giving page.
+  const giving = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { givingUrl: true } })
+  const fund = giving?.givingUrl ? await activeFund(ctx.institution.id) : null
+  const showGiveBack = !!ctx.memberId && !!giving?.givingUrl && (!openFlag || openFlag.state === 'CLEARED')
   return (
     <div className="space-y-6">
       {hero && (
@@ -210,6 +216,20 @@ async function CandidateHome({ ctx }: ScreenProps) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+      {showGiveBack && (
+        <section aria-labelledby="give-back" className="rounded-lg border border-border bg-card p-4">
+          <h2 id="give-back" className="text-base font-semibold">
+            Give back
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {fund ? `${fund.name}: ${fund.description ?? 'coaching for alumni between jobs'}.` : `Help the next ${ctx.institution.name} alum through a hard stretch.`}
+          </p>
+          <a href={`/i/${ctx.institution.slug}/give`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            Make a gift
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </a>
         </section>
       )}
       {career && (
@@ -368,38 +388,16 @@ function TransitionTable({ rows }: { rows: Awaited<ReturnType<typeof listOpenTra
 
 // ── Development ─────────────────────────────────────────────────────────────
 
-async function DevelopmentHome({ ctx }: ScreenProps) {
-  const [roi, signals] = await Promise.all([
-    getRoiInputs(ctx),
-    prisma.prospectFlag.count({ where: { institutionId: ctx.institution.id, dismissedAt: null, exportedAt: null } }),
-  ])
-  if (!roi) return null
-  const dollars = Number(roi.giftCents) / 100
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatTile label="Members" value={roi.memberCount.toLocaleString()} />
-        <StatTile label="Claimed" value={roi.claimedCount.toLocaleString()} />
-        <StatTile label="Active seats" value={roi.activeSeatCount.toLocaleString()} />
-        <StatTile label="In transition" value={roi.openFlagCount.toLocaleString()} />
-        <StatTile label="Gifts imported" value={roi.giftCount.toLocaleString()} />
-        <StatTile label="Gift dollars imported" value={dollars.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })} />
-        <StatTile label="Prospect signals waiting" value={signals.toLocaleString()} note="VP-and-up promotions and new employers (matching-gift checks)" />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        As of last gift import: {fmtDate(roi.lastGiftImportAt) ?? 'none yet'}. Giving rate, lift and donor counts by fiscal year arrive in HE-10.
-      </p>
-    </div>
-  )
-}
-
 async function DevelopmentTransition({ ctx }: ScreenProps) {
   const rows = await listOpenTransitions(ctx)
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Members with an open transition flag. Reasons, sources and search details are never shown here. One-click suppression-list export arrives in HE-10.
+        Members with an open transition flag: no fundraising asks until it clears. Reasons, sources and search details are never shown here.
       </p>
+      <a href={`/i/${ctx.institution.slug}/export/suppression`} download className="inline-block text-sm font-medium text-primary hover:underline">
+        Download the do-not-solicit list (CSV)
+      </a>
       <TransitionTable rows={rows} />
     </div>
   )
@@ -676,6 +674,7 @@ async function CareerCoaching(props: ScreenProps) {
 // Candidate › Coaching: members choose and book coaches in the NextChapter
 // candidate portal; this points them there and shows their college's coaches.
 async function CandidateCoaching({ ctx }: ScreenProps) {
+  const award = ctx.memberId ? await memberAward(ctx.memberId) : null
   const coaches = await prisma.coach.findMany({
     where: { institutionId: ctx.institution.id },
     orderBy: { fullName: 'asc' },
@@ -687,6 +686,12 @@ async function CandidateCoaching({ ctx }: ScreenProps) {
         One-to-one coaching from {ctx.institution.name}&apos;s own coaches and NextChapter&apos;s. Answer a few questions and we&apos;ll suggest
         the best fit, with your college&apos;s coaches first.
       </p>
+      {award?.status === 'AWARDED' && (
+        <p className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm" role="status">
+          Prepaid: your {award.awardType === 'COACHING_PACKAGE' ? 'coaching package' : 'premium seat'} is covered by {award.fund.name}, from{' '}
+          {ctx.institution.name} donors.
+        </p>
+      )}
       <Button nativeButton={false} render={<Link href="/dashboard/coaching-match" />}>
         Choose a coach
       </Button>
@@ -1098,7 +1103,16 @@ async function SettingsOverview({ ctx }: ScreenProps) {
             <dd className="text-sm font-medium break-words">{v}</dd>
           </div>
         ))}
+        <div>
+          <dt className="text-xs text-muted-foreground">Public alumni page (link it from your website)</dt>
+          <dd className="text-sm font-medium break-words">
+            <Link href={`/i/${i.slug}/for-alumni`} target="_blank" className="text-primary hover:underline">
+              /i/{i.slug}/for-alumni
+            </Link>
+          </dd>
+        </div>
       </dl>
+      <PeerBenchmarkCard ctx={ctx} />
       <CollegeSettingsForm
         action={saveCollegeSettings.bind(null, i.slug)}
         canEdit={ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly}
@@ -1209,7 +1223,10 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:home': AlumniHome,
   'alumni:mentors': MentorStatsScreen,
   'alumni:members': AlumniMembers,
-  'development:home': DevelopmentHome,
+  'development:home': DevelopmentRoi,
+  'development:signals': DevelopmentSignals,
+  'development:fund': DevelopmentFund,
+  'development:crm': DevelopmentCrm,
   'development:transition': DevelopmentTransition,
   'career:home': CareerCaseload,
   'career:outcomes': OutcomesScreen,

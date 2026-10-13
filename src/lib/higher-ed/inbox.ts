@@ -49,7 +49,7 @@ const OFFICE_NAMES: Record<Office, string> = { alumni: 'Alumni Relations', caree
 // Monday's email to each office: only when something is waiting, only to
 // real colleges (a demo never emails staff). An office with no one in its
 // role goes to the college admins instead.
-export async function sendWeeklyDigests(now = new Date()): Promise<{ emails: number; colleges: number }> {
+export async function sendWeeklyDigests(): Promise<{ emails: number; colleges: number }> {
   const colleges = await prisma.institution.findMany({
     where: { isDemo: false },
     select: { id: true, slug: true, name: true, users: { where: { acceptedAt: { not: null }, revokedAt: null }, select: { invitedEmail: true, role: true } } },
