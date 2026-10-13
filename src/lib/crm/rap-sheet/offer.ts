@@ -7,6 +7,13 @@ import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendOfferEmail, sendOfferProblemEmail, type OfferRow } from './email'
 
+/** Day-job domain: its attendees are never prep candidates and never belong in the CRM. */
+const EXCLUDED_ATTENDEE_DOMAINS = ['errigal.com']
+const isExcludedAttendee = (email: string) => {
+  const domain = email.trim().toLowerCase().split('@')[1] ?? ''
+  return EXCLUDED_ATTENDEE_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))
+}
+
 /** [start, end) of an Eastern-time calendar day, `offsetDays` from today. */
 export function easternDayBounds(offsetDays: number, now = new Date()): { from: Date; to: Date } {
   const ymd = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
@@ -58,7 +65,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
   const seen = new Set<string>()
   for (const ev of events) {
     for (const a of ev.attendees) {
-      if (!a.email) continue
+      if (!a.email || isExcludedAttendee(a.email)) continue
       const v = classifyParticipant(a.email, ctx)
       if (v.kind === 'unknown') { if (!seen.has(a.email)) { seen.add(a.email); unknown.push({ email: a.email, name: a.displayName, at: ev.start }) } continue }
       if (v.kind !== 'crm' || seen.has(v.personId)) continue
