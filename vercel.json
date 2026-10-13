@@ -3,11 +3,11 @@
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
   "crons": [
     {
-      "path": "/api/cron/rap-sheet-offer",
+      "path": "/api/cron/meeting-prep-offer",
       "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/rap-sheet-send",
+      "path": "/api/cron/meeting-prep-send",
       "schedule": "30 10 * * *"
     },
     {

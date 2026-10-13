@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import MarketDigestRecruiterEmail from '@/emails/market-digest-recruiter'
 import type { MarketConditions } from '@/lib/market/types'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
@@ -18,7 +18,7 @@ export async function sendMarketDigestRecruiterEmail(
   const portalUrl = `${appUrl}/recruiters/dashboard`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/recruiter/${recruiter.id}`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
@@ -75,7 +75,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     jobs.length === 1 ? `Just posted: ${jobs[0].title}` : `${jobs.length} roles that fit you were just posted`,
     candidate.confidentialSearchMode
   )
-  const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
+  const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to,

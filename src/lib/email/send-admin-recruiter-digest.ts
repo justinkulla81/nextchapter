@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import AdminRecruiterDigestEmail from '@/emails/admin-recruiter-digest'
 
 export async function sendAdminRecruiterDigestEmail(
@@ -24,7 +24,7 @@ export async function sendAdminRecruiterDigestEmail(
   const adminUrl = `${appUrl}/support/admin/recruiter-database`
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',

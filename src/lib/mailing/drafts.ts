@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { appUrl, editionCounts, syncEditionRoster } from './editions'
@@ -109,7 +109,7 @@ export async function requestApprovals(): Promise<number> {
       `Subject: ${escapeHtml(e.subject || '(none yet)')}<br>To: ${listNames} · ${c.total} ${c.total === 1 ? 'person' : 'people'}</li>`,
     )
   }
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     to: settings.testEmail,

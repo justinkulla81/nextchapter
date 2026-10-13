@@ -4,7 +4,7 @@
 // before upserting. Event-triggered, not part of the CandidateEmailKey
 // daily rotation, same precedent as send-grade-calibrated-up-email.ts.
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BadgeEarnedEmail from '@/emails/badge-earned'
 
@@ -28,7 +28,7 @@ export async function sendBadgeEarnedEmail(
   const statsUrl = `${appUrl}/dashboard/stats`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

@@ -4,7 +4,7 @@
 // outbox) and the link works for testing.
 
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 
 const BATCH = 100
@@ -60,7 +60,7 @@ ${inst.name} Alumni Relations`
     data: { institutionId: args.institutionId, type: 'WELCOME', subject, body, createdBy: args.createdBy, sentAt: new Date() },
     select: { id: true },
   })
-  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
 
   let sent = 0
   for (const m of members) {

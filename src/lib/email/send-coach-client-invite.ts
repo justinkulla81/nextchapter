@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import CoachClientInviteEmail from '@/emails/coach-client-invite'
 
 export async function sendCoachClientInviteEmail(
@@ -14,7 +14,7 @@ export async function sendCoachClientInviteEmail(
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,

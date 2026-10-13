@@ -3,10 +3,10 @@ import type Anthropic from '@anthropic-ai/sdk'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { gatherRapSheetContext } from './context'
-import type { RapSheetContent } from './types'
+import { gatherMeetingPrepContext } from './context'
+import type { MeetingPrepContent } from './types'
 
-export const RAP_SHEET_MODEL = 'claude-haiku-4-5-20251001'
+export const MEETING_PREP_MODEL = 'claude-haiku-4-5-20251001'
 const MAX_SEARCHES = 5
 const MAX_CONTINUATIONS = 3
 // The briefing is a large JSON object; 4000 tokens truncated it mid-object on news-heavy prospects.
@@ -27,12 +27,12 @@ Rules:
 When research is done, reply with ONLY one JSON object (no prose, no code fence) with exactly this shape:
 {"headline": string, "whoTheyAre": string, "relationship": string[], "local": {"summary": string, "points": string[]}, "layoffs": {"summary": string, "items": [{"employer": string, "detail": string, "date": string|null, "sourceUrl": string|null}]}, "initiatives": [{"name": string, "detail": string, "sourceUrl": string|null}], "whiteCollar": [{"metric": string, "value": string, "context": string, "sourceUrl": string|null}], "pitch": {"angle": string, "howItHelps": string[], "openingLine": string, "objections": [{"objection": string, "response": string}], "ask": string}, "caveats": string[], "sources": [{"title": string, "url": string}]}`
 
-export function parseRapSheet(raw: string): RapSheetContent | null {
+export function parseMeetingPrep(raw: string): MeetingPrepContent | null {
   const start = raw.indexOf('{')
   const end = raw.lastIndexOf('}')
   if (start < 0 || end <= start) return null
   try {
-    const j = JSON.parse(raw.slice(start, end + 1)) as Partial<RapSheetContent>
+    const j = JSON.parse(raw.slice(start, end + 1)) as Partial<MeetingPrepContent>
     if (!j.headline || !j.pitch || !j.local || !j.layoffs) return null
     return {
       headline: j.headline, whoTheyAre: j.whoTheyAre ?? '', relationship: j.relationship ?? [],
@@ -62,8 +62,8 @@ export function describeParseFailure(stopReason: string | null | undefined, raw:
 }
 
 /** Research and write one Meeting Prep. This is the metered step: one Claude call with up to MAX_SEARCHES web searches, plus one cheap no-search retry if the reply can't be parsed. */
-export async function buildRapSheetContent(personId: string, meeting: { title: string | null; at: Date | null }): Promise<RapSheetContent> {
-  const ctx = await gatherRapSheetContext(personId)
+export async function buildMeetingPrepContent(personId: string, meeting: { title: string | null; at: Date | null }): Promise<MeetingPrepContent> {
+  const ctx = await gatherMeetingPrepContext(personId)
   const when = meeting.at ? meeting.at.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'short' }) + ' ET' : 'upcoming'
   const messages: Anthropic.MessageParam[] = [{
     role: 'user',
@@ -76,27 +76,27 @@ export async function buildRapSheetContent(personId: string, meeting: { title: s
   let stopReason: string | null = null
   let lastContent: Anthropic.ContentBlock[] = []
   for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
-    const res = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
+    const res = await client.messages.create({ model: MEETING_PREP_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
     text = res.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
     stopReason = res.stop_reason
     lastContent = res.content
     if (res.stop_reason !== 'pause_turn') break
     messages.push({ role: 'assistant', content: res.content })
   }
-  const parsed = parseRapSheet(text)
+  const parsed = parseMeetingPrep(text)
   if (parsed) return parsed
 
   // Retry once without more searching: the research is already in the conversation, so ask for the JSON alone.
-  console.error('[rap-sheet] unparseable reply, retrying', { personId, stopReason, head: text.slice(0, 300) })
+  console.error('[meeting-prep] unparseable reply, retrying', { personId, stopReason, head: text.slice(0, 300) })
   if (lastContent.length > 0) {
     messages.push({ role: 'assistant', content: lastContent })
     messages.push({
       role: 'user',
       content: 'Do not search again. Using the research above, reply with ONLY the complete JSON object in the required shape: no prose, no code fence. Keep every string concise so the whole object fits.',
     })
-    const retry = await client.messages.create({ model: RAP_SHEET_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
+    const retry = await client.messages.create({ model: MEETING_PREP_MODEL, max_tokens: MAX_TOKENS, system: SYSTEM, tools, messages })
     const retryText = retry.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
-    const retryParsed = parseRapSheet(retryText)
+    const retryParsed = parseMeetingPrep(retryText)
     if (retryParsed) return retryParsed
     throw new Error(describeParseFailure(retry.stop_reason, retryText))
   }
@@ -104,11 +104,11 @@ export async function buildRapSheetContent(personId: string, meeting: { title: s
 }
 
 /** Build (or rebuild) the sheet row's content. Never throws; failures land on the row. */
-export async function generateRapSheet(sheetId: string): Promise<{ ok: boolean; error?: string }> {
-  const sheet = await prisma.crmRapSheet.findUniqueOrThrow({ where: { id: sheetId } })
+export async function generateMeetingPrep(sheetId: string): Promise<{ ok: boolean; error?: string }> {
+  const sheet = await prisma.crmMeetingPrep.findUniqueOrThrow({ where: { id: sheetId } })
   try {
-    const content = await buildRapSheetContent(sheet.personId, { title: sheet.meetingTitle, at: sheet.meetingAt })
-    await prisma.crmRapSheet.update({
+    const content = await buildMeetingPrepContent(sheet.personId, { title: sheet.meetingTitle, at: sheet.meetingAt })
+    await prisma.crmMeetingPrep.update({
       where: { id: sheetId },
       data: { content: content as object, generatedAt: new Date(), status: 'READY', error: null },
     })
@@ -116,7 +116,7 @@ export async function generateRapSheet(sheetId: string): Promise<{ ok: boolean; 
     return { ok: true }
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e)
-    await prisma.crmRapSheet.update({ where: { id: sheetId }, data: { status: 'FAILED', error } })
+    await prisma.crmMeetingPrep.update({ where: { id: sheetId }, data: { status: 'FAILED', error } })
     captureServerEvent('admin', 'rap_sheet_failed', { sheetId, personId: sheet.personId, error })
     return { ok: false, error }
   }

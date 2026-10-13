@@ -7,7 +7,7 @@ import { parseReferenceFormData } from '@/lib/references/parse-reference-form'
 import { sendLayoffContextAlertEmail } from '@/lib/email/send-layoff-context-alert'
 import EmployerReferenceInviteEmail from '@/emails/employer-reference-invite'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import type { ReferenceFormState } from '@/components/references/ReferenceSubmissionForm'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
@@ -24,7 +24,7 @@ async function sendInviteEmail(input: {
     return
   }
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: input.employeeEmail,

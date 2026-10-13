@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { RapSheetDecision, RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
+import { MeetingPrepDecision, MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
 
 export const maxDuration = 30
 
@@ -10,11 +10,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 const when = (d: Date | null) => (d ? d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET' : 'No meeting time')
 
-export default async function RapSheetsPage() {
+export default async function MeetingPrepsPage() {
   await requireAdmin()
   const horizon = new Date()
   horizon.setHours(horizon.getHours() - 36)
-  const sheets = await prisma.crmRapSheet.findMany({
+  const sheets = await prisma.crmMeetingPrep.findMany({
     where: { OR: [{ meetingAt: { gte: horizon } }, { meetingAt: null, createdAt: { gte: horizon } }, { status: 'READY' }] },
     orderBy: [{ meetingAt: 'asc' }], take: 60,
     include: { person: { select: { id: true, fullName: true, affiliations: { select: { org: { select: { name: true } } }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }], take: 1 } } } },
@@ -43,11 +43,11 @@ export default async function RapSheetsPage() {
                 {s.person.affiliations[0] && <span className="text-sm text-muted-foreground">, {s.person.affiliations[0].org.name}</span>}
                 <p className="text-sm text-muted-foreground">{when(s.meetingAt)}{s.meetingTitle ? ` · ${s.meetingTitle}` : ''} · {STATUS_LABEL[s.status]}{s.emailedAt ? ' · emailed' : ''}</p>
                 {s.error && <p className="text-sm text-red-700">{s.error}</p>}
-                {s.content && <Link href={`/support/admin/crm/rap-sheets/${s.id}`} className="text-sm underline">View Meeting Prep</Link>}
+                {s.content && <Link href={`/support/admin/crm/meeting-prep/${s.id}`} className="text-sm underline">View Meeting Prep</Link>}
               </div>
               <div className="flex flex-col items-end gap-2">
-                {s.status !== 'READY' && s.status !== 'FAILED' && <RapSheetDecision sheetId={s.id} personId={s.person.id} status={s.status} />}
-                <RapSheetGenerateButton personId={s.person.id} sheetId={s.id} label={s.content ? 'Rebuild and email now' : 'Build and email now'} />
+                {s.status !== 'READY' && s.status !== 'FAILED' && <MeetingPrepDecision sheetId={s.id} personId={s.person.id} status={s.status} />}
+                <MeetingPrepGenerateButton personId={s.person.id} sheetId={s.id} label={s.content ? 'Rebuild and email now' : 'Build and email now'} />
               </div>
             </li>
           ))}

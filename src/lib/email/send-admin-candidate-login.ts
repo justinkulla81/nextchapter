@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import AdminCandidateLoginEmail from '@/emails/admin-candidate-login'
@@ -23,7 +23,7 @@ export async function notifyAdminOfCandidateLogin(candidateId: string, ip: strin
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: adminEmail,

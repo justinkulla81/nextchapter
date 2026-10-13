@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { offerTomorrowsPitches } from '@/lib/crm/rap-sheet/offer'
+import { offerTomorrowsPitches } from '@/lib/crm/meeting-prep/offer'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
@@ -10,6 +10,6 @@ export async function GET(request: NextRequest) {
   }
   const result = await offerTomorrowsPitches()
   // Vercel only logs the request line; the result is what tells a quiet night from a failure.
-  console.log('rap-sheet-offer', JSON.stringify(result))
+  console.log('meeting-prep-offer', JSON.stringify(result))
   return NextResponse.json(result)
 }

@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import InterimRoleCheckInEmail from '@/emails/interim-role-check-in'
 
@@ -21,7 +21,7 @@ export async function sendInterimRoleCheckInEmail(
   const stillActiveUrl = `${appUrl}/api/interim-check-in/${entry.id}?response=active`
   const endedUrl = `${appUrl}/api/interim-check-in/${entry.id}?response=ended`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

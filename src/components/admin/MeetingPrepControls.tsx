@@ -4,15 +4,15 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
-import { decideRapSheet } from '@/app/support/admin/(portal)/crm/rap-sheets/actions'
+import { decideMeetingPrep } from '@/app/support/admin/(portal)/crm/meeting-prep/actions'
 
 /** Include / Skip as adjacent buttons; the current choice is the filled one. */
-export function RapSheetDecision({ sheetId, personId, status }: { sheetId: string; personId: string; status: string }) {
+export function MeetingPrepDecision({ sheetId, personId, status }: { sheetId: string; personId: string; status: string }) {
   const [pending, start] = useTransition()
   const choose = (d: 'APPROVED' | 'SKIPPED') =>
     start(async () => {
       posthog.capture('rap_sheet_decision_made', { sheetId, personId, decision: d })
-      await decideRapSheet(sheetId, d)
+      await decideMeetingPrep(sheetId, d)
     })
   return (
     <div className={`flex gap-2 ${pending ? 'cursor-wait' : ''}`} role="group" aria-label="Meeting Prep decision">
@@ -27,7 +27,7 @@ export function RapSheetDecision({ sheetId, personId, status }: { sheetId: strin
 }
 
 /** Builds the sheet now (about a minute or two) and emails it. */
-export function RapSheetGenerateButton({ personId, sheetId, label }: { personId: string; sheetId?: string; label: string }) {
+export function MeetingPrepGenerateButton({ personId, sheetId, label }: { personId: string; sheetId?: string; label: string }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -35,7 +35,7 @@ export function RapSheetGenerateButton({ personId, sheetId, label }: { personId:
     setBusy(true); setMsg(null)
     posthog.capture('rap_sheet_generate_clicked', { personId, sheetId: sheetId ?? null })
     try {
-      const res = await fetch('/api/admin/crm/rap-sheets/generate', {
+      const res = await fetch('/api/admin/crm/meeting-prep/generate', {
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ personId, sheetId }),
       })
       const j = (await res.json()) as { error?: string; emailed?: boolean }

@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -39,7 +39,7 @@ async function sendSurgeOutreachEmail(coachEmail: string, fullName: string, note
     return false
   }
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: coachEmail,

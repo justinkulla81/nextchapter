@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 
 /** Where new help requests are emailed. Override with HELP_FORWARD_TO. */
@@ -25,7 +25,7 @@ async function send(args: { to: string; subject: string; html: string; text: str
     return false
   }
   try {
-    const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({ from: FROM, ...args })
+    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({ from: FROM, ...args })
     if (error) { console.error('Help email failed:', error); return false }
     return true
   } catch (e) {

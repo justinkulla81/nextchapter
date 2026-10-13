@@ -1,10 +1,10 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { ADMIN_NOTIFICATION_EMAIL } from '@/lib/admin/auth'
-import type { RapSheetContent, RapSheetMeta } from './types'
+import type { MeetingPrepContent, MeetingPrepMeta } from './types'
 
 const APP = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-export const rapSheetRecipient = () => ADMIN_NOTIFICATION_EMAIL
+export const meetingPrepRecipient = () => ADMIN_NOTIFICATION_EMAIL
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const when = (d: Date | null) => (d ? d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' ET' : '')
@@ -13,7 +13,7 @@ const h = (t: string) => `<h2 style="font-size:15px;margin:22px 0 6px;color:#111
 const ul = (items: string[]) => (items.length ? `<ul style="margin:4px 0 0;padding-left:18px">${items.map((i) => `<li style="margin:3px 0">${i}</li>`).join('')}</ul>` : '')
 const wrap = (inner: string) => `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:640px">${inner}</div>`
 
-export function renderRapSheetHtml(c: RapSheetContent, m: RapSheetMeta): string {
+export function renderMeetingPrepHtml(c: MeetingPrepContent, m: MeetingPrepMeta): string {
   const none = '<p style="margin:4px 0;color:#666">Nothing found.</p>'
   return wrap(`
     <p style="margin:0;color:#666;font-size:12px">${esc(when(m.meetingAt))}${m.meetingTitle ? ` · ${esc(m.meetingTitle)}` : ''}</p>
@@ -40,8 +40,8 @@ export function renderRapSheetHtml(c: RapSheetContent, m: RapSheetMeta): string 
 async function send(subject: string, html: string): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) { console.warn('RESEND_API_KEY is not set — skipping Meeting Prep email.'); return false }
   try {
-    const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
-      from: 'NextChapter <support@launchyournextchapter.com>', to: rapSheetRecipient(), subject, html,
+    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+      from: 'NextChapter <support@launchyournextchapter.com>', to: meetingPrepRecipient(), subject, html,
     })
     if (error) { console.error('Meeting Prep email failed:', error); return false }
     return true
@@ -51,14 +51,14 @@ async function send(subject: string, html: string): Promise<boolean> {
   }
 }
 
-export const sendRapSheetEmail = (c: RapSheetContent, m: RapSheetMeta) =>
-  send(`Meeting Prep: ${m.personName}${m.orgName ? ` (${m.orgName})` : ''}${m.meetingAt ? ` — ${when(m.meetingAt)}` : ''}`, renderRapSheetHtml(c, m))
+export const sendMeetingPrepEmail = (c: MeetingPrepContent, m: MeetingPrepMeta) =>
+  send(`Meeting Prep: ${m.personName}${m.orgName ? ` (${m.orgName})` : ''}${m.meetingAt ? ` — ${when(m.meetingAt)}` : ''}`, renderMeetingPrepHtml(c, m))
 
 export interface OfferRow { personId: string; personName: string; orgName: string | null; title: string | null; at: Date; role: string | null }
 
 /** The night-before email: tomorrow's pitches, with one button to choose which get Meeting Prep. */
 export function sendOfferEmail(rows: OfferRow[], unknown: { email: string; name: string | null; at: Date }[]): Promise<boolean> {
-  const url = `${APP()}/support/admin/crm/rap-sheets`
+  const url = `${APP()}/support/admin/crm/meeting-prep`
   const items = rows.map((r) => `<b>${esc(r.personName)}</b>${r.orgName ? `, ${esc(r.orgName)}` : ''} · ${esc(when(r.at))}${r.title ? ` · ${esc(r.title)}` : ''}`)
   const miss = unknown.map((u) => `${esc(u.name || u.email)} (${esc(u.email)}) · ${esc(when(u.at))}`)
   return send('Prep for tomorrow', wrap(`

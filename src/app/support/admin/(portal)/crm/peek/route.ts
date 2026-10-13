@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         // Enough for a few whole email threads to collapse into one row each.
         orderBy: { occurredAt: 'desc' }, take: 40,
       },
-      rapSheets: {
+      meetingPreps: {
         where: { content: { not: Prisma.DbNull } },
         orderBy: { generatedAt: 'desc' }, take: 1,
         select: { id: true, meetingTitle: true, meetingAt: true },
@@ -111,8 +111,8 @@ export async function GET(req: NextRequest) {
     // The goal follows the contact type until one is picked by hand, so an
     // untouched record still shows what its type implies.
     goals: person.goals.length > 0 ? person.goals : goalsForRoles(person.roles),
-    rapSheet: person.rapSheets[0]
-      ? { href: `/support/admin/crm/rap-sheets/${person.rapSheets[0].id}`, label: person.rapSheets[0].meetingTitle ?? (person.rapSheets[0].meetingAt ? `Meeting ${formatDate(person.rapSheets[0].meetingAt)}` : 'Meeting Prep') }
+    meetingPrep: person.meetingPreps[0]
+      ? { href: `/support/admin/crm/meeting-prep/${person.meetingPreps[0].id}`, label: person.meetingPreps[0].meetingTitle ?? (person.meetingPreps[0].meetingAt ? `Meeting ${formatDate(person.meetingPreps[0].meetingAt)}` : 'Meeting Prep') }
       : null,
     phone: person.phone,
     company: primaryOrg

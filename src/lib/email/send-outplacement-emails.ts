@@ -1,12 +1,13 @@
 import 'server-only'
-import { Resend } from 'resend'
+import type { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import OutplacementSeatInviteEmail from '@/emails/outplacement-seat-invite'
 import OutplacementSeatLinkedEmail from '@/emails/outplacement-seat-linked'
 import OutplacementOrgInviteEmail from '@/emails/outplacement-org-invite'
 
 function resendClient(): Resend | null {
   if (!process.env.RESEND_API_KEY) return null
-  return new Resend(process.env.RESEND_API_KEY)
+  return createResend(process.env.RESEND_API_KEY)
 }
 
 export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string) {

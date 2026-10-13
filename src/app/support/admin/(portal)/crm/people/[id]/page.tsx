@@ -19,7 +19,7 @@ import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
-import { RapSheetGenerateButton } from '@/components/admin/RapSheetControls'
+import { MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { groupEmailChains, latestReplyOnly } from '@/lib/crm/email-thread'
@@ -56,7 +56,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       // Only the origin file name is shown from these.
       sourceRecords: { orderBy: { importedAt: 'asc' }, select: { sourceFile: true } },
       researchItems: { select: { id: true, title: true, url: true, keyClaim: true, stance: true } },
-      rapSheets: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 5, select: { id: true, generatedAt: true, meetingTitle: true } },
+      meetingPreps: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 5, select: { id: true, generatedAt: true, meetingTitle: true } },
       introPathsAsTarget: {
         include: { connectorPerson: { select: { id: true, fullName: true } } },
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
@@ -434,11 +434,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           Local layoffs, initiatives, white-collar metrics and a tailored pitch for a meeting with {person.fullName.split(' ')[0]}, emailed to you.
           Costs about $0.30–1.00 per build.
         </p>
-        {person.rapSheets.length > 0 && (
+        {person.meetingPreps.length > 0 && (
           <ul className="divide-y divide-border rounded-lg border border-border">
-            {person.rapSheets.map((r) => (
+            {person.meetingPreps.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <Link href={`/support/admin/crm/rap-sheets/${r.id}`} className="font-medium underline">
+                <Link href={`/support/admin/crm/meeting-prep/${r.id}`} className="font-medium underline">
                   {r.meetingTitle || 'Meeting Prep'}
                 </Link>
                 <span className="text-xs text-muted-foreground">Built {r.generatedAt ? formatDate(r.generatedAt) : '—'}</span>
@@ -446,7 +446,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
             ))}
           </ul>
         )}
-        <RapSheetGenerateButton personId={person.id} label={person.rapSheets[0] ? 'Rebuild Meeting Prep and email me' : 'Build Meeting Prep and email me'} />
+        <MeetingPrepGenerateButton personId={person.id} label={person.meetingPreps[0] ? 'Rebuild Meeting Prep and email me' : 'Build Meeting Prep and email me'} />
       </section>
 
       <section className="space-y-3">

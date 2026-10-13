@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestCandidateEmail from '@/emails/market-digest-candidate'
 import type { MarketConditions } from '@/lib/market/types'
@@ -26,7 +26,7 @@ export async function sendMarketDigestCandidateEmail(
   const dashboardUrl = `${appUrl}/dashboard`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/candidate/${candidate.id}`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

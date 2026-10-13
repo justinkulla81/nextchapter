@@ -1,7 +1,7 @@
-export interface RapSheetSource { title: string; url: string }
+export interface MeetingPrepSource { title: string; url: string }
 
 /** The briefing itself. Every field is optional-safe: a thin research result renders as "nothing found", never as invented detail. */
-export interface RapSheetContent {
+export interface MeetingPrepContent {
   headline: string
   whoTheyAre: string
   relationship: string[]
@@ -17,10 +17,10 @@ export interface RapSheetContent {
     ask: string
   }
   caveats: string[]
-  sources: RapSheetSource[]
+  sources: MeetingPrepSource[]
 }
 
-export interface RapSheetMeta {
+export interface MeetingPrepMeta {
   personId: string
   personName: string
   orgName: string | null

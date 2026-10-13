@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getVictoriaName } from '@/lib/victoria'
@@ -82,7 +82,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
 
     const weeklyRecap = !isReset ? await buildWeeklyRecap(candidateId) : null
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',

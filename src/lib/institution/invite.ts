@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { Resend } from 'resend'
+import type { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import type { InstitutionUserRole } from '@prisma/client'
 import { ROLE_LABEL } from '@/lib/institution/permissions'
 import { linkCollegeCoach } from '@/lib/higher-ed/coaching'
 
 function resendClient(): Resend | null {
-  return process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+  return process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
 }
 
 function appUrl(): string {

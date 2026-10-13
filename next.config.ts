@@ -44,6 +44,18 @@ const nextConfig: NextConfig = {
         destination: '/dashboard/market-reality',
         permanent: true,
       },
+      // Meeting Prep used to live under /crm/rap-sheets; links in already-sent
+      // briefing emails still point there.
+      {
+        source: '/support/admin/crm/rap-sheets/:path*',
+        destination: '/support/admin/crm/meeting-prep/:path*',
+        permanent: true,
+      },
+      {
+        source: '/support/admin/crm/rap-sheets',
+        destination: '/support/admin/crm/meeting-prep',
+        permanent: true,
+      },
       {
         source: '/crucible/:path*',
         destination: '/noexperience/:path*',

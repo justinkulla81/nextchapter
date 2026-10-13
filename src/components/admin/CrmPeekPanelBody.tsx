@@ -29,7 +29,7 @@ interface Peek {
   email?: string | null
   phone?: string | null
   location?: string | null
-  rapSheet?: { href: string; label: string } | null
+  meetingPrep?: { href: string; label: string } | null
   awaitingReply?: boolean
   meeting?: string | null
   nextChapter?: NextChapterAccountInfo
@@ -123,8 +123,8 @@ export function CrmPeekPanelBody({ initial }: { initial?: { id: string; kind: 'p
               {data?.linkedinUrl && (
                 <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-4">LinkedIn</a>
               )}
-              {data?.rapSheet && (
-                <Link href={data.rapSheet.href} className="text-primary underline underline-offset-4" title={data.rapSheet.label}>Meeting Prep</Link>
+              {data?.meetingPrep && (
+                <Link href={data.meetingPrep.href} className="text-primary underline underline-offset-4" title={data.meetingPrep.label}>Meeting Prep</Link>
               )}
             </div>
           </div>
@@ -205,7 +205,7 @@ export function CrmPeekPanelBody({ initial }: { initial?: { id: string; kind: 'p
                     <dd className="mt-0.5 break-words">
                       {f.value}
                       {f.label === 'Last contacted' && (data.meeting ? (
-                        <MeetingChip meeting={data.meeting} href={data.rapSheet?.href} />
+                        <MeetingChip meeting={data.meeting} href={data.meetingPrep?.href} />
                       ) : data.awaitingReply && (
                         <span className="ml-1.5 inline-block rounded-full bg-orange/15 px-1.5 py-0.5 text-xs font-medium text-orange">
                           Waiting on them

@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import PortfolioAccessRequestEmail from '@/emails/portfolio-access-request'
 
 export async function sendPortfolioAccessRequestEmail(
@@ -14,7 +14,7 @@ export async function sendPortfolioAccessRequestEmail(
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: candidateEmail,

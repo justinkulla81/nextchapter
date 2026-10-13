@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import AdminNudgeEmail from '@/emails/admin-nudge'
 
 export async function sendAdminNudgeEmail(params: {
@@ -14,7 +14,7 @@ export async function sendAdminNudgeEmail(params: {
     return { sent: false, error: 'Email sending is not configured (missing RESEND_API_KEY).' }
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

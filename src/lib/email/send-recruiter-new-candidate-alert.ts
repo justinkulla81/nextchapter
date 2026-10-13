@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import RecruiterNewCandidateAlertEmail from '@/emails/recruiter-new-candidate-alert'
 
 export async function sendRecruiterNewCandidateAlertEmail(
@@ -16,7 +16,7 @@ export async function sendRecruiterNewCandidateAlertEmail(
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/recruiter/${recruiter.id}?type=candidate-alert`
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',

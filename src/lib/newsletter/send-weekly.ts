@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
 
@@ -37,7 +37,7 @@ export async function sendWeeklyNewsletter(
   const candidateEmails = new Set(candidates.map((c) => c.email?.toLowerCase()))
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   let sent = 0
   for (const s of subscribers) {
     if (candidateEmails.has(s.email)) continue

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
 import { layoffSignalsFor, LAYOFF_WINDOW_MONTHS } from '@/lib/crm/layoff-signals'
 
-export interface RapSheetContext {
+export interface MeetingPrepContext {
   personId: string
   personName: string
   orgId: string | null
@@ -15,7 +15,7 @@ export interface RapSheetContext {
 const fmt = (d: Date | null | undefined) => (d ? d.toISOString().slice(0, 10) : 'unknown')
 
 /** Everything we already hold about a prospect — free to gather, and the model is told to treat it as ground truth. */
-export async function gatherRapSheetContext(personId: string): Promise<RapSheetContext> {
+export async function gatherMeetingPrepContext(personId: string): Promise<MeetingPrepContext> {
   const person = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: personId },
     include: {

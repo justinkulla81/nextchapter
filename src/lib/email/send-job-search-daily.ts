@@ -1,5 +1,6 @@
 import 'server-only'
-import { Resend } from 'resend'
+import type { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
@@ -95,7 +96,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   const sendId = crypto.randomUUID()
   const tracked = options.toOverride ? content : wrapHrefs(content, (url) => buildClickUrl(appUrl, sendId, url))
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { data: sendData, error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

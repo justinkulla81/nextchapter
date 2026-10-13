@@ -6,7 +6,7 @@
 // comes from the calibration check itself (one check per candidate per
 // week, only ever bandCrossed+OVER once per real cross).
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import GradeCalibratedUpEmail from '@/emails/grade-calibrated-up'
 import type { Grade } from '@/lib/scoring/grade'
@@ -30,7 +30,7 @@ export async function sendGradeCalibratedUpEmail(
   const marketRealityReportUrl = `${appUrl}/dashboard/market-reality`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

@@ -1,6 +1,6 @@
 import 'server-only'
 import type { ReactElement } from 'react'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import {
   IntakeApprovalDigestEmail,
   IntakeClaimReminderEmail,
@@ -52,7 +52,7 @@ async function send({
     return { sent: false, error: 'email not configured' }
   }
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send(
       {
         from: `${safeName(fromName)} <${FROM_ADDRESS}>`,

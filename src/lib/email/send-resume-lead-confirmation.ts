@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import ResumeLeadConfirmationEmail from '@/emails/resume-lead-confirmation'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 
@@ -14,7 +14,7 @@ export async function sendResumeLeadConfirmationEmail(
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,

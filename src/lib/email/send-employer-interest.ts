@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import EmployerInterestEmail from '@/emails/employer-interest'
 
 export async function sendEmployerInterestEmail(
@@ -13,7 +13,7 @@ export async function sendEmployerInterestEmail(
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: candidateEmail,

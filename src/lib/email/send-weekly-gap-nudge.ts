@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
@@ -26,7 +26,7 @@ export async function sendWeeklyGapNudgeEmail(
 
   const pointsToGo = Math.max(0, weeklyPointsTarget - weeklyPoints)
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

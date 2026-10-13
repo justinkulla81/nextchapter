@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGoalAssignedEmail from '@/emails/weekly-goal-assigned'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
@@ -68,7 +68,7 @@ export async function sendWeeklyGoalAssignedEmail(
   const targetDelta = thisWeekTarget - lastWeekTarget
   const gapSummary = buildGapSummary(grade, weeklySprintsCount, laggingEngines)
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

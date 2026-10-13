@@ -8,9 +8,9 @@ vi.mock('@/lib/crm/sync', () => ({ buildSweepContext: vi.fn() }))
 vi.mock('@/lib/google/admin-calendar', () => ({ listCalendarEvents: vi.fn() }))
 vi.mock('@/lib/webinars/admin-calendar-oauth', () => ({ getValidAdminAccessToken: vi.fn() }))
 
-import { easternDayBounds, isNoMeetingNight } from '@/lib/crm/rap-sheet/offer'
-import { describeParseFailure, parseRapSheet } from '@/lib/crm/rap-sheet/generate'
-import { renderRapSheetHtml } from '@/lib/crm/rap-sheet/email'
+import { easternDayBounds, isNoMeetingNight } from '@/lib/crm/meeting-prep/offer'
+import { describeParseFailure, parseMeetingPrep } from '@/lib/crm/meeting-prep/generate'
+import { renderMeetingPrepHtml } from '@/lib/crm/meeting-prep/email'
 
 describe('easternDayBounds', () => {
   it('spans a 24h EDT day starting 04:00Z', () => {
@@ -30,13 +30,13 @@ const sample = {
   pitch: { angle: 'a', howItHelps: ['x'], openingLine: 'o', objections: [], ask: 'k' }, caveats: [], sources: [],
 }
 
-describe('parseRapSheet', () => {
+describe('parseMeetingPrep', () => {
   it('parses JSON wrapped in prose', () => {
-    expect(parseRapSheet(`Here you go:\n${JSON.stringify(sample)}\nDone`)?.headline).toBe('h')
+    expect(parseMeetingPrep(`Here you go:\n${JSON.stringify(sample)}\nDone`)?.headline).toBe('h')
   })
   it('rejects output missing the pitch', () => {
-    expect(parseRapSheet('{"headline":"h"}')).toBeNull()
-    expect(parseRapSheet('no json')).toBeNull()
+    expect(parseMeetingPrep('{"headline":"h"}')).toBeNull()
+    expect(parseMeetingPrep('no json')).toBeNull()
   })
 })
 
@@ -53,9 +53,9 @@ describe('describeParseFailure', () => {
   })
 })
 
-describe('renderRapSheetHtml', () => {
+describe('renderMeetingPrepHtml', () => {
   it('escapes model text and drops non-http source links', () => {
-    const html = renderRapSheetHtml(
+    const html = renderMeetingPrepHtml(
       { ...sample, headline: '<script>x</script>', initiatives: [{ name: 'n', detail: 'd', sourceUrl: 'javascript:alert(1)' }] },
       { personId: 'p', personName: 'Kelly Gold', orgName: null, meetingTitle: null, meetingAt: null },
     )

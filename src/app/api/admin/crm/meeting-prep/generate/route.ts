@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { deliverRapSheet } from '@/lib/crm/rap-sheet/deliver'
+import { deliverMeetingPrep } from '@/lib/crm/meeting-prep/deliver'
 
 // Research with web search can run for a couple of minutes.
 export const maxDuration = 300
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       select: { id: true, nextMeetingAt: true, affiliations: { select: { orgId: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }], take: 1 } },
     })
     if (!person) return NextResponse.json({ error: 'No such person.' }, { status: 404 })
-    const sheet = await prisma.crmRapSheet.create({
+    const sheet = await prisma.crmMeetingPrep.create({
       data: {
         personId: person.id, orgId: person.affiliations[0]?.orgId ?? null, meetingAt: person.nextMeetingAt,
         status: 'APPROVED', offeredAt: new Date(), decidedAt: new Date(),
@@ -32,10 +32,10 @@ export async function POST(request: Request) {
     })
     sheetId = sheet.id
   } else {
-    await prisma.crmRapSheet.update({ where: { id: sheetId }, data: { decidedAt: new Date(), status: 'APPROVED' } })
+    await prisma.crmMeetingPrep.update({ where: { id: sheetId }, data: { decidedAt: new Date(), status: 'APPROVED' } })
   }
 
-  const result = await deliverRapSheet(sheetId, { rebuild: true })
+  const result = await deliverMeetingPrep(sheetId, { rebuild: true })
   captureServerEvent('admin', 'rap_sheet_generate_requested', { sheetId, personId: body.personId ?? null, ok: result.ok })
   if (!result.ok) return NextResponse.json({ error: result.error ?? 'Could not build the Meeting Prep.', sheetId }, { status: 502 })
   return NextResponse.json({ sheetId, emailed: result.emailed })

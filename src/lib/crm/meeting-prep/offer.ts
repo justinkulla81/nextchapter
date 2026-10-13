@@ -77,7 +77,7 @@ export async function offerTomorrowsPitches(): Promise<{ offered: number; sent: 
       if (!person || person.deletedAt) continue
       if (person.roles.length > 0 && person.roles.every((r) => r === 'FRIENDS_FAMILY')) continue
       const org = person.affiliations[0]?.org ?? null
-      await prisma.crmRapSheet.upsert({
+      await prisma.crmMeetingPrep.upsert({
         where: { personId_eventId: { personId: person.id, eventId: ev.id } },
         create: { personId: person.id, orgId: org?.id ?? null, eventId: ev.id, meetingTitle: ev.summary, meetingAt: ev.start, offeredAt: new Date() },
         update: { meetingTitle: ev.summary, meetingAt: ev.start },

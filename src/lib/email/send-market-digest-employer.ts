@@ -1,5 +1,5 @@
 import 'server-only'
-import { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestEmployerEmail from '@/emails/market-digest-employer'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
@@ -23,7 +23,7 @@ export async function sendMarketDigestEmployerEmail(
   const portalUrl = `${appUrl}/talent/dashboard`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/employer/${employer.id}`
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',

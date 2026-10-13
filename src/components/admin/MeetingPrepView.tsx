@@ -1,4 +1,4 @@
-import type { RapSheetContent } from '@/lib/crm/rap-sheet/types'
+import type { MeetingPrepContent } from '@/lib/crm/meeting-prep/types'
 
 const safe = (u: string | null) => (u && /^https?:\/\//.test(u) ? u : null)
 function Src({ url }: { url: string | null }) {
@@ -10,7 +10,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 const Empty = () => <p className="text-sm text-muted-foreground">Nothing found.</p>
 
-export function RapSheetView({ c }: { c: RapSheetContent }) {
+export function MeetingPrepView({ c }: { c: MeetingPrepContent }) {
   return (
     <div className="space-y-5 text-sm">
       <div><p className="font-medium">{c.headline}</p><p className="mt-1">{c.whoTheyAre}</p></div>

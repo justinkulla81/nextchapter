@@ -100,7 +100,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/company-links', label: 'Company links' },
         { href: '/support/admin/school-links', label: 'School links' },
-        { href: '/support/admin/crm/rap-sheets', label: 'Prep for tomorrow' },
+        { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },
     {

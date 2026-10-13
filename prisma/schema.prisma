@@ -9594,7 +9594,7 @@ model CrmPerson {
   mailingPrompt         MailingListPrompt?
   editionRecipients     MailingEditionRecipient[]
   reportSends           CrmReportSend[]
-  rapSheets             CrmRapSheet[]
+  meetingPreps             CrmMeetingPrep[]
 
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
@@ -12296,7 +12296,7 @@ model MailingUnsubscribeRequest {
   @@index([processedAt, receivedAt])
 }
 
-enum CrmRapSheetStatus {
+enum CrmMeetingPrepStatus {
   /// Offered in the night-before email; waiting on a yes/no. No answer means no.
   OFFERED
   /// Approved — the morning job builds and emails it.
@@ -12304,12 +12304,14 @@ enum CrmRapSheetStatus {
   SKIPPED
   READY
   FAILED
+
+  @@map("CrmRapSheetStatus")
 }
 
 /// A prospect briefing for one pitch: local conditions, layoffs, initiatives,
 /// white-collar metrics, and how NextChapter could help. Built with a Claude
 /// call plus web search, so it is only ever made for a pitch Justin picked.
-model CrmRapSheet {
+model CrmMeetingPrep {
   id       String    @id @default(cuid())
   personId String
   person   CrmPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
@@ -12320,11 +12322,11 @@ model CrmRapSheet {
   meetingTitle String?
   meetingAt    DateTime?
 
-  status    CrmRapSheetStatus @default(OFFERED)
+  status    CrmMeetingPrepStatus @default(OFFERED)
   offeredAt DateTime?
   decidedAt DateTime?
 
-  /// Structured briefing (see RapSheetContent in src/lib/crm/rap-sheet/types.ts).
+  /// Structured briefing (see MeetingPrepContent in src/lib/crm/meeting-prep/types.ts).
   content     Json?
   generatedAt DateTime?
   emailedAt   DateTime?
@@ -12336,6 +12338,7 @@ model CrmRapSheet {
   @@unique([personId, eventId])
   @@index([status, meetingAt])
   @@index([personId, createdAt(sort: Desc)])
+  @@map("CrmRapSheet")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

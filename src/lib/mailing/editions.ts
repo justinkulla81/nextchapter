@@ -1,5 +1,6 @@
 import 'server-only'
-import { Resend } from 'resend'
+import type { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -196,7 +197,7 @@ export async function sendTestEmail(editionId: string): Promise<{ ok: boolean; m
   if (!edition.subject.trim() || !edition.bodyHtml.trim()) return { ok: false, message: 'Add a subject and a message first.' }
   const settings = await getMailingSettings()
   const personId = (await prisma.crmPerson.findFirst({ where: { email: { equals: settings.testEmail, mode: 'insensitive' }, deletedAt: null }, select: { id: true } }))?.id ?? null
-  const { error } = await sendOne(new Resend(process.env.RESEND_API_KEY), edition, { email: settings.testEmail, personId, recipientId: null }, settings, await attachmentFor(edition), '[Test] ')
+  const { error } = await sendOne(createResend(process.env.RESEND_API_KEY), edition, { email: settings.testEmail, personId, recipientId: null }, settings, await attachmentFor(edition), '[Test] ')
   if (error) return { ok: false, message: `Resend refused the test: ${error.message}` }
   return { ok: true, message: `Test sent to ${settings.testEmail}.` }
 }
@@ -221,7 +222,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   const editions = await prisma.mailingEdition.findMany({
     where: { status: 'SENDING' }, orderBy: { sendStartedAt: 'asc' }, include: { lists: { include: { list: true } } },
   })
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY)
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()

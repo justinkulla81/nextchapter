@@ -1,5 +1,6 @@
 import 'server-only'
-import { Resend } from 'resend'
+import type { Resend } from 'resend'
+import { createResend } from '@/lib/email/resend-client'
 
 /**
  * Sends one CRM broadcast message.
@@ -20,7 +21,7 @@ export async function sendCrmBroadcastEmail({
     return { sent: false, error: 'RESEND_API_KEY is not set' }
   }
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: replyTo ?? 'support@launchyournextchapter.com',
