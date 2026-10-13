@@ -13,13 +13,17 @@ import { engagementOverview } from '@/lib/higher-ed/engagement'
 import { waitingFor } from '@/lib/higher-ed/inbox'
 import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, checkInOverview, pendingCheckIns } from '@/lib/higher-ed/checkins'
 import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
-import { approveCheckIns } from '@/app/i/[slug]/(portal)/outreach-actions'
+import { approveCheckIns, sendOutreachBatch } from '@/app/i/[slug]/(portal)/outreach-actions'
+import { AUDIENCES, BATCH, MERGE_FIELDS, audienceCount, listComposed, previewValues } from '@/lib/higher-ed/composer'
+import { OutreachComposer } from './OutreachComposer'
+import { counselors } from '@/lib/higher-ed/caseload'
+import { AssignControl } from './AssignControl'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { LayoffInbox, type LayoffGroup } from './LayoffInbox'
 
-type Props = { ctx: WorkspaceContext; base: string }
+type Props = { ctx: WorkspaceContext; base: string; searchParams?: { edit?: string } }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const fmt = (d: Date | null | undefined) => (d ? dateFmt.format(new Date(d)) : null)
@@ -126,17 +130,17 @@ const CAMPAIGN_LABELS: Record<string, string> = {
   CUSTOM: 'Custom',
 }
 
-export async function AlumniOutreach({ ctx }: Props) {
+export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
   const id = ctx.institution.id
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id }, select: { enabledFeatures: true } })
   const annualOn = serviceSettingsFrom(inst.enabledFeatures).annual_checkin?.on
   const [pending, campaigns] = await Promise.all([
     pendingCheckIns(id),
     prisma.outreachCampaign.findMany({
-      where: { institutionId: id },
       orderBy: { createdAt: 'desc' },
       take: 25,
-      select: { id: true, type: true, subject: true, sentAt: true, createdAt: true, _count: { select: { sends: true } } },
+      where: { institutionId: id, sentAt: { not: null } },
+      select: { id: true, type: true, subject: true, sentAt: true, createdAt: true, _count: { select: { sends: { where: { memberId: { not: null } } } } } },
     }),
   ])
   const stats = campaigns.length
@@ -147,9 +151,75 @@ export async function AlumniOutreach({ ctx }: Props) {
       })
     : []
   const annual = pending.find((p) => p.kind === 'CUSTOM')?.count ?? 0
+  const canWrite = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
+  const [composed, counts] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) })))])
+  const editing = searchParams?.edit ? composed.find((c) => c.id === searchParams.edit && !c.sentAt) : undefined
+  const audienceLabel = (k: string) => AUDIENCES.find((a) => a.key === k)?.label ?? k
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {canWrite && (
+        <section aria-labelledby="compose" className="space-y-3">
+          <h2 id="compose" className="text-base font-semibold">
+            {editing ? 'Edit email' : 'Write an email'}
+          </h2>
+          <OutreachComposer
+            key={editing?.id ?? 'new'}
+            slug={ctx.institution.slug}
+            base={base}
+            college={ctx.institution.name}
+            draft={editing ? { id: editing.id, subject: editing.subject, body: editing.body, audience: editing.audience } : null}
+            audiences={counts}
+            fields={MERGE_FIELDS}
+            sample={previewValues(ctx.institution.name, ctx.institution.slug)}
+          />
+        </section>
+      )}
+      {composed.length > 0 && (
+        <section aria-labelledby="your-emails" className="space-y-2">
+          <h2 id="your-emails" className="text-base font-semibold">
+            Your emails
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {composed.map((c) => {
+              const next = Math.min(c.remaining, BATCH)
+              return (
+                <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div>
+                    <p className="font-medium">{c.subject.replace(/\{\{\w+\}\}/g, '…')}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {audienceLabel(c.audience)} · {c.sentAt ? `${c.sent.toLocaleString()} sent, ${c.remaining.toLocaleString()} to go` : `Draft · ${c.remaining.toLocaleString()} recipients`}
+                    </p>
+                  </div>
+                  {canWrite && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {!c.sentAt && (
+                        <Link href={`${base}/outreach?edit=${c.id}`} className="text-sm text-primary hover:underline">
+                          Edit
+                        </Link>
+                      )}
+                      {next > 0 ? (
+                        <ConfirmActionButton
+                          label={`Send to ${c.sentAt ? 'the next ' : ''}${next.toLocaleString()}`}
+                          confirm={
+                            ctx.institution.isDemo
+                              ? `Record this email for ${next.toLocaleString()} alumni? Nothing is emailed on a demo.`
+                              : `Email ${next.toLocaleString()} alumni from ${ctx.institution.name}? It can't be unsent, and it can't be edited after this.`
+                          }
+                          confirmLabel={ctx.institution.isDemo ? 'Record emails' : 'Send emails'}
+                          run={sendOutreachBatch.bind(null, ctx.institution.slug, c.id)}
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sent to everyone</span>
+                      )}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
       <section aria-labelledby="annual" className="space-y-2 rounded-lg border border-border bg-card p-4">
         <h2 id="annual" className="text-base font-semibold">
           Annual check-in
@@ -272,7 +342,15 @@ export async function CareerCheckIns({ ctx }: Props) {
   const id = ctx.institution.id
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id }, select: { enabledFeatures: true } })
   const on = serviceSettingsFrom(inst.enabledFeatures).grad_checkins?.on
-  const [{ byKind, followUps }, pending] = await Promise.all([checkInOverview(id), pendingCheckIns(id)])
+  const [{ byKind, followUps }, pending, team] = await Promise.all([checkInOverview(id), pendingCheckIns(id), counselors(id)])
+  const assigned = new Map(
+    (
+      await prisma.caseloadAssignment.findMany({
+        where: { memberId: { in: followUps.map((f) => f.member.id) }, endedAt: null },
+        select: { memberId: true, counselor: { select: { fullName: true, invitedEmail: true } } },
+      })
+    ).map((a) => [a.memberId, a.counselor.fullName ?? a.counselor.invitedEmail]),
+  )
   const ready = pending.filter((p) => EARLY.includes(p.kind)).reduce((n, p) => n + p.count, 0)
   const answerLabel = (a: string) => CHECKIN_ANSWERS.find((x) => x.key === a)?.label ?? a
 
@@ -310,7 +388,7 @@ export async function CareerCheckIns({ ctx }: Props) {
               <caption className="sr-only">Alumni who asked for help in a check-in</caption>
               <thead className="border-b border-border text-xs text-muted-foreground">
                 <tr>
-                  {['Name', 'Class', 'Check-in', 'Answer', 'Answered', 'Email'].map((h) => (
+                  {['Name', 'Class', 'Check-in', 'Answer', 'Answered', 'Email', 'Caseload'].map((h) => (
                     <th key={h} scope="col" className="px-4 py-2 font-medium">
                       {h}
                     </th>
@@ -329,6 +407,15 @@ export async function CareerCheckIns({ ctx }: Props) {
                       <a href={`mailto:${f.member.email}`} className="text-primary hover:underline">
                         {f.member.email}
                       </a>
+                    </td>
+                    <td className="px-4 py-2">
+                      {assigned.get(f.member.id) ? (
+                        <span className="text-xs">With {assigned.get(f.member.id)}</span>
+                      ) : ctx.readOnly ? (
+                        <span className="text-xs text-muted-foreground">Not assigned</span>
+                      ) : (
+                        <AssignControl slug={ctx.institution.slug} memberId={f.member.id} counselors={team} source="checkin_followup" />
+                      )}
                     </td>
                   </tr>
                 ))}

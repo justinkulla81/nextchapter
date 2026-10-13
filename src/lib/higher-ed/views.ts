@@ -161,13 +161,14 @@ export type CaseloadRow = {
 // sees all. On a demo tenant, the "Career Services" persona sees the seeded
 // counselor's caseload, since the nc_admin isn't a counselor themselves.
 export async function listCaseloadActivity(ctx: Ctx, db: Db = prisma): Promise<CaseloadRow[]> {
-  assertHolds(ctx, ['CAREER_SERVICES', ...CASELOAD_ALL_ROLES], 'caseloads')
+  assertHolds(ctx, ['CAREER_SERVICES', 'COACH', ...CASELOAD_ALL_ROLES], 'caseloads')
   let counselorFilter = Prisma.sql``
   if (!holds(ctx, CASELOAD_ALL_ROLES)) {
-    let counselorIds = ctx.staffUsers.filter((s) => s.role === 'CAREER_SERVICES').map((s) => s.id)
+    // A counselor or college coach sees their own caseload.
+    let counselorIds = ctx.staffUsers.filter((s) => s.role === 'CAREER_SERVICES' || s.role === 'COACH').map((s) => s.id)
     if (ctx.mode === 'demo-admin') {
       const seeded = await db.institutionUser.findMany({
-        where: { institutionId: ctx.institution.id, role: 'CAREER_SERVICES', revokedAt: null },
+        where: { institutionId: ctx.institution.id, role: { in: ['CAREER_SERVICES', 'COACH'] }, revokedAt: null },
         select: { id: true },
       })
       counselorIds = seeded.map((s) => s.id)

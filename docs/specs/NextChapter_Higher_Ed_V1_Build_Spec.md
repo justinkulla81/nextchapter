@@ -369,3 +369,37 @@ Every NextChapter member (direct, college alumni, outplacement seats) has a jour
 - **Alumni Relations:** home shows the journey mix as counts only, among joined alumni who share engagement; groups under `MIN_CELL_SIZE` show as "Under 5".
 - **Development:** a reported job raises prospect signals (spec §6.4): `PROMOTION_VP_PLUS` for VP-and-up titles and `NEW_EMPLOYER_MATCHING_GIFT` for any new employer, only with outcome sharing on (`raiseProspectSignals` in `transition.ts`). Development home shows how many are waiting; the Signals screen remains HE-10.
 - **The portal's buttons and NextChapter check-ins are one system:** "I'm in transition" = journey Laid off; "I got a job" = stage Landed; "I'm no longer looking" = Paused. Going the other way, "I was laid off" anywhere in NextChapter opens the college's transition flag, and Landed starts its grace period (`src/lib/journey/apply.ts`).
+
+### Release 2, outreach that runs itself (HE-07, HE-08, HE-11 check-ins), Oct 13, 2026
+
+Staff approve every send; the system finds who to send to.
+
+- **Nightly** (`/api/cron/higher-ed-nightly`, real colleges only): `matchLayoffs` (WARN notices from the last 180 days against the roster's last-known employer, and against NextChapter employment only for members who share their outcome), `syncEngagement` (EngagementEvent from logins, completed sprint weeks, college coaching, link clicks, shared milestones and gifts; idempotent), `scheduleCheckIns`.
+- **Layoff alerts:** grouped by notice; pick, then send or skip. One email per member however many notices match. A match never opens a flag.
+- **Check-ins:** M6/M18/M24 from mid-May of the class year, and an annual one in the month set in Admin › Services; due ones are scheduled only while fresh (45 days), never backfilled. Staff approve each batch (Alumni Relations the annual, Career Services the early-career). The email has four answers; `/i/<slug>/checkin/<id>` preselects the clicked one and records it only on "Send my answer", so link scanners can't answer. "Laid off", or a recent grad "starting to look", opens a CHECK_IN flag; both put the member on a caseload (below). Joined members' answers go through `applyJourneyChange`.
+- **Waiting for you** (`src/lib/higher-ed/inbox.ts`) on the Alumni and Career homes, and a Monday email per office (`/api/cron/higher-ed-weekly`), sent only when something is waiting.
+- **Engagement:** `v_member_engagement` ranks every member who shares engagement (zero is always Low), so tiers mean something with a mostly inactive roster. Alumni Relations › Engagement shows tiers and CASE points by class decade; the directory shows the tier.
+
+### Release 3, Development (HE-10), Oct 13, 2026
+
+- **ROI** (`roi-math.ts`, pure and unit-tested; `roi.ts` loads): spec §7. Users are joined members with a TOOL_USE, COACHING_SESSION or MENTOR_CALL event in the FY; the comparison is never-joined alumni re-weighted to the users' mix of class decade × gave-last-FY. Lift hidden under 30 per group. Shown for this FY so far and last FY, with fund totals.
+- **Signals:** approve (goes in the next updates file) or dismiss with undo. Thank-you asks (`gratitude.ts`) need a giving page, are held while a member is do-not-solicit, and link through `/i/<slug>/give`, which marks CLICKED and scores GIFT_PROMPT_CLICK.
+- **Resilience Fund:** settings, awards to members in transition (shown prepaid on their Coaching tab), printable donor report (`/i/<slug>/report/fund`, counts only). Marking an award used when they book is not built yet.
+- **CRM exchange:** `/i/<slug>/export/updates` (spec §9 columns; outcome fields only with SHARE_OUTCOME; marks approved signals exported and logs EXPORT_UPDATES unless the seat is read-only) and `/export/suppression`. Development can upload gifts.
+- **Peer benchmark** (`peers.ts`): College Scorecard/IPEDS from CollegeProfile; same control and level, half to double the enrollment, same state first. `profile.college.unitid` links a college (W&J 216667), else exact name.
+- **Give back** card for joined members not in transition; public `/i/<slug>/for-alumni` page (counts only above MIN_CELL_SIZE).
+
+### Release 4, network and employers (HE-09, HE-11, HE-13), Oct 13, 2026
+
+- **Mentors** (`mentors.ts`): directory by industry (title/employer only with outcome sharing), monthly limit, request email to the mentor, accept/decline at `/i/<slug>/mentor/<id>` (token from the email), emails swapped only on accept, "We talked" scores both sides once. Alumni Relations invites in batches of 100 (`/mentor/join`).
+- **Alumni jobs** for members: roles scoped to the college, featured employers first, "N alumni work here" (roster employer, or NextChapter employment with consent).
+- **Employers** (`employers.ts`): ask at `/i/<slug>/recruit`; Career › Employers approves and sets Basic/Featured with an end date. Approved employers post scoped roles (pending NextChapter review; `addedBy = employer:<profileId>` identifies them) and ask to meet members sharing their Dossier: new `DossierIntroRequest` table (RLS on), email only after the member accepts.
+- **Student tools:** first-job invitations for STUDENT and last-five-year alumni.
+
+### HE-12 demo, caseloads and the composer, Oct 13, 2026
+
+- **Demo seed** (`demo-seed.ts`): 200 people (8 students), 60 joined with sample CandidateProfiles (`userId demo-<slug>-<i>`, isSampleData, removed on reset) across every journey; hero alum matched to a **real recent state WARN filing** (referenced, never written: WarnNotice has no sample flag and feeds public layoff pages and the CRM); three FYs of gifts giving a visible lift; 12 mentors; featured employer with roles plus a pending one; 15-grad caseload with M6/M18 check-ins; 6 outcomes; fund awards. No Company or MemberEmployment rows. Demo bar: "Skip ahead 60 days". On a demo, "Preview as alum" acts as `<slug>_member_featured`.
+- **Caseloads** (`caseload.ts`): Career › Caseload lists, adds (roster search), moves and removes (confirm); directors see whose is whose. A check-in "looking" or "laid off" auto-assigns to the counselor with the fewest open cases (counselors before coaches). Coaches see their own caseload.
+- **Composer** (`composer.ts`): Alumni Relations › Outreach writes an email to an audience (all, joined, not joined, recent grads), with merge-field buttons and an unknown-field check, live preview, "Send a test to me" (demo colleges preview instead), then confirmed batches of 200 that never reach anyone twice; editing locks after the first send. `OutreachCampaign.audience` added.
+- **Checks:** `npm run verify:release2|3|4`, `verify:he-demo` (the §10 demo script end to end on /i/demo, then reseeds), `check:he-screens` (renders every workspace screen on the server against a demo college).
+- **Still open:** Resend open/click webhooks, paid coaching via Stripe and the revenue-share report, fund award redemption on booking, configurable engagement weights, college SSO.

@@ -39,6 +39,10 @@ import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
+import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
+import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
+import { AssignControl } from './AssignControl'
+import { ConfirmActionButton } from './ConfirmActionButton'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
 import { CareerStatusCard } from './CareerStatusCard'
@@ -55,7 +59,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string }
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string }
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -411,49 +415,89 @@ async function DevelopmentTransition({ ctx }: ScreenProps) {
 
 // ── Career Services ─────────────────────────────────────────────────────────
 
-async function CareerCaseload({ ctx, base }: ScreenProps) {
-  const rows = await listCaseloadActivity(ctx)
+async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
+  const [rows, team] = await Promise.all([listCaseloadActivity(ctx), counselors(ctx.institution.id)])
+  const canEdit = !ctx.readOnly && ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN'].some((r) => ctx.tokens.has(r as 'COACH'))
+  // Directors see everyone's caseload, so they need to know whose is whose.
+  const showCounselor = team.length > 1 && new Set(rows.map((r) => r.counselorId)).size > 1
+  const nameOf = new Map(team.map((t) => [t.id, t.name]))
+  const q = searchParams.q?.trim() ?? ''
+  const found = canEdit && q ? await searchRoster(ctx.institution.id, q) : []
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
-  if (rows.length === 0) {
-    return (
-      <div className="space-y-6">
-        {waiting}
-        <EmptyState icon={Users} title="No one on this caseload" description="Members you're assigned, or who ask for help in a check-in, show up here." />
-      </div>
-    )
-  }
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {waiting}
-      <Table caption="Caseload" head={['Name', 'Class', 'Situation', 'Last activity', 'Weekly Search Sprint', 'Next check-in']}>
-        {rows.map((r) => (
-          <tr key={r.assignmentId}>
-            <td className="px-4 py-2 font-medium">{fullName(r)}</td>
-            <td className="px-4 py-2 tabular-nums">{r.classYear ?? '—'}</td>
-            <td className="px-4 py-2">
-              {!r.shareSearchDetail ? (
-                <NotShared />
-              ) : r.journey ? (
-                `${getJourney(r.journey as JourneyType).label}${r.journeyStage ? ` · ${getStage(r.journeyStage as JourneyStage).label}` : ''}`
-              ) : (
-                '—'
-              )}
-            </td>
-            <td className="px-4 py-2">{r.shareSearchDetail ? (fmtDate(r.lastActivityAt) ?? 'No activity yet') : <NotShared />}</td>
-            <td className="px-4 py-2">
-              {!r.shareSearchDetail ? (
-                <NotShared />
-              ) : r.sprintActionsTotal === null ? (
-                'No sprint yet'
-              ) : (
-                `${r.sprintActionsDone} of ${r.sprintActionsTotal} done`
-              )}
-            </td>
-            <td className="px-4 py-2">{r.nextCheckInAt ? `${r.nextCheckInKind} · ${fmtDate(r.nextCheckInAt)}` : '—'}</td>
-          </tr>
-        ))}
-      </Table>
-      <p className="text-xs text-muted-foreground">Search details show only for members who share them with Career Services.</p>
+      {rows.length === 0 ? (
+        <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
+      ) : (
+        <div className="space-y-2">
+          <Table caption="Caseload" head={['Name', 'Class', ...(showCounselor ? ['With'] : []), 'Situation', 'Last activity', 'Weekly Search Sprint', 'Next check-in', ...(canEdit ? [''] : [])]}>
+            {rows.map((r) => (
+              <tr key={r.assignmentId}>
+                <td className="px-4 py-2 font-medium">{fullName(r)}</td>
+                <td className="px-4 py-2 tabular-nums">{r.classYear ?? '—'}</td>
+                {showCounselor && <td className="px-4 py-2">{nameOf.get(r.counselorId) ?? '—'}</td>}
+                <td className="px-4 py-2">
+                  {!r.shareSearchDetail ? (
+                    <NotShared />
+                  ) : r.journey ? (
+                    `${getJourney(r.journey as JourneyType).label}${r.journeyStage ? ` · ${getStage(r.journeyStage as JourneyStage).label}` : ''}`
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td className="px-4 py-2">{r.shareSearchDetail ? (fmtDate(r.lastActivityAt) ?? 'No activity yet') : <NotShared />}</td>
+                <td className="px-4 py-2">
+                  {!r.shareSearchDetail ? <NotShared /> : r.sprintActionsTotal === null ? 'No sprint yet' : `${r.sprintActionsDone} of ${r.sprintActionsTotal} done`}
+                </td>
+                <td className="px-4 py-2">{r.nextCheckInAt ? `${r.nextCheckInKind} · ${fmtDate(r.nextCheckInAt)}` : '—'}</td>
+                {canEdit && (
+                  <td className="px-4 py-2">
+                    <ConfirmActionButton
+                      label="Remove"
+                      variant="outline"
+                      confirm={`Take ${fullName(r)} off the caseload? Their record and history stay.`}
+                      confirmLabel="Remove"
+                      run={removeFromCaseload.bind(null, ctx.institution.slug, r.assignmentId)}
+                    />
+                  </td>
+                )}
+              </tr>
+            ))}
+          </Table>
+          <p className="text-xs text-muted-foreground">Search details show only for members who share them with Career Services.</p>
+        </div>
+      )}
+      {canEdit && (
+        <section aria-labelledby="add-to-caseload" className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <h2 id="add-to-caseload" className="text-base font-semibold">
+            Add someone
+          </h2>
+          <form action={base} className="flex flex-wrap items-end gap-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="caseload-q">Name or email</Label>
+              <Input id="caseload-q" name="q" defaultValue={q} placeholder="e.g. Jordan Hollister" className="w-64" />
+            </div>
+            <SubmitButton variant="outline" pendingLabel="Searching…">
+              Search the roster
+            </SubmitButton>
+          </form>
+          {q && !found.length && <p className="text-sm text-muted-foreground">No one on the roster matches &ldquo;{q}&rdquo;.</p>}
+          {found.length > 0 && (
+            <ul className="divide-y divide-border">
+              {found.map((m) => (
+                <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span className="text-sm">
+                    {fullName(m)}
+                    {m.classYear ? <span className="text-muted-foreground"> · {m.classYear}</span> : null}
+                  </span>
+                  <AssignControl slug={ctx.institution.slug} memberId={m.id} counselors={team} source="search" current={m.caseloadAssignments[0]?.counselor.fullName ?? null} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   )
 }

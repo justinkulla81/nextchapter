@@ -67,6 +67,10 @@ const DOSSIER_LINES = [
   'Healthcare finance analyst moving into FP&A; strongest at turning messy data into a budget people trust.',
   'Product manager with B2B SaaS launches; wants a mission-driven company in Pittsburgh or remote.',
   'Account executive who rebuilt a territory from zero to 140% of quota; open to sales leadership.',
+  'Registered nurse moving into clinical informatics; led an Epic rollout on a 40-bed unit.',
+  'Controller at a family-owned distributor; ready for a CFO seat at a growing company.',
+  'High school chemistry teacher changing careers into instructional design.',
+  'Supply chain planner who cut stockouts 30%; looking at logistics and manufacturing roles.',
 ]
 
 const FIRST_CLASS = 1975
@@ -172,9 +176,9 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
 
   // The layoff: a real recent WARN filing, preferring the college's state.
   const state = tenant.profile?.region?.state ?? tenant.profile?.college?.state ?? null
-  const recent = { dismissedAt: null, noticeDate: { gte: new Date(now.getTime() - 150 * DAY), lte: now }, employees: { gte: 25 } }
+  const recent = { dismissedAt: null, source: 'WARN_FILING' as const, state: { not: null }, noticeDate: { gte: new Date(now.getTime() - 150 * DAY), lte: now }, employees: { gte: 25 } }
   const notice =
-    (state ? await db.warnNotice.findFirst({ where: { ...recent, state }, orderBy: { noticeDate: 'desc' }, select: { id: true, employer: true, companyId: true } }) : null) ??
+    (state ? await db.warnNotice.findFirst({ where: { ...recent, state: state }, orderBy: { noticeDate: 'desc' }, select: { id: true, employer: true, companyId: true } }) : null) ??
     (await db.warnNotice.findFirst({ where: recent, orderBy: { noticeDate: 'desc' }, select: { id: true, employer: true, companyId: true } }))
 
   // ── Members ──────────────────────────────────────────────────────────────
@@ -182,7 +186,8 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   const isJoined = (i: number) => [1, 4, 8].includes(i % 10)
   const isParent = (i: number) => i % 20 === 7
   const dnc = (i: number) => i % 23 === 11
-  const classOf = (i: number) => FIRST_CLASS + Math.round((i * (LAST_CLASS - FIRST_CLASS)) / (n - 1))
+  // Alumni classes span the first n - 8 people; the last eight are students.
+  const classOf = (i: number) => FIRST_CLASS + Math.min(LAST_CLASS - FIRST_CLASS, Math.round((i * (LAST_CLASS - FIRST_CLASS)) / (n - 9)))
   const firstAfter = (from: number, ok: (i: number) => boolean) => {
     for (let i = Math.floor(from); i < n; i++) if (ok(i)) return i
     return -1
@@ -193,19 +198,23 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   const hero = firstAfter(n * 0.565, (i) => !isJoined(i) && !isParent(i) && !dnc(i))
   const atWarn = new Set(notice ? [hero, firstAfter(hero + 1, (i) => !isJoined(i) && !isParent(i) && !dnc(i)), firstAfter(n * 0.76, (i) => !isJoined(i) && !isParent(i) && !dnc(i))] : [])
   const employerCo = tenant.employers[4]
+  const rosterEmployers = tenant.employers.filter((e) => e !== employerCo)
 
   const idOf = (i: number) => (i === featured ? `${slug}_member_featured` : i === hero ? `${slug}_member_hero` : `${slug}_member_${String(i).padStart(3, '0')}`)
   const joinedIdx: number[] = []
   const memberRows: Prisma.InstitutionMemberCreateManyInput[] = []
   for (let i = 0; i < n; i++) {
-    const firstName = pick(FIRST, i, 1)
-    const lastName = pick(LAST, i, 3)
-    const classYear = classOf(i)
-    const affiliation: InstitutionAffiliation = isParent(i) ? 'PARENT' : classYear > now.getUTCFullYear() ? 'STUDENT' : 'ALUM'
-    const joined = isJoined(i) && !isParent(i)
+    // Unique for up to 400 people: same first name → a different last name.
+    const firstName = FIRST[i % FIRST.length]
+    const lastName = LAST[(i * 7 + Math.floor(i / FIRST.length)) % LAST.length]
+    // The last eight are current students (classes of next year onward).
+    const student = i >= n - 8
+    const classYear = student ? now.getUTCFullYear() + 1 + (i % 3) : classOf(i)
+    const affiliation: InstitutionAffiliation = isParent(i) ? 'PARENT' : student ? 'STUDENT' : 'ALUM'
+    const joined = isJoined(i) && !isParent(i) && !student
     if (joined) joinedIdx.push(i)
     const status: InstitutionMemberStatus = joined ? 'CLAIMED' : i % 5 === 0 ? 'INVITED' : 'IMPORTED'
-    const employer = atWarn.has(i) && notice ? notice.employer : classYear >= now.getUTCFullYear() - 1 ? null : pick(tenant.employers, i, 5)
+    const employer = atWarn.has(i) && notice ? notice.employer : classYear >= now.getUTCFullYear() - 1 ? null : pick(rosterEmployers, i, 5)
     memberRows.push({
       id: idOf(i),
       institutionId,
@@ -293,10 +302,10 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   // ── Outcomes: six who landed ─────────────────────────────────────────────
   // Two past their quiet period with a thank-you ask pending, one in grace
   // (the "advance time" control clears it), one VP promotion, two more.
-  const landed = [...laidOff.slice(8, 11), ...joinedIdx.filter((i) => journeyOf.get(i) === 'PROMOTION').slice(0, 1), ...laidOff.slice(11, 13)].slice(0, 6)
+  const landed = [...laidOff.slice(8, 11), ...joinedIdx.filter((i) => journeyOf.get(i) === 'PROMOTION' && i % 6 !== 2).slice(0, 1), ...laidOff.slice(11, 13)].slice(0, 6)
   const vp = landed[3]
   for (const [k, i] of landed.entries()) {
-    const placedAt = new Date(now.getTime() - [95, 80, 40, 30, 20, 10][k] * DAY)
+    const placedAt = new Date(now.getTime() - [95, 80, 40, 75, 20, 10][k] * DAY)
     const grace = new Date(placedAt.getTime() + 60 * DAY)
     const cleared = grace < now
     await db.transitionFlag.create({
@@ -323,7 +332,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
         isSampleData: true,
       },
     })
-    const newEmployer = pick(tenant.employers, i, 9)
+    const newEmployer = pick(rosterEmployers, i, 9)
     await db.institutionMember.update({
       where: { id: mid(i) },
       data: { lastKnownEmployer: newEmployer, lastKnownEmployerNormalized: normalizeOrgName(newEmployer), lastKnownTitle: i === vp ? 'VP Operations' : pick(TITLES, i, 8) },

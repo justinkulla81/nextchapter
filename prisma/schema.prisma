@@ -11586,7 +11586,11 @@ model OutreachCampaign {
   subject       String
   body          String               @db.Text // merge fields like {{firstName}}, {{institutionName}}, {{claimUrl}}
   createdBy     String // Supabase auth.users id
+  // Composer drafts (type CUSTOM): who it goes to ('all' | 'joined' |
+  // 'not_joined' | 'recent_grads'). Null for system campaigns.
+  audience      String?
   scheduledAt   DateTime?
+  // Null while a composer draft; set at the first send.
   sentAt        DateTime?
   isSampleData  Boolean              @default(false)
   createdAt     DateTime             @default(now())

@@ -17,6 +17,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { checkInMonthFrom, serviceSettingsFrom } from './services'
 import { graceDaysFrom, openTransitionFlag, placeOpenFlag } from './transition'
 import { sendCampaign } from './outreach'
+import { autoAssign } from './caseload'
 
 const DAY = 86_400_000
 
@@ -217,6 +218,8 @@ export async function answerCheckIn(args: { checkInId: string; memberId: string;
   // Laid off, or a recent grad starting to look: the college treats them as
   // in transition (do-not-solicit, counselor follow-up).
   if (args.answer === 'laid_off' || (args.answer === 'looking' && earlyCareer)) await openTransitionFlag(c.member.id, 'CHECK_IN')
+  // Anyone asking for help lands on a counselor's caseload.
+  const counselorId = args.answer === 'laid_off' || args.answer === 'looking' ? await autoAssign(c.member.institutionId, c.member.id) : null
   if (args.answer === 'new_job') await placeOpenFlag(c.member.id, graceDaysFrom(c.member.institution.enabledFeatures), now)
   if (joined) {
     const change =
@@ -235,6 +238,7 @@ export async function answerCheckIn(args: { checkInId: string; memberId: string;
     kind: c.kind,
     answer: args.answer,
     joined,
+    autoAssigned: !!counselorId,
   })
   return { changed: true }
 }
