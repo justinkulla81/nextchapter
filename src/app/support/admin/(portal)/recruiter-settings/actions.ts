@@ -149,6 +149,9 @@ export async function inviteFirmToRegister(_prev: InviteFirmState, formData: For
   const contact = ((formData.get('contactEmail') as string | null) ?? '').trim().toLowerCase() || null
   if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return { error: 'Enter a valid contact email, or leave it blank.' }
   const verified = formData.get('verified') === 'on'
+  // A pre-verified firm goes live the moment someone claims it, so the link
+  // is bound to a contact at that firm (see emailMayClaimFirm).
+  if (verified && !contact) return { error: 'Add a contact email to pre-verify a firm, so only someone at that firm can claim the link.' }
 
   const existing = await prisma.recruiterFirm.findUnique({ where: { name }, include: { _count: { select: { recruiters: true } } } })
   if (existing && existing._count.recruiters > 0) return { error: 'That firm already has members. Invite people from inside the firm instead.' }
