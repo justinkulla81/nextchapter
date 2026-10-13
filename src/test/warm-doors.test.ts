@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { classifyDoors, isStrongBackground, type DoorPerson, type DoorRoute } from '@/lib/crm/warm-doors-rules'
 
 const NOW = new Date('2026-10-13T12:00:00Z')
+const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000)
 const person = (o: Partial<DoorPerson> = {}): DoorPerson => ({
-  id: 'p1', fullName: 'Pat Lee', title: 'VP, People', warmth: 'UNKNOWN', connectedAt: null, linkedinDegree: null,
-  firstRepliedAt: null, lastTouchedAt: null, touchCount: 0, notes: null, ...o,
+  id: 'p1', fullName: 'Pat Lee', title: 'VP, People', lastReplyAt: null, ...o,
 })
 const route = (o: Partial<DoorRoute> = {}): DoorRoute => ({
   id: 'r1', strength: 'STRONG', status: 'IDENTIFIED', connectorName: 'Sam Roe', connectorPersonId: 's1', ...o,
@@ -17,22 +17,34 @@ describe('isStrongBackground', () => {
   it('treats a missing rank as unknown, not strong', () => expect(isStrongBackground({ levelRankScore: null, pedigreeBonus: 0 })).toBeNull())
 })
 
-describe('classifyDoors', () => {
-  it('ignores a directory contact nobody has touched', () => {
+describe('classifyDoors: contacts must have replied', () => {
+  it('ignores someone who never replied', () => {
     expect(classifyDoors([person()], [], NOW)).toEqual([])
   })
-  it('counts a first-degree connection as a close contact', () => {
-    const d = classifyDoors([person({ connectedAt: new Date('2025-01-01') })], [], NOW)
+  it('counts a reply in the last 90 days as a close contact', () => {
+    const d = classifyDoors([person({ lastReplyAt: daysAgo(10) })], [], NOW)
     expect(d).toHaveLength(1)
-    expect(d[0]).toMatchObject({ kind: 'contact', strength: 'hot', personId: 'p1' })
+    expect(d[0]).toMatchObject({ kind: 'contact', strength: 'hot', personId: 'p1', note: 'Replied 10 days ago' })
   })
-  it('counts someone we were in touch with this year as warm', () => {
-    const d = classifyDoors([person({ touchCount: 2, lastTouchedAt: new Date('2026-06-01') })], [], NOW)
-    expect(d[0]?.strength).toBe('warm')
+  it('counts a reply 90-365 days ago as warm', () => {
+    expect(classifyDoors([person({ lastReplyAt: daysAgo(200) })], [], NOW)[0]?.strength).toBe('warm')
   })
-  it('does not count a touch more than a year old', () => {
-    expect(classifyDoors([person({ touchCount: 2, lastTouchedAt: new Date('2025-01-01') })], [], NOW)).toEqual([])
+  it('does not count a reply more than a year ago', () => {
+    expect(classifyDoors([person({ lastReplyAt: daysAgo(400) })], [], NOW)).toEqual([])
   })
+  it('does not count a reply dated in the future', () => {
+    expect(classifyDoors([person({ lastReplyAt: daysAgo(-3) })], [], NOW)).toEqual([])
+  })
+  it('lists close contacts before warm ones', () => {
+    const d = classifyDoors([
+      person({ id: 'w', lastReplyAt: daysAgo(200) }),
+      person({ id: 'h', lastReplyAt: daysAgo(5) }),
+    ], [], NOW)
+    expect(d.map((x) => x.personId)).toEqual(['h', 'w'])
+  })
+})
+
+describe('classifyDoors: routes', () => {
   it('counts strong and medium routes, not weak, unverified or declined ones', () => {
     const d = classifyDoors([], [
       route({ id: 'a', strength: 'STRONG' }),
@@ -42,12 +54,5 @@ describe('classifyDoors', () => {
       route({ id: 'e', strength: 'STRONG', status: 'DECLINED' }),
     ], NOW)
     expect(d.map((x) => x.strength)).toEqual(['hot', 'warm'])
-  })
-  it('lists close contacts before warm ones', () => {
-    const d = classifyDoors([
-      person({ id: 'w', touchCount: 1, lastTouchedAt: new Date('2026-09-01') }),
-      person({ id: 'h', warmth: 'HOT' }),
-    ], [], NOW)
-    expect(d.map((x) => x.personId)).toEqual(['h', 'w'])
   })
 })

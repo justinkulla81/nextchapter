@@ -5,6 +5,7 @@ import { readLayoffHeadline, publisherKey, sameEmployer } from './news-headline'
 import { findLayoffContacts } from './layoff-contacts-run'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
+import { singleSourceQualifies } from './news-trust'
 
 const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']
 
@@ -18,7 +19,7 @@ const MAX_CONTACT_LOOKUPS = 10
 export interface NewsCheckResult {
   headlines: number
   mentions: number
-  added: { company: string; employees: number | null; publishers: number; contacts: number }[]
+  added: { company: string; employees: number | null; publishers: number; contacts: number; unconfirmed?: boolean }[]
   covered: number
   waiting: number
   /** Contact lookups made (one small model call each) and people found across them. */
@@ -141,9 +142,16 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
       }
       continue
     }
-    if (publishers.size < 2) {
-      result.waiting++
-      continue
+    // One publisher is a rumour until a second reports it, except from an
+    // outlet we trust or about an organization already in the CRM: those are
+    // filed marked unconfirmed, so a person sees them the day they break.
+    const confirmed = publishers.size >= 2
+    if (!confirmed) {
+      const inCrm = (await prisma.crmOrganization.count({ where: { canonicalNameNormalized: key } })) > 0
+      if (!singleSourceQualifies(first.publisher, inCrm)) {
+        result.waiting++
+        continue
+      }
     }
 
     // The headcount most of the reports agree on, if any give one.
@@ -163,7 +171,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: `Reported by ${publishers.size} publishers`,
+        layoffType: confirmed ? `Reported by ${publishers.size} publishers` : `Reported by 1 publisher (${first.publisher ?? 'unknown'}) — unconfirmed`,
         sourceUrl: first.url,
       },
       select: { id: true },
@@ -173,7 +181,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     // coverage, once, here. A failure never blocks the layoff.
     await trackJobBoard(company)
     const contacts = await lookUpContacts(company, employees, when, null, mentions.map((m) => m.url), result)
-    result.added.push({ company, employees, publishers: publishers.size, contacts })
+    result.added.push({ company, employees, publishers: publishers.size, contacts, ...(confirmed ? {} : { unconfirmed: true }) })
   }
   return result
 }

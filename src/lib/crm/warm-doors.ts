@@ -4,7 +4,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { orgSlug } from '@/lib/crm/org-slug'
 import {
-  classifyDoors, isStrongBackground,
+  classifyDoors, isStrongBackground, REPLY_WINDOW_DAYS,
   type Door, type DoorPerson, type DoorRoute,
 } from '@/lib/crm/warm-doors-rules'
 
@@ -15,6 +15,10 @@ import {
 //
 // Applications only: a candidate's watchlist is private search data the CRM
 // must not read (src/test/company-wall.test.ts).
+//
+// A way in is a person who has written back to us in the last year, or a
+// strong/medium route in. Imported "warm" tags, LinkedIn connections and
+// one-way outreach do not count.
 //
 // Whose contacts: only OUR CRM. A candidate's own contact list is private to
 // them and is never read here; the existing backchannel feature already shows
@@ -43,32 +47,40 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
   const now = new Date()
   const newSince = new Date(now.getTime() - (opts.newSinceHours ?? 26) * 3_600_000)
 
-  // 1. Organizations where we have any way in, optionally just one.
+  // 0. Who has actually written back to us in the last year. A reply is an
+  // inbound email or LinkedIn message that has been reviewed — the unreviewed
+  // rows are auto-logged mentions, not replies (they carry needsReview).
+  const replyCutoff = new Date(now.getTime() - REPLY_WINDOW_DAYS * 86_400_000)
+  const replies = await prisma.crmActivity.groupBy({
+    by: ['personId'],
+    where: {
+      direction: 'INBOUND', type: { in: ['EMAIL', 'LINKEDIN_MESSAGE'] }, needsReview: false,
+      occurredAt: { gte: replyCutoff }, personId: { not: null },
+      person: { deletedAt: null },
+    },
+    _max: { occurredAt: true },
+  })
+  const lastReply = new Map<string, Date>()
+  for (const r of replies) if (r.personId && r._max.occurredAt) lastReply.set(r.personId, r._max.occurredAt)
+
+  // 1. Organizations where we have a real way in, optionally just one.
   const orgs = await prisma.crmOrganization.findMany({
     where: {
       ...(opts.orgId ? { id: opts.orgId } : {}),
       NOT: { canonicalNameNormalized: { startsWith: '-' } },
       OR: [
-        { affiliations: { some: { isCurrent: true, person: { deletedAt: null } } } },
-        { introPathsAsTarget: { some: { status: { not: 'DECLINED' } } } },
+        { affiliations: { some: { isCurrent: true, personId: { in: [...lastReply.keys()] } } } },
+        { introPathsAsTarget: { some: { status: { not: 'DECLINED' }, strength: { in: ['STRONG', 'MEDIUM'] } } } },
       ],
     },
     select: {
       id: true, name: true, canonicalNameNormalized: true,
       affiliations: {
-        where: { isCurrent: true, person: { deletedAt: null } },
-        select: {
-          title: true,
-          person: {
-            select: {
-              id: true, fullName: true, warmth: true, connectedAt: true, linkedinDegree: true,
-              firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true,
-            },
-          },
-        },
+        where: { isCurrent: true, personId: { in: [...lastReply.keys()] } },
+        select: { title: true, person: { select: { id: true, fullName: true } } },
       },
       introPathsAsTarget: {
-        where: { status: { not: 'DECLINED' } },
+        where: { status: { not: 'DECLINED' }, strength: { in: ['STRONG', 'MEDIUM'] } },
         select: { id: true, strength: true, status: true, connectorName: true, connectorPerson: { select: { id: true, fullName: true } } },
       },
     },
@@ -76,7 +88,9 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
   if (orgs.length === 0) return []
 
   const doorsByOrg = new Map(orgs.map((o) => {
-    const people: DoorPerson[] = o.affiliations.map((a) => ({ ...a.person, title: a.title }))
+    const people: DoorPerson[] = o.affiliations.map((a) => ({
+      id: a.person.id, fullName: a.person.fullName, title: a.title, lastReplyAt: lastReply.get(a.person.id) ?? null,
+    }))
     const routes: DoorRoute[] = o.introPathsAsTarget.map((p) => ({
       id: p.id, strength: p.strength, status: p.status,
       connectorName: p.connectorPerson?.fullName ?? p.connectorName,

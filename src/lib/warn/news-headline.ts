@@ -26,6 +26,33 @@ const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
 const LAYOFFS_COUNT = new RegExp(String.raw`^${NAME}(?:'s)? (?:layoffs?|job cuts) .*?${COUNT}`, 'i')
 const ANNOUNCES = new RegExp(String.raw`^${NAME} (?:announces|confirms|begins|starts|plans|unveils|launches|to begin)(?: (?:new|more|mass|another|a new round of|fresh))? (?:layoffs|job cuts)\b`, 'i')
 
+// The wider shapes: the layoff is announced without a headcount, as a share of
+// the workforce, or by the company's owner. Each still needs a name as the
+// subject and a layoff verb, so a headline that fits none is skipped.
+const NAME_NC = NAME.replace('(?<co>', '(?:')
+const PEOPLE = String.raw`(?:jobs|workers|employees|staff|staffers|roles|positions|people)`
+const OF_WORKFORCE = String.raw`(?: of)? (?:its |the |their )?(?:[A-Za-z0-9&.'’-]+ ){0,2}?(?:workforce|work force|staff|employees|team|headcount|personnel|people|jobs|roles|positions)\b`
+const PCT = String.raw`\d{1,3}(?:\.\d+)?\s?(?:%|percent|per cent)`
+const BIG = String.raw`(?:a |an )?(?:large|big|significant|substantial|major|sizable|considerable) (?:part|portion|share|number|chunk|percentage)`
+/** "Bumble to cut 30% of workforce", "Meta cuts 5% of staff". */
+const SHARE_PCT = new RegExp(String.raw`^${NAME},? ${VERB} (?:about |around |nearly |roughly |up to |more than |over )?${PCT}${OF_WORKFORCE}`, 'i')
+/** "Intel to lay off thousands", never "cuts hundreds of millions in costs". */
+const SHARE_WORDS = new RegExp(String.raw`^${NAME},? ${VERB} (?:thousands|hundreds|dozens)\b(?! of (?!${PEOPLE}\b))`, 'i')
+/** "laying off a large part of the Airtable team". */
+const LARGE_PART = new RegExp(String.raw`^${NAME},? ${VERB} ${BIG}${OF_WORKFORCE}`, 'i')
+/** "Airtable's new owner is laying off …": the layoff is at the company the owner owns. */
+const OWNER = new RegExp(String.raw`^${NAME}['’]s (?:(?:new|latest|private equity|parent|corporate) )*(?:owner|owners|parent|acquirer|buyer|parent company|parent firm) ${VERB}\b`, 'i')
+/** "Bending Spoons lays off large part of Airtable": the layoff is at the target. */
+const TARGET = new RegExp(
+  String.raw`^${NAME_NC},? ${VERB} (?:${BIG}|${BIG.replace('(?:a |an )?', '')}|${PCT}|\d[\d,]*(?: ${PEOPLE})?)(?: of| at| from) (?:the )?(?!(?:its|their|the|workforce|work force|staff|employees|team|teams|headcount|personnel|workers|jobs|roles|positions|people|global|entire|total|full|all|about|around)\b)(?<tco>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,3}?)(?= after | following | as | amid | in | at | with | over | to |,|:| -|$)`,
+  'i',
+)
+/** "Salesforce reduces headcount by 4,000". */
+const HEADCOUNT = new RegExp(
+  String.raw`^${NAME},? (?:is |are |will |plans? to |set to |to |reportedly )?(?:reduc(?:es|ing|e)|shrink(?:s|ing)?|trim(?:s|ming)?) (?:its |their |the )?(?:global |total |entire |overall )?(?:headcount|workforce|work force|staff)(?: by (?:about |around |nearly |more than |over |roughly |some )?(?:${PCT}|(?<n>\d[\d,]*)(?<k>k|thousand)?))?`,
+  'i',
+)
+
 /** Words that make the subject a description rather than a company's name. */
 const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress)\b/i
 
@@ -39,9 +66,19 @@ function count(n: string | undefined, k: string | undefined): number | null {
 }
 
 export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
-  const h = headline.replace(/\s+/g, ' ').trim()
-  const m = h.match(WITH_COUNT) ?? h.match(LAYOFFS_COUNT) ?? h.match(ANNOUNCES)
-  const raw = m?.groups?.co?.trim()
+  // Quote marks around a phrase ('large part') are not part of it; a possessive's apostrophe is.
+  const h = headline
+    .replace(/[“”"]/g, '')
+    .replace(/(^|\s)['‘’]/g, '$1')
+    .replace(/['‘’](?=\s|$|[.,:;])/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  // The owner shapes go first: "Airtable's new owner" is a name-shaped phrase the
+  // others would take for the company itself.
+  const m = h.match(OWNER) ?? h.match(TARGET)
+    ?? h.match(WITH_COUNT) ?? h.match(LAYOFFS_COUNT) ?? h.match(ANNOUNCES)
+    ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
+  const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
   const company = raw.replace(/^the /i, '').replace(/[,:]$/, '').trim()
   if (company.length < 2 || NOT_A_NAME.test(company)) return null
