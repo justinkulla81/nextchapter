@@ -47,6 +47,8 @@ export type WorkspaceConfig = {
   // Lowest license tier that includes this workspace (product design,
   // Packaging): Career < Advancement < Institution. Omitted = every tier.
   minTier?: InstitutionTier
+  // Shown only when the college has this switched on (enabledFeatures).
+  feature?: 'wioa'
   tabs: WorkspaceTab[]
 }
 
@@ -69,6 +71,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'coaching', label: 'Coaching', comingIn: null },
       { key: 'jobs', label: 'Alumni jobs', comingIn: null },
       { key: 'mentors', label: 'Mentors', comingIn: null },
+      { key: 'programs', label: 'Programs', comingIn: null },
       { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
     ],
   },
@@ -137,7 +140,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Courses', comingIn: null },
       { key: 'faculty', label: 'Faculty', comingIn: null },
-      { key: 'capstones', label: 'Employer capstones', comingIn: 'V2' },
+      { key: 'capstones', label: 'Employer capstones', comingIn: null },
     ],
   },
   {
@@ -150,8 +153,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     minTier: 'INSTITUTION',
     tabs: [
       { key: 'home', label: 'Programs', comingIn: null },
-      { key: 'enrollments', label: 'Enrollments', comingIn: 'V2' },
-      { key: 'clients', label: 'Corporate clients', comingIn: 'V2' },
+      { key: 'enrollments', label: 'Enrollments', comingIn: null },
+      { key: 'clients', label: 'Corporate clients', comingIn: null },
     ],
   },
   {
@@ -181,7 +184,20 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'roster', label: 'Roster', comingIn: null },
     ],
   },
-  { key: 'workforce', label: 'Workforce board', icon: 'Landmark', release: 'V2', requiredRoles: [], homePath: 'workforce', tabs: [] },
+  {
+    // The local workforce board's view of WIOA-funded training (spec §13):
+    // participants, completions and placements. Read-only for the board's
+    // staff; shows how to switch it on until Admin turns WIOA on.
+    key: 'workforce',
+    label: 'Workforce board',
+    icon: 'Landmark',
+    release: 'V1',
+    requiredRoles: ['WORKFORCE_PARTNER', 'INSTITUTION_ADMIN', 'EXEC_ED'],
+    homePath: 'workforce',
+    minTier: 'INSTITUTION',
+    feature: 'wioa',
+    tabs: [{ key: 'home', label: 'WIOA participants', comingIn: null }],
+  },
 ]
 
 export const V1_WORKSPACE_KEYS = WORKSPACES.filter((w) => w.release === 'V1').map((w) => w.key)
@@ -202,18 +218,23 @@ export function tierIncludes(tier: InstitutionTier, ws: WorkspaceConfig): boolea
 
 export const TIER_LABELS: Record<InstitutionTier, string> = { CAREER: 'Career', ADVANCEMENT: 'Advancement', INSTITUTION: 'Institution' }
 
+export type WorkspaceFeatures = { wioa?: boolean }
+
+const featureOn = (w: WorkspaceConfig, features: WorkspaceFeatures) => !w.feature || features[w.feature] === true
+
 // The V1 workspaces these tokens open on this license tier, in rail order.
-// No tier = ignore tiers (tests, config checks).
-export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier): WorkspaceKey[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
+// No tier = ignore tiers (tests, config checks). Feature-gated workspaces
+// (the Workforce board) need the college to have switched them on.
+export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceKey[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
     (w) => w.key,
   )
 }
 
 // Workspaces a role would open but the license tier doesn't include: shown
 // locked to admins, with the tier that adds them.
-export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier): WorkspaceConfig[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
+export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceConfig[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
 }
 
 // True when the ONLY thing opening this workspace is a VIEWER seat.
@@ -240,6 +261,7 @@ export const ALL_TOKENS: ReadonlySet<AccessToken> = new Set<AccessToken>([
   'COACH',
   'FACULTY',
   'EXEC_ED',
+  'WORKFORCE_PARTNER',
   'MEMBER',
   'EMPLOYER',
 ])
@@ -257,6 +279,7 @@ export const DEMO_PERSONAS = [
   { key: 'COACH', label: 'Coach', tokens: ['COACH'] },
   { key: 'FACULTY', label: 'Faculty', tokens: ['FACULTY'] },
   { key: 'EXEC_ED', label: 'Exec Ed staff', tokens: ['EXEC_ED'] },
+  { key: 'WORKFORCE_PARTNER', label: 'Workforce board', tokens: ['WORKFORCE_PARTNER'] },
   { key: 'MEMBER', label: 'Alum (candidate)', tokens: ['MEMBER'] },
   { key: 'EMPLOYER', label: 'Employer', tokens: ['EMPLOYER'] },
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
@@ -277,5 +300,6 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
   COACH: 'Coach',
   FACULTY: 'Faculty',
   EXEC_ED: 'Exec Ed',
+  WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
 }

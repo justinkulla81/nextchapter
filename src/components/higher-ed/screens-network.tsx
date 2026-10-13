@@ -10,6 +10,7 @@ import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { listEmployerDossiers } from '@/lib/higher-ed/views'
 import { alumniAtCompanies, countMentorInvitable } from '@/lib/higher-ed/mentor-network'
 import { MentorStatsScreen } from './MentorStatsScreen'
+import { EmployerCapstones } from './screens-programs'
 import { collegeJobs, employerProfileFor, employerRoles, introStatusFor, listCollegeEmployers, pendingIntros } from '@/lib/higher-ed/employers'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inviteStudents, sendMentorInvites } from '@/app/i/[slug]/(portal)/network-actions'
@@ -275,6 +276,7 @@ export async function EmployerPage({ ctx }: Props) {
           <p className="text-sm text-muted-foreground">No roles yet.</p>
         )}
       </section>
+      <EmployerCapstones ctx={ctx} />
     </div>
   )
 }

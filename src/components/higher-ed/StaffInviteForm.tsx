@@ -8,7 +8,7 @@ import { ROLE_LABEL } from '@/lib/institution/permissions'
 
 type State = { error?: string; ok?: boolean; message?: string } | undefined
 
-const ROLES = ['CAREER_SERVICES', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'EMPLOYER_RELATIONS', 'COACH', 'FACULTY', 'EXEC_ED', 'VIEWER', 'INSTITUTION_ADMIN'] as const
+const ROLES = ['CAREER_SERVICES', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'EMPLOYER_RELATIONS', 'COACH', 'FACULTY', 'EXEC_ED', 'WORKFORCE_PARTNER', 'VIEWER', 'INSTITUTION_ADMIN'] as const
 
 // Admin › Staff. Emails a sign-in link; the person lands in this college's
 // portal with the role picked here. Inputs are controlled so a failed invite

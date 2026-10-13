@@ -11210,6 +11210,7 @@ enum InstitutionUserRole {
   FACULTY // Teaching: faculty who teach courses and Exec Ed programs
   EXEC_ED // Exec Ed: executive / continuing education staff
   VIEWER // assigned workspace, read-only
+  WORKFORCE_PARTNER // the local workforce board's staff: Workforce board workspace, read-only (needs enabledFeatures.wioa)
 }
 
 enum InstitutionAffiliation {
@@ -11357,6 +11358,31 @@ enum InstitutionEmployerStatus {
   REJECTED
 }
 
+// V2 programs (spec §13): who pays for an enrollment.
+enum ProgramPayer {
+  SELF_PAY
+  EMPLOYER
+  RESILIENCE_FUND
+  WIOA_VOUCHER
+  BOARD_CONTRACT
+  PELL
+}
+
+enum EnrollmentStatus {
+  APPLIED
+  ENROLLED
+  COMPLETED
+  WITHDREW
+}
+
+enum CapstoneStatus {
+  PROPOSED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+}
+
 enum DossierIntroStatus {
   REQUESTED
   ACCEPTED
@@ -11424,6 +11450,9 @@ model Institution {
 
   targetCompanies InstitutionTargetCompany[]
   dossierIntroRequests DossierIntroRequest[]
+  programs         Program[]
+  corporateClients CorporateClient[]
+  capstones        Capstone[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11453,6 +11482,8 @@ model InstitutionUser {
   @@unique([institutionId, invitedEmail, role])
   @@index([userId, revokedAt])
   @@index([institutionId, role])
+  cohortsTaught   Cohort[]
+  capstonesLed    Capstone[] @relation("CapstoneFaculty")
 }
 
 model InstitutionMember {
@@ -11518,6 +11549,7 @@ model InstitutionMember {
   @@index([institutionId, lastName, firstName])
   @@index([institutionId, lastKnownEmployerNormalized])
   dossierIntroRequests DossierIntroRequest[]
+  enrollments Enrollment[]
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -11889,6 +11921,7 @@ model InstitutionEmployer {
 
   @@unique([institutionId, employerProfileId])
   @@index([employerProfileId, status])
+  capstones Capstone[]
 }
 
 // An approved employer asks to meet a member who shares their Dossier with
@@ -13146,3 +13179,124 @@ model RateLimitHit {
   @@index([bucket, key, createdAt])
   @@index([createdAt])
 }
+
+// ── V2: programs, cohorts, enrollment, corporate clients, capstones ─────────
+// Exec Ed and Teaching (spec §13). Lean on purpose: no invoices, attendance,
+// assessments or wage matching yet, and no SSNs anywhere.
+
+model Program {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  summary       String?     @db.Text
+  audience      String?
+  credential    String? // what completers earn, e.g. "AI-Ready Professional Certificate"
+  priceCents    Int         @default(0)
+  wioaEligible  Boolean     @default(false) // on the state's eligible training provider list
+  isActive      Boolean     @default(true)
+  createdBy     String
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  cohorts    Cohort[]
+  capstones  Capstone[]
+
+  @@index([institutionId, isActive])
+}
+
+model Cohort {
+  id            String           @id @default(cuid())
+  programId     String
+  program       Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name          String // e.g. "Spring 2027, online"
+  startsAt      DateTime
+  endsAt        DateTime?
+  seats         Int?
+  modality      String? // 'online' | 'in_person' | 'hybrid'
+  facultyUserId String? // InstitutionUser (FACULTY) who teaches it
+  faculty       InstitutionUser? @relation(fields: [facultyUserId], references: [id], onDelete: SetNull)
+  isSampleData  Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  enrollments Enrollment[]
+
+  @@index([programId, startsAt])
+}
+
+// One member in one cohort. Payer EMPLOYER links the corporate client paying.
+// "Placed" is derived: an OutcomeReport after completedAt.
+model Enrollment {
+  id                String            @id @default(cuid())
+  cohortId          String
+  cohort            Cohort            @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  memberId          String
+  member            InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status            EnrollmentStatus  @default(APPLIED)
+  payer             ProgramPayer      @default(SELF_PAY)
+  corporateClientId String?
+  corporateClient   CorporateClient?  @relation(fields: [corporateClientId], references: [id], onDelete: SetNull)
+  note              String?           @db.Text // the applicant's note (e.g. "I need help paying")
+  appliedAt         DateTime          @default(now())
+  enrolledAt        DateTime?
+  completedAt       DateTime?
+  withdrewAt        DateTime?
+  credentialName    String?
+  isSampleData      Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([cohortId, memberId])
+  @@index([memberId])
+  @@index([payer, status])
+}
+
+// An employer that buys seats in programs for its team.
+model CorporateClient {
+  id             String      @id @default(cuid())
+  institutionId  String
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name           String
+  contactName    String?
+  contactEmail   String?
+  seatsPurchased Int         @default(0)
+  notes          String?     @db.Text
+  isSampleData   Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  enrollments Enrollment[]
+
+  @@index([institutionId])
+}
+
+// An employer-sponsored project students or an Exec Ed cohort deliver, with
+// an optional commitment to interview the team.
+model Capstone {
+  id                    String               @id @default(cuid())
+  institutionId         String
+  institution           Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  institutionEmployerId String?
+  institutionEmployer   InstitutionEmployer? @relation(fields: [institutionEmployerId], references: [id], onDelete: SetNull)
+  employerName          String
+  title                 String
+  brief                 String               @db.Text
+  term                  String?
+  programId             String?
+  program               Program?             @relation(fields: [programId], references: [id], onDelete: SetNull)
+  courseName            String?
+  status                CapstoneStatus       @default(PROPOSED)
+  facultyUserId         String?
+  faculty               InstitutionUser?     @relation("CapstoneFaculty", fields: [facultyUserId], references: [id], onDelete: SetNull)
+  interviewCommitments  Int                  @default(0)
+  proposedBy            String
+  decidedAt             DateTime?
+  isSampleData          Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([institutionId, status])
+}
+

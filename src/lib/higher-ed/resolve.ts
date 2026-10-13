@@ -72,11 +72,15 @@ export async function resolveInstitutionAccess(
   },
   db: Db = prisma,
 ): Promise<InstitutionAccess | null> {
-  const institution = await db.institution.findUnique({
+  const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, enabledFeatures: true },
   })
-  if (!institution) return null
+  if (!row) return null
+  // enabledFeatures decides which feature-gated workspaces exist here; it
+  // isn't part of the branding handed to pages.
+  const { enabledFeatures, ...institution } = row
+  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
 
   const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
     db.institutionUser.findMany({
@@ -145,7 +149,7 @@ export async function resolveInstitutionAccess(
     email: args.email,
     ownTokens: own,
     tokens,
-    workspaces: workspacesFor(tokens, institution.tier),
+    workspaces: workspacesFor(tokens, institution.tier, features),
     isNcAdmin: ncAdmin,
     mode,
     demoPersona,

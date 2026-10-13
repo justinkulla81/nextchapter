@@ -30,7 +30,7 @@ import { OutcomesScreen } from './OutcomesScreen'
 import { MentorsScreen } from './MentorsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
-import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { checkInMonthFrom, memberAudiences, memberCards, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { serviceUsage30d } from '@/lib/higher-ed/service-usage'
 import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -43,6 +43,7 @@ import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
 import { AssignControl } from './AssignControl'
 import { ConfirmActionButton } from './ConfirmActionButton'
+import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
 import { CareerStatusCard } from './CareerStatusCard'
@@ -54,6 +55,7 @@ import { listProfileViews } from '@/lib/higher-ed/audit'
 import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
 import { emailSettingsFrom } from '@/lib/higher-ed/outreach'
+import { wioaOn } from '@/lib/higher-ed/programs'
 import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
@@ -187,6 +189,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
+      <MyProgramCard ctx={ctx} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
@@ -745,64 +748,6 @@ async function CandidateCoaching({ ctx }: ScreenProps) {
 // Teaching shows the programs its faculty deliver. Both read the programs in
 // the Services catalog; courses, cohorts and enrollment are V2 (spec §13).
 
-async function ProgramList({ ctx, linkTeaching }: { ctx: WorkspaceContext; linkTeaching: boolean }) {
-  const faculty = await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'FACULTY', revokedAt: null } })
-  const base = `/i/${ctx.institution.slug}`
-  return (
-    <div className="space-y-4">
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        A starting catalog. Programs, cohorts, enrollment and payers (self-pay, employer, Resilience Fund, or WIOA if you opt in) arrive with V2.{' '}
-        {linkTeaching ? (
-          <>
-            Taught by your faculty:{' '}
-            <Link href={`${base}/teaching/faculty`} className="font-medium text-primary hover:underline">
-              {faculty} in Teaching
-            </Link>
-            .
-          </>
-        ) : null}
-      </p>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {PROGRAM_IDEAS.map((p) => (
-          <li key={p.key} className="rounded-lg border border-border bg-card p-4">
-            <p className="text-sm font-semibold">{p.name}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{p.summary}</p>
-            <p className="mt-1 text-xs text-muted-foreground">For: {p.audience}</p>
-            {p.examples?.length ? (
-              <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                <li className="font-medium">Done elsewhere:</li>
-                {p.examples.map((e) => (
-                  <li key={e.url}>
-                    <a href={e.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">
-                      {e.institution}
-                    </a>
-                    {` · ${e.name}`}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-async function ExecEdPrograms({ ctx }: ScreenProps) {
-  return <ProgramList ctx={ctx} linkTeaching />
-}
-
-async function TeachingCourses({ ctx }: ScreenProps) {
-  return (
-    <div className="space-y-6">
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        Credit courses, sections and coursework arrive with V2 programs. For now, these are the programs your faculty would teach, the same list Exec Ed sells.
-      </p>
-      <ProgramList ctx={ctx} linkTeaching={false} />
-    </div>
-  )
-}
-
 async function TeachingFaculty({ ctx }: ScreenProps) {
   return <StaffRoster ctx={ctx} roles={['FACULTY', 'EXEC_ED']} empty="Invite faculty and Exec Ed staff from Admin › Staff." />
 }
@@ -1154,6 +1099,7 @@ async function SettingsOverview({ ctx }: ScreenProps) {
           givingUrl: i.givingUrl,
           fromName: sender.fromName,
           replyTo: sender.replyTo ?? '',
+          wioa: wioaOn(i.enabledFeatures),
         }}
       />
       <CollegeProfile profile={readProfile(i.profile)} />
@@ -1283,6 +1229,11 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'teaching:home': TeachingCourses,
   'teaching:faculty': TeachingFaculty,
   'execed:home': ExecEdPrograms,
+  'execed:enrollments': ExecEdEnrollments,
+  'execed:clients': ExecEdClients,
+  'teaching:capstones': TeachingCapstones,
+  'candidate:programs': CandidatePrograms,
+  'workforce:home': WorkforceHome,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
   'admin:roster': AdminRoster,

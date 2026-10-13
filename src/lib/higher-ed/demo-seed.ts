@@ -130,7 +130,8 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
         graceDays: 60,
         fiscalYearStartMonth: 7,
         engagementWeights: {},
-        wioa: false,
+        // On so the demo shows the Workforce board workspace.
+        wioa: true,
         ...(tenant.services ? { services: tenant.services } : {}),
         ...(tenant.annualCheckInMonth ? { checkIns: { annualMonth: tenant.annualCheckInMonth } } : {}),
       },
@@ -587,6 +588,85 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       data: { institutionId, employerProfileId: approved.id, memberId: mid(featured), requestedBy: 'demo-seed', note: 'We’re hiring a senior analyst and your background stood out.', isSampleData: true },
     })
   }
+
+  // ── V2: programs, cohorts, enrollment, clients, capstones ────────────────
+  const facultyUser = staff.find((x) => x.role === 'FACULTY') ?? staff.find((x) => x.role === 'EXEC_ED')
+  const programDefs = [
+    { name: 'AI-Ready Professional Certificate', summary: 'Six weeks of practical generative AI for working professionals: prompting, automating your own workflow, and judging output.', audience: 'Mid-career alumni and local employers', credential: 'AI-Ready Professional Certificate', priceCents: 149_500, wioaEligible: true },
+    { name: 'Data analytics certificate', summary: 'SQL, spreadsheets and dashboards, with a capstone on a local employer’s data.', audience: 'Alumni and adult learners', credential: 'Data Analytics Certificate', priceCents: 249_500, wioaEligible: true },
+    { name: 'Leading teams through AI', summary: 'For managers and executives: choosing use cases, redesigning roles, governance.', audience: 'Senior alumni', credential: null, priceCents: 0, wioaEligible: false },
+  ]
+  const programs = await Promise.all(
+    programDefs.map((p) => db.program.create({ data: { ...p, institutionId, createdBy: 'demo-seed', isSampleData: true }, select: { id: true, name: true, credential: true } })),
+  )
+  const cohortDefs = [
+    { p: 0, name: 'Spring 2026, online', start: -210, end: -168 },
+    { p: 0, name: 'Fall 2026, online', start: -20, end: 22 },
+    { p: 1, name: 'Summer 2026, hybrid', start: -150, end: -60 },
+    { p: 1, name: 'Winter 2027, online', start: 40, end: 130 },
+    { p: 2, name: 'Executive cohort, Jan 2027', start: 75, end: 90 },
+  ]
+  const cohorts = await Promise.all(
+    cohortDefs.map((c) =>
+      db.cohort.create({
+        data: { programId: programs[c.p].id, name: c.name, startsAt: new Date(now.getTime() + c.start * DAY), endsAt: new Date(now.getTime() + c.end * DAY), seats: 25, modality: c.name.includes('hybrid') ? 'hybrid' : 'online', facultyUserId: facultyUser?.id ?? null, isSampleData: true },
+        select: { id: true },
+      }),
+    ),
+  )
+  const clientRows = await Promise.all(
+    [
+      { name: rosterEmployers[0], contactName: 'Talent development', seatsPurchased: 10, notes: 'AI-Ready for their operations managers; renews in June' },
+      { name: rosterEmployers[2], contactName: 'HR', seatsPurchased: 4, notes: 'Data analytics for two teams' },
+    ].map((c) => db.corporateClient.create({ data: { ...c, institutionId, isSampleData: true }, select: { id: true } })),
+  )
+  // Laid-off alumni on WIOA vouchers in the finished cohorts (two placed,
+  // from the outcome reports above), employer-sponsored and self-pay seats,
+  // and a few applications waiting.
+  const enrollRows: Prisma.EnrollmentCreateManyInput[] = []
+  const wioaPeople = [...landed.slice(0, 2), ...flagged.slice(1, 4)]
+  wioaPeople.forEach((i, k) => {
+    const done = k < 3
+    const cohort = done ? (k === 2 ? cohorts[2] : cohorts[0]) : cohorts[1]
+    const def = done ? (k === 2 ? cohortDefs[2] : cohortDefs[0]) : cohortDefs[1]
+    const completedAt = done ? new Date(now.getTime() + def.end * DAY) : null
+    enrollRows.push({ cohortId: cohort.id, memberId: mid(i), status: done ? 'COMPLETED' : 'ENROLLED', payer: k === 2 ? 'BOARD_CONTRACT' : 'WIOA_VOUCHER', appliedAt: new Date(now.getTime() + (def.start - 30) * DAY), enrolledAt: new Date(now.getTime() + def.start * DAY), completedAt, credentialName: done ? programs[cohortDefs.indexOf(def) === 2 ? 1 : 0].credential : null, isSampleData: true })
+  })
+  const others = joinedIdx.filter((i) => !wioaPeople.includes(i) && !flagged.includes(i)).slice(0, 14)
+  others.forEach((i, k) => {
+    const cohortIdx = [1, 1, 1, 0, 0, 2, 2, 3, 3, 3, 4, 4, 1, 3][k]
+    const def = cohortDefs[cohortIdx]
+    const started = def.start < 0
+    const finished = def.end < 0
+    const status = k >= 11 ? 'APPLIED' : finished ? 'COMPLETED' : started ? 'ENROLLED' : 'APPLIED'
+    const sponsored = k % 3 === 0
+    enrollRows.push({
+      cohortId: cohorts[cohortIdx].id,
+      memberId: mid(i),
+      status,
+      payer: sponsored ? 'EMPLOYER' : k % 5 === 1 ? 'RESILIENCE_FUND' : 'SELF_PAY',
+      corporateClientId: sponsored ? clientRows[k % 2].id : null,
+      note: status === 'APPLIED' && k % 2 ? 'Needs help paying.' : null,
+      appliedAt: new Date(now.getTime() + Math.min(def.start - 20, -3) * DAY),
+      enrolledAt: status === 'APPLIED' ? null : new Date(now.getTime() + def.start * DAY),
+      completedAt: status === 'COMPLETED' ? new Date(now.getTime() + def.end * DAY) : null,
+      credentialName: status === 'COMPLETED' ? programs[def.p].credential : null,
+      isSampleData: true,
+    })
+  })
+  await db.enrollment.createMany({ data: enrollRows, skipDuplicates: true })
+  // The landed WIOA completers' new-job reports come after they finished, so
+  // the board sees them placed.
+  for (const i of landed.slice(0, 2)) {
+    await db.outcomeReport.updateMany({ where: { memberId: mid(i) }, data: { reportedAt: new Date(now.getTime() - 150 * DAY) } })
+  }
+  await db.capstone.createMany({
+    data: [
+      { institutionId, institutionEmployerId: (await db.institutionEmployer.findFirstOrThrow({ where: { institutionId, employerProfileId: approved.id }, select: { id: true } })).id, employerName: employerCo, title: 'Predict which customers will churn next quarter', brief: 'Two years of anonymized account data. We would like a model, the three signals that matter most, and a one-page playbook for our account managers.', term: 'Spring 2027', programId: programs[1].id, status: 'PROPOSED', interviewCommitments: 3, proposedBy: 'demo-seed', isSampleData: true },
+      { institutionId, employerName: rosterEmployers[0], title: 'Cut patient no-shows at three clinics', brief: 'Appointment history and reminder logs. Find what predicts a no-show and test a better reminder schedule.', term: 'Fall 2026', programId: programs[1].id, status: 'IN_PROGRESS', facultyUserId: facultyUser?.id ?? null, interviewCommitments: 2, proposedBy: 'demo-seed', decidedAt: new Date(now.getTime() - 40 * DAY), isSampleData: true },
+      { institutionId, employerName: rosterEmployers[3], title: 'An AI policy for a 400-person manufacturer', brief: 'Draft the acceptable-use policy and a rollout plan for supervisors.', term: 'Spring 2026', programId: programs[0].id, status: 'COMPLETED', facultyUserId: facultyUser?.id ?? null, interviewCommitments: 1, proposedBy: 'demo-seed', decidedAt: new Date(now.getTime() - 220 * DAY), isSampleData: true },
+    ],
+  })
 
   // ── Resilience Fund ──────────────────────────────────────────────────────
   const fund = await db.resilienceFund.create({

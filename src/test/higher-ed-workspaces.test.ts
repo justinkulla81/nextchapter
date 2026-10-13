@@ -52,6 +52,12 @@ describe('license tiers (product design, Packaging)', () => {
   it('Institution adds Teaching and Exec Ed', () => {
     expect(workspacesFor(ALL_TOKENS, 'INSTITUTION')).toEqual(['candidate', 'alumni', 'development', 'career', 'teaching', 'execed', 'employer', 'admin'])
   })
+  it('the Workforce board appears only when the college turns WIOA on', () => {
+    expect(workspacesFor(set('INSTITUTION_ADMIN'), 'INSTITUTION')).not.toContain('workforce')
+    expect(workspacesFor(set('INSTITUTION_ADMIN'), 'INSTITUTION', { wioa: true })).toContain('workforce')
+    expect(workspacesFor(set('WORKFORCE_PARTNER'), 'INSTITUTION', { wioa: true })).toEqual(['workforce'])
+    expect(workspacesFor(set('WORKFORCE_PARTNER'), 'INSTITUTION')).toEqual([])
+  })
   it('admins see what a higher tier would add', () => {
     expect(lockedWorkspacesFor(set('INSTITUTION_ADMIN'), 'ADVANCEMENT').map((w) => w.key)).toEqual(['teaching', 'execed'])
   })

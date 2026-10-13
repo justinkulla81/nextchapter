@@ -14,7 +14,7 @@ export function CollegeSettingsForm({
   canEdit,
 }: {
   action: (prev: State, formData: FormData) => Promise<State>
-  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null; fromName: string; replyTo: string }
+  defaults: { graceDays: number; fiscalYearStartMonth: number; givingUrl: string | null; fromName: string; replyTo: string; wioa: boolean }
   canEdit: boolean
 }) {
   const [state, formAction] = useActionState(action, undefined)
@@ -23,6 +23,7 @@ export function CollegeSettingsForm({
   const [giving, setGiving] = useState(defaults.givingUrl ?? '')
   const [fromName, setFromName] = useState(defaults.fromName)
   const [replyTo, setReplyTo] = useState(defaults.replyTo)
+  const [wioa, setWioa] = useState(defaults.wioa)
   return (
     <form action={formAction} className="grid gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-3">
       <div className="space-y-1.5">
@@ -53,6 +54,13 @@ export function CollegeSettingsForm({
         <Input id="set-reply" name="replyTo" type="email" value={replyTo} onChange={(e) => setReplyTo(e.target.value)} disabled={!canEdit} placeholder="alumni@yourcollege.edu" />
         <p className="text-xs text-muted-foreground">Every email to alumni carries an unsubscribe link; bounces and spam complaints stop email to that address automatically.</p>
       </div>
+      <label className="flex items-start gap-2 text-sm sm:col-span-3">
+        <input type="checkbox" name="wioa" checked={wioa} onChange={(e) => setWioa(e.target.checked)} disabled={!canEdit} className="mt-1" />
+        <span>
+          We train dislocated workers with our local workforce board (WIOA)
+          <span className="block text-xs text-muted-foreground">Turns on the Workforce board workspace: WIOA-funded participants, completions and placements, and a staff role for the board.</span>
+        </span>
+      </label>
       <div className="flex items-center gap-3 sm:col-span-3">
         {canEdit ? <SubmitButton pendingLabel="Saving…">Save settings</SubmitButton> : <p className="text-xs text-muted-foreground">Only an institution admin can change these.</p>}
         {state?.error && (

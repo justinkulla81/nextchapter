@@ -403,3 +403,20 @@ Staff approve every send; the system finds who to send to.
 - **Composer** (`composer.ts`): Alumni Relations › Outreach writes an email to an audience (all, joined, not joined, recent grads), with merge-field buttons and an unknown-field check, live preview, "Send a test to me" (demo colleges preview instead), then confirmed batches of 200 that never reach anyone twice; editing locks after the first send. `OutreachCampaign.audience` added.
 - **Checks:** `npm run verify:release2|3|4`, `verify:he-demo` (the §10 demo script end to end on /i/demo, then reseeds), `check:he-screens` (renders every workspace screen on the server against a demo college).
 - **Still open:** Resend open/click webhooks, paid coaching via Stripe and the revenue-share report, fund award redemption on booking, configurable engagement weights, college SSO.
+
+### College email safety, Oct 13, 2026
+
+- `src/lib/higher-ed/email-events.ts`: the Resend webhook (`/api/webhooks/resend`) checks Higher Ed sends first. Opens and clicks set `OutreachSend.openedAt/clickedAt` (unsubscribe clicks excluded); a permanent bounce or a spam complaint sets `InstitutionMember.emailSuppressedAt/Reason`. Suppressed members are skipped by `sendCampaign` and excluded from every audience, invite, check-in and mentor invitation; a roster import can't clear it (it's separate from `doNotContact`).
+- Every college email: the college's "from" name and reply-to (Admin › Overview, `enabledFeatures.email`), a footer link to `/i/<slug>/unsubscribe?t=<token>` (one click to stop; an unsubscribe, not a bounce, can be undone) and RFC 8058 `List-Unsubscribe` + `List-Unsubscribe-Post` (`POST /api/higher-ed/unsubscribe/<token>`). Join invitations now go through `sendCampaign`.
+- The CRM updates file adds `email_status`. `npm run verify:email-safety`.
+
+### V2, lean (spec §13), Oct 13, 2026
+
+Built: `Program`, `Cohort`, `Enrollment` (payer: self-pay, employer, Resilience Fund, WIOA voucher, board contract, Pell), `CorporateClient`, `Capstone`; role `WORKFORCE_PARTNER`. `src/lib/higher-ed/programs.ts`.
+
+- **Exec Ed:** Programs (add, edit, cohorts with seats, format and instructor), Enrollments (apply → enroll → complete with the program's credential, or withdraw; payer and client per enrollment; completion scores EVENT engagement with consent), Corporate clients (seats purchased vs used).
+- **Teaching:** Courses lists the cohorts faculty teach; Employer capstones (employers propose from their Employer page with interview commitments; faculty approve, start, complete).
+- **Candidate:** Programs tab (open cohorts, apply with "I'll pay / my employer / I need help paying") and a "My program" card on home.
+- **Workforce board:** only when Admin turns WIOA on (`enabledFeatures.wioa`, feature-gated in `workspacesFor`). WIOA-voucher and board-contract participants with completion, credential and placement (an OutcomeReport within 180 days after completion), CSV at `/i/<slug>/export/wioa`. Employer only with outcome sharing.
+- **Not built (deliberately):** SSN vault, invoices and billing, attendance and assessments, wage-record matching, the state performance export, enrolling non-alumni employees of corporate clients (needs a non-alum learner affiliation).
+- `npm run verify:v2`; the demo seeds three programs, five cohorts, about 20 enrollments (WIOA completers placed), two clients and three capstones.

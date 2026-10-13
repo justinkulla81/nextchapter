@@ -129,6 +129,7 @@ const INVITABLE: InstitutionUserRole[] = [
   'COACH',
   'FACULTY',
   'EXEC_ED',
+  'WORKFORCE_PARTNER',
   'VIEWER',
 ]
 
@@ -243,11 +244,11 @@ export async function saveCollegeSettings(slug: string, _prev: FormState, formDa
     where: { id: ctx.institution.id },
     data: {
       givingUrl,
-      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, email: { fromName: fromName || null, replyTo: replyTo || null } },
+      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, wioa: formData.get('wioa') === 'on', email: { fromName: fromName || null, replyTo: replyTo || null } },
     },
     select: { id: true },
   })
-  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth, hasFromName: !!fromName, hasReplyTo: !!replyTo })
+  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth, hasFromName: !!fromName, hasReplyTo: !!replyTo, wioa: formData.get('wioa') === 'on' })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved.' }
 }

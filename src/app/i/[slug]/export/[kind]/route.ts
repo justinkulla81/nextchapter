@@ -4,8 +4,10 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { suppressionRows, updatesExportRows } from '@/lib/higher-ed/views'
 import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { wioaOn, wioaReport } from '@/lib/higher-ed/programs'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
+const WIOA_COLUMNS = ['first_name', 'last_name', 'email', 'program', 'cohort', 'funding', 'status', 'enrolled', 'completed', 'credential', 'placed', 'employer'] as const
 const SUPPRESSION_COLUMNS = ['external_id', 'email', 'first_name', 'last_name', 'since', 'grace_ends'] as const
 
 const day = (v: unknown) => (v instanceof Date ? v.toISOString().slice(0, 10) : v)
@@ -50,6 +52,19 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const rows = await suppressionRows(ctx)
     captureServerEvent(ctx.userId, 'he_suppression_exported', { institutionId: ctx.institution.id, rows: rows.length })
     return new NextResponse(csv(SUPPRESSION_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-do-not-solicit-${stamp}.csv`) })
+  }
+
+  if (kind === 'wioa') {
+    const ctx = await requireWorkspace(slug, 'workforce')
+    const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+    if (!wioaOn(inst.enabledFeatures)) return NextResponse.json({ error: 'WIOA is off for this college' }, { status: 404 })
+    const r = await wioaReport(ctx.institution.id)
+    const rows = r.rows.map((x) => ({
+      first_name: x.firstName, last_name: x.lastName, email: x.email, program: x.program, cohort: x.cohort, funding: x.payer.toLowerCase(),
+      status: x.status.toLowerCase(), enrolled: x.enrolledAt, completed: x.completedAt, credential: x.credential, placed: x.placedAt, employer: x.employer,
+    }))
+    captureServerEvent(ctx.userId, 'he_wioa_exported', { institutionId: ctx.institution.id, rows: rows.length })
+    return new NextResponse(csv(WIOA_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-wioa-participants-${stamp}.csv`) })
   }
 
   return NextResponse.json({ error: 'Unknown export' }, { status: 404 })
