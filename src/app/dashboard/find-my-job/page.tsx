@@ -82,7 +82,7 @@ import {
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
-import { resolveCompanySizeBand } from '@/lib/market/company-size'
+import { resolveCompanySizeBands } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -273,7 +273,18 @@ async function JobRecommendationsSection({
     where: { candidateId: profile.id, reaction: null },
   })
   if (unreactedCount < SURFACED_JOB_POOL_TARGET) {
-    await surfaceNewJobs(profile.id, SURFACED_JOB_POOL_TARGET - unreactedCount)
+    const toSurface = SURFACED_JOB_POOL_TARGET - unreactedCount
+    if (unreactedCount === 0) {
+      // Nothing to show yet — wait, so a first visit doesn't render an empty list.
+      await surfaceNewJobs(profile.id, toSurface)
+    } else {
+      // The list already has jobs: render them now and top the pool up after
+      // the response, same stale-while-revalidate tradeoff as the Gmail sync
+      // in FindMyJobBody — new ones appear on the next load.
+      after(() =>
+        surfaceNewJobs(profile.id, toSurface).catch((error) => console.error('Surfaced job top-up failed:', error))
+      )
+    }
   }
 
   const [allSurfacedJobs, totalUnreactedCount, interestedJobs] = await Promise.all([
@@ -317,7 +328,7 @@ async function JobRecommendationsSection({
     (name): name is string => !!name
   )
   const distinctCompanyNames = [...new Set(companyNames)]
-  const resolvedBands = await Promise.all(distinctCompanyNames.map((name) => resolveCompanySizeBand(name)))
+  const resolvedBands = await resolveCompanySizeBands(distinctCompanyNames)
   const companySizeBandByName = new Map(
     distinctCompanyNames.map((name, i) => [normalizeOrgName(name), resolvedBands[i].band])
   )
@@ -530,22 +541,7 @@ async function FindMyJobBody({
   // stale-while-revalidate tradeoff already accepted everywhere else in
   // this app's slow-load fixes, and a far smaller cost than the whole page
   // appearing to vanish.
-  const [emailConnection, currentEmployerName] = await Promise.all([
-    prisma.emailConnection.findFirst({
-      where: { candidateId: profile.id, disconnectedAt: null },
-    }),
-    // §4.8 — only fetched (and only ever true) for Confidential Search Mode
-    // candidates.
-    profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
-  ])
-  if (emailConnection) {
-    after(() =>
-      syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-    )
-  }
   const jobPostings = profile.jobPostings
-  const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
-
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
   const activeCount = jobPostings.filter(
@@ -553,12 +549,64 @@ async function FindMyJobBody({
   ).length
   const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
 
-  // The two heaviest calls on this page — surfaceNewJobs (a sequential
-  // external job-board API waterfall) and resolveCompanySizeBand (a live
-  // LLM call for any company name seen for the first time) — both live
-  // entirely inside JobRecommendationsSection below now, wrapped in
-  // Suspense, so the rest of the page never blocks on them.
-  const [dossierStatus, latestReport] = await Promise.all([
+  // Scoped to just the companies already-applied-to postings mention — the
+  // separate, larger set of companies from board/surfaced listings is
+  // resolved independently inside JobRecommendationsSection so that slower
+  // lookup never blocks this page's main render.
+  const appliedCompanyNames = [...new Set(jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
+
+  // Everything below that does not depend on another result starts at once:
+  // the connection, the dossier status, the report, the contacts and the
+  // size bands. The four email/calendar reads only need the connection, so
+  // they chain off it instead of waiting for the dossier/board/watchlist.
+  const emailConnectionPromise = prisma.emailConnection.findFirst({
+    where: { candidateId: profile.id, disconnectedAt: null },
+  })
+  const loadEmailActivity = () =>
+    Promise.all([
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null, confidence: 'high' },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
+          }),
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
+          }),
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
+          }),
+          prisma.trackedCalendarEvent.findMany({
+            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
+          }),
+    ])
+  const noEmailActivity: Awaited<ReturnType<typeof loadEmailActivity>> = [[], [], [], []]
+  const emailActivityPromise = emailConnectionPromise.then((connection) =>
+    connection ? loadEmailActivity() : noEmailActivity
+  )
+
+  // Attach the rejection handler up front so an early failure on the chained
+  // promise can't surface as an unhandled rejection before it is awaited.
+  emailActivityPromise.catch(() => undefined)
+
+  const [
+    emailConnection,
+    currentEmployerName,
+    dossierStatus,
+    latestReport,
+    appliedCompanyBands,
+    contacts,
+    jobsWithHelpfulContacts,
+  ] = await Promise.all([
+    emailConnectionPromise,
+    // §4.8 — only fetched (and only ever true) for Confidential Search Mode
+    // candidates.
+    profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
     isDossierUnlocked(profile.id),
     // Reads the same application-trends breakdown the Market Reality Report
     // shows, computed once at report-generation time — never recomputed
@@ -570,41 +618,10 @@ async function FindMyJobBody({
       orderBy: { generatedAt: 'desc' },
       select: { jobSearchPattern: true },
     }),
-  ])
-  const applicationTrends =
-    (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
-      ?.applicationTrends ?? null
-
-  const isCandidatePlus = dossierStatus.unlocked
-  const board = await loadBoardShortlist({
-    candidate: profile,
-    isCandidatePlus,
-    where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
-    view: boardView,
-  })
-  const matchedFullTimeRoles = isCandidatePlus ? await getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : []
-  // Scoped to just the companies already-applied-to postings mention — the
-  // separate, larger set of companies from board/surfaced listings is
-  // resolved independently inside JobRecommendationsSection so that slower
-  // lookup never blocks this page's main render.
-  const appliedCompanyNames = [...new Set(jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
-  // Needs isCandidatePlus to decide which A_LIST_ONLY postings this candidate can
-  // actually open — can't join the barrier above since dossierStatus isn't
-  // known until it resolves. Independent of appliedCompanyBands, so run together.
-  const [watchlistView, appliedCompanyBands] = await Promise.all([
-    getWatchlistView(profile.id, isCandidatePlus),
-    Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name))),
-  ])
-  const companySizeBandByName = new Map(
-    appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
-  )
-  const companySizeBandFor = (companyName: string | null) =>
-    companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
-
-  // "Who can help with this one?" — contacts already manually linked to a
-  // specific application, plus company-matched suggestions from the
-  // candidate's own network list they haven't linked yet.
-  const [contacts, jobsWithHelpfulContacts] = await Promise.all([
+    resolveCompanySizeBands(appliedCompanyNames),
+    // "Who can help with this one?" — contacts already manually linked to a
+    // specific application, plus company-matched suggestions from the
+    // candidate's own network list they haven't linked yet.
     prisma.supportNetworkContact.findMany({
       where: { candidateId: profile.id, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
       select: { id: true, name: true, company: true, inferredCompany: true, email: true, linkedinUrl: true },
@@ -614,6 +631,36 @@ async function FindMyJobBody({
       select: { id: true, helpfulContacts: { select: { id: true, name: true, email: true, linkedinUrl: true } } },
     }),
   ])
+  if (emailConnection) {
+    after(() =>
+      syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+    )
+  }
+  const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
+
+  const applicationTrends =
+    (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
+      ?.applicationTrends ?? null
+
+  const isCandidatePlus = dossierStatus.unlocked
+  // These three need isCandidatePlus (which A_LIST_ONLY postings this
+  // candidate can open) but not each other.
+  const [board, matchedFullTimeRoles, watchlistView] = await Promise.all([
+    loadBoardShortlist({
+      candidate: profile,
+      isCandidatePlus,
+      where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
+      view: boardView,
+    }),
+    isCandidatePlus ? getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : Promise.resolve([]),
+    getWatchlistView(profile.id, isCandidatePlus),
+  ])
+  const companySizeBandByName = new Map(
+    appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
+  )
+  const companySizeBandFor = (companyName: string | null) =>
+    companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
+
   const helpfulContactsByJobId = new Map(jobsWithHelpfulContacts.map((j) => [j.id, j.helpfulContacts]))
   const MAX_SUGGESTED_HELP_CONTACTS = 5
   const whoCanHelpFor = (jobId: string, companyName: string | null) => {
@@ -666,30 +713,7 @@ async function FindMyJobBody({
     companyName ? (boardPostingCountByCompany.get(normalizeOrgName(companyName)) ?? 0) : 0
 
   const [jobEmailActivities, resumesSharedItems, emailRecruiterContactItems, calendarRecruiterContactItems] =
-    emailConnection
-      ? await Promise.all([
-          prisma.trackedEmailActivity.findMany({
-            where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null, confidence: 'high' },
-            orderBy: { detectedAt: 'desc' },
-            take: 100,
-          }),
-          prisma.trackedEmailActivity.findMany({
-            where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true, dismissedAt: null },
-            orderBy: { detectedAt: 'desc' },
-            take: 100,
-          }),
-          prisma.trackedEmailActivity.findMany({
-            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
-            orderBy: { detectedAt: 'desc' },
-            take: 100,
-          }),
-          prisma.trackedCalendarEvent.findMany({
-            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
-            orderBy: { detectedAt: 'desc' },
-            take: 100,
-          }),
-        ])
-      : [[], [], [], []]
+    await emailActivityPromise
   // A recruiter's follow-up or a scheduling back-and-forth otherwise counts
   // as a separate "contact"/"interview invite" per message in the thread —
   // collapse to one row per real conversation before building any stat tile
