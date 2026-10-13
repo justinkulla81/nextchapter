@@ -7291,6 +7291,14 @@ model OutplacementSeat {
   // any other outplacement vendor's "case closed" marker.
   placedAt DateTime?
 
+  // Candidate-controlled, default OFF. When true, this person's re-employment
+  // counts may be included in the employer's aggregate outcome scorecard (never
+  // their name, pay or any individual detail). Revoking removes them from the
+  // next report. Confidential Search Mode members are excluded regardless. See
+  // docs/EMPLOYER_SCORECARD_PRIVACY_REVIEW.md.
+  shareOutcomeWithEmployer Boolean   @default(false)
+  shareOutcomeChangedAt    DateTime?
+
   // Throwaway seats created for this phase's own privacy-invariant
   // verification — see report.
   isSampleData Boolean @default(false)

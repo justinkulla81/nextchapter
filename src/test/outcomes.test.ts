@@ -208,3 +208,12 @@ describe('runway', () => {
     expect(cushionMonths({ savingsUsd: 1000, monthlyExpensesUsd: 0, monthlyIncomeUsd: 0 }).months).toBeNull()
   })
 })
+
+import { usableBenchmarks } from '@/lib/outcomes/uplift'
+
+describe('usable benchmarks', () => {
+  it('drops low-confidence benchmarks so nothing unverified reaches a college or employer', () => {
+    const rows = [{ confidence: 'LOW', id: 1 }, { confidence: 'MEDIUM', id: 2 }, { confidence: 'HIGH', id: 3 }]
+    expect(usableBenchmarks(rows).map((r) => r.id)).toEqual([2, 3])
+  })
+})

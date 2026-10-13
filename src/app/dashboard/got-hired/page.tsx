@@ -6,6 +6,7 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { EmployerOutcomeSharingCard } from '@/components/dashboard/EmployerOutcomeSharingCard'
 import { AgeBandForm, HireOutcomeForm, LastJobEndedForm } from '@/components/dashboard/HireOutcomeForm'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
@@ -28,12 +29,16 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
 
 export default async function GotHiredPage() {
   const profile = await getDashboardData()
-  const [latestClaim, dossierStatus] = await Promise.all([
+  const [latestClaim, dossierStatus, seats] = await Promise.all([
     prisma.bountyClaim.findFirst({
       where: { candidateId: profile.id },
       orderBy: { createdAt: 'desc' },
     }),
     isDossierUnlocked(profile.id),
+    prisma.outplacementSeat.findMany({
+      where: { candidateId: profile.id, status: 'ACTIVATED' },
+      select: { id: true, shareOutcomeWithEmployer: true, contract: { select: { org: { select: { name: true, programBrandName: true } } } } },
+    }),
   ])
 
   return (
@@ -59,6 +64,10 @@ export default async function GotHiredPage() {
           <AgeBandForm current={profile.ageBand} />
         </CardContent>
       </Card>
+
+      <EmployerOutcomeSharingCard
+        seats={seats.map((st) => ({ seatId: st.id, orgName: st.contract.org.programBrandName ?? st.contract.org.name, share: st.shareOutcomeWithEmployer }))}
+      />
 
       <Card>
         <CardContent className="space-y-4 pt-6">

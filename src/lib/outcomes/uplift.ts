@@ -58,3 +58,11 @@ export function monthlyToWeeklyRate(monthlyProbability: number): number | null {
   if (!(monthlyProbability >= 0 && monthlyProbability < 1)) return null
   return 1 - Math.pow(1 - monthlyProbability, 1 / 4.345)
 }
+
+// Comparisons are shown only against benchmarks someone has verified. A LOW
+// confidence benchmark (for example a dated figure read from a summary) is kept
+// in the table for reference but never drives a number a college or employer
+// sees. Raise the row's confidence after checking the original source.
+export function usableBenchmarks<T extends { confidence: string }>(rows: T[]): T[] {
+  return rows.filter((r) => r.confidence !== 'LOW')
+}

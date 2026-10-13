@@ -3,6 +3,7 @@ import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { getOutcomesByBucket } from '@/lib/higher-ed/views'
 import { buildInstitutionOutcomes } from '@/lib/outcomes/institution-outcomes'
+import { usableBenchmarks } from '@/lib/outcomes/uplift'
 import { MIN_CELL_SIZE } from '@/lib/outcomes/small-cell'
 import type { DurationBucket } from '@/lib/outcomes/duration-bucket'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -21,12 +22,12 @@ export async function OutcomesScreen({ ctx }: { ctx: WorkspaceContext }) {
     getOutcomesByBucket(ctx),
     prisma.durationBenchmark.findMany({
       where: { group: 'all' },
-      select: { bucket: true, weeklyReemploymentRate: true },
+      select: { bucket: true, weeklyReemploymentRate: true, confidence: true },
     }),
   ])
   const summary = buildInstitutionOutcomes(
     rows,
-    benchmarkRows.map((b) => ({ bucket: b.bucket as DurationBucket, weeklyReemploymentRate: b.weeklyReemploymentRate })),
+    usableBenchmarks(benchmarkRows).map((b) => ({ bucket: b.bucket as DurationBucket, weeklyReemploymentRate: b.weeklyReemploymentRate })),
   )
 
   if (summary.allSuppressed) {

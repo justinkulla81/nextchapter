@@ -49,6 +49,29 @@ export const DURATION_SEED: DurationSeed[] = [
   },
 ]
 
+// Monthly job-finding rates by duration from CPS data for 2014, as relayed by
+// an Economic Policy Institute / Robertson-Terry summary. Dated (post-recession
+// recovery) and read from a search summary, so LOW confidence: shown to no one
+// until a person verifies against the original and raises the confidence.
+const EPI_2014 = 'EPI (Robertson and Terry), CPS monthly job-finding rates by duration, 2014'
+const epi = (bucket: DurationSeed['bucket'], monthly: number, note: string): DurationSeed => ({
+  bucket,
+  group: 'all',
+  weeklyReemploymentRate: monthlyToWeeklyRate(monthly) as number,
+  sourceTitle: EPI_2014,
+  sourceUrl: null,
+  asOf: '2014',
+  confidence: 'LOW',
+  notes: `Monthly rate ${Math.round(monthly * 100)}% converted to weekly. ${note} Dated and secondary; replace with a current CPS flow table.`,
+})
+DURATION_SEED.push(
+  epi('W0_4', 0.34, 'Source bucket is under 5 weeks.'),
+  epi('W5_13', 0.22, 'Source bucket is 5 to 14 weeks.'),
+  epi('W14_26', 0.17, 'Source bucket is 15 to 26 weeks.'),
+  epi('W27_52', 0.13, 'Source bucket is 27 to 51 weeks.'),
+  epi('W53_PLUS', 0.11, 'Source bucket is 52 weeks or more.'),
+)
+
 export const PAY_CHANGE_SEED: Array<PayBenchmarkRow & { notes: string }> = [
   {
     pathType: 'RESET',
