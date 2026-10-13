@@ -195,7 +195,7 @@ export function sendIntakeApprovalDigest(args: {
   })
 }
 
-export function sendRecruiterFirmInvite(args: { to: string; firmName: string; inviterName: string; token: string }) {
+export function sendRecruiterFirmInvite(args: { to: string; firmName: string; inviterName: string; token: string; existingAccount?: boolean }) {
   return send({
     to: args.to,
     subject: `${args.inviterName} invited you to ${args.firmName} on NextChapter`,
@@ -204,7 +204,9 @@ export function sendRecruiterFirmInvite(args: { to: string; firmName: string; in
     react: RecruiterFirmInviteEmail({
       firmName: args.firmName,
       inviterName: args.inviterName,
-      signupUrl: `${appUrl()}/recruiters/signup?invite=${args.token}`,
+      signupUrl: args.existingAccount
+        ? `${appUrl()}/recruiters/talent/join/${args.token}`
+        : `${appUrl()}/recruiters/signup?invite=${args.token}`,
     }),
   })
 }
