@@ -2079,6 +2079,32 @@ export async function mergePersonIntoPerson(sourceId: string, targetId: string):
   return { message: `Merged ${sourceName} into ${targetName}.` }
 }
 
+/**
+ * Merges the two people ticked in the bulk bar. The richer record (most
+ * activity + affiliations, then oldest) is kept, same rule as
+ * autoMergeExactDuplicates, so the choice never depends on tick order.
+ */
+export async function bulkMergeTwoPeople(formData: FormData): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin()
+  const ids = [...new Set(formData.getAll('selected').map(String).filter(Boolean))]
+  if (ids.length !== 2) return { ok: false, message: 'Tick exactly two people to merge them.' }
+
+  const people = await prisma.crmPerson.findMany({
+    where: { id: { in: ids }, deletedAt: null },
+    select: { id: true, createdAt: true, _count: { select: { activities: true, affiliations: true } } },
+  })
+  if (people.length !== 2) return { ok: false, message: 'One of those people no longer exists. Refresh the list and try again.' }
+
+  const [target, source] = [...people].sort((a, b) => {
+    const scoreA = a._count.activities + a._count.affiliations
+    const scoreB = b._count.activities + b._count.affiliations
+    if (scoreA !== scoreB) return scoreB - scoreA
+    return a.createdAt.getTime() - b.createdAt.getTime()
+  })
+  const { message } = await mergePersonIntoPerson(source.id, target.id)
+  return { ok: true, message }
+}
+
 export interface DuplicateMergeReport {
   groups: number
   merged: number

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { bulkUpdatePeople, bulkDeletePeople } from '@/app/support/admin/(portal)/crm/actions'
+import { bulkUpdatePeople, bulkDeletePeople, bulkMergeTwoPeople } from '@/app/support/admin/(portal)/crm/actions'
 import { QUALITIES, QUALITY_LABELS, WARMTHS, WARMTH_LABELS } from '@/lib/crm/labels'
 import { CrmRolePicker } from './CrmRolePicker'
 
@@ -12,6 +12,7 @@ import { CrmRolePicker } from './CrmRolePicker'
 export function CrmBulkBar({ children, count, extra }: { children: React.ReactNode; count: number; extra?: React.ReactNode }) {
   const [selected, setSelected] = useState(0)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [confirmingMerge, setConfirmingMerge] = useState(false)
   const [result, setResult] = useState<string | null>(null)
 
   const formRef = useRef<HTMLFormElement>(null)
@@ -29,7 +30,7 @@ export function CrmBulkBar({ children, count, extra }: { children: React.ReactNo
   return (
     <form
       ref={formRef}
-      onChange={(e) => { recount(e.currentTarget); setConfirmingDelete(false); setResult(null) }}
+      onChange={(e) => { recount(e.currentTarget); setConfirmingDelete(false); setConfirmingMerge(false); setResult(null) }}
     >
       {children}
 
@@ -81,6 +82,46 @@ export function CrmBulkBar({ children, count, extra }: { children: React.ReactNo
           </div>
 
           {extra && <div className="border-t border-border pt-2">{extra}</div>}
+
+          {/* Merging only makes sense for a pair; it folds the thinner record
+              into the richer one, so it asks first. */}
+          {selected === 2 && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
+              {!confirmingMerge ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingMerge(true)}
+                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Merge 2 selected
+                </button>
+              ) : (
+                <>
+                  <span className="text-xs font-medium">
+                    Merge these two into one record? The one with more history is kept, and the other is folded into it.
+                  </span>
+                  <SubmitButton
+                    formAction={async (fd: FormData) => {
+                      const r = await bulkMergeTwoPeople(fd)
+                      setResult(r.message)
+                      setConfirmingMerge(false)
+                    }}
+                    size="sm"
+                    pendingLabel="Merging…"
+                  >
+                    Yes, merge
+                  </SubmitButton>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingMerge(false)}
+                    className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
               {/* Destructive, so it takes a second explicit step and is never
