@@ -1,7 +1,9 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { searchTopic } from '@/lib/news/discover'
-import { readLayoffHeadline, publisherKey, sameEmployer } from './news-headline'
+import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
+import { alertNewLayoff } from './layoff-alert'
+import { layoffTypeLabel } from './layoff-alert-rules'
 import { findLayoffContacts } from './layoff-contacts-run'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
@@ -192,6 +194,8 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     for (const m of mentions) names.set(m.company, (names.get(m.company) ?? 0) + 1)
     const company = [...names.entries()].sort((a, b) => b[1] - a[1])[0][0]
 
+    // The share of staff, from the first headline that gives one.
+    const percent = mentions.map((m) => readPercent(m.headline)).find((p) => p != null) ?? null
     const notice = await prisma.warnNotice.create({
       data: {
         employer: company,
@@ -199,7 +203,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: confirmed ? `Reported by ${publishers.size} publishers` : `Reported by 1 publisher (${first.publisher ?? 'unknown'}) — unconfirmed`,
+        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent }),
         sourceUrl: first.url,
       },
       select: { id: true },
@@ -209,6 +213,10 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     // coverage, once, here. A failure never blocks the layoff.
     await trackJobBoard(company)
     const contacts = await lookUpContacts(company, employees, when, null, mentions.map((m) => m.url), result)
+    await alertNewLayoff({
+      noticeId: notice.id, employer: company, normalizedEmployer: key, employees, percent,
+      kind: 'news', confirmed, sourceUrl: first.url, contactsFound: contacts,
+    })
     result.added.push({ company, employees, publishers: publishers.size, contacts, ...(confirmed ? {} : { unconfirmed: true }) })
   }
   return result

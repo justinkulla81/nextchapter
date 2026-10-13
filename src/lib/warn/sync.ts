@@ -1,4 +1,5 @@
 import 'server-only'
+import { alertNewLayoff } from './layoff-alert'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
@@ -176,7 +177,8 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
   })
   if (existing) return false
   const match = await matchOrCreateCompanyForEmployer(row.employer, companies)
-  await prisma.warnNotice.create({
+  const created = await prisma.warnNotice.create({
+    select: { id: true },
     data: {
       state: row.state, employer: clean(row.employer), normalizedEmployer: row.normalizedEmployer,
       noticeDate: row.noticeDate, effectiveDate: row.effectiveDate, employees: row.employees,
@@ -191,6 +193,12 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
     if (!known.has(key)) known.set(key, new Set())
     known.get(key)!.add(row.employees)
   }
+  // A state filing is official, so it is confirmed. Alerts only on 250+ jobs or
+  // an employer already in the CRM, and never throws.
+  await alertNewLayoff({
+    noticeId: created.id, employer: clean(row.employer) ?? row.employer, normalizedEmployer: row.normalizedEmployer,
+    employees: row.employees, percent: null, kind: 'warn', confirmed: true, sourceUrl,
+  })
   return true
 }
 
