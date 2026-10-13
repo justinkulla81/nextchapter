@@ -62,16 +62,16 @@ export default function SearchCheckInEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        Are you still searching{firstName ? `, ${firstName}` : ''}?
+        Has anything changed{firstName ? `, ${firstName}` : ''}?
       </p>
       <p>
-        Just checking in — one click tells us where you are this week, so we can point everything
-        else (your action plan, your emails from us) at what&apos;s actually true right now.
+        One click tells us where you are, and your plan and our emails follow it right away. Something else changed, like a
+        layoff or a new job? Update your situation in NextChapter.
       </p>
       {introCopy && <p>{introCopy}</p>}
 
       <a href={stillSearchingUrl} style={primaryButton}>
-        Yes, still searching
+        Nothing yet
       </a>
       <a href={takingABreakUrl} style={neutralButton}>
         Taking a break

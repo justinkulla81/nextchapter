@@ -209,3 +209,20 @@ export function checkInDue(p: JourneyFields & { journeyCheckedAt?: Date | null; 
   if (!last) return true
   return now.getTime() - new Date(last).getTime() >= getStage(stage).checkInDays * 86_400_000
 }
+
+// One line for the Market Reality Report prompt: who this person is and what
+// a useful read looks like for them. Same LLM call, no extra cost.
+export const REPORT_FRAMING: Record<JourneyType, string> = {
+  LAID_OFF: 'Out of work after a layoff or leaving a job. Optimize for the right role, fast; be direct about what is slowing the search.',
+  READY_TO_MOVE: 'Employed and ready to move now, searching quietly. Frame advice around a confidential search that fits around a job; never assume they are out of work.',
+  EXPLORING_MOVE: 'Employed and thinking about a move, not applying yet (some worry about layoffs). Answer how marketable they are, what they are worth, and what would make them ready. Do not push application volume.',
+  PROMOTION: 'Employed and going for the next level, inside or outside. Frame the read around the gap to the next level and the leverage that wins the promotion.',
+  CAREER_CHANGE: 'Moving into a new function or industry. Judge them against the target field, name transferable strengths, and the bridge steps (projects, credentials, informational calls) that make the switch credible.',
+  STUDENT_NEW_GRAD: 'A student or recent graduate looking for an internship or first job. Judge them against entry-level expectations; lack of experience is normal, not a weakness.',
+  RETURNING: 'Returning after a break (caregiving, health, sabbatical, a move). Treat the gap as context, not a flaw; focus on a credible story and refreshed skills.',
+  NEXT_ACT: 'Planning a next act after a long career: board, fractional, consulting or part-time work. Judge them against advisory and fractional roles, not full-time ladder jobs.',
+}
+
+// Prisma filter for the nudge emails: Paused means no nudges. Members with
+// no stage yet (from before journeys) still get them.
+export const NOT_PAUSED_WHERE = { OR: [{ journeyStage: null }, { journeyStage: { not: 'PAUSED' as const } }] }

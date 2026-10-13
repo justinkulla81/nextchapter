@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendSearchCheckInEmail } from '@/lib/email/send-search-checkin-email'
+import { checkInDue } from '@/lib/journey/journey'
 
 // Saturday — "Are you still searching?" Same eligibility bar
 // run-community-digest.ts used (the email this replaced): registered,
@@ -18,13 +19,25 @@ export async function runSearchCheckin(introCopy: string | null, eligiblePrivacy
       weeklyReportOptedOut: false,
       ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
     },
-    select: { id: true, notificationTier: true },
+    select: {
+      id: true,
+      notificationTier: true,
+      createdAt: true,
+      journey: true,
+      journeyStage: true,
+      currentJobStatus: true,
+      journeyCheckedAt: true,
+      journeyStageChangedAt: true,
+    },
   })
 
   let sentCount = 0
   for (const candidate of eligible) {
     try {
       if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      // At the stage's pace (src/lib/journey): weekly while applying,
+      // monthly while exploring or paused, quarterly once landed.
+      if (!checkInDue(candidate)) continue
       if (await hasAlreadySentToday(candidate.id, 'SEARCH_CHECKIN')) continue
 
       const result = await sendSearchCheckInEmail(candidate.id, introCopy)

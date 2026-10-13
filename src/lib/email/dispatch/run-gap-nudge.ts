@@ -1,4 +1,5 @@
 import 'server-only'
+import { NOT_PAUSED_WHERE } from '@/lib/journey/journey'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -12,6 +13,8 @@ import { sendWeeklyGapNudgeEmail } from '@/lib/email/send-weekly-gap-nudge'
 export async function runGapNudge(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
   const eligible = await prisma.candidateProfile.findMany({
     where: {
+      // Paused means no nudges (src/lib/journey).
+      AND: [NOT_PAUSED_WHERE],
       registrationCompletedAt: { not: null },
       isSampleData: false,
       weeklyReportOptedOut: false,

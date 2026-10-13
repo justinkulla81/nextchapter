@@ -37,7 +37,7 @@ export async function sendSearchCheckInEmail(candidateId: string, introCopy?: st
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',
       to: email,
-      subject: candidate.firstName ? `Are you still searching, ${candidate.firstName}?` : 'Are you still searching?',
+      subject: candidate.firstName ? `Has anything changed, ${candidate.firstName}?` : 'Has anything changed?',
       react: SearchCheckInEmail({
         firstName: candidate.firstName,
         introCopy: introCopy ?? null,

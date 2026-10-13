@@ -1,3 +1,4 @@
+import { effectiveJourney, getJourney, type JourneyType } from '@/lib/journey/journey'
 import type {
   ChangePacePreference,
   ChangeReadiness,
@@ -47,7 +48,13 @@ const GAP_DURATION_TO_STAGE: Record<GapDurationBucket, SearchStage> = {
 export function getSearchStage(candidate: {
   currentJobStatus: CurrentJobStatus | null
   gapDuration: GapDurationBucket | null
+  journey?: JourneyType | null
 }): SearchStage | null {
+  // Anyone on an employed journey (ready to move, thinking about it,
+  // promotion, career change, next act) is quietly looking, never "since you
+  // separated" (src/lib/journey).
+  const journey = effectiveJourney(candidate)
+  if (journey && getJourney(journey).employed) return 'QUIETLY_LOOKING'
   if (candidate.currentJobStatus === 'EMPLOYED_CONSIDERING_MOVE') return 'QUIETLY_LOOKING'
   if (!candidate.gapDuration) return null
   return GAP_DURATION_TO_STAGE[candidate.gapDuration]
