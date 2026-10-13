@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { Prisma } from '@prisma/client'
@@ -38,7 +39,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   const person = await prisma.crmPerson.findUnique({
     where: { id },
     include: {
-      affiliations: { include: { org: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
+      affiliations: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
       backgrounds: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ kind: 'asc' }, { createdAt: 'asc' }] },
       // Only what happened since the CRM began — see CRM_ACTIVITY_CUTOFF.
       // Pre-cutoff rows stay in the table (nothing is deleted) but a decade
@@ -52,14 +53,17 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           opportunity: { select: { id: true, title: true } },
         },
       },
-      sourceRecords: { orderBy: { importedAt: 'asc' } },
-      researchItems: true,
+      // Only the origin file name is shown from these.
+      sourceRecords: { orderBy: { importedAt: 'asc' }, select: { sourceFile: true } },
+      researchItems: { select: { id: true, title: true, url: true, keyClaim: true, stance: true } },
       rapSheets: { where: { content: { not: Prisma.DbNull } }, orderBy: { generatedAt: 'desc' }, take: 5, select: { id: true, generatedAt: true, meetingTitle: true } },
       introPathsAsTarget: {
         include: { connectorPerson: { select: { id: true, fullName: true } } },
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
       },
-      opportunities: { include: { pipeline: true, stage: true } },
+      opportunities: {
+        select: { id: true, title: true, pipeline: { select: { label: true } }, stage: { select: { label: true } } },
+      },
       // Only ever set when this person is also a real NextChapter
       // candidate (see CrmPerson.candidateId's schema comment) — shown as a
       // plain fact, since their own membership-upgrade opportunity above
@@ -69,14 +73,27 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   })
   if (!person) notFound()
   const primaryAff = person.affiliations[0] ?? null
-  const othersAtOrg = primaryAff
-    ? await prisma.crmAffiliation.count({ where: { orgId: primaryAff.orgId, personId: { not: person.id }, person: { deletedAt: null } } })
-    : 0
-  // Sign-ups that look like someone invited from here, waiting on a yes/no.
-  const inviteMatches = person.candidateId ? [] : await prisma.candidateIdentityMatch.findMany({
-    where: { source: 'CRM_INVITE', sourceRecordId: person.id, status: 'PENDING' },
-    select: { id: true, strength: true, candidate: { select: { firstName: true, lastName: true, email: true, createdAt: true } } },
-  })
+  // List emails on the history: what each person did with them lives on the recipient row.
+  const mailingIds = person.activities.flatMap((a) => (a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? [a.sourceRef.slice(MAILING_REF_PREFIX.length)] : []))
+  // Three independent lookups, run together instead of one after another.
+  const [othersAtOrg, inviteMatches, mailingRecipientRows] = await Promise.all([
+    primaryAff
+      ? prisma.crmAffiliation.count({ where: { orgId: primaryAff.orgId, personId: { not: person.id }, person: { deletedAt: null } } })
+      : Promise.resolve(0),
+    // Sign-ups that look like someone invited from here, waiting on a yes/no.
+    person.candidateId
+      ? Promise.resolve([])
+      : prisma.candidateIdentityMatch.findMany({
+          where: { source: 'CRM_INVITE', sourceRecordId: person.id, status: 'PENDING' },
+          select: { id: true, strength: true, candidate: { select: { firstName: true, lastName: true, email: true, createdAt: true } } },
+        }),
+    mailingIds.length
+      ? prisma.mailingEditionRecipient.findMany({
+          where: { id: { in: mailingIds } },
+          select: { id: true, editionId: true, deliveredAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true },
+        })
+      : Promise.resolve([]),
+  ])
 
   const saveNotes = async (formData: FormData) => {
     'use server'
@@ -84,17 +101,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   }
   const saveRoles = updatePersonRoles.bind(null, id)
   const sources = [...new Set(person.sourceRecords.map((s) => s.sourceFile))]
-  // List emails on the history: what each person did with them lives on the recipient row.
-  const mailingIds = person.activities.flatMap((a) => (a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? [a.sourceRef.slice(MAILING_REF_PREFIX.length)] : []))
-  const mailingRecipients = new Map(
-    (mailingIds.length
-      ? await prisma.mailingEditionRecipient.findMany({
-          where: { id: { in: mailingIds } },
-          select: { id: true, editionId: true, deliveredAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true },
-        })
-      : []
-    ).map((r) => [r.id, r]),
-  )
+  const mailingRecipients = new Map(mailingRecipientRows.map((r) => [r.id, r]))
   const needsReview = person.activities.filter((a) => a.needsReview)
   const confirmedActivities = person.activities.filter((a) => !a.needsReview)
   // Surfaced as a banner rather than buried in a list: walking into a meeting
@@ -560,7 +567,9 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           membership={person.candidate ? `membership: ${MEMBERSHIP_STATUS_LABELS[person.candidate.membershipSubscription?.status ?? 'FREE']}` : undefined}
         />
         <Collapsible title="Mailing lists and reports">
-          <PersonMailingSection personId={person.id} email={person.email} />
+          <Suspense fallback={<p className="text-sm text-muted-foreground">Loading mailing lists…</p>}>
+            <PersonMailingSection personId={person.id} email={person.email} />
+          </Suspense>
         </Collapsible>
         <Collapsible title="Convert to a production record" hint="optional">
           <p className="mb-2 text-sm text-muted-foreground">
