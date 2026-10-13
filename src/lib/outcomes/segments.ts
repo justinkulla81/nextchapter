@@ -28,7 +28,7 @@ export interface SegmentGuidance {
   points: string[]
 }
 
-// Guidance is practical and sourced from the NextChapter Displacement Report
+// Guidance is practical and sourced from the NextChapter White Collar Employment Report
 // (Sept 2026). It informs, it does not predict an individual's outcome.
 export const SEGMENT_GUIDANCE: Record<OutcomeSegment, SegmentGuidance> = {
   LONG_TENURED_55_64: {

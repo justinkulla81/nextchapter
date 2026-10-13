@@ -101,7 +101,7 @@ export function PersonMailingPanel({
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Displacement Report</h3>
+        <h3 className="text-sm font-semibold">White Collar Employment Report</h3>
         {reportSends.length === 0 ? (
           <p className="text-sm text-muted-foreground">No edition recorded.</p>
         ) : (

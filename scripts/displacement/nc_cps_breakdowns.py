@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NextChapter CPS breakdowns for the monthly Displacement Report.
+NextChapter CPS breakdowns for the monthly White Collar Employment Report.
 
 Compares two pooled periods (default: Jan..latest month of this year vs the same
 months last year) from Census CPS basic monthly microdata and reports, for each group:

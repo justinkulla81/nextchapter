@@ -89,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/', latestOf(['2026-10-06', ...(newestNews ? [newestNews] : [])]), 'weekly', 1),
     ...STATIC_PAGES.map((p) => entry(p.path, p.updated, p.freq, p.priority)),
 
-    // The Displacement Report: hub, the evergreen index, and every edition.
+    // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.
     ...(newestReport
       ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7)]

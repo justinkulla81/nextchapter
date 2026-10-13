@@ -98,7 +98,7 @@ export function ReportNewsletterPopup({ placement }: { placement: string }) {
         ) : (
           <div className="space-y-4">
             <h2 id="report-popup-title" className="text-lg font-bold tracking-tight text-navy">
-              Get the Displacement Report monthly
+              Get the White Collar Employment Report monthly
             </h2>
             <p className="text-sm text-muted-foreground">
               New data on white-collar job loss and the White-Collar Long-Term Unemployment Index, the week the jobs report comes

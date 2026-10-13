@@ -75,7 +75,7 @@ const faqJsonLd = {
       name: 'How often is the White-Collar Long-Term Unemployment Index updated?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Monthly. It is built from the Current Population Survey’s monthly microdata and refreshed with each monthly NextChapter Displacement Report. October 2025 is missing because the survey was not collected that month.',
+        text: 'Monthly. It is built from the Current Population Survey’s monthly microdata and refreshed with each monthly NextChapter White Collar Employment Report. October 2025 is missing because the survey was not collected that month.',
       },
     },
   ],
@@ -207,7 +207,7 @@ export default function WhiteCollarIndexPage() {
       <StructuredData data={faqJsonLd} />
       <StructuredData
         data={breadcrumbJsonLd([
-          { name: 'Displacement Report', path: '/reports' },
+          { name: 'White Collar Employment Report', path: '/reports' },
           { name: 'White-Collar Index', path: `/reports/${SLUG}` },
         ])}
       />
@@ -215,7 +215,7 @@ export default function WhiteCollarIndexPage() {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
-          <Link href="/reports" className="hover:text-foreground">Displacement Report</Link>
+          <Link href="/reports" className="hover:text-foreground">White Collar Employment Report</Link>
           <span aria-hidden> › </span>
           <span className="text-foreground">White-Collar Index</span>
         </nav>
@@ -301,7 +301,7 @@ export default function WhiteCollarIndexPage() {
             The index is seasonally adjusted; the other columns are not seasonally adjusted (NSA) and are best compared
             with the same month a year earlier. The split of the unemployed into job losers and job leavers is reported
             in the monthly{' '}
-            <Link href="/reports/latest" className="text-brand underline underline-offset-4">Displacement Report</Link>{' '}
+            <Link href="/reports/latest" className="text-brand underline underline-offset-4">White Collar Employment Report</Link>{' '}
             rather than in this index series. October 2025 is absent because the survey was not collected that month.
           </p>
         </section>

@@ -90,7 +90,7 @@ const js = scripts.at(-1)
   .replace(/var fig=document\.getElementById\(([^)]+)\)(?:,|;var )host=/g, 'var fig=document.getElementById($1);if(!fig)return;var host=')
 fs.writeFileSync(
   'public/reports/report-charts.js',
-  `// Progressive enhancement for the Displacement Report: draws the SVG exhibits
+  `// Progressive enhancement for the White Collar Employment Report: draws the SVG exhibits
 // and wires the copy-citation button. The page reads fine without it — every
 // word, table and note is already in the server HTML. Download buttons work as
 // normal links on the website; inside the Claude viewer (window.claude) they

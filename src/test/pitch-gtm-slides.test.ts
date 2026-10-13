@@ -4,7 +4,7 @@ import { mergeRuleSet } from '@/lib/pitch/store'
 import { buildDeck, type AreaInput } from '@/lib/pitch/build'
 import { CUSTOMER_TYPES } from '@/lib/pitch/types'
 
-// September 2026 Employment Report go-to-market slides: mid-career alumni
+// September 2026 White Collar Employment Report go-to-market slides: mid-career alumni
 // (higher ed), "next to WIOA, not against it", and employer AI-layoff
 // disclosure readiness. Figures are quoted from the report; see report-facts.ts.
 

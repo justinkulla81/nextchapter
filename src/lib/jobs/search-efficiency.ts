@@ -4,7 +4,7 @@
 // Outreach messages sent do not count until they turn into a meeting.
 //
 // Benchmarks are context, not targets. Huntr Q1 2026 (job-tracker users, who
-// skew toward heavy appliers; reported in the NextChapter Employment Report,
+// skew toward heavy appliers; reported in the NextChapter White Collar Employment Report,
 // September 2026, Chapter 08): 4.2% of tailored applications and 2.1% of generic
 // ones led to an interview, about 24 and 48 applications per interview.
 
@@ -16,7 +16,7 @@ const TYPICAL_AT_OR_BELOW = 24
 export const BENCHMARK = {
   tailoredApplicationsPerInterview: 24,
   genericApplicationsPerInterview: 48,
-  source: 'Huntr Q1 2026 via NextChapter Employment Report, September 2026 (job-tracker users)',
+  source: 'Huntr Q1 2026 via NextChapter White Collar Employment Report, September 2026 (job-tracker users)',
 } as const
 
 export type EfficiencyState = 'NOT_ENOUGH_DATA' | 'NO_CONVERSATIONS' | 'STRONG' | 'TYPICAL' | 'HIGH'

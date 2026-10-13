@@ -1,7 +1,7 @@
-# Displacement Report pipeline
+# White Collar Employment Report pipeline
 
-Scripts that produce the data behind the **NextChapter Displacement Report**
-(`/reports`) and the **White-Collar Long-Term Unemployment Index** (`/reports/white-collar-index`).
+Scripts that produce the data behind the **NextChapter White Collar Employment Report** (published as the NextChapter Displacement Report through October 12, 2026)
+(`/reports`) and the **White-Collar Long-Search Index** (`/reports/white-collar-index`).
 All figures come from public sources; no NextChapter customer data is used.
 
 ## Secrets (`.env.local`)
@@ -14,7 +14,7 @@ SEC_USER_AGENT=NextChapter Research you@yourdomain.com   # a real contact; SEC r
 Both are loaded via Node's `--env-file=.env.local`, the same way the other
 project scripts get their secrets.
 
-## `nc_white_collar_index.py` — the White-Collar Long-Term Unemployment Index
+## `nc_white_collar_index.py` — the White-Collar Long-Search Index
 
 Builds the monthly index from the Census Bureau's Current Population Survey
 (CPS) basic monthly public-use microdata and writes the full history to

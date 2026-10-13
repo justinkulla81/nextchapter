@@ -1,4 +1,4 @@
-// Marks who received the September 2026 Displacement Report by hand.
+// Marks who received the September 2026 Displacement Report (since renamed the White Collar Employment Report) by hand.
 //
 // Scans Gmail activity the CRM sync logged since 2026-10-01 — emails you
 // sent with a displacement-report-*.pdf attachment or a
