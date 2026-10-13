@@ -680,10 +680,17 @@ export default async function NetworkPage({
       {linkedInImportedCount === 0 && <LinkedInImportPrompt contactCount={contactCount} />}
 
       <Link
-        href="/dashboard/network/contacts?buildList=1#import"
+        href="/dashboard/network/this-week"
         className={`inline-flex h-10 w-fit items-center justify-center rounded-md px-5 text-sm font-medium ${
           linkedInImportedCount === 0 ? 'border border-input text-foreground hover:bg-muted' : 'bg-brand text-white hover:bg-brand/90'
         }`}
+      >
+        See this week&apos;s outreach
+      </Link>
+
+      <Link
+        href="/dashboard/network/contacts?buildList=1#import"
+        className="inline-flex h-10 w-fit items-center justify-center rounded-md border border-input px-5 text-sm font-medium text-foreground hover:bg-muted"
       >
         Go to / Add to Networking List ({contactCount.toLocaleString()})
       </Link>

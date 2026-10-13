@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import type { ContactWarmth } from '@prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
+import { personalizeOutreachDraft } from '@/app/dashboard/network/actions'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import {
   ASK_SIZES,
@@ -39,6 +40,7 @@ export function OutreachCoach({
   candidateFirstName,
   targetRole,
   discreet,
+  initial,
 }: {
   contactId: string
   contactName: string
@@ -50,19 +52,22 @@ export function OutreachCoach({
   candidateFirstName: string
   targetRole: string | null
   discreet: boolean
+  initial?: { purpose?: PlaybookPurpose; askSize?: AskSize; hook?: HookKind; roleTitle?: string; fromThisWeek?: boolean }
 }) {
   const [purpose, setPurpose] = useState<PlaybookPurpose>(
-    daysSinceLastContact !== null && daysSinceLastContact > 180 ? 'REACH_OUT' : 'INFO_CHAT'
+    initial?.purpose ?? (daysSinceLastContact !== null && daysSinceLastContact > 180 ? 'REACH_OUT' : 'INFO_CHAT')
   )
-  const [askSize, setAskSize] = useState<AskSize>('MEDIUM')
-  const [hook, setHook] = useState<HookKind>('SHARED_HISTORY')
+  const [askSize, setAskSize] = useState<AskSize>(initial?.askSize ?? 'MEDIUM')
+  const [hook, setHook] = useState<HookKind>(initial?.hook ?? 'SHARED_HISTORY')
   const [hookDetail, setHookDetail] = useState('')
   const [offer, setOffer] = useState('')
-  const [roleTitle, setRoleTitle] = useState('')
+  const [roleTitle, setRoleTitle] = useState(initial?.roleTitle ?? '')
   // Once the candidate edits the draft by hand, further option changes must
   // not silently overwrite their words.
   const [editedBody, setEditedBody] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiPending, startAi] = useTransition()
 
   const playbook = useMemo(
     () =>
@@ -86,7 +91,20 @@ export function OutreachCoach({
   )
 
   const body = editedBody ?? playbook.body
-  const eventProps = { contactId, purpose, askSize, hook, warmth, edited: editedBody !== null }
+  const eventProps = { contactId, fromThisWeek: initial?.fromThisWeek ?? false, purpose, askSize, hook, warmth, edited: editedBody !== null }
+
+  function polishWithAi() {
+    setAiError(null)
+    startAi(async () => {
+      try {
+        const result = await personalizeOutreachDraft(contactId, body, PLAYBOOK_PURPOSES.find((p) => p.purpose === purpose)?.label ?? purpose)
+        if (result.error) setAiError(result.error)
+        else if (result.draft) setEditedBody(result.draft)
+      } catch {
+        setAiError("We couldn't reach the AI polish just now. Your draft is unchanged; try again in a moment.")
+      }
+    })
+  }
 
   function copyDraft() {
     navigator.clipboard.writeText(`Subject: ${playbook.subject}\n\n${body}`)
@@ -221,6 +239,11 @@ export function OutreachCoach({
             className="min-h-48"
           />
           <p className="text-xs text-muted-foreground">Replace anything in [brackets] before you send.</p>
+          {aiError && (
+            <p role="alert" className="text-xs text-destructive">
+              {aiError}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {contactEmail ? (
               <a
@@ -239,6 +262,9 @@ export function OutreachCoach({
             )}
             <Button type="button" size="sm" variant="outline" onClick={copyDraft}>
               {copied ? 'Copied' : 'Copy draft'}
+            </Button>
+            <Button type="button" size="sm" variant="outline" disabled={aiPending} onClick={polishWithAi} className={aiPending ? 'cursor-wait' : undefined}>
+              {aiPending ? 'Polishing…' : 'Polish with AI'}
             </Button>
             {editedBody !== null && (
               <Button type="button" size="sm" variant="ghost" onClick={() => setEditedBody(null)}>

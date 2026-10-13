@@ -290,7 +290,7 @@ function followUpPlan(input: PlaybookInput): string[] {
     return ["Don't chase a reply.", 'Wait a month, then ask for a small favor, now with goodwill behind it.']
   }
   return [
-    'Day 5 to 7: one short nudge if there is no reply.',
+    'Day 7: we will flag it here if there is no reply. Send one short nudge.',
     'Day 14 to 21: a second, different nudge, such as a new article or a quick update.',
     'After that, stop. Revisit in two or three months with something new to share.',
     'If they say yes: confirm times within the hour, and send a thank-you the same day.',

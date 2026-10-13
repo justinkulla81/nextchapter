@@ -12,6 +12,7 @@ import { orgNamesMatch } from '@/lib/text/org-name-match'
 import { type ContactRowData } from '@/components/dashboard/ContactDetailPanel'
 import { ContactProfileView } from '@/components/dashboard/ContactProfileView'
 import { StarContactButton } from '@/components/dashboard/StarContactButton'
+import { PLAYBOOK_PURPOSES, ASK_SIZES, HOOKS } from '@/lib/network/playbook'
 import { OutreachCoach } from '@/components/dashboard/OutreachCoach'
 
 export const metadata: Metadata = { title: 'Contact' }
@@ -20,8 +21,15 @@ function daysSince(date: Date | null): number | null {
   return date ? Math.floor((Date.now() - date.getTime()) / 86_400_000) : null
 }
 
-export default async function ContactProfilePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ContactProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ purpose?: string; ask?: string; hook?: string; role?: string; from?: string }>
+}) {
   const { id } = await params
+  const sp = await searchParams
   const profile = await getDashboardData()
 
   const contact = await prisma.supportNetworkContact.findFirst({
@@ -98,6 +106,13 @@ export default async function ContactProfilePage({ params }: { params: Promise<{
         candidateFirstName={profile.firstName ?? ''}
         targetRole={profile.targetRoleType}
         discreet={profile.confidentialSearchMode}
+        initial={{
+          purpose: PLAYBOOK_PURPOSES.find((p) => p.purpose === sp.purpose)?.purpose,
+          askSize: ASK_SIZES.find((a) => a.size === sp.ask)?.size,
+          hook: HOOKS.find((h) => h.kind === sp.hook)?.kind,
+          roleTitle: sp.role?.slice(0, 120),
+          fromThisWeek: sp.from === 'this-week',
+        }}
       />
     </div>
   )
