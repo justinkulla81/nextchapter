@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { checkEmailAvailableForSignup } from '@/app/auth/actions'
 import { setCandidateEmail } from '@/app/onboarding/create-account/actions'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
@@ -74,7 +74,7 @@ export function CreateAccountForm({
   const anywaySentRef = useRef(false)
 
   async function sendConfirmation(targetEmail: string) {
-    const supabase = createClient()
+    const supabase = await createClientLazy()
     // Converts the candidate's anonymous session into a permanent one —
     // same userId, same profile, no password. Sends a confirmation link to
     // this address; clicking it finishes registration.

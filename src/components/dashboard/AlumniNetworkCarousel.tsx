@@ -1,6 +1,6 @@
 'use client'
 
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import type { AlumniNetworkGroup } from '@prisma/client'
 
 // Styled to match the video carousels on the Videos and Webinars page

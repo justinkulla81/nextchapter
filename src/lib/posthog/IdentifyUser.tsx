@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 export function IdentifyUser({ candidateId, email }: { candidateId: string; email: string | null }) {
   const posthog = usePostHog()

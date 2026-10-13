@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { Button } from '@/components/ui/button'
 
 export function GoogleButton() {
@@ -9,7 +9,7 @@ export function GoogleButton() {
 
   async function handleClick() {
     setLoading(true)
-    const supabase = createClient()
+    const supabase = await createClientLazy()
     const redirectTo = new URL('/auth/callback', window.location.origin)
 
     const { error } = await supabase.auth.signInWithOAuth({

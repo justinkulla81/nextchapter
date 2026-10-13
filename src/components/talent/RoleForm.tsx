@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useTransition } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { createRole, extractRoleFromJDAction } from '@/app/talent/(app)/roles/new/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

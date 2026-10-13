@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { completeCoachSignup } from '@/app/support/coach/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -42,7 +42,7 @@ export function CoachSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('coach')
-    const supabase = createClient('coach')
+    const supabase = await createClientLazy('coach')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

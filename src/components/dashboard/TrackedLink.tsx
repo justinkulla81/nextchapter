@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import type { ReactNode } from 'react'
 
 /** A Next.js Link that records a PostHog event when clicked. */

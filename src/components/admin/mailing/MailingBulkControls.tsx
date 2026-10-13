@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { bulkMailingAction } from '@/app/support/admin/(portal)/crm/mailing/actions'
 

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { INCUMBENT_COST_RANGES, volumeDiscountRate } from '@/lib/marketing/incumbent-cost-ranges'
 
 type TierKey = 'outplacement_core' | 'outplacement_plus' | 'outplacement_premium'

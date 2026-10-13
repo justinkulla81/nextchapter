@@ -3,7 +3,8 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import type { EmailOtpType } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
+import type { createClient } from '@/lib/supabase/client'
 import type { PortalKey } from '@/lib/supabase/portal'
 import { markPasswordSet } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
@@ -64,7 +65,7 @@ export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding'
     setLoading(true)
     setError(null)
 
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setLoading(false)
@@ -90,7 +91,7 @@ export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding'
     setGoogleLoading(true)
     setError(null)
 
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setGoogleLoading(false)

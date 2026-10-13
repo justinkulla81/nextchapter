@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 
 function parseHash(): { accessToken: string; refreshToken: string } | { error: string } {
   if (typeof window === 'undefined') return { error: '' }
@@ -35,9 +35,10 @@ export default function MagicLinkPage() {
   useEffect(() => {
     if ('error' in parsed) return
 
-    const supabase = createClient()
-    supabase.auth
-      .setSession({ access_token: parsed.accessToken, refresh_token: parsed.refreshToken })
+    createClientLazy()
+      .then((supabase) =>
+        supabase.auth.setSession({ access_token: parsed.accessToken, refresh_token: parsed.refreshToken })
+      )
       .then(({ error }) => {
         if (error) {
           setError('This link is invalid or has expired.')

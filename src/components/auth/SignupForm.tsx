@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,7 +23,7 @@ export function SignupForm() {
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
+    const supabase = await createClientLazy()
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

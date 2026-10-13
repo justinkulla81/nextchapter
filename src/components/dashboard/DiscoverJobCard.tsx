@@ -13,7 +13,7 @@ import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',

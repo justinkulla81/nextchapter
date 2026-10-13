@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { setPersonDoNotEmail } from '@/app/support/admin/(portal)/crm/mailing/actions'
 
 /**

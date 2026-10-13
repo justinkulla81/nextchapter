@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 // Mirrors CrucibleLandingTracker — fired client-side so this lands under
 // PostHog's own real anonymous distinct_id, the one that later merges into

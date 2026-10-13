@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { addLink, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
 import { NEWS_TAGS } from '@/lib/news/tags'

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Guide } from '@/lib/constants/guides'
 

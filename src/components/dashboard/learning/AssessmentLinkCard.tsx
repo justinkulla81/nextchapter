@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 // Renders in the Daily Message slot on the Learning page (via
 // PageHeaderBoxes' dailyMessageOverride) — same bordered/tinted card

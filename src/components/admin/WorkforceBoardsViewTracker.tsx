@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 
 /**
  * Records each search, sort or filter on the workforce boards page. The

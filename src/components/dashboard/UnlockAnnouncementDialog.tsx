@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { PartyPopper, X, Megaphone, Share2, Users, Compass, BookOpen, Video } from 'lucide-react'
 import { Dialog, DialogClose, DialogPopup } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'

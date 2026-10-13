@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Mail, CalendarDays } from 'lucide-react'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Play } from 'lucide-react'
 import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, youtubeId, type NewsKind } from '@/lib/news/kind'
 import { NEWS_TAGS, newsTagLabel, type NewsTagKey } from '@/lib/news/tags'

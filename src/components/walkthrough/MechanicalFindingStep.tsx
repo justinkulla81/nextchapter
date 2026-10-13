@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { resolveMechanicalFindingAction } from '@/app/dashboard/resume/walkthrough/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Button } from '@/components/ui/button'

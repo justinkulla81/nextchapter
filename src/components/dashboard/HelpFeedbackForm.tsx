@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { submitHelpForm, type HelpFormState } from '@/app/dashboard/help/actions'
 import { HELP_FORM_KINDS, isConversationKind, mentionsCrisis, type HelpFormKind } from '@/lib/help/constants'
 

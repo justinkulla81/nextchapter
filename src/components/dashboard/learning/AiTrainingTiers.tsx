@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import type { CourseSkillLevel } from '@prisma/client'
 import { COURSE_SKILL_LEVELS, COURSE_SKILL_LEVEL_LABELS } from '@/lib/constants/course-skill-level'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'

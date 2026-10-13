@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useEffect } from 'react'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import { INTAKE_CONSENT_SCOPES, INTAKE_CONSENT_SCOPE_LABELS } from '@/lib/recruiter/intake/constants'

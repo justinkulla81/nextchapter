@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { EmailOtpType } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/client'
+import { createClientLazy } from '@/lib/supabase/client-lazy'
 import type { PortalKey } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
@@ -311,7 +311,7 @@ export function CallbackHandler() {
   // identical pattern in ResetPasswordForm, built for the same failure mode.
   async function confirmToken() {
     if (!tokenHash || !otpType) return
-    const supabase = createClient(portal)
+    const supabase = await createClientLazy(portal)
     const { error } = await supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash })
     if (error) {
       console.error('CallbackHandler verifyOtp error:', error)
@@ -326,7 +326,7 @@ export function CallbackHandler() {
     let cancelled = false
 
     async function run() {
-      const supabase = createClient(portal)
+      const supabase = await createClientLazy(portal)
       const code = searchParams.get('code')
 
       // Two delivery mechanisms depending on flow/project config: a `?code=`

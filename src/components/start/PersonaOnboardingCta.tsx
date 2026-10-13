@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 
 // PostHog events for the ranked company directory (CLAUDE.md: analytics ship
 // with the feature). Deliberately carries IDs, rank and band only — never

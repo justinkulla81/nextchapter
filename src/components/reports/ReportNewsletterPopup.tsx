@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { Dialog, DialogPopup } from '@/components/ui/dialog'
 import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/actions'
 import { hasSubscribedCookie } from './use-subscribed'

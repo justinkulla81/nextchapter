@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@/lib/posthog/client'
 import { ArrowRight, Shield, DoorOpen, Briefcase, RefreshCw, GraduationCap, TrendingUp, type LucideIcon } from 'lucide-react'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import posthog from 'posthog-js'
+import { posthog } from '@/lib/posthog/client'
 import { answerPromptYes, answerPromptLater } from '@/app/support/admin/(portal)/crm/mailing/actions'
 import { MailingListChecklist, type ListOption } from './MailingListChecklist'
 import type { PromptCard } from '@/lib/mailing/prompt-cards'
