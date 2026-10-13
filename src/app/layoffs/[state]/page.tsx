@@ -99,14 +99,14 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
               </ul>
             ) : (
               <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
-                The latest Displacement Report names only the states with the largest and smallest changes, and {d.name} is
+                The latest White Collar Employment Report names only the states with the largest and smallest changes, and {d.name} is
                 not among them this month. See {d.name}’s figures at the{' '}
                 <a href={STATE_FIGURES_EDITION.blsUrl} className={LINK} target="_blank" rel="noopener noreferrer">Bureau of Labor Statistics</a>.
               </p>
             )}
             <p className="mt-3 text-xs text-muted-foreground">
               Source: {STATE_FIGURES_EDITION.source}, via the{' '}
-              <Link href={`/reports/${STATE_FIGURES_EDITION.slug}`} className="underline underline-offset-2">NextChapter Displacement Report</Link>. Seasonally adjusted.
+              <Link href={`/reports/${STATE_FIGURES_EDITION.slug}`} className="underline underline-offset-2">NextChapter White Collar Employment Report</Link>. Seasonally adjusted.
             </p>
           </section>
 

@@ -1,4 +1,4 @@
-// Progressive enhancement for the Displacement Report: draws the SVG exhibits
+// Progressive enhancement for the White Collar Employment Report: draws the SVG exhibits
 // and wires the copy-citation button. The page reads fine without it — every
 // word, table and note is already in the server HTML. Download buttons work as
 // normal links on the website; inside the Claude viewer (window.claude) they
@@ -51,5 +51,5 @@
     window.claude.use("downloads").then(function(dl){if(!dl){status.textContent="Downloads aren't available in this view.";return;}
       return fetch(a.getAttribute("href")).then(function(r){if(!r.ok)throw new Error("fetch");return r.blob();}).then(function(b){return dl.save({filename:name,data:b});}).then(function(){status.textContent="";},function(e){status.textContent=(e&&e.code==="declined")?"":"Couldn't save the file. Try again.";});
     }).catch(function(){status.textContent="Couldn't prepare the file.";});});}
-  wire("pdf-btn","NextChapter-Displacement-Report-September-2026.pdf");wire("csv-btn","nextchapter-displacement-report-2026-09-data.csv");
+  wire("pdf-btn","NextChapter-White-Collar-Employment-Report-September-2026.pdf");wire("csv-btn","nextchapter-white-collar-employment-report-2026-09-data.csv");
 })();

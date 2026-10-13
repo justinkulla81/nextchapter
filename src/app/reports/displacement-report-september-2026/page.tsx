@@ -12,9 +12,9 @@ import { REPORT_BODY_HTML } from './report-body'
 
 const SLUG = 'displacement-report-september-2026'
 const URL = `${SITE_URL}/reports/${SLUG}`
-const OG_IMAGE = `${SITE_URL}/reports/displacement-report-2026-09-og.png?v=1.8`
+const OG_IMAGE = `${SITE_URL}/reports/displacement-report-2026-09-og.png?v=20261013`
 const PDF_HREF = '/reports/displacement-report-2026-09.pdf'
-const PDF_FILENAME = 'NextChapter-Displacement-Report-September-2026.pdf'
+const PDF_FILENAME = 'NextChapter-White-Collar-Employment-Report-September-2026.pdf'
 const BRIEF_HREF = '/reports/displacement-report-2026-09-brief.pdf'
 const REPO_URL = 'https://github.com/justinkulla81/nextchapter-displacement-report'
 const PUBLISHED = '2026-10-05'
@@ -23,14 +23,14 @@ const MODIFIED = '2026-10-13'
 export const metadata: Metadata = {
   title: {
     absolute:
-      'September 2026 Employment Report: White-Collar Jobs, Hiring and AI | NextChapter',
+      'September 2026 White Collar Employment Report: Jobs, Hiring and AI | NextChapter',
   },
   description:
-    'September 2026 NextChapter Employment Report: how people are working, being hired, changing jobs and starting businesses. 612,000 jobs added in the first nine months of 2026, about one opening per unemployed person, 5.0% raises for job changers, and longer searches for some white-collar workers (White-Collar Long-Search Index 162, 2019=100). Includes job cuts and AI attribution in SEC filings, a Q3 addendum on revenue per employee, productivity, career ladders, college AI programs, states, and what public programs, funding and technology are adding.',
+    'September 2026 NextChapter White Collar Employment Report: how people are working, being hired, changing jobs and starting businesses. 612,000 jobs added in the first nine months of 2026, about one opening per unemployed person, 5.0% raises for job changers, and longer searches for some white-collar workers (White-Collar Long-Search Index 162, 2019=100). Includes job cuts and AI attribution in SEC filings, a Q3 addendum on revenue per employee, productivity, career ladders, college AI programs, states, and what public programs, funding and technology are adding.',
   alternates: { canonical: `/reports/${SLUG}` },
   openGraph: {
     type: 'article',
-    title: 'NextChapter Employment Report — September 2026',
+    title: 'NextChapter White Collar Employment Report — September 2026',
     description:
       'Jobs are growing, and some searches are taking longer. Monthly data on how people are working, being hired and changing jobs, and what public programs and technology are adding.',
     url: URL,
@@ -38,11 +38,11 @@ export const metadata: Metadata = {
     publishedTime: PUBLISHED,
     modifiedTime: MODIFIED,
     authors: ['Justin Kulla'],
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: 'NextChapter Employment Report — September 2026' }],
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: 'NextChapter White Collar Employment Report — September 2026' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NextChapter Employment Report — September 2026',
+    title: 'NextChapter White Collar Employment Report — September 2026',
     description:
       'Jobs are growing, and some searches are taking longer. Monthly data on how people are working, being hired and changing jobs, and what public programs and technology are adding.',
     images: [OG_IMAGE],
@@ -55,13 +55,13 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Report',
-      headline: 'NextChapter Employment Report: September 2026',
+      headline: 'NextChapter White Collar Employment Report: September 2026',
       datePublished: PUBLISHED,
       dateModified: MODIFIED,
       url: URL,
       mainEntityOfPage: URL,
       image: OG_IMAGE,
-      version: '1.8',
+      version: '1.72',
       author: personRef(),
       publisher: organizationRef(),
       about: ['employment', 'hiring and job changes', 'white-collar labor market', 'AI and jobs', 'public workforce programs'],
@@ -72,7 +72,7 @@ const jsonLd = {
       // The report's own datasets (the index series has its own Dataset on the
       // White-Collar Long-Search Index page).
       '@type': 'Dataset',
-      name: 'NextChapter Employment Report — September 2026 data',
+      name: 'NextChapter White Collar Employment Report — September 2026 data',
       description:
         'The full report and brief (PDF), report figures (CSV), the SEC Item 2.05 AI-coding dataset, and the Q3 2026 revenue-per-employee sample.',
       url: URL,
@@ -81,7 +81,7 @@ const jsonLd = {
       isAccessibleForFree: true,
       isBasedOn: {
         '@type': 'SoftwareSourceCode',
-        name: 'NextChapter Employment Report replication materials',
+        name: 'NextChapter White Collar Employment Report replication materials',
         codeRepository: REPO_URL,
         url: `${SITE_URL}/reports/replication`,
       },
@@ -203,9 +203,10 @@ export default function DisplacementReportSeptember2026() {
           <a href="#correction" className="font-medium underline underline-offset-4">Chapter 03</a>), and the fall in
           participation for ages 55+ comes from an aging population, not older workers leaving work (
           <a href="#correction-2" className="font-medium underline underline-offset-4">Chapter 07</a>).{' '}
-          <span className="font-semibold">Reframed October 13, 2026 (Version 1.8).</span>{' '}
-          The edition was retitled the Employment Report and reorganized around how people are working and changing
-          jobs; data, measures and methods are unchanged (<a href="#reframe" className="font-medium underline underline-offset-4">details</a>).
+          <span className="font-semibold">Revised October 13, 2026.</span>{' '}
+          Renamed the NextChapter White Collar Employment Report (published as the Displacement Report through October
+          12, 2026) and reframed around employment; data, measures and methods are unchanged (
+          <a href="#reframe" className="font-medium underline underline-offset-4">details</a>).
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Monthly companion metrics for the NextChapter Displacement Report.
+Monthly companion metrics for the NextChapter White Collar Employment Report.
 
 1) Senior openings tracker (pilot) from the ncrawl database (public job postings,
    no member data). Compares only sources seen in BOTH months so coverage changes

@@ -23,7 +23,7 @@ export async function GET() {
   const editions = reportsNewestFirst().map((e) => {
     const link = `${SITE}/reports/${e.slug}`
     return `    <item>
-      <title>${esc(`NextChapter Displacement Report — ${e.month}`)}</title>
+      <title>${esc(`NextChapter White Collar Employment Report — ${e.month}`)}</title>
       <link>${esc(link)}</link>
       <guid isPermaLink="false">nextchapter-report-${esc(e.slug)}</guid>
       <pubDate>${new Date(`${e.publishedAt}T12:00:00Z`).toUTCString()}</pubDate>

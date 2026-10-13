@@ -1,6 +1,6 @@
 # Monthly chart post
 
-One chart from each Employment Report edition, rendered as a post image.
+One chart from each White Collar Employment Report edition, rendered as a post image.
 No network, no database, no LLM; it reads the CSVs already in `public/reports/`.
 
 ## Routine (about 15 minutes, once per edition)
@@ -20,7 +20,7 @@ No network, no database, no LLM; it reads the CSVs already in `public/reports/`.
    ```
 
    This writes `public/reports/chart-post-<edition>-<chart>-1200x1350.png` (feed post) and `...-1200x630.png` (link card). Options: `--size portrait|landscape|both`, `--out <dir>`, `--svg`, `--data-dir <dir>`.
-5. **Check it by eye.** Title says what the chart shows, the source line names the period, the margin-of-error note is present where a survey estimate is shown, and the footer reads "NextChapter Employment Report <Month Year>" with launchyournextchapter.com/reports.
+5. **Check it by eye.** Title says what the chart shows, the source line names the period, the margin-of-error note is present where a survey estimate is shown, and the footer reads "NextChapter White Collar Employment Report <Month Year>" with launchyournextchapter.com/reports.
 6. **Post it** the week of the jobs report, with one sentence of text and the link to the edition page.
 
 ## Rules for the text

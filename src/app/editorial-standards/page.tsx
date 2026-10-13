@@ -46,7 +46,7 @@ export default function EditorialStandardsPage() {
         <p className="mt-6">
           This page covers everything NextChapter publishes for readers: the guides in{' '}
           <Link href="/resources" className={LINK}>Resources</Link>, the{' '}
-          <Link href="/reports" className={LINK}>Displacement Report</Link> and White-Collar Index, articles in{' '}
+          <Link href="/reports" className={LINK}>White Collar Employment Report</Link> and White-Collar Index, articles in{' '}
           <Link href="/insights" className={LINK}>Insights</Link>, and our takes in{' '}
           <Link href="/news" className={LINK}>News</Link>.
         </p>
@@ -73,10 +73,10 @@ export default function EditorialStandardsPage() {
         </p>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
-            The measures in each Displacement Report are fixed in advance and reported every month, whether they move
+            The measures in each White Collar Employment Report are fixed in advance and reported every month, whether they move
             up or down.
           </li>
-          <li>In the Displacement Report, NextChapter’s own services appear only in the closing “About NextChapter” section.</li>
+          <li>In the White Collar Employment Report, NextChapter’s own services appear only in the closing “About NextChapter” section.</li>
           <li>We do not publish employer rankings or “worst employer” lists, and we never publish information about individual workers.</li>
           <li>We do not accept payment for coverage, and there are no paid or sponsored placements.</li>
         </ul>
@@ -110,7 +110,7 @@ export default function EditorialStandardsPage() {
 
         <h2 className={H2}>Methodology</h2>
         <p className="mt-4">
-          The Displacement Report’s definitions, seasonal adjustment, margins of error and fixed list of monthly
+          The White Collar Employment Report’s definitions, seasonal adjustment, margins of error and fixed list of monthly
           measures are in its{' '}
           <Link href={methodHref} className={LINK}>methodology appendix</Link>.
         </p>

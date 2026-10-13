@@ -1,4 +1,4 @@
-// Adds (or refreshes) the News rows for the Displacement Report, so the report
+// Adds (or refreshes) the News rows for the White Collar Employment Report (the Displacement Report through Oct 12, 2026), so the report
 // appears on the homepage and /news as "NextChapter Report" cards that link to
 // the report's own page in the same tab.
 //
@@ -35,11 +35,11 @@ const items = [
   {
     ...base,
     newsSlug: SLUG,
-    title: 'Fewer layoffs, longer searches: the September 2026 white-collar displacement report',
-    newsTitle: 'Fewer layoffs, longer searches: the September 2026 white-collar displacement report',
+    title: 'Jobs are growing, and some searches are taking longer: the September 2026 NextChapter White Collar Employment Report',
+    newsTitle: 'Jobs are growing, and some searches are taking longer: the September 2026 NextChapter White Collar Employment Report',
     newsPublishedAt: new Date('2026-10-05T12:00:00Z'),
     newsBlurb:
-      'Monthly white-collar report: the White-Collar Long-Term Unemployment Index at 162, 27.1% of the unemployed out 27+ weeks, AI attribution in SEC filings, plus skills, states and policy.',
+      'Monthly white-collar employment report (published as the Displacement Report through October 12, 2026): 612,000 jobs added in nine months, about one opening per unemployed person, the White-Collar Long-Search Index at 162, AI attribution in SEC filings, plus skills, states and what public programs are adding.',
   },
   {
     ...base,

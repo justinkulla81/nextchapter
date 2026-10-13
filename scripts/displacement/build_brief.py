@@ -78,7 +78,7 @@ for anc in ['#jobs','#research','#applying','#skills','#jobsfuture','#newbiz','#
     html=html.replace(f'href="{anc}"',f'href="{FULL}{anc}"')
 html=html.replace('Chapter 0','Section 0').replace('Ch. 01','Index').replace('Ch. 06','Age').replace('Ch. 14','Grads')
 # cover
-html=html.replace('<div class="eyebrow">The NextChapter Employment Report · September 2026</div>','<div class="eyebrow">The NextChapter Employment Report · September 2026 · Monthly brief</div>')
+html=html.replace('<div class="eyebrow">The NextChapter White Collar Employment Report · September 2026</div>','<div class="eyebrow">The NextChapter White Collar Employment Report · September 2026 · Monthly brief</div>')
 html=html.replace('download="NextChapter-Displacement-Report-September-2026.pdf"','download="NextChapter-Displacement-Report-September-2026-Brief.pdf"')
 html=html.replace('href="displacement-report-2026-09.pdf"','href="displacement-report-2026-09-brief.pdf"',1)
 html=html.replace('Download PDF</a>','Download brief (PDF)</a>\n      <a class="btn ghost" href="'+FULL+'">Full report (50 pages)</a>',1)
@@ -87,12 +87,12 @@ stubs=''.join(f'<figure class="exhibit chart" id="{i}" style="display:none"><div
 html=html.replace('</main>',stubs+'</main>',1)
 # TOC rebuild
 bb=BeautifulSoup(html,'html.parser'); toc=bb.select_one('nav.toc ol'); toc.clear()
-names={'disclosure':'About this report','limits':'What this report does not establish','summary':'Executive summary','reframe':'About Version 1.8','index':'Long-Search Index','layoffs':'Job cuts and AI attribution','concentrated':'Search length by occupation','longterm':'Age','older':'Older workers','context':'New graduates','q3':'Q3: growth without hiring','outlook':'What to watch','full':'Full report and methods','about':'About NextChapter'}
+names={'disclosure':'About this report','limits':'What this report does not establish','summary':'Executive summary','reframe':'About this revision','index':'Long-Search Index','layoffs':'Job cuts and AI attribution','concentrated':'Search length by occupation','longterm':'Age','older':'Older workers','context':'New graduates','q3':'Q3: growth without hiring','outlook':'What to watch','full':'Full report and methods','about':'About NextChapter'}
 for sec in bb.find('main').find_all('section',recursive=False):
     sid=sec.get('id')
     if sid in names:
         eb=sec.select_one('.chapter-head .eyebrow'); num=eb.text if eb and re.match(r'^\d\d$',eb.text) else '—'
         toc.append(BeautifulSoup(f'<li><a href="#{sid}"><span class="n">{num}</span>{names[sid]}</a></li>','html.parser'))
 html=str(bb)
-html=html.replace('<title>NextChapter Employment Report — September 2026</title>','<title>NextChapter Employment Report — September 2026 (Brief)</title>',1)
+html=html.replace('<title>NextChapter White Collar Employment Report — September 2026</title>','<title>NextChapter White Collar Employment Report — September 2026 (Brief)</title>',1)
 open(sys.argv[2],'w').write(html); print('ok exhibits',c[0])

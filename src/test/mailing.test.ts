@@ -45,7 +45,15 @@ describe('edition parser', () => {
   })
 })
 
-describe('employment report naming', () => {
+describe('report naming', () => {
+  it('accepts the White Collar Employment Report names and still the old Displacement Report names', () => {
+    expect(editionFromFilename('NextChapter-White-Collar-Employment-Report-2026-10.pdf')).toBe('2026-10')
+    expect(editionFromFilename('white-collar-employment-report-october-2026.html')).toBe('2026-10')
+    expect(editionFromFilename('NextChapter-Displacement-Report-September-2026.pdf')).toBe('2026-09')
+    expect(editionFromFilename('displacement-report-2026-09.pdf')).toBe('2026-09')
+    expect(editionFromBody('https://launchyournextchapter.com/reports/displacement-report-september-2026')).toBe('2026-09')
+    expect(editionFromBody('https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026')).toBe('2026-10')
+  })
   it('accepts the new filename prefix alongside the old one', () => {
     expect(editionFromFilename('employment-report-2026-10.pdf')).toBe('2026-10')
     expect(editionFromFilename('NextChapter-Employment-Report-2026-10.pdf')).toBe('2026-10')
@@ -60,8 +68,8 @@ describe('employment report naming', () => {
     expect(editionFromBody('https://launchyournextchapter.com/reports/employment-report-october-2026')).toBe('2026-10')
   })
   it('builds slugs with the new prefix', () => {
-    expect(REPORT_SLUG_PREFIX).toBe('employment-report-')
-    expect(reportSlugFor(2026, 10)).toBe('employment-report-october-2026')
+    expect(REPORT_SLUG_PREFIX).toBe('white-collar-employment-report-')
+    expect(reportSlugFor(2026, 10)).toBe('white-collar-employment-report-october-2026')
     expect(() => reportSlugFor(2026, 13)).toThrow()
   })
 })
