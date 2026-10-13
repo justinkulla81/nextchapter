@@ -360,7 +360,7 @@ export default function WhiteCollarIndexPage() {
       </main>
 
       <section className="border-t border-light-gray bg-white px-6 py-16">
-        <NewsletterSignup source="displacement-report" />
+        <NewsletterSignup source="employment-report" />
       </section>
 
       <PublicSiteFooter page="reports" />

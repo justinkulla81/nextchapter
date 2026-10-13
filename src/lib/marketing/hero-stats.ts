@@ -1,7 +1,7 @@
 /**
  * The four statistics in the homepage hero. One source so every figure keeps
  * its citation, a balanced mix (two bright spots, two clouds) and an evidence
- * tag. Report figures come from the NextChapter Employment Report, September
+ * tag. Report figures come from the NextChapter White Collar Employment Report, September
  * 2026 (v1.8); see longer-search-message.ts for the same numbers with periods.
  *
  * Evidence: 'P' primary source, 'S' press or secondary. Anything that cannot be
@@ -32,7 +32,7 @@ export const HERO_STATS: HeroStat[] = [
     value: '612,000',
     label: 'jobs added in the first nine months of 2026',
     tone: 'bright-spot',
-    source: 'NextChapter Employment Report, Sept 2026 (BLS data)',
+    source: 'NextChapter White Collar Employment Report, Sept 2026 (BLS data)',
     sourceUrl: '/reports/latest',
     evidence: 'P',
   },
@@ -49,7 +49,7 @@ export const HERO_STATS: HeroStat[] = [
     value: '0.75%',
     label: 'of white-collar workers had searched 27+ weeks, up from 0.56% a year earlier',
     tone: 'cloud',
-    source: 'NextChapter Employment Report, Sept 2026 (Census CPS)',
+    source: 'NextChapter White Collar Employment Report, Sept 2026 (Census CPS)',
     sourceUrl: '/reports/latest',
     evidence: 'P',
   },
