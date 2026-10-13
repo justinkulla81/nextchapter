@@ -8,6 +8,7 @@ import type {
   MarketResponseType,
   RelationshipTag,
   ContactSource,
+  SuppressedSenderReason,
 } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
@@ -18,6 +19,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
+import { suppressionTarget } from '@/lib/network/suppressed-senders'
+import { SUPPRESSED_SENDER_REASONS } from '@/lib/network/suppressed-sender-reasons'
 
 const NETWORKING_LIST_TARGET = 25
 // Soft cap on SupportNetworkContact.emails — enforced here, not in the DB,
@@ -598,4 +601,98 @@ export async function dismissSuggestedContact(sourceId: string, sourceKind: 'mee
     })
   }
   revalidatePath('/dashboard/network/contacts')
+}
+
+// "This isn't part of my job search" — the permanent version of a one-off
+// dismiss. Unlike dismissSuggestedContact (hides one message), this remembers
+// the sender (see SuppressedSender), clears everything already detected from
+// them, and removes them from the contact list if we auto-added them, so
+// family, school and activity mail, spam and non-work contacts stop coming
+// back as follow-ups.
+export async function flagNotJobRelated(
+  sourceId: string,
+  sourceKind: 'meeting' | 'email',
+  reason: SuppressedSenderReason
+): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const option = SUPPRESSED_SENDER_REASONS.find((o) => o.reason === reason)
+  if (!option) return { error: 'Pick one of the reasons shown.' }
+
+  let rawAddress: string | null = null
+  if (sourceKind === 'meeting') {
+    const event = await prisma.trackedCalendarEvent.findFirst({
+      where: { id: sourceId, candidateId: profile.id },
+      select: { counterpartEmail: true },
+    })
+    rawAddress = event?.counterpartEmail ?? null
+  } else {
+    const activity = await prisma.trackedEmailActivity.findFirst({
+      where: { id: sourceId, candidateId: profile.id },
+      select: { fromAddress: true },
+    })
+    rawAddress = activity?.fromAddress ?? null
+  }
+  if (!rawAddress) return { error: "We couldn't find that sender. Refresh the page and try again." }
+
+  const target = suppressionTarget(rawAddress, option.scope)
+  if (!target) return { error: "That sender has no email address we can block." }
+
+  try {
+    await prisma.suppressedSender.upsert({
+      where: { candidateId_value: { candidateId: profile.id, value: target.value } },
+      create: { candidateId: profile.id, value: target.value, isDomain: target.isDomain, reason },
+      update: { reason, isDomain: target.isDomain },
+    })
+  } catch (error) {
+    console.error('Failed to save suppressed sender:', error)
+    return { error: "We couldn't save that just now. Try again in a moment." }
+  }
+
+  const now = new Date()
+  const addressMatch = target.isDomain ? `@${target.value}` : target.value
+  const [emails, meetings, contacts] = await Promise.all([
+    prisma.trackedEmailActivity.updateMany({
+      where: {
+        candidateId: profile.id,
+        dismissedAt: null,
+        fromAddress: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { dismissedAt: now },
+    }),
+    prisma.trackedCalendarEvent.updateMany({
+      where: {
+        candidateId: profile.id,
+        dismissedAt: null,
+        counterpartEmail: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { dismissedAt: now },
+    }),
+    // Only contacts we added automatically; anything the candidate imported or
+    // typed in themselves is their call to remove.
+    prisma.supportNetworkContact.updateMany({
+      where: {
+        candidateId: profile.id,
+        removedAt: null,
+        source: { in: ['EMAIL_DETECTED', 'CALENDAR_IMPORT'] },
+        email: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { removedAt: now },
+    }),
+  ])
+
+  captureServerEvent(profile.id, 'sender_flagged_not_job_related', {
+    sourceId,
+    sourceKind,
+    reason,
+    scope: target.isDomain ? 'domain' : 'address',
+    clearedEmails: emails.count,
+    clearedMeetings: meetings.count,
+    removedContacts: contacts.count,
+  })
+
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+  return {}
 }

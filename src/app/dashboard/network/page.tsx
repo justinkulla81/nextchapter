@@ -34,6 +34,7 @@ import {
   type TouchpointContact,
 } from '@/lib/network/unified-touchpoints'
 import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
+import { LinkedInImportPrompt } from '@/components/dashboard/LinkedInImportPrompt'
 import { PriorityContactsCard } from '@/components/dashboard/PriorityContactsCard'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
@@ -569,7 +570,7 @@ export default async function NetworkPage({
 }) {
   const profile = await getDashboardProfile()
   const params = await searchParams
-  const [rawPriorityContacts, starredCount, contactCount, backchannelMatches, needsFollowUp, outreachLogs, alumniGroups] = await Promise.all([
+  const [rawPriorityContacts, starredCount, contactCount, linkedInImportedCount, backchannelMatches, needsFollowUp, outreachLogs, alumniGroups] = await Promise.all([
     // Only the starred contacts nobody has reached out to yet (the Priority Contacts card).
     // This used to load every contact the member has (up to ~27k rows with a per-row
     // outreach include) and filter in JS just to find these and count the starred ones.
@@ -587,6 +588,7 @@ export default async function NetworkPage({
       where: { candidateId: profile.id, removedAt: null, priorityPointsAwardedAt: { not: null } },
     }),
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: null } }),
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: null, source: 'CSV_IMPORT' } }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
     // Powers the Total Outreach headline card below — every manually logged
@@ -675,9 +677,13 @@ export default async function NetworkPage({
         <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} />
       </Suspense>
 
+      {linkedInImportedCount === 0 && <LinkedInImportPrompt contactCount={contactCount} />}
+
       <Link
         href="/dashboard/network/contacts?buildList=1#import"
-        className="inline-flex h-10 w-fit items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
+        className={`inline-flex h-10 w-fit items-center justify-center rounded-md px-5 text-sm font-medium ${
+          linkedInImportedCount === 0 ? 'border border-input text-foreground hover:bg-muted' : 'bg-brand text-white hover:bg-brand/90'
+        }`}
       >
         Go to / Add to Networking List ({contactCount.toLocaleString()})
       </Link>
