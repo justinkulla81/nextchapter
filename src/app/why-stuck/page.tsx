@@ -104,6 +104,7 @@ export default function WhyStuckPage() {
               alt="A generic rejection email: 'Thank you for your interest in the [Role] position. After careful consideration, we have decided to move forward with other candidates who more closely match our needs at this time.'"
               width={640}
               height={520}
+              sizes="(min-width: 576px) 576px, 100vw"
               className="w-full max-w-xl rounded-xl border border-light-gray shadow-sm"
             />
           </div>
