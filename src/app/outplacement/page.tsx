@@ -110,7 +110,7 @@ export default async function OutplacementPage() {
               See the labor-market backdrop your cohorts are entering in our monthly{' '}
               <Link href="/reports/latest" className="text-brand underline underline-offset-4">White Collar Employment Report</Link>{' '}
               and the{' '}
-              <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Term Unemployment Index</Link>.
+              <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Search Index</Link>.
             </p>
           </div>
 

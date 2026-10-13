@@ -20,7 +20,7 @@ const COPY: Record<'default' | 'report', { heading: string; body: string; cta: s
   report: {
     heading: 'The White Collar Employment Report, monthly, plus the weekly job-market email',
     body:
-      'New data on white-collar job loss and the White-Collar Long-Term Unemployment Index, the week the jobs report comes out — plus the Tuesday email on the search. Free, no account, unsubscribe any time.',
+      'New data on white-collar employment, hiring and job searches, and the White-Collar Long-Search Index, the week the jobs report comes out — plus the Tuesday email on the search. Free, no account, unsubscribe any time.',
     cta: 'Get the report monthly',
   },
 }
