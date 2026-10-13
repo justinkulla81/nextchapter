@@ -2,13 +2,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCoachEmail } from '@/lib/email/send-market-digest-coach'
+import { buildCoachWeeklyDigest } from '@/lib/coach/weekly-digest'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 const MAX_ROLE_LINES = 3
 
-// Aggregate-only — never joins in any individual client's identity or
-// score, only the deduped set of target roles across a coach's clients.
+// Per-client: each client who has consented to coach access (the same
+// coachDossierConsentedAt gate as the Full Client View) gets their own
+// section — week, flags, activity and new strong-fit roles. Clients who
+// haven't consented are listed by name only. The market snapshot rides
+// along as a footer.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
@@ -53,9 +57,10 @@ export async function GET(request: NextRequest) {
         })
       )
 
-      if (roleLines.length === 0 && !nugget) continue
+      const digest = await buildCoachWeeklyDigest(coach.id, coach.accessToken)
+      if (digest.clients.length === 0 && roleLines.length === 0 && !nugget) continue
 
-      const result = await sendMarketDigestCoachEmail(coach, roleLines, nugget)
+      const result = await sendMarketDigestCoachEmail(coach, digest, roleLines, nugget)
       if (result.sent) sentCount += 1
     } catch (error) {
       console.error('Coach market digest failed for coach', coach.id, error)
