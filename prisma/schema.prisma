@@ -538,6 +538,9 @@ model CandidateProfile {
   // enrollment is derived from this and bucketed (see src/lib/outcomes). Null
   // when unknown or still employed; never guessed.
   lastJobEndedAt DateTime?
+  // Optional, self-reported only. Used to tailor guidance and aggregate
+  // benchmarks; never inferred from graduation year or anything else.
+  ageBand        AgeBand?
   hireOutcomes   HireOutcome[]
 
   // One real row (see scripts/create-system-account.ts), backed by a real
@@ -12851,6 +12854,14 @@ enum DurationBucket {
   W14_26
   W27_52
   W53_PLUS
+}
+
+enum AgeBand {
+  UNDER_35
+  A35_44
+  A45_54
+  A55_64
+  A65_PLUS
 }
 
 enum PivotPathType {

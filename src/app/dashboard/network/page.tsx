@@ -38,6 +38,8 @@ import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { SearchMixNudgeCard } from '@/components/dashboard/SearchMixNudgeCard'
+import { SegmentGuidanceCard } from '@/components/dashboard/SegmentGuidanceCard'
+import { getSegmentsForCandidate } from '@/lib/outcomes/segments-loader'
 import { getWeeklySearchMix } from '@/lib/outcomes/weekly-search-mix'
 import { computeSearchMixNudge } from '@/lib/outcomes/search-mix'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -47,6 +49,11 @@ import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
 
 export const metadata: Metadata = { title: 'Network with My Contacts' }
+
+async function SegmentGuidance({ candidateId }: { candidateId: string }) {
+  const segments = await getSegmentsForCandidate(candidateId)
+  return <SegmentGuidanceCard segments={segments} />
+}
 
 async function SearchMixNudge({ candidateId }: { candidateId: string }) {
   const mix = await getWeeklySearchMix(candidateId)
@@ -639,6 +646,10 @@ export default async function NetworkPage({
 
       <Suspense fallback={null}>
         <SearchMixNudge candidateId={profile.id} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <SegmentGuidance candidateId={profile.id} />
       </Suspense>
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>

@@ -165,3 +165,26 @@ describe('institution outcomes', () => {
     expect(r.warmShare).toBeNull()
   })
 })
+
+import { deriveSegments } from '@/lib/outcomes/segments'
+
+describe('segments', () => {
+  const base = { ageBand: null, yearsExperience: null, hasMastersOrHigher: false, laidOff: false, seniorityBand: null } as const
+  it('never infers age: no age band means no 55-64 segment', () => {
+    expect(deriveSegments({ ...base, yearsExperience: 30 })).not.toContain('LONG_TENURED_55_64')
+  })
+  it('tags 55-64 only when the candidate said so', () => {
+    expect(deriveSegments({ ...base, ageBand: 'A55_64', yearsExperience: 30 })).toContain('LONG_TENURED_55_64')
+    expect(deriveSegments({ ...base, ageBand: 'A45_54', yearsExperience: 30 })).not.toContain('LONG_TENURED_55_64')
+  })
+  it('tags advanced degrees and 25-year veterans', () => {
+    expect(deriveSegments({ ...base, hasMastersOrHigher: true })).toContain('MASTERS_OR_25YR')
+    expect(deriveSegments({ ...base, yearsExperience: 26 })).toContain('MASTERS_OR_25YR')
+    expect(deriveSegments({ ...base, yearsExperience: 10 })).toEqual([])
+  })
+  it('tags laid-off senior people as managers', () => {
+    expect(deriveSegments({ ...base, laidOff: true, seniorityBand: 'SENIOR' })).toContain('LAID_OFF_MANAGER')
+    expect(deriveSegments({ ...base, laidOff: true, seniorityBand: 'EARLY' })).toEqual([])
+    expect(deriveSegments({ ...base, laidOff: false, seniorityBand: 'EXECUTIVE' })).toEqual([])
+  })
+})

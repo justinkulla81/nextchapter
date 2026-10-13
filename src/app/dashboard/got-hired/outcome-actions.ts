@@ -7,7 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { durationBucketForWeeks, weeksUnemployed } from '@/lib/outcomes/duration-bucket'
 import { payRetention } from '@/lib/outcomes/pay-retention'
-import type { HireOutcomeType, HireSource } from '@prisma/client'
+import type { AgeBand, HireOutcomeType, HireSource } from '@prisma/client'
 
 export type OutcomeFormState = { error?: string; saved?: boolean } | undefined
 
@@ -100,5 +100,28 @@ export async function recordHireOutcome(_prev: OutcomeFormState, formData: FormD
   })
 
   revalidatePath('/dashboard/got-hired')
+  return { saved: true }
+}
+
+const AGE_BANDS: AgeBand[] = ['UNDER_35', 'A35_44', 'A45_54', 'A55_64', 'A65_PLUS']
+
+// Optional and self-reported. Blank clears it. Used only to tailor guidance and
+// to compare like with like in aggregate; never inferred and never used to rank.
+export async function saveAgeBand(_prev: OutcomeFormState, formData: FormData): Promise<OutcomeFormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const raw = (formData.get('ageBand') as string | null) ?? ''
+  const ageBand = raw === '' ? null : (AGE_BANDS as string[]).includes(raw) ? (raw as AgeBand) : 'invalid'
+  if (ageBand === 'invalid') return { error: 'Choose one of the listed ranges, or leave it blank.' }
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { ageBand } })
+  captureServerEvent(profile.id, 'age_band_saved', { provided: ageBand !== null })
+  revalidatePath('/dashboard/got-hired')
+  revalidatePath('/dashboard/network')
   return { saved: true }
 }

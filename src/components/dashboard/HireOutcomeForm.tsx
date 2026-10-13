@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import {
   recordHireOutcome,
+  saveAgeBand,
   saveLastJobEndedAt,
   type OutcomeFormState,
 } from '@/app/dashboard/got-hired/outcome-actions'
@@ -46,6 +47,42 @@ export function LastJobEndedForm({ current }: { current: string | null }) {
       {state?.saved && <p className="text-sm text-foreground">Saved.</p>}
       <Button type="submit" disabled={pending}>
         {pending ? 'Saving…' : 'Save last day worked'}
+      </Button>
+    </form>
+  )
+}
+
+const AGE_OPTIONS = [
+  { value: 'UNDER_35', label: 'Under 35' },
+  { value: 'A35_44', label: '35 to 44' },
+  { value: 'A45_54', label: '45 to 54' },
+  { value: 'A55_64', label: '55 to 64' },
+  { value: 'A65_PLUS', label: '65 or older' },
+]
+
+export function AgeBandForm({ current }: { current: string | null }) {
+  const [state, formAction, pending] = useActionState<OutcomeFormState, FormData>(saveAgeBand, undefined)
+  return (
+    <form action={formAction} className={cn('space-y-3', pending && 'cursor-wait [&_*]:cursor-wait')}>
+      <div className="space-y-1.5">
+        <Label htmlFor="ageBand">Age range (optional)</Label>
+        <select id="ageBand" name="ageBand" defaultValue={current ?? ''} className={selectClass}>
+          <option value="">Prefer not to say</option>
+          {AGE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Used only to show guidance that fits your situation and to compare you with people in a similar one. It is never used to
+          rank or filter you, and you can clear it any time.
+        </p>
+      </div>
+      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.saved && <p className="text-sm text-foreground">Saved.</p>}
+      <Button type="submit" disabled={pending}>
+        {pending ? 'Saving…' : 'Save age range'}
       </Button>
     </form>
   )

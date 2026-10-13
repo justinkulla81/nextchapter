@@ -6,7 +6,7 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { HireOutcomeForm, LastJobEndedForm } from '@/components/dashboard/HireOutcomeForm'
+import { AgeBandForm, HireOutcomeForm, LastJobEndedForm } from '@/components/dashboard/HireOutcomeForm'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
 
@@ -56,6 +56,7 @@ export default async function GotHiredPage() {
             </p>
           </div>
           <LastJobEndedForm current={profile.lastJobEndedAt ? profile.lastJobEndedAt.toISOString().slice(0, 10) : null} />
+          <AgeBandForm current={profile.ageBand} />
         </CardContent>
       </Card>
 
