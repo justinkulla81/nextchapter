@@ -22,6 +22,14 @@ export const GRANT_KEYWORDS = [
   'career coaching',
   'layoff aversion',
   'worker transition',
+  // Workforce Pell and the Labor Department's AI-triggered dislocated worker
+  // grants (TEGL 15-25, "Rapid Reskill"). One request per phrase.
+  'workforce pell',
+  'short-term pell',
+  'rapid reskill',
+  'AI workforce',
+  'AI literacy',
+  'artificial intelligence workforce',
 ] as const
 
 /**
@@ -43,6 +51,10 @@ const TITLE_SIGNALS: [RegExp, number][] = [
   [/career (transition|coaching|services|navigation|counsel)/i, 4],
   [/job (placement|search|matching|readiness|training)/i, 3],
   [/workforce (development|innovation|system|board|services|technology)|WIOA/i, 3],
+  [/workforce pell|short-?term pell/i, 4],
+  [/rapid reskill/i, 4],
+  // AI named together with workers or skills; AI alone is not our subject.
+  [/(\bAI\b|artificial intelligence).{0,60}(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment)|(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment).{0,60}(\bAI\b|artificial intelligence)/i, 4],
   [/employment (services|assistance|and training)|reentry|re-entry/i, 2],
   [/resume|talent (pipeline|acquisition)|upskill|reskill|apprentice/i, 2],
 ]

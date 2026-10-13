@@ -105,6 +105,6 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
 
 /** The notice with its eligibility read. Pure; the fetch is separate so it can be tested. */
 export function withEligibility(n: FundingNotice, d: GrantDetail): FundingNotice {
-  const r = classifyGrant(d.applicantTypeIds, d.eligibilityText)
+  const r = classifyGrant(d.applicantTypeIds, d.eligibilityText, n.title)
   return { ...n, eligibility: r.eligibility, applicantKinds: r.kinds, partnerKinds: r.partnerKinds, eligibilityNote: r.note, awardCeiling: d.awardCeiling, states: statesFromText(d.eligibilityText) }
 }

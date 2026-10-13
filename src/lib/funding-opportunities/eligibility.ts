@@ -14,6 +14,8 @@
  * sentence by sentence, with negation ("for-profits are not eligible").
  */
 
+import { withPathwayNote } from './pathways'
+
 export type ApplicantKind =
   | 'STATE_GOV' | 'LOCAL_GOV' | 'HIGHER_ED' | 'NONPROFIT'
   | 'TRIBAL' | 'FOR_PROFIT' | 'SMALL_BUSINESS' | 'INDIVIDUAL' | 'UNRESTRICTED'
@@ -82,7 +84,7 @@ export function applicantKindsFromGrant(typeIds: string[], text: string): Applic
   return [...kinds]
 }
 
-export function classifyGrant(typeIds: string[], text: string): EligibilityResult {
+export function classifyGrant(typeIds: string[], text: string, title?: string): EligibilityResult {
   const kinds = applicantKindsFromGrant(typeIds, text)
   const open = kinds.filter((k) => OPEN_TO_US.includes(k))
   if (open.length) {
@@ -92,7 +94,7 @@ export function classifyGrant(typeIds: string[], text: string): EligibilityResul
   if (partners.length) {
     return {
       eligibility: 'VIA_PARTNER', kinds, partnerKinds: partners,
-      note: `Only ${partners.map(label).join(', ')} can apply. NextChapter could be written in as the vendor or subrecipient.`,
+      note: withPathwayNote(`Only ${partners.map(label).join(', ')} can apply. NextChapter could be written in as the vendor or subrecipient.`, title),
     }
   }
   if (kinds.length) {

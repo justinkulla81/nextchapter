@@ -5,6 +5,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { SITE_URL, reportsNewestFirst, latestReport, reportPath } from '@/lib/reports'
 import { wcIndexSummary, monthLabel } from '@/lib/reports-wc-index'
+import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } from '@/lib/marketing/longer-search-message'
 
 const URL = `${SITE_URL}/reports`
 
@@ -89,6 +90,29 @@ export default function ReportsHubPage() {
             </Link>
           )}
         </div>
+
+        {/* Approved message, backed by exact report figures with sources */}
+        <section className="mt-14" aria-labelledby="longer-search">
+          <h2 id="longer-search" className="text-xl font-bold tracking-tight text-navy">{LONGER_SEARCH_HEADLINE}</h2>
+          <div className="mt-3 max-w-2xl space-y-3 text-base leading-relaxed text-foreground">
+            {LONGER_SEARCH_BODY.map((p) => <p key={p}>{p}</p>)}
+          </div>
+          <dl className="mt-6 grid gap-4 sm:grid-cols-3">
+            {LONGER_SEARCH_FIGURES.map((f) => (
+              <div key={f.id} className="rounded-xl border border-light-gray bg-white p-5">
+                <dt className="text-3xl font-bold tracking-tight text-navy tabular-nums">{f.value}</dt>
+                <dd className="mt-2 text-sm text-foreground">{f.label}.</dd>
+                <dd className="mt-1 text-sm text-muted-foreground">{f.comparison}</dd>
+                <dd className="mt-3 text-xs leading-relaxed text-muted-foreground">Source: {f.source}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Margins of error are 90% intervals using the BLS generalized variance method. The report measures how long
+            searches last and does not establish why. Methods and data are public on the{' '}
+            <Link href="/reports/replication" className="text-brand underline underline-offset-4">replication page</Link>.
+          </p>
+        </section>
 
         {/* Archive */}
         <section className="mt-14">
