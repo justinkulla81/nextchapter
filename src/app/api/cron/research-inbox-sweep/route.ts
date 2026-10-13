@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
 import { listAlertMessages, getMessageHtml, markMessageRead, extractAlertUrls } from '@/lib/google/gmail'
 import { ingestResearchUrl } from '@/lib/research/ingest'
+import { sweepNewsletters } from '@/lib/research/newsletter-sweep'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 120
@@ -58,5 +60,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Sweep failed' }, { status: 500 })
   }
 
-  return NextResponse.json({ messagesSwept, ingested })
+  // Newsletters are a separate pass: a failure here must not hide the alert sweep above.
+  let newsletters = null
+  try {
+    newsletters = await sweepNewsletters(accessToken)
+    captureServerEvent('cron', 'newsletter_sweep_run', { trigger: 'cron', ...newsletters })
+  } catch (err) {
+    console.error('Newsletter sweep failed:', err)
+  }
+
+  return NextResponse.json({ messagesSwept, ingested, newsletters })
 }

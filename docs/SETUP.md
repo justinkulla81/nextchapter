@@ -81,6 +81,7 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 
 **Cron**
 - `CRON_SECRET` — Vercel Cron sends this as a Bearer token; every `/api/cron/*` route checks it before running
+- `NEWSLETTER_SENDER_QUERY` — optional Gmail search (e.g. `from:(news@example.com OR digest@example.org)`) naming the newsletters the daily research-inbox sweep reads for layoffs, acquisitions, shutdowns and executive changes; unset = newsletters are skipped. Needs `ANTHROPIC_API_KEY`
 
 **Funding opportunities (`/api/cron/funding-opportunities`)**
 - `SAM_API_KEY` — optional. Free key from sam.gov (Account Details → API Key). Without it the cron still files Grants.gov grants and skips SAM.gov. Daily limits depend on the key's role and are not published for a key with no role (reported as about 10 a day), so `SAM_DAILY_REQUESTS` (default 4) caps how many NAICS searches run per day; the API takes one `ptype` at a time, so notice types are filtered locally instead.

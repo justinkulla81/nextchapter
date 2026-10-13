@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { LikelyOpeningSignalType } from '@prisma/client'
-import { companyKey } from './roles'
+import { companyKey, signalSource, type SignalSource } from './roles'
 
 export interface CompanyLikelyOpening {
   id: string
@@ -10,6 +10,7 @@ export interface CompanyLikelyOpening {
   summary: string
   filingDate: Date
   filingUrl: string
+  source: SignalSource
 }
 
 /**
@@ -27,11 +28,11 @@ export async function getLikelyOpeningsForCompanies(
   const rows = await prisma.likelyOpening.findMany({
     where: { companyNameNormalized: { in: keys }, expiresAt: { gt: new Date() } },
     orderBy: { filingDate: 'desc' },
-    select: { id: true, companyNameNormalized: true, signalType: true, roles: true, summary: true, filingDate: true, filingUrl: true },
+    select: { id: true, companyNameNormalized: true, signalType: true, roles: true, summary: true, filingDate: true, filingUrl: true, cik: true },
   })
   for (const [name, key] of keyByName) {
     const mine = rows.filter((r) => r.companyNameNormalized === key).slice(0, perCompany)
-    if (mine.length) result.set(name, mine.map(({ companyNameNormalized: _k, ...r }) => (void _k, r)))
+    if (mine.length) result.set(name, mine.map(({ companyNameNormalized: _k, cik, ...r }) => (void _k, { ...r, source: signalSource(cik) })))
   }
   return result
 }

@@ -115,6 +115,22 @@ export function companyKey(name: string): string {
   return key
 }
 
+/** How long a signal stays live after it is filed or reported. */
+export const SIGNAL_TTL_DAYS = 120
+
+/** cik of a signal that came from a news report rather than an SEC filing. */
+export const NEWS_CIK = 'news'
+export type SignalSource = 'sec' | 'news'
+
+export function signalSource(cik: string): SignalSource {
+  return cik === NEWS_CIK ? 'news' : 'sec'
+}
+
+/** Words for the link to what a signal was read from. */
+export function sourceLinkLabel(source: SignalSource | undefined): string {
+  return source === 'news' ? 'Read the report' : 'Read the SEC filing'
+}
+
 export function isOfficerRole(value: string): value is OfficerRole {
   return value in ROLE_LABELS
 }

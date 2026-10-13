@@ -18,7 +18,8 @@ export interface HeadlineLayoff {
 }
 
 const NAME = String.raw`(?<co>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,4}?)`
-const VERB = String.raw`(?:is |are |will |plans? to |set to |to |reportedly )?(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?)`
+const HEDGE = String.raw`(?:is|are|will|plans? to|set to|to|reportedly|preparing to|prepares to|preparing|prepares|poised to|expected to|about to|ready to|looks? to|looking to|said to|likely to|may|could|would|now|also|again)`
+const VERB = String.raw`(?:${HEDGE} )*(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?)`
 const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
 
 const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
