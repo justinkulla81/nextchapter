@@ -97,41 +97,54 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const alumniList = [...alumni.values()]
   const year = (d: Date | null) => (d ? String(d.getFullYear()) : '')
 
-  const metaLinks = [
-    org.hqRegion && <span key="hq">{org.hqRegion}</span>,
-    org.website && <a key="web" href={org.website} target="_blank" rel="noreferrer" className="underline">Website ↗</a>,
-    org.company && <Link key="intel" href={`/support/admin/companies/${org.company.id}`} className="underline">Company intel</Link>,
-  ].filter(Boolean)
-
   return (
     <div className="space-y-8">
       <nav className="text-sm">
         <Link href="/support/admin/crm/organizations" className="text-muted-foreground hover:underline">← All organizations</Link>
       </nav>
 
-      <header className="space-y-3 border-b border-border pb-5">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-semibold">{org.name}</h1>
-          {org.orgTypes.map((t) => (
-            <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{ORG_TYPE_LABELS[t]}</span>
-          ))}
-        </div>
-        {metaLinks.length > 0 && (
-          <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
-            {metaLinks.map((m, i) => <span key={i} className="flex items-center gap-x-2">{i > 0 && <span aria-hidden>·</span>}{m}</span>)}
-          </p>
-        )}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-          <label className="flex items-center gap-2 text-muted-foreground">
-            Grade <CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} />
-          </label>
-          <label className="flex items-center gap-2 text-muted-foreground">
-            Deal <CrmDealStatusSelect orgId={org.id} value={org.dealStatus} />
-            {org.dealStatusAt && <span className="text-xs">since {formatDate(org.dealStatusAt)}</span>}
-          </label>
-        </div>
-        {org.focus && <p className="max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
+      <header>
+        <h1 className="text-2xl font-semibold">{org.name}</h1>
+        {org.focus && <p className="mt-2 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
       </header>
+
+      <section aria-label="Details" className="rounded-lg border border-border p-4">
+        <h2 className="mb-3 text-base font-semibold">Details</h2>
+        <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <dt className="text-xs text-muted-foreground">Type</dt>
+            <dd className="mt-1 flex flex-wrap gap-1">
+              {org.orgTypes.length === 0 ? '—' : org.orgTypes.map((t) => (
+                <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
+              ))}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Grade</dt>
+            <dd className="mt-1"><CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} /></dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Deal status{org.dealStatusAt ? ` · since ${formatDate(org.dealStatusAt)}` : ''}</dt>
+            <dd className="mt-1"><CrmDealStatusSelect orgId={org.id} value={org.dealStatus} /></dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Location</dt>
+            <dd className="mt-1">{org.hqRegion ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Website</dt>
+            <dd className="mt-1">
+              {org.website ? <a href={org.website} target="_blank" rel="noreferrer" className="underline">Open ↗</a> : '—'}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Company intel</dt>
+            <dd className="mt-1">
+              {org.company ? <Link href={`/support/admin/companies/${org.company.id}`} className="underline">Open</Link> : '—'}
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-8">
