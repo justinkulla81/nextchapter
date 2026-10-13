@@ -1,4 +1,5 @@
 import 'server-only'
+import { prisma } from '@/lib/prisma'
 import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 
 // Master Build Script §14: "Gate: any qualifying badge (§7.8 — Connected
@@ -7,6 +8,11 @@ import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 // is exactly "any of computeMilestoneBadges' 16 keys earned" — no separate
 // allowlist to maintain here.
 export async function hasQualifyingCommunityBadge(candidateId: string): Promise<boolean> {
+  // MARKET_REALITY_COMPLETE is `candidate.assessmentComplete` (milestone-badges.ts), so a
+  // completed assessment already means "at least one qualifying badge" — a single-column read
+  // instead of running the whole ~15-query badge engine (and its persist step) for a boolean.
+  const profile = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { assessmentComplete: true } })
+  if (profile?.assessmentComplete) return true
   const badges = await computeMilestoneBadges(candidateId)
   return badges.some((b) => b.earned)
 }

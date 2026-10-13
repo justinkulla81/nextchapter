@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import type { RoleGrantRole } from '@prisma/client'
 
@@ -9,7 +10,8 @@ export type { RoleGrantRole }
 // instead of separately querying CandidateProfile/Coach/Recruiter/
 // EmployerProfile by userId, which is what redirect-non-candidate.ts did
 // before this. Only active (non-revoked) grants count.
-export async function getRoleGrants(userId: string): Promise<RoleGrantRole[]> {
+// cache(): the layout and the page both resolve the same user's roles in one request.
+export const getRoleGrants = cache(async function getRoleGrants(userId: string): Promise<RoleGrantRole[]> {
   const grants = await prisma.roleGrant.findMany({
     where: { userId, revokedAt: null },
     select: { role: true },
@@ -20,7 +22,7 @@ export async function getRoleGrants(userId: string): Promise<RoleGrantRole[]> {
   // helper correct even if that invariant is ever violated by a direct
   // write (e.g. a future admin tool, a manual DB fix).
   return Array.from(new Set(grants.map((g) => g.role)))
-}
+})
 
 export async function hasRoleGrant(userId: string, role: RoleGrantRole): Promise<boolean> {
   const roles = await getRoleGrants(userId)

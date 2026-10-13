@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 
@@ -52,7 +53,25 @@ async function thisWeekSprintTargetCount(): Promise<number> {
   })
 }
 
-export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
+// Runs ~17 counts, two of them scans of the job table, and the admin layout calls it on every
+// navigation (and again from the admin home page). cache() dedupes it within a request; the
+// 60s memo means a click-through across admin pages pays for it once. Badge counts can be up
+// to a minute stale, which is fine for an approvals-needed badge.
+const SUMMARY_TTL_MS = 60_000
+let summaryCache: { at: number; value: Promise<AdminHomepageSummary> } | null = null
+
+export const getAdminHomepageSummary = cache(function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
+  if (!summaryCache || Date.now() - summaryCache.at > SUMMARY_TTL_MS) {
+    const value = loadAdminHomepageSummary()
+    summaryCache = { at: Date.now(), value }
+    value.catch(() => {
+      if (summaryCache?.value === value) summaryCache = null
+    })
+  }
+  return summaryCache.value
+})
+
+async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
 
   const [
