@@ -59,7 +59,7 @@ describe('thinking about a move', () => {
   })
 })
 
-describe('growing in a job', () => {
+describe('managing my career', () => {
   it('gets an active plan with no application targets', () => {
     const plan = shapePlan('GROWING', 'STAYING', 1, general)
     expect(plan.map((p) => p.text)).toContain('Benchmark your pay against the market')

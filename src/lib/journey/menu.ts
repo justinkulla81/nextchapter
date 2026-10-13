@@ -43,8 +43,8 @@ export function menuMode(stage: JourneyStage | null, journey: JourneyType | null
 export type Pillar = 'grow' | 'career' | 'plan' | 'prove' | 'search' | 'network' | 'learn' | 'coach' | 'work' | 'support'
 
 export const PILLAR_TITLES: Record<Pillar, string> = {
-  grow: 'Grow in your job',
-  career: 'Manage your career',
+  grow: 'Manage your career', // staying: reviews, pay, skills, a career that holds up
+  career: 'Manage your career', // landed: the new job, then the same
   plan: 'Personalize',
   prove: 'Prove it',
   search: 'Search and apply',
@@ -126,7 +126,7 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   help: { pillar: 'support' },
   privacy: { pillar: 'support' },
   faq: { pillar: 'support' },
-  // Grow in your job (staying in a job, going for a promotion)
+  // Manage your career (staying in a job, going for a promotion)
   growWorth: { pillar: 'grow' },
   growResults: { pillar: 'grow' },
   growSkills: { pillar: 'grow' },

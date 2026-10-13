@@ -83,7 +83,7 @@ const THREE_BEATS = [
 
 const HOW_IT_WORKS_STEPS = [
   { title: 'Market Reality Assessment', description: 'A clearer view of where you stand and what to do next.' },
-  { title: 'Weekly plan', description: 'A weekly plan for where you are: searching, preparing, or growing in your job.' },
+  { title: 'Weekly plan', description: 'A weekly plan for where you are: searching, preparing, or managing your career in the job you have.' },
   { title: 'Weekly score', description: 'Momentum you can actually see, points that never feel abstract.' },
   { title: 'Executive Dossier', description: 'Helps employers see what your résumé leaves out.' },
 ]

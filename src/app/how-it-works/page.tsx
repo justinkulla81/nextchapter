@@ -33,7 +33,7 @@ const STEPS: Step[] = [
     eyebrow: 'Step 2',
     title: 'Your journey → your weekly plan',
     description:
-      "You tell us your situation (out of work, thinking about a move, growing in your job, changing careers and more), how you like to be coached, and your goals, and complete a skills and personality assessment for better matches. We turn all of it into a personalized weekly plan instead of the same generic list everyone else gets. And when a search stalls, the plan changes: new things to try, not the same advice again.",
+      "You tell us your situation (out of work, thinking about a move, managing your career, changing careers and more), how you like to be coached, and your goals, and complete a skills and personality assessment for better matches. We turn all of it into a personalized weekly plan instead of the same generic list everyone else gets. And when a search stalls, the plan changes: new things to try, not the same advice again.",
   },
   {
     icon: ListChecks,

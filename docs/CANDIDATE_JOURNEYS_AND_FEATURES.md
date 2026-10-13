@@ -21,7 +21,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 |---|---|---|---|
 | **Laid off or let go** (resigned included) | Applying | No | The right role, fast |
 | **Thinking about a move** (curious, ready to go, or worried about a layoff) | Exploring | Yes | Know your market and worth, move quietly when you choose |
-| **Growing in my job** | Managing your career | Yes | Better pay, the next level, skills that hold their value |
+| **Managing my career** | Managing your career | Yes | Better pay, the next level, skills that hold their value |
 | **Going for a promotion** | Preparing | Yes | The next level, inside or outside |
 | **Changing careers** | Exploring | Yes | Your first role in the new field |
 | **Student or recent grad** | Preparing | No | Your first job, and a strong first year |
@@ -31,7 +31,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 - "Ready for a new job" was merged into *Thinking about a move*. An old value still reads correctly.
 - *Thinking about a move* asks **"What's behind the move?"** (keeping options open / ready to leave / worried about a
   layoff). Worry about a layoff puts runway, severance and unemployment-benefit steps first.
-- Employed journeys ask **"When do you want to start applying?"**, which sets the stage. Growing in my job skips the search questions.
+- Employed journeys ask **"When do you want to start applying?"**, which sets the stage. Managing my career skips the search questions.
 - Outplacement seats start the Laid off journey. Members from before journeys get one derived from their old job status.
 
 ## 3. Statuses (how close you are to applying): 7
@@ -46,7 +46,7 @@ There is **no "on a break"**. Someone who is not looking is *managing their care
 | **Interviewing** | Mock interviews, references, follow-ups | Weekly | Everything open |
 | **Offer** | Negotiate and decide | Weekly | Everything open |
 | **Landed** | First 90 days; thank the people who helped | Quarterly | "Manage your career"; job tools hidden |
-| **Managing your career** | Reviews, pay, skills, a career that holds up | Monthly | "Grow in your job"; job tools locked |
+| **Managing your career** | Reviews, pay, skills, a career that holds up | Monthly | "Manage your career"; job tools locked |
 
 Application tasks and the daily "apply" pop-up appear only in Applying, Interviewing and Offer. A legacy "paused" row in the
 database reads as Managing your career. Managing-your-career and Landed members get no job-listing emails (Job Search Daily,
@@ -81,8 +81,8 @@ Each tool is **shown**, **locked** (turns on when your status changes; stays vis
 | **Coaching** | Executive coach (always visible) |
 | **Work now** | Interim, fractional, advisory, EQoverIQ (senior members) |
 | **Support and settings** | Stats, benefits and financial bridge, I'm Struggling, membership, help, privacy |
-| **Grow in your job** *(managing your career)* | Know your worth, prove your results, build skills, practice the hard conversation, know how you work |
-| **Manage your career** *(landed)* | First 90 days, know your worth, thank the people who helped, Offer Bonus claim |
+| **Manage your career** *(managing your career)* | Know your worth, prove your results, build skills, practice the hard conversation, know how you work |
+| **Manage your career** *(landed, then the same)* | First 90 days, know your worth, thank the people who helped, Offer Bonus claim |
 
 Existing locks stay: Gmail (Network, Jobs, Interim, Contacts), LinkedIn (Marketing plan), Skills Assessment (Learning, Videos), Membership (Coach, Recruiter).
 
@@ -90,7 +90,7 @@ Existing locks stay: Gmail (Network, Jobs, Interim, Contacts), LinkedIn (Marketi
 
 Journey · stage · what's behind the move · feedback tone · connections · results so far. These drive: the weekly plan, the Market
 Reality Report framing, Search Strategy wording, the dashboard card, the menu, connect-account reasons ("why connect Gmail" says something different
-to a laid-off member than to someone growing in their job), the check-in pace, and every weekly email.
+to a laid-off member than to someone managing their career), the check-in pace, and every weekly email.
 
 **Feedback tone** (tough love / gentle / mix) sets how direct Victoria is (tough love never starts below "direct"; gentle never goes past "direct") and the wording of the unlock and stalled-search messages.
 
@@ -138,7 +138,7 @@ Certified Executive Dossier with share links (7 days / 30 days / never), recruit
 ## 11. Marketing surfaces
 
 Homepage (coach hero, "a coach that has read everything you have done", "searching for too long? the plan changes", the journey cards), nine path pages at
-`/start/[path]` (thinking about a move, growing, laid off, resigned, returning, promotion, career change, new grad, next act, **searching too long**),
+`/start/[path]` (thinking about a move, managing my career, laid off, resigned, returning, promotion, career change, new grad, next act, **searching too long**),
 How it works, college alumni pages, `/why-stuck`, `/layoffs`, `/unemployment-benefits/[state]`, reports, news, pricing, FAQ.
 
 ## 12. Known gaps

@@ -219,7 +219,7 @@ function buildSections(o: {
     },
     { key: 'privacy', href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
     { key: 'faq', href: '/faq', label: 'FAQ', icon: HelpCircle },
-    // Grow in your job (staying put)
+    // Manage your career (staying put)
     { key: 'growWorth', href: '/dashboard/market-reality', label: 'Know your worth', icon: LineChart },
     { key: 'growResults', href: '/dashboard/track-record', label: 'Prove your results', icon: ClipboardCheck },
     { key: 'growSkills', href: '/dashboard/learning', label: 'Build new skills', icon: BookOpen, ...skillsLock },

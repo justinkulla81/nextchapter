@@ -25,8 +25,9 @@ export const PERSONAS: Persona[] = [
     ],
   },
   {
-    slug: 'growing',
-    label: 'Growing in my job',
+    slug: 'managing-my-career',
+    aliases: ['growing'],
+    label: 'Managing my career',
     hook: 'Reviews, raises, new skills, and a job that holds up in a downturn.',
     headline: 'Make the job you have a stronger one.',
     situation: 'growing_in_job',

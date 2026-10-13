@@ -43,7 +43,7 @@ Compared with the five first proposed (personalize, learn, search and apply, net
 | Exploring | Personalize, Prove it, Network, Learn, Coaching first. Job-search tools **locked** until they start applying. |
 | Preparing | Adds Search and apply. Offer tools locked until they are interviewing or have an offer. |
 | Active (applying, interviewing, offer) | Everything. Nothing locked. |
-| Managing your career (growing in a job, not looking right now, or going for a promotion before applying elsewhere) | "Grow in your job" first: know your worth, prove your results, build skills, practice the hard conversation, know how you work. Job tools locked. |
+| Managing your career (growing in a job, not looking right now, or going for a promotion before applying elsewhere) | "Manage your career" first: know your worth, prove your results, build skills, practice the hard conversation, know how you work. Job tools locked. |
 | Landed | "Manage your career": first 90 days, know your worth, thank the people who helped, the Offer Bonus claim. Job-search tools hidden. |
 
 ## Not built yet

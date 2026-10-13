@@ -16,7 +16,7 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
     expect(effectiveJourney({ journey: 'READY_TO_MOVE' })).toBe('EXPLORING_MOVE')
     expect(getJourney('READY_TO_MOVE').key).toBe('EXPLORING_MOVE')
   })
-  it('growing in a job is its own journey: not searching, and never silent', () => {
+  it('managing my career is its own journey: not searching, and never silent', () => {
     expect(getJourney('GROWING')).toMatchObject({ searching: false, employed: true, defaultStage: 'STAYING' })
     expect(getStage('STAYING').label).toBe('Managing your career')
     // There is no "on a break": a legacy paused row reads as managing your career.

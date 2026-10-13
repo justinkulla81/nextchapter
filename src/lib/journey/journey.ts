@@ -55,9 +55,9 @@ export const JOURNEYS: JourneyConfig[] = [
   },
   {
     key: 'GROWING',
-    label: 'Growing in my job',
+    label: 'Managing my career',
     card: {
-      label: "I'm happy where I am and want to grow",
+      label: "I'm happy where I am and want to manage my career",
       description: 'Reviews, raises, promotions, new skills, and a job that holds up in a downturn.',
     },
     goal: 'A stronger case at work: better pay, the next level, and skills that hold their value.',

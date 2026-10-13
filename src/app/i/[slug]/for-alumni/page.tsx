@@ -42,7 +42,7 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
   const hero = profile.heroImageUrl ?? profile.photos?.[0]?.url ?? null
-  const moves = ['Laid off or between jobs', 'Thinking about a move, quietly', 'Growing in your job',
+  const moves = ['Laid off or between jobs', 'Thinking about a move, quietly', 'Managing your career',
     'Going for a promotion', 'Changing careers', 'Returning after a break', 'Planning a next act']
 
   return (
