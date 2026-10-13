@@ -33,34 +33,24 @@ export default async function CrmNeedsCompletionPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  // Sign-ups that may be someone already in the CRM — never linked on a
-  // guess; they wait here for a yes/no.
-  const signupMatches = await prisma.candidateIdentityMatch.findMany({
-    where: { source: 'CRM_INVITE', status: 'PENDING' },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true, strength: true, sourceRecordId: true, matchedName: true, matchedCompany: true,
-      candidate: { select: { id: true, firstName: true, lastName: true, email: true, createdAt: true } },
-    },
-  })
-  // Search firms whose name is close to an organization already here — linked or added by a person, never guessed.
-  const firmReviews = await prisma.searchFirm.findMany({
-    where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } },
-    orderBy: [{ liveSearchCount: 'desc' }, { name: 'asc' }],
-    select: { id: true, name: true, reviewOrgId: true, reviewReason: true },
-  })
-  const firmReviewOrgs = new Map((await prisma.crmOrganization.findMany({
-    where: { id: { in: firmReviews.map((f) => f.reviewOrgId!) } },
-    select: { id: true, name: true },
-  })).map((o) => [o.id, o.name]))
-
-  const matchedPeople = await prisma.crmPerson.findMany({
-    where: { id: { in: signupMatches.map((m) => m.sourceRecordId) } },
-    select: { id: true, candidateInvitedAt: true },
-  })
-  const invitedIds = new Set(matchedPeople.filter((p) => p.candidateInvitedAt).map((p) => p.id))
-
-  const [total, rows] = await Promise.all([
+  // Stage 1: everything that depends only on the request.
+  const [signupMatches, firmReviews, total, rows] = await Promise.all([
+    // Sign-ups that may be someone already in the CRM — never linked on a
+    // guess; they wait here for a yes/no.
+    prisma.candidateIdentityMatch.findMany({
+      where: { source: 'CRM_INVITE', status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, strength: true, sourceRecordId: true, matchedName: true, matchedCompany: true,
+        candidate: { select: { id: true, firstName: true, lastName: true, email: true, createdAt: true } },
+      },
+    }),
+    // Search firms whose name is close to an organization already here — linked or added by a person, never guessed.
+    prisma.searchFirm.findMany({
+      where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } },
+      orderBy: [{ liveSearchCount: 'desc' }, { name: 'asc' }],
+      select: { id: true, name: true, reviewOrgId: true, reviewReason: true },
+    }),
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
     prisma.crmPerson.findMany({
       where: { needsCompletion: true, deletedAt: null },
@@ -75,51 +65,63 @@ export default async function CrmNeedsCompletionPage({
     }),
   ])
 
-  // One batched lookup rather than one per row.
+  // Stage 2: lookups keyed off stage 1, all independent of each other.
   const slugs = rows.map((r) => r.linkedinSlug).filter((s): s is string => Boolean(s))
-  const suggestions = await prisma.crmLinkedInConnection.findMany({ where: { slug: { in: slugs } } })
-  const byslug = new Map(suggestions.map((s) => [s.slug, s]))
-
   // Same full name anywhere else in the (non-deleted) table is the duplicate
   // signal — batched once for the whole page rather than once per row. Every
   // row matches at least itself, so the per-row lookup below always excludes
   // its own id before picking a target.
   const uniqueNames = [...new Set(rows.map((r) => r.fullName))]
-  const nameMatches = uniqueNames.length > 0
-    ? await prisma.crmPerson.findMany({
-        where: {
-          deletedAt: null,
-          OR: uniqueNames.map((n) => ({ fullName: { equals: n, mode: 'insensitive' as const } })),
-        },
-        select: {
-          id: true, fullName: true, email: true,
-          affiliations: { take: 1, select: { org: { select: { name: true } } } },
-        },
-      })
-    : []
+  // Same last name elsewhere, with a first name that's a known nickname of
+  // the other ("Art" / "Arthur") — a looser signal than the exact-name match
+  // above, so it's kept in its own bucket and paired up with
+  // firstNamesAreEquivalent per row rather than blindly unioned in.
+  const lastNames = [...new Set(rows.map((r) => lastNameOf(r.fullName)).filter((n): n is string => Boolean(n)))]
+  const [firmReviewOrgRows, matchedPeople, suggestions, nameMatches, lastNameMatches] = await Promise.all([
+    prisma.crmOrganization.findMany({
+      where: { id: { in: firmReviews.map((f) => f.reviewOrgId!) } },
+      select: { id: true, name: true },
+    }),
+    prisma.crmPerson.findMany({
+      where: { id: { in: signupMatches.map((m) => m.sourceRecordId) } },
+      select: { id: true, candidateInvitedAt: true },
+    }),
+    // One batched lookup rather than one per row.
+    prisma.crmLinkedInConnection.findMany({ where: { slug: { in: slugs } } }),
+    uniqueNames.length > 0
+      ? prisma.crmPerson.findMany({
+          where: {
+            deletedAt: null,
+            OR: uniqueNames.map((n) => ({ fullName: { equals: n, mode: 'insensitive' as const } })),
+          },
+          select: {
+            id: true, fullName: true, email: true,
+            affiliations: { take: 1, select: { org: { select: { name: true } } } },
+          },
+        })
+      : Promise.resolve([]),
+    lastNames.length > 0
+      ? prisma.crmPerson.findMany({
+          where: {
+            deletedAt: null,
+            OR: lastNames.map((n) => ({ fullName: { endsWith: ` ${n}`, mode: 'insensitive' as const } })),
+          },
+          select: {
+            id: true, fullName: true, email: true,
+            affiliations: { take: 1, select: { org: { select: { name: true } } } },
+          },
+        })
+      : Promise.resolve([]),
+  ])
+  const firmReviewOrgs = new Map(firmReviewOrgRows.map((o) => [o.id, o.name]))
+  const invitedIds = new Set(matchedPeople.filter((p) => p.candidateInvitedAt).map((p) => p.id))
+  const byslug = new Map(suggestions.map((s) => [s.slug, s]))
   const matchesByName = new Map<string, typeof nameMatches>()
   for (const m of nameMatches) {
     const key = m.fullName.trim().toLowerCase()
     matchesByName.set(key, [...(matchesByName.get(key) ?? []), m])
   }
 
-  // Same last name elsewhere, with a first name that's a known nickname of
-  // the other ("Art" / "Arthur") — a looser signal than the exact-name match
-  // above, so it's kept in its own bucket and paired up with
-  // firstNamesAreEquivalent per row rather than blindly unioned in.
-  const lastNames = [...new Set(rows.map((r) => lastNameOf(r.fullName)).filter((n): n is string => Boolean(n)))]
-  const lastNameMatches = lastNames.length > 0
-    ? await prisma.crmPerson.findMany({
-        where: {
-          deletedAt: null,
-          OR: lastNames.map((n) => ({ fullName: { endsWith: ` ${n}`, mode: 'insensitive' as const } })),
-        },
-        select: {
-          id: true, fullName: true, email: true,
-          affiliations: { take: 1, select: { org: { select: { name: true } } } },
-        },
-      })
-    : []
   const matchesByLastName = new Map<string, typeof lastNameMatches>()
   for (const m of lastNameMatches) {
     const key = lastNameOf(m.fullName)?.toLowerCase()
