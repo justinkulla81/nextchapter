@@ -2,11 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { after } from 'next/server'
-import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { regenerateMarketRealityReport, resendMyMarketRealityReportEmail } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -260,8 +259,8 @@ export default async function MarketRealityReportPage({
 }) {
   const marketScope = (await searchParams).market === 'us' ? 'us' : 'state'
   const profile = await getDashboardData()
-  const [{ data: { user } }, report] = await Promise.all([
-    createClient().then((supabase) => supabase.auth.getUser()),
+  const [user, report] = await Promise.all([
+    getVerifiedSessionUser(),
     prisma.marketRealityReport.findFirst({
       where: { candidateId: profile.id },
       orderBy: { generatedAt: 'desc' },

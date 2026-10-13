@@ -15,7 +15,7 @@ import type { Grade } from '@/lib/scoring/grade'
 import { computeBestWeekSentence, computeGradeMovement } from '@/lib/scoring/market-reality-history'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { cn } from '@/lib/utils'
-import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprintForRender, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK, getRecurringTargetCount } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
@@ -100,7 +100,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
-    getCurrentWeekSprint(profile.id),
+    getCurrentWeekSprintForRender(profile.id),
     getMoodHistory(profile.id),
     prisma.marketRealitySnapshot.findMany({
       where: { candidateId: profile.id },

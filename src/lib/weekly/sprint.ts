@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -79,11 +80,18 @@ export function getMondayOfWeek(date: Date): Date {
 // `+1` overcounts by one, silently bumping every target to next week's ramp
 // value for the rest of the week. Counting strictly-prior rows is correct
 // regardless of whether this week's row exists yet.
-export async function getCandidateWeekNumber(candidateId: string, weekStartDate: Date): Promise<number> {
-  const priorWeeks = await prisma.weeklySprint.count({
-    where: { candidateId, weekStartDate: { lt: weekStartDate } },
+//
+// Per-request deduped (cache(), keyed on the week's epoch ms since Date
+// objects don't compare by value): it only counts rows BEFORE the given week,
+// which nothing written during a request can change.
+const priorWeekCount = cache(async (candidateId: string, weekStartMs: number): Promise<number> => {
+  return prisma.weeklySprint.count({
+    where: { candidateId, weekStartDate: { lt: new Date(weekStartMs) } },
   })
-  return priorWeeks + 1
+})
+
+export async function getCandidateWeekNumber(candidateId: string, weekStartDate: Date): Promise<number> {
+  return (await priorWeekCount(candidateId, weekStartDate.getTime())) + 1
 }
 
 // actionType renames that have happened since this week's committedActions
@@ -158,6 +166,16 @@ async function normalizeCommittedActions(candidateId: string, rawActions: Commit
 // the dashboard card, the stats page) sees the same ungameable truth without
 // each needing its own fix — see reconcileVerifiedActions.
 export async function getCurrentWeekSprint(candidateId: string) {
+  return getCurrentWeekSprintUncached(candidateId)
+}
+
+// Same read, deduped within one request. For RENDER paths only (pages and
+// server components that read the sprint several times). Server actions keep
+// using getCurrentWeekSprint above: they read, write, then often re-read, and
+// must never see a request-scoped snapshot from before their own write.
+export const getCurrentWeekSprintForRender = cache(getCurrentWeekSprintUncached)
+
+async function getCurrentWeekSprintUncached(candidateId: string) {
   const weekStartDate = getMondayOfWeek(new Date())
   const sprint = await prisma.weeklySprint.findUnique({
     where: { candidateId_weekStartDate: { candidateId, weekStartDate } },

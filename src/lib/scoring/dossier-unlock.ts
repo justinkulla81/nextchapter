@@ -8,6 +8,7 @@
 // blended grade (dossier-competencies.ts) or its weekly-effort economy.
 
 import 'server-only'
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
@@ -34,14 +35,16 @@ const APPLICATION_TARGET_BY_BAND: Record<SeniorityBand, number> = { EARLY: 5, MI
 // lenient, so it can't hand out false credit. Revisit once real
 // self-reported counts exist to add the capped blend §7.4 describes.
 
-async function getSeniorityBand(candidateId: string): Promise<SeniorityBand | null> {
+// Read-only; cache() dedupes repeat calls within one request (this file's
+// completeness and ladder helpers both ask for it).
+const getSeniorityBand = cache(async (candidateId: string): Promise<SeniorityBand | null> => {
   const analysis = await prisma.resumeAnalysis.findFirst({
     where: { candidateId },
     orderBy: { createdAt: 'desc' },
     select: { seniorityBand: true },
   })
   return (analysis?.seniorityBand as SeniorityBand | undefined) ?? null
-}
+})
 
 export interface DossierRequirement {
   key: string
@@ -66,7 +69,11 @@ export interface DossierCompleteness {
 // offers a sprint-streak route for candidates who haven't hit the primary
 // reference/outreach/application targets — that one's untouched, since a
 // slower path for someone else isn't the same as a floor under everyone.
-export async function computeDossierCompleteness(candidateId: string): Promise<DossierCompleteness> {
+// Pure per-candidate read (no writes), so cache() safely dedupes the several
+// callers a single dashboard render has (page body, badges, ladder, gates).
+export const computeDossierCompleteness = cache(computeDossierCompletenessUncached)
+
+async function computeDossierCompletenessUncached(candidateId: string): Promise<DossierCompleteness> {
   const band = (await getSeniorityBand(candidateId)) ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
   const outreachTarget = OUTREACH_TARGET_BY_BAND[band]
   const applicationTarget = APPLICATION_TARGET_BY_BAND[band]
@@ -222,7 +229,11 @@ export interface DossierUnlockStatus {
   reason: string // plain-language — states what's still missing, or confirms unlock
 }
 
-export async function isDossierUnlocked(candidateId: string): Promise<DossierUnlockStatus> {
+// Pure per-candidate read (no writes): layout, page body, ranking data and
+// several widgets each ask within one request; cache() makes repeats free.
+export const isDossierUnlocked = cache(isDossierUnlockedUncached)
+
+async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUnlockStatus> {
   const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath] =
     await Promise.all([
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),

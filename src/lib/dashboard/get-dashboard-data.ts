@@ -12,14 +12,11 @@ import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 import { getClientIp } from '@/lib/http/client-ip'
 
-// Wrapped in React's cache() — this does a Supabase auth call plus a
-// 13-relation Prisma query, and every dashboard page.tsx calls this AGAIN
-// after dashboard/layout.tsx already called it once for the same request
-// (nav badges, IdentifyUser). Without cache(), that's the same expensive
-// fetch running twice on every single page load — cache() dedupes repeat
-// calls within one request to a single execution, so the second call is
-// free. Request-scoped only: a fresh navigation gets a fresh (uncached) run.
-export const getDashboardProfile = cache(async () => {
+// The signed-in user, verified once per request and shared: getDashboardProfile
+// below uses it, and pages that only need the user's email / confirmation state
+// (the confirm-email banner, membership) read it from here instead of a second
+// auth.getUser() network round trip.
+export const getVerifiedSessionUser = cache(async () => {
   const supabase = await createClient()
   // proxy.ts already verified this session with Supabase Auth on this same request (and
   // refreshed its cookie), so a second getUser() here was a duplicate network round trip
@@ -30,7 +27,18 @@ export const getDashboardProfile = cache(async () => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
-  const user = claimsData?.claims && session?.user.id === claimsData.claims.sub ? session.user : null
+  return claimsData?.claims && session?.user.id === claimsData.claims.sub ? session.user : null
+})
+
+// Wrapped in React's cache() — this does a Supabase auth call plus a
+// 13-relation Prisma query, and every dashboard page.tsx calls this AGAIN
+// after dashboard/layout.tsx already called it once for the same request
+// (nav badges, IdentifyUser). Without cache(), that's the same expensive
+// fetch running twice on every single page load — cache() dedupes repeat
+// calls within one request to a single execution, so the second call is
+// free. Request-scoped only: a fresh navigation gets a fresh (uncached) run.
+export const getDashboardProfile = cache(async () => {
+  const user = await getVerifiedSessionUser()
 
   if (!user) {
     redirect('/auth/login')
@@ -58,6 +66,7 @@ export const getDashboardProfile = cache(async () => {
   // session out and sends them to a plain explanation page rather than
   // silently blocking every dashboard route one-by-one.
   if (profile.deactivatedAt) {
+    const supabase = await createClient()
     await supabase.auth.signOut()
     redirect('/account-deactivated')
   }

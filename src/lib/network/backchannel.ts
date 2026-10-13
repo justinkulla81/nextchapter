@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { orgNamesMatch } from '@/lib/text/org-name-match'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 export interface BackchannelMatch {
   job: { id: string; title: string | null; companyName: string; appliedAt: Date }
@@ -35,14 +35,44 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
     }),
   ])
 
+  // orgNamesMatch re-normalizes both names on every call, which is
+  // jobs x contacts normalizations for a 27k-contact member. Normalize each
+  // distinct string once and apply orgNamesMatch's exact rules to the results.
+  const normCache = new Map<string, string>()
+  const norm = (name: string) => {
+    let n = normCache.get(name)
+    if (n === undefined) {
+      n = normalizeOrgName(name)
+      normCache.set(name, n)
+    }
+    return n
+  }
+  const normalizedMatch = (normA: string, normB: string) => {
+    if (!normA || !normB) return false
+    if (normA === normB) return true
+    const tightA = normA.replace(/\s+/g, '')
+    const tightB = normB.replace(/\s+/g, '')
+    if (tightA.length >= 4 && tightA === tightB) return true
+    if (normA.length < 4 || normB.length < 4) return false
+    return normA.includes(normB) || normB.includes(normA)
+  }
+  const normalizedContacts = contacts.map((c) => ({
+    contact: c,
+    company: c.company ? norm(c.company) : null,
+    inferredCompany: c.inferredCompany ? norm(c.inferredCompany) : null,
+  }))
+
   const matches: BackchannelMatch[] = []
   for (const job of jobs) {
     if (!job.companyName) continue
-    const matchedContacts = contacts.filter(
-      (c) =>
-        (c.company && orgNamesMatch(c.company, job.companyName!)) ||
-        (c.inferredCompany && orgNamesMatch(c.inferredCompany, job.companyName!))
-    )
+    const jobNorm = norm(job.companyName)
+    const matchedContacts = normalizedContacts
+      .filter(
+        (c) =>
+          (c.company !== null && normalizedMatch(c.company, jobNorm)) ||
+          (c.inferredCompany !== null && normalizedMatch(c.inferredCompany, jobNorm))
+      )
+      .map((c) => c.contact)
     if (matchedContacts.length === 0) continue
 
     matches.push({
