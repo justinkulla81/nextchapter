@@ -13461,3 +13461,15 @@ model InWorkEmailSend {
   @@unique([candidateId, cycleKey, kind])
   @@index([sentAt])
 }
+
+/// A Gmail message the newsletter sweep has already read, so each issue is
+/// processed once whether or not it was opened first. The Google connection has
+/// no modify scope and cannot mark mail read, so this is the memory.
+/// `events` is how many company events the issue yielded.
+model NewsletterMessage {
+  messageId   String   @id
+  events      Int      @default(0)
+  processedAt DateTime @default(now())
+
+  @@index([processedAt])
+}
