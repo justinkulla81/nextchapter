@@ -7,7 +7,26 @@ import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
 import { singleSourceQualifies } from './news-trust'
 
-const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']
+/**
+ * The searches are Bing News RSS: free, no key. What they cost is cron time,
+ * so they run a few at a time under a budget, and what they find downstream is
+ * already capped (contact lookups per run, primary-contact sweep per run).
+ *
+ * Phrased the way headlines are, so each catches shapes the others miss: a
+ * share of the workforce, a headcount reduction, a restructuring, a sector, an
+ * acquirer cutting the company it bought.
+ */
+export const QUERIES = [
+  'layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs',
+  'laying off', 'workforce reduction', 'reduces workforce', 'cuts staff', 'headcount reduction',
+  'restructuring job cuts', 'to lay off', 'eliminates positions', 'lays off percent of staff',
+  'layoffs AI automation', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
+  'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
+]
+/** Searches in flight at once. */
+const SEARCH_CONCURRENCY = 4
+/** No new search starts after this, so the filings, SEC check, sweep and boards keep their time. */
+const SEARCH_BUDGET_MS = 75_000
 
 /** Mentions this far apart still describe the same layoff. */
 const WINDOW_DAYS = 7
@@ -75,16 +94,25 @@ async function trackJobBoard(company: string): Promise<void> {
 export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
   const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0, lookups: 0, contacts: 0 }
 
-  // 1. Read the headlines, keep the ones that name a layoff.
+  // 1. Search, a few at a time under a time budget, then read the headlines
+  // and keep the ones that name a layoff.
+  const searched: { q: string; articles: Awaited<ReturnType<typeof searchTopic>> }[] = []
+  const started = Date.now()
+  for (let i = 0; i < QUERIES.length; i += SEARCH_CONCURRENCY) {
+    if (Date.now() - started > SEARCH_BUDGET_MS) break
+    const chunk = QUERIES.slice(i, i + SEARCH_CONCURRENCY)
+    const settled = await Promise.all(chunk.map(async (q) => {
+      try {
+        return { q, articles: await searchTopic(q) }
+      } catch (e) {
+        console.error('Layoff news search failed for', q, e)
+        return { q, articles: [] as Awaited<ReturnType<typeof searchTopic>> }
+      }
+    }))
+    searched.push(...settled)
+  }
   const seen = new Set<string>()
-  for (const q of QUERIES) {
-    let articles: Awaited<ReturnType<typeof searchTopic>> = []
-    try {
-      articles = await searchTopic(q)
-    } catch (e) {
-      console.error('Layoff news search failed for', q, e)
-      continue
-    }
+  for (const { articles } of searched) {
     for (const a of articles) {
       if (seen.has(a.url)) continue
       seen.add(a.url)
