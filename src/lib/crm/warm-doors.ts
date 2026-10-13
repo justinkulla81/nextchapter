@@ -1,0 +1,158 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { orgSlug } from '@/lib/crm/org-slug'
+import {
+  classifyDoors, isStrongBackground, interestKind,
+  type Door, type DoorPerson, type DoorRoute,
+} from '@/lib/crm/warm-doors-rules'
+
+// "Warm doors": a strong candidate wants to work at an organization where we
+// already have a warm way in, so Justin can help them get the job. Built from
+// what we already hold — the candidate watchlist and applications on one side,
+// the CRM's people and routes in on the other — with no new tables and no
+// metered calls.
+//
+// Whose contacts: only OUR CRM. A candidate's own contact list is private to
+// them and is never read here; the existing backchannel feature already shows
+// the candidate their own contacts.
+//
+// "Strong" is two facts, both required (rules in warm-doors-rules.ts):
+//   background — calibrated seniority at Director or above, or a pedigree signal;
+//   work done  — the Dossier unlock (references, evidence, real outreach and
+//                applications, or an alternate path). Never a grade: the unlock
+//                schema's governing principle is to gate on work done.
+
+const MAX_CANDIDATES_CHECKED = 150
+
+export interface WarmDoorItem {
+  candidate: { id: string; name: string }
+  org: { id: string; name: string; slug: string | null }
+  kind: 'applied' | 'watchlist'
+  application: { title: string | null; appliedAt: Date } | null
+  /** The interest began inside the "new" window. */
+  isNew: boolean
+  doors: Door[]
+  strong: { background: string; workDone: string }
+}
+
+export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: number } = {}): Promise<WarmDoorItem[]> {
+  const now = new Date()
+  const newSince = new Date(now.getTime() - (opts.newSinceHours ?? 26) * 3_600_000)
+
+  // 1. Organizations where we have any way in, optionally just one.
+  const orgs = await prisma.crmOrganization.findMany({
+    where: {
+      ...(opts.orgId ? { id: opts.orgId } : {}),
+      NOT: { canonicalNameNormalized: { startsWith: '-' } },
+      OR: [
+        { affiliations: { some: { isCurrent: true, person: { deletedAt: null } } } },
+        { introPathsAsTarget: { some: { status: { not: 'DECLINED' } } } },
+      ],
+    },
+    select: {
+      id: true, name: true, canonicalNameNormalized: true,
+      affiliations: {
+        where: { isCurrent: true, person: { deletedAt: null } },
+        select: {
+          title: true,
+          person: {
+            select: {
+              id: true, fullName: true, warmth: true, connectedAt: true, linkedinDegree: true,
+              firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true,
+            },
+          },
+        },
+      },
+      introPathsAsTarget: {
+        where: { status: { not: 'DECLINED' } },
+        select: { id: true, strength: true, status: true, connectorName: true, connectorPerson: { select: { id: true, fullName: true } } },
+      },
+    },
+  })
+  if (orgs.length === 0) return []
+
+  const doorsByOrg = new Map(orgs.map((o) => {
+    const people: DoorPerson[] = o.affiliations.map((a) => ({ ...a.person, title: a.title }))
+    const routes: DoorRoute[] = o.introPathsAsTarget.map((p) => ({
+      id: p.id, strength: p.strength, status: p.status,
+      connectorName: p.connectorPerson?.fullName ?? p.connectorName,
+      connectorPersonId: p.connectorPerson?.id ?? null,
+    }))
+    return [o.id, classifyDoors(people, routes, now)] as const
+  }))
+  const withDoor = orgs.filter((o) => (doorsByOrg.get(o.id) ?? []).length > 0)
+  if (withDoor.length === 0) return []
+  const orgByKey = new Map(withDoor.map((o) => [o.canonicalNameNormalized, o]))
+
+  // 2. Candidates who want to work at one of them, by watchlist or application.
+  const keys = [...orgByKey.keys()]
+  const [watch, applied] = await Promise.all([
+    prisma.companyWatchlistEntry.findMany({
+      where: { companyNameNormalized: { in: keys } },
+      select: { candidateId: true, companyNameNormalized: true, createdAt: true },
+    }),
+    // Application company names are free text, so match on the org's display
+    // name and re-check on the normalized form.
+    prisma.jobPosting.findMany({
+      where: {
+        appliedAt: { not: null }, declinedAt: null, offerReceivedAt: null,
+        OR: withDoor.map((o) => ({ companyName: { equals: o.name, mode: 'insensitive' as const } })),
+      },
+      select: { candidateId: true, companyName: true, title: true, appliedAt: true },
+    }),
+  ])
+
+  type Interest = { candidateId: string; orgKey: string; kind: 'applied' | 'watchlist'; at: Date; title: string | null }
+  const interests: Interest[] = []
+  for (const w of watch) interests.push({ candidateId: w.candidateId, orgKey: w.companyNameNormalized, kind: 'watchlist', at: w.createdAt, title: null })
+  for (const a of applied) {
+    const key = normalizeOrgName(a.companyName ?? '')
+    if (orgByKey.has(key) && a.appliedAt) interests.push({ candidateId: a.candidateId, orgKey: key, kind: 'applied', at: a.appliedAt, title: a.title })
+  }
+  if (interests.length === 0) return []
+
+  // 3. Background first (one query), then the work-done check only for those who pass.
+  const ids = [...new Set(interests.map((i) => i.candidateId))].slice(0, MAX_CANDIDATES_CHECKED)
+  const profiles = await prisma.candidateProfile.findMany({
+    where: { id: { in: ids }, isSampleData: false },
+    select: { id: true, firstName: true, lastName: true, levelRankScore: true, pedigreeBonus: true },
+  })
+  const withBackground = profiles
+    .map((p) => ({ p, background: isStrongBackground(p) }))
+    .filter((x): x is { p: (typeof profiles)[number]; background: string } => x.background !== null)
+  const unlocked = await Promise.all(withBackground.map(async ({ p, background }) => {
+    const status = await isDossierUnlocked(p.id).catch(() => null)
+    return status?.unlocked ? { p, background, workDone: status.reason } : null
+  }))
+  const strong = new Map(unlocked.filter((x): x is NonNullable<typeof x> => x !== null).map((x) => [x.p.id, x]))
+
+  // 4. One item per candidate and organization; an application outranks a watch.
+  const items = new Map<string, WarmDoorItem>()
+  for (const i of interests) {
+    const s = strong.get(i.candidateId)
+    const org = orgByKey.get(i.orgKey)
+    if (!s || !org) continue
+    const key = `${i.candidateId}:${org.id}`
+    const prev = items.get(key)
+    const item: WarmDoorItem = prev ?? {
+      candidate: { id: s.p.id, name: [s.p.firstName, s.p.lastName].filter(Boolean).join(' ') || 'Unnamed' },
+      org: { id: org.id, name: org.name, slug: orgSlug(org.canonicalNameNormalized) },
+      kind: i.kind,
+      application: null,
+      isNew: false,
+      doors: doorsByOrg.get(org.id) ?? [],
+      strong: { background: s.background, workDone: s.workDone },
+    }
+    if (i.kind === 'applied') {
+      item.kind = 'applied'
+      if (!item.application || i.at > item.application.appliedAt) item.application = { title: i.title, appliedAt: i.at }
+    }
+    item.isNew = item.isNew || i.at >= newSince
+    items.set(key, item)
+  }
+
+  return [...items.values()].sort((a, b) =>
+    interestKind(b) - interestKind(a) || Number(b.isNew) - Number(a.isNew) || a.candidate.name.localeCompare(b.candidate.name))
+}

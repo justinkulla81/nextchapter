@@ -16,6 +16,10 @@ import { kindsForOrg } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
+import { loadOrgDemandData } from '@/lib/crm/org-page-data'
+import { loadWarmDoors } from '@/lib/crm/warm-doors'
+import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 30
 
@@ -38,7 +42,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
       outplacementProfile: true,
       partnerProfile: true,
       researchProfile: true,
-      company: { select: { id: true, name: true } },
+      company: { select: { id: true, name: true, chroName: true, chroEmail: true, chroLinkedinUrl: true } },
     },
   })
   if (!org) notFound()
@@ -58,7 +62,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   // Candidates who have worked here: free-text work history matched on the same
   // normalized name the organization is keyed by, plus employment rows on the
   // linked directory Company. One person can appear in both, so merge by id.
-  const [pipelines, meetingRows, historyRows, employmentRows] = await Promise.all([
+  const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows] = await Promise.all([
+    loadOrgDemandData(org),
+    loadWarmDoors({ orgId: org.id }).catch(() => []),
     prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }),
     prisma.crmActivity.findMany({
       where: { type: 'MEETING', OR: [{ orgId: id }, { opportunity: { orgId: id } }] },
@@ -110,294 +116,551 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   }
   const alumniList = [...alumni.values()]
   const year = (d: Date | null) => (d ? String(d.getFullYear()) : '')
+  const money = (n: number) => `$${n.toLocaleString()}`
+
+  // ── prospect rating ──────────────────────────────────────────────────────
+  const lastTouch = org.affiliations.reduce<Date | null>((m, a) => {
+    const t = a.person.lastTouchedAt
+    return t && (!m || t > m) ? t : m
+  }, null)
+  const rating = rateProspect({
+    layoff: demand.layoffSummary,
+    openRoles: demand.openJobs.length,
+    seniorRoles: demand.seniorRoles,
+    candidatesWhoWant: demand.watchlistCount,
+    candidatesApplied: demand.appliedCount,
+    candidatesWhoWorkedHere: alumniList.length,
+    contacts: org.affiliations.length,
+    decisionMakers: org.affiliations.filter((a) => isDecisionMakerTitle(a.title)).length,
+    routesIn: org.introPathsAsTarget.length,
+    meetings: meetings.length,
+    daysSinceLastTouch: lastTouch ? daysSince(lastTouch) : null,
+    inTheNews: demand.layoffNews.length + demand.researchNews.length,
+    leadQuality: org.leadQuality,
+    dealStatus: org.dealStatus,
+    opportunities: org.opportunities.length,
+  })
+  captureServerEvent(org.id, 'crm_org_page_viewed', {
+    orgName: org.name, prospectScore: rating.score, prospectBand: rating.band,
+    openJobs: demand.openJobs.length, candidatesWhoWant: demand.wantToWork.length,
+  })
+
+  const BAND_LABEL: Record<ProspectBand, string> = { hot: 'Hot prospect', warm: 'Warm prospect', cool: 'Cool', cold: 'Cold' }
+  const chro = org.company?.chroName || org.company?.chroEmail || org.company?.chroLinkedinUrl ? org.company : null
+  const JOB_LIMIT = 25
+
+  const nav = [
+    { id: 'contacts', label: 'Contacts', n: org.affiliations.length },
+    { id: 'candidates', label: 'Candidates', n: demand.wantToWork.length + alumniList.length },
+    { id: 'jobs', label: 'Open jobs', n: demand.openJobs.length },
+    { id: 'layoffs', label: 'Layoffs', n: demand.notices.length + demand.layoffNews.length },
+    { id: 'research', label: 'News & research', n: demand.researchNews.length + org.researchItems.length },
+    { id: 'data', label: 'Data', n: null },
+  ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <nav className="text-sm">
         <Link href="/support/admin/crm/organizations" className="text-muted-foreground hover:underline">← All organizations</Link>
       </nav>
 
-      <header>
-        <h1 className="text-2xl font-semibold">{org.name}</h1>
-        {org.focus && <p className="mt-2 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
+      <header className="flex flex-wrap items-start justify-between gap-6">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold">{org.name}</h1>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {org.orgTypes.map((t) => (
+              <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
+            ))}
+            {org.hqRegion && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{org.hqRegion}</span>}
+          </div>
+          {org.focus && <p className="mt-3 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
+        </div>
+
+        <section aria-label="Prospect rating" className="w-full rounded-lg border border-border p-4 sm:w-80">
+          <div className="flex items-center gap-3">
+            <span className={`flex h-12 w-12 items-center justify-center rounded-lg text-2xl font-semibold ${qualityClass(rating.letter)}`}>
+              {rating.letter}
+            </span>
+            <div>
+              <p className="text-sm font-semibold">{BAND_LABEL[rating.band]}</p>
+              <p className="text-xs text-muted-foreground">Prospect rating · {rating.score}/100</p>
+            </div>
+          </div>
+          {rating.reasons.length > 0 && (
+            <ul className="mt-3 space-y-1 text-xs">
+              {rating.reasons.slice(0, 4).map((r) => <li key={r}>+ {r}</li>)}
+            </ul>
+          )}
+          {rating.cautions.length > 0 && (
+            <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+              {rating.cautions.map((c) => <li key={c}>− {c}</li>)}
+            </ul>
+          )}
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">How it is scored</summary>
+            <ul className="mt-2 space-y-1.5 text-xs">
+              {rating.components.map((c) => (
+                <li key={c.key}>
+                  <div className="flex justify-between"><span>{c.label}</span><span className="text-muted-foreground">{c.points}/{c.max}</span></div>
+                  <div className="mt-0.5 h-1 rounded bg-muted"><div className="h-1 rounded bg-foreground/60" style={{ width: `${(c.points / c.max) * 100}%` }} /></div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Computed from live signals, separate from the grade you set. Graded D or marked lost always reads cold.
+            </p>
+          </details>
+        </section>
       </header>
 
-      <section aria-label="Details" className="rounded-lg border border-border p-4">
-        <h2 className="mb-3 text-base font-semibold">Details</h2>
-        <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <dt className="text-xs text-muted-foreground">Type</dt>
-            <dd className="mt-1 flex flex-wrap gap-1">
-              {org.orgTypes.length === 0 ? '—' : org.orgTypes.map((t) => (
-                <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
+      <nav aria-label="On this page" className="sticky top-0 z-10 -mx-1 flex flex-wrap gap-1 border-b border-border bg-background/95 px-1 py-2 backdrop-blur">
+        {nav.map((n) => (
+          <a key={n.id} href={`#${n.id}`} className="rounded-full px-3 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+            {n.label}{n.n !== null && <span className="ml-1.5 text-xs">{n.n}</span>}
+          </a>
+        ))}
+      </nav>
+
+      {warmDoors.length > 0 && (
+        <section aria-label="Strong candidates with a warm way in" className="rounded-lg border border-border bg-muted/40 p-4">
+          <h2 className="text-sm font-semibold">Strong candidates who want to work here, and we know someone ({warmDoors.length})</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Good background and real work done in NextChapter. Reach out through the contact below to help them land it.
+          </p>
+          <ul className="mt-3 space-y-3">
+            {warmDoors.map((w) => (
+              <li key={w.candidate.id} className="text-sm">
+                <div className="flex flex-wrap items-baseline gap-x-3">
+                  <Link href={`/support/admin/candidates/${w.candidate.id}`} className="font-medium hover:underline">{w.candidate.name}</Link>
+                  <span className="text-xs text-muted-foreground">
+                    {w.kind === 'applied' && w.application
+                      ? `Applied${w.application.title ? ` — ${w.application.title}` : ''} · ${formatDate(w.application.appliedAt)} · backchannel now`
+                      : 'Watching this company'}
+                    {w.isNew && ' · new'}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Way in:{' '}
+                  {w.doors.map((d, i) => (
+                    <span key={`${d.kind}-${d.personId ?? d.name}-${i}`}>
+                      {i > 0 && '; '}
+                      {d.personId ? <Link href={`/support/admin/crm/people/${d.personId}`} className="underline">{d.name}</Link> : d.name}
+                      {d.title && ` (${d.title})`} — {d.note.toLowerCase()}
+                    </span>
+                  ))}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* ── Contacts ─────────────────────────────────────────────────────── */}
+      <section id="contacts" className="scroll-mt-16 space-y-6">
+        <h2 className="text-lg font-semibold">Contacts</h2>
+
+        <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Website" value={org.website ? <a href={org.website} target="_blank" rel="noreferrer" className="underline">{org.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗</a> : null} />
+          <Field label="Location" value={org.hqRegion ?? org.hqCity} />
+          <Field label="Email domain" value={org.emailDomain ? `@${org.emailDomain}` : null} />
+          <Field label="Last contacted" value={lastTouch ? formatDate(lastTouch) : 'Never'} />
+          {chro && (
+            <div className="sm:col-span-2 lg:col-span-4">
+              <dt className="text-xs text-muted-foreground">CHRO / head of people (from company record)</dt>
+              <dd className="mt-0.5">
+                {org.company?.chroName ?? 'Unnamed'}
+                {org.company?.chroEmail && <> · <a href={`mailto:${org.company.chroEmail}`} className="underline">{org.company.chroEmail}</a></>}
+                {org.company?.chroLinkedinUrl && <> · <a href={org.company.chroLinkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn ↗</a></>}
+              </dd>
+            </div>
+          )}
+        </dl>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">People in the CRM ({org.affiliations.length})</h3>
+          {org.affiliations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nobody here is in your network yet — add a route in below.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {org.affiliations.map((a) => (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                  <span>
+                    <Link href={`/support/admin/crm/people/${a.person.id}`} className="font-medium hover:underline">{a.person.fullName}</Link>
+                    {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
+                    {isDecisionMakerTitle(a.title) && <span className="ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs">Decision maker</span>}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {a.person.lastTouchedAt ? `Last contacted ${formatDate(a.person.lastTouchedAt)}` : 'Never contacted'}
+                  </span>
+                </li>
               ))}
-            </dd>
+            </ul>
+          )}
+        </div>
+
+        <details open={org.introPathsAsTarget.length > 0} className="rounded-lg border border-border p-3">
+          <summary className="cursor-pointer text-sm font-semibold">
+            {org.introPathsAsTarget.length > 0 ? `Routes in (${org.introPathsAsTarget.length})` : 'Add a route in'}
+          </summary>
+          <div className="mt-3">
+            <CrmIntroPaths
+              compact
+              targetOrgId={org.id}
+              targetName={org.name}
+              paths={org.introPathsAsTarget.map((p) => ({
+                id: p.id,
+                connectorPersonId: p.connectorPersonId,
+                connectorName: p.connectorName,
+                connectorRecordName: p.connectorPerson?.fullName ?? null,
+                relationshipNote: p.relationshipNote,
+                strength: p.strength,
+                status: p.status,
+                askedAt: p.askedAt ? p.askedAt.toISOString() : null,
+              }))}
+            />
           </div>
+        </details>
+
+        {meetings.length > 0 && (
           <div>
-            <dt className="text-xs text-muted-foreground">Grade</dt>
+            <h3 className="mb-2 text-sm font-semibold">Meetings ({meetings.length})</h3>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {meetings.map((m) => (
+                <li key={m.id} className="p-3 text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium">{m.subject ?? 'Meeting'}</span>
+                    <span className="text-xs text-muted-foreground">{formatDate(m.occurredAt)}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {m.people.map((p, i) => (
+                      <span key={p.id}>{i > 0 && ', '}<Link href={`/support/admin/crm/people/${p.id}`} className="underline">{p.fullName}</Link></span>
+                    ))}
+                    {m.opportunity && <> · Opportunity: {m.opportunity.title}</>}
+                    {m.meetUrl && <> · <CrmMeetLink href={m.meetUrl} label="Meet link" kind="join" orgId={org.id} /></>}
+                    {m.notesDocUrl && <> · <CrmMeetLink href={m.notesDocUrl} label="Notes by Gemini" kind="notes" orgId={org.id} /></>}
+                  </p>
+                  {m.body && (
+                    <details className="mt-1">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">Show meeting notes</summary>
+                      <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{m.body}</p>
+                    </details>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <CrmOrgBackgroundSections
+          org={{ id: org.id, name: org.name, canonicalNameNormalized: org.canonicalNameNormalized, companyId: org.companyId }}
+        />
+      </section>
+
+      {/* ── Candidates ───────────────────────────────────────────────────── */}
+      <section id="candidates" className="scroll-mt-16 space-y-6">
+        <h2 className="text-lg font-semibold">Candidates</h2>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Want to work here ({demand.wantToWork.length})</h3>
+          {demand.wantToWork.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No candidate has put this organization on their watchlist or applied here.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {demand.wantToWork.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                  <Link href={`/support/admin/candidates/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
+                  <span className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    {c.onWatchlist && <span>Watching{c.watchedAt ? ` since ${formatDate(c.watchedAt)}` : ''}</span>}
+                    {c.applied.map((a, i) => (
+                      <span key={i}>
+                        {a.outcome === 'offer' ? 'Offer' : a.outcome === 'interview' ? 'Interviewing' : a.outcome === 'declined' ? 'Declined' : 'Applied'}
+                        {a.title ? ` — ${a.title}` : ''} · {formatDate(a.at)}
+                      </span>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Worked here ({alumniList.length})</h3>
+          {alumniList.length === 0 ? (
+            <p className="text-sm text-muted-foreground">None of our candidates list this organization.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {alumniList.map((a) => (
+                <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                  <span>
+                    <Link href={`/support/admin/candidates/${a.id}`} className="font-medium hover:underline">{a.name}</Link>
+                    <span className="text-muted-foreground"> — {a.title}</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {a.isCurrent ? `${year(a.startDate)}–present` : [year(a.startDate), year(a.endDate)].filter(Boolean).join('–')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* ── Open jobs ────────────────────────────────────────────────────── */}
+      <section id="jobs" className="scroll-mt-16 space-y-3">
+        <h2 className="text-lg font-semibold">Open jobs ({demand.openJobs.length})</h2>
+        {demand.openJobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No live postings on the job board for this organization.</p>
+        ) : (
+          <>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {demand.openJobs.slice(0, JOB_LIMIT).map((j) => (
+                <li key={j.id} className="p-3 text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <a href={j.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{j.title} ↗</a>
+                    <span className="text-xs text-muted-foreground">Posted {formatDate(j.postedAt ?? j.createdAt)}</span>
+                  </div>
+                  <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    {j.location && <span>{j.location}</span>}
+                    {j.postingType === 'recruiter_search' && <span>Recruiter-led search{j.sourceName ? ` · ${j.sourceName}` : ''}</span>}
+                    {j.salaryMin && j.salaryMax && <span>{money(j.salaryMin)}–{money(j.salaryMax)}</span>}
+                    {j.disclosure === 'CONFIDENTIAL' && <span>Confidential on the board</span>}
+                    {j.badges.map((b) => <span key={b} className="rounded-full bg-muted px-1.5">{b}</span>)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {demand.openJobs.length > JOB_LIMIT && (
+              <p className="text-xs text-muted-foreground">Showing the {JOB_LIMIT} newest of {demand.openJobs.length}.</p>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* ── Layoffs ──────────────────────────────────────────────────────── */}
+      <section id="layoffs" className="scroll-mt-16 space-y-3">
+        <h2 className="text-lg font-semibold">Layoffs</h2>
+        {demand.notices.length === 0 && demand.layoffNews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No layoff notices or layoff news found for this organization.</p>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {demand.layoffTimeline.status === 'recent_cut' && 'A recent cut, and no rehiring seen since.'}
+              {demand.layoffTimeline.status === 'hiring_again' && 'Cut roles, and has posted new jobs since.'}
+              {demand.layoffTimeline.status === 'quiet' && 'Cut roles, and quiet on hiring since.'}
+              {demand.layoffTimeline.status === 'before_tracking' && 'Latest notice predates our job tracking, so hiring since is unknown.'}
+              {demand.layoffTimeline.totalEmployees > 0 && ` ${demand.layoffTimeline.totalEmployees.toLocaleString()} roles across dated notices.`}
+            </p>
+            {demand.notices.length > 0 && (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {demand.notices.map((n) => (
+                  <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                    <span>
+                      <span className="font-medium">{n.employees ? `${n.employees.toLocaleString()} roles` : 'Roles not stated'}</span>
+                      <span className="text-muted-foreground">
+                        {[n.layoffType, n.state, n.source === 'MANUAL_ANNOUNCEMENT' ? 'Announcement' : 'WARN filing'].filter(Boolean).map((t) => ` · ${t}`)}
+                      </span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {n.noticeDate ? formatDate(n.noticeDate) : `Fetched ${formatDate(n.fetchedAt)}`}
+                      {n.sourceUrl && <> · <a href={n.sourceUrl} target="_blank" rel="noreferrer" className="underline">Source ↗</a></>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {demand.layoffNews.length > 0 && (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {demand.layoffNews.map((n) => (
+                  <li key={n.id} className="p-3 text-sm">
+                    <a href={n.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{n.headline} ↗</a>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {[n.publisher, n.publishedAt ? formatDate(n.publishedAt) : null, n.employees ? `${n.employees.toLocaleString()} roles` : null].filter(Boolean).join(' · ')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* ── News & research ──────────────────────────────────────────────── */}
+      <section id="research" className="scroll-mt-16 space-y-6">
+        <h2 className="text-lg font-semibold">News & research</h2>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">In the research library ({demand.researchNews.length})</h3>
+          {demand.researchNews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing in the research library names this organization.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {demand.researchNews.map((r) => (
+                <li key={r.id} className="p-3 text-sm">
+                  <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title ?? r.url} ↗</a>
+                  <span className="ml-2 text-xs text-muted-foreground">{formatDate(r.dateFound)}</span>
+                  {r.summary && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.summary}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Saved research ({org.researchItems.length})</h3>
+          {org.researchItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing saved for this organization yet.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {org.researchItems.map((r) => (
+                <li key={r.id} className="p-3 text-sm">
+                  {r.url ? (
+                    <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title} ↗</a>
+                  ) : <span className="font-medium">{r.title}</span>}
+                  {(r.authorNames || r.publishedYear) && (
+                    <span className="ml-2 text-xs text-muted-foreground">{[r.authorNames, r.publishedYear].filter(Boolean).join(' · ')}</span>
+                  )}
+                  {r.keyClaim && <p className="mt-1 text-xs text-muted-foreground">{r.keyClaim}</p>}
+                  {r.relevanceNote && <p className="mt-1 text-xs">{r.relevanceNote}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* ── Data ─────────────────────────────────────────────────────────── */}
+      <section id="data" className="scroll-mt-16 space-y-6">
+        <h2 className="text-lg font-semibold">Data</h2>
+
+        <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <dt className="text-xs text-muted-foreground">Grade (your call)</dt>
             <dd className="mt-1"><CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} /></dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Deal status{org.dealStatusAt ? ` · since ${formatDate(org.dealStatusAt)}` : ''}</dt>
             <dd className="mt-1"><CrmDealStatusSelect orgId={org.id} value={org.dealStatus} /></dd>
           </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Location</dt>
-            <dd className="mt-1">{org.hqRegion ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Website</dt>
-            <dd className="mt-1">
-              {org.website ? <a href={org.website} target="_blank" rel="noreferrer" className="underline">Open ↗</a> : '—'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Company intel</dt>
-            <dd className="mt-1">
-              {org.company ? <Link href={`/support/admin/companies/${org.company.id}`} className="underline">Open</Link> : '—'}
-            </dd>
-          </div>
+          <Field label="Industry" value={org.industry} />
+          <Field
+            label="Company intel"
+            value={org.company ? <Link href={`/support/admin/companies/${org.company.id}`} className="underline">Open</Link> : null}
+          />
         </dl>
-      </section>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="space-y-8">
-          <CrmCollegeProfile orgId={org.id} />
+        <CrmCollegeProfile orgId={org.id} />
 
-          {org.investorProfile && (
-            <section className="rounded-lg border border-border p-4">
-              <h2 className="text-base font-semibold">Investor profile</h2>
-              <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-3">
-                <Field label="Check size" value={org.investorProfile.checkSizeNote} />
-                <Field label="Eligibility" value={ELIGIBILITY_LABELS[org.investorProfile.eligibility]} />
-                <Field label="Responsiveness (estimate)" value={org.investorProfile.responsiveness} />
-              </dl>
-              {org.investorProfile.thesis && <p className="mt-3 text-sm text-muted-foreground">{org.investorProfile.thesis}</p>}
-            </section>
-          )}
+        {org.investorProfile && (
+          <section className="rounded-lg border border-border p-4">
+            <h3 className="text-sm font-semibold">Investor profile</h3>
+            <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-3">
+              <Field label="Check size" value={org.investorProfile.checkSizeNote} />
+              <Field label="Eligibility" value={ELIGIBILITY_LABELS[org.investorProfile.eligibility]} />
+              <Field label="Responsiveness (estimate)" value={org.investorProfile.responsiveness} />
+            </dl>
+            {org.investorProfile.thesis && <p className="mt-3 text-sm text-muted-foreground">{org.investorProfile.thesis}</p>}
+          </section>
+        )}
 
-          {org.outplacementProfile && (
-            <section className="rounded-lg border border-border p-4">
-              <h2 className="text-base font-semibold">Outplacement lead</h2>
-              <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-4">
-                <Field label="Headcount affected" value={org.outplacementProfile.headcountAffected?.toLocaleString() ?? null} />
-                <Field label="White collar" value={org.outplacementProfile.pctWhiteCollar} />
-                <Field label="Announced" value={org.outplacementProfile.announcedAt ? formatDate(org.outplacementProfile.announcedAt) : null} />
-                <Field label="Incumbent provider" value={org.outplacementProfile.incumbentProvider} />
-              </dl>
-            </section>
-          )}
+        {org.outplacementProfile && (
+          <section className="rounded-lg border border-border p-4">
+            <h3 className="text-sm font-semibold">Outplacement lead</h3>
+            <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-4">
+              <Field label="Headcount affected" value={org.outplacementProfile.headcountAffected?.toLocaleString() ?? null} />
+              <Field label="White collar" value={org.outplacementProfile.pctWhiteCollar} />
+              <Field label="Announced" value={org.outplacementProfile.announcedAt ? formatDate(org.outplacementProfile.announcedAt) : null} />
+              <Field label="Incumbent provider" value={org.outplacementProfile.incumbentProvider} />
+            </dl>
+          </section>
+        )}
 
-          <section>
-            <h2 className="mb-3 text-base font-semibold">Opportunities ({org.opportunities.length})</h2>
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {OPPORTUNITY_KINDS.map((kind) => {
-                const opps = org.opportunities.filter((o) => kindForPipeline(o.pipeline.key)?.key === kind.key)
-                if (opps.length === 0 && !kind.alwaysShown) return null
-                const choices = kind.pipelineKeys
-                  .map((k) => pipelines.find((p) => p.key === k))
-                  .filter((p): p is { key: string; label: string } => Boolean(p))
-                return (
-                  <div key={kind.key} className="p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-medium">
-                        {kind.label}
-                        <span className="ml-2 font-normal text-muted-foreground">{opps.length === 0 ? 'None' : opps.length}</span>
-                      </h3>
-                      {choices.length > 0 && <CrmAddOrgOpportunity orgId={org.id} pipelines={choices} />}
-                    </div>
-                    {opps.length > 0 && (
-                      <ul className="mt-2 space-y-2">
-                        {opps.map((o) => {
-                          const due = o.committedFollowUpAt ?? o.nextStepDueAt ?? o.deadlines[0]?.dueAt ?? null
-                          const dueLabel = o.committedFollowUpAt ? 'Promised' : o.nextStepDueAt ? 'Next step' : o.deadlines[0]?.dueAt ? 'Deadline' : null
-                          return (
-                            <li key={o.id} className="text-sm">
-                              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                                <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
-                                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                                  <span className={`rounded px-1.5 py-0.5 font-semibold ${qualityClass(o.leadQuality)}`} title="Rating">
-                                    {o.leadQuality === 'UNGRADED' ? 'Ungraded' : o.leadQuality}
-                                  </span>
-                                  <span title="Priority score">Score {o.priorityOverride ?? Math.round(o.priorityScore)}</span>
-                                  <span title="Stage">{o.stage.label}</span>
-                                  <span title="Date">
-                                    {due && dueLabel ? `${dueLabel} ${formatDate(due)}` : `Added ${formatDate(o.createdAt)}`}
-                                  </span>
-                                  {o.amountUsdMax ? (
-                                    <span>{o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}${o.amountUsdMax.toLocaleString()}</span>
-                                  ) : null}
-                                </span>
-                              </div>
-                              {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    )}
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Opportunities ({org.opportunities.length})</h3>
+          <div className="divide-y divide-border rounded-lg border border-border">
+            {OPPORTUNITY_KINDS.map((kind) => {
+              const opps = org.opportunities.filter((o) => kindForPipeline(o.pipeline.key)?.key === kind.key)
+              if (opps.length === 0 && !kind.alwaysShown) return null
+              const choices = kind.pipelineKeys
+                .map((k) => pipelines.find((p) => p.key === k))
+                .filter((p): p is { key: string; label: string } => Boolean(p))
+              return (
+                <div key={kind.key} className="p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-medium">
+                      {kind.label}
+                      <span className="ml-2 font-normal text-muted-foreground">{opps.length === 0 ? 'None' : opps.length}</span>
+                    </h4>
+                    {choices.length > 0 && <CrmAddOrgOpportunity orgId={org.id} pipelines={choices} />}
                   </div>
-                )
-              })}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-base font-semibold">Research ({org.researchItems.length})</h2>
-            {org.researchItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing saved for this organization yet.</p>
-            ) : (
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {org.researchItems.map((r) => (
-                  <li key={r.id} className="p-3 text-sm">
-                    {r.url ? (
-                      <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title} ↗</a>
-                    ) : <span className="font-medium">{r.title}</span>}
-                    {(r.authorNames || r.publishedYear) && (
-                      <span className="ml-2 text-xs text-muted-foreground">{[r.authorNames, r.publishedYear].filter(Boolean).join(' · ')}</span>
-                    )}
-                    {r.keyClaim && <p className="mt-1 text-xs text-muted-foreground">{r.keyClaim}</p>}
-                    {r.relevanceNote && <p className="mt-1 text-xs">{r.relevanceNote}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-base font-semibold">Candidates who worked here ({alumniList.length})</h2>
-            {alumniList.length === 0 ? (
-              <p className="text-sm text-muted-foreground">None of our candidates list this organization.</p>
-            ) : (
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {alumniList.map((a) => (
-                  <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
-                    <span>
-                      <Link href={`/support/admin/candidates/${a.id}`} className="font-medium hover:underline">{a.name}</Link>
-                      <span className="text-muted-foreground"> — {a.title}</span>
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {a.isCurrent ? `${year(a.startDate)}–present` : [year(a.startDate), year(a.endDate)].filter(Boolean).join('–')}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-base font-semibold">People in the CRM ({org.affiliations.length})</h2>
-            {org.affiliations.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nobody here is in your network yet — add a route in from the sidebar.</p>
-            ) : (
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {org.affiliations.map((a) => (
-                  <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                    <span>
-                      <Link href={`/support/admin/crm/people/${a.person.id}`} className="font-medium hover:underline">{a.person.fullName}</Link>
-                      {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {a.person.lastTouchedAt ? `Last contacted ${formatDate(a.person.lastTouchedAt)}` : 'Never contacted'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+                  {opps.length > 0 && (
+                    <ul className="mt-2 space-y-2">
+                      {opps.map((o) => {
+                        const due = o.committedFollowUpAt ?? o.nextStepDueAt ?? o.deadlines[0]?.dueAt ?? null
+                        const dueLabel = o.committedFollowUpAt ? 'Promised' : o.nextStepDueAt ? 'Next step' : o.deadlines[0]?.dueAt ? 'Deadline' : null
+                        return (
+                          <li key={o.id} className="text-sm">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                              <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
+                              <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                <span className={`rounded px-1.5 py-0.5 font-semibold ${qualityClass(o.leadQuality)}`} title="Rating">
+                                  {o.leadQuality === 'UNGRADED' ? 'Ungraded' : o.leadQuality}
+                                </span>
+                                <span title="Priority score">Score {o.priorityOverride ?? Math.round(o.priorityScore)}</span>
+                                <span title="Stage">{o.stage.label}</span>
+                                <span title="Date">
+                                  {due && dueLabel ? `${dueLabel} ${formatDate(due)}` : `Added ${formatDate(o.createdAt)}`}
+                                </span>
+                                {o.amountUsdMax ? (
+                                  <span>{o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}${o.amountUsdMax.toLocaleString()}</span>
+                                ) : null}
+                              </span>
+                            </div>
+                            {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
 
-        <aside className="space-y-6">
-          <details open={org.introPathsAsTarget.length > 0} className={org.introPathsAsTarget.length > 0 ? 'rounded-lg border border-border p-3' : 'text-muted-foreground'}>
-            <summary className="cursor-pointer text-sm font-semibold">
-              {org.introPathsAsTarget.length > 0 ? `Routes in (${org.introPathsAsTarget.length})` : 'Add a route in'}
-            </summary>
-            <div className="mt-3">
-              <CrmIntroPaths
-                compact
-                targetOrgId={org.id}
-                targetName={org.name}
-                paths={org.introPathsAsTarget.map((p) => ({
-                  id: p.id,
-                  connectorPersonId: p.connectorPersonId,
-                  connectorName: p.connectorName,
-                  connectorRecordName: p.connectorPerson?.fullName ?? null,
-                  relationshipNote: p.relationshipNote,
-                  strength: p.strength,
-                  status: p.status,
-                  askedAt: p.askedAt ? p.askedAt.toISOString() : null,
-                }))}
-              />
-            </div>
-          </details>
+        <CrmFundingMatches opportunities={funding} />
 
-          {meetings.length > 0 && (
-            <section>
-              <h2 className="mb-2 text-sm font-semibold">Meetings ({meetings.length})</h2>
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {meetings.map((m) => (
-                  <li key={m.id} className="p-3 text-sm">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="font-medium">{m.subject ?? 'Meeting'}</span>
-                      <span className="text-xs text-muted-foreground">{formatDate(m.occurredAt)}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {m.people.map((p, i) => (
-                        <span key={p.id}>{i > 0 && ', '}<Link href={`/support/admin/crm/people/${p.id}`} className="underline">{p.fullName}</Link></span>
-                      ))}
-                      {m.opportunity && <> · Opportunity: {m.opportunity.title}</>}
-                      {m.meetUrl && <> · <CrmMeetLink href={m.meetUrl} label="Meet link" kind="join" orgId={org.id} /></>}
-                      {m.notesDocUrl && <> · <CrmMeetLink href={m.notesDocUrl} label="Notes by Gemini" kind="notes" orgId={org.id} /></>}
-                    </p>
-                    {m.body && (
-                      <details className="mt-1">
-                        <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">Show meeting notes</summary>
-                        <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{m.body}</p>
-                      </details>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+        {org.deadlines.length > 0 && (
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Dates</h3>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {org.deadlines.map((d) => (
+                <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                  <span className="font-medium">{d.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {d.dueAt ? formatDate(d.dueAt) : `${d.rawText ?? 'No date'} — no date to track`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-          <CrmFundingMatches opportunities={funding} />
-
-          {org.deadlines.length > 0 && (
-            <section>
-              <h2 className="mb-2 text-sm font-semibold">Dates</h2>
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {org.deadlines.map((d) => (
-                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                    <span className="font-medium">{d.label}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {d.dueAt ? formatDate(d.dueAt) : `${d.rawText ?? 'No date'} — no date to track`}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <CrmOrgBackgroundSections
-            org={{ id: org.id, name: org.name, canonicalNameNormalized: org.canonicalNameNormalized, companyId: org.companyId }}
-          />
-
-          {org.orgTypes.includes('OUTPLACEMENT_LEAD') && (
-            <section>
-              <h2 className="mb-1 text-sm font-semibold">Convert</h2>
-              <p className="mb-2 text-xs text-muted-foreground">
-                Creates an outplacement employer with contracts and seats. This record keeps its history.
-              </p>
-              <CrmGraduateOrganization orgId={org.id} outplacementOrgId={org.outplacementOrgId} />
-            </section>
-          )}
-        </aside>
-      </div>
+        {org.orgTypes.includes('OUTPLACEMENT_LEAD') && (
+          <div>
+            <h3 className="mb-1 text-sm font-semibold">Convert</h3>
+            <p className="mb-2 text-xs text-muted-foreground">
+              Creates an outplacement employer with contracts and seats. This record keeps its history.
+            </p>
+            <CrmGraduateOrganization orgId={org.id} outplacementOrgId={org.outplacementOrgId} />
+          </div>
+        )}
+      </section>
     </div>
   )
 }
 
-function Field({ label, value }: { label: string; value: string | null }) {
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
