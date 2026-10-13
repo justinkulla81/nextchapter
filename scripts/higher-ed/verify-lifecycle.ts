@@ -8,8 +8,9 @@
 //   npm run verify:lifecycle
 import { randomUUID } from 'crypto'
 import { prisma } from '../../src/lib/prisma'
-import { addOfficeHours, alumniAtCompany, answerAlumniIntro, bookOfficeHour, checkIn, myAlumniIntros, myOfficeHours, openOfficeHours, programRecommendations, requestAlumniIntro, rsvp, stageHelp, zonedToUtc } from '../../src/lib/higher-ed/lifecycle'
-import { syncEngagement } from '../../src/lib/higher-ed/engagement'
+import { addOfficeHours, alumniAtCompany, answerAlumniIntro, bookOfficeHour, checkIn, myAlumniIntros, myOfficeHours, openOfficeHours, programRecommendations, requestAlumniIntro, rsvp, stageHelp } from '../../src/lib/higher-ed/lifecycle'
+import { collegeTimeZone, zonedToUtc } from '../../src/lib/higher-ed/time-zone'
+import { saveEngagementWeights, syncEngagement } from '../../src/lib/higher-ed/engagement'
 import { saveSegment, segmentWhere, parseFilters } from '../../src/lib/higher-ed/segments'
 import { audienceCount, saveDraft, sendNextBatch } from '../../src/lib/higher-ed/composer'
 import { countInvitable } from '../../src/lib/higher-ed/invites'
@@ -85,6 +86,14 @@ async function main() {
     const evs = await prisma.engagementEvent.findMany({ where: { institutionId: inst.id }, select: { memberId: true, type: true, sourceTable: true } })
     check('Check-in and accepted intro count toward engagement', [evs.some((e) => e.memberId === ann.memberId && e.type === 'EVENT'), evs.filter((e) => e.sourceTable === 'AlumniIntroRequest').length], [true, 2])
 
+    // Weights re-score history: Ann's event check-in at 3 standard, 10 after.
+    const score = async () => (await prisma.$queryRaw<{ score: number }[]>`select score from private.v_member_engagement where "memberId" = ${ann.memberId}`)[0]?.score ?? 0
+    const before = await score()
+    await saveEngagementWeights(inst.id, { EVENT: 10 })
+    const after = await score()
+    await saveEngagementWeights(inst.id, null)
+    check('A weight change re-scores history; reset restores it', [after - before, await score()], [7, before])
+
     // Segments and the composer.
     const f = parseFilters({ joined: 'joined', employerContains: 'acme' })
     check('Segment: joined at Acme', await prisma.institutionMember.count({ where: segmentWhere(inst.id, f) }), 2)
@@ -128,11 +137,14 @@ async function main() {
 
     // Stage help and program recommendations.
     check('Stage help follows the stage', stageHelp('INTERVIEWING', tag, { hasPrograms: true, hasOfficeHours: true, hasEvents: true, hasJobs: true }).map((s) => s.key), ['interview', 'officeHours', 'mentors'])
+    check('Landed and promotion link to the In-work track', [stageHelp('LANDED', tag, { hasPrograms: true, hasOfficeHours: true, hasEvents: true, hasJobs: true })[0].href, stageHelp('PREPARING', tag, { hasPrograms: true, hasOfficeHours: true, hasEvents: true, hasJobs: true, journey: 'PROMOTION' })[0].key], ['/dashboard/in-work?tab=impact', 'promotion'])
     check('Paused gets nothing', stageHelp('PAUSED', tag, { hasPrograms: true, hasOfficeHours: true, hasEvents: true, hasJobs: true }).length, 0)
     await prisma.marketRealityReport.create({ data: { candidateId: ann.candidateId!, strengths: [], weaknesses: [], actionPlan: [], gapAnalysis: { targetRole: 'Analyst', gaps: [{ area: 'SQL', why: '', remediation: '' }] } } })
     check('A SQL gap recommends the SQL program', (await programRecommendations(inst.id, ann.candidateId)).map((r) => [r.program, r.skill, r.from]), [['Data analytics', 'SQL', 'report']])
 
-    check('Eastern time: summer and winter', [zonedToUtc('2026-07-01', '12:00')?.toISOString(), zonedToUtc('2026-12-01', '12:00')?.toISOString()], ['2026-07-01T16:00:00.000Z', '2026-12-01T17:00:00.000Z'])
+    check('Eastern time: summer and winter', [zonedToUtc('2026-07-01', '12:00', 'America/New_York')?.toISOString(), zonedToUtc('2026-12-01', '12:00', 'America/New_York')?.toISOString()], ['2026-07-01T16:00:00.000Z', '2026-12-01T17:00:00.000Z'])
+    check('Pacific and Arizona', [zonedToUtc('2026-07-01', '12:00', 'America/Los_Angeles')?.toISOString(), zonedToUtc('2026-07-01', '12:00', 'America/Phoenix')?.toISOString()], ['2026-07-01T19:00:00.000Z', '2026-07-01T19:00:00.000Z'])
+    check('Zone: setting, else the college’s state', [collegeTimeZone({ timeZone: 'America/Chicago' }, { college: { state: 'CA' } }), collegeTimeZone({}, { college: { state: 'CA' } }), collegeTimeZone({}, null)], ['America/Chicago', 'America/Los_Angeles', 'America/New_York'])
   } finally {
     await prisma.institution.delete({ where: { id: inst.id } }).catch(() => {})
     for (const id of candidates) await prisma.candidateProfile.delete({ where: { id } }).catch(() => {})

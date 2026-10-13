@@ -8,6 +8,8 @@ import { memberCards, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { buttonVariants } from '@/components/ui/button'
+import { CollegeSignIn } from '@/components/higher-ed/CollegeSignIn'
+import { enabledProviders } from '@/lib/higher-ed/sso'
 
 async function load(slug: string) {
   return prisma.institution.findUnique({
@@ -39,6 +41,7 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
     prisma.institutionMember.count({ where: { institutionId: inst.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     prisma.outcomeReport.count({ where: { member: { institutionId: inst.id }, shareMilestone: true } }),
   ])
+  const providers = await enabledProviders()
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
   const hero = profile.heroImageUrl ?? profile.photos?.[0]?.url ?? null
@@ -60,9 +63,12 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
           <p className="text-lg text-muted-foreground">
             {`Free for ${inst.name} alumni: a clear read on your job market, a plan for this week, coaching, and alumni who'll take your call. Your search stays yours; ${inst.name} sees only what you choose to share.`}
           </p>
-          <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className={buttonVariants({ size: 'lg' })}>
-            Join with your alumni email
-          </Link>
+          <div className="space-y-3">
+            <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className={buttonVariants({ size: 'lg' })}>
+              Join with your alumni email
+            </Link>
+            <CollegeSignIn slug={slug} google={providers.google} microsoft={providers.microsoft} college={inst.name} />
+          </div>
         </section>
         <section aria-labelledby="moves" className="space-y-3">
           <h2 id="moves" className="text-xl font-semibold">

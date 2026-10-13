@@ -9,7 +9,8 @@ import type { CheckInKind } from '@prisma/client'
 import { ArrowRight, BarChart3, ClipboardCheck, Mail, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
-import { engagementOverview } from '@/lib/higher-ed/engagement'
+import { engagementOverview, engagementWeightsFrom, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
+import { WeightsForm } from './WeightsForm'
 import { waitingFor } from '@/lib/higher-ed/inbox'
 import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, checkInOverview, pendingCheckIns } from '@/lib/higher-ed/checkins'
 import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
@@ -313,7 +314,8 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
 // ── Alumni Relations › Engagement ───────────────────────────────────────────
 
 export async function AlumniEngagement({ ctx }: Props) {
-  const o = await engagementOverview(ctx.institution.id)
+  const [o, inst] = await Promise.all([engagementOverview(ctx.institution.id), prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })])
+  const canEdit = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
   const total = o.tiers.reduce((n, t) => n + t.members, 0)
   return (
     <div className="space-y-6">
@@ -355,6 +357,14 @@ export async function AlumniEngagement({ ctx }: Props) {
         </div>
       ) : (
         <EmptyState icon={BarChart3} title="No engagement yet" description="Scores start once alumni join and use NextChapter, or once you import gifts." />
+      )}
+      {canEdit && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Change what counts and how much</summary>
+          <div className="pt-3">
+            <WeightsForm slug={ctx.institution.slug} keys={WEIGHT_KEYS} values={engagementWeightsFrom(inst.enabledFeatures)} />
+          </div>
+        </details>
       )}
     </div>
   )

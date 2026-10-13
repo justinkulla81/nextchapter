@@ -10,7 +10,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
 import type { AccessToken, WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
-import { addOfficeHours, answerAlumniIntro, bookOfficeHour, cancelOfficeHour, checkIn, EVENT_KINDS, INTRO_PURPOSES, requestAlumniIntro, rsvp, zonedToUtc, type IntroPurpose } from '@/lib/higher-ed/lifecycle'
+import { addOfficeHours, answerAlumniIntro, bookOfficeHour, cancelOfficeHour, checkIn, EVENT_KINDS, INTRO_PURPOSES, requestAlumniIntro, rsvp, type IntroPurpose } from '@/lib/higher-ed/lifecycle'
+import { collegeTimeZone, zonedToUtc } from '@/lib/higher-ed/time-zone'
 import { deleteSegment, parseFilters, saveSegment } from '@/lib/higher-ed/segments'
 import { addLearner, setCohortRules, setProgress } from '@/lib/higher-ed/programs'
 import { createRapidResponse, setRapidResponseActive } from '@/lib/higher-ed/rapid-response'
@@ -20,6 +21,11 @@ export type FormResult = Result | undefined
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? '').trim()
 const PREVIEW = 'You’re previewing; there’s no member record to act as.'
+
+async function zoneFor(institutionId: string) {
+  const i = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true, profile: true } })
+  return collegeTimeZone(i.enabledFeatures, i.profile)
+}
 
 async function member(slug: string) {
   const ctx = await requireWorkspace(slug, 'candidate', { write: true })
@@ -58,7 +64,7 @@ export async function addOfficeHoursForm(slug: string, _prev: FormResult, f: For
   const date = str(f, 'date')
   const time = str(f, 'time')
   if (!date || !time) return { error: 'Pick a day and a start time.' }
-  const startsAt = zonedToUtc(date, time)
+  const startsAt = zonedToUtc(date, time, await zoneFor(m.ctx.institution.id))
   if (!startsAt) return { error: 'That date or time doesn’t look right.' }
   const r = await addOfficeHours({ memberId: m.memberId, startsAt, count: Number(str(f, 'count') || '1'), minutes: Number(str(f, 'minutes') || '20'), topic: str(f, 'topic') || null })
   if ('error' in r) return { error: r.error }
@@ -105,7 +111,7 @@ export async function createEventForm(slug: string, _prev: FormResult, f: FormDa
   if (!ctx) return { error: 'Only Alumni Relations, Career Services or an admin can add events.' }
   const title = str(f, 'title')
   const kind = str(f, 'kind')
-  const startsAt = str(f, 'date') && str(f, 'time') ? zonedToUtc(str(f, 'date'), str(f, 'time')) : null
+  const startsAt = str(f, 'date') && str(f, 'time') ? zonedToUtc(str(f, 'date'), str(f, 'time'), await zoneFor(ctx.institution.id)) : null
   const capacity = str(f, 'capacity') ? Number(str(f, 'capacity')) : null
   const url = str(f, 'url')
   if (!title) return { error: 'Give the event a title.' }

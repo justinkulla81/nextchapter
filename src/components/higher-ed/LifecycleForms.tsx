@@ -115,7 +115,7 @@ export function AnswerIntro({ slug, requestId }: { slug: string; requestId: stri
 
 // ── Office hours ────────────────────────────────────────────────────────────
 
-export function OfficeHoursForm({ slug }: { slug: string }) {
+export function OfficeHoursForm({ slug, zone }: { slug: string; zone: string }) {
   const [state, action] = useActionState<FormResult, FormData>(addOfficeHoursForm.bind(null, slug), undefined)
   const [v, setV] = useState({ date: '', time: '12:00', count: '2', minutes: '20', topic: '' })
   const bind = (k: keyof typeof v) => ({ name: k, value: v[k], onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV({ ...v, [k]: e.target.value }) })
@@ -126,7 +126,7 @@ export function OfficeHoursForm({ slug }: { slug: string }) {
         <Input id="oh-date" type="date" {...bind('date')} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="oh-time">Start (Eastern)</Label>
+        <Label htmlFor="oh-time">Start ({zone})</Label>
         <Input id="oh-time" type="time" {...bind('time')} />
       </div>
       <div className="space-y-1.5">
@@ -242,7 +242,7 @@ const KINDS = [
   ['networking', 'Networking'],
 ] as const
 
-export function EventForm({ slug }: { slug: string }) {
+export function EventForm({ slug, zone }: { slug: string; zone: string }) {
   const [state, action] = useActionState<FormResult, FormData>(createEventForm.bind(null, slug), undefined)
   const [v, setV] = useState({ title: '', kind: 'panel', date: '', time: '18:00', location: '', url: '', capacity: '', description: '' })
   const bind = (k: keyof typeof v) => ({ name: k, value: v[k], onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV({ ...v, [k]: e.target.value }) })
@@ -268,7 +268,7 @@ export function EventForm({ slug }: { slug: string }) {
         <Input id="ev-date" type="date" {...bind('date')} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="ev-time">Start (Eastern)</Label>
+        <Label htmlFor="ev-time">Start ({zone})</Label>
         <Input id="ev-time" type="time" {...bind('time')} />
       </div>
       <div className="space-y-1.5">

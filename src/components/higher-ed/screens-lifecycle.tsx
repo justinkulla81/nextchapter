@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { ArrowRight, CalendarDays, Clock, Landmark, Megaphone, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
-import { effectiveStage, getStage } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
 import {
   alumniAtCompany,
   companiesWithAlumni,
@@ -35,11 +35,16 @@ import { StatTile } from './StatTile'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { AnswerIntro, AskIntro, BookSlot, CancelSlot, CheckInToggle, EventForm, OfficeHoursForm, RapidResponseForm, RsvpButton, SegmentForm } from './LifecycleForms'
 import { PrintButton } from './PrintButton'
+import { collegeTimeZone, formatInZone, zoneLabel } from '@/lib/higher-ed/time-zone'
+
+async function zoneOf(institutionId: string) {
+  const i = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true, profile: true } })
+  const tz = collegeTimeZone(i.enabledFeatures, i.profile)
+  return { tz, label: zoneLabel(tz), when: (d: Date) => formatInZone(d, tz) }
+}
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { q?: string; group?: string } }
 
-const TZ = 'America/New_York'
-const when = (d: Date) => new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: TZ }).format(new Date(d))
 const day = (d: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(d))
 const yr = (y: number | null) => (y ? ` ’${String(y).slice(2)}` : '')
 const pct = (x: number | null) => (x === null ? '—' : `${Math.round(x * 100)}%`)
@@ -61,7 +66,8 @@ export async function StagePanel({ ctx }: { ctx: WorkspaceContext }) {
     prisma.exclusiveJobPosting.count({ where: { institutionScopeId: id, status: 'approved', archivedAt: null } }),
     programRecommendations(id, m?.candidateId ?? null),
   ])
-  const items = stageHelp(stage, ctx.institution.slug, { hasPrograms: programs > 0, hasOfficeHours: slots > 0, hasEvents: events > 0, hasJobs: jobs > 0 })
+  const journey = m?.candidate ? effectiveJourney(m.candidate) : null
+  const items = stageHelp(stage, ctx.institution.slug, { hasPrograms: programs > 0, hasOfficeHours: slots > 0, hasEvents: events > 0, hasJobs: jobs > 0, journey })
   if (!items.length && !recs.length) return null
   return (
     <section aria-labelledby="stage-help" className="space-y-3 rounded-lg border border-border bg-card p-4">
@@ -126,6 +132,7 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
   const group = groupKey ? await groupView(id, groupKey) : null
   const major = me?.major ? (await outcomesByMajor(id, me.major))[0] : undefined
   const canAct = !!memberId && !ctx.readOnly
+  const { label: zone, when } = await zoneOf(id)
   const pendingForMe = intros.received.filter((r) => r.status === 'REQUESTED')
 
   return (
@@ -254,7 +261,7 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
         <h2 id="oh-h" className="text-base font-semibold">
           Office hours
         </h2>
-        <p className="text-sm text-muted-foreground">Book 20 minutes with an alumni mentor: a résumé read, your story, a mock interview. Times are Eastern.</p>
+        <p className="text-sm text-muted-foreground">Book 20 minutes with an alumni mentor: a résumé read, your story, a mock interview. Times are {zone}.</p>
         {(calls.booked.length > 0 || calls.hosting.length > 0) && (
           <div className="space-y-1 text-sm">
             <p className="font-medium">Your calls</p>
@@ -319,7 +326,7 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
           <details className="rounded-lg border border-border bg-card p-4">
             <summary className="cursor-pointer text-sm font-medium text-primary">You’re a mentor: add office hours</summary>
             <div className="pt-3">
-              <OfficeHoursForm slug={slug} />
+              <OfficeHoursForm slug={slug} zone={zone} />
             </div>
           </details>
         )}
@@ -468,6 +475,7 @@ export async function AlumniEvents({ ctx }: Props) {
   const events = await eventsForStaff(ctx.institution.id)
   const canEdit = !ctx.readOnly && ['ALUMNI_RELATIONS', 'CAREER_SERVICES', 'INSTITUTION_ADMIN'].some((r) => ctx.tokens.has(r as 'ALUMNI_RELATIONS'))
   const now = new Date().getTime()
+  const { label: zone, when } = await zoneOf(ctx.institution.id)
   return (
     <div className="space-y-6">
       <p className="max-w-3xl text-sm text-muted-foreground">Career panels, employer nights and workshops. Alumni RSVP from their Network tab; checking someone in counts as event engagement (with their consent).</p>
@@ -476,7 +484,7 @@ export async function AlumniEvents({ ctx }: Props) {
           <h2 id="new-ev" className="text-base font-semibold">
             Add an event
           </h2>
-          <EventForm slug={ctx.institution.slug} />
+          <EventForm slug={ctx.institution.slug} zone={zone} />
         </section>
       )}
       {events.length ? (

@@ -435,3 +435,10 @@ The seven journey stages (Exploring → Preparing → Applying → Interviewing 
 - **Times** typed by staff and mentors are US Eastern (`zonedToUtc`) until colleges can set a time zone.
 - **Not built:** AI-drafted outreach (cost per use, needs approval), live CRM and Handshake connectors (need vendor credentials), wage-record matching (needs the SSN decision).
 - `npm run verify:lifecycle`.
+
+### Time zone, In-work links, college sign-in, engagement weights, Oct 13, 2026
+
+- **Time zone** (`time-zone.ts`): Admin › Overview picks a US zone (`enabledFeatures.timeZone`); default from the college's state. Events and office hours are typed and shown in it.
+- **In-work track links** in the stage panel: Landed → impact log for the first review; Going for a promotion → the promotion plan; Thinking about a move (Exploring) → pay against the market.
+- **College sign-in** (`CollegeSignIn`, `sso.ts`): "Continue with Google / Microsoft" on the join and for-alumni pages returns to `/i/<slug>/welcome`, which joins anyone whose sign-in email is on the roster. Microsoft shows only once the Azure provider is enabled in Supabase Auth (read from `/auth/v1/settings`).
+- **Engagement weights**: Alumni Relations › Engagement edits points per activity (0–20; the mentor's side of a call is `MENTOR_CALL_MENTOR`) in `enabledFeatures.engagementWeights`. `v_member_engagement` applies them, so history re-scores at once. Monthly caps stay in points.

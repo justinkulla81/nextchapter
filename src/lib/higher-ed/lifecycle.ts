@@ -6,7 +6,7 @@
 // employers and titles only for alumni who share their outcome.
 
 import 'server-only'
-import { Prisma, type JourneyStage } from '@prisma/client'
+import { Prisma, type JourneyStage, type JourneyType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { sendCampaign } from './outreach'
@@ -367,7 +367,7 @@ export async function programRecommendations(institutionId: string, candidateId:
 
 export type StageHelp = { key: string; title: string; detail: string; href: string }
 
-export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean }): StageHelp[] {
+export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean; journey?: JourneyType | null }): StageHelp[] {
   const b = `/i/${slug}/candidate`
   const items: Record<string, StageHelp> = {
     outcomes: { key: 'outcomes', title: 'What alumni like you do', detail: 'Where grads with your major work, and their milestones.', href: `${b}/network` },
@@ -382,6 +382,10 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
     offer: { key: 'offer', title: 'Sanity-check the offer', detail: 'An alum at that company, and your counselor.', href: `${b}/network#intros` },
     share: { key: 'share', title: 'Share your news', detail: 'Your milestone, if you want classmates to see it.', href: `${b}` },
     giveBack: { key: 'giveBack', title: 'Pay it forward', detail: 'Hold office hours or take a call.', href: `${b}/mentors` },
+    // The In-work track (/dashboard/in-work) for people with a job.
+    firstReview: { key: 'firstReview', title: 'Set up your first review', detail: 'Log wins as they happen, so your 90-day review writes itself.', href: '/dashboard/in-work?tab=impact' },
+    promotion: { key: 'promotion', title: 'Plan the promotion', detail: 'The gap to the next level, a sponsor, and the conversation with your manager.', href: '/dashboard/in-work?tab=promotion' },
+    worth: { key: 'worth', title: 'Know what you’re worth', detail: 'Your pay against the market, before you decide to move.', href: '/dashboard/in-work?tab=salary' },
   }
   const by: Record<JourneyStage, string[]> = {
     EXPLORING: ['outcomes', 'groups', 'events', 'programs'],
@@ -392,25 +396,11 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
     LANDED: ['share', 'giveBack', 'groups'],
     PAUSED: [],
   }
-  const keys = stage ? by[stage] : by.EXPLORING
-  return keys
+  let keys = stage ? by[stage] : by.EXPLORING
+  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'LANDED') keys = ['promotion', ...keys]
+  if (opts.journey === 'EXPLORING_MOVE' && stage === 'EXPLORING') keys = ['worth', ...keys]
+  if (stage === 'LANDED') keys = ['firstReview', ...keys]
+  return keys.slice(0, 4)
     .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
     .map((k) => items[k])
-}
-
-
-// A date and time typed by staff or a mentor, read in the college's time
-// zone (US Eastern until colleges can set their own), as an instant.
-export function zonedToUtc(date: string, time: string, timeZone = 'America/New_York'): Date | null {
-  const naive = new Date(`${date}T${time}:00Z`)
-  if (Number.isNaN(naive.getTime())) return null
-  const offsetAt = (d: Date) => {
-    const name = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' }).formatToParts(d).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT'
-    const m = /GMT([+-])(\d{2}):?(\d{2})?/.exec(name)
-    return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] ?? 0)) : 0
-  }
-  // Two passes handle the hour around a daylight-saving change.
-  let utc = new Date(naive.getTime() - offsetAt(naive) * 60_000)
-  utc = new Date(naive.getTime() - offsetAt(utc) * 60_000)
-  return utc
 }

@@ -57,6 +57,7 @@ import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
 import { emailSettingsFrom } from '@/lib/higher-ed/outreach'
 import { wioaOn } from '@/lib/higher-ed/programs'
+import { collegeTimeZone } from '@/lib/higher-ed/time-zone'
 import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
@@ -1103,6 +1104,7 @@ async function SettingsOverview({ ctx }: ScreenProps) {
           fromName: sender.fromName,
           replyTo: sender.replyTo ?? '',
           wioa: wioaOn(i.enabledFeatures),
+          timeZone: collegeTimeZone(i.enabledFeatures, i.profile),
         }}
       />
       <CollegeProfile profile={readProfile(i.profile)} />

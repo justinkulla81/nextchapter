@@ -7,6 +7,8 @@ import { readableTextOn } from '@/lib/higher-ed/branding'
 import { findMemberByToken } from '@/lib/higher-ed/join'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { JoinButton } from '@/components/higher-ed/JoinButton'
+import { CollegeSignIn } from '@/components/higher-ed/CollegeSignIn'
+import { enabledProviders } from '@/lib/higher-ed/sso'
 
 export const metadata: Metadata = { robots: { index: false, follow: false } }
 
@@ -21,6 +23,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
   })
   if (!inst) notFound()
   const member = t ? await findMemberByToken(slug, t) : null
+  const providers = await enabledProviders()
   const profile = readProfile(inst.profile)
   const hero = profile.heroImageUrl ?? profile.photos?.[0]?.url ?? null
   const accent = inst.accentColor ?? '#2e7d5b'
@@ -57,6 +60,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
         ) : (
           <div className="space-y-2 rounded-lg border border-border p-4 text-sm">
             <p>Sign in with the email {inst.name} has on file for you, and we&apos;ll find you on the alumni list.</p>
+            <CollegeSignIn slug={slug} google={providers.google} microsoft={providers.microsoft} college={inst.name} />
             <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className="font-medium text-primary hover:underline">
               Sign in to join
             </Link>
