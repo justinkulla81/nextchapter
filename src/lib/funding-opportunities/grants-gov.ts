@@ -1,5 +1,5 @@
 import { parseUsDate, type FundingNotice } from './relevance'
-import { classifyGrant } from './eligibility'
+import { classifyGrant, statesFromText } from './eligibility'
 
 // Grants.gov search2: public, no key. One request per keyword, sequential and
 // paced, with every keyword that returned a notice recorded on it.
@@ -106,5 +106,5 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
 /** The notice with its eligibility read. Pure; the fetch is separate so it can be tested. */
 export function withEligibility(n: FundingNotice, d: GrantDetail): FundingNotice {
   const r = classifyGrant(d.applicantTypeIds, d.eligibilityText)
-  return { ...n, eligibility: r.eligibility, applicantKinds: r.kinds, partnerKinds: r.partnerKinds, eligibilityNote: r.note, awardCeiling: d.awardCeiling }
+  return { ...n, eligibility: r.eligibility, applicantKinds: r.kinds, partnerKinds: r.partnerKinds, eligibilityNote: r.note, awardCeiling: d.awardCeiling, states: statesFromText(d.eligibilityText) }
 }

@@ -122,6 +122,22 @@ describe('audience', () => {
   })
 })
 
+describe('SAM.gov as documented', () => {
+  const base = { noticeId: 'n1', title: 'Outplacement services', fullParentPathName: 'LABOR, DEPARTMENT OF', postedDate: '2026-10-05 14:30:00' }
+  it('keeps solicitations and sources sought, drops award notices', () => {
+    const out = noticesFromSam({ '561311': [
+      { ...base, noticeId: 'a', type: 'Solicitation', baseType: 'Solicitation' },
+      { ...base, noticeId: 'b', type: 'Sources Sought', baseType: 'Sources Sought' },
+      { ...base, noticeId: 'c', type: 'Award Notice', baseType: 'Award Notice' },
+      { ...base, noticeId: 'd', type: 'Justification', baseType: 'Justification' },
+    ] })
+    expect(out.map((n) => n.id).sort()).toEqual(['a', 'b'])
+  })
+  it('reads the documented posted-date format', () => {
+    expect(parseUsDate('2026-10-05 14:30:00')?.toISOString().slice(0, 10)).toBe('2026-10-05')
+  })
+})
+
 describe('toLead', () => {
   it('files informationally: an RFP-kind note, never P0', () => {
     const lead = toLead(notice(), NOW)

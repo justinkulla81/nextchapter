@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { plainText } from '@/lib/funding-opportunities/grants-gov'
-import { classifyGrant, classifySetAside, kindsForCustomerType, kindsForOrg, isWorkforceBoardOrStateAgency, matchesOrgKinds, applicantKindsFromGrant } from '@/lib/funding-opportunities/eligibility'
+import { inStateScope, statesFromText, classifyGrant, classifySetAside, kindsForCustomerType, kindsForOrg, isWorkforceBoardOrStateAgency, matchesOrgKinds, applicantKindsFromGrant } from '@/lib/funding-opportunities/eligibility'
 
 describe('classifyGrant', () => {
   it('open to for-profits or unrestricted is direct', () => {
@@ -86,5 +86,25 @@ describe('workforce boards and state agencies only', () => {
   it('leaves out government bodies that are not grantees for workforce grants', () => {
     for (const n of ['Federal Reserve Banks', 'International Monetary Fund', 'National Governors Association (NGA)', 'U.S. Census Bureau', 'National Science Foundation', 'NIST'])
       expect(kindsForOrg({ orgTypes: ['GOVERNMENT'], name: n })).toEqual([])
+  })
+})
+
+describe('state scope', () => {
+  it('reads a restriction to a state from the eligibility prose', () => {
+    expect(statesFromText('Applicants must be located in the State of Ohio.')).toEqual(['OH'])
+    expect(statesFromText('Open to nonprofits based in New Mexico and organizations serving West Virginia.')).toEqual(['NM', 'WV'])
+    expect(statesFromText('Eligibility is limited to applicants in Texas.')).toEqual(['TX'])
+  })
+  it('does not treat a mentioned state as a restriction', () => {
+    expect(statesFromText('Past awards include a project in Texas and one in Ohio.')).toEqual([])
+    expect(statesFromText('State workforce agencies administering WIOA formula funds.')).toEqual([])
+    expect(statesFromText('Organizations located in Ohio are not eligible.')).toEqual([])
+  })
+  it('keeps nationwide grants for everyone and restricted ones for their states only', () => {
+    expect(inStateScope([], null)).toBe(true)
+    expect(inStateScope(['OH'], 'OH')).toBe(true)
+    expect(inStateScope(['OH'], 'ca')).toBe(false)
+    expect(inStateScope(['OH'], 'NATIONAL')).toBe(false)
+    expect(inStateScope(['OH'], null)).toBe(false)
   })
 })

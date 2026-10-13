@@ -14,7 +14,7 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { computePriority, bestWarmPath, warmPathFromContacts } from '../../src/lib/crm/scoring'
-import { kindsForOrg, matchesOrgKinds, nextCloseAmong, type ApplicantKind, type Eligibility } from '../../src/lib/funding-opportunities/eligibility'
+import { inStateScope, kindsForOrg, matchesOrgKinds, nextCloseAmong, type ApplicantKind, type Eligibility } from '../../src/lib/funding-opportunities/eligibility'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
@@ -30,11 +30,11 @@ async function main() {
 
   // Open federal grants an organization could apply for (or partner on), from
   // the table the funding-opportunities cron fills. Absent table = no signal.
-  type OpenGrant = { eligibility: Eligibility; applicantKinds: ApplicantKind[]; closesAt: Date | null }
+  type OpenGrant = { eligibility: Eligibility; applicantKinds: ApplicantKind[]; states: string[]; closesAt: Date | null }
   let openGrants: OpenGrant[] = []
   try {
     openGrants = await prisma.$queryRaw<OpenGrant[]>`
-      SELECT "eligibility", "applicantKinds", "closesAt" FROM "FundingOpportunity"
+      SELECT "eligibility", "applicantKinds", "states", "closesAt" FROM "FundingOpportunity"
       WHERE "audience" = 'CUSTOMERS' AND "closesAt" IS NOT NULL AND "closesAt" >= ${NOW}`
   } catch {
     console.log('FundingOpportunity table not applied — no funding signal in this run')
@@ -54,6 +54,7 @@ async function main() {
         select: {
           name: true,
           orgTypes: true,
+          usState: true,
           investorProfile: { select: { preconditionLeadTimeDays: true } },
           deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1, select: { dueAt: true } },
           affiliations: { select: { person: { select: { connectedAt: true, lastTouchedAt: true } } } },
@@ -64,10 +65,10 @@ async function main() {
     },
   })
 
-  const fundingFor = (org: { name: string; orgTypes: string[] } | null | undefined): Date | null => {
+  const fundingFor = (org: { name: string; orgTypes: string[]; usState: string | null } | null | undefined): Date | null => {
     if (!org) return null
     const kinds = kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory: boardNames.has(org.name.toLowerCase()) })
-    return kinds.length ? nextCloseAmong(openGrants.filter((g) => matchesOrgKinds({ eligibility: g.eligibility, kinds: g.applicantKinds }, kinds)), NOW) : null
+    return kinds.length ? nextCloseAmong(openGrants.filter((g) => matchesOrgKinds({ eligibility: g.eligibility, kinds: g.applicantKinds }, kinds) && inStateScope(g.states ?? [], org.usState)), NOW) : null
   }
 
   const oppUpdates = opps.map((o) => {

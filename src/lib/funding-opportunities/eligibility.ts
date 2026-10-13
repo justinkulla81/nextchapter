@@ -143,6 +143,49 @@ export function isWorkforceBoardOrStateAgency(name: string, inBoardDirectory: bo
   return inBoardDirectory || BOARD_NAME.test(name) || STATE_AGENCY_NAME.test(name)
 }
 
+const STATE_NAMES: Record<string, string> = {
+  alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA', colorado: 'CO', connecticut: 'CT',
+  delaware: 'DE', florida: 'FL', georgia: 'GA', hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
+  kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD', massachusetts: 'MA', michigan: 'MI',
+  minnesota: 'MN', mississippi: 'MS', missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV', 'new hampshire': 'NH',
+  'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH',
+  oklahoma: 'OK', oregon: 'OR', pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD',
+  tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT', virginia: 'VA', washington: 'WA', 'west virginia': 'WV',
+  wisconsin: 'WI', wyoming: 'WY', 'district of columbia': 'DC',
+}
+const STATE_ALT = Object.keys(STATE_NAMES).sort((a, b) => b.length - a.length).map((n) => n.replace(/ /g, '\\s+')).join('|')
+// A state counts only next to a word that restricts applicants to it. "State of Ohio" alone
+// is often an example or a funder, and a national grant that mentions Texas is still national.
+const RESTRICTING = new RegExp(
+  `(?:located|based|headquartered|incorporated|residents?|reside|resid(?:ing)|operat(?:ing|es?)|serving|serves?|licensed|chartered|organi[sz]ed)\\s+(?:(?:in|within|of)\\s+)?(?:the\\s+)?(?:state\\s+of\\s+|commonwealth\\s+of\\s+)?(${STATE_ALT})\\b` +
+  `|(?:limited|restricted)\\s+to\\s+(?:applicants?\\s+)?(?:in\\s+|within\\s+)?(?:the\\s+)?(?:state\\s+of\\s+)?(${STATE_ALT})\\b` +
+  `|(?:only|solely)\\s+(?:to\\s+)?(?:organi[sz]ations?|applicants?|entities)\\s+(?:in|within)\\s+(?:the\\s+)?(?:state\\s+of\\s+)?(${STATE_ALT})\\b`,
+  'gi',
+)
+
+/** Two-letter states an eligibility statement restricts applicants to; empty means nationwide. */
+export function statesFromText(text: string): string[] {
+  const out = new Set<string>()
+  for (const sentence of text.split(/[.;\n]+/)) {
+    if (NEGATION.test(sentence)) continue
+    for (const m of sentence.matchAll(RESTRICTING)) {
+      const name = (m[1] ?? m[2] ?? m[3] ?? '').toLowerCase().replace(/\s+/g, ' ')
+      if (STATE_NAMES[name]) out.add(STATE_NAMES[name])
+    }
+  }
+  return [...out]
+}
+
+/**
+ * Can an organization in `orgState` use this opportunity? A grant limited to
+ * some states excludes an organization whose state is unknown or national:
+ * showing it would be a guess.
+ */
+export function inStateScope(oppStates: string[], orgState: string | null | undefined): boolean {
+  if (oppStates.length === 0) return true
+  return !!orgState && oppStates.includes(orgState.toUpperCase())
+}
+
 /** The applicant kinds a CRM organization can be. */
 export function kindsForOrg(org: { orgTypes: string[]; name: string; inBoardDirectory?: boolean }): ApplicantKind[] {
   const out = new Set<ApplicantKind>()

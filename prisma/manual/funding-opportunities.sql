@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS "FundingOpportunity" (
   "eligibility"     TEXT NOT NULL,                    -- DIRECT | VIA_PARTNER | UNKNOWN (NOT_ELIGIBLE is never stored)
   "applicantKinds"  TEXT[] NOT NULL DEFAULT '{}',
   "partnerKinds"    TEXT[] NOT NULL DEFAULT '{}',
+  "states"          TEXT[] NOT NULL DEFAULT '{}',   -- applicants limited to these states; empty = nationwide
   "eligibilityNote" TEXT,
   "agency"          TEXT NOT NULL,
   "orgId"           TEXT,                             -- the issuing agency's CrmOrganization, when filed
@@ -28,3 +29,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS "FundingOpportunity_source_externalId_key" ON 
 CREATE INDEX IF NOT EXISTS "FundingOpportunity_closesAt_idx" ON "FundingOpportunity"("closesAt");
 CREATE INDEX IF NOT EXISTS "FundingOpportunity_audience_eligibility_idx" ON "FundingOpportunity"("audience","eligibility");
 ALTER TABLE "FundingOpportunity" ENABLE ROW LEVEL SECURITY;
+-- Added after the first apply (state scoping): safe to re-run.
+ALTER TABLE "FundingOpportunity" ADD COLUMN IF NOT EXISTS "states" TEXT[] NOT NULL DEFAULT '{}';

@@ -83,7 +83,7 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 - `CRON_SECRET` — Vercel Cron sends this as a Bearer token; every `/api/cron/*` route checks it before running
 
 **Funding opportunities (`/api/cron/funding-opportunities`)**
-- `SAM_API_KEY` — optional. Free key from sam.gov (Account Details → API Key). Without it the cron still files Grants.gov grants and skips SAM.gov. A key with no SAM role allows about 10 requests a day, so `SAM_DAILY_REQUESTS` (default 4) caps how many NAICS searches run per day.
+- `SAM_API_KEY` — optional. Free key from sam.gov (Account Details → API Key). Without it the cron still files Grants.gov grants and skips SAM.gov. Daily limits depend on the key's role and are not published for a key with no role (reported as about 10 a day), so `SAM_DAILY_REQUESTS` (default 4) caps how many NAICS searches run per day; the API takes one `ptype` at a time, so notice types are filtered locally instead.
 
 **Waitlist**
 - `NEXT_PUBLIC_WAITLIST_ENDPOINT` — empty/unset uses the built-in `/api/waitlist` route (stores to Postgres via `WaitlistSignup`); can be swapped to an external Formspree/Buttondown URL instead

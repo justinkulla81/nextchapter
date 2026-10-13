@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { audienceOf, meaningfulDeadline, type FundingNotice } from './relevance'
-import { matchesOrgKinds, type ApplicantKind, type Eligibility } from './eligibility'
+import { inStateScope, matchesOrgKinds, type ApplicantKind, type Eligibility } from './eligibility'
 
 export { nextCloseAmong } from './eligibility'
 
@@ -22,6 +22,8 @@ export interface StoredOpportunity {
   eligibility: Exclude<Eligibility, 'NOT_ELIGIBLE'>
   applicantKinds: ApplicantKind[]
   partnerKinds: ApplicantKind[]
+  /** Applicants restricted to these states; empty = nationwide. */
+  states: string[]
   eligibilityNote: string | null
   agency: string
   orgId: string | null
@@ -31,7 +33,7 @@ export interface StoredOpportunity {
   awardCeiling: number | null
 }
 
-const COLUMNS = `"id","source","title","kind","audience","eligibility","applicantKinds","partnerKinds","eligibilityNote","agency","orgId","url","postedAt","closesAt","awardCeiling"`
+const COLUMNS = `"id","source","title","kind","audience","eligibility","applicantKinds","partnerKinds","states","eligibilityNote","agency","orgId","url","postedAt","closesAt","awardCeiling"`
 const DAY = 86_400_000
 
 export async function upsertOpportunities(rows: { notice: FundingNotice; orgId: string | null }[]): Promise<number> {
@@ -42,15 +44,15 @@ export async function upsertOpportunities(rows: { notice: FundingNotice; orgId: 
     const ext = x.externalId ?? x.id
     await prisma.$executeRaw`
       INSERT INTO "FundingOpportunity"
-        ("id","source","externalId","title","kind","audience","eligibility","applicantKinds","partnerKinds","eligibilityNote",
+        ("id","source","externalId","title","kind","audience","eligibility","applicantKinds","partnerKinds","states","eligibilityNote",
          "agency","orgId","url","state","postedAt","closesAt","awardCeiling")
       VALUES (${`${x.source}:${ext}`}, ${x.source}, ${ext}, ${x.title}, ${x.kind}, ${audienceOf(x.kind)}, ${x.eligibility ?? 'UNKNOWN'},
-              ${x.applicantKinds ?? []}::text[], ${x.partnerKinds ?? []}::text[], ${x.eligibilityNote ?? null},
+              ${x.applicantKinds ?? []}::text[], ${x.partnerKinds ?? []}::text[], ${x.states ?? []}::text[], ${x.eligibilityNote ?? null},
               ${x.agency}, ${orgId}, ${x.url}, ${x.state}, ${x.postedAt}, ${meaningfulDeadline(x, now)}, ${x.awardCeiling ?? null})
       ON CONFLICT ("source","externalId") DO UPDATE SET
         "title" = EXCLUDED."title", "kind" = EXCLUDED."kind", "audience" = EXCLUDED."audience",
         "eligibility" = EXCLUDED."eligibility", "applicantKinds" = EXCLUDED."applicantKinds",
-        "partnerKinds" = EXCLUDED."partnerKinds", "eligibilityNote" = EXCLUDED."eligibilityNote",
+        "partnerKinds" = EXCLUDED."partnerKinds", "states" = EXCLUDED."states", "eligibilityNote" = EXCLUDED."eligibilityNote",
         "orgId" = COALESCE(EXCLUDED."orgId", "FundingOpportunity"."orgId"),
         "closesAt" = EXCLUDED."closesAt", "awardCeiling" = EXCLUDED."awardCeiling", "lastSeenAt" = CURRENT_TIMESTAMP`
     n++
@@ -74,8 +76,10 @@ export async function listOpenOpportunities(opts: { audience?: 'CUSTOMERS' | 'US
 }
 
 /** The open opportunities an organization of these applicant kinds could apply for, or partner on. */
-export async function opportunitiesForKinds(kinds: ApplicantKind[], opts: { limit?: number; now?: Date } = {}): Promise<StoredOpportunity[]> {
+export async function opportunitiesForKinds(kinds: ApplicantKind[], opts: { state?: string | null; limit?: number; now?: Date } = {}): Promise<StoredOpportunity[]> {
   if (kinds.length === 0) return []
   const all = await listOpenOpportunities({ audience: 'CUSTOMERS', now: opts.now, limit: 500 })
-  return all.filter((o) => matchesOrgKinds({ eligibility: o.eligibility, kinds: o.applicantKinds }, kinds)).slice(0, opts.limit ?? 20)
+  return all
+    .filter((o) => matchesOrgKinds({ eligibility: o.eligibility, kinds: o.applicantKinds }, kinds) && inStateScope(o.states, opts.state))
+    .slice(0, opts.limit ?? 20)
 }

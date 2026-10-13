@@ -80,6 +80,8 @@ export interface FundingNotice {
   partnerKinds?: ApplicantKind[]
   eligibilityNote?: string
   awardCeiling?: number | null
+  /** States applicants are restricted to, read from the eligibility prose; absent/empty = nationwide. */
+  states?: string[]
   contact: { fullName: string; title: string | null; email: string | null; phone: string | null } | null
 }
 
@@ -119,6 +121,8 @@ export function parseUsDate(s: unknown): Date | null {
   if (typeof s !== 'string') return null
   const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(s.trim())
   if (m) return new Date(Date.UTC(+m[3], +m[1] - 1, +m[2]))
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s.trim())
+  if (iso) return new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3]))
   const d = new Date(s)
   return Number.isNaN(d.getTime()) ? null : d
 }

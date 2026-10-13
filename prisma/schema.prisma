@@ -12998,6 +12998,7 @@ model FundingOpportunity {
   eligibility     String
   applicantKinds  String[]  @default([])
   partnerKinds    String[]  @default([])
+  states          String[]  @default([])
   eligibilityNote String?
   agency          String
   orgId           String?

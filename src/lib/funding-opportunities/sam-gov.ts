@@ -6,8 +6,11 @@ import { agencyFromSamPath, parseUsDate, titleScore, type FundingNotice, type No
 // the caller searches by a handful of NAICS codes and filters titles locally.
 const API = 'https://api.sam.gov/opportunities/v2/search'
 
-// o solicitation, k combined synopsis/solicitation, p presolicitation, r sources sought.
-const PTYPES = 'o,k,p,r'
+// The API takes a single ptype letter, so one request per NAICS code would be
+// four times the quota. Ask for everything and keep the notice types we want
+// locally: solicitation, combined synopsis/solicitation, presolicitation,
+// sources sought. Award notices, J&As and surplus sales are dropped here.
+const KEEP_TYPE = /solicitation|presolicitation|sources sought|request for information/i
 
 interface SamOpp {
   noticeId?: string
@@ -34,7 +37,6 @@ export async function searchSam(apiKey: string, ncode: string, from: Date, to: D
   url.searchParams.set('postedFrom', fmt(from))
   url.searchParams.set('postedTo', fmt(to))
   url.searchParams.set('ncode', ncode)
-  url.searchParams.set('ptype', PTYPES)
   url.searchParams.set('limit', '1000')
   const res = await fetch(url, { signal: AbortSignal.timeout(30_000) })
   if (!res.ok) throw new Error(`SAM.gov ${res.status}`) // never echo the URL: it carries the key
@@ -55,6 +57,7 @@ export function noticesFromSam(byNaics: Record<string, SamOpp[]>): FundingNotice
   for (const [ncode, opps] of Object.entries(byNaics)) {
     for (const o of opps) {
       if (!o.noticeId || !o.title || !titleScore(o.title)) continue
+      if (!KEEP_TYPE.test(`${o.type ?? ''} ${o.baseType ?? ''}`) || /award/i.test(o.type ?? '')) continue
       const existing = byId.get(o.noticeId)
       if (existing) {
         existing.matched.push(`NAICS ${ncode}`)

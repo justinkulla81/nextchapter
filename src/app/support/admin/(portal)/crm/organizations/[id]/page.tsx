@@ -50,7 +50,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const inBoardDirectory = org.orgTypes.includes('GOVERNMENT')
     ? Boolean(await prisma.workforceBoard.findFirst({ where: { name: { equals: org.name, mode: 'insensitive' } }, select: { id: true } }).catch(() => null))
     : false
-  const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory })).catch(() => [])
+  const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory }), { state: org.usState }).catch(() => [])
   // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by

@@ -102,7 +102,7 @@ export async function buildFromParams(sp: Params, headshotOrigin?: string): Prom
 
   // Open grants this customer type could pursue. The table is applied by hand, so
   // a missing one just means no funding slide.
-  const funding: FundingInput[] = (await opportunitiesForKinds(kindsForCustomerType(type), { limit: 5 }).catch(() => []))
+  const funding: FundingInput[] = (await opportunitiesForKinds(kindsForCustomerType(type), { limit: 5, state: loaded?.area.state ?? null }).catch(() => []))
     .map((o) => ({ title: o.title, agency: o.agency, closesAt: o.closesAt, eligibility: o.eligibility, url: o.url }))
 
   const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, funding, people })
