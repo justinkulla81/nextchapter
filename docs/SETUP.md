@@ -82,6 +82,9 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 **Cron**
 - `CRON_SECRET` — Vercel Cron sends this as a Bearer token; every `/api/cron/*` route checks it before running
 
+**Funding opportunities (`/api/cron/funding-opportunities`)**
+- `SAM_API_KEY` — optional. Free key from sam.gov (Account Details → API Key). Without it the cron still files Grants.gov grants and skips SAM.gov. A key with no SAM role allows about 10 requests a day, so `SAM_DAILY_REQUESTS` (default 4) caps how many NAICS searches run per day.
+
 **Waitlist**
 - `NEXT_PUBLIC_WAITLIST_ENDPOINT` — empty/unset uses the built-in `/api/waitlist` route (stores to Postgres via `WaitlistSignup`); can be swapped to an external Formspree/Buttondown URL instead
 
@@ -164,6 +167,7 @@ Defined in `vercel.json`, all authenticated via `CRON_SECRET`. All times UTC:
 | `/api/cron/market-reality-snapshot` | Mon 20:20 | Archives that week's Market Reality grade snapshot (well after auto-assign-sprint, so every candidate's week is already set) |
 | `/api/cron/weekly-gap-nudge` | Fri 21:00 | "Close the gap to an A" email |
 | `/api/cron/community-coaching-digest` | Sat 15:00 | Community & Coaching weekly digest |
+| `/api/cron/funding-opportunities` | 10:15 daily | Open federal grants (Grants.gov) and solicitations / RFIs (SAM.gov) in our subject area, filed as a CRM note + deadline on the issuing agency. No LLM call. `?dryRun=1` reports without writing |
 | `/api/cron/market-digest-candidates` | Tue 14:00 | Weekly market digest — candidates |
 | `/api/cron/market-digest-coaches` | Tue 14:30 | Weekly market digest — coaches |
 | `/api/cron/market-digest-recruiters` | Tue 15:00 | Weekly market digest — recruiters |
