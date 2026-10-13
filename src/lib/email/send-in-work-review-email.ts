@@ -7,6 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { buildReviewEmailContent } from '@/lib/in-work/outreach'
 import type { OutreachDecision } from '@/lib/in-work/review-schedule'
 import InWorkReviewEmail from '@/emails/in-work-review'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
 
@@ -76,7 +77,7 @@ export async function sendInWorkReviewEmail(
       firstName: candidate.firstName,
       content,
       appUrl,
-      unsubscribeUrl: `${appUrl}/api/unsubscribe/${candidate.id}?type=inWork`,
+      unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'inWork'),
     }),
   })
 
