@@ -29,7 +29,6 @@ import {
   NEW_JERSEY_FILE,
   parseNewJerseyWarn,
   RHODE_ISLAND_PAGE,
-  resolveRhodeIslandFile,
   parseRhodeIslandWarn,
   type GeosolincRow,
 } from './states'
@@ -100,7 +99,7 @@ function cell(row: string[], i: number): string | null {
  * continuously. The detail sheet's header row is the SECOND row — the first is
  * a title banner — which is why the header is located rather than assumed.
  */
-export function parseCaliforniaWarn(buf: Buffer, sourceUrl: string): WarnRow[] {
+export function parseCaliforniaWarn(buf: Buffer, _sourceUrl: string): WarnRow[] {
   const sheets = readXlsx(buf)
   const detail = sheets.find((s) => s.name.trim().toLowerCase().startsWith('detailed warn'))
   if (!detail) throw new Error('CA WARN: no "Detailed WARN Report" sheet — the file layout may have changed.')

@@ -11,7 +11,7 @@ import 'dotenv/config'
 import { readFileSync, readdirSync, existsSync } from 'fs'
 import path from 'path'
 import { PrismaClient } from '@prisma/client'
-import { countyKey, areaPlaces } from '../../src/lib/workforce/places'
+import { countyKey } from '../../src/lib/workforce/places'
 import { pickBoard } from '../../src/lib/workforce/match'
 
 const prisma = new PrismaClient()

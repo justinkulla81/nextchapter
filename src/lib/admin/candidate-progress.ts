@@ -2,7 +2,6 @@ import 'server-only'
 import { platformBadgeLabel } from '@/lib/platforms/badges'
 import { prisma } from '@/lib/prisma'
 import {
-  computeDossierCompleteness,
   getDossierLadderTier,
   isDossierUnlocked,
   getModuleGateStatus,
