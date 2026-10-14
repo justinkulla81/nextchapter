@@ -4,6 +4,8 @@ import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
+import { NoteSummaryCard } from '@/components/coach/NoteSummaryCard'
+import { DAILY_SUMMARIES_PER_COACH, getNoteSummaryView } from '@/lib/coach/note-summary-service'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { PlatformStagePill } from '@/components/dashboard/platforms/PlatformStagePill'
@@ -33,10 +35,11 @@ export default async function PreSessionBriefPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const [brief, platformActivity] = await Promise.all([
+  const [brief, platformActivity, noteSummary] = await Promise.all([
     getPreSessionBrief(candidate.id),
     // Same consent as the rest of this brief (getCoachClient above).
     getPlatformActivity(candidate.id).then((rows) => rows.filter((r) => !r.dismissed)),
+    getNoteSummaryView(coach.id, candidate.id),
   ])
 
   return (
@@ -55,6 +58,8 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <NoteSummaryCard token={token} clientId={clientId} view={noteSummary.view} sessionsWithNotes={noteSummary.sessionsWithNotes} dailyLimit={DAILY_SUMMARIES_PER_COACH} />
+
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground">Documents</p>
           <p className="mt-1 text-sm text-foreground">Ask {brief.candidateName} for a document, like an offer letter or a signed form, and review it here.</p>

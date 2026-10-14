@@ -1702,6 +1702,7 @@ model CandidateProfile {
   resumeDrafts                ResumeDraft[]
   documentRequests            DocumentRequest[]
   coachBookings               CoachBooking[]
+  coachNoteSummaries          CoachNoteSummary[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -4962,6 +4963,7 @@ model Coach {
   bookingSettings    CoachBookingSettings?
   availability       CoachAvailabilityWindow[]
   bookings           CoachBooking[]
+  noteSummaries      CoachNoteSummary[]
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -14272,4 +14274,37 @@ model CoachBooking {
 
   @@index([coachId, startsAt])
   @@index([candidateId, startsAt])
+}
+
+// ── COACH NOTE SUMMARIES ─────────────────────────────────────────────────────
+// An AI-written summary of one coach's own private session notes on one client,
+// generated only when the coach asks, and cached until a new session is logged. Each
+// call to the model is metered (see CoachNoteSummaryRun and the per-coach daily cap in
+// src/lib/coach/note-summary-service.ts). Coach-only: never shown to the client, and
+// built only from sessions this coach logged, not another coach's.
+model CoachNoteSummary {
+  coachId      String
+  candidateId  String
+  coach        Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  summary      Json // { whereThingsStand, themes[], openCommitments[], watchouts[] }
+  sessionCount Int
+  // Changes whenever the notes it was built from change; a mismatch means the summary is stale.
+  fingerprint  String
+  truncated    Boolean          @default(false)
+  generatedAt  DateTime         @default(now())
+
+  @@id([coachId, candidateId])
+}
+
+// One row per model call, for the daily cap and for cost reporting.
+model CoachNoteSummaryRun {
+  id          String   @id @default(cuid())
+  coachId     String
+  candidateId String
+  inputChars  Int
+  ok          Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([coachId, createdAt])
 }
