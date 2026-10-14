@@ -93,10 +93,6 @@
       "schedule": "0 11 * * *"
     },
     {
-      "path": "/api/cron/company-hiring-index",
-      "schedule": "45 11 * * *"
-    },
-    {
       "path": "/api/cron/funding-opportunities",
       "schedule": "15 10 * * *"
     },

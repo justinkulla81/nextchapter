@@ -158,8 +158,32 @@ export async function rebuildPayBenchmarks(): Promise<{ benchmarks: number; area
  * (the import route); omitted, it covers every row that changed.
  */
 export async function applyMarketPay(urls?: string[]): Promise<{ openings: number; postings: number }> {
-  const scope = urls ? `AND o.url = ANY($1::text[])` : ''
-  const params = urls ? [urls] : []
+  if (urls) return priceOpenings('url', urls)
+  // The whole table in id pages, so no single statement runs into the database's
+  // statement timeout.
+  const total = { openings: 0, postings: 0 }
+  let cursor = ''
+  for (;;) {
+    const page = await prisma.companyJobOpening.findMany({
+      where: { id: { gt: cursor } },
+      orderBy: { id: 'asc' },
+      select: { id: true },
+      take: MARKET_PAGE,
+    })
+    if (page.length === 0) break
+    const r = await priceOpenings('id', page.map((p) => p.id))
+    total.openings += r.openings
+    total.postings += r.postings
+    cursor = page[page.length - 1].id
+  }
+  return total
+}
+
+const MARKET_PAGE = 10_000
+
+async function priceOpenings(key: 'url' | 'id', values: string[]): Promise<{ openings: number; postings: number }> {
+  const scope = `AND o.${key} = ANY($1::text[])`
+  const params = [values]
   const openings = await prisma.$executeRawUnsafe(
     `
     WITH m AS (
@@ -202,7 +226,7 @@ export async function applyMarketPay(urls?: string[]): Promise<{ openings: numbe
       "marketPayLow" = o."marketPayLow", "marketPayMid" = o."marketPayMid", "marketPayHigh" = o."marketPayHigh",
       "marketPayBasis" = o."marketPayBasis", "marketPaySample" = o."marketPaySample", "payVsMarket" = o."payVsMarket"
     FROM "CompanyJobOpening" o
-    WHERE o.url = p.url ${urls ? 'AND o.url = ANY($1::text[])' : 'AND p."archivedAt" IS NULL'}
+    WHERE o.url = p.url ${scope} ${key === 'id' ? 'AND p."archivedAt" IS NULL' : ''}
       AND (p."marketPayMid" IS DISTINCT FROM o."marketPayMid" OR p."marketPayLow" IS DISTINCT FROM o."marketPayLow"
         OR p."marketPayHigh" IS DISTINCT FROM o."marketPayHigh" OR p."marketPayBasis" IS DISTINCT FROM o."marketPayBasis"
         OR p."marketPaySample" IS DISTINCT FROM o."marketPaySample" OR p."payVsMarket" IS DISTINCT FROM o."payVsMarket")
@@ -331,6 +355,14 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
   return written
 }
 
+/** Every company's profile, a few thousand companies per statement. */
+export async function rebuildAllHiringProfiles(pageSize = 3000): Promise<number> {
+  const ids = (await prisma.companyJobOpening.groupBy({ by: ['companyId'] })).map((r) => r.companyId).sort()
+  let written = 0
+  for (let i = 0; i < ids.length; i += pageSize) written += await rebuildHiringProfiles(ids.slice(i, i + pageSize))
+  return written
+}
+
 export async function rebuildHiringIndex() {
   const ms: Record<string, number> = {}
   const timed = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
@@ -346,6 +378,6 @@ export async function rebuildHiringIndex() {
   const closed = await timed('close', () => closeArchivedOpenings())
   const bench = await timed('benchmarks', () => rebuildPayBenchmarks())
   const market = await timed('market', () => applyMarketPay())
-  const profiles = await timed('profiles', () => rebuildHiringProfiles())
+  const profiles = await timed('profiles', () => rebuildAllHiringProfiles())
   return { linked, synced, closed, ...bench, market, profiles, ms }
 }
