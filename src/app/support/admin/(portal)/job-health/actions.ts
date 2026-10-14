@@ -6,8 +6,6 @@ import { invokeCron } from '@/lib/cron/invoke'
 import { RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 import { captureServerEvent } from '@/lib/posthog/server'
 
-export const maxDuration = 300
-
 /** Runs one data-sync job right now. Only jobs that cannot double-send are allowed. */
 export async function runJobNow(formData: FormData) {
   await requireAdmin()
