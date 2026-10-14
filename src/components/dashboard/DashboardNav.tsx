@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import {
   Home,
+  FileText,
   Compass,
   Briefcase,
   Users,
@@ -101,6 +102,7 @@ function buildSections(
   isActiveMember: boolean,
   helpRepliesWaiting: number,
   newStrongCompaniesCount: number,
+  documentRequestCount: number,
   showInWork: boolean
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
@@ -209,6 +211,7 @@ function buildSections(
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/documents', label: 'Documents', icon: FileText, badge: documentRequestCount > 0 ? String(documentRequestCount) : undefined },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
         { href: '/dashboard/membership', label: 'Membership', icon: Award },
       ],
@@ -281,6 +284,7 @@ function NavContent({
   isActiveMember,
   helpRepliesWaiting,
   newStrongCompaniesCount,
+  documentRequestCount,
   showInWork,
   collapsedSections,
   onToggleSection,
@@ -299,6 +303,7 @@ function NavContent({
   isActiveMember: boolean
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
+  documentRequestCount: number
   showInWork: boolean
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
@@ -317,6 +322,7 @@ function NavContent({
     isActiveMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
+    documentRequestCount,
     showInWork
   )
 
@@ -460,6 +466,7 @@ export function DashboardNav({
   isActiveMember = false,
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
+  documentRequestCount = 0,
   showInWork = false,
 }: {
   portfolioAssetCount?: number
@@ -474,6 +481,7 @@ export function DashboardNav({
   isActiveMember?: boolean
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
+  documentRequestCount?: number
   showInWork?: boolean
 }) {
   const pathname = usePathname()
@@ -523,6 +531,7 @@ export function DashboardNav({
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
+          documentRequestCount={documentRequestCount}
           showInWork={showInWork}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
@@ -631,6 +640,7 @@ export function DashboardNav({
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
+              documentRequestCount={documentRequestCount}
           showInWork={showInWork}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}

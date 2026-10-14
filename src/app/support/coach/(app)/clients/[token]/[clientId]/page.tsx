@@ -56,6 +56,14 @@ export default async function PreSessionBriefPage({
 
       <div className="space-y-5">
         <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-muted-foreground">Documents</p>
+          <p className="mt-1 text-sm text-foreground">Ask {brief.candidateName} for a document, like an offer letter or a signed form, and review it here.</p>
+          <Link href={`/support/coach/clients/${token}/${clientId}/documents`} className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Open documents
+          </Link>
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {brief.executionGrade ? (

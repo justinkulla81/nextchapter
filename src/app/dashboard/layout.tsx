@@ -4,6 +4,7 @@ import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
@@ -60,6 +61,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     activeMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
+    documentRequestCount,
     resumeCount,
     coverLetterCount,
     marketRealityReportCount,
@@ -80,6 +82,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     isActiveMember(profileId),
     getHelpRepliesWaiting(profileId),
     getNewStrongCompaniesCountForBadge(profileId),
+    countOpenRequestsForCandidate(profileId),
     // Counts, not the wide profile: the nav badge only needs how many of each exist.
     prisma.resume.count({ where: { candidateId: profileId } }),
     prisma.jobPosting.count({ where: { candidateId: profileId, AND: [{ coverLetter: { not: null } }, { coverLetter: { not: '' } }] } }),
@@ -129,6 +132,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       isActiveMember={activeMember}
       helpRepliesWaiting={helpRepliesWaiting}
       newStrongCompaniesCount={newStrongCompaniesCount}
+      documentRequestCount={documentRequestCount}
       showInWork={isInWorkMember(profile)}
     />
     {/* Help & feedback, in the corner of every portal page. */}

@@ -1700,6 +1700,7 @@ model CandidateProfile {
   benefitsNetworkCompletions  BenefitsNetworkCompletion[]
   occupation                  CandidateOccupation?
   resumeDrafts                ResumeDraft[]
+  documentRequests            DocumentRequest[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -14171,4 +14172,48 @@ model ResumeDraft {
   updatedAt      DateTime         @updatedAt
 
   @@index([candidateId, updatedAt])
+}
+
+// ── REQUESTED DOCUMENTS ──────────────────────────────────────────────────────
+// Someone with a reason to ask (today a coach, for their client) requests a
+// document; the candidate uploads it; the requester accepts it or asks for
+// changes. One model for the whole flow so new requesters (an institution's
+// career office, an outplacement employer) reuse it instead of adding another
+// upload table. Files live in the private 'requested-documents' storage bucket
+// under {candidateId}/{requestId}/..., reached only through short-lived signed
+// URLs after an ownership check. Existing one-off uploads (resume, work samples,
+// offer letters) are not migrated into this.
+model DocumentRequest {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Who asked. requesterId is a bare id (no FK) because the requester lives in
+  // different tables per type, like other cross-portal ids in this schema.
+  requesterType  String // COACH | INSTITUTION | EMPLOYER | ADMIN
+  requesterId    String
+  // Name shown to the candidate, captured when the request was made.
+  requesterLabel String
+
+  title          String
+  instructions   String?          @db.Text
+  dueAt          DateTime?
+
+  // REQUESTED | UPLOADED | ACCEPTED | NEEDS_CHANGES | CANCELLED
+  status         String           @default("REQUESTED")
+
+  filePath       String?
+  fileName       String?
+  contentType    String?
+  sizeBytes      Int?
+  uploadedAt     DateTime?
+
+  reviewedAt     DateTime?
+  reviewNote     String?          @db.Text
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId, status])
+  @@index([requesterType, requesterId, status])
 }

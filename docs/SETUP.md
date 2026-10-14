@@ -106,6 +106,7 @@ All buckets are accessed server-side via the service-role client (`admin.storage
 | `avatars` | Profile pictures across all 4 portals |
 | `coach-logos` | Coach white-label branding upload (Coach Settings) |
 | `offer-letters` | Got-hired bounty claim offer-letter proof (`BountyClaim.offerLetterUrl`) — private |
+| `requested-documents` | Documents a coach (later an institution or employer) asks a candidate for — **private**, signed URLs only, after an ownership check. Create it by hand; see `prisma/manual/2026-10-14-document-requests.sql` |
 | `crucible-resumes` | Crucible teaser resume uploads (research dataset only, never scored) — private |
 
 ## Local development
