@@ -16,6 +16,8 @@ import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
+import type { JobMatch } from '@/lib/jobs/job-match-types'
+import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -166,6 +168,8 @@ export function DiscoverJobCard({
   competition,
   contacts,
   skillGap,
+  match,
+  explainGapsEnabled,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
@@ -173,6 +177,10 @@ export function DiscoverJobCard({
   competition?: CompetitionScore
   contacts?: JobContacts
   skillGap?: JobSkillGap
+  /** Per-member match and gaps (job-match.ts), computed server-side for the jobs shown. */
+  match?: JobMatch
+  /** Phase 2 "Explain my gaps" — off unless JOB_GAPS_EXPLAIN_ENABLED. */
+  explainGapsEnabled?: boolean
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -203,28 +211,32 @@ export function DiscoverJobCard({
         })
       }}
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-        <span className="min-w-0">
-          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
-            <span className="truncate text-sm text-muted-foreground">
-              {confidential ? 'Confidential search' : `at ${posting.companyName}`}
+      <summary className="block cursor-pointer list-none px-4 py-3">
+        <span className="flex items-center justify-between gap-3">
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
+              <span className="truncate text-sm text-muted-foreground">
+                {confidential ? 'Confidential search' : `at ${posting.companyName}`}
+              </span>
             </span>
+            {/* The edge, visible without opening the card. */}
+            <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
           </span>
-          {/* The edge, visible without opening the card. */}
-          <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
+          <span className="flex shrink-0 items-center gap-2">
+            {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
+            <LowCompetitionBadge competition={competition} />
+            {posting.payVsMarket && (
+              <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
+            )}
+            <SeniorityBadge level={posting.level} />
+            {idealMatch && <IdealMatchBadge />}
+            <FitBadge bucket={fitBucket} />
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+          </span>
         </span>
-        <span className="flex shrink-0 items-center gap-2">
-          {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
-          <LowCompetitionBadge competition={competition} />
-          {posting.payVsMarket && (
-            <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
-          )}
-          <SeniorityBadge level={posting.level} />
-          {idealMatch && <IdealMatchBadge />}
-          <FitBadge bucket={fitBucket} />
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-        </span>
+        {/* Full width under the title row, so the chips never squeeze the title. */}
+        {match && <JobMatchLine match={match} />}
       </summary>
       <div className="space-y-3 px-4 pb-4">
         <p className="text-sm text-muted-foreground">
@@ -250,7 +262,9 @@ export function DiscoverJobCard({
         <p className="text-sm text-foreground">
           <span className="font-medium">Your edge:</span> {edgeTip(posting)}
         </p>
-        {skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
+        {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
+        {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
+        {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} />}
         {contacts && <WhoToContact contacts={contacts} />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">

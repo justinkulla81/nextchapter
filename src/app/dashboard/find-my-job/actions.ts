@@ -17,6 +17,8 @@ import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
+import { explainGaps, isExplainGapsEnabled, type ExplainGapsResult } from '@/lib/jobs/explain-gaps'
+import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
 import { isPoorFitApplication } from '@/lib/scoring/market-reality/attempts'
 import {
   applyInterviewLandedRewrite,
@@ -917,5 +919,28 @@ export async function draftJobCoverNote(postingId: string): Promise<CoverNoteRes
   if (!profile) return { ok: false, error: 'Sign in again to draft a cover note.' }
   const result = await draftCoverNote(profile.id, postingId)
   if (result.ok) captureServerEvent(profile.id, 'job_cover_note_drafted', { postingId, reused: result.reused })
+  return result
+}
+
+// PHASE 2 (off by default): a short LLM write-up of one job's match and gaps, on click.
+// Refuses before touching the database unless JOB_GAPS_EXPLAIN_ENABLED=true — see explain-gaps.ts.
+export async function explainJobGaps(postingId: string): Promise<ExplainGapsResult> {
+  if (!isExplainGapsEnabled()) return { ok: false, error: 'This feature is not available yet.' }
+  const profile = await getAuthedProfile()
+  if (!profile) return { ok: false, error: 'Sign in again to see this explanation.' }
+  const posting = await prisma.exclusiveJobPosting.findUnique({
+    where: { id: postingId },
+    include: { company: { select: { sizeBand: true, ownershipType: true } } },
+  })
+  if (!posting) return { ok: false, error: 'That job could not be found.' }
+  const job = toMatchJob(posting, posting.company)
+  const confidential = posting.disclosure === 'CONFIDENTIAL'
+  const result = await explainGaps(profile.id, postingId, {
+    title: posting.title,
+    company: confidential ? null : posting.companyName,
+    excerpt: job.description,
+    match: matchJobToCandidate(profile, job),
+  })
+  if (result.ok) captureServerEvent(profile.id, 'job_gaps_explained', { postingId, reused: result.reused })
   return result
 }

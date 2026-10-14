@@ -90,6 +90,8 @@ import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
+import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
+import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 
 export const metadata: Metadata = { title: 'Find a Full-time Job' }
@@ -345,7 +347,23 @@ async function JobRecommendationsSection({
     if (p.distribution !== 'TARGETED') return true
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
-  const contactsByPosting = await loadJobContacts(visibleBoardPostings, profile.id)
+  // Company ownership (public / PE / VC) for the culture read — one query for the jobs shown.
+  const companyIds = [...new Set(visibleBoardPostings.map((p) => p.companyId).filter((id): id is string => !!id))]
+  const [contactsByPosting, companies] = await Promise.all([
+    loadJobContacts(visibleBoardPostings, profile.id),
+    companyIds.length > 0
+      ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true } })
+      : Promise.resolve([]),
+  ])
+  const companyById = new Map(companies.map((c) => [c.id, c]))
+  // Per-job match and gaps (skills, culture, salary, goals, working style) — rules only, no AI.
+  const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    return matchJobToCandidate(
+      profile,
+      toMatchJob(p, { sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName), ownershipType: company?.ownershipType ?? null })
+    )
+  }
   // Per-job skills gap, from the job's own description only.
   const memberKeywords = memberSkillKeywords(profile)
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
@@ -424,6 +442,8 @@ async function JobRecommendationsSection({
                           competition={competitionFor(posting)}
                           contacts={contactsByPosting.get(posting.id)}
                           skillGap={skillGapFor(posting)}
+                          match={matchFor(posting)}
+                          explainGapsEnabled={isExplainGapsEnabled()}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
                         />
