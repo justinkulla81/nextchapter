@@ -36,8 +36,12 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec â€
 
 ## Safety / Fake-job detection
 
-- Fake-recruiter and fake-job alerts, delivered fast. Trigger: a real fake Optavise "CIO interview" recruiter email reached the founder's inbox and nothing flagged it; a separate assistant (Instinct) caught it by comparing domains: the email came from `ourrecruitingteam.org` and the booking link pointed to `usweb04.org`, and neither belongs to Optavise, whose real careers page is `optavise.avature.net`. The same check is cheap to build: for any inbound recruiter/interview email, (1) extract the sender domain and every link domain, (2) compare against the company's known careers/ATS domains (job-board postings and employer records we already hold), (3) flag lookalike or unrelated domains, generic-mailbox senders, urgency ("book before X"), and requests for personal info or payments. Delivery requirement: a flagged email should send the candidate a rapid-response alert email within minutes (not the daily digest), saying what's fake, why, and what to do (don't book, don't reply, don't enter info; here's the real careers page). Build on the Gmail ingestion pattern in `src/app/api/google/oauth/` and the inbound-email idea under Job Search Tools.
-- When the app ships this, the alert should come from Vic (Victoria, the Executive Coach, `src/lib/victoria.ts`), in her voice, so candidates hear "Vic is warning you about this" rather than a system notice.
+*(Built: Scam watch. Detector in `src/lib/scam-shield/`, hooked into the Gmail sync, rapid-response email from Vic, `/dashboard/scam-watch`, public page `/scam-watch`, 10-minute `scam-watch` cron.)* Still not built:
+
+- True real-time alerts. Today the check runs on a 10-minute cron over Gmail. Gmail push notifications (Pub/Sub watch) would cut that to seconds but need a Google Cloud topic and webhook.
+- Compare against real company domains. The detector reads the claimed company from the email and checks the domains against it. A verified company-domain directory (see "Real company-email-domain verification" below) would make the match certain instead of heuristic.
+- Check job postings, not just email: flag a scam listing on the job board or in the tracker the same way.
+- Tune from feedback: review `scam_alert_marked_legit` events in PostHog to loosen rules that cry wolf.
 
 ## Dashboard
 
