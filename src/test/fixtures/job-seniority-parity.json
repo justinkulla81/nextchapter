@@ -3336,8 +3336,8 @@
 ],
 [
 "LA General Superintendent",
-"C_SUITE",
-100
+"OTHER",
+0
 ],
 [
 "Assistant Manager, Air Operations (Gurugram)",
@@ -3751,8 +3751,8 @@
 ],
 [
 "MPC Superintendent",
-"C_SUITE",
-100
+"OTHER",
+0
 ],
 [
 "Head of People Partners, R&D",
@@ -10306,8 +10306,8 @@
 ],
 [
 "Assistant Superintendent",
-"DIRECTOR",
-68
+"OTHER",
+0
 ],
 [
 "Associate Dean of Students",
@@ -10531,6 +10531,36 @@
 ],
 [
 "Account Executive, AI",
+"OTHER",
+0
+],
+[
+"Manager, External Manufacturing (CMO)",
+"MANAGER",
+40
+],
+[
+"CMO Quality Manager, Pharma",
+"MANAGER",
+40
+],
+[
+"Superintendent - Kiewit Foundations District",
+"OTHER",
+0
+],
+[
+"Assistant Superintendent of Schools",
+"DIRECTOR",
+68
+],
+[
+"Superintendent of Schools",
+"C_SUITE",
+100
+],
+[
+"Electrical Superintendent - Data Center",
 "OTHER",
 0
 ]

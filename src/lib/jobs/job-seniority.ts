@@ -58,6 +58,10 @@ export function classifyTitleRung(rawTitle: string | null | undefined): { rung: 
 
 function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
   if (!rawTitle) return { rung: 'OTHER', rank: 0 }
+  // In manufacturing, CMO/CDMO means a contract manufacturer, not a CMO.
+  if (/manufactur|\bcdmo\b|contract\s+(development|manufactur)|\bpharma/i.test(rawTitle)) {
+    rawTitle = rawTitle.replace(/\(?\b(cmo|cdmo|cmos|cdmos)\b\)?/gi, ' ').trim()
+  }
   // Classify the role, not the person it reports to.
   const title = stripReportingRef(rawTitle)
   if (BOARD.test(title)) return { rung: 'BOARD', rank: 95 }
