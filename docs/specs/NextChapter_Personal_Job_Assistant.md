@@ -1,6 +1,6 @@
 # NextChapter — Personal Job Assistant
 
-Version 0.2 — design draft. Working name: **NextChapter Assistant**; the persona is Victoria. Not built yet.
+Version 0.3 — design draft. The assistant is **Vic** (the short name Victoria already uses in daily emails), and **it is free to every candidate.** Not built yet.
 
 v0.1 treated the assistant as a lighter client over the portal. That undersells it. This version starts from what a *personal agent* can do that a portal structurally cannot, and from the five outcomes that matter to a candidate: **a job, learning, network, work, money.**
 
@@ -87,14 +87,16 @@ Push (PWA) and email reply first; browser extension (candidate-scoped capture to
 
 ## 7. Business models it unlocks
 
+Because the assistant is free, every dollar comes from someone other than the candidate. The free assistant is also the distribution: it feeds the paid B2B products and the employer-side marketplace.
+
 The portal's model is B2B: employers, colleges, workforce boards, outplacement. The assistant adds revenue that doesn't depend on a sale to an organization first.
 
 | Model | Who pays | How | Fit and risk |
 |---|---|---|---|
 | **Outplacement that doesn't expire** | Employers, colleges, workforce boards | Per-seat on layoff or enrollment, candidate keeps the assistant afterward | Directly hits LHH's "nothing durable for the candidate" weakness (Competitive Strategy). Low risk. **Lead here.** |
 | **Outcome-linked seats** | Employers, boards | Part of the fee tied to verified placement and retention (the product already has outcome benchmarks) | Strong for government buyers; needs trusted measurement; slower cash |
-| **Consumer subscription** | Candidate | Free core, paid for higher autonomy, more drafts, voice, coach review | Unemployed users are price-sensitive; keep the useful core free. Stripe isn't built. |
-| **Assistant + human coach tier** | Candidate or sponsor | Assistant does the volume; a coach reviews weekly | Lets coaches serve far more clients; margin story |
+| ~~Consumer subscription~~ | — | **Dropped: the assistant is free.** No paywalled autonomy, drafts, or voice. | Decision made; removes the Stripe dependency for v1. |
+| **Assistant + human coach tier** | Sponsor (employer, college, board), or the candidate buying a coach as today | Assistant does the volume; a coach reviews weekly | Lets coaches serve far more clients; margin story |
 | **Permissioned inbound for recruiters** | Recruiters, employers | Pay to reach candidates who opted in; assistant screens and the candidate only sees fits | New revenue and better candidate experience. Must never sell contact data or rank by who pays. |
 | **Introduction fees** | Employers | Per accepted intro/hire (`BountyClaim`, `JobBoardIntroRequest` exist) | Already half-built; keep the fee paid by the employer, never the candidate |
 | **Funded learning and aid referrals** | Training providers, funders | Providers or funders pay for qualified enrollments | **Highest conflict risk:** a vulnerable user must see the best-fit option, not the best-paying one. Disclose, never sort by payout. |
@@ -149,12 +151,27 @@ Measures that matter: draft sent-unedited rate (trust), time from interview invi
 5. **Interview-day mode** (brief, voice debrief) and offer review.
 6. Pricing experiments: employer seats first; consumer tier only after.
 
-## 12. Open decisions
+## 12. Decisions
 
-1. **Which pillar leads?** Recommend Job and Money first: Job proves the loop; Money is the differentiator with the buyer (boards, outplacement).
-2. **Money scope:** navigation and deadlines only, or also pre-filling applications? Pre-filling raises liability and data handling.
-3. **Recruiter-pays model:** are we willing to put a paid inbound channel next to a free candidate product, given the neutrality risk?
-4. **Coach tier:** does the existing coach marketplace want assistant-leveraged coaching, or does it threaten their book?
-5. **Autonomy ceiling:** is level 4 in v1 at all, or only after we have measured draft-unedited rates?
-6. **Name:** keep "NextChapter Assistant" or lead with Victoria?
-7. **Evidence plan:** pre-register the assistant-vs-portal-only comparison before launch so we can honestly claim outcomes.
+**Made**
+- The assistant is free to candidates. Revenue comes from employers, colleges, boards and recruiters (§7).
+- **Lead with Job and Money.** Job proves the daily loop; Money is what buyers cannot get elsewhere.
+- **Name: Vic.** See §13.
+- **Autonomy ceiling for v1: level 3** (one-tap approval). Level 4 (acts alone) is limited to rule-bound, reversible actions: auto-declining recruiter outreach that fails the candidate's own written criteria, and adding calendar holds. Widen only after draft sent-unedited rate and undo rate are measured.
+- **Money scope for v1: navigation, deadlines and checklists only.** No pre-filling government or benefit applications until we have a data-handling and liability review.
+- **Recruiter channel: proceed, with a neutrality rule.** Recruiters pay to reach candidates who opted in; payment never affects ranking or what the candidate sees first; candidates can mute any recruiter; no contact data is sold.
+
+**Still open**
+1. Does the existing coach marketplace want assistant-leveraged coaching, or does it threaten their book?
+2. Pre-register the assistant vs. portal-only outcome comparison before launch.
+3. Native apps: the PWA ships first; revisit native iOS/Android if push reliability or store presence matters.
+
+## 13. Naming
+
+The long form ("Victoria, the NextChapter AI Personal Assistant") is a description, not a name. Use one word in the product.
+
+- **Vic (recommended):** already how Victoria signs daily emails and quick encouragement, so no new brand to teach. "Ask Vic", "Vic drafted a follow-up", "Vic found 3 benefits". Victoria stays for formal moments (grade reports, hard truths), as `getVictoriaName()` already does.
+- Victoria: more formal and trustworthy for money topics, but long for push notifications.
+- Chapter / Next: product-ish rather than a person, and weaker on the relationship the memory is built on.
+
+Always disclose that Vic is AI, as the current persona does. Checks still needed: trademark and app-store name clearance, and confirm "Vic" in `IDEAS.md` (the homepage video note) doesn't refer to a real person who would be confused with the assistant.
