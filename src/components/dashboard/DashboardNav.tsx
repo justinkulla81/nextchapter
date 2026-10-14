@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import {
   Home,
+  Compass,
   Briefcase,
   Users,
   User,
@@ -197,6 +198,7 @@ function buildSections(
           : []),
         { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
+        { href: '/dashboard/pivot', label: 'Explore other roles', icon: Compass },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],

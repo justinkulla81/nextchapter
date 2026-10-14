@@ -1698,6 +1698,7 @@ model CandidateProfile {
   // see BenefitsNetworkCompletion's own comment for the hard rule that this
   // must never be read by computeDossierCompetencies/computeCategoryGrades.
   benefitsNetworkCompletions  BenefitsNetworkCompletion[]
+  occupation                  CandidateOccupation?
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -14009,4 +14010,102 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// ── CAREER TAXONOMY (O*NET + BLS) ────────────────────────────────────────────
+// Public, government-maintained occupation and skills data — O*NET (US Dept.
+// of Labor, CC BY 4.0) for what each occupation requires, BLS OEWS and
+// Employment Projections for pay and growth. Loaded by scripts/careers/*,
+// never written by the app. Keyed by O*NET-SOC code ("13-2011.00"); the first
+// seven characters are the 2018 SOC code every government system uses.
+// Setup and sources: docs/CAREER_TAXONOMY.md. Table DDL: prisma/manual/2026-10-14-career-taxonomy.sql.
+model Occupation {
+  socCode          String   @id
+  title            String
+  description      String   @db.Text
+  // O*NET Job Zone 1-5: how much preparation the work needs. Used to keep a
+  // senior candidate's pivots at a comparable level.
+  jobZone          Int?
+  // BLS OEWS national estimates. Null where BLS suppresses or top-codes.
+  medianWage       Int? // annual USD
+  employment       Int?
+  wageYear         Int?
+  // BLS Employment Projections.
+  growthPct        Float? // projected % change over the projection period
+  annualOpenings   Int?
+  projectionPeriod String? // "2024-34"
+  typicalEducation String?
+  onetVersion      String?
+  updatedAt        DateTime @updatedAt
+
+  skills        OccupationSkill[]
+  altTitles     OccupationAltTitle[]
+  relatedFrom   OccupationRelated[]  @relation("OccupationRelatedFrom")
+  relatedTo     OccupationRelated[]  @relation("OccupationRelatedTo")
+  candidates    CandidateOccupation[]
+
+  @@index([title])
+}
+
+// One row per O*NET skill, knowledge area or technology/tool.
+model Skill {
+  id          String @id // "skill:2.A.1.a", "knowledge:2.C.1.a", "tech:salesforce"
+  name        String
+  kind        String // SKILL | KNOWLEDGE | TECHNOLOGY
+  occupations OccupationSkill[]
+
+  @@index([kind])
+}
+
+model OccupationSkill {
+  socCode    String
+  skillId    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  // O*NET ratings rescaled to 0-100. Technology rows have no level.
+  importance Float
+  level      Float?
+  hotTech    Boolean    @default(false)
+
+  @@id([socCode, skillId])
+  @@index([skillId])
+}
+
+model OccupationAltTitle {
+  id              String     @id @default(cuid())
+  socCode         String
+  occupation      Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  title           String
+  titleNormalized String
+
+  @@unique([socCode, titleNormalized])
+  @@index([titleNormalized])
+}
+
+// O*NET's own curated "related occupations" list.
+model OccupationRelated {
+  socCode        String
+  relatedSocCode String
+  occupation     Occupation @relation("OccupationRelatedFrom", fields: [socCode], references: [socCode], onDelete: Cascade)
+  related        Occupation @relation("OccupationRelatedTo", fields: [relatedSocCode], references: [socCode], onDelete: Cascade)
+  tier           String // O*NET relatedness tier
+  rank           Int
+
+  @@id([socCode, relatedSocCode])
+}
+
+// Which occupation a candidate's most recent job maps to. A cache of a
+// deterministic title match or of the candidate choosing from a short list.
+// There is no metered AI path: an ambiguous title is never guessed at.
+model CandidateOccupation {
+  candidateId String           @id
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  socCode     String
+  occupation  Occupation       @relation(fields: [socCode], references: [socCode])
+  source      String // TITLE_EXACT | TITLE_FUZZY | FUNCTION_PROXY | CANDIDATE_CONFIRMED
+  confidence  Float
+  matchedFrom String // the title text that was matched
+  matchedAt   DateTime         @default(now())
+
+  @@index([socCode])
 }

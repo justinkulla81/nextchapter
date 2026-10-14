@@ -61,7 +61,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Engagement / Gamification (not built)
 
-- **Pivot Tool** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
+- **Pivot Tool (built 2026-10-14 as `/dashboard/pivot`, see docs/CAREER_TAXONOMY.md; the Victoria-initiated prompt after a stuck period is not built)** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
 - **Accountability partners** — opt-in peer pairing by function/level/week-in-search, with an anti-ghost mechanism (48-hour confirmation to activate the pairing, auto-dissolve after 2 missed check-ins, clean rematch). Distinct from the existing Support Network (which is the candidate's own personal contacts) — this would be candidate-to-candidate pairing within NextChapter.
 - **Opt-in leaderboard** — anonymized, opt-in ranking by function or cohort. Would need enough active candidates in a given function/cohort to be meaningful rather than exposing individuals.
 

@@ -3,6 +3,9 @@ import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
+import { getTaxonomy } from '@/lib/careers/taxonomy'
+import { resolveCandidateOccupation, occupationForRoleText } from '@/lib/careers/candidate-occupation'
+import { buildSkillGapGrounding, groundingPromptBlock, type SkillGapGrounding } from '@/lib/careers/grounding'
 
 export interface SkillGapSuggestions {
   // Skills a candidate at this level/function typically has that this
@@ -56,8 +59,8 @@ interface SkillGapProfile {
 // target role, or new target industries. Order-independent so re-saving
 // the same tags/industries in a different order doesn't trigger a
 // pointless (metered) regeneration.
-function computeFingerprint(profile: SkillGapProfile): string {
-  return [
+function computeFingerprint(profile: SkillGapProfile, grounding: SkillGapGrounding | null): string {
+  const base = [
     [...profile.resumeKeywords].sort().join('|'),
     profile.primaryFunction ?? '',
     profile.targetRoleType ?? '',
@@ -67,9 +70,31 @@ function computeFingerprint(profile: SkillGapProfile): string {
     [...profile.growthAreas].sort().join('|'),
     [...profile.confirmedSkillsHave].sort().join('|'),
   ].join('::')
+  // Only when the career taxonomy is loaded, so candidates' cached suggestions
+  // aren't invalidated (and re-bought) before there is anything to ground them in.
+  return grounding ? `${base}::onet:${grounding.key}` : base
 }
 
-async function generateViaLLM(profile: SkillGapProfile): Promise<SkillGapSuggestions | null> {
+// The target occupation is the one their stated target role maps to, else the
+// occupation of their latest job. Deterministic and free: no model call.
+async function loadGrounding(profile: SkillGapProfile): Promise<SkillGapGrounding | null> {
+  try {
+    const taxonomy = await getTaxonomy()
+    if (!taxonomy) return null
+    const current = await resolveCandidateOccupation(profile.id)
+    const sourceSoc = current.status === 'resolved' ? current.socCode : null
+    const targetSoc = (await occupationForRoleText(profile.targetRoleType)) ?? sourceSoc
+    const target = targetSoc ? taxonomy.profiles.get(targetSoc) : undefined
+    if (!target) return null
+    const source = sourceSoc ? taxonomy.profiles.get(sourceSoc) ?? null : null
+    return buildSkillGapGrounding(source, target, [...profile.resumeKeywords, ...profile.confirmedSkillsHave])
+  } catch (error) {
+    console.error('Skill gap grounding failed for', profile.id, error)
+    return null
+  }
+}
+
+async function generateViaLLM(profile: SkillGapProfile, grounding: SkillGapGrounding | null): Promise<SkillGapSuggestions | null> {
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
@@ -95,6 +120,7 @@ Skills they've confirmed they already have (never suggest these): ${profile.conf
 Skills they've already picked to build: ${profile.skillsToBuild.length > 0 ? profile.skillsToBuild.join(', ') : 'none yet'}
 Self-identified strengths (already strong — don't suggest these): ${profile.topStrengths.length > 0 ? profile.topStrengths.join(', ') : 'none specified'}
 Self-identified growth areas (a real signal for what's worth suggesting, but only if it translates to a concrete skill/tool/credential — not a personality trait): ${profile.growthAreas.length > 0 ? profile.growthAreas.join(', ') : 'none specified'}
+${grounding ? groundingPromptBlock(grounding) : ''}
 
 Return three lists, up to 6 items each:
 - resumeGaps: skills someone at this candidate's level/function typically has that their resume doesn't show
@@ -134,13 +160,21 @@ export async function getOrGenerateSkillGapSuggestions(candidateId: string): Pro
     },
   })
 
-  const fingerprint = computeFingerprint(profile)
+  const grounding = await loadGrounding(profile)
+  const fingerprint = computeFingerprint(profile, grounding)
   if (profile.skillGapSuggestions && profile.skillGapSuggestionsFingerprint === fingerprint) {
     return profile.skillGapSuggestions as unknown as SkillGapSuggestions
   }
 
-  const generated = await generateViaLLM(profile)
-  if (!generated) return null
+  const generated = await generateViaLLM(profile, grounding)
+  if (!generated) {
+    // The model call failed. If O*NET named concrete tools for the target role,
+    // show those rather than nothing. Not cached, so the next visit retries.
+    if (grounding && grounding.tools.length > 0) {
+      return { resumeGaps: [], roleGaps: grounding.tools.slice(0, 6), modernSkills: [] }
+    }
+    return null
+  }
 
   await prisma.candidateProfile.update({
     where: { id: candidateId },
