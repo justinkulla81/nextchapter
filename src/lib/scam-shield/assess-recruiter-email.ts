@@ -66,7 +66,7 @@ export const SUSPICIOUS_THRESHOLD = 30
 
 const NONE: ScamAssessment = { level: 'none', score: 0, claimedCompany: null, flaggedDomains: [], signals: [] }
 
-const FREE_MAIL = new Set([
+export const FREE_MAIL = new Set([
   'gmail.com', 'googlemail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com', 'icloud.com', 'aol.com',
   'proton.me', 'protonmail.com', 'mail.com', 'gmx.com', 'yandex.com', 'zoho.com',
 ])
@@ -74,7 +74,7 @@ const FREE_MAIL = new Set([
 // Real employers legitimately send candidates to these: ATS, scheduling,
 // video, and identity hosts. A link here says nothing about the company, so
 // it is neither a match nor a mismatch.
-const TRUSTED_HOSTS = new Set([
+export const TRUSTED_HOSTS = new Set([
   'greenhouse.io', 'greenhouse-mail.io', 'lever.co', 'myworkday.com', 'myworkdayjobs.com', 'ashbyhq.com',
   'smartrecruiters.com', 'linkedin.com', 'lnkd.in', 'indeed.com', 'workablemail.com', 'workable.com', 'icims.com',
   'bamboohr.com', 'comeet.co', 'jobvite.com', 'breezy.hr', 'applytojob.com', 'recruitee.com', 'teamtailor.com',
@@ -84,7 +84,7 @@ const TRUSTED_HOSTS = new Set([
   'glassdoor.com', 'ziprecruiter.com', 'wellfound.com', 'dice.com', 'monster.com', 'usajobs.gov',
 ])
 
-const SUSPICIOUS_TLDS = new Set(['xyz', 'top', 'click', 'icu', 'shop', 'cfd', 'sbs', 'rest', 'buzz', 'cyou', 'monster', 'gq', 'tk', 'ml', 'ga', 'cf'])
+export const SUSPICIOUS_TLDS = new Set(['xyz', 'top', 'click', 'icu', 'shop', 'cfd', 'sbs', 'rest', 'buzz', 'cyou', 'monster', 'gq', 'tk', 'ml', 'ga', 'cf'])
 
 // Words added to a real brand to make a lookalike ("optavise-careers.com").
 const LOOKALIKE_FILLER = /(careers?|jobs?|hiring|talent|recruit(?:ing|ment|ers?)?|hr|apply|portal|team|staff(?:ing)?)/
@@ -93,18 +93,18 @@ const JOB_CONTEXT = /\b(recruit(?:er|ing|ment)?|interview|position|role|opportun
 
 const AGENCY_STYLE = /\b(on behalf of|our client|my client|representing a|retained (?:by|search)|search firm|staffing)\b/i
 
-const URGENCY = /\b(time[- ]sensitive|act (?:now|fast|immediately)|immediately|urgent(?:ly)?|within (?:the next )?\d+ ?(?:hours?|hrs?|minutes?)|by (?:end of day|tonight|tomorrow)|before you book|expires? (?:today|soon|tonight)|last chance|respond (?:asap|today))\b/i
+export const URGENCY = /\b(time[- ]sensitive|act (?:now|fast|immediately)|immediately|urgent(?:ly)?|within (?:the next )?\d+ ?(?:hours?|hrs?|minutes?)|by (?:end of day|tonight|tomorrow)|before you book|expires? (?:today|soon|tonight)|last chance|respond (?:asap|today))\b/i
 
-const SENSITIVE_INFO =
+export const SENSITIVE_INFO =
   /\b(social security|ssn|bank account|routing number|account number|direct deposit|debit card|credit card|passport|driver'?s licen[sc]e|copy of your id|photo of your id|government[- ]issued id|date of birth)\b/i
 
-const MONEY_REQUEST =
+export const MONEY_REQUEST =
   /\b(gift cards?|cashier'?s check|wire transfer|western union|bitcoin|crypto(?:currency)?|zelle|processing fee|training fee|registration fee|background check fee|application fee|starter kit|pay for (?:your )?(?:equipment|training|software|laptop)|purchase (?:your )?(?:own )?(?:equipment|laptop|software)|reimburse(?:d|ment)? you|we(?:'|’)ll send you a check|deposit(?:ing)? (?:a|the) check)\b/i
 
-const OFF_PLATFORM =
+export const OFF_PLATFORM =
   /\b(telegram|whats ?app|signal app|wechat|text (?:us|me|our (?:hr|recruiter))|chat[- ]based interview|interview (?:will be )?(?:conducted )?(?:via|on|over) (?:telegram|whats ?app|google chat|hangouts|skype|text))\b/i
 
-const TOO_GOOD =
+export const TOO_GOOD =
   /\b(no experience (?:needed|required|necessary)|earn \$?\d[\d,]*\s*(?:\/|per |a )\s*(?:hour|week|day)|\$\d[\d,]*\s*(?:\/|per |a )\s*(?:hour|week)|you(?:'|’)?ve been (?:selected|chosen|hired)|you are hired|immediate(?:ly)? start|work from home)\b/i
 
 // Phrases that introduce or follow a company name: "interview with
@@ -169,15 +169,15 @@ export function rootDomain(host: string): string {
   return SECOND_LEVEL_CC.has(lastTwo) ? labels.slice(-3).join('.') : lastTwo
 }
 
-function rootLabel(root: string): string {
+export function rootLabel(root: string): string {
   return root.split('.')[0]
 }
 
-function tld(root: string): string {
+export function tld(root: string): string {
   return root.split('.').slice(-1)[0]
 }
 
-function hostOf(url: string): string | null {
+export function hostOf(url: string): string | null {
   try {
     return new URL(url).hostname.toLowerCase()
   } catch {
@@ -235,7 +235,7 @@ export function findClaimedCompany(from: string, subject: string, body: string):
 // must be the whole domain label ("optavise.com") or the label with a
 // short, ordinary qualifier ("optavisehealth.com" counts; handled leniently
 // by also matching the first word of a multi-word name).
-function domainBelongsTo(root: string, company: string): boolean {
+export function domainBelongsTo(root: string, company: string): boolean {
   const label = normalize(rootLabel(root))
   const full = normalize(company)
   if (!full) return false
@@ -248,7 +248,7 @@ function domainBelongsTo(root: string, company: string): boolean {
   return false
 }
 
-function isLookalike(root: string, company: string): boolean {
+export function isLookalike(root: string, company: string): boolean {
   const label = normalize(rootLabel(root))
   const full = normalize(company)
   if (full.length < 5 || label === full) return false

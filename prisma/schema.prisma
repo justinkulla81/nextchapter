@@ -4298,6 +4298,11 @@ model EmailConnection {
   // created/updated — a blocked attempt writes nothing here).
   connectedEmail   String?
 
+  // Gmail push notifications (see src/lib/email-tracking/gmail-push.ts): when
+  // Google's watch on this mailbox expires. A watch lasts at most 7 days, so
+  // the scam-watch cron renews anything expiring within a day. Null = no watch.
+  pushWatchExpiresAt DateTime?
+
   activities TrackedEmailActivity[]
 }
 

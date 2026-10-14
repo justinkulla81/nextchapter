@@ -93,3 +93,43 @@ describe('helpers', () => {
     expect(extractUrlsFromText('see https://a.com/x, and http://b.org/y)')).toEqual(['https://a.com/x', 'http://b.org/y'])
   })
 })
+
+import { assessJobPosting } from '@/lib/scam-shield/assess-job-posting'
+
+describe('assessJobPosting', () => {
+  it('flags a posting whose contact and apply link do not belong to the company', () => {
+    const r = assessJobPosting({
+      title: 'Remote data entry, no experience needed',
+      companyName: 'Acme Health',
+      url: 'https://apply-now-jobs.xyz/acme',
+      contactEmail: 'hr.acme@gmail.com',
+      description: 'Start immediately. We will send you a check to purchase equipment. Interview on Telegram.',
+      postingType: 'direct',
+    })
+    expect(r.level).toBe('likely_fake')
+  })
+
+  it('passes a normal posting on the company domain and a known ATS', () => {
+    const r = assessJobPosting({
+      title: 'Director of Finance',
+      companyName: 'Acme Health',
+      url: 'https://boards.greenhouse.io/acmehealth/jobs/1',
+      contactEmail: 'maria@acmehealth.com',
+      description: 'Lead our finance team.',
+      postingType: 'direct',
+    })
+    expect(r.level).toBe('none')
+  })
+
+  it('does not flag a recruiter-led search for a client', () => {
+    const r = assessJobPosting({
+      title: 'CFO search',
+      companyName: 'Confidential client',
+      url: 'https://brightsearch.com/cfo',
+      contactEmail: 'ana@brightsearch.com',
+      description: 'Retained search for a growing company.',
+      postingType: 'recruiter_search',
+    })
+    expect(r.level).toBe('none')
+  })
+})

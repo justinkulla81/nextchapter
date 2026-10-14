@@ -6,6 +6,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { stopGmailWatch } from '@/lib/email-tracking/gmail-push'
 import { revokeGoogleGrantIfFullyDisconnected } from '@/lib/google/candidate-revoke'
 
 async function getProfile() {
@@ -24,6 +25,8 @@ async function getProfile() {
 export async function disconnectGmail(): Promise<void> {
   const profile = await getProfile()
   if (!profile) return
+  const connection = await prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } })
+  if (connection) await stopGmailWatch(connection)
   await prisma.emailConnection.updateMany({
     where: { candidateId: profile.id, disconnectedAt: null },
     data: { disconnectedAt: new Date() },
