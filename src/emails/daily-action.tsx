@@ -113,8 +113,12 @@ export default function DailyActionEmail({
       {isReset ? (
         <>
           <p>
-            You haven&apos;t fallen behind — the plan just got too heavy. Forget the rest of it.
-            {resetTask ? ' Today, just do this:' : ' Today, do one small thing and we restart.'}
+            I noticed you haven&apos;t checked in for a few days. A job search is hard, and it only
+            works with steady effort — but you don&apos;t have to do it alone. We&apos;re here to help.
+            You just need to get started.
+          </p>
+          <p>
+            {resetTask ? 'Today, just do this:' : 'Today, pick one small thing and do it.'}
           </p>
           {resetTask && <p style={taskBox}>{resetTask}</p>}
           <p>

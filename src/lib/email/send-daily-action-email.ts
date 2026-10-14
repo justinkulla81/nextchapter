@@ -6,12 +6,11 @@ import { getVictoriaName } from '@/lib/victoria'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
+import { isQuietCandidate } from '@/lib/email/is-quiet-candidate'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import DailyActionEmail from '@/emails/daily-action'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
-
-const QUIET_THRESHOLD_DAYS = 3
 
 interface Strength {
   title: string
@@ -47,10 +46,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'daily')
 
-    const daysSinceCheckIn = candidate.lastCheckInAt
-      ? (Date.now() - candidate.lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24)
-      : Infinity
-    const isReset = daysSinceCheckIn >= QUIET_THRESHOLD_DAYS
+    const isReset = await isQuietCandidate(candidate)
 
     // Reset emails still name the task — "do one small thing" with no thing
     // named gives a quiet candidate nothing to act on.
@@ -77,7 +73,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
     const subject = neutralizeEmailSubject(
       insights?.subject ??
         (isReset && primaryAction
-          ? `${candidate.firstName ? `${candidate.firstName}, just` : 'Just'} this one thing — 5 minutes`
+          ? `${candidate.firstName ? `${candidate.firstName}, let's` : "Let's"} get started — one 5-minute step`
           : null) ??
         (candidate.firstName && primaryAction
           ? `Your one thing for today, ${candidate.firstName}.`
