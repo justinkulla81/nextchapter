@@ -40,7 +40,7 @@ const heroStats = [
   { value: '27.1%', label: 'Of unemployed people had been out of work 27+ weeks in September 2026, up from 23.6% a year earlier' },
   { value: '24.2%', label: 'Professionals stuck in a mid-career stall (5+ years without a meaningful raise or promotion, June 2026)' },
   { value: '~half', label: 'Of long-tenured workers displaced in 2023–2025 who found work again earn less than before' },
-  { value: '8%', label: 'Lower household wealth, 6 years after a layoff' },
+  { value: '8%', label: 'Lower wealth six or more years after job loss, for older workers (2013 DOL-funded study)' },
 ]
 
 const THREE_BEATS = [
