@@ -12869,6 +12869,19 @@ model JobCoverNote {
   @@index([candidateId, postingId])
 }
 
+// One "Explain my gaps" write-up per member per job (src/lib/jobs/explain-gaps.ts):
+// the cache (a repeat click costs nothing) and the source of the daily cap.
+model JobGapExplanation {
+  id          String   @id @default(cuid())
+  candidateId String
+  postingId   String
+  body        String   @db.Text
+  createdAt   DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([candidateId, createdAt])
+}
+
 // One instant "posted in the last 72 hours" alert email per member per
 // posting (src/lib/jobs/fresh-job-alerts.ts) — never the same job twice.
 model FreshJobAlertSend {
