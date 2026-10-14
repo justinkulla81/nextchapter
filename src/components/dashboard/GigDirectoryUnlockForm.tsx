@@ -68,7 +68,7 @@ export function GigDirectoryUnlockForm() {
         analyticsKey="gig_directory"
         items={[
           {
-            href: '/dashboard/interim-work',
+            href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work',
             icon: 'compass',
             label: 'Find Interim Work',
             description: 'Browse the interim/fractional directory with your target rate in mind.',

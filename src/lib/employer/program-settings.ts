@@ -41,7 +41,7 @@ export const PROGRAM_FEATURES: ProgramFeature[] = [
   { key: 'dossier', label: 'Executive Dossier', what: 'A verified profile they can share with employers.', nextchapter: { minTier: 'CORE', href: '/dossier' }, ownAllowed: false },
   { key: 'recruiters', label: 'Recruiter network', what: 'Introductions to recruiters in their field.', nextchapter: { minTier: 'CORE', href: '/dashboard/recruiter-requests' }, ownAllowed: true },
   { key: 'marketIntel', label: 'Market Intelligence', what: 'Who is hiring, pay ranges and layoff signals for their target roles.', nextchapter: { minTier: 'CORE', href: '/dashboard/market-intelligence' }, ownAllowed: false },
-  { key: 'interim', label: 'Interim and fractional work', what: 'Interim roles, board seats and fractional openings.', nextchapter: { minTier: 'CORE', href: '/dashboard/interim-work' }, ownAllowed: false },
+  { key: 'interim', label: 'Interim and fractional work', what: 'Interim roles, board seats and fractional openings.', nextchapter: { minTier: 'CORE', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' }, ownAllowed: false },
   { key: 'alumniMembership', label: 'Free membership after they land', what: 'A year of NextChapter membership once they report a new job.', nextchapter: { minTier: 'PREMIUM', href: '/dashboard/membership' }, ownAllowed: false },
   { key: 'benefits', label: 'Severance and benefits questions', what: 'Your HR or benefits team for severance, COBRA and final pay.', nextchapter: null, ownAllowed: true },
   { key: 'eap', label: 'Counseling (EAP)', what: 'Your employee assistance program, if it continues after separation.', nextchapter: null, ownAllowed: true },

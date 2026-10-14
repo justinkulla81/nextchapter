@@ -22,7 +22,6 @@ import {
   Building2,
   BookOpen,
   Video,
-  Repeat,
   PartyPopper,
   Contact,
   FolderOpen,
@@ -181,7 +180,8 @@ function buildSections(
     {
       title: 'Working and Learning',
       links: [
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        // One board for full-time, part-time, contract and board work (Interim Work merged in).
+        { href: '/dashboard/find-my-job', label: 'Find a job', icon: Briefcase, ...gmailLock },
         // Only for employed journeys (PROMOTION, READY_TO_MOVE, EXPLORING_MOVE,
         // NEXT_ACT): reviews, raises, promotion and feedback.
         ...(showInWork ? [{ href: '/dashboard/in-work', label: 'Reviews, Raises and Promotion', icon: TrendingUp }] : []),
@@ -195,7 +195,6 @@ function buildSections(
         ...(isEarlyCareer === false
           ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
           : []),
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },

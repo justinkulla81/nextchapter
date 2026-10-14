@@ -325,7 +325,7 @@ export default async function SearchStrategyPage() {
             introText: 'Answering Board Advisory Work just unlocked:',
             items: [
               {
-                href: '/dashboard/interim-work#board-advisory-work',
+                href: '/dashboard/find-my-job?types=advisory#employer-matched-roles',
                 icon: 'users',
                 label: 'Board Advisory Work',
                 description: 'Board and consulting opportunities matched to your background.',

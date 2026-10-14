@@ -22,6 +22,7 @@ import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnloc
 import { getPlatformActivity, statusByListing } from '@/lib/platforms/candidate-view'
 import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
 import type { WorkType } from '@/lib/jobs/work-type'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 // Moved here from the Interim Work page (/dashboard/interim-work, now a redirect
 // into the one board): the independent-work toolkit — platform activity from
@@ -100,6 +101,8 @@ export async function IndependentWorkSections({
           Platforms, a launch plan and directories for {showIndependent && showAdvisory ? 'fractional, contract and board work' : showAdvisory ? 'board and advisory work' : 'fractional and contract work'}.
         </p>
       </div>
+      {/* Admin-edited header boxes from the old Interim Work page. */}
+      <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
       <PlatformActivityPanel kind="WORK" rows={platformRows} gmailConnected={!!gmailConnection} />
 
       {/* Second chance at the Board Advisory Work willingness question —
