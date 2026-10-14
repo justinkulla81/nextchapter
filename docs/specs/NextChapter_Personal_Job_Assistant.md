@@ -1,122 +1,160 @@
 # NextChapter — Personal Job Assistant
 
-Version 0.1 — design draft. Working name: **NextChapter Assistant** (the persona is Victoria; see §3). Not built yet.
+Version 0.2 — design draft. Working name: **NextChapter Assistant**; the persona is Victoria. Not built yet.
 
-The category is the "AI career companion" (Muse, Instinct, Fambot and similar): an app that works the job search *with* you every day, not a dashboard you visit. This draft assumes that reading of those products; adjust if you meant something narrower.
+v0.1 treated the assistant as a lighter client over the portal. That undersells it. This version starts from what a *personal agent* can do that a portal structurally cannot, and from the five outcomes that matter to a candidate: **a job, learning, network, work, money.**
 
 ---
 
-## 1. The idea in one paragraph
+## 1. Thesis
 
-Most of what an assistant needs already exists in the portal: Victoria (coach persona and chat), the daily "one thing" action, Weekly Search Sprint, Gmail and Calendar tracking, the Find My Job tracker, the Chrome capture extension, and the Market Reality Grade. What's missing is a **companion surface**: something on the phone and in the inbox that reaches the candidate, does the tedious parts, and asks for one decision at a time. So we build a thin, mobile-first client over the existing data, not a second product with its own brain.
+A portal is a place you go. An assistant is something that **acts for you, remembers you, and reaches you**. The portal can score, report and host content. It cannot notice that a recruiter replied at 9:40pm, draft the answer, ask a friend's assistant for an intro, and tell you your benefits run out in 11 days, all before you open an app.
 
-## 2. Standalone and in concert — one account, two depths
+So the assistant is not a mobile skin. It is the *operating layer* between the candidate and everything outside NextChapter (inbox, calendar, employers, benefits agencies, their own network), with the portal as the deep workspace and the source of truth.
 
-| | Standalone | In concert with the portal |
+## 2. What only an assistant can do
+
+| Attribute | Portal limit | Assistant behavior |
 |---|---|---|
-| Who | Someone who wants help, not a dashboard. Signs up in the app. | Existing portal candidate, or standalone user who grows into it. |
-| Sign-in | Same Supabase account | Same Supabase account |
-| Data | Same `CandidateProfile` and tracker tables | Same |
-| Gets | Today, Pipeline, Drafts, Ask Victoria, Prep | All of that, plus Hireability Report, Dossier, References, Network, Coach and Recruiter views, Circle |
-| Deep work | Hands off to the portal by link ("Open full report") | Portal hands back ("Do this on your phone") |
+| **Proactive** | Waits to be visited | Initiates on events: reply received, interview tomorrow, posting matching a watchlist company, benefit deadline |
+| **Acts on your behalf** | Can only show you things | Drafts, schedules, files, applies and follows up in *your* inbox, calendar and forms, within permissions you set |
+| **Persistent memory** | Page-level state | Remembers what you said in March (hates sales roles, needs $X/month, can't relocate) and applies it everywhere |
+| **Lives where you are** | One URL | Push, email reply, text, share sheet, browser overlay, voice; you can answer by replying to a message |
+| **In-the-moment** | Async | 20 minutes before an interview: a one-screen brief. 5 minutes after: a voice debrief it turns into a thank-you and notes |
+| **Represents you to others** | No standing | Screens inbound recruiters against your criteria, asks for intros, answers "is she open to this?" without exposing you |
+| **Speaks agent-to-agent** | Humans only | Your assistant asks a contact's assistant "would you give 15 minutes?", with double opt-in, so asks cost nothing socially |
 
-**Rule:** the assistant never holds data the portal can't see, and the portal never holds a task the assistant can't surface. "Standalone" means *usable without opening the portal*, not offline or backend-free. A truly local-first app would fork the data model and lose the grade, coach and recruiter loop. Recommend against it.
+Each of these is a design test: if a feature works as well as a portal page, it doesn't belong here.
 
-**Onboarding for standalone:** resume drop, one situation question, target role and location, connect Gmail (optional). Reuse the first four onboarding steps; defer assessment, contract, and references. Score reveal comes later, as a payoff, not a gate.
+## 3. Five outcome pillars
 
-## 3. Persona
+Existing modules are in `code` style; what is new is in **bold**.
 
-One persona, not two. The assistant **is Victoria** (`VICTORIA_VOICE_PROMPT`, `computeDirectnessLevel()`), warm and direct, never cheerleading. A second named bot would split trust and double prompt maintenance.
+### Job
+- Daily "one thing" (`daily/primary-action`), sprint, Gmail/Calendar tracking, Find My Job tracker, `likely-openings`, `company-tracker`.
+- **Auto-tracked pipeline:** forward or share a posting; replies in Gmail advance the stage.
+- **Follow-up that never forgets:** 7-business-day rule, one follow-up max, drafted and queued.
+- **Inbound recruiter triage:** classifies outreach, checks fit against your criteria and comp floor, drafts a reply or a polite no.
+- **Interview day:** brief before, voice debrief after, thank-you drafted.
+- **Offer mode:** `negotiation` lib plus market comp data; live counter-offer coaching, with a human coach escalation.
 
-## 4. Core loop
+### Learning
+- `learning` courses, assessments, badges.
+- **Gap-driven micro-learning:** reads a target posting, finds the 1–2 skills missing, serves a 15-minute lesson or practice inside the daily action instead of a course catalog.
+- **Learn by doing:** converts a real task (a work sample, a pitch) into proof the candidate can show.
+- **Funded learning:** matches the gap to programs a workforce board, college, or employer will pay for (`funding-opportunities`, `ScholarshipApplication`).
 
-1. **Capture** — jobs and activity arrive without typing: Chrome extension "Save this job", share-sheet or forwarded email (`applied@`, see IDEAS.md), Gmail tracking, calendar tracking.
-2. **Decide** — Today shows **one** primary action (`src/lib/daily/primary-action.ts`), with a short "also waiting" list.
-3. **Act** — the assistant drafts: follow-ups, thank-yous, warm-intro asks, tailored resume bullets, interview prep. The candidate approves, edits, or skips.
-4. **Learn** — outcomes (interview, rejection, offer) update the pipeline, the grade, and next week's sprint.
+### Network
+- `network` (5x5 support network), `OutreachLog`, `LinkedInConnection`, alumni groups, Circle.
+- **Backchannel on every job:** "you know 2 people at this company" with a warm-intro draft (IDEAS.md).
+- **Relationship upkeep:** nudges before ties decay, with a one-line reason to reach out.
+- **Assistant-to-assistant intros:** double opt-in asks between candidates, alumni and willing contacts. This is the network-effect feature.
+- **Verified outreach:** the assistant sees real sends via Gmail and the extension, closing the self-report gap noted in IDEAS.md.
 
-**Autonomy line:** the assistant proposes and drafts; **a human approves every outbound message.** No auto-send in v1. Respect Confidential Search Mode: it blocks corporate-looking Gmail connections and must also suppress any employer-visible footprint.
+### Work (income before the job)
+- `interim-work`, `gig-directory`, `in-work`, interim marketplace signups.
+- **Bridge income matcher:** surfaces interim, contract and gig work that fits skills and the hours you have; drafts the pitch; tracks it as income against your runway.
+- **Work-that-helps-the-search:** prefers gigs that build target-role evidence or produce a reference.
 
-## 5. Screens (5 tabs)
+### Money (access and runway)
+- `benefits`, `benefits-network`, `funding-opportunities`, `ScholarshipApplication`, severance and layoff notice data.
+- **Runway tracker:** a few inputs (savings, severance, benefit amount, monthly need) produce a runway date and an urgency setting that changes every other recommendation.
+- **Benefits and aid navigator:** screens for unemployment insurance, health coverage windows, training funds, local assistance; tells you the deadline and the next step, and pre-fills what it can.
+- **Severance and offer review:** flags what to ask about before signing; routes to a professional for anything legal.
+- **Candid framing:** this is guidance and navigation, not legal or financial advice; every screen says so in plain words and offers a human.
 
-| Tab | Purpose | Primary action | Built on |
+## 4. Authority model
+
+The assistant earns trust in steps. Every capability has a level the candidate controls, default **Draft**.
+
+| Level | Meaning | Example |
+|---|---|---|
+| 0 Observe | Reads and learns | Reads Gmail to classify applications |
+| 1 Suggest | Tells you what to do | "Follow up with Dana today" |
+| 2 Draft | Writes it, waits | Follow-up email in Drafts |
+| 3 Do with one tap | Executes after approval | Send, add to calendar, submit form |
+| 4 Do within limits | Acts alone inside rules you set | "Decline recruiter outreach below $140k" |
+
+Rules: nothing leaves your account at level 3+ without a record you can undo or review; level 4 exists only for low-stakes, reversible, rule-bound actions; anything involving money, legal terms, or a first contact with an employer stays at 3. Confidential Search Mode overrides everything and blocks any action visible to a current employer.
+
+## 5. Memory
+
+A per-candidate memory the candidate can see, edit and delete ("What Victoria knows about me"): stated preferences, deal-breakers, finances (opt-in), contacts' context, past outcomes. It feeds every prompt and is the main reason the assistant improves over weeks. Stored facts carry a source and date; stale facts are re-confirmed, not silently trusted.
+
+## 6. Channels
+
+Push (PWA) and email reply first; browser extension (candidate-scoped capture token, same pattern as the CRM extension); share sheet for postings; voice notes for debriefs. SMS/WhatsApp stays deferred until cost is justified (IDEAS.md). Every message is answerable in place ("Reply 1 to send, 2 to edit").
+
+## 7. Business models it unlocks
+
+The portal's model is B2B: employers, colleges, workforce boards, outplacement. The assistant adds revenue that doesn't depend on a sale to an organization first.
+
+| Model | Who pays | How | Fit and risk |
 |---|---|---|---|
-| **Today** | The one thing, plus what's waiting | Do the one thing | `primary-action.ts`, `DailyCheckIn`, sprint |
-| **Pipeline** | Every role by stage, with next step and staleness | Add a job | Find My Job tracker, `TrackedEmailActivity`, `CompanyApplicationOutcome` |
-| **Drafts** | Queue of assistant-written messages awaiting approval | Review draft | New `AssistantDraft`; follow-up rules from IDEAS.md |
-| **Ask Victoria** | Chat grounded in the whole search | Send message | `CoachConversation`, `generate-reply.ts` |
-| **Prep** | Per-interview brief: company, people, likely questions, practice | Start practice | `interview-prep`, `CompanyIntel`, `activeJobDescription` |
+| **Outplacement that doesn't expire** | Employers, colleges, workforce boards | Per-seat on layoff or enrollment, candidate keeps the assistant afterward | Directly hits LHH's "nothing durable for the candidate" weakness (Competitive Strategy). Low risk. **Lead here.** |
+| **Outcome-linked seats** | Employers, boards | Part of the fee tied to verified placement and retention (the product already has outcome benchmarks) | Strong for government buyers; needs trusted measurement; slower cash |
+| **Consumer subscription** | Candidate | Free core, paid for higher autonomy, more drafts, voice, coach review | Unemployed users are price-sensitive; keep the useful core free. Stripe isn't built. |
+| **Assistant + human coach tier** | Candidate or sponsor | Assistant does the volume; a coach reviews weekly | Lets coaches serve far more clients; margin story |
+| **Permissioned inbound for recruiters** | Recruiters, employers | Pay to reach candidates who opted in; assistant screens and the candidate only sees fits | New revenue and better candidate experience. Must never sell contact data or rank by who pays. |
+| **Introduction fees** | Employers | Per accepted intro/hire (`BountyClaim`, `JobBoardIntroRequest` exist) | Already half-built; keep the fee paid by the employer, never the candidate |
+| **Funded learning and aid referrals** | Training providers, funders | Providers or funders pay for qualified enrollments | **Highest conflict risk:** a vulnerable user must see the best-fit option, not the best-paying one. Disclose, never sort by payout. |
+| **Network exchange** | Members | Credits for giving intros, referrals and reviews | Strengthens retention; needs moderation |
+| **Anonymized market intelligence** | Boards, researchers | Aggregated, thresholded insights | Only with explicit consent and k-anonymity; fits `market-intelligence` |
 
-Profile and settings sit behind an avatar, not a sixth tab.
+**Not recommended:** income-share agreements or taking a cut of the candidate's pay (regulatory weight, misaligned with people in distress), selling personal data, and paid placement in what the assistant recommends to candidates.
 
-## 6. Capabilities and where they come from
+## 8. Guardrails
 
-| Capability | Exists today | New work |
-|---|---|---|
-| Daily plan | Yes (`daily/`, `weekly/sprint.ts`) | Expose as API |
-| Job capture | Extension (CRM only), Find My Job | Candidate-scoped capture token; forward-email parser |
-| Application tracking | Gmail classifier, calendar sync | Auto-advance pipeline stage from classified email |
-| Follow-up drafting | Spec only (IDEAS.md) | Rules engine: 7 business days after interview, one follow-up max |
-| Warm-intro finder | Support Network contacts exist | Match company on job add |
-| Interview prep | Text practice and evaluation | Per-interview brief assembled from calendar event |
-| Resume tailoring | Resume analysis and updater spec | Per-job variant, human approved |
-| Push | Email only (SMS deferred, cost) | Web push via PWA; email fallback |
+- **Vulnerability:** users may be in financial distress. No dark patterns, no upsell inside the Money pillar, no urgency we didn't compute.
+- **Honesty:** the assistant says what it did, what it could not verify, and when it is guessing. "I couldn't confirm your eligibility" beats a confident wrong answer.
+- **Consent:** inbox and calendar access are separate, revocable, explained in plain words; disconnecting stops processing and offers deletion.
+- **Third parties:** it only reads pages you're viewing; no scraping behind logins (LinkedIn terms).
+- **Messaging law:** email and any future SMS need consent and an unsubscribe path.
+- **Fairness:** matching and screening must not use protected traits or proxies; log why something was ranked.
 
-## 7. Architecture
+## 9. Surface and architecture (condensed from v0.1)
 
-- **Client:** installable PWA (Next.js, same repo, `/assistant` routes) with web push. Cheapest path to the phone, no store review. Native wrapper later only if push reliability on iOS proves insufficient.
-- **API:** server actions and route handlers over existing `src/lib/*` modules. No parallel business logic.
-- **Capture token:** scoped, revocable, hashed, same pattern as the CRM extension token; candidate-owned.
-- **New tables (proposed):** `AssistantDraft` (kind, jobId, body, status, approvedAt), `AssistantPushSubscription`, `AssistantEvent` log if PostHog alone isn't enough.
-- **LLM:** existing `@anthropic-ai/sdk` usage; drafts written with the Victoria voice prompt. Candidate content is not used to train or shared across candidates.
-- **Next.js caveat:** this repo's Next.js version differs from common knowledge (see `AGENTS.md`). Read `node_modules/next/dist/docs/` before writing routes.
+Tabs: **Today · Pipeline · Drafts · Ask Victoria · Money & Work** (Prep appears on interview days as a card, and Learning/Network arrive inside Today and Pipeline rather than as tabs). One primary action per screen; Send/Edit/Skip as adjacent buttons; destructive actions confirmed. Reuse `SubmitButton`, `EmptyState`, `ConfirmActionButton`, `InlineLoadingState`, `GRADE_TEXT_COLOR`.
 
-## 8. Design-principle check (`design-principles.md`)
+PWA in this repo under `/assistant`, same Supabase account, server actions over `src/lib/*`. Proposed new models: `AssistantDraft`, `AssistantMemoryFact`, `AssistantPermission` (capability, level), `AssistantPushSubscription`, `RunwayProfile`, `IntroRequest` (double opt-in). Read `node_modules/next/dist/docs/` first — this Next.js differs from common knowledge (`AGENTS.md`).
 
-- One primary action per screen — table in §5.
-- 2–4 choices as adjacent buttons: draft review is **Send / Edit / Skip** (Send is the single accent green; nothing else uses it).
-- Busy cursor and visible feedback on every action: reuse `SubmitButton`, `InlineLoadingState`.
-- Destructive actions (delete job, discard draft) require confirmation and never default focus: reuse `ConfirmActionButton`.
-- Empty, loading, error states for every list: reuse `EmptyState` and skeletons. Pipeline empty state teaches the three ways to add a job.
-- Never disable without explaining: "Send" disabled only with inline reason (e.g. "Connect Gmail to send from your address").
-- Sentence case, action-named buttons ("Send follow-up", not "Submit").
-- Mobile: touch targets of at least 44 px, base text at the existing 18 px, AA contrast. Keyboard and accessible labels throughout.
-- Grade colors only from `GRADE_TEXT_COLOR`.
+## 10. Analytics (PostHog)
 
-## 9. Analytics (PostHog, per CLAUDE.md)
-
-Client `posthog.capture()` unless noted. All include `candidateId` via identify, plus the params shown.
+Adds to the v0.1 list; client `posthog.capture()` unless marked server.
 
 | Event | Params |
 |---|---|
-| `assistant_installed` | `platform`, `source` (standalone / portal prompt) |
-| `assistant_signup_completed` (server) | `entry` (standalone / portal) |
-| `today_action_completed` | `actionKey`, `source`, `secondsToComplete` |
-| `today_action_skipped` | `actionKey`, `reason` |
-| `job_captured` | `jobId`, `source` (extension / forward / manual / gmail) |
-| `pipeline_stage_changed` | `jobId`, `from`, `to`, `trigger` (user / email / calendar) |
-| `draft_generated` (server) | `draftId`, `kind`, `jobId` |
+| `assistant_permission_changed` | `capability`, `fromLevel`, `toLevel` |
+| `memory_fact_edited` / `memory_fact_deleted` | `factKind`, `source` |
+| `recruiter_inbound_triaged` (server) | `outcome` (reply/decline/escalate), `matchedCriteria` |
+| `intro_requested` / `intro_accepted` / `intro_declined` | `introId`, `via` (assistant/manual), `companyId` |
+| `runway_set` / `runway_updated` | `runwayDaysBucket`, `source` |
+| `benefit_screen_completed` | `programKind`, `eligibleCount`, `deadlineWithinDays` |
+| `benefit_step_completed` | `programKind`, `step` |
+| `gap_lesson_started` / `gap_lesson_completed` | `skill`, `jobId` |
+| `bridge_gig_pitched` | `gigId`, `incomeEstimateBucket` |
+| `offer_review_opened` | `jobId`, `escalatedToCoach` |
 | `draft_sent` / `draft_edited` / `draft_skipped` | `draftId`, `kind`, `editedChars` |
-| `interview_brief_opened` | `jobId`, `hoursBeforeInterview` |
-| `coach_message_sent` | `surface` (assistant / portal) |
-| `push_permission_resolved` | `result` |
-| `handoff_to_portal` | `fromScreen`, `target` |
+| `voice_debrief_recorded` | `jobId`, `seconds` |
 
-Key questions these answer: does standalone convert into portal use, which drafts get sent unedited (trust signal), and does the assistant shorten time from interview invite to prep opened.
+Measures that matter: draft sent-unedited rate (trust), time from interview invite to brief opened, intros accepted per request, and (the real test) interview and offer rate for assistant users vs. portal-only. Without that comparison we can't claim it improves chances.
 
-## 10. Phases
+## 11. Phases (ordered by leverage, not by ease)
 
-0. **Shell** — PWA install, auth, Today tab on `primary-action.ts`, push opt-in. (Smallest thing that earns a home-screen icon.)
-1. **Capture and Pipeline** — candidate capture token, extension mode, forward-email parser, auto-staging from Gmail.
-2. **Drafts** — follow-up and thank-you rules, approval queue, warm-intro matching.
-3. **Prep** — calendar-triggered interview briefs, voice practice (v2 per IDEAS.md).
-4. **Monetization** — only after a first paying customer exists (Stripe is not built; everything is free today).
+0. **Shell and Today** — PWA, auth, push, daily action, memory v1, permissions page.
+1. **Capture and Pipeline** — forward-email parser, candidate extension token, Gmail auto-staging, inbound recruiter triage.
+2. **Drafts** — follow-ups, thank-yous, backchannel intros, approval queue.
+3. **Money** — runway tracker and benefits/aid navigator (high value for the audience and a strong outplacement selling point).
+4. **Assistant-to-assistant intros** and bridge-income matcher.
+5. **Interview-day mode** (brief, voice debrief) and offer review.
+6. Pricing experiments: employer seats first; consumer tier only after.
 
-## 11. Open decisions
+## 12. Open decisions
 
-1. **PWA vs native app** — recommend PWA first; native only if iOS push is a real problem.
-2. **Is standalone a separate acquisition funnel** (own marketing page, own App Store presence) or just a lighter door into the same signup? Affects the name and onboarding.
-3. **Free or gated?** Coach chat gating is already an open item in IDEAS.md; the assistant makes it more pressing.
-4. **Auto-send, ever?** v1 says no. Revisit only with measured draft-unedited rates.
-5. **Name.** "NextChapter Assistant" is a placeholder; Victoria's brand may be stronger.
-6. **Notification channel cost:** web push is free; SMS (Twilio) stays deferred.
+1. **Which pillar leads?** Recommend Job and Money first: Job proves the loop; Money is the differentiator with the buyer (boards, outplacement).
+2. **Money scope:** navigation and deadlines only, or also pre-filling applications? Pre-filling raises liability and data handling.
+3. **Recruiter-pays model:** are we willing to put a paid inbound channel next to a free candidate product, given the neutrality risk?
+4. **Coach tier:** does the existing coach marketplace want assistant-leveraged coaching, or does it threaten their book?
+5. **Autonomy ceiling:** is level 4 in v1 at all, or only after we have measured draft-unedited rates?
+6. **Name:** keep "NextChapter Assistant" or lead with Victoria?
+7. **Evidence plan:** pre-register the assistant-vs-portal-only comparison before launch so we can honestly claim outcomes.
