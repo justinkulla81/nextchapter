@@ -10363,5 +10363,55 @@
 "Superintendent of Schools",
 "C_SUITE",
 100
+],
+[
+"City Manager",
+"C_SUITE",
+100
+],
+[
+"County Administrator",
+"C_SUITE",
+100
+],
+[
+"Assistant City Manager",
+"DIRECTOR",
+68
+],
+[
+"Police Chief",
+"DIRECTOR",
+68
+],
+[
+"Fire Chief",
+"DIRECTOR",
+68
+],
+[
+"City Attorney",
+"DIRECTOR",
+68
+],
+[
+"Senior Pastor",
+"DIRECTOR",
+68
+],
+[
+"CSO",
+"C_SUITE",
+100
+],
+[
+"Chief Sales Officer",
+"C_SUITE",
+100
+],
+[
+"Office Administrator",
+"OTHER",
+0
 ]
 ]
