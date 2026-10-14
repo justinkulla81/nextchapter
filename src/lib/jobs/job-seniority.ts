@@ -1,6 +1,8 @@
 import {
   BOARD,
   FRONTLINE,
+  GM_CORPORATE,
+  GM_UNIT,
   JUNIOR,
   JUNIOR_EXEMPT,
   LADDER,
@@ -14,7 +16,9 @@ import {
   NEGATIVE,
   REPORTING_REF_GLOBAL,
   RUNG_VETO,
+  SCHOOL_CONTEXT_OVERRIDES,
   STAFF_ENTRY,
+  TITLE_OVERRIDES,
   GRADE,
   UNDER_DIRECTOR,
   type RungName,
@@ -53,11 +57,16 @@ const GRADE_RANK: Record<number, { rung: RungName; rank: number }> = {
   15: { rung: 'DIRECTOR', rank: 65 },
 }
 
-export function classifyTitleRung(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
+export type ClassifyOptions = {
+  /** Posted on a school or district board: bare "Superintendent" is the district head. */
+  schoolContext?: boolean
+}
+
+export function classifyTitleRung(rawTitle: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
   const m = rawTitle ? GRADE.exec(rawTitle) : null
-  if (!m || !rawTitle) return classifyTitleOnly(rawTitle)
+  if (!m || !rawTitle) return classifyTitleOnly(rawTitle, opts)
   const bare = rawTitle.slice(0, m.index).trim()
-  let base = classifyTitleOnly(bare)
+  let base = classifyTitleOnly(bare, opts)
   let grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
   if (!m[3]) {
     const n = Number(m[2])
@@ -78,10 +87,23 @@ function isMidIc(title: string): boolean {
   return MID_IC.test(title) && !MID_EXCLUDE.test(title)
 }
 
-function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
+// Ordered title overrides (ncrawl TITLE_OVERRIDES): "set" is the verdict,
+// "floor" the least the title ranks. Promotions never apply to NEGATIVE titles.
+function titleOverride(title: string, schoolContext: boolean) {
+  for (const o of [...(schoolContext ? SCHOOL_CONTEXT_OVERRIDES : []), ...TITLE_OVERRIDES]) {
+    if (!o.pattern.test(title)) continue
+    if (o.rank > 0 && NEGATIVE.test(title)) continue
+    return o
+  }
+  return null
+}
+
+function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
   if (!rawTitle) return { rung: 'OTHER', rank: 0 }
   // An assistant or numbered GM runs a station, store or shift, not a company.
   if (/\bassistant general manager\b|\bgeneral manager\s+(i{1,3}|[123])\b/i.test(rawTitle)) return { rung: 'MANAGER', rank: 40 }
+  // A General Manager of one restaurant, store, hotel or branch runs a unit.
+  if (GM_UNIT.test(rawTitle) && !GM_CORPORATE.test(rawTitle)) return { rung: 'MANAGER', rank: 40 }
   // In manufacturing, CMO/CDMO means a contract manufacturer, not a CMO.
   if (/manufactur|\bcdmo\b|contract\s+(development|manufactur)|\bpharma/i.test(rawTitle)) {
     rawTitle = rawTitle.replace(/\(?\b(cmo|cdmo|cmos|cdmos)\b\)?/gi, ' ').trim()
@@ -89,6 +111,13 @@ function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungNam
   // Classify the role, not the person it reports to.
   const title = stripReportingRef(rawTitle)
   if (BOARD.test(title)) return { rung: 'BOARD', rank: 95 }
+  const fixed = titleOverride(title, !!opts.schoolContext)
+  if (fixed && fixed.mode === 'set') return { rung: fixed.name, rank: fixed.rank }
+  const base = ladder(title)
+  return fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base
+}
+
+function ladder(title: string): { rung: RungName; rank: number } {
   if (NEGATIVE.test(title)) return { rung: 'OTHER', rank: 0 }
   if (FRONTLINE.test(title) || JUNIOR_PREFIX.test(title)) return { rung: 'OTHER', rank: 0 }
   // In accounting, audit and nursing "Staff" is the entry grade.
@@ -181,8 +210,8 @@ export function candidateScaleLevel(level: string | null | undefined): string | 
  * The verdict an automated feed applies: the level to store, or why the job
  * is screened out.
  */
-export function screenJobTitle(title: string): { keep: true; level: RungName } | { keep: false; reason: string } {
-  const { rung, rank } = classifyTitleRung(title)
+export function screenJobTitle(title: string, opts: ClassifyOptions = {}): { keep: true; level: RungName } | { keep: false; reason: string } {
+  const { rung, rank } = classifyTitleRung(title, opts)
   if (rank >= MANAGER_FLOOR) return { keep: true, level: rung }
   return { keep: false, reason: 'below seniority floor (manager and up, plus senior individual roles)' }
 }

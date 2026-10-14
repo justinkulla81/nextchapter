@@ -49,6 +49,9 @@ interface ImportJobInput {
   sourceCount?: number | null
   sourceName?: string | null
   industry?: string | null
+  // Posted on a school/district board (ncrawl k12 sources): bare
+  // "Superintendent" there is the district head.
+  schoolContext?: boolean
 }
 
 interface ImportRequestBody {
@@ -83,7 +86,7 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    const verdict = screenImportedJob(job.title, job.location)
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue

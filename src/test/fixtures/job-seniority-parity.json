@@ -136,8 +136,8 @@
 ],
 [
 "Restaurant General Manager",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "General Manager, Payments",
@@ -416,8 +416,8 @@
 ],
 [
 "Assistant General Counsel, Credit Cards",
-"C_SUITE",
-100
+"SR_MANAGER",
+52
 ],
 [
 "Full Stack Software Engineer, Sales Platform",
@@ -5046,8 +5046,8 @@
 ],
 [
 "Assistant General Counsel, Bankruptcy",
-"C_SUITE",
-100
+"SR_MANAGER",
+52
 ],
 [
 "Specialist Solutions Architect - Cloud Platform & Infrastructure (Azure)",
@@ -5596,8 +5596,8 @@
 ],
 [
 "General Manager | Busy Fast Food Restaurant",
-"C_SUITE",
-100
+"MANAGER",
+40
 ],
 [
 "Engineering Manager, Cloud & Data Security",
@@ -5781,8 +5781,8 @@
 ],
 [
 "General Manager",
-"C_SUITE",
-100
+"MANAGER",
+40
 ],
 [
 "Senior Software Engineer, Full Stack - NYC",
@@ -6116,8 +6116,8 @@
 ],
 [
 "Restaurant General Manager",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "Software Engineer, Accounting",
@@ -10266,8 +10266,8 @@
 ],
 [
 "Executive Director of Student Housing",
-"C_SUITE",
-100
+"DIRECTOR",
+68
 ],
 [
 "Student Success Manager",
@@ -10311,8 +10311,8 @@
 ],
 [
 "Associate Dean of Students",
-"DIRECTOR",
-68
+"SR_MANAGER",
+52
 ],
 [
 "Managing Partner",
@@ -10551,8 +10551,8 @@
 ],
 [
 "Assistant Superintendent of Schools",
-"DIRECTOR",
-68
+"VP",
+80
 ],
 [
 "Superintendent of Schools",
@@ -10966,8 +10966,8 @@
 ],
 [
 "Actuary",
-"MID_IC",
-30
+"SENIOR_IC",
+45
 ],
 [
 "Economist",
@@ -11576,6 +11576,503 @@
 ],
 [
 "Controller",
+"MANAGER",
+40
+],
+[
+"Superintendent",
+"OTHER",
+0
+],
+[
+"Interim Superintendent",
+"OTHER",
+0
+],
+[
+"Superintendent of Schools",
+"C_SUITE",
+100
+],
+[
+"Superintendent - Springfield Public Schools",
+"C_SUITE",
+100
+],
+[
+"Construction Superintendent",
+"OTHER",
+0
+],
+[
+"Project Superintendent",
+"OTHER",
+0
+],
+[
+"Assistant Superintendent",
+"OTHER",
+0
+],
+[
+"Assistant Superintendent of Curriculum and Instruction",
+"VP",
+80
+],
+[
+"Assistant Superintendent for Human Resources",
+"VP",
+80
+],
+[
+"Deputy Superintendent",
+"VP",
+80
+],
+[
+"Associate Superintendent",
+"VP",
+80
+],
+[
+"Area Superintendent",
+"OTHER",
+0
+],
+[
+"Area Superintendent - Construction",
+"OTHER",
+0
+],
+[
+"Chief of Schools",
+"VP",
+80
+],
+[
+"Associate Principal",
+"SR_MANAGER",
+50
+],
+[
+"Club General Manager",
+"MANAGER",
+40
+],
+[
+"Clinical Supervisor",
+"MANAGER",
+40
+],
+[
+"BCBA Supervisor",
+"MANAGER",
+40
+],
+[
+"Assistant Principal",
+"SR_MANAGER",
+50
+],
+[
+"Vice Principal",
+"SR_MANAGER",
+50
+],
+[
+"Assistant Principal, Lincoln High School",
+"SR_MANAGER",
+50
+],
+[
+"Principal, Lincoln High School",
+"SCHOOL_LEADER",
+68
+],
+[
+"High School Principal",
+"SCHOOL_LEADER",
+68
+],
+[
+"Elementary School Principal",
+"SCHOOL_LEADER",
+68
+],
+[
+"Principal",
+"PRINCIPAL",
+70
+],
+[
+"Summer School Principal",
+"OTHER",
+0
+],
+[
+"Dean of Students",
+"SR_MANAGER",
+52
+],
+[
+"Dean of Culture",
+"SR_MANAGER",
+52
+],
+[
+"Dean of the School of Law",
+"C_SUITE",
+100
+],
+[
+"Dean, College of Engineering",
+"C_SUITE",
+100
+],
+[
+"Executive Director, Information Technology Services",
+"DIRECTOR",
+68
+],
+[
+"Executive Director I (226 Days)",
+"DIRECTOR",
+68
+],
+[
+"Executive Director",
+"C_SUITE",
+100
+],
+[
+"Assistant General Counsel",
+"SR_MANAGER",
+52
+],
+[
+"Senior General Counsel",
+"SENIOR_IC",
+45
+],
+[
+"General Counsel",
+"C_SUITE",
+100
+],
+[
+"Deputy General Counsel",
+"DIRECTOR",
+68
+],
+[
+"Principal Account Clerk",
+"OTHER",
+0
+],
+[
+"Principal Engineer",
+"SR_MANAGER",
+52
+],
+[
+"Principal, Private Equity",
+"PRINCIPAL",
+70
+],
+[
+"RN Case Manager",
+"OTHER",
+0
+],
+[
+"Care Manager",
+"OTHER",
+0
+],
+[
+"Case Manager",
+"OTHER",
+0
+],
+[
+"Senior Play \u2013 Choreographer Director",
+"OTHER",
+0
+],
+[
+"Managing Director, Capital Markets",
+"VP",
+80
+],
+[
+"Managing Director",
+"DIRECTOR",
+65
+],
+[
+"Managing Director, Investment Banking",
+"VP",
+80
+],
+[
+"Lateral Partner \u2013 M&A",
+"PARTNER",
+78
+],
+[
+"Corporate Associate",
+"MID_IC",
+30
+],
+[
+"Litigation Associate (3-5 years)",
+"MID_IC",
+30
+],
+[
+"Senior Associate, Tax",
+"SENIOR_IC",
+45
+],
+[
+"Summer Associate",
+"OTHER",
+0
+],
+[
+"First-Year Associate",
+"OTHER",
+0
+],
+[
+"Associate I",
+"OTHER",
+0
+],
+[
+"Actuary",
+"SENIOR_IC",
+45
+],
+[
+"Associate Actuary",
+"SENIOR_IC",
+45
+],
+[
+"Actuarial Analyst",
+"MID_IC",
+30
+],
+[
+"Actuarial Student",
+"OTHER",
+0
+],
+[
+"Actuary Intern",
+"OTHER",
+0
+],
+[
+"Senior Claims Adjuster",
+"MID_IC",
+30
+],
+[
+"Claims Adjuster",
+"OTHER",
+0
+],
+[
+"Account Executive, Commercial Lines",
+"MID_IC",
+30
+],
+[
+"Commercial Lines Producer",
+"MID_IC",
+30
+],
+[
+"Insurance Producer",
+"MID_IC",
+30
+],
+[
+"Producer",
+"OTHER",
+0
+],
+[
+"Senior Producer, Commercial Lines",
+"SENIOR_IC",
+45
+],
+[
+"Executive Producer",
+"OTHER",
+0
+],
+[
+"Senior Producer",
+"OTHER",
+0
+],
+[
+"Club General Manager",
+"MANAGER",
+40
+],
+[
+"Superintendent",
+"C_SUITE",
+100,
+true
+],
+[
+"Interim Superintendent",
+"C_SUITE",
+100,
+true
+],
+[
+"Assistant Superintendent",
+"VP",
+80,
+true
+],
+[
+"Area Superintendent",
+"VP",
+80,
+true
+],
+[
+"Area Superintendent - Construction",
+"OTHER",
+0,
+true
+],
+[
+"Construction Superintendent",
+"OTHER",
+0,
+true
+],
+[
+"Superintendent - Field Operations",
+"OTHER",
+0,
+true
+],
+[
+"General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager Dunkin",
+"MANAGER",
+40
+],
+[
+"Fast Track General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager | Long Stay Hotel Property",
+"MANAGER",
+40
+],
+[
+"General Manager (1452) - 603 N. Miles St",
+"MANAGER",
+40
+],
+[
+"General Manager - Louisville",
+"MANAGER",
+40
+],
+[
+"General Manager Plano/Garland",
+"MANAGER",
+40
+],
+[
+"Retail General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager, Residential Products Business",
+"C_SUITE",
+100
+],
+[
+"General Manager, Fuels",
+"C_SUITE",
+100
+],
+[
+"General Manager, North America",
+"C_SUITE",
+100
+],
+[
+"Vice President, General Manager & Campus Lead, Devens",
+"C_SUITE",
+100
+],
+[
+"Senior Vice President and General Manager, Cloud",
+"C_SUITE",
+100
+],
+[
+"General Manager-Leading a team with Heart- $80k+",
+"MANAGER",
+40
+],
+[
+"Sodexo Live! - General Manager, Lucas Oil Stadium",
+"MANAGER",
+40
+],
+[
+"Plant General Manager (Dairy, Beverage Manufacturing)",
+"C_SUITE",
+100
+],
+[
+"Health Actuary Consulting Manager",
+"SENIOR_IC",
+45
+],
+[
+"Senior Assistant General Counsel",
+"SR_MANAGER",
+52
+],
+[
+"Associate Principal Scientist, Separations Science",
+"SR_MANAGER",
+52
+],
+[
+"Investment Banking Associate 1/2 M&A (Elite-Boutique)",
+"SENIOR_IC",
+45
+],
+[
+"Mental Health Case Manager (GS-12)",
+"MID_IC",
+30
+],
+[
+"U.S. Lateral Partner Recruitment and Integration Manager",
 "MANAGER",
 40
 ]

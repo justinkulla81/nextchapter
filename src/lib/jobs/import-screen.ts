@@ -1,4 +1,4 @@
-import { screenJobTitle } from '@/lib/jobs/job-seniority'
+import { screenJobTitle, type ClassifyOptions } from '@/lib/jobs/job-seniority'
 import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 
@@ -26,13 +26,14 @@ export function parsePostedDate(raw: string | null | undefined): Date | null {
 
 export function screenImportedJob(
   title: string,
-  rawLocation: string | null | undefined
+  rawLocation: string | null | undefined,
+  opts: ClassifyOptions = {}
 ): { keep: true; level: string; location: string | null } | { keep: false; reason: string } {
   // isUsLocation knows US places; NON_US catches foreign towns it doesn't
   // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
   const location = cleanJobLocation(rawLocation)
   if (!isUsLocation(location) || namesNonUsPlace(title, location, NON_US)) return { keep: false, reason: 'outside the US' }
-  const verdict = screenJobTitle(title)
+  const verdict = screenJobTitle(title, opts)
   if (!verdict.keep) return { keep: false, reason: verdict.reason }
   return { keep: true, level: verdict.level, location }
 }
