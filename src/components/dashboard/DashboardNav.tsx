@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import {
   Home,
+  CalendarClock,
   FileText,
   Compass,
   Briefcase,
@@ -211,6 +212,7 @@ function buildSections(
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/book-session', label: 'Book a coach session', icon: CalendarClock },
         { href: '/dashboard/documents', label: 'Documents', icon: FileText, badge: documentRequestCount > 0 ? String(documentRequestCount) : undefined },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
         { href: '/dashboard/membership', label: 'Membership', icon: Award },

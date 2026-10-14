@@ -12,7 +12,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Coaching / Recruiting
 
-- Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
+- (Partly built 2026-10-14 for coaches only: booking inside NextChapter with Meet links on the shared calendar; per-coach calendar connection and recruiters are still open, see docs/OPEN_ITEMS.md.) Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
 
 ## Auth
 

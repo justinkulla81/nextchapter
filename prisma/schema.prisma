@@ -1701,6 +1701,7 @@ model CandidateProfile {
   occupation                  CandidateOccupation?
   resumeDrafts                ResumeDraft[]
   documentRequests            DocumentRequest[]
+  coachBookings               CoachBooking[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -4958,6 +4959,9 @@ model Coach {
   gender             String?
   languages          String[]
   timezone           String?
+  bookingSettings    CoachBookingSettings?
+  availability       CoachAvailabilityWindow[]
+  bookings           CoachBooking[]
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -14216,4 +14220,56 @@ model DocumentRequest {
 
   @@index([candidateId, status])
   @@index([requesterType, requesterId, status])
+}
+
+// ── COACH SESSION BOOKING ────────────────────────────────────────────────────
+// A coach sets weekly hours; their clients book open slots; a Google Calendar event
+// with a Meet link is created on NextChapter's connected calendar (the same connection
+// webinars use) with coach and client invited. We do NOT read the coach's own
+// calendar, so personal appointments are not seen: the coach keeps their hours
+// current, and cancels a booking here if something comes up.
+model CoachBookingSettings {
+  coachId         String  @id
+  coach           Coach   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  enabled         Boolean @default(false)
+  // IANA zone the weekly hours are written in, e.g. "America/New_York".
+  timezone        String  @default("America/New_York")
+  slotMinutes     Int     @default(45)
+  bufferMinutes   Int     @default(15)
+  minNoticeHours  Int     @default(24)
+  maxDaysAhead    Int     @default(21)
+  // Shown when no calendar event (and so no Meet link) could be made.
+  fallbackMeetingUrl String?
+  updatedAt       DateTime @updatedAt
+}
+
+// One window per weekday per row (weekday 0 = Sunday); minutes from local midnight.
+model CoachAvailabilityWindow {
+  id          String @id @default(cuid())
+  coachId     String
+  coach       Coach  @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+
+  @@index([coachId])
+}
+
+model CoachBooking {
+  id            String           @id @default(cuid())
+  coachId       String
+  coach         Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startsAt      DateTime
+  endsAt        DateTime
+  // CONFIRMED | CANCELLED
+  status        String           @default("CONFIRMED")
+  cancelledBy   String? // COACH | CANDIDATE
+  meetUrl       String?
+  googleEventId String?
+  createdAt     DateTime         @default(now())
+
+  @@index([coachId, startsAt])
+  @@index([candidateId, startsAt])
 }
