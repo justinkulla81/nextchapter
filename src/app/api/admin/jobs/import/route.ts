@@ -93,6 +93,12 @@ function screen(jobs: unknown[]) {
   return { kept, skipped }
 }
 
+// The salary columns are 32-bit integers; a garbled source value ("142037156822")
+// used to fail the whole row. Anything that can't be a salary is dropped instead.
+function storableSalary(n: number | null | undefined): number | null {
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 2_147_483_647 ? Math.round(n) : null
+}
+
 function rowData({ job, level }: Screened) {
   return {
     title: job.title.trim(),
@@ -103,8 +109,8 @@ function rowData({ job, level }: Screened) {
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
-    salaryMin: job.salaryMin ?? null,
-    salaryMax: job.salaryMax ?? null,
+    salaryMin: storableSalary(job.salaryMin),
+    salaryMax: storableSalary(job.salaryMax),
     salaryCurrency: job.salaryCurrency?.trim() || null,
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
