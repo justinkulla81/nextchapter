@@ -10,6 +10,7 @@ import {
   REPORTING_REF_GLOBAL,
   RUNG_VETO,
   STAFF_ENTRY,
+  GRADE,
   UNDER_DIRECTOR,
   type RungName,
 } from './job-seniority-rules.generated'
@@ -38,7 +39,24 @@ function stripReportingRef(title: string): string {
   return out || title
 }
 
+// Federal pay grade appended to USAJOBS titles ("Program Analyst (GS-14)"):
+// 13 = senior individual, 14 = senior manager, 15 = director; SES, SL, ST =
+// executive. A higher rank from the title itself wins (ties keep the title's).
+const GRADE_RANK: Record<number, { rung: RungName; rank: number }> = {
+  13: { rung: 'SENIOR_IC', rank: 45 },
+  14: { rung: 'SR_MANAGER', rank: 52 },
+  15: { rung: 'DIRECTOR', rank: 65 },
+}
+
 export function classifyTitleRung(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
+  const m = rawTitle ? GRADE.exec(rawTitle) : null
+  if (!m || !rawTitle) return classifyTitleOnly(rawTitle)
+  const base = classifyTitleOnly(rawTitle.slice(0, m.index).trim())
+  const grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
+  return grade.rank > base.rank ? grade : base
+}
+
+function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
   if (!rawTitle) return { rung: 'OTHER', rank: 0 }
   // Classify the role, not the person it reports to.
   const title = stripReportingRef(rawTitle)
