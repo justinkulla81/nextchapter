@@ -315,6 +315,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/visitors`, label: 'Visitors' },
         { href: `${A}/action-counts`, label: 'Action Counts' },
         { href: `${A}/population`, label: 'Population Report' },
+        { href: `${A}/monthly-report`, label: 'Monthly member report' },
         { href: `${A}/education-outcomes`, label: 'Outcomes by college' },
         { href: `${A}/issues`, label: 'Resume Issue Analytics' },
         { href: `${A}/pedigree-signals`, label: 'Pedigree Signals' },
