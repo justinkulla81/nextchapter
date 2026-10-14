@@ -8,6 +8,10 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
+import { classifyWorkType } from '@/lib/jobs/work-type'
+import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
+import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
+import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
 
 const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
   strong: 'bg-success/10 text-success',
@@ -59,6 +63,8 @@ export function NextSurfacedJobCard({
   idealMatch,
   worksHereContacts,
   worksHereTotalCount,
+  track,
+  watched,
 }: {
   job: SurfacedJob
   fitBucket?: FitBucket
@@ -72,7 +78,10 @@ export function NextSurfacedJobCard({
   // the list — worksHereTotalCount carries the real count for a "+N more".
   worksHereContacts?: { id: string; name: string; email: string | null; linkedinUrl: string | null }[]
   worksHereTotalCount?: number
+  track?: CardTrackState
+  watched?: boolean
 }) {
+  const workType = classifyWorkType(job)
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
 
@@ -85,6 +94,7 @@ export function NextSurfacedJobCard({
       location: job.location,
       url: job.url,
       fitBucket: fitBucket ?? null,
+      workType,
     })
   }
 
@@ -97,6 +107,7 @@ export function NextSurfacedJobCard({
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(job.surfacedAt) && <NewBadge />}
+          <WorkTypePayChips workType={workType} pay={null} />
           {idealMatch && <IdealMatchBadge />}
           {fitBucket && <FitBadge bucket={fitBucket} />}
           <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
@@ -129,13 +140,13 @@ export function NextSurfacedJobCard({
 
           {!showReasons ? (
             <>
-              <form action={reactToSurfacedJob.bind(null, job.id, 'INTERESTED', null)} onSubmit={() => setPending(true)}>
-                <SubmitButton size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-                  Interested
-                </SubmitButton>
-              </form>
+              <JobTrackControls
+                jobRef={{ source: 'surfaced', sourceId: job.id, title: job.title, companyName: job.companyName, url: job.url, workType }}
+                initial={track}
+                watched={watched}
+              />
               <Button type="button" variant="outline" size="sm" onClick={() => setShowReasons(true)}>
-                Not Interested
+                Not interested
               </Button>
             </>
           ) : (

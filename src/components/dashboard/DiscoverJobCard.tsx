@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick, draftJobCoverNote } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
-import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
@@ -18,6 +17,10 @@ import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
+import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type WorkType } from '@/lib/jobs/work-type'
+import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
+import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
+import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -100,7 +103,7 @@ export function LockedDiscoverJobCard({
   posting,
   fitBucket,
 }: {
-  posting: Pick<ExclusiveJobPosting, 'title' | 'location' | 'level'>
+  posting: Pick<ExclusiveJobPosting, 'title' | 'location' | 'level' | 'employmentType'>
   // Optional — omitted for the (now rare) locked posting a fit bucket
   // couldn't be computed for. Same FitBadge as the unlocked cards, so
   // "why does this one deserve unlocking" reads the same way in both states.
@@ -113,6 +116,7 @@ export function LockedDiscoverJobCard({
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
           <SeniorityBadge level={posting.level} />
+          <WorkTypePayChips workType={classifyWorkType(posting)} pay={null} />
           {fitBucket && <FitBadge bucket={fitBucket} />}
         </div>
         {posting.location && <p className="truncate text-sm text-muted-foreground">{posting.location}</p>}
@@ -124,9 +128,16 @@ export function LockedDiscoverJobCard({
 // Market pay for the role (function x seniority x state, from posted salaries). When
 // the job posts pay it is compared; when it doesn't, the market range is shown and
 // labelled as our estimate — never as the employer's pay.
-function MarketPayLine({ posting }: { posting: ExclusiveJobPosting }) {
+function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; workType: WorkType }) {
   if (!posting.marketPayLow || !posting.marketPayHigh) return null
-  const range = `${formatUsdK(posting.marketPayLow)}–${formatUsdK(posting.marketPayHigh)}`
+  // Benchmarks are full-time salaries: contract, part-time, advisory and unpaid
+  // roles aren't compared with them; hourly full-time pay is compared hourly.
+  const comparison = payComparison(workType, compensationKind(posting), payPeriodOf(posting))
+  if (!comparison.compare) return <p className="text-xs text-muted-foreground">{comparison.reason}.</p>
+  const range =
+    comparison.basis === 'hour'
+      ? hourlyMarketRange(posting.marketPayLow, posting.marketPayHigh)
+      : `${formatUsdK(posting.marketPayLow)}–${formatUsdK(posting.marketPayHigh)}`
   const basis = marketBasisLabel(posting.marketPayBasis, posting.marketPaySample)
   const verdict = posting.payVsMarket as PayVsMarket | null
   return (
@@ -171,6 +182,8 @@ export function DiscoverJobCard({
   match,
   explainGapsEnabled,
   insiders,
+  track,
+  watched,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
@@ -184,9 +197,16 @@ export function DiscoverJobCard({
   explainGapsEnabled?: boolean
   /** Members a viewer could ask about this company (insider network), with the company page link. */
   insiders?: { count: number; href: string }
+  /** My jobs: saved / application status for this job. */
+  track?: CardTrackState
+  /** Is the member watching this company? */
+  watched?: boolean
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
+  const workType = classifyWorkType(posting)
+  const payLabel = payBasisLabel({ ...posting, workType })
+  const comparePay = payComparison(workType, compensationKind(posting), payPeriodOf(posting)).compare
 
   function handleClick() {
     void recordJobClick({
@@ -197,6 +217,7 @@ export function DiscoverJobCard({
       location: posting.location,
       url: posting.url,
       fitBucket,
+      workType,
     })
   }
 
@@ -229,7 +250,8 @@ export function DiscoverJobCard({
           <span className="flex shrink-0 items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
             <LowCompetitionBadge competition={competition} />
-            {posting.payVsMarket && (
+            <WorkTypePayChips workType={workType} pay={payLabel} />
+            {comparePay && posting.payVsMarket && (
               <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
             )}
             <SeniorityBadge level={posting.level} />
@@ -245,11 +267,10 @@ export function DiscoverJobCard({
         <p className="text-sm text-muted-foreground">
           {attributionOf(posting) ?? (posting.postingType && POSTING_TYPE_LABEL[posting.postingType])}
           {posting.location && ` · ${posting.location}`}
-          {posting.salaryMin && posting.salaryMax &&
-            ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
+          {payLabel && ` · ${payLabel}`}
         </p>
 
-        <MarketPayLine posting={posting} />
+        <MarketPayLine posting={posting} workType={workType} />
 
         {/* A confidential search's description usually names the client — never shown. */}
         {posting.description && !confidential && (
@@ -292,8 +313,15 @@ export function DiscoverJobCard({
               </SubmitButton>
             </form>
           )}
-          {!confidential && <AddToWatchlistButton companyName={posting.companyName} />}
         </div>
+        {!confidential && (
+          <JobTrackControls
+            jobRef={{ source: 'job_board', sourceId: posting.id, title: posting.title, companyName: posting.companyName, url: posting.url, workType }}
+            initial={track}
+            watched={watched}
+            companyId={posting.companyId}
+          />
+        )}
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
         <CoverNote postingId={posting.id} />
       </div>

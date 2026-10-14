@@ -80,6 +80,16 @@ export async function setJobSaved(rawRef: TrackRef, saved: boolean): Promise<Res
       where: { id: ref.sourceId, candidateId: profile.id },
       data: saved ? { reaction: 'INTERESTED', reactionReason: null, reactedAt: new Date() } : { reaction: null, reactionReason: null, reactedAt: null },
     })
+    // Same Search Action credit the old Interested button earned.
+    if (saved) {
+      const effort = estimateActionEffort({ actionType: 'JOB_INTERESTED_REACTION' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'JOB_INTERESTED_REACTION',
+        text: 'Express interest in a job listing',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+    }
   }
   captureServerEvent(profile.id, saved ? 'job_saved' : 'job_unsaved', { jobId: ref.sourceId, source: ref.source, type: ref.workType, trackedJobId: tracked.id })
   return done()
