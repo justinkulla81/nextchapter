@@ -113,6 +113,8 @@ describe('fit scoring v2 — level alignment', () => {
     const manager = member({ highestLevelReached: 'Manager' })
     expect(levelStep(manager, job({ title: 'Senior Operations Analyst', level: 'SENIOR_IC' }))).toBe('same')
     expect(levelStep(member({ highestLevelReached: 'IC' }), job({ title: 'Operations Manager', level: 'MANAGER' }))).toBe('up')
+    expect(levelStep(member({ highestLevelReached: 'IC' }), job({ title: 'Operations Analyst', level: 'MID_IC' }))).toBe('same')
+    expect(levelStep(manager, job({ title: 'Operations Analyst', level: 'MID_IC' }))).toBe('down')
     const bucket = computeBoardListingFitBucket(manager, job({ title: 'Senior Operations Analyst', level: 'SENIOR_IC' }))
     expect(bucket).not.toBe('below_level')
     expect(bucket).not.toBe('overqualified')

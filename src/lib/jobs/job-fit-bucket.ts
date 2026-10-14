@@ -144,6 +144,9 @@ interface FitPostingLike {
 const STEP_POINTS = 15
 const MEMBER_LEVEL_POINTS: Record<string, number> = { IC: 32, Manager: 40, Director: 55, VP: 70, 'C-Suite': 85 }
 const RUNG_LEVEL_POINTS: Partial<Record<RungName, number>> = {
+  // Mid-level professional (not on the board until the mid-level tier ships):
+  // level with an IC member, a step below a Manager.
+  MID_IC: 25,
   SENIOR_IC: 38,
   MANAGER: 40,
   SR_MANAGER: 47,
