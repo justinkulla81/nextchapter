@@ -800,7 +800,7 @@ model CandidateProfile {
   desireComplete Boolean @default(false)
 
   // Part 1: Your Situation
-  currentJobStatus   CurrentJobStatus?
+  currentJobStatus      CurrentJobStatus?
   // Journeys: why they're moving and how close they are to applying. Null
   // until set; readers use effectiveJourney()/effectiveStage() in
   // src/lib/journey/journey.ts, which derive both from currentJobStatus for
@@ -814,19 +814,19 @@ model CandidateProfile {
   journeyCheckedAt      DateTime? // last answered "Has anything changed?"
   journeyDetails        Json?
   journeyEvents         JourneyEvent[]
-  gapDuration        GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+  gapDuration           GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
   // DEPRECATED — question removed from Your Situation page (Batch 24); the
   // "how difficult has your search been" question below covers this signal
   // instead. Column kept (not dropped) only so existing historical answers
   // aren't destroyed — do not read this in new code.
-  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
-  biggestBarriers    String[]           @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
+  jobSearchIntensity    Int? // 0-100 slider, "casually looking" -> "extremely"
+  biggestBarriers       String[]           @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
   // "How actively are you searching right now?" — a distinct axis from
   // jobSearchDifficultyLevel (how hard the search feels vs. how actively
   // they're even looking). Feeds Victoria's directness calibration
   // (isCasuallySearching) and suppresses week-count urgency language for
   // non-active searchers.
-  searchIntensity    SearchIntensity?
+  searchIntensity       SearchIntensity?
 
   // Admin-confirmed match to a LayoffCohort (candidate matching, not
   // self-selected) — set via /support/admin/layoff-cohorts, surfaces a
@@ -1715,10 +1715,6 @@ model CandidateProfile {
   // NextChapter Talent: set once this person claims an intake profile.
   intakeCandidate IntakeCandidate?
 
-  @@index([privacyTier])
-  @@index([currentJobStatus])
-  @@index([currentState, currentCity])
-
   undatedEmployment UndatedEmployment[]
 
   coachingStyleResponse CoachingStyleResponse?
@@ -1731,6 +1727,10 @@ model CandidateProfile {
   inWorkFeedback      InWorkFeedback[]
   inWorkOutcomes      InWorkOutcome[]
   inWorkEmailSends    InWorkEmailSend[]
+
+  @@index([privacyTier])
+  @@index([currentJobStatus])
+  @@index([currentState, currentCity])
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -1924,9 +1924,6 @@ model WorkHistoryEntry {
 
   references Reference[]
 
-  @@index([candidateId])
-  @@index([companyNameNormalized])
-
   // The directory company this job was at. companyName stays what the resume said.
   // This link is internal (grouping, alumni networks, feedback requests): a job here
   // does NOT make the member visible as an insider — that is MemberEmployment, which
@@ -1934,6 +1931,8 @@ model WorkHistoryEntry {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  @@index([candidateId])
+  @@index([companyNameNormalized])
   @@index([companyId])
 }
 
@@ -2036,9 +2035,6 @@ model EducationEntry {
 
   createdAt DateTime @default(now())
 
-  @@index([candidateId])
-  @@index([schoolNameNormalized])
-
   // The canonical institution this entry is at — set when the entry is created from a
   // resume (and by a backfill for older rows). schoolName stays exactly what the
   // resume said; schoolId is what alumni are grouped by.
@@ -2047,6 +2043,8 @@ model EducationEntry {
   // 'ASSOCIATE' | 'BACHELORS' | 'MASTERS' | 'MBA' | 'DOCTORATE' | 'PROFESSIONAL' | 'OTHER'
   degreeLevel String?
 
+  @@index([candidateId])
+  @@index([schoolNameNormalized])
   @@index([schoolId])
 }
 
@@ -2695,12 +2693,12 @@ model EmployerProfile {
 
   // The directory Company this is the employer / firm of. Public business facts
   // live on Company; everything private to this role stays on this record.
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId            String?
+  company              Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  dossierIntroRequests DossierIntroRequest[]
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
-  dossierIntroRequests DossierIntroRequest[]
 }
 
 // Team seats, additive to the original single-owner EmployerProfile.userId
@@ -4784,6 +4782,10 @@ model ExclusiveJobPosting {
   postedAt           DateTime?
   sourceCount        Int?
   sourceName         String?
+  // Employer's industry from the crawler's employer map (SEC SIC, IRS NTEE,
+  // YC tags…): technology, healthcare, financial_services, … — see
+  // ncrawl/industry_map.py. Null for jobs posted directly on NextChapter.
+  industry           String?
   institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
 
   // The directory company this posting is for. Set when the posting is added (see
@@ -4792,6 +4794,12 @@ model ExclusiveJobPosting {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
+  // Skills this posting asks for, extracted at import from its full description (a fixed
+  // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
+  // of which only a short excerpt is stored: ~15 MB for the whole board instead of
+  // ~125 MB, and skills are what the skills gap and fit scoring actually use.
+  skills String[] @default([])
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
   @@index([status, archivedAt])
@@ -4799,12 +4807,7 @@ model ExclusiveJobPosting {
   @@index([institutionScopeId])
   @@index([companyId])
   @@index([postedAt])
-
-  // Skills this posting asks for, extracted at import from its full description (a fixed
-  // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
-  // of which only a short excerpt is stored: ~15 MB for the whole board instead of
-  // ~125 MB, and skills are what the skills gap and fit scoring actually use.
-  skills String[] @default([])
+  @@index([industry])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -4875,10 +4878,10 @@ model PivotIdea {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  title               String
-  description         String
-  rationale           String
-  salaryConsideration String?
+  title                   String
+  description             String
+  rationale               String
+  salaryConsideration     String?
   // Structured pay-change estimate (a range, never a point number) for the
   // path this idea sits on. Null until a benchmark-backed estimate exists.
   pathType                PivotPathType?
@@ -4886,7 +4889,7 @@ model PivotIdea {
   expectedPayDeltaHighPct Float?
   payDeltaBasis           String?
   payDeltaConfidence      OutcomeConfidence?
-  generatedAt         DateTime @default(now())
+  generatedAt             DateTime           @default(now())
 
   rating       Int? // 1-4, 4 = "I really love it"
   ratingReason String?
@@ -6942,10 +6945,10 @@ model Company {
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
 
-  @@index([industry])
-
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
+
+  @@index([industry])
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
@@ -9647,7 +9650,7 @@ model CrmPerson {
   /// Written only by the calendar sweep, which looks 30 days ahead: set when
   /// an upcoming event has them as an attendee, cleared once it has passed,
   /// been moved out of range, or been cancelled.
-  nextMeetingAt DateTime?
+  nextMeetingAt  DateTime?
   /// Meet link of that same upcoming event, when it has one.
   nextMeetingUrl String?
 
@@ -9694,7 +9697,7 @@ model CrmPerson {
   mailingPrompt         MailingListPrompt?
   editionRecipients     MailingEditionRecipient[]
   reportSends           CrmReportSend[]
-  meetingPreps             CrmMeetingPrep[]
+  meetingPreps          CrmMeetingPrep[]
 
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
@@ -10878,6 +10881,7 @@ model WarnNotice {
 
   /// Higher Ed: alumni whose employer matches this notice.
   institutionLayoffMatches LayoffMatch[]
+  rapidResponses           RapidResponse[]
 
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
@@ -10886,7 +10890,6 @@ model WarnNotice {
   @@index([workforceBoardId, noticeDate])
   @@index([companyId])
   @@index([companyMatchStatus])
-  rapidResponses RapidResponse[]
 }
 
 enum WarnCompanyMatchStatus {
@@ -10974,11 +10977,11 @@ model WorkforceBoard {
   partnersCheckedAt DateTime?
   newsCheckedAt     DateTime?
 
-  @@index([state])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([state])
 }
 
 /// A county's labor force and unemployment from the BLS Local Area
@@ -11441,44 +11444,44 @@ enum InstitutionEmployerPackageTier {
 }
 
 model Institution {
-  id               String          @id @default(cuid())
-  slug             String          @unique // /i/[slug]
-  name             String
-  programBrandName String?
-  logoUrl          String?
-  accentColor      String?
+  id                String             @id @default(cuid())
+  slug              String             @unique // /i/[slug]
+  name              String
+  programBrandName  String?
+  logoUrl           String?
+  accentColor       String?
   // Email domains that identify this institution's people (SSO and
   // roster matching), e.g. ["washjeff.edu"].
-  domains          String[]        @default([])
-  ssoProvider      String? // 'google' | 'microsoft' | 'saml'
-  ssoConfig        Json?
-  tier             InstitutionTier @default(CAREER)
-  alumniCount      Int?
-  includedSeats    Int             @default(0)
-  licenseStartAt   DateTime?
-  licenseEndAt     DateTime?
+  domains           String[]           @default([])
+  ssoProvider       String? // 'google' | 'microsoft' | 'saml'
+  ssoConfig         Json?
+  tier              InstitutionTier    @default(CAREER)
+  alumniCount       Int?
+  includedSeats     Int                @default(0)
+  licenseStartAt    DateTime?
+  licenseEndAt      DateTime?
   // graceDays (60), fiscalYearStartMonth (7 = July), engagementWeights
   // (empty = the §7 defaults in code), wioa (V2, off). Readers merge this
   // over the code defaults, so a missing key never breaks anything.
-  enabledFeatures  Json            @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
-  givingUrl        String?
+  enabledFeatures   Json               @default("{\"graceDays\":60,\"fiscalYearStartMonth\":7,\"engagementWeights\":{},\"wioa\":false}")
+  givingUrl         String?
   // The CRM record for this college (a CrmOrganization typed UNIVERSITY).
   // One college workspace per CRM college; SetNull so removing the CRM
   // record never deletes a customer workspace.
-  crmOrganizationId String?          @unique
-  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
+  crmOrganizationId String?            @unique
+  crmOrganization   CrmOrganization?   @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
   // Public, sourced facts shown in the portal: the college profile (photos,
   // published outcomes), its region (unemployment, top employers, the WIOA
   // board, local news). Every figure carries its source and period — see
   // InstitutionProfile in src/lib/higher-ed/profile.ts. Never member data.
-  profile          Json?
-  isDemo           Boolean         @default(false)
+  profile           Json?
+  isDemo            Boolean            @default(false)
   // A campus in a multi-campus system (one license, a system dashboard).
-  systemId         String?
-  system           InstitutionSystem? @relation(fields: [systemId], references: [id], onDelete: SetNull)
-  isSampleData     Boolean         @default(false)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  systemId          String?
+  system            InstitutionSystem? @relation(fields: [systemId], references: [id], onDelete: SetNull)
+  isSampleData      Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   users             InstitutionUser[]
   members           InstitutionMember[]
@@ -11497,24 +11500,24 @@ model Institution {
   coaches           Coach[]
   scopedJobPostings ExclusiveJobPosting[]
 
-  targetCompanies InstitutionTargetCompany[]
+  targetCompanies      InstitutionTargetCompany[]
   dossierIntroRequests DossierIntroRequest[]
-  programs         Program[]
-  corporateClients CorporateClient[]
-  capstones        Capstone[]
-  alumniIntroRequests AlumniIntroRequest[]
-  officeHourSlots     OfficeHourSlot[]
-  collegeEvents       CollegeEvent[]
-  segments            Segment[]
-  rapidResponses      RapidResponse[]
-  alumniOpportunities AlumniOpportunity[]
-  alumniGroups        AlumniGroup[]
-  auditCourses        AuditCourse[]
-  mentoringCohorts    MentoringCohort[]
-  alumniQuestions     AlumniQuestion[]
-  volunteerRoles      VolunteerRole[]
-  newsPosts           CollegeNewsPost[]
-  dataRequests        DataRequest[]
+  programs             Program[]
+  corporateClients     CorporateClient[]
+  capstones            Capstone[]
+  alumniIntroRequests  AlumniIntroRequest[]
+  officeHourSlots      OfficeHourSlot[]
+  collegeEvents        CollegeEvent[]
+  segments             Segment[]
+  rapidResponses       RapidResponse[]
+  alumniOpportunities  AlumniOpportunity[]
+  alumniGroups         AlumniGroup[]
+  auditCourses         AuditCourse[]
+  mentoringCohorts     MentoringCohort[]
+  alumniQuestions      AlumniQuestion[]
+  volunteerRoles       VolunteerRole[]
+  newsPosts            CollegeNewsPost[]
+  dataRequests         DataRequest[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11540,34 +11543,34 @@ model InstitutionUser {
   updatedAt     DateTime            @updatedAt
 
   caseloadAssignments CaseloadAssignment[]
+  cohortsTaught       Cohort[]
+  capstonesLed        Capstone[]           @relation("CapstoneFaculty")
+  auditCoursesTaught  AuditCourse[]        @relation("AuditFaculty")
 
   @@unique([institutionId, invitedEmail, role])
   @@index([userId, revokedAt])
   @@index([institutionId, role])
-  cohortsTaught   Cohort[]
-  capstonesLed    Capstone[] @relation("CapstoneFaculty")
-  auditCoursesTaught AuditCourse[] @relation("AuditFaculty")
 }
 
 model InstitutionMember {
-  id            String                        @id @default(cuid())
-  institutionId String
-  institution   Institution                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  id                    String                        @id @default(cuid())
+  institutionId         String
+  institution           Institution                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   // Null until claimed. A candidate can be a member of several institutions.
-  candidateId   String?
-  candidate     CandidateProfile?             @relation(fields: [candidateId], references: [id], onDelete: SetNull)
-  externalId    String? // the college CRM's constituent id; the roster upsert key
-  email         String
-  firstName     String?
-  lastName      String?
-  affiliation   InstitutionAffiliation        @default(ALUM)
-  classYear     Int?
-  degree        String?
-  major         String?
-  matchMethod   InstitutionMemberMatchMethod?
-  status        InstitutionMemberStatus       @default(IMPORTED)
-  claimedAt     DateTime? // §7 metrics count gifts and tool use after this date
-  doNotContact  Boolean                       @default(false) // imported, never emailed
+  candidateId           String?
+  candidate             CandidateProfile?             @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  externalId            String? // the college CRM's constituent id; the roster upsert key
+  email                 String
+  firstName             String?
+  lastName              String?
+  affiliation           InstitutionAffiliation        @default(ALUM)
+  classYear             Int?
+  degree                String?
+  major                 String?
+  matchMethod           InstitutionMemberMatchMethod?
+  status                InstitutionMemberStatus       @default(IMPORTED)
+  claimedAt             DateTime? // §7 metrics count gifts and tool use after this date
+  doNotContact          Boolean                       @default(false) // imported, never emailed
   // Set when the alum unsubscribes, or their address hard-bounces or marks
   // a college email as spam (Resend webhook). Never cleared by a roster
   // import; sendCampaign skips anyone with it set.
@@ -11589,20 +11592,36 @@ model InstitutionMember {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  consents            InstitutionConsent[]
-  transitionFlags     TransitionFlag[]
-  layoffMatches       LayoffMatch[]
-  outreachSends       OutreachSend[]
-  engagementEvents    EngagementEvent[]
-  mentorProfile       InstitutionMentor?
-  mentorRequests      MentorRequest[]
-  gifts               InstitutionGift[]
-  outcomeReports      OutcomeReport[]
-  prospectFlags       ProspectFlag[]
-  fundAwards          FundAward[]
-  caseloadAssignments CaseloadAssignment[]
-  checkIns            CheckIn[]
-  purchases           InstitutionPurchase[]
+  consents             InstitutionConsent[]
+  transitionFlags      TransitionFlag[]
+  layoffMatches        LayoffMatch[]
+  outreachSends        OutreachSend[]
+  engagementEvents     EngagementEvent[]
+  mentorProfile        InstitutionMentor?
+  mentorRequests       MentorRequest[]
+  gifts                InstitutionGift[]
+  outcomeReports       OutcomeReport[]
+  prospectFlags        ProspectFlag[]
+  fundAwards           FundAward[]
+  caseloadAssignments  CaseloadAssignment[]
+  checkIns             CheckIn[]
+  purchases            InstitutionPurchase[]
+  dossierIntroRequests DossierIntroRequest[]
+  enrollments          Enrollment[]
+  introsRequested      AlumniIntroRequest[]  @relation("IntroRequester")
+  introsReceived       AlumniIntroRequest[]  @relation("IntroTarget")
+  officeHoursBooked    OfficeHourSlot[]
+  eventRsvps           EventRsvp[]
+  opportunitiesPosted  AlumniOpportunity[]
+  opportunityInterests OpportunityInterest[]
+  groupMemberships     AlumniGroupMember[]
+  auditRequests        AuditRequest[]
+  mentoringSignups     MentoringSignup[]
+  pairsAsMentor        MentoringPair[]       @relation("PairMentor")
+  pairsAsMentee        MentoringPair[]       @relation("PairMentee")
+  questions            AlumniQuestion[]
+  answers              AlumniAnswer[]
+  volunteerSignups     VolunteerSignup[]
 
   @@unique([institutionId, externalId])
   @@unique([institutionId, email])
@@ -11611,22 +11630,6 @@ model InstitutionMember {
   @@index([institutionId, classYear])
   @@index([institutionId, lastName, firstName])
   @@index([institutionId, lastKnownEmployerNormalized])
-  dossierIntroRequests DossierIntroRequest[]
-  enrollments Enrollment[]
-  introsRequested AlumniIntroRequest[] @relation("IntroRequester")
-  introsReceived  AlumniIntroRequest[] @relation("IntroTarget")
-  officeHoursBooked OfficeHourSlot[]
-  eventRsvps      EventRsvp[]
-  opportunitiesPosted AlumniOpportunity[]
-  opportunityInterests OpportunityInterest[]
-  groupMemberships    AlumniGroupMember[]
-  auditRequests       AuditRequest[]
-  mentoringSignups    MentoringSignup[]
-  pairsAsMentor       MentoringPair[] @relation("PairMentor")
-  pairsAsMentee       MentoringPair[] @relation("PairMentee")
-  questions           AlumniQuestion[]
-  answers             AlumniAnswer[]
-  volunteerSignups    VolunteerSignup[]
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -11785,10 +11788,10 @@ model InstitutionMentor {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  requests MentorRequest[]
+  requests        MentorRequest[]
+  officeHourSlots OfficeHourSlot[]
 
   @@index([institutionId, isActive])
-  officeHourSlots OfficeHourSlot[]
 }
 
 model MentorRequest {
@@ -11996,10 +11999,10 @@ model InstitutionEmployer {
   isSampleData      Boolean                        @default(false)
   createdAt         DateTime                       @default(now())
   updatedAt         DateTime                       @updatedAt
+  capstones         Capstone[]
 
   @@unique([institutionId, employerProfileId])
   @@index([employerProfileId, status])
-  capstones Capstone[]
 }
 
 // An approved employer asks to meet a member who shares their Dossier with
@@ -12622,13 +12625,13 @@ model GeoOrgLead {
   createdAt         DateTime  @default(now())
   geoArea           GeoArea?  @relation(fields: [geoAreaId], references: [id], onUpdate: NoAction)
 
-  @@index([geoAreaId])
-  @@index([kind, state])
-  @@index([revenue(sort: Desc)])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([geoAreaId])
+  @@index([kind, state])
+  @@index([revenue(sort: Desc)])
 }
 
 model PitchRuleSet {
@@ -12661,13 +12664,13 @@ model AmericanJobCenter {
   workforceBoardId String?
   updatedAt        DateTime @default(now()) @updatedAt
 
-  @@index([state])
-  @@index([countyFips])
-  @@index([workforceBoardId])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([state])
+  @@index([countyFips])
+  @@index([workforceBoardId])
 }
 
 /// A government or regional economic-development body that is not an IRS
@@ -12693,11 +12696,11 @@ model LocalPartnerOrg {
   confidence   String? // high | medium | low
   updatedAt    DateTime @default(now()) @updatedAt
 
-  @@index([kind, state])
-
   fitScore     Float?
   fitBreakdown Json?
   fitScoredAt  DateTime?
+
+  @@index([kind, state])
 }
 
 // A company an institution's career or advancement team has flagged as a target:
@@ -12877,18 +12880,18 @@ model CompanyHq {
 // unverified, and a near-miss to an existing school is queued for review rather than
 // merged (see src/lib/education/school-match.ts).
 model School {
-  id               String   @id @default(cuid())
-  name             String // canonical display name
-  canonicalKey     String   @unique // schoolKey(name)
-  aliases          String[] @default([])
+  id                String   @id @default(cuid())
+  name              String // canonical display name
+  canonicalKey      String   @unique // schoolKey(name)
+  aliases           String[] @default([])
   // Optional link to the outreach college directory, for state / sector / size.
-  localCollegeId   String?
-  state            String?
-  verified         Boolean  @default(false)
+  localCollegeId    String?
+  state             String?
+  verified          Boolean  @default(false)
   // 'REVIEW' (looks like a variant of mergeSuggestionId) | 'KEPT_SEPARATE' | 'MERGED'
-  reviewState      String?
+  reviewState       String?
   mergeSuggestionId String?
-  createdAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
 
   educationEntries EducationEntry[]
 
@@ -13045,13 +13048,13 @@ model OfferedWageSummary {
 // public, free). One row per company; exact recipient-name match only
 // (src/lib/companies/federal-contracts.ts). Filled by scripts/sync-federal-contracts.ts.
 model FederalContractSummary {
-  id          String   @id @default(cuid())
-  companyId   String   @unique
+  id          String    @id @default(cuid())
+  companyId   String    @unique
   awards      Int
   totalAmount Float
   topAgency   String?
   latestStart DateTime?
-  checkedAt   DateTime @default(now())
+  checkedAt   DateTime  @default(now())
 }
 
 // Published federal outcomes for a school (U.S. Dept. of Education College Scorecard, public
@@ -13263,53 +13266,53 @@ model RateLimitHit {
 // assessments or wage matching yet, and no SSNs anywhere.
 
 model Program {
-  id            String      @id @default(cuid())
-  institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  name          String
-  summary       String?     @db.Text
-  audience      String?
-  credential    String? // what completers earn, e.g. "AI-Ready Professional Certificate"
-  priceCents    Int         @default(0)
-  wioaEligible  Boolean     @default(false) // on the state's eligible training provider list
+  id             String      @id @default(cuid())
+  institutionId  String
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name           String
+  summary        String?     @db.Text
+  audience       String?
+  credential     String? // what completers earn, e.g. "AI-Ready Professional Certificate"
+  priceCents     Int         @default(0)
+  wioaEligible   Boolean     @default(false) // on the state's eligible training provider list
   // Skills it builds, matched against an alum's Market Reality gaps.
-  skills        String[]    @default([])
+  skills         String[]    @default([])
   // State eligible-provider (ETPL) listing fields.
   cipCode        String?
   hours          Int?
   credentialType String? // 'certificate' | 'industry_certification' | 'badge' | 'degree'
   prerequisites  String?
-  isActive      Boolean     @default(true)
-  createdBy     String
-  isSampleData  Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  isActive       Boolean     @default(true)
+  createdBy      String
+  isSampleData   Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  cohorts    Cohort[]
-  capstones  Capstone[]
+  cohorts   Cohort[]
+  capstones Capstone[]
 
   @@index([institutionId, isActive])
 }
 
 model Cohort {
-  id            String           @id @default(cuid())
-  programId     String
-  program       Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
-  name          String // e.g. "Spring 2027, online"
-  startsAt      DateTime
-  endsAt        DateTime?
-  seats         Int?
-  modality      String? // 'online' | 'in_person' | 'hybrid'
-  facultyUserId String? // InstitutionUser (FACULTY) who teaches it
+  id               String           @id @default(cuid())
+  programId        String
+  program          Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name             String // e.g. "Spring 2027, online"
+  startsAt         DateTime
+  endsAt           DateTime?
+  seats            Int?
+  modality         String? // 'online' | 'in_person' | 'hybrid'
+  facultyUserId    String? // InstitutionUser (FACULTY) who teaches it
   // Completion rule: attend at least minAttendancePct of sessionsTotal, and
   // finish the capstone when requiresCapstone.
-  sessionsTotal     Int?
-  minAttendancePct  Int?
-  requiresCapstone  Boolean @default(false)
-  faculty       InstitutionUser? @relation(fields: [facultyUserId], references: [id], onDelete: SetNull)
-  isSampleData  Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  sessionsTotal    Int?
+  minAttendancePct Int?
+  requiresCapstone Boolean          @default(false)
+  faculty          InstitutionUser? @relation(fields: [facultyUserId], references: [id], onDelete: SetNull)
+  isSampleData     Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   enrollments Enrollment[]
 
@@ -13396,8 +13399,6 @@ model Capstone {
   @@index([institutionId, status])
 }
 
-
-
 // ─── In-work track ────────────────────────────────────────────────────────
 // For members who have a job: impact log, review prep, raise and promotion
 // planning, feedback, outcomes, and the twice-yearly review-cycle emails.
@@ -13422,14 +13423,14 @@ model InWorkProfile {
 
 // Impact log: one win with its number and who it helped.
 model InWorkWin {
-  id          String           @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  what        String           @db.Text
-  result      String           @db.Text
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  what         String           @db.Text
+  result       String           @db.Text
   whoBenefited String?
-  occurredOn  DateTime         @db.Date
-  createdAt   DateTime         @default(now())
+  occurredOn   DateTime         @db.Date
+  createdAt    DateTime         @default(now())
 
   @@index([candidateId, occurredOn])
 }
@@ -13555,9 +13556,9 @@ model CronRun {
 /// reminded about once a day rather than every 15 minutes. Deleted when the
 /// job recovers.
 model CronJobAlert {
-  job        String   @id
-  reason     String
-  alertedAt  DateTime @default(now())
+  job       String   @id
+  reason    String
+  alertedAt DateTime @default(now())
 }
 
 // ── Lifecycle features: intros, office hours, events, segments, rapid response
@@ -13611,11 +13612,11 @@ model OfficeHourSlot {
 }
 
 model CollegeEvent {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  institution   Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   title         String
-  description   String?     @db.Text
+  description   String?      @db.Text
   kind          String // 'panel' | 'employer_night' | 'workshop' | 'networking'
   startsAt      DateTime
   endsAt        DateTime?
@@ -13627,9 +13628,9 @@ model CollegeEvent {
   // A group's own event (an affinity group or chapter, often led by alumni).
   groupId       String?
   group         AlumniGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  isSampleData  Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  isSampleData  Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   rsvps EventRsvp[]
 
@@ -14006,4 +14007,3 @@ model InstitutionSystemUser {
 
   @@unique([systemId, email])
 }
-

@@ -48,6 +48,7 @@ interface ImportJobInput {
   postedAt?: string | null
   sourceCount?: number | null
   sourceName?: string | null
+  industry?: string | null
 }
 
 interface ImportRequestBody {
@@ -133,6 +134,7 @@ function rowData({ job, level }: Screened) {
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
+    industry: job.industry?.trim() || null,
   }
 }
 
@@ -195,7 +197,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-      postedAt: true, sourceCount: true, sourceName: true,
+      postedAt: true, sourceCount: true, sourceName: true, industry: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
