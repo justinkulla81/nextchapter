@@ -36,6 +36,7 @@ import { ConfirmActionButton } from './ConfirmActionButton'
 import { AnswerIntro, AskIntro, BookSlot, CancelSlot, CheckInToggle, EventForm, OfficeHoursForm, RapidResponseForm, RsvpButton, SegmentForm } from './LifecycleForms'
 import { PrintButton } from './PrintButton'
 import { collegeTimeZone, formatInZone, zoneLabel } from '@/lib/higher-ed/time-zone'
+import { loadModules } from './screens-community'
 
 async function zoneOf(institutionId: string) {
   const i = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true, profile: true } })
@@ -134,10 +135,11 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
   const canAct = !!memberId && !ctx.readOnly
   const { label: zone, when } = await zoneOf(id)
   const pendingForMe = intros.received.filter((r) => r.status === 'REQUESTED')
+  const mods = await loadModules(id)
 
   return (
     <div className="space-y-10">
-      {pendingForMe.length > 0 && (
+      {mods.intros && pendingForMe.length > 0 && (
         <section aria-labelledby="asks" className="space-y-3 rounded-lg border border-primary/40 bg-card p-4">
           <h2 id="asks" className="text-base font-semibold">
             {pendingForMe.length === 1 ? 'An alum would like 15 minutes' : `${pendingForMe.length} alumni would like 15 minutes`}
@@ -156,6 +158,7 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
         </section>
       )}
 
+      {mods.intros && (
       <section id="intros" aria-labelledby="intros-h" className="space-y-3">
         <h2 id="intros-h" className="text-base font-semibold">
           Alumni at the companies you’re targeting
@@ -256,7 +259,9 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
           </div>
         )}
       </section>
+      )}
 
+      {mods.officeHours && (
       <section id="office-hours" aria-labelledby="oh-h" className="space-y-3">
         <h2 id="oh-h" className="text-base font-semibold">
           Office hours
@@ -331,7 +336,9 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
           </details>
         )}
       </section>
+      )}
 
+      {mods.events && (
       <section id="events" aria-labelledby="ev-h" className="space-y-3">
         <h2 id="ev-h" className="text-base font-semibold">
           Events
@@ -360,8 +367,9 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
           <EmptyState icon={CalendarDays} title="No events coming up" description="Career panels and employer nights show up here." />
         )}
       </section>
+      )}
 
-      {groups.length > 0 && (
+      {mods.groups && groups.length > 0 && (
         <section id="groups" aria-labelledby="gr-h" className="space-y-3">
           <h2 id="gr-h" className="text-base font-semibold">
             Your groups

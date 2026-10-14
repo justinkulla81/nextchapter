@@ -47,6 +47,23 @@ import { AdminBoard, AlumniEvents, CandidateNetwork, MilestonesFeed, StagePanel,
 import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
+import {
+  AdminPrivacy,
+  AlumniCommunity,
+  AlumniVolunteers,
+  CandidateGiveBack,
+  FeaturesPanel,
+  LearnSections,
+  MentoringCohortsSection,
+  NewsCard,
+  PeopleSections,
+  PrivacyExtras,
+  ProjectsSection,
+  StaffCohorts,
+  TeachingAuditors,
+  loadModules,
+  type CommunityParams,
+} from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
@@ -64,7 +81,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string }
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -192,6 +209,7 @@ async function CandidateHome({ ctx }: ScreenProps) {
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
       <MyProgramCard ctx={ctx} />
+      <NewsCard ctx={ctx} />
       <StagePanel ctx={ctx} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
@@ -1206,11 +1224,77 @@ export const COMING_DESCRIPTIONS: Record<string, string> = {
   'execed:clients': 'Employers who buy seats or custom programs for their teams.',
 }
 
+// Tabs built from several sections, each hidden when its feature is off.
+async function CandidateWork(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      {mods.alumniJobs && <CandidateJobs {...props} />}
+      <ProjectsSection {...props} />
+    </div>
+  )
+}
+async function CandidatePeople(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <PeopleSections {...props} />
+      <CandidateNetwork {...props} />
+    </div>
+  )
+}
+async function CandidateMentoring(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      <MentoringCohortsSection {...props} />
+      {mods.mentors && <MentorsScreen {...props} />}
+    </div>
+  )
+}
+async function CandidateLearn(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      <LearnSections {...props} />
+      {mods.programs && <CandidatePrograms {...props} />}
+    </div>
+  )
+}
+async function CandidatePrivacyAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <CandidatePrivacy {...props} />
+      <PrivacyExtras ctx={props.ctx} />
+    </div>
+  )
+}
+async function AlumniMentorsAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AlumniMentors {...props} />
+      <StaffCohorts ctx={props.ctx} />
+    </div>
+  )
+}
+async function AdminServicesAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <FeaturesPanel ctx={props.ctx} />
+      <SettingsServices {...props} />
+    </div>
+  )
+}
+
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
-  'candidate:mentors': MentorsScreen,
+  'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,
-  'alumni:mentors': AlumniMentors,
+  'alumni:mentors': AlumniMentorsAll,
+  'alumni:community': AlumniCommunity,
+  'alumni:volunteers': AlumniVolunteers,
+  'teaching:auditors': TeachingAuditors,
+  'admin:privacy': AdminPrivacy,
+  'candidate:giveback': CandidateGiveBack,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentRoi,
   'development:signals': DevelopmentSignals,
@@ -1221,7 +1305,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'career:outcomes': OutcomesScreen,
   'employer:home': EmployerDossiersWithIntros,
   'employer:page': EmployerPage,
-  'candidate:jobs': CandidateJobs,
+  'candidate:jobs': CandidateWork,
   'career:employers': CareerEmployers,
   'career:students': CareerStudents,
   'alumni:region': Region,
@@ -1237,18 +1321,18 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'execed:enrollments': ExecEdEnrollments,
   'execed:clients': ExecEdClients,
   'teaching:capstones': TeachingCapstones,
-  'candidate:programs': CandidatePrograms,
+  'candidate:programs': CandidateLearn,
   'workforce:home': WorkforceHome,
   'workforce:rapid': WorkforceRapid,
   'workforce:etpl': WorkforceEtpl,
-  'candidate:network': CandidateNetwork,
+  'candidate:network': CandidatePeople,
   'alumni:events': AlumniEvents,
   'admin:board': AdminBoard,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
   'admin:roster': AdminRoster,
-  'candidate:privacy': CandidatePrivacy,
-  'admin:services': SettingsServices,
+  'candidate:privacy': CandidatePrivacyAll,
+  'admin:services': AdminServicesAll,
   'admin:users': SettingsStaff,
   'alumni:layoffs': AlumniLayoffs,
   'alumni:outreach': AlumniOutreach,

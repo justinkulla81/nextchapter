@@ -33,6 +33,9 @@ export type WorkspaceTab = {
   comingIn: string | null
   // Narrower than the workspace's own requiredRoles, when set.
   requiredRoles?: AccessToken[]
+  // Hidden from alumni when the college switches every one of these portal
+  // features off (modules.ts). Staff tabs are never hidden; they say it's off.
+  modules?: import('./modules').ModuleKey[]
 }
 
 export type WorkspaceConfig = {
@@ -68,12 +71,13 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'candidate',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
+      { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'] },
+      { key: 'network', label: 'People', comingIn: null },
+      { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'] },
+      { key: 'programs', label: 'Learn', comingIn: null, modules: ['programs', 'courseAuditing'] },
+      { key: 'giveback', label: 'Give back', comingIn: null, modules: ['volunteer', 'giveBack', 'askAlumni'] },
       { key: 'coaching', label: 'Coaching', comingIn: null },
-      { key: 'jobs', label: 'Alumni jobs', comingIn: null },
-      { key: 'network', label: 'Network', comingIn: null },
-      { key: 'mentors', label: 'Mentors', comingIn: null },
-      { key: 'programs', label: 'Programs', comingIn: null },
-      { key: 'privacy', label: 'Privacy & sharing', comingIn: null },
+      { key: 'privacy', label: 'Privacy', comingIn: null },
     ],
   },
   {
@@ -90,8 +94,10 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'layoffs', label: 'Layoff alerts', comingIn: null },
       { key: 'outreach', label: 'Outreach', comingIn: null },
-      { key: 'mentors', label: 'Mentors', comingIn: null },
+      { key: 'mentors', label: 'Mentoring', comingIn: null },
       { key: 'events', label: 'Events', comingIn: null },
+      { key: 'community', label: 'Groups, news & posts', comingIn: null },
+      { key: 'volunteers', label: 'Volunteers', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: null },
     ],
   },
@@ -143,6 +149,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Courses', comingIn: null },
       { key: 'faculty', label: 'Faculty', comingIn: null },
       { key: 'capstones', label: 'Employer capstones', comingIn: null },
+      { key: 'auditors', label: 'Alumni auditors', comingIn: null },
     ],
   },
   {
@@ -185,6 +192,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },
+      { key: 'privacy', label: 'Privacy requests', comingIn: null },
     ],
   },
   {
@@ -252,10 +260,12 @@ export function isReadOnlyIn(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey
   return !holdsAny(tokens, full) && tokens.has(`VIEWER:${key}`)
 }
 
-export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey): WorkspaceTab[] {
+// `modules` (the college's portal features) hides a tab whose features are
+// all switched off; omitted = don't filter on features.
+export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey, modules?: Partial<Record<import('./modules').ModuleKey, boolean>>): WorkspaceTab[] {
   const ws = getWorkspace(key)
   if (!ws) return []
-  return ws.tabs.filter((t) => !t.requiredRoles || holdsAny(tokens, t.requiredRoles))
+  return ws.tabs.filter((t) => (!t.requiredRoles || holdsAny(tokens, t.requiredRoles)) && (!modules || !t.modules || t.modules.some((m) => modules[m] !== false)))
 }
 
 // Every token, for an nc_admin on a demo tenant (or in "View as").

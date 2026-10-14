@@ -42,6 +42,7 @@ import { getJourney } from '@/lib/journey/journey'
 import { DEMO_TENANTS, type DemoTenant } from './demo-tenants'
 import { mentorCallRows } from './engagement'
 import { clearEndedGrace } from './transition'
+import { seedCommunity } from './demo-community'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -775,6 +776,17 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       gapAnalysis: { targetRole: 'Senior Data Analyst', gaps: [{ area: 'SQL and data analysis', why: 'Most target postings ask for it.', remediation: 'A short certificate with a portfolio project.', remediationType: 'course' }] },
       generatedAt: new Date(now.getTime() - 5 * DAY),
     },
+  })
+
+  await seedCommunity(db, {
+    institutionId,
+    tenant,
+    now,
+    joined: joinedIdx.map(mid),
+    featured: mid(featured),
+    student: memberRows.some((r) => r.affiliation === 'STUDENT') ? memberRows.filter((r) => r.affiliation === 'STUDENT')[0].id! : null,
+    facultyUserId: facultyUser?.id ?? null,
+    employers: rosterEmployers,
   })
 
   return {

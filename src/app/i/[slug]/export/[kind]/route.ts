@@ -5,6 +5,7 @@ import { suppressionRows, updatesExportRows } from '@/lib/higher-ed/views'
 import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { etplRows, wioaOn, wioaReport } from '@/lib/higher-ed/programs'
+import { memberExport } from '@/lib/higher-ed/data-requests'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
 const ETPL_COLUMNS = ['program', 'cip_code', 'credential_type', 'credential', 'hours', 'cost', 'modality', 'prerequisites', 'enrolled', 'completed', 'completion_rate', 'credential_rate', 'placement_rate_180d'] as const
@@ -26,6 +27,24 @@ function csv(columns: readonly string[], rows: Record<string, unknown>[]): strin
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ slug: string; kind: string }> }) {
   const { slug, kind } = await params
   const stamp = new Date().toISOString().slice(0, 10)
+
+  // FERPA: an alum's own record, or (admin) any member's, as JSON.
+  if (kind === 'my-data' || kind === 'member-data') {
+    const ctx = await requireWorkspace(slug, kind === 'my-data' ? 'candidate' : 'admin')
+    const memberId = kind === 'my-data' ? ctx.memberId : _request.nextUrl.searchParams.get('memberId')
+    if (!memberId) return NextResponse.json({ error: 'No member record.' }, { status: 404 })
+    const data = await memberExport(ctx.institution.id, memberId)
+    if (!data) return NextResponse.json({ error: 'Not found.' }, { status: 404 })
+    if (kind === 'member-data' && !ctx.readOnly) {
+      // Logged (already done) so the college can show what it disclosed and when.
+      const by = ctx.email ?? ctx.userId
+      await prisma.dataRequest.create({ data: { institutionId: ctx.institution.id, memberId, email: data.member.email, kind: 'EXPORT', status: 'DONE', note: 'Downloaded by staff.', requestedBy: by, completedBy: by, completedAt: new Date() } })
+    }
+    captureServerEvent(ctx.userId, kind === 'my-data' ? 'he_my_data_exported' : 'he_member_data_exported', { institutionId: ctx.institution.id, memberId })
+    return new NextResponse(JSON.stringify(data, null, 2), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="${slug}-${kind}-${stamp}.json"`, 'Cache-Control': 'no-store' },
+    })
+  }
 
   if (kind === 'updates') {
     const ctx = await requireWorkspace(slug, 'development')

@@ -11281,6 +11281,7 @@ enum InstitutionConsentScope {
   SHARE_OUTCOME // default on
   SHARE_SEARCH_DETAIL_WITH_CAREER // default off
   SHARE_DOSSIER_WITH_EMPLOYERS // default off
+  LIST_IN_DIRECTORY // default off: appear in the alumni directory
 }
 
 enum TransitionFlagState {
@@ -11468,6 +11469,9 @@ model Institution {
   // InstitutionProfile in src/lib/higher-ed/profile.ts. Never member data.
   profile          Json?
   isDemo           Boolean         @default(false)
+  // A campus in a multi-campus system (one license, a system dashboard).
+  systemId         String?
+  system           InstitutionSystem? @relation(fields: [systemId], references: [id], onDelete: SetNull)
   isSampleData     Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
@@ -11499,6 +11503,14 @@ model Institution {
   collegeEvents       CollegeEvent[]
   segments            Segment[]
   rapidResponses      RapidResponse[]
+  alumniOpportunities AlumniOpportunity[]
+  alumniGroups        AlumniGroup[]
+  auditCourses        AuditCourse[]
+  mentoringCohorts    MentoringCohort[]
+  alumniQuestions     AlumniQuestion[]
+  volunteerRoles      VolunteerRole[]
+  newsPosts           CollegeNewsPost[]
+  dataRequests        DataRequest[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11530,6 +11542,7 @@ model InstitutionUser {
   @@index([institutionId, role])
   cohortsTaught   Cohort[]
   capstonesLed    Capstone[] @relation("CapstoneFaculty")
+  auditCoursesTaught AuditCourse[] @relation("AuditFaculty")
 }
 
 model InstitutionMember {
@@ -11600,6 +11613,16 @@ model InstitutionMember {
   introsReceived  AlumniIntroRequest[] @relation("IntroTarget")
   officeHoursBooked OfficeHourSlot[]
   eventRsvps      EventRsvp[]
+  opportunitiesPosted AlumniOpportunity[]
+  opportunityInterests OpportunityInterest[]
+  groupMemberships    AlumniGroupMember[]
+  auditRequests       AuditRequest[]
+  mentoringSignups    MentoringSignup[]
+  pairsAsMentor       MentoringPair[] @relation("PairMentor")
+  pairsAsMentee       MentoringPair[] @relation("PairMentee")
+  questions           AlumniQuestion[]
+  answers             AlumniAnswer[]
+  volunteerSignups    VolunteerSignup[]
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -13597,6 +13620,9 @@ model CollegeEvent {
   capacity      Int?
   createdBy     String
   cancelledAt   DateTime?
+  // A group's own event (an affinity group or chapter, often led by alumni).
+  groupId       String?
+  group         AlumniGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
   isSampleData  Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -13658,5 +13684,322 @@ model RapidResponse {
   enrollments Enrollment[]
 
   @@index([institutionId, isActive])
+}
+
+// ── Working, networking, learning, giving time, news, data rights, systems ──
+// Statuses are plain text (validated in code), so adding one needs no DDL.
+
+// A short project, fractional role or board seat posted to fellow alumni:
+// by an alum (often for their own business or a nonprofit board they sit
+// on) or by college staff (the college's advisory boards).
+model AlumniOpportunity {
+  id               String             @id @default(cuid())
+  institutionId    String
+  institution      Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  postedByMemberId String?
+  postedBy         InstitutionMember? @relation(fields: [postedByMemberId], references: [id], onDelete: SetNull)
+  postedByStaff    String? // staff email, when the college posts it
+  kind             String // 'project' | 'fractional' | 'board' | 'advisory'
+  title            String
+  organization     String
+  description      String             @db.Text
+  skills           String[]           @default([])
+  hoursPerWeek     Int?
+  durationWeeks    Int?
+  compensation     String // 'paid' | 'equity' | 'volunteer'
+  location         String? // 'Remote' or a place
+  status           String             @default("OPEN") // OPEN | FILLED | CLOSED
+  expiresAt        DateTime?
+  isSampleData     Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  interests OpportunityInterest[]
+
+  @@index([institutionId, status, kind])
+}
+
+model OpportunityInterest {
+  id            String            @id @default(cuid())
+  opportunityId String
+  opportunity   AlumniOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  note          String?           @db.Text
+  status        String            @default("INTERESTED") // INTERESTED | CONNECTED | DECLINED
+  isSampleData  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([opportunityId, memberId])
+  @@index([memberId])
+}
+
+// Affinity groups (athletics, clubs, Greek life, identity groups) and
+// regional chapters, with alumni leaders.
+model AlumniGroup {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  kind          String // 'affinity' | 'chapter'
+  name          String
+  description   String?     @db.Text
+  metro         String? // chapters: the metro it serves
+  isActive      Boolean     @default(true)
+  createdBy     String
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  members AlumniGroupMember[]
+  events  CollegeEvent[]
+
+  @@index([institutionId, kind])
+}
+
+model AlumniGroupMember {
+  id           String            @id @default(cuid())
+  groupId      String
+  group        AlumniGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role         String            @default("MEMBER") // MEMBER | LEADER
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([groupId, memberId])
+  @@index([memberId])
+}
+
+// A regular course faculty open to alumni auditors (no credit).
+model AuditCourse {
+  id            String           @id @default(cuid())
+  institutionId String
+  institution   Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  title         String
+  courseCode    String?
+  term          String
+  description   String?          @db.Text
+  schedule      String?
+  modality      String? // 'online' | 'in_person' | 'hybrid'
+  seats         Int?
+  facultyUserId String?
+  faculty       InstitutionUser? @relation("AuditFaculty", fields: [facultyUserId], references: [id], onDelete: SetNull)
+  skills        String[]         @default([])
+  isActive      Boolean          @default(true)
+  isSampleData  Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  requests AuditRequest[]
+
+  @@index([institutionId, isActive])
+}
+
+model AuditRequest {
+  id           String            @id @default(cuid())
+  courseId     String
+  course       AuditCourse       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  note         String?           @db.Text
+  status       String            @default("REQUESTED") // REQUESTED | APPROVED | DECLINED
+  decidedAt    DateTime?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([courseId, memberId])
+}
+
+// Structured mentoring: a cohort runs for a set number of weeks; alumni sign
+// up as mentors or mentees; staff match pairs.
+model MentoringCohort {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  theme         String?
+  startsAt      DateTime
+  weeks         Int         @default(12)
+  signupsOpen   Boolean     @default(true)
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  signups MentoringSignup[]
+  pairs   MentoringPair[]
+
+  @@index([institutionId, startsAt])
+}
+
+model MentoringSignup {
+  id           String            @id @default(cuid())
+  cohortId     String
+  cohort       MentoringCohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role         String // 'mentor' | 'mentee'
+  goals        String?           @db.Text
+  industries   String[]          @default([])
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@unique([cohortId, memberId])
+}
+
+model MentoringPair {
+  id             String            @id @default(cuid())
+  cohortId       String
+  cohort         MentoringCohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  mentorMemberId String
+  mentor         InstitutionMember @relation("PairMentor", fields: [mentorMemberId], references: [id], onDelete: Cascade)
+  menteeMemberId String
+  mentee         InstitutionMember @relation("PairMentee", fields: [menteeMemberId], references: [id], onDelete: Cascade)
+  status         String            @default("ACTIVE") // ACTIVE | COMPLETED | ENDED
+  menteeRating   Int? // 1-5 at the end
+  isSampleData   Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([cohortId, menteeMemberId])
+  @@index([mentorMemberId])
+}
+
+// Students (and anyone) ask; alumni answer.
+model AlumniQuestion {
+  id            String            @id @default(cuid())
+  institutionId String
+  institution   Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  topic         String // an industry or 'general'
+  body          String            @db.Text
+  hiddenAt      DateTime?
+  isSampleData  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  answers AlumniAnswer[]
+
+  @@index([institutionId, createdAt])
+}
+
+model AlumniAnswer {
+  id           String            @id @default(cuid())
+  questionId   String
+  question     AlumniQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  body         String            @db.Text
+  hiddenAt     DateTime?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@index([questionId])
+}
+
+// Ways to give time: admissions interviews, guest lectures, class agent...
+model VolunteerRole {
+  id             String      @id @default(cuid())
+  institutionId  String
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  kind           String // 'admissions_interview' | 'guest_lecture' | 'class_agent' | 'mentor_students' | 'event_host' | 'other'
+  title          String
+  description    String?     @db.Text
+  timeCommitment String?
+  office         String // which office runs it
+  slots          Int?
+  isActive       Boolean     @default(true)
+  createdBy      String
+  isSampleData   Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  signups VolunteerSignup[]
+
+  @@index([institutionId, isActive])
+}
+
+model VolunteerSignup {
+  id           String            @id @default(cuid())
+  roleId       String
+  role         VolunteerRole     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  note         String?           @db.Text
+  status       String            @default("SIGNED_UP") // SIGNED_UP | CONFIRMED | DONE | WITHDREW
+  completedAt  DateTime?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([roleId, memberId])
+  @@index([memberId])
+}
+
+// College news in the portal: staff posts (a feed URL can add more).
+model CollegeNewsPost {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  title         String
+  body          String?     @db.Text
+  url           String?
+  publishedAt   DateTime    @default(now())
+  createdBy     String
+  isSampleData  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([institutionId, publishedAt])
+}
+
+// FERPA and privacy requests: an alum asks for their data, a correction or
+// deletion; staff record and fulfil it. Kept after a deletion (email only).
+model DataRequest {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId      String? // null once the member is deleted
+  email         String
+  kind          String // 'EXPORT' | 'CORRECT' | 'DELETE'
+  status        String      @default("OPEN") // OPEN | DONE
+  note          String?     @db.Text
+  requestedBy   String // 'member' or a staff email
+  completedBy   String?
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([institutionId, status])
+}
+
+// A multi-campus system (e.g. a state system): its campuses are
+// Institutions with systemId; system users see a read-only system dashboard.
+model InstitutionSystem {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  isSampleData Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  campuses Institution[]
+  users    InstitutionSystemUser[]
+}
+
+model InstitutionSystemUser {
+  id        String            @id @default(cuid())
+  systemId  String
+  system    InstitutionSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  email     String
+  fullName  String?
+  revokedAt DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([systemId, email])
 }
 
