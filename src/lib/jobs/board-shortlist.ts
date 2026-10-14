@@ -98,7 +98,28 @@ function sameRow(a: LightRow, b: LightRow): boolean {
   }
   return true
 }
+// Columns whose values repeat across many rows: one string per distinct value
+// instead of one per row (the shared board is ~160k rows).
+const REPEATED_COLUMNS = [
+  'companyName', 'audienceTier', 'source', 'targetFunction', 'targetLevel', 'targetRemotePolicy',
+  'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType',
+] as const satisfies readonly (keyof LightRow)[]
+function internRepeated(rows: LightRow[]): void {
+  const pool = new Map<string, string>()
+  for (const r of rows) {
+    const row = r as Record<(typeof REPEATED_COLUMNS)[number], string | null>
+    for (const k of REPEATED_COLUMNS) {
+      const v = row[k]
+      if (v === null) continue
+      const hit = pool.get(v)
+      if (hit === undefined) pool.set(v, v)
+      else row[k] = hit
+    }
+  }
+}
+
 function reuseUnchanged(rows: LightRow[]): LightRow[] {
+  internRepeated(rows)
   const kept = new Map<string, LightRow>()
   const out = rows.map((r) => {
     const before = previousById.get(r.id)

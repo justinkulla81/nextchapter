@@ -19,6 +19,7 @@ import { levelsInGroup } from '@/lib/jobs/job-seniority'
 type Opts = Parameters<typeof newShortlist>[0]
 async function main() {
   const n = Number(process.argv[2] ?? 10)
+  const only = process.argv[3] // run just the cases whose name starts with this
   const members = await prisma.candidateProfile.findMany({ where: { isSampleData: false }, orderBy: { createdAt: 'desc' }, take: n })
   let checks = 0
   let mismatches = 0
@@ -34,7 +35,14 @@ async function main() {
       { name: 'email (fresh alerts shape)', old: { candidate: c, isCandidatePlus: plus, where: postedWithinWhere(48), size: 30, fitScoring: emailFitScoringVersion() }, now: { candidate: c, isCandidatePlus: plus, where: postedWithinWhere(48), size: 30, fitScoring: emailFitScoringVersion() } },
     ]
     for (const k of cases) {
-      const [a, b] = [await oldShortlist(k.old as never), await newShortlist(k.now)]
+      if (only && !k.name.startsWith(only)) continue
+      // The email paths still read the wide table in storage order, as before; compare
+      // them against the baseline in storage order too.
+      const sortSetting = process.env.BASELINE_SORT
+      if (k.name.startsWith('email')) process.env.BASELINE_SORT = '0'
+      const a = await oldShortlist(k.old as never)
+      process.env.BASELINE_SORT = sortSetting
+      const b = await newShortlist(k.now)
       const ids = (x: typeof a) => [...x.open.map((p) => p.id), '|', ...x.locked.map((p) => p.id)]
       const same = JSON.stringify(ids(a)) === JSON.stringify(ids(b))
       const totals = (x: typeof a) => [x.openTotal, x.lockedTotal, x.freshOpenTotal, x.lowCompetitionOpenTotal, JSON.stringify(x.countByWorkType), x.countByCompany.size]
