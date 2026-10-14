@@ -1,4 +1,5 @@
 import type { OccupationProfile } from '@/lib/careers/types'
+import { comparePay, type PayByLevel, type PayInfo, type PayLevel } from '@/lib/careers/local-pay'
 import {
   ratedGaps,
   similarity,
@@ -28,9 +29,15 @@ export interface PivotOption {
   similarity: number
   /** 0-1 share of what this role asks for that the current role already covers. */
   overlap: number | null
+  /** The pay figure to show, from the person's metro area if we have it, else their state, else the nation. */
+  pay: PayInfo | null
+  /** Median of `pay`, kept for callers that only want the number. */
   medianWage: number | null
-  /** Percent difference from the current occupation's median wage. */
+  /** Percent difference from the current occupation at the same place (see payBasis). Null when there is no like-for-like pair. */
   wageDeltaPct: number | null
+  /** The target's exact pay is withheld above BLS's ceiling, so wageDeltaPct is a floor ("at least"). */
+  payAtLeast: boolean
+  payBasis: PayLevel | null
   growthPct: number | null
   annualOpenings: number | null
   jobZone: number | null
@@ -41,6 +48,14 @@ export interface PivotOption {
   onetRelated: boolean
 }
 
+/** National pay from the median stored on the occupation itself, for when no per-area pay is loaded. */
+export function nationalPayFromProfile(profile: OccupationProfile | undefined): PayByLevel {
+  const wage = profile?.medianWage ?? null
+  return wage
+    ? { NATIONAL: { level: 'NATIONAL', areaName: 'United States', median: wage, p10: null, p25: null, p75: null, p90: null, employment: null, ceilingHit: false } }
+    : {}
+}
+
 export interface RankPivotsInput {
   space: VectorSpace
   profiles: Map<string, OccupationProfile>
@@ -48,6 +63,8 @@ export interface RankPivotsInput {
   wageFloor: WageFloor
   resumeKeywords: string[]
   limit?: number
+  /** Pay by place for an occupation (see local-pay.ts). Defaults to the national median stored on the occupation. */
+  pay?: (socCode: string) => PayByLevel
 }
 
 /**
@@ -69,6 +86,8 @@ export function rankPivots(input: RankPivotsInput): PivotOption[] {
   const source = profiles.get(sourceSoc)
   if (!source) return []
 
+  const payOf = input.pay ?? ((soc: string) => nationalPayFromProfile(profiles.get(soc)))
+  const sourcePay = payOf(sourceSoc)
   const related = new Set(source.relatedSocCodes)
   const floor = WAGE_FLOOR_RATIO[wageFloor]
   const options: PivotOption[] = []
@@ -82,20 +101,21 @@ export function rankPivots(input: RankPivotsInput): PivotOption[] {
     if (sim < 0.2 && !isRelated) continue
 
     if (source.jobZone !== null && target.jobZone !== null && target.jobZone < source.jobZone - 1) continue
-    if (floor > 0 && source.medianWage && target.medianWage && target.medianWage < source.medianWage * floor) continue
-
-    const wageDeltaPct =
-      source.medianWage && target.medianWage
-        ? Math.round(((target.medianWage - source.medianWage) / source.medianWage) * 100)
-        : null
+    // Like-for-like pay: both occupations at the same place. A role whose exact pay is withheld
+    // above BLS's ceiling is never excluded for pay, since its pay is at least the ceiling.
+    const cmp = comparePay(sourcePay, payOf(target.socCode))
+    if (floor > 0 && cmp.deltaPct !== null && !cmp.atLeast && 1 + cmp.deltaPct / 100 < floor) continue
 
     options.push({
       socCode: target.socCode,
       title: target.title,
       similarity: sim,
       overlap: skillOverlap(source, target),
-      medianWage: target.medianWage,
-      wageDeltaPct,
+      pay: cmp.pay,
+      medianWage: cmp.pay?.median ?? null,
+      wageDeltaPct: cmp.deltaPct,
+      payAtLeast: cmp.atLeast,
+      payBasis: cmp.basis,
       growthPct: target.growthPct,
       annualOpenings: target.annualOpenings,
       jobZone: target.jobZone,

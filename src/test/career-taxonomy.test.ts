@@ -390,3 +390,159 @@ describe('training program list parser', () => {
     expect(rows[1]).toMatchObject({ programName: 'Data Analytics', url: null, socCodes: [], deliveryMode: 'ONLINE', costUsd: null, durationWeeks: null })
   })
 })
+
+import { bestPay, comparePay, describePay, OEWS_WAGE_CEILING, type PayByLevel, type PayInfo, type PayLevel } from '@/lib/careers/local-pay'
+import { cityPositionInMetro, resolveArea, stateAbbreviation } from '@/lib/careers/area'
+import { parseOewsAreas } from '@/lib/careers/import-parsers'
+
+const pay = (level: PayLevel, median: number | null, over: Partial<PayInfo> = {}): PayInfo => ({
+  level,
+  areaName: level === 'METRO' ? 'Boston-Cambridge-Nashua, MA-NH' : level === 'STATE' ? 'Massachusetts' : 'United States',
+  median,
+  p10: null,
+  p25: null,
+  p75: null,
+  p90: null,
+  employment: null,
+  ceilingHit: false,
+  ...over,
+})
+
+describe('local pay comparison', () => {
+  it('compares at the narrowest place where both occupations have a median', () => {
+    const src: PayByLevel = { METRO: pay('METRO', 100_000), NATIONAL: pay('NATIONAL', 80_000) }
+    const tgt: PayByLevel = { METRO: pay('METRO', 120_000), NATIONAL: pay('NATIONAL', 85_000) }
+    const c = comparePay(src, tgt)
+    expect(c.basis).toBe('METRO')
+    expect(c.deltaPct).toBe(20)
+    expect(c.pay?.median).toBe(120_000)
+  })
+
+  it('falls back to the state, then the nation, rather than mixing places', () => {
+    // Target has no metro figure, so a Boston source median must not be compared with a national target median.
+    const src: PayByLevel = { METRO: pay('METRO', 140_000), STATE: pay('STATE', 120_000), NATIONAL: pay('NATIONAL', 100_000) }
+    const tgt: PayByLevel = { STATE: pay('STATE', 108_000), NATIONAL: pay('NATIONAL', 99_000) }
+    const c = comparePay(src, tgt)
+    expect(c.basis).toBe('STATE')
+    expect(c.deltaPct).toBe(-10)
+  })
+
+  it('reports "at least" when the target pay is withheld above the wage ceiling', () => {
+    const src: PayByLevel = { NATIONAL: pay('NATIONAL', 150_000) }
+    const tgt: PayByLevel = { NATIONAL: pay('NATIONAL', null, { ceilingHit: true }) }
+    const c = comparePay(src, tgt)
+    expect(c.atLeast).toBe(true)
+    expect(c.deltaPct).toBe(Math.round(((OEWS_WAGE_CEILING - 150_000) / 150_000) * 100))
+    expect(describePay(c.pay)).toBe('$239,200 or more')
+  })
+
+  it('does not invent a change when the source pay is itself withheld', () => {
+    const src: PayByLevel = { NATIONAL: pay('NATIONAL', null, { ceilingHit: true }) }
+    const tgt: PayByLevel = { NATIONAL: pay('NATIONAL', 200_000) }
+    const c = comparePay(src, tgt)
+    expect(c.deltaPct).toBeNull()
+    expect(c.pay?.median).toBe(200_000)
+  })
+
+  it('prefers the most local figure that says something', () => {
+    expect(bestPay({ METRO: pay('METRO', null), STATE: pay('STATE', 90_000) })?.level).toBe('STATE')
+    expect(bestPay({})).toBeNull()
+    expect(describePay(null)).toBe('Not published for this role')
+  })
+})
+
+describe('pivot ranking with local pay', () => {
+  const space = buildVectorSpace(ALL)
+  const base = { space, profiles, sourceSoc: accountant.socCode, resumeKeywords: [] as string[] }
+  const local = (m: number, level: PayLevel = 'METRO'): PayByLevel => ({ [level]: pay(level, m) })
+
+  it('applies the pay floor to local pay, not the national medians', () => {
+    // Nationally the analyst pays 10% more; in this metro it pays 30% less, so a "same or higher" floor drops it.
+    const lookup = (soc: string): PayByLevel => (soc === accountant.socCode ? local(100_000) : soc === analyst.socCode ? local(70_000) : {})
+    const strict = rankPivots({ ...base, wageFloor: 'MATCH', pay: lookup })
+    expect(strict.map((o) => o.socCode)).not.toContain(analyst.socCode)
+    const any = rankPivots({ ...base, wageFloor: 'ANY', pay: lookup })
+    const a = any.find((o) => o.socCode === analyst.socCode)!
+    expect(a.wageDeltaPct).toBe(-30)
+    expect(a.payBasis).toBe('METRO')
+    expect(a.pay?.areaName).toContain('Boston')
+  })
+
+  it('never drops a role for pay when its exact pay is withheld at the ceiling', () => {
+    const lookup = (soc: string): PayByLevel =>
+      soc === accountant.socCode ? local(100_000, 'NATIONAL') : soc === analyst.socCode ? { NATIONAL: pay('NATIONAL', null, { ceilingHit: true }) } : {}
+    const out = rankPivots({ ...base, wageFloor: 'MATCH', pay: lookup })
+    const m = out.find((o) => o.socCode === analyst.socCode)!
+    expect(m.payAtLeast).toBe(true)
+    expect(m.wageDeltaPct).toBeGreaterThan(100)
+  })
+})
+
+describe('area resolution', () => {
+  const catalog = {
+    states: [{ code: '25', name: 'Massachusetts' }, { code: '36', name: 'New York' }],
+    metros: [
+      { code: '14460', name: 'Boston-Cambridge-Nashua, MA-NH' },
+      { code: '40484', name: 'Worcester, MA-CT' },
+      { code: '35614', name: 'New York-Newark-Jersey City, NY-NJ' },
+    ],
+  }
+
+  it('reads state names and abbreviations', () => {
+    expect(stateAbbreviation('Massachusetts')).toBe('MA')
+    expect(stateAbbreviation('ma')).toBe('MA')
+    expect(stateAbbreviation('Narnia')).toBeNull()
+  })
+
+  it('finds a metro from the cities in its BLS name, including ones outside our curated list', () => {
+    expect(cityPositionInMetro('Boston-Cambridge-Nashua, MA-NH', 'Cambridge', 'MA')).toBe(1)
+    expect(cityPositionInMetro('Boston-Cambridge-Nashua, MA-NH', 'Nashua', 'CA')).toBe(-1)
+    const ref = resolveArea({ city: 'Worcester', state: 'MA' }, catalog)
+    expect(ref.metro?.code).toBe('40484')
+    expect(ref.state?.code).toBe('25')
+  })
+
+  it('uses the curated big-metro list first', () => {
+    const ref = resolveArea({ city: 'Boston', state: 'Massachusetts' }, catalog)
+    expect(ref.metro?.code).toBe('14460')
+  })
+
+  it('returns only areas we hold data for, and the state alone when the city is unknown', () => {
+    const ref = resolveArea({ city: 'Smallville', state: 'NY' }, catalog)
+    expect(ref.metro).toBeNull()
+    expect(ref.state?.code).toBe('36')
+    expect(resolveArea({ city: 'Boston', state: 'MA' }, { states: [], metros: [] })).toEqual({ metro: null, state: null })
+    expect(resolveArea({ city: null, state: null }, catalog)).toEqual({ metro: null, state: null })
+  })
+})
+
+describe('OEWS area parser', () => {
+  const header = 'AREA,AREA_TITLE,AREA_TYPE,OCC_CODE,OCC_TITLE,O_GROUP,TOT_EMP,A_PCT10,A_PCT25,A_MEDIAN,A_PCT75,A_PCT90'
+
+  it('reads metro rows, pads codes, and marks a withheld wage as the ceiling', () => {
+    const csv = [
+      header,
+      '14460,"Boston-Cambridge-Nashua, MA-NH",4,13-2011,Accountants and Auditors,detailed,"58,310","60,100","72,000","93,430","117,000",#',
+      '14460,"Boston-Cambridge-Nashua, MA-NH",4,11-1011,Chief Executives,detailed,"5,000","90,000","140,000",#,#,#',
+      '14460,"Boston-Cambridge-Nashua, MA-NH",4,13-0000,Business and Financial,major,"200,000",1,2,3,4,5',
+      '25,Massachusetts,2,13-2011,Accountants and Auditors,detailed,"80,000",1,2,3,4,5',
+      '10180,Abilene TX,6,13-2011,Accountants and Auditors,detailed,"500",1,2,3,4,5',
+    ].join('\n')
+    const rows = parseOewsAreas(csv, 'METRO')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ soc6: '13-2011', areaType: 'METRO', areaCode: '14460', areaName: 'Boston-Cambridge-Nashua, MA-NH', employment: 58310, wageMedian: 93430, wageP90: null, ceilingHit: true })
+    expect(rows[1]).toMatchObject({ soc6: '11-1011', wageMedian: null, ceilingHit: true, wageP10: 90000 })
+  })
+
+  it('keeps only the requested area type, so a file loaded under the wrong flag yields nothing', () => {
+    const csv = [header, '25,Massachusetts,2,13-2011,Accountants and Auditors,detailed,"80,000",1,2,3,4,5'].join('\n')
+    expect(parseOewsAreas(csv, 'METRO')).toEqual([])
+    const state = parseOewsAreas(csv, 'STATE')
+    expect(state[0]).toMatchObject({ areaCode: '25', areaType: 'STATE', wageMedian: 3 })
+  })
+
+  it('treats the national file as one area called US', () => {
+    const csv = ['AREA,AREA_TITLE,AREA_TYPE,OCC_CODE,O_GROUP,TOT_EMP,A_MEDIAN', '99,U.S.,1,13-2011,detailed,1538400,79880'].join('\n')
+    expect(parseOewsAreas(csv, 'NATIONAL')[0]).toMatchObject({ areaCode: 'US', areaType: 'NATIONAL', wageMedian: 79880 })
+  })
+})

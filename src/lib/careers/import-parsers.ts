@@ -308,3 +308,79 @@ export function parseTrainingPrograms(text: string): TrainingProgramRow[] {
   }
   return out
 }
+
+// ── BLS OEWS by area (nation, state, metro) ──────────────────────────────────
+
+export type WageAreaType = 'NATIONAL' | 'STATE' | 'METRO'
+
+export interface OewsAreaRow {
+  soc6: string
+  areaType: WageAreaType
+  /** "US", the 2-digit state FIPS, or the 5-digit metro (CBSA) code. */
+  areaCode: string
+  areaName: string
+  employment: number | null
+  wageP10: number | null
+  wageP25: number | null
+  wageMedian: number | null
+  wageP75: number | null
+  wageP90: number | null
+  /** At least one annual wage was withheld ("#") for being at or above BLS's wage ceiling. */
+  ceilingHit: boolean
+}
+
+// OEWS AREA_TYPE codes. Territories and non-metropolitan areas are left out on purpose: they
+// are not places we resolve a person to.
+const AREA_TYPE_BY_CODE: Record<string, WageAreaType | null> = { '1': 'NATIONAL', '2': 'STATE', '4': 'METRO' }
+
+type WageCell = { value: number | null; ceiling: boolean }
+function wageCell(raw: string | undefined): WageCell {
+  const v = (raw ?? '').trim()
+  if (v === '#') return { value: null, ceiling: true }
+  return { value: blsNumber(v), ceiling: false }
+}
+
+/**
+ * OEWS national, state or metro file saved as CSV. Annual wage columns are used (A_PCT10 ..
+ * A_PCT90). `expected` is the file kind the caller thinks it is loading; rows of any other area
+ * type in the file are skipped, which also protects against loading a metro file as a state file.
+ * Only detailed occupations are kept. Wages BLS withholds at its ceiling become null with
+ * ceilingHit set, never a made-up number.
+ */
+export function parseOewsAreas(text: string, expected: WageAreaType): OewsAreaRow[] {
+  const out: OewsAreaRow[] = []
+  for (const r of toRecords(parseDelimited(text, ','))) {
+    const soc6 = r['OCC_CODE']
+    if (!soc6 || !/^\d\d-\d{4}$/.test(soc6) || soc6.endsWith('-0000')) continue
+    if (r['O_GROUP'] && r['O_GROUP'].toLowerCase() !== 'detailed') continue
+
+    const typeCode = (r['AREA_TYPE'] ?? '').trim()
+    const areaType = typeCode ? (AREA_TYPE_BY_CODE[typeCode] ?? null) : expected
+    if (areaType !== expected) continue
+
+    const rawArea = (r['AREA'] ?? '').trim()
+    const areaCode = areaType === 'NATIONAL' ? 'US' : areaType === 'STATE' ? rawArea.padStart(2, '0') : rawArea.padStart(5, '0')
+    if (areaType !== 'NATIONAL' && !/^\d+$/.test(rawArea)) continue
+
+    const p10 = wageCell(r['A_PCT10'])
+    const p25 = wageCell(r['A_PCT25'])
+    const median = wageCell(r['A_MEDIAN'])
+    const p75 = wageCell(r['A_PCT75'])
+    const p90 = wageCell(r['A_PCT90'])
+    const employment = blsNumber(r['TOT_EMP'])
+    out.push({
+      soc6,
+      areaType,
+      areaCode,
+      areaName: (r['AREA_TITLE'] ?? '').trim() || (areaType === 'NATIONAL' ? 'United States' : areaCode),
+      employment: employment === null ? null : Math.round(employment),
+      wageP10: p10.value,
+      wageP25: p25.value,
+      wageMedian: median.value,
+      wageP75: p75.value,
+      wageP90: p90.value,
+      ceilingHit: [p10, p25, median, p75, p90].some((c) => c.ceiling),
+    })
+  }
+  return out
+}

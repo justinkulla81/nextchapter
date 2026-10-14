@@ -14054,6 +14054,7 @@ model Occupation {
   relatedFrom   OccupationRelated[]  @relation("OccupationRelatedFrom")
   relatedTo     OccupationRelated[]  @relation("OccupationRelatedTo")
   candidates    CandidateOccupation[]
+  tasks         OccupationTask[]
 
   @@index([title])
 }
@@ -14065,6 +14066,7 @@ model Skill {
   kind        String // SKILL | KNOWLEDGE | TECHNOLOGY
   occupations OccupationSkill[]
   courses     CourseSkill[]
+  aliases     SkillAlias[]
 
   @@index([kind])
 }
@@ -14307,4 +14309,53 @@ model CoachNoteSummaryRun {
   createdAt   DateTime @default(now())
 
   @@index([coachId, createdAt])
+}
+
+// ── CAREER TAXONOMY, PART 2: LOCAL PAY, TASKS, SKILL ALIASES ────────────────
+// BLS OEWS wage percentiles and employment by nation, state and metro area, keyed by the
+// 6-digit SOC code BLS publishes at ("13-2011"; every O*NET-SOC code that starts with it
+// shares the row). Loaded by scripts/careers/import-bls.ts. A percentile BLS does not
+// publish stays null; ceilingHit means at least one was withheld because it was at or
+// above BLS's published wage ceiling (about $239,200 a year), which is common above the
+// median for executives. Area codes: "US", the 2-digit state FIPS, or the 5-digit CBSA.
+model OccupationWage {
+  soc6       String
+  areaType   String // NATIONAL | STATE | METRO
+  areaCode   String
+  areaName   String
+  year       Int?
+  employment Int?
+  wageP10    Int?
+  wageP25    Int?
+  wageMedian Int?
+  wageP75    Int?
+  wageP90    Int?
+  ceilingHit Boolean @default(false)
+
+  @@id([soc6, areaType, areaCode])
+  @@index([areaType, areaCode])
+}
+
+// What a job does day to day: O*NET task statements, Core tasks first.
+model OccupationTask {
+  id         String     @id @default(cuid())
+  socCode    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  taskId     Int
+  text       String     @db.Text
+  taskType   String // CORE | SUPPLEMENTAL
+
+  @@unique([socCode, taskId])
+}
+
+// Other ways people write a tool or skill ("SFDC" for Salesforce) mapped to the O*NET skill
+// they mean. Built offline (scripts/careers/build-skill-aliases.ts), looked up at runtime, so
+// matching never calls a model.
+model SkillAlias {
+  alias   String @id // normalized
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source  String // BUILTIN | NAME | LLM | ADMIN
+
+  @@index([skillId])
 }

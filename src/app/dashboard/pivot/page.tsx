@@ -4,7 +4,10 @@ import { Compass } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, searchOccupationTitles } from '@/lib/careers/candidate-occupation'
-import { DEFAULT_WAGE_FLOOR, rankPivots, WAGE_FLOOR_RATIO, type WageFloor } from '@/lib/careers/pivots'
+import { DEFAULT_WAGE_FLOOR, nationalPayFromProfile, rankPivots, WAGE_FLOOR_RATIO, type WageFloor } from '@/lib/careers/pivots'
+import { resolveArea } from '@/lib/careers/area'
+import { getAreaCatalog, getPayLookup } from '@/lib/careers/local-pay-server'
+import { bestPay, describePay, type PayByLevel } from '@/lib/careers/local-pay'
 import { resolveState, isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import { toStateCode } from '@/lib/careers/state'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -91,15 +94,25 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
   }
 
   const taxonomy = (await getTaxonomy())!
+  // Pay is compared place to place: their metro area if we hold it, else their state, else the nation.
+  const area = resolveArea({ city: profile.currentCity, state: profile.currentState }, await getAreaCatalog())
+  const lookup = await getPayLookup(area)
+  const payOf = (soc: string): PayByLevel => {
+    const local = lookup(soc)
+    return Object.keys(local).length > 0 ? local : nationalPayFromProfile(taxonomy.profiles.get(soc))
+  }
   const options = rankPivots({
     space: taxonomy.space,
     profiles: taxonomy.profiles,
     sourceSoc: resolution.socCode,
     wageFloor,
     resumeKeywords: [...profile.resumeKeywords, ...profile.confirmedSkillsHave],
+    pay: payOf,
   })
   const source = taxonomy.profiles.get(resolution.socCode)!
+  const sourcePay = bestPay(payOf(resolution.socCode))
   const state = resolveState(profile.currentState)
+  const localLabel = area.metro?.name ?? area.state?.name ?? null
 
   return (
     <div className="space-y-6">
@@ -118,7 +131,12 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
             We chose this from the function on your profile because we could not read a job title. Confirm or change it so the matches fit.
           </p>
         )}
-        {source.medianWage && <p className="text-sm text-muted-foreground">Median pay in your current field: ${source.medianWage.toLocaleString('en-US')}.</p>}
+        {sourcePay && (
+          <p className="text-sm text-muted-foreground">
+            Median pay in your current field{sourcePay.areaName ? ` (${sourcePay.level === 'NATIONAL' ? 'nationwide' : sourcePay.areaName})` : ''}: {describePay(sourcePay)}.
+            {localLabel && sourcePay.level === 'NATIONAL' ? ` We do not have pay for ${localLabel} yet, so pay is shown nationwide.` : ''}
+          </p>
+        )}
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">How much pay are you willing to give up?</p>
           <WageFloorButtons current={wageFloor} socCode={resolution.socCode} />

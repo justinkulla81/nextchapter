@@ -5,8 +5,8 @@ import { PivotActionForm } from '@/components/dashboard/pivot/PivotActionForm'
 import { LocalDemand } from '@/components/dashboard/pivot/LocalDemand'
 import { TrainingForOption } from '@/components/dashboard/pivot/TrainingForOption'
 import type { PivotOption } from '@/lib/careers/pivots'
+import { describePay, formatPay, OEWS_WAGE_CEILING } from '@/lib/careers/local-pay'
 
-const money = (n: number) => `$${n.toLocaleString('en-US')}`
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -17,10 +17,35 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
-function payChange(pct: number | null): string {
+function payChange(option: PivotOption): string {
+  const pct = option.wageDeltaPct
   if (pct === null) return ''
-  if (pct === 0) return ' (about the same as your field)'
-  return ` (${pct > 0 ? '+' : ''}${pct}% vs. your field)`
+  const where = option.payBasis === 'METRO' ? 'your metro area' : option.payBasis === 'STATE' ? 'your state' : 'nationwide'
+  const sign = pct > 0 ? '+' : ''
+  if (option.payAtLeast) return ` (at least ${sign}${pct}% vs. your field, ${where})`
+  if (pct === 0) return ` (about the same as your field, ${where})`
+  return ` (${sign}${pct}% vs. your field, ${where})`
+}
+
+function PayFact({ option }: { option: PivotOption }) {
+  const pay = option.pay
+  const area = pay ? (pay.level === 'NATIONAL' ? 'nationwide' : pay.areaName) : null
+  return (
+    <Fact label={area ? `Median pay, ${area}` : 'Median pay'}>
+      {describePay(pay)}
+      {payChange(option)}
+      {pay && pay.median !== null && pay.p25 !== null && pay.p75 !== null && (
+        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+          Middle half earn {formatPay(pay.p25)} to {formatPay(pay.p75)}
+        </span>
+      )}
+      {pay && pay.median === null && pay.ceilingHit && (
+        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+          BLS does not publish exact pay above {formatPay(OEWS_WAGE_CEILING)} a year, so pay here is understated.
+        </span>
+      )}
+    </Fact>
+  )
 }
 
 export function PivotOptionCard({
@@ -59,9 +84,7 @@ export function PivotOptionCard({
         </div>
 
         <dl className="grid gap-3 sm:grid-cols-3">
-          <Fact label="Median pay">
-            {option.medianWage ? `${money(option.medianWage)}${payChange(option.wageDeltaPct)}` : 'Not published for this role'}
-          </Fact>
+          <PayFact option={option} />
           <Fact label="Projected 10-year growth">
             {option.growthPct === null ? 'Not available' : `${option.growthPct > 0 ? '+' : ''}${option.growthPct}%`}
           </Fact>
