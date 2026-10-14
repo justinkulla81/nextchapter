@@ -16,11 +16,11 @@ interface Hit {
   oppStatus?: string
 }
 
-export async function searchGrantsGov(keyword: string, rows = 50): Promise<Hit[]> {
+export async function searchGrantsGov(keyword: string, rows = 50, agencies?: string): Promise<Hit[]> {
   const res = await fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ keyword, oppStatuses: 'forecasted|posted', rows, sortBy: 'openDate|desc' }),
+    body: JSON.stringify({ keyword, ...(agencies ? { agencies } : {}), oppStatuses: 'forecasted|posted', rows, sortBy: 'openDate|desc' }),
     signal: AbortSignal.timeout(20_000),
   })
   if (!res.ok) throw new Error(`Grants.gov ${res.status}`)

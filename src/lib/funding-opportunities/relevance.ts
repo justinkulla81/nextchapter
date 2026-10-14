@@ -44,6 +44,22 @@ export const SAM_NAICS = [
   '541611', // Administrative management consulting
 ] as const
 
+/**
+ * Agencies watched closely: every open or forecast notice they post is filed,
+ * whatever its title, because each is a funder, a buyer or a rule-maker for us.
+ * Grants.gov agency codes; a code matches itself and its sub-offices.
+ */
+export const WATCHED_AGENCIES = [
+  'DOL',      // Labor: ETA, ODEP, Women's Bureau
+  'SBA',      // Small Business Administration
+  'DOC-EDA',  // Commerce: Economic Development Administration
+  'DOC-NIST', // Commerce: standards, AI and manufacturing extension
+  'DOC-NTIA', // Commerce: digital equity and broadband
+  'DOC-MBDA', // Commerce: Minority Business Development Agency
+] as const
+
+const WATCHED_AGENCY_RE = new RegExp(`^(${WATCHED_AGENCIES.join('|')})(-|$)`, 'i')
+
 /** A notice title that names our subject. Allowlist, not "everything except". */
 const TITLE_SIGNALS: [RegExp, number][] = [
   [/outplacement/i, 5],
@@ -158,7 +174,7 @@ const MIN_TITLE_SCORE = 4
  */
 export function isRelevant(n: Pick<FundingNotice, 'title' | 'agencyCode'>): boolean {
   if (NOT_AN_OPPORTUNITY.test(n.title)) return false
-  if (/^DOL(-|$)/i.test(n.agencyCode ?? '')) return true
+  if (WATCHED_AGENCY_RE.test(n.agencyCode ?? '')) return true
   return titleScore(n.title) >= MIN_TITLE_SCORE
 }
 
