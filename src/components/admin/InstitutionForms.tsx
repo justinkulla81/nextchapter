@@ -9,6 +9,8 @@ import {
   saveCollegeBranding,
   inviteCollegeStaff,
   saveCollegeLicense,
+  saveCollegeRegion,
+  countiesInState,
   searchCrmColleges,
   type CrmCollegeOption,
   type InstitutionFormState,
@@ -254,5 +256,110 @@ export function LicenseForm({ institutionId, defaults }: { institutionId: string
       </div>
       <Status state={state} />
     </form>
+  )
+}
+
+const US_STATES = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'PR']
+
+type Area = { state: string; counties: string[] }
+
+// Local market: the states a college serves and the counties in each.
+export function RegionForm({ institutionId, defaults }: { institutionId: string; defaults: { name: string; areas: Area[] } }) {
+  const [name, setName] = useState(defaults.name)
+  const [areas, setAreas] = useState<Area[]>(defaults.areas)
+  const [options, setOptions] = useState<Record<string, { key: string; name: string }[]>>({})
+  const [adding, setAdding] = useState('')
+  const [filter, setFilter] = useState<Record<string, string>>({})
+  const [pending, setPending] = useState(false)
+  const [result, setResult] = useState<{ error?: string; message?: string } | null>(null)
+
+  const load = async (state: string) => {
+    if (options[state]) return
+    const list = await countiesInState(state)
+    setOptions((o) => ({ ...o, [state]: list }))
+  }
+  useEffect(() => {
+    defaults.areas.forEach((a) => void load(a.state))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const toggle = (state: string, key: string) =>
+    setAreas(areas.map((a) => (a.state !== state ? a : { ...a, counties: a.counties.includes(key) ? a.counties.filter((c) => c !== key) : [...a.counties, key] })))
+
+  return (
+    <div className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
+      <div className="space-y-1">
+        <Label htmlFor={`rname-${institutionId}`}>Region name</Label>
+        <Input id={`rname-${institutionId}`} value={name} onChange={(e) => setName(e.target.value)} placeholder="Louisville area (KY and IN)" className="max-w-md" />
+      </div>
+      {areas.map((a) => {
+        const list = (options[a.state] ?? []).filter((c) => !filter[a.state] || c.name.toLowerCase().includes(filter[a.state].toLowerCase()))
+        return (
+          <fieldset key={a.state} className="space-y-2 rounded-md border border-border p-3">
+            <legend className="px-1 text-sm font-medium">
+              {a.state} · {a.counties.length} {a.counties.length === 1 ? 'county' : 'counties'}
+            </legend>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input aria-label={`Filter ${a.state} counties`} placeholder="Filter counties" value={filter[a.state] ?? ''} onChange={(e) => setFilter({ ...filter, [a.state]: e.target.value })} className="h-8 w-48" />
+              <button type="button" className="text-xs underline" onClick={() => setAreas(areas.filter((x) => x.state !== a.state))}>
+                Remove {a.state}
+              </button>
+            </div>
+            {!options[a.state] ? (
+              <p className="text-xs text-muted-foreground">Loading counties…</p>
+            ) : (
+              <div className="grid max-h-48 grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto text-sm sm:grid-cols-4">
+                {list.map((c) => (
+                  <label key={c.key} className="flex items-center gap-1.5">
+                    <input type="checkbox" checked={a.counties.includes(c.key)} onChange={() => toggle(a.state, c.key)} />
+                    {c.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
+        )
+      })}
+      <div className="flex flex-wrap items-center gap-2">
+        <select aria-label="Add a state" value={adding} onChange={(e) => setAdding(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <option value="">Add a state…</option>
+          {US_STATES.filter((s) => !areas.some((a) => a.state === s)).map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={!adding}
+          title={!adding ? 'Pick a state first' : undefined}
+          className="h-9 rounded-md border border-border px-3 text-sm disabled:opacity-50"
+          onClick={() => {
+            setAreas([...areas, { state: adding, counties: [] }])
+            void load(adding)
+            setAdding('')
+          }}
+        >
+          Add state
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+          onClick={async () => {
+            setPending(true)
+            setResult(await saveCollegeRegion(institutionId, { name, areas }))
+            setPending(false)
+          }}
+        >
+          {pending ? 'Saving…' : 'Save region'}
+        </button>
+        {result && (
+          <p role={result.error ? 'alert' : 'status'} className={`text-sm ${result.error ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {result.error ?? result.message}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }

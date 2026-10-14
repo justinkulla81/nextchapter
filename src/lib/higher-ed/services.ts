@@ -8,7 +8,7 @@
 
 import type { WorkspaceKey } from './workspaces'
 
-export type Audience = 'alumni' | 'students' | 'recent_grads' | 'parents'
+export type Audience = 'alumni' | 'students' | 'recent_grads' | 'parents' | 'in_transition'
 export type Pricing = 'free' | 'paid' | 'donor'
 export type ServiceGroup = 'core' | 'more' | 'campaigns'
 
@@ -36,6 +36,8 @@ export const AUDIENCE_LABELS: Record<Audience, string> = {
   students: 'Students',
   recent_grads: 'Recent grads',
   parents: 'Parents',
+  // Alumni who told the college they've lost a job or are looking.
+  in_transition: 'In transition',
 }
 export const PRICING_LABELS: Record<Pricing, string> = { free: 'Free', paid: 'Paid', donor: 'Donor-funded' }
 export const OFFICES = ['Career Services', 'Alumni Relations', 'Development', 'Exec Ed', 'Library', 'Employer Relations', 'Admissions'] as const
@@ -83,7 +85,13 @@ export const SERVICES: Service[] = [
   { key: 'layoff_outreach', group: 'campaigns', name: 'Layoff outreach', pitch: '"If you’re affected, we have your back," when a WARN notice hits an alum’s employer.', defaultOwner: 'Alumni Relations', defaultAudience: ['alumni'], defaultPricing: 'free', builtIn: null, workspace: 'alumni', memberCard: false, defaultOn: true },
 ]
 
+// Who delivers it: the college's own (its link, its staff), NextChapter's
+// built-in screen, or both (the college's link first, NextChapter's too).
+export type Provider = 'college' | 'nextchapter' | 'both'
+export const PROVIDER_LABELS: Record<Provider, string> = { college: 'Your college', nextchapter: 'NextChapter', both: 'Both' }
+
 export type ServiceSetting = {
+  provider: Provider
   on: boolean
   audience: Audience[]
   ownerOffice: string
@@ -97,7 +105,7 @@ export function getService(key: string): Service | undefined {
 }
 
 export function defaultSetting(s: Service): ServiceSetting {
-  return { on: s.defaultOn, audience: s.defaultAudience, ownerOffice: s.defaultOwner, ownerName: null, pricing: s.defaultPricing, linkUrl: null }
+  return { provider: s.builtIn ? 'nextchapter' : 'college', on: s.defaultOn, audience: s.defaultAudience, ownerOffice: s.defaultOwner, ownerName: null, pricing: s.defaultPricing, linkUrl: null }
 }
 
 // Stored choices merged over each service's defaults; unknown keys dropped.
@@ -106,7 +114,15 @@ export function serviceSettingsFrom(enabledFeatures: unknown): Record<string, Se
     string,
     Partial<ServiceSetting>
   >
-  return Object.fromEntries(SERVICES.map((s) => [s.key, { ...defaultSetting(s), ...(stored[s.key] ?? {}) }]))
+  return Object.fromEntries(
+    SERVICES.map((s) => {
+      const merged = { ...defaultSetting(s), ...(stored[s.key] ?? {}) }
+      // Saved before providers existed: a link meant the college's own.
+      if (!stored[s.key]?.provider && merged.linkUrl) merged.provider = s.builtIn ? 'both' : 'college'
+      if (!s.builtIn) merged.provider = 'college'
+      return [s.key, merged]
+    }),
+  )
 }
 
 export function checkInMonthFrom(enabledFeatures: unknown): number {
@@ -117,16 +133,18 @@ export function checkInMonthFrom(enabledFeatures: unknown): number {
 // Where a member's card goes: the college's link if it gave one, else the
 // built NextChapter screen. Null = not openable yet (hidden from members).
 export function serviceTarget(s: Service, setting: ServiceSetting): string | null {
+  if (setting.provider === 'college') return setting.linkUrl || null
+  if (setting.provider === 'nextchapter') return s.builtIn?.path ?? null
   return setting.linkUrl || s.builtIn?.path || null
 }
 
 // Which audiences a member falls in. Recent grad = graduated in the last 5
 // years (Career Services' window in the product design).
-export function memberAudiences(m: { affiliation: string; classYear: number | null }, now = new Date()): Audience[] {
+export function memberAudiences(m: { affiliation: string; classYear: number | null }, now = new Date(), inTransition = false): Audience[] {
   if (m.affiliation === 'PARENT') return ['parents']
   if (m.affiliation === 'STUDENT') return ['students']
   const recent = m.classYear !== null && m.classYear >= now.getUTCFullYear() - 5
-  return recent ? ['alumni', 'recent_grads'] : ['alumni']
+  return [...(recent ? (['alumni', 'recent_grads'] as Audience[]) : (['alumni'] as Audience[])), ...(inTransition ? (['in_transition'] as Audience[]) : [])]
 }
 
 // The cards a member sees: on, has a member card, has somewhere to go, and is

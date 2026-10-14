@@ -1,10 +1,12 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { getOrgRoster } from '@/lib/employer/outplacement-roster'
 import { RosterTable } from '@/components/employer/RosterTable'
+import { orgProgram } from '@/lib/employer/program-server'
 
 export default async function EmployerRosterPage() {
   const orgUser = await requireOutplacementRole(['ADMIN'])
-  const seats = await getOrgRoster(orgUser)
+  const [seats, program] = await Promise.all([getOrgRoster(orgUser), orgProgram(orgUser.orgId)])
+  const packages = [{ key: 'all', name: 'Everyone (all services)' }, ...program.settings.packages.map((p) => ({ key: p.key, name: p.name }))]
 
   return (
     <div className="space-y-6">
@@ -15,7 +17,7 @@ export default async function EmployerRosterPage() {
           activity, grade, or engagement detail is ever shown here or anywhere else on this portal.
         </p>
       </div>
-      <RosterTable seats={seats} />
+      <RosterTable seats={seats} packages={packages} />
     </div>
   )
 }

@@ -7401,6 +7401,9 @@ model OutplacementSeat {
   // their name, pay or any individual detail). Revoking removes them from the
   // next report. Confidential Search Mode members are excluded regardless. See
   // docs/EMPLOYER_SCORECARD_PRIVACY_REVIEW.md.
+  // Which package of services this person gets (programSettings.packages);
+  // null = everything the program offers.
+  packageKey               String?
   shareOutcomeWithEmployer Boolean   @default(false)
   shareOutcomeChangedAt    DateTime?
 

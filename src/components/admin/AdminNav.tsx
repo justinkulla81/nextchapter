@@ -284,6 +284,17 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      // Every paying customer's setup in one place: licenses, staff, regions,
+      // multi-campus systems, outplacement contracts.
+      title: 'Customers',
+      collapsible: true,
+      links: [
+        { href: `${A}/institutions`, label: 'Colleges' },
+        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
+        { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
+      ],
+    },
+    {
       title: 'Programs & content',
       collapsible: true,
       links: [
@@ -294,8 +305,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/nen-contests`, label: 'NEN Contests' },
         { href: `${A}/eqoveriq-contributors`, label: 'EQoverIQ Contributors' },
         { href: `${A}/alumni-groups`, label: 'Alumni & Employer Networks' },
-        { href: `${A}/institutions`, label: 'Colleges (portal)' },
-        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
         { href: `${A}/benefits-network`, label: 'Higher Education Benefits Network' },
       ],
     },
@@ -305,7 +314,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: `${A}/plan-catalog`, label: 'Plan Catalog' },
         { href: `${A}/margin-dashboard`, label: 'Margin Dashboard' },
-        { href: `${A}/outplacement-contracts`, label: 'Employer Contracts' },
       ],
     },
     {

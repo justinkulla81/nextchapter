@@ -29,7 +29,27 @@ function ContractSelect({ contracts, id }: { contracts: EnrollableContract[]; id
   )
 }
 
-function SingleEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
+type Pkg = { key: string; name: string }
+
+// Shown only when the program has packages; everyone else gets all services.
+function PackageSelect({ packages, id }: { packages: Pkg[]; id: string }) {
+  if (packages.length <= 1) return null
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>Package</Label>
+      <select id={id} name="packageKey" defaultValue="all" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+        {packages.map((p) => (
+          <option key={p.key} value={p.key}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+      <p className="text-xs text-muted-foreground">Which services they get. Set packages up on the Program page.</p>
+    </div>
+  )
+}
+
+function SingleEnrollForm({ contracts, packages }: { contracts: EnrollableContract[]; packages: Pkg[] }) {
   const [state, formAction] = useActionState(enrollSingleAction, undefined)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -43,6 +63,7 @@ function SingleEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
         <Label htmlFor="single-contract">Contract</Label>
         <ContractSelect contracts={contracts} id="single-contract" />
       </div>
+      <PackageSelect packages={packages} id="single-package" />
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="single-email">Their email</Label>
@@ -65,7 +86,7 @@ function SingleEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
   )
 }
 
-function BulkEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
+function BulkEnrollForm({ contracts, packages }: { contracts: EnrollableContract[]; packages: Pkg[] }) {
   const [state, formAction] = useActionState(enrollBulkAction, undefined)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -79,6 +100,7 @@ function BulkEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
         <Label htmlFor="bulk-contract">Contract</Label>
         <ContractSelect contracts={contracts} id="bulk-contract" />
       </div>
+      <PackageSelect packages={packages} id="bulk-package" />
       <div className="space-y-2">
         <Label htmlFor="bulk-file">CSV file</Label>
         <Input id="bulk-file" name="file" type="file" accept=".csv,text/csv" required />
@@ -105,7 +127,7 @@ function BulkEnrollForm({ contracts }: { contracts: EnrollableContract[] }) {
   )
 }
 
-export function EnrollForms({ contracts }: { contracts: EnrollableContract[] }) {
+export function EnrollForms({ contracts, packages = [] }: { contracts: EnrollableContract[]; packages?: Pkg[] }) {
   if (contracts.length === 0) {
     return (
       <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
@@ -121,10 +143,10 @@ export function EnrollForms({ contracts }: { contracts: EnrollableContract[] }) 
         <TabsTrigger value="bulk">Bulk CSV</TabsTrigger>
       </TabsList>
       <TabsContent value="single" className="mt-4">
-        <SingleEnrollForm contracts={contracts} />
+        <SingleEnrollForm contracts={contracts} packages={packages} />
       </TabsContent>
       <TabsContent value="bulk" className="mt-4">
-        <BulkEnrollForm contracts={contracts} />
+        <BulkEnrollForm contracts={contracts} packages={packages} />
       </TabsContent>
     </Tabs>
   )

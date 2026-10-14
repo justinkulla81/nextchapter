@@ -27,6 +27,9 @@ import { modulesFrom } from '../../src/lib/higher-ed/modules'
 import { tabsFor, type AccessToken } from '../../src/lib/higher-ed/workspaces'
 import { deleteMemberRecord, memberExport } from '../../src/lib/higher-ed/data-requests'
 import { systemDashboard } from '../../src/lib/higher-ed/systems'
+import { regionAreas } from '../../src/lib/higher-ed/profile'
+import { regionNotices } from '../../src/lib/higher-ed/rapid-response'
+import { memberAudiences, memberCards, serviceSettingsFrom, serviceTarget, getService } from '../../src/lib/higher-ed/services'
 
 let passed = 0
 const failures: string[] = []
@@ -118,6 +121,29 @@ async function main() {
     await deleteMemberRecord({ institutionId: inst.id, memberId: cy, by: 'verify' })
     check('Deleted', await prisma.institutionMember.count({ where: { id: cy } }), 0)
     check('Deletion logged', await prisma.dataRequest.count({ where: { institutionId: inst.id, kind: 'DELETE', status: 'DONE', email: `cy@${tag}.test` } }), 1)
+
+    // Regions across state lines: notices in both states' counties count; others don't.
+    await prisma.institution.update({ where: { id: inst.id }, data: { profile: { region: { name: 'Louisville area', state: 'KY', counties: ['jefferson'], areas: [{ state: 'KY', counties: ['jefferson'] }, { state: 'IN', counties: ['clark', 'floyd'] }] } } } })
+    check('Legacy region reads as one area', regionAreas({ name: 'x', state: 'pa', counties: ['Washington'] }), [{ state: 'PA', counties: ['washington'] }])
+    const warnIds: string[] = []
+    for (const [state, county] of [['KY', 'Jefferson'], ['IN', 'Clark County'], ['IN', 'Marion']] as const) {
+      const w = await prisma.warnNotice.create({ data: { employer: `${tag} ${county}`, normalizedEmployer: `${tag} ${county}`.toLowerCase(), state, county, noticeDate: new Date(), employees: 60 }, select: { id: true } })
+      warnIds.push(w.id)
+    }
+    try {
+      const mine = (await regionNotices(inst.id)).filter((n) => n.employer.startsWith(tag)).map((n) => n.employer).sort()
+      check('Notices from both states, only chosen counties', mine, [`${tag} Clark County`, `${tag} Jefferson`])
+    } finally {
+      await prisma.warnNotice.deleteMany({ where: { id: { in: warnIds } } })
+    }
+
+    // Services: who provides it, and an In-transition-only card.
+    const coaching = getService('coaching')!
+    const st = serviceSettingsFrom({ services: { coaching: { on: true, provider: 'college', linkUrl: null, audience: ['in_transition'] } } })
+    check('College-provided with no link has nowhere to go', serviceTarget(coaching, st.coaching), null)
+    const st2 = serviceSettingsFrom({ services: { coaching: { on: true, provider: 'college', linkUrl: 'https://college.example/coach', audience: ['in_transition'] } } })
+    check('In transition sees it; others don’t', [memberCards(st2, memberAudiences({ affiliation: 'ALUM', classYear: 2000 }, new Date(), true)).some((x) => x.key === 'coaching'), memberCards(st2, memberAudiences({ affiliation: 'ALUM', classYear: 2000 })).some((x) => x.key === 'coaching')], [true, false])
+    check('Old saved link means both', serviceSettingsFrom({ services: { coaching: { linkUrl: 'https://x.example' } } }).coaching.provider, 'both')
 
     // Multi-campus: small counts suppressed.
     const d = await systemDashboard(system.id)

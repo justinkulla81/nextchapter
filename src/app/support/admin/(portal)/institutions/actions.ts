@@ -188,3 +188,30 @@ export async function resendCollegeStaffInvite(staffId: string): Promise<{ error
   revalidatePath('/support/admin/institutions')
   return { message: 'Sent.' }
 }
+
+// The college's local market: one or more states and the counties in each
+// (a college near a border serves both sides). Feeds Local market, layoff
+// alerts, rapid response and the workforce boards shown to staff.
+export async function countiesInState(state: string): Promise<{ key: string; name: string }[]> {
+  await requireAdmin()
+  const rows = await prisma.countyLabor.findMany({ where: { state: state.toUpperCase() }, orderBy: { name: 'asc' }, select: { name: true, nameKey: true } })
+  return rows.map((r) => ({ key: r.nameKey, name: r.name }))
+}
+
+export async function saveCollegeRegion(institutionId: string, input: { name: string; areas: { state: string; counties: string[] }[] }): Promise<{ error?: string; message?: string }> {
+  const admin = await requireAdmin()
+  const name = input.name.trim().slice(0, 120)
+  const areas = input.areas
+    .map((a) => ({ state: a.state.trim().toUpperCase(), counties: [...new Set(a.counties.map((c) => c.trim().toLowerCase()).filter(Boolean))] }))
+    .filter((a) => /^[A-Z]{2}$/.test(a.state))
+  if (!name) return { error: 'Name the region, e.g. “Louisville area (KY and IN)”.' }
+  if (!areas.length) return { error: 'Add at least one state.' }
+  if (areas.some((a) => !a.counties.length)) return { error: 'Pick at least one county in each state.' }
+  const current = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { profile: true } })
+  const profile = { ...((current.profile as Record<string, unknown> | null) ?? {}) }
+  const region = { ...((profile.region as Record<string, unknown> | null) ?? {}), name, state: areas[0].state, counties: areas[0].counties, areas }
+  await prisma.institution.update({ where: { id: institutionId }, data: { profile: { ...profile, region } } })
+  captureServerEvent(admin?.email ?? 'admin', 'institution_region_saved', { institutionId, states: areas.map((a) => a.state), counties: areas.reduce((n, a) => n + a.counties.length, 0) })
+  revalidatePath('/support/admin/institutions')
+  return { message: 'Region saved.' }
+}

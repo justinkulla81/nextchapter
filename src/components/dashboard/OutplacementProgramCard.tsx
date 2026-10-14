@@ -22,10 +22,19 @@ export async function OutplacementProgramCard({ candidateId }: { candidateId: st
         <ul className="grid gap-2 sm:grid-cols-2">
           {p.offered.map((f) => (
             <li key={f.key}>
-              <Link href={f.href} className="block rounded-md border border-border p-3 text-sm hover:border-primary">
-                <span className="font-medium">{f.label}</span>
-                <span className="block text-xs text-muted-foreground">{f.what}</span>
-              </Link>
+              {f.href ? (
+                <Link href={f.href} target={f.provider === 'own' ? '_blank' : undefined} className="block h-full rounded-md border border-border p-3 text-sm hover:border-primary">
+                  <span className="font-medium">{f.label}</span>
+                  <span className="block text-xs text-muted-foreground">{f.provider === 'own' ? (f.note ?? `From ${p.orgName}`) : f.what}</span>
+                  {f.provider === 'own' && <span className="mt-1 block text-xs text-muted-foreground">Provided by {p.orgName}</span>}
+                </Link>
+              ) : (
+                <div className="h-full rounded-md border border-border p-3 text-sm">
+                  <span className="font-medium">{f.label}</span>
+                  <span className="block text-xs">{f.note}</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">Provided by {p.orgName}</span>
+                </div>
+              )}
             </li>
           ))}
         </ul>

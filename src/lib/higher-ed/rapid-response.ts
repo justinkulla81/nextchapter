@@ -7,7 +7,7 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { readProfile } from './profile'
+import { readProfile, regionAreas } from './profile'
 import { openCohorts } from './programs'
 
 const DAY = 86_400_000
@@ -15,17 +15,20 @@ const DAY = 86_400_000
 // Recent WARN filings in the college's region (its counties, else its state).
 export async function regionNotices(institutionId: string, now = new Date()) {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { profile: true } })
-  const region = readProfile(inst.profile).region
-  if (!region?.state) return []
-  const counties = (region.counties ?? []).map((c) => c.toLowerCase())
+  const areas = regionAreas(readProfile(inst.profile).region)
+  if (!areas.length) return []
   const notices = await prisma.warnNotice.findMany({
-    where: { state: region.state, dismissedAt: null, noticeDate: { gte: new Date(now.getTime() - 120 * DAY) } },
+    where: { state: { in: areas.map((a) => a.state) }, dismissedAt: null, noticeDate: { gte: new Date(now.getTime() - 120 * DAY) } },
     orderBy: { noticeDate: 'desc' },
     take: 60,
-    select: { id: true, employer: true, county: true, noticeDate: true, effectiveDate: true, employees: true, sourceUrl: true, rapidResponses: { where: { institutionId }, select: { id: true } } },
+    select: { id: true, employer: true, state: true, county: true, noticeDate: true, effectiveDate: true, employees: true, sourceUrl: true, rapidResponses: { where: { institutionId }, select: { id: true } } },
   })
-  const local = counties.length ? notices.filter((n) => n.county && counties.some((c) => n.county!.toLowerCase().includes(c))) : notices
-  // Fall back to the whole state when nothing is filed in the counties.
+  const inArea = (n: { state: string | null; county: string | null }) => {
+    const a = areas.find((x) => x.state === n.state)
+    return !!a && (!a.counties.length || (!!n.county && a.counties.some((c) => n.county!.toLowerCase().includes(c))))
+  }
+  const local = notices.filter(inArea)
+  // Fall back to the whole states when nothing is filed in the counties.
   return (local.length ? local : notices).slice(0, 25).map(({ rapidResponses, ...n }) => ({ ...n, responseId: rapidResponses[0]?.id ?? null, inRegion: local.length > 0 }))
 }
 

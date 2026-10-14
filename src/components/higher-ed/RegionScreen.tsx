@@ -8,7 +8,7 @@
 
 import { ExternalLink, Landmark, MapPin, Newspaper, TrendingDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import type { InstitutionProfile, Sourced } from '@/lib/higher-ed/profile'
+import { regionAreas, type InstitutionProfile, type Sourced } from '@/lib/higher-ed/profile'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
@@ -84,20 +84,22 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
   }
 
   const since = oneYearAgo()
+  const areas = regionAreas(region)
   const [warn, boards] = await Promise.all([
     prisma.warnNotice.findMany({
       where: {
-        state: region.state,
         dismissedAt: null,
         noticeDate: { gte: since },
-        OR: region.counties.map((c) => ({ county: { contains: c, mode: 'insensitive' as const } })),
+        OR: areas.flatMap((a) =>
+          a.counties.length ? a.counties.map((c) => ({ state: a.state, county: { contains: c, mode: 'insensitive' as const } })) : [{ state: a.state }],
+        ),
       },
       orderBy: { noticeDate: 'desc' },
       take: 10,
       select: { id: true, employer: true, county: true, noticeDate: true, employees: true, sourceUrl: true },
     }),
     prisma.workforceBoard.findMany({
-      where: { state: region.state, counties: { hasSome: region.counties } },
+      where: { OR: areas.map((a) => ({ state: a.state, counties: { hasSome: a.counties } })) },
       select: { id: true, name: true, website: true, directorName: true, directorTitle: true, detailsUrl: true },
     }),
   ])
@@ -236,7 +238,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              None on file. NextChapter&apos;s WARN sync doesn&apos;t cover {region.state} filings yet; once it does, notices for these counties appear
+              None on file. NextChapter&apos;s WARN sync doesn&apos;t cover {areas.map((a) => a.state).join(' or ')} filings yet; once it does, notices for these counties appear
               here and match against your alumni automatically.
             </p>
           )}

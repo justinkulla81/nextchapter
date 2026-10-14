@@ -4,6 +4,7 @@ import { ConfirmForm } from '@/components/admin/ConfirmForm'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { markSeatPlacedAction, deactivateSeatAction } from '@/app/employer/(app)/roster/actions'
 import type { RosterSeat } from '@/lib/employer/outplacement-roster'
+import { SeatPackageSelect } from './ProgramForms'
 
 const STATUS_LABEL: Record<RosterSeat['status'], string> = {
   INVITED: 'Invited',
@@ -20,7 +21,8 @@ function fmt(d: Date | string | null) {
 // (see outplacement-roster.ts's file-level comment for why that's not a
 // privacy-guard violation) and never a candidate's grade/activity/
 // confidential status. `isSelf` rows are pre-redacted server-side.
-export function RosterTable({ seats }: { seats: RosterSeat[] }) {
+// `packages`: the program's packages plus Everyone; the column shows only when there's a choice.
+export function RosterTable({ seats, packages = [] }: { seats: RosterSeat[]; packages?: { key: string; name: string }[] }) {
   if (seats.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -41,6 +43,7 @@ export function RosterTable({ seats }: { seats: RosterSeat[] }) {
             <th className="px-3 py-2 font-medium">Name</th>
             <th className="px-3 py-2 font-medium">Email</th>
             <th className="px-3 py-2 font-medium">Status</th>
+            {packages.length > 1 && <th className="px-3 py-2 font-medium">Package</th>}
             <th className="px-3 py-2 font-medium">Method</th>
             <th className="px-3 py-2 font-medium">Enrolled</th>
             <th className="px-3 py-2 font-medium">Activated</th>
@@ -54,6 +57,11 @@ export function RosterTable({ seats }: { seats: RosterSeat[] }) {
               <td className="px-3 py-2">{seat.invitedName ?? '—'}</td>
               <td className="px-3 py-2">{seat.invitedEmail}</td>
               <td className="px-3 py-2">{STATUS_LABEL[seat.status]}</td>
+              {packages.length > 1 && (
+                <td className="px-3 py-2">
+                  {seat.isSelf || seat.status === 'DEACTIVATED' ? (packages.find((p) => p.key === (seat.packageKey ?? 'all'))?.name ?? '—') : <SeatPackageSelect seatId={seat.id} value={seat.packageKey ?? 'all'} options={packages} />}
+                </td>
+              )}
               <td className="px-3 py-2 text-muted-foreground">{seat.enrollmentMethod === 'BULK_CSV' ? 'Bulk CSV' : 'Single'}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.enrolledAt)}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.activatedAt)}</td>

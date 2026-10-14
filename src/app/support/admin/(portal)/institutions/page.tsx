@@ -1,7 +1,8 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { readBranding } from '@/lib/institution/branding'
-import { CreateCollegeForm, BrandingForm, InviteStaffForm, LicenseForm } from '@/components/admin/InstitutionForms'
+import { CreateCollegeForm, BrandingForm, InviteStaffForm, LicenseForm, RegionForm } from '@/components/admin/InstitutionForms'
+import { readProfile, regionAreas } from '@/lib/higher-ed/profile'
 import { ConfirmActionButton } from '@/components/higher-ed/ConfirmActionButton'
 import { ActionButton } from '@/components/higher-ed/CommunityForms'
 import { STAFF_ROLE_LABELS, TIER_LABELS, getWorkspace } from '@/lib/higher-ed/workspaces'
@@ -108,6 +109,18 @@ export default async function InstitutionsAdminPage() {
                   institutionId={c.id}
                   defaults={{ tier: c.tier, includedSeats: c.includedSeats, alumniCount: c.alumniCount, licenseStartAt: c.licenseStartAt?.toISOString().slice(0, 10) ?? '', licenseEndAt: c.licenseEndAt?.toISOString().slice(0, 10) ?? '' }}
                 />
+              </details>
+
+              <details className="space-y-2">
+                <summary className="cursor-pointer text-sm font-medium">
+                  Local market:{' '}
+                  {(() => {
+                    const r = readProfile(c.profile).region
+                    const a = regionAreas(r)
+                    return a.length ? `${r?.name} (${a.map((x) => `${x.state}: ${x.counties.length}`).join(', ')} counties)` : 'not set'
+                  })()}
+                </summary>
+                <RegionForm institutionId={c.id} defaults={{ name: readProfile(c.profile).region?.name ?? '', areas: regionAreas(readProfile(c.profile).region) }} />
               </details>
 
               <details className="space-y-2">

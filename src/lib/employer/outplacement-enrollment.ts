@@ -83,6 +83,8 @@ async function enrollOneSeat(
   email: string,
   name: string | null,
   method: OutplacementEnrollmentMethod
+,
+  packageKey: string | null = null
 ): Promise<EnrollOneResult> {
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
@@ -95,6 +97,7 @@ async function enrollOneSeat(
         status: 'ACTIVATED',
         candidateId: existing.id,
         activatedAt: new Date(),
+        packageKey,
       },
     })
     await startOutplacementJourney(existing.id)
@@ -103,7 +106,7 @@ async function enrollOneSeat(
   }
 
   const seat = await prisma.outplacementSeat.create({
-    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method },
+    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method, packageKey },
   })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
@@ -118,7 +121,7 @@ async function enrollOneSeat(
 
   const contract = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { orgId: true } })
   const program = contract ? await orgProgram(contract.orgId) : null
-  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.offered.map((f) => f.label) } : undefined)
+  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.forPackage(packageKey).map((f) => f.label) } : undefined)
   return { email, outcome: 'invited' }
 }
 
@@ -131,7 +134,8 @@ export async function enrollSingleSeat(
   orgUser: CurrentOutplacementOrgUser,
   contractId: string,
   email: string,
-  name: string | null
+  name: string | null,
+  packageKey: string | null = null
 ): Promise<EnrollSingleResult> {
   const cleanEmail = email.trim().toLowerCase()
   if (!cleanEmail || !cleanEmail.includes('@')) return { error: 'Enter a valid email address.' }
@@ -153,7 +157,7 @@ export async function enrollSingleSeat(
   })
   if (alreadyOnThisContract) return { error: 'This person already has a seat on this contract.' }
 
-  const result = await enrollOneSeat(contractId, contract.org.name, cleanEmail, name?.trim() || null, 'SINGLE')
+  const result = await enrollOneSeat(contractId, contract.org.name, cleanEmail, name?.trim() || null, 'SINGLE', packageKey)
   if (result.outcome === 'error') return { error: result.error }
 
   captureServerEvent(orgUser.userId, 'outplacement_seat_enrolled', {
@@ -177,7 +181,8 @@ export interface EnrollBulkResult {
 export async function enrollBulkCsv(
   orgUser: CurrentOutplacementOrgUser,
   contractId: string,
-  csvText: string
+  csvText: string,
+  packageKey: string | null = null
 ): Promise<EnrollBulkResult> {
   const contract = await prisma.outplacementContract.findFirst({
     where: { id: contractId, orgId: orgUser.orgId, status: 'ACTIVE' },
@@ -218,7 +223,7 @@ export async function enrollBulkCsv(
       rowErrors.push(`Row ${row.line}: ${row.email} already has a seat on this contract — skipped.`)
       continue
     }
-    const result = await enrollOneSeat(contractId, contract.org.name, row.email, row.name, 'BULK_CSV')
+    const result = await enrollOneSeat(contractId, contract.org.name, row.email, row.name, 'BULK_CSV', packageKey)
     if (result.outcome === 'error') {
       failed++
       rowErrors.push(`Row ${row.line}: ${result.error}`)

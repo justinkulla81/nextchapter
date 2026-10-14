@@ -178,10 +178,10 @@ async function CandidateHome({ ctx }: ScreenProps) {
   const { profile, enabledFeatures } = await loadInstitutionData(ctx.institution.id)
   // The college's switched-on services for this member's audiences (a
   // preview with no member record sees them all). Each card counts its opens.
-  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member) : null)
   const openFlag = ctx.memberId
     ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
     : null
+  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null)
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their

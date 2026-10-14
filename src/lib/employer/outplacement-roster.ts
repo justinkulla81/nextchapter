@@ -30,6 +30,7 @@ export interface RosterSeat {
   enrolledAt: Date
   activatedAt: Date | null
   placedAt: Date | null
+  packageKey: string | null
   isSelf: boolean
 }
 
@@ -55,6 +56,7 @@ export async function getOrgRoster(orgUser: CurrentOutplacementOrgUser, contract
       enrolledAt: true,
       activatedAt: true,
       placedAt: true,
+      packageKey: true,
       candidateId: true,
     },
     orderBy: { enrolledAt: 'desc' },
@@ -72,6 +74,7 @@ export async function getOrgRoster(orgUser: CurrentOutplacementOrgUser, contract
       enrolledAt: s.enrolledAt,
       activatedAt: isSelf ? null : s.activatedAt,
       placedAt: isSelf ? null : s.placedAt,
+      packageKey: s.packageKey,
       isSelf,
     }
   })
