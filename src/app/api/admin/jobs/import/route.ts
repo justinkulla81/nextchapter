@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
-import { screenJobTitle } from '@/lib/jobs/job-seniority'
-import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
-import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
+import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
 import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
+import { applyMarketPay } from '@/lib/companies/hiring-index'
 
 export const maxDuration = 300
 
@@ -83,14 +83,7 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    // isUsLocation knows US places; NON_US catches foreign towns it doesn't
-    // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
-    const location = cleanLocation(job.location)
-    if (!isUsLocation(location) || namesNonUsPlace(job.title, location, NON_US)) {
-      skipped.push({ url: job.url, reason: 'outside the US' })
-      continue
-    }
-    const verdict = screenJobTitle(job.title)
+    const verdict = screenImportedJob(job.title, job.location)
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
@@ -98,24 +91,6 @@ function screen(jobs: unknown[]) {
     kept.push({ job, level: verdict.level })
   }
   return { kept, skipped }
-}
-
-// Some sources fill unknown locations with placeholders ("UNAVAILABLE").
-function cleanLocation(raw: string | null | undefined): string | null {
-  // Icon labels and field names some boards leave in the text ("wifi
-  // Remote", "Orange County, CA Date").
-  const text = (raw ?? '').replace(/^\s*wifi\s+/i, '').replace(/\s+date\s*$/i, '')
-  const parts = text
-    .split(/\s*,\s*/)
-    .filter((p) => p && !/^(unavailable|n\/?a|none|null|undefined|tbd)$/i.test(p))
-  return parts.length ? parts.join(', ') : null
-}
-
-// The source's own posting date; ignored when unparseable or in the future.
-function postedDate(raw: string | null | undefined): Date | null {
-  if (!raw) return null
-  const d = new Date(raw)
-  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 86_400_000 ? null : d
 }
 
 function rowData({ job, level }: Screened) {
@@ -144,6 +119,33 @@ function changed(before: Record<string, unknown>, after: RowData): boolean {
   return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
 }
 
+// The company's job-opening history (CompanyJobOpening) and each job's market pay.
+// Best-effort: a history write must never fail the import itself.
+async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => string | null, now: Date) {
+  try {
+    const rows: OpeningRow[] = []
+    for (const k of kept) {
+      const companyId = companyIdOf(k)
+      if (!companyId) continue
+      const data = rowData(k)
+      const row = buildOpeningRow({ ...data, url: k.job.url }, companyId, 'import', { firstSeenAt: now, lastSeenAt: now, closedAt: null })
+      if (row) rows.push(row)
+    }
+    await upsertOpenings(rows)
+    await applyMarketPay(rows.map((r) => r.url))
+  } catch (error) {
+    console.error('jobs import: could not record company openings', error)
+  }
+}
+
+async function closeOpeningsSafely() {
+  try {
+    await closeArchivedOpenings()
+  } catch (error) {
+    console.error('jobs import: could not close archived openings', error)
+  }
+}
+
 async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
   const stale = { addedBy: 'ncrawl', archivedAt: null, OR: [{ lastConfirmedAt: null }, { lastConfirmedAt: { lt: startedAt } }] }
   const [live, wouldArchive] = await Promise.all([
@@ -162,6 +164,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
   const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
+  await closeOpeningsSafely()
   return NextResponse.json({ archived: result.count, live: live - result.count })
 }
 
@@ -197,7 +200,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-      postedAt: true, sourceCount: true, sourceName: true, industry: true,
+      postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
@@ -219,8 +222,12 @@ export async function POST(request: NextRequest) {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
 
+  // Every job is tied to its directory Company: new rows at create, older rows that
+  // were never linked on their next import.
+  const unlinked = toUpdate.filter((k) => !existingByUrl.get(k.job.url)!.companyId)
+  const companyIds = await linkPostingsToCompanies([...toCreate, ...unlinked].map((k) => rowData(k).companyName))
+
   if (toCreate.length > 0) {
-    const companyIds = await linkPostingsToCompanies(toCreate.map((k) => rowData(k).companyName))
     await prisma.exclusiveJobPosting.createMany({
       data: toCreate.map((k) => ({
         ...rowData(k),
@@ -245,6 +252,10 @@ export async function POST(request: NextRequest) {
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
       data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
     })
+    for (const k of unlinked) {
+      const companyId = companyIds.get(rowData(k).companyName)
+      if (companyId) await prisma.exclusiveJobPosting.updateMany({ where: { url: k.job.url, companyId: null }, data: { companyId } })
+    }
     const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
     for (let i = 0; i < edits.length; i += 100) {
       await prisma.$transaction(
@@ -261,6 +272,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+
   let archived = 0
   if (body.fullSync) {
     const result = await prisma.exclusiveJobPosting.updateMany({
@@ -268,6 +281,7 @@ export async function POST(request: NextRequest) {
       data: { archivedAt: new Date() },
     })
     archived = result.count
+    await closeOpeningsSafely()
   }
 
   return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })

@@ -4800,6 +4800,17 @@ model ExclusiveJobPosting {
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
   skills String[] @default([])
 
+  // Market pay for this role (src/lib/pay/market-pay.ts), copied from its
+  // CompanyJobOpening row nightly and at import. A benchmark for the role's
+  // function x seniority x state — never the employer's posted pay. payVsMarket
+  // ('above' | 'in_line' | 'below') is set only when the job posts its own pay.
+  marketPayLow    Int?
+  marketPayMid    Int?
+  marketPayHigh   Int?
+  marketPayBasis  String?
+  marketPaySample Int?
+  payVsMarket     String?
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
   @@index([status, archivedAt])
@@ -6948,7 +6959,129 @@ model Company {
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
 
+  // Hiring index: every job opening we have ever seen for this company (open and
+  // closed) and the rolled-up hiring profile. Public business facts only.
+  jobOpenings   CompanyJobOpening[]
+  hiringProfile CompanyHiringProfile?
+
   @@index([industry])
+}
+
+// One row per job opening we have ever seen for a company — kept after the board
+// listing is archived, so a company's hiring history survives. Written by the ncrawl
+// import (/api/admin/jobs/import), the crawler-history backfill
+// (/api/admin/jobs/history) and the nightly hiring-index cron (board postings from
+// other open sources). Keyed by the listing URL, same as ExclusiveJobPosting.
+// Employer/recruiter exclusives, confidential searches and institution-scoped jobs
+// are never written here, so every row is safe to show any member.
+model CompanyJobOpening {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  url            String    @unique
+  title          String
+  companyName    String
+  location       String?
+  states         String[]  @default([]) // two-letter US state codes parsed from location
+  isRemote       Boolean   @default(false)
+  level          String? // rung from screenJobTitle (DIRECTOR, VP, ...)
+  seniorityGroup String? // EXECUTIVE | VP | DIRECTOR | SENIOR_MANAGER | MANAGER | SENIOR_IC
+  function       String? // inferFunctionFromTitle
+  industry       String? // crawler industry key (technology, healthcare, ...)
+  salaryMin      Float?
+  salaryMax      Float?
+  salaryCurrency String?
+  // Posted pay, annualised (hourly x 2080, monthly x 12) and cleaned: null when
+  // non-USD, implausible (< $20k or > $2M a year) or an unusably wide range.
+  payAnnualMin   Int?
+  payAnnualMax   Int?
+  payAnnualMid   Int?
+  postedAt       DateTime?
+  firstSeenAt    DateTime
+  lastSeenAt     DateTime
+  closedAt       DateTime? // null = still open
+  sourceName     String?
+  source         String // 'import' | 'crawler_history' | 'board'
+
+  // Market benchmark for this role (see ExclusiveJobPosting's matching columns).
+  marketPayLow    Int?
+  marketPayMid    Int?
+  marketPayHigh   Int?
+  marketPayBasis  String?
+  marketPaySample Int?
+  payVsMarket     String? // 'above' | 'in_line' | 'below' — only when pay is posted
+  payRatio        Float? // posted midpoint / market median
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, firstSeenAt])
+  @@index([companyId, closedAt])
+  @@index([function, seniorityGroup])
+  @@index([closedAt])
+}
+
+// The company's rolled-up hiring profile, recomputed nightly from CompanyJobOpening,
+// WarnNotice and LayoffNewsMention (src/lib/companies/hiring-index.ts).
+model CompanyHiringProfile {
+  id                String    @id @default(cuid())
+  companyId         String    @unique
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  industry          String?
+  // 'single_site' | 'multi_site' | 'remote_only' | 'unknown'
+  siteType          String    @default("unknown")
+  states            String[]  @default([])
+  topLocations      Json? // [{ location, count }]
+  remoteShare       Float?
+  topFunctions      Json? // [{ function, count }]
+  levelMix          Json? // [{ group, count }]
+  directorPlusShare Float?
+  vpPlusShare       Float?
+  openNow           Int       @default(0)
+  opened90d         Int       @default(0)
+  opened12mo        Int       @default(0)
+  totalSeen         Int       @default(0)
+  firstSeenAt       DateTime?
+  lastSeenAt        DateTime?
+  warnFilings12mo   Int       @default(0)
+  warnEmployees12mo Int       @default(0)
+  lastWarnAt        DateTime?
+  layoffNews12mo    Int       @default(0)
+  // Employer pay level: 'high' | 'in_line' | 'low' | 'insufficient'
+  payLevel          String    @default("insufficient")
+  payLevelSample    Int       @default(0)
+  payLevelRatio     Float?
+  postedPayShare    Float?
+  computedAt        DateTime  @default(now())
+
+  @@index([payLevel])
+}
+
+// Market pay benchmarks by function x seniority group x geography, rebuilt nightly
+// from posted pay on our own openings (src/lib/companies/hiring-index.ts).
+// fn '*' = every function (level-only fallback); geo 'US' = national.
+model PayBenchmark {
+  id             String   @id @default(cuid())
+  fn             String
+  seniorityGroup String
+  geo            String
+  p25            Int
+  p50            Int
+  p75            Int
+  sampleSize     Int
+  computedAt     DateTime @default(now())
+
+  @@unique([fn, seniorityGroup, geo])
+}
+
+// Cost-of-area pay index by state (1.0 = national), from posted pay relative to the
+// national benchmark, falling back to DOL LCA wage ratios where posted pay is thin.
+model PayAreaIndex {
+  state      String   @id
+  index      Float
+  sampleSize Int
+  source     String // 'posted' | 'lca'
+  computedAt DateTime @default(now())
 }
 
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
