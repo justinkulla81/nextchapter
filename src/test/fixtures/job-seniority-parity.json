@@ -12145,5 +12145,95 @@ true
 "Senior Wealth Advisor",
 "SENIOR_IC",
 45
+],
+[
+"Administrator",
+"DIRECTOR",
+68
+],
+[
+"Nursing Home Administrator",
+"DIRECTOR",
+68
+],
+[
+"Licensed Nursing Home Administrator (LNHA)",
+"DIRECTOR",
+68
+],
+[
+"Systems Administrator",
+"OTHER",
+0
+],
+[
+"Benefits Administrator",
+"OTHER",
+0
+],
+[
+"Assistant Administrator",
+"MANAGER",
+45
+],
+[
+"Administrator in Training",
+"MANAGER",
+45
+],
+[
+"DON",
+"DIRECTOR",
+68
+],
+[
+"Executive Director - Assisted Living",
+"DIRECTOR",
+68
+],
+[
+"Community Executive Director",
+"DIRECTOR",
+68
+],
+[
+"Executive Director in Training",
+"MANAGER",
+45
+],
+[
+"CEO In Training (CIT)",
+"MANAGER",
+45
+],
+[
+"Regional Nurse Consultant",
+"SR_MANAGER",
+52
+],
+[
+"Maintenance Director",
+"MANAGER",
+45
+],
+[
+"Director of Maintenance",
+"DIRECTOR",
+65
+],
+[
+"Dining Services Director",
+"MANAGER",
+45
+],
+[
+"CULINARY DIRECTOR OF RESEARCH & DEVELOPMENT",
+"DIRECTOR",
+65
+],
+[
+"Chief of Geriatrics",
+"DIRECTOR",
+68
 ]
 ]
