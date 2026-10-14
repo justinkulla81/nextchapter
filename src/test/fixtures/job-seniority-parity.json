@@ -681,8 +681,8 @@
 ],
 [
 "Technical Support Engineer 3, Premier - US-West",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "People Partner - Product and Product Design",
@@ -891,8 +891,8 @@
 ],
 [
 "Solutions Integration Engineer III",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineer, Network Firewall",
@@ -1266,8 +1266,8 @@
 ],
 [
 "Software Engineer 3, Customer Observability",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineer, CDN Configuration Group",
@@ -1501,8 +1501,8 @@
 ],
 [
 "Design Tools Application Engineer III",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Data Scientist, Inference Capacity Optimization",
@@ -2161,8 +2161,8 @@
 ],
 [
 "Engineer 3 - GTM Tech",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Senior Software Engineer, Search Platform",
@@ -2371,8 +2371,8 @@
 ],
 [
 "Software Engineer III, Content AI",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Senior Software Engineer, 3D Engine Scalability",
@@ -3811,8 +3811,8 @@
 ],
 [
 "Machine Learning Engineer III",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Strategic Core Account Executive - Telco",
@@ -5926,8 +5926,8 @@
 ],
 [
 "iOS Engineer III",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Greenfield Sales Manager, Startups",
@@ -7791,8 +7791,8 @@
 ],
 [
 "Solutions Integration Engineer IV",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Senior Software Engineer - Money Team",
@@ -8271,8 +8271,8 @@
 ],
 [
 "Electrical Engineer III",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Integration Engineer, Professional Services",
@@ -9106,8 +9106,8 @@
 ],
 [
 "Software Engineer 3, Search Systems Replication & Routing",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Senior Android Engineer, iRAD",
@@ -10413,5 +10413,55 @@
 "Office Administrator",
 "OTHER",
 0
+],
+[
+"Branch Chief",
+"DIRECTOR",
+68
+],
+[
+"Supervisory IT Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Attorney IV",
+"SENIOR_IC",
+45
+],
+[
+"Commissioner",
+"C_SUITE",
+100
+],
+[
+"Management Analyst III",
+"SENIOR_IC",
+45
+],
+[
+"Program Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Secretary of Transportation",
+"C_SUITE",
+100
+],
+[
+"Executive Secretary",
+"OTHER",
+0
+],
+[
+"Analyst II",
+"OTHER",
+0
+],
+[
+"Accountant III",
+"SENIOR_IC",
+45
 ]
 ]
