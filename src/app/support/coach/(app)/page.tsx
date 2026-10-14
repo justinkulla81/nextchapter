@@ -34,6 +34,18 @@ export default async function CoachHomePage() {
         )}
       </div>
 
+      {clientCount === 0 && (
+        <section className="space-y-2 rounded-lg border border-primary/40 bg-card p-5">
+          <h2 className="text-base font-semibold">Start with your first client</h2>
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Invite someone you already coach, or share your invite link. Once they join, their weekly progress, grade and stalls show up here.
+          </p>
+          <Link href="/support/coach/invite-client" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
+            Invite a client
+          </Link>
+        </section>
+      )}
+
       <section>
         <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
         {stalled.length === 0 ? (

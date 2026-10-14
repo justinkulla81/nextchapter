@@ -9,7 +9,7 @@ export async function enrollSingleAction(
   formData: FormData
 ): Promise<EnrollSingleResult> {
   const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
-  if (!orgUser) return { error: 'You need employer_admin access to enroll someone.' }
+  if (!orgUser) return { error: 'You need Admin access on this account to enroll someone.' }
 
   const contractId = (formData.get('contractId') as string | null) ?? ''
   const email = (formData.get('email') as string | null) ?? ''
@@ -26,7 +26,7 @@ export async function enrollBulkAction(
   formData: FormData
 ): Promise<EnrollBulkResult> {
   const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
-  if (!orgUser) return { error: 'You need employer_admin access to enroll people.', invited: 0, linked: 0, failed: 0, rowErrors: [] }
+  if (!orgUser) return { error: 'You need Admin access on this account to enroll people.', invited: 0, linked: 0, failed: 0, rowErrors: [] }
 
   const contractId = (formData.get('contractId') as string | null) ?? ''
   const file = formData.get('file') as File | null

@@ -1,6 +1,9 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { listOrgUsers } from '@/lib/employer/outplacement-org-users'
 import { InviteOrgUserForm } from '@/components/employer/InviteOrgUserForm'
+import { ConfirmActionButton } from '@/components/higher-ed/ConfirmActionButton'
+import { ActionButton } from '@/components/higher-ed/CommunityForms'
+import { removeOrgUserAction, resendOrgInviteAction } from './actions'
 
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Admin', VIEWER: 'Viewer', LEGAL: 'Legal', FINANCE: 'Finance' }
 
@@ -32,12 +35,13 @@ export default async function EmployerTeamPage() {
               <th className="px-3 py-2 font-medium">Role</th>
               <th className="px-3 py-2 font-medium">Status</th>
               <th className="px-3 py-2 font-medium">Invited</th>
+              <th className="px-3 py-2"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
             {users.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                   No one else yet. Invite HR, legal or finance above; each sees only what their role needs.
                 </td>
               </tr>
@@ -49,6 +53,12 @@ export default async function EmployerTeamPage() {
                 <td className="px-3 py-2">{ROLE_LABEL[u.role]}</td>
                 <td className="px-3 py-2">{u.acceptedAt ? 'Active' : 'Invited'}</td>
                 <td className="px-3 py-2 tabular-nums">{fmt(u.invitedAt)}</td>
+                <td className="px-3 py-2">
+                  <span className="flex flex-wrap justify-end gap-2">
+                    {!u.acceptedAt && <ActionButton label="Resend invite" done="Sent." run={resendOrgInviteAction.bind(null, u.id)} />}
+                    <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${u.fullName ?? u.invitedEmail}? They lose access right away.`} confirmLabel="Remove" run={removeOrgUserAction.bind(null, u.id)} />
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

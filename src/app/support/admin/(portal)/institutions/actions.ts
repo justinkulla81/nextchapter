@@ -144,3 +144,47 @@ export async function resetDemoFixture(institutionId: string): Promise<void> {
   captureServerEvent(admin?.email ?? 'admin', 'institution_demo_reset', { institutionId: result.institutionId, slug: inst.slug, members: result.members, ...sample })
   revalidatePath('/support/admin/institutions')
 }
+
+// The license: tier (which workspaces open), included seats, term and the
+// alumni count it was priced on. Only NextChapter admins set this.
+export async function saveCollegeLicense(institutionId: string, _prev: InstitutionFormState, formData: FormData): Promise<InstitutionFormState> {
+  const admin = await requireAdmin()
+  const get = (k: string) => (formData.get(k) as string | null)?.trim() ?? ''
+  const tier = get('tier')
+  if (!['CAREER', 'ADVANCEMENT', 'INSTITUTION'].includes(tier)) return { error: 'Pick a tier.' }
+  const num = (k: string) => (get(k) === '' ? null : Number(get(k)))
+  const seats = num('includedSeats')
+  const alumni = num('alumniCount')
+  if ((seats !== null && (!Number.isInteger(seats) || seats < 0)) || (alumni !== null && (!Number.isInteger(alumni) || alumni < 0))) return { error: 'Seats and alumni count are whole numbers.' }
+  const date = (k: string) => (get(k) ? new Date(`${get(k)}T00:00:00Z`) : null)
+  const start = date('licenseStartAt')
+  const end = date('licenseEndAt')
+  if (start && end && end <= start) return { error: 'The license has to end after it starts.' }
+  await prisma.institution.update({
+    where: { id: institutionId },
+    data: { tier: tier as 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION', includedSeats: seats ?? 0, alumniCount: alumni, licenseStartAt: start, licenseEndAt: end },
+  })
+  captureServerEvent(admin?.email ?? 'admin', 'institution_license_saved', { institutionId, tier, seats })
+  revalidatePath('/support/admin/institutions')
+  return { ok: 'License saved. The college sees the new workspaces on its next page load.' }
+}
+
+// Remove a college staff seat, or resend an invite nobody has accepted.
+export async function removeCollegeStaff(staffId: string): Promise<{ error?: string; message?: string }> {
+  const admin = await requireAdmin()
+  await prisma.institutionUser.update({ where: { id: staffId }, data: { revokedAt: new Date() } })
+  captureServerEvent(admin?.email ?? 'admin', 'institution_staff_removed', { staffId, by: 'nc_admin' })
+  revalidatePath('/support/admin/institutions')
+  return { message: 'Removed.' }
+}
+
+export async function resendCollegeStaffInvite(staffId: string): Promise<{ error?: string; message?: string }> {
+  const admin = await requireAdmin()
+  const row = await prisma.institutionUser.findUnique({ where: { id: staffId }, select: { invitedEmail: true, role: true, workspace: true, institution: { select: { slug: true } } } })
+  if (!row) return { error: 'That invite is gone.' }
+  const r = await inviteInstitutionUser({ institutionSlug: row.institution.slug, email: row.invitedEmail, role: row.role, workspace: row.workspace })
+  if (r.error) return { error: r.error }
+  captureServerEvent(admin?.email ?? 'admin', 'institution_staff_invite_resent', { staffId, by: 'nc_admin' })
+  revalidatePath('/support/admin/institutions')
+  return { message: 'Sent.' }
+}

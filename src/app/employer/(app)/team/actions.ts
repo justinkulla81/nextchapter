@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-auth'
-import { inviteOrgUser } from '@/lib/employer/outplacement-org-users'
+import { inviteOrgUser, removeOrgUser } from '@/lib/employer/outplacement-org-users'
+import { prisma } from '@/lib/prisma'
 import type { OutplacementRole } from '@prisma/client'
 
 export type InviteOrgUserState = { error?: string; sent?: boolean } | undefined
@@ -12,7 +13,7 @@ export async function inviteOrgUserAction(
   formData: FormData
 ): Promise<InviteOrgUserState> {
   const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
-  if (!orgUser) return { error: 'You need employer_admin access to invite teammates.' }
+  if (!orgUser) return { error: 'You need Admin access on this account to invite teammates.' }
 
   const email = (formData.get('email') as string | null) ?? ''
   const fullName = (formData.get('fullName') as string | null)?.trim() || null
@@ -24,4 +25,23 @@ export async function inviteOrgUserAction(
 
   revalidatePath('/employer/team')
   return { sent: true }
+}
+
+export async function removeOrgUserAction(id: string): Promise<{ error?: string; message?: string }> {
+  const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
+  if (!orgUser) return { error: 'You need Admin access on this account to remove teammates.' }
+  const r = await removeOrgUser(orgUser, id)
+  if (r.error) return r
+  revalidatePath('/employer/team')
+  return { message: 'Removed. They lose access right away.' }
+}
+
+export async function resendOrgInviteAction(id: string): Promise<{ error?: string; message?: string }> {
+  const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
+  if (!orgUser) return { error: 'You need Admin access on this account to resend invites.' }
+  const row = await prisma.outplacementOrgUser.findFirst({ where: { id, orgId: orgUser.orgId, acceptedAt: null }, select: { invitedEmail: true, role: true, fullName: true } })
+  if (!row) return { error: 'They’ve already accepted, or the invite was removed.' }
+  const r = await inviteOrgUser(orgUser, row.invitedEmail, row.role, row.fullName)
+  if (r.error) return r
+  return { message: 'Invite sent again.' }
 }

@@ -144,7 +144,7 @@ export async function joinGroupAction(slug: string, groupId: string, join: boole
   if (!g) return { error: 'That group is gone.' }
   await joinGroup(groupId, m.memberId, join)
   captureServerEvent(m.ctx.userId, 'he_group_joined', { institutionId: m.ctx.institution.id, groupId, join })
-  revalidatePath(`/i/${slug}/candidate/people`)
+  revalidatePath(`/i/${slug}/candidate/network`)
   return { ok: true }
 }
 
@@ -297,7 +297,7 @@ export async function askQuestion(slug: string, topic: string, body: string): Pr
   if (recent >= 3) return { error: 'Three questions a day. Ask again tomorrow.' }
   const q = await prisma.alumniQuestion.create({ data: { institutionId: m.ctx.institution.id, memberId: m.memberId, topic: topic || 'general', body: body.trim().slice(0, 1500) }, select: { id: true } })
   captureServerEvent(m.ctx.userId, 'he_question_asked', { institutionId: m.ctx.institution.id, questionId: q.id, topic })
-  revalidatePath(`/i/${slug}/candidate/people`)
+  revalidatePath(`/i/${slug}/candidate/network`)
   return { ok: true, message: 'Posted. Alumni in that field will see it.' }
 }
 

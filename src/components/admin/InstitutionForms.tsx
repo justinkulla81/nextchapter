@@ -8,6 +8,7 @@ import {
   createCollege,
   saveCollegeBranding,
   inviteCollegeStaff,
+  saveCollegeLicense,
   searchCrmColleges,
   type CrmCollegeOption,
   type InstitutionFormState,
@@ -198,6 +199,60 @@ export function InviteStaffForm({ institutionId }: { institutionId: string }) {
       </div>
       <SubmitButton size="sm" pendingLabel="Sending…">Send invite</SubmitButton>
       <div className="w-full"><Status state={state} /></div>
+    </form>
+  )
+}
+
+const TIERS = [
+  ['CAREER', 'Career', 'Candidate, Alumni Relations, Career Services, Employer, Admin'],
+  ['ADVANCEMENT', 'Advancement', '+ Development'],
+  ['INSTITUTION', 'Institution', '+ Teaching, Exec Ed, Workforce board'],
+] as const
+
+// The license: which workspaces open (tier), seats, term, priced-on alumni count.
+export function LicenseForm({ institutionId, defaults }: { institutionId: string; defaults: { tier: string; includedSeats: number; alumniCount: number | null; licenseStartAt: string; licenseEndAt: string } }) {
+  const [state, action] = useActionState(saveCollegeLicense.bind(null, institutionId), undefined)
+  const [v, setV] = useState({ ...defaults, includedSeats: String(defaults.includedSeats), alumniCount: defaults.alumniCount === null ? '' : String(defaults.alumniCount) })
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="tier" value={v.tier} />
+      <fieldset className="space-y-1">
+        <legend className="text-sm font-medium">Tier</legend>
+        <div className="flex flex-wrap gap-2">
+          {TIERS.map(([key, label, what]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={v.tier === key}
+              onClick={() => setV({ ...v, tier: key })}
+              className={`rounded-md border px-3 py-1.5 text-left text-sm ${v.tier === key ? 'border-primary bg-primary text-primary-foreground' : 'border-border'}`}
+            >
+              <span className="font-medium">{label}</span>
+              <span className="block text-xs opacity-80">{what}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label htmlFor={`seats-${institutionId}`}>Included seats</Label>
+          <Input id={`seats-${institutionId}`} name="includedSeats" inputMode="numeric" value={v.includedSeats} onChange={(e) => setV({ ...v, includedSeats: e.target.value })} className="w-28" />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`alumni-${institutionId}`}>Alumni count (priced on)</Label>
+          <Input id={`alumni-${institutionId}`} name="alumniCount" inputMode="numeric" value={v.alumniCount} onChange={(e) => setV({ ...v, alumniCount: e.target.value })} className="w-32" />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`start-${institutionId}`}>Starts</Label>
+          <Input id={`start-${institutionId}`} name="licenseStartAt" type="date" value={v.licenseStartAt} onChange={(e) => setV({ ...v, licenseStartAt: e.target.value })} />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`end-${institutionId}`}>Ends</Label>
+          <Input id={`end-${institutionId}`} name="licenseEndAt" type="date" value={v.licenseEndAt} onChange={(e) => setV({ ...v, licenseEndAt: e.target.value })} />
+        </div>
+        <SubmitButton size="sm" pendingLabel="Saving…">Save license</SubmitButton>
+      </div>
+      <Status state={state} />
     </form>
   )
 }

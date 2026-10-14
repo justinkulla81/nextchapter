@@ -80,7 +80,7 @@ function oneYearAgo(): Date {
 export async function RegionScreen({ profile }: { profile: InstitutionProfile }) {
   const region = profile.region
   if (!region) {
-    return <p className="text-sm text-muted-foreground">No region profile yet. An institution admin can add one (HE-04).</p>
+    return <p className="text-sm text-muted-foreground">Your local market isn’t set up yet. Tell NextChapter your state and counties (support@launchyournextchapter.com) and this fills in with local employers, openings and layoffs.</p>
   }
 
   const since = oneYearAgo()
@@ -237,7 +237,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
           ) : (
             <p className="text-sm text-muted-foreground">
               None on file. NextChapter&apos;s WARN sync doesn&apos;t cover {region.state} filings yet; once it does, notices for these counties appear
-              here and match against your alumni automatically (HE-08).
+              here and match against your alumni automatically.
             </p>
           )}
         </Panel>

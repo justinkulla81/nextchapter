@@ -35,11 +35,27 @@ export default async function EmployerOverviewPage() {
         </p>
       </div>
 
+      {orgUser.role === 'ADMIN' && contracts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/employer/enroll" className={cn(buttonVariants())}>
+            Enroll people
+          </Link>
+          <Link href="/employer/program" className="text-sm text-muted-foreground underline underline-offset-4">
+            Set up what your program offers
+          </Link>
+        </div>
+      )}
+
       {(orgUser.role === 'ADMIN' || orgUser.role === 'VIEWER') && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Contracts</h2>
           {contracts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active contracts on file.</p>
+            <p className="text-sm text-muted-foreground">
+              No active contract yet. Your NextChapter contact sets it up; once it’s in place you can enroll people here. Questions:{' '}
+              <a className="underline underline-offset-4" href="mailto:support@launchyournextchapter.com">
+                support@launchyournextchapter.com
+              </a>
+            </p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {contracts.map((c, i) => {

@@ -25,6 +25,8 @@ export async function inviteInstitutionUser(input: {
   email: string
   role: InstitutionUserRole
   fullName?: string | null
+  // A VIEWER seat is read-only in exactly one workspace ("alumni", "career"…).
+  workspace?: string | null
 }): Promise<{ error?: string; acceptUrl?: string }> {
   const email = input.email.trim().toLowerCase()
   if (!email.includes('@')) return { error: 'Enter a valid email address.' }
@@ -39,12 +41,22 @@ export async function inviteInstitutionUser(input: {
     where: { institutionId_invitedEmail_role: { institutionId: institution.id, invitedEmail: email, role: input.role } },
   })
   if (existing?.acceptedAt && !existing.revokedAt) return { error: 'This person already has this role.' }
+  if (input.role === 'VIEWER' && !input.workspace) return { error: 'Pick which workspace a viewer can see.' }
+  const workspace = input.role === 'VIEWER' ? input.workspace! : null
 
-  const row =
-    existing ??
-    (await prisma.institutionUser.create({
-      data: { institutionId: institution.id, invitedEmail: email, role: input.role, fullName: input.fullName ?? null },
-    }))
+  // A removed person invited again starts fresh: a new acceptance, the same row.
+  const row = existing
+    ? await prisma.institutionUser.update({
+        where: { id: existing.id },
+        data: {
+          workspace,
+          ...(input.fullName ? { fullName: input.fullName } : {}),
+          ...(existing.revokedAt ? { revokedAt: null, acceptedAt: null, userId: null } : {}),
+        },
+      })
+    : await prisma.institutionUser.create({
+        data: { institutionId: institution.id, invitedEmail: email, role: input.role, fullName: input.fullName ?? null, workspace },
+      })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     email,
@@ -62,7 +74,7 @@ export async function inviteInstitutionUser(input: {
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,
       subject: `You're invited to ${institution.name}'s NextChapter workspace`,
-      html: `<p>You have been invited to ${institution.name}'s NextChapter workspace as ${ROLE_LABEL[input.role]}.</p><p><a href="${actionLink}">Accept the invitation</a></p>`,
+      html: `<p>You have been invited to ${institution.name}'s NextChapter workspace as ${ROLE_LABEL[input.role]}.</p>${input.role === 'COACH' ? `<p>You'll also get a NextChapter coach portal for the alumni you work with, at ${appUrl()}/support/coach.</p>` : ''}<p><a href="${actionLink}">Accept the invitation</a></p>`,
     })
   }
   return { acceptUrl: actionLink }

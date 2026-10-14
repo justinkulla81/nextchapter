@@ -39,7 +39,7 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
     { href: '/support/coach', label: 'Home' },
     {
       href: `/support/coach/clients/${accessToken}`,
-      label: 'Your Clients',
+      label: 'Your clients',
       badge: actionCount > 0 ? String(actionCount) : undefined,
     },
     { href: `/support/coach/caseload/${accessToken}`, label: 'Caseload' },
@@ -48,8 +48,8 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
       label: 'Messages',
       badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
     },
-    { href: '/support/coach/invite-client', label: 'Invite a Client' },
-    { href: `/support/coach/invite/${accessToken}`, label: 'Share Invite Link' },
+    { href: '/support/coach/invite-client', label: 'Invite a client' },
+    { href: `/support/coach/invite/${accessToken}`, label: 'Share invite link' },
     { href: '/support/coach/settings', label: 'Settings' },
   ]
 }

@@ -18,7 +18,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, tierIncludes } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -79,6 +79,8 @@ import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
+import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
+import { ActionButton } from './CommunityForms'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
 export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string } & CommunityParams
@@ -364,7 +366,7 @@ async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
       </form>
 
       {rows.length === 0 ? (
-        <EmptyState icon={Users} title="No members match" description="Try a different name or status, or import a roster (HE-05)." />
+        <EmptyState icon={Users} title="No members match" description="Try a different name or status, or import a roster in Admin › Roster." />
       ) : (
         <Table caption="Members" head={['Name', 'Class', 'Status', 'Employer', 'Title', 'Engagement (12 mo)']}>
           {rows.map((r) => (
@@ -452,6 +454,14 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
   return (
     <div className="space-y-6">
+      {ctx.ownTokens.has('COACH') && (
+        <p className="rounded-lg border border-border bg-card p-3 text-sm">
+          You also have a NextChapter coach portal for sessions, notes and messages with your clients.{' '}
+          <a href="/support/coach" className="font-medium text-primary underline">
+            Open your coach portal
+          </a>
+        </p>
+      )}
       {waiting}
       {rows.length === 0 ? (
         <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
@@ -667,7 +677,7 @@ async function CoachingSessions({ ctx }: ScreenProps) {
         <EmptyState
           icon={Users}
           title="No coaching sessions yet"
-          description="Sessions appear here once members book them. Booking and paid packages arrive in HE-14; Resilience Fund awards show as prepaid."
+          description="Sessions appear here once members book them. Resilience Fund awards show as prepaid."
         />
       ) : (
         <Table caption="Coaching sessions" head={['Date', 'Member', 'Coach', 'Length']}>
@@ -1054,7 +1064,7 @@ async function SettingsServices({ ctx }: ScreenProps) {
           <p className="text-xs text-muted-foreground">Only an institution admin can change this.</p>
         )}
         <p className="w-full text-xs text-muted-foreground">
-          New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known). Sends start in HE-11.
+          New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known).
         </p>
       </form>
       <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures)} usage={usage} canEdit={canEdit} />
@@ -1087,7 +1097,7 @@ async function SettingsOverview({ ctx }: ScreenProps) {
     ['Name', i.name],
     ['Program name', i.programBrandName ?? '—'],
     ['Portal address', `/i/${i.slug}`],
-    ['Tier', i.tier],
+    ['Tier', TIER_LABELS[i.tier]],
     ['Alumni', i.alumniCount?.toLocaleString() ?? '—'],
     ['Included seats', i.includedSeats.toLocaleString()],
     ['License', [fmtDate(i.licenseStartAt), fmtDate(i.licenseEndAt)].filter(Boolean).join(' – ') || '—'],
@@ -1179,25 +1189,47 @@ async function SettingsStaff({ ctx }: ScreenProps) {
     orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
     select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true },
   })
+  const canManage = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && !ctx.institution.isDemo
+  // A role is "locked" when every workspace it would open needs a higher tier.
+  const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
+  const lockedRoles: Record<string, string> = {}
+  for (const role of Object.keys(STAFF_ROLE_LABELS)) {
+    const opens = WORKSPACES.filter((w) => w.release === 'V1' && w.key !== 'candidate' && w.key !== 'employer' && w.requiredRoles.includes(role as never))
+    const blocked = opens.filter((w) => !tierIncludes(tier, w))
+    if (opens.length && blocked.length === opens.length) lockedRoles[role] = TIER_LABELS[blocked[0].minTier!]
+  }
   return (
     <div className="space-y-3">
-      <Table caption="Staff" head={['Name', 'Email', 'Role', 'Status']}>
+      <Table caption="Staff" head={['Name', 'Email', 'Role', 'Status', '']}>
         {staff.map((s) => (
           <tr key={s.id}>
             <td className="px-4 py-2 font-medium">{s.fullName ?? '—'}</td>
             <td className="px-4 py-2">{s.invitedEmail}</td>
             <td className="px-4 py-2">
               {STAFF_ROLE_LABELS[s.role]}
-              {s.workspace ? ` (${s.workspace})` : ''}
+              {s.workspace ? ` (${getWorkspace(s.workspace)?.label ?? s.workspace}, read-only)` : ''}
             </td>
             <td className="px-4 py-2">{s.revokedAt ? 'Removed' : s.acceptedAt ? 'Active' : 'Invited'}</td>
+            <td className="px-4 py-2">
+              {canManage && (
+                <span className="flex flex-wrap justify-end gap-2">
+                  {(!s.acceptedAt || s.revokedAt) && (
+                    <ActionButton label={s.revokedAt ? 'Invite again' : 'Resend invite'} done="Sent." run={resendStaffInvite.bind(null, ctx.institution.slug, s.id)} />
+                  )}
+                  {!s.revokedAt && (
+                    <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${s.fullName ?? s.invitedEmail} as ${STAFF_ROLE_LABELS[s.role]}? They lose access right away.`} confirmLabel="Remove" run={removeStaff.bind(null, ctx.institution.slug, s.id)} />
+                  )}
+                </span>
+              )}
+            </td>
           </tr>
         ))}
       </Table>
+      <p className="text-xs text-muted-foreground">To change someone’s role, invite them with the new role, then remove the old one.</p>
       {ctx.institution.isDemo ? (
         <p className="text-xs text-muted-foreground">Invites are off on demo colleges: their staff are fictional.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} />
       )}
     </div>
   )

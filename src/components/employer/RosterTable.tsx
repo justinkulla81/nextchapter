@@ -22,7 +22,15 @@ function fmt(d: Date | string | null) {
 // confidential status. `isSelf` rows are pre-redacted server-side.
 export function RosterTable({ seats }: { seats: RosterSeat[] }) {
   if (seats.length === 0) {
-    return <p className="text-sm text-muted-foreground">No one has been enrolled yet.</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        No one has been enrolled yet.{' '}
+        <a href="/employer/enroll" className="font-medium text-foreground underline underline-offset-4">
+          Enroll people
+        </a>{' '}
+        one at a time or from a spreadsheet.
+      </p>
+    )
   }
 
   return (
