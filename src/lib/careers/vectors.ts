@@ -1,4 +1,4 @@
-import type { OccupationElement, OccupationProfile } from '@/lib/careers/types'
+import type { ElementKind, OccupationElement, OccupationProfile } from '@/lib/careers/types'
 
 /**
  * Skill similarity between occupations.
@@ -95,10 +95,14 @@ export function skillOverlap(source: OccupationProfile, target: OccupationProfil
   return total > 0 ? have / total : null
 }
 
+// Abilities are aptitudes, not something a gap list can tell a person to go and build.
+export type GapKind = 'SKILL' | 'KNOWLEDGE' | 'ACTIVITY'
+const GAP_KINDS: ElementKind[] = ['SKILL', 'KNOWLEDGE', 'ACTIVITY']
+
 export interface RatedGap {
   skillId: string
   name: string
-  kind: 'SKILL' | 'KNOWLEDGE'
+  kind: GapKind
   sourceLevel: number
   targetLevel: number
 }
@@ -109,7 +113,7 @@ const MIN_LEVEL_GAP = 10
 export function ratedGaps(source: OccupationProfile, target: OccupationProfile, limit = 6): RatedGap[] {
   const gaps: (RatedGap & { weight: number })[] = []
   for (const [id, t] of target.elements) {
-    if (!RATED(t) || t.importance < REQUIRED_IMPORTANCE) continue
+    if (!RATED(t) || t.importance < REQUIRED_IMPORTANCE || !GAP_KINDS.includes(t.kind)) continue
     const s = source.elements.get(id)
     const sourceLevel = s && RATED(s) ? s.level ?? 0 : 0
     const targetLevel = t.level ?? 0
@@ -118,7 +122,7 @@ export function ratedGaps(source: OccupationProfile, target: OccupationProfile, 
     gaps.push({
       skillId: id,
       name: t.name,
-      kind: t.kind as 'SKILL' | 'KNOWLEDGE',
+      kind: t.kind as GapKind,
       sourceLevel,
       targetLevel,
       weight: delta * t.importance,
@@ -150,14 +154,16 @@ export function toolGaps(
   source: OccupationProfile | null,
   target: OccupationProfile,
   resumeKeywords: string[],
-  limit = 6
+  limit = 6,
+  /** Tools the resume already evidences, found through the alias layer ("SFDC" means Salesforce). */
+  haveSkillIds: ReadonlySet<string> = new Set()
 ): ToolGap[] {
   const have = new Set(resumeKeywords.map(normalizeSkillText).filter(Boolean))
   const haveText = [...have].join(' | ')
   const out: (ToolGap & { importance: number })[] = []
   for (const [id, t] of target.elements) {
     if (t.kind !== 'TECHNOLOGY') continue
-    if (source?.elements.has(id)) continue
+    if (source?.elements.has(id) || haveSkillIds.has(id)) continue
     const name = normalizeSkillText(t.name)
     if (!name || have.has(name) || haveText.includes(name)) continue
     out.push({ skillId: id, name: t.name, hotTech: t.hotTech, importance: t.importance })

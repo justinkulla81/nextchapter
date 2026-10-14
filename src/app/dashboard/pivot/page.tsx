@@ -6,6 +6,8 @@ import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, searchOccupationTitles } from '@/lib/careers/candidate-occupation'
 import { DEFAULT_WAGE_FLOOR, nationalPayFromProfile, rankPivots, WAGE_FLOOR_RATIO, type WageFloor } from '@/lib/careers/pivots'
 import { resolveArea } from '@/lib/careers/area'
+import { getCoreTasks } from '@/lib/careers/occupation-tasks'
+import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
 import { getAreaCatalog, getPayLookup } from '@/lib/careers/local-pay-server'
 import { bestPay, describePay, type PayByLevel } from '@/lib/careers/local-pay'
 import { resolveState, isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
@@ -101,15 +103,18 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
     const local = lookup(soc)
     return Object.keys(local).length > 0 ? local : nationalPayFromProfile(taxonomy.profiles.get(soc))
   }
+  const haveKeywords = [...profile.resumeKeywords, ...profile.confirmedSkillsHave]
   const options = rankPivots({
     space: taxonomy.space,
     profiles: taxonomy.profiles,
     sourceSoc: resolution.socCode,
     wageFloor,
-    resumeKeywords: [...profile.resumeKeywords, ...profile.confirmedSkillsHave],
+    resumeKeywords: haveKeywords,
+    haveSkillIds: await skillIdsFromKeywords(haveKeywords),
     pay: payOf,
   })
   const source = taxonomy.profiles.get(resolution.socCode)!
+  const tasksBySoc = await getCoreTasks(options.map((o) => o.socCode))
   const sourcePay = bestPay(payOf(resolution.socCode))
   const state = resolveState(profile.currentState)
   const localLabel = area.metro?.name ?? area.state?.name ?? null
@@ -152,7 +157,7 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="space-y-4">
           {options.map((option) => (
-            <PivotOptionCard key={option.socCode} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} />
+            <PivotOptionCard key={option.socCode} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} tasks={tasksBySoc.get(option.socCode) ?? []} />
           ))}
         </div>
       )}

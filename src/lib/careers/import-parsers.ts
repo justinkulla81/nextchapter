@@ -51,11 +51,13 @@ export interface OnetOccupation {
   title: string
   description: string
 }
+export type RatedKind = 'SKILL' | 'KNOWLEDGE' | 'ABILITY' | 'ACTIVITY'
+
 export interface OnetElementRow {
   socCode: string
   skillId: string
   name: string
-  kind: 'SKILL' | 'KNOWLEDGE' | 'TECHNOLOGY'
+  kind: RatedKind | 'TECHNOLOGY'
   importance: number
   level: number | null
   hotTech: boolean
@@ -77,13 +79,16 @@ export function parseJobZones(text: string): Map<string, number> {
 }
 
 /**
- * Skills.txt and Knowledge.txt hold one row per occupation, element and scale:
+ * Skills.txt, Knowledge.txt, Abilities.txt and Work Activities.txt hold one row per occupation,
+ * element and scale:
  * IM (importance, 1-5) and LV (level, 0-7). Both are rescaled to 0-100. Rows
  * O*NET flags as unreliable (Recommend Suppress = Y) are dropped, and a
  * "Not Relevant" level counts as zero level.
  */
-export function parseOnetRated(text: string, kind: 'SKILL' | 'KNOWLEDGE'): OnetElementRow[] {
-  const prefix = kind === 'SKILL' ? 'skill' : 'knowledge'
+const RATED_PREFIX: Record<RatedKind, string> = { SKILL: 'skill', KNOWLEDGE: 'knowledge', ABILITY: 'ability', ACTIVITY: 'activity' }
+
+export function parseOnetRated(text: string, kind: RatedKind): OnetElementRow[] {
+  const prefix = RATED_PREFIX[kind]
   const byKey = new Map<string, { socCode: string; skillId: string; name: string; importance?: number; level?: number }>()
   for (const r of parseTsv(text)) {
     if ((r['Recommend Suppress'] ?? '').toUpperCase() === 'Y') continue
@@ -381,6 +386,38 @@ export function parseOewsAreas(text: string, expected: WageAreaType): OewsAreaRo
       wageP90: p90.value,
       ceilingHit: [p10, p25, median, p75, p90].some((c) => c.ceiling),
     })
+  }
+  return out
+}
+
+
+// ── O*NET tasks ──────────────────────────────────────────────────────────────
+
+export interface OnetTaskRow {
+  socCode: string
+  taskId: number
+  text: string
+  taskType: 'CORE' | 'SUPPLEMENTAL'
+}
+
+/**
+ * Task Statements.txt: what the job does day to day. Core tasks first, then supplemental, each in
+ * O*NET's own order, capped per occupation so the table stays small and the page stays readable.
+ */
+export function parseOnetTasks(text: string, perOccupation = 12): OnetTaskRow[] {
+  const byOcc = new Map<string, OnetTaskRow[]>()
+  for (const r of parseTsv(text)) {
+    const socCode = r['O*NET-SOC Code']
+    const taskId = Number(r['Task ID'])
+    const task = r['Task']
+    if (!socCode || !Number.isInteger(taskId) || !task) continue
+    const taskType = (r['Task Type'] ?? '').toLowerCase().startsWith('core') ? 'CORE' : 'SUPPLEMENTAL'
+    byOcc.set(socCode, [...(byOcc.get(socCode) ?? []), { socCode, taskId, text: task, taskType }])
+  }
+  const out: OnetTaskRow[] = []
+  for (const rows of byOcc.values()) {
+    const ordered = [...rows].sort((a, b) => Number(b.taskType === 'CORE') - Number(a.taskType === 'CORE') || a.taskId - b.taskId)
+    out.push(...ordered.slice(0, perOccupation))
   }
   return out
 }

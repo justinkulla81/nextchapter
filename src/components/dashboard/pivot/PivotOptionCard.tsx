@@ -53,15 +53,17 @@ export function PivotOptionCard({
   state,
   stateLabel,
   stateCode,
+  tasks,
 }: {
   option: PivotOption
   state: string | null
   stateLabel: string
   stateCode: string | null
+  tasks: string[]
 }) {
   const overlapPct = option.overlap === null ? null : Math.round(option.overlap * 100)
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
-  const broad = option.ratedGaps.filter((g) => g.kind === 'SKILL')
+  const broad = option.ratedGaps.filter((g) => g.kind !== 'KNOWLEDGE')
 
   return (
     <Card>
@@ -93,6 +95,17 @@ export function PivotOptionCard({
           </Fact>
         </dl>
 
+        {tasks.length > 0 && (
+          <div className="space-y-1 text-sm">
+            <p className="font-medium text-foreground">What the day-to-day looks like</p>
+            <ul className="list-disc space-y-0.5 pl-5 text-muted-foreground">
+              {tasks.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {(option.toolGaps.length > 0 || option.ratedGaps.length > 0) && (
           <div className="space-y-1 text-sm">
             <p className="font-medium text-foreground">What this role asks for that you may not show yet</p>
@@ -109,7 +122,7 @@ export function PivotOptionCard({
             )}
             {broad.length > 0 && (
               <p className="text-muted-foreground">
-                <span className="text-foreground">Broader skills used at a higher level:</span> {broad.map((g) => g.name).join(', ')}
+                <span className="text-foreground">Broader skills and work activities used at a higher level:</span> {broad.map((g) => g.name).join(', ')}
               </p>
             )}
           </div>

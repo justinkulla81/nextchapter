@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, occupationForRoleText } from '@/lib/careers/candidate-occupation'
+import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
 import { buildSkillGapGrounding, groundingPromptBlock, type SkillGapGrounding } from '@/lib/careers/grounding'
 
 export interface SkillGapSuggestions {
@@ -87,7 +88,8 @@ async function loadGrounding(profile: SkillGapProfile): Promise<SkillGapGroundin
     const target = targetSoc ? taxonomy.profiles.get(targetSoc) : undefined
     if (!target) return null
     const source = sourceSoc ? taxonomy.profiles.get(sourceSoc) ?? null : null
-    return buildSkillGapGrounding(source, target, [...profile.resumeKeywords, ...profile.confirmedSkillsHave])
+    const have = [...profile.resumeKeywords, ...profile.confirmedSkillsHave]
+    return buildSkillGapGrounding(source, target, have, await skillIdsFromKeywords(have))
   } catch (error) {
     console.error('Skill gap grounding failed for', profile.id, error)
     return null

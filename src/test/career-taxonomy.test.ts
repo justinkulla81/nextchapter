@@ -546,3 +546,132 @@ describe('OEWS area parser', () => {
     expect(parseOewsAreas(csv, 'NATIONAL')[0]).toMatchObject({ areaCode: 'US', areaType: 'NATIONAL', wageMedian: 79880 })
   })
 })
+
+import { inScopeBySoc, inWhiteCollarScope } from '@/lib/careers/scope'
+import { parseOnetTasks } from '@/lib/careers/import-parsers'
+
+describe('white-collar scope', () => {
+  it('keeps management, business and finance, computing and legal at Job Zone 4 or 5', () => {
+    expect(inWhiteCollarScope('11-1011.00', 5)).toBe(true) // Chief Executives
+    expect(inWhiteCollarScope('13-2011.00', 4)).toBe(true) // Accountants
+    expect(inWhiteCollarScope('15-1252.00', 4)).toBe(true)
+    expect(inWhiteCollarScope('23-1011.00', 5)).toBe(true)
+  })
+
+  it('drops work below Job Zone 4 even in a kept group', () => {
+    expect(inWhiteCollarScope('11-9051.00', 3)).toBe(false) // a zone-3 manager role
+    expect(inWhiteCollarScope('13-1031.00', 3)).toBe(false)
+  })
+
+  it('takes only the professional parts of engineering, media and sales', () => {
+    expect(inScopeBySoc('17-2051.00')).toBe(true) // civil engineers
+    expect(inScopeBySoc('17-3011.00')).toBe(false) // architectural drafters
+    expect(inScopeBySoc('27-3031.00')).toBe(true) // public relations specialists
+    expect(inScopeBySoc('27-2011.00')).toBe(false) // actors
+    expect(inScopeBySoc('41-3031.00')).toBe(true) // securities sales
+    expect(inScopeBySoc('41-2011.00')).toBe(false) // cashiers
+    expect(inScopeBySoc('47-2061.00')).toBe(false) // construction laborers
+  })
+
+  it('excludes an occupation with no Job Zone', () => {
+    expect(inWhiteCollarScope('13-2011.00', null)).toBe(false)
+    expect(inWhiteCollarScope('13-2011.00', undefined)).toBe(false)
+  })
+})
+
+describe('O*NET task and rated-kind parsing', () => {
+  it('orders core tasks first, caps per occupation, and tolerates bad rows', () => {
+    const text = [
+      'O*NET-SOC Code\tTask ID\tTask\tTask Type\tIncumbents Responding',
+      '13-2011.00\t3\tSupplemental thing\tSupplemental\t10',
+      '13-2011.00\t2\tCore two\tCore\t10',
+      '13-2011.00\t1\tCore one\tCore\t10',
+      '13-2011.00\tx\tBroken id\tCore\t10',
+      '13-2051.00\t7\tAnalyst core\tCore\t10',
+    ].join('\n')
+    const rows = parseOnetTasks(text, 2)
+    expect(rows.filter((r) => r.socCode === '13-2011.00').map((r) => r.text)).toEqual(['Core one', 'Core two'])
+    expect(rows.filter((r) => r.socCode === '13-2051.00')).toHaveLength(1)
+  })
+
+  it('namespaces abilities and work activities so ids never collide with skills', () => {
+    const head = 'O*NET-SOC Code\tElement ID\tElement Name\tScale ID\tData Value\tRecommend Suppress\tNot Relevant'
+    const rows = [
+      ...parseOnetRated([head, '13-2011.00\t1.A.1\tOral Comprehension\tIM\t4.00\tN\tn/a', '13-2011.00\t1.A.1\tOral Comprehension\tLV\t5.00\tN\tN'].join('\n'), 'ABILITY'),
+      ...parseOnetRated([head, '13-2011.00\t4.A.1\tGetting Information\tIM\t4.00\tN\tn/a', '13-2011.00\t4.A.1\tGetting Information\tLV\t5.00\tN\tN'].join('\n'), 'ACTIVITY'),
+    ]
+    expect(rows.map((r) => r.skillId)).toEqual(['ability:1.A.1', 'activity:4.A.1'])
+  })
+
+  it('never lists an ability as a gap to build', () => {
+    const src = occ('13-2011.00', 'Src', { elements: [['ability:a', el('Oral Comprehension', 'ABILITY', 90, 30)], ['skill:s', el('Negotiation', 'SKILL', 90, 30)]] })
+    const tgt = occ('13-2051.00', 'Tgt', { elements: [['ability:a', el('Oral Comprehension', 'ABILITY', 90, 90)], ['skill:s', el('Negotiation', 'SKILL', 90, 90)]] })
+    expect(ratedGaps(src, tgt).map((g) => g.name)).toEqual(['Negotiation'])
+  })
+})
+
+import { BUILTIN_ALIASES, buildAliasIndex, buildAliasRows, findToolByName, nameVariants, resolveSkillIds } from '@/lib/careers/skill-aliases'
+
+describe('skill aliases', () => {
+  const tools = [
+    { id: 'tech:microsoft-excel', name: 'Microsoft Excel' },
+    { id: 'tech:salesforce-software', name: 'Salesforce software' },
+    { id: 'tech:oracle-netsuite', name: 'Oracle NetSuite' },
+    { id: 'tech:sap', name: 'SAP' },
+    { id: 'tech:javascript', name: 'JavaScript' },
+    { id: 'tech:java', name: 'Java' },
+  ]
+
+  it('derives name variants without filler words and vendor prefixes', () => {
+    expect(nameVariants('Microsoft Excel')).toEqual(['microsoft excel', 'excel'])
+    expect(nameVariants('Salesforce software')).toEqual(['salesforce software', 'salesforce'])
+    expect(nameVariants('R')).toEqual([])
+  })
+
+  it('finds the right tool by exact variant first, then by whole-phrase containment', () => {
+    expect(findToolByName('excel', tools)?.id).toBe('tech:microsoft-excel')
+    expect(findToolByName('netsuite', tools)?.id).toBe('tech:oracle-netsuite')
+    // "java" is its own tool; it must not resolve to JavaScript just because the letters appear in it.
+    expect(findToolByName('java', tools)?.id).toBe('tech:java')
+    expect(findToolByName('cobol', tools)).toBeNull()
+  })
+
+  it('stores built-in shorthand only when it resolves to a real tool, and lists what stays unmapped', () => {
+    const { rows, unmapped } = buildAliasRows(tools, ['excel', 'fp&a', 'netsuite'])
+    const by = new Map(rows.map((r) => [r.alias, r]))
+    expect(by.get('sfdc')?.skillId).toBe('tech:salesforce-software')
+    expect(by.get('sfdc')?.source).toBe('BUILTIN')
+    expect(by.get('excel')?.skillId).toBe('tech:microsoft-excel')
+    expect(by.has('k8s')).toBe(false) // no Kubernetes tool offered, so no alias
+    expect(unmapped).toEqual(['fp&a'])
+  })
+
+  it('lets a hand-written alias win over a generated variant', () => {
+    expect(Object.keys(BUILTIN_ALIASES)).toContain('sfdc')
+    const { rows } = buildAliasRows(tools)
+    expect(new Set(rows.map((r) => r.alias)).size).toBe(rows.length)
+  })
+
+  it('resolves resume keywords to skill ids by alias, including inside longer phrases', () => {
+    const { rows } = buildAliasRows(tools)
+    const index = buildAliasIndex(rows)
+    const ids = resolveSkillIds(['SFDC', 'Advanced Excel modeling', 'java development', 'Leadership'], index)
+    expect(ids).toEqual(new Set(['tech:salesforce-software', 'tech:microsoft-excel', 'tech:java']))
+  })
+
+  it('never matches a short alias inside other text', () => {
+    const index = buildAliasIndex([{ alias: 'r', skillId: 'tech:r' }])
+    expect(resolveSkillIds(['research and reporting'], index).size).toBe(0)
+    expect(resolveSkillIds(['R'], index)).toEqual(new Set(['tech:r']))
+  })
+})
+
+describe('tool gaps with aliases', () => {
+  it('does not list a tool the resume evidences by alias', () => {
+    const target = occ('13-2051.00', 'T', { elements: [['tech:salesforce', el('Salesforce software', 'TECHNOLOGY', 80, null, true)], ['tech:bloomberg', el('Bloomberg Terminal', 'TECHNOLOGY', 70, null)]] })
+    const without = toolGaps(null, target, ['SFDC'])
+    expect(without.map((g) => g.name)).toContain('Salesforce software')
+    const withAlias = toolGaps(null, target, ['SFDC'], 6, new Set(['tech:salesforce']))
+    expect(withAlias.map((g) => g.name)).toEqual(['Bloomberg Terminal'])
+  })
+})

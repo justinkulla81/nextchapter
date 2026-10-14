@@ -18,7 +18,7 @@
 // proves too weak in practice; the vocabulary here is deliberately broad
 // and easy to extend without switching approaches.
 
-const SKILL_TERMS: string[] = [
+export const SKILL_TERMS: string[] = [
   // Finance / accounting
   'excel', 'sox', 'sarbanes-oxley', 'netsuite', 'sap', 'oracle', 'quickbooks', 'workday',
   'fp&a', 'gaap', 'ifrs', 'financial modeling', 'variance analysis', 'forecasting',

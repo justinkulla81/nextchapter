@@ -1,4 +1,7 @@
-export type ElementKind = 'SKILL' | 'KNOWLEDGE' | 'TECHNOLOGY'
+// SKILL, KNOWLEDGE, ABILITY and ACTIVITY (work activity) are O*NET's rated scales; TECHNOLOGY is its
+// list of named software and tools. ABILITY is inborn aptitude (like "Oral Comprehension") and is used to
+// compare occupations but never offered as something to build.
+export type ElementKind = 'SKILL' | 'KNOWLEDGE' | 'ABILITY' | 'ACTIVITY' | 'TECHNOLOGY'
 
 export interface OccupationElement {
   name: string

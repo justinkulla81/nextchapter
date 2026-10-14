@@ -62,6 +62,8 @@ export interface RankPivotsInput {
   sourceSoc: string
   wageFloor: WageFloor
   resumeKeywords: string[]
+  /** Tools the resume evidences by alias (see skill-aliases.ts); these are never listed as gaps. */
+  haveSkillIds?: ReadonlySet<string>
   limit?: number
   /** Pay by place for an occupation (see local-pay.ts). Defaults to the national median stored on the occupation. */
   pay?: (socCode: string) => PayByLevel
@@ -121,7 +123,7 @@ export function rankPivots(input: RankPivotsInput): PivotOption[] {
       jobZone: target.jobZone,
       typicalEducation: target.typicalEducation,
       ratedGaps: ratedGaps(source, target, 4),
-      toolGaps: toolGaps(source, target, resumeKeywords, 4),
+      toolGaps: toolGaps(source, target, resumeKeywords, 4, input.haveSkillIds),
       onetRelated: isRelated,
     })
   }

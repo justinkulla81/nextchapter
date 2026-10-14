@@ -24,12 +24,13 @@ export interface SkillGapGrounding {
 export function buildSkillGapGrounding(
   source: OccupationProfile | null,
   target: OccupationProfile,
-  haveKeywords: string[]
+  haveKeywords: string[],
+  haveSkillIds: ReadonlySet<string> = new Set()
 ): SkillGapGrounding {
-  const tools = toolGaps(source, target, haveKeywords, 8).map((t) => t.name)
+  const tools = toolGaps(source, target, haveKeywords, 8, haveSkillIds).map((t) => t.name)
   const rated = source ? ratedGaps(source, target, 12) : []
   const knowledge = rated.filter((g) => g.kind === 'KNOWLEDGE').slice(0, 5).map((g) => g.name)
-  const skills = rated.filter((g) => g.kind === 'SKILL').slice(0, 5).map((g) => g.name)
+  const skills = rated.filter((g) => g.kind !== 'KNOWLEDGE').slice(0, 5).map((g) => g.name)
   return {
     sourceSoc: source?.socCode ?? null,
     targetSoc: target.socCode,
