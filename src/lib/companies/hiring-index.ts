@@ -86,19 +86,29 @@ export async function syncBoardOpenings(limit = 10_000): Promise<number> {
   return written
 }
 
+/** Most salaries one company may contribute to a function x level benchmark. */
+export const MAX_COMPANY_SHARE = 5
+
 /** Rebuilds PayBenchmark and PayAreaIndex from posted pay. */
 export async function rebuildPayBenchmarks(): Promise<{ benchmarks: number; areas: number }> {
   return prisma.$transaction(
     async (tx) => {
       // One salary per company + title + pay, so an employer posting the same role
-      // fifty times counts once.
+      // fifty times counts once; and at most MAX_COMPANY_SHARE salaries per company in
+      // any function x level, so a big poster can't set its own market (a Google
+      // with 300 engineering salaries would otherwise largely be the benchmark it is
+      // compared with).
       await tx.$executeRawUnsafe(`
         CREATE TEMP TABLE pay_base ON COMMIT DROP AS
-        SELECT DISTINCT ON ("companyId", lower(title), "payAnnualMid")
-          COALESCE(function, 'Other') AS fn, "seniorityGroup" AS g, states[1] AS st, "payAnnualMid"::float8 AS mid
-        FROM "CompanyJobOpening"
-        WHERE "payAnnualMid" IS NOT NULL AND "seniorityGroup" IS NOT NULL
-          AND COALESCE("postedAt", "firstSeenAt") >= now() - interval '${BENCHMARK_WINDOW_DAYS} days'
+        SELECT fn, g, st, mid FROM (
+          SELECT *, row_number() OVER (PARTITION BY "companyId", fn, g ORDER BY md5(id)) AS rk FROM (
+            SELECT DISTINCT ON ("companyId", lower(title), "payAnnualMid")
+              id, "companyId", COALESCE(function, 'Other') AS fn, "seniorityGroup" AS g, states[1] AS st, "payAnnualMid"::float8 AS mid
+            FROM "CompanyJobOpening"
+            WHERE "payAnnualMid" IS NOT NULL AND "seniorityGroup" IS NOT NULL
+              AND COALESCE("postedAt", "firstSeenAt") >= now() - interval '${BENCHMARK_WINDOW_DAYS} days'
+          ) d
+        ) c WHERE rk <= ${MAX_COMPANY_SHARE}
       `)
       await tx.$executeRawUnsafe(`DELETE FROM "PayBenchmark"`)
       // Rounded to $1,000 so a nightly rebuild only rewrites the jobs whose market
@@ -159,27 +169,81 @@ export async function rebuildPayBenchmarks(): Promise<{ benchmarks: number; area
  */
 export async function applyMarketPay(urls?: string[]): Promise<{ openings: number; postings: number }> {
   if (urls) return priceOpenings('url', urls)
-  // The whole table in id pages, so no single statement runs into the database's
-  // statement timeout.
-  const total = { openings: 0, postings: 0 }
-  let cursor = ''
-  for (;;) {
-    const page = await prisma.companyJobOpening.findMany({
-      where: { id: { gt: cursor } },
-      orderBy: { id: 'asc' },
-      select: { id: true },
-      take: MARKET_PAGE,
-    })
-    if (page.length === 0) break
-    const r = await priceOpenings('id', page.map((p) => p.id))
+  return priceOpeningsPaged(await openingIdsToPrice({ all: true }))
+}
+
+export interface PagingOptions {
+  /** Stop starting new pages after this time (ms epoch); leftovers wait for the next run. */
+  deadline?: number
+  /** Pause between pages, so checkpoints keep up and live traffic isn't starved. */
+  pauseMs?: number
+  /** Called after each page; return false to stop. */
+  onPage?: (done: number, total: number) => Promise<boolean | void>
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/** Prices openings by id, MARKET_PAGE ids per statement. */
+export async function priceOpeningsPaged(ids: string[], opts: PagingOptions = {}) {
+  const total = { openings: 0, postings: 0, pages: 0, remaining: 0 }
+  for (let i = 0; i < ids.length; i += MARKET_PAGE) {
+    if (opts.deadline && Date.now() > opts.deadline) {
+      total.remaining = ids.length - i
+      break
+    }
+    const r = await priceOpenings('id', ids.slice(i, i + MARKET_PAGE))
     total.openings += r.openings
     total.postings += r.postings
-    cursor = page[page.length - 1].id
+    total.pages++
+    if (opts.onPage && (await opts.onPage(Math.min(i + MARKET_PAGE, ids.length), ids.length)) === false) {
+      total.remaining = ids.length - Math.min(i + MARKET_PAGE, ids.length)
+      break
+    }
+    if (opts.pauseMs) await sleep(opts.pauseMs)
   }
   return total
 }
 
-const MARKET_PAGE = 10_000
+/** Nightly shards: every opening and company is fully repriced/reprofiled once a week. */
+export const SHARDS = 7
+
+/**
+ * Openings to price: everything (`all`), or those whose content changed since the
+ * last run, those never priced, and this night's shard of the rest.
+ */
+export async function openingIdsToPrice(opts: { all?: boolean; since?: Date; shard?: number }): Promise<string[]> {
+  const rows = opts.all
+    ? await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT id FROM "CompanyJobOpening" ORDER BY id`)
+    : await prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT id FROM "CompanyJobOpening"
+         WHERE "updatedAt" >= $1 OR ("marketPayMid" IS NULL AND "seniorityGroup" IS NOT NULL) OR mod(abs(hashtext(id)), ${SHARDS}) = $2
+         ORDER BY id`,
+        opts.since ?? new Date(0),
+        opts.shard ?? 0
+      )
+  return rows.map((r) => r.id)
+}
+
+/** Companies to reprofile: changed openings or WARN notices since the last run, no profile yet, or this night's shard. */
+export async function companyIdsToProfile(opts: { all?: boolean; since?: Date; shard?: number }): Promise<string[]> {
+  const rows = opts.all
+    ? await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT DISTINCT "companyId" AS id FROM "CompanyJobOpening" ORDER BY 1`)
+    : await prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT DISTINCT o."companyId" AS id FROM "CompanyJobOpening" o
+         LEFT JOIN "CompanyHiringProfile" h ON h."companyId" = o."companyId"
+         WHERE o."updatedAt" >= $1 OR h.id IS NULL OR mod(abs(hashtext(o."companyId")), ${SHARDS}) = $2
+         UNION
+         SELECT DISTINCT w."companyId" FROM "WarnNotice" w
+         WHERE w."companyId" IS NOT NULL AND w."fetchedAt" >= $1
+           AND EXISTS (SELECT 1 FROM "CompanyJobOpening" x WHERE x."companyId" = w."companyId")
+         ORDER BY 1`,
+        opts.since ?? new Date(0),
+        opts.shard ?? 0
+      )
+  return rows.map((r) => r.id)
+}
+
+const MARKET_PAGE = 5_000
 
 async function priceOpenings(key: 'url' | 'id', values: string[]): Promise<{ openings: number; postings: number }> {
   const scope = `AND o.${key} = ANY($1::text[])`
@@ -210,8 +274,7 @@ async function priceOpenings(key: 'url' | 'id', values: string[]): Promise<{ ope
     UPDATE "CompanyJobOpening" o SET
       "marketPayLow" = v.lo, "marketPayMid" = v.mid, "marketPayHigh" = v.hi, "marketPayBasis" = v.basis,
       "marketPaySample" = v.sample, "payRatio" = v.ratio,
-      "payVsMarket" = CASE WHEN v.ratio IS NULL THEN NULL WHEN v.ratio > ${1 + IN_LINE_BAND} THEN 'above' WHEN v.ratio < ${1 - IN_LINE_BAND} THEN 'below' ELSE 'in_line' END,
-      "updatedAt" = now()
+      "payVsMarket" = CASE WHEN v.ratio IS NULL THEN NULL WHEN v.ratio > ${1 + IN_LINE_BAND} THEN 'above' WHEN v.ratio < ${1 - IN_LINE_BAND} THEN 'below' ELSE 'in_line' END
     FROM v
     WHERE o.id = v.id AND (
       o."marketPayMid" IS DISTINCT FROM v.mid OR o."marketPayLow" IS DISTINCT FROM v.lo OR o."marketPayHigh" IS DISTINCT FROM v.hi
@@ -356,14 +419,42 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
 }
 
 /** Every company's profile, a few thousand companies per statement. */
-export async function rebuildAllHiringProfiles(pageSize = 3000): Promise<number> {
-  const ids = (await prisma.companyJobOpening.groupBy({ by: ['companyId'] })).map((r) => r.companyId).sort()
-  let written = 0
-  for (let i = 0; i < ids.length; i += pageSize) written += await rebuildHiringProfiles(ids.slice(i, i + pageSize))
-  return written
+/** Profiles for the given companies, PROFILE_PAGE companies per statement. */
+export async function rebuildHiringProfilesPaged(ids: string[], opts: PagingOptions = {}) {
+  const total = { written: 0, pages: 0, remaining: 0 }
+  for (let i = 0; i < ids.length; i += PROFILE_PAGE) {
+    if (opts.deadline && Date.now() > opts.deadline) {
+      total.remaining = ids.length - i
+      break
+    }
+    total.written += await rebuildHiringProfiles(ids.slice(i, i + PROFILE_PAGE))
+    total.pages++
+    if (opts.onPage && (await opts.onPage(Math.min(i + PROFILE_PAGE, ids.length), ids.length)) === false) {
+      total.remaining = ids.length - Math.min(i + PROFILE_PAGE, ids.length)
+      break
+    }
+    if (opts.pauseMs) await sleep(opts.pauseMs)
+  }
+  return total
 }
 
-export async function rebuildHiringIndex() {
+const PROFILE_PAGE = 1_000
+
+/**
+ * The nightly run, incremental: links and copies new postings, closes archived
+ * ones, then prices and profiles only what changed since the last successful run
+ * plus one seventh of everything (so all of it is refreshed weekly). Benchmarks are
+ * rebuilt on shard 0 (Sundays, UTC), before that night's repricing. Work that would
+ * outrun the deadline waits for the next night.
+ *
+ * Skips the heavy steps while the ncrawl import is writing (a batch confirmed in the
+ * last 10 minutes), so the two big writers never overlap.
+ */
+export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date; budgetMs?: number }) {
+  const now = opts.now ?? new Date()
+  const started = Date.now()
+  const deadline = started + (opts.budgetMs ?? 230_000)
+  const shard = now.getUTCDay() % SHARDS
   const ms: Record<string, number> = {}
   const timed = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
     const t = Date.now()
@@ -373,11 +464,21 @@ export async function rebuildHiringIndex() {
       ms[name] = Date.now() - t
     }
   }
-  const linked = await timed('link', () => linkUnlinkedPostings())
-  const synced = await timed('sync', () => syncBoardOpenings())
+  const importing = await prisma.exclusiveJobPosting.count({
+    where: { addedBy: 'ncrawl', lastConfirmedAt: { gte: new Date(now.getTime() - 10 * 60_000) } },
+  })
+  if (importing > 0) return { skipped: 'ncrawl import in progress', importing }
+
+  const linked = await timed('link', () => linkUnlinkedPostings(1000))
+  const synced = await timed('sync', () => syncBoardOpenings(5000))
   const closed = await timed('close', () => closeArchivedOpenings())
-  const bench = await timed('benchmarks', () => rebuildPayBenchmarks())
-  const market = await timed('market', () => applyMarketPay())
-  const profiles = await timed('profiles', () => rebuildAllHiringProfiles())
-  return { linked, synced, closed, ...bench, market, profiles, ms }
+  const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks()) : null
+  const since = opts.since ?? new Date(0)
+  const market = await timed('market', async () =>
+    priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 })
+  )
+  const profiles = await timed('profiles', async () =>
+    rebuildHiringProfilesPaged(await companyIdsToProfile({ since, shard }), { deadline: deadline + 40_000, pauseMs: 500 })
+  )
+  return { shard, since: since.toISOString(), linked, synced, closed, bench, market, profiles, ms }
 }
