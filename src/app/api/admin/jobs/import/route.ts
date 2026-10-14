@@ -7,6 +7,7 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
+import { importOptionalFields } from '@/lib/jobs/import-optional-fields'
 
 export const maxDuration = 300
 
@@ -52,6 +53,13 @@ interface ImportJobInput {
   // Posted on a school/district board (ncrawl k12 sources): bare
   // "Superintendent" there is the district head.
   schoolContext?: boolean
+  // One-board fields, from ncrawl derive.py. All optional: an older exporter that
+  // doesn't send them leaves the stored values untouched (see rowData).
+  employmentType?: string | null // employment_type_norm
+  payPeriod?: string | null // salary_period
+  paySource?: string | null // salary_source
+  workArrangement?: string | null // work_arrangement
+  compensationType?: string | null // paid | equity_only | unpaid
 }
 
 interface ImportRequestBody {
@@ -104,6 +112,7 @@ function storableSalary(n: number | null | undefined): number | null {
 
 function rowData({ job, level }: Screened) {
   return {
+    ...importOptionalFields(job),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
@@ -210,6 +219,7 @@ export async function POST(request: NextRequest) {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
+      employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
