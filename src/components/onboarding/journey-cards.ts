@@ -1,4 +1,4 @@
-import { Briefcase, Compass, DoorOpen, GraduationCap, LineChart, RefreshCw, Shield, Shuffle, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Briefcase, Coffee, Compass, DoorOpen, GraduationCap, Layers, LineChart, RefreshCw, Rocket, Shield, Shuffle, TrendingUp, type LucideIcon } from 'lucide-react'
 import { JOURNEY_TO_SITUATION, type SituationKey } from '@/lib/constants/onboarding'
 import { JOURNEYS, type JourneyType } from '@/lib/journey/journey'
 
@@ -14,6 +14,9 @@ const ICONS: Record<JourneyType, LucideIcon> = {
   STUDENT_NEW_GRAD: GraduationCap,
   RETURNING: RefreshCw,
   NEXT_ACT: Compass,
+  TIME_OFF: Coffee,
+  FRACTIONAL: Layers,
+  ENTREPRENEUR: Rocket,
 }
 
 export const JOURNEY_CARDS: { situation: SituationKey; icon: LucideIcon; label: string; description: string }[] = JOURNEYS.map((j) => ({

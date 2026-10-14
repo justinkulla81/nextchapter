@@ -51,6 +51,7 @@ describe('an upcoming conversation reaches the plan', () => {
   it('goes first in the weekly plan', () => {
     const s: EngagementSignals = {
       journey: 'GROWING', stage: 'STAYING', tone: null, casual: false, workingNow: false,
+      culture: null, details: { returnDate: null, offering: null, openDays: null, engagementEnds: null }, spineGaps: [],
       redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false },
       conversations: [{ kind: 'RAISE', scheduledFor: new Date(Date.now() + 3 * 86_400_000), outcome: 'PENDING' }],
       weeksInStage: 2, gmail: false, calendar: false, linkedin: true, completedReferences: 3, requestedReferences: 3, referencesTarget: 3,

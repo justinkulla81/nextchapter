@@ -7,6 +7,7 @@
 // hides raw scores/jargon). This one shows everything to the candidate about
 // themselves — no hiding.
 
+import { cultureContext } from '@/lib/culture/culture-fit'
 import { effectiveJourney, effectiveStage, getJourney, getStage, moveDriverOf, reportFraming } from '@/lib/journey/journey'
 import 'server-only'
 import { z } from 'zod'
@@ -443,7 +444,7 @@ Journey: ${(() => {
   })()}
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
-Deal breakers: ${candidate.dealBreakers ?? 'not specified'}
+Deal breakers: ${candidate.dealBreakers ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 How difficult their job search has been so far (1=taking their time, 4=getting desperate): ${candidate.jobSearchDifficultyLevel ?? 'not specified'}
 Biggest barriers they believe they face: ${
     candidate.biggestBarriers.length > 0

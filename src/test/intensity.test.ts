@@ -5,7 +5,8 @@ import { journeyPlanItems, shapePlan } from '@/lib/journey/plan'
 import { CASUAL_PACE, paceFor, pointsNeededForA } from '@/lib/weekly/action-effort'
 
 const base: EngagementSignals = {
-  journey: 'LAID_OFF', stage: 'APPLYING', tone: null, casual: false, workingNow: false, redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }, conversations: [], weeksInStage: 6,
+  journey: 'LAID_OFF', stage: 'APPLYING', tone: null, casual: false, workingNow: false, culture: null, details: { returnDate: null, offering: null, openDays: null, engagementEnds: null }, spineGaps: [],
+  redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }, conversations: [], weeksInStage: 6,
   gmail: true, calendar: true, linkedin: true, completedReferences: 3, requestedReferences: 3, referencesTarget: 3,
   openResumeIssues: 0, hasPersonalityProfile: true, skillsAssessmentDone: true, dossierUnlocked: true,
   outreach: 5, applications: 5, interviews: 0, offers: 0,

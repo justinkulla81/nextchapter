@@ -66,7 +66,35 @@ const JOURNEY_PLAN: Record<JourneyType, { firstWeek: PlanItem[]; ongoing: PlanIt
     firstWeek: [T('Draft your board and advisory profile'), T('List 10 organizations you’d like to serve', 'WATCHLIST_ADD'), T('Look at fractional and interim roles', 'INTERIM_PROFILE_CREATED')],
     ongoing: [T('Have two conversations about board or fractional work', 'OUTREACH_CALL')],
   },
+  // Building something of their own: we track and check in. Deliberately light.
+  ENTREPRENEUR: {
+    firstWeek: [T('Tell us what you are building and where it stands'), T('Note what you need from your career while you build: income, benefits, a way back')],
+    ongoing: [T('Check in: what moved on your venture this month'), T('Keep one door open: one conversation this month with someone in your field', 'OUTREACH_CALL')],
+  },
+  // Happy with fractional work: the job is the pipeline, not a search.
+  FRACTIONAL: {
+    firstWeek: [
+      T('List your current engagements and when each one ends'),
+      T('Write your one-line offer: who you help and the result'),
+      T('Check your rate against the market'),
+      T('Ask a client for a referral or a testimonial', 'REFERENCE_REQUESTED'),
+    ],
+    ongoing: [
+      T('Start the renewal conversation 30 days before an engagement ends', 'OUTREACH_CALL'),
+      T('Have two conversations with potential next clients', 'OUTREACH_CALL'),
+      T('Publish one post that shows how you work', 'LINKEDIN_POST_IDEA'),
+    ],
+  },
+  // On leave or taking time off: keep it gentle and make the return easy.
+  TIME_OFF: {
+    firstWeek: [T('Set your expected return date'), T('Check your leave, pay and benefits dates'), T('Write down what you want from work when you are back')],
+    ongoing: [T('Keep one relationship warm: one note or coffee a month', 'OUTREACH_MESSAGE'), T('Learn something small, only if you want to', 'LEARNING_MODULE')],
+  },
 }
+
+// Journeys whose members are not looking for a job: in Managing your career
+// they get their own plan. Everyone else in that stage gets the career plan.
+const OWN_PLAN_WHEN_STAYING = new Set<JourneyType>(['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF'])
 
 const STAGE_PLAN: Partial<Record<JourneyStage, PlanItem[]>> = {
   INTERVIEWING: [T('Do a mock interview', 'INTERVIEW_PREP'), T('Practice answers to 3 behavioral questions', 'INTERVIEW_BEHAVIORAL_PRACTICE')],
@@ -141,7 +169,11 @@ export const APPLICATION_ACTION_TYPES = ['JOB_APPLICATION_SUBMITTED']
 export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStage | null, weekNumber: number, driver: MoveDriver | null = null): PlanItem[] {
   // Not looking right now: the plan is about managing the career they have,
   // whichever journey they started on.
-  if (stage === 'STAYING' || stage === 'PAUSED') return weekNumber <= 1 ? JOURNEY_PLAN.GROWING.firstWeek : JOURNEY_PLAN.GROWING.ongoing
+  if (stage === 'STAYING' || stage === 'PAUSED') {
+    const own = journey ? normalizeJourney(journey) : null
+    const plan = own && OWN_PLAN_WHEN_STAYING.has(own) ? JOURNEY_PLAN[own] : JOURNEY_PLAN.GROWING
+    return weekNumber <= 1 ? plan.firstWeek : plan.ongoing
+  }
   const stageItems = stage ? (STAGE_PLAN[stage] ?? []) : []
   // Landed and Offer are about the new job, not the search that got there.
   if (stage === 'LANDED' || stage === 'OFFER') return stageItems

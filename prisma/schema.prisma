@@ -175,6 +175,9 @@ enum JourneyType {
   STUDENT_NEW_GRAD // internship or first job, up to five years out
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
+  ENTREPRENEUR // employed and starting something of their own: we track and check in
+  FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
+  TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }
 
 // How close someone is to applying. Shared by every journey; sets the plan
@@ -198,6 +201,7 @@ enum JourneyChangeSource {
   SETTINGS // "Your situation" on Privacy & sharing
   GOT_HIRED // the Offer Bonus claim
   COLLEGE // a college portal action (I'm in transition / I got a job)
+  AUTOMATIC // the platform moved them on (for example, 90 days after landing)
 }
 
 enum CurrentJobStatus {
@@ -814,6 +818,10 @@ model CandidateProfile {
   journeyChangedAt      DateTime?
   journeyStageChangedAt DateTime?
   journeyCheckedAt      DateTime? // last answered "Has anything changed?"
+  // Company culture and working environment: how much it matters, and, only if it
+  // does, what they want. { importance: 'NOT_IMPORTANT' | 'SOMEWHAT' | 'VERY', answers: {...}, mustHave, dealBreaker }.
+  // See src/lib/culture/culture-fit.ts.
+  cultureFit            Json?
   journeyDetails        Json?
   journeyEvents         JourneyEvent[]
   gapDuration        GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
@@ -5455,6 +5463,7 @@ enum CandidateEmailKey {
   SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
+  WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the

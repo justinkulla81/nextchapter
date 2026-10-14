@@ -11,6 +11,8 @@
 
 import type { CoachingStylePreference } from '@prisma/client'
 import { conversationPlanItem } from '@/lib/review-prep/conversation'
+import { culturePlanItems, type CultureFit } from '@/lib/culture/culture-fit'
+import type { SpineGap } from '@/lib/personalization/spine'
 import type { JourneyStage, JourneyType } from './journey'
 import { getJourney, normalizeJourney } from './journey'
 
@@ -26,6 +28,12 @@ export type EngagementSignals = {
   // for cause, drug test, background check). Used only to sharpen this
   // member's own plan; never shown to anyone else (see affiliations/visibility.ts).
   redFlags: RedFlags
+  // Company culture and working environment, only if it matters to them.
+  culture: CultureFit | null
+  // From journeyDetails: a return date (taking a break), and a fractional member's offer, open days and when the current engagement ends.
+  details: { returnDate: Date | null; offering: string | null; openDays: number | null; engagementEnds: Date | null }
+  // What the personalization spine still needs from this member (src/lib/personalization/spine.ts), most useful first.
+  spineGaps: SpineGap[]
   // Saved career conversations (review, raise, promotion, offer), for the plan.
   conversations: { kind: string; scheduledFor: Date | null; outcome: string }[]
   weeksInStage: number
@@ -90,6 +98,14 @@ export function connectReason(journey: JourneyType | null, kind: ConnectKind): s
 export function unlockSteps(s: EngagementSignals): Step[] {
   const j = s.journey
   const out: Step[] = []
+  // Personalization comes first: it is what the plan, learning, networking and
+  // opportunities are built from. One question at a time, never a form.
+  for (const g of s.spineGaps.slice(0, 1)) {
+    out.push({ key: `spine-${g.key}`, label: g.label, why: `${g.why}`, unlocks: g.unlocks, href: g.href })
+  }
+  // On a break, or building something of their own: personalization and check-ins
+  // only. No pushing to connect accounts or collect references.
+  if (j === 'TIME_OFF' || j === 'ENTREPRENEUR') return out
   if (!s.gmail) {
     out.push({
       key: 'gmail',
@@ -319,13 +335,44 @@ export function redFlagGuidance(s: EngagementSignals): { text: string; actionTyp
   return out
 }
 
+const DAY_MS = 86_400_000
+
+// Steps that come from what the member told us about their situation: how close
+// the return is on a break, and how full the pipeline is for fractional work.
+export function journeyDetailItems(s: EngagementSignals, now: Date = new Date()): { text: string; actionType?: string }[] {
+  const out: { text: string; actionType?: string }[] = []
+  if (s.journey === 'TIME_OFF' && s.details.returnDate) {
+    const days = Math.ceil((s.details.returnDate.getTime() - now.getTime()) / DAY_MS)
+    if (days > 0 && days <= 42) {
+      out.push({ text: `Your return is in ${days <= 7 ? 'about a week' : `${Math.round(days / 7)} weeks`}: decide what you want your first month back to look like` })
+    }
+  }
+  if (s.journey === 'FRACTIONAL') {
+    if (s.details.engagementEnds) {
+      const days = Math.ceil((s.details.engagementEnds.getTime() - now.getTime()) / DAY_MS)
+      if (days >= 0 && days <= 45) {
+        out.push({ text: `Your current engagement ends in ${days} days: start the renewal or replacement conversation now`, actionType: 'OUTREACH_CALL' })
+      }
+    }
+    if (s.details.openDays && s.details.openDays > 0) {
+      out.push({ text: `You have ${s.details.openDays} open ${s.details.openDays === 1 ? 'day' : 'days'} a week: have a conversation with someone who could use them`, actionType: 'OUTREACH_CALL' })
+    }
+    if (s.details.offering) {
+      out.push({ text: `Use your one-line offer in a post or a message this week: "${s.details.offering}"`, actionType: 'LINKEDIN_POST_IDEA' })
+    }
+  }
+  return out
+}
+
 // Plan items for the weekly plan: the gate's new moves, then the top unlock step.
 export function engagementPlanItems(s: EngagementSignals): { text: string; actionType?: string }[] {
   const items: { text: string; actionType?: string }[] = []
   const gate = gateMove(s)
   if (gate) items.push(...gate.items)
-  for (const step of unlockSteps(s).slice(0, 2)) items.push({ text: step.label })
+  for (const step of unlockSteps(s).slice(0, 2)) items.push({ text: step.key.startsWith('spine-') ? `Answer one question that sharpens your plan: ${step.label}` : step.label })
   items.push(...redFlagGuidance(s))
+  items.push(...culturePlanItems(s.culture, s.stage))
+  items.push(...journeyDetailItems(s))
   const convo = conversationPlanItem(s.conversations)
   if (convo) items.unshift(convo)
   return items

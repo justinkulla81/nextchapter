@@ -8,6 +8,7 @@ const base: EngagementSignals = {
   tone: null,
   casual: false,
   workingNow: false,
+  culture: null, details: { returnDate: null, offering: null, openDays: null, engagementEnds: null }, spineGaps: [],
   redFlags: { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }, conversations: [],
   weeksInStage: 1,
   gmail: true,

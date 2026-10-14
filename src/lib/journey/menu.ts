@@ -14,13 +14,19 @@
 import type { CheckInAnswer, JourneyStage, JourneyType } from './journey'
 import { normalizeJourney } from './journey'
 
-export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED'
+export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED' | 'PORTFOLIO' | 'LEAVE'
 
 // Where in the search someone is, as far as the menu cares. No stage yet (a
 // member from before journeys) sees everything, as an active search does.
 export function menuMode(stage: JourneyStage | null, journey: JourneyType | null = null): MenuMode {
   // Going for a promotion before applying elsewhere is about the job they have.
   if (journey && normalizeJourney(journey) === 'PROMOTION' && (stage === 'EXPLORING' || stage === 'PREPARING')) return 'STAYING'
+  // Not looking, but not in a job to grow in either: running a portfolio of clients, or on a break.
+  if (journey && (stage === 'STAYING' || stage === 'PAUSED')) {
+    const j = normalizeJourney(journey)
+    if (j === 'FRACTIONAL') return 'PORTFOLIO'
+    if (j === 'TIME_OFF') return 'LEAVE'
+  }
   switch (stage) {
     case 'EXPLORING':
       return 'EXPLORING'
@@ -61,6 +67,10 @@ export const PILLAR_ORDER: Record<MenuMode, Pillar[]> = {
   ACTIVE: ['plan', 'prove', 'search', 'network', 'learn', 'coach', 'work', 'support'],
   STAYING: ['grow', 'plan', 'prove', 'network', 'learn', 'coach', 'search', 'support'],
   LANDED: ['career', 'prove', 'network', 'learn', 'coach', 'plan', 'support'],
+  // Happy with fractional work: the work (clients, rate, pipeline) comes first.
+  PORTFOLIO: ['work', 'prove', 'network', 'plan', 'learn', 'coach', 'search', 'support'],
+  // On leave or time off: gentle, with the return in mind.
+  LEAVE: ['plan', 'prove', 'network', 'learn', 'coach', 'search', 'support'],
 }
 
 // The phone's bottom bar has room for four tabs: Home, one situational tab,
@@ -73,6 +83,8 @@ export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
   ACTIVE: 'jobs',
   STAYING: 'worth',
   LANDED: 'first90',
+  PORTFOLIO: 'worth',
+  LEAVE: 'plan',
 }
 
 export type Visibility = 'show' | 'locked' | 'hide'
@@ -142,7 +154,7 @@ const H = 'hide' as const
 
 // The job-search tools turn on once someone is applying; until then they show
 // as locked (exploring, preparing, staying) so people know what is waiting.
-const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, LANDED: H }
+const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, PORTFOLIO: L, LEAVE: L, LANDED: H }
 
 export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Personalize
@@ -161,15 +173,15 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Search and apply
   jobs: { pillar: 'search', modes: SEARCH_TOOLS },
   companies: { pillar: 'search', pillarIn: { LANDED: 'career' } },
-  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, STAYING: L, LANDED: H } },
-  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L }, pillarIn: { LANDED: 'career' } },
+  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, STAYING: L, LEAVE: L, LANDED: H } },
+  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L, PORTFOLIO: L, LEAVE: L }, pillarIn: { LANDED: 'career' } },
   marketIntel: { pillar: 'search', pillarIn: { LANDED: 'career' } },
   // Network
   network: { pillar: 'network' },
   contacts: { pillar: 'network' },
   community: { pillar: 'network' },
   inbox: { pillar: 'network' },
-  recruiter: { pillar: 'network', modes: { EXPLORING: L, STAYING: H, LANDED: H } },
+  recruiter: { pillar: 'network', modes: { EXPLORING: L, STAYING: H, PORTFOLIO: H, LEAVE: H, LANDED: H } },
   universities: { pillar: 'network' },
   collegeBenefits: { pillar: 'network', modes: { LANDED: H } },
   // Learn
@@ -178,8 +190,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Coaching
   coach: { pillar: 'coach' },
   // Work now
-  interim: { pillar: 'work', modes: { STAYING: H, LANDED: H } },
-  eqoveriq: { pillar: 'work', modes: { STAYING: H, LANDED: H } },
+  interim: { pillar: 'work', modes: { STAYING: H, LEAVE: H, LANDED: H } },
+  eqoveriq: { pillar: 'work', modes: { STAYING: H, LEAVE: H, LANDED: H } },
   // Support and settings
   stats: { pillar: 'support' },
   benefits: { pillar: 'support', modes: { STAYING: H, LANDED: H } },
@@ -239,6 +251,22 @@ export function statusUnlock(mode: MenuMode): StatusUnlock | null {
         answers: [
           { answer: 'ready', label: "I'm ready to start applying", because: 'Moves you into an active search with weekly application and outreach targets.' },
           { answer: 'interviewing', label: "I'm interviewing", because: 'Adds interview practice, reference follow-ups and what to do after each round.' },
+        ],
+      }
+    case 'PORTFOLIO':
+      return {
+        why: 'Full-time job tools turn on when you want a full-time role. Your menu is built around your clients and your pipeline.',
+        answers: [
+          { answer: 'ready', label: "I'm ready to start applying", because: 'Turns on Find a Full-time Job and interview practice, and your plan switches to applications and outreach.' },
+          { answer: 'laid_off', label: 'I lost my main client or role', because: 'Starts a laid-off plan: benefits first, then a fast search.' },
+        ],
+      }
+    case 'LEAVE':
+      return {
+        why: 'Job tools are off while you are on a break. Tell us when that changes.',
+        answers: [
+          { answer: 'back', label: "I'm back at work", because: 'Moves you to managing your career, with a plan for your return.' },
+          { answer: 'ready', label: "I'm ready to start applying", because: 'Turns on Find a Full-time Job and interview practice.' },
         ],
       }
     default:

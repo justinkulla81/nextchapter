@@ -365,10 +365,22 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (searchIntensity) await prisma.candidateProfile.update({ where: { id: profile.id }, data: { searchIntensity } })
   const driverRaw = formData.get('moveDriver') as string | null
   const moveDriver = MOVE_DRIVERS.find((d) => d.key === driverRaw)?.key ?? null
+  // Situation details the spine asks for (src/lib/personalization/spine.ts). Blank means unchanged.
+  const details: Record<string, unknown> = {}
+  if (journey === 'EXPLORING_MOVE' && moveDriver) details.moveDriver = moveDriver
+  const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime())
+  const text = (k: string) => String(formData.get(k) ?? '').trim()
+  if (journey === 'TIME_OFF' && validDate(text('returnDate'))) details.returnDate = text('returnDate')
+  if (journey === 'FRACTIONAL') {
+    if (text('offering')) details.offering = text('offering').slice(0, 200)
+    const days = Number(text('openDays'))
+    if (text('openDays') && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
+    if (validDate(text('engagementEnds'))) details.engagementEnds = text('engagementEnds')
+  }
   await applyJourneyChange(profile.id, {
     journey,
     stage,
-    details: journey === 'EXPLORING_MOVE' && moveDriver ? { moveDriver } : undefined,
+    details: Object.keys(details).length > 0 ? details : undefined,
     source: 'SETTINGS',
     isCheckIn: true,
   })

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MENU_RULES, MOBILE_TAB, PILLAR_ORDER, itemPillar, itemVisibility, menuMode, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
 import { CHECK_IN_ANSWERS } from '@/lib/journey/journey'
 
-const modes: MenuMode[] = ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING', 'LANDED']
+const modes: MenuMode[] = ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING', 'LANDED', 'PORTFOLIO', 'LEAVE']
 const keys = Object.keys(MENU_RULES) as MenuItemKey[]
 
 describe('menu mode', () => {

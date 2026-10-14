@@ -34,6 +34,9 @@ export const SITUATION_TO_JOURNEY = {
   just_graduated: 'STUDENT_NEW_GRAD',
   reentering_workforce: 'RETURNING',
   next_act: 'NEXT_ACT',
+  taking_a_break: 'TIME_OFF',
+  happy_fractional: 'FRACTIONAL',
+  building_something: 'ENTREPRENEUR',
 } as const satisfies Record<string, JourneyType>
 
 export type SituationKey = keyof typeof SITUATION_TO_JOURNEY
@@ -51,6 +54,9 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
   just_graduated: 'NEW_GRADUATE_FIRST_JOB',
   reentering_workforce: 'CAREGIVER_LEAVE_SABBATICAL',
   next_act: 'EMPLOYED_CONSIDERING_MOVE',
+  taking_a_break: 'CAREGIVER_LEAVE_SABBATICAL',
+  happy_fractional: 'EMPLOYED_CONSIDERING_MOVE',
+  building_something: 'EMPLOYED_CONSIDERING_MOVE',
 }
 
 // The card to pre-select for a member re-visiting the picker.
@@ -64,6 +70,9 @@ export const JOURNEY_TO_SITUATION: Record<JourneyType, SituationKey> = {
   STUDENT_NEW_GRAD: 'just_graduated',
   RETURNING: 'reentering_workforce',
   NEXT_ACT: 'next_act',
+  TIME_OFF: 'taking_a_break',
+  FRACTIONAL: 'happy_fractional',
+  ENTREPRENEUR: 'building_something',
 }
 
 export const SITUATION_SESSION_KEY = 'nc_situation'

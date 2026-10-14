@@ -122,6 +122,39 @@ export const JOURNEYS: JourneyConfig[] = [
     employed: true,
     searching: true,
   },
+  {
+    key: 'TIME_OFF',
+    label: 'Taking a break',
+    card: { label: "I'm on leave or taking time off", description: 'Family leave or time off. Plan your return on your terms, with no pressure.' },
+    goal: 'A return on your terms, whenever you are ready.',
+    defaultStage: 'STAYING',
+    confidentialByDefault: false,
+    jobStatus: 'CAREGIVER_LEAVE_SABBATICAL',
+    employed: false,
+    searching: false,
+  },
+  {
+    key: 'FRACTIONAL',
+    label: 'Happy with fractional work',
+    card: { label: 'I do fractional or interim work and I\'m happy', description: 'Keep a steady pipeline of the right clients, at the right rate, without a job search.' },
+    goal: 'A steady pipeline of the right clients.',
+    defaultStage: 'STAYING',
+    confidentialByDefault: false,
+    jobStatus: 'EMPLOYED_CONSIDERING_MOVE',
+    employed: true,
+    searching: false,
+  },
+  {
+    key: 'ENTREPRENEUR',
+    label: 'Building something of my own',
+    card: { label: "I'm starting something of my own", description: 'Keep your career moving while you build. We check in and keep your options open.' },
+    goal: 'Keep your options open while you build.',
+    defaultStage: 'STAYING',
+    confidentialByDefault: true,
+    jobStatus: 'EMPLOYED_CONSIDERING_MOVE',
+    employed: true,
+    searching: false,
+  },
 ]
 
 // "Ready for a new job" was folded into "Thinking about a move": how soon
@@ -177,7 +210,12 @@ const FROM_JOB_STATUS: Record<CurrentJobStatus, JourneyType> = {
   RELOCATED_FOR_FAMILY: 'RETURNING',
 }
 
-type JourneyFields = { journey?: JourneyType | null; journeyStage?: JourneyStage | null; currentJobStatus?: CurrentJobStatus | null }
+type JourneyFields = {
+  journey?: JourneyType | null
+  journeyStage?: JourneyStage | null
+  currentJobStatus?: CurrentJobStatus | null
+  journeyDetails?: unknown
+}
 
 export function effectiveJourney(p: JourneyFields): JourneyType | null {
   const j = p.journey ?? (p.currentJobStatus ? FROM_JOB_STATUS[p.currentJobStatus] : null)
@@ -209,6 +247,28 @@ export function stageForTiming(journey: JourneyType, timing: ApplyTiming): Journ
   return 'EXPLORING'
 }
 
+// When someone on a break expects to be back, kept in journeyDetails.returnDate
+// (yyyy-mm-dd). Optional.
+export function returnDateOf(details: unknown): Date | null {
+  const v = (details as { returnDate?: unknown } | null)?.returnDate
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null
+  const d = new Date(`${v}T12:00:00Z`)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+// Someone who lost a job but is taking some time first: a modified Laid off,
+// not a different journey. When they want to start decides their stage.
+export const LAID_OFF_TIMING = [
+  { key: 'now', label: 'Right away' },
+  { key: 'few_weeks', label: 'In a few weeks' },
+  { key: 'after_time_off', label: 'After some time off' },
+] as const
+export type LaidOffTiming = (typeof LAID_OFF_TIMING)[number]['key']
+
+export function stageForLaidOffTiming(t: LaidOffTiming): JourneyStage {
+  return t === 'now' ? 'APPLYING' : t === 'few_weeks' ? 'PREPARING' : 'EXPLORING'
+}
+
 // "What's driving this?" for the Thinking about a move journey. Optional;
 // kept in journeyDetails.moveDriver. Someone worried about a layoff gets the
 // same plan plus the steps that matter when there may be a clock.
@@ -234,6 +294,8 @@ export const CHECK_IN_ANSWERS = [
   { key: 'offer', label: 'I got an offer' },
   { key: 'landed', label: 'I started a new job or got promoted' },
   { key: 'managing', label: "I'm not looking right now. I want to manage my career" },
+  { key: 'back', label: "I'm back at work after a break" },
+  { key: 'fractional', label: "I'm doing fractional work and I'm happy" },
 ] as const
 export type CheckInAnswer = (typeof CHECK_IN_ANSWERS)[number]['key']
 
@@ -253,6 +315,11 @@ export function changeForAnswer(answer: CheckInAnswer, _current: { journey: Jour
       return { stage: 'LANDED' }
     case 'managing':
       return { stage: 'STAYING' }
+    case 'back':
+      // Back from leave or time off: managing the career they have.
+      return { journey: 'GROWING', stage: 'STAYING' }
+    case 'fractional':
+      return { journey: 'FRACTIONAL', stage: 'STAYING' }
   }
 }
 
@@ -261,6 +328,14 @@ export function checkInDue(p: JourneyFields & { journeyCheckedAt?: Date | null; 
   const stage = effectiveStage(p)
   if (!stage) return false
   const last = p.journeyCheckedAt ?? p.journeyStageChangedAt ?? p.createdAt ?? null
+  // On a break: ask when the return is near, not on a calendar.
+  if (effectiveJourney(p) === 'TIME_OFF') {
+    const back = returnDateOf(p.journeyDetails)
+    if (back) {
+      const askFrom = back.getTime() - 7 * 86_400_000
+      return now.getTime() >= askFrom && (!last || new Date(last).getTime() < askFrom)
+    }
+  }
   if (!last) return true
   return now.getTime() - new Date(last).getTime() >= getStage(stage).checkInDays * 86_400_000
 }
@@ -283,6 +358,9 @@ export const REPORT_FRAMING: Record<JourneyType, string> = {
   STUDENT_NEW_GRAD: 'A student or recent graduate looking for an internship or first job. Judge them against entry-level expectations; lack of experience is normal, not a weakness.',
   RETURNING: 'Returning after a break (caregiving, health, sabbatical, a move). Treat the gap as context, not a flaw; focus on a credible story and refreshed skills.',
   NEXT_ACT: 'Planning a next act after a long career: board, fractional, consulting or part-time work. Judge them against advisory and fractional roles, not full-time ladder jobs.',
+  ENTREPRENEUR: 'Staying in the workforce while starting something of their own. Do not frame a job search or push applications. Note the strengths that carry between the venture and a career, and keep it short.',
+  FRACTIONAL: 'Doing fractional or interim work and happy with it. Frame the read around positioning, rate, pipeline and renewals, judged against demand for fractional and advisory work, not a full-time search.',
+  TIME_OFF: 'On leave or taking time off with a return in mind. Treat the break as context, not a flaw. Frame the read around keeping skills and relationships warm and planning a return; no urgency and no application pressure.',
 }
 
 const DRIVER_FRAMING: Record<MoveDriver, string> = {

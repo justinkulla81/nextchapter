@@ -19,7 +19,8 @@ import {
 import { INTENSITY_OPTIONS, intensityFromTiming } from '@/lib/journey/intensity'
 import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import { applyJourneyChange } from '@/lib/journey/apply'
-import { APPLY_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForTiming, type ApplyTiming, type MoveDriver } from '@/lib/journey/journey'
+import { APPLY_TIMING, LAID_OFF_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForLaidOffTiming, stageForTiming, type ApplyTiming, type JourneyStage, type LaidOffTiming, type MoveDriver } from '@/lib/journey/journey'
+import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -222,6 +223,22 @@ export async function updateLocationAndSearchStatus(
   const moveDriverRaw = formData.get('moveDriver') as string | null
   const moveDriver = (MOVE_DRIVERS.find((d) => d.key === moveDriverRaw)?.key ?? null) as MoveDriver | null
 
+  // Situation details for the journeys that have them (src/lib/personalization/spine.ts).
+  const laidOffTimingRaw = formData.get('startTiming') as string | null
+  const laidOffTiming = (LAID_OFF_TIMING.find((t) => t.key === laidOffTimingRaw)?.key ?? null) as LaidOffTiming | null
+  const returnDateRaw = String(formData.get('returnDate') ?? '').trim()
+  const offeringRaw = String(formData.get('offering') ?? '').trim().slice(0, 200)
+  const openDaysRaw = String(formData.get('openDays') ?? '').trim()
+  const engagementEndsRaw = String(formData.get('engagementEnds') ?? '').trim()
+  const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime())
+  // Company culture and working environment: only kept if it matters to them.
+  const culture = cleanCultureFit({
+    importance: formData.get('cultureImportance') as string | null,
+    answers: Object.fromEntries(DIMENSIONS.map((d) => [d.key, formData.get(`culture_${d.key}`) as string | null])),
+    mustHave: formData.get('cultureMustHave') as string | null,
+    dealBreaker: formData.get('cultureDealBreaker') as string | null,
+  })
+
   const justStartedSearch = formData.get('justStartedSearch') === 'on'
   const gapDuration = formData.get('gapDuration') as string | null
   const jobsAppliedCountRaw = formData.get('jobsAppliedCount')
@@ -273,7 +290,7 @@ export async function updateLocationAndSearchStatus(
       aiDisplacementReason,
       onboardingLocationConfirmedAt: now,
       justStartedSearch: searching ? justStartedSearch : true,
-      gapDuration: employed ? null : (gapDuration as GapDurationBucket),
+      gapDuration: employed || !searching ? null : (gapDuration as GapDurationBucket),
       jobsAppliedBucket: deriveJobsAppliedBucket(searching ? (jobsAppliedCount as number) : 0),
       interviewsReceivedCount: searching ? interviewsCount : 0,
       onboardingSearchStatusConfirmedAt: now,
@@ -286,19 +303,36 @@ export async function updateLocationAndSearchStatus(
         : searchIntensityPicked
           ? { searchIntensity: searchIntensityPicked }
           : {}),
+      ...(culture && searching ? { cultureFit: culture as unknown as Prisma.InputJsonValue } : {}),
       networkComfortBonusAt: now,
       onboardingComfortConfirmedAt: now,
     },
   })
 
+  // What this journey tells us about their situation, kept in journeyDetails, and the stage it implies.
+  const details: Record<string, unknown> = {}
+  let stage: JourneyStage | undefined
   if (employed && searching && journey && applyTiming) {
-    await applyJourneyChange(candidateId, {
-      stage: stageForTiming(journey, applyTiming),
-      details: { applyTiming, ...(journey === 'EXPLORING_MOVE' && moveDriver ? { moveDriver } : {}) },
-      source: 'ONBOARDING',
-    })
-  } else if (searching && !employed && workingNow) {
-    await applyJourneyChange(candidateId, { details: { workingNow: true }, source: 'ONBOARDING' })
+    stage = stageForTiming(journey, applyTiming)
+    details.applyTiming = applyTiming
+    if (journey === 'EXPLORING_MOVE' && moveDriver) details.moveDriver = moveDriver
+  } else if (searching && !employed) {
+    if (workingNow) details.workingNow = true
+    // Lost a job but taking some time first: a modified Laid off, not a different journey.
+    if (journey === 'LAID_OFF' && laidOffTiming) {
+      stage = stageForLaidOffTiming(laidOffTiming)
+      details.startTiming = laidOffTiming
+    }
+  }
+  if (journey === 'TIME_OFF' && validDate(returnDateRaw)) details.returnDate = returnDateRaw
+  if (journey === 'FRACTIONAL') {
+    if (offeringRaw) details.offering = offeringRaw
+    const days = Number(openDaysRaw)
+    if (openDaysRaw && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
+    if (validDate(engagementEndsRaw)) details.engagementEnds = engagementEndsRaw
+  }
+  if (stage || Object.keys(details).length > 0) {
+    await applyJourneyChange(candidateId, { stage, details, source: 'ONBOARDING' })
   }
 
   revalidatePath('/onboarding', 'layout')

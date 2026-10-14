@@ -40,6 +40,11 @@ const CONNECT_ERROR: Record<string, string> = {
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
+function detailText(details: unknown, key: string): string {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
+}
+
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
   const affiliations = await loadAffiliations(profile.id)
@@ -105,7 +110,14 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity}
+          details={{
+            returnDate: detailText(profile.journeyDetails, 'returnDate'),
+            offering: detailText(profile.journeyDetails, 'offering'),
+            openDays: detailText(profile.journeyDetails, 'openDays'),
+            engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+          }}
+        />
       </div>
 
       <AffiliationVisibilityCard affiliations={affiliations} />

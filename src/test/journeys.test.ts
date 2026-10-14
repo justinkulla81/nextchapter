@@ -3,8 +3,8 @@ import { CHECK_IN_ANSWERS, STAGES, changeForAnswer, checkInDue, effectiveJourney
 import { JOURNEY_TO_SITUATION, SITUATION_TO_JOURNEY } from '@/lib/constants/onboarding'
 
 describe('journeys (Product Design doc, Journeys tab)', () => {
-  it('has the eight journeys, each reachable from an onboarding card', () => {
-    expect(JOURNEYS.map((j) => j.key)).toEqual(['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT'])
+  it('has the eleven journeys, each reachable from an onboarding card', () => {
+    expect(JOURNEYS.map((j) => j.key)).toEqual(['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR'])
     for (const j of JOURNEYS) expect(SITUATION_TO_JOURNEY[JOURNEY_TO_SITUATION[j.key]]).toBe(j.key)
   })
   it('laid off and resigned share a journey; ready to move and worried about a layoff are thinking about a move', () => {

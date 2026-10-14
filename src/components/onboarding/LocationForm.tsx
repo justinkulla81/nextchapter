@@ -1,6 +1,6 @@
 'use client'
 
-import { APPLY_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, type ApplyTiming, type MoveDriver } from '@/lib/journey/journey'
+import { APPLY_TIMING, LAID_OFF_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, type ApplyTiming, type LaidOffTiming, type MoveDriver } from '@/lib/journey/journey'
 import { useActionState, useState } from 'react'
 import type { CandidateProfile, CoachingStylePreference, GapDurationBucket, NetworkComfortLevel } from '@prisma/client'
 import { updateLocationAndSearchStatus } from '@/app/onboarding/actions'
@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
+import { CultureFitFields } from '@/components/onboarding/CultureFitFields'
+import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS, COACHING_STYLE_OPTIONS } from '@/lib/constants/onboarding'
 
 const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDurationBucket, string][]).map(
@@ -38,6 +40,7 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const searching = journey ? getJourney(journey).searching : true
   const [applyTiming, setApplyTiming] = useState<ApplyTiming | null>(null)
   const [moveDriver, setMoveDriver] = useState<MoveDriver | null>(null)
+  const [laidOffTiming, setLaidOffTiming] = useState<LaidOffTiming | null>(null)
   const [searchIntensity, setSearchIntensity] = useState<string | null>(profile.searchIntensity)
   const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
   const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
@@ -226,6 +229,58 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
             responsive
           />
         </div>
+      )}
+
+      {journey === 'LAID_OFF' && (
+        <div className="space-y-2">
+          <Label>
+            When do you want to start looking? <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <ChoiceButtons
+            name="startTiming"
+            options={LAID_OFF_TIMING.map((t) => ({ value: t.key, label: t.label }))}
+            value={laidOffTiming}
+            onChange={setLaidOffTiming}
+            columns={3}
+            responsive
+          />
+          <p className="text-sm text-muted-foreground">Taking some time first is fine. We will still get your benefits and severance dates in front of you.</p>
+        </div>
+      )}
+
+      {journey === 'TIME_OFF' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="returnDate">
+            When do you expect to be back? <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <Input id="returnDate" name="returnDate" type="date" />
+          <p className="text-sm text-muted-foreground">We will check in as it gets close, and keep everything else light until then.</p>
+        </div>
+      )}
+
+      {journey === 'FRACTIONAL' && (
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="offering">
+              In one line, who do you help and what result do you deliver? <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Input id="offering" name="offering" maxLength={200} placeholder="I help Series B SaaS companies cut churn in two quarters" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="openDays">Days a week open for new work</Label>
+              <Input id="openDays" name="openDays" type="number" min={0} max={5} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="engagementEnds">When does your current engagement end?</Label>
+              <Input id="engagementEnds" name="engagementEnds" type="date" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {searching && journey !== 'GROWING' && (
+        <CultureFitFields defaults={parseCultureFit(profile.cultureFit)} />
       )}
 
       <div className="border-t border-border pt-5">
