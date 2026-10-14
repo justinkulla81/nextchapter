@@ -513,6 +513,68 @@ async function readPage() {
         if (m2) out.name = m2[1].trim()
       }
     }
+  } else if (location.hostname === 'mail.google.com') {
+    // An open email is a person page of its own kind: the sender is who to
+    // save, and their signature carries the role and organization. The generic
+    // reader below took Gmail's tab title ("Subject - me@gmail.com - Gmail")
+    // as the page's publisher, filing the user's own address as the company.
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim()
+    const myEmail = (document.title.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/) || [''])[0].toLowerCase()
+    // Expanded messages in the open thread, newest first; the newest one NOT
+    // from the user is the person on the other end.
+    const messages = Array.from(document.querySelectorAll('.adn')).reverse()
+      .map((m) => ({ m, from: m.querySelector('.gD[email]') }))
+      .filter((x) => x.from && x.m.querySelector('.a3s'))
+    const msg = messages.find((x) => (x.from.getAttribute('email') || '').toLowerCase() !== myEmail) || messages[0]
+    const person = { name: '', company: '', jobTitle: '', email: '', phone: '' }
+    if (msg) {
+      person.email = (msg.from.getAttribute('email') || '').trim()
+      person.name = clean(msg.from.getAttribute('name') || msg.from.textContent)
+      if (person.name.includes('@')) person.name = ''
+
+      // The body without quoted replies, so a signature further down the
+      // thread isn't read as this sender's.
+      const bodyEl = msg.m.querySelector('.a3s.aiL') || msg.m.querySelector('.a3s')
+      const copy = bodyEl.cloneNode(true)
+      copy.querySelectorAll('.gmail_quote, blockquote, .gmail_extra').forEach((n) => n.remove())
+      const all = (copy.innerText || copy.textContent || '').split('\n').map(clean)
+      // Signature: after the last "--" line; without one, the message's tail.
+      const dash = all.map((t, i) => (/^(--|—|__+)$/.test(t) ? i : -1)).filter((i) => i >= 0).pop()
+      const sig = (dash !== undefined ? all.slice(dash + 1) : all.slice(-14)).filter(Boolean).slice(0, 14)
+
+      const ROLE = /\b(president|vice president|vp|chief|ceo|cfo|coo|cto|cio|chair(?:man|woman|person)?|director|dean|provost|chancellor|professor|lecturer|principal|partner|founder|co-?founder|managing|head of|manager|officer|executive|superintendent|commissioner|secretary|treasurer|trustee|fellow|counsel|advisor|adviser|recruiter|coordinator|associate|specialist|lead|consultant|analyst|engineer)\b/i
+      // A contact line ("T: (412) …", "W: www…", an email, a URL, an address).
+      const CONTACT = /^(t|p|m|c|o|f|e|w|tel|phone|mobile|cell|fax|email|web|website|linkedin)\s*[:|.]|@|https?:\/\/|www\.|\b\d{3}\D{0,3}\d{3}\D{0,3}\d{4}\b|^\d+\s+\w+.*\b(st|street|ave|avenue|rd|road|blvd|suite|floor)\b/i
+      const ORG = /\b(university|college|school|institute|inc|llc|ltd|corp|corporation|company|group|partners|ventures|capital|foundation|labs|associates|consulting|bank|hospital|health|systems|technologies)\b/i
+      const nameTokens = person.name.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+      const isNameLine = (t) => nameTokens.length > 0 && nameTokens.every((w) => t.toLowerCase().includes(w)) && t.split(' ').length <= 5
+
+      const rest = sig.slice(sig.findIndex(isNameLine) + 1)
+      const roleAt = rest.findIndex((t) => t.length <= 120 && !CONTACT.test(t) && ROLE.test(t))
+      if (roleAt >= 0) {
+        person.jobTitle = rest[roleAt]
+        // Lines after the title, up to the first contact line, are the
+        // organization — usually unit first, then the institution ("Heinz
+        // College …" / "Carnegie Mellon University"). The outermost, last
+        // organization-shaped line is the one to file them under.
+        const orgLines = []
+        for (const t of rest.slice(roleAt + 1)) {
+          if (CONTACT.test(t) || t.length > 80) break
+          orgLines.push(t)
+        }
+        person.company = [...orgLines].reverse().find((t) => ORG.test(t)) || orgLines[0] || ''
+      }
+      for (const t of sig) {
+        const ph = t.match(/\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/)
+        if (ph) { person.phone = ph[0]; break }
+      }
+      const links = [...new Set(Array.from(copy.querySelectorAll('a[href*="linkedin.com/in/" i]'))
+        .map((a) => (a.getAttribute('href').match(/linkedin\.com\/in\/([^/?#\s]+)/i) || [])[1]?.toLowerCase())
+        .filter(Boolean))]
+      if (links.length === 1) person.linkedinUrl = `https://www.linkedin.com/in/${links[0]}`
+    }
+    out.person = person
+    out.title = clean(document.title)
   } else {
     out.title = meta('og:title') || document.title || ''
     out.company = meta('og:site_name') || ''
