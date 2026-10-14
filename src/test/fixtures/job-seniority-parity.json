@@ -7051,8 +7051,8 @@
 ],
 [
 "Customer Success Lead - Western Europe",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineer (Machine Learning) Intern (Summer 2027)",
@@ -7321,8 +7321,8 @@
 ],
 [
 "Client Success Lead",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineering Manager - Payments",
@@ -9636,8 +9636,8 @@
 ],
 [
 "Inventory and Cost Accounting Lead",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Manager - Legal Entity Controller",
@@ -10563,5 +10563,45 @@
 "Electrical Superintendent - Data Center",
 "OTHER",
 0
+],
+[
+"Senior Associate, Corporate Development",
+"SENIOR_IC",
+45
+],
+[
+"M&A Associate",
+"SENIOR_IC",
+45
+],
+[
+"Managing Editor",
+"SR_MANAGER",
+50
+],
+[
+"Editor-in-Chief",
+"HEAD",
+72
+],
+[
+"Copy Editor",
+"OTHER",
+0
+],
+[
+"Customer Experience Lead",
+"SENIOR_IC",
+45
+],
+[
+"Retail Senior Associate",
+"OTHER",
+0
+],
+[
+"Business Editor",
+"SENIOR_IC",
+45
 ]
 ]
