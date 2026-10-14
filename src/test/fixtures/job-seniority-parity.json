@@ -12075,5 +12075,75 @@ true
 "U.S. Lateral Partner Recruitment and Integration Manager",
 "MANAGER",
 40
+],
+[
+"Chief Information Security Officer",
+"C_SUITE",
+100
+],
+[
+"Interim Chief Information Security Officer (CISO)",
+"C_SUITE",
+100
+],
+[
+"Virtual Chief Information Security Officer (vCISO)",
+"C_SUITE",
+100
+],
+[
+"Fractional CISO Consultant",
+"C_SUITE",
+100
+],
+[
+"Fractional HR Lead",
+"DIRECTOR",
+65
+],
+[
+"Interim HR Business Partner",
+"OTHER",
+0
+],
+[
+"Licensed Physician (MD/DO) - Freelance AI Trainer",
+"SENIOR_IC",
+45
+],
+[
+"Physician - AI Clinical Reviewer",
+"SENIOR_IC",
+45
+],
+[
+"AI Tutor - Legal & Compliance",
+"SENIOR_IC",
+45
+],
+[
+"Board Members",
+"BOARD",
+95
+],
+[
+"Board Treasurer",
+"BOARD",
+95
+],
+[
+"Unarmed Security Officer",
+"OTHER",
+0
+],
+[
+"Secretary - Board of Directors",
+"OTHER",
+0
+],
+[
+"Senior Wealth Advisor",
+"SENIOR_IC",
+45
 ]
 ]
