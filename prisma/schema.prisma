@@ -1699,6 +1699,7 @@ model CandidateProfile {
   // must never be read by computeDossierCompetencies/computeCategoryGrades.
   benefitsNetworkCompletions  BenefitsNetworkCompletion[]
   occupation                  CandidateOccupation?
+  resumeDrafts                ResumeDraft[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -14149,4 +14150,25 @@ model TrainingProgram {
 
   @@unique([state, providerName, programName])
   @@index([state])
+}
+
+// ── RESUME STUDIO ────────────────────────────────────────────────────────────
+// A candidate-edited resume, kept as the same structured document the export
+// templates already render (ResumeDocumentData, src/lib/resume/export/document-data.ts),
+// so what they edit is exactly what the PDF and Word downloads contain. Many drafts
+// per candidate (for example one tailored per target role). Saving overwrites the
+// draft; "Duplicate" is how a candidate keeps a version.
+model ResumeDraft {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name           String
+  templateId     String           @default("classic")
+  document       Json
+  // The posting text last pasted in for the keyword check, so it is there next visit.
+  jobDescription String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId, updatedAt])
 }
