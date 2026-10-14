@@ -6,6 +6,7 @@ import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendOutplacementSeatInviteEmail, sendOutplacementSeatLinkedEmail } from '@/lib/email/send-outplacement-emails'
+import { orgProgram } from './program-server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
 import type { OutplacementEnrollmentMethod } from '@prisma/client'
@@ -115,7 +116,9 @@ async function enrollOneSeat(
     return { email, outcome: 'error', error: error ?? 'Something went wrong sending the invite.' }
   }
 
-  await sendOutplacementSeatInviteEmail(email, orgName, actionLink)
+  const contract = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { orgId: true } })
+  const program = contract ? await orgProgram(contract.orgId) : null
+  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.offered.map((f) => f.label) } : undefined)
   return { email, outcome: 'invited' }
 }
 

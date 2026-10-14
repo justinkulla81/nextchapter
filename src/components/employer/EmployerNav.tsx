@@ -41,6 +41,7 @@ function buildLinks(role: OutplacementRole): NavLink[] {
     links.push(
       { href: '/employer/enroll', label: 'Enroll' },
       { href: '/employer/roster', label: 'Roster' },
+      { href: '/employer/program', label: 'Program' },
       { href: '/employer/reporting', label: 'Reporting' },
       { href: '/employer/invoices', label: 'Invoices' },
       { href: '/employer/team', label: 'Team' }

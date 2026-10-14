@@ -10,7 +10,7 @@ function resendClient(): Resend | null {
   return createResend(process.env.RESEND_API_KEY)
 }
 
-export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string) {
+export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat invite email.')
@@ -21,7 +21,7 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
       subject: `${orgName} set up a NextChapter benefit for you`,
-      react: OutplacementSeatInviteEmail({ orgName, acceptUrl }),
+      react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null }),
     })
     if (error) {
       console.error('Failed to send outplacement seat invite email:', error)

@@ -7289,6 +7289,10 @@ model OutplacementEmployerOrg {
   id                  String   @id @default(cuid())
   name                String
   programBrandName    String? // §A7 "program branding" — shown on this org's own portal chrome
+  // What the org offers its people (src/lib/employer/program-settings.ts):
+  // { features: { coaching: false, ... }, welcome: "..." }. A feature is on
+  // unless switched off, and never beyond what the contract tier includes.
+  programSettings     Json     @default("{}")
   primaryContactName  String?
   primaryContactEmail String
   // Throwaway orgs created for this phase's own privacy-invariant
