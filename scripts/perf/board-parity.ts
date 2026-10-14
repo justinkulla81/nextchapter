@@ -19,8 +19,9 @@ import { levelsInGroup } from '@/lib/jobs/job-seniority'
 type Opts = Parameters<typeof newShortlist>[0]
 async function main() {
   const n = Number(process.argv[2] ?? 10)
-  const only = process.argv[3] // run just the cases whose name starts with this
-  const members = await prisma.candidateProfile.findMany({ where: { isSampleData: false }, orderBy: { createdAt: 'desc' }, take: n })
+  const only = process.argv[3] || undefined // run just the cases whose name starts with this
+  const skip = Number(process.argv[4] ?? 0) // skip the newest this-many members
+  const members = await prisma.candidateProfile.findMany({ where: { isSampleData: false }, orderBy: { createdAt: 'desc' }, take: n, skip })
   let checks = 0
   let mismatches = 0
   for (const c of members) {
