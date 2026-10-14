@@ -6,7 +6,7 @@ import path from 'node:path'
 // fresh-job alerts and Job Search Daily stay on their current (unfiltered) selection
 // until the owner approves an opt-in. Guard: neither passes workTypes or reads the
 // member's board choice.
-const EMAIL_SELECTION_FILES = ['src/lib/jobs/fresh-job-alerts.ts', 'src/lib/job-search-daily/build.ts']
+const EMAIL_SELECTION_FILES = ['src/lib/jobs/fresh-job-alerts.ts', 'src/lib/job-search-daily/build.ts', 'src/lib/jobs/email-fit-scoring.ts']
 
 describe('email job selection is unchanged by the one board', () => {
   for (const f of EMAIL_SELECTION_FILES) {
