@@ -675,3 +675,54 @@ describe('tool gaps with aliases', () => {
     expect(withAlias.map((g) => g.name)).toEqual(['Bloomberg Terminal'])
   })
 })
+
+import { bandFromOverlap, computeSkillsFit, SKILLS_FIT_LABEL } from '@/lib/careers/skills-fit'
+
+describe('skills fit', () => {
+  it('turns overlap into four bands', () => {
+    expect(bandFromOverlap(0.95)).toBe('close')
+    expect(bandFromOverlap(0.8)).toBe('good')
+    expect(bandFromOverlap(0.6)).toBe('partial')
+    expect(bandFromOverlap(0.2)).toBe('few')
+    expect(SKILLS_FIT_LABEL.close).toBe('Lines up closely')
+  })
+
+  it('says why it cannot tell instead of guessing', () => {
+    expect(computeSkillsFit({ source: accountant, target: null, haveKeywords: [] })).toEqual({ status: 'unmapped', reason: 'title' })
+    expect(computeSkillsFit({ source: null, target: analyst, haveKeywords: [] })).toEqual({ status: 'unmapped', reason: 'candidate' })
+  })
+
+  it('calls the same occupation a close fit', () => {
+    const fit = computeSkillsFit({ source: accountant, target: accountant, haveKeywords: [] })
+    expect(fit).toMatchObject({ status: 'mapped', band: 'close', targetTitle: 'Accountants and Auditors' })
+  })
+
+  it('names the tools the person lacks, in-demand first', () => {
+    const fit = computeSkillsFit({ source: accountant, target: analyst, haveKeywords: [] })
+    expect(fit.status).toBe('mapped')
+    if (fit.status === 'mapped') expect(fit.toolsToLearn).toEqual(['Bloomberg Terminal'])
+  })
+
+  it('moves a person up one band when they already use most of the role’s in-demand tools', () => {
+    const hot = (n: string) => [`tech:${n}`, el(n, 'TECHNOLOGY', 80, null, true)] as [string, OccupationElement]
+    const base = [FIN(95, 100), READ(80, 70), PEOPLE(30, 30)]
+    const target = occ('13-9999.00', 'Quant analyst', { elements: [...base, hot('a'), hot('b'), hot('c')] })
+    const src = occ('13-1111.00', 'Source', { elements: [FIN(95, 60), READ(80, 70), PEOPLE(30, 30)] })
+    const without = computeSkillsFit({ source: src, target, haveKeywords: [] })
+    const withTools = computeSkillsFit({ source: src, target, haveKeywords: [], haveSkillIds: new Set(['tech:a', 'tech:b', 'tech:c']) })
+    expect(without.status === 'mapped' && withTools.status === 'mapped').toBe(true)
+    if (without.status === 'mapped' && withTools.status === 'mapped') {
+      const order = ['few', 'partial', 'good', 'close']
+      expect(order.indexOf(withTools.band)).toBe(Math.min(order.indexOf(without.band) + 1, 3))
+    }
+  })
+
+  it('does not bump on a role with too few in-demand tools to judge', () => {
+    const hot = (n: string) => [`tech:${n}`, el(n, 'TECHNOLOGY', 80, null, true)] as [string, OccupationElement]
+    const target = occ('13-9998.00', 'T', { elements: [FIN(95, 100), READ(80, 70), hot('a')] })
+    const src = occ('13-1112.00', 'S', { elements: [FIN(95, 60), READ(80, 70)] })
+    const a = computeSkillsFit({ source: src, target, haveKeywords: [] })
+    const b = computeSkillsFit({ source: src, target, haveKeywords: [], haveSkillIds: new Set(['tech:a']) })
+    expect(a.status === 'mapped' && b.status === 'mapped' && a.band === b.band).toBe(true)
+  })
+})

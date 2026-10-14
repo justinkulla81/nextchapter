@@ -1,49 +1,59 @@
-# Career taxonomy and the Pivot Tool
+# Career taxonomy, the Pivot Tool and skills fit
 
-Public occupation data behind `/dashboard/pivot` ("Explore other roles") and the grounded skill-gap suggestions. We adopt government data rather than maintain our own taxonomy.
+Public occupation data behind `/dashboard/pivot` ("Explore other roles"), the "Skills fit" line on job cards, and the grounded skill-gap suggestions. We adopt government data rather than maintain our own taxonomy.
+
+## Scope: white-collar only
+
+Loading all ~900 O*NET occupations would add trades, retail and service work we have no tools for. By default the O*NET import keeps an occupation only if **both** hold (`src/lib/careers/scope.ts`):
+
+- its SOC group is Management (11), Business and Financial (13), Computer and Mathematical (15) or Legal (23), or one of these professional minor groups: 17-1 architects and surveyors, 17-2 engineers, 27-1 art and design, 27-3 media and communication, 41-1/41-3/41-4/41-9 sales (not 41-2 retail); and
+- O*NET puts it in **Job Zone 4 or 5** (a bachelor's degree or more, considerable preparation).
+
+The group list is a judgment call; edit `scope.ts` and re-run the import with `--prune`. `--scope all` loads everything. The dry run prints the real count (a few hundred is expected; not confirmed until the files are downloaded).
 
 ## Sources
 
-| Data | Source | Licence |
-|---|---|---|
-| Occupations, skills, knowledge, tools, alternate titles, job zones, related occupations | [O*NET database](https://www.onetcenter.org/database.html), US Department of Labor | CC BY 4.0, attribution required |
-| Median pay and employment | [BLS OEWS national estimates](https://www.bls.gov/oes/tables.htm) | Public domain |
-| Growth and annual openings | [BLS Employment Projections, table 1.2](https://www.bls.gov/emp/tables.htm) | Public domain |
-| Local openings (optional) | Adzuna, through the existing `adzuna-insights` cache | Gated by `ADZUNA_INSIGHTS_ENABLED`; needs their attribution |
+| Data | Source | What it adds | Licence |
+|---|---|---|---|
+| Skills, Knowledge, Abilities, Work Activities | [O*NET database](https://www.onetcenter.org/database.html) | importance and level for each, 0 to 100. Broad, so they separate senior roles weakly | CC BY 4.0, credit required |
+| Technology Skills | O*NET | named software and tools, with an in-demand flag. The most specific layer | same |
+| Task Statements | O*NET | what the job does day to day (core tasks shown) | same |
+| Alternate Titles, Related Occupations, Job Zones | O*NET | free-text title to occupation; adjacent roles; preparation level | same |
+| Wage percentiles and employment, nation, state, metro | [BLS OEWS](https://www.bls.gov/oes/tables.htm) | local pay; see `docs/BLS_LOCAL_DATA_SCOPE.md` | public domain |
+| Growth and openings | [BLS Employment Projections](https://www.bls.gov/emp/tables.htm), table 1.2 | outlook, typical education | public domain |
+| Local openings (optional) | Adzuna via the existing cache | postings near the person | gated by `ADZUNA_INSIGHTS_ENABLED` |
 
-O*NET asks for attribution. The Pivot Tool page names O*NET and the Department of Labor in its intro. Add the full O*NET credit line wherever the data is published beyond the dashboard.
+Attribution: every page that shows O*NET-derived content renders `OnetAttribution` (Pivot Tool, job list, skill-gap suggestions). Keep its wording; it is the licence's.
 
 ## Setup
 
-1. Create the tables (run before deploying the code that reads them):
-   `prisma/manual/2026-10-14-career-taxonomy.sql`, or `npx prisma db push` per `docs/DATABASE_SCHEMA.md`.
-2. Download the O*NET "text format" database, unzip it, and run
-   `npm run careers:import-onet -- --dir <folder> --version 30.0` (add `--dry-run` first to see counts).
-3. Download the OEWS national file and Projections table 1.2 from BLS, save each as CSV (BLS ships Excel), and run
-   `npm run careers:import-bls -- --oews <file> --wage-year 2024 --projections <file>`.
+1. Create tables (before deploying code that reads them): `prisma/manual/2026-10-14-career-taxonomy.sql`, `2026-10-14-training-matching.sql`, then `2026-10-15-career-local.sql`.
+2. `npm run careers:import-onet -- --dir <O*NET text folder> --version <n> --dry-run`, then without `--dry-run`. Add `--prune` after changing scope.
+3. `npm run careers:import-bls -- --oews national.csv --oews-state state.csv --oews-metro msa.csv --wage-year <yyyy> --projections table1_2.csv` (dry run first).
+4. `npm run careers:build-aliases -- --dry-run`, then for real. Optional and costs money: `--llm --max-calls 20` has a model draft matches for terms that match no tool. Review those rows afterwards.
+5. `npm run careers:tag-courses`, and per state `npm run careers:import-training`.
 
-Both importers are re-runnable. Until step 2 is done, the Pivot Tool shows "Occupation data isn't loaded yet" and skill-gap suggestions behave as before.
-
-## Training matching
-
-Each Pivot Tool option lists training for the gaps it shows.
-
-- **Courses.** `CourseSkill` tags catalog courses with the taxonomy tools and knowledge areas they teach. Run `npm run careers:tag-courses -- --dry-run` to preview, then without the flag. Tagging is a whole-phrase match on the course title, description and keywords (`src/lib/careers/course-tagging.ts`). It is deliberately conservative and never tags generic O*NET skills. AUTO tags are rebuilt on each run; ADMIN-source rows are kept. There is no admin screen for tags yet, so ADMIN rows would be added in SQL.
-- **Publicly funded programs.** `TrainingProgram` holds a state's WIOA Eligible Training Provider List, loaded per state with `npm run careers:import-training -- --file <csv> --state MA --source "Massachusetts ETPL, September 2026"`. States publish these lists in their own formats and not all publish them as downloads, so coverage is only the states someone has loaded; I have not verified availability for any state. Only programs that list occupation codes can be matched to a role. Run with `--dry-run` to see how many do.
-- Set up `prisma/manual/2026-10-14-training-matching.sql` first.
+All importers are re-runnable. Until step 2 is done, the Pivot Tool says occupation data isn't loaded and job cards show no skills-fit line.
 
 ## How it works
 
-- `src/lib/careers/vectors.ts`: similarity between occupations. Each occupation is a vector of O*NET skill and knowledge ratings (importance x level). Vectors are centred on the mean across all occupations first, otherwise everything scores about 0.9 against everything. "Skills in common" is a separate measure: how much of what the target asks for the current occupation already covers.
-- `src/lib/careers/pivots.ts`: ranks adjacent occupations by skill similarity only. It drops occupations more than one Job Zone below the current one, and ones below the pay floor the person chose (unknown pay is shown as unknown, never treated as a pay cut). Pay, growth and local demand are displayed beside each option, not blended into one score.
-- `src/lib/careers/title-match.ts` and `candidate-occupation.ts`: maps a job title to an occupation with no AI. Exact and clear fuzzy matches are saved; anything ambiguous is put to the candidate as a short list. Function-based fallback reuses `src/lib/market/soc-codes.ts`.
-- `src/lib/careers/grounding.ts` and `src/lib/skills/skill-gap-suggestions.ts`: the target occupation's tools and knowledge gaps are added to the skill-gap prompt, and used as the fallback list if the model call fails.
+- **Similarity** (`vectors.ts`): each occupation is a vector of rated elements (importance x level), centred on the mean across occupations, otherwise everything scores about 0.9 against everything. "Lines up with your current work" is a separate measure: how much of what the target asks for the current occupation already covers. Abilities take part in the comparison but are never offered as something to build.
+- **Pivots** (`pivots.ts`): ranked by skill similarity alone. Drops occupations more than one Job Zone below the current one and ones under the pay floor the person chose. Pay, growth and openings sit beside each option, not blended in.
+- **Local pay** (`area.ts`, `local-pay.ts`): the person's metro area if we hold it, else their state, else national; two roles are compared in the same place. Executive pay above BLS's ceiling is shown as "or more" and reported as "at least".
+- **Title to occupation** (`title-match.ts`, `candidate-occupation.ts`): no AI. Exact and clear matches against O*NET titles and alternate titles are accepted; anything ambiguous is put to the person as a short list; a job title that doesn't map is shown as "could not tell", never guessed.
+- **Alias layer** (`skill-aliases.ts`): shorthand like "SFDC" maps to the O*NET tool. Built offline into `SkillAlias`; at runtime it is a lookup, so matching costs nothing per view. Aliases of one or two characters only match a keyword exactly.
+- **Skills fit** (`skills-fit.ts`): a band (lines up closely, mostly, partly, few in common), next to the existing fit badge and not part of it. It compares occupations, not the posting's text, so it cannot see seniority or a posting's specific stack; the separate skills-gap line reads the posting. Candidates are shown bands, never raw scores, as everywhere else in the product.
+- **Skill-gap suggestions** (`grounding.ts`): the target occupation's tools and knowledge gaps are added to the prompt, so the model phrases a deterministic list; they are also the fallback if the call fails.
+- **Training** (`course-tagging.ts`, `training.ts`): catalog courses tagged to skills; state funded-program lists where loaded.
+
+## Events
+
+`pivot_tool_viewed`, `pivot_path_viewed` (per option, when scrolled into view: `fromSoc`, `toSoc`, `similarity`, `rank`, `payBasis`), `pivot_target_role_set`, `pivot_skills_added`, `pivot_occupation_confirmed`, `pivot_wage_floor_changed`, `pivot_course_clicked`, `pivot_program_clicked`, `skill_gap_viewed` (`targetSoc`, `grounded`, `source`).
 
 ## Cost and caveats
 
-- The Pivot Tool makes no model calls. The only metered change is in skill-gap suggestions: a candidate's cached suggestions regenerate once, the first time they are viewed after the taxonomy is loaded (the cache key now includes their current and target occupation). Candidates without a loaded taxonomy are unaffected.
-- "Skills in common" and the gaps describe occupations in general (typical O*NET levels), not a test of the person. The UI says so.
-- O*NET skill names ("Critical Thinking") are generic; only tools and knowledge areas are offered as skills to add to a plan.
-- BLS top-codes wages at $239,200 and suppresses small cells; those are stored as unknown. Executives' pay will often show "not published".
-- The importers were written against the documented O*NET and BLS file layouts and tested on small fixtures (`src/test/career-taxonomy.test.ts`). They have not yet been run against the full downloads. Run `--dry-run` first and check the counts (about 900 occupations).
-- The taxonomy is held in memory for an hour per server instance.
+- The Pivot Tool and skills fit make no model calls. The only metered change is skill-gap suggestions: a candidate's cached suggestions regenerate once after the taxonomy is loaded (the cache key includes their occupation). The optional `--llm` step of the alias builder is a one-time offline cost you run and cap.
+- Fit and gaps describe occupations in general, not a test of the person; the UI says so. Seniority is not in O*NET and comes from the existing level rank.
+- O*NET's broad skills barely separate one senior role from another, so for executives the tools and tasks do most of the work.
+- The importers were written against the documented O*NET and BLS file layouts and tested on small fixtures only. Run `--dry-run` first and check the counts.
+- The taxonomy and pay are held in memory for an hour per server instance.

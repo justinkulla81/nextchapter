@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { addPivotSkillsToPlan, setPivotTargetRole } from '@/app/dashboard/pivot/actions'
 import { PivotActionForm } from '@/components/dashboard/pivot/PivotActionForm'
 import { LocalDemand } from '@/components/dashboard/pivot/LocalDemand'
+import { PivotPathImpression } from '@/components/dashboard/pivot/PivotPathImpression'
 import { TrainingForOption } from '@/components/dashboard/pivot/TrainingForOption'
 import type { PivotOption } from '@/lib/careers/pivots'
+import { bandFromOverlap, SKILLS_FIT_LABEL } from '@/lib/careers/skills-fit'
 import { describePay, formatPay, OEWS_WAGE_CEILING } from '@/lib/careers/local-pay'
 
 
@@ -15,6 +17,14 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
       <dd className="text-sm font-medium text-foreground">{children}</dd>
     </div>
   )
+}
+
+// Candidates are shown bands, never precise-looking scores, so the share of skills in common is
+// reduced to four steps.
+const BAND_STEP = { few: 0, partial: 1, good: 2, close: 3 } as const
+function bandFor(overlap: number): { step: number; label: string } {
+  const band = bandFromOverlap(overlap)
+  return { step: BAND_STEP[band], label: `${SKILLS_FIT_LABEL[band]} with your current work` }
 }
 
 function payChange(option: PivotOption): string {
@@ -54,18 +64,23 @@ export function PivotOptionCard({
   stateLabel,
   stateCode,
   tasks,
+  fromSoc,
+  rank,
 }: {
   option: PivotOption
   state: string | null
   stateLabel: string
   stateCode: string | null
   tasks: string[]
+  fromSoc: string
+  rank: number
 }) {
-  const overlapPct = option.overlap === null ? null : Math.round(option.overlap * 100)
+  const overlapBand = option.overlap === null ? null : bandFor(option.overlap)
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
   const broad = option.ratedGaps.filter((g) => g.kind !== 'KNOWLEDGE')
 
   return (
+    <PivotPathImpression fromSoc={fromSoc} toSoc={option.socCode} similarity={option.similarity} rank={rank} payBasis={option.payBasis}>
     <Card>
       <CardContent className="space-y-4 pt-6">
         <div className="space-y-1">
@@ -75,12 +90,14 @@ export function PivotOptionCard({
               <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">Listed as related by O*NET</span>
             )}
           </div>
-          {overlapPct !== null && (
+          {overlapBand && (
             <div className="flex items-center gap-3">
-              <div className="h-2 w-40 rounded-full bg-muted" role="img" aria-label={`${overlapPct}% of skills in common`}>
-                <div className="h-2 rounded-full bg-foreground" style={{ width: `${Math.max(2, overlapPct)}%` }} />
+              <div className="flex gap-1" role="img" aria-label={overlapBand.label}>
+                {[0, 1, 2, 3].map((step) => (
+                  <span key={step} className={`h-2 w-8 rounded-full ${step <= overlapBand.step ? 'bg-foreground' : 'bg-muted'}`} />
+                ))}
               </div>
-              <span className="text-sm text-foreground">{overlapPct}% of skills in common</span>
+              <span className="text-sm text-foreground">{overlapBand.label}</span>
             </div>
           )}
         </div>
@@ -162,5 +179,6 @@ export function PivotOptionCard({
         </div>
       </CardContent>
     </Card>
+    </PivotPathImpression>
   )
 }

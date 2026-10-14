@@ -17,6 +17,7 @@ import { PivotOptionCard } from '@/components/dashboard/pivot/PivotOptionCard'
 import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChooser'
 import { WageFloorButtons } from '@/components/dashboard/pivot/WageFloorButtons'
 import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
+import { OnetAttribution } from '@/components/OnetAttribution'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 
 export const metadata: Metadata = { title: 'Explore other roles' }
@@ -156,13 +157,14 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
         />
       ) : (
         <div className="space-y-4">
-          {options.map((option) => (
-            <PivotOptionCard key={option.socCode} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} tasks={tasksBySoc.get(option.socCode) ?? []} />
+          {options.map((option, i) => (
+            <PivotOptionCard key={option.socCode} fromSoc={resolution.socCode} rank={i + 1} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} tasks={tasksBySoc.get(option.socCode) ?? []} />
           ))}
         </div>
       )}
 
       {isAdzunaInsightsEnabled() && <AdzunaAttribution surface="pivot_tool" />}
+      <OnetAttribution />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick, draftJobCoverNote } from '@/app/dashboard/find-my-job/actions'
+import { SKILLS_FIT_LABEL, type SkillsFit } from '@/lib/careers/skills-fit'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
@@ -130,6 +131,26 @@ function SkillGapLine({ gap }: { gap: JobSkillGap }) {
   )
 }
 
+// Next to the fit badge, never part of it: how this kind of work lines up with the person's own,
+// from O*NET. A band, not a number. A title we cannot place says so instead of guessing.
+function SkillsFitLine({ fit }: { fit: SkillsFit }) {
+  if (fit.status === 'unmapped') {
+    return (
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">Skills fit:</span>{' '}
+        {fit.reason === 'title' ? 'we could not tell what kind of work this is from its title.' : 'add your latest job title to your profile and we will compare.'}
+      </p>
+    )
+  }
+  return (
+    <p className="text-sm text-muted-foreground">
+      <span className="font-medium text-foreground">Skills fit: {SKILLS_FIT_LABEL[fit.band]}</span> with your current work, treating this as {fit.targetTitle.toLowerCase()}
+      {fit.toolsToLearn.length > 0 && `. Tools it uses that you do not show: ${fit.toolsToLearn.join(', ')}`}
+      {fit.knowledgeToBuild.length > 0 && `. Knowledge it asks more of: ${fit.knowledgeToBuild.join(', ').toLowerCase()}`}.
+    </p>
+  )
+}
+
 export function DiscoverJobCard({
   posting,
   fitBucket,
@@ -137,6 +158,7 @@ export function DiscoverJobCard({
   competition,
   contacts,
   skillGap,
+  skillsFit,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
@@ -144,6 +166,7 @@ export function DiscoverJobCard({
   competition?: CompetitionScore
   contacts?: JobContacts
   skillGap?: JobSkillGap
+  skillsFit?: SkillsFit
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -204,6 +227,7 @@ export function DiscoverJobCard({
         <p className="text-sm text-foreground">
           <span className="font-medium">Your edge:</span> {edgeTip(posting)}
         </p>
+        {skillsFit && <SkillsFitLine fit={skillsFit} />}
         {skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
         {contacts && <WhoToContact contacts={contacts} />}
 

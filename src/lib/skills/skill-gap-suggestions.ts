@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, occupationForRoleText } from '@/lib/careers/candidate-occupation'
 import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
@@ -19,7 +20,12 @@ export interface SkillGapSuggestions {
   // having regardless of target role — kept separate so a candidate who
   // already has strong AI fluency doesn't see it buried in generic gaps.
   modernSkills: string[]
+  // Present when the roleGaps were grounded in O*NET requirements for the target occupation, so the
+  // screen can credit O*NET (CC BY 4.0). Absent on suggestions made without it.
+  basis?: { source: 'onet'; targetTitle: string }
 }
+
+export type SuggestionListKey = 'resumeGaps' | 'roleGaps' | 'modernSkills'
 
 const suggestionsSchema = z.object({
   resumeGaps: z.array(z.string()).max(6),
@@ -164,7 +170,11 @@ export async function getOrGenerateSkillGapSuggestions(candidateId: string): Pro
 
   const grounding = await loadGrounding(profile)
   const fingerprint = computeFingerprint(profile, grounding)
+  const basis: SkillGapSuggestions['basis'] = grounding ? { source: 'onet', targetTitle: grounding.targetTitle } : undefined
+  const viewed = (source: 'cache' | 'generated' | 'fallback') =>
+    captureServerEvent(candidateId, 'skill_gap_viewed', { candidateId, targetSoc: grounding?.targetSoc ?? null, fromSoc: grounding?.sourceSoc ?? null, grounded: grounding !== null, source })
   if (profile.skillGapSuggestions && profile.skillGapSuggestionsFingerprint === fingerprint) {
+    viewed('cache')
     return profile.skillGapSuggestions as unknown as SkillGapSuggestions
   }
 
@@ -173,18 +183,21 @@ export async function getOrGenerateSkillGapSuggestions(candidateId: string): Pro
     // The model call failed. If O*NET named concrete tools for the target role,
     // show those rather than nothing. Not cached, so the next visit retries.
     if (grounding && grounding.tools.length > 0) {
-      return { resumeGaps: [], roleGaps: grounding.tools.slice(0, 6), modernSkills: [] }
+      viewed('fallback')
+      return { resumeGaps: [], roleGaps: grounding.tools.slice(0, 6), modernSkills: [], basis }
     }
     return null
   }
 
+  const result: SkillGapSuggestions = basis ? { ...generated, basis } : generated
   await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
-      skillGapSuggestions: generated as unknown as object,
+      skillGapSuggestions: result as unknown as object,
       skillGapSuggestionsFingerprint: fingerprint,
     },
   })
 
-  return generated
+  viewed('generated')
+  return result
 }
