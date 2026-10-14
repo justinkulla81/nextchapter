@@ -109,6 +109,16 @@ export const ROLE_FAMILY_KEYWORDS: { family: string; keywords: string[] }[] = [
 // in the M&A family. Weaker than a literal substring/word match (see
 // titleSimilarityBonus in job-fit-bucket.ts), so callers should treat this
 // as a smaller bonus, not a replacement for title-text comparison.
+/** Indexes of the role families a title names — titlesShareRoleFamily(a, b) is whether these overlap. */
+export function roleFamiliesOf(title: string): number[] {
+  const lower = title.toLowerCase()
+  const out: number[] = []
+  ROLE_FAMILY_KEYWORDS.forEach((group, i) => {
+    if (group.keywords.some((k) => lower.includes(k))) out.push(i)
+  })
+  return out
+}
+
 export function titlesShareRoleFamily(titleA: string, titleB: string): boolean {
   const a = titleA.toLowerCase()
   const b = titleB.toLowerCase()

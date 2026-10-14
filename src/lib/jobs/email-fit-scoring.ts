@@ -1,6 +1,6 @@
 import 'server-only'
 import type { CompanySizeBand } from '@prisma/client'
-import { computeBoardListingFitBucket, isVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket'
+import { boardListingFitBucketScorer, computeBoardListingFitBucket, isVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket'
 import { legacyComputeBoardListingFitBucket, legacyIsVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket-legacy'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 
@@ -29,6 +29,19 @@ export function boardListingFitBucketFor(
   return version === 'v2'
     ? computeBoardListingFitBucket(candidate, posting, companySizeBand)
     : legacyComputeBoardListingFitBucket(candidate, posting, companySizeBand)
+}
+
+/**
+ * boardListingFitBucketFor over many board light rows (no description): v2
+ * prepares the member once and each row once (rows must not change after);
+ * legacy scores each pair exactly as boardListingFitBucketFor does.
+ */
+export function boardListingFitBucketScorerFor(
+  version: FitScoringVersion,
+  candidate: Candidate
+): (posting: Omit<Posting, 'description'>) => FitBucket {
+  if (version === 'v2') return boardListingFitBucketScorer(candidate)
+  return (posting) => legacyComputeBoardListingFitBucket(candidate, { ...posting, description: null })
 }
 
 export function isVeryStrongBoardFitFor(

@@ -8,7 +8,7 @@ import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
-import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
+import { roleFamiliesOf } from '@/lib/constants/role-family-keywords'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
@@ -208,8 +208,10 @@ export function levelStep(
   posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>,
   fallbackLevel?: string | null
 ): LevelStep {
-  const window = memberLevelWindow(c)
-  const job = postingLevelPoints(posting, fallbackLevel)
+  return levelStepFromPoints(memberLevelWindow(c), postingLevelPoints(posting, fallbackLevel))
+}
+
+function levelStepFromPoints(window: { lo: number; hi: number } | null, job: number | null): LevelStep {
   if (!window || job === null) return 'unknown'
   const gap = job < window.lo ? (job - window.lo) / STEP_POINTS : job > window.hi ? (job - window.hi) / STEP_POINTS : 0
   if (gap >= 1.6) return 'big_up'
@@ -267,12 +269,10 @@ function memberFunctions(c: FitCandidate): { own: string[]; secondary: string[] 
 
 export type FunctionFit = 'own' | 'secondary' | 'other' | 'unknown'
 
-function functionFit(c: FitCandidate, posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): FunctionFit {
-  const jobFns = postingFunctions(posting).map((f) => f.toLowerCase())
-  if (jobFns.length === 0) return 'unknown'
-  const mine = memberFunctions(c)
-  if (jobFns.some((f) => mine.own.includes(f))) return 'own'
-  if (jobFns.some((f) => mine.secondary.includes(f))) return 'secondary'
+function functionFit(m: FitCandidateContext, j: FitPostingContext): FunctionFit {
+  if (j.jobFns.length === 0) return 'unknown'
+  if (j.jobFns.some((f) => m.own.includes(f))) return 'own'
+  if (j.jobFns.some((f) => m.secondary.includes(f))) return 'secondary'
   return 'other'
 }
 
@@ -326,22 +326,21 @@ function significantWords(text: string): string[] {
 // role family (role-family-keywords.ts). A one-word target ("Director of
 // Product" -> "product") counts when the job's function agrees, so a
 // "Product Marketing Director" doesn't match "Director of Product".
-function titleSimilarityBonus(c: FitCandidate, posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): number {
-  if (!hasSpecificTarget(c)) return 0
-  const target = expandExecAcronyms(c.targetRoleType!.trim())
-  const title = expandExecAcronyms(posting.title)
+function titleSimilarityBonus(m: FitCandidateContext, j: FitPostingContext): number {
+  if (!m.specificTarget) return 0
+  const target = m.target
   if (!target) return 0
+  const { title, titleWords, titleFamilies } = titleParts(j)
   if (title === target) return 20
   if (title.includes(target) || (title.length >= 8 && target.includes(title))) return 16
-  const targetWords = [...new Set(significantWords(target))]
-  const titleWords = new Set(significantWords(title))
+  const targetWords = m.targetWords
   const shared = targetWords.filter((w) => titleWords.has(w)).length
-  const sameFamily = titlesShareRoleFamily(target, title)
+  // titlesShareRoleFamily(target, title), from each side's families.
+  const sameFamily = m.targetFamilies.some((f) => titleFamilies.includes(f))
   let wordOverlap = 0
   if (targetWords.length === 1 && shared === 1) {
-    const targetFns = titleFunctions(target).map((f) => f.toLowerCase())
-    const jobFns = postingFunctions(posting).map((f) => f.toLowerCase())
-    wordOverlap = sameFamily || targetFns.length === 0 || jobFns.some((f) => targetFns.includes(f)) ? 16 : 0
+    const targetFns = m.targetFns
+    wordOverlap = sameFamily || targetFns.length === 0 || j.jobFns.some((f) => targetFns.includes(f)) ? 16 : 0
   } else if (targetWords.length > 0) {
     wordOverlap = Math.round((shared / targetWords.length) * 16)
   }
@@ -375,19 +374,14 @@ const SHARED_METRO_STATES: Record<string, string[]> = {
   RI: ['MA'],
 }
 
-function placeFit(c: FitCandidate, posting: FitPostingLike): PlaceFit {
-  if (postingIsRemote(posting)) return 'remote'
-  const location = posting.targetLocation ?? posting.location ?? ''
-  const jobStates = statesFromLocation(location).states
-  // Whole words only: a plain substring test read "CA" inside "North Carolina".
-  const word = (needle: string) => new RegExp(`(^|[^a-z])${needle.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
-  const cityHit = !!c.currentCity?.trim() && c.currentCity.trim().toLowerCase() !== 'remote' && word(c.currentCity).test(location)
-  if (jobStates.length === 0 && !cityHit) return 'unknown'
-  const homeStates = statesFromLocation([c.currentCity, c.currentState].filter(Boolean).join(', ')).states
-  const myStates = [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? [])]
-  if (cityHit || jobStates.some((s) => myStates.includes(s))) return 'local'
-  if (c.remotePreference === 'remote') return 'no'
-  if (c.openToRelocation) return 'relocation'
+function placeFit(m: FitCandidateContext, j: FitPostingContext): PlaceFit {
+  if (j.remote) return 'remote'
+  const cityHit = m.cityWord !== null && m.cityWord.test(j.placeLocation)
+  if (j.jobStates.length === 0 && !cityHit) return 'unknown'
+  const myStates = m.myStates
+  if (cityHit || j.jobStates.some((s) => myStates.includes(s))) return 'local'
+  if (m.c.remotePreference === 'remote') return 'no'
+  if (m.c.openToRelocation) return 'relocation'
   if (myStates.length === 0) return 'unknown'
   return 'no'
 }
@@ -417,17 +411,13 @@ function industryPhrases(c: Pick<FitCandidate, 'targetIndustries' | 'industryCon
   return [...new Set(phrases.map((p) => p.trim()).filter((p) => p.length >= 4))]
 }
 
-function matchesTargetIndustry(c: FitCandidate, postingText: string): boolean {
-  const phrases = industryPhrases(c)
-  if (phrases.length === 0) return false
-  const lower = postingText.toLowerCase()
-  return phrases.some((p) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(lower))
+// industryText: the posting's title, description and location, lowercased.
+function matchesTargetIndustry(m: FitCandidateContext, industryTextLower: string): boolean {
+  return m.industryWords.some((re) => re.test(industryTextLower))
 }
 
-function keywordBonus(resumeKeywords: string[], postingText: string): number {
-  if (!resumeKeywords?.length) return 0
-  const lower = postingText.toLowerCase()
-  const hits = resumeKeywords.filter((kw) => kw && lower.includes(kw.toLowerCase())).length
+function keywordBonus(m: FitCandidateContext, postingTextLower: string): number {
+  const hits = m.keywords.filter((kw) => postingTextLower.includes(kw)).length
   return Math.min(8, hits * 2)
 }
 
@@ -439,14 +429,13 @@ function parseMinYearsRequired(text: string): number | null {
   return Number.isNaN(years) ? null : years
 }
 
-function yearsBonus(candidateYears: number | null, postingText: string): number {
-  const required = parseMinYearsRequired(postingText)
+function yearsBonus(candidateYears: number | null, required: number | null): number {
   if (required === null || candidateYears === null) return 2
   if (candidateYears >= required) return 5
   return candidateYears >= required - 2 ? 2 : 0
 }
 
-function payPoints(c: FitCandidate, posting: FitPostingLike): number {
+function payPoints(c: FitCandidate, posting: Pick<FitPostingLike, 'salaryMax'>): number {
   if (c.targetCompMin == null || posting.salaryMax == null) return 0
   if (posting.salaryMax >= c.targetCompMin) return Math.round(5 * priorityMultiplier(c.priorityMaxComp))
   return c.compFlexible ? 0 : -10
@@ -465,27 +454,157 @@ export interface FitAssessment {
   cappedBy: 'credential' | 'place' | 'function' | 'level' | 'target_role' | null
 }
 
+// ── Prepared inputs ──────────────────────────────────────────────────────────
+//
+// Everything the score reads from only one side, worked out once: the
+// member's side once per member, the posting's once per posting. The board
+// scores one member against every live job (150k+), so redoing the member's
+// side (and re-reading each job's title) per pair was most of a board render.
+// computeFitAssessment below goes through the same two steps, so there is one
+// implementation of the score.
+
+interface FitCandidateContext {
+  c: FitCandidate
+  window: { lo: number; hi: number } | null
+  own: string[]
+  secondary: string[]
+  specificTarget: boolean
+  // The named role, acronyms expanded ('' when none or vague).
+  target: string
+  targetWords: string[]
+  targetFns: string[]
+  // Role families the named role is in (role-family-keywords.ts).
+  targetFamilies: number[]
+  industryWords: RegExp[]
+  // Resume keywords, lowercased.
+  keywords: string[]
+  // Whole-word match on the member's city, null when there's no usable city.
+  cityWord: RegExp | null
+  myStates: string[]
+}
+
+// c: already normalized (normalizeCandidateProfileFields).
+function candidateContext(c: FitCandidate): FitCandidateContext {
+  const specificTarget = hasSpecificTarget(c)
+  const target = specificTarget ? expandExecAcronyms(c.targetRoleType!.trim()) : ''
+  const { own, secondary } = memberFunctions(c)
+  const city = c.currentCity?.trim()
+  const homeStates = statesFromLocation([c.currentCity, c.currentState].filter(Boolean).join(', ')).states
+  return {
+    c,
+    window: memberLevelWindow(c),
+    own,
+    secondary,
+    specificTarget,
+    target,
+    targetWords: target ? [...new Set(significantWords(target))] : [],
+    targetFns: target ? titleFunctions(target).map((f) => f.toLowerCase()) : [],
+    targetFamilies: target ? roleFamiliesOf(target) : [],
+    industryWords: industryPhrases(c).map((p) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`)),
+    keywords: (c.resumeKeywords ?? []).filter((kw) => !!kw).map((kw) => kw.toLowerCase()),
+    // Whole words only: a plain substring test read "CA" inside "North Carolina".
+    cityWord:
+      city && city.toLowerCase() !== 'remote'
+        ? new RegExp(`(^|[^a-z])${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
+        : null,
+    myStates: [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? [])],
+  }
+}
+
+type FitPostingInput = Omit<FitPostingLike, 'description' | 'companySizeBand'> & { description?: string | null }
+
+interface FitPostingContext {
+  titleRaw: string
+  postingText: string
+  postingTextLower: string
+  // Title, description and location, lowercased — what industries are matched against.
+  industryTextLower: string
+  jobFns: string[]
+  // The job's level points with no fallback level (the board's case).
+  levelPoints: number | null
+  remote: boolean
+  placeLocation: string
+  jobStates: string[]
+  // The title, acronyms expanded, and its significant words — only needed for a
+  // member who named a role, so worked out on first use (titleParts).
+  title?: string
+  titleWords?: Set<string>
+  titleFamilies?: number[]
+  credential: ReturnType<typeof detectRequiredCredential>
+  minYears: number | null
+}
+
+// Location -> US states it names. Locations repeat across jobs (~30k distinct over
+// the 150k-job board), so remembered, up to a bound.
+const STATES_MEMO_MAX = 100_000
+const statesMemo = new Map<string, string[]>()
+function jobStatesOf(location: string): string[] {
+  let states = statesMemo.get(location)
+  if (!states) {
+    states = statesFromLocation(location).states
+    if (statesMemo.size >= STATES_MEMO_MAX) statesMemo.clear()
+    statesMemo.set(location, states)
+  }
+  return states
+}
+
+function titleParts(j: FitPostingContext): { title: string; titleWords: Set<string>; titleFamilies: number[] } {
+  if (j.title === undefined || j.titleWords === undefined || j.titleFamilies === undefined) {
+    j.title = expandExecAcronyms(j.titleRaw)
+    j.titleWords = new Set(significantWords(j.title))
+    j.titleFamilies = roleFamiliesOf(j.title)
+  }
+  return { title: j.title, titleWords: j.titleWords, titleFamilies: j.titleFamilies }
+}
+
+function postingContext(posting: FitPostingInput): FitPostingContext {
+  const postingText = `${posting.title} ${posting.description ?? ''}`
+  const placeLocation = posting.targetLocation ?? posting.location ?? ''
+  return {
+    titleRaw: posting.title,
+    postingText,
+    postingTextLower: postingText.toLowerCase(),
+    industryTextLower: `${postingText} ${posting.location ?? ''}`.toLowerCase(),
+    jobFns: postingFunctions(posting).map((f) => f.toLowerCase()),
+    levelPoints: postingLevelPoints(posting),
+    remote: postingIsRemote({ ...posting, description: posting.description ?? null }),
+    placeLocation,
+    jobStates: jobStatesOf(placeLocation),
+    credential: detectRequiredCredential(postingText),
+    minYears: parseMinYearsRequired(postingText),
+  }
+}
+
 export function computeFitAssessment(
   candidateIn: FitCandidate,
   posting: FitPostingLike,
   fallbackLevel?: string | null
 ): FitAssessment {
-  const c = normalizeCandidateProfileFields(candidateIn)
-  const postingText = `${posting.title} ${posting.description ?? ''}`
-  const fn = functionFit(c, posting)
-  const level = levelStep(c, posting, fallbackLevel)
-  const place = placeFit(c, posting)
-  const titleBonus = titleSimilarityBonus(c, posting)
-  const industryMatch = matchesTargetIndustry(c, `${postingText} ${posting.location ?? ''}`)
+  return assessFit(candidateContext(normalizeCandidateProfileFields(candidateIn)), postingContext(posting), posting, fallbackLevel)
+}
+
+function assessFit(
+  m: FitCandidateContext,
+  j: FitPostingContext,
+  posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level' | 'targetFunction' | 'salaryMax'> & { companySizeBand?: CompanySizeBand | null },
+  fallbackLevel?: string | null
+): FitAssessment {
+  const c = m.c
+  const fn = functionFit(m, j)
+  // No fallback level reads the same as none (postingLevelPoints), so the prepared points stand.
+  const level = levelStepFromPoints(m.window, fallbackLevel ? postingLevelPoints(posting, fallbackLevel) : j.levelPoints)
+  const place = placeFit(m, j)
+  const titleBonus = titleSimilarityBonus(m, j)
+  const industryMatch = matchesTargetIndustry(m, j.industryTextLower)
   const base = { functionFit: fn, level, place, titleBonus, industryMatch }
 
   // A law-firm attorney or hospital physician posting is not a fit without
   // the license, whatever else lines up.
-  if (!candidateMeetsCredentialGate(c, detectRequiredCredential(postingText))) return { ...base, score: 0, cappedBy: 'credential' }
+  if (!candidateMeetsCredentialGate(c, j.credential)) return { ...base, score: 0, cappedBy: 'credential' }
 
   // A member with no specific target ("Flexible") has told us their function
   // is the role — a job in it gets the credit a named role's title would.
-  const roleCredit = hasSpecificTarget(c) ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
+  const roleCredit = m.specificTarget ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
 
   let score =
     FUNCTION_POINTS[fn] +
@@ -493,8 +612,8 @@ export function computeFitAssessment(
     PLACE_POINTS[place] +
     roleCredit +
     (industryMatch ? Math.round(10 * priorityMultiplier(c.priorityMission)) : 0) +
-    keywordBonus(c.resumeKeywords, postingText) +
-    yearsBonus(c.yearsExperience, postingText) +
+    keywordBonus(m, j.postingTextLower) +
+    yearsBonus(c.yearsExperience, j.minYears) +
     payPoints(c, posting) +
     companySizeMatchBonus(c, posting.companySizeBand)
   score = Math.max(0, Math.min(100, score))
@@ -522,7 +641,7 @@ export function computeFitAssessment(
   // it can still be a lateral fit on function, never an on-target one. Not
   // applied to a recruiter-targeted posting (targetFunction set) — a human
   // already paired the two.
-  if (posting.targetFunction == null && hasSpecificTarget(c) && titleBonus === 0) cap(STRONG_FIT_THRESHOLD - 1, 'target_role')
+  if (posting.targetFunction == null && m.specificTarget && titleBonus === 0) cap(STRONG_FIT_THRESHOLD - 1, 'target_role')
 
   return { ...base, score, cappedBy }
 }
@@ -562,6 +681,31 @@ export function computeBoardListingFitBucket(
   return bucketFromAssessment(computeFitAssessment(candidate, { ...posting, companySizeBand }))
 }
 
+// Each posting's own side of the score, kept per posting object. Only for
+// postings that are never changed after they are scored — the board's shared,
+// read-only light rows (board-shortlist.ts).
+const preparedPostings = new WeakMap<object, FitPostingContext>()
+
+/**
+ * computeBoardListingFitBucket for one member against many board postings
+ * (no description, no company size — the board's light rows): the member's
+ * side is worked out once, and each posting's side once per posting object,
+ * then reused by every later scorer. Same bucket as computeBoardListingFitBucket
+ * (board-fit-scorer.test.ts). Postings must not be changed after scoring.
+ */
+export function boardListingFitBucketScorer(candidate: FitCandidate): (posting: FitPostingInput) => FitBucket {
+  const m = candidateContext(normalizeCandidateProfileFields(candidate))
+  return (posting) => {
+    let j = preparedPostings.get(posting)
+    if (!j) {
+      j = postingContext(posting)
+      preparedPostings.set(posting, j)
+    }
+    // A light row carries no company size, which reads as unknown.
+    return bucketFromAssessment(assessFit(m, j, posting))
+  }
+}
+
 // The bar for an instant alert email — deliberately far above "strong":
 // founder's call is fewer, better alerts over more, merely-OK ones. All of:
 // a fit score of VERY_STRONG_FIT_SCORE+, a place that works (local, a remote
@@ -594,10 +738,10 @@ export function isVeryStrongBoardFit(candidate: FitCandidate, posting: BoardPost
 // "Ideal" match (find-my-job tiering): the posting names one of the member's
 // industries and the place works without a move.
 function isIdealMatch(candidate: FitCandidate, posting: FitPostingLike): boolean {
-  const c = normalizeCandidateProfileFields(candidate)
-  const postingText = `${posting.title} ${posting.description ?? ''} ${posting.location ?? ''}`
-  const place = placeFit(c, posting)
-  return matchesTargetIndustry(c, postingText) && (place === 'local' || place === 'remote')
+  const m = candidateContext(normalizeCandidateProfileFields(candidate))
+  const j = postingContext(posting)
+  const place = placeFit(m, j)
+  return matchesTargetIndustry(m, j.industryTextLower) && (place === 'local' || place === 'remote')
 }
 
 // Ideal-vs-broader tiering (see isIdealMatch above) for a board listing —
