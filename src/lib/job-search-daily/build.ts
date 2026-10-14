@@ -2,6 +2,7 @@ import 'server-only'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
@@ -184,8 +185,10 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     where: { createdAt: { gte: jobsSince } },
     size: 200,
     fitScoring,
+    // Mid-level jobs stay out of emails until the owner turns on MID_LEVEL_IN_EMAILS.
+    includeMidLevel: midLevelInEmails(),
   })
-  const postings = [...shortlist.open, ...shortlist.locked]
+  const postings = emailSafeJobs([...shortlist.open, ...shortlist.locked])
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
     const bucket = boardListingFitBucketFor(fitScoring, candidate, p)

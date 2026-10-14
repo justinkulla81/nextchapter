@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 /**
  * Narrows a job list to one seniority group (job-seniority.ts) through the
  * `seniority` URL parameter, so the server renders only matching jobs and
- * the choice survives a reload or a shared link. Seven choices, so a
+ * the choice survives a reload or a shared link. Eight choices, so a
  * select rather than buttons.
  */
 export function SeniorityFilter({ surface }: { surface: string }) {

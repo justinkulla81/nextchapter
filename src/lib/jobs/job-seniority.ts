@@ -141,7 +141,7 @@ function ladder(title: string): { rung: RungName; rank: number } {
   return { rung: 'OTHER', rank: 0 }
 }
 
-/** The six seniority groups shown to people, most senior first. */
+/** The seniority groups shown to people, most senior first. */
 export const SENIORITY_GROUPS = [
   { key: 'EXECUTIVE', label: 'Executive' },
   { key: 'VP', label: 'VP & Head of' },
@@ -149,6 +149,7 @@ export const SENIORITY_GROUPS = [
   { key: 'SENIOR_MANAGER', label: 'Senior manager' },
   { key: 'MANAGER', label: 'Manager' },
   { key: 'SENIOR_IC', label: 'Senior individual' },
+  { key: 'MID_LEVEL', label: 'Mid-level' },
 ] as const
 
 export type SeniorityGroup = (typeof SENIORITY_GROUPS)[number]['key']
@@ -167,6 +168,7 @@ const GROUP_OF_RUNG: Partial<Record<RungName, SeniorityGroup>> = {
   SR_MANAGER: 'SENIOR_MANAGER',
   MANAGER: 'MANAGER',
   SENIOR_IC: 'SENIOR_IC',
+  MID_IC: 'MID_LEVEL',
 }
 
 /** The group a stored `level` (a rung name) belongs to; null for unknown or below the floor. */
@@ -201,7 +203,8 @@ export function candidateScaleLevel(level: string | null | undefined): string | 
     case 'DIRECTOR': return 'Director'
     case 'SENIOR_MANAGER':
     case 'MANAGER': return 'Manager'
-    case 'SENIOR_IC': return 'IC'
+    case 'SENIOR_IC':
+    case 'MID_LEVEL': return 'IC'
     default: return null
   }
 }
@@ -210,8 +213,17 @@ export function candidateScaleLevel(level: string | null | undefined): string | 
  * The verdict an automated feed applies: the level to store, or why the job
  * is screened out.
  */
-export function screenJobTitle(title: string, opts: ClassifyOptions = {}): { keep: true; level: RungName } | { keep: false; reason: string } {
+export function screenJobTitle(
+  title: string,
+  opts: ClassifyOptions & { floor?: number } = {}
+): { keep: true; level: RungName } | { keep: false; reason: string } {
   const { rung, rank } = classifyTitleRung(title, opts)
-  if (rank >= MANAGER_FLOOR) return { keep: true, level: rung }
-  return { keep: false, reason: 'below seniority floor (manager and up, plus senior individual roles)' }
+  const floor = opts.floor ?? MANAGER_FLOOR
+  if (rank >= floor) return { keep: true, level: rung }
+  return {
+    keep: false,
+    reason: floor <= MID_IC_FLOOR
+      ? 'below seniority floor (mid-level professional and up)'
+      : 'below seniority floor (manager and up, plus senior individual roles)',
+  }
 }

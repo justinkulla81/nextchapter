@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
+import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
@@ -52,13 +53,15 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     where: postedWithinWhere(WINDOW_HOURS),
     size: 30,
     fitScoring,
+    // Mid-level jobs stay out of emails until the owner turns on MID_LEVEL_IN_EMAILS.
+    includeMidLevel: midLevelInEmails(),
   })
   const [alerted, shownDaily] = await Promise.all([
     prisma.freshJobAlertSend.findMany({ where: { candidateId }, select: { postingId: true } }),
     prisma.jobSearchDailyItem.findMany({ where: { candidateId, itemKey: { startsWith: 'job:' } }, select: { itemKey: true } }),
   ])
   const skip = new Set([...alerted.map((a) => a.postingId), ...shownDaily.map((d) => d.itemKey.slice(4))])
-  const jobs = board.open
+  const jobs = emailSafeJobs(board.open)
     .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }

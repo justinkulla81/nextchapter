@@ -13,6 +13,7 @@ import { classifyLocation } from '@/lib/jobs/us-location'
 import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
+import { EXCLUDE_MID_LEVEL_WHERE } from '@/lib/jobs/mid-level'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -137,13 +138,17 @@ export async function loadBoardShortlist(opts: {
   size?: number
   view?: BoardView
   fitScoring?: FitScoringVersion
+  /** Include mid-level (MID_IC) jobs. Off by default — every email path relies on that (mid-level.ts). */
+  includeMidLevel?: boolean
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
   // in the database — this filters the view, it deletes nothing — and the board
   // totals below are computed over what is kept, so they match what is shown.
-  const light = await loadLightBoardRows(opts.where, closedCounts)
+  // The level window is part of the query (and so of the light-row cache key):
+  // members who don't see mid-level jobs don't pay to load them.
+  const light = await loadLightBoardRows(boardLevelWindowWhere(opts.where, opts.includeMidLevel), closedCounts)
   const ranked = rankBoardRows(light, opts)
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
@@ -159,6 +164,14 @@ export async function loadBoardShortlist(opts: {
     lowCompetitionOpenTotal: ranked.lowCompetitionOpenTotal,
     countByCompany: ranked.countByCompany,
   }
+}
+
+/** The board query's level window: mid-level (MID_IC) jobs only when asked for. */
+export function boardLevelWindowWhere(
+  where: Prisma.ExclusiveJobPostingWhereInput | undefined,
+  includeMidLevel?: boolean
+): Prisma.ExclusiveJobPostingWhereInput | undefined {
+  return includeMidLevel ? where : { AND: [where ?? {}, EXCLUDE_MID_LEVEL_WHERE] }
 }
 
 export type BoardRankRow = LightRow

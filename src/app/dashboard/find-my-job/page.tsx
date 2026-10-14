@@ -32,6 +32,7 @@ import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSect
 import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
+import { midLevelRelevantFor } from '@/lib/jobs/mid-level'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -711,6 +712,8 @@ async function FindMyJobBody({
       isCandidatePlus,
       where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
       view: boardView,
+      // Mid-level jobs: for manager / senior-individual / pivoting members, or anyone who picks "Mid-level".
+      includeMidLevel: seniorityGroup ? seniorityGroup === 'MID_LEVEL' : midLevelRelevantFor(profile),
     }),
     isCandidatePlus ? getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),

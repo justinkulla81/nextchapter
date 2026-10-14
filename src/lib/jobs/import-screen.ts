@@ -1,10 +1,13 @@
-import { screenJobTitle, type ClassifyOptions } from '@/lib/jobs/job-seniority'
+import { MID_IC_FLOOR, screenJobTitle, type ClassifyOptions } from '@/lib/jobs/job-seniority'
 import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 
 // The screen every automated job source passes (the ncrawl import and the crawler
 // history backfill): US (or remote) only, manager-and-up plus senior individual
 // roles, with the level taken from our own reading of the title.
+
+/** Lowest rank an imported job may have: mid-level professional roles (MID_IC) and up. */
+export const IMPORT_SENIORITY_FLOOR = MID_IC_FLOOR
 
 // Some sources fill unknown locations with placeholders ("UNAVAILABLE").
 export function cleanJobLocation(raw: string | null | undefined): string | null {
@@ -33,7 +36,7 @@ export function screenImportedJob(
   // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
   const location = cleanJobLocation(rawLocation)
   if (!isUsLocation(location) || namesNonUsPlace(title, location, NON_US)) return { keep: false, reason: 'outside the US' }
-  const verdict = screenJobTitle(title, opts)
+  const verdict = screenJobTitle(title, { ...opts, floor: IMPORT_SENIORITY_FLOOR })
   if (!verdict.keep) return { keep: false, reason: verdict.reason }
   return { keep: true, level: verdict.level, location }
 }
