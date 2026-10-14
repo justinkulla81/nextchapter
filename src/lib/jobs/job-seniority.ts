@@ -6,6 +6,11 @@ import {
   LADDER,
   LOWER_LADDER,
   MANAGER_FLOOR,
+  MID_EXCLUDE,
+  MID_GRADE_VETO,
+  MID_IC,
+  MID_IC_FLOOR,
+  MID_IC_RANK,
   NEGATIVE,
   REPORTING_REF_GLOBAL,
   RUNG_VETO,
@@ -29,7 +34,7 @@ import {
  */
 
 export type { RungName }
-export { MANAGER_FLOOR }
+export { MANAGER_FLOOR, MID_IC_FLOOR }
 
 const JUNIOR_PREFIX = /\b(junior|jr\.?)\s/i
 const STRIP_EDGES = /^[ ,\-–—]+|[ ,\-–—]+$/g
@@ -51,9 +56,26 @@ const GRADE_RANK: Record<number, { rung: RungName; rank: number }> = {
 export function classifyTitleRung(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
   const m = rawTitle ? GRADE.exec(rawTitle) : null
   if (!m || !rawTitle) return classifyTitleOnly(rawTitle)
-  const base = classifyTitleOnly(rawTitle.slice(0, m.index).trim())
-  const grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
+  const bare = rawTitle.slice(0, m.index).trim()
+  let base = classifyTitleOnly(bare)
+  let grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
+  if (!m[3]) {
+    const n = Number(m[2])
+    const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
+    // GS-11/12: mid-level professional, unless the series is uniformed,
+    // clinical-floor or frontline (or the title screens itself out).
+    if (gs && (n === 11 || n === 12) && !MID_GRADE_VETO.test(bare) && !FRONTLINE.test(bare) && !NEGATIVE.test(bare)) {
+      grade = { rung: 'MID_IC', rank: MID_IC_RANK }
+    }
+    // GS-10 and below are the federal entry grades: the title alone must not lift them to mid-level.
+    if (gs && n <= 10 && base.rung === 'MID_IC') base = { rung: 'OTHER', rank: 0 }
+  }
   return grade.rank > base.rank ? grade : base
+}
+
+/** Mid-level professional allowlist (ncrawl/taxonomy.py MID_IC), minus entry/support/frontline markers. */
+function isMidIc(title: string): boolean {
+  return MID_IC.test(title) && !MID_EXCLUDE.test(title)
 }
 
 function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungName; rank: number } {
@@ -75,13 +97,18 @@ function classifyTitleOnly(rawTitle: string | null | undefined): { rung: RungNam
   // A senior-prefixed professional title ("Senior Financial Analyst") is a
   // senior individual role even though its bare noun reads entry-level.
   const seniorIc = LOWER_LADDER[0].pattern.test(title)
-  if (JUNIOR.test(title) && !JUNIOR_EXEMPT.test(title) && !seniorIc) return { rung: 'OTHER', rank: 0 }
+  // "Financial Analyst" reads entry-level to the JUNIOR screen; the mid-level
+  // allowlist rescues the professional ones.
+  if (JUNIOR.test(title) && !JUNIOR_EXEMPT.test(title) && !seniorIc) {
+    return isMidIc(title) ? { rung: 'MID_IC', rank: MID_IC_RANK } : { rung: 'OTHER', rank: 0 }
+  }
   for (const { name, rank, pattern } of [...LADDER, ...LOWER_LADDER]) {
     if (!pattern.test(title)) continue
     const veto = RUNG_VETO[name]
     if (veto && veto.test(title)) continue
     return { rung: name, rank }
   }
+  if (isMidIc(title)) return { rung: 'MID_IC', rank: MID_IC_RANK }
   return { rung: 'OTHER', rank: 0 }
 }
 

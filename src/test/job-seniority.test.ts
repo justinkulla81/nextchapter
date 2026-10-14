@@ -22,6 +22,16 @@ describe('job seniority', () => {
     }
   })
 
+  it('tags mid-level professional roles MID_IC, still below the manager floor', () => {
+    for (const title of ['Financial Analyst', 'Software Engineer', 'Accountant', 'Data Scientist', 'Program Analyst (GS-12)']) {
+      expect(classifyTitleRung(title).rung, title).toBe('MID_IC')
+      expect(screenJobTitle(title).keep, title).toBe(false)
+    }
+    for (const title of ['Software Engineer I', 'Junior Accountant', 'Associate Consultant', 'Help Desk Analyst', 'Contract Specialist (GS-9)', 'Police Officer (GS-11)']) {
+      expect(classifyTitleRung(title).rung, title).toBe('OTHER')
+    }
+  })
+
   it('groups rungs for display', () => {
     expect(seniorityGroupOf('C_SUITE')).toBe('EXECUTIVE')
     expect(seniorityGroupOf('HEAD')).toBe('VP')
