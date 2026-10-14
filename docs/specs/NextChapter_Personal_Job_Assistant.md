@@ -175,3 +175,42 @@ The long form ("Victoria, the NextChapter AI Personal Assistant") is a descripti
 - Chapter / Next: product-ish rather than a person, and weaker on the relationship the memory is built on.
 
 Always disclose that Vic is AI, as the current persona does. Checks still needed: trademark and app-store name clearance, and confirm "Vic" in `IDEAS.md` (the homepage video note) doesn't refer to a real person who would be confused with the assistant.
+
+## 14. Ideas for helping candidates land, by journey
+
+The code defines **eight** journeys (`JourneyType` in `prisma/schema.prisma`) and seven stages (Exploring → Landed). If a ninth is planned, it isn't in the repo yet; see the question at the end. Existing assets named below were found in the schema or `src/lib`; confirm each before building on it.
+
+### Ideas that help every journey (best first)
+
+1. **Hidden-market radar with a warm path.** Watch target companies for signals that precede a posting (funding, new office, executive departure, layoff at a competitor, a hiring manager's post). When one fires, Vic says: "Acme just raised a round and its VP Ops left. Here is the person you know who knows the team, and a three-line note." Builds on `CompanySignal`, `likely-openings`, `CompanyWatchlistEntry`, the support network. Beats job boards because you arrive before the posting exists.
+2. **Reply-first inbox.** Every recruiter or hiring-team email gets a drafted reply within minutes, plus the decision it needs ("they want Thursday 2pm; you have a conflict, here are two alternatives"). Speed to reply is one of the few things a candidate controls entirely.
+3. **Ghost resolver.** When a thread goes quiet, Vic works out the *second channel* (recruiter silent → hiring manager or an alum), drafts it, and enforces the one-follow-up limit. Replaces "should I follow up?" anxiety with a move.
+4. **One-tap posting packet.** Share any posting to Vic and get: honest fit verdict, the gap, a tailored résumé variant for approval, who you know there, and the three-line pitch. Quality over volume, matching the platform's stance on mass-apply.
+5. **Ex-employee door-openers.** Match each target company to people in NextChapter who used to work there (`MemberEmployment`, ex-company communities) and ask them, double opt-in, for a 15-minute chat or referral. Alumni of the same company are the warmest cold contact a candidate has.
+6. **Rejection-to-targeting loop.** Classify each rejection and stall point (no reply, screen, hiring manager, final). When a pattern appears ("four of six stalled at the hiring-manager screen"), change the plan: pitch practice, not more applications.
+7. **Interview rehearsal on the commute.** Voice mock interview built from the actual posting and interviewer context; Vic scores structure and specificity, saves the best answers to the story bank for reuse.
+8. **Reference concierge.** Ask references at the right stage, brief them on what *this* role needs, and chase politely (`Reference` flow exists).
+9. **Runway-aware pacing.** Money pillar feeds the plan: 6 weeks of runway changes advice (bridge gigs now, wider net) versus 9 months.
+
+### By journey
+
+| Journey | Biggest unmet need | Vic's play |
+|---|---|---|
+| **Laid off** | The first 72 hours, and being alone | A day-1 checklist (severance questions, benefit deadlines, lock in references before colleagues scatter, draft the announcement post). Connect people laid off from the same company (`LayoffCohort`): swap references and introductions into one another's new employers. |
+| **Ready for a new job** (confidential) | Searching without being seen | Stealth mode: warns when a profile edit or Open-to-Work toggle would notify the network, proposes off-hours interview slots, uses personal email only, and prepares counter-offer readiness. |
+| **Thinking about a move** | Knowing the market before needing it | A 15-minute-a-week market-value monitor; watches the *own* employer for layoff signals (WARN data exists in admin) and keeps the network warm. Switches to the Laid Off or Ready plan the day it becomes real. |
+| **Promotion** | Evidence and leverage | 30-second weekly voice note of wins becomes a promotion case; comp benchmark; a script for the manager conversation; an inside-vs-outside decision with an outside offer as leverage if blocked. |
+| **Career change** | Translating the past into the new field's language | Rewrites the résumé in the target field's vocabulary, picks bridge roles and a proof project, and finds five people who made the same switch for conversations. |
+| **Student or new grad** | No network, no track record | Alumni-by-employer asks, event prep, a weekly volume-and-quality target, and first-year plan after the offer (higher-ed module). |
+| **Returning after a break** | Explaining the gap | Builds the gap story with proof, finds returnship programs, micro-refreshers on what changed, and low-pressure re-entry via bridge gigs. Respects limited hours. |
+| **Next act (55+)** | Income mix, not one job | Portfolio plan: fractional, board, consulting, part-time; rate-setting; benefits-bridge deadlines; résumé framing that stays accurate without leading with graduation dates. |
+
+### Stage-level rules
+- **Exploring/Preparing:** no application targets; Vic builds assets and a target list.
+- **Applying:** cap volume, keep quality; daily "one thing".
+- **Interviewing:** briefs, debriefs, thank-yous, references.
+- **Offer:** comparison, counter script, coach escalation, benefits check.
+- **Landed:** first-90-days plan (the stage already exists with a 90-day check-in); ask the new employer's team for early-win goals, and invite the new hire to give intros back to the community.
+
+### Question
+Which is the ninth journey? Candidates that don't exist yet: **veteran or military transition**, **freelancer or founder returning to employment**, or **someone on a visa clock**. A visa-clock candidate in particular changes the plan (sponsoring employers only, hard deadlines).
