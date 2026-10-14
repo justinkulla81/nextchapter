@@ -1,0 +1,493 @@
+import 'server-only'
+import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting } from '@prisma/client'
+import { computeMatchScore, priorityMultiplier } from '@/lib/matching/compute-match-score'
+import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
+import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
+import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
+import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
+
+// FROZEN copy of the job-fit scoring as it stood before fit scoring v2
+// (2026-10-14) — computeEnrichedFitScore, the board bucket and the
+// very-strong alert bar, byte-for-byte except for names. The emails that
+// pick jobs with these functions (fresh-job alerts, Job Search Daily, the
+// coach weekly digest) stay on this logic until the owner approves the
+// switch: set FIT_SCORING_V2_FOR_EMAILS=true to move them to v2 (see
+// emailFitScoringIsV2 in job-fit-bucket.ts). Do not edit the scoring
+// below — it exists so who gets emailed cannot change by accident. Delete
+// this file once the flag is on and has been for a while.
+//
+// The one deliberate difference: candidate profile values are normalised
+// first (normalizeCandidateProfileFields — 'DIRECTOR' -> 'Director',
+// 'REMOTE' -> 'remote'), which is a no-op for every correctly stored
+// profile. It only changes the result for a profile stored as raw codes,
+// which the old code could not read at all.
+
+const STRONG_FIT_THRESHOLD = 70
+// Shared with the admin-side callers further down this file (formerly its
+// own separate 45 constant there) so "good fit" means the same score cutoff
+// everywhere, including the unconfident-function cap in
+// computeEnrichedFitScore below.
+const GOOD_FIT_THRESHOLD = 45
+
+function bucketFromScore(score: number): FitBucket {
+  if (score >= STRONG_FIT_THRESHOLD) return 'strong'
+  if (score >= GOOD_FIT_THRESHOLD) return 'good'
+  return 'stretch'
+}
+
+// Below the "good fit" bar, the label needs to know which direction the
+// level mismatch runs — "Stretch" is only right when the ROLE reaches
+// above the candidate (a real aim-higher case) or the comparison is
+// inconclusive (missing level data on either side). When the candidate is
+// actually above the role's level, "Stretch" reads as encouraging when
+// it's the opposite problem — that gets its own bucket instead, split by
+// how big the gap is: a small step down ('below_level') vs. a real
+// overqualification case ('overqualified', e.g. a former CEO/Partner shown
+// a Manager posting). Mirrors the same calibratedLevelRank/
+// calibratedLevelDistance math computeMatchScore uses internally for its
+// own level-match points, so this never disagrees with the score it's
+// annotating.
+function bucketFromScoreAndLevel(score: number, candidate: LegacyFitCandidate, posting: FitPostingLike): FitBucket {
+  const bucket = bucketFromScore(score)
+  if (bucket !== 'stretch') return bucket
+
+  const candidateScore = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = posting.targetLevel ?? inferLevelFromTitle(posting.title)
+  const roleScore = calibratedLevelRank(roleLevel, posting.companySizeBand ?? null)
+  // Missing data on either side, or the role is at/above the candidate's
+  // level — can't rule out a genuine aim-higher case, so "Stretch" stands.
+  if (candidateScore === null || roleScore === null || roleScore >= candidateScore) return 'stretch'
+
+  return calibratedLevelDistance(candidateScore, roleScore) >= 3 ? 'overqualified' : 'below_level'
+}
+
+// Widened to carry every signal the enriched scorer below uses — industry,
+// years of experience, and resume keywords used to be admin-only
+// (AdminLegacyFitCandidate), but the candidate-facing Discover/SurfacedJob
+// buckets need the same signals now that they share one scoring path with
+// the admin review queue instead of a thinner computeMatchScore-only call.
+export type LegacyFitCandidate = Pick<
+  CandidateProfile,
+  | 'primaryFunction'
+  | 'secondaryFunction'
+  | 'highestLevelReached'
+  | 'levelRankScore'
+  | 'remotePreference'
+  | 'currentCity'
+  | 'currentState'
+  | 'openToRelocation'
+  | 'targetCompMin'
+  | 'compFlexible'
+  | 'targetRoleType'
+  | 'resumeKeywords'
+  | 'yearsExperience'
+  | 'industryContext'
+  | 'secondaryIndustryContext'
+  | 'targetIndustries'
+  | 'hasJD'
+  | 'hasMD'
+  | 'hasDO'
+  | 'targetCompanySize'
+  | 'priorityMaxComp'
+  | 'priorityWorkLife'
+  | 'priorityBrandName'
+  | 'priorityMission'
+>
+
+// Candidate's 3-bucket company-size preference (COMPANY_SIZE_OPTIONS in
+// src/lib/constants/onboarding.ts) mapped to the resolver's 8-tier band
+// (src/lib/market/company-size.ts) — 'Any' or null intentionally has no
+// entry here, read as "no preference."
+const COMPANY_SIZE_TARGET_BANDS: Record<string, CompanySizeBand[]> = {
+  '1-50': ['MICRO', 'SMALL'],
+  '50-500': ['SMALL_MID', 'MID'],
+  '500+': ['MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA'],
+}
+
+// Binary, same shape as industryMatchBonus below — a mismatch or an
+// unresolved band both read as neutral (0), never a penalty, so a company
+// outside the candidate's stated size preference still shows, just without
+// this bonus. Scaled by how highly the candidate ranked a recognizable
+// brand name (Part 3) — large/enterprise/mega bands double as the closest
+// existing recognizability proxy, since there's no separate brand
+// classifier.
+function companySizeMatchBonus(
+  targetCompanySize: string | null,
+  companySizeBand: CompanySizeBand | null | undefined,
+  priorityBrandNameRank: number | null
+): number {
+  if (!targetCompanySize || targetCompanySize === 'Any' || !companySizeBand) return 0
+  const acceptable = COMPANY_SIZE_TARGET_BANDS[targetCompanySize]
+  if (!acceptable || !acceptable.includes(companySizeBand)) return 0
+  return Math.round(10 * priorityMultiplier(priorityBrandNameRank))
+}
+
+// id/firstName/lastName/email are only needed by admin-side display and the
+// two candidate-centric ranking helpers below (rankPendingPostingsForCandidate,
+// rankCandidatesByFitCoverage) — harmless to carry on every caller.
+
+// Common enough across totally unrelated titles ("Corporate Accounting" vs
+// "Corporate Development", "Senior Director, Business Development" vs
+// "Senior Director, Product") that a shared hit on one of these alone
+// shouldn't read as real title overlap — real bug, not hypothetical: it was
+// letting "Corporate Accounting" register as a partial match against a
+// stated target of "VP of Corporate Development" purely on the word
+// "corporate", when the two have nothing else in common.
+const GENERIC_TITLE_WORDS = new Set([
+  'corporate', 'senior', 'director', 'manager', 'executive', 'head', 'global',
+  'lead', 'chief', 'associate', 'vice', 'president', 'principal', 'partner',
+  'officer', 'specialist', 'coordinator', 'analyst',
+])
+
+function significantWords(text: string): string[] {
+  return text
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-z0-9&]/g, ''))
+    .filter((w) => w.length > 2 && !GENERIC_TITLE_WORDS.has(w))
+}
+
+function titleSimilarityBonus(targetRoleType: string | null, postingTitle: string): number {
+  if (!targetRoleType || isVagueTargetRole(targetRoleType)) return 0
+  const target = targetRoleType.trim().toLowerCase()
+  if (!target) return 0
+  const title = postingTitle.toLowerCase()
+  if (title === target) return 20
+  if (title.includes(target) || target.includes(title)) return 16
+  const targetWords = significantWords(target)
+  const titleWords = new Set(significantWords(title))
+  const sharedWordCount = targetWords.filter((w) => titleWords.has(w)).length
+  const sameFamily = titlesShareRoleFamily(target, title)
+  // A single shared word carries real signal when it's corroborated by a
+  // shared role family (role-family-keywords.ts); alone, one common word is
+  // too easy to hit by coincidence between otherwise-unrelated titles — real
+  // bug, not hypothetical: "Corporate Development" and "Business
+  // Development" share only "development" but sit in different families
+  // (M&A/Corporate-Development vs. Sales/Business-Development), and that
+  // one word was enough to register as a near-full title match.
+  const wordOverlapBonus =
+    targetWords.length === 0 || (sharedWordCount === 1 && targetWords.length === 1 && !sameFamily)
+      ? 0
+      : Math.round((sharedWordCount / targetWords.length) * 16)
+  // Title text alone misses functionally-related roles that share no
+  // words — "Corporate Development VP" and "Investment Partner" are both
+  // M&A-adjacent but share no substring. A shared role-family keyword is a
+  // weaker signal than literal title overlap, so it only matters when word
+  // overlap didn't already beat it.
+  const familyBonus = sameFamily ? 12 : 0
+  return Math.max(wordOverlapBonus, familyBonus)
+}
+
+// A candidate with a substantial keyword set (6+, pulled from their resume)
+// needs real corroboration from the posting text before that keyword
+// signal counts as confident — one or two incidental matches out of a
+// dozen skills isn't meaningfully "this role uses my skills." Below 6
+// keywords there isn't enough volume for a ratio to mean anything, so no
+// gate applies (the raw hit count still contributes via `bonus`).
+const KEYWORD_GATE_MIN_COUNT = 6
+const KEYWORD_GATE_MIN_RATIO = 0.25
+
+function keywordMatchInfo(resumeKeywords: string[], postingText: string): { bonus: number; failsGate: boolean } {
+  if (resumeKeywords.length === 0) return { bonus: 0, failsGate: false }
+  const lower = postingText.toLowerCase()
+  const hits = resumeKeywords.filter((kw) => kw && lower.includes(kw.toLowerCase())).length
+  const ratio = hits / resumeKeywords.length
+  const failsGate = resumeKeywords.length >= KEYWORD_GATE_MIN_COUNT && ratio < KEYWORD_GATE_MIN_RATIO
+  return { bonus: Math.round(ratio * 10), failsGate }
+}
+
+// Binary, not ratio-based — postings rarely name an industry explicitly
+// enough to score partial credit against, so this only rewards a real
+// mention of one of the candidate's target industries (or their own
+// resume-derived industry) somewhere in the title/company/description.
+// Neutral (0, no penalty) when the candidate hasn't set any — most
+// candidates haven't filled in targetIndustries, and an empty array
+// shouldn't read as "targeting nothing."
+function industryMatchBonus(
+  candidate: Pick<LegacyFitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext' | 'priorityMission'>,
+  postingText: string
+): number {
+  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
+    (s): s is string => !!s && s.trim().length > 0
+  )
+  if (targets.length === 0) return 0
+  const lower = postingText.toLowerCase()
+  const matches = targets.some((t) => lower.includes(t.toLowerCase()))
+  // Approximate proxy for "mission alignment" (Part 3 of the tradeoff-
+  // priority reweight) — industry match is the closest existing signal to
+  // it; no separate mission classifier exists.
+  return matches ? Math.round(10 * priorityMultiplier(candidate.priorityMission)) : 0
+}
+
+// "Ideal" match for the title/industry/geo tiering split (find-my-job
+// recommendations + market digest, per the "88,099 open roles" complaint —
+// a single unfiltered count/list reads as inflated, so real matches are
+// split into a small "ideal" tier that meets all three criteria and a
+// larger "broader" tier that's title-only). Every job in this pool is
+// already title/function-filtered by the surfacing pipeline, so this only
+// needs to check industry and geo — and geo deliberately means an actual
+// local/remote fit, not "willing to relocate," since papering over that
+// distinction is exactly what produced the inflated number in the first
+// place.
+function matchesTargetIndustry(
+  candidate: Pick<LegacyFitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>,
+  postingText: string
+): boolean {
+  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
+    (s): s is string => !!s && s.trim().length > 0
+  )
+  if (targets.length === 0) return false
+  const lower = postingText.toLowerCase()
+  return targets.some((t) => lower.includes(t.toLowerCase()))
+}
+
+function matchesTargetGeo(
+  candidate: Pick<LegacyFitCandidate, 'remotePreference' | 'currentCity' | 'currentState'>,
+  posting: FitPostingLike
+): boolean {
+  const role = postingToRole(posting)
+  if (role.remotePolicy === 'remote' && (candidate.remotePreference === 'remote' || candidate.remotePreference === 'flexible')) {
+    return true
+  }
+  const location = role.locationRequirement ?? ''
+  // Whole words only: a plain substring test read "CA" inside "North
+  // Carolina" and "MA" inside "Oklahoma" as the member's state.
+  const word = (needle: string) => new RegExp(`(^|[^a-z])${needle.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
+  if (candidate.currentCity?.trim() && word(candidate.currentCity).test(location)) return true
+  if (candidate.currentState?.trim() && word(candidate.currentState).test(location)) return true
+  return false
+}
+
+// Best-effort extraction of a minimum-years requirement from free-text
+// posting copy ("5+ years", "3-5 years of experience") — same
+// regex-over-free-text approach already used for ATS salary parsing
+// (parseSalaryRange in ats-job-board-feed.ts). Returns null when nothing
+// matches, which callers treat as "no requirement stated," not "zero
+// years required."
+function parseMinYearsRequired(text: string): number | null {
+  const match = text.match(/(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?\s*years?/i)
+  if (!match) return null
+  const years = parseInt(match[1], 10)
+  return Number.isNaN(years) ? null : years
+}
+
+function yearsExperienceBonus(candidateYears: number | null, postingText: string): number {
+  const required = parseMinYearsRequired(postingText)
+  if (required === null || candidateYears === null) return 5 // insufficient data on one side — neutral, not a penalty
+  if (candidateYears >= required) return 10
+  if (candidateYears >= required - 2) return 5 // close enough to be worth surfacing, not a confident match
+  return 0
+}
+
+// ATS-fed OPEN postings never have targetRemotePolicy set (that field only
+// exists for recruiter TARGETED listings) — without this, a posting whose
+// own location literally says "Remote" never gets read as remote-friendly,
+// under-crediting fit for candidates who'd be a good match for it.
+function inferRemoteFromLocation(location: string | null): boolean {
+  return location != null && /\bremote\b/i.test(location)
+}
+
+// The full shape the enriched scorer below needs from a posting — deliberately
+// a plain interface, not a Prisma Pick, so both ExclusiveJobPosting rows and
+// adapted SurfacedJob rows (which have no targeting/comp fields at all) can
+// satisfy it via a small object-literal adapter at the call site.
+interface FitPostingLike {
+  title: string
+  description: string | null
+  location: string | null
+  salaryMin: number | null
+  salaryMax: number | null
+  targetFunction: string | null
+  targetLevel: string | null
+  targetRemotePolicy: string | null
+  targetLocation: string | null
+  // Pre-resolved by the caller (resolveCompanySizeBand in
+  // src/lib/market/company-size.ts is async; this scorer is not) — omitted
+  // or null both read as "unresolved," i.e. neutral, never a penalty.
+  companySizeBand?: CompanySizeBand | null
+}
+
+// Deliberately no employerCompanySizeBand here — ExclusiveJobPosting has no
+// synchronous path to a real company size (companyName is a denormalized
+// free-text string, not an EmployerProfile relation), and this function is
+// called synchronously from the candidate-facing Discover feed and
+// SurfacedJob badges, where an async per-listing company-size lookup would
+// be a much bigger change than this pass takes on. computeMatchScore treats
+// the missing band as "unknown" (anchor, no adjustment) — see
+// ats-job-board-feed.ts for the one place job-side company size IS applied
+// (a small, fixed, known company list, resolved once per run).
+function postingToRole(posting: FitPostingLike) {
+  return {
+    primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
+    roleLevel: posting.targetLevel ?? inferLevelFromTitle(posting.title),
+    remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
+    locationRequirement: posting.targetLocation ?? posting.location,
+    compMin: posting.salaryMin,
+    compMax: posting.salaryMax,
+  }
+}
+
+// The one enriched fit score used everywhere — candidate Discover badges,
+// SurfacedJob badges, and admin review all call this same function now, so
+// "a good fit" means the same thing regardless of who's looking. Combines
+// computeMatchScore's function/level/location/comp heuristic (falling back
+// to title-inference for function/level when a posting has no explicit
+// targeting — true for nearly every board posting) with title-similarity,
+// a keyword-match bonus that's hard-capped below "strong" when a
+// keyword-rich resume (6+ terms) doesn't clear a 25% hit rate, and two new
+// signals: industry (binary — does the posting mention a target industry)
+// and years-of-experience (parsed from posting text when stated).
+function computeEnrichedFitScore(candidate: LegacyFitCandidate, posting: FitPostingLike): number {
+  const postingText = `${posting.title} ${posting.description ?? ''}`
+
+  // Hard, categorical gate — a law-firm attorney posting or a hospital
+  // physician posting is simply not a fit for a candidate without the
+  // license, no matter how well function/level/location/comp line up.
+  // Short-circuits before any of the softer scoring below.
+  const requiredCredential = detectRequiredCredential(postingText)
+  if (!candidateMeetsCredentialGate(candidate, requiredCredential)) return 0
+
+  const base = computeMatchScore(candidate, postingToRole(posting)).score
+  const { bonus: keywordBonus, failsGate } = keywordMatchInfo(candidate.resumeKeywords, postingText)
+  const titleBonus = titleSimilarityBonus(candidate.targetRoleType, posting.title)
+
+  let score =
+    base +
+    titleBonus +
+    keywordBonus +
+    industryMatchBonus(candidate, postingText) +
+    yearsExperienceBonus(candidate.yearsExperience, postingText) +
+    companySizeMatchBonus(candidate.targetCompanySize, posting.companySizeBand, candidate.priorityBrandName)
+  score = Math.min(100, score)
+
+  // A keyword-rich resume with too few real hits can't be called a
+  // "strong" fit no matter how well the other signals line up — this caps
+  // the ceiling rather than zeroing the score, since the role can still be
+  // a legitimate "good" fit on function/level/location alone.
+  if (failsGate) score = Math.min(score, STRONG_FIT_THRESHOLD - 1)
+
+  // computeMatchScore's neutral function-match credit (+20) assumes
+  // `role.primaryFunction === null` means "this posting genuinely has no
+  // function requirement" — true for an untargeted board listing, but not
+  // for a title we tried and failed to classify (inferFunctionFromTitle
+  // returning null just means the title was ambiguous, e.g. "Business
+  // Partner Analyst" or "Administrative Business Partner, Office of the
+  // CEO" — see the comments on those keyword tables). Letting that
+  // unconfident state clear the "good" bar was exactly how those two
+  // example titles were reading as good fits for any candidate at all.
+  // Only applies when the function came from title inference (no explicit
+  // targetFunction on the posting) — an explicitly untargeted listing still
+  // gets the neutral credit as intended. Also skipped when the posting's
+  // title itself strongly matches the candidate's own stated target role —
+  // a real bug otherwise: PRIMARY_FUNCTION_OPTIONS has no "Corporate
+  // Development"/M&A category, so a posting titled exactly the candidate's
+  // own target ("VP, Corporate Development") failed function inference and
+  // got capped here anyway, scoring worse than an unrelated "Corporate
+  // Accounting" posting that happened to infer a (wrong) function with
+  // false confidence.
+  const hasConfidentFunction = posting.targetFunction != null || inferFunctionFromTitle(posting.title) != null
+  const hasRealTitleSignal = titleBonus > 0
+  if (!hasConfidentFunction && !hasRealTitleSignal) score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+
+  // PRIMARY_FUNCTION_OPTIONS is a broad ~15-category taxonomy — "Finance"
+  // alone spans everyone from a staff accountant to a Corporate
+  // Development/M&A VP, so a function-category match alone doesn't mean
+  // much for a candidate who's stated a specific target role. When they
+  // have (a real, non-vague targetRoleType) and this posting's title has
+  // zero real overlap with it — no shared words, no shared role family
+  // (role-family-keywords.ts) — the only thing connecting them is that
+  // coarse category, which isn't enough to call this a real recommendation.
+  // Skipped for postings with an explicit targetFunction (distribution:
+  // TARGETED) — there a human already curated this candidate/posting pair,
+  // which the title-text heuristic shouldn't second-guess.
+  const hasSpecificTarget = !!candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)
+  if (posting.targetFunction == null && hasSpecificTarget && titleBonus === 0) {
+    score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+  }
+
+  return score
+}
+
+// Reuses the shared enriched scorer, fed the board listing's own targeting
+// fields (only meaningful when distribution = 'TARGETED'; an 'OPEN' listing
+// has no targeting fields set, which reads through computeMatchScore's
+// existing neutral-credit paths for missing data rather than penalizing
+// anything).
+export function legacyComputeBoardListingFitBucket(
+  candidate: LegacyFitCandidate,
+  posting: Pick<
+    ExclusiveJobPosting,
+    | 'title'
+    | 'description'
+    | 'targetFunction'
+    | 'targetLevel'
+    | 'targetRemotePolicy'
+    | 'targetLocation'
+    | 'location'
+    | 'salaryMin'
+    | 'salaryMax'
+  >,
+  companySizeBand?: CompanySizeBand | null
+): FitBucket {
+  candidate = normalizeCandidateProfileFields(candidate)
+  const postingLike = { ...posting, companySizeBand }
+  return bucketFromScoreAndLevel(computeEnrichedFitScore(candidate, postingLike), candidate, postingLike)
+}
+
+// The bar for an instant alert email — deliberately far above "strong":
+// founder's call is fewer, better alerts over more, merely-OK ones. All of:
+// a fit score of VERY_STRONG_FIT_SCORE+, a location that works for them, the
+// member's own function, a level at theirs or one step up (never below,
+// never when either level is unknown), and — when the job has a description
+// to judge it by and the member named target industries — their industry.
+const VERY_STRONG_FIT_SCORE = 85
+
+/** Which very-strong condition a posting fails first ('pass' if none) — for tuning. */
+export function legacyVeryStrongFitFailure(
+  candidate: LegacyFitCandidate,
+  posting: Parameters<typeof legacyIsVeryStrongBoardFit>[1],
+  postingLevel: string | null
+): 'score' | 'ideal' | 'function' | 'level' | 'pass' {
+  candidate = normalizeCandidateProfileFields(candidate)
+  const postingLike = { ...posting, companySizeBand: null }
+  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return 'score'
+  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return 'ideal'
+  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
+  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
+  if (!fn || !own.includes(fn)) return 'function'
+  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
+  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel || calibratedLevelDistance(candidateLevel, roleLevel) > 1) return 'level'
+  return 'pass'
+}
+
+export function legacyIsVeryStrongBoardFit(
+  candidate: LegacyFitCandidate,
+  posting: Pick<
+    ExclusiveJobPosting,
+    'title' | 'description' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+  >,
+  postingLevel: string | null
+): boolean {
+  candidate = normalizeCandidateProfileFields(candidate)
+  const postingLike = { ...posting, companySizeBand: null }
+  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return false
+  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return false
+  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
+  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
+  if (!fn || !own.includes(fn)) return false
+  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
+  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel) return false
+  return calibratedLevelDistance(candidateLevel, roleLevel) <= 1
+}
+
+function veryStrongPlaceAndIndustry(candidate: LegacyFitCandidate, posting: FitPostingLike): boolean {
+  if (!matchesTargetGeo(candidate, posting)) return false
+  const hasTargets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].some((t) => !!t?.trim())
+  if (!posting.description || !hasTargets) return true
+  return matchesTargetIndustry(candidate, `${posting.title} ${posting.description} ${posting.location ?? ''}`)
+}
+

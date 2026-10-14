@@ -4,7 +4,7 @@ import { getCoachCaseload } from '@/lib/coach/caseload'
 import { getWeeklyOutcomes } from '@/lib/weekly/outcomes'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
-import { isVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket'
+import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
 import type { Grade } from '@/lib/scoring/grade'
@@ -66,7 +66,7 @@ function normalizeUrl(url: string | null | undefined): string | null {
 
 // Strong-fit board roles posted in the last week, minus anything the client
 // is already tracking or has already applied to. Same fit gate as the
-// client's own fresh-job alert (isVeryStrongBoardFit), so a coach sees what
+// client's own fresh-job alert (isVeryStrongBoardFitFor), so a coach sees what
 // the client sees — nothing looser.
 async function findNewStrongFitJobs(
   candidateId: string,
@@ -77,15 +77,18 @@ async function findNewStrongFitJobs(
     prisma.jobPosting.findMany({ where: { candidateId, url: { not: null } }, select: { url: true } }),
   ])
   const trackedUrls = new Set(tracked.map((t) => normalizeUrl(t.url)).filter((u): u is string => !!u))
+  // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
+  const fitScoring = emailFitScoringVersion()
   const board = await loadBoardShortlist({
     candidate,
     isCandidatePlus: dossier.unlocked,
     where: postedWithinWhere(WINDOW_DAYS * 24),
     size: SHORTLIST_SIZE,
+    fitScoring,
   })
   return board.open
     .filter((p) => !trackedUrls.has(normalizeUrl(p.url) ?? ''))
-    .filter((p) => isVeryStrongBoardFit(candidate, p, candidateScaleLevel(p.level)))
+    .filter((p) => isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS_PER_CLIENT)
     .map((p) => ({
       title: p.title,

@@ -14,7 +14,7 @@ import {
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { boardListingFitBucketFor, emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import {
@@ -176,16 +176,19 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // tens of thousands at once, so "the newest 500" would be an arbitrary
   // slice rather than the ones that fit.
   const dossier = await isDossierUnlocked(candidate.id)
+  // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
+  const fitScoring = emailFitScoringVersion()
   const shortlist = await loadBoardShortlist({
     candidate,
     isCandidatePlus: dossier.unlocked,
     where: { createdAt: { gte: jobsSince } },
     size: 200,
+    fitScoring,
   })
   const postings = [...shortlist.open, ...shortlist.locked]
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
-    const bucket = computeBoardListingFitBucket(candidate, p)
+    const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
     return bucket === 'strong' || bucket === 'good'
   })
   const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)

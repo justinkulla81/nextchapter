@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
-import { isVeryStrongBoardFit } from '@/lib/jobs/job-fit-bucket'
+import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
@@ -18,7 +18,7 @@ import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
  *
  * Switched on by FRESH_JOB_ALERTS_ENABLED=true (founder approved 2026-10-10,
  * on condition that only very strong fits are sent — see
- * isVeryStrongBoardFit). While off, the cron only counts who would get one.
+ * isVeryStrongBoardFitFor). While off, the cron only counts who would get one.
  *
  * Rules: at most one alert per member per day; only very strong fits
  * posted in the last 24 hours; at most 2 jobs; never a job already sent in an alert or
@@ -43,11 +43,15 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   }
 
   const dossier = await isDossierUnlocked(candidateId)
+  // Stays on the pre-v2 fit scoring until the owner turns on
+  // FIT_SCORING_V2_FOR_EMAILS (email-fit-scoring.ts).
+  const fitScoring = emailFitScoringVersion()
   const board = await loadBoardShortlist({
     candidate,
     isCandidatePlus: dossier.unlocked,
     where: postedWithinWhere(WINDOW_HOURS),
     size: 30,
+    fitScoring,
   })
   const [alerted, shownDaily] = await Promise.all([
     prisma.freshJobAlertSend.findMany({ where: { candidateId }, select: { postingId: true } }),
@@ -55,7 +59,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   ])
   const skip = new Set([...alerted.map((a) => a.postingId), ...shownDaily.map((d) => d.itemKey.slice(4))])
   const jobs = board.open
-    .filter((p) => !skip.has(p.id) && isVeryStrongBoardFit(candidate, p, candidateScaleLevel(p.level)))
+    .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }
   if (options.dryRun || !freshJobAlertsEnabled()) return { sent: false, reason: 'dry run', jobCount: jobs.length }

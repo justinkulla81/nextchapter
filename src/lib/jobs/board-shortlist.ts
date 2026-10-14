@@ -2,6 +2,7 @@ import 'server-only'
 import type { ExclusiveJobPosting, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { boardListingFitBucketFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -124,6 +125,10 @@ export interface BoardShortlist {
  * with description and company size, which is also what keeps the
  * company-size lookup (an LLM call the first time a company is seen)
  * bounded to the jobs actually shown.
+ *
+ * fitScoring: which fit scorer ranks the jobs — 'v2' (default, the board)
+ * or 'legacy', the pre-v2 logic the emails stay on until the owner flips
+ * FIT_SCORING_V2_FOR_EMAILS (see email-fit-scoring.ts).
  */
 export async function loadBoardShortlist(opts: {
   candidate: FitCandidate
@@ -131,15 +136,40 @@ export async function loadBoardShortlist(opts: {
   where?: Prisma.ExclusiveJobPostingWhereInput
   size?: number
   view?: BoardView
+  fitScoring?: FitScoringVersion
 }): Promise<BoardShortlist> {
-  const size = opts.size ?? 300
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
   // in the database — this filters the view, it deletes nothing — and the board
   // totals below are computed over what is kept, so they match what is shown.
   const light = await loadLightBoardRows(opts.where, closedCounts)
+  const ranked = rankBoardRows(light, opts)
+  const full = new Map(
+    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
+  )
+  const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
 
+  return {
+    open: inOrder(ranked.openIds),
+    locked: inOrder(ranked.lockedIds),
+    openTotal: ranked.openTotal,
+    lockedTotal: ranked.lockedTotal,
+    freshOpenTotal: ranked.freshOpenTotal,
+    lowCompetitionOpenTotal: ranked.lowCompetitionOpenTotal,
+    countByCompany: ranked.countByCompany,
+  }
+}
+
+export type BoardRankRow = LightRow
+
+/** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
+export function rankBoardRows(
+  light: BoardRankRow[],
+  opts: { candidate: FitCandidate; isCandidatePlus: boolean; size?: number; view?: BoardView; fitScoring?: FitScoringVersion; now?: Date }
+) {
+  const size = opts.size ?? 300
+  const fitBucket = (p: BoardRankRow) => boardListingFitBucketFor(opts.fitScoring ?? 'v2', opts.candidate, { ...p, description: null })
   const countByCompany = new Map<string, number>()
   // Within a fit level, roles nearest the candidate's own level come first
   // (a Director sees Director roles before Manager ones), then newest…
@@ -155,7 +185,7 @@ export async function loadBoardShortlist(opts: {
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
     if (company) countByCompany.set(company, (countByCompany.get(company) ?? 0) + 1)
   }
-  const now = new Date()
+  const now = opts.now ?? new Date()
   let freshOpenTotal = 0
   let lowCompetitionOpenTotal = 0
   for (const p of light) {
@@ -164,7 +194,7 @@ export async function loadBoardShortlist(opts: {
     const fresh = isFresh(p, now)
     const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
     const low = competition === 'low'
-    const rank = FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(opts.candidate, { ...p, description: null })]
+    const rank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
     // The prompts count only jobs that fit (strong or good).
     if (canOpen && fresh && rank <= 1) freshOpenTotal++
     if (canOpen && low && rank <= 1) lowCompetitionOpenTotal++
@@ -184,7 +214,7 @@ export async function loadBoardShortlist(opts: {
       at: p.createdAt.getTime(),
     }
     // Everyone can open everything except employer / recruiter exclusives.
-    if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) open.push(entry)
+    if (canOpen) open.push(entry)
     else locked.push(entry)
   }
 
@@ -216,15 +246,10 @@ export async function loadBoardShortlist(opts: {
     }
     return [...picked, ...heldBack].slice(0, size)
   }
-  const [openIds, lockedIds] = [best(open), best(locked)]
-  const full = new Map(
-    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...openIds, ...lockedIds] } } })).map((p) => [p.id, p])
-  )
-  const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
 
   return {
-    open: inOrder(openIds),
-    locked: inOrder(lockedIds),
+    openIds: best(open),
+    lockedIds: best(locked),
     openTotal: open.length,
     lockedTotal: locked.length,
     freshOpenTotal,
