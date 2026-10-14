@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+vi.mock('server-only', () => ({}))
+vi.mock('@/lib/prisma', () => ({ prisma: {} }))
+vi.mock('@/lib/journey/apply', () => ({ applyJourneyChange: vi.fn() }))
 import { nextWinBackStep, winBackContent } from '@/lib/winback/sequence'
 
 const day = 86_400_000
@@ -22,5 +25,15 @@ describe('win-back steps', () => {
     const subjects = [1, 2, 3].map((s) => winBackContent(s as 1 | 2 | 3, 'Sam', 'LAID_OFF').subject)
     expect(new Set(subjects).size).toBe(3)
     expect(winBackContent(3, null, 'GROWING').closing).toMatch(/Turn off/)
+  })
+})
+
+describe('landed to managing your career', () => {
+  it('is due exactly 90 days after landing', async () => {
+    const { landedCutoff } = await import('@/lib/journey/auto-advance')
+    const cutoff = landedCutoff(now)
+    expect(new Date(now.getTime() - 90 * day).getTime()).toBe(cutoff.getTime())
+    expect(ago(91) <= cutoff).toBe(true)
+    expect(ago(89) <= cutoff).toBe(false)
   })
 })

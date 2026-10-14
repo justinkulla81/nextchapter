@@ -124,6 +124,28 @@ export const PERSONAS: Persona[] = [
       'Build an advisory profile, find interim and fractional opportunities, and have the right conversations, on your terms.',
     ],
   },
+  {
+    slug: 'taking-a-break',
+    label: 'Taking a break',
+    hook: 'Family leave, time off, or a sabbatical. Come back ready.',
+    headline: 'Step away without losing your footing.',
+    situation: 'taking_a_break',
+    body: [
+      "You're leaving on purpose, and you plan to come back. A little care now makes the return easier: your story straight, your résumé current, and your network warm.",
+      'Tell us when you expect to return. We keep things light until then, and move to a return plan as the date gets close. Private by default.',
+    ],
+  },
+  {
+    slug: 'happy-with-fractional-work',
+    label: 'Happy with fractional work',
+    hook: 'Fractional, interim or consulting work you like. Keep it full.',
+    headline: 'Run your portfolio like the business it is.',
+    situation: 'happy_fractional',
+    body: [
+      "You're not looking for a job. You want your open days filled, your rates right, and your next engagement lined up before the current one ends.",
+      'Track your engagements and end dates, see what your work is worth, and get introductions that fit the days you have open.',
+    ],
+  },
 ]
 
 export function getPersona(slug: string): Persona | undefined {

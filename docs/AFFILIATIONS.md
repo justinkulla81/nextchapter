@@ -70,4 +70,7 @@ in the last 90 days, layoffs filed, roles open on the NextChapter job board, loc
 funding a board could apply for. Counts below 10 are never shown, a hidden cell hides its next
 smallest neighbour too, and members in Confidential Search Mode or with a Stealth or Locked
 privacy tier are not counted. Members see it on "Your local market"; the admin sees what a board would
-receive on the workforce board page. Nothing is sent to a board automatically.
+receive on the workforce board page. Nothing is sent to a board automatically: a monthly job (`/api/cron/board-brief-drafts`) only drafts a brief
+per board with a director or chair email into the mailing queue, for you to approve and address.
+For a local board, member counts cover the board's counties when at least 10 members live there,
+and the state otherwise.

@@ -170,8 +170,13 @@ How it works (including a "Help for wherever you are" section with each stage's 
 - Workforce boards: members can say they work with a board, and the area brief gives boards and members anonymous status of NextChapter members, layoffs, hiring, news and funding.
 - The daily pop-up reads the search pattern; the phone bar follows the situation; employer funnels appear on Privacy; active vs casual is collected and used.
 
+**Done since**
+- Landed moves to Managing your career automatically 90 days after landing (daily job, `src/lib/journey/auto-advance.ts`).
+- Win-back: members with no login or page activity for 21, 42 and 63 days get up to three emails, then nothing. Returning resets the count; members on leave are skipped (`src/lib/winback`).
+- Board area counts use the member's county, found from their city through the cached Census place list. A board sees its own area when at least 10 members live there, and the state otherwise, labeled either way.
+- Board briefs are drafted monthly into the mailing queue as drafts only. You approve the text and choose the readership; nothing is sent automatically.
+
 **Still open**
-- Boards receive nothing automatically: the admin previews the brief on the workforce board page. A scheduled send to board contacts is an outbound-marketing decision.
-- Member counts are by state, not by county: members have no county on file, so a local board's brief shows the state's members and, separately, the members who connected to that board.
 - Company-level wages are matched to a role by word, since filings name occupations, not titles.
-- Database change required before deploy: `prisma/manual/2026-10-13-growing-journey.sql` and `prisma/manual/2026-10-13-conversations-and-boards.sql`.
+- Database changes (all applied to production): `prisma/manual/2026-10-13-growing-journey.sql`, `2026-10-13-conversations-and-boards.sql`, `2026-10-14-journeys-culture-winback.sql`.
+- Members whose city is not yet in the cached place list count in the state, not the area, until the monthly board job looks the city up.
