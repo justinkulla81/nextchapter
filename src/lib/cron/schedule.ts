@@ -52,7 +52,7 @@ export function cronSchedules(): CronSchedule[] {
  * candidates, coaches or recruiters are deliberately absent.
  */
 export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
-  'crm-sync', 'gmail-sync', 'warn-sync', 'ats-job-board-feed', 'company-signals', 'company-hiring-index',
+  'crm-sync', 'gmail-sync', 'warn-sync', 'ats-job-board-feed', 'company-signals',
   'funding-opportunities', 'federal-contracts', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
