@@ -1,7 +1,7 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { orgProgram } from '@/lib/employer/program-server'
 import { PROGRAM_FEATURES, tierIncludes } from '@/lib/employer/program-settings'
-import { PackagesEditor, ProgramDetailsForm, ServiceMenuRow } from '@/components/employer/ProgramForms'
+import { PackagesEditor, ProgramDetailsForm, ProgramLookForm, ServiceMenuRow } from '@/components/employer/ProgramForms'
 
 const TIER_LABEL = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' } as const
 
@@ -24,6 +24,11 @@ export default async function EmployerProgramPage() {
       <section className="space-y-3 rounded-lg border border-border bg-card p-4">
         <h2 className="text-lg font-semibold">Name and welcome</h2>
         <ProgramDetailsForm programBrandName={p.programBrandName} welcome={p.settings.welcome} />
+      </section>
+
+      <section className="space-y-3 rounded-lg border border-border bg-card p-4">
+        <h2 className="text-lg font-semibold">Logo and color</h2>
+        <ProgramLookForm logoUrl={p.settings.brand.logoUrl} accentColor={p.settings.brand.accentColor} />
       </section>
 
       <section className="space-y-3">
