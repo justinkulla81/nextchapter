@@ -100,12 +100,12 @@ export function NextSurfacedJobCard({
 
   return (
     <details className="group">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3">
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="truncate text-sm font-medium text-foreground">{job.title}</span>
           {job.companyName && <span className="truncate text-sm text-muted-foreground">at {job.companyName}</span>}
         </span>
-        <span className="flex shrink-0 items-center gap-2">
+        <span className="flex flex-wrap items-center gap-2">
           {isRecentlyListed(job.surfacedAt) && <NewBadge />}
           <WorkTypePayChips workType={workType} pay={null} />
           {idealMatch && <IdealMatchBadge />}

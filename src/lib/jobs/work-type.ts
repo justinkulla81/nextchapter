@@ -92,7 +92,10 @@ export type CompensationKind = 'paid' | 'equity_only' | 'unpaid'
 
 // "Volunteer Board Member" is unpaid; "Director of Volunteer Programs" is a paid job.
 const UNPAID_TITLE = /(^\s*volunteer\b|\bvolunteer (board|position|role|advisor|director|member|trustee|seat)|\b(unpaid|uncompensated|pro bono)\b)/i
-const UNPAID_TEXT = /\b(unpaid|uncompensated|pro bono|no compensation|without compensation|not a paid|volunteer (position|role|board))\b/i
+// Descriptions only count when they say the role itself is unpaid — an executive job
+// that "works with a volunteer board" is paid.
+const UNPAID_TEXT =
+  /\b(this (is an?|position is an?|role is an?) (unpaid|volunteer)|unpaid (position|role|board|opportunity|seat)|volunteer (position|role|opportunity)|(position|role|seat) is (unpaid|uncompensated|a volunteer)|serves? without compensation|receive no compensation|pro bono (position|role))\b/i
 const EQUITY_ONLY_TEXT = /\b(equity[- ]only|sweat equity|compensat\w* (is |will be )?(solely |entirely )?(in )?equity)\b/i
 
 /** Unpaid, equity-only or paid (the default). The crawler's/admin's own value wins. */
@@ -102,7 +105,7 @@ export function compensationKind(input: { title: string; description?: string | 
   const text = `${input.title}\n${(input.description ?? '').slice(0, 3000)}`
   if (UNPAID_TITLE.test(input.title)) return 'unpaid'
   if (EQUITY_ONLY_TEXT.test(text)) return 'equity_only'
-  if (UNPAID_TEXT.test(text) && !/\$\s?\d/.test(text)) return 'unpaid'
+  if (UNPAID_TEXT.test(text)) return 'unpaid'
   return 'paid'
 }
 

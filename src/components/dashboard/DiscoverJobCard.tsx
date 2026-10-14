@@ -236,7 +236,7 @@ export function DiscoverJobCard({
       }}
     >
       <summary className="block cursor-pointer list-none px-4 py-3">
-        <span className="flex items-center justify-between gap-3">
+        <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="min-w-0">
             <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
@@ -247,7 +247,7 @@ export function DiscoverJobCard({
             {/* The edge, visible without opening the card. */}
             <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
           </span>
-          <span className="flex shrink-0 items-center gap-2">
+          <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
             <LowCompetitionBadge competition={competition} />
             <WorkTypePayChips workType={workType} pay={payLabel} />

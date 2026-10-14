@@ -90,6 +90,9 @@ describe('pay basis', () => {
   it('does not treat a paid role mentioning volunteers as unpaid', () => {
     expect(compensationKind({ title: 'Director of Volunteer Programs', description: 'Pay: $120,000' })).toBe('paid')
     expect(compensationKind({ title: 'Director', description: 'Lead our volunteer program. Salary $120,000.' })).toBe('paid')
+    expect(compensationKind({ title: 'Chief Financial Officer (CFO)', description: 'investment oversight, and volunteer Board governance.' })).toBe('paid')
+    expect(compensationKind({ title: 'Board Treasurer', description: 'This is an unpaid volunteer position.' })).toBe('unpaid')
+    expect(compensationKind({ title: 'Trustee', description: 'Trustees serve without compensation.' })).toBe('unpaid')
   })
 })
 

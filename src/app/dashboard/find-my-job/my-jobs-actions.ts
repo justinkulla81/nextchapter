@@ -239,3 +239,26 @@ export async function saveBoardWorkTypes(types: WorkType[]): Promise<Result> {
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { jobBoardWorkTypes: clean } })
   return { ok: true }
 }
+
+/** Status change for an application with no board job behind it (found in Gmail, or logged in the tracker). */
+export async function setApplicationStatusById(jobPostingId: string, to: ApplicationStatus): Promise<Result> {
+  const profile = await getProfile()
+  if (!profile) return NOT_SIGNED_IN
+  if (!isApplicationStatus(to)) return { ok: false, error: 'Pick one of the four statuses.' }
+  const app = await prisma.jobPosting.findFirst({ where: { id: jobPostingId, candidateId: profile.id } })
+  if (!app) return { ok: false, error: 'We could not find that application. Refresh the page and try again.' }
+  const from = applicationStatus(app)
+  if (from === to) return { ok: true }
+  await prisma.jobPosting.update({
+    where: { id: app.id },
+    data: { ...statusChangeData(app, to, new Date()), ...(to === 'closed' && !app.declinedAt ? { declinedBy: null } : {}) },
+  })
+  captureServerEvent(profile.id, 'job_application_status_changed', {
+    jobId: app.id,
+    jobPostingId: app.id,
+    from: from ?? 'none',
+    to,
+    source: app.source === 'EMAIL_DETECTED' ? 'my_jobs_email' : 'my_jobs_tracker',
+  })
+  return done()
+}

@@ -10,6 +10,7 @@ import { JobTrackControls } from './JobTrackControls'
 import { ApplyPrompts } from './ApplyPrompts'
 import { SkillsGapInsightCard } from './SkillsGapInsightCard'
 import { MyJobsViewed } from './MyJobsViewed'
+import { ApplicationStatusButtons } from './ApplicationStatusButtons'
 
 const STATUS_STYLE: Record<JobStatus, string> = {
   saved: 'bg-muted text-foreground',
@@ -120,15 +121,9 @@ export function MyJobsPanel({ view }: { view: MyJobsView }) {
                     watched={!!item.companyName && view.watchedCompanies.has(normalizeOrgName(item.companyName))}
                     surface="my_jobs"
                   />
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Update this one in the{' '}
-                    <a href="#jobs-applied" className="text-primary underline underline-offset-4">
-                      application tracker
-                    </a>{' '}
-                    below.
-                  </p>
-                )}
+                ) : item.jobPostingId && item.status !== 'saved' ? (
+                  <ApplicationStatusButtons jobPostingId={item.jobPostingId} title={item.title} initial={item.status} />
+                ) : null}
               </div>
             ))}
           </ShowMoreList>

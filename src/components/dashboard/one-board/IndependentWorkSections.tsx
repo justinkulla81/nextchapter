@@ -364,7 +364,7 @@ export async function IndependentWorkSections({
                 Informal advising — a few hours a month for a founder or small team — is a real rung
                 on the ladder toward a formal board seat, but it&apos;s relationship-driven rather
                 than something you apply for. There&apos;s no directory for this one: it comes from
-                the same network activation as Section 1, so keep that going.
+                the same network outreach as the consultancy launch plan, so keep that going.
               </p>
             </div>
           </section>
