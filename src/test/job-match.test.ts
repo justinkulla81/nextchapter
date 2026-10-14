@@ -122,7 +122,7 @@ describe('matchJobToCandidate', () => {
     for (const d of Object.values(m.dimensions)) expect(d.status).toBe('unknown')
     expect(m.overall).toBe('unknown')
     expect(m.overallScore).toBeNull()
-    expect(m.dimensions.culture.profilePrompt?.href).toBe('/dashboard/search-strategy')
+    expect(m.dimensions.culture.profilePrompt?.href).toBe('/dashboard/search-strategy#culture-preferences')
     expect(m.dimensions.skills.profilePrompt?.href).toBe('/dashboard/skills-assessments')
     expect(m.gaps).toHaveLength(1)
     expect(m.gaps[0]).toMatch(/can't judge/)

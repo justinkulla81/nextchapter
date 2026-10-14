@@ -7,6 +7,13 @@ import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jo
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { statesFromLocation, formatUsdK } from '@/lib/pay/market-pay'
+import type { CultureProfile } from '@/lib/companies/culture-aggregate'
+import {
+  CULTURE_DIMENSION_BY_KEY,
+  remotePreferenceToScale,
+  type CultureAnswers,
+  type CultureDimensionKey,
+} from '@/lib/companies/culture-survey'
 
 // Per-job, per-member match with gaps: skills, culture fit, salary, goals and working
 // style, each judged only from what the member told us and what the job itself says.
@@ -35,10 +42,17 @@ import {
 export type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus, OverallMatch }
 
 const WEIGHTS: Record<MatchDimensionKey, number> = { skills: 30, goals: 25, workStyle: 20, salary: 15, culture: 10 }
+// Culture counts double when it is judged from what at least 3 members who worked at the
+// company said, compared with the member's own stated preferences. A posting's wording
+// ("fast-paced", "startup") is a weak, self-promotional read of culture, so it stays at
+// 10; first-hand reports from several people are the strongest culture evidence we have —
+// still below skills (30) and goals (25), which decide whether the member can get and
+// wants the job at all.
+const INSIDER_CULTURE_WEIGHT = 20
 
 const PROFILE = {
   skills: { label: 'Add your skills', href: '/dashboard/skills-assessments' },
-  culture: { label: 'Add your company and culture preferences', href: '/dashboard/search-strategy' },
+  culture: { label: 'Add your culture preferences', href: '/dashboard/search-strategy#culture-preferences' },
   salary: { label: 'Add your minimum pay', href: '/dashboard/search-strategy' },
   goals: { label: 'Set your target role', href: '/dashboard/search-strategy' },
   workStyle: { label: 'Add your location preference', href: '/dashboard/search-strategy' },
@@ -62,6 +76,8 @@ export interface MatchCandidate {
   priorityJobSecurity: number | null
   priorityBrandName: number | null
   equityImportant: boolean
+  /** The member's culture preferences (CandidateCulturePreference); 0 = no preference. */
+  culturePrefs?: CultureAnswers | null
   // salary
   targetCompMin: number | null
   compFlexible: boolean
@@ -105,12 +121,14 @@ export interface MatchJob {
   targetRemotePolicy: string | null
   companySizeBand?: CompanySizeBand | null
   companyOwnership?: CompanyOwnershipType | null
+  /** Aggregate from members who worked at the company (culture-profile.ts); used only when shown. */
+  insiderCulture?: CultureProfile | null
 }
 
 /** Board row -> match input. Drops the description of a confidential search. */
 export function toMatchJob(
-  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership'> & { description: string | null; disclosure: string },
-  company?: { sizeBand?: CompanySizeBand | null; ownershipType?: CompanyOwnershipType | null } | null
+  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership' | 'insiderCulture'> & { description: string | null; disclosure: string },
+  company?: { sizeBand?: CompanySizeBand | null; ownershipType?: CompanyOwnershipType | null; insiderCulture?: CultureProfile | null } | null
 ): MatchJob {
   return {
     title: p.title,
@@ -130,6 +148,7 @@ export function toMatchJob(
     targetRemotePolicy: p.targetRemotePolicy,
     companySizeBand: company?.sizeBand ?? null,
     companyOwnership: company?.ownershipType ?? null,
+    insiderCulture: company?.insiderCulture ?? null,
   }
 }
 
@@ -235,11 +254,15 @@ const SIZE_BANDS: Record<string, CompanySizeBand[]> = {
 /** Rank 1-2 of the five forced tradeoffs = a top priority. */
 const isTop = (rank: number | null) => rank !== null && rank <= 2
 
-export function scoreCulture(c: MatchCandidate, job: MatchJob): MatchDimension & { notes: string[] } {
+function scorePostingCulture(c: MatchCandidate, job: MatchJob): MatchDimension & { notes: string[] } {
+  const prefs = c.culturePrefs ?? {}
+  const wantsCalm = prefs.pace === 1 || prefs.workLife === 1
+  const wantsMission = prefs.mission === 1
   const wantsStage = has(c.targetCompanyStage) && c.targetCompanyStage !== 'any' ? (c.targetCompanyStage as Stage) : null
   const wantsSize = has(c.targetCompanySize) && c.targetCompanySize !== 'Any' ? c.targetCompanySize : null
   const priorities = [c.priorityMission, c.priorityWorkLife, c.priorityJobSecurity, c.priorityBrandName].some((p) => p !== null)
-  if (!wantsStage && !wantsSize && !priorities && !c.equityImportant) {
+  const hasPrefs = Object.values(prefs).some((v) => v !== null && v !== undefined)
+  if (!wantsStage && !wantsSize && !priorities && !c.equityImportant && !hasPrefs) {
     return {
       key: 'culture',
       score: null,
@@ -280,23 +303,23 @@ export function scoreCulture(c: MatchCandidate, job: MatchJob): MatchDimension &
   }
   const intense = /\b(fast[- ]paced|high[- ]pressure|on[- ]call|nights and weekends|evenings? and weekends?|24\/7|demanding (?:pace|environment))\b/.test(t)
   const balanced = /\b(work[- ]life balance|flexible (?:schedule|hours)|four[- ]day work ?week|generous pto)\b/.test(t)
-  if (isTop(c.priorityWorkLife) && (intense || balanced)) {
+  if ((isTop(c.priorityWorkLife) || wantsCalm) && (intense || balanced)) {
     signals++
     if (intense && !balanced) {
       score -= 15
-      evidence.push('Posting stresses a demanding pace; work-life balance is a top priority for you')
-      notes.push('The posting stresses a demanding pace and work-life balance is a top priority for you — ask how the team really works week to week')
+      evidence.push(`Posting stresses a demanding pace; you want ${isTop(c.priorityWorkLife) ? 'work-life balance' : 'a steadier pace'}`)
+      notes.push(`The posting stresses a demanding pace and you want ${isTop(c.priorityWorkLife) ? 'work-life balance' : 'a steadier pace'} — ask how the team really works week to week`)
     } else {
       score += 10
-      evidence.push('Posting mentions flexibility or work-life balance, a top priority for you')
+      evidence.push('Posting mentions flexibility or work-life balance, which you want')
     }
   }
-  if (isTop(c.priorityMission)) {
+  if (isTop(c.priorityMission) || wantsMission) {
     const mission = stage?.stage === 'non-profit' || stage?.stage === 'government' || /\b(mission[- ]driven|our mission|impact|public service)\b/.test(t)
     if (mission) {
       signals++
       score += 10
-      evidence.push('Mission-led employer, and mission is a top priority for you')
+      evidence.push('Mission-led employer, and mission matters to you')
     }
   }
   if (isTop(c.priorityJobSecurity) && stage) {
@@ -326,6 +349,101 @@ export function scoreCulture(c: MatchCandidate, job: MatchJob): MatchDimension &
   }
   score = clamp(score)
   return { key: 'culture', score, status: statusOf(score), evidence, notes }
+}
+
+/** The member's preference per culture dimension (1..3), with where-you-work from the profile. */
+function culturePreferenceScale(c: MatchCandidate): Partial<Record<CultureDimensionKey, number>> {
+  const out: Partial<Record<CultureDimensionKey, number>> = {}
+  for (const [k, v] of Object.entries(c.culturePrefs ?? {})) if (v === 1 || v === 2 || v === 3) out[k as CultureDimensionKey] = v
+  const remote = remotePreferenceToScale(c.remotePreference)
+  if (remote !== null) out.remoteReality = remote
+  return out
+}
+
+const membersSay = (n: number) => `${n} member${n === 1 ? '' : 's'} who worked here`
+
+/**
+ * Culture from what members who worked at the company said (at or above the privacy
+ * floor), compared with the member's preferences. Null when there is nothing to compare.
+ */
+export function compareInsiderCulture(
+  c: MatchCandidate,
+  profile: CultureProfile
+): { score: number; evidence: string[]; notes: string[]; compared: number } | null {
+  if (!profile.shown) return null
+  const prefs = culturePreferenceScale(c)
+  const rows: { diff: number; text: string; note: string | null }[] = []
+  for (const agg of profile.dimensions) {
+    const want = prefs[agg.key]
+    if (!want) continue
+    const d = CULTURE_DIMENSION_BY_KEY[agg.key]
+    const diff = d.direction === 'match' ? Math.abs(agg.mean - want) : Math.max(0, agg.mean - want)
+    const said = agg.typical
+      ? `${membersSay(agg.answered)} describe ${d.subject} as ${d.describe[agg.typical - 1]}`
+      : `${membersSay(agg.answered)} are split on ${d.subject}`
+    const wantText = d.prefPhrase[want - 1]
+    if (diff < 0.5) rows.push({ diff, text: `${said}, which fits what you want`, note: null })
+    else
+      rows.push({
+        diff,
+        text: `${said}; you ${wantText}`,
+        note:
+          diff >= 1 && agg.typical
+            ? `Members who worked here describe ${d.subject} as ${d.describe[agg.typical - 1]} and you ${wantText} — ${d.ask}`
+            : null,
+      })
+  }
+  if (rows.length === 0) return null
+  rows.sort((a, b) => b.diff - a.diff)
+  const avgDiff = rows.reduce((s, r) => s + r.diff, 0) / rows.length
+  const worst = rows[0].diff
+  // 0 apart = 100, a full step = 60, two steps = 20; one large mismatch pulls harder than the average.
+  const score = clamp(100 - 40 * (avgDiff * 0.7 + worst * 0.3))
+  // Mismatches first, then one fit, so the panel shows both sides.
+  const mismatches = rows.filter((r) => r.diff >= 0.5)
+  const fits = rows.filter((r) => r.diff < 0.5)
+  const evidence = [...mismatches.slice(0, 2), ...fits.slice(0, mismatches.length > 0 ? 1 : 2)].map((r) => r.text)
+  return { score, evidence, notes: rows.map((r) => r.note).filter((n): n is string => !!n), compared: rows.length }
+}
+
+/** One-line summary of an insider profile, for a member who hasn't set preferences. */
+function insiderCultureSummary(profile: CultureProfile): string | null {
+  const parts = profile.dimensions
+    .filter((a) => a.typical)
+    .slice(0, 3)
+    .map((a) => {
+      const d = CULTURE_DIMENSION_BY_KEY[a.key]
+      return `${d.label.toLowerCase()} ${d.describe[a.typical! - 1]}`
+    })
+  return parts.length > 0 ? `${membersSay(profile.respondentCount)} describe it as: ${parts.join('; ')}` : null
+}
+
+export function scoreCulture(c: MatchCandidate, job: MatchJob): MatchDimension & { notes: string[]; insiderBased: boolean } {
+  const posting = scorePostingCulture(c, job)
+  const insider = job.insiderCulture?.shown ? job.insiderCulture : null
+  if (!insider) return { ...posting, insiderBased: false }
+
+  const cmp = compareInsiderCulture(c, insider)
+  if (!cmp) {
+    // Insider data exists but the member hasn't said what they want on any of its questions.
+    const summary = insiderCultureSummary(insider)
+    return {
+      ...posting,
+      evidence: summary ? [summary, ...posting.evidence.filter((e) => !e.startsWith('Tell us'))] : posting.evidence,
+      profilePrompt: PROFILE.culture,
+      insiderBased: false,
+    }
+  }
+  // Insiders lead; the posting's own wording, when it says anything, nudges a quarter.
+  const score = posting.score !== null ? clamp(cmp.score * 0.75 + posting.score * 0.25) : cmp.score
+  return {
+    key: 'culture',
+    score,
+    status: statusOf(score),
+    evidence: [...cmp.evidence, ...posting.evidence.filter((e) => !e.startsWith('Tell us') && !e.startsWith('The posting says little'))],
+    notes: [...cmp.notes, ...posting.notes],
+    insiderBased: true,
+  }
 }
 
 // ── 3. Salary ────────────────────────────────────────────────────────────────
@@ -688,8 +806,9 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
   let overallScore: number | null = null
   let overall: OverallMatch = 'unknown'
   if (known.length >= 2) {
-    const w = known.reduce((s, k) => s + WEIGHTS[k], 0)
-    overallScore = Math.round(known.reduce((s, k) => s + dimensions[k].score! * WEIGHTS[k], 0) / w)
+    const weights = { ...WEIGHTS, culture: culture.insiderBased ? INSIDER_CULTURE_WEIGHT : WEIGHTS.culture }
+    const w = known.reduce((s, k) => s + weights[k], 0)
+    overallScore = Math.round(known.reduce((s, k) => s + dimensions[k].score! * weights[k], 0) / w)
     // A hard gap (a required license, or a location the member has ruled out) caps the overall.
     const hardGap = known.some((k) => dimensions[k].score! < 25)
     if (hardGap) overallScore = Math.min(overallScore, 54)
