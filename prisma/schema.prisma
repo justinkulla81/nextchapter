@@ -7106,10 +7106,10 @@ model CompanySignal {
   topSkillsRequested    Json // string[], ranked — keyword-frequency extraction, see src/lib/companies/skills-extraction.ts for why this isn't an LLM call
   medianPostingAgeDays  Int?
 
-  // Nullable, forward-compatible columns for a future real WARN agent.
-  // NEVER populated by this phase's cron — see header comment. Any
-  // candidate-facing read of these two columns must be gated behind an
-  // explicit "not available yet" state, never a fabricated number.
+  // WARN filings and employees affected in the last 12 months, from
+  // WarnNotice. Filled for the latest week by the company-hiring-index cron
+  // (src/lib/companies/hiring-index.ts); null on older weeks and on companies
+  // the cron has not profiled.
   warnFilings12mo       Int?
   warnEmployeesAffected Int?
 
