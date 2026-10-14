@@ -1,9 +1,12 @@
 import 'server-only'
 import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { computeMatchScore, priorityMultiplier } from '@/lib/matching/compute-match-score'
-import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
-import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
+import { priorityMultiplier } from '@/lib/matching/compute-match-score'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
+import { calibratedLevelRank } from '@/lib/scoring/level-rank'
+import { statesFromLocation } from '@/lib/pay/market-pay'
+import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
@@ -19,56 +22,63 @@ import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jo
 // (kept separate, with no 'server-only' import, so client components can
 // render the label without pulling this file's server-only deps in).
 
+// ── Fit scoring v2 (2026-10-14) ─────────────────────────────────────────────
+//
+// One deterministic score per member x job, built from parts that can each be
+// read back as a sentence (computeFitAssessment returns them):
+//
+//   function   30  the job's function is the member's own or target function
+//              22  …their secondary function
+//   level      25  at their level        17  one step up
+//               8  one step down          0  two or more steps away
+//              10  either level unknown
+//   place      15  local, or a remote job  8  a move they said they're open to
+//               6  can't tell (job or member location unknown)   0  doesn't work
+//   title    0-20  overlap with the role they named (targetRoleType); a
+//                  member with no specific target gets 10 for a job in
+//                  their own function
+//   industry 0-10  the posting names one of their industries
+//   keywords  0-8  resume keywords found in the posting (2 per hit)
+//   years     0-5  meets the stated years requirement
+//   pay     -10-5  posted top of range vs their minimum
+//   size      0-5  company size they asked for
+//
+// …and four gates that cap the score (so the bucket and every score-threshold
+// caller agree):
+//   - below "good" (44) when the place doesn't work, when neither the job's
+//     function nor its title lines up with the member, or when the level is a
+//     step or more down / two or more up — those read as Step Down / Step Up;
+//   - below "strong" (69) when the member named a specific target role and the
+//     title has nothing in common with it.
+//
+// What changed from v1 and why (measured on the live board, 156k jobs x 36
+// members — see scripts/fit-scoring-report.ts):
+//   - Level compared the member's company-size-calibrated levelRankScore with
+//     an uncalibrated job, so a Director whose history calibrated to 87 saw
+//     every Director job as two levels down. The member's stated level is the
+//     anchor now; levelRankScore can only widen it by one step.
+//   - The job's own seniority (ncrawl's rung, ExclusiveJobPosting.level) is
+//     used instead of re-guessing from the title, and Senior IC sits level
+//     with Manager instead of a full step below it.
+//   - A keyword-rich resume (6+ keywords) needed 25% of them in the posting
+//     or was capped below strong — senior resumes ("P&L ownership", "board
+//     relations") almost never hit that, so senior members never reached
+//     strong. Keywords are now a small bonus with no cap.
+//   - A one-word target ("Director of Product" -> "product") never earned
+//     title credit, and C-suite titles ("Chief Financial Officer") never
+//     matched a Finance member. Both fixed below.
+//   - "Good" no longer comes from a function category alone: the place and
+//     the level have to work too, which is what cut good fits from tens of
+//     thousands to hundreds.
+
 // The score a listing needs to clear to count as a "strong" fit — used by
 // every fit-bucket consumer below (candidate Discover badges, SurfacedJob
-// badges, admin review). The ATS admission gate uses its own harder,
-// two-part function+seniority check instead (see ats-job-board-feed.ts) —
-// a continuous score maxed over a large, diverse candidate pool proved too
-// easy to clear for that use case.
+// badges, admin review).
 export const STRONG_FIT_THRESHOLD = 70
-// Shared with the admin-side callers further down this file (formerly its
-// own separate 45 constant there) so "good fit" means the same score cutoff
-// everywhere, including the unconfident-function cap in
-// computeEnrichedFitScore below.
+// "Good fit" means the same score cutoff everywhere, including the gates in
+// computeFitAssessment below.
 const GOOD_FIT_THRESHOLD = 45
 
-function bucketFromScore(score: number): FitBucket {
-  if (score >= STRONG_FIT_THRESHOLD) return 'strong'
-  if (score >= GOOD_FIT_THRESHOLD) return 'good'
-  return 'stretch'
-}
-
-// Below the "good fit" bar, the label needs to know which direction the
-// level mismatch runs — "Stretch" is only right when the ROLE reaches
-// above the candidate (a real aim-higher case) or the comparison is
-// inconclusive (missing level data on either side). When the candidate is
-// actually above the role's level, "Stretch" reads as encouraging when
-// it's the opposite problem — that gets its own bucket instead, split by
-// how big the gap is: a small step down ('below_level') vs. a real
-// overqualification case ('overqualified', e.g. a former CEO/Partner shown
-// a Manager posting). Mirrors the same calibratedLevelRank/
-// calibratedLevelDistance math computeMatchScore uses internally for its
-// own level-match points, so this never disagrees with the score it's
-// annotating.
-function bucketFromScoreAndLevel(score: number, candidate: FitCandidate, posting: FitPostingLike): FitBucket {
-  const bucket = bucketFromScore(score)
-  if (bucket !== 'stretch') return bucket
-
-  const candidateScore = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
-  const roleLevel = posting.targetLevel ?? inferLevelFromTitle(posting.title)
-  const roleScore = calibratedLevelRank(roleLevel, posting.companySizeBand ?? null)
-  // Missing data on either side, or the role is at/above the candidate's
-  // level — can't rule out a genuine aim-higher case, so "Stretch" stands.
-  if (candidateScore === null || roleScore === null || roleScore >= candidateScore) return 'stretch'
-
-  return calibratedLevelDistance(candidateScore, roleScore) >= 3 ? 'overqualified' : 'below_level'
-}
-
-// Widened to carry every signal the enriched scorer below uses — industry,
-// years of experience, and resume keywords used to be admin-only
-// (AdminFitCandidate), but the candidate-facing Discover/SurfacedJob
-// buckets need the same signals now that they share one scoring path with
-// the admin review queue instead of a thinner computeMatchScore-only call.
 type FitCandidate = Pick<
   CandidateProfile,
   | 'primaryFunction'
@@ -95,34 +105,9 @@ type FitCandidate = Pick<
   | 'priorityWorkLife'
   | 'priorityBrandName'
   | 'priorityMission'
->
-
-// Candidate's 3-bucket company-size preference (COMPANY_SIZE_OPTIONS in
-// src/lib/constants/onboarding.ts) mapped to the resolver's 8-tier band
-// (src/lib/market/company-size.ts) — 'Any' or null intentionally has no
-// entry here, read as "no preference."
-const COMPANY_SIZE_TARGET_BANDS: Record<string, CompanySizeBand[]> = {
-  '1-50': ['MICRO', 'SMALL'],
-  '50-500': ['SMALL_MID', 'MID'],
-  '500+': ['MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA'],
-}
-
-// Binary, same shape as industryMatchBonus below — a mismatch or an
-// unresolved band both read as neutral (0), never a penalty, so a company
-// outside the candidate's stated size preference still shows, just without
-// this bonus. Scaled by how highly the candidate ranked a recognizable
-// brand name (Part 3) — large/enterprise/mega bands double as the closest
-// existing recognizability proxy, since there's no separate brand
-// classifier.
-function companySizeMatchBonus(
-  targetCompanySize: string | null,
-  companySizeBand: CompanySizeBand | null | undefined,
-  priorityBrandNameRank: number | null
-): number {
-  if (!targetCompanySize || targetCompanySize === 'Any' || !companySizeBand) return 0
-  const acceptable = COMPANY_SIZE_TARGET_BANDS[targetCompanySize]
-  if (!acceptable || !acceptable.includes(companySizeBand)) return 0
-  return Math.round(10 * priorityMultiplier(priorityBrandNameRank))
+> & {
+  // Optional so narrower selects keep compiling; absent reads as not set.
+  targetFunction?: string | null
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -130,175 +115,9 @@ function companySizeMatchBonus(
 // rankCandidatesByFitCoverage) — harmless to carry on every caller.
 export type AdminFitCandidate = FitCandidate & Pick<CandidateProfile, 'id' | 'firstName' | 'lastName' | 'email'>
 
-// Common enough across totally unrelated titles ("Corporate Accounting" vs
-// "Corporate Development", "Senior Director, Business Development" vs
-// "Senior Director, Product") that a shared hit on one of these alone
-// shouldn't read as real title overlap — real bug, not hypothetical: it was
-// letting "Corporate Accounting" register as a partial match against a
-// stated target of "VP of Corporate Development" purely on the word
-// "corporate", when the two have nothing else in common.
-const GENERIC_TITLE_WORDS = new Set([
-  'corporate', 'senior', 'director', 'manager', 'executive', 'head', 'global',
-  'lead', 'chief', 'associate', 'vice', 'president', 'principal', 'partner',
-  'officer', 'specialist', 'coordinator', 'analyst',
-])
-
-function significantWords(text: string): string[] {
-  return text
-    .split(/\s+/)
-    .map((w) => w.replace(/[^a-z0-9&]/g, ''))
-    .filter((w) => w.length > 2 && !GENERIC_TITLE_WORDS.has(w))
-}
-
-function titleSimilarityBonus(targetRoleType: string | null, postingTitle: string): number {
-  if (!targetRoleType || isVagueTargetRole(targetRoleType)) return 0
-  const target = targetRoleType.trim().toLowerCase()
-  if (!target) return 0
-  const title = postingTitle.toLowerCase()
-  if (title === target) return 20
-  if (title.includes(target) || target.includes(title)) return 16
-  const targetWords = significantWords(target)
-  const titleWords = new Set(significantWords(title))
-  const sharedWordCount = targetWords.filter((w) => titleWords.has(w)).length
-  const sameFamily = titlesShareRoleFamily(target, title)
-  // A single shared word carries real signal when it's corroborated by a
-  // shared role family (role-family-keywords.ts); alone, one common word is
-  // too easy to hit by coincidence between otherwise-unrelated titles — real
-  // bug, not hypothetical: "Corporate Development" and "Business
-  // Development" share only "development" but sit in different families
-  // (M&A/Corporate-Development vs. Sales/Business-Development), and that
-  // one word was enough to register as a near-full title match.
-  const wordOverlapBonus =
-    targetWords.length === 0 || (sharedWordCount === 1 && targetWords.length === 1 && !sameFamily)
-      ? 0
-      : Math.round((sharedWordCount / targetWords.length) * 16)
-  // Title text alone misses functionally-related roles that share no
-  // words — "Corporate Development VP" and "Investment Partner" are both
-  // M&A-adjacent but share no substring. A shared role-family keyword is a
-  // weaker signal than literal title overlap, so it only matters when word
-  // overlap didn't already beat it.
-  const familyBonus = sameFamily ? 12 : 0
-  return Math.max(wordOverlapBonus, familyBonus)
-}
-
-// A candidate with a substantial keyword set (6+, pulled from their resume)
-// needs real corroboration from the posting text before that keyword
-// signal counts as confident — one or two incidental matches out of a
-// dozen skills isn't meaningfully "this role uses my skills." Below 6
-// keywords there isn't enough volume for a ratio to mean anything, so no
-// gate applies (the raw hit count still contributes via `bonus`).
-const KEYWORD_GATE_MIN_COUNT = 6
-const KEYWORD_GATE_MIN_RATIO = 0.25
-
-function keywordMatchInfo(resumeKeywords: string[], postingText: string): { bonus: number; failsGate: boolean } {
-  if (resumeKeywords.length === 0) return { bonus: 0, failsGate: false }
-  const lower = postingText.toLowerCase()
-  const hits = resumeKeywords.filter((kw) => kw && lower.includes(kw.toLowerCase())).length
-  const ratio = hits / resumeKeywords.length
-  const failsGate = resumeKeywords.length >= KEYWORD_GATE_MIN_COUNT && ratio < KEYWORD_GATE_MIN_RATIO
-  return { bonus: Math.round(ratio * 10), failsGate }
-}
-
-// Binary, not ratio-based — postings rarely name an industry explicitly
-// enough to score partial credit against, so this only rewards a real
-// mention of one of the candidate's target industries (or their own
-// resume-derived industry) somewhere in the title/company/description.
-// Neutral (0, no penalty) when the candidate hasn't set any — most
-// candidates haven't filled in targetIndustries, and an empty array
-// shouldn't read as "targeting nothing."
-function industryMatchBonus(
-  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext' | 'priorityMission'>,
-  postingText: string
-): number {
-  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
-    (s): s is string => !!s && s.trim().length > 0
-  )
-  if (targets.length === 0) return 0
-  const lower = postingText.toLowerCase()
-  const matches = targets.some((t) => lower.includes(t.toLowerCase()))
-  // Approximate proxy for "mission alignment" (Part 3 of the tradeoff-
-  // priority reweight) — industry match is the closest existing signal to
-  // it; no separate mission classifier exists.
-  return matches ? Math.round(10 * priorityMultiplier(candidate.priorityMission)) : 0
-}
-
-// "Ideal" match for the title/industry/geo tiering split (find-my-job
-// recommendations + market digest, per the "88,099 open roles" complaint —
-// a single unfiltered count/list reads as inflated, so real matches are
-// split into a small "ideal" tier that meets all three criteria and a
-// larger "broader" tier that's title-only). Every job in this pool is
-// already title/function-filtered by the surfacing pipeline, so this only
-// needs to check industry and geo — and geo deliberately means an actual
-// local/remote fit, not "willing to relocate," since papering over that
-// distinction is exactly what produced the inflated number in the first
-// place.
-function matchesTargetIndustry(
-  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>,
-  postingText: string
-): boolean {
-  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
-    (s): s is string => !!s && s.trim().length > 0
-  )
-  if (targets.length === 0) return false
-  const lower = postingText.toLowerCase()
-  return targets.some((t) => lower.includes(t.toLowerCase()))
-}
-
-function matchesTargetGeo(
-  candidate: Pick<FitCandidate, 'remotePreference' | 'currentCity' | 'currentState'>,
-  posting: FitPostingLike
-): boolean {
-  const role = postingToRole(posting)
-  if (role.remotePolicy === 'remote' && (candidate.remotePreference === 'remote' || candidate.remotePreference === 'flexible')) {
-    return true
-  }
-  const location = role.locationRequirement ?? ''
-  // Whole words only: a plain substring test read "CA" inside "North
-  // Carolina" and "MA" inside "Oklahoma" as the member's state.
-  const word = (needle: string) => new RegExp(`(^|[^a-z])${needle.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
-  if (candidate.currentCity?.trim() && word(candidate.currentCity).test(location)) return true
-  if (candidate.currentState?.trim() && word(candidate.currentState).test(location)) return true
-  return false
-}
-
-function isIdealMatch(candidate: FitCandidate, posting: FitPostingLike): boolean {
-  const postingText = `${posting.title} ${posting.description ?? ''} ${posting.location ?? ''}`
-  return matchesTargetIndustry(candidate, postingText) && matchesTargetGeo(candidate, posting)
-}
-
-// Best-effort extraction of a minimum-years requirement from free-text
-// posting copy ("5+ years", "3-5 years of experience") — same
-// regex-over-free-text approach already used for ATS salary parsing
-// (parseSalaryRange in ats-job-board-feed.ts). Returns null when nothing
-// matches, which callers treat as "no requirement stated," not "zero
-// years required."
-function parseMinYearsRequired(text: string): number | null {
-  const match = text.match(/(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?\s*years?/i)
-  if (!match) return null
-  const years = parseInt(match[1], 10)
-  return Number.isNaN(years) ? null : years
-}
-
-function yearsExperienceBonus(candidateYears: number | null, postingText: string): number {
-  const required = parseMinYearsRequired(postingText)
-  if (required === null || candidateYears === null) return 5 // insufficient data on one side — neutral, not a penalty
-  if (candidateYears >= required) return 10
-  if (candidateYears >= required - 2) return 5 // close enough to be worth surfacing, not a confident match
-  return 0
-}
-
-// ATS-fed OPEN postings never have targetRemotePolicy set (that field only
-// exists for recruiter TARGETED listings) — without this, a posting whose
-// own location literally says "Remote" never gets read as remote-friendly,
-// under-crediting fit for candidates who'd be a good match for it.
-function inferRemoteFromLocation(location: string | null): boolean {
-  return location != null && /\bremote\b/i.test(location)
-}
-
-// The full shape the enriched scorer below needs from a posting — deliberately
-// a plain interface, not a Prisma Pick, so both ExclusiveJobPosting rows and
-// adapted SurfacedJob rows (which have no targeting/comp fields at all) can
-// satisfy it via a small object-literal adapter at the call site.
+// The full shape the scorer needs from a posting — a plain interface, not a
+// Prisma Pick, so both ExclusiveJobPosting rows and adapted SurfacedJob rows
+// can satisfy it.
 interface FitPostingLike {
   title: string
   description: string | null
@@ -309,189 +128,473 @@ interface FitPostingLike {
   targetLevel: string | null
   targetRemotePolicy: string | null
   targetLocation: string | null
-  // Pre-resolved by the caller (resolveCompanySizeBand in
-  // src/lib/market/company-size.ts is async; this scorer is not) — omitted
-  // or null both read as "unresolved," i.e. neutral, never a penalty.
+  // ncrawl's seniority rung (ExclusiveJobPosting.level). Absent: read from
+  // the title with the same rules (classifyTitleRung).
+  level?: string | null
+  // Pre-resolved by the caller (resolveCompanySizeBand is async; this scorer
+  // is not) — omitted or null both read as unknown, never a penalty.
   companySizeBand?: CompanySizeBand | null
 }
 
-// Deliberately no employerCompanySizeBand here — ExclusiveJobPosting has no
-// synchronous path to a real company size (companyName is a denormalized
-// free-text string, not an EmployerProfile relation), and this function is
-// called synchronously from the candidate-facing Discover feed and
-// SurfacedJob badges, where an async per-listing company-size lookup would
-// be a much bigger change than this pass takes on. computeMatchScore treats
-// the missing band as "unknown" (anchor, no adjustment) — see
-// ats-job-board-feed.ts for the one place job-side company size IS applied
-// (a small, fixed, known company list, resolved once per run).
-function postingToRole(posting: FitPostingLike) {
-  return {
-    primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
-    roleLevel: posting.targetLevel ?? inferLevelFromTitle(posting.title),
-    remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
-    locationRequirement: posting.targetLocation ?? posting.location,
-    compMin: posting.salaryMin,
-    compMax: posting.salaryMax,
-  }
+// ── Level ────────────────────────────────────────────────────────────────────
+
+// Both sides on one points scale, a step = 15. The member's stated level
+// (HIGHEST_LEVEL_OPTIONS) and the job's rung. IC sits at 32 so a Senior IC
+// job (38) is at an IC member's level, and Senior IC is level with Manager.
+const STEP_POINTS = 15
+const MEMBER_LEVEL_POINTS: Record<string, number> = { IC: 32, Manager: 40, Director: 55, VP: 70, 'C-Suite': 85 }
+const RUNG_LEVEL_POINTS: Partial<Record<RungName, number>> = {
+  SENIOR_IC: 38,
+  MANAGER: 40,
+  SR_MANAGER: 47,
+  DIRECTOR: 55,
+  PRINCIPAL: 55,
+  CHIEF_OF_STAFF: 55,
+  SCHOOL_LEADER: 55,
+  HEAD: 63,
+  PARTNER: 70,
+  VP: 70,
+  EVP_SVP: 78,
+  C_SUITE: 85,
+  BOARD: 90,
 }
 
-// The one enriched fit score used everywhere — candidate Discover badges,
-// SurfacedJob badges, and admin review all call this same function now, so
-// "a good fit" means the same thing regardless of who's looking. Combines
-// computeMatchScore's function/level/location/comp heuristic (falling back
-// to title-inference for function/level when a posting has no explicit
-// targeting — true for nearly every board posting) with title-similarity,
-// a keyword-match bonus that's hard-capped below "strong" when a
-// keyword-rich resume (6+ terms) doesn't clear a 25% hit rate, and two new
-// signals: industry (binary — does the posting mention a target industry)
-// and years-of-experience (parsed from posting text when stated).
-function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLike): number {
+export type LevelStep = 'same' | 'up' | 'big_up' | 'down' | 'big_down' | 'unknown'
+
+// The member's level as a window: their stated level, widened by one step
+// toward their calibrated levelRankScore when that differs by 10+ points
+// (e.g. a Director at a very large company also fits VP roles). Members with
+// no stated level fall back to levelRankScore alone.
+function memberLevelWindow(c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'>): { lo: number; hi: number } | null {
+  const level = c.highestLevelReached
+  const base = level ? MEMBER_LEVEL_POINTS[level] : undefined
+  if (base === undefined) return c.levelRankScore == null ? null : { lo: c.levelRankScore, hi: c.levelRankScore }
+  const anchor = calibratedLevelRank(level, null)
+  if (c.levelRankScore == null || anchor === null) return { lo: base, hi: base }
+  if (c.levelRankScore >= anchor + 10) return { lo: base, hi: base + STEP_POINTS }
+  if (c.levelRankScore <= anchor - 10) return { lo: base - STEP_POINTS, hi: base }
+  return { lo: base, hi: base }
+}
+
+// The seniority rules rank every "General Manager" as C-suite, but most are
+// a store, restaurant, hotel or site GM — a manager. Only a GM title naming a
+// business (a division, region, product line…) reads as an executive role,
+// and then at VP level, not C-suite. Allowlist, not a blanket rule.
+const GENERAL_MANAGER = /\bgeneral manager\b/i
+const EXECUTIVE_WORDS = /\b(chief|ceo|president)\b/i
+const BUSINESS_GM_QUALIFIER =
+  /\b(business|division|divisional|business unit|unit|segment|region|regional|country|americas|emea|apac|north america|global|international|product|platform|portfolio|enterprise|payments|cloud|software|saas|category|brand|commercial|market)\b/i
+
+function generalManagerPoints(title: string): number | null {
+  if (!GENERAL_MANAGER.test(title) || EXECUTIVE_WORDS.test(title) || /\bassistant\b/i.test(title)) return null
+  return BUSINESS_GM_QUALIFIER.test(title) ? RUNG_LEVEL_POINTS.VP! : RUNG_LEVEL_POINTS.MANAGER!
+}
+
+function postingLevelPoints(posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>, fallbackLevel?: string | null): number | null {
+  if (posting.targetLevel && MEMBER_LEVEL_POINTS[posting.targetLevel] !== undefined) return MEMBER_LEVEL_POINTS[posting.targetLevel]
+  const gm = generalManagerPoints(posting.title)
+  if (gm !== null) return gm
+  const rung = (posting.level as RungName | null | undefined) ?? (fallbackLevel ? null : classifyTitleRung(posting.title).rung)
+  if (rung && RUNG_LEVEL_POINTS[rung] !== undefined) return RUNG_LEVEL_POINTS[rung]!
+  if (fallbackLevel && MEMBER_LEVEL_POINTS[fallbackLevel] !== undefined) return MEMBER_LEVEL_POINTS[fallbackLevel]
+  return null
+}
+
+export function levelStep(
+  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'>,
+  posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>,
+  fallbackLevel?: string | null
+): LevelStep {
+  const window = memberLevelWindow(c)
+  const job = postingLevelPoints(posting, fallbackLevel)
+  if (!window || job === null) return 'unknown'
+  const gap = job < window.lo ? (job - window.lo) / STEP_POINTS : job > window.hi ? (job - window.hi) / STEP_POINTS : 0
+  if (gap >= 1.6) return 'big_up'
+  if (gap >= 0.5) return 'up'
+  if (gap <= -1.6) return 'big_down'
+  if (gap <= -0.5) return 'down'
+  return 'same'
+}
+
+const LEVEL_POINTS: Record<LevelStep, number> = { same: 25, up: 17, down: 8, big_up: 0, big_down: 0, unknown: 10 }
+
+// ── Function ─────────────────────────────────────────────────────────────────
+
+// A C-suite title names its functional area as well as Executive Leadership —
+// "Chief Financial Officer" is a Finance member's job, not only an executive's.
+const EXEC_TITLE_AREA: { re: RegExp; fn: string }[] = [
+  { re: /\b(cfo|chief financial officer|chief accounting officer)\b/, fn: 'Finance' },
+  { re: /\b(coo|chief operating officer|chief operations officer)\b/, fn: 'Operations' },
+  { re: /\b(cmo|chief marketing officer|chief brand officer|chief communications officer)\b/, fn: 'Marketing' },
+  { re: /\b(cto|cio|ciso|chief technology officer|chief information officer|chief information security officer)\b/, fn: 'Engineering' },
+  { re: /\bchief product officer\b/, fn: 'Product' },
+  { re: /\b(chro|chief people officer|chief human resources officer|chief talent officer)\b/, fn: 'Human Resources' },
+  { re: /\b(chief revenue officer|chief sales officer|chief commercial officer)\b/, fn: 'Sales' },
+  { re: /\b(chief legal officer|general counsel|chief compliance officer)\b/, fn: 'Legal' },
+  { re: /\b(chief data officer|chief analytics officer)\b/, fn: 'Data & Analytics' },
+  { re: /\bchief customer officer\b/, fn: 'Customer Success' },
+]
+
+function titleFunctions(title: string): string[] {
+  const lower = title.toLowerCase()
+  const out: string[] = []
+  const inferred = inferFunctionFromTitle(title)
+  if (inferred) out.push(inferred)
+  for (const { re, fn } of EXEC_TITLE_AREA) if (re.test(lower) && !out.includes(fn)) out.push(fn)
+  return out
+}
+
+function postingFunctions(posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): string[] {
+  return posting.targetFunction ? [posting.targetFunction] : titleFunctions(posting.title)
+}
+
+function hasSpecificTarget(c: Pick<FitCandidate, 'targetRoleType'>): boolean {
+  return !!c.targetRoleType?.trim() && !isVagueTargetRole(c.targetRoleType)
+}
+
+// The member's own functions — primary, a stated target function, and the
+// function of the role they named — and their secondary function.
+function memberFunctions(c: FitCandidate): { own: string[]; secondary: string[] } {
+  const own = [c.primaryFunction, c.targetFunction].filter((f): f is string => !!f?.trim())
+  if (hasSpecificTarget(c)) own.push(...titleFunctions(expandExecAcronyms(c.targetRoleType!)))
+  const secondary = [c.secondaryFunction].filter((f): f is string => !!f?.trim())
+  const norm = (list: string[]) => [...new Set(list.map((f) => f.trim().toLowerCase()))]
+  return { own: norm(own), secondary: norm(secondary) }
+}
+
+export type FunctionFit = 'own' | 'secondary' | 'other' | 'unknown'
+
+function functionFit(c: FitCandidate, posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): FunctionFit {
+  const jobFns = postingFunctions(posting).map((f) => f.toLowerCase())
+  if (jobFns.length === 0) return 'unknown'
+  const mine = memberFunctions(c)
+  if (jobFns.some((f) => mine.own.includes(f))) return 'own'
+  if (jobFns.some((f) => mine.secondary.includes(f))) return 'secondary'
+  return 'other'
+}
+
+const FUNCTION_POINTS: Record<FunctionFit, number> = { own: 30, secondary: 22, other: 0, unknown: 0 }
+const OPEN_TARGET_ROLE_CREDIT = 10
+
+// ── Title vs the role they named ─────────────────────────────────────────────
+
+// Common enough across unrelated titles that a shared hit on one alone isn't
+// real overlap ("Corporate Accounting" vs "Corporate Development").
+const GENERIC_TITLE_WORDS = new Set([
+  'corporate', 'senior', 'director', 'manager', 'executive', 'head', 'global',
+  'lead', 'chief', 'associate', 'vice', 'president', 'principal', 'partner',
+  'officer', 'specialist', 'coordinator', 'analyst',
+])
+
+const EXEC_ACRONYMS: Record<string, string> = {
+  ceo: 'chief executive officer',
+  coo: 'chief operating officer',
+  cfo: 'chief financial officer',
+  cto: 'chief technology officer',
+  cmo: 'chief marketing officer',
+  cio: 'chief information officer',
+  chro: 'chief human resources officer',
+  cro: 'chief revenue officer',
+  cpo: 'chief product officer',
+}
+
+// Expands C-suite acronyms ("CFO" -> "chief financial officer") and folds
+// every vice-president spelling into "vp", a level word that never counts as
+// overlap — "president" alone would put every VP title in the general-
+// management role family.
+function expandExecAcronyms(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\b(ceo|coo|cfo|cto|cmo|cio|chro|cro|cpo)\b/g, (m) => EXEC_ACRONYMS[m])
+    .replace(/\b(senior|executive|group|regional|assistant|associate)?\s*vice[\s-]+president\b|\b[se]vp\b/g, ' vp ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function significantWords(text: string): string[] {
+  return text
+    .split(/[\s,/()|–—-]+/)
+    .map((w) => w.replace(/[^a-z0-9&]/g, ''))
+    .filter((w) => w.length > 2 && !GENERIC_TITLE_WORDS.has(w))
+}
+
+// 0-20. Exact title 20; one contains the other 16; otherwise the share of the
+// target's significant words found in the title (x16), or 12 for a shared
+// role family (role-family-keywords.ts). A one-word target ("Director of
+// Product" -> "product") counts when the job's function agrees, so a
+// "Product Marketing Director" doesn't match "Director of Product".
+function titleSimilarityBonus(c: FitCandidate, posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): number {
+  if (!hasSpecificTarget(c)) return 0
+  const target = expandExecAcronyms(c.targetRoleType!.trim())
+  const title = expandExecAcronyms(posting.title)
+  if (!target) return 0
+  if (title === target) return 20
+  if (title.includes(target) || (title.length >= 8 && target.includes(title))) return 16
+  const targetWords = [...new Set(significantWords(target))]
+  const titleWords = new Set(significantWords(title))
+  const shared = targetWords.filter((w) => titleWords.has(w)).length
+  const sameFamily = titlesShareRoleFamily(target, title)
+  let wordOverlap = 0
+  if (targetWords.length === 1 && shared === 1) {
+    const targetFns = titleFunctions(target).map((f) => f.toLowerCase())
+    const jobFns = postingFunctions(posting).map((f) => f.toLowerCase())
+    wordOverlap = sameFamily || targetFns.length === 0 || jobFns.some((f) => targetFns.includes(f)) ? 16 : 0
+  } else if (targetWords.length > 0) {
+    wordOverlap = Math.round((shared / targetWords.length) * 16)
+  }
+  return Math.max(wordOverlap, sameFamily ? 12 : 0)
+}
+
+// ── Place ────────────────────────────────────────────────────────────────────
+
+export type PlaceFit = 'local' | 'remote' | 'relocation' | 'unknown' | 'no'
+
+function postingIsRemote(posting: Pick<FitPostingLike, 'targetRemotePolicy' | 'location' | 'description'>): boolean {
+  if (posting.targetRemotePolicy) return posting.targetRemotePolicy === 'remote'
+  if (posting.location && /\bremote\b/i.test(posting.location)) return true
+  return !!posting.description && /\b(fully remote|100% remote|remote[- ]first|this (?:is a|role is) remote)\b/i.test(posting.description)
+}
+
+// States that share a commuting metro with a neighbour (New York/Hoboken,
+// Washington/Arlington, Philadelphia/Camden, Boston/Nashua) — a job across
+// that line is local, not a move.
+const SHARED_METRO_STATES: Record<string, string[]> = {
+  NY: ['NJ', 'CT'],
+  NJ: ['NY', 'PA'],
+  CT: ['NY'],
+  PA: ['NJ', 'DE'],
+  DE: ['PA'],
+  DC: ['MD', 'VA'],
+  MD: ['DC', 'VA'],
+  VA: ['DC', 'MD'],
+  MA: ['NH', 'RI'],
+  NH: ['MA'],
+  RI: ['MA'],
+}
+
+function placeFit(c: FitCandidate, posting: FitPostingLike): PlaceFit {
+  if (postingIsRemote(posting)) return 'remote'
+  const location = posting.targetLocation ?? posting.location ?? ''
+  const jobStates = statesFromLocation(location).states
+  // Whole words only: a plain substring test read "CA" inside "North Carolina".
+  const word = (needle: string) => new RegExp(`(^|[^a-z])${needle.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
+  const cityHit = !!c.currentCity?.trim() && c.currentCity.trim().toLowerCase() !== 'remote' && word(c.currentCity).test(location)
+  if (jobStates.length === 0 && !cityHit) return 'unknown'
+  const homeStates = statesFromLocation([c.currentCity, c.currentState].filter(Boolean).join(', ')).states
+  const myStates = [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? [])]
+  if (cityHit || jobStates.some((s) => myStates.includes(s))) return 'local'
+  if (c.remotePreference === 'remote') return 'no'
+  if (c.openToRelocation) return 'relocation'
+  if (myStates.length === 0) return 'unknown'
+  return 'no'
+}
+
+const PLACE_POINTS: Record<PlaceFit, number> = { local: 15, remote: 15, relocation: 8, unknown: 6, no: 0 }
+
+// ── Smaller signals ──────────────────────────────────────────────────────────
+
+// Candidate's 3-bucket company-size preference mapped to the resolver's
+// 8-tier band — 'Any' or null has no entry, read as "no preference."
+const COMPANY_SIZE_TARGET_BANDS: Record<string, CompanySizeBand[]> = {
+  '1-50': ['MICRO', 'SMALL'],
+  '50-500': ['SMALL_MID', 'MID'],
+  '500+': ['MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA'],
+}
+
+function companySizeMatchBonus(c: FitCandidate, band: CompanySizeBand | null | undefined): number {
+  if (!c.targetCompanySize || c.targetCompanySize === 'Any' || !band) return 0
+  return COMPANY_SIZE_TARGET_BANDS[c.targetCompanySize]?.includes(band) ? Math.round(5 * priorityMultiplier(c.priorityBrandName)) : 0
+}
+
+// Industries the member named, split into phrases a posting could actually
+// contain: "Climate media, events, membership" -> three phrases.
+function industryPhrases(c: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>): string[] {
+  const raw = [c.industryContext, c.secondaryIndustryContext, ...(c.targetIndustries ?? [])].filter((s): s is string => !!s?.trim())
+  const phrases = raw.flatMap((s) => s.toLowerCase().split(/\s*(?:,|;|\/|\band\b|&)\s*/))
+  return [...new Set(phrases.map((p) => p.trim()).filter((p) => p.length >= 4))]
+}
+
+function matchesTargetIndustry(c: FitCandidate, postingText: string): boolean {
+  const phrases = industryPhrases(c)
+  if (phrases.length === 0) return false
+  const lower = postingText.toLowerCase()
+  return phrases.some((p) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(lower))
+}
+
+function keywordBonus(resumeKeywords: string[], postingText: string): number {
+  if (!resumeKeywords?.length) return 0
+  const lower = postingText.toLowerCase()
+  const hits = resumeKeywords.filter((kw) => kw && lower.includes(kw.toLowerCase())).length
+  return Math.min(8, hits * 2)
+}
+
+// "5+ years", "3-5 years of experience" — null when nothing matches.
+function parseMinYearsRequired(text: string): number | null {
+  const match = text.match(/(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?\s*years?/i)
+  if (!match) return null
+  const years = parseInt(match[1], 10)
+  return Number.isNaN(years) ? null : years
+}
+
+function yearsBonus(candidateYears: number | null, postingText: string): number {
+  const required = parseMinYearsRequired(postingText)
+  if (required === null || candidateYears === null) return 2
+  if (candidateYears >= required) return 5
+  return candidateYears >= required - 2 ? 2 : 0
+}
+
+function payPoints(c: FitCandidate, posting: FitPostingLike): number {
+  if (c.targetCompMin == null || posting.salaryMax == null) return 0
+  if (posting.salaryMax >= c.targetCompMin) return Math.round(5 * priorityMultiplier(c.priorityMaxComp))
+  return c.compFlexible ? 0 : -10
+}
+
+// ── The assessment ───────────────────────────────────────────────────────────
+
+export interface FitAssessment {
+  score: number
+  functionFit: FunctionFit
+  level: LevelStep
+  place: PlaceFit
+  titleBonus: number
+  industryMatch: boolean
+  // Which gate capped the score, if any.
+  cappedBy: 'credential' | 'place' | 'function' | 'level' | 'target_role' | null
+}
+
+export function computeFitAssessment(
+  candidateIn: FitCandidate,
+  posting: FitPostingLike,
+  fallbackLevel?: string | null
+): FitAssessment {
+  const c = normalizeCandidateProfileFields(candidateIn)
   const postingText = `${posting.title} ${posting.description ?? ''}`
+  const fn = functionFit(c, posting)
+  const level = levelStep(c, posting, fallbackLevel)
+  const place = placeFit(c, posting)
+  const titleBonus = titleSimilarityBonus(c, posting)
+  const industryMatch = matchesTargetIndustry(c, `${postingText} ${posting.location ?? ''}`)
+  const base = { functionFit: fn, level, place, titleBonus, industryMatch }
 
-  // Hard, categorical gate — a law-firm attorney posting or a hospital
-  // physician posting is simply not a fit for a candidate without the
-  // license, no matter how well function/level/location/comp line up.
-  // Short-circuits before any of the softer scoring below.
-  const requiredCredential = detectRequiredCredential(postingText)
-  if (!candidateMeetsCredentialGate(candidate, requiredCredential)) return 0
+  // A law-firm attorney or hospital physician posting is not a fit without
+  // the license, whatever else lines up.
+  if (!candidateMeetsCredentialGate(c, detectRequiredCredential(postingText))) return { ...base, score: 0, cappedBy: 'credential' }
 
-  const base = computeMatchScore(candidate, postingToRole(posting)).score
-  const { bonus: keywordBonus, failsGate } = keywordMatchInfo(candidate.resumeKeywords, postingText)
-  const titleBonus = titleSimilarityBonus(candidate.targetRoleType, posting.title)
+  // A member with no specific target ("Flexible") has told us their function
+  // is the role — a job in it gets the credit a named role's title would.
+  const roleCredit = hasSpecificTarget(c) ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
 
   let score =
-    base +
-    titleBonus +
-    keywordBonus +
-    industryMatchBonus(candidate, postingText) +
-    yearsExperienceBonus(candidate.yearsExperience, postingText) +
-    companySizeMatchBonus(candidate.targetCompanySize, posting.companySizeBand, candidate.priorityBrandName)
-  score = Math.min(100, score)
+    FUNCTION_POINTS[fn] +
+    LEVEL_POINTS[level] +
+    PLACE_POINTS[place] +
+    roleCredit +
+    (industryMatch ? Math.round(10 * priorityMultiplier(c.priorityMission)) : 0) +
+    keywordBonus(c.resumeKeywords, postingText) +
+    yearsBonus(c.yearsExperience, postingText) +
+    payPoints(c, posting) +
+    companySizeMatchBonus(c, posting.companySizeBand)
+  score = Math.max(0, Math.min(100, score))
 
-  // A keyword-rich resume with too few real hits can't be called a
-  // "strong" fit no matter how well the other signals line up — this caps
-  // the ceiling rather than zeroing the score, since the role can still be
-  // a legitimate "good" fit on function/level/location alone.
-  if (failsGate) score = Math.min(score, STRONG_FIT_THRESHOLD - 1)
-
-  // computeMatchScore's neutral function-match credit (+20) assumes
-  // `role.primaryFunction === null` means "this posting genuinely has no
-  // function requirement" — true for an untargeted board listing, but not
-  // for a title we tried and failed to classify (inferFunctionFromTitle
-  // returning null just means the title was ambiguous, e.g. "Business
-  // Partner Analyst" or "Administrative Business Partner, Office of the
-  // CEO" — see the comments on those keyword tables). Letting that
-  // unconfident state clear the "good" bar was exactly how those two
-  // example titles were reading as good fits for any candidate at all.
-  // Only applies when the function came from title inference (no explicit
-  // targetFunction on the posting) — an explicitly untargeted listing still
-  // gets the neutral credit as intended. Also skipped when the posting's
-  // title itself strongly matches the candidate's own stated target role —
-  // a real bug otherwise: PRIMARY_FUNCTION_OPTIONS has no "Corporate
-  // Development"/M&A category, so a posting titled exactly the candidate's
-  // own target ("VP, Corporate Development") failed function inference and
-  // got capped here anyway, scoring worse than an unrelated "Corporate
-  // Accounting" posting that happened to infer a (wrong) function with
-  // false confidence.
-  const hasConfidentFunction = posting.targetFunction != null || inferFunctionFromTitle(posting.title) != null
-  const hasRealTitleSignal = titleBonus > 0
-  if (!hasConfidentFunction && !hasRealTitleSignal) score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
-
-  // PRIMARY_FUNCTION_OPTIONS is a broad ~15-category taxonomy — "Finance"
-  // alone spans everyone from a staff accountant to a Corporate
-  // Development/M&A VP, so a function-category match alone doesn't mean
-  // much for a candidate who's stated a specific target role. When they
-  // have (a real, non-vague targetRoleType) and this posting's title has
-  // zero real overlap with it — no shared words, no shared role family
-  // (role-family-keywords.ts) — the only thing connecting them is that
-  // coarse category, which isn't enough to call this a real recommendation.
-  // Skipped for postings with an explicit targetFunction (distribution:
-  // TARGETED) — there a human already curated this candidate/posting pair,
-  // which the title-text heuristic shouldn't second-guess.
-  const hasSpecificTarget = !!candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)
-  if (posting.targetFunction == null && hasSpecificTarget && titleBonus === 0) {
-    score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+  let cappedBy: FitAssessment['cappedBy'] = null
+  const cap = (limit: number, why: NonNullable<FitAssessment['cappedBy']>) => {
+    if (score > limit) {
+      score = limit
+      cappedBy = cappedBy ?? why
+    }
   }
+  if (place === 'no') cap(GOOD_FIT_THRESHOLD - 1, 'place')
+  // A job that needs a move, or whose place we can't read, is at most a
+  // lateral fit — and only with something beyond the function behind it
+  // (the role they named, or one of their industries).
+  if (place === 'relocation' || place === 'unknown') {
+    cap(titleBonus > 0 || industryMatch ? STRONG_FIT_THRESHOLD - 1 : GOOD_FIT_THRESHOLD - 1, 'place')
+  }
+  // Neither the function nor the title connects the job to this member. A
+  // title that strongly matches the role they named stands on its own (no
+  // function category covers Corporate Development, for one).
+  if (fn !== 'own' && fn !== 'secondary' && titleBonus < 12) cap(GOOD_FIT_THRESHOLD - 1, 'function')
+  if (level === 'down' || level === 'big_down' || level === 'big_up') cap(GOOD_FIT_THRESHOLD - 1, 'level')
+  // A member who named a specific role: a title with nothing in common with
+  // it can still be a lateral fit on function, never an on-target one. Not
+  // applied to a recruiter-targeted posting (targetFunction set) — a human
+  // already paired the two.
+  if (posting.targetFunction == null && hasSpecificTarget(c) && titleBonus === 0) cap(STRONG_FIT_THRESHOLD - 1, 'target_role')
 
-  return score
+  return { ...base, score, cappedBy }
 }
 
-// Reuses the shared enriched scorer, fed the board listing's own targeting
-// fields (only meaningful when distribution = 'TARGETED'; an 'OPEN' listing
-// has no targeting fields set, which reads through computeMatchScore's
-// existing neutral-credit paths for missing data rather than penalizing
-// anything).
+function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLike): number {
+  return computeFitAssessment(candidate, posting).score
+}
+
+function bucketFromScore(score: number): FitBucket {
+  if (score >= STRONG_FIT_THRESHOLD) return 'strong'
+  if (score >= GOOD_FIT_THRESHOLD) return 'good'
+  return 'stretch'
+}
+
+// Below the "good fit" bar the label says which way the level runs: a role
+// a step or more below the member is Step Down ('below_level', or
+// 'overqualified' two or more steps down); otherwise Step Up ('stretch'),
+// which also covers missing level data.
+function bucketFromAssessment(a: FitAssessment): FitBucket {
+  const bucket = bucketFromScore(a.score)
+  if (bucket !== 'stretch') return bucket
+  if (a.level === 'big_down') return 'overqualified'
+  if (a.level === 'down') return 'below_level'
+  return 'stretch'
+}
+
+type BoardPostingFields = Pick<
+  ExclusiveJobPosting,
+  'title' | 'description' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+> & { level?: string | null }
+
 export function computeBoardListingFitBucket(
   candidate: FitCandidate,
-  posting: Pick<
-    ExclusiveJobPosting,
-    | 'title'
-    | 'description'
-    | 'targetFunction'
-    | 'targetLevel'
-    | 'targetRemotePolicy'
-    | 'targetLocation'
-    | 'location'
-    | 'salaryMin'
-    | 'salaryMax'
-  >,
+  posting: BoardPostingFields,
   companySizeBand?: CompanySizeBand | null
 ): FitBucket {
-  const postingLike = { ...posting, companySizeBand }
-  return bucketFromScoreAndLevel(computeEnrichedFitScore(candidate, postingLike), candidate, postingLike)
+  return bucketFromAssessment(computeFitAssessment(candidate, { ...posting, companySizeBand }))
 }
 
 // The bar for an instant alert email — deliberately far above "strong":
 // founder's call is fewer, better alerts over more, merely-OK ones. All of:
-// a fit score of VERY_STRONG_FIT_SCORE+, a location that works for them, the
-// member's own function, a level at theirs or one step up (never below,
-// never when either level is unknown), and — when the job has a description
-// to judge it by and the member named target industries — their industry.
+// a fit score of VERY_STRONG_FIT_SCORE+, a place that works (local, a remote
+// job, or a move they said they're open to), the member's own function, a
+// level at theirs or one step up, and — when the job has a description to
+// judge it by and the member named industries — one of their industries.
 export const VERY_STRONG_FIT_SCORE = 85
 
 /** Which very-strong condition a posting fails first ('pass' if none) — for tuning. */
 export function veryStrongFitFailure(
   candidate: FitCandidate,
-  posting: Parameters<typeof isVeryStrongBoardFit>[1],
+  posting: BoardPostingFields,
   postingLevel: string | null
 ): 'score' | 'ideal' | 'function' | 'level' | 'pass' {
-  const postingLike = { ...posting, companySizeBand: null }
-  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return 'score'
-  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return 'ideal'
-  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
-  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
-  if (!fn || !own.includes(fn)) return 'function'
-  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
-  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
-  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel || calibratedLevelDistance(candidateLevel, roleLevel) > 1) return 'level'
+  const a = computeFitAssessment(candidate, { ...posting, companySizeBand: null }, postingLevel)
+  if (a.score < VERY_STRONG_FIT_SCORE) return 'score'
+  if (a.place !== 'local' && a.place !== 'remote' && a.place !== 'relocation') return 'ideal'
+  if (posting.description && industryPhrases(candidate).length > 0 && !a.industryMatch) return 'ideal'
+  if (a.functionFit !== 'own') return 'function'
+  if (a.level !== 'same' && a.level !== 'up') return 'level'
   return 'pass'
 }
 
-export function isVeryStrongBoardFit(
-  candidate: FitCandidate,
-  posting: Pick<
-    ExclusiveJobPosting,
-    'title' | 'description' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
-  >,
-  postingLevel: string | null
-): boolean {
-  const postingLike = { ...posting, companySizeBand: null }
-  if (computeEnrichedFitScore(candidate, postingLike) < VERY_STRONG_FIT_SCORE) return false
-  if (!veryStrongPlaceAndIndustry(candidate, postingLike)) return false
-  const fn = (posting.targetFunction ?? inferFunctionFromTitle(posting.title))?.trim().toLowerCase()
-  const own = [candidate.primaryFunction, candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
-  if (!fn || !own.includes(fn)) return false
-  const candidateLevel = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
-  const roleLevel = calibratedLevelRank(posting.targetLevel ?? postingLevel ?? inferLevelFromTitle(posting.title), null)
-  if (candidateLevel === null || roleLevel === null || roleLevel < candidateLevel) return false
-  return calibratedLevelDistance(candidateLevel, roleLevel) <= 1
+// postingLevel: the job's level on the member scale (candidateScaleLevel of
+// its rung) — only used when the posting carries no rung of its own.
+export function isVeryStrongBoardFit(candidate: FitCandidate, posting: BoardPostingFields, postingLevel: string | null): boolean {
+  return veryStrongFitFailure(candidate, posting, postingLevel) === 'pass'
 }
 
-function veryStrongPlaceAndIndustry(candidate: FitCandidate, posting: FitPostingLike): boolean {
-  if (!matchesTargetGeo(candidate, posting)) return false
-  const hasTargets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].some((t) => !!t?.trim())
-  if (!posting.description || !hasTargets) return true
-  return matchesTargetIndustry(candidate, `${posting.title} ${posting.description} ${posting.location ?? ''}`)
+// "Ideal" match (find-my-job tiering): the posting names one of the member's
+// industries and the place works without a move.
+function isIdealMatch(candidate: FitCandidate, posting: FitPostingLike): boolean {
+  const c = normalizeCandidateProfileFields(candidate)
+  const postingText = `${posting.title} ${posting.description ?? ''} ${posting.location ?? ''}`
+  const place = placeFit(c, posting)
+  return matchesTargetIndustry(c, postingText) && (place === 'local' || place === 'remote')
 }
 
 // Ideal-vs-broader tiering (see isIdealMatch above) for a board listing —
@@ -566,6 +669,7 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       targetCompMin: true,
       compFlexible: true,
       targetRoleType: true,
+      targetFunction: true,
       resumeKeywords: true,
       yearsExperience: true,
       industryContext: true,
@@ -680,8 +784,7 @@ export function computeSurfacedJobFitBucket(
     targetLocation: null,
     companySizeBand,
   }
-  const score = computeEnrichedFitScore(candidate, postingLike)
-  return bucketFromScoreAndLevel(score, candidate, postingLike)
+  return bucketFromAssessment(computeFitAssessment(candidate, postingLike))
 }
 
 // Ideal-vs-broader tiering (see isIdealMatch above) for a surfaced job —
