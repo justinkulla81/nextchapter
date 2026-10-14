@@ -31,7 +31,7 @@ export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience:
   return (
     <div className="space-y-8">
       <Section
-        title={`NextChapter members in ${brief.area.stateName}`}
+        title={`NextChapter members in ${brief.candidatesScope === 'area' ? brief.area.name : brief.area.stateName}`}
         note="Counts only, never names. A group smaller than 10 is not shown. People in Confidential Search Mode are not counted at all."
       >
         {c.total === null ? (

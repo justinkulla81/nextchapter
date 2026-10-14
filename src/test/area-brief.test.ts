@@ -62,3 +62,20 @@ describe('state from a code or a name', () => {
     expect(stateCode(null, STATE_NAMES)).toBeNull()
   })
 })
+
+import { inBoardArea } from '@/lib/workforce/board-area'
+
+describe('inBoardArea', () => {
+  const board = { counties: ['wake', 'durham'], placeCounties: ['-', 'orange'], statewide: false }
+  it('matches a member county in the board service area', () => {
+    expect(inBoardArea('Wake County', board)).toBe(true)
+    expect(inBoardArea('Orange County', board)).toBe(true)
+  })
+  it('does not match another county or an unknown one', () => {
+    expect(inBoardArea('Mecklenburg County', board)).toBe(false)
+    expect(inBoardArea(null, board)).toBe(false)
+  })
+  it('a statewide board serves everyone', () => {
+    expect(inBoardArea(null, { ...board, statewide: true })).toBe(true)
+  })
+})

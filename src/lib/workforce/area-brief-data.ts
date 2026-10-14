@@ -3,14 +3,19 @@ import { prisma } from '@/lib/prisma'
 import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
-import { STATE_NAMES } from '@/lib/workforce/places'
+import { STATE_NAMES, placeKeys } from '@/lib/workforce/places'
+import { countyForCity } from '@/lib/workforce/match'
+import { inBoardArea } from '@/lib/workforce/board-area'
 import { BOARD_MIN_GROUP, candidateStatus, stateCode, type CandidateStatus } from './area-brief'
 
 export type AreaBrief = {
   area: { name: string; state: string; stateName: string; boardId: string | null }
   generatedAt: Date
-  // NextChapter members in the state, anonymous and counts only.
+  // NextChapter members, anonymous and counts only. 'area' counts members whose
+  // city is in the board's counties; 'state' is the fallback while the area is
+  // under the minimum group, or when it is a state brief.
   candidates: CandidateStatus
+  candidatesScope: 'area' | 'state'
   // Members who told us they work with this board (board scope only).
   boardMembers: { connected: number | null; foundWork: number | null } | null
   layoffs: { windowDays: number; totalWorkers: number; companies: { employer: string; workers: number | null; notices: number; latestFiled: Date }[] }
@@ -27,11 +32,17 @@ const LAYOFF_WINDOW_DAYS = 90
 // a count behind the minimum-group rule (./area-brief.ts); members in
 // Confidential Search Mode, or whose privacy tier is Stealth or Locked, are
 // not counted at all.
-export async function getAreaBrief(scope: { boardId: string } | { state: string }, now: Date = new Date()): Promise<AreaBrief | null> {
-  let board: { id: string; name: string; state: string } | null = null
+export async function getAreaBrief(
+  scope: { boardId: string } | { state: string },
+  now: Date = new Date(),
+  // Looking up an unseen city's county calls the Census geocoder: for scheduled
+  // jobs only, never a page request.
+  options: { warmCounties?: boolean } = {}
+): Promise<AreaBrief | null> {
+  let board: { id: string; name: string; state: string; counties: string[]; placeCounties: string[]; statewide: boolean } | null = null
   let code: string | null
   if ('boardId' in scope) {
-    board = await prisma.workforceBoard.findUnique({ where: { id: scope.boardId }, select: { id: true, name: true, state: true } })
+    board = await prisma.workforceBoard.findUnique({ where: { id: scope.boardId }, select: { id: true, name: true, state: true, counties: true, placeCounties: true, statewide: true } })
     if (!board) return null
     code = stateCode(board.state, STATE_NAMES)
   } else {
@@ -50,7 +61,7 @@ export async function getAreaBrief(scope: { boardId: string } | { state: string 
         privacyTier: { notIn: ['STEALTH', 'LOCKED'] },
         OR: [{ currentState: { equals: code, mode: 'insensitive' } }, { currentState: { equals: stateName, mode: 'insensitive' } }],
       },
-      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyStageChangedAt: true },
+      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyStageChangedAt: true, currentCity: true },
     }),
     getPublicNotices(),
     prisma.exclusiveJobPosting.findMany({
@@ -65,16 +76,24 @@ export async function getAreaBrief(scope: { boardId: string } | { state: string 
       select: { companyName: true },
       take: 2000,
     }),
-    board ? Promise.resolve([board]) : prisma.workforceBoard.findMany({ where: { state: code }, select: { id: true, name: true, state: true } }),
+    board ? Promise.resolve([{ id: board.id }]) : prisma.workforceBoard.findMany({ where: { state: code }, select: { id: true, name: true, state: true } }),
   ])
 
-  const candidates = candidateStatus(
-    profiles.map((p) => {
-      const stage = effectiveStage(p)
-      return { journey: effectiveJourney(p), stage, landedAt: stage === 'LANDED' ? p.journeyStageChangedAt : null }
-    }),
-    now
-  )
+  const toMember = (p: (typeof profiles)[number]) => {
+    const stage = effectiveStage(p)
+    return { journey: effectiveJourney(p), stage, landedAt: stage === 'LANDED' ? p.journeyStageChangedAt : null }
+  }
+  let candidates = candidateStatus(profiles.map(toMember), now)
+  let candidatesScope: 'area' | 'state' = 'state'
+  if (board && !board.statewide) {
+    const counties = await countiesOfCities(code, profiles.map((p) => p.currentCity), options.warmCounties === true)
+    const inArea = profiles.filter((p) => p.currentCity && inBoardArea(counties.get(p.currentCity.trim().toLowerCase()) ?? null, board!))
+    // Only an area that is itself big enough to show; otherwise the state.
+    if (inArea.length >= BOARD_MIN_GROUP) {
+      candidates = candidateStatus(inArea.map(toMember), now)
+      candidatesScope = 'area'
+    }
+  }
 
   let boardMembers: AreaBrief['boardMembers'] = null
   if (board) {
@@ -134,10 +153,32 @@ export async function getAreaBrief(scope: { boardId: string } | { state: string 
     area: { name: board?.name ?? stateName, state: code, stateName, boardId: board?.id ?? null },
     generatedAt: now,
     candidates,
+    candidatesScope,
     boardMembers,
     layoffs,
     hiring,
     news,
     funding,
   }
+}
+
+// County of each distinct city, from the cached Census place list. With
+// `warm`, a city never looked up before is resolved through the geocoder.
+async function countiesOfCities(state: string, cities: (string | null)[], warm: boolean): Promise<Map<string, string | null>> {
+  const distinct = [...new Set(cities.filter((c): c is string => !!c?.trim()).map((c) => c.trim()))]
+  const out = new Map<string, string | null>()
+  if (distinct.length === 0) return out
+  const places = await prisma.geoPlace.findMany({
+    where: { state, nameKey: { in: distinct.flatMap((c) => placeKeys(c)) } },
+    orderBy: { population: 'desc' },
+    select: { nameKey: true, county: true, countyCheckedAt: true },
+  })
+  for (const city of distinct) {
+    const keys = placeKeys(city)
+    const hit = places.find((p) => keys.includes(p.nameKey))
+    let county = hit?.countyCheckedAt ? hit.county : null
+    if (hit && !hit.countyCheckedAt && warm) county = await countyForCity(city, state).catch(() => null)
+    out.set(city.toLowerCase(), county)
+  }
+  return out
 }
