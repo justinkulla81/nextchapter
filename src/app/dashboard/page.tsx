@@ -4,6 +4,7 @@ import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
 import { checkInDue, effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
+import { CultureSurveyPrompt } from '@/components/dashboard/CultureSurveyPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -433,6 +434,11 @@ export default async function DashboardPage() {
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
 
       {stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
+
+      {/* Insider culture survey: describe a company you worked at (aggregate-only). */}
+      <Suspense fallback={null}>
+        <CultureSurveyPrompt candidateId={profile.id} />
+      </Suspense>
 
       {searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
 

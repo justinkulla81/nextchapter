@@ -170,6 +170,7 @@ export function DiscoverJobCard({
   skillGap,
   match,
   explainGapsEnabled,
+  insiders,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
@@ -181,6 +182,8 @@ export function DiscoverJobCard({
   match?: JobMatch
   /** Phase 2 "Explain my gaps" — off unless JOB_GAPS_EXPLAIN_ENABLED. */
   explainGapsEnabled?: boolean
+  /** Members a viewer could ask about this company (insider network), with the company page link. */
+  insiders?: { count: number; href: string }
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -264,7 +267,7 @@ export function DiscoverJobCard({
         </p>
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
-        {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} />}
+        {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} insiders={confidential ? undefined : insiders} />}
         {contacts && <WhoToContact contacts={contacts} />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">

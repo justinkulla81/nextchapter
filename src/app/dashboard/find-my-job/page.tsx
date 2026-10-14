@@ -91,6 +91,9 @@ import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/net
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
+import { getCultureProfiles, getCulturePreferences } from '@/lib/companies/culture-profile'
+import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/insider-network'
+import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 
@@ -349,19 +352,41 @@ async function JobRecommendationsSection({
   })
   // Company ownership (public / PE / VC) for the culture read — one query for the jobs shown.
   const companyIds = [...new Set(visibleBoardPostings.map((p) => p.companyId).filter((id): id is string => !!id))]
-  const [contactsByPosting, companies] = await Promise.all([
+  // Confidential searches never get company-level culture or insider counts: that would
+  // reveal the employer the card hides.
+  const disclosedCompanyIds = [
+    ...new Set(visibleBoardPostings.filter((p) => p.disclosure !== 'CONFIDENTIAL').map((p) => p.companyId).filter((id): id is string => !!id)),
+  ]
+  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
-      ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true } })
+      ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })
       : Promise.resolve([]),
+    // What members who worked at each company said (aggregate, privacy floor applied).
+    getCultureProfiles(disclosedCompanyIds, profile.id),
+    getCulturePreferences(profile.id),
+    // Same gate as the company page's insider list: tagged employment + Plus Market Intelligence.
+    Promise.all([hasTaggedEmployment(profile.id), getCandidateMarketIntelTier(profile.id)]).then(
+      ([tagged, tier]) => tagged && tierMeetsFeature(tier, 'insider_network')
+    ),
   ])
+  const insiderCounts = insiderGate ? await countInsidersByCompany(disclosedCompanyIds, profile.id) : new Map<string, number>()
   const companyById = new Map(companies.map((c) => [c.id, c]))
+  const insidersFor = (p: (typeof visibleBoardPostings)[number]) => {
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    const count = p.companyId ? (insiderCounts.get(p.companyId) ?? 0) : 0
+    return company && count > 0 ? { count, href: `/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}#insiders` } : undefined
+  }
   // Per-job match and gaps (skills, culture, salary, goals, working style) — rules only, no AI.
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      profile,
-      toMatchJob(p, { sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName), ownershipType: company?.ownershipType ?? null })
+      { ...profile, culturePrefs },
+      toMatchJob(p, {
+        sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
+        ownershipType: company?.ownershipType ?? null,
+        insiderCulture: p.companyId && p.disclosure !== 'CONFIDENTIAL' ? (cultureProfiles.get(p.companyId) ?? null) : null,
+      })
     )
   }
   // Per-job skills gap, from the job's own description only.
@@ -443,6 +468,7 @@ async function JobRecommendationsSection({
                           contacts={contactsByPosting.get(posting.id)}
                           skillGap={skillGapFor(posting)}
                           match={matchFor(posting)}
+                          insiders={insidersFor(posting)}
                           explainGapsEnabled={isExplainGapsEnabled()}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}

@@ -39,6 +39,8 @@ import { Briefcase } from 'lucide-react'
 import { toCandidateCompany } from '@/lib/companies/candidate-view'
 import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
+import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/culture-profile'
+import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -141,7 +143,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -149,7 +151,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       where: { candidateId: profile.id, companyId: id, isCurrent: true },
       select: { visibleAsInsider: true },
     }),
+    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
+    getCultureProfile(id, profile.id),
+    getCultureSurveyCompanies(profile.id),
   ])
+  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
 
   const askerRequestsHere = askerRequests.filter((r) => r.companyId === id)
   const pendingToAnswerHere = pendingToAnswer.filter((r) => r.companyId === id)
@@ -247,6 +253,33 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       </Suspense>
 
       <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
+
+      {/* ── Insider culture: combined answers of members who worked here ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="size-4" aria-hidden="true" />
+            What people who worked here say
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <CultureProfileBars profile={cultureProfile} />
+          {ownCulture && (
+            <CultureSurveyOwnEntry
+              companyId={id}
+              companyName={company.name}
+              companySlug={slug}
+              initial={ownCulture.answers}
+              isCurrent={ownCulture.isCurrent}
+            />
+          )}
+          {cultureProfile.shown && (
+            <p className="text-xs text-muted-foreground">
+              Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* ── Contraction signal ──
           Removed entirely rather than showing a permanent "not built yet"
@@ -422,7 +455,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       )}
 
       {/* ── People who know this company (insider network) ── */}
-      <Card>
+      <Card id="insiders" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="size-4" aria-hidden="true" />

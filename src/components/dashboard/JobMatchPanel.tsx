@@ -58,7 +58,18 @@ export function JobMatchLine({ match }: { match: JobMatch }) {
 }
 
 /** The expandable section inside the card: gaps first, then each dimension's evidence. */
-export function JobMatchDetails({ jobId, match, explainEnabled }: { jobId: string; match: JobMatch; explainEnabled?: boolean }) {
+export function JobMatchDetails({
+  jobId,
+  match,
+  explainEnabled,
+  insiders,
+}: {
+  jobId: string
+  match: JobMatch
+  explainEnabled?: boolean
+  /** Members who worked at this company that the viewer can ask (count only). */
+  insiders?: { count: number; href: string }
+}) {
   return (
     <details
       className="rounded-md border border-border"
@@ -113,6 +124,21 @@ export function JobMatchDetails({ jobId, match, explainEnabled }: { jobId: strin
                         }
                       >
                         {d.profilePrompt.label}
+                      </a>
+                    </>
+                  )}
+                  {key === 'culture' && insiders && insiders.count > 0 && (
+                    <>
+                      {' · '}
+                      <span className="text-foreground">
+                        You can ask {insiders.count} member{insiders.count === 1 ? '' : 's'} who worked here.
+                      </span>{' '}
+                      <a
+                        href={insiders.href}
+                        className="text-primary underline underline-offset-4"
+                        onClick={() => posthog.capture('job_match_insider_link_clicked', { jobId, insiderCount: insiders.count })}
+                      >
+                        Ask one about the culture
                       </a>
                     </>
                   )}

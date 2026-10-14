@@ -29,6 +29,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+import { getCulturePreferences } from '@/lib/companies/culture-profile'
+import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -218,6 +220,7 @@ async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidatePr
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
+  const culturePreferences = await getCulturePreferences(profile.id)
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -495,6 +498,17 @@ export default async function SearchStrategyPage() {
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
         {wizardPageContent}
       </SearchStrategyWizard>
+
+      {/* What the member wants in a culture — compared on each job's match with what
+          members who worked at that company said (src/lib/jobs/job-match.ts). */}
+      <Card id="culture-preferences" className="scroll-mt-4">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Culture you want</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CulturePreferencesForm initial={culturePreferences} />
+        </CardContent>
+      </Card>
 
       {stage === 'QUIETLY_LOOKING' && (
         <Card>
