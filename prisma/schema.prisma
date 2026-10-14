@@ -1719,6 +1719,11 @@ model CandidateProfile {
 
   coachingStyleResponse CoachingStyleResponse?
 
+  // Insider culture survey (answers about employers) and the member's own culture
+  // preferences for the per-job match. Prisma-virtual back-relations; add no columns.
+  cultureResponses  CompanyCultureResponse[]
+  culturePreference CandidateCulturePreference?
+
   // In-work track (Prisma-virtual back-relations; add no columns here).
   inWorkProfile       InWorkProfile?
   inWorkWins          InWorkWin[]
@@ -6964,6 +6969,10 @@ model Company {
   jobOpenings   CompanyJobOpening[]
   hiringProfile CompanyHiringProfile?
 
+  // Culture survey answers from members who worked here — aggregate-only reads
+  // (src/lib/companies/culture-profile.ts), never shown per person.
+  cultureResponses CompanyCultureResponse[]
+
   @@index([industry])
 }
 
@@ -7194,6 +7203,61 @@ model CompanyIntel {
 
   @@index([companyId, status])
   @@index([contributorCandidateId])
+}
+
+// Insider culture survey — one row per member per company they worked at (current or
+// past), editable. Structured answers only (no free text, so nothing needs moderation).
+// Each answer is 1..3 on the scale defined in src/lib/companies/culture-survey.ts;
+// null = skipped. Read ONLY through culture-profile.ts, which aggregates and enforces
+// the privacy floor (at least 3 respondents besides the viewer; Confidential Search
+// Mode, STEALTH, system and sample accounts excluded) — never rendered per person.
+model CompanyCultureResponse {
+  id          String           @id @default(cuid())
+  companyId   String
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  pace           Int? @db.SmallInt
+  structure      Int? @db.SmallInt
+  workLife       Int? @db.SmallInt
+  remoteReality  Int? @db.SmallInt
+  decisions      Int? @db.SmallInt
+  managerSupport Int? @db.SmallInt
+  mission        Int? @db.SmallInt
+  growth         Int? @db.SmallInt
+
+  // From the member's employment record at submit time — never shown.
+  isCurrent     Boolean   @default(false)
+  tenureEndedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, candidateId])
+  @@index([candidateId])
+}
+
+// A member's own culture preferences — the "what you want" side of the culture
+// survey's dimensions, compared with insider profiles in the per-job match
+// (src/lib/jobs/job-match.ts). Same 1..3 scales; 0 = no preference; null = not
+// answered. Where work happens is not repeated here: CandidateProfile.remotePreference
+// already holds it.
+model CandidateCulturePreference {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  pace           Int? @db.SmallInt
+  structure      Int? @db.SmallInt
+  workLife       Int? @db.SmallInt
+  decisions      Int? @db.SmallInt
+  managerSupport Int? @db.SmallInt
+  mission        Int? @db.SmallInt
+  growth         Int? @db.SmallInt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // The 1:1 "ask an insider" flow (Prompt 4.3). Never queryable by anyone but
