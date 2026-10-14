@@ -38,6 +38,7 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Briefcase } from 'lucide-react'
 import { toCandidateCompany } from '@/lib/companies/candidate-view'
 import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
+import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -239,6 +240,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           )}
         </CardContent>
       </Card>
+
+      {/* ── Hiring history and pay: every opening we've seen, market pay ── */}
+      <Suspense fallback={<CompanyHiringIndexSkeleton />}>
+        <CompanyHiringIndex companyId={id} viewer="candidate" />
+      </Suspense>
 
       <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
 

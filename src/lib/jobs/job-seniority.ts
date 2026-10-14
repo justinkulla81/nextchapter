@@ -116,6 +116,11 @@ export function seniorityGroupOf(level: string | null | undefined): SeniorityGro
   return (level && GROUP_OF_RUNG[level as RungName]) || null
 }
 
+/** Label for a group key ("DIRECTOR" -> "Director"); null for unknown. */
+export function seniorityGroupLabel(group: string | null | undefined): string | null {
+  return SENIORITY_GROUPS.find((g) => g.key === group)?.label ?? null
+}
+
 export function seniorityLabel(level: string | null | undefined): string | null {
   const group = seniorityGroupOf(level)
   return SENIORITY_GROUPS.find((g) => g.key === group)?.label ?? null

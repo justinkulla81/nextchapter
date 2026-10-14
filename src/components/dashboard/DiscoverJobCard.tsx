@@ -14,6 +14,8 @@ import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
+import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
+import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -117,6 +119,33 @@ export function LockedDiscoverJobCard({
   )
 }
 
+// Market pay for the role (function x seniority x state, from posted salaries). When
+// the job posts pay it is compared; when it doesn't, the market range is shown and
+// labelled as our estimate — never as the employer's pay.
+function MarketPayLine({ posting }: { posting: ExclusiveJobPosting }) {
+  if (!posting.marketPayLow || !posting.marketPayHigh) return null
+  const range = `${formatUsdK(posting.marketPayLow)}–${formatUsdK(posting.marketPayHigh)}`
+  const basis = marketBasisLabel(posting.marketPayBasis, posting.marketPaySample)
+  const verdict = posting.payVsMarket as PayVsMarket | null
+  return (
+    <div className="space-y-0.5 text-sm">
+      {verdict ? (
+        <p className="flex flex-wrap items-center gap-2 text-foreground">
+          <span className="font-medium">Pay vs. market:</span>
+          <PayVsMarketBadge verdict={verdict} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
+          <span className="text-muted-foreground">market for this role {range}</span>
+        </p>
+      ) : (
+        <p className="text-foreground">
+          <span className="font-medium">Market pay for this role:</span> {range}
+          <span className="text-muted-foreground"> — our estimate; this employer didn&apos;t post pay</span>
+        </p>
+      )}
+      {basis && <p className="text-xs text-muted-foreground">Based on: {basis}</p>}
+    </div>
+  )
+}
+
 // How the member's skills line up with what this job's own description asks for.
 function SkillGapLine({ gap }: { gap: JobSkillGap }) {
   const scope = 'this role asks for'
@@ -161,7 +190,19 @@ export function DiscoverJobCard({
   }
 
   return (
-    <details className="group">
+    <details
+      className="group"
+      onToggle={(e) => {
+        if (!(e.currentTarget as HTMLDetailsElement).open || !posting.marketPayMid) return
+        posthog.capture('job_market_pay_viewed', {
+          postingId: posting.id,
+          payVsMarket: posting.payVsMarket ?? 'not_posted',
+          marketPayMid: posting.marketPayMid,
+          basis: posting.marketPayBasis,
+          fitBucket,
+        })
+      }}
+    >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
         <span className="min-w-0">
           <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -176,6 +217,9 @@ export function DiscoverJobCard({
         <span className="flex shrink-0 items-center gap-2">
           {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
           <LowCompetitionBadge competition={competition} />
+          {posting.payVsMarket && (
+            <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
+          )}
           <SeniorityBadge level={posting.level} />
           {idealMatch && <IdealMatchBadge />}
           <FitBadge bucket={fitBucket} />
@@ -189,6 +233,8 @@ export function DiscoverJobCard({
           {posting.salaryMin && posting.salaryMax &&
             ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
         </p>
+
+        <MarketPayLine posting={posting} />
 
         {/* A confidential search's description usually names the client — never shown. */}
         {posting.description && !confidential && (
