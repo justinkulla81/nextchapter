@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { addPivotSkillsToPlan, setPivotTargetRole } from '@/app/dashboard/pivot/actions'
 import { PivotActionForm } from '@/components/dashboard/pivot/PivotActionForm'
 import { LocalDemand } from '@/components/dashboard/pivot/LocalDemand'
+import { TrainingForOption } from '@/components/dashboard/pivot/TrainingForOption'
 import type { PivotOption } from '@/lib/careers/pivots'
 
 const money = (n: number) => `$${n.toLocaleString('en-US')}`
@@ -22,7 +23,17 @@ function payChange(pct: number | null): string {
   return ` (${pct > 0 ? '+' : ''}${pct}% vs. your field)`
 }
 
-export function PivotOptionCard({ option, state, stateLabel }: { option: PivotOption; state: string | null; stateLabel: string }) {
+export function PivotOptionCard({
+  option,
+  state,
+  stateLabel,
+  stateCode,
+}: {
+  option: PivotOption
+  state: string | null
+  stateLabel: string
+  stateCode: string | null
+}) {
   const overlapPct = option.overlap === null ? null : Math.round(option.overlap * 100)
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
   const broad = option.ratedGaps.filter((g) => g.kind === 'SKILL')
@@ -83,6 +94,15 @@ export function PivotOptionCard({ option, state, stateLabel }: { option: PivotOp
 
         <Suspense fallback={<p className="text-xs text-muted-foreground">Checking local openings…</p>}>
           <LocalDemand title={option.title} state={state} stateLabel={stateLabel} />
+        </Suspense>
+
+        <Suspense fallback={<p className="text-xs text-muted-foreground">Finding training…</p>}>
+          <TrainingForOption
+            socCode={option.socCode}
+            title={option.title}
+            skillIds={[...option.toolGaps.map((t) => t.skillId), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.skillId)]}
+            stateCode={stateCode}
+          />
         </Suspense>
 
         <div className="flex flex-wrap gap-3">

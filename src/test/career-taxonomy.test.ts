@@ -328,3 +328,65 @@ describe('skill gap grounding', () => {
     expect(g.key).toBe('->13-2051.00'.replace('->', '-' + '>'))
   })
 })
+
+import { skillMatchTerms, tagCourse, type TaggableSkill } from '@/lib/careers/course-tagging'
+import { normalizeSoc6, parseTrainingPrograms } from '@/lib/careers/import-parsers'
+
+describe('course tagging', () => {
+  const skills: TaggableSkill[] = [
+    { id: 'tech:python', name: 'Python', kind: 'TECHNOLOGY' },
+    { id: 'tech:java', name: 'Java', kind: 'TECHNOLOGY' },
+    { id: 'tech:javascript', name: 'JavaScript', kind: 'TECHNOLOGY' },
+    { id: 'tech:microsoft-office', name: 'Microsoft Office', kind: 'TECHNOLOGY' },
+    { id: 'tech:r', name: 'R', kind: 'TECHNOLOGY' },
+    { id: 'knowledge:econ', name: 'Economics and Accounting', kind: 'KNOWLEDGE' },
+    { id: 'knowledge:admin', name: 'Administration and Management', kind: 'KNOWLEDGE' },
+    { id: 'skill:ct', name: 'Critical Thinking', kind: 'SKILL' },
+  ]
+
+  it('matches tools as whole words, not substrings', () => {
+    const tags = tagCourse({ title: 'JavaScript for beginners', description: 'Build web pages.', keywords: [] }, skills)
+    expect(tags).toEqual(['tech:javascript'])
+  })
+
+  it('matches the distinctive part of a knowledge area and ignores generic parts', () => {
+    expect(skillMatchTerms(skills[5])).toEqual(['economics', 'accounting'])
+    expect(skillMatchTerms(skills[6])).toEqual([])
+    const tags = tagCourse({ title: 'Financial accounting essentials', description: 'Learn bookkeeping.', keywords: [] }, skills)
+    expect(tags).toEqual(['knowledge:econ'])
+  })
+
+  it('never tags generic skills, one-letter tools or generic software', () => {
+    const tags = tagCourse({ title: 'Critical thinking with R and Microsoft Office', description: '', keywords: [] }, skills)
+    expect(tags).toEqual([])
+  })
+
+  it('puts tools before knowledge areas and caps the tag count', () => {
+    const many: TaggableSkill[] = Array.from({ length: 12 }, (_, i) => ({ id: `tech:tool${i}`, name: `Toolname${i}`, kind: 'TECHNOLOGY' as const }))
+    const tags = tagCourse({ title: many.map((m) => m.name).join(' '), description: 'accounting', keywords: [] }, [...skills, ...many])
+    expect(tags).toHaveLength(8)
+    expect(tags.every((t) => t.startsWith('tech:'))).toBe(true)
+  })
+})
+
+describe('training program list parser', () => {
+  it('normalizes SOC codes', () => {
+    expect(normalizeSoc6('13-2011.00')).toBe('13-2011')
+    expect(normalizeSoc6('132011')).toBe('13-2011')
+    expect(normalizeSoc6('banana')).toBeNull()
+  })
+
+  it('reads a state list with its own column names, dedupes, and leaves unknowns empty', () => {
+    const csv = [
+      'Provider Name,Program Name,Website,SOC Codes,Delivery,Total Cost,Duration (weeks)',
+      'Bunker Hill CC,Bookkeeping Certificate,https://example.edu/bk,"43-3031; 13-2011.00",Hybrid,"$4,200",16',
+      'Bunker Hill CC,Bookkeeping Certificate,https://example.edu/bk,43-3031,Hybrid,4200,16',
+      'Acme Institute,Data Analytics,not a url,,Online,,',
+      ',Missing Provider,,,,,',
+    ].join('\n')
+    const rows = parseTrainingPrograms(csv)
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ providerName: 'Bunker Hill CC', socCodes: ['43-3031', '13-2011'], deliveryMode: 'HYBRID', costUsd: 4200, durationWeeks: 16, url: 'https://example.edu/bk' })
+    expect(rows[1]).toMatchObject({ programName: 'Data Analytics', url: null, socCodes: [], deliveryMode: 'ONLINE', costUsd: null, durationWeeks: null })
+  })
+})

@@ -233,3 +233,78 @@ export function parseProjections(text: string): ProjectionRow[] {
   }
   return out
 }
+
+// ── State funded-training lists (WIOA Eligible Training Provider Lists) ──────
+
+export interface TrainingProgramRow {
+  providerName: string
+  programName: string
+  url: string | null
+  socCodes: string[]
+  credential: string | null
+  deliveryMode: 'IN_PERSON' | 'ONLINE' | 'HYBRID' | null
+  costUsd: number | null
+  durationWeeks: number | null
+}
+
+function pick(record: Record<string, string>, ...names: string[]): string {
+  const lower = new Map(Object.entries(record).map(([k, v]) => [k.toLowerCase().trim(), v]))
+  for (const n of names) {
+    const v = lower.get(n)
+    if (v) return v.trim()
+  }
+  return ''
+}
+
+/** "13-2011.00", "132011" or "13-2011" -> "13-2011"; anything else -> null. */
+export function normalizeSoc6(raw: string): string | null {
+  const m = raw.trim().match(/^(\d\d)-?(\d{4})(\.\d\d)?$/)
+  return m ? `${m[1]}-${m[2]}` : null
+}
+
+function deliveryMode(raw: string): TrainingProgramRow['deliveryMode'] {
+  const t = raw.toLowerCase()
+  if (!t) return null
+  if (/hybrid|blended/.test(t)) return 'HYBRID'
+  if (/online|distance|virtual|remote/.test(t)) return 'ONLINE'
+  if (/person|campus|classroom|on-?site/.test(t)) return 'IN_PERSON'
+  return null
+}
+
+/**
+ * Reads one state's approved-training list saved as CSV. States publish these in
+ * their own layouts, so columns are found by common names; the file may need its
+ * headers renamed to match. Provider and program are required; everything else is
+ * optional and left empty rather than guessed. Rows are deduped on provider and program.
+ */
+export function parseTrainingPrograms(text: string): TrainingProgramRow[] {
+  const seen = new Set<string>()
+  const out: TrainingProgramRow[] = []
+  for (const r of toRecords(parseDelimited(text, ','))) {
+    const providerName = pick(r, 'provider', 'provider name', 'institution', 'school', 'training provider')
+    const programName = pick(r, 'program', 'program name', 'training program', 'course', 'course name', 'training')
+    if (!providerName || !programName) continue
+    const key = `${providerName.toLowerCase()}|${programName.toLowerCase()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const socCodes = pick(r, 'soc', 'soc code', 'soc codes', 'occupation code', 'occupation codes')
+      .split(/[;,|\s]+/)
+      .map(normalizeSoc6)
+      .filter((c): c is string => c !== null)
+    const cost = blsNumber(pick(r, 'cost', 'total cost', 'tuition', 'program cost'))
+    const weeks = blsNumber(pick(r, 'weeks', 'duration weeks', 'length weeks', 'duration (weeks)', 'program length (weeks)'))
+    const url = pick(r, 'url', 'website', 'link', 'program url')
+    out.push({
+      providerName,
+      programName,
+      url: /^https?:\/\//i.test(url) ? url : null,
+      socCodes: [...new Set(socCodes)],
+      credential: pick(r, 'credential', 'certificate', 'award', 'credential awarded') || null,
+      deliveryMode: deliveryMode(pick(r, 'mode', 'delivery', 'delivery mode', 'format')),
+      costUsd: cost === null ? null : Math.round(cost),
+      durationWeeks: weeks === null ? null : Math.round(weeks),
+    })
+  }
+  return out
+}

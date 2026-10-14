@@ -5839,6 +5839,9 @@ model Course {
   // tags content, which is expected, not a bug.
   industries               String[] @default([])
 
+  // Taxonomy skills this course teaches (CourseSkill; see docs/CAREER_TAXONOMY.md).
+  skills CourseSkill[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -14053,6 +14056,7 @@ model Skill {
   name        String
   kind        String // SKILL | KNOWLEDGE | TECHNOLOGY
   occupations OccupationSkill[]
+  courses     CourseSkill[]
 
   @@index([kind])
 }
@@ -14108,4 +14112,41 @@ model CandidateOccupation {
   matchedAt   DateTime         @default(now())
 
   @@index([socCode])
+}
+
+// Which taxonomy skills a catalog course teaches, so a skill gap can point at a
+// course. AUTO rows come from scripts/careers/tag-courses.ts (whole-phrase match on
+// the course text) and are rebuilt on each run; ADMIN rows are kept.
+model CourseSkill {
+  courseId String
+  skillId  String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill    Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source   String // AUTO | ADMIN
+
+  @@id([courseId, skillId])
+  @@index([skillId])
+}
+
+// Training a state has approved for public funding (WIOA Eligible Training Provider
+// Lists), loaded per state from a CSV by scripts/careers/import-training-programs.ts.
+// Formats and availability vary by state, so coverage is whatever has been imported.
+model TrainingProgram {
+  id            String   @id @default(cuid())
+  state         String // 2-letter US state code
+  providerName  String
+  programName   String
+  url           String?
+  // 6-digit SOC codes ("13-2011") the program prepares for, when the list says.
+  socCodes      String[] @default([])
+  credential    String?
+  deliveryMode  String? // IN_PERSON | ONLINE | HYBRID
+  costUsd       Int?
+  durationWeeks Int?
+  fundingSource String   @default("WIOA_ETPL")
+  sourceName    String // e.g. "Massachusetts ETPL, September 2026"
+  importedAt    DateTime @default(now())
+
+  @@unique([state, providerName, programName])
+  @@index([state])
 }

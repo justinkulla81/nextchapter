@@ -24,6 +24,14 @@ O*NET asks for attribution. The Pivot Tool page names O*NET and the Department o
 
 Both importers are re-runnable. Until step 2 is done, the Pivot Tool shows "Occupation data isn't loaded yet" and skill-gap suggestions behave as before.
 
+## Training matching
+
+Each Pivot Tool option lists training for the gaps it shows.
+
+- **Courses.** `CourseSkill` tags catalog courses with the taxonomy tools and knowledge areas they teach. Run `npm run careers:tag-courses -- --dry-run` to preview, then without the flag. Tagging is a whole-phrase match on the course title, description and keywords (`src/lib/careers/course-tagging.ts`). It is deliberately conservative and never tags generic O*NET skills. AUTO tags are rebuilt on each run; ADMIN-source rows are kept. There is no admin screen for tags yet, so ADMIN rows would be added in SQL.
+- **Publicly funded programs.** `TrainingProgram` holds a state's WIOA Eligible Training Provider List, loaded per state with `npm run careers:import-training -- --file <csv> --state MA --source "Massachusetts ETPL, September 2026"`. States publish these lists in their own formats and not all publish them as downloads, so coverage is only the states someone has loaded; I have not verified availability for any state. Only programs that list occupation codes can be matched to a role. Run with `--dry-run` to see how many do.
+- Set up `prisma/manual/2026-10-14-training-matching.sql` first.
+
 ## How it works
 
 - `src/lib/careers/vectors.ts`: similarity between occupations. Each occupation is a vector of O*NET skill and knowledge ratings (importance x level). Vectors are centred on the mean across all occupations first, otherwise everything scores about 0.9 against everything. "Skills in common" is a separate measure: how much of what the target asks for the current occupation already covers.

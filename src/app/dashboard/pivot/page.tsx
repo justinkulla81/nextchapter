@@ -6,6 +6,7 @@ import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, searchOccupationTitles } from '@/lib/careers/candidate-occupation'
 import { DEFAULT_WAGE_FLOOR, rankPivots, WAGE_FLOOR_RATIO, type WageFloor } from '@/lib/careers/pivots'
 import { resolveState, isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
+import { toStateCode } from '@/lib/careers/state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PivotOptionCard } from '@/components/dashboard/pivot/PivotOptionCard'
 import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChooser'
@@ -133,7 +134,7 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="space-y-4">
           {options.map((option) => (
-            <PivotOptionCard key={option.socCode} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} />
+            <PivotOptionCard key={option.socCode} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} />
           ))}
         </div>
       )}
