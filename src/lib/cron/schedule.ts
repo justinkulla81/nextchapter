@@ -56,5 +56,5 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'funding-opportunities', 'federal-contracts', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
-  'partner-scores', 'activity-streaks',
+  'partner-scores', 'activity-streaks', 'board-light-rows',
 ])

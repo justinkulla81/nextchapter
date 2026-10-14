@@ -4845,6 +4845,37 @@ model ExclusiveJobPosting {
   @@index([industry])
 }
 
+// A narrow copy of ExclusiveJobPosting's light columns (what the board ranks
+// on, no description) plus the columns the board filters on. Maintained by
+// statement-level triggers on ExclusiveJobPosting and repaired nightly by
+// board_light_row_reconcile() — see prisma/manual/2026-10-14-board-light-row.sql
+// and src/lib/jobs/board-light-rows.ts. Read-only from the app.
+model BoardLightRow {
+  id                 String    @id
+  title              String
+  companyName        String
+  audienceTier       String
+  source             String
+  targetFunction     String?
+  targetLevel        String?
+  targetRemotePolicy String?
+  targetLocation     String?
+  location           String?
+  level              String?
+  sourceCategory     String?
+  postedAt           DateTime?
+  sourceCount        Int?
+  salaryMin          Int?
+  salaryMax          Int?
+  createdAt          DateTime
+  employmentType     String?
+  status             String
+  archivedAt         DateTime?
+  institutionScopeId String?
+  distribution       String
+  expiresAt          DateTime?
+}
+
 // The "Request intro" action on a confidential recruiter listing (Discover
 // feed) used to only fire a PostHog event — nothing was persisted, so the
 // recruiter never actually heard about it. This is that fix: a real,

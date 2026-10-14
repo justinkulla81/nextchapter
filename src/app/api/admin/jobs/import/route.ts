@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
@@ -8,6 +8,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { importOptionalFields } from '@/lib/jobs/import-optional-fields'
+import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 
 export const maxDuration = 300
 
@@ -183,6 +184,13 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
   const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
   await closeOpeningsSafely()
+  // The board's narrow copy of this table is kept in step by triggers; after a
+  // full sync, check it (and repair any drift) once the response is sent.
+  after(() =>
+    reconcileBoardLightRows()
+      .then((r) => console.log('jobs import: board light rows reconciled', r))
+      .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
+  )
   return NextResponse.json({ archived: result.count, live: live - result.count })
 }
 
