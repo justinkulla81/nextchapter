@@ -11,6 +11,7 @@ interface DailyActionEmailProps {
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
   introCopy?: string | null
   isReset: boolean
+  resetTask?: string | null
   bullets: string[] | null
   weeklyRecap: WeeklyRecap | null
   appUrl: string
@@ -54,6 +55,16 @@ const button: React.CSSProperties = {
   ...emailStyles.cta,
 }
 
+const taskBox: React.CSSProperties = {
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  margin: '16px 0',
+  padding: '16px 18px',
+  borderRadius: '8px',
+  backgroundColor: '#f4f6f4',
+  borderLeft: '4px solid #2e7d5b',
+  fontWeight: 600,
+}
+
 const footer: React.CSSProperties = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   marginTop: '32px',
@@ -86,6 +97,7 @@ export default function DailyActionEmail({
   victoriaName,
   introCopy,
   isReset,
+  resetTask,
   bullets,
   weeklyRecap,
   appUrl,
@@ -99,10 +111,16 @@ export default function DailyActionEmail({
       {introCopy && <p>{introCopy}</p>}
 
       {isReset ? (
-        <p>
-          You haven&apos;t fallen behind. The plan got too heavy. Today, do one small thing — takes
-          5 minutes — and we restart. I&apos;ll be here. — {victoriaName}
-        </p>
+        <>
+          <p>
+            You haven&apos;t fallen behind — the plan just got too heavy. Forget the rest of it.
+            {resetTask ? ' Today, just do this:' : ' Today, do one small thing and we restart.'}
+          </p>
+          {resetTask && <p style={taskBox}>{resetTask}</p>}
+          <p>
+            Five minutes, then you&apos;re back in motion. I&apos;ll be here. — {victoriaName}
+          </p>
+        </>
       ) : bullets ? (
         <ul style={bulletList}>
           {bullets.map((bullet, i) => (
@@ -116,7 +134,7 @@ export default function DailyActionEmail({
       )}
 
       <a href={`${appUrl}/dashboard`} style={button}>
-        Open my dashboard
+        {isReset && resetTask ? 'Start this now' : 'Open my dashboard'}
       </a>
 
       {weeklyRecap && (

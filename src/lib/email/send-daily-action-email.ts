@@ -52,13 +52,14 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
       : Infinity
     const isReset = daysSinceCheckIn >= QUIET_THRESHOLD_DAYS
 
-    const primaryAction =
-      !isReset && report
-        ? getTodaysPrimaryAction(
-            report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
-            report.generatedAt
-          )
-        : null
+    // Reset emails still name the task — "do one small thing" with no thing
+    // named gives a quiet candidate nothing to act on.
+    const primaryAction = report
+      ? getTodaysPrimaryAction(
+          report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
+          report.generatedAt
+        )
+      : null
 
     // Runs even with no primaryAction (e.g. before the week's actions are
     // assigned) — the prompt falls back to reminding them what they're
@@ -75,6 +76,9 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
 
     const subject = neutralizeEmailSubject(
       insights?.subject ??
+        (isReset && primaryAction
+          ? `${candidate.firstName ? `${candidate.firstName}, just` : 'Just'} this one thing — 5 minutes`
+          : null) ??
         (candidate.firstName && primaryAction
           ? `Your one thing for today, ${candidate.firstName}.`
           : 'Your one thing for today'),
@@ -94,6 +98,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
         victoriaName,
         introCopy: introCopy ?? null,
         isReset,
+        resetTask: isReset ? (primaryAction?.text ?? null) : null,
         bullets: insights?.bullets ?? null,
         weeklyRecap,
         appUrl,

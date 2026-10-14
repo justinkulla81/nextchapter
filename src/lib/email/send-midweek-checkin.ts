@@ -44,13 +44,14 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
       : Infinity
     const isReset = daysSinceCheckIn >= QUIET_THRESHOLD_DAYS
 
-    const primaryAction =
-      !isReset && report
-        ? getTodaysPrimaryAction(
-            report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
-            report.generatedAt
-          )
-        : null
+    // Reset emails still name the task — "do one small thing" with no thing
+    // named gives a quiet candidate nothing to act on.
+    const primaryAction = report
+      ? getTodaysPrimaryAction(
+          report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
+          report.generatedAt
+        )
+      : null
 
     const insights = !isReset
       ? await generateDailyInsights({
@@ -63,7 +64,10 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
       : null
 
     const subject = neutralizeEmailSubject(
-      insights?.subject ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
+      insights?.subject ??
+        (isReset && primaryAction
+          ? `${candidate.firstName ? `${candidate.firstName}, just` : 'Just'} this one thing — 5 minutes`
+          : null) ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
       candidate.confidentialSearchMode
     )
 
@@ -80,6 +84,7 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         victoriaName,
         introCopy: introCopy ?? null,
         isReset,
+        resetTask: isReset ? (primaryAction?.text ?? null) : null,
         bullets: insights?.bullets ?? null,
         weeklyRecap,
         appUrl,
