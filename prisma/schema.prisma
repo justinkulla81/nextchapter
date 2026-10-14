@@ -1218,6 +1218,10 @@ model CandidateProfile {
   gigDirectoryUnlockBonusAt        DateTime?
   interimOfferDefinition           String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
   interimOutreachStartedAt         DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)
+  // Work types the member chose on the one job board ('full_time' | 'part_time' |
+  // 'contract' | 'advisory'). Empty = never chosen: the board then derives them from
+  // onboarding answers (defaultWorkTypes in src/lib/jobs/work-type.ts).
+  jobBoardWorkTypes                String[]  @default([])
   // Interim Work Section 4 only — "also show board-matching platforms that
   // focus specifically on women/underrepresented leaders?" Independent of
   // (and never merged with) eeocGenderIdentity: a direct, transparent,
@@ -1451,6 +1455,7 @@ model CandidateProfile {
   competencyScores               CompetencyScore[]
   claimedEmployerReferences      EmployerReferenceSubmission[]
   jobClickEvents                 JobClickEvent[]
+  trackedJobs                    TrackedJob[]
   workSamples                    WorkSample[]
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
@@ -3359,6 +3364,7 @@ model MilestoneBadge {
 enum JobPostingSource {
   MANUAL // candidate pasted a URL/text — the only source that gets fit-checked
   EMAIL_DETECTED // auto-created from a Gmail APPLICATION_CONFIRMATION — no URL, no fit score
+  BOARD // marked Applied on a job board card (TrackedJob) — has the job's URL, never fit-checked, uses no fit-check slot
 }
 
 model JobPosting {
@@ -3418,6 +3424,9 @@ model JobPosting {
   // specific application — e.g. someone to backchannel to, distinct from
   // the automatic company-name match in src/lib/network/backchannel.ts.
   helpfulContacts SupportNetworkContact[] @relation("JobPostingHelpfulContacts")
+
+  // The board job this application came from, when it came from one (My jobs).
+  trackedJob TrackedJob?
 
   @@index([candidateId, createdAt])
 }
@@ -4816,6 +4825,16 @@ model ExclusiveJobPosting {
   marketPaySample Int?
   payVsMarket     String?
 
+  // Engagement and pay basis, sent by the ncrawl import (derive.py) when it knows
+  // them; null otherwise, and the board falls back to reading the title/description
+  // (src/lib/jobs/work-type.ts). Free text, like level, since ncrawl's taxonomy
+  // evolves on its own.
+  employmentType   String? // full_time | part_time | fractional | interim | contract | temporary | internship | per_diem | advisory | board
+  payPeriod        String? // year | month | week | day | hour | one_time — what salaryMin/salaryMax are per
+  paySource        String? // posted (a structured pay field) | text (mined from the description)
+  workArrangement  String? // remote | hybrid | onsite
+  compensationType String? // paid | equity_only | unpaid
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
   @@index([status, archivedAt])
@@ -4871,6 +4890,44 @@ model JobClickEvent {
   @@index([candidateId, createdAt])
   @@index([companyName])
   @@index([jobTitle])
+}
+
+// My jobs (the one job board): a job a member saved, opened the application for,
+// or applied to from a board card. One row per (member, job). Once applied, the
+// application itself is a JobPosting (jobPostingId) — the same row the Application
+// Tracker, Gmail sync (interview / rejection emails) and every application stat
+// already read — so status lives there and is never kept twice. Gmail-detected
+// applications are linked here by company + title (src/lib/jobs/my-jobs.ts).
+model TrackedJob {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  source   String // 'job_board' | 'surfaced' | 'matched_role' — same values as JobClickEvent.source
+  sourceId String // ExclusiveJobPosting.id, SurfacedJob.id or RoleProfile.id
+  title       String
+  companyName String?
+  url         String?
+  workType    String? // 'full_time' | 'part_time' | 'contract' | 'advisory' when saved
+
+  savedAt        DateTime? // "Save" (interested); null = not saved
+  firstClickedAt DateTime? // opened the employer's application page from the board
+  lastClickedAt  DateTime?
+
+  jobPostingId String?     @unique
+  jobPosting   JobPosting? @relation(fields: [jobPostingId], references: [id], onDelete: SetNull)
+  appliedVia   String? // 'manual' | 'email' | 'prompt' — how we learned they applied
+
+  // "You opened the application for X — did you apply?" (asked 2+ days after a click with no application found)
+  promptAnswer     String? // 'applied' | 'not_yet' | 'not_interested'
+  promptAnsweredAt DateTime?
+  dismissedAt      DateTime? // "Not interested" — hidden from My jobs
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([candidateId, source, sourceId])
+  @@index([candidateId, updatedAt])
 }
 
 // Postgres mirror of every captureServerEvent() call, written from inside
