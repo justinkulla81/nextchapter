@@ -14,6 +14,7 @@ import {
   type CultureAnswers,
   type CultureDimensionKey,
 } from '@/lib/companies/culture-survey'
+import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 
 // Per-job, per-member match with gaps: skills, culture fit, salary, goals and working
 // style, each judged only from what the member told us and what the job itself says.
@@ -258,7 +259,9 @@ function scorePostingCulture(c: MatchCandidate, job: MatchJob): MatchDimension &
   const prefs = c.culturePrefs ?? {}
   const wantsCalm = prefs.pace === 1 || prefs.workLife === 1
   const wantsMission = prefs.mission === 1
-  const wantsStage = has(c.targetCompanyStage) && c.targetCompanyStage !== 'any' ? (c.targetCompanyStage as Stage) : null
+  // Only a stage we can name: an unrecognised stored value ('GROWTH' before
+  // normalisation) used to crash the card on STAGE_LABEL[wantsStage].
+  const wantsStage = has(c.targetCompanyStage) && c.targetCompanyStage in STAGE_LABEL ? (c.targetCompanyStage as Stage) : null
   const wantsSize = has(c.targetCompanySize) && c.targetCompanySize !== 'Any' ? c.targetCompanySize : null
   const priorities = [c.priorityMission, c.priorityWorkLife, c.priorityJobSecurity, c.priorityBrandName].some((p) => p !== null)
   const hasPrefs = Object.values(prefs).some((v) => v !== null && v !== undefined)
@@ -782,6 +785,8 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
 // ── Overall + gaps ───────────────────────────────────────────────────────────
 
 export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch {
+  // Option-list fields stored as codes ('DIRECTOR', 'REMOTE') read as their canonical value.
+  c = normalizeCandidateProfileFields(c)
   const skills = scoreSkills(c, job)
   const culture = scoreCulture(c, job)
   const salary = scoreSalary(c, job)
