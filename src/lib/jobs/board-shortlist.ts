@@ -14,6 +14,7 @@ import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { EXCLUDE_MID_LEVEL_WHERE } from '@/lib/jobs/mid-level'
+import { classifyWorkType, type WorkType } from '@/lib/jobs/work-type'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -48,6 +49,7 @@ const LIGHT_SELECT = {
   salaryMin: true,
   salaryMax: true,
   createdAt: true,
+  employmentType: true,
 } satisfies Prisma.ExclusiveJobPostingSelect
 
 const PER_COMPANY = 5
@@ -95,6 +97,17 @@ function loadLightBoardRows(
   return rows
 }
 
+// Light rows are shared from the cache above, so each row's type is read once per cache fill.
+const workTypeByRow = new WeakMap<LightRow, WorkType>()
+function workTypeOf(p: LightRow): WorkType {
+  let t = workTypeByRow.get(p)
+  if (!t) {
+    t = classifyWorkType({ title: p.title, employmentType: p.employmentType })
+    workTypeByRow.set(p, t)
+  }
+  return t
+}
+
 /** Board views: everything, posted in the last 72 hours, or low competition only. */
 export type BoardView = 'all' | 'fresh' | 'low_competition'
 
@@ -116,6 +129,8 @@ export interface BoardShortlist {
   lowCompetitionOpenTotal: number
   /** Live board jobs per company (normalizeOrgName key), across the whole board. */
   countByCompany: Map<string, number>
+  /** Jobs the candidate can open, per work type (work-type.ts), before the type filter; zeros unless workTypes was passed. */
+  countByWorkType: Record<WorkType, number>
 }
 
 /**
@@ -140,6 +155,8 @@ export async function loadBoardShortlist(opts: {
   fitScoring?: FitScoringVersion
   /** Include mid-level (MID_IC) jobs. Off by default — every email path relies on that (mid-level.ts). */
   includeMidLevel?: boolean
+  /** One-board work types to keep; omitted keeps every type (emails, reports). */
+  workTypes?: WorkType[]
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -163,6 +180,7 @@ export async function loadBoardShortlist(opts: {
     freshOpenTotal: ranked.freshOpenTotal,
     lowCompetitionOpenTotal: ranked.lowCompetitionOpenTotal,
     countByCompany: ranked.countByCompany,
+    countByWorkType: ranked.countByWorkType,
   }
 }
 
@@ -179,7 +197,7 @@ export type BoardRankRow = LightRow
 /** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
 export function rankBoardRows(
   light: BoardRankRow[],
-  opts: { candidate: FitCandidate; isCandidatePlus: boolean; size?: number; view?: BoardView; fitScoring?: FitScoringVersion; now?: Date }
+  opts: { candidate: FitCandidate; isCandidatePlus: boolean; size?: number; view?: BoardView; fitScoring?: FitScoringVersion; now?: Date; workTypes?: WorkType[] }
 ) {
   const size = opts.size ?? 300
   const fitBucket = (p: BoardRankRow) => boardListingFitBucketFor(opts.fitScoring ?? 'v2', opts.candidate, { ...p, description: null })
@@ -201,7 +219,14 @@ export function rankBoardRows(
   const now = opts.now ?? new Date()
   let freshOpenTotal = 0
   let lowCompetitionOpenTotal = 0
+  const countByWorkType: Record<WorkType, number> = { full_time: 0, part_time: 0, contract: 0, advisory: 0 }
+  const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
   for (const p of light) {
+    if (typeFilter) {
+      const workType = workTypeOf(p)
+      if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) countByWorkType[workType]++
+      if (!typeFilter.has(workType)) continue
+    }
     const company = p.companyName ? normalizeOrgName(p.companyName) : ''
     const canOpen = !isBoardPostingLockedForViewer(p, opts.isCandidatePlus)
     const fresh = isFresh(p, now)
@@ -268,5 +293,6 @@ export function rankBoardRows(
     freshOpenTotal,
     lowCompetitionOpenTotal,
     countByCompany,
+    countByWorkType,
   }
 }
