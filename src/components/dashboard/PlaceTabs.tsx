@@ -8,7 +8,18 @@ import { activeTab, lockReasonFor, placeForPath, resolveTabHref, visibleTabs, ty
 
 // The tab row every page in a place shows, so moving around inside a place
 // never needs the main menu. Renders nothing outside the six places.
-export function PlaceTabs({ employed, locks, paidAccess }: { employed: boolean; locks: NavLocks; paidAccess: PaidAccess }) {
+export function PlaceTabs({
+  employed,
+  locks,
+  paidAccess,
+  tabBadges = {},
+}: {
+  employed: boolean
+  locks: NavLocks
+  paidAccess: PaidAccess
+  /** Live counts by tab href: something new for the member on that tab. */
+  tabBadges?: Record<string, number>
+}) {
   const pathname = usePathname()
   const place = placeForPath(pathname)
   if (!place) return null
@@ -48,6 +59,12 @@ export function PlaceTabs({ employed, locks, paidAccess }: { employed: boolean; 
                 )}
               >
                 {tab.label}
+                {tabBadges[tab.href] ? (
+                  <span className="ml-1.5 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                    <span className="sr-only">New: </span>
+                    {tabBadges[tab.href]}
+                  </span>
+                ) : null}
                 {tab.paid && !paidAccess[tab.paid] && (
                   <span className="ml-1.5 rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-success uppercase">Premium</span>
                 )}
