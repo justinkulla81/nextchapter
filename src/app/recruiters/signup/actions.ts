@@ -52,7 +52,7 @@ async function finishRecruiterSignup(
   }
 
   // A registration link an admin sent: this person builds the firm.
-  const claimed = firmToken ? await claimFirmWithToken({ id: recruiter.id, fullName: recruiter.fullName, firmRole: invite ? invite.role : recruiter.firmRole }, firmToken) : null
+  const claimed = firmToken ? await claimFirmWithToken({ id: recruiter.id, fullName: recruiter.fullName, workEmail: recruiter.workEmail, firmRole: invite ? invite.role : recruiter.firmRole }, firmToken) : null
 
   captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id, joinedFirmViaInvite: !!invite, claimedFirm: !!claimed })
   return { recruiter, claimedFirm: claimed }

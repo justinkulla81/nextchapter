@@ -1,11 +1,37 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { searchTopic } from '@/lib/news/discover'
-import { readLayoffHeadline, publisherKey, sameEmployer } from './news-headline'
+import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/news/discover'
+import { matchOrCreateCompanyForEmployer } from './company-match'
+import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
+import { alertNewLayoff } from './layoff-alert'
+import { layoffTypeLabel } from './layoff-alert-rules'
 import { findLayoffContacts } from './layoff-contacts-run'
+import { getOrCreateCompany } from '@/lib/companies/company-lookup'
+import { discoverAtsBoards } from '@/lib/market/ats-discovery'
 import { singleSourceQualifies } from './news-trust'
 
-const QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']
+/**
+ * The searches are Bing News RSS: free, no key. What they cost is cron time,
+ * so they run a few at a time under a budget, and what they find downstream is
+ * already capped (contact lookups per run, primary-contact sweep per run).
+ *
+ * Phrased the way headlines are, so each catches shapes the others miss: a
+ * share of the workforce, a headcount reduction, a restructuring, a sector, an
+ * acquirer cutting the company it bought.
+ */
+export const QUERIES = [
+  'layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs',
+  'laying off', 'workforce reduction', 'reduces workforce', 'cuts staff', 'headcount reduction',
+  'restructuring job cuts', 'to lay off', 'eliminates positions', 'lays off percent of staff',
+  'corporate job cuts', 'cutting corporate jobs', 'plans to cut jobs', 'to eliminate jobs', 'confirms layoffs',
+  'reduction in force', 'layoffs AI automation', 'AI job cuts', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
+  'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
+  'media entertainment layoffs', 'manufacturing layoffs', 'grocery layoffs',
+]
+/** Searches in flight at once. */
+const SEARCH_CONCURRENCY = 4
+/** No new search starts after this, so the filings, SEC check, sweep and boards keep their time. */
+const SEARCH_BUDGET_MS = 75_000
 
 /** Mentions this far apart still describe the same layoff. */
 const WINDOW_DAYS = 7
@@ -44,6 +70,19 @@ export interface NewsCheckResult {
  * gave one, labelled with the publisher, and listed on the Layoff notices
  * admin page where one can be dismissed if it is wrong.
  */
+/**
+ * One query on both news searches. Either may fail or be blocked without
+ * costing the other: a source that returns nothing today must not blind the check.
+ * The same story from both is two mentions of one publisher, which the
+ * two-publisher rule counts once, so a second search cannot confirm a layoff alone.
+ */
+async function searchBoth(q: string): Promise<DiscoveredArticle[]> {
+  const [bing, google] = await Promise.allSettled([searchTopic(q), searchGoogleNews(q)])
+  if (bing.status === 'rejected') console.error('Bing news search failed for', q, bing.reason)
+  if (google.status === 'rejected') console.error('Google news search failed for', q, google.reason)
+  return [...(bing.status === 'fulfilled' ? bing.value : []), ...(google.status === 'fulfilled' ? google.value : [])]
+}
+
 /** Contacts found for one layoff, 0 if the lookup is off, over its cap, or fails. */
 async function lookUpContacts(
   company: string, employees: number | null, date: Date, orgId: string | null | undefined, urls: string[], result: NewsCheckResult,
@@ -60,19 +99,38 @@ async function lookUpContacts(
   }
 }
 
+/** A company in a confirmed layoff story: make sure it has a Company row and look for its job board. */
+async function trackJobBoard(company: string): Promise<void> {
+  try {
+    const row = await getOrCreateCompany(company)
+    await discoverAtsBoards([row.id])
+  } catch (e) {
+    console.error('Job board lookup failed for', company, e)
+  }
+}
+
 export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
   const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0, lookups: 0, contacts: 0 }
 
-  // 1. Read the headlines, keep the ones that name a layoff.
+  // 1. Search, a few at a time under a time budget, then read the headlines
+  // and keep the ones that name a layoff.
+  const searched: { q: string; articles: DiscoveredArticle[] }[] = []
+  const started = Date.now()
+  for (let i = 0; i < QUERIES.length; i += SEARCH_CONCURRENCY) {
+    if (Date.now() - started > SEARCH_BUDGET_MS) break
+    const chunk = QUERIES.slice(i, i + SEARCH_CONCURRENCY)
+    const settled = await Promise.all(chunk.map(async (q) => {
+      try {
+        return { q, articles: await searchBoth(q) }
+      } catch (e) {
+        console.error('Layoff news search failed for', q, e)
+        return { q, articles: [] as DiscoveredArticle[] }
+      }
+    }))
+    searched.push(...settled)
+  }
   const seen = new Set<string>()
-  for (const q of QUERIES) {
-    let articles: Awaited<ReturnType<typeof searchTopic>> = []
-    try {
-      articles = await searchTopic(q)
-    } catch (e) {
-      console.error('Layoff news search failed for', q, e)
-      continue
-    }
+  for (const { articles } of searched) {
     for (const a of articles) {
       if (seen.has(a.url)) continue
       seen.add(a.url)
@@ -125,6 +183,7 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
       if (publishers.size >= 2) {
         const looked = (await prisma.layoffNewsMention.count({ where: { noticeId: covering.id } })) > 0
         await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: covering.id } })
+        if (!looked) await trackJobBoard(mentions[0].company)
         if (!looked) await lookUpContacts(mentions[0].company, covering.employees, when, covering.promotedOrgId, mentions.map((m) => m.url), result)
       }
       continue
@@ -151,14 +210,24 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     for (const m of mentions) names.set(m.company, (names.get(m.company) ?? 0) + 1)
     const company = [...names.entries()].sort((a, b) => b[1] - a[1])[0][0]
 
+    // The share of staff, from the first headline that gives one.
+    const percent = mentions.map((m) => readPercent(m.headline)).find((p) => p != null) ?? null
+    // The same company match a state filing gets, so the layoff is findable by
+    // company and not only by name. A failure leaves it unmatched, never blocks it.
+    const match = await matchOrCreateCompanyForEmployer(company).catch(() => null)
     const notice = await prisma.warnNotice.create({
       data: {
+        ...(match ? {
+          companyId: match.companyId,
+          companyMatchStatus: match.status,
+          ...(match.candidates ? { companyMatchCandidates: match.candidates } : {}),
+        } : {}),
         employer: company,
         normalizedEmployer: key,
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: confirmed ? `Reported by ${publishers.size} publishers` : `Reported by 1 publisher (${first.publisher ?? 'unknown'}) — unconfirmed`,
+        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent }),
         sourceUrl: first.url,
       },
       select: { id: true },
@@ -166,7 +235,12 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     await prisma.layoffNewsMention.updateMany({ where: { id: { in: mentions.map((m) => m.id) } }, data: { noticeId: notice.id } })
     // The rule: every layoff we add looks for a real named contact in its own
     // coverage, once, here. A failure never blocks the layoff.
+    await trackJobBoard(company)
     const contacts = await lookUpContacts(company, employees, when, null, mentions.map((m) => m.url), result)
+    await alertNewLayoff({
+      noticeId: notice.id, employer: company, normalizedEmployer: key, employees, percent,
+      kind: 'news', confirmed, sourceUrl: first.url, contactsFound: contacts,
+    })
     result.added.push({ company, employees, publishers: publishers.size, contacts, ...(confirmed ? {} : { unconfirmed: true }) })
   }
   return result

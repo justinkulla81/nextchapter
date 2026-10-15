@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { removeWatchlistCompany, viewWatchlistPosting } from '@/app/dashboard/company-tracker/actions'
 import { goToCompanyPage } from '@/app/dashboard/companies/actions'
 import { Button } from '@/components/ui/button'
+import { sourceLinkLabel } from '@/lib/likely-openings/roles'
 import { LikelyOpeningFilingLink } from '@/components/likely-openings/FilingLink'
 import { SIGNAL_LABELS } from '@/lib/likely-openings/roles'
 import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
@@ -28,6 +29,7 @@ export interface WatchlistLikelyOpening {
   summary: string
   filingDate: Date
   filingUrl: string
+  source?: 'sec' | 'news'
 }
 
 export interface WatchlistEntry {
@@ -40,7 +42,7 @@ export interface WatchlistEntry {
   topHirer?: { rank: number; openCount: number; role: string; place: string } | null
 }
 
-// Signals from public SEC filings that a senior role may open here before
+// Signals from public SEC filings and news reports that a senior role may open here before
 // anything is posted. Always visible (not behind the expand), since a
 // company with zero postings is exactly where this is most useful.
 function LikelyOpeningLines({ companyName, signals }: { companyName: string; signals: WatchlistLikelyOpening[] }) {
@@ -58,6 +60,7 @@ function LikelyOpeningLines({ companyName, signals }: { companyName: string; sig
             signalType={signal.signalType}
             href={signal.filingUrl}
             source="company_tracker"
+            label={sourceLinkLabel(signal.source)}
           />
         </li>
       ))}

@@ -3,9 +3,15 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
+import { listOrgKeys } from '@/lib/census/api-keys'
+import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants } from './screens-hub'
+import { readComms } from '@/lib/census/comms-settings'
+import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
+import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
 import type { ComponentType } from 'react'
 import { ArrowRight, Lock, Users } from 'lucide-react'
 import type { InstitutionMemberStatus, InstitutionUserRole } from '@prisma/client'
@@ -18,7 +24,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, tierIncludes } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,7 +36,7 @@ import { OutcomesScreen } from './OutcomesScreen'
 import { MentorsScreen } from './MentorsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
-import { checkInMonthFrom, memberAudiences, memberCards, PROGRAM_IDEAS, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { checkInMonthFrom, memberAudiences, memberCards, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { serviceUsage30d } from '@/lib/higher-ed/service-usage'
 import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -43,8 +49,27 @@ import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
 import { AssignControl } from './AssignControl'
 import { ConfirmActionButton } from './ConfirmActionButton'
+import { AdminBoard, AlumniEvents, CandidateNetwork, MilestonesFeed, StagePanel, WorkforceEtpl, WorkforceRapid } from './screens-lifecycle'
+import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
+import {
+  AdminPrivacy,
+  AlumniCommunity,
+  AlumniVolunteers,
+  CandidateGiveBack,
+  FeaturesPanel,
+  LearnSections,
+  MentoringCohortsSection,
+  NewsCard,
+  PeopleSections,
+  PrivacyExtras,
+  ProjectsSection,
+  StaffCohorts,
+  TeachingAuditors,
+  loadModules,
+  type CommunityParams,
+} from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
@@ -53,13 +78,18 @@ import { CollegeSettingsForm } from './CollegeSettingsForm'
 import { listProfileViews } from '@/lib/higher-ed/audit'
 import { countInvitable } from '@/lib/higher-ed/invites'
 import { graceDaysFrom } from '@/lib/higher-ed/transition'
+import { emailSettingsFrom } from '@/lib/higher-ed/outreach'
+import { wioaOn } from '@/lib/higher-ed/programs'
+import { collegeTimeZone } from '@/lib/higher-ed/time-zone'
 import { activeFund, memberAward } from '@/lib/higher-ed/fund'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
+import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
+import { ActionButton } from './CommunityForms'
 import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string }
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -154,10 +184,10 @@ async function CandidateHome({ ctx }: ScreenProps) {
   const { profile, enabledFeatures } = await loadInstitutionData(ctx.institution.id)
   // The college's switched-on services for this member's audiences (a
   // preview with no member record sees them all). Each card counts its opens.
-  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member) : null)
   const openFlag = ctx.memberId
     ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
     : null
+  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null)
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their
@@ -186,6 +216,9 @@ async function CandidateHome({ ctx }: ScreenProps) {
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
+      <MyProgramCard ctx={ctx} />
+      <NewsCard ctx={ctx} />
+      <StagePanel ctx={ctx} />
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
@@ -260,6 +293,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
   return (
     <div className="space-y-6">
       <WaitingForYou ctx={ctx} office="alumni" base={base} />
+      <MilestonesFeed ctx={ctx} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Members" value={c.members.toLocaleString()} href={`${base}/members`} />
         <StatTile label="Claimed" value={c.claimed.toLocaleString()} href={`${base}/members?status=CLAIMED`} />
@@ -338,7 +372,7 @@ async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
       </form>
 
       {rows.length === 0 ? (
-        <EmptyState icon={Users} title="No members match" description="Try a different name or status, or import a roster (HE-05)." />
+        <EmptyState icon={Users} title="No members match" description="Try a different name or status, or import a roster in Admin › Roster." />
       ) : (
         <Table caption="Members" head={['Name', 'Class', 'Status', 'Employer', 'Title', 'Engagement (12 mo)']}>
           {rows.map((r) => (
@@ -426,6 +460,14 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
   return (
     <div className="space-y-6">
+      {ctx.ownTokens.has('COACH') && (
+        <p className="rounded-lg border border-border bg-card p-3 text-sm">
+          You also have a NextChapter coach portal for sessions, notes and messages with your clients.{' '}
+          <a href="/support/coach" className="font-medium text-primary underline">
+            Open your coach portal
+          </a>
+        </p>
+      )}
       {waiting}
       {rows.length === 0 ? (
         <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
@@ -641,7 +683,7 @@ async function CoachingSessions({ ctx }: ScreenProps) {
         <EmptyState
           icon={Users}
           title="No coaching sessions yet"
-          description="Sessions appear here once members book them. Booking and paid packages arrive in HE-14; Resilience Fund awards show as prepaid."
+          description="Sessions appear here once members book them. Resilience Fund awards show as prepaid."
         />
       ) : (
         <Table caption="Coaching sessions" head={['Date', 'Member', 'Coach', 'Length']}>
@@ -744,64 +786,6 @@ async function CandidateCoaching({ ctx }: ScreenProps) {
 // Teaching shows the programs its faculty deliver. Both read the programs in
 // the Services catalog; courses, cohorts and enrollment are V2 (spec §13).
 
-async function ProgramList({ ctx, linkTeaching }: { ctx: WorkspaceContext; linkTeaching: boolean }) {
-  const faculty = await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'FACULTY', revokedAt: null } })
-  const base = `/i/${ctx.institution.slug}`
-  return (
-    <div className="space-y-4">
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        A starting catalog. Programs, cohorts, enrollment and payers (self-pay, employer, Resilience Fund, or WIOA if you opt in) arrive with V2.{' '}
-        {linkTeaching ? (
-          <>
-            Taught by your faculty:{' '}
-            <Link href={`${base}/teaching/faculty`} className="font-medium text-primary hover:underline">
-              {faculty} in Teaching
-            </Link>
-            .
-          </>
-        ) : null}
-      </p>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {PROGRAM_IDEAS.map((p) => (
-          <li key={p.key} className="rounded-lg border border-border bg-card p-4">
-            <p className="text-sm font-semibold">{p.name}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{p.summary}</p>
-            <p className="mt-1 text-xs text-muted-foreground">For: {p.audience}</p>
-            {p.examples?.length ? (
-              <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                <li className="font-medium">Done elsewhere:</li>
-                {p.examples.map((e) => (
-                  <li key={e.url}>
-                    <a href={e.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">
-                      {e.institution}
-                    </a>
-                    {` · ${e.name}`}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-async function ExecEdPrograms({ ctx }: ScreenProps) {
-  return <ProgramList ctx={ctx} linkTeaching />
-}
-
-async function TeachingCourses({ ctx }: ScreenProps) {
-  return (
-    <div className="space-y-6">
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        Credit courses, sections and coursework arrive with V2 programs. For now, these are the programs your faculty would teach, the same list Exec Ed sells.
-      </p>
-      <ProgramList ctx={ctx} linkTeaching={false} />
-    </div>
-  )
-}
-
 async function TeachingFaculty({ ctx }: ScreenProps) {
   return <StaffRoster ctx={ctx} roles={['FACULTY', 'EXEC_ED']} empty="Invite faculty and Exec Ed staff from Admin › Staff." />
 }
@@ -864,7 +848,7 @@ const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
-  const [members, joined, invitable, runs, outbox] = await Promise.all([
+  const [members, joined, invitable, runs, outbox, keys, inst] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     countInvitable(ctx.institution.id),
@@ -883,7 +867,19 @@ async function AdminRoster({ ctx }: ScreenProps) {
           select: { id: true, email: true, claimToken: true, claimedAt: true },
         })
       : Promise.resolve([]),
+    listOrgKeys('institution', ctx.institution.id),
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }),
   ])
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://launchyournextchapter.com'
+  const example = `curl -X POST ${base}/api/v1/census \\
+  -H "Authorization: Bearer nck_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "people": [ { "external_id": "100234", "email": "pat@example.edu", "first_name": "Pat", "last_name": "Lee",
+                     "affiliation": "ALUM", "class_year": 2012 } ] }'
+
+The same columns as the roster file. Matched on external_id, then email. To put learners in a program cohort:
+  -d '{ "cohortId": "<cohort id>", "learners": [ { "email": "…", "first_name": "…", "last_name": "…", "payer": "WIOA_VOUCHER" } ] }'
+GET the same address to read your roster back (join status only).`
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-3">
@@ -932,6 +928,24 @@ async function AdminRoster({ ctx }: ScreenProps) {
           <CrmUploadForm id="roster" title="Alumni roster" columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
           <CrmUploadForm id="gifts" title="Gifts" columns={GIFT_COLUMNS} action={uploadCrmFile.bind(null, slug, 'gifts')} />
         </div>
+      </section>
+      <section aria-labelledby="connect" className="space-y-3">
+        <h2 id="connect" className="text-base font-semibold">
+          Connect your CRM
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">Send roster changes automatically instead of uploading files. Each call shows up in the upload history below.</p>
+        <OrgKeysPanel
+          keys={keys.map((k) => ({ ...k, createdAt: k.createdAt.toISOString(), lastUsedAt: k.lastUsedAt?.toISOString() ?? null, revokedAt: k.revokedAt?.toISOString() ?? null }))}
+          makeKey={makeCollegeKey.bind(null, slug)}
+          turnOff={turnOffCollegeKey.bind(null, slug)}
+          example={example}
+        />
+      </section>
+      <section aria-labelledby="reminders" className="space-y-2">
+        <h2 id="reminders" className="text-base font-semibold">
+          Invitation reminders
+        </h2>
+        <CommsToggles value={readComms(inst.enabledFeatures)} save={saveCollegeComms.bind(null, slug)} showAccessNotice={false} />
       </section>
       {runs.length > 0 && (
         <Table caption="Upload history" head={['When', 'File', 'Rows', 'Problems', 'Result']}>
@@ -1086,7 +1100,7 @@ async function SettingsServices({ ctx }: ScreenProps) {
           <p className="text-xs text-muted-foreground">Only an institution admin can change this.</p>
         )}
         <p className="w-full text-xs text-muted-foreground">
-          New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known). Sends start in HE-11.
+          New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known).
         </p>
       </form>
       <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures)} usage={usage} canEdit={canEdit} />
@@ -1114,11 +1128,12 @@ async function SettingsOverview({ ctx }: ScreenProps) {
   if (!i) return null
   const features = (i.enabledFeatures ?? {}) as { graceDays?: number; fiscalYearStartMonth?: number }
   const checklist = <LaunchChecklist ctx={ctx} />
+  const sender = emailSettingsFrom(i.enabledFeatures, i)
   const facts: [string, string][] = [
     ['Name', i.name],
     ['Program name', i.programBrandName ?? '—'],
     ['Portal address', `/i/${i.slug}`],
-    ['Tier', i.tier],
+    ['Tier', TIER_LABELS[i.tier]],
     ['Alumni', i.alumniCount?.toLocaleString() ?? '—'],
     ['Included seats', i.includedSeats.toLocaleString()],
     ['License', [fmtDate(i.licenseStartAt), fmtDate(i.licenseEndAt)].filter(Boolean).join(' – ') || '—'],
@@ -1146,7 +1161,15 @@ async function SettingsOverview({ ctx }: ScreenProps) {
       <CollegeSettingsForm
         action={saveCollegeSettings.bind(null, i.slug)}
         canEdit={ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly}
-        defaults={{ graceDays: graceDaysFrom(i.enabledFeatures), fiscalYearStartMonth: features.fiscalYearStartMonth ?? 7, givingUrl: i.givingUrl }}
+        defaults={{
+          graceDays: graceDaysFrom(i.enabledFeatures),
+          fiscalYearStartMonth: features.fiscalYearStartMonth ?? 7,
+          givingUrl: i.givingUrl,
+          fromName: sender.fromName,
+          replyTo: sender.replyTo ?? '',
+          wioa: wioaOn(i.enabledFeatures),
+          timeZone: collegeTimeZone(i.enabledFeatures, i.profile),
+        }}
       />
       <CollegeProfile profile={readProfile(i.profile)} />
     </div>
@@ -1202,25 +1225,47 @@ async function SettingsStaff({ ctx }: ScreenProps) {
     orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
     select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true },
   })
+  const canManage = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && !ctx.institution.isDemo
+  // A role is "locked" when every workspace it would open needs a higher tier.
+  const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
+  const lockedRoles: Record<string, string> = {}
+  for (const role of Object.keys(STAFF_ROLE_LABELS)) {
+    const opens = WORKSPACES.filter((w) => w.release === 'V1' && w.key !== 'candidate' && w.key !== 'employer' && w.requiredRoles.includes(role as never))
+    const blocked = opens.filter((w) => !tierIncludes(tier, w))
+    if (opens.length && blocked.length === opens.length) lockedRoles[role] = TIER_LABELS[blocked[0].minTier!]
+  }
   return (
     <div className="space-y-3">
-      <Table caption="Staff" head={['Name', 'Email', 'Role', 'Status']}>
+      <Table caption="Staff" head={['Name', 'Email', 'Role', 'Status', '']}>
         {staff.map((s) => (
           <tr key={s.id}>
             <td className="px-4 py-2 font-medium">{s.fullName ?? '—'}</td>
             <td className="px-4 py-2">{s.invitedEmail}</td>
             <td className="px-4 py-2">
               {STAFF_ROLE_LABELS[s.role]}
-              {s.workspace ? ` (${s.workspace})` : ''}
+              {s.workspace ? ` (${getWorkspace(s.workspace)?.label ?? s.workspace}, read-only)` : ''}
             </td>
             <td className="px-4 py-2">{s.revokedAt ? 'Removed' : s.acceptedAt ? 'Active' : 'Invited'}</td>
+            <td className="px-4 py-2">
+              {canManage && (
+                <span className="flex flex-wrap justify-end gap-2">
+                  {(!s.acceptedAt || s.revokedAt) && (
+                    <ActionButton label={s.revokedAt ? 'Invite again' : 'Resend invite'} done="Sent." run={resendStaffInvite.bind(null, ctx.institution.slug, s.id)} />
+                  )}
+                  {!s.revokedAt && (
+                    <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${s.fullName ?? s.invitedEmail} as ${STAFF_ROLE_LABELS[s.role]}? They lose access right away.`} confirmLabel="Remove" run={removeStaff.bind(null, ctx.institution.slug, s.id)} />
+                  )}
+                </span>
+              )}
+            </td>
           </tr>
         ))}
       </Table>
+      <p className="text-xs text-muted-foreground">To change someone’s role, invite them with the new role, then remove the old one.</p>
       {ctx.institution.isDemo ? (
         <p className="text-xs text-muted-foreground">Invites are off on demo colleges: their staff are fictional.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} />
       )}
     </div>
   )
@@ -1247,11 +1292,93 @@ export const COMING_DESCRIPTIONS: Record<string, string> = {
   'execed:clients': 'Employers who buy seats or custom programs for their teams.',
 }
 
+// Tabs built from several sections, each hidden when its feature is off.
+async function CandidateWork(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      {mods.alumniJobs && <CandidateJobs {...props} />}
+      <ProjectsSection {...props} />
+    </div>
+  )
+}
+async function CandidatePeople(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <PeopleSections {...props} />
+      <ConnectSections ctx={props.ctx} />
+      <CandidateNetwork {...props} />
+    </div>
+  )
+}
+async function CandidateMentoring(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      <MentoringCohortsSection {...props} />
+      {mods.mentors && <MentorsScreen {...props} />}
+    </div>
+  )
+}
+async function CandidateLearn(props: ScreenProps) {
+  const mods = await loadModules(props.ctx.institution.id)
+  return (
+    <div className="space-y-10">
+      <LearnSections {...props} />
+      {mods.programs && <CandidatePrograms {...props} />}
+    </div>
+  )
+}
+async function CandidatePrivacyAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <CandidatePrivacy {...props} />
+      <PrivacyExtras ctx={props.ctx} />
+    </div>
+  )
+}
+async function AlumniMentorsAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AlumniMentors {...props} />
+      <StaffCohorts ctx={props.ctx} />
+    </div>
+  )
+}
+async function AdminServicesAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <FeaturesPanel ctx={props.ctx} />
+      <MonthlyEmailPanel ctx={props.ctx} />
+      <SettingsServices {...props} />
+    </div>
+  )
+}
+
+async function AdminPrivacyAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AdminPrivacy {...props} />
+      <ConsentHistory ctx={props.ctx} />
+    </div>
+  )
+}
+async function StaffConnectScreen(props: ScreenProps) {
+  return <StaffConnect ctx={props.ctx} />
+}
+
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
-  'candidate:mentors': MentorsScreen,
+  'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,
-  'alumni:mentors': AlumniMentors,
+  'alumni:mentors': AlumniMentorsAll,
+  'alumni:community': AlumniCommunity,
+  'alumni:volunteers': AlumniVolunteers,
+  'teaching:auditors': TeachingAuditors,
+  'admin:privacy': AdminPrivacyAll,
+  'alumni:connect': StaffConnectScreen,
+  'career:circles': StaffConnectScreen,
+  'candidate:giveback': CandidateGiveBack,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentRoi,
   'development:signals': DevelopmentSignals,
@@ -1262,7 +1389,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'career:outcomes': OutcomesScreen,
   'employer:home': EmployerDossiersWithIntros,
   'employer:page': EmployerPage,
-  'candidate:jobs': CandidateJobs,
+  'candidate:jobs': CandidateWork,
   'career:employers': CareerEmployers,
   'career:students': CareerStudents,
   'alumni:region': Region,
@@ -1275,14 +1402,30 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'teaching:home': TeachingCourses,
   'teaching:faculty': TeachingFaculty,
   'execed:home': ExecEdPrograms,
+  'execed:enrollments': ExecEdEnrollments,
+  'execed:clients': ExecEdClients,
+  'teaching:capstones': TeachingCapstones,
+  'candidate:programs': CandidateLearn,
+  'workforce:home': WorkforceHome,
+  'workforce:rapid': WorkforceRapid,
+  'workforce:etpl': WorkforceEtpl,
+  'candidate:network': CandidatePeople,
+  'alumni:events': AlumniEvents,
+  'admin:board': AdminBoard,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
   'admin:roster': AdminRoster,
-  'candidate:privacy': CandidatePrivacy,
-  'admin:services': SettingsServices,
+  'candidate:privacy': CandidatePrivacyAll,
+  'admin:services': AdminServicesAll,
   'admin:users': SettingsStaff,
   'alumni:layoffs': AlumniLayoffs,
   'alumni:outreach': AlumniOutreach,
   'alumni:engagement': AlumniEngagement,
   'career:checkins': CareerCheckIns,
+  'hub:home': HubHome,
+  'hub:companies': HubCompanies,
+  'hub:layoffs': HubLayoffs,
+  'hub:participants': HubParticipants,
+  'hub:local': HubLocal,
+  'hub:region': Region,
 }

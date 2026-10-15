@@ -159,9 +159,15 @@ export const WASHJEFF_TENANT: DemoTenant = {
       },
     ],
     region: {
-      name: 'Washington County, Pennsylvania (Pittsburgh metro)',
+      name: 'Washington County, PA, Pittsburgh and the West Virginia panhandle',
       state: 'PA',
       counties: ['washington'],
+      // W&J sits about 15 miles from the West Virginia line: alumni and
+      // employers on both sides count as local.
+      areas: [
+        { state: 'PA', counties: ['washington', 'allegheny', 'greene', 'beaver', 'westmoreland', 'fayette'] },
+        { state: 'WV', counties: ['brooke', 'hancock', 'ohio', 'marshall'] },
+      ],
       unemployment: [
         {
           area: 'Washington County',

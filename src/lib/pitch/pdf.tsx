@@ -133,6 +133,12 @@ export async function renderPdf(deck: Deck, opts: { headshot?: string } = {}): P
             {['bullets', 'text', 'news'].includes(d.kind) && !(d.constituent && d.bullets.length >= 3) && (
               <View>{d.bullets.map((b, k) => (<View key={k} style={s.bullet}><Text style={s.dot}>•</Text><Text style={[s.btext, { fontSize: d.bullets.length > 5 ? 15 : 20 }]}>{b}</Text></View>))}</View>
             )}
+            {d.callout ? (
+              <View style={{ position: 'absolute', left: 44, right: 44, bottom: 66, backgroundColor: '#FFF4DB', borderWidth: 1, borderColor: '#E0A100', borderRadius: 4, padding: 8 }}>
+                <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#7A4B00' }}>{d.callout}</Text>
+              </View>
+            ) : null}
+            {d.source ? <Text style={{ position: 'absolute', left: 44, right: 44, bottom: 36, fontSize: 7.5, color: MUTED }}>Source: {d.source}</Text> : null}
             <Footer n={n} />
           </Page>
         )

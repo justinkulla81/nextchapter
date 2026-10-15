@@ -5,6 +5,7 @@ import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { FIRM_WEBHOOK_EVENTS, isSafeWebhookUrl, type FirmWebhookEvent } from './webhook-shared'
 import { signWebhookBody } from './webhook-sign'
+import { assertPublicHttpUrl, UnsafeUrlError } from '@/lib/http/safe-fetch'
 
 export { FIRM_WEBHOOK_EVENTS, isSafeWebhookUrl, signWebhookBody }
 export type { FirmWebhookEvent }
@@ -29,6 +30,10 @@ async function deliver(deliveryId: string): Promise<void> {
     if (ATTEMPT_DELAYS_MS[i] > 0) await new Promise((r) => setTimeout(r, ATTEMPT_DELAYS_MS[i]))
     const ts = Math.floor(Date.now() / 1000)
     try {
+      // isSafeWebhookUrl only looks at the literal host, so a name that
+      // resolves to 169.254.169.254 or a private range passed it. Resolve and
+      // check at delivery time, when it matters.
+      await assertPublicHttpUrl(endpoint.url)
       const res = await fetch(endpoint.url, {
         method: 'POST',
         redirect: 'manual',
@@ -53,6 +58,11 @@ async function deliver(deliveryId: string): Promise<void> {
       }
       lastError = `Your endpoint answered ${res.status}.`
     } catch (e) {
+      if (e instanceof UnsafeUrlError) {
+        lastError = 'That address is not reachable from the internet. Use a public https address.'
+        await prisma.firmWebhookDelivery.update({ where: { id: delivery.id }, data: { attempts: i + 1, responseStatus: null, error: lastError } })
+        break
+      }
       lastError = e instanceof Error && e.name === 'TimeoutError' ? 'No answer within 8 seconds.' : 'Could not reach your endpoint.'
     }
     await prisma.firmWebhookDelivery.update({ where: { id: delivery.id }, data: { attempts: i + 1, responseStatus: status, error: lastError } })

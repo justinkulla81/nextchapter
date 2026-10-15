@@ -10,6 +10,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import GradeCalibratedUpEmail from '@/emails/grade-calibrated-up'
 import type { Grade } from '@/lib/scoring/grade'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendGradeCalibratedUpEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -28,7 +29,7 @@ export async function sendGradeCalibratedUpEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const marketRealityReportUrl = `${appUrl}/dashboard/market-reality`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

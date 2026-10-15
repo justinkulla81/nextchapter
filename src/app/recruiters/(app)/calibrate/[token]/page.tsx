@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
 import { CalibrationTool } from '@/components/recruiter/CalibrationTool'
+import { getRecruiterByToken } from '@/lib/recruiter/access'
 
 export default async function RecruiterCalibratePage({
   params,
@@ -9,7 +9,7 @@ export default async function RecruiterCalibratePage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const recruiter = await prisma.recruiter.findUnique({ where: { accessToken: token } })
+  const recruiter = await getRecruiterByToken(token)
   if (!recruiter) notFound()
 
   return (

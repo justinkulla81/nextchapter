@@ -38,6 +38,7 @@ interface MarketDigestCoachEmailProps {
   fullName: string
   clients: CoachDigestClient[]
   notSharedNames: string[]
+  unavailableNames?: string[]
   roleLines: RoleMarketLine[]
   nuggetTitle: string | null
   nuggetUrl: string | null
@@ -179,6 +180,7 @@ export default function MarketDigestCoachEmail({
   fullName,
   clients,
   notSharedNames,
+  unavailableNames = [],
   roleLines,
   nuggetTitle,
   nuggetUrl,
@@ -216,6 +218,12 @@ export default function MarketDigestCoachEmail({
         <p style={{ ...emailStyles.muted, marginTop: '16px' }}>
           Not shared with you yet, so no detail: {notSharedNames.join(', ')}. Ask them to turn on coach access in their
           privacy settings.
+        </p>
+      )}
+
+      {unavailableNames.length > 0 && (
+        <p style={{ ...emailStyles.muted, marginTop: '16px' }}>
+          Couldn&apos;t load this week&apos;s detail for: {unavailableNames.join(', ')}. It will be back next week.
         </p>
       )}
 

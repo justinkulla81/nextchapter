@@ -10,12 +10,18 @@
     "lint": "eslint",
     "test": "vitest run",
     "seo:check-sitemap": "node scripts/check-sitemap-indexable.mjs",
+    "careers:import-onet": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-onet.ts",
+    "careers:import-bls": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-bls.ts",
+    "careers:build-aliases": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-skill-aliases.ts",
+    "careers:tag-courses": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/tag-courses.ts",
+    "careers:import-training": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-training-programs.ts",
     "crm:fix-headcounts": "tsx --env-file=.env.local scripts/crm/fix-headcounts.ts",
     "crm:funding-facts": "tsx --env-file=.env.local scripts/crm/backfill-funding-facts.ts",
     "crm:goals": "tsx --env-file=.env.local scripts/crm/backfill-goals.ts",
     "crm:seed-paths": "tsx --env-file=.env.local scripts/crm/seed-intro-paths.ts",
     "crm:score": "tsx --env-file=.env.local scripts/crm/recompute-scores.ts",
     "crm:dedupe": "tsx --env-file=.env.local scripts/crm/dedupe-organizations.ts",
+    "pivots:rebuild": "node --env-file=.env.local --conditions=react-server --import tsx scripts/pivots/rebuild-market-stats.ts",
     "email:rescan": "node --env-file=.env.local --conditions=react-server --import tsx scripts/email/rescan-candidate-mail.ts",
     "crm:sync-candidates": "node --env-file=.env.local --conditions=react-server --import tsx scripts/crm/sync-candidates.ts",
     "crm:import": "tsx --env-file=.env.local scripts/import-crm-sources.ts",
@@ -55,10 +61,13 @@
     "he:rls": "tsx --env-file=.env.local scripts/higher-ed/apply-rls.ts",
     "verify:he-rls": "tsx --env-file=.env.local scripts/higher-ed/verify-rls.ts",
     "verify:talent-intake": "node --env-file=.env.local --conditions=react-server --import tsx scripts/verify-talent-intake.ts",
-    "report:index": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_white_collar_index.py --start 2015-01 --out public/reports/wc-index.csv",
-    "report:companions": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_openings_and_aiwashing.py --db $HOME/nextchapter-jobs/data/jobs.db",
-    "report:news": "tsx --env-file=.env.local scripts/displacement/add-news-item.ts",
-    "report:indexnow": "tsx --env-file=.env.local scripts/displacement/indexnow.ts",
+    "report:index": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_white_collar_index.py --start 2015-01 --out public/reports/wc-index.csv",
+    "report:companions": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_openings_and_aiwashing.py --db $HOME/nextchapter-jobs/data/jobs.db",
+    "report:chart-post": "tsx scripts/reports/monthly-chart-post.ts",
+    "report:refresh-trends": "tsx scripts/reports/refresh-trends-data.ts",
+    "report:check-facts": "tsx scripts/reports/check-report-facts.ts",
+    "report:news": "tsx --env-file=.env.local scripts/employment-report/add-news-item.ts",
+    "report:indexnow": "tsx --env-file=.env.local scripts/employment-report/indexnow.ts",
     "seed:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/seed-demo.ts",
     "verify:he02": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he02.ts",
     "verify:he06": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he06.ts",
@@ -67,7 +76,11 @@
     "verify:release3": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release3.ts",
     "verify:release4": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-release4.ts",
     "verify:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-he-demo.ts",
-    "check:he-screens": "node scripts/higher-ed/render/build.mjs scripts/higher-ed/render/screens.tsx && node --env-file=.env.local scripts/higher-ed/render/.out.cjs; s=$?; rm -f scripts/higher-ed/render/.out.cjs; exit $s",
+    "verify:email-safety": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-email-safety.ts",
+    "verify:v2": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-v2.ts",
+    "verify:lifecycle": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-lifecycle.ts",
+    "verify:community": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-community.ts",
+    "check:he-screens": "node scripts/higher-ed/render/run.mjs",
     "docs:stages": "tsx scripts/docs/stage-guide.ts",
     "docs:spine": "tsx scripts/docs/spine.ts"
   },
@@ -129,5 +142,13 @@
     "@prisma/client@6.19.3": true,
     "@prisma/engines@6.19.3": true,
     "esbuild@0.28.1": true
+  },
+  "overrides": {
+    "pptxgenjs": {
+      "image-size": "^2.0.4"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.2"
+    }
   }
 }

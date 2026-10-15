@@ -1,6 +1,5 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
 import {
   validateJobBoardSubmission,
   createPendingJobBoardPosting,
@@ -8,13 +7,14 @@ import {
 } from '@/lib/jobs/job-board-submission'
 import { captureServerEvent } from '@/lib/posthog/server'
 import type { JobBoardSubmitState } from '@/components/jobs/JobBoardSubmissionForm'
+import { getRecruiterByToken } from '@/lib/recruiter/access'
 
 export async function submitRecruiterJobBoardPosting(
   token: string,
   _prevState: JobBoardSubmitState,
   formData: FormData
 ): Promise<JobBoardSubmitState> {
-  const recruiter = await prisma.recruiter.findUnique({ where: { accessToken: token } })
+  const recruiter = await getRecruiterByToken(token)
   if (!recruiter) return { error: 'This link is not valid.' }
 
   const input: JobBoardSubmissionInput = {

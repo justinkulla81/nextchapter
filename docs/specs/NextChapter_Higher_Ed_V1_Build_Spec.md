@@ -403,3 +403,55 @@ Staff approve every send; the system finds who to send to.
 - **Composer** (`composer.ts`): Alumni Relations › Outreach writes an email to an audience (all, joined, not joined, recent grads), with merge-field buttons and an unknown-field check, live preview, "Send a test to me" (demo colleges preview instead), then confirmed batches of 200 that never reach anyone twice; editing locks after the first send. `OutreachCampaign.audience` added.
 - **Checks:** `npm run verify:release2|3|4`, `verify:he-demo` (the §10 demo script end to end on /i/demo, then reseeds), `check:he-screens` (renders every workspace screen on the server against a demo college).
 - **Still open:** Resend open/click webhooks, paid coaching via Stripe and the revenue-share report, fund award redemption on booking, configurable engagement weights, college SSO.
+
+### College email safety, Oct 13, 2026
+
+- `src/lib/higher-ed/email-events.ts`: the Resend webhook (`/api/webhooks/resend`) checks Higher Ed sends first. Opens and clicks set `OutreachSend.openedAt/clickedAt` (unsubscribe clicks excluded); a permanent bounce or a spam complaint sets `InstitutionMember.emailSuppressedAt/Reason`. Suppressed members are skipped by `sendCampaign` and excluded from every audience, invite, check-in and mentor invitation; a roster import can't clear it (it's separate from `doNotContact`).
+- Every college email: the college's "from" name and reply-to (Admin › Overview, `enabledFeatures.email`), a footer link to `/i/<slug>/unsubscribe?t=<token>` (one click to stop; an unsubscribe, not a bounce, can be undone) and RFC 8058 `List-Unsubscribe` + `List-Unsubscribe-Post` (`POST /api/higher-ed/unsubscribe/<token>`). Join invitations now go through `sendCampaign`.
+- The CRM updates file adds `email_status`. `npm run verify:email-safety`.
+
+### V2, lean (spec §13), Oct 13, 2026
+
+Built: `Program`, `Cohort`, `Enrollment` (payer: self-pay, employer, Resilience Fund, WIOA voucher, board contract, Pell), `CorporateClient`, `Capstone`; role `WORKFORCE_PARTNER`. `src/lib/higher-ed/programs.ts`.
+
+- **Exec Ed:** Programs (add, edit, cohorts with seats, format and instructor), Enrollments (apply → enroll → complete with the program's credential, or withdraw; payer and client per enrollment; completion scores EVENT engagement with consent), Corporate clients (seats purchased vs used).
+- **Teaching:** Courses lists the cohorts faculty teach; Employer capstones (employers propose from their Employer page with interview commitments; faculty approve, start, complete).
+- **Candidate:** Programs tab (open cohorts, apply with "I'll pay / my employer / I need help paying") and a "My program" card on home.
+- **Workforce board:** only when Admin turns WIOA on (`enabledFeatures.wioa`, feature-gated in `workspacesFor`). WIOA-voucher and board-contract participants with completion, credential and placement (an OutcomeReport within 180 days after completion), CSV at `/i/<slug>/export/wioa`. Employer only with outcome sharing.
+- **Not built (deliberately):** SSN vault, invoices and billing, attendance and assessments, wage-record matching, the state performance export, enrolling non-alumni employees of corporate clients (needs a non-alum learner affiliation).
+- `npm run verify:v2`; the demo seeds three programs, five cohorts, about 20 enrollments (WIOA completers placed), two clients and three capstones.
+
+### The college at every stage of a move, Oct 13, 2026
+
+The seven journey stages (Exploring → Preparing → Applying → Interviewing → Offer → Landed, and Paused) each get something from the college. `src/lib/higher-ed/lifecycle.ts`, `outcomes-report.ts`, `segments.ts`, `rapid-response.ts`; screens in `screens-lifecycle.tsx`.
+
+- **Stage panel** on the alum's home ("From <college>, for where you are"), from `stageHelp()`: Exploring → outcomes by major, groups, events, programs; Preparing → programs, office hours, mentors; Applying → alumni jobs, intros; Interviewing → an alum inside, office hours; Offer → sanity-check the offer; Landed → share a milestone, give back; Paused → nothing. Plus **program recommendations**: the latest Market Reality report's gap areas and the alum's growth areas matched to `Program.skills`.
+- **Candidate › Network:** alumni intros at a company (`AlumniIntroRequest`; targets are joined alumni who share their employer; five open asks at a time; emails on accept), office hours (`OfficeHourSlot`; mentors post slots, alumni book one at a time, two upcoming max), events (`CollegeEvent`, `EventRsvp`), groups (class, major, metro: where at least two work, mentors, milestones), what grads with my major do, and the milestones feed.
+- **Engagement:** completed office hours and accepted intros score as MENTOR_CALL for both sides, event check-ins as EVENT (nightly sync, with consent).
+- **Alumni Relations:** Events tab (create, RSVP list, check-in, cancel); milestones on home; saved audiences (`Segment`) usable in the composer (`segment:<id>`).
+- **Standing out:** public `/i/<slug>/outcomes` (rolling 12 months, counts under MIN_CELL_SIZE withheld, employers only with five or more, by major, peers), Admin › Board report (printable).
+- **Exec Ed:** non-alum learners (`InstitutionAffiliation.LEARNER`, never sent alumni email or invites), completion rules per cohort (sessions × attendance % + capstone) blocking "Mark completed", and credentials: `/credentials/<id>` (public verification, Add to LinkedIn) with Open Badges 2.0 JSON at `/api/credentials/<id>`, `/api/credentials/class/<programId>`, `/api/credentials/issuer/<slug>`.
+- **Workforce board:** Rapid response (recent WARN filings in the college's region; an offer with a public, rate-limited sign-up at `/i/<slug>/rapid/<id>` that creates WIOA applications, reusing roster emails, else learners) and an Eligible-provider listing helper (CIP, hours, credential type, cost, completion, credential and 180-day placement rates; CSV at `/export/etpl`).
+- **Times** typed by staff and mentors are US Eastern (`zonedToUtc`) until colleges can set a time zone.
+- **Not built:** AI-drafted outreach (cost per use, needs approval), live CRM and Handshake connectors (need vendor credentials), wage-record matching (needs the SSN decision).
+- `npm run verify:lifecycle`.
+
+### Time zone, In-work links, college sign-in, engagement weights, Oct 13, 2026
+
+- **Time zone** (`time-zone.ts`): Admin › Overview picks a US zone (`enabledFeatures.timeZone`); default from the college's state. Events and office hours are typed and shown in it.
+- **In-work track links** in the stage panel: Landed → impact log for the first review; Going for a promotion → the promotion plan; Thinking about a move (Exploring) → pay against the market.
+- **College sign-in** (`CollegeSignIn`, `sso.ts`): "Continue with Google / Microsoft" on the join and for-alumni pages returns to `/i/<slug>/welcome`, which joins anyone whose sign-in email is on the roster. Microsoft shows only once the Azure provider is enabled in Supabase Auth (read from `/auth/v1/settings`).
+- **Engagement weights**: Alumni Relations › Engagement edits points per activity (0–20; the mentor's side of a call is `MENTOR_CALL_MENTOR`) in `enabledFeatures.engagementWeights`. `v_member_engagement` applies them, so history re-scores at once. Monthly caps stay in points.
+
+### Alumni community, portal features, privacy requests, multi-campus, Oct 13, 2026
+
+- **Candidate tabs regrouped** (workspaces.ts): Home, Jobs & projects, People, Mentoring, Learn, Give back, Coaching, Privacy. Composite screens in screens.tsx; sections in screens-community.tsx; actions in community-actions.ts (every action fires an `he_*` PostHog event).
+- **Projects and boards** (`AlumniOpportunity`, `OpportunityInterest`): kinds project / fractional / board / advisory; paid / equity / volunteer. Five open posts per alum, 60-day expiry. Emails show on both sides only after the poster connects. Staff post for the college and take posts down (Alumni Relations › Groups, news & posts).
+- **Directory**: opt-in through the new consent scope `LIST_IN_DIRECTORY`; titles and employers only via `v_member_directory` (shareOutcome). **Groups**: affinity groups and regional chapters (`AlumniGroup`, `AlumniGroupMember` with LEADER); leaders add group events (`CollegeEvent.groupId`).
+- **People like you**: major and `CandidateProfile.primaryFunction`; counts only, nothing under MIN_CELL_SIZE. RIASEC joins when the O*NET account lands.
+- **Ask an alum**, **mentoring programs** (`MentoringCohort`, signups, pairs; suggested match = shared industry, then lowest load; match emails both via sendCampaign), **course auditing** (`AuditCourse`, `AuditRequest`; Teaching › Alumni auditors), **learning paths** by journey, **ways to give time** (`VolunteerRole`, `VolunteerSignup`; DONE writes VOLUNTEER engagement with consent), **college news** (`CollegeNewsPost`, on Candidate home).
+- **Portal features** (modules.ts): 15 switches in Admin › Services (`enabledFeatures.modules`); off hides the alum's tab or section and shows staff an "off" note. Tabs carry `modules`; `tabsFor(tokens, ws, modules)`.
+- **FERPA** (data-requests.ts): alum downloads JSON (`/i/[slug]/export/my-data`), asks for correction or deletion; Admin › Privacy requests looks people up, downloads (`export/member-data`, logged as a done EXPORT), deletes with confirmation (log keeps only the email).
+- **Multi-campus** (`InstitutionSystem`, `InstitutionSystemUser`, `Institution.systemId`): NextChapter admin › College systems; system users open `/systems/[slug]` (counts per campus, <5 suppressed).
+- Demo seed: demo-community.ts (both demos in "Demo college system"). `npm run verify:community` (26 checks).
+- **Outplacement counterpart**: Employer › Program (admins) sets program name, welcome and which tier services to offer (`OutplacementEmployerOrg.programSettings`); employees see it on their dashboard and in the seat invite. Open product decision: an activated seat still doesn't unlock membership-gated features (coaching, recruiter) on its own.

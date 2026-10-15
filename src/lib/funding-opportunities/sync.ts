@@ -1,6 +1,6 @@
 import 'server-only'
 import { importP0Leads } from '@/lib/crm/p0-leads'
-import { GRANT_KEYWORDS, SAM_NAICS, isLive, isRelevant, toLead, type FundingNotice } from './relevance'
+import { GRANT_KEYWORDS, SAM_NAICS, WATCHED_AGENCIES, isLive, isRelevant, toLead, type FundingNotice } from './relevance'
 import { fetchGrantDetail, noticesFromHits, searchGrantsGov, withEligibility } from './grants-gov'
 import { noticesFromSam, searchSam } from './sam-gov'
 import { upsertOpportunities } from './store'
@@ -53,6 +53,17 @@ export async function syncFundingOpportunities(opts: { dryRun?: boolean; now?: D
     } catch (e) {
       console.error('Grants.gov search failed', keyword, e)
       result.grants.failed.push(keyword)
+    }
+    await sleep(PAUSE_MS)
+  }
+  // Watched agencies: everything they post, not just keyword matches.
+  for (const agency of WATCHED_AGENCIES) {
+    try {
+      hits[`agency:${agency}`] = await searchGrantsGov('', 25, agency)
+      result.grants.searched++
+    } catch (e) {
+      console.error('Grants.gov agency search failed', agency, e)
+      result.grants.failed.push(`agency:${agency}`)
     }
     await sleep(PAUSE_MS)
   }

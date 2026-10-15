@@ -1,20 +1,23 @@
 import type { CandidateProfile } from '@prisma/client'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
+import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS, postedAgo } from '@/lib/jobs/competition'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 
 /**
  * Dashboard prompt: jobs that fit the member and were posted in the last 72
- * hours — the window when an application gets the most attention. Reads
- * only those 72 hours of the board, so it stays cheap.
+ * hours — the window when an application gets the most attention. Cut from
+ * the board's shared in-memory copy (postedWithinHours), so it stays cheap.
  */
 export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }) {
   const dossier = await isDossierUnlocked(profile.id)
   const board = await loadBoardShortlist({
     candidate: profile,
     isCandidatePlus: dossier.unlocked,
-    where: postedWithinWhere(FRESH_HOURS),
+    // The member's stage window decides (career-stage.ts); on-site, not an email.
+    includeMidLevel: true,
+    includeEarlyCareer: true,
+    postedWithinHours: FRESH_HOURS,
     view: 'fresh',
     size: 3,
   })

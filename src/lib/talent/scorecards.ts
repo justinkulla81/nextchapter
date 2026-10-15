@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { ScorecardRecommendation, Prisma } from '@prisma/client'
 import type { CompetencyScores, ScorecardComparisonRow } from '@/lib/talent/scorecard-constants'
+import { TOKEN_TTL_DAYS, isTokenExpired } from '@/lib/security/token-ttl'
 
 export { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL } from '@/lib/talent/scorecard-constants'
 export type { CompetencyScoreEntry, CompetencyScores, ScorecardComparisonRow } from '@/lib/talent/scorecard-constants'
@@ -22,6 +23,7 @@ export async function submitScorecard(
 ): Promise<{ error?: string }> {
   const panelist = await prisma.interviewPanelist.findUnique({ where: { scorecardToken } })
   if (!panelist) return { error: 'This scorecard link is invalid.' }
+  if (isTokenExpired(panelist.createdAt, TOKEN_TTL_DAYS.scorecard)) return { error: 'This scorecard link has expired. Ask the hiring team for a new one.' }
 
   const entries = Object.entries(scores).filter(([, v]) => v && v.score >= 1 && v.score <= 5)
   if (entries.length === 0) return { error: 'Score at least one competency.' }
@@ -51,10 +53,12 @@ export async function submitScorecard(
 }
 
 export async function getPanelistByToken(scorecardToken: string) {
-  return prisma.interviewPanelist.findUnique({
+  const panelist = await prisma.interviewPanelist.findUnique({
     where: { scorecardToken },
     include: { panel: { include: { submission: { include: { candidate: { select: { firstName: true, lastName: true } } } } } }, scorecard: true },
   })
+  if (panelist && isTokenExpired(panelist.createdAt, TOKEN_TTL_DAYS.scorecard)) return null
+  return panelist
 }
 
 // §A8's next item after the scorecard — "side-by-side comparison view

@@ -175,7 +175,13 @@ begin
     'EngagementEvent', 'InstitutionMentor', 'MentorRequest', 'InstitutionGift',
     'CrmExchangeRun', 'OutcomeReport', 'ProspectFlag', 'ResilienceFund',
     'FundAward', 'CaseloadAssignment', 'CheckIn', 'InstitutionEmployer',
-    'InstitutionPurchase', 'DossierIntroRequest'
+    'InstitutionPurchase', 'DossierIntroRequest',
+    'Program', 'Cohort', 'Enrollment', 'CorporateClient', 'Capstone',
+    'AlumniIntroRequest', 'OfficeHourSlot', 'CollegeEvent', 'EventRsvp', 'Segment', 'RapidResponse',
+    'AlumniOpportunity', 'OpportunityInterest', 'AlumniGroup', 'AlumniGroupMember', 'AuditCourse', 'AuditRequest',
+    'MentoringCohort', 'MentoringSignup', 'MentoringPair', 'AlumniQuestion', 'AlumniAnswer', 'VolunteerRole', 'VolunteerSignup',
+    'CollegeNewsPost', 'DataRequest', 'InstitutionSystem', 'InstitutionSystemUser',
+    'ClassNote', 'JobSearchCircle', 'JobSearchCircleMember', 'FairBooth', 'FairBoothVisit', 'MemberCompany'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     -- Supabase anonymous sign-ins also get the `authenticated` role. This

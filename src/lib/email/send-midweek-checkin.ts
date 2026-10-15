@@ -6,11 +6,11 @@ import { getVictoriaName } from '@/lib/victoria'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
+import { isQuietCandidate } from '@/lib/email/is-quiet-candidate'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
-
-const QUIET_THRESHOLD_DAYS = 3
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 interface Strength {
   title: string
@@ -36,20 +36,18 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
 
     const victoriaName = getVictoriaName('daily-email')
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'daily')
 
-    const daysSinceCheckIn = candidate.lastCheckInAt
-      ? (Date.now() - candidate.lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24)
-      : Infinity
-    const isReset = daysSinceCheckIn >= QUIET_THRESHOLD_DAYS
+    const isReset = await isQuietCandidate(candidate)
 
-    const primaryAction =
-      !isReset && report
-        ? getTodaysPrimaryAction(
-            report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
-            report.generatedAt
-          )
-        : null
+    // Reset emails still name the task — "do one small thing" with no thing
+    // named gives a quiet candidate nothing to act on.
+    const primaryAction = report
+      ? getTodaysPrimaryAction(
+          report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0],
+          report.generatedAt
+        )
+      : null
 
     const insights = !isReset
       ? await generateDailyInsights({
@@ -62,7 +60,10 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
       : null
 
     const subject = neutralizeEmailSubject(
-      insights?.subject ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
+      insights?.subject ??
+        (isReset && primaryAction
+          ? `${candidate.firstName ? `${candidate.firstName}, let's` : "Let's"} get started — one 5-minute step`
+          : null) ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
       candidate.confidentialSearchMode
     )
 
@@ -79,6 +80,7 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         victoriaName,
         introCopy: introCopy ?? null,
         isReset,
+        resetTask: isReset ? (primaryAction?.text ?? null) : null,
         bullets: insights?.bullets ?? null,
         weeklyRecap,
         appUrl,

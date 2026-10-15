@@ -15,6 +15,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
+import { TOKEN_TTL_DAYS, isTokenExpired } from '@/lib/security/token-ttl'
 
 export type JoinableMember = {
   id: string
@@ -32,10 +33,15 @@ export async function findMemberByToken(slug: string, token: string): Promise<(J
     select: {
       id: true,
       claimedAt: true,
+      sentAt: true,
+      createdAt: true,
       member: { select: { id: true, institutionId: true, email: true, firstName: true, status: true, candidateId: true, institution: { select: { slug: true } } } },
     },
   })
   if (!send?.member || send.member.institution.slug !== slug || send.member.status === 'OPTED_OUT') return null
+  // A join link signs the holder in as the roster email, so it lapses; a link
+  // that was already used still resolves (the page says "already joined").
+  if (!send.claimedAt && isTokenExpired(send.sentAt ?? send.createdAt, TOKEN_TTL_DAYS.higherEdJoin)) return null
   const { institution: _i, ...m } = send.member
   return { ...m, sendId: send.id, tokenUsed: !!send.claimedAt }
 }

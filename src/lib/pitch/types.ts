@@ -42,6 +42,10 @@ export interface SlideRule {
   why?: string
   /** Set on a slide that speaks to one audience inside the customer (alumni, development, ...). */
   constituent?: string
+  /** Citation printed small at the foot of the slide: report chapter, exhibit, page and data source. */
+  source?: string
+  /** A boxed note printed on the slide itself (for example "counsel review required"). Not editable in the rules tool. */
+  callout?: string
 }
 
 export interface OfferTerms {
@@ -113,6 +117,8 @@ export interface DeckSlide {
   /** Name of the audience, on slides that speak to one. */
   constituent?: string
   appendix?: boolean
+  source?: string
+  callout?: string
 }
 
 /** A mock product screen drawn from editable shapes, always labeled as sample data. */

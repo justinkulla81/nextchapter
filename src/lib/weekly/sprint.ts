@@ -1,4 +1,5 @@
 import 'server-only'
+import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
 import { getPace } from '@/lib/weekly/pace'
@@ -54,6 +55,9 @@ export interface CommittedAction {
   // created it; fromCoach is what SuccessSprintCard actually renders on.
   fromCoach?: boolean
   coachSessionId?: string
+  // Pushed in from an In-work feedback action item (src/lib/in-work/
+  // sprint-link.ts). Text-only, 0 points, no actionType.
+  fromInWork?: boolean
 }
 
 export interface SuggestedAction {
@@ -253,7 +257,7 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 // The week's plan, by journey and stage (src/lib/journey/plan.ts): the
 // journey's own steps first, then the general menu below, without
 // application tasks outside an active search and with nothing while Paused.
-export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
+export async function getSuggestedActions(candidateId: string, weekNumber = 1, opts: { withNudges?: boolean } = {}): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
     prisma.candidateProfile.findUnique({
@@ -268,7 +272,13 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
   const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  return shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  // On screens only (never auto-committed by the cron or first sprint): two
+  // nudges from their profile (strengths, what to leave behind, how they
+  // like to work), text only.
+  if (!opts.withNudges) return planned
+  const nudges = await profileNudges(candidateId).catch(() => [])
+  return [...nudges.slice(0, 2).map((n) => ({ text: `${n.lead}: ${n.text}` })), ...planned]
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {

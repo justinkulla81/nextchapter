@@ -27,6 +27,9 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const candidatesRaw = await prisma.candidateProfile.findMany({
     where: {
       recruiterDatabaseOptIn: true,
+      // Confidential search is a hard rule: nothing about these members, including
+      // their Candidate+ status, is visible to anyone outside NextChapter.
+      confidentialSearchMode: false,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
       assessmentComplete: true,
     },

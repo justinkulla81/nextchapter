@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { refreshYouTubeVideos } from '@/lib/content/youtube-ingest'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // 60 was enough for the original ~5 sequential keyword searches, but the
 // Shorts-duration pass + 10 AI-tool topic searches (see youtube-ingest.ts)
@@ -13,12 +13,7 @@ export const maxDuration = 300
 // enough to justify a daily pull, and per-page-load would burn YouTube Data
 // API quota for no real benefit. No-ops cleanly if YOUTUBE_API_KEY isn't
 // configured yet (see refreshYouTubeVideos).
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('refresh-youtube-content', async () => {
   await refreshYouTubeVideos()
   return NextResponse.json({ ok: true })
-}
+})

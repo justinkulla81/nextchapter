@@ -1,5 +1,7 @@
 {
-  "regions": ["pdx1"],
+  "regions": [
+    "pdx1"
+  ],
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
   "crons": [
     {
@@ -15,12 +17,20 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/in-work-review-emails",
+      "schedule": "15 13 * * *"
+    },
+    {
       "path": "/api/cron/job-search-daily",
       "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/candidate-email-dispatch",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/supporter-digest",
+      "schedule": "0 15 * * 0"
     },
     {
       "path": "/api/cron/week1-kickoff",
@@ -41,6 +51,10 @@
     {
       "path": "/api/cron/expire-job-postings",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/board-light-rows",
+      "schedule": "40 9 * * *"
     },
     {
       "path": "/api/cron/ats-job-board-feed",
@@ -85,6 +99,14 @@
     {
       "path": "/api/cron/company-signals",
       "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-hiring-index",
+      "schedule": "40 7 * * *"
+    },
+    {
+      "path": "/api/cron/pivot-market",
+      "schedule": "20 8 * * *"
     },
     {
       "path": "/api/cron/funding-opportunities",
@@ -139,6 +161,14 @@
       "schedule": "15 * * * *"
     },
     {
+      "path": "/api/cron/scam-watch",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/layoff-news",
+      "schedule": "20 */3 * * *"
+    },
+    {
       "path": "/api/cron/news-discovery",
       "schedule": "45 11 * * *"
     },
@@ -168,7 +198,7 @@
     },
     {
       "path": "/api/cron/fresh-job-alerts",
-      "schedule": "0 21 * * *"
+      "schedule": "30 13,16,19,22,1 * * *"
     },
     {
       "path": "/api/cron/likely-openings",
@@ -179,8 +209,20 @@
       "schedule": "30 7 * * *"
     },
     {
+      "path": "/api/cron/census-comms",
+      "schedule": "0 15 * * *"
+    },
+    {
       "path": "/api/cron/higher-ed-weekly",
       "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/job-health",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/monthly-user-report",
+      "schedule": "0 23 28-31 * *"
     }
   ]
 }

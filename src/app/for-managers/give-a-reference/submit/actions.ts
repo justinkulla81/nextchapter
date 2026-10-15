@@ -9,6 +9,7 @@ import EmployerReferenceInviteEmail from '@/emails/employer-reference-invite'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { createResend } from '@/lib/email/resend-client'
 import type { ReferenceFormState } from '@/components/references/ReferenceSubmissionForm'
+import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 
@@ -68,6 +69,13 @@ export async function submitEmployerReference(
     employeeEmail,
   })
   if (registrationError) return { error: registrationError }
+
+  // This sends an email from support@ to employeeEmail with text the caller
+  // chose, so it is capped per network and per recipient.
+  if (!(await allowByIp('give-reference', 10, HOUR_MS))) return { error: RATE_LIMITED_MESSAGE }
+  if (!(await allowByTarget('give-reference-employee', employeeEmail, 3, DAY_MS))) {
+    return { error: 'A reference was already sent to that person recently. Please try again tomorrow.' }
+  }
 
   if (!relationshipType) return { error: 'Please choose your relationship to them.' }
 

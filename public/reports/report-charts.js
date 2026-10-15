@@ -1,9 +1,9 @@
-// Progressive enhancement for the Displacement Report: draws the SVG exhibits
+// Progressive enhancement for the White Collar Employment Report: draws the SVG exhibits
 // and wires the copy-citation button. The page reads fine without it — every
 // word, table and note is already in the server HTML. Download buttons work as
 // normal links on the website; inside the Claude viewer (window.claude) they
 // route through the downloads capability. Verbatim from the authored report,
-// with defensive guards, by scripts/displacement/port-report.mjs.
+// with defensive guards, by scripts/employment-report/port-report.mjs.
 (function(){
   var NS="http://www.w3.org/2000/svg";
   function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
@@ -25,7 +25,7 @@
       var vl=el("text",{x:d.v<0?a-6:b+6,y:cy+4,"text-anchor":d.v<0?"end":"start","class":"vlabel"},svg);vl.textContent=opt.fmt(d.v);});}
   // Exhibit 1: index with band
   (function(){var fig=document.getElementById("fig-wci");if(!fig)return;var host=fig.querySelector(".plot"),tip=tipFor(fig);var D=[["2015-01",200.8],["2015-02",185.4],["2015-03",179.9],["2015-04",173.6],["2015-05",175.7],["2015-06",169.5],["2015-07",156.8],["2015-08",150.1],["2015-09",148.8],["2015-10",146.6],["2015-11",139.9],["2015-12",136.2],["2016-01",137.0],["2016-02",146.1],["2016-03",158.9],["2016-04",163.1],["2016-05",156.6],["2016-06",141.6],["2016-07",136.5],["2016-08",130.8],["2016-09",135.8],["2016-10",137.7],["2016-11",141.0],["2016-12",144.7],["2017-01",145.2],["2017-02",141.0],["2017-03",131.1],["2017-04",126.8],["2017-05",128.7],["2017-06",129.4],["2017-07",127.2],["2017-08",125.4],["2017-09",125.3],["2017-10",123.5],["2017-11",125.4],["2017-12",121.6],["2018-01",115.0],["2018-02",105.8],["2018-03",99.7],["2018-04",98.9],["2018-05",98.3],["2018-06",99.9],["2018-07",103.4],["2018-08",102.4],["2018-09",107.8],["2018-10",111.4],["2018-11",111.8],["2018-12",111.1],["2019-01",101.4],["2019-02",100.0],["2019-03",94.9],["2019-04",97.5],["2019-05",98.5],["2019-06",106.2],["2019-07",107.3],["2019-08",108.2],["2019-09",102.6],["2019-10",99.7],["2019-11",101.8],["2019-12",96.2],["2020-01",93.2],["2020-02",80.1],["2020-03",78.8],["2020-04",81.5],["2020-05",95.4],["2020-06",101.0],["2020-07",108.6],["2020-08",111.2],["2020-09",137.6],["2020-10",189.5],["2020-11",269.0],["2020-12",324.9],["2021-01",334.1],["2021-02",322.6],["2021-03",320.6],["2021-04",337.1],["2021-05",336.5],["2021-06",336.4],["2021-07",308.3],["2021-08",286.1],["2021-09",239.7],["2021-10",211.5],["2021-11",178.3],["2021-12",157.6],["2022-01",139.6],["2022-02",135.0],["2022-03",121.2],["2022-04",107.5],["2022-05",94.5],["2022-06",92.9],["2022-07",91.9],["2022-08",87.5],["2022-09",82.4],["2022-10",84.2],["2022-11",85.7],["2022-12",83.6],["2023-01",82.6],["2023-02",74.8],["2023-03",75.3],["2023-04",75.5],["2023-05",82.1],["2023-06",79.9],["2023-07",82.8],["2023-08",86.1],["2023-09",89.8],["2023-10",92.5],["2023-11",86.8],["2023-12",89.4],["2024-01",85.9],["2024-02",88.6],["2024-03",91.3],["2024-04",96.0],["2024-05",101.4],["2024-06",114.3],["2024-07",122.7],["2024-08",127.7],["2024-09",120.1],["2024-10",117.9],["2024-11",119.9],["2024-12",123.8],["2025-01",113.6],["2025-02",107.7],["2025-03",107.2],["2025-04",123.2],["2025-05",125.8],["2025-06",122.3],["2025-07",120.8],["2025-08",128.2],["2025-09",135.1],["2025-11",137.9],["2025-12",142.5],["2026-01",147.4],["2026-02",150.2],["2026-03",155.0],["2026-04",156.7],["2026-05",163.1],["2026-06",169.7],["2026-07",165.7],["2026-08",161.6]];
-    var W=640,H=270,m={t:16,r:44,b:28,l:40},iw=W-m.l-m.r,ih=H-m.t-m.b;var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"White-Collar Long-Term Unemployment Index, 2015 to August 2026, seasonally adjusted, 2019 = 100. 162 in August 2026."},host);
+    var W=640,H=270,m={t:16,r:44,b:28,l:40},iw=W-m.l-m.r,ih=H-m.t-m.b;var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"White-Collar Long-Search Index, 2015 to August 2026, seasonally adjusted, 2019 = 100. 162 in August 2026."},host);
     var t=function(s){return +s.slice(0,4)+(+s.slice(5,7)-1)/12},x0=2015,x1=2026+7/12,X=function(v){return m.l+(v-x0)/(x1-x0)*iw},Y=function(v){return m.t+(400-v)/400*ih};
     var g=el("g",{"class":"grid"},svg);[0,100,200,300,400].forEach(function(v){el("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v)},g);var tx=el("text",{x:m.l-6,y:Y(v)+4,"text-anchor":"end"},svg);tx.textContent=v;});
     [2015,2017,2019,2021,2023,2025].forEach(function(y){var tx=el("text",{x:X(y),y:H-8,"text-anchor":"middle"},svg);tx.textContent=y;});
@@ -51,5 +51,5 @@
     window.claude.use("downloads").then(function(dl){if(!dl){status.textContent="Downloads aren't available in this view.";return;}
       return fetch(a.getAttribute("href")).then(function(r){if(!r.ok)throw new Error("fetch");return r.blob();}).then(function(b){return dl.save({filename:name,data:b});}).then(function(){status.textContent="";},function(e){status.textContent=(e&&e.code==="declined")?"":"Couldn't save the file. Try again.";});
     }).catch(function(){status.textContent="Couldn't prepare the file.";});});}
-  wire("pdf-btn","NextChapter-Displacement-Report-September-2026.pdf");wire("csv-btn","nextchapter-displacement-report-2026-09-data.csv");
+  wire("pdf-btn","NextChapter-White-Collar-Employment-Report-September-2026.pdf");wire("csv-btn","nextchapter-white-collar-employment-report-2026-09-data.csv");
 })();

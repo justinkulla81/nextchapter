@@ -10,6 +10,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import type { AccessToken } from '@/lib/higher-ed/workspaces'
 import { sendLayoffOutreach } from '@/lib/higher-ed/layoffs'
 import { sendDueCheckIns } from '@/lib/higher-ed/checkins'
+import { saveEngagementWeights, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
 import { isAudience, saveDraft, sendNextBatch, sendTestToSelf, unknownFields } from '@/lib/higher-ed/composer'
 
 type Result = { error?: string; message?: string }
@@ -100,4 +101,27 @@ export async function sendOutreachBatch(slug: string, campaignId: string): Promi
   captureServerEvent(ctx.userId, 'he_outreach_batch_sent', { institutionId: ctx.institution.id, campaignId, sent: r.sent, skipped: r.skipped, demo: r.demo })
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: sentMessage(r, 'emails') }
+}
+
+// ── Engagement weights (Alumni Relations › Engagement) ─────────────────────
+
+export async function saveWeightsForm(slug: string, _prev: { error?: string; message?: string } | undefined, f: FormData): Promise<{ error?: string; message?: string }> {
+  const ctx = await requireWorkspace(slug, 'alumni', { write: true })
+  if (!has(ctx.tokens, 'ALUMNI_RELATIONS', 'INSTITUTION_ADMIN')) return { error: 'Only Alumni Relations or a college admin can change the weights.' }
+  if (f.get('reset') === '1') {
+    await saveEngagementWeights(ctx.institution.id, null)
+    captureServerEvent(ctx.userId, 'he_engagement_weights_reset', { institutionId: ctx.institution.id })
+    revalidatePath(`/i/${slug}`, 'layout')
+    return { message: 'Back to the standard weights.' }
+  }
+  const weights: Record<string, number> = {}
+  for (const w of WEIGHT_KEYS) {
+    const n = Number(f.get(w.key))
+    if (!Number.isInteger(n) || n < 0 || n > 20) return { error: `${w.label}: use a whole number from 0 to 20.` }
+    weights[w.key] = n
+  }
+  await saveEngagementWeights(ctx.institution.id, weights)
+  captureServerEvent(ctx.userId, 'he_engagement_weights_saved', { institutionId: ctx.institution.id, ...weights })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { message: 'Saved. Scores and tiers update now, for the last 12 months.' }
 }

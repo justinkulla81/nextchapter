@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getRecruiterByToken } from '@/lib/recruiter/access'
 
 export default async function CalibrationMemoHistoryPage({
   params,
@@ -9,7 +10,7 @@ export default async function CalibrationMemoHistoryPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const recruiter = await prisma.recruiter.findUnique({ where: { accessToken: token } })
+  const recruiter = await getRecruiterByToken(token)
   if (!recruiter) notFound()
 
   const memos = await prisma.calibrationMemo.findMany({

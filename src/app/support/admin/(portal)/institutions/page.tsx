@@ -1,9 +1,13 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { readBranding } from '@/lib/institution/branding'
-import { CreateCollegeForm, BrandingForm, InviteStaffForm } from '@/components/admin/InstitutionForms'
+import { CreateCollegeForm, BrandingForm, InviteStaffForm, LicenseForm, RegionForm } from '@/components/admin/InstitutionForms'
+import { readProfile, regionAreas } from '@/lib/higher-ed/profile'
+import { ConfirmActionButton } from '@/components/higher-ed/ConfirmActionButton'
+import { ActionButton } from '@/components/higher-ed/CommunityForms'
+import { STAFF_ROLE_LABELS, TIER_LABELS, getWorkspace } from '@/lib/higher-ed/workspaces'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { loadDemoContent, resetDemoFixture } from './actions'
+import { loadDemoContent, removeCollegeStaff, resendCollegeStaffInvite, resetDemoFixture } from './actions'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { SERVICES, serviceSettingsFrom } from '@/lib/higher-ed/services'
 
@@ -19,8 +23,8 @@ export default async function InstitutionsAdminPage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, slug: true, name: true, programBrandName: true, accentColor: true, logoUrl: true, profile: true,
-      isDemo: true, isSampleData: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true,
-      users: { where: { revokedAt: null }, select: { invitedEmail: true, role: true, acceptedAt: true } },
+      isDemo: true, isSampleData: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true, alumniCount: true, licenseStartAt: true, licenseEndAt: true,
+      users: { where: { revokedAt: null }, select: { id: true, invitedEmail: true, fullName: true, role: true, workspace: true, acceptedAt: true } },
       _count: { select: { targetCompanies: true, scopedJobPostings: true, members: true } },
     },
   })
@@ -62,7 +66,7 @@ export default async function InstitutionsAdminPage() {
                     <a href={`${PORTAL_ORIGIN}/i/${c.slug}`} target="_blank" rel="noreferrer" className="font-medium text-foreground underline underline-offset-4">
                       Open portal
                     </a>{' '}
-                    · {c.slug} · {c.tier.toLowerCase()} tier · {c._count.members.toLocaleString()} members · {c.includedSeats.toLocaleString()} seats ·{' '}
+                    · {c.slug} · {TIER_LABELS[c.tier]} tier · {c._count.members.toLocaleString()} members · {c.includedSeats.toLocaleString()} seats ·{' '}
                     {SERVICES.filter((sv) => serviceSettingsFrom(c.enabledFeatures)[sv.key].on).length} services on ·{' '}
                     {c.crmOrganizationId ? (
                       <a href={`/support/admin/crm/organizations/${c.crmOrganizationId}`} className="underline underline-offset-4">
@@ -82,16 +86,42 @@ export default async function InstitutionsAdminPage() {
                 {c.users.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No one invited yet.</p>
                 ) : (
-                  <ul className="text-sm text-muted-foreground">
+                  <ul className="space-y-1 text-sm text-muted-foreground">
                     {c.users.map((u) => (
-                      <li key={`${u.invitedEmail}-${u.role}`}>
-                        {u.invitedEmail} · {u.role.toLowerCase().replace(/_/g, ' ')} · {u.acceptedAt ? 'joined' : 'invited'}
+                      <li key={u.id} className="flex flex-wrap items-center gap-2">
+                        <span>
+                          {u.fullName ? `${u.fullName} · ` : ''}
+                          {u.invitedEmail} · {STAFF_ROLE_LABELS[u.role]}
+                          {u.workspace ? ` (${getWorkspace(u.workspace)?.label ?? u.workspace}, read-only)` : ''} · {u.acceptedAt ? 'joined' : 'invited'}
+                        </span>
+                        {!u.acceptedAt && <ActionButton label="Resend" done="Sent." run={resendCollegeStaffInvite.bind(null, u.id)} />}
+                        <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${u.invitedEmail} as ${STAFF_ROLE_LABELS[u.role]}?`} confirmLabel="Remove" run={removeCollegeStaff.bind(null, u.id)} />
                       </li>
                     ))}
                   </ul>
                 )}
                 <InviteStaffForm institutionId={c.id} />
               </div>
+
+              <details className="space-y-2" open={c.tier === 'CAREER' && !c.isDemo && c.includedSeats === 0}>
+                <summary className="cursor-pointer text-sm font-medium">License: {TIER_LABELS[c.tier]}, {c.includedSeats.toLocaleString()} seats{c.licenseEndAt ? `, through ${c.licenseEndAt.toISOString().slice(0, 10)}` : ''}</summary>
+                <LicenseForm
+                  institutionId={c.id}
+                  defaults={{ tier: c.tier, includedSeats: c.includedSeats, alumniCount: c.alumniCount, licenseStartAt: c.licenseStartAt?.toISOString().slice(0, 10) ?? '', licenseEndAt: c.licenseEndAt?.toISOString().slice(0, 10) ?? '' }}
+                />
+              </details>
+
+              <details className="space-y-2">
+                <summary className="cursor-pointer text-sm font-medium">
+                  Local market:{' '}
+                  {(() => {
+                    const r = readProfile(c.profile).region
+                    const a = regionAreas(r)
+                    return a.length ? `${r?.name} (${a.map((x) => `${x.state}: ${x.counties.length}`).join(', ')} counties)` : 'not set'
+                  })()}
+                </summary>
+                <RegionForm institutionId={c.id} defaults={{ name: readProfile(c.profile).region?.name ?? '', areas: regionAreas(readProfile(c.profile).region) }} />
+              </details>
 
               <details className="space-y-2">
                 <summary className="cursor-pointer text-sm font-medium">Branding</summary>

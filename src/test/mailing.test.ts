@@ -8,6 +8,7 @@ import { makeUnsubscribeToken, readUnsubscribeToken } from '@/lib/mailing/unsubs
 import { isUnsubscribeReply, baseSubject } from '@/lib/mailing/replies'
 import { renderEmail, sanitizeBodyHtml } from '@/lib/mailing/render'
 import { suggestListKeys } from '@/lib/mailing/suggest'
+import { REPORT_SLUG_PREFIX, reportSlugFor } from '@/lib/reports'
 
 describe('edition parser', () => {
   it('reads YYYY-MM from report attachment filenames', () => {
@@ -41,6 +42,35 @@ describe('edition parser', () => {
     expect(detectReportEdition({ attachmentNames: ['notes.txt', 'displacement-report-2026-09.pdf'], body: 'launchyournextchapter.com/reports/2026-10' })).toBe('2026-09')
     expect(detectReportEdition({ attachmentNames: ['notes.txt'], body: 'launchyournextchapter.com/reports/2026-10' })).toBe('2026-10')
     expect(detectReportEdition({})).toBeNull()
+  })
+})
+
+describe('report naming', () => {
+  it('accepts the White Collar Employment Report names and still the old Displacement Report names', () => {
+    expect(editionFromFilename('NextChapter-White-Collar-Employment-Report-2026-10.pdf')).toBe('2026-10')
+    expect(editionFromFilename('white-collar-employment-report-october-2026.html')).toBe('2026-10')
+    expect(editionFromFilename('NextChapter-Displacement-Report-September-2026.pdf')).toBe('2026-09')
+    expect(editionFromFilename('displacement-report-2026-09.pdf')).toBe('2026-09')
+    expect(editionFromBody('https://launchyournextchapter.com/reports/displacement-report-september-2026')).toBe('2026-09')
+    expect(editionFromBody('https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026')).toBe('2026-10')
+  })
+  it('accepts the new filename prefix alongside the old one', () => {
+    expect(editionFromFilename('employment-report-2026-10.pdf')).toBe('2026-10')
+    expect(editionFromFilename('NextChapter-Employment-Report-2026-10.pdf')).toBe('2026-10')
+    expect(editionFromFilename('employment-report-october-2026.html')).toBe('2026-10')
+  })
+  it('still ignores lookalikes and impossible months', () => {
+    expect(editionFromFilename('my-employment-report-2026-10.pdf')).toBeNull()
+    expect(editionFromFilename('employment-report-final.pdf')).toBeNull()
+    expect(editionFromFilename('employment-report-2026-13.pdf')).toBeNull()
+  })
+  it('reads new-style report links in the body', () => {
+    expect(editionFromBody('https://launchyournextchapter.com/reports/employment-report-october-2026')).toBe('2026-10')
+  })
+  it('builds slugs with the new prefix', () => {
+    expect(REPORT_SLUG_PREFIX).toBe('white-collar-employment-report-')
+    expect(reportSlugFor(2026, 10)).toBe('white-collar-employment-report-october-2026')
+    expect(() => reportSlugFor(2026, 13)).toThrow()
   })
 })
 

@@ -16,6 +16,7 @@ import { CrmNeedsCompletionList } from '@/components/admin/CrmNeedsCompletionLis
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
 import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
+import { loadRoutesToConfirm } from '@/lib/crm/route-review'
 
 export const maxDuration = 30
 
@@ -34,7 +35,8 @@ export default async function CrmNeedsCompletionPage({
   const perPage = readPageSize(sp.per)
 
   // Stage 1: everything that depends only on the request.
-  const [signupMatches, firmReviews, total, rows] = await Promise.all([
+  const [routeReviews, signupMatches, firmReviews, total, rows] = await Promise.all([
+    loadRoutesToConfirm(),
     // Sign-ups that may be someone already in the CRM — never linked on a
     // guess; they wait here for a yes/no.
     prisma.candidateIdentityMatch.findMany({
@@ -202,11 +204,43 @@ export default async function CrmNeedsCompletionPage({
       <header>
         <h1 className="text-2xl font-semibold">Review List</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          New sign-ups to link, then records missing a title or an organization. Where the person is in your LinkedIn export,
+          Routes in to confirm, new sign-ups to link, then records missing a title or an organization. Where the person is in your LinkedIn export,
           the suggestion below is one click away — completing a profile is usually accepting a
           prefill rather than typing.
         </p>
       </header>
+
+      {routeReviews.length > 0 && (
+        <section aria-labelledby="route-reviews">
+          <h2 id="route-reviews" className="text-lg font-semibold">Routes in to confirm ({routeReviews.length})</h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Ways in that are rated but that nobody has asked about yet. They do not count as a warm way in for a
+            candidate until someone has asked: open the organization, then mark it asked, re-rate it, or decline it.
+          </p>
+          <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {routeReviews.map((g) => (
+              <li key={g.org.id} className="px-3 py-2 text-sm">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <Link href={g.org.href} className="font-medium hover:underline">{g.org.name}</Link>
+                  <Link href={g.org.href} className="text-xs text-muted-foreground underline">Open to act</Link>
+                </div>
+                <ul className="mt-1 space-y-1">
+                  {g.routes.map((r) => (
+                    <li key={r.id} className="text-xs text-muted-foreground">
+                      Via{' '}
+                      {r.connector.personId ? (
+                        <Link href={`/support/admin/crm/people/${r.connector.personId}`} className="text-foreground underline underline-offset-2">{r.connector.name}</Link>
+                      ) : r.connector.name}
+                      {' '}· {r.strength.toLowerCase()}
+                      {r.note && <> — {r.note.length > 140 ? `${r.note.slice(0, 140)}…` : r.note}</>}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {firmReviews.length > 0 && (
         <section aria-labelledby="firm-matches">

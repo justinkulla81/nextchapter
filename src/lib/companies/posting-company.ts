@@ -1,6 +1,7 @@
 import 'server-only'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { prisma } from '@/lib/prisma'
+import { displayCompanyName, fixAllCapsCompanyName, normalizeOrgName } from '@/lib/text/org-name-match'
 
 // Every job that is added gets tied to its directory Company at the moment it is
 // added, so the directory never lags the board (before this, only the nightly
@@ -43,6 +44,43 @@ export async function linkPostingsToCompanies(rawNames: (string | null | undefin
     const key = normalizeOrgName(raw)
     if (!byKey.has(key)) byKey.set(key, await linkPostingToCompany(raw))
     out.set(raw, byKey.get(key) ?? null)
+  }
+  return out
+}
+
+/**
+ * Bulk form of linkPostingsToCompanies for large backfills: one read for every name,
+ * one insert for the missing ones, one re-read. Same names, keys and placeholder
+ * rules as getOrCreateCompany. Keyed by the raw name as given.
+ */
+export async function linkCompaniesBulk(rawNames: (string | null | undefined)[]): Promise<Map<string, string>> {
+  const keyOf = new Map<string, string>() // raw -> normalised key
+  const nameOfKey = new Map<string, string>() // key -> display name (first seen)
+  for (const raw of rawNames) {
+    if (!isLinkableCompanyName(raw) || keyOf.has(raw)) continue
+    const name = fixAllCapsCompanyName(displayCompanyName(raw.trim()))
+    const key = normalizeOrgName(name)
+    if (!key) continue
+    keyOf.set(raw, key)
+    if (!nameOfKey.has(key)) nameOfKey.set(key, name)
+  }
+  const keys = [...nameOfKey.keys()]
+  const out = new Map<string, string>()
+  if (keys.length === 0) return out
+  const found = await prisma.company.findMany({ where: { canonicalNameNormalized: { in: keys } }, select: { id: true, canonicalNameNormalized: true } })
+  const idByKey = new Map(found.map((c) => [c.canonicalNameNormalized, c.id]))
+  const missing = keys.filter((k) => !idByKey.has(k))
+  if (missing.length > 0) {
+    await prisma.company.createMany({
+      data: missing.map((k) => ({ name: nameOfKey.get(k)!, canonicalNameNormalized: k })),
+      skipDuplicates: true,
+    })
+    const created = await prisma.company.findMany({ where: { canonicalNameNormalized: { in: missing } }, select: { id: true, canonicalNameNormalized: true } })
+    for (const c of created) idByKey.set(c.canonicalNameNormalized, c.id)
+  }
+  for (const [raw, key] of keyOf) {
+    const id = idByKey.get(key)
+    if (id) out.set(raw, id)
   }
   return out
 }

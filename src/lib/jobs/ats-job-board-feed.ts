@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
+import type { AtsCompany } from '@/lib/market/ats-companies'
+import { getAtsCompanies } from '@/lib/market/ats-discovery'
 import { isUsLocation } from '@/lib/jobs/us-location'
 import { loadAdminFitCandidates } from '@/lib/jobs/job-fit-bucket'
 import { inferFunctionFromTitle, inferCalibratedLevelRank } from '@/lib/jobs/infer-job-function'
@@ -224,6 +225,8 @@ export interface AtsFeedResult {
 // untouched by this — those still land pending either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   const candidates = await loadAdminFitCandidates()
+  // The hand list plus every board discovery has found for companies in the news.
+  const atsCompanies = await getAtsCompanies()
 
   // Resolved once, up front, for the whole (small, ~45-company) ATS_COMPANIES
   // list — not per-listing — so the admission-gate loop below stays
@@ -232,7 +235,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   // costs one LLM call, cached forever after.
   const companySizeBands = new Map(
     await Promise.all(
-      ATS_COMPANIES.map(async (c) => [normalizeOrgName(c.name), (await resolveCompanySizeBand(c.name)).band] as const)
+      atsCompanies.map(async (c) => [normalizeOrgName(c.name), (await resolveCompanySizeBand(c.name)).band] as const)
     )
   )
 
@@ -241,7 +244,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   // apiece) could exceed this route's maxDuration well before reaching the
   // later companies in ATS_COMPANIES, silently truncating the run to
   // whichever handful happened to be first in the array.
-  const perCompanyListings = await Promise.all(ATS_COMPANIES.map((company) => fetchCompanyListings(company)))
+  const perCompanyListings = await Promise.all(atsCompanies.map((company) => fetchCompanyListings(company)))
   const allListings = perCompanyListings.flat()
 
   // One existence check for every URL fetched this run, instead of a

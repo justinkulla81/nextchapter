@@ -52,6 +52,12 @@ describe('license tiers (product design, Packaging)', () => {
   it('Institution adds Teaching and Exec Ed', () => {
     expect(workspacesFor(ALL_TOKENS, 'INSTITUTION')).toEqual(['candidate', 'alumni', 'development', 'career', 'teaching', 'execed', 'employer', 'admin'])
   })
+  it('the Workforce board appears only when the college turns WIOA on', () => {
+    expect(workspacesFor(set('INSTITUTION_ADMIN'), 'INSTITUTION')).not.toContain('workforce')
+    expect(workspacesFor(set('INSTITUTION_ADMIN'), 'INSTITUTION', { wioa: true })).toContain('workforce')
+    expect(workspacesFor(set('WORKFORCE_PARTNER'), 'INSTITUTION', { wioa: true })).toEqual(['workforce'])
+    expect(workspacesFor(set('WORKFORCE_PARTNER'), 'INSTITUTION')).toEqual([])
+  })
   it('admins see what a higher tier would add', () => {
     expect(lockedWorkspacesFor(set('INSTITUTION_ADMIN'), 'ADVANCEMENT').map((w) => w.key)).toEqual(['teaching', 'execed'])
   })
@@ -65,9 +71,9 @@ describe('read-only and tabs', () => {
 
   it('Career Services tabs follow the role', () => {
     expect(tabsFor(set('EMPLOYER_RELATIONS'), 'career').map((t) => t.key)).toEqual(['jobs', 'companies', 'region', 'employers'])
-    expect(tabsFor(set('CAREER_SERVICES'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'jobs', 'companies', 'outcomes', 'checkins', 'students', 'region', 'employers'])
-    // A college's coach sees the caseload and coaching, not jobs or companies.
-    expect(tabsFor(set('COACH'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'region', 'employers'])
+    expect(tabsFor(set('CAREER_SERVICES'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'jobs', 'companies', 'outcomes', 'checkins', 'students', 'circles', 'region', 'employers'])
+    // A college's coach sees the caseload, coaching and circles, not jobs or companies.
+    expect(tabsFor(set('COACH'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'circles', 'region', 'employers'])
     // Alumni Relations can post alumni jobs but not manage target companies (permissions.ts).
     expect(tabsFor(set('ALUMNI_RELATIONS'), 'alumni').map((t) => t.key)).toContain('jobs')
     expect(tabsFor(set('VIEWER:alumni'), 'alumni').map((t) => t.key)).not.toContain('jobs')

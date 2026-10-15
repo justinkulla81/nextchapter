@@ -61,6 +61,7 @@ export async function inviteMentors(args: { institutionId: string; createdBy: st
       affiliation: { in: ['ALUM', 'STAFF_ALUM'] },
       status: { not: 'OPTED_OUT' },
       doNotContact: false,
+      emailSuppressedAt: null,
       mentorProfile: null,
       transitionFlags: { none: { openFlagMemberId: { not: null } } },
       // Not invited in the last six months.
@@ -91,6 +92,7 @@ export async function countMentorInvitable(institutionId: string) {
       affiliation: { in: ['ALUM', 'STAFF_ALUM'] },
       status: { not: 'OPTED_OUT' },
       doNotContact: false,
+      emailSuppressedAt: null,
       mentorProfile: null,
       transitionFlags: { none: { openFlagMemberId: { not: null } } },
       outreachSends: { none: { createdAt: { gte: since }, campaign: { type: 'MENTOR_INVITE' } } },

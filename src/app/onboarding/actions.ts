@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { normalizeFunctionValue, normalizeLevelValue, normalizeRemotePreferenceValue } from '@/lib/constants/candidate-profile-normalize'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
@@ -136,8 +137,9 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
 export async function updateResumeConfirm(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
-  const highestLevelReached = formData.get('highestLevelReached') as string | null
-  const primaryFunction = formData.get('primaryFunction') as string | null
+  // Option-list values are normalised on write ('DIRECTOR' -> 'Director') — see candidate-profile-normalize.ts.
+  const highestLevelReached = normalizeLevelValue(formData.get('highestLevelReached') as string | null)
+  const primaryFunction = normalizeFunctionValue(formData.get('primaryFunction') as string | null)
   const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
   // Candidate now enters one merged list of industries — the first tag
   // doubles as industryContext (the single "background industry" string
@@ -145,9 +147,16 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
   // read), while the full list becomes targetIndustries.
   const targetIndustries = formData.getAll('industries').map(String).filter(Boolean)
   const industryContext = targetIndustries[0] ?? null
+  // Optional: blank keeps what the resume gave. It places an individual
+  // contributor on the career ladder (entry level, early career, mid-level).
+  const yearsRaw = String(formData.get('yearsExperience') ?? '').trim()
+  const yearsExperience = yearsRaw === '' ? undefined : Number(yearsRaw)
 
   if (!highestLevelReached || !primaryFunction) {
     return { error: 'Please confirm your level and function before continuing.' }
+  }
+  if (yearsExperience !== undefined && (!Number.isInteger(yearsExperience) || yearsExperience < 0 || yearsExperience > 60)) {
+    return { error: 'Enter your years of experience as a whole number from 0 to 60, or leave it blank.' }
   }
 
   await prisma.candidateProfile.update({
@@ -158,6 +167,7 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
       industryContext,
       targetRoleType,
       targetIndustries,
+      ...(yearsExperience !== undefined ? { yearsExperience } : {}),
       onboardingResumeConfirmedAt: new Date(),
     },
   })
@@ -209,7 +219,7 @@ export async function updateLocationAndSearchStatus(
 
   const currentCity = (formData.get('currentCity') as string | null)?.trim() || null
   const currentState = (formData.get('currentState') as string | null)?.trim() || null
-  const remotePreference = formData.get('remotePreference') as string | null
+  const remotePreference = normalizeRemotePreferenceValue(formData.get('remotePreference') as string | null)
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = (formData.get('relocationNotes') as string | null)?.trim() || null
   const travelWillingness = formData.get('travelWillingness') === 'on'

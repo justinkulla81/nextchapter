@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { LikelyOpeningFilingLink } from '@/components/likely-openings/FilingLink'
-import { SIGNAL_LABELS, roleShortLabel } from '@/lib/likely-openings/roles'
+import { SIGNAL_LABELS, roleShortLabel, signalSource } from '@/lib/likely-openings/roles'
 import { formatAmount } from '@/lib/likely-openings/parse-form-d'
 import { cn } from '@/lib/utils'
 
@@ -65,7 +65,7 @@ export default async function AdminLikelyOpeningsPage({
           signalType={r.signalType}
           href={r.filingUrl}
           source="admin"
-          label="SEC filing"
+          label={signalSource(r.cik) === 'news' ? 'News report' : 'SEC filing'}
         />
       ),
     },

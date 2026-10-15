@@ -2,7 +2,7 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { reportsNewestFirst, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
 import { htmlToPlainText } from '@/lib/seo/plain-text'
-import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/displacement-report-september-2026/report-body'
+import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/white-collar-employment-report-september-2026/report-body'
 
 // /llms-full.txt — plain-text bodies of every guide and report, no navigation
 // or boilerplate, regenerated at build time.
@@ -13,7 +13,7 @@ export const dynamic = 'force-static'
 
 // Authored HTML body per edition slug. Register each new edition here too.
 const REPORT_BODIES: Record<string, string> = {
-  'displacement-report-september-2026': SEPTEMBER_2026,
+  'white-collar-employment-report-september-2026': SEPTEMBER_2026,
 }
 
 export function GET() {
@@ -23,7 +23,7 @@ export function GET() {
     const html = REPORT_BODIES[r.slug]
     if (!html) continue
     parts.push(
-      `# NextChapter Displacement Report — ${r.month}\n\nURL: ${SITE_URL}${reportPath(r)}\nPublished: ${r.publishedAt}\nAuthor: ${FACTS.founder.name}\n\n${htmlToPlainText(html)}`,
+      `# NextChapter White Collar Employment Report — ${r.month}\n\nURL: ${SITE_URL}${reportPath(r)}\nPublished: ${r.publishedAt}\nAuthor: ${FACTS.founder.name}\n\n${htmlToPlainText(html)}`,
     )
   }
 

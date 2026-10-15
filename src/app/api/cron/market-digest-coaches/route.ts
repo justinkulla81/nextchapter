@@ -1,10 +1,11 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCoachEmail } from '@/lib/email/send-market-digest-coach'
 import { buildCoachWeeklyDigest } from '@/lib/coach/weekly-digest'
 import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { withCronRun } from '@/lib/cron/run'
 
 const MAX_ROLE_LINES = 3
 
@@ -13,12 +14,7 @@ const MAX_ROLE_LINES = 3
 // section — week, flags, activity and new strong-fit roles. Clients who
 // haven't consented are listed by name only. The market snapshot rides
 // along as a footer.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('market-digest-coaches', async () => {
   const coaches = await prisma.coach.findMany({
     where: { isSampleData: false, marketDigestOptedOut: false },
     select: {
@@ -72,5 +68,7 @@ export async function GET(request: NextRequest) {
     if (nugget) await markItemsSent([nugget.id], 'COACH')
   }
 
-  return NextResponse.json({ checked: coaches.length, sent: sentCount })
-}
+  const summary = { checked: coaches.length, sent: sentCount }
+  captureServerEvent('cron', 'coach_market_digest_run', summary)
+  return NextResponse.json(summary)
+})

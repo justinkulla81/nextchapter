@@ -6,6 +6,7 @@ import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRol
 import { extractEmailAddress, extractDisplayName, extractDomain, normalizeMailboxIdentity } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
+import { isSuppressed, loadSuppression, looksLikeNonWorkSender, type SuppressionSet } from '@/lib/network/suppressed-senders'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -15,7 +16,9 @@ import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
 import { trackPlatformEmail } from '@/lib/platforms/track'
 import { GMAIL_API, ensureFreshAccessToken, isRetryable, fetchMessages, extractBodyPreview, type FetchedMessage } from './gmail-api'
 import { platformsForSenderDomain } from '@/lib/platforms/directory'
-import { getAttachmentFilenames, getHeader } from '@/lib/google/gmail-body'
+import { getAttachmentFilenames, getHeader, extractEmailLinks } from '@/lib/google/gmail-body'
+import { assessRecruiterEmail } from '@/lib/scam-shield/assess-recruiter-email'
+import { raiseScamAlert } from '@/lib/scam-shield/raise-scam-alert'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
@@ -104,7 +107,8 @@ async function processMessage(
   direction: EmailDirection,
   workHistoryCompanies: string[],
   registeredAt: Date | null,
-  interimListingDomainMap: Map<string, { id: string; name: string }>
+  interimListingDomainMap: Map<string, { id: string; name: string }>,
+  suppression: SuppressionSet
 ): Promise<ProcessResult> {
   const { message, insufficientScope } = fetched
   if (insufficientScope) return 'insufficient_scope'
@@ -178,7 +182,12 @@ async function processMessage(
   // get flagged isRecruiterContact and land on the candidate's follow-up
   // list as if it were a real person.
   const isBulk = direction === 'INBOUND' && isLikelyBulkOrPromotional(subject, bodyPreview, from, !!listUnsubscribe)
-  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself || isBulk || isSelfAddressed
+  // Family, school/activity, spam and non-work senders the candidate (or the
+  // address itself) marks as not job-related: no recruiter/hiring-manager flag,
+  // so they never reach the follow-up list or the auto-added contacts.
+  const isNotJobRelated =
+    direction === 'INBOUND' && (isSuppressed(suppression, from) || looksLikeNonWorkSender(from))
+  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself || isBulk || isSelfAddressed || isNotJobRelated
   const roleText = `${subject} ${bodyPreview}`
   const isRecruiterRoleMention = !skipRoleMatching && matchRecruiterRoleMention(roleText)
   const isHiringManagerContact = !skipRoleMatching && matchHiringManagerRoleMention(roleText)
@@ -220,6 +229,40 @@ async function processMessage(
       matchedRule: classification.rule?.slice(0, 300) ?? null,
     },
   })
+
+  // Fake-recruiter / fake-job check (src/lib/scam-shield/). Runs on the same
+  // inbound mail already fetched here, so a scam is caught on the sync that
+  // first sees it. Skipped for mail that can't be a personal recruiter
+  // approach (ATS/job-board and NextChapter's own mail, self-sent mail,
+  // senders the candidate marked non-job) and for anything with a
+  // List-Unsubscribe header, which is bulk marketing, not a one-to-one scam.
+  // A failure here must never block the sync.
+  if (direction === 'INBOUND' && !isFromAtsOrJobBoard && !isFromNextChapterItself && !isSelfAddressed && !isNotJobRelated && !listUnsubscribe) {
+    try {
+      const assessment = assessRecruiterEmail({
+        from,
+        replyTo: getHeader(message.payload?.headers, 'Reply-To'),
+        subject,
+        body: bodyPreview,
+        linkUrls: extractEmailLinks(message.payload),
+        authResults: getHeader(message.payload?.headers, 'Authentication-Results'),
+      })
+      if (assessment.level !== 'none') {
+        await raiseScamAlert({
+          candidateId: connection.candidateId,
+          connectionId: connection.id,
+          messageId,
+          threadId,
+          from,
+          subject,
+          emailDate,
+          assessment,
+        })
+      }
+    } catch (error) {
+      console.error('Scam check failed for message', messageId, error)
+    }
+  }
 
   // Anyone the app already labels a recruiter, hiring manager, coach, or
   // networking contact belongs in the candidate's network list too, not
@@ -376,7 +419,7 @@ export async function syncGmailConnection(
   // employer (same pattern as sync-google-calendar.ts). interimListingDomainMap
   // is the same "once per sync" treatment for Interim Work registration
   // detection below.
-  const [workHistory, candidate, interimListingDomainMap] = await Promise.all([
+  const [workHistory, candidate, interimListingDomainMap, suppression] = await Promise.all([
     prisma.workHistoryEntry.findMany({
       where: { candidateId: connection.candidateId },
       select: { companyName: true },
@@ -386,6 +429,7 @@ export async function syncGmailConnection(
       select: { registrationCompletedAt: true },
     }),
     getInterimListingDomainMap(),
+    loadSuppression(connection.candidateId),
   ])
   const workHistoryCompanies = workHistory.map((w) => w.companyName)
   // A first-ever sync backfills up to FIRST_SYNC_BACKFILL_MS of history into
@@ -460,7 +504,7 @@ export async function syncGmailConnection(
             // a permanent failure (deleted message) is skipped, never allowed to stall the mailbox
             continue
           }
-          const result = await processMessage(connection, id, fetched, direction, workHistoryCompanies, registeredAt, interimListingDomainMap)
+          const result = await processMessage(connection, id, fetched, direction, workHistoryCompanies, registeredAt, interimListingDomainMap, suppression)
           if (result === 'insufficient_scope') scopeInsufficient = true
           else if (result === 'synced') synced++
         } catch (error) {

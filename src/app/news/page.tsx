@@ -50,9 +50,9 @@ export default async function NewsPage() {
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
             Articles, videos, podcasts and posts on the job market and searching for a job. For our own data, read the
             monthly{' '}
-            <a href="/reports/latest" className="text-primary underline underline-offset-4">NextChapter Displacement Report</a>{' '}
+            <a href="/reports/latest" className="text-primary underline underline-offset-4">NextChapter White Collar Employment Report</a>{' '}
             and the{' '}
-            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Term Unemployment Index</a>.
+            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Search Index</a>.
           </p>
           <div className="mt-10">
             {items.length === 0 ? (

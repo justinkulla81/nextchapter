@@ -7,7 +7,7 @@ import { intakeRepliesSendingEnabled, sendApprovedReply } from '@/lib/recruiter/
 import { firstNameOf } from '@/lib/recruiter/intake/reply-templates'
 import { INTAKE_CLAIM_REMINDER_GAP_DAYS, INTAKE_MAX_CLAIM_INVITES, INTAKE_REPLY_KIND_LABELS } from '@/lib/recruiter/intake/constants'
 import { sendIntakeApprovalDigest, sendIntakeClaimReminder } from '@/lib/email/send-intake'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // NextChapter Talent daily job:
 //   1. Read resumes left QUEUED by a firm's daily parse cap.
@@ -20,10 +20,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 
 export const maxDuration = 300
 
-export async function GET(request: Request) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('talent-intake', async () => {
 
   const summary = { parsed: 0, stillQueued: 0, digests: 0, repliesSent: 0, reminders: 0, purged: 0, errors: 0 }
 
@@ -138,4 +135,4 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(summary)
-}
+})

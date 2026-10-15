@@ -19,6 +19,7 @@ import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
 import { sendJoinInvites } from '@/lib/higher-ed/invites'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
+import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
 import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
 
 export type FormState = { error?: string; ok?: boolean; message?: string } | undefined
@@ -129,6 +130,7 @@ const INVITABLE: InstitutionUserRole[] = [
   'COACH',
   'FACULTY',
   'EXEC_ED',
+  'WORKFORCE_PARTNER',
   'VIEWER',
 ]
 
@@ -139,16 +141,51 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   if (ctx.institution.isDemo) return { error: 'Invites are off on demo colleges: their staff are fictional.' }
   const role = String(formData.get('role') ?? '') as InstitutionUserRole
   if (!INVITABLE.includes(role)) return { error: 'Pick a role.' }
+  const workspace = role === 'VIEWER' ? String(formData.get('workspace') ?? '') : null
+  if (role === 'VIEWER' && !VIEWER_WORKSPACES.includes(workspace as WorkspaceKey)) return { error: 'Pick which workspace this viewer can see.' }
   const result = await inviteInstitutionUser({
     institutionSlug: slug,
     email: String(formData.get('email') ?? ''),
     role,
     fullName: (formData.get('fullName') as string | null)?.trim() || null,
+    workspace,
   })
   if (result.error) return { error: result.error }
-  captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role })
+  captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role, workspace })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Invite sent.' }
+}
+
+const VIEWER_WORKSPACES: WorkspaceKey[] = ['alumni', 'development', 'career', 'teaching', 'execed', 'workforce']
+
+// Admin › Staff: remove someone's seat (they lose this role at once), or
+// resend an invite nobody has accepted yet.
+export async function removeStaff(slug: string, staffId: string): Promise<{ error?: string; message?: string }> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.institution.isDemo) return { error: 'Staff changes are off on demo colleges.' }
+  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id, revokedAt: null }, select: { role: true, userId: true } })
+  if (!row) return { error: 'Already removed.' }
+  if (row.userId === ctx.userId && row.role === 'INSTITUTION_ADMIN') return { error: 'You can’t remove your own admin seat. Ask another admin.' }
+  if (row.role === 'INSTITUTION_ADMIN' && (await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null, acceptedAt: { not: null } } })) <= 1) {
+    return { error: 'This is the college’s only active admin. Invite another admin first.' }
+  }
+  await prisma.institutionUser.update({ where: { id: staffId }, data: { revokedAt: new Date() } })
+  captureServerEvent(ctx.userId, 'institution_staff_removed', { institutionId: ctx.institution.id, role: row.role })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { message: 'Removed. They lose this role right away.' }
+}
+
+export async function resendStaffInvite(slug: string, staffId: string): Promise<{ error?: string; message?: string }> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.institution.isDemo) return { error: 'Invites are off on demo colleges: their staff are fictional.' }
+  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id }, select: { invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true } })
+  if (!row) return { error: 'That invite is gone.' }
+  if (row.acceptedAt && !row.revokedAt) return { error: 'They’ve already accepted.' }
+  const r = await inviteInstitutionUser({ institutionSlug: slug, email: row.invitedEmail, role: row.role, workspace: row.workspace })
+  if (r.error) return { error: r.error }
+  captureServerEvent(ctx.userId, 'institution_staff_invite_resent', { institutionId: ctx.institution.id, role: row.role })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { message: 'Invite sent again.' }
 }
 
 // Admin › Branding: the college's own admins set their look (the same fields
@@ -235,16 +272,19 @@ export async function saveCollegeSettings(slug: string, _prev: FormState, formDa
   if (!Number.isInteger(graceDays) || graceDays < 0 || graceDays > 365) return { error: 'Grace period is 0 to 365 days.' }
   if (!(fiscalYearStartMonth >= 1 && fiscalYearStartMonth <= 12)) return { error: 'Pick the month your fiscal year starts.' }
   if (givingUrl && !/^https:\/\/\S+$/.test(givingUrl)) return { error: 'The giving page must be an https:// link.' }
+  const fromName = String(formData.get('fromName') ?? '').trim().replace(/["<>\r\n]/g, '').slice(0, 80)
+  const replyTo = String(formData.get('replyTo') ?? '').trim().toLowerCase()
+  if (replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) return { error: 'Replies go to must be an email address, like alumni@yourcollege.edu.' }
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   await prisma.institution.update({
     where: { id: ctx.institution.id },
     data: {
       givingUrl,
-      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth },
+      enabledFeatures: { ...((row.enabledFeatures ?? {}) as Record<string, unknown>), graceDays, fiscalYearStartMonth, wioa: formData.get('wioa') === 'on', ...(US_TIME_ZONES.some((z) => z.key === formData.get('timeZone')) ? { timeZone: String(formData.get('timeZone')) } : {}), email: { fromName: fromName || null, replyTo: replyTo || null } },
     },
     select: { id: true },
   })
-  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth })
+  captureServerEvent(ctx.userId, 'he_college_settings_saved', { institutionId: ctx.institution.id, graceDays, fiscalYearStartMonth, hasFromName: !!fromName, hasReplyTo: !!replyTo, wioa: formData.get('wioa') === 'on' })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved.' }
 }

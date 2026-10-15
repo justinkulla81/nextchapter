@@ -418,7 +418,7 @@ export default async function MarketIntelligencePage({
         <CardContent>
           <p className="text-sm text-muted-foreground">
             Board and advisory listings are part of NextChapter Membership rather than gated here — see them on your{' '}
-            <Link href="/dashboard/interim-work#launch-phase-4" className="text-primary underline underline-offset-4">
+            <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="text-primary underline underline-offset-4">
               Interim Work page
             </Link>
             .

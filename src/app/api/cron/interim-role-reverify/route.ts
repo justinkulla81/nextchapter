@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendInterimRoleCheckInEmail } from '@/lib/email/send-interim-role-check-in'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 const REVERIFY_INTERVAL_DAYS = 30
 
@@ -10,12 +10,7 @@ const REVERIFY_INTERVAL_DAYS = 30
 // "Still doing your interim work at [Company]?" — so isCurrent/endDate stay
 // current, since the resume's "one active engagement at a time" rule
 // (sanitize.ts) depends on this being accurate, not stale.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('interim-role-reverify', async () => {
   const now = new Date()
   const dueEntries = await prisma.workHistoryEntry.findMany({
     where: {
@@ -54,4 +49,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: dueEntries.length, sent })
-}
+})

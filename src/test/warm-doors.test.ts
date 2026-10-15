@@ -45,14 +45,24 @@ describe('classifyDoors: contacts must have replied', () => {
 })
 
 describe('classifyDoors: routes', () => {
-  it('counts strong and medium routes, not weak, unverified or declined ones', () => {
+  it('counts a strong or medium route once someone has asked', () => {
     const d = classifyDoors([], [
-      route({ id: 'a', strength: 'STRONG' }),
-      route({ id: 'b', strength: 'MEDIUM' }),
-      route({ id: 'c', strength: 'WEAK' }),
-      route({ id: 'd', strength: 'UNVERIFIED' }),
-      route({ id: 'e', strength: 'STRONG', status: 'DECLINED' }),
+      route({ id: 'a', strength: 'STRONG', status: 'ASKED' }),
+      route({ id: 'b', strength: 'MEDIUM', status: 'INTRO_MADE' }),
     ], NOW)
     expect(d.map((x) => x.strength)).toEqual(['hot', 'warm'])
+    expect(d.map((x) => x.note)).toEqual(['Intro asked for', 'Intro already made'])
+  })
+  it('does not count a route nobody has asked about', () => {
+    expect(classifyDoors([], [route({ strength: 'STRONG', status: 'IDENTIFIED' })], NOW)).toEqual([])
+  })
+  it('does not count a declined route', () => {
+    expect(classifyDoors([], [route({ strength: 'STRONG', status: 'DECLINED' })], NOW)).toEqual([])
+  })
+  it('does not count weak or unverified routes even once asked', () => {
+    expect(classifyDoors([], [
+      route({ id: 'c', strength: 'WEAK', status: 'ASKED' }),
+      route({ id: 'd', strength: 'UNVERIFIED', status: 'INTRO_MADE' }),
+    ], NOW)).toEqual([])
   })
 })

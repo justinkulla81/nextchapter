@@ -258,6 +258,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/companies`, label: 'Companies' },
         { href: `${A}/exclusive-jobs`, label: 'Job Board', badge: badgeFor('jobBoard') },
         { href: `${A}/jobs`, label: 'Jobs' },
+        { href: `${A}/jobs/apply-fit`, label: 'Application fit' },
         { href: `${A}/likely-openings`, label: 'Likely Openings' },
         { href: `${A}/adzuna`, label: 'Adzuna Market Data' },
         { href: `${A}/interim-listings`, label: 'Interim Work Listings' },
@@ -284,6 +285,17 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      // Every paying customer's setup in one place: licenses, staff, regions,
+      // multi-campus systems, outplacement contracts.
+      title: 'Customers',
+      collapsible: true,
+      links: [
+        { href: `${A}/institutions`, label: 'Colleges' },
+        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
+        { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
+      ],
+    },
+    {
       title: 'Programs & content',
       collapsible: true,
       links: [
@@ -294,7 +306,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/nen-contests`, label: 'NEN Contests' },
         { href: `${A}/eqoveriq-contributors`, label: 'EQoverIQ Contributors' },
         { href: `${A}/alumni-groups`, label: 'Alumni & Employer Networks' },
-        { href: `${A}/institutions`, label: 'Colleges (portal)' },
         { href: `${A}/benefits-network`, label: 'Higher Education Benefits Network' },
       ],
     },
@@ -304,7 +315,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: `${A}/plan-catalog`, label: 'Plan Catalog' },
         { href: `${A}/margin-dashboard`, label: 'Margin Dashboard' },
-        { href: `${A}/outplacement-contracts`, label: 'Employer Contracts' },
       ],
     },
     {
@@ -315,6 +325,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/visitors`, label: 'Visitors' },
         { href: `${A}/action-counts`, label: 'Action Counts' },
         { href: `${A}/population`, label: 'Population Report' },
+        { href: `${A}/monthly-report`, label: 'Monthly member report' },
         { href: `${A}/education-outcomes`, label: 'Outcomes by college' },
         { href: `${A}/issues`, label: 'Resume Issue Analytics' },
         { href: `${A}/pedigree-signals`, label: 'Pedigree Signals' },
@@ -330,6 +341,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         // this same page — see Market Pulse's own page.tsx comment.
         { href: `${A}/digest`, label: 'Market Pulse' },
         { href: `${A}/tracking-testers`, label: 'Gmail/Calendar Testers' },
+        { href: `${A}/job-health`, label: 'Background job health' },
       ],
     },
   ]

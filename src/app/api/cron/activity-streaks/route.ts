@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { refreshActivityStreak } from '@/lib/daily/activity-streak'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -9,10 +9,7 @@ export const maxDuration = 300
 // stored currentStreak read by emails, the community feed and unlock tiers
 // drops to 0 after a missed day instead of waiting for the candidate's next
 // visit to notice.
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('activity-streaks', async () => {
   const candidates = await prisma.candidateProfile.findMany({
     where: { isSampleData: false, isSystemAccount: false, registrationCompletedAt: { not: null } },
     select: { id: true },
@@ -28,4 +25,4 @@ export async function GET(request: NextRequest) {
   }
   await Promise.all(Array.from({ length: 5 }, worker))
   return NextResponse.json({ candidates: candidates.length, updated, failed })
-}
+})

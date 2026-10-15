@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { runAtsJobBoardFeed } from '@/lib/jobs/ats-job-board-feed'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 120
 
@@ -8,12 +8,7 @@ export const maxDuration = 120
 // own ATS board (see src/lib/market/ats-companies.ts) into the NC Job Board
 // review queue — see runAtsJobBoardFeed for why every row lands as
 // 'pending' with no named contact.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('ats-job-board-feed', async () => {
   const result = await runAtsJobBoardFeed()
   return NextResponse.json(result)
-}
+})

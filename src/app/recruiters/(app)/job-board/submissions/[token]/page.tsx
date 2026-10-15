@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { MyJobBoardSubmissions } from '@/components/jobs/MyJobBoardSubmissions'
 import { Button } from '@/components/ui/button'
 import { reconfirmMyRecruiterJobBoardPosting } from './actions'
+import { getRecruiterByToken } from '@/lib/recruiter/access'
 
 export default async function RecruiterJobBoardSubmissionsPage({
   params,
@@ -11,7 +12,7 @@ export default async function RecruiterJobBoardSubmissionsPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const recruiter = await prisma.recruiter.findUnique({ where: { accessToken: token } })
+  const recruiter = await getRecruiterByToken(token)
   if (!recruiter) notFound()
 
   const postings = await prisma.exclusiveJobPosting.findMany({

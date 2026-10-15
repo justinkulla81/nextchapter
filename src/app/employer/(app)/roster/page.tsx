@@ -1,10 +1,16 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
-import { getOrgRoster } from '@/lib/employer/outplacement-roster'
+import { getOrgRoster, summarizeCohorts } from '@/lib/employer/outplacement-roster'
 import { RosterTable } from '@/components/employer/RosterTable'
+import { CohortsPanel } from '@/components/employer/CohortsPanel'
+import { orgProgram } from '@/lib/employer/program-server'
 
-export default async function EmployerRosterPage() {
+export default async function EmployerRosterPage({ searchParams }: { searchParams: Promise<{ cohort?: string }> }) {
   const orgUser = await requireOutplacementRole(['ADMIN'])
-  const seats = await getOrgRoster(orgUser)
+  const { cohort } = await searchParams
+  const [seats, program] = await Promise.all([getOrgRoster(orgUser), orgProgram(orgUser.orgId)])
+  const packages = [{ key: 'all', name: 'Everyone (all services)' }, ...program.settings.packages.map((p) => ({ key: p.key, name: p.name }))]
+  const cohorts = summarizeCohorts(seats)
+  const shown = cohort === undefined ? seats : seats.filter((s) => (s.cohort ?? '') === cohort)
 
   return (
     <div className="space-y-6">
@@ -15,7 +21,14 @@ export default async function EmployerRosterPage() {
           activity, grade, or engagement detail is ever shown here or anywhere else on this portal.
         </p>
       </div>
-      <RosterTable seats={seats} />
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">Cohorts</h2>
+        <CohortsPanel cohorts={cohorts} packages={packages} current={cohort ?? null} />
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">{cohort === undefined ? 'Everyone' : cohort ? cohort : 'No cohort'}</h2>
+        <RosterTable seats={shown} packages={packages} />
+      </section>
     </div>
   )
 }

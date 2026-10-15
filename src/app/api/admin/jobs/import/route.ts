@@ -1,12 +1,19 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
-import { screenJobTitle } from '@/lib/jobs/job-seniority'
-import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
-import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
+import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
 import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
+import { applyMarketPay } from '@/lib/companies/hiring-index'
+import { importOptionalFields, importSpecFields } from '@/lib/jobs/import-optional-fields'
+import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
+import { parseYearsRequired } from '@/lib/jobs/years-required'
+import { Prisma } from '@prisma/client'
+import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
+import { importBenefitsFields } from '@/lib/jobs/benefits'
+import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 
 export const maxDuration = 300
 
@@ -48,6 +55,36 @@ interface ImportJobInput {
   postedAt?: string | null
   sourceCount?: number | null
   sourceName?: string | null
+  industry?: string | null
+  // Posted on a school/district board (ncrawl k12 sources): bare
+  // "Superintendent" there is the district head.
+  schoolContext?: boolean
+  // One-board fields, from ncrawl derive.py. All optional: an older exporter that
+  // doesn't send them leaves the stored values untouched (see rowData).
+  employmentType?: string | null // employment_type_norm
+  payPeriod?: string | null // salary_period
+  paySource?: string | null // salary_source
+  workArrangement?: string | null // work_arrangement
+  compensationType?: string | null // paid | equity_only | unpaid
+  // Structured benefits (ncrawl benefits_json / benefits_strong). Optional: an
+  // exporter that doesn't send them leaves stored benefits untouched.
+  benefitsJson?: unknown // compact JSON string or object (src/lib/jobs/benefits.ts)
+  benefitsStrong?: unknown // 0/1 or boolean
+  // Location parts and ids (ncrawl derive.py), all optional like the fields above:
+  // loc_city / loc_state (US 2-letter) / loc_country (ISO-2), every listed
+  // location (locations_json → locationStates), the source's own job and
+  // requisition ids, the repost key and the description hash.
+  locationCity?: string | null
+  locationState?: string | null
+  locationCountry?: string | null
+  locations?: string[] | null
+  externalJobId?: string | null
+  requisitionId?: string | null
+  repostKey?: string | null
+  descHash?: string | null
+  // O*NET-SOC occupation matched by the crawler (optional like the fields above).
+  socCode?: string | null
+  socTitle?: string | null
 }
 
 interface ImportRequestBody {
@@ -82,14 +119,7 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    // isUsLocation knows US places; NON_US catches foreign towns it doesn't
-    // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
-    const location = cleanLocation(job.location)
-    if (!isUsLocation(location) || namesNonUsPlace(job.title, location, NON_US)) {
-      skipped.push({ url: job.url, reason: 'outside the US' })
-      continue
-    }
-    const verdict = screenJobTitle(job.title)
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
@@ -99,26 +129,26 @@ function screen(jobs: unknown[]) {
   return { kept, skipped }
 }
 
-// Some sources fill unknown locations with placeholders ("UNAVAILABLE").
-function cleanLocation(raw: string | null | undefined): string | null {
-  // Icon labels and field names some boards leave in the text ("wifi
-  // Remote", "Orange County, CA Date").
-  const text = (raw ?? '').replace(/^\s*wifi\s+/i, '').replace(/\s+date\s*$/i, '')
-  const parts = text
-    .split(/\s*,\s*/)
-    .filter((p) => p && !/^(unavailable|n\/?a|none|null|undefined|tbd)$/i.test(p))
-  return parts.length ? parts.join(', ') : null
+// The salary columns are 32-bit integers; a garbled source value ("142037156822")
+// used to fail the whole row. Anything that can't be a salary is dropped instead.
+function storableSalary(n: number | null | undefined): number | null {
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 2_147_483_647 ? Math.round(n) : null
 }
 
-// The source's own posting date; ignored when unparseable or in the future.
-function postedDate(raw: string | null | undefined): Date | null {
-  if (!raw) return null
-  const d = new Date(raw)
-  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 86_400_000 ? null : d
+// The years-of-experience requirement, read from the FULL description the sender
+// sent (only an excerpt is stored); null when the text names none. Left out when
+// there is no description, so a row keeps what it holds.
+function yearsRequiredOf(description: string | null | undefined) {
+  if (!description?.trim()) return {}
+  const years = parseYearsRequired(description)
+  return { yearsRequired: years ? (years as unknown as Prisma.InputJsonValue) : Prisma.DbNull }
 }
 
 function rowData({ job, level }: Screened) {
   return {
+    ...importOptionalFields(job),
+    ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
+    ...yearsRequiredOf(job.description),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
@@ -127,19 +157,75 @@ function rowData({ job, level }: Screened) {
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
-    salaryMin: job.salaryMin ?? null,
-    salaryMax: job.salaryMax ?? null,
+    salaryMin: storableSalary(job.salaryMin),
+    salaryMax: storableSalary(job.salaryMax),
     salaryCurrency: job.salaryCurrency?.trim() || null,
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
+    industry: job.industry?.trim() || null,
   }
 }
 
 type RowData = ReturnType<typeof rowData>
 
+// Prisma.DbNull (a JSON column set to SQL NULL) reads back as null, and jsonb
+// hands objects back with its own key order — compare with keys sorted.
+function comparable(v: unknown): string {
+  const norm = (x: unknown): unknown => {
+    if (x === Prisma.DbNull || x === undefined || x === null) return null
+    if (Array.isArray(x)) return x.map(norm)
+    if (x instanceof Date) return x.toISOString()
+    if (typeof x === 'object') return Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, norm((x as Record<string, unknown>)[k])]))
+    return x
+  }
+  return JSON.stringify(norm(v))
+}
+
 function changed(before: Record<string, unknown>, after: RowData): boolean {
-  return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
+  return (Object.keys(after) as (keyof RowData)[]).some((k) => comparable(before[k]) !== comparable(after[k]))
+}
+
+// The company's job-opening history (CompanyJobOpening) and each job's market pay.
+// Best-effort: a history write must never fail the import itself.
+async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => string | null, now: Date) {
+  try {
+    const rows: OpeningRow[] = []
+    for (const k of kept) {
+      const companyId = companyIdOf(k)
+      if (!companyId) continue
+      const data = rowData(k)
+      const row = buildOpeningRow({ ...data, url: k.job.url }, companyId, 'import', { firstSeenAt: now, lastSeenAt: now, closedAt: null })
+      if (row) rows.push(row)
+    }
+    await upsertOpenings(rows)
+    await applyMarketPay(rows.map((r) => r.url))
+  } catch (error) {
+    console.error('jobs import: could not record company openings', error)
+  }
+}
+
+// Structured benefits, for the jobs whose sender included them. Stored with raw
+// SQL once the columns exist (great-employers-data.ts); best-effort, like the
+// opening history — a benefits write must never fail the import.
+async function recordBenefits(kept: Screened[]) {
+  try {
+    const rows = kept.flatMap((k) => {
+      const f = importBenefitsFields(k.job)
+      return 'benefitsStrong' in f ? [{ url: k.job.url, benefits: f.benefits ?? null, benefitsStrong: f.benefitsStrong ?? null }] : []
+    })
+    for (let i = 0; i < rows.length; i += 1000) await writeJobBenefits(rows.slice(i, i + 1000))
+  } catch (error) {
+    console.error('jobs import: could not record benefits', error)
+  }
+}
+
+async function closeOpeningsSafely() {
+  try {
+    await closeArchivedOpenings()
+  } catch (error) {
+    console.error('jobs import: could not close archived openings', error)
+  }
 }
 
 async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
@@ -160,6 +246,14 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
   const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
+  await closeOpeningsSafely()
+  // The board's narrow copy of this table is kept in step by triggers; after a
+  // full sync, check it (and repair any drift) once the response is sent.
+  after(() =>
+    reconcileBoardLightRows()
+      .then((r) => console.log('jobs import: board light rows reconciled', r))
+      .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
+  )
   return NextResponse.json({ archived: result.count, live: live - result.count })
 }
 
@@ -195,7 +289,10 @@ export async function POST(request: NextRequest) {
     select: {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-      postedAt: true, sourceCount: true, sourceName: true,
+      postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
+      employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
+      locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
@@ -217,8 +314,12 @@ export async function POST(request: NextRequest) {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
 
+  // Every job is tied to its directory Company: new rows at create, older rows that
+  // were never linked on their next import.
+  const unlinked = toUpdate.filter((k) => !existingByUrl.get(k.job.url)!.companyId)
+  const companyIds = await linkPostingsToCompanies([...toCreate, ...unlinked].map((k) => rowData(k).companyName))
+
   if (toCreate.length > 0) {
-    const companyIds = await linkPostingsToCompanies(toCreate.map((k) => rowData(k).companyName))
     await prisma.exclusiveJobPosting.createMany({
       data: toCreate.map((k) => ({
         ...rowData(k),
@@ -243,6 +344,10 @@ export async function POST(request: NextRequest) {
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
       data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
     })
+    for (const k of unlinked) {
+      const companyId = companyIds.get(rowData(k).companyName)
+      if (companyId) await prisma.exclusiveJobPosting.updateMany({ where: { url: k.job.url, companyId: null }, data: { companyId } })
+    }
     const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
     for (let i = 0; i < edits.length; i += 100) {
       await prisma.$transaction(
@@ -259,6 +364,9 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  await recordBenefits(kept)
+
   let archived = 0
   if (body.fullSync) {
     const result = await prisma.exclusiveJobPosting.updateMany({
@@ -266,6 +374,7 @@ export async function POST(request: NextRequest) {
       data: { archivedAt: new Date() },
     })
     archived = result.count
+    await closeOpeningsSafely()
   }
 
   return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })

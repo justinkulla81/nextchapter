@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import type { AdminNudgeType, CandidateLeadSource, CandidateStakeholderType, ReferrerKind } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
+import { DOSSIER_EFFORT_MINUTES_TARGET } from '@/lib/scoring/dossier-targets'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -141,4 +142,19 @@ export async function updateCandidateLeadSource(candidateId: string, formData: F
   captureServerEvent(admin.email ?? 'admin', 'candidate_lead_source_set', { candidateId, leadSource, referrerKind: kind || null })
   revalidatePath(`/support/admin/candidates/${candidateId}`)
   revalidatePath('/support/admin/candidates')
+}
+
+// Overrides the Candidate+ search-effort target for one member. Blank clears it
+// and the product default applies again.
+export async function setEffortMinutesTarget(candidateId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const raw = String(formData.get('minutes') ?? '').trim()
+  const entered = raw === '' ? null : Number(raw)
+  if (entered !== null && (!Number.isInteger(entered) || entered < 1 || entered > 100_000)) return
+  // Entering the product default stores no override, so a later change to the
+  // default still reaches this member.
+  const value = entered === DOSSIER_EFFORT_MINUTES_TARGET ? null : entered
+  await prisma.candidateProfile.update({ where: { id: candidateId }, data: { effortMinutesTargetOverride: value } })
+  captureServerEvent(candidateId, 'effort_target_overridden', { minutes: value, setByEmail: admin.email })
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
 }

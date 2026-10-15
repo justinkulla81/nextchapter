@@ -48,9 +48,10 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/membership', updated: '2026-08-22', freq: 'monthly', priority: 0.5 },
   { path: '/rfp-template', updated: '2026-08-25', freq: 'yearly', priority: 0.4 },
   { path: '/for-managers/give-a-reference', updated: '2026-08-12', freq: 'yearly', priority: 0.3 },
-  { path: '/security', updated: '2026-10-02', freq: 'monthly', priority: 0.4 },
+  { path: '/scam-watch', updated: '2026-10-14', freq: 'monthly', priority: 0.5 },
+  { path: '/security', updated: '2026-10-14', freq: 'monthly', priority: 0.4 },
   { path: '/editorial-standards', updated: '2026-10-06', freq: 'yearly', priority: 0.3 },
-  { path: '/privacy-policy', updated: '2026-10-07', freq: 'yearly', priority: 0.2 },
+  { path: '/privacy-policy', updated: '2026-10-14', freq: 'yearly', priority: 0.2 },
   { path: '/terms', updated: '2026-10-07', freq: 'yearly', priority: 0.2 },
 ]
 
@@ -89,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/', latestOf(['2026-10-06', ...(newestNews ? [newestNews] : [])]), 'weekly', 1),
     ...STATIC_PAGES.map((p) => entry(p.path, p.updated, p.freq, p.priority)),
 
-    // The Displacement Report: hub, the evergreen index, and every edition.
+    // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.
     ...(newestReport
       ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7)]

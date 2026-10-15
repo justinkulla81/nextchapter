@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { getWorkspace } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, lockedWorkspacesFor, orgKindOf, TIER_LABELS } from '@/lib/higher-ed/workspaces'
+import { prisma } from '@/lib/prisma'
 import { ViewAsForm } from '@/components/higher-ed/ViewAsForm'
 
 // /i/[slug]: straight to the first workspace this person holds (spec §4).
@@ -21,6 +22,9 @@ export default async function InstitutionRootPage({
   const first = access.workspaces[0]
   const deniedLabel = denied ? (getWorkspace(denied)?.label ?? denied) : null
   if (first && !denied) redirect(`/i/${slug}/${getWorkspace(first)!.homePath}`)
+  // A staff role whose workspaces the college's license doesn't include.
+  const inst = first ? null : await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { tier: true } })
+  const locked = inst ? lockedWorkspacesFor(access.ownTokens, inst.tier, {}, orgKindOf(access.institution.orgType)) : []
 
   return (
     <div className="mx-auto max-w-xl space-y-4 py-8">
@@ -29,8 +33,16 @@ export default async function InstitutionRootPage({
           <h1 className="text-xl font-semibold">You don&apos;t have access to {deniedLabel}</h1>
           <p className="text-sm text-muted-foreground">
             {first
-              ? 'Use the workspaces on the left. An institution admin can give you this role from Settings.'
+              ? 'Use the workspaces on the left. An institution admin can give you this role from Admin › Staff.'
               : `Ask an administrator at ${access.institution.name} to give you a role.`}
+          </p>
+        </>
+      ) : locked.length ? (
+        <>
+          <h1 className="text-xl font-semibold">{locked.map((w) => w.label).join(' and ')} isn&apos;t in {access.institution.name}&apos;s license yet</h1>
+          <p className="text-sm text-muted-foreground">
+            Your invite worked. {locked[0].label} comes with the {TIER_LABELS[locked[0].minTier!]} license; once {access.institution.name} upgrades, it opens here
+            automatically. Your college admin can ask NextChapter at support@launchyournextchapter.com.
           </p>
         </>
       ) : (

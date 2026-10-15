@@ -124,6 +124,20 @@ export async function buildSweepContext(
 }
 
 /**
+ * Mail to family and friends is personal, not outreach — it never needs a
+ * "does this belong in the CRM?" review. True when the person's only role is
+ * Friends and family (the same test meeting-prep uses). Cached per sweep.
+ */
+export async function isFriendsFamilyOnly(personId: string, cache: Map<string, boolean>): Promise<boolean> {
+  const hit = cache.get(personId)
+  if (hit !== undefined) return hit
+  const row = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { roles: true } })
+  const only = !!row && row.roles.length > 0 && row.roles.every((r) => r === 'FRIENDS_FAMILY')
+  cache.set(personId, only)
+  return only
+}
+
+/**
  * Recomputes the derived touch fields from the activity log.
  *
  * Scoped to real interactions since CRM_ACTIVITY_CUTOFF: field and stage
@@ -308,7 +322,7 @@ async function getOrCreatePerson(
 }
 
 /**
- * After an email you sent is logged: a Displacement Report attachment or
+ * After an email you sent is logged: a White Collar Employment Report attachment or
  * link marks that person as having received that month's report (MANUAL),
  * and anyone not yet on the lists that fit them gets an "Add to a mailing
  * list?" card. Mail that doesn't mention NextChapter (needsReview) raises
@@ -384,6 +398,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     const ids = await listMessagesSince(token, windowFrom, maxMessages)
     const touched = new Set<string>()
     const personCache = new Map<string, string | null>()
+    const familyCache = new Map<string, boolean>()
     const result = { ...base }
 
     // A fetch that fails after retrying is counted, not skipped. It used to
@@ -546,6 +561,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
           fullBody = content.body
           attachmentNames = content.attachmentNames
         }
+        const needsReview = direction === 'OUTBOUND' && !relevant && !(await isFriendsFamilyOnly(personId, familyCache))
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
           create: {
@@ -563,7 +579,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             sourceRef: `${id}:${personId}`,
             // Always false here — an INBOUND row only ever reaches this line
             // when `relevant` is true (see the guard above).
-            needsReview: direction === 'OUTBOUND' && !relevant,
+            needsReview,
           },
           update: {},
           select: { id: true, createdAt: true },
@@ -573,7 +589,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         if (direction === 'OUTBOUND' && !booking) {
           await onOutboundEmail({
             personId, activityId: created.id, at: msg.internalDate, subject: msg.subject,
-            body: fullBody, attachmentNames, needsReview: !relevant,
+            body: fullBody, attachmentNames, needsReview,
           }).catch((e) => console.error('Mailing outbound hook failed', id, e))
         }
         if (isNewPerson) result.suggested++
@@ -900,6 +916,7 @@ export async function backfillPersonFromEmail(
   let found = 0
   let failed = 0
   let oldestAt: Date | null = null
+  const familyOnly = await isFriendsFamilyOnly(personId, new Map())
 
   try {
     // Every message here is kept, so headers and bodies are both needed —
@@ -936,7 +953,7 @@ export async function backfillPersonFromEmail(
           body: fullBody ?? snippetOf(msg.snippet),
           isAutoLogged: true,
           sourceRef: `${id}:${personId}`,
-          needsReview: direction === 'OUTBOUND' && !relevant,
+          needsReview: direction === 'OUTBOUND' && !relevant && !familyOnly,
         },
         update: { threadId: msg.threadId },
       })

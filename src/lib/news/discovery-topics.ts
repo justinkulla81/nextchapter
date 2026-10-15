@@ -15,6 +15,11 @@ export const DISCOVERY_TOPICS = [
   // Layoffs
   { key: 'layoffs', label: 'Layoffs', query: 'layoffs announced' },
   { key: 'warn_filings', label: 'WARN filings', query: '"WARN notice" layoffs' },
+  // Deals and exits: an acquired team or a shut-down product moves people and opens roles
+  { key: 'acquisitions', label: 'Acquisitions and acqui-hires', query: 'acquires startup "team will join"' },
+  { key: 'shutdowns', label: 'Product and service shutdowns', query: '"will shut down" acquired startup service sunset' },
+  // Leadership changes, including at private companies no SEC filing covers
+  { key: 'exec_changes', label: 'Executive changes', query: 'CFO resigns OR "steps down" OR "executive search" chief officer' },
   // AI and work
   { key: 'ai_displacement', label: 'AI job displacement', query: 'AI job displacement' },
   { key: 'ai_retraining', label: 'AI retraining for mid-careers', query: 'AI reskilling mid-career workers' },

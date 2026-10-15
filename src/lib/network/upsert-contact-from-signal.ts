@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import { inferOrgFromEmailDomain } from '@/lib/text/email-domain'
 import { normalizeContactKey } from './csv-import'
+import { isSuppressed, loadSuppression, looksLikeNonWorkSender } from './suppressed-senders'
 import type { ContactSource, RelationshipTag } from '@prisma/client'
 
 // Shared by calendar-attendee auto-add (sync-google-calendar.ts) and
@@ -24,6 +25,9 @@ export async function upsertContactFromSignal(
   }
 ): Promise<{ id: string } | null> {
   const email = params.email.toLowerCase()
+  // A sender the candidate flagged as not job-related (or one that is
+  // obviously automated/school mail) never becomes a networking contact.
+  if (looksLikeNonWorkSender(email) || isSuppressed(await loadSuppression(candidateId), email)) return null
   const { inferredCompany, inferredSchool } = inferOrgFromEmailDomain(email)
   const isFormerColleague = inferredCompany
     ? params.workHistoryCompanies.some((company) => orgNamesMatch(company, inferredCompany))

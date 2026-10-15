@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 const NUDGE_INTERVAL_DAYS = 30
 
@@ -13,12 +13,7 @@ function appUrl(): string {
 // §A2.4 "network maintenance nudges" — a simple real reminder, same shape as
 // registration-reminders (bearer auth, findMany the due population,
 // per-row try/catch, update a timestamp on success).
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('membership-network-nudge', async () => {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - NUDGE_INTERVAL_DAYS)
 
@@ -58,4 +53,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ due: due.length, sent: sentCount })
-}
+})

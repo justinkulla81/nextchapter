@@ -11,7 +11,7 @@ const db = vi.hoisted(() => ({
 }))
 vi.mock('@/lib/prisma', () => ({ prisma: db }))
 vi.mock('@/lib/posthog/server', () => ({ captureServerEvent: vi.fn() }))
-vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
+vi.mock('next/cache', async (importOriginal) => ({ ...(await importOriginal<typeof import('next/cache')>()), revalidatePath: vi.fn() }))
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }),
 }))
@@ -35,13 +35,20 @@ beforeEach(() => vi.clearAllMocks())
 
 describe('confidential search flow', () => {
   it('a recruiter can post a confidential search; it waits for review', async () => {
-    db.recruiter.findUnique.mockResolvedValue({ id: 'r1', workEmail: 'ann@search.example.com' })
+    db.recruiter.findUnique.mockResolvedValue({ id: 'r1', userId: 'u1', workEmail: 'ann@search.example.com' })
     db.exclusiveJobPosting.create.mockResolvedValue({ id: 'p1' })
     const res = await submitRecruiterJobBoardPosting('tok', undefined, confidentialForm())
     expect(res).toEqual({ success: true })
     expect(db.exclusiveJobPosting.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ disclosure: 'CONFIDENTIAL', status: 'pending', source: 'recruiter', submittedByRecruiterId: 'r1' }),
     })
+  })
+
+  it("a recruiter's token does not work for a different signed-in user", async () => {
+    db.recruiter.findUnique.mockResolvedValue({ id: 'r1', userId: 'someone-else', workEmail: 'ann@search.example.com' })
+    const res = await submitRecruiterJobBoardPosting('tok', undefined, confidentialForm())
+    expect(res).not.toEqual({ success: true })
+    expect(db.exclusiveJobPosting.create).not.toHaveBeenCalled()
   })
 
   it('only a recruiter can list a search confidentially', () => {

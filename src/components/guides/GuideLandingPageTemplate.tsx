@@ -85,9 +85,9 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
           <div className="mt-12 rounded-xl border border-light-gray bg-off-white p-5 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">Related research:</span> see how long white-collar searches
             are running in the monthly{' '}
-            <Link href="/reports/latest" className="text-brand underline underline-offset-4">NextChapter Displacement Report</Link>{' '}
+            <Link href="/reports/latest" className="text-brand underline underline-offset-4">NextChapter White Collar Employment Report</Link>{' '}
             and the{' '}
-            <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Term Unemployment Index</Link>.
+            <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Search Index</Link>.
           </div>
         )}
 

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { draftDueEditions } from '@/lib/mailing/drafts'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -10,10 +10,7 @@ export const maxDuration = 300
  * emails Justin to approve each one. It never sends — that needs a person
  * to approve the text and the readership on the edition page.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('mailing-drafts', async () => {
   const result = await draftDueEditions()
   return NextResponse.json({ drafted: result.drafted.length, notified: result.notified })
-}
+})

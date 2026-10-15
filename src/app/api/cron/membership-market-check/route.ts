@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { runQuarterlyMarketCheck } from '@/lib/membership/market-check'
 import { sendMembershipNoticeEmail } from '@/lib/email/send-membership-notice'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 const CHECK_INTERVAL_DAYS = 89 // quarterly, with a couple days' slack
 
@@ -14,12 +14,7 @@ function appUrl(): string {
 // §A2.4 "quarterly market check with comp benchmarking." Daily scan for
 // members due (never checked, or checked >89 days ago) — same shape as
 // membership-dossier-refresh above.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('membership-market-check', async () => {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - CHECK_INTERVAL_DAYS)
 
@@ -55,4 +50,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ due: due.length, checked: checkedCount })
-}
+})

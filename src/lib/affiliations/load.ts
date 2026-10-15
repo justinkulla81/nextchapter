@@ -11,12 +11,14 @@ const CONSENT_DEFAULT: Record<InstitutionConsentScope, boolean> = {
   SHARE_OUTCOME: true,
   SHARE_SEARCH_DETAIL_WITH_CAREER: false,
   SHARE_DOSSIER_WITH_EMPLOYERS: false,
+  LIST_IN_DIRECTORY: false,
 }
 const COLLEGE_NEEDS: Record<InstitutionConsentScope, string> = {
   SHARE_ENGAGEMENT: 'you share engagement with the college',
   SHARE_OUTCOME: 'you share your outcome with the college',
   SHARE_SEARCH_DETAIL_WITH_CAREER: 'you share search detail with career services',
   SHARE_DOSSIER_WITH_EMPLOYERS: 'you share your Dossier with employers through the college',
+  LIST_IN_DIRECTORY: 'you list yourself in the alumni directory',
 }
 
 // The member's real connections and, for each, exactly what it can see right now.

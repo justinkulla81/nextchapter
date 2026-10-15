@@ -1,4 +1,4 @@
-// Records who got a Displacement Report by hand, for any edition.
+// Records who got a White Collar Employment Report (published as the Displacement Report through Oct 12, 2026) by hand, for any edition.
 //
 // Scans outbound Gmail activity the CRM sync logged since --since (default
 // 2026-09-01) for emails you sent with a displacement-report-*.pdf

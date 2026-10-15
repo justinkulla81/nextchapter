@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { syncBoardPartners } from '@/lib/workforce/partners'
 import { refreshBoardNews } from '@/lib/workforce/board-news'
 import { refreshCountyLabor } from '@/lib/workforce/labor'
@@ -7,7 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { addBoardContactsToCrm } from '@/lib/workforce/board-crm'
 import { addCollegeContactsToCrm } from '@/lib/workforce/college-crm'
 import { guessHrLeaderEmails, guessUniversityEmails } from '@/lib/crm/guess-emails'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -30,10 +30,7 @@ export const maxDuration = 300
  *
  * Each step has its own budget and a failure in one does not stop the rest.
  */
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('workforce-board-intel', async () => {
   const run = async <T,>(fn: () => Promise<T>) => {
     try { return await fn() } catch (e) { return { error: e instanceof Error ? e.message : String(e) } }
   }
@@ -51,4 +48,4 @@ export async function GET(request: NextRequest) {
   // companies, finding up to 50 new company domains a day.
   const hrEmails = await run(() => guessHrLeaderEmails(50))
   return NextResponse.json({ places, news, partners, labor, boardsCrm, collegesCrm, emails, hrEmails })
-}
+})

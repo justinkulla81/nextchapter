@@ -5,6 +5,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { cleanAccentColor, cleanImageUrl, cleanSlug } from '@/lib/institution/branding'
 import type { Prisma } from '@prisma/client'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 // NextChapter-side creation and tailoring of a college workspace. A college that has not
 // signed is created as a DEMO: it works exactly like the real portal but is flagged so
@@ -178,12 +179,11 @@ const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 // and hero image are plain public URLs the portal can render.
 export async function uploadInstitutionImage(institutionId: string, file: File | null, kind: 'logo' | 'hero'): Promise<string | null | { error: string }> {
   if (!file || file.size === 0) return null
-  if (!file.type.startsWith('image/')) return { error: 'The file must be an image.' }
-  if (file.size > MAX_IMAGE_BYTES) return { error: 'Images must be under 3MB.' }
+  const check = await validateUpload(file, 'image', MAX_IMAGE_BYTES)
+  if (!check.ok) return { error: check.error }
   const admin = createAdminClient()
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png'
-  const path = `institutions/${institutionId}/${kind}-${crypto.randomUUID()}.${ext}`
-  const { error } = await admin.storage.from('coach-logos').upload(path, file, { contentType: file.type })
+  const path = `institutions/${institutionId}/${kind}-${crypto.randomUUID()}.${check.ext}`
+  const { error } = await admin.storage.from('coach-logos').upload(path, file, { contentType: check.contentType })
   if (error) return { error: 'The image could not be uploaded. Try again.' }
   return admin.storage.from('coach-logos').getPublicUrl(path).data.publicUrl
 }

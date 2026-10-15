@@ -30,9 +30,13 @@ export type InstitutionProfile = {
   }
   photos?: InstitutionPhoto[]
   region?: {
-    name: string // e.g. "Washington County, PA"
-    state: string // two-letter, for the live WARN lookup
-    counties: string[] // lowercase county names, for the live WARN/board lookup
+    name: string // e.g. "Washington County, PA" or "Louisville area (KY and IN)"
+    state: string // two-letter: the first area's state (older readers)
+    counties: string[] // lowercase county names in that state (older readers)
+    // Every state and its counties: a college near a border serves both sides
+    // (Louisville: Jefferson, Oldham… in KY; Clark, Floyd… in IN). Set from
+    // NextChapter admin › Colleges. Read through regionAreas().
+    areas?: { state: string; counties: string[] }[]
     unemployment?: Sourced<{ area: string; rate: number; period: string; laborForce?: number | null }>[]
     // Monthly county rate, oldest first, for the trend line.
     unemploymentTrend?: Sourced<{ area: string; points: { period: string; rate: number }[] }>
@@ -49,4 +53,12 @@ export type InstitutionProfile = {
 
 export function readProfile(json: unknown): InstitutionProfile {
   return json && typeof json === 'object' ? (json as InstitutionProfile) : {}
+}
+
+// The college's region as state + counties pairs (one per state), whether it
+// was saved with areas or the older single state.
+export function regionAreas(region: InstitutionProfile['region'] | undefined | null): { state: string; counties: string[] }[] {
+  if (!region) return []
+  const areas = region.areas?.length ? region.areas : region.state ? [{ state: region.state, counties: region.counties ?? [] }] : []
+  return areas.map((a) => ({ state: a.state.toUpperCase(), counties: a.counties.map((c) => c.toLowerCase()) })).filter((a) => a.state)
 }

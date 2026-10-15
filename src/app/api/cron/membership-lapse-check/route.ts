@@ -1,21 +1,16 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { revokeRoleGrant } from '@/lib/auth/role-grants'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // §A2.4 break-glass reactivation needs something real to react against —
 // this is the flip side: an ACTIVE MembershipSubscription whose
 // currentPeriodEnd (and freeUntil, if set) have both passed with no renewal
 // becomes LAPSED, and the `member` RoleGrant is revoked. reactivateMembership
 // (src/app/dashboard/membership/actions.ts) is the only path back to ACTIVE.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('membership-lapse-check', async () => {
   const now = new Date()
   const overdue = await prisma.membershipSubscription.findMany({
     where: {
@@ -44,4 +39,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: overdue.length, lapsed: lapsedCount })
-}
+})

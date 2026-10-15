@@ -1,4 +1,4 @@
-import { sameEmployer } from './news-headline'
+import { readPercent, sameEmployer } from './news-headline'
 
 /**
  * SEC 8-K Item 2.05 ("costs associated with exit or disposal activities"):
@@ -57,11 +57,11 @@ export function parseEdgarHits(body: unknown): Edgar8K[] {
 const LAYOFF_TEXT = /\b(reduction in (?:its |our |the )?(?:global |total )?(?:workforce|force|headcount)|workforce reduction|reduce (?:its |our |the )?(?:global |total )?(?:workforce|headcount)|lay(?:ing|s)? off|laid off|reduction[- ]in[- ]force|eliminat\w+ (?:approximately |about |up to )?[\d,]+ (?:positions|jobs|roles|employees)|terminat\w+ (?:approximately |about )?[\d,]+ employees|severance)\b/i
 
 /** Whether the filing's text says people are being let go, and how many if it says. */
-export function readLayoffFiling(text: string): { isLayoff: boolean; employees: number | null } {
-  if (!LAYOFF_TEXT.test(text)) return { isLayoff: false, employees: null }
+export function readLayoffFiling(text: string): { isLayoff: boolean; employees: number | null; percent: number | null } {
+  if (!LAYOFF_TEXT.test(text)) return { isLayoff: false, employees: null, percent: null }
   const m = text.match(/\b(?:approximately|about|up to|roughly)?\s*(\d[\d,]*)\s+(?:full-time\s+)?(?:employees|positions|jobs|roles|team members)\b/i)
   const n = m ? parseInt(m[1].replace(/,/g, ''), 10) : NaN
-  return { isLayoff: true, employees: Number.isFinite(n) && n >= 5 && n < 500_000 ? n : null }
+  return { isLayoff: true, employees: Number.isFinite(n) && n >= 5 && n < 500_000 ? n : null, percent: readPercent(text) }
 }
 
 /** The day-count window of Item 2.05 filings, newest first. */

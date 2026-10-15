@@ -3,6 +3,10 @@ import { emailStyles } from '@/lib/email/email-styles'
 interface OutplacementSeatInviteEmailProps {
   orgName: string
   acceptUrl: string
+  // From the employer's Program page: their welcome, and the services they
+  // offer. Null = the generic description.
+  welcome?: string | null
+  services?: string[] | null
 }
 
 const container: React.CSSProperties = {
@@ -43,17 +47,18 @@ const footer: React.CSSProperties = {
 // HR department told them this benefit was coming) and does not put
 // anything about the org's internal contract/tier details in the email
 // body, which would have no reason to leave the org side.
-export default function OutplacementSeatInviteEmail({ orgName, acceptUrl }: OutplacementSeatInviteEmailProps) {
+export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services }: OutplacementSeatInviteEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
         {orgName} has set up a NextChapter outplacement benefit for you. NextChapter is a job-search platform
-        with resume tools, coaching, a market-difficulty report, and a recruiter network — everything below is
+        {services?.length ? `. Your program includes: ${services.join(', ')}.` : ' with resume tools, coaching, a market-difficulty report, and a recruiter network.'} Everything you do there is
         private to you. {orgName} never sees your individual activity, only anonymous, aggregate participation
         numbers across everyone enrolled.
       </p>
+      {welcome && <p style={{ whiteSpace: 'pre-line', borderLeft: '3px solid #e5e5e5', paddingLeft: '12px' }}>{welcome}</p>}
       <a href={acceptUrl} style={button}>
         Set up your account →
       </a>

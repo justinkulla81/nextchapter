@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 import { prisma } from '@/lib/prisma'
 import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/crm-counts'
+import { countRoutesToConfirm } from '@/lib/crm/route-review'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
@@ -28,12 +29,13 @@ export default async function AdminPortalLayout({ children }: { children: React.
         OR: [{ moderationStatus: 'HELD' }, { moderationCategory: 'CRISIS_SELF_HARM', moderationReviewedAt: null }],
       },
     }),
-    // Review List = records to complete or merge + sign-ups to link + search firms to match.
+    // Review List = records to complete or merge + sign-ups to link + search firms to match + routes in to confirm.
     Promise.all([
       countPeopleNeedingCompletion(),
       prisma.candidateIdentityMatch.count({ where: { source: 'CRM_INVITE', status: 'PENDING' } }),
       prisma.searchFirm.count({ where: { matchStatus: 'REVIEW', reviewOrgId: { not: null } } }),
-    ]).then(([a, b, c]) => a + b + c),
+      countRoutesToConfirm(),
+    ]).then(([a, b, c, d]) => a + b + c + d),
     // A rough count of what's overdue right now — a broken promise or a
     // missed next step — not the page's full snoozed/buffered query. Close
     // enough for "is there something waiting", which is all a badge needs to

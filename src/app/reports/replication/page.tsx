@@ -4,31 +4,34 @@ import { StructuredData } from '@/components/StructuredData'
 import { Button } from '@/components/ui/button'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { SITE_URL } from '@/lib/reports'
+import {
+  OPEN_DATA_LEAVE_BEHIND, OPEN_DATA_LIMITATIONS, OPEN_DATA_SCRIPTS, OPEN_DATA_SOURCES, REPLICATION_REPO_URL,
+} from '@/lib/marketing/open-data'
 
 const URL = `${SITE_URL}/reports/replication`
-const REPO_URL = 'https://github.com/justinkulla81/nextchapter-displacement-report'
-const REPORT_PATH = '/reports/displacement-report-september-2026'
+const REPO_URL = REPLICATION_REPO_URL
+const REPORT_PATH = '/reports/white-collar-employment-report-september-2026'
 const CORRECTIONS_EMAIL = 'jkulla@launchyournextchapter.com'
 const DESCRIPTION =
-  'Code, parameters and derived data to reproduce the NextChapter Displacement Report: the White-Collar Long-Term Unemployment Index, CPS breakdowns, margins of error, SEC AI coding and more.'
+  'Code, parameters and derived data to reproduce the NextChapter White Collar Employment Report: the White-Collar Long-Search Index, CPS breakdowns, margins of error, SEC AI coding and more.'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Displacement Report: replication materials | NextChapter' },
+  title: { absolute: 'White Collar Employment Report: replication materials | NextChapter' },
   description: DESCRIPTION,
   alternates: { canonical: URL },
   openGraph: {
     type: 'website',
-    title: 'Displacement Report: replication materials',
+    title: 'White Collar Employment Report: replication materials',
     description: DESCRIPTION,
     url: URL,
     siteName: 'NextChapter',
-    images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png?v=1.72`, width: 1200, height: 630 }],
+    images: [{ url: `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png?v=1.72`, width: 1200, height: 630 }],
   },
 }
 
 // Mirrors the "What you can reproduce" table in the repository README.
 const REPRODUCIBLE: { output: string; how: string }[] = [
-  { output: 'White-Collar Long-Term Unemployment Index (Exhibit 1), monthly 2015–2026', how: 'code/01_wc_index_monthly.py → data/wc-index.csv' },
+  { output: 'White-Collar Long-Search Index (Exhibit 1), monthly 2015–2026', how: 'code/01_wc_index_monthly.py → data/wc-index.csv' },
   { output: 'Breakdowns by occupation, industry and age; older workers; graduates; blue-collar', how: 'code/02_cps_breakdowns.py, code/03_cps_aggregates.py' },
   { output: '90% margins of error (BLS generalized variance method)', how: 'code/04_margins_of_error.py with data/bls_gvf_parameters.json' },
   { output: 'Seasonal-adjustment robustness (fixed factors, X-13ARIMA-SEATS, STL, 12-month average)', how: 'code/05_seasonal_sensitivity.py, code/x13_wcltu.spc' },
@@ -49,14 +52,14 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'SoftwareSourceCode',
-      name: 'NextChapter Displacement Report replication materials',
+      name: 'NextChapter White Collar Employment Report replication materials',
       description: DESCRIPTION,
       codeRepository: REPO_URL,
       programmingLanguage: 'Python',
       license: 'https://opensource.org/licenses/MIT',
       url: URL,
       author: { '@type': 'Organization', name: 'NextChapter', url: SITE_URL },
-      isPartOf: { '@type': 'Report', name: 'NextChapter Displacement Report: September 2026', url: `${SITE_URL}${REPORT_PATH}` },
+      isPartOf: { '@type': 'Report', name: 'NextChapter White Collar Employment Report: September 2026', url: `${SITE_URL}${REPORT_PATH}` },
     },
     {
       '@type': 'BreadcrumbList',
@@ -77,17 +80,17 @@ export default function ReplicationPage() {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
-          <Link href="/reports" className="hover:text-foreground">Displacement Report</Link>
+          <Link href="/reports" className="hover:text-foreground">White Collar Employment Report</Link>
           <span aria-hidden> › </span>
           <span className="text-foreground">Replication materials</span>
         </nav>
 
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Displacement Report: replication materials
+          White Collar Employment Report: replication materials
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-foreground">
-          The code, parameters and derived data behind the NextChapter Displacement Report are public, so anyone can
+          The code, parameters and derived data behind the NextChapter White Collar Employment Report are public, so anyone can
           check our numbers. The scripts download Census Current Population Survey microdata directly and rebuild the
           index, breakdowns and margins of error published in the{' '}
           <Link href={REPORT_PATH} className="text-brand underline underline-offset-4">September 2026 edition</Link>.
@@ -126,6 +129,48 @@ export default function ReplicationPage() {
             Code: MIT License. Data files and documentation: CC BY 4.0. Census microdata are not redistributed; the
             scripts fetch them with a free Census API key.
           </p>
+        </section>
+
+        <section id="open-data" className="mt-12 scroll-mt-24">
+          <h2 className="text-xl font-bold tracking-tight text-navy">Open data and methodology</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground">
+            Journalists, workforce boards, colleges and funders can check every number in the report. The code is
+            licensed MIT. The data files and documentation are licensed CC BY 4.0: use them, and credit the
+            &ldquo;NextChapter White Collar Employment Report&rdquo; (published through October 12, 2026 as the &ldquo;NextChapter Displacement Report&rdquo;).
+          </p>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Scripts</h3>
+          <ul className="mt-3 divide-y divide-light-gray border-y border-light-gray text-sm">
+            {OPEN_DATA_SCRIPTS.map((s) => (
+              <li key={s.file} className="grid gap-1 py-2.5 sm:grid-cols-[minmax(0,2fr)_3fr] sm:gap-4">
+                <span className="font-mono text-xs leading-relaxed text-muted-foreground">{s.file}</span>
+                <span className="text-foreground">{s.produces}</span>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Where the underlying data comes from</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-relaxed text-foreground">
+            {OPEN_DATA_SOURCES.map((s) => <li key={s}>{s}</li>)}
+          </ul>
+
+          <h3 className="mt-6 text-base font-bold text-navy">Known limitations</h3>
+          <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
+            {OPEN_DATA_LIMITATIONS.map((l) => <li key={l}>{l}</li>)}
+          </ul>
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            The full methodology, variable dictionary and seasonal factors are in the repository&apos;s{' '}
+            <a href={`${REPO_URL}/blob/main/methodology/methodology.md`} className="text-brand underline underline-offset-4">methodology folder</a>.
+            The report states what its numbers can and cannot show, including that it does not establish a cause
+            for the rise in long searches.
+          </p>
+
+          <div className="mt-6 rounded-xl border border-light-gray bg-off-white p-5">
+            <h3 className="text-base font-bold text-navy">{OPEN_DATA_LEAVE_BEHIND.title}</h3>
+            <ul className="mt-2 space-y-1 text-sm leading-relaxed text-foreground">
+              {OPEN_DATA_LEAVE_BEHIND.lines.map((l) => <li key={l}>{l}</li>)}
+            </ul>
+          </div>
         </section>
 
         <section className="mt-12">

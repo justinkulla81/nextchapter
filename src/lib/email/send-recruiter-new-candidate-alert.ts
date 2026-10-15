@@ -1,6 +1,7 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import RecruiterNewCandidateAlertEmail from '@/emails/recruiter-new-candidate-alert'
+import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendRecruiterNewCandidateAlertEmail(
   recruiter: { id: string; fullName: string; workEmail: string },
@@ -13,7 +14,7 @@ export async function sendRecruiterNewCandidateAlertEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const portalUrl = `${appUrl}/recruiters/search`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/recruiter/${recruiter.id}?type=candidate-alert`
+  const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'recruiter', recruiter.id, 'candidate-alert')
 
   try {
     const resend = createResend(process.env.RESEND_API_KEY)

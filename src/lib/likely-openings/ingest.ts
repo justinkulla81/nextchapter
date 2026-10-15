@@ -11,12 +11,12 @@ import type { LikelyOpeningSignalType } from '@prisma/client'
 import { listFilingsForDay, secFetch, filingDocUrl, filingIndexUrl, type EftsHit } from './edgar'
 import { htmlToText, extractItem502, readItem502, isNonOperating8kFiler } from './parse-8k'
 import { parseFormDXml, judgeFormD, fundingSummary, looksLikeVehicleName } from './parse-form-d'
-import { companyKey } from './roles'
+import { companyKey, SIGNAL_TTL_DAYS } from './roles'
 import { execSignalsWithLlm, emptyLlmStats, type LlmPassStats, type FilingReadCache } from './llm-read'
 import { dbFilingReadCache } from './read-cache'
 import { getAnthropicClient } from '@/lib/anthropic'
 
-export const SIGNAL_TTL_DAYS = 120
+export { SIGNAL_TTL_DAYS }
 
 export interface IngestStats {
   days: string[]

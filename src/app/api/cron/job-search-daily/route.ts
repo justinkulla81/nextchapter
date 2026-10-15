@@ -1,11 +1,11 @@
 import { notLookingNow } from '@/lib/journey/journey'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendJobSearchDaily } from '@/lib/email/send-job-search-daily'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
@@ -14,10 +14,7 @@ const BREAK_ANSWER_WINDOW_DAYS = 30
 // Job Search Daily — every day at 12:00 UTC (8am ET), an hour ahead of the
 // weekday-rotation email from candidate-email-dispatch, which it's sent on
 // top of (founder decision, 2026-10-07). Own opt-out flag, own send-log key.
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('job-search-daily', async () => {
 
   const breakCutoff = new Date(Date.now() - BREAK_ANSWER_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const eligible = await prisma.candidateProfile.findMany({
@@ -75,4 +72,4 @@ export async function GET(request: NextRequest) {
     skippedNothingNew,
     failed,
   })
-}
+})

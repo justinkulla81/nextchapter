@@ -37,6 +37,7 @@
  *   npm run seed:profiles -- --wipe   (delete existing seeded accounts + profiles first, then reseed)
  */
 
+import { randomBytes } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { PrismaClient } from '@prisma/client'
 import profiles from './nextchapter_seed_profiles.json'
@@ -55,6 +56,15 @@ if (SUPABASE_URL.includes('prod') || (process.env.DATABASE_URL ?? '').includes('
   console.error('Refusing to run against a URL containing "prod".')
   process.exit(1)
 }
+// A name check is not enough — the live project's URL contains no "prod". This
+// creates confirmed accounts with an admin key, so it only runs against a
+// local stack unless the exact host is named on purpose.
+const seedHost = new URL(SUPABASE_URL).hostname
+const isLocal = seedHost === 'localhost' || seedHost === '127.0.0.1' || seedHost.endsWith('.localhost')
+if (!isLocal && process.env.SEED_CONFIRM_HOST !== seedHost) {
+  console.error(`Refusing to seed ${seedHost}. To seed a remote project on purpose, set SEED_CONFIRM_HOST=${seedHost}.`)
+  process.exit(1)
+}
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
@@ -63,7 +73,6 @@ const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000)
 
 interface SeedProfile {
   email: string
-  password: string
   first_name: string
   last_name: string
   title: string
@@ -97,7 +106,9 @@ async function seedOne(p: SeedProfile, existingUid: string | undefined): Promise
   if (!uid) {
     const { data: created, error: authErr } = await admin.auth.admin.createUser({
       email: p.email,
-      password: p.password,
+      // Random per account: the account is only ever reached through a
+      // password reset to the plus-addressed inbox, never a shared password.
+      password: randomBytes(24).toString('base64url'),
       email_confirm: true,
       user_metadata: { first_name: p.first_name, last_name: p.last_name, seeded: true },
     })

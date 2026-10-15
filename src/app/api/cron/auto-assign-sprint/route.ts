@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, getSuggestedActions, commitWeeklySprint } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 // Fires Monday ~5am ET (fixed UTC time, see vercel.json — drifts an hour
 // across the DST transition, accepted tradeoff over a wall-clock-exact
@@ -13,12 +13,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 // Sending the "Morning Motivation" recap+preview email is the
 // candidate-email-dispatch cron's job (runMorningMotivation reads the
 // WeeklySprint row this creates) — this route only does assignment.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('auto-assign-sprint', async () => {
   const weekStartDate = getMondayOfWeek(new Date())
 
   const eligible = await prisma.candidateProfile.findMany({
@@ -57,4 +52,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ checked: eligible.length, autoAssigned })
-}
+})

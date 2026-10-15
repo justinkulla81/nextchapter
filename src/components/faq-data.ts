@@ -20,7 +20,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: "Then what's the catch? How do you actually make money?",
         answer:
-          "No catch. Employers pay a flat $200/month to use NextChapter — no fees per hire, no upcharges. That flat model is deliberate: because employers aren't paying more to reach you, there's no incentive to sell your attention or your data. You're the reason the platform exists, not the product being sold.",
+          "No catch. Employers pay a flat subscription to use NextChapter — no fees per hire, no upcharges. That flat model is deliberate: because employers aren't paying more to reach you, there's no incentive to sell your attention or your data. You're the reason the platform exists, not the product being sold.",
       },
       {
         question: 'Who is NextChapter for?',

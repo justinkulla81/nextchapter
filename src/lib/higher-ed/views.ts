@@ -393,6 +393,7 @@ export type UpdatesExportRow = {
   prospect_flag: string | null
   engagement_tier: string | null
   last_active: Date | null
+  email_status: string | null // unsubscribed, bounced or complained; blank when fine
 }
 
 // One row per alum the college has a CRM id for. Employer, title and start
@@ -411,7 +412,8 @@ export async function updatesExportRows(ctx: Ctx, db: Db = prisma): Promise<Upda
       (select f.type::text from public."ProspectFlag" f where f."memberId" = m.id and f."approvedAt" is not null and f."dismissedAt" is null
         order by f."approvedAt" desc limit 1) as prospect_flag,
       case when d."shareEngagement" then d."engagementTier" end as engagement_tier,
-      case when d."shareEngagement" then (select max(e."occurredAt") from public."EngagementEvent" e where e."memberId" = m.id) end as last_active
+      case when d."shareEngagement" then (select max(e."occurredAt") from public."EngagementEvent" e where e."memberId" = m.id) end as last_active,
+      lower(m."emailSuppressedReason") as email_status
     from public."InstitutionMember" m
     join private.v_member_directory d on d."memberId" = m.id
     left join private.v_member_transition t on t."memberId" = m.id

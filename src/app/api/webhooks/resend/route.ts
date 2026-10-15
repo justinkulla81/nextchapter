@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { verifyResendSignature } from '@/lib/mailing/webhook-signature'
 import { applyResendEvent, type ResendEvent } from '@/lib/mailing/tracking'
+import { applyHigherEdEvent } from '@/lib/higher-ed/email-events'
 
 // Delivery, open, click, bounce and complaint events for list email (the
-// Monthly Update and other editions). Configured in Resend → Webhooks with
+// Monthly Update and other editions) and for college email to alumni
+// (Higher Ed OutreachSend, checked first). Configured in Resend → Webhooks with
 // the signing secret in RESEND_WEBHOOK_SECRET. Events for any other email
 // the account sends are acknowledged and ignored.
 export async function POST(request: Request) {
@@ -28,6 +30,6 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: 'invalid json' }, { status: 400 })
   }
-  const result = await applyResendEvent(event)
+  const result = (await applyHigherEdEvent(event)) === 'applied' ? 'applied' : await applyResendEvent(event)
   return NextResponse.json({ [result]: event.type })
 }

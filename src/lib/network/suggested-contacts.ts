@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { inferOrgFromEmailDomain } from '@/lib/text/email-domain'
 import { formatDisplayName } from '@/lib/format-name'
+import { isSuppressed, loadSuppression, looksLikeNonWorkSender } from '@/lib/network/suppressed-senders'
 
 export interface SuggestedContact {
   // sourceId + sourceKind together are what dismissEmailActivity/
@@ -28,7 +29,7 @@ export interface SuggestedContact {
 // explicit chance to add them via addSuggestedContact instead of losing the
 // connection silently.
 export async function getSuggestedContactsToAdd(candidateId: string): Promise<SuggestedContact[]> {
-  const [meetings, emailActivities, contacts] = await Promise.all([
+  const [meetings, emailActivities, contacts, suppression] = await Promise.all([
     prisma.trackedCalendarEvent.findMany({
       where: {
         candidateId,
@@ -53,7 +54,9 @@ export async function getSuggestedContactsToAdd(candidateId: string): Promise<Su
       where: { candidateId, email: { not: null } },
       select: { email: true },
     }),
+    loadSuppression(candidateId),
   ])
+  const isNotJobRelated = (email: string) => isSuppressed(suppression, email) || looksLikeNonWorkSender(email)
 
   const existingEmails = new Set(contacts.filter((c) => c.email).map((c) => c.email!.toLowerCase()))
 
@@ -61,7 +64,7 @@ export async function getSuggestedContactsToAdd(candidateId: string): Promise<Su
 
   for (const meeting of meetings) {
     const email = meeting.counterpartEmail!.toLowerCase()
-    if (existingEmails.has(email) || byEmail.has(email)) continue
+    if (existingEmails.has(email) || byEmail.has(email) || isNotJobRelated(email)) continue
     const rawName = meeting.counterpartName?.trim() || email.split('@')[0]
     byEmail.set(email, {
       sourceId: meeting.id,
@@ -77,7 +80,7 @@ export async function getSuggestedContactsToAdd(candidateId: string): Promise<Su
     if (!activity.fromAddress) continue
     const match = activity.fromAddress.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/)
     const email = (match ? match[2] : activity.fromAddress).trim().toLowerCase()
-    if (existingEmails.has(email) || byEmail.has(email)) continue
+    if (existingEmails.has(email) || byEmail.has(email) || isNotJobRelated(email)) continue
     const rawName = (match ? match[1].trim().replace(/^['"]|['"]$/g, '') : '') || email.split('@')[0]
     byEmail.set(email, {
       sourceId: activity.id,

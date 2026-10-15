@@ -9,13 +9,16 @@ import type { CheckInKind } from '@prisma/client'
 import { ArrowRight, BarChart3, ClipboardCheck, Mail, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
-import { engagementOverview } from '@/lib/higher-ed/engagement'
+import { engagementOverview, engagementWeightsFrom, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
+import { WeightsForm } from './WeightsForm'
 import { waitingFor } from '@/lib/higher-ed/inbox'
 import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, checkInOverview, pendingCheckIns } from '@/lib/higher-ed/checkins'
 import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { approveCheckIns, sendOutreachBatch } from '@/app/i/[slug]/(portal)/outreach-actions'
 import { AUDIENCES, BATCH, MERGE_FIELDS, audienceCount, listComposed, previewValues } from '@/lib/higher-ed/composer'
 import { OutreachComposer } from './OutreachComposer'
+import { SegmentsSection } from './screens-lifecycle'
+import { listSegments } from '@/lib/higher-ed/segments'
 import { counselors } from '@/lib/higher-ed/caseload'
 import { AssignControl } from './AssignControl'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -147,14 +150,21 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
     ? await prisma.outreachSend.groupBy({
         by: ['campaignId'],
         where: { campaignId: { in: campaigns.map((c) => c.id) } },
-        _count: { clickedAt: true, claimedAt: true },
+        _count: { openedAt: true, clickedAt: true, claimedAt: true },
       })
     : []
   const annual = pending.find((p) => p.kind === 'CUSTOM')?.count ?? 0
+  const suppressedRows = await prisma.institutionMember.groupBy({ by: ['emailSuppressedReason'], where: { institutionId: id, emailSuppressedAt: { not: null } }, _count: { _all: true } })
+  const suppressed = { total: 0, UNSUBSCRIBED: 0, BOUNCED: 0, COMPLAINED: 0 } as Record<string, number>
+  for (const r of suppressedRows) {
+    suppressed[r.emailSuppressedReason ?? 'UNSUBSCRIBED'] = r._count._all
+    suppressed.total += r._count._all
+  }
   const canWrite = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
-  const [composed, counts] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) })))])
+  const [composed, builtIn, segments] = await Promise.all([listComposed(id), Promise.all(AUDIENCES.map(async (a) => ({ ...a, count: await audienceCount(id, a.key) }))), listSegments(id)])
+  const counts = [...builtIn, ...segments.map((s) => ({ key: `segment:${s.id}`, label: s.name, count: s.count }))]
   const editing = searchParams?.edit ? composed.find((c) => c.id === searchParams.edit && !c.sentAt) : undefined
-  const audienceLabel = (k: string) => AUDIENCES.find((a) => a.key === k)?.label ?? k
+  const audienceLabel = (k: string) => counts.find((a) => a.key === k)?.label ?? (k.startsWith('segment:') ? 'A deleted audience' : k)
 
   return (
     <div className="space-y-8">
@@ -175,6 +185,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
           />
         </section>
       )}
+      <SegmentsSection ctx={ctx} />
       {composed.length > 0 && (
         <section aria-labelledby="your-emails" className="space-y-2">
           <h2 id="your-emails" className="text-base font-semibold">
@@ -244,6 +255,19 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
       </section>
 
       <section aria-labelledby="log" className="space-y-2">
+        {suppressed.total > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {suppressed.total.toLocaleString()} {suppressed.total === 1 ? 'alum' : 'alumni'} won&apos;t get email:{' '}
+            {[
+              suppressed.UNSUBSCRIBED && `${suppressed.UNSUBSCRIBED} unsubscribed`,
+              suppressed.BOUNCED && `${suppressed.BOUNCED} bounced`,
+              suppressed.COMPLAINED && `${suppressed.COMPLAINED} marked it as spam`,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+            . They stay on the roster; update the address in your CRM to reach a bounced alum.
+          </p>
+        )}
         <h2 id="log" className="text-base font-semibold">
           Sent
         </h2>
@@ -253,7 +277,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
               <caption className="sr-only">Outreach sent</caption>
               <thead className="border-b border-border text-xs text-muted-foreground">
                 <tr>
-                  {['Sent', 'Type', 'Subject', 'Recipients', 'Clicked', 'Joined'].map((h) => (
+                  {['Sent', 'Type', 'Subject', 'Recipients', 'Opened', 'Clicked', 'Joined'].map((h) => (
                     <th key={h} scope="col" className="px-4 py-2 font-medium">
                       {h}
                     </th>
@@ -269,6 +293,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
                       <td className="px-4 py-2">{CAMPAIGN_LABELS[c.type] ?? c.type}</td>
                       <td className="px-4 py-2">{c.subject.replace(/\{\{\w+\}\}/g, '…')}</td>
                       <td className="px-4 py-2 tabular-nums">{c._count.sends.toLocaleString()}</td>
+                      <td className="px-4 py-2 tabular-nums">{ctx.institution.isDemo ? '—' : pct(s?._count.openedAt ?? 0, c._count.sends)}</td>
                       <td className="px-4 py-2 tabular-nums">{pct(s?._count.clickedAt ?? 0, c._count.sends)}</td>
                       <td className="px-4 py-2 tabular-nums">{(s?._count.claimedAt ?? 0).toLocaleString()}</td>
                     </tr>
@@ -289,7 +314,8 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
 // ── Alumni Relations › Engagement ───────────────────────────────────────────
 
 export async function AlumniEngagement({ ctx }: Props) {
-  const o = await engagementOverview(ctx.institution.id)
+  const [o, inst] = await Promise.all([engagementOverview(ctx.institution.id), prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })])
+  const canEdit = !ctx.readOnly && (ctx.tokens.has('ALUMNI_RELATIONS') || ctx.tokens.has('INSTITUTION_ADMIN'))
   const total = o.tiers.reduce((n, t) => n + t.members, 0)
   return (
     <div className="space-y-6">
@@ -331,6 +357,14 @@ export async function AlumniEngagement({ ctx }: Props) {
         </div>
       ) : (
         <EmptyState icon={BarChart3} title="No engagement yet" description="Scores start once alumni join and use NextChapter, or once you import gifts." />
+      )}
+      {canEdit && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Change what counts and how much</summary>
+          <div className="pt-3">
+            <WeightsForm slug={ctx.institution.slug} keys={WEIGHT_KEYS} values={engagementWeightsFrom(inst.enabledFeatures)} />
+          </div>
+        </details>
       )}
     </div>
   )

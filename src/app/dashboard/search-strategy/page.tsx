@@ -32,6 +32,12 @@ import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+import { getCulturePreferences } from '@/lib/companies/culture-profile'
+import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
+import { getPlatform } from '@/lib/platforms/directory'
+import type { PlatformStageKey } from '@/lib/platforms/stages'
+import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
+import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -221,6 +227,7 @@ async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidatePr
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
+  const culturePreferences = await getCulturePreferences(profile.id)
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -243,6 +250,23 @@ export default async function SearchStrategyPage() {
   // separate inference pass. Editable right here via SearchStrategyForm.
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
+
+  // Pre-fill the independent-work question from what email and logged work
+  // already show, so the candidate confirms instead of answering from scratch.
+  const platformRows = await prisma.candidatePlatformActivity.findMany({
+    where: { candidateId: profile.id, kind: 'WORK' },
+    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
+  })
+  const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
+  const independentWorkSuggestions = suggestIndependentWork(
+    platformRows.flatMap((r) => {
+      const platform = getPlatform(r.platformKey)
+      return platform
+        ? [{ name: platform.name, category: platform.category, stage: r.stage as PlatformStageKey, lastProgressAt: r.lastProgressAt, dismissed: !!r.dismissedAt }]
+        : []
+    }),
+    profile.workHistory
+  )
 
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
@@ -332,7 +356,7 @@ export default async function SearchStrategyPage() {
             introText: 'Answering Board Advisory Work just unlocked:',
             items: [
               {
-                href: '/dashboard/interim-work#board-advisory-work',
+                href: '/dashboard/find-my-job?types=advisory#employer-matched-roles',
                 icon: 'users',
                 label: 'Board Advisory Work',
                 description: 'Board and consulting opportunities matched to your background.',
@@ -448,10 +472,11 @@ export default async function SearchStrategyPage() {
       <CardContent>
         <OtherSearchStrengthenersForm
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
+          independentWorkInitial={independentWorkInitial}
+          independentWorkSuggestions={independentWorkSuggestions}
           optionalQuestionsInitial={{
             networkingLevel: profile.networkingLevel,
             learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
             triedExecutiveCoaching: profile.triedExecutiveCoaching,
             connectedWithRecruiters: profile.connectedWithRecruiters,
             recruiterConnectionCount: profile.recruiterConnectionCount,
@@ -518,9 +543,25 @@ export default async function SearchStrategyPage() {
 
       {actionPlanCard}
 
+      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
+      <Suspense fallback={null}>
+        <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
         {wizardPageContent}
       </SearchStrategyWizard>
+
+      {/* What the member wants in a culture — compared on each job's match with what
+          members who worked at that company said (src/lib/jobs/job-match.ts). */}
+      <Card id="culture-preferences" className="scroll-mt-4">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Culture you want</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CulturePreferencesForm initial={culturePreferences} />
+        </CardContent>
+      </Card>
 
       {stage === 'QUIETLY_LOOKING' && (
         <Card>

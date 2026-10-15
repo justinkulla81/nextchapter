@@ -11,8 +11,10 @@ import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { getPublishedNews } from '@/lib/news/published'
 import { canonical } from '@/lib/seo/canonical'
+import { HERO_STATS } from '@/lib/marketing/hero-stats'
 import { organizationJsonLd, organizationRef } from '@/lib/seo/jsonld'
 
 // The page is otherwise static. Publishing News in the admin clears it at
@@ -34,13 +36,6 @@ const HOMEPAGE_STATS = [
   { value: '15', label: 'Free expert guides' },
   { value: 'Free', label: 'For candidates, always' },
   { value: '4', label: 'Step verified process' },
-]
-
-const heroStats = [
-  { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
-  { value: '24.2%', label: 'Professionals stuck in a mid-career stall' },
-  { value: '15–20%', label: 'Pay cut after an AI-driven layoff' },
-  { value: '8%', label: 'Lower household wealth, 6 years after a layoff' },
 ]
 
 // The coach is only as good as what it can see. These are the four streams it
@@ -148,13 +143,18 @@ export default async function Home() {
           </div>
 
           <div className="mt-16 grid gap-4 sm:grid-cols-4">
-            {heroStats.map((stat) => (
+            {HERO_STATS.map((stat) => (
               <div
                 key={stat.label}
                 className="rounded-xl border border-light-gray bg-off-white px-4 py-6 text-center"
               >
                 <p className="text-2xl font-bold text-navy">{stat.value}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  <Link href={stat.sourceUrl} className="underline underline-offset-2">
+                    {stat.source}
+                  </Link>
+                </p>
               </div>
             ))}
           </div>
@@ -312,6 +312,26 @@ export default async function Home() {
             cost nothing — permanently, not a trial. Someone who just lost a job doesn&apos;t need a
             paywall, they need a plan.
           </p>
+        </div>
+      </section>
+
+      {/* Scam watch — fake-recruiter protection */}
+      <section className="bg-off-white py-16">
+        <div className="mx-auto max-w-2xl px-6 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-navy">Fake recruiters, caught in minutes.</h2>
+          <p className="mt-3 text-muted-foreground">
+            Scammers pose as recruiters because job hunters are hopeful and in a hurry. Vic checks the recruiter emails in
+            your connected Gmail and emails you right away when one looks fake, before you book the call or hand over
+            your details.
+          </p>
+          <TrackedLink
+            href="/scam-watch"
+            event="homepage_cta_clicked"
+            properties={{ cta: 'scam_watch_learn_more' }}
+            className="mt-4 inline-block text-sm font-medium text-primary underline underline-offset-4"
+          >
+            See how scam watch works →
+          </TrackedLink>
         </div>
       </section>
 
@@ -486,7 +506,7 @@ export default async function Home() {
             </Link>
             {' · '}
             <Link href="/reports/latest" className="underline underline-offset-4">
-              Displacement Report
+              White Collar Employment Report
             </Link>
             {' · '}
             <Link href="/faq" className="underline underline-offset-4">

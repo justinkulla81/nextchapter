@@ -15,6 +15,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmailPanel'
 import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGradeOverridePanel'
+import { AdminAccessPanel } from '@/components/admin/AdminAccessPanel'
+import { grantsFor } from '@/lib/access/grants'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
@@ -22,6 +24,8 @@ import { computePageActivitySummary, formatDuration } from '@/lib/admin/page-act
 import { getCandidateProgress } from '@/lib/admin/candidate-progress'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateProgressPanel } from '@/components/admin/CandidateProgressPanel'
+import { ApplicationFitCard } from '@/components/admin/ApplicationFitCard'
+import { getMemberApplicationFit } from '@/lib/admin/application-fit-data'
 import {
   listStakeholderNotes,
   getRecruiterRelationships,
@@ -32,7 +36,7 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget } from './actions'
 import { LEAD_SOURCES, LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
@@ -231,7 +235,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   ])
   stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
       listAllAuthUsersCached(),
       loadJobRecommendations(id),
@@ -249,6 +253,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         orderBy: { generatedAt: 'desc' },
         select: { id: true, generatedAt: true },
       }),
+      // Reaching / underselling read of their applications — a failure here
+      // shows an error in that card only, never breaks the page.
+      getMemberApplicationFit(id).catch((err) => {
+        console.error('[admin/candidate] application fit failed', err)
+        return null
+      }),
     ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
@@ -264,6 +274,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     gmailConnected: progress.connections.find((c) => c.label === 'Gmail')?.connected ?? false,
     assessmentsCompleted: progress.assessments.filter((a) => a.completedAt).length,
     badgeCount: progress.badges.length,
+  })
+
+  captureServerEvent(viewingAdmin.email ?? 'admin', 'admin_application_fit_viewed', {
+    scope: 'member',
+    memberId: id,
+    applications: applicationFit?.rows.length ?? null,
   })
 
   const { view } = detail
@@ -520,7 +536,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6 space-y-6">
-          <CandidateProgressPanel progress={progress} />
+          <CandidateProgressPanel progress={progress} setEffortTarget={setEffortMinutesTarget.bind(null, id)} />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6 space-y-6">
@@ -1019,6 +1035,8 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="results" className="mt-6 space-y-6">
+          <ApplicationFitCard data={applicationFit} />
+
           <Card>
             <CardHeader>
               <CardTitle>Market Reality Reports</CardTitle>
@@ -1135,6 +1153,18 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                 reason={privacyProfile?.exceptionalGradeOverrideReason ?? null}
                 by={privacyProfile?.exceptionalGradeOverrideBy ?? null}
                 at={privacyProfile?.exceptionalGradeOverrideAt ?? null}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Coaching and recruiter access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminAccessPanel
+                candidateId={id}
+                grants={(await grantsFor(id)).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
               />
             </CardContent>
           </Card>

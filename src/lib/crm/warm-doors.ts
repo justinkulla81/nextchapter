@@ -17,7 +17,7 @@ import {
 // must not read (src/test/company-wall.test.ts).
 //
 // A way in is a person who has written back to us in the last year, or a
-// strong/medium route in. Imported "warm" tags, LinkedIn connections and
+// strong/medium route in that someone has asked about. Imported "warm" tags, LinkedIn connections and
 // one-way outreach do not count.
 //
 // Whose contacts: only OUR CRM. A candidate's own contact list is private to
@@ -70,7 +70,7 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
       NOT: { canonicalNameNormalized: { startsWith: '-' } },
       OR: [
         { affiliations: { some: { isCurrent: true, personId: { in: [...lastReply.keys()] } } } },
-        { introPathsAsTarget: { some: { status: { not: 'DECLINED' }, strength: { in: ['STRONG', 'MEDIUM'] } } } },
+        { introPathsAsTarget: { some: { status: { in: ['ASKED', 'INTRO_MADE'] }, strength: { in: ['STRONG', 'MEDIUM'] } } } },
       ],
     },
     select: {
@@ -80,7 +80,7 @@ export async function loadWarmDoors(opts: { orgId?: string; newSinceHours?: numb
         select: { title: true, person: { select: { id: true, fullName: true } } },
       },
       introPathsAsTarget: {
-        where: { status: { not: 'DECLINED' }, strength: { in: ['STRONG', 'MEDIUM'] } },
+        where: { status: { in: ['ASKED', 'INTRO_MADE'] }, strength: { in: ['STRONG', 'MEDIUM'] } },
         select: { id: true, strength: true, status: true, connectorName: true, connectorPerson: { select: { id: true, fullName: true } } },
       },
     },

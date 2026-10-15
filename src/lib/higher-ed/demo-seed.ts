@@ -42,6 +42,7 @@ import { getJourney } from '@/lib/journey/journey'
 import { DEMO_TENANTS, type DemoTenant } from './demo-tenants'
 import { mentorCallRows } from './engagement'
 import { clearEndedGrace } from './transition'
+import { seedCommunity } from './demo-community'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -130,7 +131,8 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
         graceDays: 60,
         fiscalYearStartMonth: 7,
         engagementWeights: {},
-        wioa: false,
+        // On so the demo shows the Workforce board workspace.
+        wioa: true,
         ...(tenant.services ? { services: tenant.services } : {}),
         ...(tenant.annualCheckInMonth ? { checkIns: { annualMonth: tenant.annualCheckInMonth } } : {}),
       },
@@ -259,6 +261,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       journeyStageChangedAt: row(i).claimedAt as Date,
       currentJobStatus: getJourney(journey).jobStatus,
       positioningStatementText: k % 7 === 0 || i === featured ? pick(DOSSIER_LINES, k, 1) : null,
+      metroArea: i === featured ? 'Pittsburgh' : (['Pittsburgh', 'Pittsburgh', 'Philadelphia', 'Washington, DC', 'New York'] as const)[k % 5],
       isSampleData: true,
     }
   })
@@ -588,6 +591,85 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     })
   }
 
+  // ── V2: programs, cohorts, enrollment, clients, capstones ────────────────
+  const facultyUser = staff.find((x) => x.role === 'FACULTY') ?? staff.find((x) => x.role === 'EXEC_ED')
+  const programDefs = [
+    { name: 'AI-Ready Professional Certificate', summary: 'Six weeks of practical generative AI for working professionals: prompting, automating your own workflow, and judging output.', audience: 'Mid-career alumni and local employers', credential: 'AI-Ready Professional Certificate', priceCents: 149_500, wioaEligible: true, skills: ['AI', 'automation', 'prompting'], cipCode: '11.0102', hours: 36, credentialType: 'certificate', prerequisites: 'None' },
+    { name: 'Data analytics certificate', summary: 'SQL, spreadsheets and dashboards, with a capstone on a local employer’s data.', audience: 'Alumni and adult learners', credential: 'Data Analytics Certificate', priceCents: 249_500, wioaEligible: true, skills: ['SQL', 'data analysis', 'dashboards', 'Excel'], cipCode: '11.0802', hours: 90, credentialType: 'certificate', prerequisites: null },
+    { name: 'Leading teams through AI', summary: 'For managers and executives: choosing use cases, redesigning roles, governance.', audience: 'Senior alumni', credential: null, priceCents: 0, wioaEligible: false, skills: ['leadership', 'strategy'] },
+  ]
+  const programs = await Promise.all(
+    programDefs.map((p) => db.program.create({ data: { ...p, institutionId, createdBy: 'demo-seed', isSampleData: true }, select: { id: true, name: true, credential: true } })),
+  )
+  const cohortDefs = [
+    { p: 0, name: 'Spring 2026, online', start: -210, end: -168 },
+    { p: 0, name: 'Fall 2026, online', start: -20, end: 22 },
+    { p: 1, name: 'Summer 2026, hybrid', start: -150, end: -60 },
+    { p: 1, name: 'Winter 2027, online', start: 40, end: 130 },
+    { p: 2, name: 'Executive cohort, Jan 2027', start: 75, end: 90 },
+  ]
+  const cohorts = await Promise.all(
+    cohortDefs.map((c) =>
+      db.cohort.create({
+        data: { programId: programs[c.p].id, name: c.name, startsAt: new Date(now.getTime() + c.start * DAY), endsAt: new Date(now.getTime() + c.end * DAY), seats: 25, modality: c.name.includes('hybrid') ? 'hybrid' : 'online', facultyUserId: facultyUser?.id ?? null, sessionsTotal: c.p === 2 ? null : 12, minAttendancePct: c.p === 2 ? null : 80, requiresCapstone: c.p === 1, isSampleData: true },
+        select: { id: true },
+      }),
+    ),
+  )
+  const clientRows = await Promise.all(
+    [
+      { name: rosterEmployers[0], contactName: 'Talent development', seatsPurchased: 10, notes: 'AI-Ready for their operations managers; renews in June' },
+      { name: rosterEmployers[2], contactName: 'HR', seatsPurchased: 4, notes: 'Data analytics for two teams' },
+    ].map((c) => db.corporateClient.create({ data: { ...c, institutionId, isSampleData: true }, select: { id: true } })),
+  )
+  // Laid-off alumni on WIOA vouchers in the finished cohorts (two placed,
+  // from the outcome reports above), employer-sponsored and self-pay seats,
+  // and a few applications waiting.
+  const enrollRows: Prisma.EnrollmentCreateManyInput[] = []
+  const wioaPeople = [...landed.slice(0, 2), ...flagged.slice(1, 4)]
+  wioaPeople.forEach((i, k) => {
+    const done = k < 3
+    const cohort = done ? (k === 2 ? cohorts[2] : cohorts[0]) : cohorts[1]
+    const def = done ? (k === 2 ? cohortDefs[2] : cohortDefs[0]) : cohortDefs[1]
+    const completedAt = done ? new Date(now.getTime() + def.end * DAY) : null
+    enrollRows.push({ cohortId: cohort.id, memberId: mid(i), status: done ? 'COMPLETED' : 'ENROLLED', payer: k === 2 ? 'BOARD_CONTRACT' : 'WIOA_VOUCHER', appliedAt: new Date(now.getTime() + (def.start - 30) * DAY), enrolledAt: new Date(now.getTime() + def.start * DAY), completedAt, credentialName: done ? programs[cohortDefs.indexOf(def) === 2 ? 1 : 0].credential : null, isSampleData: true })
+  })
+  const others = joinedIdx.filter((i) => !wioaPeople.includes(i) && !flagged.includes(i)).slice(0, 14)
+  others.forEach((i, k) => {
+    const cohortIdx = [1, 1, 1, 0, 0, 2, 2, 3, 3, 3, 4, 4, 1, 3][k]
+    const def = cohortDefs[cohortIdx]
+    const started = def.start < 0
+    const finished = def.end < 0
+    const status = k >= 11 ? 'APPLIED' : finished ? 'COMPLETED' : started ? 'ENROLLED' : 'APPLIED'
+    const sponsored = k % 3 === 0
+    enrollRows.push({
+      cohortId: cohorts[cohortIdx].id,
+      memberId: mid(i),
+      status,
+      payer: sponsored ? 'EMPLOYER' : k % 5 === 1 ? 'RESILIENCE_FUND' : 'SELF_PAY',
+      corporateClientId: sponsored ? clientRows[k % 2].id : null,
+      note: status === 'APPLIED' && k % 2 ? 'Needs help paying.' : null,
+      appliedAt: new Date(now.getTime() + Math.min(def.start - 20, -3) * DAY),
+      enrolledAt: status === 'APPLIED' ? null : new Date(now.getTime() + def.start * DAY),
+      completedAt: status === 'COMPLETED' ? new Date(now.getTime() + def.end * DAY) : null,
+      credentialName: status === 'COMPLETED' ? programs[def.p].credential : null,
+      isSampleData: true,
+    })
+  })
+  await db.enrollment.createMany({ data: enrollRows, skipDuplicates: true })
+  // The landed WIOA completers' new-job reports come after they finished, so
+  // the board sees them placed.
+  for (const i of landed.slice(0, 2)) {
+    await db.outcomeReport.updateMany({ where: { memberId: mid(i) }, data: { reportedAt: new Date(now.getTime() - 150 * DAY) } })
+  }
+  await db.capstone.createMany({
+    data: [
+      { institutionId, institutionEmployerId: (await db.institutionEmployer.findFirstOrThrow({ where: { institutionId, employerProfileId: approved.id }, select: { id: true } })).id, employerName: employerCo, title: 'Predict which customers will churn next quarter', brief: 'Two years of anonymized account data. We would like a model, the three signals that matter most, and a one-page playbook for our account managers.', term: 'Spring 2027', programId: programs[1].id, status: 'PROPOSED', interviewCommitments: 3, proposedBy: 'demo-seed', isSampleData: true },
+      { institutionId, employerName: rosterEmployers[0], title: 'Cut patient no-shows at three clinics', brief: 'Appointment history and reminder logs. Find what predicts a no-show and test a better reminder schedule.', term: 'Fall 2026', programId: programs[1].id, status: 'IN_PROGRESS', facultyUserId: facultyUser?.id ?? null, interviewCommitments: 2, proposedBy: 'demo-seed', decidedAt: new Date(now.getTime() - 40 * DAY), isSampleData: true },
+      { institutionId, employerName: rosterEmployers[3], title: 'An AI policy for a 400-person manufacturer', brief: 'Draft the acceptable-use policy and a rollout plan for supervisors.', term: 'Spring 2026', programId: programs[0].id, status: 'COMPLETED', facultyUserId: facultyUser?.id ?? null, interviewCommitments: 1, proposedBy: 'demo-seed', decidedAt: new Date(now.getTime() - 220 * DAY), isSampleData: true },
+    ],
+  })
+
   // ── Resilience Fund ──────────────────────────────────────────────────────
   const fund = await db.resilienceFund.create({
     data: {
@@ -603,6 +685,108 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     data: [flagged[0], landed[0]]
       .filter((i) => i !== undefined)
       .map((i, k) => ({ fundId: fund.id, memberId: mid(i), awardType: 'COACHING_PACKAGE' as const, valueCents: 75_000, status: k === 0 ? ('AWARDED' as const) : ('REDEEMED' as const), awardedBy: 'demo-seed', awardedAt: new Date(now.getTime() - (k === 0 ? 5 : 120) * DAY), isSampleData: true })),
+  })
+
+  // ── Lifecycle: credentials, attendance, office hours, events, intros,
+  // segments, learners, rapid response, a Market Reality gap for the
+  // featured alum (so a program is recommended) ──────────────────────────
+  for (const e of await db.enrollment.findMany({ where: { cohort: { program: { institutionId } } }, select: { id: true, status: true } })) {
+    await db.enrollment.update({
+      where: { id: e.id },
+      data: e.status === 'COMPLETED' ? { credentialId: createHash('sha256').update(`${slug}-${e.id}`).digest('hex').slice(0, 32), sessionsAttended: 11, capstoneDone: true } : e.status === 'ENROLLED' ? { sessionsAttended: 4 } : {},
+    })
+  }
+  const slotRows: Prisma.OfficeHourSlotCreateManyInput[] = []
+  mentors.slice(0, 6).forEach((m, k) => {
+    for (let n = 0; n < 3; n++) {
+      const d = new Date(now.getTime() + (2 + k + n * 3) * DAY)
+      d.setUTCHours(16 + (k % 3), 0, 0, 0)
+      slotRows.push({ institutionId, mentorId: m.id, startsAt: d, minutes: 20, topic: ['Résumé reads', 'Mock interviews', 'Breaking into the field'][k % 3], isSampleData: true, ...(n === 0 && k < 2 ? { bookedByMemberId: mid(k === 0 ? featured : flagged[0]), bookedAt: now, bookingNote: 'Would love a résumé read before I apply.' } : {}) })
+    }
+  })
+  await db.officeHourSlot.createMany({ data: slotRows })
+  const eventDefs = [
+    { title: 'Careers in healthcare: a panel of alumni', kind: 'panel', days: 9, location: 'Online' },
+    { title: `Employer night with ${employerCo}`, kind: 'employer_night', days: 16, location: 'Campus center' },
+    { title: 'Negotiating your offer: a workshop', kind: 'workshop', days: 23, location: 'Online' },
+    { title: 'Pittsburgh alumni networking breakfast', kind: 'networking', days: -12, location: 'Downtown Pittsburgh' },
+  ]
+  const collegeEvents = await Promise.all(
+    eventDefs.map((e) =>
+      db.collegeEvent.create({ data: { institutionId, title: e.title, kind: e.kind, startsAt: new Date(Math.floor((now.getTime() + e.days * DAY) / DAY) * DAY + 22 * 3600_000), location: e.location, capacity: e.kind === 'networking' ? 40 : null, createdBy: 'demo-seed', isSampleData: true }, select: { id: true } }),
+    ),
+  )
+  await db.eventRsvp.createMany({
+    data: collegeEvents.flatMap((e, k) =>
+      joinedIdx.slice(k * 5, k * 5 + 8 + k * 3).map((i) => ({ eventId: e.id, memberId: mid(i), checkedInAt: eventDefs[k].days < 0 ? new Date(now.getTime() + eventDefs[k].days * DAY) : null, isSampleData: true })),
+    ),
+    skipDuplicates: true,
+  })
+  await db.eventRsvp.createMany({ data: [{ eventId: collegeEvents[1].id, memberId: mid(featured), isSampleData: true }], skipDuplicates: true })
+  // Intros: the featured alum asked two alumni at the employer; one accepted.
+  // Someone asked the featured alum about their own employer.
+  const atEmployer = [leader, ...joinedIdx.slice(2, 4)].filter((i) => i !== featured && i % 6 !== 2)
+  const introRows: Prisma.AlumniIntroRequestCreateManyInput[] = atEmployer.slice(0, 2).map((i, k) => ({
+    institutionId,
+    requesterMemberId: mid(featured),
+    targetMemberId: mid(i),
+    companyName: employerCo,
+    purpose: 'interviewing',
+    note: 'I have a second-round interview for the senior analyst role next week.',
+    status: k === 0 ? 'ACCEPTED' : 'REQUESTED',
+    respondedAt: k === 0 ? new Date(now.getTime() - 2 * DAY) : null,
+    isSampleData: true,
+  }))
+  const featuredEmployer = (await db.institutionMember.findUniqueOrThrow({ where: { id: mid(featured) }, select: { lastKnownEmployer: true } })).lastKnownEmployer
+  if (featuredEmployer) introRows.push({ institutionId, requesterMemberId: mid(flagged[1]), targetMemberId: mid(featured), companyName: featuredEmployer, purpose: 'applying', note: 'I’m applying to an operations role there. What’s the team like?', isSampleData: true })
+  await db.alumniIntroRequest.createMany({ data: introRows, skipDuplicates: true })
+  await db.segment.createMany({
+    data: [
+      { institutionId, name: 'In transition, class of 1995–2015', filters: { classFrom: 1995, classTo: 2015, inTransition: true }, createdBy: 'demo-seed', isSampleData: true },
+      { institutionId, name: 'Joined alumni in Pittsburgh', filters: { joined: 'joined', metro: 'Pittsburgh' }, createdBy: 'demo-seed', isSampleData: true },
+    ],
+  })
+  // Two of a corporate client's employees, not alumni, in the AI cohort.
+  for (const [k, n] of ['Morgan Reyes', 'Taylor Brandt'].entries()) {
+    const [first, last] = n.split(' ')
+    const learner = await db.institutionMember.create({ data: { institutionId, email: `${first}.${last}@${slug}-client.example.com`.toLowerCase(), firstName: first, lastName: last, affiliation: 'LEARNER', matchMethod: 'MANUAL', isSampleData: true }, select: { id: true } })
+    await db.enrollment.create({ data: { cohortId: cohorts[1].id, memberId: learner.id, status: 'ENROLLED', enrolledAt: new Date(now.getTime() - 20 * DAY), payer: 'EMPLOYER', corporateClientId: clientRows[0].id, sessionsAttended: 3 + k, isSampleData: true } })
+  }
+  // Rapid response for the real WARN filing the hero is matched to.
+  if (notice) {
+    const rr = await db.rapidResponse.create({
+      data: { institutionId, warnNoticeId: notice.id, employerName: notice.employer, title: `Free retraining for ${notice.employer} employees`, message: `If you're affected by the layoff at ${notice.employer}, ${tenant.name} and the local workforce board can cover a short program to help you land your next role. WIOA funding may pay the full cost.`, programIds: [programs[0].id, programs[1].id], createdBy: 'demo-seed', isSampleData: true },
+      select: { id: true },
+    })
+    const worker = await db.institutionMember.create({ data: { institutionId, email: `jamie.ortiz@${slug}-community.example.com`, firstName: 'Jamie', lastName: 'Ortiz', affiliation: 'LEARNER', matchMethod: 'MANUAL', lastKnownEmployer: notice.employer, isSampleData: true }, select: { id: true } })
+    await db.enrollment.createMany({
+      data: [
+        { cohortId: cohorts[3].id, memberId: worker.id, payer: 'WIOA_VOUCHER', rapidResponseId: rr.id, note: `Rapid response: ${notice.employer}.`, isSampleData: true },
+        { cohortId: cohorts[3].id, memberId: mid(hero), payer: 'WIOA_VOUCHER', rapidResponseId: rr.id, note: `Rapid response: ${notice.employer}. Interested in the evening section.`, isSampleData: true },
+      ],
+      skipDuplicates: true,
+    })
+  }
+  await db.marketRealityReport.create({
+    data: {
+      candidateId: candidateOf(featured),
+      strengths: [{ title: 'Operations depth', detail: 'Ten years running teams.' }],
+      weaknesses: [{ title: 'Data skills', detail: 'Analyst roles expect SQL.' }],
+      actionPlan: Array.from({ length: 7 }, (_, d) => ({ day: d + 1, items: [] })),
+      gapAnalysis: { targetRole: 'Senior Data Analyst', gaps: [{ area: 'SQL and data analysis', why: 'Most target postings ask for it.', remediation: 'A short certificate with a portfolio project.', remediationType: 'course' }] },
+      generatedAt: new Date(now.getTime() - 5 * DAY),
+    },
+  })
+
+  await seedCommunity(db, {
+    institutionId,
+    tenant,
+    now,
+    joined: joinedIdx.map(mid),
+    featured: mid(featured),
+    student: memberRows.some((r) => r.affiliation === 'STUDENT') ? memberRows.filter((r) => r.affiliation === 'STUDENT')[0].id! : null,
+    facultyUserId: facultyUser?.id ?? null,
+    employers: rosterEmployers,
   })
 
   return {

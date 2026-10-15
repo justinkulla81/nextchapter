@@ -9,11 +9,13 @@ import {
   AUDIENCE_LABELS,
   OFFICES,
   PRICING_LABELS,
+  PROVIDER_LABELS,
   SERVICE_GROUPS,
   SERVICES,
   serviceTarget,
   type Audience,
   type Pricing,
+  type Provider,
   type Service,
   type ServiceSetting,
 } from '@/lib/higher-ed/services'
@@ -114,6 +116,7 @@ function ServiceRow({
   const needsLink = setting.on && s.memberCard && !serviceTarget(s, setting)
   const summary = [
     setting.audience.length ? setting.audience.map((a) => AUDIENCE_LABELS[a]).join(', ') : s.memberCard ? 'No audience' : null,
+    s.memberCard ? `By ${PROVIDER_LABELS[setting.provider].replace('Your college', 'your college')}` : null,
     setting.ownerName ? `${setting.ownerOffice} (${setting.ownerName})` : setting.ownerOffice,
     PRICING_LABELS[setting.pricing],
     s.memberCard && setting.on ? `${opens} ${opens === 1 ? 'open' : 'opens'} in 30 days` : null,
@@ -186,6 +189,7 @@ function ServiceSettingsForm({
   const [ownerName, setOwnerName] = useState(setting.ownerName ?? '')
   const [pricing, setPricing] = useState<Pricing>(setting.pricing)
   const [linkUrl, setLinkUrl] = useState(setting.linkUrl ?? '')
+  const [provider, setProvider] = useState<Provider>(setting.provider)
 
   return (
     <form
@@ -193,9 +197,34 @@ function ServiceSettingsForm({
       className="mt-4 grid gap-4 rounded-md border border-border bg-background p-4 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault()
-        onSave({ audience, ownerOffice, ownerName: ownerName || null, pricing, linkUrl: linkUrl || null })
+        onSave({ audience, ownerOffice, ownerName: ownerName || null, pricing, linkUrl: linkUrl || null, provider })
       }}
     >
+      {s.memberCard && (
+        <fieldset className="space-y-1.5 sm:col-span-2">
+          <legend className="text-sm font-medium">Who provides it</legend>
+          {s.builtIn ? (
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(PROVIDER_LABELS) as Provider[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={provider === p}
+                  onClick={() => setProvider(p)}
+                  className={cn('rounded-md border px-3 py-1.5 text-sm', provider === p ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted')}
+                >
+                  {PROVIDER_LABELS[p]}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Your college. NextChapter doesn’t offer this one, so add your link below.</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {provider === 'college' ? 'Your own office delivers it; the card opens your link.' : provider === 'nextchapter' ? 'NextChapter delivers it inside the portal at no extra work for your staff.' : 'Members get yours first, and NextChapter’s too.'}
+          </p>
+        </fieldset>
+      )}
       {s.memberCard && (
         <fieldset className="space-y-1.5 sm:col-span-2">
           <legend className="text-sm font-medium">Who sees the card</legend>
@@ -252,12 +281,12 @@ function ServiceSettingsForm({
           ))}
         </div>
       </fieldset>
-      {s.memberCard && (
+      {s.memberCard && provider !== 'nextchapter' && (
         <div className="space-y-1.5">
-          <Label htmlFor={`${id}-link`}>{s.builtIn ? 'Link (optional)' : 'Link'}</Label>
+          <Label htmlFor={`${id}-link`}>{provider === 'both' ? 'Your link (optional)' : 'Your link'}</Label>
           <Input id={`${id}-link`} type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://" />
           <p className="text-xs text-muted-foreground">
-            {s.builtIn ? 'Leave empty to use NextChapter’s built-in screen.' : 'Where the card sends members, such as your library’s alumni page.'}
+            {provider === 'both' ? 'Leave empty to use only NextChapter’s screen.' : 'Where the card sends members, such as your office’s booking page.'}
           </p>
         </div>
       )}

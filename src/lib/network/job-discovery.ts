@@ -1,4 +1,5 @@
 import 'server-only'
+import { topSkills } from '@/lib/profile/skill-matrix'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { searchAdzunaJobListings, type AdzunaListing } from '@/lib/market/adzuna'
@@ -32,8 +33,9 @@ function buildSearchQuery(candidate: { targetRoleType: string | null; primaryFun
 // Supplementary any-of terms layered onto the core query via what_or — resume
 // keywords and target industry sharpen relevance without the all-must-match
 // risk of folding them into `what` directly.
-function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targetIndustries: string[] }): string[] {
-  return [...candidate.resumeKeywords.slice(0, 3), ...candidate.targetIndustries.slice(0, 1)]
+function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; confirmedSkillsHave?: string[]; certifications?: string[]; skillLevels?: unknown; targetIndustries: string[] }): string[] {
+  // The three strongest skills in the matrix (expert and strong first).
+  return [...topSkills(candidate, 3), ...candidate.targetIndustries.slice(0, 1)]
 }
 
 // searchAtsJobs has its own coarse function/company gate, but that alone

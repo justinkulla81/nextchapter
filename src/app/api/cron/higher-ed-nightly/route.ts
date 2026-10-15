@@ -1,11 +1,12 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { clearEndedGrace } from '@/lib/higher-ed/transition'
 import { matchLayoffs } from '@/lib/higher-ed/layoffs'
 import { syncEngagement } from '@/lib/higher-ed/engagement'
 import { scheduleCheckIns } from '@/lib/higher-ed/checkins'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
+import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
 
 export const maxDuration = 300
 
@@ -15,12 +16,10 @@ export const maxDuration = 300
 //     said the college helped, the gratitude ask goes to Development;
 //   • new WARN notices are matched to alumni employers (staff approve the email);
 //   • engagement events are synced from what alumni did in NextChapter;
-//   • check-ins that came due are scheduled (staff approve the send).
+//   • check-ins that came due are scheduled (staff approve the send);
+//   • the monthly alumni email goes out where a college switched it on.
 // Demo colleges are skipped: their data comes from the demo seed.
-export async function GET(request: NextRequest) {
-  if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export const GET = withCronRun('higher-ed-nightly', async () => {
   const startedAt = new Date()
   const grace = await clearEndedGrace(startedAt)
   const colleges = await prisma.institution.findMany({ where: { isDemo: false }, select: { id: true } })
@@ -35,7 +34,12 @@ export async function GET(request: NextRequest) {
       console.error('[higher-ed-nightly]', c.id, err)
     }
   }
-  const result = { ...grace, ...totals, colleges: colleges.length }
+  // The monthly alumni email, for colleges that switched it on (batched).
+  const monthly = await runMonthlyEmails(startedAt).catch((err) => {
+    console.error('[higher-ed-nightly] monthly email', err)
+    return []
+  })
+  const result = { ...grace, ...totals, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0) }
   captureServerEvent('cron', 'he_nightly_ran', { ...result, ms: Date.now() - startedAt.getTime() })
   return NextResponse.json({ ok: true, ...result })
-}
+})

@@ -1,8 +1,29 @@
-// The NextChapter Displacement Report: the list of published editions.
+// The NextChapter White Collar Employment Report: the list of published editions.
 //
 // This is the one place a new edition is registered. Adding next month is a
 // single entry at the top of REPORT_EDITIONS; the hub, the sitemap, the news
 // feed and /reports/latest all read from here.
+
+/** The report's name from the October 2026 edition on. */
+export const REPORT_NAME = 'NextChapter White Collar Employment Report'
+
+/** URL-slug prefix for editions published under the current name. */
+export const REPORT_SLUG_PREFIX = 'white-collar-employment-report-'
+
+const MONTH_SLUGS = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december',
+]
+
+/**
+ * The slug for a new edition, e.g. reportSlugFor(2026, 10) is
+ * 'white-collar-employment-report-october-2026'. Month is 1 to 12.
+ */
+export function reportSlugFor(year: number, month: number): string {
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new Error(`Invalid report year: ${year}`)
+  if (!Number.isInteger(month) || month < 1 || month > 12) throw new Error(`Invalid report month: ${month}`)
+  return `${REPORT_SLUG_PREFIX}${MONTH_SLUGS[month - 1]}-${year}`
+}
 
 /** The production origin, spelled out so absolute URLs (JSON-LD, OG, feeds) agree. */
 export const SITE_URL = 'https://launchyournextchapter.com'
@@ -27,13 +48,13 @@ export interface ReportEdition {
 // Newest first is the job of helpers below; author order here is free.
 export const REPORT_EDITIONS: ReportEdition[] = [
   {
-    slug: 'displacement-report-september-2026',
+    slug: 'white-collar-employment-report-september-2026',
     month: 'September 2026',
-    title: 'Fewer layoffs, longer searches',
-    dek: 'Hiring stalled and announced layoffs fell in September 2026, but long-term unemployment among managers and professionals rose about a third from a year earlier. The monthly read on white-collar job loss, AI, and the safety net.',
+    title: 'Jobs are growing, and some searches are taking longer',
+    dek: 'The economy added 612,000 jobs in the first nine months of 2026 and there is about one opening per unemployed person, while long searches among managers and professionals were about a third more common than a year earlier. The monthly read on how people are working, being hired and changing jobs, with what public programs and technology are adding.',
     publishedAt: '2026-10-05',
-    updatedAt: '2026-10-06',
-    ogImage: '/reports/displacement-report-2026-09-og.png',
+    updatedAt: '2026-10-13',
+    ogImage: '/reports/white-collar-employment-report-2026-09-og.png',
   },
 ]
 
@@ -47,7 +68,7 @@ export function latestReport(): ReportEdition | null {
   return reportsNewestFirst()[0] ?? null
 }
 
-/** The canonical path for an edition, e.g. /reports/displacement-report-september-2026. */
+/** The canonical path for an edition, e.g. /reports/white-collar-employment-report-september-2026. */
 export function reportPath(edition: ReportEdition): string {
   return `/reports/${edition.slug}`
 }

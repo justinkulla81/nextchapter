@@ -22,6 +22,14 @@ export const GRANT_KEYWORDS = [
   'career coaching',
   'layoff aversion',
   'worker transition',
+  // Workforce Pell and the Labor Department's AI-triggered dislocated worker
+  // grants (TEGL 15-25, "Rapid Reskill"). One request per phrase.
+  'workforce pell',
+  'short-term pell',
+  'rapid reskill',
+  'AI workforce',
+  'AI literacy',
+  'artificial intelligence workforce',
 ] as const
 
 /**
@@ -36,6 +44,22 @@ export const SAM_NAICS = [
   '541611', // Administrative management consulting
 ] as const
 
+/**
+ * Agencies watched closely: every open or forecast notice they post is filed,
+ * whatever its title, because each is a funder, a buyer or a rule-maker for us.
+ * Grants.gov agency codes; a code matches itself and its sub-offices.
+ */
+export const WATCHED_AGENCIES = [
+  'DOL',      // Labor: ETA, ODEP, Women's Bureau
+  'SBA',      // Small Business Administration
+  'DOC-EDA',  // Commerce: Economic Development Administration
+  'DOC-NIST', // Commerce: standards, AI and manufacturing extension
+  'DOC-NTIA', // Commerce: digital equity and broadband
+  'DOC-MBDA', // Commerce: Minority Business Development Agency
+] as const
+
+const WATCHED_AGENCY_RE = new RegExp(`^(${WATCHED_AGENCIES.join('|')})(-|$)`, 'i')
+
 /** A notice title that names our subject. Allowlist, not "everything except". */
 const TITLE_SIGNALS: [RegExp, number][] = [
   [/outplacement/i, 5],
@@ -43,9 +67,37 @@ const TITLE_SIGNALS: [RegExp, number][] = [
   [/career (transition|coaching|services|navigation|counsel)/i, 4],
   [/job (placement|search|matching|readiness|training)/i, 3],
   [/workforce (development|innovation|system|board|services|technology)|WIOA/i, 3],
+  [/workforce pell|short-?term pell/i, 4],
+  [/rapid reskill/i, 4],
+  // AI named together with workers or skills; AI alone is not our subject.
+  [/(\bAI\b|artificial intelligence).{0,60}(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment)|(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment).{0,60}(\bAI\b|artificial intelligence)/i, 4],
   [/employment (services|assistance|and training)|reentry|re-entry/i, 2],
   [/resume|talent (pipeline|acquisition)|upskill|reskill|apprentice/i, 2],
 ]
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  ndash: '-', mdash: '-', hyphen: '-', rsquo: "'", lsquo: "'", ldquo: '"', rdquo: '"',
+}
+
+/**
+ * Entities out of a feed title: Grants.gov returns `CHIPS Incentives Program &ndash; Facilities`.
+ * Filing it raw would put the literal `&ndash;` in the CRM note and its deadline label.
+ * One pass, so `&amp;ndash;` decodes to the text `&ndash;` rather than to a dash.
+ */
+export function decodeEntities(s: string): string {
+  return s
+    .replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (m, dec?: string, hex?: string, name?: string) => {
+      if (dec || hex) {
+        const c = dec ? Number(dec) : parseInt(hex!, 16)
+        if (!Number.isFinite(c) || c < 32 || c > 0x10ffff) return m
+        return c >= 8208 && c <= 8213 ? '-' : String.fromCodePoint(c)
+      }
+      return NAMED_ENTITIES[name!.toLowerCase()] ?? m
+    })
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 /** Score a notice title: 0 means leave it out. */
 export function titleScore(title: string): number {
@@ -146,7 +198,7 @@ const MIN_TITLE_SCORE = 4
  */
 export function isRelevant(n: Pick<FundingNotice, 'title' | 'agencyCode'>): boolean {
   if (NOT_AN_OPPORTUNITY.test(n.title)) return false
-  if (/^DOL(-|$)/i.test(n.agencyCode ?? '')) return true
+  if (WATCHED_AGENCY_RE.test(n.agencyCode ?? '')) return true
   return titleScore(n.title) >= MIN_TITLE_SCORE
 }
 

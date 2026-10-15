@@ -7,6 +7,7 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BadgeEarnedEmail from '@/emails/badge-earned'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendBadgeEarnedEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -26,7 +27,7 @@ export async function sendBadgeEarnedEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const statsUrl = `${appUrl}/dashboard/stats`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
+  const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

@@ -50,7 +50,7 @@ export interface Door {
  * Only real ways in count. A contact is a door only if they replied to us in
  * the last year — not because they were imported as WARM, are a LinkedIn
  * connection, or we once emailed them. A route is a door when it is strong or
- * medium and has not been declined. Anything else is not a way to help today.
+ * medium AND someone has asked for the intro (or it has been made). Anything else is not a way to help today.
  */
 export function classifyDoors(people: DoorPerson[], routes: DoorRoute[], now: Date = new Date()): Door[] {
   const doors: Door[] = []
@@ -65,12 +65,13 @@ export function classifyDoors(people: DoorPerson[], routes: DoorRoute[], now: Da
     })
   }
   for (const r of routes) {
-    if (r.status === 'DECLINED') continue
+    // A route nobody has asked about is a note, not a way in; a declined one is closed.
+    if (r.status !== 'ASKED' && r.status !== 'INTRO_MADE') continue
     if (r.strength !== 'STRONG' && r.strength !== 'MEDIUM') continue
     doors.push({
       kind: 'route', personId: r.connectorPersonId, name: r.connectorName ?? 'Someone in your network', title: null,
       strength: r.strength === 'STRONG' ? 'hot' : 'warm',
-      note: r.status === 'INTRO_MADE' ? 'Intro already made' : r.status === 'ASKED' ? 'Intro asked for' : 'Route in',
+      note: r.status === 'INTRO_MADE' ? 'Intro already made' : 'Intro asked for',
     })
   }
   return doors.sort((a, b) => (a.strength === b.strength ? 0 : a.strength === 'hot' ? -1 : 1))

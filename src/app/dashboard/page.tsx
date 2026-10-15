@@ -1,35 +1,34 @@
 import type { MarketRealityReport } from '@prisma/client'
-import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
-import { checkInDue, effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
+import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProgramCard'
+import { effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
+import { MemberInsightPrompt } from '@/components/dashboard/MemberInsightPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
-import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { getCheckInSummary } from '@/lib/daily/mood'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
+import { EngagementCard } from '@/components/dashboard/EngagementCard'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
+import { loadSearchPlaybook } from '@/lib/dashboard/search-playbook-data'
+import { SearchPlaybookCard } from '@/components/dashboard/search-playbook/SearchPlaybookCard'
+import { captureServerEvent } from '@/lib/posthog/server'
 import {
   getCurrentWeekSprintForRender,
   getSuggestedActions,
   getMondayOfWeek,
   getCandidateWeekNumber,
-  hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
-import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
-import { EngagementCard } from '@/components/dashboard/EngagementCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
@@ -45,7 +44,6 @@ import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmatio
 import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEmployerReferenceBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 import { PortfolioAccessRequestSection } from '@/components/dashboard/PortfolioAccessRequestSection'
-import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
@@ -54,9 +52,14 @@ import { ReportReadyDailyMessage } from '@/components/dashboard/ReportReadyDaily
 import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
 import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrategyDailyMessage'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
-import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { buildUnlockLadder } from '@/lib/unlocks/ladder'
+import { firstWeekStep } from '@/lib/onboarding/first-week'
+import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
+import { HomeModule } from '@/components/dashboard/home/HomeModule'
+import { JobsModule } from '@/components/dashboard/home/JobsModule'
+import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
-import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -102,6 +105,17 @@ async function SessionImpactSection({ candidateId }: { candidateId: string }) {
   return <SessionImpactCard report={sessionImpact} />
 }
 
+// Three plain counts for the Jobs module. Saved = on the list and not yet
+// applied to; Interviews = the member said they landed one.
+async function getHomeJobCounts(candidateId: string) {
+  const [saved, applied, interviews] = await Promise.all([
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: null } }),
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }),
+    prisma.jobPosting.count({ where: { candidateId, interviewLandedAt: { not: null } } }),
+  ])
+  return { saved, applied, interviews }
+}
+
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   // Journey and stage (src/lib/journey): the header's goal, the plan line, and
@@ -132,10 +146,8 @@ export default async function DashboardPage() {
     user,
     weeklyProgress,
     marketRealityGrade,
-    checkInSummary,
     currentSprint,
     suggestedActions,
-    searchExecutionAvailable,
     existingBountyClaimCount,
     hasCoachingFormResponse,
     profileChecklistItems,
@@ -148,6 +160,11 @@ export default async function DashboardPage() {
     dossierCompleteness,
     dossierStatus,
     resumeFixes,
+    searchPlaybook,
+    ladderTier,
+    moduleGates,
+    jobCounts,
+    newCheer,
   ] = await Promise.all([
     getVerifiedSessionUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -156,10 +173,8 @@ export default async function DashboardPage() {
     // never call computeMarketRealityCompositeGrade directly here, that
     // would be a second, parallel computation of the starting-band input.
     computeProbabilityGrade(profile.id),
-    getCheckInSummary(profile.id),
     getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber),
-    hasStartedSprint(profile.id),
+    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing
@@ -189,8 +204,32 @@ export default async function DashboardPage() {
     // resume-fix items the Market Reality Report itself shows (see
     // getResumeFixes), not a separate invented list.
     getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
+    // Journey-aware search plan: what to change at this point in the search.
+    // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
+    loadSearchPlaybook(profile),
+    getDossierLadderTier(profile.id),
+    getModuleGateStatus(profile.id),
+    getHomeJobCounts(profile.id),
+    prisma.supporterCheer.findFirst({
+      where: { seenAt: null, supporter: { candidateId: profile.id } },
+      orderBy: { createdAt: 'desc' },
+      select: { message: true, supporter: { select: { name: true } } },
+    }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
+
+  if (searchPlaybook) {
+    const position = searchPlaybook
+    after(() =>
+      captureServerEvent(profile.id, 'search_playbook_viewed', {
+        journey: position.journey,
+        weeks: position.clock.weeks,
+        basis: position.clock.basis,
+        milestoneWeek: position.current?.atWeek ?? null,
+        longTermUnemployed: position.isLongTermUnemployed,
+      })
+    )
+  }
 
   // getResumeFixes (Market Reality Report's resumeRewrites) is null for any
   // candidate whose latest report predates that field or hasn't regenerated
@@ -230,10 +269,6 @@ export default async function DashboardPage() {
   // Search Strategy completion.
   const hardGateStatus = getHardGateStatus(profile)
 
-  const daysSinceRegistration = profile.registrationCompletedAt
-    ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
-    : 0
-  const dayNumber = Math.floor(daysSinceRegistration) + 1
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
@@ -251,6 +286,25 @@ export default async function DashboardPage() {
   // MarkBadgesViewedOnMount), so this only ever shows once.
   const showReportReadyMessage = profile.marketRealityReports.length > 0 && profile.badgesLastSeenCount === null
 
+  // One note at a time. The first of these that applies is the note; the rest
+  // wait. Order: something time-sensitive first, then a nudge, then a prompt.
+  const noteKind: string | null = needsCoachingForm
+    ? 'coaching_form'
+    : stalledSearchPrompt
+      ? 'stalled_search'
+      : passiveToActivePrompt
+        ? 'passive_to_active'
+        : showGotHiredCTA
+          ? 'got_hired'
+          : searchPlaybook
+            ? 'search_playbook'
+            : 'culture_survey' // the last-priority prompt slot: rate a former job, else describe a company's culture
+  after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber }))
+
+  const firstWeek = firstWeekStep(profile.registrationCompletedAt)
+  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
+  const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
+
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
@@ -259,28 +313,23 @@ export default async function DashboardPage() {
       <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
-        </p>
+        </h1>
         {journeyNow && stageNow && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {getJourney(journeyNow).label} · {getStage(stageNow).label}: {getStage(stageNow).plan}{' '}
-            <Link href="/dashboard/privacy" className="font-medium text-primary hover:underline">
-              Change
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your plan is set up for{' '}
+            <span className="rounded-full bg-navy px-2 py-0.5 text-xs font-semibold text-white">{getStage(stageNow).label}</span>{' '}
+            <Link href="/dashboard/privacy" className="font-medium text-brand underline underline-offset-4">
+              Not quite right? Change
             </Link>
           </p>
         )}
       </div>
 
-      {journeyNow && stageNow && checkInDue(profile) && (
-        <JourneyCheckInCard journeyLabel={getJourney(journeyNow).label} stageLabel={getStage(stageNow).label} />
-      )}
+      <OutplacementProgramCard candidateId={profile.id} />
 
-      <Suspense fallback={null}>
-        <EngagementCard candidateId={profile.id} />
-      </Suspense>
-
+      {/* Today's note: the daily message, always in the same place. */}
       <PageHeaderBoxes
         pageKey="dashboard"
         candidateId={profile.id}
@@ -300,135 +349,95 @@ export default async function DashboardPage() {
         }
       />
 
-      <Suspense fallback={<DashboardTopStripSkeleton />}>
-        <DashboardTopStrip
-          candidateId={profile.id}
-          weeklyProgress={weeklyProgress}
-          marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
-          searchExecutionAvailable={searchExecutionAvailable}
-          currentStreak={checkInSummary.streak}
-          weekNumber={weekNumber}
-          dayNumber={dayNumber}
-          suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
-          badgesLastSeenCount={profile.badgesLastSeenCount}
-        />
-      </Suspense>
+      {newCheer && (
+        <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
+          <p className="text-xs font-semibold tracking-wide text-success uppercase">A cheer for you</p>
+          <p className="text-base">{newCheer.message}</p>
+          <p className="text-sm text-muted-foreground">
+            From {newCheer.supporter.name}.{' '}
+            <Link href="/dashboard/supporters" className="font-medium text-brand underline underline-offset-4">
+              See your supporters
+            </Link>
+          </p>
+        </section>
+      )}
+      {firstWeek && <FirstWeekCard step={firstWeek} />}
+      {noteKind === 'coaching_form' && <CoachingFormReminderCard />}
+      {noteKind === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
+      {noteKind === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
+      {noteKind === 'got_hired' && <GotHiredCTACard />}
+      {noteKind === 'search_playbook' && searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
+      {noteKind === 'culture_survey' && (
+        <Suspense fallback={null}>
+          <MemberInsightPrompt candidateId={profile.id} />
+        </Suspense>
+      )}
 
-      <Suspense fallback={null}>
-        <FreshJobsPrompt profile={profile} />
-      </Suspense>
-
+      {/* People waiting on you: always worth seeing, so they sit outside the note. */}
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
+      <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
 
-      <div className="space-y-3">
+      {/* What would make this plan work harder for them: connections and, when a
+          search has stalled, new things to try. Its own boundary, so it never
+          holds up the page. */}
+      <Suspense fallback={null}>
+        <EngagementCard candidateId={profile.id} />
+      </Suspense>
 
-        {/* The mood check-in moved to the app-open pop-up (CheckInPrompt).
-            Victoria's advice is real
-            output grounded in Gmail/Calendar/LinkedIn-derived activity, so
-            it stays locked (orange lock, non-expandable) until the Get
-            Started gate clears. */}
-        <Suspense fallback={<WeeklyFocusSkeleton />}>
-          <WeeklyFocusCard
-            candidateId={profile.id}
-            locked={!bothConnectedUnlocked}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6 lg:col-span-2">
+          <Suspense fallback={<WeeklyFocusSkeleton />}>
+            <WeeklyFocusCard
+              candidateId={profile.id}
+              locked={!bothConnectedUnlocked}
+              weeklyPoints={weeklyProgress.weeklyPoints}
+              weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+            />
+          </Suspense>
+          <SuccessSprintCard
+            actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+            suggestedActions={suggestedActions}
             weeklyPoints={weeklyProgress.weeklyPoints}
             weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+            onTrack={onTrack}
+            hasEmailConnection={!!emailConnection}
+            hasCalendarConnection={!!calendarConnection}
+            linkedInConnected={linkedInConnected}
+            profileChecklistItems={profileChecklistItems}
+            searchStrategyChecklist={searchStrategyChecklist}
+            completedReferencesCount={completedReferencesCount}
+            weekStartDate={weekStartDate}
+            marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
+            hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
+            title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
           />
-        </Suspense>
-
-        <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
-
-        <DashboardNetworkCard
-          followUps={needsFollowUp}
-          priorityContact={priorityContacts[0] ?? null}
-        />
-
-        <SuccessSprintCard
-          actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
-          suggestedActions={suggestedActions}
-          weeklyPoints={weeklyProgress.weeklyPoints}
-          weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
-          onTrack={onTrack}
-          hasEmailConnection={!!emailConnection}
-          hasCalendarConnection={!!calendarConnection}
-          linkedInConnected={linkedInConnected}
-          profileChecklistItems={profileChecklistItems}
-          searchStrategyChecklist={searchStrategyChecklist}
-          completedReferencesCount={completedReferencesCount}
-          weekStartDate={weekStartDate}
-          marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
-          hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
-          title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
-        />
-
-        {/* Build Your Dossier — the real §7.2 dossier-completeness checklist
-            (computeDossierCompleteness), not the old Search Plan's six
-            weekly-effort areas, which never actually matched what unlocks
-            the Dossier. Condensed here on purpose: the full checklist +
-            "what moves the needle" lives on /dashboard/portfolio; this is a
-            progress summary that links through, not a duplicate. Shown to
-            everyone who's cleared the hard gate (or is exempt from it),
-            same audience the old Search Plan card used. */}
-        {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Earn Your Candidate+ Account</CardTitle>
-                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-                  {dossierCompleteness.metCount} of {dossierCompleteness.totalCount} done
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Complete the steps below to unlock your Executive Dossier, Recruiter Network, and Exclusive Jobs —
-                free on any plan.
-              </p>
-              <ul className="space-y-1 text-sm">
-                {[...dossierCompleteness.requirements]
-                  .sort((a, b) => Number(b.met) - Number(a.met))
-                  .map((r) => (
-                    <li key={r.key} className="flex items-center gap-2">
-                      <span className={r.met ? 'text-success' : 'text-orange'} aria-hidden>
-                        {r.met ? '✓' : '○'}
-                      </span>
-                      <span className={r.met ? 'text-muted-foreground line-through' : 'font-medium text-foreground'}>
-                        {r.label}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-              {!dossierStatus.unlocked && (
-                <p className="text-xs text-muted-foreground">
-                  Executive Dossier: {renderMarkdownLinks(dossierStatus.reason)}
-                </p>
-              )}
-              <Link href="/dashboard/portfolio" className="text-sm font-medium text-primary underline underline-offset-4">
-                See your full Dossier progress →
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
-      </div>
-
-      {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
-
-      {stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
-
-      {(showGotHiredCTA || needsCoachingForm) && (
-        <div className="space-y-4">
-          {showGotHiredCTA && <GotHiredCTACard />}
-          {needsCoachingForm && <CoachingFormReminderCard />}
         </div>
-      )}
+        <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>
+          <Suspense fallback={null}>
+            <FreshJobsPrompt profile={profile} />
+          </Suspense>
+        </JobsModule>
+        <HomeModule
+          title="Network"
+          action={
+            <Link href="/dashboard/network" className="text-sm font-medium text-brand underline underline-offset-4">
+              Open Network
+            </Link>
+          }
+        >
+          <DashboardNetworkCard followUps={needsFollowUp} priorityContact={priorityContacts[0] ?? null} />
+        </HomeModule>
+        {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
+          <div className="lg:col-span-2">
+            <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
+          </div>
+        )}
+      </div>
 
       <Suspense fallback={null}>
         <SessionImpactSection candidateId={profile.id} />
       </Suspense>
-
-      <GuideCallout pageSlot="dashboard" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

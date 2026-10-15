@@ -9,6 +9,7 @@ import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-typ
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import FinishLineEmail from '@/emails/finish-line'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 // Sunday's email replaces the usual "one thing for today" framing with a
 // week-close-out recap, since by Sunday the ask isn't "start something new"
@@ -108,7 +109,7 @@ export async function sendFinishLineEmail(
 
     const victoriaName = getVictoriaName('daily-email')
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
+    const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'daily')
 
     const { subject, bullets } = await buildFinishLineContent(
       candidateId,

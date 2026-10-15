@@ -1,6 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import {
+  normalizeCompanySizeValue,
+  normalizeCompanyStageValue,
+  normalizeFunctionValue,
+  normalizeLevelValue,
+  normalizeRemotePreferenceValue,
+} from '@/lib/constants/candidate-profile-normalize'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -63,17 +70,18 @@ export async function updateSearchStrategy(
 
   const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
   const targetIndustries = formData.getAll('targetIndustries') as string[]
-  const primaryFunction = (formData.get('primaryFunction') as string | null) || null
-  const targetFunction = (formData.get('targetFunction') as string | null) || null
+  // Option-list values are normalised on write ('DIRECTOR' -> 'Director') — see candidate-profile-normalize.ts.
+  const primaryFunction = normalizeFunctionValue(formData.get('primaryFunction') as string | null)
+  const targetFunction = normalizeFunctionValue(formData.get('targetFunction') as string | null)
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
-  const secondaryFunction = secondaryFunctionRaw === 'none' ? null : secondaryFunctionRaw
+  const secondaryFunction = secondaryFunctionRaw === 'none' ? null : normalizeFunctionValue(secondaryFunctionRaw)
   const gapDurationRaw = (formData.get('gapDuration') as string | null) || null
   const gapDuration = gapDurationRaw === 'none' ? null : (gapDurationRaw as GapDurationBucket | null)
   const highestLevelReachedRaw = (formData.get('highestLevelReached') as string | null) || null
-  const highestLevelReached = highestLevelReachedRaw === 'none' ? null : highestLevelReachedRaw
-  const targetCompanySize = (formData.get('targetCompanySize') as string | null) || null
-  const targetCompanyStage = (formData.get('targetCompanyStage') as string | null) || null
-  const remotePreference = (formData.get('remotePreference') as string | null) || null
+  const highestLevelReached = highestLevelReachedRaw === 'none' ? null : normalizeLevelValue(highestLevelReachedRaw)
+  const targetCompanySize = normalizeCompanySizeValue(formData.get('targetCompanySize') as string | null)
+  const targetCompanyStage = normalizeCompanyStageValue(formData.get('targetCompanyStage') as string | null)
+  const remotePreference = normalizeRemotePreferenceValue(formData.get('remotePreference') as string | null)
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
   const applicationVolumeGoal = applicationVolumeGoalRaw ? Number(applicationVolumeGoalRaw) : null
   const willingToFollowUpOnApplications = formData.get('willingToFollowUpOnApplications') === 'on'

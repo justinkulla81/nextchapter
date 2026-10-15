@@ -23,6 +23,7 @@ import { extractResumeText } from '@/lib/resume/extract-text'
 import { deriveNameFromResumeText } from '@/lib/crucible/leaderboard-name'
 import { anonymize } from '@/lib/community/identity'
 import type { CrucibleSource } from '@prisma/client'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 // Session identity is the row's own id, held in a plain (non-httpOnly-only
 // because we don't need JS access, but there's no reason to expose it
@@ -358,14 +359,20 @@ export async function submitCrucibleResume(sessionId: string, file: File | null,
 
   let filePath: string | null = null
   let fileName: string | null = null
+  let fileType: 'pdf' | 'docx' = 'pdf'
   if (file && file.size > 0) {
-    const ext = file.name.split('.').pop() ?? 'pdf'
-    const path = `leads/${crypto.randomUUID()}.${ext}`
-    const admin = createAdminClient()
-    const { error } = await admin.storage.from('crucible-resumes').upload(path, file, { contentType: file.type || undefined })
-    if (!error) {
-      filePath = path
-      fileName = file.name
+    // Unauthenticated session upload: size, type and bytes are checked before
+    // anything is stored or handed to the PDF/DOCX parsers.
+    const check = await validateUpload(file, 'resume', 10 * 1024 * 1024)
+    if (check.ok) {
+      fileType = check.ext === 'docx' ? 'docx' : 'pdf'
+      const path = `leads/${crypto.randomUUID()}.${check.ext}`
+      const admin = createAdminClient()
+      const { error } = await admin.storage.from('crucible-resumes').upload(path, file, { contentType: check.contentType })
+      if (!error) {
+        filePath = path
+        fileName = file.name
+      }
     }
   }
 
@@ -383,8 +390,6 @@ export async function submitCrucibleResume(sessionId: string, file: File | null,
   // setCrucibleLeaderboardName below).
   let leaderboardDisplayName: string | null = null
   if (file && filePath) {
-    const ext = file.name.split('.').pop()?.toLowerCase()
-    const fileType = ext === 'docx' ? 'docx' : 'pdf'
     const { text } = await extractResumeText(file, fileType)
     const name = text ? deriveNameFromResumeText(text) : null
     leaderboardDisplayName = name ? anonymize(name.firstName, name.lastName) : null

@@ -88,13 +88,13 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
             {reports.map((r) => (
               <li key={r.slug}>
                 <Link href={reportPath(r)} className={ITEM_LINK}>
-                  NextChapter Displacement Report — {r.month}
+                  NextChapter White Collar Employment Report — {r.month}
                 </Link>
                 <span className="text-sm text-muted-foreground"> · {formatContentDate(r.publishedAt)}</span>
               </li>
             ))}
             <li>
-              <Link href="/reports/white-collar-index" className={ITEM_LINK}>NextChapter White-Collar Long-Term Unemployment Index</Link>
+              <Link href="/reports/white-collar-index" className={ITEM_LINK}>NextChapter White-Collar Long-Search Index</Link>
               <span className="text-sm text-muted-foreground"> · updated monthly</span>
             </li>
           </ul>

@@ -68,6 +68,18 @@ export function extractEmailBody(part: GmailPart | undefined, maxChars: number):
   return combined.slice(0, maxChars)
 }
 
+// Every URL in a message: hrefs from the HTML part (the visible text of a
+// button rarely shows where it really goes) plus bare links in the plain
+// part. Used by fake-recruiter detection, which cares where a link goes, not
+// how it reads. Capped — a real message never needs more than a few dozen.
+export function extractEmailLinks(part: GmailPart | undefined, max = 40): string[] {
+  const html = findPartByMimeType(part, 'text/html') ?? ''
+  const plain = findPartByMimeType(part, 'text/plain') ?? ''
+  const hrefs = Array.from(html.matchAll(/href\s*=\s*["']([^"']+)["']/gi), (m) => m[1].replace(/&amp;/gi, '&'))
+  const bare = plain.match(/https?:\/\/[^\s<>"')\]]+/gi) ?? []
+  return Array.from(new Set([...hrefs, ...bare].map((u) => u.replace(/[.,;:!?]+$/, '')).filter((u) => /^https?:\/\//i.test(u)))).slice(0, max)
+}
+
 // A part with a non-empty filename is an attachment (Gmail's convention —
 // the inline body parts never carry one). Collects filenames (not content)
 // so callers can pattern-match on how the file itself is named, e.g.

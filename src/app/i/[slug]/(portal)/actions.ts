@@ -95,7 +95,7 @@ const URL_RE = /^https:\/\/[^\s]+$/
 export async function saveService(
   slug: string,
   key: string,
-  patch: { on?: boolean; audience?: string[]; ownerOffice?: string; ownerName?: string | null; pricing?: string; linkUrl?: string | null },
+  patch: { on?: boolean; audience?: string[]; ownerOffice?: string; ownerName?: string | null; pricing?: string; linkUrl?: string | null; provider?: string },
 ): Promise<{ error?: string }> {
   const service = getService(key)
   if (!service) return { error: 'That service no longer exists. Reload the page.' }
@@ -107,6 +107,11 @@ export async function saveService(
   if (patch.pricing !== undefined) {
     if (!(patch.pricing in PRICING_LABELS)) return { error: 'Pick free, paid or donor-funded.' }
     clean.pricing = patch.pricing as Pricing
+  }
+  if (patch.provider !== undefined) {
+    if (!['college', 'nextchapter', 'both'].includes(patch.provider)) return { error: 'Pick who provides it.' }
+    if (!service.builtIn && patch.provider !== 'college') return { error: 'NextChapter doesn’t offer this one; it has to be your college’s own.' }
+    clean.provider = patch.provider as ServiceSetting['provider']
   }
   if (patch.linkUrl !== undefined) {
     const url = patch.linkUrl?.trim() || null

@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterDatabaseRows, bucketRecruiterDatabaseRows } from '@/lib/admin/recruiter-database'
 import { sendUnlockRecruiterNetworkNudgeEmail } from '@/lib/email/send-unlock-recruiter-network-nudge'
-import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { withCronRun } from '@/lib/cron/run'
 
 const RENUDGE_AFTER_DAYS = 14
 
@@ -11,12 +11,7 @@ const RENUDGE_AFTER_DAYS = 14
 // manual-only, since those candidates haven't actually earned the
 // "you're unlocked" pitch yet. Throttled per-candidate via
 // recruiterUnlockNudgedAt so this doesn't re-send every week forever.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.CRON_SECRET)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withCronRun('nudge-recruiter-network-unlock', async () => {
   const { lockedButUnlocked } = bucketRecruiterDatabaseRows(await getRecruiterDatabaseRows())
   const cutoff = new Date(Date.now() - RENUDGE_AFTER_DAYS * 24 * 60 * 60 * 1000)
 
@@ -45,4 +40,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ eligible: eligible.length, sent: sentCount })
-}
+})

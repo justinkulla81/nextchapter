@@ -290,14 +290,22 @@ export function ContactDirectoryTable({
         </div>
       )}
 
-      {removedCount > 0 && (
+      <div className="flex flex-wrap gap-4">
+        {removedCount > 0 && (
+          <Link
+            href="/dashboard/network/contacts/removed"
+            className="text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Removed contacts ({removedCount})
+          </Link>
+        )}
         <Link
-          href="/dashboard/network/contacts/removed"
+          href="/dashboard/network/blocked-senders"
           className="text-sm font-medium text-primary underline underline-offset-4"
         >
-          Removed contacts ({removedCount})
+          Blocked senders
         </Link>
-      )}
+      </div>
     </div>
   )
 }

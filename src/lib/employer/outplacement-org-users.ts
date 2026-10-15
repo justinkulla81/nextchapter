@@ -64,11 +64,12 @@ export async function inviteOrgUser(
   })
   if (existing?.acceptedAt) return { error: 'This person already has access to this account.' }
 
-  const orgUserRow =
-    existing ??
-    (await prisma.outplacementOrgUser.create({
-      data: { orgId: orgUser.orgId, invitedEmail: cleanEmail, fullName, role },
-    }))
+  // A pending invite sent again takes the role (and name) picked this time.
+  const orgUserRow = existing
+    ? await prisma.outplacementOrgUser.update({ where: { id: existing.id }, data: { role, ...(fullName ? { fullName } : {}) } })
+    : await prisma.outplacementOrgUser.create({
+        data: { orgId: orgUser.orgId, invitedEmail: cleanEmail, fullName, role },
+      })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     cleanEmail,
@@ -116,5 +117,19 @@ export async function finishAcceptingOutplacementOrgInvite(inviteToken: string):
 
   captureServerEvent(user.id, 'outplacement_org_invite_accepted', { orgId: invite.orgId, role: invite.role })
 
+  return {}
+}
+
+// Remove someone's access to this account (or withdraw a pending invite).
+// Never yourself, never the last admin who has signed in.
+export async function removeOrgUser(orgUser: CurrentOutplacementOrgUser, id: string): Promise<{ error?: string }> {
+  const row = await prisma.outplacementOrgUser.findFirst({ where: { id, orgId: orgUser.orgId }, select: { id: true, userId: true, role: true, acceptedAt: true } })
+  if (!row) return { error: 'Already removed.' }
+  if (row.userId && row.userId === orgUser.userId) return { error: 'You can’t remove yourself. Ask another admin.' }
+  if (row.role === 'ADMIN' && row.acceptedAt && (await prisma.outplacementOrgUser.count({ where: { orgId: orgUser.orgId, role: 'ADMIN', acceptedAt: { not: null } } })) <= 1) {
+    return { error: 'This is the only active admin. Invite another admin first.' }
+  }
+  await prisma.outplacementOrgUser.delete({ where: { id: row.id } })
+  captureServerEvent(orgUser.userId, 'outplacement_org_user_removed', { orgId: orgUser.orgId, role: row.role, pending: !row.acceptedAt })
   return {}
 }

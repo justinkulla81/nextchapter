@@ -9,6 +9,7 @@ import { applyWorkSampleUploadedRewrite } from '@/lib/scoring/rewrite-actions'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { validateUpload } from '@/lib/uploads/validate-upload'
 
 export type FormState = { error?: string } | undefined
 
@@ -87,13 +88,17 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
   let fileUrl: string | null = null
 
   if (file && file.size > 0) {
+    // The bucket is public, so what is stored and how it is typed matters:
+    // extension and Content-Type come from the validated bytes, never the
+    // filename the browser sent.
+    const check = await validateUpload(file, 'workSample', 10 * 1024 * 1024)
+    if (!check.ok) return { error: check.error }
     const admin = createAdminClient()
-    const ext = file.name.split('.').pop()
-    const path = `${profile.id}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`
+    const path = `${profile.id}/${crypto.randomUUID()}.${check.ext}`
 
     const { error: uploadError } = await admin.storage
       .from('work-samples')
-      .upload(path, file, { contentType: file.type || undefined })
+      .upload(path, file, { contentType: check.contentType })
 
     if (uploadError) {
       return { error: 'Something went wrong uploading your file. Please try again.' }

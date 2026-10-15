@@ -8,6 +8,7 @@ import type {
   MarketResponseType,
   RelationshipTag,
   ContactSource,
+  SuppressedSenderReason,
 } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
@@ -18,6 +19,10 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
+import { suppressionTarget } from '@/lib/network/suppressed-senders'
+import { getAnthropicClient } from '@/lib/anthropic'
+import { allowRequest, HOUR_MS } from '@/lib/security/rate-limit'
+import { SUPPRESSED_SENDER_REASONS } from '@/lib/network/suppressed-sender-reasons'
 
 const NETWORKING_LIST_TARGET = 25
 // Soft cap on SupportNetworkContact.emails — enforced here, not in the DB,
@@ -598,4 +603,198 @@ export async function dismissSuggestedContact(sourceId: string, sourceKind: 'mee
     })
   }
   revalidatePath('/dashboard/network/contacts')
+}
+
+// "This isn't part of my job search" — the permanent version of a one-off
+// dismiss. Unlike dismissSuggestedContact (hides one message), this remembers
+// the sender (see SuppressedSender), clears everything already detected from
+// them, and removes them from the contact list if we auto-added them, so
+// family, school and activity mail, spam and non-work contacts stop coming
+// back as follow-ups.
+export async function flagNotJobRelated(
+  sourceId: string,
+  sourceKind: 'meeting' | 'email',
+  reason: SuppressedSenderReason
+): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const option = SUPPRESSED_SENDER_REASONS.find((o) => o.reason === reason)
+  if (!option) return { error: 'Pick one of the reasons shown.' }
+
+  let rawAddress: string | null = null
+  if (sourceKind === 'meeting') {
+    const event = await prisma.trackedCalendarEvent.findFirst({
+      where: { id: sourceId, candidateId: profile.id },
+      select: { counterpartEmail: true },
+    })
+    rawAddress = event?.counterpartEmail ?? null
+  } else {
+    const activity = await prisma.trackedEmailActivity.findFirst({
+      where: { id: sourceId, candidateId: profile.id },
+      select: { fromAddress: true },
+    })
+    rawAddress = activity?.fromAddress ?? null
+  }
+  if (!rawAddress) return { error: "We couldn't find that sender. Refresh the page and try again." }
+
+  const target = suppressionTarget(rawAddress, option.scope)
+  if (!target) return { error: "That sender has no email address we can block." }
+
+  try {
+    await prisma.suppressedSender.upsert({
+      where: { candidateId_value: { candidateId: profile.id, value: target.value } },
+      create: { candidateId: profile.id, value: target.value, isDomain: target.isDomain, reason },
+      update: { reason, isDomain: target.isDomain },
+    })
+  } catch (error) {
+    console.error('Failed to save suppressed sender:', error)
+    return { error: "We couldn't save that just now. Try again in a moment." }
+  }
+
+  const now = new Date()
+  const addressMatch = target.isDomain ? `@${target.value}` : target.value
+  const [emails, meetings, contacts] = await Promise.all([
+    prisma.trackedEmailActivity.updateMany({
+      where: {
+        candidateId: profile.id,
+        dismissedAt: null,
+        fromAddress: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { dismissedAt: now },
+    }),
+    prisma.trackedCalendarEvent.updateMany({
+      where: {
+        candidateId: profile.id,
+        dismissedAt: null,
+        counterpartEmail: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { dismissedAt: now },
+    }),
+    // Only contacts we added automatically; anything the candidate imported or
+    // typed in themselves is their call to remove.
+    prisma.supportNetworkContact.updateMany({
+      where: {
+        candidateId: profile.id,
+        removedAt: null,
+        source: { in: ['EMAIL_DETECTED', 'CALENDAR_IMPORT'] },
+        email: { contains: addressMatch, mode: 'insensitive' },
+      },
+      data: { removedAt: now },
+    }),
+  ])
+
+  captureServerEvent(profile.id, 'sender_flagged_not_job_related', {
+    sourceId,
+    sourceKind,
+    reason,
+    scope: target.isDomain ? 'domain' : 'address',
+    clearedEmails: emails.count,
+    clearedMeetings: meetings.count,
+    removedContacts: contacts.count,
+  })
+
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+  return {}
+}
+
+const AI_DRAFT_LIMIT_PER_HOUR = 20
+const AI_DRAFT_MAX_CHARS = 4000
+
+// Rewrites the candidate's outreach draft to sound like a specific person
+// writing to a specific person. It only ever works from what is on the contact
+// record and in the draft: it must not invent shared history, and anything it
+// cannot know stays a [bracketed] slot for the candidate to fill.
+export async function personalizeOutreachDraft(
+  contactId: string,
+  draft: string,
+  purpose: string
+): Promise<{ draft?: string; error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+  const text = draft.trim()
+  if (!text) return { error: 'Write or generate a draft first, then we can sharpen it.' }
+  if (text.length > AI_DRAFT_MAX_CHARS) return { error: 'That draft is too long. Trim it under 4,000 characters and try again.' }
+
+  const contact = await prisma.supportNetworkContact.findFirst({
+    where: { id: contactId, candidateId: profile.id },
+    select: { name: true, company: true, inferredCompany: true, title: true, notes: true, relationshipTags: true, customTags: true },
+  })
+  if (!contact) return { error: "We couldn't find that contact. Refresh the page and try again." }
+
+  const allowed = await allowRequest({
+    bucket: 'outreach-ai-draft',
+    key: profile.id,
+    limit: AI_DRAFT_LIMIT_PER_HOUR,
+    windowMs: HOUR_MS,
+  })
+  if (!allowed) return { error: "You've used the AI polish a lot this hour. Try again in a little while, or edit the draft by hand." }
+
+  const known = [
+    `Name: ${contact.name}`,
+    contact.title && `Title: ${contact.title}`,
+    (contact.company ?? contact.inferredCompany) && `Company: ${contact.company ?? contact.inferredCompany}`,
+    contact.relationshipTags.length > 0 && `Relationship: ${contact.relationshipTags.join(', ').toLowerCase().replace(/_/g, ' ')}`,
+    contact.customTags.length > 0 && `Candidate's tags: ${contact.customTags.join(', ')}`,
+    contact.notes && `Candidate's notes: ${contact.notes.slice(0, 600)}`,
+  ].filter(Boolean)
+
+  const prompt = `You are editing a networking email a job seeker is about to send. Goal of the email: ${purpose}.
+
+What the candidate knows about the recipient:
+${known.join('\n')}${profile.confidentialSearchMode ? '\n\nThe candidate is searching confidentially: never say they are job searching or looking for work.' : ''}
+
+Rewrite the draft so it sounds like a warm, specific, confident human wrote it. Rules:
+- Keep the same purpose, ask and length (under 150 words). Plain language, no clichés ("pick your brain", "touch base", "circle back").
+- Use only facts given above or already in the draft. Never invent shared history, results or compliments.
+- Leave any [bracketed] slot as it is unless the facts above fill it exactly.
+- Keep the greeting and sign-off. Do not add a subject line.
+- Output only the email body.
+
+Draft:
+${text}`
+
+  try {
+    const res = await getAnthropicClient().messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const out = res.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('').trim()
+    if (!out) return { error: "The AI polish came back empty. Your draft is unchanged; try again." }
+    captureServerEvent(profile.id, 'outreach_draft_ai_personalized', { contactId, purpose })
+    return { draft: out }
+  } catch (error) {
+    console.error('personalizeOutreachDraft failed:', error)
+    return { error: "We couldn't reach the AI polish just now. Your draft is unchanged; try again in a moment." }
+  }
+}
+
+// Undo for flagNotJobRelated. Lifts the block for future mail only: contacts we
+// removed and mail we dismissed when it was flagged stay as they are, since we
+// can't tell those apart from ones the candidate cleared on their own.
+export async function unblockSender(suppressedSenderId: string): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  try {
+    const row = await prisma.suppressedSender.findFirst({
+      where: { id: suppressedSenderId, candidateId: profile.id },
+      select: { value: true, isDomain: true, reason: true },
+    })
+    if (!row) return {}
+    await prisma.suppressedSender.delete({ where: { id: suppressedSenderId } })
+    captureServerEvent(profile.id, 'sender_unblocked', {
+      suppressedSenderId,
+      reason: row.reason,
+      scope: row.isDomain ? 'domain' : 'address',
+    })
+  } catch (error) {
+    console.error('Failed to unblock sender:', error)
+    return { error: "We couldn't unblock that sender just now. Try again in a moment." }
+  }
+  revalidatePath('/dashboard/network/blocked-senders')
+  revalidatePath('/dashboard/network')
+  return {}
 }

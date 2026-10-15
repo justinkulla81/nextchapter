@@ -32,7 +32,7 @@ export default async function WorkSamplesPage() {
               are never labeled as such externally, so add them here without hesitation. Landing your
               first interim or fractional client also counts toward your Landed an Interim Role
               badge — see the full path on the{' '}
-              <a href="/dashboard/interim-work" className="text-primary underline underline-offset-4">
+              <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
                 Interim Work
               </a>{' '}
               page.
@@ -62,7 +62,7 @@ export default async function WorkSamplesPage() {
               are never labeled as such externally, so add them here without hesitation. Landing your
               first interim or fractional client also counts toward your Landed an Interim Role
               badge — see the full path on the{' '}
-              <a href="/dashboard/interim-work" className="text-primary underline underline-offset-4">
+              <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
                 Interim Work
               </a>{' '}
               page.
@@ -135,7 +135,7 @@ export default async function WorkSamplesPage() {
             are never labeled as such externally, so add them here without hesitation. Landing your
             first interim or fractional client also counts toward your Landed an Interim Role
             badge — see the full path on the{' '}
-            <a href="/dashboard/interim-work" className="text-primary underline underline-offset-4">
+            <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
               Interim Work
             </a>{' '}
             page.

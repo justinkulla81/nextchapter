@@ -30,7 +30,7 @@ export const NAMED_REASON_ACTION_LINKS: Record<string, { href: string; label: st
   ownership_gap: { href: '/dashboard/references', label: 'Request a reference that speaks to this' },
   [CAREER_TRAJECTORY_GAP_ID]: { href: '/dashboard/interview-prep', label: 'Prep an answer for this in Interview Prep' },
   [VISIBILITY_CALIBRATION_GAP_ID]: { href: '/dashboard/marketing-plan', label: 'Build your Marketing Plan' },
-  [EMPLOYMENT_GAP_GAP_ID]: { href: '/dashboard/interim-work', label: 'Find interim work to bridge the gap' },
+  [EMPLOYMENT_GAP_GAP_ID]: { href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work', label: 'Find interim work to bridge the gap' },
 }
 
 export function getNamedReasonActionLink(reasonId: string): { href: string; label: string } | null {

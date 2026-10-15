@@ -64,7 +64,7 @@ export async function scheduleCheckIns(institutionId: string, now = new Date()):
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true } })
   const services = serviceSettingsFrom(inst.enabledFeatures)
   const rows: Prisma.CheckInCreateManyInput[] = []
-  const base = { institutionId, status: { not: 'OPTED_OUT' as const }, doNotContact: false }
+  const base = { institutionId, status: { not: 'OPTED_OUT' as const }, doNotContact: false, emailSuppressedAt: null }
 
   if (services.grad_checkins?.on) {
     const years = [...new Set(EARLY_CAREER.map((c) => now.getUTCFullYear() - Math.ceil(c.months / 12)).flatMap((y) => [y - 1, y, y + 1]))]

@@ -12,7 +12,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Coaching / Recruiting
 
-- Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
+- (Partly built 2026-10-14 for coaches only: booking inside NextChapter with Meet links on the shared calendar; per-coach calendar connection and recruiters are still open, see docs/OPEN_ITEMS.md.) Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
 
 ## Auth
 
@@ -24,6 +24,8 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Community
 
+- **Supporter extensions** — the supporter feature today is invite-by-email: a person with no login who gets a weekly effort-only note and can send a cheer. Next steps, in priority order: (1) let a supporter be a NextChapter member, accepting the invite in-app (the invite email always goes out and never reveals whether an account exists); (2) "share a win" (member taps once to tell supporters, who can only react); (3) "ask for help" (a specific small ask supporters can answer or ignore); (4) buddy pairs (two members share a Monday plan and a Friday result, reciprocal, no scoring; overlaps with Accountability partners under Interview Prep below); (5) quiet co-working hours, practice-interview swaps, one tip a week, offered intros the member accepts first. Guardrails for all of them: opt-in on both sides, supporters never see jobs, companies, names or messages, no nudges or read receipts, no comparison or leaderboards, caps on cheers and tips, pause automatically when the plan is "taking a break", and nothing for members in Confidential Search Mode on either side.
+
 - Add a news-article feed to the merged Community page — curated job-market/career-news items interspersed with candidate posts and activity, to give the feed something to show even when candidate activity is quiet. Needs an actual content/curation pipeline (an editorial source or a news API), which doesn't exist yet — logged here rather than built as part of the Community+Circle merge.
 
 ## Interview Prep
@@ -33,6 +35,15 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 ## Notifications
 
 - SMS accountability nudges — let a candidate opt in to text reminders (in addition to email) for extra accountability, with a 5-point one-time bonus for opting in (mirroring the existing salary/work-auth confirmation bonuses) and copy communicating that at the decision point. The `smsPhone`/`smsConsentedAt` fields and `updateSmsConsent` action already exist from an earlier pass, but the opt-in UI (onboarding contract page, Communication Preferences settings) has been deactivated for now — no actual send integration exists, and Twilio itself costs real money (~$0.0079/segment for US SMS plus ~$1-2/month per phone number), so this is deferred until that cost is worth taking on. `SmsConsentForm.tsx` was left in place, just unreferenced, so re-activating is mostly wiring the UI back in once Twilio is set up and the point-bonus mechanism is built. WhatsApp Business API is a real alternative to plain SMS worth weighing at the same time — richer message format, but needs Meta business verification (1-4 weeks) and only allows unsolicited sends outside a 24-hour reply window via pre-approved templates.
+
+## Safety / Fake-job detection
+
+*(Built: Scam watch. Detector in `src/lib/scam-shield/`, hooked into the Gmail sync, rapid-response email from Vic, `/dashboard/scam-watch`, public page `/scam-watch`, 10-minute `scam-watch` cron.)* Still not built:
+
+- True real-time alerts. Today the check runs on a 10-minute cron over Gmail. Gmail push notifications (Pub/Sub watch) would cut that to seconds but need a Google Cloud topic and webhook.
+- Compare against real company domains. The detector reads the claimed company from the email and checks the domains against it. A verified company-domain directory (see "Real company-email-domain verification" below) would make the match certain instead of heuristic.
+- Check job postings, not just email: flag a scam listing on the job board or in the tracker the same way.
+- Tune from feedback: review `scam_alert_marked_legit` events in PostHog to loosen rules that cry wolf.
 
 ## Dashboard
 
@@ -61,7 +72,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Engagement / Gamification (not built)
 
-- **Pivot Tool** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
+- **Pivot Tool (built 2026-10-14 as `/dashboard/pivot`, see docs/CAREER_TAXONOMY.md; the Victoria-initiated prompt after a stuck period is not built)** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
 - **Accountability partners** — opt-in peer pairing by function/level/week-in-search, with an anti-ghost mechanism (48-hour confirmation to activate the pairing, auto-dissolve after 2 missed check-ins, clean rematch). Distinct from the existing Support Network (which is the candidate's own personal contacts) — this would be candidate-to-candidate pairing within NextChapter.
 - **Opt-in leaderboard** — anonymized, opt-in ranking by function or cohort. Would need enough active candidates in a given function/cohort to be meaningful rather than exposing individuals.
 

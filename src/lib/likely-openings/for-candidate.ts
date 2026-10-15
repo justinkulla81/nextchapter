@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { LikelyOpeningSignalType } from '@prisma/client'
-import { companyKey, isOfficerRole, ROLE_FUNCTIONS, type OfficerRole } from './roles'
+import { companyKey, isOfficerRole, ROLE_FUNCTIONS, signalSource, type OfficerRole, type SignalSource } from './roles'
 
 // The candidate fields ranking reads. Any CandidateProfile row satisfies it.
 export interface LikelyOpeningCandidate {
@@ -20,6 +20,8 @@ export interface LikelyOpeningForCandidate {
   summary: string
   filingDate: Date
   filingUrl: string
+  /** Where the signal was read from: an SEC filing or a news report. */
+  source: SignalSource
   amountRaised: number | null
   industry: string | null
   location: string | null
@@ -110,7 +112,7 @@ export function scoreLikelyOpening(
 }
 
 /**
- * Active SEC "likely opening" signals ranked for one candidate: companies
+ * Active "likely opening" signals (SEC filings and news reports) ranked for one candidate: companies
  * they watch or applied to first, then function fit (the implied role vs.
  * their target/primary/secondary function), level fit, deal size and
  * freshness. Signals with no company tie and no function fit are dropped
@@ -136,7 +138,7 @@ export async function getLikelyOpeningsForCandidate(
 
   const select = {
     id: true, companyName: true, companyNameNormalized: true, signalType: true, roles: true, summary: true,
-    filingDate: true, filingUrl: true, amountRaised: true, industry: true, location: true,
+    filingDate: true, filingUrl: true, cik: true, amountRaised: true, industry: true, location: true,
   } as const
   const [own, recent] = await Promise.all([
     ownKeys.length
@@ -158,9 +160,9 @@ export async function getLikelyOpeningsForCandidate(
         ? ('applied' as const)
         : null
     const { score, reason, functionFit } = scoreLikelyOpening({ ...row, companyRelation }, candidate, now)
-    const { companyNameNormalized: _key, ...view } = row
+    const { companyNameNormalized: _key, cik, ...view } = row
     void _key
-    return { ...view, companyRelation, reason, score, relevant: companyRelation !== null || functionFit }
+    return { ...view, source: signalSource(cik), companyRelation, reason, score, relevant: companyRelation !== null || functionFit }
   })
   ranked.sort((a, b) => Number(b.relevant) - Number(a.relevant) || b.score - a.score)
 
