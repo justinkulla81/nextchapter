@@ -173,7 +173,7 @@ export default async function DashboardPage() {
     // would be a second, parallel computation of the starting-band input.
     computeProbabilityGrade(profile.id),
     getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber),
+    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing

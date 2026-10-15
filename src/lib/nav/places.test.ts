@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PLACES, activeTab, placeForPath, visibleTabs } from './places'
+import { PLACES, PREMIUM_HREF, activeTab, placeForPath, resolveTabHref, visibleTabs } from './places'
 
 describe('placeForPath', () => {
   it('puts the dashboard root in Home', () => {
@@ -27,6 +27,12 @@ describe('placeForPath', () => {
       '/dashboard/support': 'help',
       '/dashboard/benefits-network': 'help',
       '/dashboard/help': 'help',
+      '/dashboard/scam-watch': 'help',
+      '/dashboard/documents': 'personalize',
+      '/dashboard/book-session': 'network',
+      '/dashboard/my-coaching': 'network',
+      '/dashboard/pivot': 'jobs',
+      '/dashboard/recruiter-requests': 'network',
     }
     for (const [path, key] of Object.entries(routes)) expect(placeForPath(path)?.key, path).toBe(key)
   })
@@ -40,5 +46,15 @@ describe('visibleTabs', () => {
     const jobs = PLACES.find((p) => p.key === 'jobs')!
     expect(visibleTabs(jobs, { employed: false }).some((t) => t.label === 'Reviews and raises')).toBe(false)
     expect(visibleTabs(jobs, { employed: true }).some((t) => t.label === 'Reviews and raises')).toBe(true)
+  })
+})
+
+describe('resolveTabHref', () => {
+  const coaching = PLACES.find((p) => p.key === 'network')!.tabs.find((t) => t.label === 'Coaching')!
+  it('sends members without access to Premium', () => {
+    expect(resolveTabHref(coaching, { coaching: false, recruiters: false })).toBe(PREMIUM_HREF)
+  })
+  it('sends members with access to the real page', () => {
+    expect(resolveTabHref(coaching, { coaching: true, recruiters: false })).toBe('/dashboard/my-coaching')
   })
 })

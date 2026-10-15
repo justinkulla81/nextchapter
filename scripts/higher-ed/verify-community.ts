@@ -28,6 +28,8 @@ import { tabsFor, type AccessToken } from '../../src/lib/higher-ed/workspaces'
 import { deleteMemberRecord, memberExport } from '../../src/lib/higher-ed/data-requests'
 import { systemDashboard } from '../../src/lib/higher-ed/systems'
 import { regionAreas } from '../../src/lib/higher-ed/profile'
+import { joinCircle, markReferred, postClassNote, listClassNotes } from '../../src/lib/higher-ed/connect'
+import { readMonthly } from '../../src/lib/higher-ed/monthly'
 import { regionNotices } from '../../src/lib/higher-ed/rapid-response'
 import { memberAudiences, memberCards, serviceSettingsFrom, serviceTarget, getService } from '../../src/lib/higher-ed/services'
 
@@ -144,6 +146,25 @@ async function main() {
     const st2 = serviceSettingsFrom({ services: { coaching: { on: true, provider: 'college', linkUrl: 'https://college.example/coach', audience: ['in_transition'] } } })
     check('In transition sees it; others don’t', [memberCards(st2, memberAudiences({ affiliation: 'ALUM', classYear: 2000 }, new Date(), true)).some((x) => x.key === 'coaching'), memberCards(st2, memberAudiences({ affiliation: 'ALUM', classYear: 2000 })).some((x) => x.key === 'coaching')], [true, false])
     check('Old saved link means both', serviceSettingsFrom({ services: { coaching: { linkUrl: 'https://x.example' } } }).coaching.provider, 'both')
+
+    // Class notes: a short note refused, two a day max, newest first.
+    check('Short class note refused', 'error' in (await postClassNote(inst.id, ann, 'career', 'hi')), true)
+    await postClassNote(inst.id, ann, 'career', 'Started a new role as an analyst this week.')
+    await postClassNote(inst.id, ann, 'life', 'Moved back home to Pittsburgh this fall.')
+    check('Third note in a day refused', 'error' in (await postClassNote(inst.id, ann, 'other', 'One more update for everyone here.')), true)
+    check('Notes listed', (await listClassNotes(inst.id)).length, 2)
+
+    // Circles fill up.
+    const circle = await prisma.jobSearchCircle.create({ data: { institutionId: inst.id, name: 'Test circle', facilitator: 'Coach', startsAt: new Date(), capacity: 1, createdBy: 'verify' }, select: { id: true } })
+    await joinCircle(circle.id, ann, 'Interviews')
+    check('Full circle refuses', 'error' in (await joinCircle(circle.id, bo, '')), true)
+
+    // Referrals: only after accepting.
+    const intro = await prisma.alumniIntroRequest.create({ data: { institutionId: inst.id, requesterMemberId: bo, targetMemberId: ann, companyName: 'Acme', purpose: 'referral' }, select: { id: true } })
+    check('Can’t mark referred before accepting', 'error' in (await markReferred(ann, intro.id)), true)
+    await prisma.alumniIntroRequest.update({ where: { id: intro.id }, data: { status: 'ACCEPTED' } })
+    check('Marked referred', (await markReferred(ann, intro.id)).ok, true)
+    check('Monthly email off by default', readMonthly(null).on, false)
 
     // Multi-campus: small counts suppressed.
     const d = await systemDashboard(system.id)

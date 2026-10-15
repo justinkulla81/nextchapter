@@ -15,6 +15,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmailPanel'
 import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGradeOverridePanel'
+import { AdminAccessPanel } from '@/components/admin/AdminAccessPanel'
+import { grantsFor } from '@/lib/access/grants'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
@@ -1151,6 +1153,18 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                 reason={privacyProfile?.exceptionalGradeOverrideReason ?? null}
                 by={privacyProfile?.exceptionalGradeOverrideBy ?? null}
                 at={privacyProfile?.exceptionalGradeOverrideAt ?? null}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Coaching and recruiter access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminAccessPanel
+                candidateId={id}
+                grants={(await grantsFor(id)).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
               />
             </CardContent>
           </Card>

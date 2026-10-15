@@ -38,7 +38,7 @@ import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSect
 import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
-import { midLevelRelevantFor } from '@/lib/jobs/mid-level'
+import { ALL_STAGES_WINDOW, memberStageWindow } from '@/lib/jobs/career-stage'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -97,6 +97,8 @@ import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
+import { loadSkillsFit } from '@/lib/careers/skills-fit-server'
+import { OnetAttribution } from '@/components/OnetAttribution'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
 import { getCultureProfiles, getCulturePreferences } from '@/lib/companies/culture-profile'
 import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/insider-network'
@@ -494,6 +496,11 @@ async function JobRecommendationsSection({
   }
   // Per-job skills gap, from the job's own description only.
   const memberKeywords = memberSkillKeywords(profile)
+  // Separate from the fit badge: how this kind of work lines up with theirs, from O*NET (null until that data is loaded).
+  const skillsFitFor = await loadSkillsFit(profile.id, memberKeywords).catch((error) => {
+    console.error('Skills fit unavailable:', error)
+    return null
+  })
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
       title: p.title,
@@ -591,6 +598,7 @@ async function JobRecommendationsSection({
                           competition={competitionFor(posting)}
                           contacts={contactsByPosting.get(posting.id)}
                           skillGap={skillGapFor(posting)}
+                          skillsFit={skillsFitFor?.(posting.title)}
                           match={matchFor(posting)}
                           insiders={insidersFor(posting)}
                           explainGapsEnabled={isExplainGapsEnabled()}
@@ -646,6 +654,8 @@ async function JobRecommendationsSection({
           )}
         </div>
       )}
+
+      {skillsFitFor && <OnetAttribution />}
 
       <InterestedJobsList jobs={interestedJobs} />
     </div>
@@ -885,8 +895,11 @@ async function FindMyJobBody({
       isCandidatePlus,
       where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
       view: boardView,
-      // Mid-level jobs: for manager / senior-individual / pivoting members, or anyone who picks "Mid-level".
-      includeMidLevel: seniorityGroup ? seniorityGroup === 'MID_LEVEL' : midLevelRelevantFor(boardProfile),
+      // The member's stage, one up and one down (career-stage.ts; a pivot path adds
+      // one more down); a seniority-filter choice shows exactly that group instead.
+      stageWindow: seniorityGroup ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
+      includeMidLevel: true,
+      includeEarlyCareer: true,
       workTypes,
       keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
     }),

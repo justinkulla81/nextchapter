@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { activeTab, lockReasonFor, placeForPath, visibleTabs, type NavLocks } from '@/lib/nav/places'
+import { activeTab, lockReasonFor, placeForPath, resolveTabHref, visibleTabs, type NavLocks, type PaidAccess } from '@/lib/nav/places'
 
 // The tab row every page in a place shows, so moving around inside a place
 // never needs the main menu. Renders nothing outside the six places.
-export function PlaceTabs({ employed, locks }: { employed: boolean; locks: NavLocks }) {
+export function PlaceTabs({ employed, locks, paidAccess }: { employed: boolean; locks: NavLocks; paidAccess: PaidAccess }) {
   const pathname = usePathname()
   const place = placeForPath(pathname)
   if (!place) return null
@@ -40,7 +40,7 @@ export function PlaceTabs({ employed, locks }: { employed: boolean; locks: NavLo
           return (
             <li key={tab.href}>
               <Link
-                href={tab.href}
+                href={resolveTabHref(tab, paidAccess)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   '-mb-px block border-b-2 py-2 text-sm font-medium whitespace-nowrap transition-colors',
@@ -48,6 +48,9 @@ export function PlaceTabs({ employed, locks }: { employed: boolean; locks: NavLo
                 )}
               >
                 {tab.label}
+                {tab.paid && !paidAccess[tab.paid] && (
+                  <span className="ml-1.5 rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-success uppercase">Premium</span>
+                )}
               </Link>
             </li>
           )

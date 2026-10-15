@@ -124,7 +124,7 @@ export async function SprintActionCompletion({
   )
 
   const usedKeys = new Set(committedActions.map((a) => a.actionType ?? a.text))
-  const suggestedActions = await getSuggestedActions(candidateId, weeklySprintsCount + 1)
+  const suggestedActions = await getSuggestedActions(candidateId, weeklySprintsCount + 1, { withNudges: true })
   const relevantSuggested = suggestedActions.filter(
     (a) =>
       a.actionType &&

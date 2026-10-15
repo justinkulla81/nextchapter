@@ -48,7 +48,7 @@ async function sendOrResendInvite(
   if (existing) {
     return {
       error:
-        'This person already has a NextChapter account. Ask them to log in and connect with you from there instead.',
+        'This person already has a NextChapter account. Make them an access code (Codes and sessions) and they can enter it on their Executive Coach page.',
     }
   }
 

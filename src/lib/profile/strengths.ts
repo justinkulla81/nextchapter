@@ -36,6 +36,8 @@ export type StrengthInput = {
   refs?: { adaptability?: number | null; followThrough?: number | null; presence?: number | null; collaboration?: number | null; composure?: number | null; count: number; superpowers: string[] } | null
   track?: { team?: string | null; org?: string | null; budget?: string | null; pnl?: string | null; initiative?: string | null } | null
   skills?: { strong: number; expert: number; total: number } | null
+  // Share of peers in the same function below this person (0..1), when there are enough peers.
+  peerPercentile?: { team?: number | null; scale?: number | null; skills?: number | null } | null
   yearsExperience?: number | null
   picked?: string[] // TOP_STRENGTH_OPTIONS values
 }
@@ -97,12 +99,25 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
   const t = input.track
   if (t) {
     const team = Math.max(SIZE[t.team ?? ''] ?? 0, (SIZE[t.org ?? ''] ?? 0) * 0.8)
-    if (t.team || t.org) sig.leadership.push({ v: team, w: 1, objective: true, evidence: t.team && SIZE_WORDS[t.team] ? `Led a team of ${SIZE_WORDS[t.team]}` : 'Led people indirectly' })
+    const tp = input.peerPercentile?.team
+    if (t.team || t.org)
+      sig.leadership.push({
+        v: typeof tp === 'number' ? Math.max(team, tp) : team,
+        w: 1,
+        objective: true,
+        evidence: `${t.team && SIZE_WORDS[t.team] ? `Led a team of ${SIZE_WORDS[t.team]}` : 'Led people indirectly'}${typeof tp === 'number' && tp >= 0.5 ? `, larger than ${Math.round(tp * 100)}% of people in your field` : ''}`,
+      })
     const money = Math.max(MONEY[t.budget ?? ''] ?? 0, MONEY[t.initiative ?? ''] ?? 0)
     const pnlBoost = t.pnl === 'PNL' ? 0.15 : 0
     if (t.budget || t.initiative || t.pnl) {
       const words = [t.budget && MONEY_WORDS[t.budget] ? `owned a budget of ${MONEY_WORDS[t.budget]}` : null, t.pnl === 'PNL' ? 'carried a P&L' : null, t.initiative && MONEY_WORDS[t.initiative] ? `led an initiative of ${MONEY_WORDS[t.initiative]}` : null].filter(Boolean)
-      sig.scale.push({ v: Math.min(1, money + pnlBoost), w: 1, objective: true, evidence: words.length ? `You ${words.join(', ')}` : 'Budget responsibility' })
+      const sp = input.peerPercentile?.scale
+      sig.scale.push({
+        v: typeof sp === 'number' ? Math.max(Math.min(1, money + pnlBoost), sp) : Math.min(1, money + pnlBoost),
+        w: 1,
+        objective: true,
+        evidence: `${words.length ? `You ${words.join(', ')}` : 'Budget responsibility'}${typeof sp === 'number' && sp >= 0.5 ? `, more than ${Math.round(sp * 100)}% of people in your field` : ''}`,
+      })
     }
   }
 
@@ -110,7 +125,13 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
   if (s && s.total > 0) {
     const used = Math.max(0, s.total - s.strong - s.expert)
     const v = Math.min(1, (s.expert * 2 + s.strong + 0.3 * used) / 10 + (input.yearsExperience ? Math.min(0.2, input.yearsExperience / 75) : 0))
-    sig.expertise.push({ v, w: 1, objective: true, evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}` })
+    const kp = input.peerPercentile?.skills
+    sig.expertise.push({
+      v: typeof kp === 'number' ? (v + kp) / 2 : v,
+      w: 1,
+      objective: true,
+      evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}${typeof kp === 'number' && kp >= 0.5 ? `; deeper than ${Math.round(kp * 100)}% of people in your field` : ''}`,
+    })
   }
 
   for (const p of input.picked ?? []) {
@@ -159,13 +180,13 @@ export function strengthHeadline(p: StrengthProfile): string {
 // can say "plays to your strength" or "leans on something that isn't a
 // strength yet". Keyed by pivot-map role.
 const LEANS: Record<StrengthKey, string[]> = {
-  influence: ['recruiter', 'account_executive', 'business_development', 'partnerships', 'search_firm_consultant', 'sales_development', 'customer_success', 'talent_acquisition', 'hrbp', 'account_manager', 'account_management', 'sales', 'product_marketing', 'community_management', 'developer_relations', 'fundraising', 'solutions_consulting', 'healthcare_sales', 'government_contracting', 'teaching', 'customer_education', 'management_consulting', 'consulting'],
-  leadership: ['operations_management', 'retail_management', 'hospitality', 'people_operations', 'operations', 'military_government'],
+  influence: ['communications', 'journalism', 'csr', 'recruiter', 'account_executive', 'business_development', 'partnerships', 'search_firm_consultant', 'sales_development', 'customer_success', 'talent_acquisition', 'hrbp', 'account_manager', 'account_management', 'sales', 'product_marketing', 'community_management', 'developer_relations', 'fundraising', 'solutions_consulting', 'healthcare_sales', 'government_contracting', 'teaching', 'customer_education', 'management_consulting', 'consulting'],
+  leadership: ['engineering_manager', 'nonprofit_programs', 'operations_management', 'retail_management', 'hospitality', 'people_operations', 'operations', 'military_government'],
   composure: ['customer_service', 'nursing_clinical', 'hospitality', 'event_management', 'security_risk', 'support_operations', 'retail_management', 'sales_development'],
   execution: ['project_management', 'project_program', 'program_management', 'technical_program_management', 'implementation', 'logistics_supply_chain', 'operations', 'admin_ea', 'event_management', 'procurement', 'revenue_operations', 'marketing_operations'],
-  judgment: ['product_management', 'product', 'compliance', 'legal', 'contracts_management', 'fpa', 'management_consulting', 'consulting', 'security_risk', 'clinical_operations', 'hrbp'],
-  expertise: ['engineering', 'data_analytics', 'data_analyst', 'hris', 'compensation', 'people_analytics', 'finance_accounting', 'legal', 'clinical_informatics', 'instructional_design', 'design', 'ux_research', 'fpa'],
-  collaboration: ['program_management', 'product_operations', 'people_operations', 'implementation', 'learning_development', 'clinical_operations', 'business_analyst'],
+  judgment: ['public_sector', 'corporate_development', 'investment', 'product_management', 'product', 'compliance', 'legal', 'contracts_management', 'fpa', 'management_consulting', 'consulting', 'security_risk', 'clinical_operations', 'hrbp'],
+  expertise: ['data_scientist', 'investment', 'engineering', 'data_analytics', 'data_analyst', 'hris', 'compensation', 'people_analytics', 'finance_accounting', 'legal', 'clinical_informatics', 'instructional_design', 'design', 'ux_research', 'fpa'],
+  collaboration: ['education_admin', 'public_sector', 'program_management', 'product_operations', 'people_operations', 'implementation', 'learning_development', 'clinical_operations', 'business_analyst'],
   adaptability: ['product_management', 'product', 'business_development', 'community_management', 'customer_success', 'management_consulting', 'consulting', 'implementation'],
   scale: ['operations_management', 'procurement', 'fpa', 'program_management'],
 }

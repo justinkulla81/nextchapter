@@ -10,10 +10,10 @@ import { screenImportedJob } from '@/lib/jobs/import-screen'
 import { SENIORITY_GROUPS, levelsInGroup, seniorityGroupOf, screenJobTitle } from '@/lib/jobs/job-seniority'
 
 describe('mid-level tier', () => {
-  it('imports mid-level professional roles, still screens out entry-level', () => {
+  it('imports mid-level professional roles; level I is entry-level, coordinators stay out', () => {
     expect(screenImportedJob('Financial Analyst', 'Louisville, KY')).toMatchObject({ keep: true, level: 'MID_IC' })
     expect(screenImportedJob('Software Engineer', 'Remote')).toMatchObject({ keep: true, level: 'MID_IC' })
-    expect(screenImportedJob('Software Engineer I', 'Remote').keep).toBe(false)
+    expect(screenImportedJob('Software Engineer I', 'Remote')).toMatchObject({ keep: true, level: 'ENTRY_IC' })
     expect(screenImportedJob('Marketing Coordinator', 'Remote').keep).toBe(false)
     // Other feeds keep the manager floor unless they ask for less.
     expect(screenJobTitle('Financial Analyst').keep).toBe(false)
@@ -33,14 +33,20 @@ describe('mid-level tier', () => {
     expect(midLevelRelevantFor({ highestLevelReached: 'DIRECTOR' })).toBe(false)
     expect(midLevelRelevantFor({ highestLevelReached: 'VP' })).toBe(false)
     expect(midLevelRelevantFor({ highestLevelReached: 'C-Suite' })).toBe(false)
+    // Directors see two levels down; changing careers adds one more, reaching mid-level.
     expect(midLevelRelevantFor({ highestLevelReached: 'Director', isPivoting: true })).toBe(true)
+    expect(midLevelRelevantFor({ highestLevelReached: 'Manager', isPivoting: true })).toBe(true)
   })
 
   it('leaves mid-level jobs out of the board query unless asked for', () => {
-    expect(boardLevelWindowWhere(undefined)).toEqual({ AND: [{}, EXCLUDE_MID_LEVEL_WHERE] })
     const where = { createdAt: { gte: new Date(0) } }
-    expect(boardLevelWindowWhere(where, false)).toEqual({ AND: [where, EXCLUDE_MID_LEVEL_WHERE] })
-    expect(boardLevelWindowWhere(where, true)).toBe(where)
+    const levels = (w: ReturnType<typeof boardLevelWindowWhere>) =>
+      (((w.AND as object[])[1] as { OR: { level: { in?: string[] } | null }[] }).OR[1].level as { in: string[] }).in
+    expect((boardLevelWindowWhere(where).AND as object[])[0]).toBe(where)
+    expect(levels(boardLevelWindowWhere(where))).not.toContain('MID_IC')
+    expect(levels(boardLevelWindowWhere(where, { includeMidLevel: true }))).toContain('MID_IC')
+    expect(levels(boardLevelWindowWhere(undefined))).toContain('VP')
+    expect(EXCLUDE_MID_LEVEL_WHERE).toBeDefined()
   })
 
   it('keeps mid-level jobs out of emails while MID_LEVEL_IN_EMAILS is off', () => {

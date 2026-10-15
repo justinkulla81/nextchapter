@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
+import { ProgramBar } from '@/components/dashboard/ProgramBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
@@ -55,6 +58,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     gmailConnected,
     helpRepliesWaiting,
     freshJobsCount,
+    documentRequestCount,
     profile,
   ] = await Promise.all([
     getSupportNetworkUnreadCountForBadge(profileId),
@@ -64,6 +68,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     isGmailConnected(profileId),
     getHelpRepliesWaiting(profileId),
     getFreshJobsCountForBadge(profileId),
+    countOpenRequestsForCandidate(profileId),
     getDashboardProfile(),
   ])
   // One badge per place. Network adds up its three live signals: people to
@@ -78,6 +83,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
         jobs: freshJobsCount,
         network: needsFollowUpCount + messagesUnreadCount + supportNetworkUnreadCount,
         help: helpRepliesWaiting,
+        personalize: documentRequestCount,
       }}
       hasEmailConnection={gmailConnected}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
@@ -133,11 +139,12 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
 // The place tab row needs two connection flags to show the right locks; its
 // own boundary keeps those queries off the page's critical path.
 async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
-  const [profile, gmailConnected] = await Promise.all([getDashboardProfile(), isGmailConnected(profileId)])
+  const [profile, gmailConnected, access] = await Promise.all([getDashboardProfile(), isGmailConnected(profileId), accessFor(profileId)])
   return (
     <PlaceTabs
       employed={isInWorkMember(profile)}
       locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null }}
+      paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
     />
   )
 }
@@ -176,6 +183,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Suspense fallback={null}>
         <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
       </Suspense>
+      {/* Outplacement: the employer's brand, when they enrolled this person and set a look. */}
+      <Suspense fallback={null}>
+        <ProgramBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
+      </Suspense>
       <Suspense
         fallback={
           <DashboardNav />
@@ -202,7 +213,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <GoogleConnectResultBanner />
             </Suspense>
             <Suspense
-              fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} />}
+              fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} />}
             >
               <PlaceTabsWithLocks profileId={profile.id} />
             </Suspense>

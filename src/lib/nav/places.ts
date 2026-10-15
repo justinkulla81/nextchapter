@@ -12,6 +12,20 @@ export interface PlaceTab {
   alsoMatches?: string[]
   // Only shown when the member is in one of the employed journeys.
   employedOnly?: boolean
+  // Needs coaching or the recruiter network (membership, or a grant such as an
+  // outplacement seat or coach code). Without it the tab leads to the Premium
+  // page and is marked Premium.
+  paid?: PaidKey
+}
+
+export type PaidKey = 'coaching' | 'recruiters'
+export type PaidAccess = Record<PaidKey, boolean>
+export const PREMIUM_HREF = '/dashboard/premium'
+
+// Where a tab goes for this member: the real page when they have access, the
+// Premium page when they don't.
+export function resolveTabHref(tab: PlaceTab, access: PaidAccess): string {
+  return tab.paid && !access[tab.paid] ? PREMIUM_HREF : tab.href
 }
 
 export interface Place {
@@ -43,7 +57,7 @@ export const PLACES: Place[] = [
       { label: 'Find a job', href: '/dashboard/find-my-job', alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] },
       { label: 'Companies', href: '/dashboard/companies', alsoMatches: ['/dashboard/company-tracker'] },
       { label: 'Market', href: '/dashboard/market', alsoMatches: ['/dashboard/market-reality', '/dashboard/market-intelligence'] },
-      { label: 'Pivot paths', href: '/dashboard/pivot-paths' },
+      { label: 'Explore other roles', href: '/dashboard/pivot', alsoMatches: ['/dashboard/pivot-paths'] },
       { label: 'From my groups', href: '/dashboard/alumni-jobs' },
       { label: 'Interview prep', href: '/dashboard/interview-prep' },
       { label: 'Reviews and raises', href: '/dashboard/in-work', employedOnly: true },
@@ -62,7 +76,8 @@ export const PLACES: Place[] = [
       { label: 'Inbox', href: '/dashboard/messages' },
       { label: 'My supporters', href: '/dashboard/supporters' },
       { label: 'My groups', href: '/dashboard/groups', alsoMatches: ['/dashboard/universities'] },
-      { label: 'Recruiters and coaches', href: '/dashboard/recruiter-requests', alsoMatches: ['/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier', '/dashboard/premium'] },
+      { label: 'Coaching', href: '/dashboard/my-coaching', paid: 'coaching', alsoMatches: ['/dashboard/book-session', '/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier'] },
+      { label: 'Recruiters', href: '/dashboard/recruiter-requests', paid: 'recruiters', alsoMatches: [PREMIUM_HREF] },
     ],
   },
   {
@@ -84,6 +99,7 @@ export const PLACES: Place[] = [
       { label: 'My work profile', href: '/dashboard/skills-assessments', alsoMatches: ['/dashboard/work-profile', '/dashboard/skills-assessment', '/dashboard/retake-assessment'] },
       { label: 'My search', href: '/dashboard/search-strategy', alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan', '/dashboard/platforms'] },
       { label: 'For recruiters', href: '/dashboard/recruiter-report', alsoMatches: ['/dashboard/privacy'] },
+      { label: 'Documents', href: '/dashboard/documents' },
       { label: 'Membership', href: '/dashboard/membership' },
     ],
   },
@@ -94,6 +110,7 @@ export const PLACES: Place[] = [
     tabs: [
       { label: 'Talk to someone', href: '/dashboard/support' },
       { label: 'Money and benefits', href: '/dashboard/benefits', alsoMatches: ['/dashboard/benefits-network'] },
+      { label: 'Scam watch', href: '/dashboard/scam-watch' },
       { label: 'Questions and feedback', href: '/dashboard/help' },
     ],
   },

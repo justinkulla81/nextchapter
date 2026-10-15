@@ -27,11 +27,29 @@ export function ResumeConfirmForm({ profile }: { profile: CandidateProfile }) {
           <SelectContent>
             {HIGHEST_LEVEL_OPTIONS.map((level) => (
               <SelectItem key={level} value={level}>
-                {level}
+                {level === 'IC' ? 'Individual contributor (IC)' : level}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="yearsExperience">Years of professional experience</Label>
+        <Input
+          id="yearsExperience"
+          name="yearsExperience"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={60}
+          defaultValue={profile.yearsExperience ?? ''}
+          placeholder="e.g. 3"
+          className="w-32"
+        />
+        <p className="text-xs text-muted-foreground">
+          Just starting out or a few years in? Enter 0–5 and we&apos;ll show you entry-level and early-career roles.
+        </p>
       </div>
 
       <div className="space-y-2">

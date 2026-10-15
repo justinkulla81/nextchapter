@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-auth'
-import { EVERYONE, PROGRAM_FEATURES, readProgramSettings, type ProgramFeatureKey, type ProgramPackage, type ServiceChoice } from '@/lib/employer/program-settings'
+import { uploadEmployerLogo } from '@/lib/employer/brand-upload'
+import { cleanBrandColor, EVERYONE, PROGRAM_FEATURES, readProgramSettings, type ProgramFeatureKey, type ProgramPackage, type ServiceChoice } from '@/lib/employer/program-settings'
+import { grantSeatAccess } from '@/lib/access/grants'
 
 export type ProgramFormState = { error?: string; ok?: string } | undefined
 type Result = { error?: string; ok?: boolean; message?: string }
@@ -27,6 +29,27 @@ export async function saveProgramDetails(_prev: ProgramFormState, f: FormData): 
   captureServerEvent(orgUser.userId, 'outplacement_program_details_saved', { orgId: orgUser.orgId, named: !!name, welcome: !!welcome })
   revalidatePath('/employer', 'layout')
   return { ok: 'Saved. Your people see this on their NextChapter dashboard.' }
+}
+
+// The company's look on its people's dashboards: a logo and an accent color. Stored in the
+// program settings JSON next to the welcome message.
+export async function saveProgramLook(_prev: ProgramFormState, f: FormData): Promise<ProgramFormState> {
+  const orgUser = await admin()
+  if (!orgUser) return { error: 'Only an admin on this account can change the program.' }
+  const rawColor = String(f.get('accentColor') ?? '').trim()
+  const accentColor = rawColor ? cleanBrandColor(rawColor) : null
+  if (rawColor && !accentColor) return { error: 'Use a six-digit color like #A93439, or leave it blank.' }
+
+  const uploaded = await uploadEmployerLogo(orgUser.orgId, f.get('logo') instanceof File ? (f.get('logo') as File) : null)
+  if (uploaded && typeof uploaded === 'object') return { error: uploaded.error }
+
+  const s = await current(orgUser.orgId)
+  const removeLogo = f.get('removeLogo') === 'on'
+  const logoUrl = uploaded ?? (removeLogo ? null : s.brand.logoUrl)
+  await prisma.outplacementEmployerOrg.update({ where: { id: orgUser.orgId }, data: { programSettings: { ...s, brand: { logoUrl, accentColor } } } })
+  captureServerEvent(orgUser.userId, 'outplacement_program_look_saved', { orgId: orgUser.orgId, hasLogo: logoUrl !== null, hasAccent: accentColor !== null, replacedLogo: uploaded !== null, removedLogo: removeLogo && uploaded === null })
+  revalidatePath('/employer', 'layout')
+  return { ok: 'Saved. Your people see the new look on their dashboard the next time a page loads.' }
 }
 
 // One row of the services menu: on/off, who provides it, and for the
@@ -75,7 +98,8 @@ export async function setSeatPackage(seatId: string, packageKey: string): Promis
   const s = await current(orgUser.orgId)
   if (packageKey !== EVERYONE && !s.packages.some((p) => p.key === packageKey)) return { error: 'That package no longer exists.' }
   const r = await prisma.outplacementSeat.updateMany({ where: { id: seatId, contract: { orgId: orgUser.orgId } }, data: { packageKey: packageKey === EVERYONE ? null : packageKey } })
-  captureServerEvent(orgUser.userId, 'outplacement_seat_package_set', { orgId: orgUser.orgId, packageKey })
+  if (r.count) await grantSeatAccess(seatId, `employer:${orgUser.userId}`, { prune: true }).catch(() => null)
+  captureServerEvent(orgUser.userId, 'outplacement_seat_package_set', { orgId: orgUser.orgId, seatId, packageKey })
   revalidatePath('/employer/roster')
   return r.count ? { ok: true } : { error: 'That seat is gone.' }
 }

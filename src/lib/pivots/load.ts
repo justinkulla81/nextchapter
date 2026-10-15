@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { PayBenchmarkRow } from '@/lib/outcomes/pay-change-estimate'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
+import { readLikes } from '@/lib/profile/work-profile'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
 import { ROLES, SOURCES, detectSourceRole } from './pivot-map'
@@ -23,6 +24,7 @@ export interface PivotProfile {
   openToRelocation: boolean
   resumeKeywords: string[]
   skillLevels?: unknown
+  workStyleAnswers?: unknown
   confirmedSkillsHave: string[]
   certifications: string[]
   targetCompMin: number | null
@@ -124,6 +126,7 @@ export async function loadPivotPaths(profile: PivotProfile): Promise<PivotPathsR
     dismissed: pref?.dismissedTargets ?? [],
     workProfile: await loadWorkProfile(profile.id).catch(() => null),
     strengths: await loadStrengths(profile.id).then(strengthKeys).catch(() => null),
+    likes: readLikes(profile.workStyleAnswers),
   }
   const ctx: MarketContext = {
     stats,
@@ -160,6 +163,7 @@ export const PIVOT_PROFILE_SELECT = {
   openToRelocation: true,
   resumeKeywords: true,
   skillLevels: true,
+  workStyleAnswers: true,
   confirmedSkillsHave: true,
   certifications: true,
   targetCompMin: true,

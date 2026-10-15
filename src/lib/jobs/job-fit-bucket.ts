@@ -153,8 +153,11 @@ interface FitPostingLike {
 const STEP_POINTS = 15
 const MEMBER_LEVEL_POINTS: Record<string, number> = { IC: 32, Manager: 40, Director: 55, VP: 70, 'C-Suite': 85 }
 const RUNG_LEVEL_POINTS: Partial<Record<RungName, number>> = {
-  // Mid-level professional (not on the board until the mid-level tier ships):
-  // level with an IC member, a step below a Manager.
+  // Early-career and mid-level professional rungs (career-stage.ts), below a
+  // Senior IC: entry (0-2 yrs) 10, early career (2-5 yrs) 18, mid-level 25.
+  // An IC member is placed on the same points by years of experience.
+  ENTRY_IC: 10,
+  EARLY_IC: 18,
   MID_IC: 25,
   SENIOR_IC: 38,
   MANAGER: 40,
@@ -177,8 +180,22 @@ export type LevelStep = 'same' | 'up' | 'big_up' | 'down' | 'big_down' | 'unknow
 // toward their calibrated levelRankScore when that differs by 10+ points
 // (e.g. a Director at a very large company also fits VP roles). Members with
 // no stated level fall back to levelRankScore alone.
-function memberLevelWindow(c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'>): { lo: number; hi: number } | null {
+// An individual contributor's years of experience place them on the early /
+// mid / senior IC points (RUNG_LEVEL_POINTS); unknown years keep IC's 32.
+function icPointsForYears(years: number | null | undefined): number | undefined {
+  if (typeof years !== 'number' || years < 0) return undefined
+  if (years < 2) return RUNG_LEVEL_POINTS.ENTRY_IC
+  if (years < 5) return RUNG_LEVEL_POINTS.EARLY_IC
+  if (years < 8) return RUNG_LEVEL_POINTS.MID_IC
+  return undefined
+}
+
+function memberLevelWindow(
+  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'> & { yearsExperience?: number | null }
+): { lo: number; hi: number } | null {
   const level = c.highestLevelReached
+  const icPoints = level === 'IC' ? icPointsForYears(c.yearsExperience) : undefined
+  if (icPoints !== undefined) return { lo: icPoints, hi: icPoints }
   const base = level ? MEMBER_LEVEL_POINTS[level] : undefined
   if (base === undefined) return c.levelRankScore == null ? null : { lo: c.levelRankScore, hi: c.levelRankScore }
   const anchor = calibratedLevelRank(level, null)
@@ -213,7 +230,7 @@ function postingLevelPoints(posting: Pick<FitPostingLike, 'title' | 'targetLevel
 }
 
 export function levelStep(
-  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'>,
+  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'> & { yearsExperience?: number | null },
   posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>,
   fallbackLevel?: string | null
 ): LevelStep {

@@ -16,7 +16,9 @@ import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
 import { trackPlatformEmail } from '@/lib/platforms/track'
 import { GMAIL_API, ensureFreshAccessToken, isRetryable, fetchMessages, extractBodyPreview, type FetchedMessage } from './gmail-api'
 import { platformsForSenderDomain } from '@/lib/platforms/directory'
-import { getAttachmentFilenames, getHeader } from '@/lib/google/gmail-body'
+import { getAttachmentFilenames, getHeader, extractEmailLinks } from '@/lib/google/gmail-body'
+import { assessRecruiterEmail } from '@/lib/scam-shield/assess-recruiter-email'
+import { raiseScamAlert } from '@/lib/scam-shield/raise-scam-alert'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
@@ -227,6 +229,40 @@ async function processMessage(
       matchedRule: classification.rule?.slice(0, 300) ?? null,
     },
   })
+
+  // Fake-recruiter / fake-job check (src/lib/scam-shield/). Runs on the same
+  // inbound mail already fetched here, so a scam is caught on the sync that
+  // first sees it. Skipped for mail that can't be a personal recruiter
+  // approach (ATS/job-board and NextChapter's own mail, self-sent mail,
+  // senders the candidate marked non-job) and for anything with a
+  // List-Unsubscribe header, which is bulk marketing, not a one-to-one scam.
+  // A failure here must never block the sync.
+  if (direction === 'INBOUND' && !isFromAtsOrJobBoard && !isFromNextChapterItself && !isSelfAddressed && !isNotJobRelated && !listUnsubscribe) {
+    try {
+      const assessment = assessRecruiterEmail({
+        from,
+        replyTo: getHeader(message.payload?.headers, 'Reply-To'),
+        subject,
+        body: bodyPreview,
+        linkUrls: extractEmailLinks(message.payload),
+        authResults: getHeader(message.payload?.headers, 'Authentication-Results'),
+      })
+      if (assessment.level !== 'none') {
+        await raiseScamAlert({
+          candidateId: connection.candidateId,
+          connectionId: connection.id,
+          messageId,
+          threadId,
+          from,
+          subject,
+          emailDate,
+          assessment,
+        })
+      }
+    } catch (error) {
+      console.error('Scam check failed for message', messageId, error)
+    }
+  }
 
   // Anyone the app already labels a recruiter, hiring manager, coach, or
   // networking contact belongs in the candidate's network list too, not
