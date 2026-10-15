@@ -104,6 +104,11 @@ export async function getCultureSurveyCompanies(candidateId: string): Promise<Cu
     .sort((a, b) => Number(a.isCurrent) - Number(b.isCurrent) || (b.tenureEndedAt?.getTime() ?? 0) - (a.tenureEndedAt?.getTime() ?? 0))
 }
 
+/** How many companies this member has described (their own rows only; nothing about anyone else). */
+export async function countOwnCultureResponses(candidateId: string): Promise<number> {
+  return prisma.companyCultureResponse.count({ where: { candidateId } })
+}
+
 /** Save (create or update) one member's answers for one company they worked at. */
 export async function saveCultureResponse(
   candidateId: string,

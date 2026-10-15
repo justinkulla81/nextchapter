@@ -46,7 +46,17 @@ export function CandidateCard({
     <div className={locked ? 'space-y-2 rounded-lg border border-dashed border-border p-4' : 'space-y-2 rounded-lg border border-border p-4'}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-foreground">{candidateDisplayName(candidate, locked)}</p>
+          <p className="flex items-center gap-2 font-medium text-foreground">
+            {candidateDisplayName(candidate, locked)}
+            {!locked && (
+              <span
+                className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white"
+                title="Candidate+: completed their dossier with real references, assessments and search effort"
+              >
+                Candidate+
+              </span>
+            )}
+          </p>
           <p className="text-sm text-muted-foreground">
             {[candidate.primaryFunction, candidate.highestLevelReached, candidate.currentCity]
               .filter(Boolean)

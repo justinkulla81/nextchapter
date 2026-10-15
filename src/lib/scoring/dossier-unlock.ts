@@ -13,6 +13,13 @@ import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
+import { getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
+import {
+  effortTargetFor,
+  DOSSIER_UNLOCK_REFERENCE_TARGET,
+  DOSSIER_UNLOCK_OUTREACH_TARGET,
+  DOSSIER_UNLOCK_APPLICATION_TARGET,
+} from '@/lib/scoring/dossier-targets'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 
 // §7.3 — band adjustment. Executive is told applications are lowest-yield
@@ -85,12 +92,14 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     hasPersonalityProfile,
     outreachCount,
     applicationCount,
+    effortMinutes,
   ] = await Promise.all([
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
         skillsAssessmentCompletedAt: true,
+        effortMinutesTargetOverride: true,
         profileConfirmedAt: true,
         industryConfirmedAt: true,
         functionConfirmedAt: true,
@@ -103,6 +112,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches network/page.tsx's existing pattern
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window — matches application-trends.ts's existing pattern
+    getLifetimeEffortMinutes(candidateId),
   ])
 
   // §7.2 item 2 — "100% personalization/profile," approximated from the
@@ -119,7 +129,15 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
   ].filter((v) => v !== null).length
   const profileFieldsTotal = 6
 
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
   const requirements: DossierRequirement[] = [
+    {
+      key: 'effort',
+      label: `${effortTarget} minutes of search effort`,
+      met: effortMinutes >= effortTarget,
+      current: Math.min(effortMinutes, effortTarget),
+      target: effortTarget,
+    },
     {
       key: 'references',
       label: `${DOSSIER_REFERENCE_TARGET} references returned`,
@@ -175,9 +193,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
 // the old six-category letter grade (bounty claims, Exclusive Jobs,
 // Candidate+ postings, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
-export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
-export const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
-export const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
+export { DOSSIER_UNLOCK_REFERENCE_TARGET, DOSSIER_UNLOCK_OUTREACH_TARGET, DOSSIER_UNLOCK_APPLICATION_TARGET }
 
 // Market Reality Redesign Part 2 — the alternate path to a full unlock:
 // achieving a real Market Reality B-or-better, OR consistently hitting
@@ -202,18 +218,18 @@ export async function hasAlternateUnlockPath(candidateId: string): Promise<Alter
     computeCurrentSprintStreak(candidateId, ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS),
   ])
 
+  // A strong Market Reality grade no longer opens Candidate+ on its own: the
+  // dossier proves effort, and a grade partly reflects pedigree. It is still
+  // reported (gradeMet) for display, but only a sustained weekly-goal streak
+  // is an alternate route.
   const gradeMet = component?.probabilityGrade === 'A' || component?.probabilityGrade === 'B'
   const streakMet = streak >= ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS
 
   return {
-    met: gradeMet || streakMet,
+    met: streakMet,
     gradeMet,
     streakMet,
-    reason: gradeMet
-      ? 'Unlocked — your Market Reality Assessment is a B or better.'
-      : streakMet
-        ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.`
-        : 'not yet met',
+    reason: streakMet ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.` : 'not yet met',
   }
 }
 
@@ -222,6 +238,9 @@ export interface DossierUnlockStatus {
   referencesMet: boolean
   evidenceMet: boolean // at least one of: Operating Profile, Personality Profile, Skills Assessment
   effortMet: boolean // outreach AND applications both at/above target
+  minutesMet: boolean // lifetime search-effort minutes at/above target
+  effortMinutes: number
+  effortTarget: number // this member's target, which an admin may have overridden
   alternatePath: AlternateUnlockPath
   completedReferenceCount: number
   outreachCount: number
@@ -234,21 +253,24 @@ export interface DossierUnlockStatus {
 export const isDossierUnlocked = cache(isDossierUnlockedUncached)
 
 async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUnlockStatus> {
-  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath] =
+  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath, effortMinutes] =
     await Promise.all([
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
       prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true, effortMinutesTargetOverride: true } }),
       prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
       prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
       hasAlternateUnlockPath(candidateId),
+      getLifetimeEffortMinutes(candidateId),
     ])
 
   const referencesMet = completedReferenceCount >= DOSSIER_UNLOCK_REFERENCE_TARGET
   const evidenceMet = Boolean(hasOperatingProfile) || Boolean(hasPersonalityProfile) || profile.skillsAssessmentCompletedAt !== null
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
-  const unlocked = (referencesMet && evidenceMet && effortMet) || alternatePath.met
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
+  const minutesMet = effortMinutes >= effortTarget
+  const unlocked = (referencesMet && evidenceMet && effortMet && minutesMet) || alternatePath.met
 
   const missing: string[] = []
   if (!referencesMet) {
@@ -260,6 +282,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     missing.push(`[${remaining} more completed reference${remaining === 1 ? '' : 's'}](/dashboard/references)`)
   }
   if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
+  if (!minutesMet) missing.push(`${effortTarget - effortMinutes} more minutes of search effort`)
   if (!effortMet) {
     const missingOutreach = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - outreachCount)
     const missingApplications = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - applicationCount)
@@ -268,16 +291,19 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
   }
 
   const reason = unlocked
-    ? alternatePath.met && !(referencesMet && evidenceMet && effortMet)
+    ? alternatePath.met && !(referencesMet && evidenceMet && effortMet && minutesMet)
       ? alternatePath.reason
       : 'Unlocked — you have real references, evidence, and effort on file.'
-    : `Need: ${missing.join(', ')}. (Or: ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week Sprint streak, or a Market Reality B or better.)`
+    : `Need: ${missing.join(', ')}. (Or: a ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week streak of meeting your weekly goal.)`
 
   return {
     unlocked,
     referencesMet,
     evidenceMet,
     effortMet,
+    minutesMet,
+    effortMinutes,
+    effortTarget,
     alternatePath,
     completedReferenceCount,
     outreachCount,

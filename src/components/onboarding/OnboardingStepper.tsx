@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { stagedSummary } from '@/lib/forms/staged'
 
 const STEPS = [
-  { href: '/onboarding/desire', label: 'Your Path' },
-  { href: '/onboarding/resume', label: 'Resume' },
-  { href: '/onboarding/confirm', label: 'Confirm' },
-  { href: '/onboarding/location', label: 'Location' },
+  { href: '/onboarding/desire', label: 'Your Path', minutes: 1 },
+  { href: '/onboarding/resume', label: 'Resume', minutes: 2 },
+  { href: '/onboarding/confirm', label: 'Confirm', minutes: 1 },
+  { href: '/onboarding/location', label: 'Location', minutes: 1 },
 ]
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
@@ -22,8 +23,11 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   // reads as stale/wrong, so render nothing outside the actual 4 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
+  const current = STEPS.findIndex((step) => step.href === pathname)
+
   return (
-    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 py-6">
+    <>
+    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 pt-6 pb-2">
       {STEPS.map((step, i) => {
         const isActive = pathname === step.href
         const isDone = completion[i]
@@ -65,7 +69,7 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
           </>
         )
         return (
-          <li key={step.href} className="flex flex-1 items-center gap-2">
+          <li key={step.href} aria-current={isActive ? 'step' : undefined} className="flex flex-1 items-center gap-2">
             {isClickable ? (
               <Link href={step.href} className="flex items-center gap-2 hover:opacity-80">
                 {content}
@@ -78,5 +82,7 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
         )
       })}
     </ol>
+    <p className="mx-auto w-full max-w-2xl px-6 pb-4 text-sm text-muted-foreground">{stagedSummary(STEPS, current)} Your answers save as you go.</p>
+    </>
   )
 }

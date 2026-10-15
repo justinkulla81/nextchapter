@@ -34,7 +34,13 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
   )
 }
 
-export function CandidateProgressPanel({ progress }: { progress: CandidateProgress }) {
+export function CandidateProgressPanel({
+  progress,
+  setEffortTarget,
+}: {
+  progress: CandidateProgress
+  setEffortTarget?: (formData: FormData) => Promise<void>
+}) {
   const { likelihood, dossier, connections, searchStrategy, assessments, activity, badges, moduleGates, interviewAnswers } =
     progress
   const met = dossier.completeness.metCount
@@ -106,6 +112,31 @@ export function CandidateProgressPanel({ progress }: { progress: CandidateProgre
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm">{dossier.unlock.reason}</p>
+
+          {setEffortTarget && (
+            <form action={setEffortTarget} className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3">
+              <div className="space-y-1">
+                <label htmlFor="effort-target" className="text-sm font-medium">
+                  Search-effort target (minutes)
+                </label>
+                <input
+                  id="effort-target"
+                  name="minutes"
+                  type="number"
+                  min={1}
+                  max={100000}
+                  defaultValue={dossier.unlock.effortTarget}
+                  className="h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
+                />
+              </div>
+              <button type="submit" className="h-9 rounded-md border border-border px-4 text-sm font-medium hover:bg-muted">
+                Save target
+              </button>
+              <p className="basis-full text-xs text-muted-foreground">
+                Applies to this member only. Clear the box and save to go back to the product default.
+              </p>
+            </form>
+          )}
 
           {dossier.unlock.unlocked && !dossier.completeness.isComplete && (
             // The two are measured differently and can disagree: the checklist

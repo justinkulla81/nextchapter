@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { interestBonus, TOP_INTEREST_POINTS, OTHER_TOP_INTEREST_POINTS } from '@/lib/work-interests/job-interest-fit'
 import { INTEREST_AREA_ORDER, scoreInterests, type InterestQuestion } from '@/lib/work-interests/areas'
 
 const questions: InterestQuestion[] = Array.from({ length: 60 }, (_, i) => ({
@@ -24,5 +25,18 @@ describe('scoreInterests', () => {
     const all = questions.map((q) => ({ index: q.index, answer: 3 }))
     expect(scoreInterests(questions, all.slice(1))).toBeNull()
     expect(scoreInterests(questions, [{ index: 1, answer: 6 }, ...all.slice(1)])).toBeNull()
+  })
+})
+
+describe('interestBonus', () => {
+  it('rewards a job whose function draws on the member’s top area, most for #1', () => {
+    expect(interestBonus(['INVESTIGATIVE', 'SOCIAL', 'ARTISTIC'], ['engineering'])).toBe(TOP_INTEREST_POINTS)
+    expect(interestBonus(['SOCIAL', 'INVESTIGATIVE', 'ARTISTIC'], ['engineering'])).toBe(OTHER_TOP_INTEREST_POINTS)
+  })
+
+  it('is zero without the assessment, an unmapped function, or no overlap', () => {
+    expect(interestBonus([], ['engineering'])).toBe(0)
+    expect(interestBonus(['SOCIAL'], ['general'])).toBe(0)
+    expect(interestBonus(['ARTISTIC', 'SOCIAL', 'REALISTIC'], ['finance'])).toBe(0)
   })
 })
