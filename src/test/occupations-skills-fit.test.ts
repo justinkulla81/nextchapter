@@ -134,6 +134,8 @@ describe('pivotPaths', () => {
     const paths = pivotPaths({ ...base, candidates: ALL_OCCUPATIONS, minScore: 0, pay, outlook })
     const sales = paths.find((p) => p.target.title === 'Sales Managers')!
     expect(sales.pay?.changePct).toBe(10)
+    expect(sales.targetPay?.medianWage).toBe(176_000)
+    expect(paths.find((p) => p.target.title === 'Financial Managers')!.targetPay?.topCoded).toBe(true)
     expect(sales.outlook?.annualOpenings).toBe(31_000)
     expect(paths.find((p) => p.target.title === 'Financial Managers')!.pay).toBeNull()
     expect(paths.find((p) => p.target.title === 'Data Scientists')!.outlook).toBeNull()

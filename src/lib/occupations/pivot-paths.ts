@@ -17,6 +17,8 @@ export interface PivotPath {
   fit: SkillsFit
   /** O*NET lists the target as related to the member's current occupation. */
   onetRelated: boolean
+  /** BLS pay for the target occupation itself; null when BLS has none. */
+  targetPay: OccupationPay | null
   /** Null when either median is missing or top-coded: executive pay is only a floor, so a difference would mislead. */
   pay: PayDifference | null
   outlook: OccupationOutlook | null
@@ -59,6 +61,7 @@ export function pivotPaths(input: {
       target,
       fit,
       onetRelated: relatedOnetSocCodes?.has(target.onetSocCode) ?? false,
+      targetPay: pay?.get(target.socCode) ?? null,
       pay: payDifference(pay?.get(current.socCode), pay?.get(target.socCode)),
       outlook: outlook?.get(target.socCode) ?? null,
     })

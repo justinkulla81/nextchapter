@@ -26,6 +26,10 @@ import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardr
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { SkillsPivotCard } from '@/components/dashboard/search-playbook/SkillsPivotCard'
+import { loadMemberPivot } from '@/lib/occupations/load-corpus'
+import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
+import type { MemberPivotResult } from '@/lib/occupations/corpus'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -91,6 +95,33 @@ export default async function LearningPage() {
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
   ])
   const hasTakenAssessment = assessmentResponseCount > 0
+  const showPivot = profile.isPivoting || effectiveJourney(profile) === 'CAREER_CHANGE'
+  // A card must never take the page down with it: a failed read shows as an error line.
+  let pivot: MemberPivotResult | 'error' | null = null
+  if (showPivot) {
+    try {
+      pivot = await loadMemberPivot({
+        resumeLatestJobTitle: profile.resumeLatestJobTitle,
+        primaryFunction: profile.primaryFunction,
+        targetFunction: profile.targetFunction,
+        keywords: memberSkillKeywords(profile),
+      })
+    } catch (e) {
+      console.error('Pivot paths could not be loaded for', profile.id, e)
+      pivot = 'error'
+    }
+  }
+  if (pivot && pivot !== 'error' && pivot.status === 'ok') {
+    captureServerEvent(profile.id, 'pivot_paths_viewed', {
+      currentSoc: pivot.current.socCode,
+      currentBasis: pivot.current.basis,
+      pathCount: pivot.paths.length,
+      topSoc: pivot.paths[0]?.socCode ?? null,
+      topScore: pivot.paths[0]?.score ?? null,
+      consideringSoc: pivot.considering?.socCode ?? null,
+      consideringScore: pivot.considering?.score ?? null,
+    })
+  }
   const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
 
   const completedTitles = new Set(badges.map((b) => b.title))
@@ -163,8 +194,11 @@ export default async function LearningPage() {
         />
       </LearningSection>
 
-      {(profile.isPivoting || effectiveJourney(profile) === 'CAREER_CHANGE') && (
-        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
+      {showPivot && (
+        <>
+          <SkillsPivotCard result={pivot} />
+          <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
+        </>
       )}
 
       <PayChangeCard />
