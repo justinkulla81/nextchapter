@@ -404,6 +404,12 @@ export async function loadBoardShortlist(opts: {
    * level-only where (or none); see loadLightBoardRows.
    */
   postedWithinHours?: number
+  /**
+   * Only jobs this keeps (the board's "Great pay" / "Great benefits" filters,
+   * great-employers.ts). Applied before everything else, so every total —
+   * including the per-work-type counts — is over the kept jobs. Omitted keeps all.
+   */
+  keep?: (p: BoardRankRow) => boolean
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -443,7 +449,16 @@ export type BoardRankRow = LightRow
 /** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
 export function rankBoardRows(
   light: BoardRankRow[],
-  opts: { candidate: FitCandidate; isCandidatePlus: boolean; size?: number; view?: BoardView; fitScoring?: FitScoringVersion; now?: Date; workTypes?: WorkType[] }
+  opts: {
+    candidate: FitCandidate
+    isCandidatePlus: boolean
+    size?: number
+    view?: BoardView
+    fitScoring?: FitScoringVersion
+    now?: Date
+    workTypes?: WorkType[]
+    keep?: (p: BoardRankRow) => boolean
+  }
 ) {
   const size = opts.size ?? 300
   const fitBucket = boardListingFitBucketScorerFor(opts.fitScoring ?? 'v2', opts.candidate)
@@ -464,6 +479,7 @@ export function rankBoardRows(
   const countByWorkType: Record<WorkType, number> = { full_time: 0, part_time: 0, contract: 0, advisory: 0 }
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
   for (const p of light) {
+    if (opts.keep && !opts.keep(p)) continue
     if (typeFilter) {
       const workType = workTypeOf(p)
       if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) countByWorkType[workType]++

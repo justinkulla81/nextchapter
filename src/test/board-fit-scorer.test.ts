@@ -80,6 +80,20 @@ describe('board fit scorer (one member against many rows)', () => {
       expect([...fresh.countByCompany]).toEqual([...first.countByCompany])
     }
   })
+
+  it('keep (great pay / benefits) narrows the ranking and its totals; omitted changes nothing', () => {
+    const rows = lightRows()
+    const c = snapshot.candidates[0]
+    const all = rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000 })
+    expect(rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000, keep: undefined })).toEqual(all)
+    const keep = (p: BoardRankRow) => p.companyName === 'Company 0'
+    const kept = rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000, keep })
+    const expected = new Set(rows.filter(keep).map((p) => p.id))
+    expect([...kept.openIds, ...kept.lockedIds].every((id) => expected.has(id))).toBe(true)
+    expect(kept.openTotal + kept.lockedTotal).toBe(expected.size)
+    // Competition still counts the whole board.
+    expect([...kept.countByCompany]).toEqual([...all.countByCompany])
+  })
 })
 
 describe('role families', () => {

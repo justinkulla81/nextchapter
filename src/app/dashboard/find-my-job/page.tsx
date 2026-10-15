@@ -28,6 +28,9 @@ import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/D
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
+import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
+import { employerSignalsFor, greatFilterPredicate, parseGreatParam, GREAT_FILTER_LABEL, type GreatFilter } from '@/lib/jobs/great-employers'
+import { loadGreatSets, loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
 import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
@@ -305,6 +308,7 @@ async function JobRecommendationsSection({
   seniorityGroup,
   boardView,
   workTypes,
+  greatFilters,
   myJobs,
   expertNetworks,
 }: {
@@ -314,6 +318,7 @@ async function JobRecommendationsSection({
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
+  greatFilters: GreatFilter[]
   myJobs: MyJobsView
   expertNetworks: ExpertNetworkCard[]
   contacts: {
@@ -378,11 +383,18 @@ async function JobRecommendationsSection({
 
   // Partner-search jobs carry no stored level, so the seniority filter
   // classifies their titles the same way the board's jobs were levelled.
+  // Great pay / great benefits: partner-search jobs carry no pay verdict or
+  // benefits of their own, so only the employer-level signals can keep them.
+  const [greatSets, payHighCompanies] = await Promise.all([
+    greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
+    loadPayHighCompanies(),
+  ])
+  const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const surfacedJobs = (
     seniorityGroup
       ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
       : allSurfacedJobs
-  ).filter((j) => workTypes.includes(classifyWorkType(j)))
+  ).filter((j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)))
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
@@ -430,7 +442,7 @@ async function JobRecommendationsSection({
   const disclosedCompanyIds = [
     ...new Set(visibleBoardPostings.filter((p) => p.disclosure !== 'CONFIDENTIAL').map((p) => p.companyId).filter((id): id is string => !!id)),
   ]
-  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate] = await Promise.all([
+  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
       ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })
@@ -442,7 +454,13 @@ async function JobRecommendationsSection({
     Promise.all([hasTaggedEmployment(profile.id), getCandidateMarketIntelTier(profile.id)]).then(
       ([tagged, tier]) => tagged && tierMeetsFeature(tier, 'insider_network')
     ),
+    // Structured benefits for the jobs shown (empty until the import sends them).
+    loadJobBenefits(visibleBoardPostings.map((p) => p.id)),
   ])
+  // Pay / benefits badges: employer signals (hiring index + curated list) and the job's own benefits.
+  // A confidential search names no employer, so it gets no employer badge.
+  const employerSignalsOf = (p: (typeof visibleBoardPostings)[number]) =>
+    p.disclosure === 'CONFIDENTIAL' ? undefined : employerSignalsFor(p.companyName, payHighCompanies)
   const insiderCounts = insiderGate ? await countInsidersByCompany(disclosedCompanyIds, profile.id) : new Map<string, number>()
   const companyById = new Map(companies.map((c) => [c.id, c]))
   const insidersFor = (p: (typeof visibleBoardPostings)[number]) => {
@@ -507,11 +525,18 @@ async function JobRecommendationsSection({
       )}
       {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-          {workTypes.map((t) => (
-            <p key={t}>
-              <EmptyTypeNote type={t} />
+          {greatFilters.length > 0 ? (
+            <p>
+              No jobs that fit you are marked {greatFilters.map((f) => GREAT_FILTER_LABEL[f].toLowerCase()).join(' and ')} with these
+              filters yet. Turn one off to see more.
             </p>
-          ))}
+          ) : (
+            workTypes.map((t) => (
+              <p key={t}>
+                <EmptyTypeNote type={t} />
+              </p>
+            ))
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -561,6 +586,8 @@ async function JobRecommendationsSection({
                           watched={watchedFor(posting.companyName)}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
+                          employer={employerSignalsOf(posting)}
+                          benefits={benefitsByPosting.get(posting.id)}
                         />
                       ),
                     }
@@ -616,10 +643,11 @@ async function JobRecommendationsSection({
 export default async function JobFitPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string }>
+  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string; great?: string }>
 }) {
   const profile = await getDashboardData()
-  const { seniority, view, types, tab: tabParam } = await searchParams
+  const { seniority, view, types, tab: tabParam, great } = await searchParams
+  const greatFilters = parseGreatParam(great)
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
@@ -645,7 +673,14 @@ export default async function JobFitPage({
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       <Suspense fallback={<FindMyJobBodySkeleton />}>
-        <FindMyJobBody profile={profile} seniorityGroup={seniorityGroup} boardView={boardView} workTypes={workTypes} tab={tab} />
+        <FindMyJobBody
+          profile={profile}
+          seniorityGroup={seniorityGroup}
+          boardView={boardView}
+          workTypes={workTypes}
+          greatFilters={greatFilters}
+          tab={tab}
+        />
       </Suspense>
     </div>
   )
@@ -671,12 +706,14 @@ async function FindMyJobBody({
   seniorityGroup,
   boardView,
   workTypes,
+  greatFilters,
   tab,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
+  greatFilters: GreatFilter[]
   tab: BoardTab
 }) {
   const onBoard = tab === 'board'
@@ -819,6 +856,9 @@ async function FindMyJobBody({
     ...(workTypes.includes('contract') || workTypes.includes('part_time') ? (['CONSULTING_PAID', 'CONSULTING_UNPAID'] as const) : []),
     ...(workTypes.includes('advisory') ? (['BOARD_PAID', 'BOARD_UNPAID'] as const) : []),
   ]
+  // Great pay / great benefits (the `great` parameter): read only when a filter is on.
+  const greatSets = greatFilters.length > 0 ? await loadGreatSets() : null
+  const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
     loadBoardShortlist({
       candidate: profile,
@@ -828,6 +868,7 @@ async function FindMyJobBody({
       // Mid-level jobs: for manager / senior-individual / pivoting members, or anyone who picks "Mid-level".
       includeMidLevel: seniorityGroup ? seniorityGroup === 'MID_LEVEL' : midLevelRelevantFor(profile),
       workTypes,
+      keep: keepGreat ?? undefined,
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
@@ -1049,6 +1090,7 @@ async function FindMyJobBody({
             </span>
             <div className="ml-auto flex flex-wrap items-center gap-3">
               <BoardViewToggle surface="find_my_job" />
+              <GreatEmployerFilter surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />
             </div>
           </div>
@@ -1062,6 +1104,7 @@ async function FindMyJobBody({
                 seniorityGroup={seniorityGroup}
                 boardView={boardView}
                 workTypes={workTypes}
+                greatFilters={greatFilters}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
               />

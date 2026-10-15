@@ -21,6 +21,17 @@ import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, p
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
 import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
+import {
+  BENEFITS_BADGE_LABEL,
+  PAY_BADGE_LABEL,
+  benefitsBadgeFor,
+  payBadgeFor,
+  type BenefitsBadge,
+  type EmployerSignals,
+  type PayBadge,
+} from '@/lib/jobs/great-employer-display'
+import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -125,6 +136,73 @@ export function LockedDiscoverJobCard({
   )
 }
 
+// Employer pay and benefits badges: filled for the employer's or the posting's
+// own data, outlined for "known for" from the curated list only.
+function SignalBadge({ label, solid, title }: { label: string; solid: boolean; title: string }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap',
+        solid ? 'bg-success/10 text-success' : 'border border-success/40 text-success'
+      )}
+      title={title || undefined}
+    >
+      {label}
+    </span>
+  )
+}
+
+// Why the card shows its pay / benefits badges, in the open card: the posting's
+// own benefits, the employer's posted pay, and the curated list's sources.
+function EmployerSignalsLine({
+  postingId,
+  companyName,
+  employer,
+  highlights,
+  payBadge,
+  benefitsBadge,
+}: {
+  postingId: string
+  companyName: string
+  employer?: EmployerSignals
+  highlights: string[]
+  payBadge: PayBadge
+  benefitsBadge: BenefitsBadge
+}) {
+  const top = employer?.topEmployer ?? null
+  if (!employer?.payHigh && !top && highlights.length === 0) return null
+  const href = `/dashboard/companies/${encodeURIComponent(normalizeOrgName(companyName))}`
+  return (
+    <div className="space-y-0.5 text-sm">
+      {highlights.length > 0 && (
+        <p className="text-foreground">
+          <span className="font-medium">Benefits listed:</span> {highlights.join(' · ')}
+        </p>
+      )}
+      {employer?.payHigh && (
+        <p className="text-foreground">
+          <span className="font-medium">Employer pay:</span> posted pay across its jobs runs above market for the role.
+        </p>
+      )}
+      {top && (
+        <p className="text-foreground">
+          <span className="font-medium">Known for:</span> {top.knownFor}
+          <span className="text-muted-foreground"> — {top.sources} </span>
+          <a
+            href={href}
+            className="text-primary underline underline-offset-4"
+            onClick={() =>
+              posthog.capture('job_employer_signal_clicked', { postingId, companyName, payBadge, benefitsBadge, knownFor: top.knownFor })
+            }
+          >
+            See the company
+          </a>
+        </p>
+      )}
+    </div>
+  )
+}
+
 // Market pay for the role (function x seniority x state, from posted salaries). When
 // the job posts pay it is compared; when it doesn't, the market range is shown and
 // labelled as our estimate — never as the employer's pay.
@@ -184,10 +262,16 @@ export function DiscoverJobCard({
   insiders,
   track,
   watched,
+  employer,
+  benefits,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
   idealMatch?: boolean
+  /** The employer's pay level and curated "known for" (great-employers.ts); none for a confidential search. */
+  employer?: EmployerSignals
+  /** The posting's structured benefits, when the import sent them. */
+  benefits?: { benefits: JobBenefits | null; strong: boolean }
   competition?: CompetitionScore
   contacts?: JobContacts
   skillGap?: JobSkillGap
@@ -207,6 +291,10 @@ export function DiscoverJobCard({
   const workType = classifyWorkType(posting)
   const payLabel = payBasisLabel({ ...posting, workType })
   const comparePay = payComparison(workType, compensationKind(posting), payPeriodOf(posting)).compare
+  const payBadge = payBadgeFor({ jobVerdictShown: comparePay && !!posting.payVsMarket, signals: employer })
+  const benefitsBadge = benefitsBadgeFor({ strongBenefits: !!benefits?.strong, signals: employer })
+  const highlights = benefitsHighlights(benefits?.benefits)
+  const sources = employer?.topEmployer?.sources ?? ''
 
   function handleClick() {
     void recordJobClick({
@@ -225,7 +313,11 @@ export function DiscoverJobCard({
     <details
       className="group"
       onToggle={(e) => {
-        if (!(e.currentTarget as HTMLDetailsElement).open || !posting.marketPayMid) return
+        if (!(e.currentTarget as HTMLDetailsElement).open) return
+        if (payBadge || benefitsBadge) {
+          posthog.capture('job_employer_badges_viewed', { postingId: posting.id, companyName: posting.companyName, payBadge, benefitsBadge, fitBucket })
+        }
+        if (!posting.marketPayMid) return
         posthog.capture('job_market_pay_viewed', {
           postingId: posting.id,
           payVsMarket: posting.payVsMarket ?? 'not_posted',
@@ -254,6 +346,20 @@ export function DiscoverJobCard({
             {comparePay && posting.payVsMarket && (
               <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
             )}
+            {payBadge && (
+              <SignalBadge
+                label={PAY_BADGE_LABEL[payBadge]}
+                solid={payBadge === 'employer_above_market'}
+                title={payBadge === 'employer_above_market' ? 'Posted pay across this employer’s jobs runs above market' : sources}
+              />
+            )}
+            {benefitsBadge && (
+              <SignalBadge
+                label={BENEFITS_BADGE_LABEL[benefitsBadge]}
+                solid={benefitsBadge === 'strong_benefits'}
+                title={benefitsBadge === 'strong_benefits' ? highlights.join(' · ') : sources}
+              />
+            )}
             <SeniorityBadge level={posting.level} />
             {idealMatch && <IdealMatchBadge />}
             <FitBadge bucket={fitBucket} />
@@ -271,6 +377,16 @@ export function DiscoverJobCard({
         </p>
 
         <MarketPayLine posting={posting} workType={workType} />
+        {!confidential && (
+          <EmployerSignalsLine
+            postingId={posting.id}
+            companyName={posting.companyName}
+            employer={employer}
+            highlights={highlights}
+            payBadge={payBadge}
+            benefitsBadge={benefitsBadge}
+          />
+        )}
 
         {/* A confidential search's description usually names the client — never shown. */}
         {posting.description && !confidential && (
