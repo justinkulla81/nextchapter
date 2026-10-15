@@ -1221,7 +1221,7 @@ model CandidateProfile {
   // Work types the member chose on the one job board ('full_time' | 'part_time' |
   // 'contract' | 'advisory'). Empty = never chosen: the board then derives them from
   // onboarding answers (defaultWorkTypes in src/lib/jobs/work-type.ts).
-  jobBoardWorkTypes                String[]  @default([])
+  jobBoardWorkTypes                String[]       @default([])
   // Interim Work Section 4 only — "also show board-matching platforms that
   // focus specifically on women/underrepresented leaders?" Independent of
   // (and never merged with) eeocGenderIdentity: a direct, transparent,
@@ -1520,6 +1520,7 @@ model CandidateProfile {
   jobBoardIntroRequests          JobBoardIntroRequest[]
   candidateJobBoardSubmissions   ExclusiveJobPosting[]
   pivotIdeas                     PivotIdea[]
+  pivotPreference                PivotPreference?
   marketResponseLogs             MarketResponseLog[]
   profileShares                  ProfileShare[]
   interimMarketplaceSignups      InterimMarketplaceSignup[]
@@ -4947,8 +4948,8 @@ model TrackedJob {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  source   String // 'job_board' | 'surfaced' | 'matched_role' — same values as JobClickEvent.source
-  sourceId String // ExclusiveJobPosting.id, SurfacedJob.id or RoleProfile.id
+  source      String // 'job_board' | 'surfaced' | 'matched_role' — same values as JobClickEvent.source
+  sourceId    String // ExclusiveJobPosting.id, SurfacedJob.id or RoleProfile.id
   title       String
   companyName String?
   url         String?
@@ -13458,6 +13459,48 @@ model DurationBenchmark {
 
   @@unique([bucket, group, sourceTitle])
   @@index([bucket, group])
+}
+
+// Market-based pivot paths (src/lib/pivots). One row per member, created the
+// first time they answer the people-contact question or hide a path. Kept off
+// CandidateProfile so the feature can ship (and be rolled back) on its own.
+model PivotPreference {
+  candidateId      String           @id
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  // Self-reported only, never inferred from demographics: 'HIGH' (energized by
+  // lots of people contact) | 'SOME' | 'LOW' (prefers focused solo work).
+  peopleEnergy     String?
+  peopleEnergyAt   DateTime?
+  // Pivot target keys (src/lib/pivots/pivot-map.ts) the member hid with "Not for me".
+  dismissedTargets String[]         @default([])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+// Nightly market aggregates for pivot paths (src/lib/pivots/market-stats.ts),
+// from the live board (BoardLightRow): per pivot role (title patterns in
+// pivot-map.ts, '*' = every job) x geography ('US', 'REMOTE' or a state code) x
+// level band ('IC' | 'MANAGER' | 'DIRECTOR' | 'EXEC'). Rebuilt whole each night.
+model PivotMarketStat {
+  id                 String   @id @default(cuid())
+  roleKey            String
+  geo                String
+  band               String
+  openNow            Int
+  lowCompetitionOpen Int      @default(0)
+  // New postings by posted date (imported date when none): last 30 days, the
+  // 30 before that, last 90 and the 90 before that.
+  new30              Int      @default(0)
+  prior30            Int      @default(0)
+  new90              Int      @default(0)
+  prior90            Int      @default(0)
+  // Median posted pay (annualised USD) on open jobs, when enough are posted.
+  payP50             Int?
+  paySample          Int      @default(0)
+  computedAt         DateTime @default(now())
+
+  @@unique([roleKey, geo, band])
+  @@index([geo, band])
 }
 
 // Public pay-change benchmark for a pivot path. Ranges, never point estimates.
