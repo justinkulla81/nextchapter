@@ -48,7 +48,7 @@ describe('pivot map integrity', () => {
     const required = [
       'recruiter', 'hrbp', 'hr_generalist', 'customer_service', 'customer_success', 'account_management', 'sales', 'marketing',
       'operations', 'project_program', 'finance_accounting', 'teaching', 'nursing_clinical', 'admin_ea', 'data_analytics',
-      'engineering', 'product', 'design', 'legal', 'consulting', 'retail_management', 'hospitality', 'military_government',
+      'engineering', 'product', 'design', 'legal', 'consulting', 'retail_management', 'hospitality', 'military_government', 'investment',
     ]
     for (const r of required) expect(SOURCES.has(r), r).toBe(true)
     expect([...SOURCE_DETECT_ORDER].sort()).toEqual(required.sort())

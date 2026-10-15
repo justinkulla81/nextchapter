@@ -37,6 +37,7 @@ export const ROLE_SOC: Record<string, string> = {
   procurement: '13-1023.00',
   logistics_supply_chain: '13-1081.00',
   fpa: '13-2051.00',
+  corporate_development: '13-2051.00',
   business_analyst: '13-1111.00',
   management_consulting: '13-1111.00',
   data_analyst: '15-2051.01',
@@ -53,6 +54,7 @@ export const ROLE_SOC: Record<string, string> = {
   customer_service: '43-4051.00',
   admin_ea: '43-6011.00',
   hr_generalist: '13-1071.00',
+  investment: '13-2051.00',
   recruiter: '13-1071.00',
 }
 

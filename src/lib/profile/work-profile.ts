@@ -216,6 +216,8 @@ const R: Record<string, string> = {
   military_government: '1 -1 0 -2 1 1 0 0 -2 1',
   security_risk: '0 -1 -1 -1 0 0 -1 0 -2 0',
   fundraising: '2 0 1 0 0 -1 -1 1 1 1',
+  investment: '0 0 -1 -2 0 -1 -1 2 1 -2',
+  corporate_development: '0 0 1 -1 1 -1 -1 1 0 -2',
 }
 export const ROLE_WORK_PROFILES: Record<string, Record<WorkDim, number>> = Object.fromEntries(
   Object.entries(R).map(([k, s]) => [k, Object.fromEntries(s.split(' ').map((x, i) => [WORK_DIMS[i].key, Number(x) / 2])) as Record<WorkDim, number>]),

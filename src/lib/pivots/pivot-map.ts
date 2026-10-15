@@ -252,6 +252,18 @@ const ROLE_LIST: PivotRole[] = [
     needs: [],
   },
   {
+    key: 'investment', label: 'Investment banking and investing', fn: 'Finance', people: 'MIXED',
+    titles: /\b(investment bank(ing|er)|private equity|venture capital|investment (analyst|associate|manager|professional)|portfolio manager|equity research|hedge fund|m&a (analyst|associate))\b/,
+    examples: ['Investment Banking Associate', 'Private Equity Associate', 'Equity Research Analyst', 'Portfolio Manager'],
+    needs: [G.financeModel],
+  },
+  {
+    key: 'corporate_development', label: 'Corporate development and strategy', fn: 'Finance', people: 'MIXED',
+    titles: /\b(corporate development|corp dev|m&a (manager|director|lead)|corporate strategy|strategic finance)\b/,
+    examples: ['Corporate Development Manager', 'Director of Corporate Strategy', 'M&A Manager'],
+    needs: [G.financeModel, G.consultingFrameworks],
+  },
+  {
     key: 'consulting', label: 'Consulting', fn: 'Operations', people: 'MIXED',
     titles: /\b(management consultant|strategy consultant|business consultant|transformation consultant|engagement manager|consulting manager)\b/,
     examples: ['Management Consultant', 'Strategy Consultant', 'Engagement Manager'],
@@ -635,6 +647,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'sales_enablement', brings: ['Customer stories and objections', 'Training customers', 'Product knowledge'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Enablement teams need people who know what customers really ask; you can teach sellers that.' },
       { to: 'customer_education', brings: ['Training customers', 'Product knowledge'], covers: ['productKnowledge'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Customer education scales what you already do one account at a time.' },
       { to: 'partnerships', brings: ['Relationship management', 'Cross-team coordination'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Partner managers run relationships with other companies the way you run customer accounts.' },
+      { to: 'product_management', brings: ['Customer pain points', 'Feature requests with evidence', 'Working with product teams'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Customer success hears the customer’s problems first; many product managers started there.' },
     ],
   },
   {
@@ -656,6 +669,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'revenue_operations', brings: ['Knowing how the pipeline really works', 'Forecasting', 'CRM use'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Revenue operations runs the sales machine; sellers who learn the systems side are rare and valued.' },
       { to: 'search_firm_consultant', brings: ['Business development', 'Closing', 'Resilience'], covers: ['quota', 'prospecting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Search firms need people who can win clients; selling skills matter more there than HR background.' },
       { to: 'solutions_consulting', brings: ['Discovery', 'Demo experience', 'Deal strategy'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'If you are the seller who knows the product best, solutions consulting pays well without owning the quota alone.' },
+      { to: 'product_marketing', brings: ['Why deals are won and lost', 'Buyer objections', 'Competitive knowledge'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Sellers who know why deals are won or lost make strong product marketers, with less quota pressure and more strategy.' },
     ],
   },
   {
@@ -667,6 +681,9 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'partnerships', brings: ['Co-marketing', 'Relationship building', 'Pitching'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Partner marketing and partnerships reward the pitching and relationship skills marketers use with agencies and partners.' },
       { to: 'community_management', brings: ['Audience building', 'Content', 'Events'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Community roles turn audience-building into direct relationships with customers.' },
       { to: 'customer_success', brings: ['Customer insight', 'Communication', 'Lifecycle campaigns'], time: 'months', path: 'RESET', fit: 'stretch', why: 'Lifecycle marketers already think about retention; customer success does it one account at a time.' },
+      { to: 'account_executive', brings: ['Knowing the buyer and the message', 'Presenting', 'Pipeline from campaigns'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Outgoing marketers who want more money and more time with people move into sales: you already know the buyer and the pitch, and sales pays for closing.' },
+      { to: 'business_development', brings: ['Opening doors', 'Pitching', 'Partner relationships'], covers: ['prospecting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Business development rewards marketers who like building relationships and starting conversations, with pay tied to the deals they open.' },
+      { to: 'product_management', brings: ['Customer and market insight', 'Positioning', 'Launches'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Product marketers often move into product management: you know the customer and the market, and you add owning what gets built.' },
     ],
   },
   {
@@ -678,6 +695,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'revenue_operations', brings: ['Process design', 'Metrics and reporting', 'Systems thinking'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Revenue operations is operations applied to sales and marketing, where many companies are still hiring.' },
       { to: 'business_analyst', brings: ['Process mapping', 'Requirements', 'Reporting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Business analysts translate how work happens into systems; operators already know how work happens.' },
       { to: 'implementation', brings: ['Rollouts and change', 'Project coordination', 'Training teams'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Implementation teams run customer rollouts like internal operations projects.' },
+      { to: 'operations_management', brings: ['Running the business day to day', 'Reporting to leaders', 'Fixing what breaks'], covers: ['projectMethod'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Chief of staff and business operations roles are the senior version of running operations, closer to the leadership team.' },
     ],
   },
   {
@@ -791,6 +809,17 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'product_management', brings: ['Problem framing', 'Customer interviews', 'Prioritization'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Product roles reward the problem framing consultants practice daily.' },
       { to: 'business_development', brings: ['Client relationships', 'Pitching', 'Proposal writing'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'If you sold work as a consultant, business development pays for that directly.' },
       { to: 'fpa', brings: ['Modeling', 'Analysis', 'Executive presentations'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Strategic finance teams hire consultants who can model and present.' },
+      { to: 'corporate_development', brings: ['Strategy work', 'Market analysis', 'Executive presentations'], covers: ['consultingFrameworks'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Strategy consultants move into corporate development and strategy roles to own the decision instead of advising on it.' },
+    ],
+  },
+  {
+    role: 'investment',
+    edges: [
+      { to: 'fpa', brings: ['Financial modeling', 'Valuation', 'Board-level presentations'], covers: ['financeModel'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Corporate finance teams hire bankers and investors for their modeling and their read on what drives value, with better hours and steady demand.' },
+      { to: 'corporate_development', brings: ['Deal diligence', 'Valuation', 'Negotiation'], covers: ['financeModel'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Corporate development does deals from the inside: the same diligence and valuation, in service of one company’s strategy.' },
+      { to: 'management_consulting', brings: ['Analysis', 'Slides that persuade', 'Industry knowledge'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Strategy consulting uses the same analysis and storytelling, with more client contact and less dependence on deal flow.' },
+      { to: 'business_development', brings: ['Relationship-driven deal making', 'Pitching', 'Negotiation'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Investors who like the relationship side of deals move into business development, where pay leans on the deals you bring in.' },
+      { to: 'operations_management', brings: ['Seeing how many companies run', 'Performance metrics', 'Board reporting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Portfolio operations and chief of staff roles hire investors who have watched many companies succeed and fail.' },
     ],
   },
   {
@@ -843,6 +872,7 @@ export const SOURCE_DETECT_ORDER = [
   'marketing',
   'project_program',
   'consulting',
+  'investment',
   'finance_accounting',
   'teaching',
   'nursing_clinical',
