@@ -220,6 +220,10 @@ const R: Record<string, string> = {
   data_scientist: '-1 1 -1 1 0 -1 -1 1 0 -2',
   executive: '1 1 2 0 1 -1 2 2 1 0',
   physician: '2 -1 -1 -2 1 0 0 0 -1 2',
+  clergy: '2 0 1 -1 1 -1 1 -1 -1 1',
+  public_safety: '1 -1 -1 -2 2 1 0 0 -2 2',
+  scientist: '-1 1 -2 0 0 -1 -1 0 -1 0',
+  food_service: '2 0 -1 -2 1 0 1 0 -1 2',
   physical_engineering: '-1 0 -2 -1 0 -1 -1 0 -1 0',
   it_infrastructure: '0 -1 -1 -1 0 -1 -1 0 -1 0',
   financial_advisor: '2 0 0 1 -1 -1 -1 2 2 0',
@@ -303,9 +307,9 @@ export function readLikes(json: unknown): Likes {
 }
 
 // Roles whose point is a mission (public good, students, patients, communities).
-const MISSION = new Set(['physician', 'social_work', 'nonprofit_programs', 'csr', 'public_sector', 'education_admin', 'teaching', 'nursing_clinical', 'fundraising', 'clinical_operations', 'instructional_design', 'military_government', 'community_management'])
+const MISSION = new Set(['clergy', 'public_safety', 'physician', 'social_work', 'nonprofit_programs', 'csr', 'public_sector', 'education_admin', 'teaching', 'nursing_clinical', 'fundraising', 'clinical_operations', 'instructional_design', 'military_government', 'community_management'])
 // Roles that live on crises and escalations.
-const CRISIS = new Set(['physician', 'social_work', 'it_infrastructure', 'customer_service', 'nursing_clinical', 'hospitality', 'event_management', 'security_risk', 'support_operations', 'retail_management'])
+const CRISIS = new Set(['public_safety', 'food_service', 'physician', 'social_work', 'it_infrastructure', 'customer_service', 'nursing_clinical', 'hospitality', 'event_management', 'security_risk', 'support_operations', 'retail_management'])
 // Roles that live on quotas, cold outreach and rejection.
 const QUOTA = new Set(['financial_advisor', 'account_executive', 'business_development', 'sales_development', 'sales', 'search_firm_consultant', 'recruiter', 'healthcare_sales', 'fundraising', 'partnerships'])
 
