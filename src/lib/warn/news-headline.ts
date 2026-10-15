@@ -32,7 +32,7 @@ export function readPercent(text: string): number | null {
 
 const NAME = String.raw`(?<co>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,4}?)`
 const HEDGE = String.raw`(?:is|are|will|plans? to|set to|to|reportedly|preparing to|prepares to|preparing|prepares|poised to|expected to|about to|ready to|looks? to|looking to|said to|likely to|may|could|would|now|also|again)`
-const VERB = String.raw`(?:${HEDGE} )*(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?)`
+const VERB = String.raw`(?:${HEDGE} )*(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?|let(?:s|ting)? go(?: of)?)`
 const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
 
 const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
@@ -58,6 +58,13 @@ const OWNER = new RegExp(String.raw`^${NAME}['’]s (?:(?:new|latest|private equ
 /** "Bending Spoons lays off large part of Airtable": the layoff is at the target. */
 const TARGET = new RegExp(
   String.raw`^${NAME_NC},? ${VERB} (?:${BIG}|${BIG.replace('(?:a |an )?', '')}|${PCT}|\d[\d,]*(?: ${PEOPLE})?)(?: of| at| from) (?:the )?(?!(?:its|their|the|workforce|work force|staff|employees|team|teams|headcount|personnel|workers|jobs|roles|positions|people|global|entire|total|full|all|about|around)\b)(?<tco>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,3}?)(?= after | following | as | amid | in | at | with | over | to |,|:| -|$)`,
+  'i',
+)
+/** "Miro layoffs: 18% of workforce affected", "Miro Layoffs Hit 18% of Staff". */
+const LAYOFFS_PCT = new RegExp(String.raw`^${NAME}(?:'s)? (?:layoffs?|job cuts)[:,]? .*?${PCT}${OF_WORKFORCE}`, 'i')
+/** "Miro 18% layoffs", "Miro announces 18% workforce reduction". */
+const PCT_LAYOFFS = new RegExp(
+  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|plans|begins) )?${PCT} (?:workforce |staff |headcount |job )?(?:layoffs|job cuts|staff cuts|reduction|cuts)\b`,
   'i',
 )
 /** "Amazon confirms 14,000 corporate layoffs", "Verizon announces 13,000 job cuts". */
@@ -96,13 +103,17 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     .replace(/['‘’](?=\s|$|[.,:;])/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+    // "Online whiteboard company Miro cuts…": a lowercase description before the name is not part of it.
+    .replace(/^(?:[A-Za-z][\w-]* ){1,4}(?:company|firm|startup|start-up|maker|giant|platform|provider|unicorn|vendor|retailer) (?=[A-Z0-9])/, '')
+    // An aside after the name ("Miro, valued at $17.5B, lays off…").
+    .replace(/^([^,]{2,40}),\s*(?:valued at|backed by|which|once valued)[^,]*,\s*/i, '$1 ')
     // A section label in front of the headline is not part of the subject.
     .replace(/^(?:exclusive|breaking|update|report|reports|just in|developing|analysis|opinion)\s*[:|-]\s*/i, '')
   // The owner shapes go first: "Airtable's new owner" is a name-shaped phrase the
   // others would take for the company itself.
   const m = h.match(OWNER) ?? h.match(TARGET)
     ?? h.match(WITH_COUNT) ?? h.match(LAYOFFS_COUNT) ?? h.match(ANNOUNCES)
-    ?? h.match(COUNT_THEN_CUTS) ?? h.match(CUTS_FIRST)
+    ?? h.match(COUNT_THEN_CUTS) ?? h.match(CUTS_FIRST) ?? h.match(LAYOFFS_PCT) ?? h.match(PCT_LAYOFFS)
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
