@@ -214,6 +214,16 @@ export interface WorkTypeDefaultsInput {
   boardAdvisoryWillingness?: boolean | null
   /** Answered the Interim Work directory question (target rate / openness). */
   gigDirectoryUnlockAnswer?: string | null
+  /** ParallelPath.paths: what the member does alongside the search (see parallel-path-fit.ts). */
+  parallelPaths?: string[] | null
+}
+
+/** ParallelPath.paths that mean "I take flexible, non-permanent work". Training is not one: it says what the member is busy with, not what work they want. */
+const FLEXIBLE_WORK_PATHS = ['CONTRACT_1099', 'FRACTIONAL', 'CONSULTING', 'OWN_BUSINESS', 'PART_TIME']
+
+/** Work types a member's parallel paths make worth showing by default (see parallel-path-fit.ts). */
+export function pathWorkTypes(paths: readonly string[] | null | undefined): WorkType[] {
+  return (paths ?? []).some((p) => FLEXIBLE_WORK_PATHS.includes(p)) ? ['part_time', 'contract'] : []
 }
 
 /**
@@ -232,6 +242,7 @@ export function defaultWorkTypes(p: WorkTypeDefaultsInput): WorkType[] {
     out.add('part_time')
     out.add('contract')
   }
+  for (const t of pathWorkTypes(p.parallelPaths)) out.add(t)
   if (p.boardAdvisoryWillingness === true) out.add('advisory')
   return WORK_TYPES.filter((t) => out.has(t))
 }

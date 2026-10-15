@@ -36,6 +36,8 @@ import { employerSignalsFor, greatFilterPredicate, parseGreatParam, GREAT_FILTER
 import { loadGreatSets, loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
 import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
+import { boardRank, matchesParallelPath } from '@/lib/jobs/parallel-path-fit'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { ALL_STAGES_WINDOW, memberStageWindow } from '@/lib/jobs/career-stage'
@@ -105,7 +107,7 @@ import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/ins
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
-import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
+import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
 import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
@@ -315,6 +317,7 @@ async function JobRecommendationsSection({
   seniorityGroup,
   boardView,
   workTypes,
+  parallelPaths,
   greatFilters,
   pivotFilter,
   myJobs,
@@ -326,6 +329,7 @@ async function JobRecommendationsSection({
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
+  parallelPaths: string[] | null
   greatFilters: GreatFilter[]
   pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
@@ -571,6 +575,15 @@ async function JobRecommendationsSection({
               </a>
             </p>
           )}
+          {pathWorkTypes(parallelPaths).length > 0 && workTypes.some((t) => t === 'contract' || t === 'part_time') && (
+            <p className="text-xs text-muted-foreground">
+              Contract and part-time roles that match what you&apos;re doing alongside your search are listed ahead of similar roles at the
+              same fit level.{' '}
+              <a href="/dashboard/past-jobs#parallel-heading" className="text-primary underline underline-offset-4">
+                Change what you&apos;re doing
+              </a>
+            </p>
+          )}
           {surfacedJobs.length > 0 && (
             <p className="text-xs font-medium text-muted-foreground">
               Showing {visibleSurfacedJobs.length} of {totalUnreactedCount} match
@@ -586,11 +599,12 @@ async function JobRecommendationsSection({
                 // bucket the original recency order (board postings first,
                 // then surfaced jobs, newest of each first) is preserved.
                 ...[
-                  // Within a fit level, low-competition jobs come first.
+                  // Within a fit level, low-competition jobs come first; a role that matches what
+                  // the member does alongside the search counts as one competition level lower.
                   ...visibleBoardPostings.map((posting) => {
                     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
                     return {
-                      rank: FIT_BUCKET_SORT_RANK[fitBucket] * 3 + COMPETITION_SORT_RANK[competitionFor(posting).level],
+                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)),
                       node: (
                         <DiscoverJobCard
                           key={posting.id}
@@ -617,7 +631,7 @@ async function JobRecommendationsSection({
                     const worksHere = worksHereFor(job.companyName)
                     return {
                       // Partner-search jobs: competition unknown, so "medium".
-                      rank: FIT_BUCKET_SORT_RANK[fitBucket] * 3 + 1,
+                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], 1, matchesParallelPath(job, parallelPaths)),
                       node: (
                         <NextSurfacedJobCard
                           key={job.id}
@@ -676,12 +690,14 @@ export default async function JobFitPage({
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
   // saved choice, otherwise what they told us in onboarding.
-  const workTypes = parseWorkTypesParam(types) ?? defaultWorkTypes(profile)
   const tab: BoardTab = tabParam === 'my_jobs' ? 'my_jobs' : 'board'
-  const [trackedCount, applicationCount] = await Promise.all([
+  const [parallelPaths, trackedCount, applicationCount] = await Promise.all([
+    // What the member does alongside the search: shows contract / part-time by default and ranks matching roles higher.
+    getParallelPaths(profile.id),
     prisma.trackedJob.count({ where: { candidateId: profile.id, dismissedAt: null, OR: [{ savedAt: { not: null } }, { jobPostingId: { not: null } }] } }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null }, trackedJob: null } }),
   ])
+  const workTypes = parseWorkTypesParam(types) ?? defaultWorkTypes({ ...profile, parallelPaths })
 
   return (
     <div className="space-y-10">
@@ -702,6 +718,7 @@ export default async function JobFitPage({
           seniorityGroup={seniorityGroup}
           boardView={boardView}
           workTypes={workTypes}
+          parallelPaths={parallelPaths}
           greatFilters={greatFilters}
           tab={tab}
           pivotFilter={pivotFilter}
@@ -731,6 +748,7 @@ async function FindMyJobBody({
   seniorityGroup,
   boardView,
   workTypes,
+  parallelPaths,
   greatFilters,
   tab,
   pivotFilter,
@@ -739,6 +757,7 @@ async function FindMyJobBody({
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
+  parallelPaths: string[] | null
   greatFilters: GreatFilter[]
   tab: BoardTab
   pivotFilter: PivotBoardFilter | null
@@ -1145,6 +1164,7 @@ async function FindMyJobBody({
                 seniorityGroup={seniorityGroup}
                 boardView={boardView}
                 workTypes={workTypes}
+                parallelPaths={parallelPaths}
                 greatFilters={greatFilters}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
