@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { ttlCached } from '@/lib/admin/ttl-cache'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { parseYearsRequired, type YearsRequirement } from '@/lib/jobs/years-required'
+import { classifyTitleRung } from '@/lib/jobs/job-seniority'
 import {
   aggregateApplicationFit,
   classifyApplication,
@@ -51,6 +52,13 @@ interface MemberRow extends ApplyFitMember {
   id: string
   name: string
   primaryFunction: string | null
+}
+
+// For display only — the classifier reads the title itself (levelStep).
+function titleRung(title: string | null): string | null {
+  if (!title) return null
+  const { rung } = classifyTitleRung(title)
+  return rung === 'OTHER' ? null : rung
 }
 
 const normTitle = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim()
@@ -252,7 +260,7 @@ async function classifyRows(apps: AppRow[], members: Map<string, MemberRow>): Pr
       source: SOURCE_LABEL[a.source],
       yearsRequired: job.yearsRequired,
       memberYears: m.yearsExperience,
-      jobLevel: job.level ?? job.targetLevel,
+      jobLevel: job.level ?? job.targetLevel ?? titleRung(job.title ?? a.title),
       matchedBy: job.matchedBy,
       result: classifyApplication(m, job),
     })

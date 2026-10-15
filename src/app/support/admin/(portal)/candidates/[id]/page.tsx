@@ -22,6 +22,8 @@ import { computePageActivitySummary, formatDuration } from '@/lib/admin/page-act
 import { getCandidateProgress } from '@/lib/admin/candidate-progress'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateProgressPanel } from '@/components/admin/CandidateProgressPanel'
+import { ApplicationFitCard } from '@/components/admin/ApplicationFitCard'
+import { getMemberApplicationFit } from '@/lib/admin/application-fit-data'
 import {
   listStakeholderNotes,
   getRecruiterRelationships,
@@ -231,7 +233,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   ])
   stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
       listAllAuthUsersCached(),
       loadJobRecommendations(id),
@@ -249,6 +251,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         orderBy: { generatedAt: 'desc' },
         select: { id: true, generatedAt: true },
       }),
+      // Reaching / underselling read of their applications — a failure here
+      // shows an error in that card only, never breaks the page.
+      getMemberApplicationFit(id).catch((err) => {
+        console.error('[admin/candidate] application fit failed', err)
+        return null
+      }),
     ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
@@ -264,6 +272,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     gmailConnected: progress.connections.find((c) => c.label === 'Gmail')?.connected ?? false,
     assessmentsCompleted: progress.assessments.filter((a) => a.completedAt).length,
     badgeCount: progress.badges.length,
+  })
+
+  captureServerEvent(viewingAdmin.email ?? 'admin', 'admin_application_fit_viewed', {
+    scope: 'member',
+    memberId: id,
+    applications: applicationFit?.rows.length ?? null,
   })
 
   const { view } = detail
@@ -1019,6 +1033,8 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="results" className="mt-6 space-y-6">
+          <ApplicationFitCard data={applicationFit} />
+
           <Card>
             <CardHeader>
               <CardTitle>Market Reality Reports</CardTitle>
