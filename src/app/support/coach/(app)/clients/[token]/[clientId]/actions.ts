@@ -12,6 +12,7 @@ import { COACH_SESSION_TYPES, getApplicableRateCents } from '@/lib/admin/coachin
 import { parseDimensionFormValues, countConcerningDimensions, readAllDimensions } from '@/lib/coach/session-dimensions'
 import { pushDirectivesToActionPlan } from '@/lib/coach/directive-action-plan'
 import { requestReassignment } from '@/lib/coach/reassignment'
+import { countCoachingSession } from '@/lib/access/grants'
 
 export type LogSessionFormState = { error?: string } | undefined
 
@@ -67,6 +68,7 @@ export async function logCoachSession(
   // §A5.2 — push each directive line onto the client's Search Action Plan
   // (current-week WeeklySprint.committedActions) so it's a real, trackable
   // item the candidate sees, not just text sitting in the coach's own view.
+  const sessionsLeft = await countCoachingSession(candidate.id, coach.id).catch(() => null)
   const directiveLinesPushed = directives ? await pushDirectivesToActionPlan(candidate.id, directives, session.id) : 0
 
   const concerningCount = countConcerningDimensions(readAllDimensions(session))
@@ -76,6 +78,7 @@ export async function logCoachSession(
     hasNotes: !!notes,
     hasDirectives: !!directives,
     directiveLinesPushed,
+    sessionsLeft,
     hasFocusNote: !!focusNote,
     sessionType,
     rateSnapshotCents,

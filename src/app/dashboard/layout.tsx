@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
@@ -88,6 +89,8 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     prisma.reference.count({ where: { candidateId: profileId, status: 'COMPLETED' } }),
     getDashboardProfile(),
   ])
+  // Coaching and the recruiter network: membership, or a grant (seat, coach code).
+  const access = await accessFor(profileId)
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
   // see community/page.tsx's MessagesTab.
@@ -130,6 +133,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       helpRepliesWaiting={helpRepliesWaiting}
       newStrongCompaniesCount={newStrongCompaniesCount}
       showInWork={isInWorkMember(profile)}
+      paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />

@@ -11,6 +11,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
 import type { OutplacementEnrollmentMethod } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
+import { grantSeatAccess } from '@/lib/access/grants'
 
 // Partners Master Build Script §A7 — "single, bulk CSV, and [documented-
 // but-not-built] API enrollment." Real third-party API auth/integration is
@@ -88,7 +89,7 @@ async function enrollOneSeat(
 ): Promise<EnrollOneResult> {
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
-    await prisma.outplacementSeat.create({
+    const linked = await prisma.outplacementSeat.create({
       data: {
         contractId,
         invitedEmail: email,
@@ -100,6 +101,7 @@ async function enrollOneSeat(
         packageKey,
       },
     })
+    await grantSeatAccess(linked.id).catch(() => null)
     await startOutplacementJourney(existing.id)
     await sendOutplacementSeatLinkedEmail(email, orgName)
     return { email, outcome: 'linked' }
@@ -273,6 +275,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       where: { id: seat.id },
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
+    await grantSeatAccess(seat.id).catch(() => null)
     await startOutplacementJourney(nowRegistered.id)
     return {}
   }
@@ -282,6 +285,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
     where: { id: seat.id },
     data: { status: 'ACTIVATED', candidateId: profile.id, activatedAt: new Date() },
   })
+  await grantSeatAccess(seat.id).catch(() => null)
 
   captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id })
   await startOutplacementJourney(profile.id)

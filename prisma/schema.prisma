@@ -1759,6 +1759,7 @@ model CandidateProfile {
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+  accessGrants AccessGrant[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -5150,6 +5151,9 @@ model Coach {
   // The styles this coach actually delivers: a subset of COACHING_STYLES
   // (PUSH, SUPPORT, ACCOUNTABILITY, STRATEGY, PRACTICAL, SPACE) in src/lib/coach/coaching-style.ts.
   coachingStyles String[] @default([])
+  // Where clients book sessions (Calendly, cal.com, Google booking page).
+  schedulingUrl String?
+  accessCodes   CoachAccessCode[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -7741,6 +7745,8 @@ model OutplacementSeat {
   // docs/EMPLOYER_SCORECARD_PRIVACY_REVIEW.md.
   // Which package of services this person gets (programSettings.packages);
   // null = everything the program offers.
+  // When this person's access ends, if not the contract's end (census window).
+  accessEndsAt             DateTime?
   packageKey               String?
   shareOutcomeWithEmployer Boolean   @default(false)
   shareOutcomeChangedAt    DateTime?
@@ -14501,4 +14507,52 @@ model FairBoothVisit {
   createdAt    DateTime          @default(now())
 
   @@unique([boothId, memberId])
+}
+
+// Access a person has beyond their own membership: coaching and the recruiter
+// network unlocked by an outplacement seat, a coach's code, a coach directly,
+// or a NextChapter admin. Checked on read (startsAt/endsAt/revokedAt), so an
+// expired contract needs no job to switch it off. Sessions count down as the
+// coach logs them (src/lib/access/grants.ts).
+model AccessGrant {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  feature       String // 'coaching' | 'recruiters'
+  source        String // 'outplacement_seat' | 'coach_code' | 'coach' | 'admin'
+  sourceId      String?
+  coachId       String?
+  sessionsTotal Int?
+  sessionsUsed  Int              @default(0)
+  startsAt      DateTime         @default(now())
+  endsAt        DateTime?
+  revokedAt     DateTime?
+  revokedBy     String?
+  note          String?
+  createdBy     String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId, feature])
+  @@index([source, sourceId])
+}
+
+// A code a coach gives their own client (paid outside NextChapter): redeeming
+// it links the client to the coach and grants that many sessions.
+model CoachAccessCode {
+  id        String    @id @default(cuid())
+  coachId   String
+  coach     Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  code      String    @unique
+  sessions  Int
+  validDays Int?
+  maxUses   Int       @default(1)
+  uses      Int       @default(0)
+  note      String?
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([coachId])
 }

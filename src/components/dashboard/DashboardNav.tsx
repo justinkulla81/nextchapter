@@ -100,7 +100,10 @@ function buildSections(
   isActiveMember: boolean,
   helpRepliesWaiting: number,
   newStrongCompaniesCount: number,
-  showInWork: boolean
+  showInWork: boolean,
+  // Coaching / recruiter network unlocked by membership or a grant (an
+  // outplacement seat, a coach's code): src/lib/access/grants.ts.
+  paidAccess: { coaching: boolean; recruiters: boolean } = { coaching: false, recruiters: false }
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -168,14 +171,18 @@ function buildSections(
         // account tier instead of three separate asks. Executive Coach/
         // Executive Recruiter are additionally gated on real Membership
         // (Market Intelligence isn't — out of scope for that gate).
-        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
-        {
-          href: '/dashboard/premium',
-          label: 'Executive Recruiter',
-          icon: Building2,
-          badge: 'Premium',
-          ...membershipLock,
-        },
+        paidAccess.coaching
+          ? { href: '/dashboard/my-coaching', label: 'Executive Coach', icon: GraduationCap }
+          : { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
+        paidAccess.recruiters
+          ? { href: '/dashboard/recruiter-requests', label: 'Executive Recruiter', icon: Building2 }
+          : {
+              href: '/dashboard/premium',
+              label: 'Executive Recruiter',
+              icon: Building2,
+              badge: 'Premium',
+              ...membershipLock,
+            },
       ],
     },
     {
@@ -284,6 +291,7 @@ function NavContent({
   helpRepliesWaiting,
   newStrongCompaniesCount,
   showInWork,
+  paidAccess,
   collapsedSections,
   onToggleSection,
 }: {
@@ -302,6 +310,7 @@ function NavContent({
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
   showInWork: boolean
+  paidAccess?: { coaching: boolean; recruiters: boolean }
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -319,7 +328,8 @@ function NavContent({
     isActiveMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
-    showInWork
+    showInWork,
+    paidAccess
   )
 
   return (
@@ -463,6 +473,7 @@ export function DashboardNav({
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
   showInWork = false,
+  paidAccess,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -477,6 +488,7 @@ export function DashboardNav({
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
   showInWork?: boolean
+  paidAccess?: { coaching: boolean; recruiters: boolean }
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -526,6 +538,7 @@ export function DashboardNav({
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
           showInWork={showInWork}
+          paidAccess={paidAccess}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -634,6 +647,7 @@ export function DashboardNav({
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
           showInWork={showInWork}
+          paidAccess={paidAccess}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />
