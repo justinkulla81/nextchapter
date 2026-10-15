@@ -245,6 +245,13 @@ function PivotPathCard({
       )}
 
       {s.personalityNote && <p className="text-xs text-muted-foreground">{s.personalityNote}</p>}
+      {(s.likesLeaves || s.likesGains || s.likesStill) && (
+        <div className="text-xs">
+          {s.likesLeaves && <p className="text-success">{s.likesLeaves}</p>}
+          {s.likesGains && <p className="text-success">{s.likesGains}</p>}
+          {s.likesStill && <p className="text-warning">{s.likesStill}</p>}
+        </div>
+      )}
       {(s.strengthPlays || s.strengthExposes) && (
         <div className="text-xs">
           {s.strengthPlays && <p className="text-success">{s.strengthPlays}</p>}

@@ -217,6 +217,21 @@ const R: Record<string, string> = {
   security_risk: '0 -1 -1 -1 0 0 -1 0 -2 0',
   fundraising: '2 0 1 0 0 -1 -1 1 1 1',
   investment: '0 0 -1 -2 0 -1 -1 2 1 -2',
+  data_scientist: '-1 1 -1 1 0 -1 -1 1 0 -2',
+  executive: '1 1 2 0 1 -1 2 2 1 0',
+  physician: '2 -1 -1 -2 1 0 0 0 -1 2',
+  physical_engineering: '-1 0 -2 -1 0 -1 -1 0 -1 0',
+  it_infrastructure: '0 -1 -1 -1 0 -1 -1 0 -1 0',
+  financial_advisor: '2 0 0 1 -1 -1 -1 2 2 0',
+  social_work: '2 0 -1 -1 1 0 -1 -1 -1 1',
+  facilities_real_estate: '1 -1 -1 -1 0 0 0 0 -1 2',
+  engineering_manager: '1 0 1 0 2 0 2 1 0 -1',
+  journalism: '1 1 0 0 -1 -1 -1 0 0 1',
+  communications: '1 1 0 0 1 0 -1 0 0 0',
+  nonprofit_programs: '1 0 0 -1 1 0 0 -1 -1 1',
+  csr: '1 1 1 0 1 0 -1 0 -1 0',
+  public_sector: '0 -1 0 -1 1 1 -1 -1 -2 -1',
+  education_admin: '2 -1 -1 -2 1 1 -1 -1 -2 0',
   corporate_development: '0 0 1 -1 1 -1 -1 1 0 -2',
 }
 export const ROLE_WORK_PROFILES: Record<string, Record<WorkDim, number>> = Object.fromEntries(
@@ -247,4 +262,103 @@ export function workFit(person: WorkProfile, roleKey: string): WorkFit {
     else clashes.push({ dim: d.key, line: `This role is mostly “${(r < 0 ? d.low : d.high).toLowerCase()}”; you prefer “${(p.value < 0 ? d.low : d.high).toLowerCase()}”.` })
   }
   return { score: weight ? total / weight : 0, fits, clashes }
+}
+
+// ── What people want less of, and more of ────────────────────────────────────
+// Why people leave a job is often one thing ("I hate quotas", "I'm done with
+// the classroom") and what they want next is often one thing too ("more
+// money", "a mission"). Stored with the this-or-that answers
+// (workStyleAnswers.less / .more). A role's demands and offers come from its
+// work profile, its rejection/upside flag and the mission list below.
+
+export const LESS_OPTIONS = [
+  { key: 'quota', label: 'Quotas and rejection' },
+  { key: 'people', label: 'Being “on” with people all day' },
+  { key: 'desk', label: 'Sitting at a desk all day' },
+  { key: 'feet', label: 'Being on my feet all day' },
+  { key: 'hours', label: 'Fixed hours and a commute' },
+  { key: 'routine', label: 'Repetitive, routine work' },
+  { key: 'managing', label: 'Managing people' },
+  { key: 'crisis', label: 'Constant crises and escalations' },
+  { key: 'grind', label: 'Long hours and pressure to climb' },
+] as const
+export const MORE_OPTIONS = [
+  { key: 'money', label: 'More money' },
+  { key: 'people', label: 'More time with people' },
+  { key: 'creative', label: 'More creative work' },
+  { key: 'stability', label: 'More stability' },
+  { key: 'flexible', label: 'More flexibility' },
+  { key: 'mission', label: 'Work with a mission' },
+  { key: 'growth', label: 'Faster growth' },
+  { key: 'calm', label: 'Less stress' },
+] as const
+export type LessKey = (typeof LESS_OPTIONS)[number]['key']
+export type MoreKey = (typeof MORE_OPTIONS)[number]['key']
+export type Likes = { less: LessKey[]; more: MoreKey[] }
+
+export function readLikes(json: unknown): Likes {
+  const o = (json ?? {}) as { less?: unknown; more?: unknown }
+  const pick = <K extends string>(x: unknown, opts: readonly { key: K }[]) => (Array.isArray(x) ? opts.map((p) => p.key).filter((k) => x.includes(k)) : [])
+  return { less: pick(o.less, LESS_OPTIONS), more: pick(o.more, MORE_OPTIONS) }
+}
+
+// Roles whose point is a mission (public good, students, patients, communities).
+const MISSION = new Set(['physician', 'social_work', 'nonprofit_programs', 'csr', 'public_sector', 'education_admin', 'teaching', 'nursing_clinical', 'fundraising', 'clinical_operations', 'instructional_design', 'military_government', 'community_management'])
+// Roles that live on crises and escalations.
+const CRISIS = new Set(['physician', 'social_work', 'it_infrastructure', 'customer_service', 'nursing_clinical', 'hospitality', 'event_management', 'security_risk', 'support_operations', 'retail_management'])
+// Roles that live on quotas, cold outreach and rejection.
+const QUOTA = new Set(['financial_advisor', 'account_executive', 'business_development', 'sales_development', 'sales', 'search_firm_consultant', 'recruiter', 'healthcare_sales', 'fundraising', 'partnerships'])
+
+export function roleDemands(roleKey: string | null): Set<LessKey> {
+  const r = roleKey ? ROLE_WORK_PROFILES[roleKey] : null
+  const out = new Set<LessKey>()
+  if (!r || !roleKey) return out
+  if (QUOTA.has(roleKey)) out.add('quota')
+  if (r.social >= 0.75) out.add('people')
+  if (r.setting <= -0.75) out.add('desk')
+  if (r.setting >= 0.75) out.add('feet')
+  if (r.schedule <= -0.75) out.add('hours')
+  if (r.approach <= -0.75) out.add('routine')
+  if (r.track >= 0.5) out.add('managing')
+  if (CRISIS.has(roleKey)) out.add('crisis')
+  if (r.drive >= 0.75 && r.schedule <= -0.5) out.add('grind')
+  return out
+}
+
+export function roleOffers(roleKey: string): Set<MoreKey> {
+  const r = ROLE_WORK_PROFILES[roleKey]
+  const out = new Set<MoreKey>()
+  if (!r) return out
+  if (QUOTA.has(roleKey) || (r.risk >= 0.5 && r.drive >= 0.5)) out.add('money')
+  if (r.social >= 0.5) out.add('people')
+  if (r.approach >= 0.5) out.add('creative')
+  if (r.risk <= -0.5) out.add('stability')
+  if (r.schedule >= 0.5) out.add('flexible')
+  if (MISSION.has(roleKey)) out.add('mission')
+  if (r.drive >= 0.5) out.add('growth')
+  if (!CRISIS.has(roleKey) && !QUOTA.has(roleKey) && r.drive <= 0) out.add('calm')
+  return out
+}
+
+const LESS_LABEL = Object.fromEntries(LESS_OPTIONS.map((o) => [o.key, o.label.toLowerCase()])) as Record<LessKey, string>
+const MORE_LABEL = Object.fromEntries(MORE_OPTIONS.map((o) => [o.key, o.label.replace(/^More /, '').replace(/^Less /, 'less ').toLowerCase()])) as Record<MoreKey, string>
+
+export type LikesFit = { leaves: string | null; still: string | null; gains: string | null; delta: number }
+
+// What a move from `from` to `to` does for what the person wants less and more of.
+export function likesFit(likes: Likes | null | undefined, from: string | null, to: string, payUp = false): LikesFit {
+  if (!likes || (!likes.less.length && !likes.more.length)) return { leaves: null, still: null, gains: null, delta: 0 }
+  const src = roleDemands(from)
+  const dst = roleDemands(to)
+  const offers = roleOffers(to)
+  if (payUp) offers.add('money')
+  const leaves = likes.less.filter((k) => src.has(k) && !dst.has(k))
+  const still = likes.less.filter((k) => dst.has(k))
+  const gains = likes.more.filter((k) => offers.has(k))
+  return {
+    leaves: leaves.length ? `Leaves behind ${leaves.map((k) => LESS_LABEL[k]).join(' and ')}.` : null,
+    still: still.length ? `Still has ${still.map((k) => LESS_LABEL[k]).join(' and ')}, which you want less of.` : null,
+    gains: gains.length ? `Gives you ${gains.map((k) => MORE_LABEL[k]).join(', ')}.` : null,
+    delta: Math.max(-0.2, Math.min(0.2, 0.06 * leaves.length - 0.08 * still.length + 0.04 * gains.length)),
+  }
 }

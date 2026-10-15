@@ -159,13 +159,13 @@ export function strengthHeadline(p: StrengthProfile): string {
 // can say "plays to your strength" or "leans on something that isn't a
 // strength yet". Keyed by pivot-map role.
 const LEANS: Record<StrengthKey, string[]> = {
-  influence: ['recruiter', 'account_executive', 'business_development', 'partnerships', 'search_firm_consultant', 'sales_development', 'customer_success', 'talent_acquisition', 'hrbp', 'account_manager', 'account_management', 'sales', 'product_marketing', 'community_management', 'developer_relations', 'fundraising', 'solutions_consulting', 'healthcare_sales', 'government_contracting', 'teaching', 'customer_education', 'management_consulting', 'consulting'],
-  leadership: ['operations_management', 'retail_management', 'hospitality', 'people_operations', 'operations', 'military_government'],
+  influence: ['communications', 'journalism', 'csr', 'recruiter', 'account_executive', 'business_development', 'partnerships', 'search_firm_consultant', 'sales_development', 'customer_success', 'talent_acquisition', 'hrbp', 'account_manager', 'account_management', 'sales', 'product_marketing', 'community_management', 'developer_relations', 'fundraising', 'solutions_consulting', 'healthcare_sales', 'government_contracting', 'teaching', 'customer_education', 'management_consulting', 'consulting'],
+  leadership: ['engineering_manager', 'nonprofit_programs', 'operations_management', 'retail_management', 'hospitality', 'people_operations', 'operations', 'military_government'],
   composure: ['customer_service', 'nursing_clinical', 'hospitality', 'event_management', 'security_risk', 'support_operations', 'retail_management', 'sales_development'],
   execution: ['project_management', 'project_program', 'program_management', 'technical_program_management', 'implementation', 'logistics_supply_chain', 'operations', 'admin_ea', 'event_management', 'procurement', 'revenue_operations', 'marketing_operations'],
-  judgment: ['corporate_development', 'investment', 'product_management', 'product', 'compliance', 'legal', 'contracts_management', 'fpa', 'management_consulting', 'consulting', 'security_risk', 'clinical_operations', 'hrbp'],
-  expertise: ['investment', 'engineering', 'data_analytics', 'data_analyst', 'hris', 'compensation', 'people_analytics', 'finance_accounting', 'legal', 'clinical_informatics', 'instructional_design', 'design', 'ux_research', 'fpa'],
-  collaboration: ['program_management', 'product_operations', 'people_operations', 'implementation', 'learning_development', 'clinical_operations', 'business_analyst'],
+  judgment: ['public_sector', 'corporate_development', 'investment', 'product_management', 'product', 'compliance', 'legal', 'contracts_management', 'fpa', 'management_consulting', 'consulting', 'security_risk', 'clinical_operations', 'hrbp'],
+  expertise: ['data_scientist', 'investment', 'engineering', 'data_analytics', 'data_analyst', 'hris', 'compensation', 'people_analytics', 'finance_accounting', 'legal', 'clinical_informatics', 'instructional_design', 'design', 'ux_research', 'fpa'],
+  collaboration: ['education_admin', 'public_sector', 'program_management', 'product_operations', 'people_operations', 'implementation', 'learning_development', 'clinical_operations', 'business_analyst'],
   adaptability: ['product_management', 'product', 'business_development', 'community_management', 'customer_success', 'management_consulting', 'consulting', 'implementation'],
   scale: ['operations_management', 'procurement', 'fpa', 'program_management'],
 }
