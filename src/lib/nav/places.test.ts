@@ -17,6 +17,7 @@ describe('placeForPath', () => {
       '/dashboard/messages': 'network',
       '/dashboard/universities': 'network',
       '/dashboard/groups': 'network',
+      '/dashboard/past-jobs': 'network',
       '/dashboard/learning': 'learn',
       '/dashboard/webinars': 'learn',
       '/dashboard/profile': 'personalize',

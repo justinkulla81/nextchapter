@@ -75,7 +75,7 @@ export const PLACES: Place[] = [
       { label: 'Community', href: '/dashboard/community', alsoMatches: ['/dashboard/circle'] },
       { label: 'Inbox', href: '/dashboard/messages' },
       { label: 'My supporters', href: '/dashboard/supporters' },
-      { label: 'My groups', href: '/dashboard/groups', alsoMatches: ['/dashboard/universities'] },
+      { label: 'My groups', href: '/dashboard/groups', alsoMatches: ['/dashboard/universities', '/dashboard/past-jobs'] },
       { label: 'Coaching', href: '/dashboard/my-coaching', paid: 'coaching', alsoMatches: ['/dashboard/book-session', '/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier'] },
       { label: 'Recruiters', href: '/dashboard/recruiter-requests', paid: 'recruiters', alsoMatches: [PREMIUM_HREF] },
     ],
