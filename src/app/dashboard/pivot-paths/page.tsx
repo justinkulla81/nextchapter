@@ -25,6 +25,7 @@ import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChoose
 import { WageFloorButtons } from '@/components/dashboard/pivot/WageFloorButtons'
 import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
 import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
+import { ClearCareerChoicesForm } from '@/components/dashboard/pivot/ClearCareerChoicesForm'
 import { OnetAttribution } from '@/components/OnetAttribution'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 
@@ -191,13 +192,21 @@ async function buildSkillsLayer({
   lookup: string
   role: string
 }): Promise<SkillsLayer> {
-  const none: SkillsLayer = { details: {}, sections: null }
+  // What we keep about their direction, with a way to remove it. Only a confirmed occupation is stored.
+  const clearControl = (occupationSaved: boolean) =>
+    occupationSaved || profile.targetRoleType ? (
+      <section className="rounded-lg border border-border p-4" aria-label="Your saved choices">
+        <ClearCareerChoicesForm occupationSaved={occupationSaved} targetRole={profile.targetRoleType} />
+      </section>
+    ) : null
+  const none: SkillsLayer = { details: {}, sections: clearControl(false) }
   if (!depthResult) return none
 
   if (depthResult.status === 'needs_choice') {
     return {
       details: {},
       sections: (
+        <>
         <section className="space-y-2 rounded-lg border border-border p-4" aria-labelledby="pivot-pick-occupation">
           <h2 id="pivot-pick-occupation" className="text-base font-semibold text-foreground">
             See what each role takes
@@ -209,6 +218,8 @@ async function buildSkillsLayer({
             Choose my occupation
           </Link>
         </section>
+        {clearControl(false)}
+        </>
       ),
     }
   }
@@ -316,6 +327,8 @@ async function buildSkillsLayer({
           {role && !looked && <p className="text-sm text-muted-foreground">We could not compare that role with yours. Search again and pick one from the list.</p>}
           {looked && card(looked, 1)}
         </section>
+
+        {clearControl(depth.source === 'CANDIDATE_CONFIRMED')}
 
         {isAdzunaInsightsEnabled() && <AdzunaAttribution surface="pivot_tool" />}
         <OnetAttribution />

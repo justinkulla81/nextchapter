@@ -20,6 +20,9 @@ export type OccupationResolution =
  * their stated function. A title that does not clearly match is never guessed
  * at: the Pivot Tool asks them to pick from a short list instead, which costs
  * nothing and beats a model's guess at the wrong "Manager".
+ *
+ * Only a choice the candidate confirms is stored. Matches made from the title or
+ * function are worked out again on each visit, so clearing leaves nothing behind.
  */
 export async function resolveCandidateOccupation(candidateId: string): Promise<OccupationResolution> {
   const taxonomy = await getTaxonomy()
@@ -48,7 +51,6 @@ export async function resolveCandidateOccupation(candidateId: string): Promise<O
     const match = matchTitle(index, title)
     if ((match.kind === 'EXACT' || match.kind === 'FUZZY') && taxonomy.profiles.has(match.socCode)) {
       const source: OccupationSource = match.kind === 'EXACT' ? 'TITLE_EXACT' : 'TITLE_FUZZY'
-      await saveOccupation(candidateId, match.socCode, source, match.kind === 'EXACT' ? 1 : match.score, title)
       return { status: 'resolved', socCode: match.socCode, title: match.title, source, matchedFrom: title }
     }
     const candidates = match.candidates.filter((c) => taxonomy.profiles.has(c.socCode)).slice(0, 6)
@@ -60,7 +62,6 @@ export async function resolveCandidateOccupation(candidateId: string): Promise<O
     const prefix = `${proxy.code.slice(0, 2)}-${proxy.code.slice(2)}`
     const socCode = [...taxonomy.profiles.keys()].find((k) => k.startsWith(prefix))
     if (socCode) {
-      await saveOccupation(candidateId, socCode, 'FUNCTION_PROXY', 0.4, '')
       return { status: 'resolved', socCode, title: taxonomy.profiles.get(socCode)!.title, source: 'FUNCTION_PROXY', matchedFrom: '' }
     }
   }
@@ -74,6 +75,15 @@ async function saveOccupation(candidateId: string, socCode: string, source: Occu
     create: { candidateId, socCode, source, confidence, matchedFrom },
     update: { socCode, source, confidence, matchedFrom, matchedAt: new Date() },
   })
+}
+
+/**
+ * Forgets the occupation the candidate picked. Automatic matches are never stored (they are worked out from the
+ * resume job title each time), so this leaves nothing saved. Returns whether a saved choice existed.
+ */
+export async function clearCandidateOccupation(candidateId: string): Promise<boolean> {
+  const { count } = await prisma.candidateOccupation.deleteMany({ where: { candidateId } })
+  return count > 0
 }
 
 /** The candidate picked an occupation from the list; this holds until their latest resume job title changes. */

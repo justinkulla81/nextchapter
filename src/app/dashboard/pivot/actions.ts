@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { confirmCandidateOccupation } from '@/lib/careers/candidate-occupation'
+import { clearCandidateOccupation, confirmCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 
 export type PivotActionState = { error?: string; message?: string } | undefined
@@ -81,4 +81,18 @@ export async function setPivotTargetRole(_prev: PivotActionState, formData: Form
   revalidatePath('/dashboard/pivot-paths')
   revalidatePath('/dashboard/search-strategy')
   return { message: `Your target role is now ${target.title}.` }
+}
+
+// "Clear my saved choices": forgets the occupation they picked and the target role they set here or on
+// Search Strategy. Their resume, skills and everything else stay. The next visit matches their occupation
+// from their resume job title again, without saving it.
+export async function clearCareerChoices(_prev: PivotActionState): Promise<PivotActionState> {
+  const profile = await currentCandidate()
+  if (!profile) return LOGGED_OUT
+  const hadOccupation = await clearCandidateOccupation(profile.id)
+  const { count } = await prisma.candidateProfile.updateMany({ where: { id: profile.id, targetRoleType: { not: null } }, data: { targetRoleType: null } })
+  captureServerEvent(profile.id, 'pivot_choices_cleared', { candidateId: profile.id, hadOccupation, hadTargetRole: count > 0 })
+  revalidatePath('/dashboard/pivot-paths')
+  revalidatePath('/dashboard/search-strategy')
+  return { message: 'Cleared. We no longer have an occupation or target role saved for you.' }
 }
