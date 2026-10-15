@@ -185,6 +185,7 @@ function buildSections(
         { href: '/dashboard/find-my-job', label: 'Find a job', icon: Briefcase, ...gmailLock },
         // Market-ranked career pivots (src/lib/pivots), for anyone changing direction.
         { href: '/dashboard/pivot-paths', label: 'Pivot paths', icon: Signpost },
+        { href: '/dashboard/market', label: 'Your job market', icon: Signpost },
         // Only for employed journeys (PROMOTION, READY_TO_MOVE, EXPLORING_MOVE,
         // NEXT_ACT): reviews, raises, promotion and feedback.
         ...(showInWork ? [{ href: '/dashboard/in-work', label: 'Reviews, Raises and Promotion', icon: TrendingUp }] : []),

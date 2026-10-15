@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { PivotPathsList } from '@/components/dashboard/pivots/PivotPathsList'
 import { PeopleEnergyQuestion } from '@/components/dashboard/pivots/PeopleEnergyQuestion'
 import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
+import { readSearchExpansion } from '@/lib/profile/search-expansion'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -80,6 +81,10 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
         {profile.highestLevelReached && <> at {profile.highestLevelReached.toLowerCase()} level</>}.{' '}
         <Link href="/dashboard/search-strategy" className="text-primary underline underline-offset-4">
           Not right? Update it
+        </Link>{' '}
+        ·{' '}
+        <Link href="/dashboard/market" className="text-primary underline underline-offset-4">
+          See your job market
         </Link>
       </p>
 
@@ -90,6 +95,7 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
       <PivotPathsList
         suggestions={result.suggestions}
         more={result.more}
+        inSearch={readSearchExpansion(profile.searchExpansion).roles}
         hidden={result.hidden}
         sourceFunction={profile.primaryFunction}
         sourceRole={result.source.key}

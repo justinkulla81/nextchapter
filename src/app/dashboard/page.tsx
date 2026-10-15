@@ -1,4 +1,5 @@
 import type { MarketRealityReport } from '@prisma/client'
+import { MarketFlagsCard } from '@/components/dashboard/MarketFlagsCard'
 import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProgramCard'
 import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
@@ -296,6 +297,10 @@ export default async function DashboardPage() {
       </div>
 
       <OutplacementProgramCard candidateId={profile.id} />
+
+      <Suspense fallback={null}>
+        <MarketFlagsCard candidateId={profile.id} />
+      </Suspense>
 
       <WorkStylePrompt candidateId={profile.id} limit={3} />
 

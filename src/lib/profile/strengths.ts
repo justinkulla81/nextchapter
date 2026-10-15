@@ -108,7 +108,8 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
 
   const s = input.skills
   if (s && s.total > 0) {
-    const v = Math.min(1, (s.expert * 2 + s.strong) / 10 + (input.yearsExperience ? Math.min(0.2, input.yearsExperience / 75) : 0))
+    const used = Math.max(0, s.total - s.strong - s.expert)
+    const v = Math.min(1, (s.expert * 2 + s.strong + 0.3 * used) / 10 + (input.yearsExperience ? Math.min(0.2, input.yearsExperience / 75) : 0))
     sig.expertise.push({ v, w: 1, objective: true, evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}` })
   }
 
@@ -134,7 +135,8 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
   const broad = measured.filter((a) => a.score >= 0.55 && !peaks.includes(a)).sort((a, b) => b.score - a.score)
   const shape: StrengthProfile['shape'] = peaks.length ? 'peaked' : broad.length >= 3 ? 'balanced' : 'emerging'
   const weakSpots = measured
-    .filter((a) => a.score <= 0.35 && sig[a.key].some((x) => x.objective))
+    // A short skills list says little about a lack of expertise, so it never makes a weak spot.
+    .filter((a) => a.score <= 0.35 && a.key !== 'expertise' && sig[a.key].some((x) => x.objective))
     .map((a) => ({ key: a.key, label: a.label, line: STRENGTHS.find((d) => d.key === a.key)!.weakSpot }))
   const missing = [
     !perf ? 'Take How I Perform (10 minutes) to measure execution, judgment, composure and influence' : null,

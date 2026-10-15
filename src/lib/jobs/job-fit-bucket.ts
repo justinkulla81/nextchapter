@@ -1,4 +1,6 @@
 import 'server-only'
+import { readSearchExpansion } from '@/lib/profile/search-expansion'
+import { ROLES } from '@/lib/pivots/pivot-map'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -113,6 +115,8 @@ type FitCandidate = Pick<
   confirmedSkillsHave?: string[]
   certifications?: string[]
   skillLevels?: unknown
+  // What they opted to add to their search (more states, pivot roles).
+  searchExpansion?: unknown
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -486,6 +490,8 @@ interface FitCandidateContext {
   // Whole-word match on the member's city, null when there's no usable city.
   cityWord: RegExp | null
   myStates: string[]
+  // Title patterns of pivot roles they opted into (searchExpansion.roles).
+  expansionRoles: RegExp[]
 }
 
 // c: already normalized (normalizeCandidateProfileFields).
@@ -495,6 +501,7 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
   const { own, secondary } = memberFunctions(c)
   const city = c.currentCity?.trim()
   const homeStates = statesFromLocation([c.currentCity, c.currentState].filter(Boolean).join(', ')).states
+  const expansion = readSearchExpansion(c.searchExpansion)
   return {
     c,
     window: memberLevelWindow(c),
@@ -513,7 +520,8 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
       city && city.toLowerCase() !== 'remote'
         ? new RegExp(`(^|[^a-z])${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
         : null,
-    myStates: [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? [])],
+    myStates: [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? []), ...expansion.states],
+    expansionRoles: expansion.roles.map((k) => ROLES.get(k)?.titles).filter((re): re is RegExp => !!re),
   }
 }
 
@@ -600,7 +608,9 @@ function assessFit(
   // No fallback level reads the same as none (postingLevelPoints), so the prepared points stand.
   const level = levelStepFromPoints(m.window, fallbackLevel ? postingLevelPoints(posting, fallbackLevel) : j.levelPoints)
   const place = placeFit(m, j)
-  const titleBonus = titleSimilarityBonus(m, j)
+  // A role they opted into from pivot paths counts as on-target.
+  const expansionHit = m.expansionRoles.length > 0 && m.expansionRoles.some((re) => re.test(posting.title.toLowerCase()))
+  const titleBonus = Math.max(titleSimilarityBonus(m, j), expansionHit ? 16 : 0)
   const industryMatch = matchesTargetIndustry(m, j.industryTextLower)
   const base = { functionFit: fn, level, place, titleBonus, industryMatch }
 
@@ -610,7 +620,7 @@ function assessFit(
 
   // A member with no specific target ("Flexible") has told us their function
   // is the role — a job in it gets the credit a named role's title would.
-  const roleCredit = m.specificTarget ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
+  const roleCredit = m.specificTarget || expansionHit ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
 
   let score =
     FUNCTION_POINTS[fn] +
@@ -827,6 +837,7 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       confirmedSkillsHave: true,
       certifications: true,
       skillLevels: true,
+      searchExpansion: true,
       yearsExperience: true,
       industryContext: true,
       secondaryIndustryContext: true,

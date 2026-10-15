@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { demandLine, type PivotSuggestion } from '@/lib/pivots/scoring'
 import { setPivotPathHidden } from '@/app/dashboard/pivot-paths/actions'
 import { pivotJobsHref } from '@/lib/pivots/pivot-map'
+import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 
 const PEOPLE_TAG: Record<PivotSuggestion['people'], { label: string; icon: typeof Users }> = {
   HIGH: { label: 'People-facing', icon: Users },
@@ -25,6 +26,7 @@ const FIT_STYLE: Record<PivotSuggestion['fitLabel'], string> = {
 export function PivotPathsList({
   suggestions,
   more = [],
+  inSearch = [],
   hidden,
   sourceFunction,
   sourceRole,
@@ -35,6 +37,8 @@ export function PivotPathsList({
   suggestions: PivotSuggestion[]
   // Every other path from the starting role, shown on request.
   more?: PivotSuggestion[]
+  // Pivot roles already added to their job search (searchExpansion.roles).
+  inSearch?: string[]
   hidden: { key: string; label: string }[]
   sourceFunction: string | null
   sourceRole: string | null
@@ -119,7 +123,7 @@ export function PivotPathsList({
       <ol className="space-y-4">
         {visible.map((s, i) => (
           <li key={s.target}>
-            <PivotPathCard s={s} rank={i + 1} marketReady={marketReady} sourceRole={sourceRole} surface={surface} onHide={() => hide(s, i + 1)} />
+            <PivotPathCard s={s} rank={i + 1} marketReady={marketReady} sourceRole={sourceRole} surface={surface} inSearch={inSearch.includes(s.target)} onHide={() => hide(s, i + 1)} />
           </li>
         ))}
       </ol>
@@ -160,6 +164,7 @@ function PivotPathCard({
   marketReady,
   sourceRole,
   surface,
+  inSearch,
   onHide,
 }: {
   s: PivotSuggestion
@@ -167,6 +172,7 @@ function PivotPathCard({
   marketReady: boolean
   sourceRole: string | null
   surface: string
+  inSearch: boolean
   onHide: () => void
 }) {
   const people = PEOPLE_TAG[s.people]
@@ -309,6 +315,7 @@ function PivotPathCard({
           Show me these jobs
           <ArrowRight className="size-3.5" aria-hidden />
         </Button>
+        <ExpansionToggle kind="role" value={s.target} on={inSearch} label={s.label} />
         <Button size="sm" variant="ghost" onClick={onHide} aria-label={`Not for me: hide ${s.label}`}>
           Not for me
         </Button>

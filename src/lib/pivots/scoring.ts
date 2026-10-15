@@ -252,7 +252,7 @@ export function shareTrend(idx: StatIndex, role: string, geo: string, bands: Ban
   return roleNew / totalNew / (rolePrior / totalPrior) - 1
 }
 
-function bestTrend(idx: StatIndex, role: string, state: string | null, bands: Band[]): { pct: number; days: 30 | 90; scope: 'local' | 'national' } | null {
+export function bestTrend(idx: StatIndex, role: string, state: string | null, bands: Band[]): { pct: number; days: 30 | 90; scope: 'local' | 'national' } | null {
   for (const days of [90, 30] as const) {
     if (state) {
       const local = shareTrend(idx, role, state, bands, days)
@@ -264,7 +264,7 @@ function bestTrend(idx: StatIndex, role: string, state: string | null, bands: Ba
   return null
 }
 
-function wantsRemote(remotePreference: string | null): boolean {
+export function wantsRemote(remotePreference: string | null): boolean {
   return remotePreference !== 'onsite'
 }
 
