@@ -24,6 +24,7 @@ export interface GraphSyncResult {
   recruiterFirmsLinked: number
   outplacementOrgsLinked: number
   crmOrganizationsLinked: number
+  crmOrganizationsCreated: number
   websitesFilled: number
   atsPlatformsFilled: number
 }
@@ -55,8 +56,8 @@ function exactCompanyId(rawName: string, index: CompanyIndex): string | null {
   return m.kind === 'exact' ? m.companyId : null
 }
 
-export async function syncCompanyGraph(opts: { postingNameLimit?: number } = {}): Promise<GraphSyncResult> {
-  const { postingNameLimit = 1500 } = opts
+export async function syncCompanyGraph(opts: { postingNameLimit?: number; orgCreateLimit?: number } = {}): Promise<GraphSyncResult> {
+  const { postingNameLimit = 1500, orgCreateLimit = 500 } = opts
   const index = await loadIndex()
   const result: GraphSyncResult = {
     postingNamesLinked: 0,
@@ -65,6 +66,7 @@ export async function syncCompanyGraph(opts: { postingNameLimit?: number } = {})
     recruiterFirmsLinked: 0,
     outplacementOrgsLinked: 0,
     crmOrganizationsLinked: 0,
+    crmOrganizationsCreated: 0,
     websitesFilled: 0,
     atsPlatformsFilled: 0,
   }
@@ -134,6 +136,45 @@ export async function syncCompanyGraph(opts: { postingNameLimit?: number } = {})
     if (!companyId) continue
     await prisma.crmOrganization.update({ where: { id: org.id }, data: { companyId, companyLinkState: 'AUTO' } })
     result.crmOrganizationsLinked += 1
+  }
+
+  // 5b. Every company with a job posting gets a CRM organization, tagged EMPLOYER
+  // ("a company that employs people") and linked to its directory Company. This runs
+  // after step 5 so a company that already has a same-named organization is linked,
+  // not duplicated. `orgCreateLimit` keeps a night's work bounded; the rest follows
+  // on later runs.
+  const needingOrg = await prisma.company.findMany({
+    where: {
+      crmOrganizations: { none: {} },
+      OR: [{ postings: { some: { archivedAt: null } } }, { jobOpenings: { some: {} } }],
+    },
+    select: { id: true, name: true, canonicalNameNormalized: true, industry: true, hqMetro: true, website: true },
+    orderBy: { createdAt: 'desc' },
+    take: orgCreateLimit,
+  })
+  if (needingOrg.length) {
+    const taken = new Set(
+      (await prisma.crmOrganization.findMany({
+        where: { canonicalNameNormalized: { in: needingOrg.map((c) => c.canonicalNameNormalized) } },
+        select: { canonicalNameNormalized: true },
+      })).map((o) => o.canonicalNameNormalized)
+    )
+    const { count } = await prisma.crmOrganization.createMany({
+      skipDuplicates: true,
+      data: needingOrg
+        .filter((c) => isLinkableCompanyName(c.name) && !taken.has(c.canonicalNameNormalized))
+        .map((c) => ({
+          name: c.name,
+          canonicalNameNormalized: c.canonicalNameNormalized,
+          orgTypes: ['EMPLOYER' as const],
+          companyId: c.id,
+          companyLinkState: 'AUTO',
+          industry: c.industry,
+          hqRegion: c.hqMetro,
+          website: c.website,
+        })),
+    })
+    result.crmOrganizationsCreated = count
   }
 
   // 6. Websites — only from a source a person typed, never inferred.

@@ -83,3 +83,35 @@ export async function opportunitiesForKinds(kinds: ApplicantKind[], opts: { stat
     .filter((o) => matchesOrgKinds({ eligibility: o.eligibility, kinds: o.applicantKinds }, kinds) && inStateScope(o.states, opts.state))
     .slice(0, opts.limit ?? 20)
 }
+
+export interface OrgOpportunityCounts {
+  /** Open grants and forecasts this organization issues. */
+  funding: number
+  /** Open RFPs, RFIs and pre-solicitations this organization issues. */
+  rfps: number
+}
+
+/**
+ * Open opportunities per issuing organization, for the Organizations list.
+ * Missing table (applied by hand) reads as no counts rather than an error.
+ */
+export async function countOpenByOrg(orgIds: string[]): Promise<Map<string, OrgOpportunityCounts>> {
+  const out = new Map<string, OrgOpportunityCounts>()
+  if (orgIds.length === 0) return out
+  try {
+    const rows = await prisma.$queryRaw<{ orgId: string; kind: string; n: number }[]>`
+      SELECT "orgId", "kind", COUNT(*)::int AS n
+        FROM "FundingOpportunity"
+       WHERE "orgId" = ANY(${orgIds}) AND ("closesAt" IS NULL OR "closesAt" >= NOW())
+       GROUP BY 1, 2`
+    for (const r of rows) {
+      const c = out.get(r.orgId) ?? { funding: 0, rfps: 0 }
+      if (r.kind === 'GRANT' || r.kind === 'FORECAST') c.funding += r.n
+      else c.rfps += r.n
+      out.set(r.orgId, c)
+    }
+  } catch {
+    // table not applied yet
+  }
+  return out
+}

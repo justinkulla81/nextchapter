@@ -13,6 +13,7 @@ import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrganizationsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 import { hasLearningDevHead, missingLearningDevHead } from '@/lib/crm/learning-dev'
 import { ORG_RELATIONSHIPS, ORG_RELATIONSHIP_LABELS, isOrgRelationshipFilter, relationshipWhere, type OrgRelationshipFilter } from '@/lib/crm/org-relationships'
+import { countOpenByOrg } from '@/lib/funding-opportunities/store'
 import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
@@ -66,10 +67,11 @@ export default async function CrmOrganizationsPage({
       select: {
         id: true, name: true, orgTypes: true, goals: true, hqRegion: true, dealStatus: true,
         investorProfile: { select: { checkSizeNote: true } },
-        _count: { select: { affiliations: true, opportunities: true } },
+        _count: { select: { affiliations: true, opportunities: true, researchItems: true } },
       },
     }),
   ])
+  const oppCounts = await countOpenByOrg(rows.map((o) => o.id))
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
@@ -157,6 +159,9 @@ export default async function CrmOrganizationsPage({
                 <th className="px-3 py-2 font-medium">Deal</th>
                 <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium">Pipelines</th>
+                <th className="px-3 py-2 font-medium" title="Open grants and forecasts this organization issues">Funding</th>
+                <th className="px-3 py-2 font-medium" title="Open RFPs, RFIs and pre-solicitations this organization issues">RFPs</th>
+                <th className="px-3 py-2 font-medium">Research</th>
                 <th className="px-3 py-2 font-medium">Check size</th>
               </tr>
             </thead>
@@ -193,6 +198,9 @@ export default async function CrmOrganizationsPage({
                     )}
                   </td>
                   <td className="px-3 py-2">{o._count.opportunities || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2">{oppCounts.get(o.id)?.funding || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2">{oppCounts.get(o.id)?.rfps || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2">{o._count.researchItems || <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2 text-xs">{o.investorProfile?.checkSizeNote ?? <span className="text-muted-foreground">—</span>}</td>
                 </tr>
               ))}
