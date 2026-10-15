@@ -20,6 +20,7 @@ import { loadOrgDemandData } from '@/lib/crm/org-page-data'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 
@@ -33,6 +34,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     where: { OR: [{ id: param }, { canonicalNameNormalized: canonicalFromSlug(param) }] },
     include: {
       affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
+      mandates: { include: { recruiter: { select: { id: true, fullName: true } } }, orderBy: { createdAt: 'desc' } },
       opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
       deadlines: { orderBy: [{ dueAt: 'asc' }] },
       researchItems: true,
@@ -296,6 +298,23 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             </ul>
           )}
         </div>
+
+        {org.mandates.length > 0 && (
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Recruiters with a mandate ({org.mandates.length})</h3>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {org.mandates.map((m) => (
+                <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                  <span>
+                    <Link href={`/support/admin/crm/people/${m.recruiter.id}`} className="font-medium hover:underline">{m.recruiter.fullName}</Link>
+                    {m.scope && <span className="text-muted-foreground"> — {m.scope}</span>}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{MANDATE_STATUS_LABELS[m.status]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <details open={org.introPathsAsTarget.length > 0} className="rounded-lg border border-border p-3">
           <summary className="cursor-pointer text-sm font-semibold">

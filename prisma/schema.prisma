@@ -9941,6 +9941,7 @@ model CrmOrganization {
   updatedAt DateTime @updatedAt
 
   affiliations        CrmAffiliation[]
+  mandates            CrmMandate[]
   backgrounds         CrmBackground[]
   opportunities       CrmOpportunity[]
   activities          CrmActivity[]
@@ -9970,6 +9971,8 @@ model CrmOrganization {
 
 model CrmPerson {
   id                 String              @id @default(cuid())
+  /// Searches this person (a recruiter) is retained or engaged on, one row per company.
+  mandates           CrmMandate[]
   referredCandidates CandidateReferral[]
   referralLinks      ReferralLink[]
   firstName          String?
@@ -10238,6 +10241,37 @@ model CrmAffiliation {
   @@unique([personId, orgId, title])
   @@index([orgId])
   @@index([personId])
+}
+
+enum CrmMandateStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED
+}
+
+/// A recruiter's mandate at a company: the company has engaged them to fill
+/// roles. A recruiter can hold many, and a company can have several recruiters.
+/// `scope` is free text ("VP and above, finance") because mandates are narrow
+/// and rarely repeat; closing keeps the history, deleting does not.
+model CrmMandate {
+  id          String            @id @default(cuid())
+  recruiterId String
+  recruiter   CrmPerson         @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  orgId       String
+  org         CrmOrganization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  scope     String?
+  status    CrmMandateStatus @default(ACTIVE)
+  startedAt DateTime?
+  endedAt   DateTime?
+  notes     String?          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([orgId])
+  @@index([status])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

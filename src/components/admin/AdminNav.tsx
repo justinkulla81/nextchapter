@@ -124,6 +124,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/colleges', label: 'Higher ed' },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
         { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
+        { href: '/support/admin/crm/mandates', label: 'Mandates' },
         { href: '/support/admin/crm/search-firms', label: 'Search firms' },
         { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
       ],
