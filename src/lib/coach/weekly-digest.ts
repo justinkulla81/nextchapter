@@ -54,6 +54,8 @@ export interface CoachWeeklyDigest {
   clients: DigestClient[]
   /** Assigned clients who have not yet consented — name only, no detail. */
   notSharedNames: string[]
+  /** Shared clients whose detail failed to load this run — named so the coach knows, never silently dropped. */
+  unavailableNames: string[]
 }
 
 function normalizeUrl(url: string | null | undefined): string | null {
@@ -114,6 +116,7 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
   const since = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000)
 
   const notSharedNames: string[] = []
+  const unavailableNames: string[] = []
   const clients: DigestClient[] = []
 
   await Promise.all(
@@ -124,10 +127,19 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         notSharedNames.push(entry.name)
         return
       }
-      const [outcomes, newJobs] = await Promise.all([
-        getWeeklyOutcomes(entry.id, since),
-        findNewStrongFitJobs(entry.id, profile),
-      ])
+      // One client's failed query must not drop the whole digest for the coach.
+      let outcomes: Awaited<ReturnType<typeof getWeeklyOutcomes>>
+      let newJobs: DigestJob[]
+      try {
+        ;[outcomes, newJobs] = await Promise.all([
+          getWeeklyOutcomes(entry.id, since),
+          findNewStrongFitJobs(entry.id, profile),
+        ])
+      } catch (error) {
+        console.error('Coach digest: client detail failed', entry.id, error)
+        unavailableNames.push(entry.name)
+        return
+      }
       const risks = entry.triggers.filter((t) => t.type === 'RISK')
       const attention = [...(entry.isStalled ? ['Search has stalled — no recent activity'] : []), ...risks.map((t) => t.label)]
       clients.push({
@@ -159,5 +171,6 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
 
   clients.sort((a, b) => b.attention.length - a.attention.length || a.name.localeCompare(b.name))
   notSharedNames.sort()
-  return { clients, notSharedNames }
+  unavailableNames.sort()
+  return { clients, notSharedNames, unavailableNames }
 }

@@ -45,6 +45,7 @@ export async function sendMarketDigestCoachEmail(
       fullName: coach.fullName,
       clients,
       notSharedNames: digest.notSharedNames,
+      unavailableNames: digest.unavailableNames,
       roleLines,
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget ? digestClickUrl('coach', coach.id, nugget.id) : null,
