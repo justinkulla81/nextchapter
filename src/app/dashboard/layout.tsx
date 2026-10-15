@@ -21,6 +21,8 @@ import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectR
 import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
+import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
+import { checkInDue, effectiveStage, getStage } from '@/lib/journey/journey'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -108,7 +110,13 @@ async function getSupportNetworkUnreadCountForBadge(profileId: string) {
 // Suspense boundary, so the schedule check never holds up the page.
 async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   const prompt = await getCheckInPrompt(profileId).catch(() => null)
-  return prompt ? <CheckInPromptDialog {...prompt} /> : null
+  if (prompt) return <CheckInPromptDialog {...prompt} />
+  // Nothing else is due, so ask "Still searching?" at the stage's pace. Never
+  // two pop-ups at once.
+  const profile = await getDashboardProfile()
+  const stage = effectiveStage(profile)
+  if (!stage || stage === 'PAUSED' || !checkInDue(profile)) return null
+  return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
 }
 
 // The place tab row needs two connection flags to show the right locks; its
