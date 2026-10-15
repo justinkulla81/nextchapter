@@ -3,7 +3,6 @@
 import { useActionState, useState } from 'react'
 import { updatePersonalContext } from '@/app/dashboard/actions'
 import { useAdvanceSearchStrategyPageOnSave } from '@/components/dashboard/SearchStrategyWizard'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
@@ -66,18 +65,26 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
         to you.
       </p>
 
-      <div className="space-y-2">
-        <Label>How difficult has your job search been so far?</Label>
+      <PersonalizationQuestion
+        id="search-difficulty"
+        question="How difficult has your job search been so far?"
+        payoff="Victoria adjusts how much support and encouragement she gives you."
+        optional
+      >
         <FourStopSlider
           name="jobSearchDifficultyLevel"
           choices={JOB_SEARCH_DIFFICULTY_OPTIONS}
           defaultValue={jobSearchDifficultyLevel}
           onChange={setJobSearchDifficultyLevel}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>What do you think are the biggest barriers to getting a new job? Select all that apply.</Label>
+      <PersonalizationQuestion
+        id="biggest-barriers"
+        question="What do you think are the biggest barriers to getting a new job?"
+        payoff="Your Search Strategy guidance goes after the barriers you name first. Select all that apply."
+        optional
+      >
         <MultiChoiceButtons
           name="biggestBarriers"
           options={BIGGEST_BARRIER_OPTIONS}
@@ -85,36 +92,48 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
           onChange={setBiggestBarriers}
           columns={2}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>What tends to get in the way, if anything? Select all that apply.</Label>
+      <PersonalizationQuestion
+        id="blockers"
+        question="What tends to get in the way, if anything?"
+        payoff="Victoria builds around what stalls you, so your plan is one you can finish. Select all that apply."
+        optional
+      >
         <MultiChoiceButtons name="blockers" options={BLOCKER_OPTIONS} value={blockers} onChange={setBlockers} columns={2} />
-      </div>
+      </PersonalizationQuestion>
 
       <ConfidenceSlider
         name="consistencySelfRating"
         label="How would you describe your consistency week to week?"
+        payoff="Your weekly plan is sized to how consistent you really are."
+        optional
         defaultValue={profile.consistencySelfRating}
         labels={CONSISTENCY_LABELS}
       />
 
-      <div className="space-y-2">
-        <Label htmlFor="blockersOpenText">Anything more personal you want your coach to know? (optional)</Label>
+      <PersonalizationQuestion
+        id="personal-notes"
+        htmlFor="blockersOpenText"
+        question="Anything more personal you want your coach to know?"
+        payoff="Your coach sees it and nobody else does. It is never structured or shared anywhere else."
+        optional
+      >
         <Textarea
           id="blockersOpenText"
           name="blockersOpenText"
           defaultValue={profile.blockersOpenText ?? ''}
-          placeholder="Only your coach sees this — it's never structured or shared anywhere else."
+          placeholder="Only your coach sees this."
           rows={3}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>
-          What&apos;s driving your search right now? Select up to {MOTIVATIONS_MAX} — this helps your
-          coach calibrate how they talk to you.
-        </Label>
+      <PersonalizationQuestion
+        id="motivations"
+        question="What's driving your search right now?"
+        payoff={`Your coach calibrates how they talk to you. Select up to ${MOTIVATIONS_MAX}.`}
+        optional
+      >
         <MultiChoiceButtons
           name="motivations"
           options={MOTIVATIONS_OPTIONS}
@@ -129,7 +148,7 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
           placeholder="What gets you up in the morning? What helps you shift your attitude on a hard day? (optional, in your own words)"
           rows={3}
         />
-      </div>
+      </PersonalizationQuestion>
 
       <PersonalizationQuestion
         id="coaching-style"

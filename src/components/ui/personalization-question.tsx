@@ -18,11 +18,17 @@ export function PersonalizationQuestion({
   payoff,
   optional = false,
   pending = false,
+  htmlFor,
+  badge,
   children,
   className,
 }: {
   id: string
   question: React.ReactNode
+  /** Id of the single input this question labels (select, text field); omit for button groups. */
+  htmlFor?: string
+  /** Extra status next to the tag, e.g. a "Not answered yet" flag. */
+  badge?: React.ReactNode
   /** What the user gets for answering, in plain words ("Your paths re-rank toward…"). */
   payoff: React.ReactNode
   optional?: boolean
@@ -45,9 +51,10 @@ export function PersonalizationQuestion({
           Personalize
         </span>
         {optional && <span className="text-xs text-muted-foreground">Optional, takes a few seconds</span>}
+        {badge}
       </div>
       <h3 id={`${id}-question`} className="text-base font-semibold leading-snug text-foreground sm:text-lg">
-        {question}
+        {htmlFor ? <label htmlFor={htmlFor}>{question}</label> : question}
       </h3>
       <p className="text-sm text-foreground">
         <span className="font-semibold">What you get: </span>
