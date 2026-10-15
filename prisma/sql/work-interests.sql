@@ -19,3 +19,5 @@ CREATE UNIQUE INDEX "WorkInterestsResponse_candidateId_key" ON "WorkInterestsRes
 
 ALTER TABLE "WorkInterestsResponse" ADD CONSTRAINT "WorkInterestsResponse_candidateId_fkey"
   FOREIGN KEY ("candidateId") REFERENCES "CandidateProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "WorkInterestsResponse" ENABLE ROW LEVEL SECURITY;
