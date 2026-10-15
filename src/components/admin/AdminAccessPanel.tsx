@@ -88,9 +88,13 @@ function GrantRow({ g, pending, onToggle, onSessions }: { g: AdminGrantRow; pend
           {FEATURE[g.feature] ?? g.feature} · {SOURCE[g.source] ?? g.source}
         </p>
         <p className="text-xs text-muted-foreground">
-          {g.feature === 'coaching' && (g.sessionsTotal === null ? 'No session limit' : `${g.sessionsUsed} of ${g.sessionsTotal} sessions used`)}
-          {g.endsAt ? ` · ${expired ? 'ended' : 'ends'} ${new Date(g.endsAt).toLocaleDateString()}` : ' · no end'}
-          {g.revokedAt ? ` · off (${g.revokedBy ?? 'unknown'})` : ''}
+          {[
+            g.feature === 'coaching' ? (g.sessionsTotal === null ? 'No session limit' : `${g.sessionsUsed} of ${g.sessionsTotal} sessions used`) : null,
+            g.endsAt ? `${expired ? 'ended' : 'ends'} ${new Date(g.endsAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}` : 'no end',
+            g.revokedAt ? `off (${g.revokedBy ?? 'unknown'})` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
       </div>
       <div className="flex items-center gap-1">

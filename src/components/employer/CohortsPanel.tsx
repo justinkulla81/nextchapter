@@ -96,7 +96,9 @@ function CohortChange({ cohort, named, packages }: { cohort: string; named: bool
             <label htmlFor={`cn-${cohort}`} className="font-medium">Cohort name</label>
             <div className="flex gap-1">
               <Input id={`cn-${cohort}`} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="h-7" />
-              <Button type="button" size="xs" variant="outline" disabled={pending || !name.trim() || name === cohort} onClick={() => run({ rename: name }, 'Renamed')}>Rename</Button>
+              {name.trim() && name !== cohort && (
+                <Button type="button" size="xs" variant="outline" disabled={pending} onClick={() => run({ rename: name }, 'Renamed')}>Rename</Button>
+              )}
             </div>
           </div>
         )}
