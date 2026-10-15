@@ -24,6 +24,20 @@ npm run reset:users -- someone@example.com another@example.com
 ```
 `scripts/reset-users.ts` — fully deletes one or more users by email: their `CandidateProfile` (and everything that cascades from it — resumes, work samples, references, reports, sprints, community posts, etc.) plus their Supabase auth account. Lets a real email go through signup/onboarding again from scratch. This is the tool for "I tested with my own email and want to redo onboarding," not for the `@nextchapter.test` fixtures above (use `--delete` for those).
 
+### Load the occupation skills data (O*NET and BLS)
+```bash
+npm run import:occupations -- --onet ./db_29_3_text --onet-version 29.3 \
+  --oews ./national_M2024_dl.csv --oews-year 2024 --top-code-annual 239200 \
+  --projections ./occupation.csv --dry-run
+```
+`scripts/import-occupations.ts` — loads the reference data behind the "Roles your skills carry into" card on the learning page. Reads files you download yourself; each source is optional and replaces its own tables, so it is safe to re-run. Run with `--dry-run` first: it prints the counts and writes nothing.
+
+- **O*NET** (onetcenter.org/database.html): download the Text format, unzip, pass the folder. Needs `Occupation Data.txt`, `Job Zones.txt` and `Skills.txt`; `Knowledge`, `Abilities`, `Work Activities`, `Technology Skills`, `Alternate Titles` and `Related Occupations` are used when present. Only white-collar occupations at Job Zone 4 or higher are kept in the child tables. Credit "O*NET" (CC BY 4.0) wherever the data is shown.
+- **OEWS** (bls.gov/oes/tables.htm): the national workbook, exported to CSV. `--top-code-annual` is that year's wage ceiling from the workbook's notes; without it, medians reported only as a floor are stored empty and no pay is shown for those roles.
+- **Projections** (bls.gov/emp/tables.htm): Table 1.2, exported to CSV.
+
+A column that is missing or renamed stops the import and lists the headers found, rather than loading shifted data.
+
 ### Seed Work Style Assessment content
 ```bash
 npm run seed:assessment
