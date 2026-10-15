@@ -32,10 +32,21 @@ export interface JobReviewJob {
 }
 
 /** One past job: a one-line summary, and a short structured form to describe it. */
-export function JobReviewCard({ job }: { job: JobReviewJob }) {
+export function JobReviewCard({
+  job,
+  source = 'past_jobs',
+  defaultOpen = false,
+  onSaved,
+}: {
+  job: JobReviewJob
+  source?: 'past_jobs' | 'dashboard'
+  defaultOpen?: boolean
+  /** When given, the caller handles what happens after a save (the page is not refreshed here). */
+  onSaved?: () => void
+}) {
   const router = useRouter()
   const ids = useId()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [review, setReview] = useState<ReviewInput>(job.review ?? EMPTY)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -65,10 +76,11 @@ export function JobReviewCard({ job }: { job: JobReviewJob }) {
         dislikedCount: review.disliked.length,
         isCurrent: job.isCurrent,
         edited: result.edited,
-        source: 'past_jobs',
+        source,
       })
       setSaved(true)
-      router.refresh()
+      if (onSaved) onSaved()
+      else router.refresh()
     })
   }
 

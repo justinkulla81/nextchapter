@@ -216,3 +216,11 @@ export async function getCompanyReviewSummary(companyId: string, viewerCandidate
     viewerCandidateId
   )
 }
+
+// ── Dashboard nudge ──────────────────────────────────────────────────────────
+
+/** The next former job this member has not reviewed (most recent first), and how many more wait behind it. Current jobs are not asked about. */
+export async function getNextJobToReview(candidateId: string): Promise<{ job: PastJob; moreCount: number } | null> {
+  const pending = (await getPastJobs(candidateId)).filter((j) => !j.isCurrent && j.review === null)
+  return pending.length === 0 ? null : { job: pending[0], moreCount: pending.length - 1 }
+}
