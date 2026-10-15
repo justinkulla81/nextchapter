@@ -19,6 +19,7 @@ import {
   type PivotRole,
   type TimeToPivot,
 } from './pivot-map'
+import { outlookForRole, outlookLine, outlookMultiplier } from './occupation-outlook'
 
 // ── Inputs ──────────────────────────────────────────────────────────────────
 
@@ -135,6 +136,8 @@ export interface PivotSuggestion {
   gaps: { label: string; way: string; example: string }[]
   demand: Demand
   pay: PayChange
+  /** National long-term outlook (BLS projections via CareerOneStop) when one SOC occupation stands for the role. */
+  outlook: { line: string; occupation: string; medianWage: number | null; wageYear: string | null } | null
   /** Why personality moved this path, in plain words, when it did. */
   personalityNote: string | null
   /** Internal ordering only — never shown. */
@@ -428,7 +431,9 @@ export const CONTRACTING_TREND = -0.1
 // the sourced reason. Not a blanket rule over every role with a "pressure" note.
 function structuralReason(sourceKey: string): string | null {
   if (sourceKey === 'customer_service') {
-    return `Customer service jobs fell about ${Math.abs(CUSTOMER_SERVICE_TREND.employmentChangePct2025to2026)}% nationally from 2025 to 2026 (Census CPS).`
+    const bls = outlookForRole('customer_service')
+    const projected = bls && bls.pctChange < 0 ? ` BLS projects a further ${Math.abs(bls.pctChange)}% decline from ${bls.baseYear} to ${bls.projectedYear}.` : ''
+    return `Customer service jobs fell about ${Math.abs(CUSTOMER_SERVICE_TREND.employmentChangePct2025to2026)}% nationally from 2025 to 2026 (Census CPS).${projected}`
   }
   if (sourceKey === 'admin_ea') {
     const admin = OCCUPATION_TRENDS.find((r) => r.socGroup === '43')
@@ -516,7 +521,8 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
     const trendMult = 1 + Math.max(-0.3, Math.min(0.3, demand.trendPct ?? 0)) * 0.5
     const payMult = 1 + Math.max(-0.3, Math.min(0.3, pay.deltaPct ?? 0)) * 0.5
     const compMult = 1 + 0.1 * (demand.lowCompetitionShare ?? 0)
-    const rankScore = fit * (0.35 + 0.65 * d * trendMult) * payMult * compMult
+    const occ = outlookForRole(target.key)
+    const rankScore = fit * (0.35 + 0.65 * d * trendMult) * payMult * compMult * outlookMultiplier(occ)
 
     return {
       target: target.key,
@@ -534,6 +540,7 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
       gaps,
       demand,
       pay,
+      outlook: occ ? { line: outlookLine(occ), occupation: occ.title, medianWage: occ.medianWage, wageYear: occ.wageYear } : null,
       personalityNote: tilt.note,
       rankScore,
     }

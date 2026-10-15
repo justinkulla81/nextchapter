@@ -205,6 +205,23 @@ function PivotPathCard({
         </div>
       </dl>
 
+      {s.outlook && (
+        <div className="text-sm">
+          <p className="text-xs font-medium text-muted-foreground">Long-term outlook (national)</p>
+          <p className="text-foreground">
+            {s.outlook.line}
+            {s.outlook.medianWage && (
+              <span className="text-muted-foreground">
+                {' '}
+                Median wage across all levels: ${s.outlook.medianWage.toLocaleString()}
+                {s.outlook.wageYear ? ` (${s.outlook.wageYear})` : ''}.
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">Outlook: BLS projections via CareerOneStop ({s.outlook.occupation}).</p>
+        </div>
+      )}
+
       {s.personalityNote && <p className="text-xs text-muted-foreground">{s.personalityNote}</p>}
       {s.caution && <p className="text-xs text-warning">{s.caution}</p>}
 
