@@ -57,7 +57,7 @@ export const PLACES: Place[] = [
       { label: 'Find a job', href: '/dashboard/find-my-job', alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] },
       { label: 'Companies', href: '/dashboard/companies', alsoMatches: ['/dashboard/company-tracker'] },
       { label: 'Market', href: '/dashboard/market', alsoMatches: ['/dashboard/market-reality', '/dashboard/market-intelligence'] },
-      { label: 'Explore other roles', href: '/dashboard/pivot', alsoMatches: ['/dashboard/pivot-paths'] },
+      { label: 'Pivot paths', href: '/dashboard/pivot-paths', alsoMatches: ['/dashboard/pivot'] },
       { label: 'From my groups', href: '/dashboard/alumni-jobs' },
       { label: 'Interview prep', href: '/dashboard/interview-prep' },
       { label: 'Reviews and raises', href: '/dashboard/in-work', employedOnly: true },

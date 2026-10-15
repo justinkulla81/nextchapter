@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition, type ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Users, UserRound, Shuffle, TrendingUp } from 'lucide-react'
 import { posthog } from '@/lib/posthog/client'
@@ -33,6 +33,7 @@ export function PivotPathsList({
   contracting,
   marketReady,
   surface,
+  details = {},
 }: {
   suggestions: PivotSuggestion[]
   // Every other path from the starting role, shown on request.
@@ -45,6 +46,8 @@ export function PivotPathsList({
   contracting: boolean
   marketReady: boolean
   surface: 'pivot_paths_page' | 'search_strategy'
+  // Server-rendered "what it takes" (O*NET skills, local pay, training) per path, keyed by target.
+  details?: Record<string, { socCode: string; node: ReactNode }>
 }) {
   const [hiddenNow, setHiddenNow] = useState<string[]>([])
   const [restored, setRestored] = useState<string[]>([])
@@ -123,7 +126,7 @@ export function PivotPathsList({
       <ol className="space-y-4">
         {visible.map((s, i) => (
           <li key={s.target}>
-            <PivotPathCard s={s} rank={i + 1} marketReady={marketReady} sourceRole={sourceRole} surface={surface} inSearch={inSearch.includes(s.target)} onHide={() => hide(s, i + 1)} />
+            <PivotPathCard s={s} rank={i + 1} marketReady={marketReady} sourceRole={sourceRole} surface={surface} inSearch={inSearch.includes(s.target)} detail={details[s.target]} onHide={() => hide(s, i + 1)} />
           </li>
         ))}
       </ol>
@@ -165,6 +168,7 @@ function PivotPathCard({
   sourceRole,
   surface,
   inSearch,
+  detail,
   onHide,
 }: {
   s: PivotSuggestion
@@ -173,6 +177,7 @@ function PivotPathCard({
   sourceRole: string | null
   surface: string
   inSearch: boolean
+  detail?: { socCode: string; node: ReactNode }
   onHide: () => void
 }) {
   const people = PEOPLE_TAG[s.people]
@@ -307,6 +312,18 @@ function PivotPathCard({
           )}
         </div>
       </div>
+
+      {detail && (
+        <details
+          className="group rounded-lg border border-border"
+          onToggle={(e) => {
+            if (e.currentTarget.open) posthog.capture('pivot_path_detail_opened', { target: s.target, socCode: detail.socCode, rank, sourceRole, surface })
+          }}
+        >
+          <summary className="cursor-pointer select-none rounded-lg px-3 py-2 text-sm font-medium text-primary">What it takes: skills, pay near you, training</summary>
+          <div className="border-t border-border p-3">{detail.node}</div>
+        </details>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <Button

@@ -13,10 +13,28 @@ import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { readLikes } from '@/lib/profile/work-profile'
 import { LikesCard } from '@/components/dashboard/LikesCard'
 import { WorkAlikeCard } from '@/components/dashboard/WorkAlikeCard'
+import { DEFAULT_WAGE_FLOOR, describePivot, WAGE_FLOOR_RATIO, type PivotOption, type WageFloor } from '@/lib/careers/pivots'
+import { loadPivotDepth, optionsForLabels, similarRoles, type PivotDepth, type PivotDepthResult } from '@/lib/careers/pivot-depth'
+import { searchOccupationTitles } from '@/lib/careers/candidate-occupation'
+import { getCoreTasks } from '@/lib/careers/occupation-tasks'
+import { describePay } from '@/lib/careers/local-pay'
+import { isAdzunaInsightsEnabled, resolveState } from '@/lib/market/adzuna-insights'
+import { PivotOptionCard } from '@/components/dashboard/pivot/PivotOptionCard'
+import { PivotRoleDetail } from '@/components/dashboard/pivot/PivotRoleDetail'
+import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChooser'
+import { WageFloorButtons } from '@/components/dashboard/pivot/WageFloorButtons'
+import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
+import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
+import { OnetAttribution } from '@/components/OnetAttribution'
+import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
-export default async function PivotPathsPage() {
+type Params = Record<string, string | string[] | undefined>
+const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? ''
+
+export default async function PivotPathsPage({ searchParams }: { searchParams: Promise<Params> }) {
+  const params = await searchParams
   const profile = await getDashboardProfile()
   return (
     <div className="space-y-6">
@@ -34,13 +52,35 @@ export default async function PivotPathsPage() {
           </div>
         }
       >
-        <PivotPathsBody profile={profile} />
+        <PivotPathsBody profile={profile} params={params} />
       </Suspense>
     </div>
   )
 }
 
-async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof getDashboardProfile>> }) {
+async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType<typeof getDashboardProfile>>; params: Params }) {
+  const wageFloor: WageFloor = (Object.hasOwn(WAGE_FLOOR_RATIO, first(params.floor)) ? first(params.floor) : DEFAULT_WAGE_FLOOR) as WageFloor
+  const query = first(params.q).trim().slice(0, 100)
+
+  // "Not right? Change it" for the occupation the skills comparison starts from.
+  if (first(params.change) === '1') {
+    const candidates = query ? await searchOccupationTitles(query) : []
+    return (
+      <OccupationChooser
+        heading="Change your current occupation"
+        intro="Search for the job title closest to what you do now, then pick it from the list. We use it to compare skills and pay."
+        candidates={candidates}
+        query={query}
+      />
+    )
+  }
+
+  // The skills and local-pay layer loads alongside the market-ranked list and never blocks it.
+  const depthLoad = loadPivotDepth(profile, wageFloor).catch((error): null => {
+    console.error('Pivot paths: skills layer unavailable', error)
+    return null
+  })
+
   let result: Awaited<ReturnType<typeof loadPivotPaths>>
   try {
     result = await loadPivotPaths(profile)
@@ -55,14 +95,20 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
     )
   }
 
+  const depthResult = await depthLoad
+  const layer = await buildSkillsLayer({ profile, result, depthResult, wageFloor, lookup: first(params.lookup).trim().slice(0, 100), role: first(params.role) })
+
   if (!result.source) {
     return (
+      <div className="space-y-6">
       <EmptyState
         icon={Compass}
         title="Tell us what you do now"
         description="Pivot paths start from your current role. Add your most recent job title or your main function in Search Strategy, and we'll map where your skills carry over."
         cta={{ label: 'Open Search Strategy', href: '/dashboard/search-strategy' }}
       />
+      {layer.sections}
+      </div>
     )
   }
 
@@ -111,7 +157,10 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
         contracting={result.contraction.contracting}
         marketReady={result.marketReady}
         surface="pivot_paths_page"
+        details={layer.details}
       />
+
+      {layer.sections}
 
       <p className="text-xs text-muted-foreground">
         Job counts come from the live NextChapter job board at a level you could realistically land, refreshed nightly. Trends compare each
@@ -120,4 +169,157 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
       </p>
     </div>
   )
+}
+
+type SkillsLayer = { details: Record<string, { socCode: string; node: React.ReactNode }>; sections: React.ReactNode }
+
+// Everything O*NET and BLS add to the market-ranked list: a "what it takes" section on each path,
+// the roles that use similar skills but aren't on the curated map, and a lookup for any role. Empty
+// when the occupation data isn't loaded yet, so the page above works exactly as it did without it.
+async function buildSkillsLayer({
+  profile,
+  result,
+  depthResult,
+  wageFloor,
+  lookup,
+  role,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardProfile>>
+  result: Awaited<ReturnType<typeof loadPivotPaths>>
+  depthResult: PivotDepthResult | null
+  wageFloor: WageFloor
+  lookup: string
+  role: string
+}): Promise<SkillsLayer> {
+  const none: SkillsLayer = { details: {}, sections: null }
+  if (!depthResult) return none
+
+  if (depthResult.status === 'needs_choice') {
+    return {
+      details: {},
+      sections: (
+        <section className="space-y-2 rounded-lg border border-border p-4" aria-labelledby="pivot-pick-occupation">
+          <h2 id="pivot-pick-occupation" className="text-base font-semibold text-foreground">
+            See what each role takes
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Pick the occupation closest to your latest job and we will show the skills each role asks for, pay near you and matching training.
+          </p>
+          <Link href="/dashboard/pivot-paths?change=1" className="text-sm font-medium text-primary underline underline-offset-4">
+            Choose my occupation
+          </Link>
+        </section>
+      ),
+    }
+  }
+  if (depthResult.status !== 'ready') return none
+
+  const depth: PivotDepth = depthResult.depth
+  const state = resolveState(profile.currentState)
+  const stateLabel = profile.currentState ?? 'near you'
+
+  const curated = await optionsForLabels(
+    depth,
+    [...result.suggestions, ...result.more].map((s) => ({ key: s.target, label: s.label }))
+  ).catch(() => new Map<string, PivotOption>())
+  const shown = new Set([...curated.values()].map((o) => o.socCode))
+  const similar = similarRoles(depth, shown)
+  const looked = role ? describePivot(depth.input, role) : null
+  const candidates = lookup ? await searchOccupationTitles(lookup) : []
+  const tasksBySoc = await getCoreTasks([...new Set([...curated.values(), ...similar, ...(looked ? [looked] : [])].map((o) => o.socCode))])
+
+  const details: SkillsLayer['details'] = {}
+  for (const [target, option] of curated) {
+    details[target] = {
+      socCode: option.socCode,
+      node: (
+        <PivotRoleDetail
+          option={option}
+          state={state}
+          stateLabel={stateLabel}
+          stateCode={depth.stateCode}
+          tasks={tasksBySoc.get(option.socCode) ?? []}
+          currentTarget={profile.targetRoleType}
+          showLocalOpenings={false}
+        />
+      ),
+    }
+  }
+
+  const card = (option: PivotOption, rank: number) => (
+    <PivotOptionCard
+      key={option.socCode}
+      fromSoc={depth.sourceSoc}
+      rank={rank}
+      currentTarget={profile.targetRoleType}
+      option={option}
+      state={state}
+      stateLabel={stateLabel}
+      stateCode={depth.stateCode}
+      tasks={tasksBySoc.get(option.socCode) ?? []}
+    />
+  )
+
+  return {
+    details,
+    sections: (
+      <>
+        <PivotViewTracker sourceSoc={depth.sourceSoc} optionCount={similar.length} wageFloor={wageFloor} source={depth.source} />
+
+        <section id="similar-skills" className="scroll-mt-20 space-y-3" aria-labelledby="similar-skills-heading">
+          <div className="space-y-1">
+            <h2 id="similar-skills-heading" className="text-lg font-semibold tracking-tight">
+              More roles that use similar skills
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Closest match first, from what each occupation asks for in O*NET, the US Department of Labor&apos;s occupation database, with pay and growth from the Bureau of
+              Labor Statistics. These describe occupations in general, not a prediction for you.
+            </p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Compared with: <span className="font-medium text-foreground">{depth.sourceTitle}</span>{' '}
+            <Link href="/dashboard/pivot-paths?change=1" className="text-primary underline underline-offset-4">
+              Not right? Change it
+            </Link>
+            {depth.source === 'FUNCTION_PROXY' && '. We chose this from the function on your profile because we could not read a job title. Confirm or change it so the matches fit.'}
+          </p>
+          {depth.sourcePay && (
+            <p className="text-sm text-muted-foreground">
+              Median pay in your current field{depth.sourcePay.areaName ? ` (${depth.sourcePay.level === 'NATIONAL' ? 'nationwide' : depth.sourcePay.areaName})` : ''}:{' '}
+              {describePay(depth.sourcePay)}.
+              {depth.localLabel && depth.sourcePay.level === 'NATIONAL' ? ` We do not have pay for ${depth.localLabel} yet, so pay is shown nationwide.` : ''}
+            </p>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">How much pay are you willing to give up?</p>
+            <WageFloorButtons current={wageFloor} socCode={depth.sourceSoc} />
+          </div>
+          {similar.length === 0 ? (
+            <EmptyState
+              icon={Compass}
+              title="No more roles match at this pay level"
+              description="Nothing else close to your field clears the pay level you picked. Choose “Any pay” above to see the closest matches."
+            />
+          ) : (
+            <div className="space-y-4">{similar.map((o, i) => card(o, i + 1))}</div>
+          )}
+        </section>
+
+        <section id="look-up-a-role" className="scroll-mt-20 space-y-3" aria-labelledby="look-up-heading">
+          <div className="space-y-1">
+            <h2 id="look-up-heading" className="text-lg font-semibold tracking-tight">
+              Look up any role
+            </h2>
+            <p className="text-sm text-muted-foreground">Have a role in mind that isn&apos;t listed? Search for it to see how it compares with your current work.</p>
+          </div>
+          <RoleLookup query={lookup} candidates={candidates} />
+          {role && !looked && <p className="text-sm text-muted-foreground">We could not compare that role with yours. Search again and pick one from the list.</p>}
+          {looked && card(looked, 1)}
+        </section>
+
+        {isAdzunaInsightsEnabled() && <AdzunaAttribution surface="pivot_tool" />}
+        <OnetAttribution />
+      </>
+    ),
+  }
 }

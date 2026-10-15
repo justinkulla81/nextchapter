@@ -18,7 +18,7 @@ export function WageFloorButtons({ current, socCode }: { current: WageFloor; soc
   function choose(floor: WageFloor) {
     if (floor === current) return
     posthog.capture('pivot_wage_floor_changed', { socCode, from: current, to: floor })
-    start(() => router.push(`/dashboard/pivot?floor=${floor}`))
+    start(() => router.push(`/dashboard/pivot-paths?floor=${floor}#similar-skills`))
   }
 
   return (

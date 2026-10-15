@@ -26,7 +26,7 @@ export function OccupationChooser({
           <p className="text-sm text-muted-foreground">{intro}</p>
         </div>
 
-        <form method="get" action="/dashboard/pivot" className="flex flex-wrap items-end gap-2" role="search">
+        <form method="get" action="/dashboard/pivot-paths" className="flex flex-wrap items-end gap-2" role="search">
           <input type="hidden" name="change" value="1" />
           <label className="space-y-1 text-sm">
             <span className="font-medium text-foreground">Search for a job title</span>

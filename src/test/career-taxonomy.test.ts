@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { OccupationElement, OccupationProfile } from '@/lib/careers/types'
 import { buildVectorSpace, ratedGaps, similarity, skillOverlap, toolGaps } from '@/lib/careers/vectors'
 import { buildTitleIndex, matchTitle, normalizeTitle } from '@/lib/careers/title-match'
-import { rankPivots } from '@/lib/careers/pivots'
+import { describePivot, rankPivots } from '@/lib/careers/pivots'
 
 function el(name: string, kind: OccupationElement['kind'], importance: number, level: number | null, hotTech = false): OccupationElement {
   return { name, kind, importance, level, hotTech }
@@ -448,6 +448,27 @@ describe('local pay comparison', () => {
     expect(bestPay({ METRO: pay('METRO', null), STATE: pay('STATE', 90_000) })?.level).toBe('STATE')
     expect(bestPay({})).toBeNull()
     expect(describePay(null)).toBe('Not published for this role')
+  })
+})
+
+describe('describing one named role', () => {
+  const space = buildVectorSpace(ALL)
+  const base = { space, profiles, sourceSoc: accountant.socCode, resumeKeywords: [] as string[], wageFloor: 'ANY' as const }
+
+  it('describes a role the ranking would not show, with no similarity or pay filter', () => {
+    const option = describePivot({ ...base, wageFloor: 'MATCH' }, cashier.socCode)
+    expect(option?.socCode).toBe(cashier.socCode)
+    expect(option?.title).toBe(cashier.title)
+  })
+
+  it('agrees with the ranking for a role that is in it', () => {
+    const ranked = rankPivots(base).find((o) => o.socCode === analyst.socCode)
+    expect(describePivot(base, analyst.socCode)).toEqual(ranked)
+  })
+
+  it('returns null for the current role or an unknown code', () => {
+    expect(describePivot(base, accountant.socCode)).toBeNull()
+    expect(describePivot(base, '99-9999.00')).toBeNull()
   })
 })
 
