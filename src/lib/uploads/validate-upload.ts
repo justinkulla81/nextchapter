@@ -10,7 +10,7 @@
 // leading bytes, within an allowlist per use. SVG is never accepted: it is an
 // image format that can carry script.
 
-export type UploadKind = 'image' | 'resume' | 'workSample'
+export type UploadKind = 'image' | 'resume' | 'workSample' | 'requestedDocument'
 
 type Detected = { ext: string; contentType: string }
 
@@ -32,6 +32,8 @@ const ALLOWED: Record<UploadKind, string[]> = {
   image: ['png', 'jpg', 'gif', 'webp'],
   resume: ['pdf', 'docx'],
   workSample: ['pdf', 'docx', 'pptx', 'xlsx', 'png', 'jpg', 'gif', 'webp', 'txt', 'csv', 'md'],
+  // Things a coach or office asks for: letters, forms, scans, spreadsheets.
+  requestedDocument: ['pdf', 'docx', 'xlsx', 'png', 'jpg', 'txt', 'csv'],
 }
 
 const startsWith = (b: Uint8Array, sig: number[], at = 0) => sig.every((v, i) => b[at + i] === v)

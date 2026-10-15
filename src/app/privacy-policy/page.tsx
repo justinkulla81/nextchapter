@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 7, 2026'
+const EFFECTIVE_DATE = 'October 14, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -84,7 +84,9 @@ export default function PrivacyPolicyPage() {
               <strong>gmail.readonly</strong> — reads your Gmail messages so we can automatically
               find job search activity, such as outreach you send, application replies, interview
               invites, and recruiter emails, and log it in your application and networking tracker.
-              This permission cannot send, edit, or delete email. Unrelated messages are not used
+              We also use it to check recruiter and interview emails for signs of a fake job or
+              recruiter scam (see &quot;Scam watch&quot; below). This permission cannot send, edit,
+              or delete email. Unrelated messages are not used
               for any other purpose.
             </li>
             <li>
@@ -105,6 +107,17 @@ export default function PrivacyPolicyPage() {
               gives no access to any member&apos;s Calendar.
             </li>
           </ul>
+          <h3 className="text-lg font-semibold text-navy">Scam watch</h3>
+          <p>
+            If you connect Gmail, we automatically check incoming recruiter and interview emails for
+            signs of a fake job or fake recruiter, such as a sender or link that doesn&apos;t belong
+            to the company named, or requests for ID, bank details, or money. This check runs
+            automatically, and no person reads your email for it. When an email looks fake, we keep
+            only its sender, subject, date, and the reasons we flagged it, so we can show them to you
+            on your Scam watch page and email you a warning. We don&apos;t keep the full message. You
+            can mark an alert as legitimate, and you can stop scam watch at any time by disconnecting
+            Gmail.
+          </p>
           <p>
             NextChapter&apos;s use and transfer of information received from Google APIs will
             adhere to the{' '}

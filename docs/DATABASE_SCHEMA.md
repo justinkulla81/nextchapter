@@ -97,3 +97,7 @@ Some house rules that apply schema-wide, worth knowing before you read anything 
 ## Higher Ed (institutions)
 
 21 models at the end of `schema.prisma` (`Institution`, `InstitutionUser`, `InstitutionMember`, `InstitutionConsent`, `TransitionFlag`, …): a college is the tenant, staff hold workspace roles, alumni/students are members linked to a `CandidateProfile` once claimed. Spec and implementation notes: `docs/specs/NextChapter_Higher_Ed_V1_Build_Spec.md`. Unlike the rest of the schema, these tables carry RLS policies, kept in `prisma/sql/higher-ed-rls.sql` (rerun with `npm run he:rls` after any `db push` touching them; test with `npm run verify:he-rls`).
+
+## Career taxonomy
+
+`Occupation`, `Skill`, `OccupationSkill`, `OccupationAltTitle`, `OccupationRelated` hold O*NET and BLS data, loaded by `scripts/careers/*` and never written by the app; `CandidateOccupation` is one row per candidate (their current occupation). DDL in `prisma/manual/2026-10-14-career-taxonomy.sql`. See `docs/CAREER_TAXONOMY.md`.

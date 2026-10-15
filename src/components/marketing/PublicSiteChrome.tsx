@@ -54,7 +54,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">
@@ -91,6 +91,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
+          {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>

@@ -1,0 +1,84 @@
+import type { Metadata } from 'next'
+import { FileText } from 'lucide-react'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { listCandidateRequests } from '@/lib/documents/requests'
+import { candidateCanUpload, isDocumentStatus, isOverdue } from '@/lib/documents/status'
+import { Card, CardContent } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { DocumentStatusBadge } from '@/components/documents/DocumentStatusBadge'
+import { OpenDocumentButton } from '@/components/documents/OpenDocumentButton'
+import { UploadDocumentForm } from '@/components/documents/UploadDocumentForm'
+import { getMyDocumentUrl } from '@/app/dashboard/documents/actions'
+
+export const metadata: Metadata = { title: 'Documents' }
+
+export default async function DocumentsPage() {
+  const profile = await getDashboardProfile()
+  let requests: Awaited<ReturnType<typeof listCandidateRequests>> = []
+  let loadFailed = false
+  try {
+    requests = await listCandidateRequests(profile.id)
+  } catch (error) {
+    console.error('Failed to load document requests:', error)
+    loadFailed = true
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
+        <p className="text-muted-foreground">Documents your coach or another person has asked you for. Only the person who asked can see what you upload here.</p>
+      </div>
+
+      {loadFailed ? (
+        <EmptyState icon={FileText} title="We could not load your document requests" description="Reload the page in a moment. If it keeps happening, tell us from the help button." />
+      ) : requests.length === 0 ? (
+        <EmptyState icon={FileText} title="Nobody has asked you for a document" description="When your coach asks for something, like an offer letter or a signed form, it will show up here and we will email you." />
+      ) : (
+        <ul className="space-y-4" aria-label="Document requests">
+          {requests.map((r) => {
+            const status = isDocumentStatus(r.status) ? r.status : 'REQUESTED'
+            const overdue = isOverdue(r.dueAt, status)
+            return (
+              <li key={r.id}>
+                <Card>
+                  <CardContent className="space-y-3 pt-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h2 className="text-base font-semibold text-foreground">{r.title}</h2>
+                      <DocumentStatusBadge status={r.status} audience="candidate" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Asked by {r.requesterLabel}
+                      {r.dueAt && (
+                        <>
+                          {'. '}
+                          <span className={overdue ? 'font-medium text-foreground' : ''}>
+                            {overdue ? 'Was due' : 'Due'} {r.dueAt.toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' })}
+                          </span>
+                        </>
+                      )}
+                      .
+                    </p>
+                    {r.instructions && <p className="whitespace-pre-wrap text-sm text-foreground">{r.instructions}</p>}
+                    {status === 'NEEDS_CHANGES' && r.reviewNote && (
+                      <p className="rounded-md border border-border bg-off-white p-3 text-sm text-foreground">
+                        <span className="font-medium">What needs to change:</span> {r.reviewNote}
+                      </p>
+                    )}
+                    {r.fileName && (
+                      <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span>Your file: {r.fileName}</span>
+                        <OpenDocumentButton requestId={r.id} fileName={r.fileName} getUrl={getMyDocumentUrl} />
+                      </p>
+                    )}
+                    {candidateCanUpload(status) && <UploadDocumentForm requestId={r.id} title={r.title} hasFile={Boolean(r.fileName)} />}
+                  </CardContent>
+                </Card>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}

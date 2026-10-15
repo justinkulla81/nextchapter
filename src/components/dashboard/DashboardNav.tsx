@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import {
   Home,
+  CalendarClock,
+  FileText,
+  Compass,
   Briefcase,
   Signpost,
   Users,
@@ -28,6 +31,7 @@ import {
   FolderOpen,
   BarChart3,
   Shield,
+  ShieldAlert,
   HeartHandshake,
   LifeBuoy,
   HelpCircle,
@@ -100,6 +104,7 @@ function buildSections(
   isActiveMember: boolean,
   helpRepliesWaiting: number,
   newStrongCompaniesCount: number,
+  documentRequestCount: number,
   showInWork: boolean,
   // Coaching / recruiter network unlocked by membership or a grant (an
   // outplacement seat, a coach's code): src/lib/access/grants.ts.
@@ -207,6 +212,7 @@ function buildSections(
           ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
           : []),
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
+        { href: '/dashboard/pivot', label: 'Explore other roles', icon: Compass },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],
@@ -219,6 +225,8 @@ function buildSections(
         { href: '/dashboard/strengths', label: 'Why Hire Me', icon: Sparkles },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/book-session', label: 'Book a coach session', icon: CalendarClock },
+        { href: '/dashboard/documents', label: 'Documents', icon: FileText, badge: documentRequestCount > 0 ? String(documentRequestCount) : undefined },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
         { href: '/dashboard/membership', label: 'Membership', icon: Award },
       ],
@@ -269,6 +277,7 @@ function buildSections(
           icon: MessageSquare,
           badge: helpRepliesWaiting > 0 ? String(helpRepliesWaiting) : undefined,
         },
+        { href: '/dashboard/scam-watch', label: 'Scam watch', icon: ShieldAlert },
         { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
         { href: '/faq', label: 'FAQ', icon: HelpCircle },
       ],
@@ -291,6 +300,7 @@ function NavContent({
   isActiveMember,
   helpRepliesWaiting,
   newStrongCompaniesCount,
+  documentRequestCount,
   showInWork,
   paidAccess,
   collapsedSections,
@@ -310,6 +320,7 @@ function NavContent({
   isActiveMember: boolean
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
+  documentRequestCount: number
   showInWork: boolean
   paidAccess?: { coaching: boolean; recruiters: boolean }
   collapsedSections: Set<string>
@@ -329,6 +340,7 @@ function NavContent({
     isActiveMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
+    documentRequestCount,
     showInWork,
     paidAccess
   )
@@ -473,6 +485,7 @@ export function DashboardNav({
   isActiveMember = false,
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
+  documentRequestCount = 0,
   showInWork = false,
   paidAccess,
 }: {
@@ -488,6 +501,7 @@ export function DashboardNav({
   isActiveMember?: boolean
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
+  documentRequestCount?: number
   showInWork?: boolean
   paidAccess?: { coaching: boolean; recruiters: boolean }
 }) {
@@ -538,6 +552,7 @@ export function DashboardNav({
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
+          documentRequestCount={documentRequestCount}
           showInWork={showInWork}
           paidAccess={paidAccess}
           collapsedSections={collapsedSections}
@@ -647,6 +662,7 @@ export function DashboardNav({
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
+              documentRequestCount={documentRequestCount}
           showInWork={showInWork}
           paidAccess={paidAccess}
               collapsedSections={collapsedSections}
