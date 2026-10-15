@@ -84,7 +84,7 @@ export async function logCoachSession(
 
   revalidatePath(`/support/coach/clients/${token}/${clientId}`)
   revalidatePath(`/support/coach/clients/${token}/${clientId}/full`)
-  revalidatePath(`/support/coach/caseload/${token}`)
+  revalidatePath(`/support/coach/clients/${token}`)
 }
 
 export type ResolveDirectiveFormState = { error?: string } | undefined

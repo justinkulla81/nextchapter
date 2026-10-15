@@ -39,10 +39,9 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
     { href: '/support/coach', label: 'Home' },
     {
       href: `/support/coach/clients/${accessToken}`,
-      label: 'Your clients',
+      label: 'Clients',
       badge: actionCount > 0 ? String(actionCount) : undefined,
     },
-    { href: `/support/coach/caseload/${accessToken}`, label: 'Caseload' },
     {
       href: '/support/coach/messages',
       label: 'Messages',
