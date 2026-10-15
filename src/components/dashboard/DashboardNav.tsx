@@ -9,7 +9,6 @@ import {
   Home,
   CalendarClock,
   FileText,
-  Compass,
   Briefcase,
   Signpost,
   Users,
@@ -212,7 +211,6 @@ function buildSections(
           ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
           : []),
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
-        { href: '/dashboard/pivot', label: 'Explore other roles', icon: Compass },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],

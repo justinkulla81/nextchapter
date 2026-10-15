@@ -29,7 +29,7 @@ export async function confirmOccupation(_prev: PivotActionState, formData: FormD
   const ok = await confirmCandidateOccupation(profile.id, socCode)
   if (!ok) return { error: 'We could not find that occupation. Search again and pick one from the list.' }
   captureServerEvent(profile.id, 'pivot_occupation_confirmed', { candidateId: profile.id, socCode, source: 'CANDIDATE_CONFIRMED' })
-  revalidatePath('/dashboard/pivot')
+  revalidatePath('/dashboard/pivot-paths')
   return { message: 'Saved.' }
 }
 
@@ -62,7 +62,7 @@ export async function addPivotSkillsToPlan(_prev: PivotActionState, formData: Fo
     await prisma.candidateProfile.update({ where: { id: profile.id }, data: { skillsToBuild: [...current.skillsToBuild, ...added] } })
   }
   captureServerEvent(profile.id, 'pivot_skills_added', { candidateId: profile.id, socCode, skills: added, alreadyPresent: requested.length - added.length })
-  revalidatePath('/dashboard/pivot')
+  revalidatePath('/dashboard/pivot-paths')
   revalidatePath('/dashboard/learning')
   return { message: added.length > 0 ? `Added ${added.length} to the skills you want to build.` : 'Those are already on your list.' }
 }
@@ -78,7 +78,7 @@ export async function setPivotTargetRole(_prev: PivotActionState, formData: Form
 
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { targetRoleType: target.title } })
   captureServerEvent(profile.id, 'pivot_target_role_set', { candidateId: profile.id, socCode, title: target.title })
-  revalidatePath('/dashboard/pivot')
+  revalidatePath('/dashboard/pivot-paths')
   revalidatePath('/dashboard/search-strategy')
   return { message: `Your target role is now ${target.title}.` }
 }

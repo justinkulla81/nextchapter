@@ -83,7 +83,7 @@ export interface RankPivotsInput {
  * beside each option for the person to weigh, not blended into one opaque score.
  */
 export function rankPivots(input: RankPivotsInput): PivotOption[] {
-  const { space, profiles, sourceSoc, wageFloor, resumeKeywords } = input
+  const { space, profiles, sourceSoc, wageFloor } = input
   const limit = input.limit ?? 12
   const source = profiles.get(sourceSoc)
   if (!source) return []
@@ -108,27 +108,53 @@ export function rankPivots(input: RankPivotsInput): PivotOption[] {
     const cmp = comparePay(sourcePay, payOf(target.socCode))
     if (floor > 0 && cmp.deltaPct !== null && !cmp.atLeast && 1 + cmp.deltaPct / 100 < floor) continue
 
-    options.push({
-      socCode: target.socCode,
-      title: target.title,
-      similarity: sim,
-      overlap: skillOverlap(source, target),
-      pay: cmp.pay,
-      medianWage: cmp.pay?.median ?? null,
-      wageDeltaPct: cmp.deltaPct,
-      payAtLeast: cmp.atLeast,
-      payBasis: cmp.basis,
-      growthPct: target.growthPct,
-      annualOpenings: target.annualOpenings,
-      jobZone: target.jobZone,
-      typicalEducation: target.typicalEducation,
-      ratedGaps: ratedGaps(source, target, 4),
-      toolGaps: toolGaps(source, target, resumeKeywords, 4, input.haveSkillIds),
-      onetRelated: isRelated,
-    })
+    options.push(buildOption(input, source, target, sim, isRelated, cmp))
   }
 
   return options
     .sort((a, b) => b.similarity - a.similarity || a.title.localeCompare(b.title))
     .slice(0, limit)
+}
+
+function buildOption(
+  input: RankPivotsInput,
+  source: OccupationProfile,
+  target: OccupationProfile,
+  sim: number,
+  isRelated: boolean,
+  cmp: ReturnType<typeof comparePay>
+): PivotOption {
+  return {
+    socCode: target.socCode,
+    title: target.title,
+    similarity: sim,
+    overlap: skillOverlap(source, target),
+    pay: cmp.pay,
+    medianWage: cmp.pay?.median ?? null,
+    wageDeltaPct: cmp.deltaPct,
+    payAtLeast: cmp.atLeast,
+    payBasis: cmp.basis,
+    growthPct: target.growthPct,
+    annualOpenings: target.annualOpenings,
+    jobZone: target.jobZone,
+    typicalEducation: target.typicalEducation,
+    ratedGaps: ratedGaps(source, target, 4),
+    toolGaps: toolGaps(source, target, input.resumeKeywords, 4, input.haveSkillIds),
+    onetRelated: isRelated,
+  }
+}
+
+/**
+ * One named occupation described against the current one, with no similarity or pay filter: for a
+ * role the person picked or one a curated pivot path points at. Null when either occupation is
+ * missing or they share no comparable skills.
+ */
+export function describePivot(input: RankPivotsInput, targetSoc: string): PivotOption | null {
+  const source = input.profiles.get(input.sourceSoc)
+  const target = input.profiles.get(targetSoc)
+  if (!source || !target || source.socCode === target.socCode) return null
+  const sim = similarity(input.space, source.socCode, target.socCode)
+  if (sim === null) return null
+  const payOf = input.pay ?? ((soc: string) => nationalPayFromProfile(input.profiles.get(soc)))
+  return buildOption(input, source, target, sim, source.relatedSocCodes.includes(target.socCode), comparePay(payOf(source.socCode), payOf(target.socCode)))
 }

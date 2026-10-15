@@ -1,6 +1,6 @@
 # Career taxonomy, the Pivot Tool and skills fit
 
-Public occupation data behind `/dashboard/pivot` ("Explore other roles"), the "Skills fit" line on job cards, and the grounded skill-gap suggestions. We adopt government data rather than maintain our own taxonomy.
+Public occupation data behind `/dashboard/pivot-paths` (the "What it takes" section on each path, "More roles that use similar skills" and "Look up any role"; `/dashboard/pivot` redirects there), the "Skills fit" line on job cards, and the grounded skill-gap suggestions. We adopt government data rather than maintain our own taxonomy.
 
 ## Scope: white-collar only
 
