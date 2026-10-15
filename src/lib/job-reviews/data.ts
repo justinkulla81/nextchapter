@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { countOwnCultureResponses } from '@/lib/companies/culture-profile'
+import { countOwnCultureResponses, isCultureExcluded } from '@/lib/companies/culture-profile'
+import { summarizeReviews, type ReviewSummary } from '@/lib/job-reviews/aggregate'
 import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { cleanParallelPaths, cleanReview, answeredCount, type ReviewInput } from '@/lib/job-reviews/constants'
@@ -189,4 +190,29 @@ export async function countInsightContributions(candidateId: string): Promise<nu
     prisma.companyIntel.count({ where: { contributorCandidateId: candidateId, status: 'published' } }),
   ])
   return reviews + culture + intel
+}
+
+// ── Combined reviews on the company page ─────────────────────────────────────
+
+/** What members who worked at this company said, combined, from the viewer's point of view. Privacy rules live in aggregate.ts. */
+export async function getCompanyReviewSummary(companyId: string, viewerCandidateId: string | null): Promise<ReviewSummary> {
+  const rows = await prisma.jobExperienceReview.findMany({
+    where: { workHistory: { companyId } },
+    select: {
+      candidateId: true,
+      updatedAt: true,
+      hiredVia: true,
+      workerType: true,
+      employerRating: true,
+      wouldRecommend: true,
+      liked: true,
+      disliked: true,
+      candidate: { select: { confidentialSearchMode: true, privacyTier: true, isSystemAccount: true, isSampleData: true } },
+    },
+  })
+  return summarizeReviews(
+    companyId,
+    rows.map((r) => ({ candidateId: r.candidateId, updatedAt: r.updatedAt, review: r, excluded: isCultureExcluded(r.candidate) })),
+    viewerCandidateId
+  )
 }

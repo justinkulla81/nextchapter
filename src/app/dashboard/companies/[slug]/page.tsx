@@ -41,6 +41,8 @@ import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/culture-profile'
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
+import { ReviewSummaryPanel } from '@/components/companies/ReviewSummaryPanel'
+import { getCompanyReviewSummary } from '@/lib/job-reviews/data'
 import { findTopEmployer, knownForLabel, topEmployerSourceLine } from '@/lib/companies/top-employers'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -144,7 +146,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies] = await Promise.all([
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -155,6 +157,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
     // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
     getCultureProfile(id, profile.id),
     getCultureSurveyCompanies(profile.id),
+    getCompanyReviewSummary(id, profile.id),
   ])
   const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
 
@@ -289,6 +292,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               isCurrent={ownCulture.isCurrent}
             />
           )}
+          <div className="space-y-2 border-t border-border pt-4">
+            <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
+            <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
+          </div>
           {cultureProfile.shown && (
             <p className="text-xs text-muted-foreground">
               Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
