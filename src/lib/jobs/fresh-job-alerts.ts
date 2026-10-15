@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { classifyWorkType } from '@/lib/jobs/work-type'
 import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
@@ -69,6 +70,9 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   ])
   const skip = new Set([...alerted.map((a) => a.postingId), ...shownDaily.map((d) => d.itemKey.slice(4))])
   let jobs = emailSafeJobs(board.open)
+    // Owner's rule (2026-10-15): alerts are full-time only; part-time, contract
+    // and advisory roles stay on the board.
+    .filter((p) => classifyWorkType(p) === 'full_time')
     .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }

@@ -105,3 +105,14 @@ describe('fresh-job alert cap', () => {
     expect(cron.schedule.split(' ')[1].split(',').length).toBeGreaterThan(1)
   })
 })
+
+describe('fresh-job alerts: full-time only', () => {
+  it('reads contract, fractional and board titles as non-full-time', async () => {
+    const { classifyWorkType } = await import('@/lib/jobs/work-type')
+    expect(classifyWorkType({ title: 'Interim CFO' })).not.toBe('full_time')
+    expect(classifyWorkType({ title: 'Fractional CMO' })).not.toBe('full_time')
+    expect(classifyWorkType({ title: 'Board Member' })).not.toBe('full_time')
+    expect(classifyWorkType({ title: 'VP Finance', employmentType: 'contract' })).not.toBe('full_time')
+    expect(classifyWorkType({ title: 'VP Finance' })).toBe('full_time')
+  })
+})
