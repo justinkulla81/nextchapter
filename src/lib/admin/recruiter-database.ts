@@ -17,7 +17,7 @@ export interface RecruiterDatabaseRow {
   resumeScore: number | null
   dossierUnlocked: boolean
   dossierReason: string
-  metRequirementCount: number // out of 3: references, evidence, effort
+  metRequirementCount: number // out of 4: references, evidence, outreach/applications, effort minutes
   onSprintTarget: boolean
   recruiterDatabaseOptIn: boolean
   recruiterNotifiedAt: Date | null
