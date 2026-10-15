@@ -75,6 +75,30 @@ const TITLE_SIGNALS: [RegExp, number][] = [
   [/resume|talent (pipeline|acquisition)|upskill|reskill|apprentice/i, 2],
 ]
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  ndash: '-', mdash: '-', hyphen: '-', rsquo: "'", lsquo: "'", ldquo: '"', rdquo: '"',
+}
+
+/**
+ * Entities out of a feed title: Grants.gov returns `CHIPS Incentives Program &ndash; Facilities`.
+ * Filing it raw would put the literal `&ndash;` in the CRM note and its deadline label.
+ * One pass, so `&amp;ndash;` decodes to the text `&ndash;` rather than to a dash.
+ */
+export function decodeEntities(s: string): string {
+  return s
+    .replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (m, dec?: string, hex?: string, name?: string) => {
+      if (dec || hex) {
+        const c = dec ? Number(dec) : parseInt(hex!, 16)
+        if (!Number.isFinite(c) || c < 32 || c > 0x10ffff) return m
+        return c >= 8208 && c <= 8213 ? '-' : String.fromCodePoint(c)
+      }
+      return NAMED_ENTITIES[name!.toLowerCase()] ?? m
+    })
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /** Score a notice title: 0 means leave it out. */
 export function titleScore(title: string): number {
   return TITLE_SIGNALS.reduce((sum, [re, w]) => (re.test(title) ? sum + w : sum), 0)
