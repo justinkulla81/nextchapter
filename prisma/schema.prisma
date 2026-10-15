@@ -4849,6 +4849,25 @@ model ExclusiveJobPosting {
   benefits       Json?    @ignore
   benefitsStrong Boolean? @ignore
 
+  // Where and which posting, from the ncrawl import (derive.py) — null when the
+  // sender didn't know. locationState is the primary US state (2-letter code);
+  // locationStates every US state the posting lists (multi-location jobs), for
+  // geo coverage and local counts. externalJobId / requisitionId are the
+  // source's own ids; repostKey groups re-posts of the same role and descHash
+  // identical texts. prisma/manual/2026-10-15-import-fields.sql.
+  locationCity    String?
+  locationState   String?
+  locationCountry String?
+  locationStates  String[] @default([])
+  externalJobId   String?
+  requisitionId   String?
+  repostKey       String?
+  descHash        String?
+  // Years-of-experience requirement read at import from the FULL posting text
+  // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
+  // requirements often sit past it. Null = not read (older rows: parse the excerpt).
+  yearsRequired   Json?
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
   @@index([status, archivedAt])
@@ -4857,6 +4876,7 @@ model ExclusiveJobPosting {
   @@index([companyId])
   @@index([postedAt])
   @@index([industry])
+  @@index([locationState])
 }
 
 // A narrow copy of ExclusiveJobPosting's light columns (what the board ranks

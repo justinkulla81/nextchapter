@@ -7,7 +7,10 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
-import { importOptionalFields } from '@/lib/jobs/import-optional-fields'
+import { importOptionalFields, importSpecFields } from '@/lib/jobs/import-optional-fields'
+import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
+import { parseYearsRequired } from '@/lib/jobs/years-required'
+import { Prisma } from '@prisma/client'
 import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 import { importBenefitsFields } from '@/lib/jobs/benefits'
 import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
@@ -67,6 +70,18 @@ interface ImportJobInput {
   // exporter that doesn't send them leaves stored benefits untouched.
   benefitsJson?: unknown // compact JSON string or object (src/lib/jobs/benefits.ts)
   benefitsStrong?: unknown // 0/1 or boolean
+  // Location parts and ids (ncrawl derive.py), all optional like the fields above:
+  // loc_city / loc_state (US 2-letter) / loc_country (ISO-2), every listed
+  // location (locations_json → locationStates), the source's own job and
+  // requisition ids, the repost key and the description hash.
+  locationCity?: string | null
+  locationState?: string | null
+  locationCountry?: string | null
+  locations?: string[] | null
+  externalJobId?: string | null
+  requisitionId?: string | null
+  repostKey?: string | null
+  descHash?: string | null
 }
 
 interface ImportRequestBody {
@@ -117,9 +132,20 @@ function storableSalary(n: number | null | undefined): number | null {
   return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 2_147_483_647 ? Math.round(n) : null
 }
 
+// The years-of-experience requirement, read from the FULL description the sender
+// sent (only an excerpt is stored); null when the text names none. Left out when
+// there is no description, so a row keeps what it holds.
+function yearsRequiredOf(description: string | null | undefined) {
+  if (!description?.trim()) return {}
+  const years = parseYearsRequired(description)
+  return { yearsRequired: years ? (years as unknown as Prisma.InputJsonValue) : Prisma.DbNull }
+}
+
 function rowData({ job, level }: Screened) {
   return {
     ...importOptionalFields(job),
+    ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
+    ...yearsRequiredOf(job.description),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
@@ -140,8 +166,21 @@ function rowData({ job, level }: Screened) {
 
 type RowData = ReturnType<typeof rowData>
 
+// Prisma.DbNull (a JSON column set to SQL NULL) reads back as null, and jsonb
+// hands objects back with its own key order — compare with keys sorted.
+function comparable(v: unknown): string {
+  const norm = (x: unknown): unknown => {
+    if (x === Prisma.DbNull || x === undefined || x === null) return null
+    if (Array.isArray(x)) return x.map(norm)
+    if (x instanceof Date) return x.toISOString()
+    if (typeof x === 'object') return Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, norm((x as Record<string, unknown>)[k])]))
+    return x
+  }
+  return JSON.stringify(norm(v))
+}
+
 function changed(before: Record<string, unknown>, after: RowData): boolean {
-  return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
+  return (Object.keys(after) as (keyof RowData)[]).some((k) => comparable(before[k]) !== comparable(after[k]))
 }
 
 // The company's job-opening history (CompanyJobOpening) and each job's market pay.
@@ -249,6 +288,8 @@ export async function POST(request: NextRequest) {
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
+      locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
