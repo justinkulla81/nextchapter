@@ -6937,6 +6937,22 @@ model PopulationSnapshot {
   @@unique([weekStartDate, segmentType, segmentValue])
 }
 
+// One row per calendar month — the internal monthly member report, built on
+// the last day of each month by the monthly-user-report cron. `data` is the
+// finished report (MonthlyUserReportData, src/lib/reports/monthly-user/
+// types.ts) with every group under 5 members already suppressed, so the
+// page, the CSV and the email read it back without recomputing anything and
+// without a path to a small cell. Regenerating a month overwrites its row.
+model MonthlyUserReport {
+  id          String    @id @default(cuid())
+  monthKey    String    @unique // "2026-10"
+  data        Json
+  memberCount Int
+  trigger     String    @default("schedule") // "schedule" | "manual"
+  generatedAt DateTime  @default(now())
+  emailedAt   DateTime?
+}
+
 // Every individual-record view by an admin — Part B Prompt 8: "Log every
 // individual-record view... with a required reason field. Not optional,
 // not a text box that accepts empty." The empty-reason rejection is

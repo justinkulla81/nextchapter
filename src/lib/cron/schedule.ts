@@ -22,6 +22,8 @@ export function intervalMinutes(expr: string): number {
   const [min, hour, dom, , dow] = expr.trim().split(/\s+/)
   const dayStep = dom?.match(/^\*\/(\d+)$/)
   if (dayStep) return Number(dayStep[1]) * 1440
+  // A fixed day or range of days of the month (e.g. "28-31"): one real run a month.
+  if (dom && /^\d+(-\d+)?(,\d+(-\d+)?)*$/.test(dom)) return 31 * 1440
   if (dow && dow !== '*') return 7 * 1440
   const minStep = min?.match(/^\*\/(\d+)$/)
   if (minStep && hour === '*') return Number(minStep[1])
