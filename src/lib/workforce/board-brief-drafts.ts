@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { requestApprovals } from '@/lib/mailing/drafts'
 import { getAreaBrief } from './area-brief-data'
 import { boardBriefHtml, boardBriefPeriod } from './board-brief'
 
@@ -43,5 +44,6 @@ export async function draftBoardBriefs(now = new Date()) {
       console.error('Board brief draft failed for board', board.id, error)
     }
   }
-  return { boards: boards.length, drafted, skipped }
+  const notified = drafted > 0 ? await requestApprovals() : 0
+  return { boards: boards.length, drafted, skipped, notified }
 }

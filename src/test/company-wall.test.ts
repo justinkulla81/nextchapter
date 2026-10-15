@@ -131,6 +131,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
+    'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: run only by the warn-sync cron',
+    'src/lib/warn/news-check.ts': 'admin WARN tooling: run only by the warn-sync cron',
     'src/lib/warn/sync.ts': 'admin WARN tooling',
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
