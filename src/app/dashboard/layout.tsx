@@ -25,6 +25,7 @@ import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectR
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS } from '@/lib/jobs/competition'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
@@ -162,6 +163,7 @@ async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
   return (
     <PlaceTabs
       employed={isInWorkMember(profile)}
+      earlyCareer={earlyCareerAudience(profile) !== null}
       locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null }}
       paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
       tabBadges={{ '/dashboard/companies': newCompanies, '/dashboard/documents': documentRequests }}

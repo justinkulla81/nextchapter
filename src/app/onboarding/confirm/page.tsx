@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { ResumeConfirmForm } from '@/components/onboarding/ResumeConfirmForm'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
+import { getPrimaryEducation } from '@/lib/early-career/data'
 
 export default async function ConfirmPage() {
   const profile = await getCandidateProfileForUser()
@@ -12,6 +13,8 @@ export default async function ConfirmPage() {
   if (profile.onboardingResumeConfirmedAt) {
     redirect('/onboarding/location')
   }
+  // The résumé's school, pre-filled for students and early-career members.
+  const education = await getPrimaryEducation(profile.id).catch(() => null)
 
   return (
     <div className="flex flex-col items-center gap-6 text-center">
@@ -28,7 +31,7 @@ export default async function ConfirmPage() {
           </p>
         </div>
       </div>
-      <ResumeConfirmForm profile={profile} />
+      <ResumeConfirmForm profile={profile} education={education} />
     </div>
   )
 }

@@ -78,7 +78,7 @@ export const JOURNEYS: JourneyConfig[] = [
   {
     key: 'STUDENT_NEW_GRAD',
     label: 'Student or recent grad',
-    card: { label: "I'm a student or recent grad", description: 'Your first job or internship, and a strong first year.' },
+    card: { label: "I'm a student or new grad", description: 'Up to 2 years in: your first job or internship, and a strong first year.' },
     goal: 'Your first job, and a strong first year.',
     defaultStage: 'PREPARING',
     confidentialByDefault: false,

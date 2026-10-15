@@ -28,6 +28,9 @@ import { computeWorkStyleVectors, translateWorkStyleVectors } from '@/lib/scorin
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { autoPopulateFirstSprint } from '@/lib/weekly/sprint'
+import { CAREER_STAGE_CHOICES, earlyCareerAudience, yearsForChoice, type CareerStageChoice } from '@/lib/early-career/audience'
+import { parseEducationForm } from '@/lib/early-career/education-form'
+import { saveMemberEducation } from '@/lib/early-career/data'
 import {
   getCoachTemplate,
   hasSubmittedCoachingOnboardingForm,
@@ -116,6 +119,7 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   }
 
   captureServerEvent(candidateId, 'onboarding_started', { journey, situation })
+  if (journey === 'STUDENT_NEW_GRAD') captureServerEvent(candidateId, 'early_career_journey_selected', { audience: 'NEW_GRAD', journey, situation, source: 'situation_step' })
 
   revalidatePath('/onboarding', 'layout')
   // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
@@ -147,16 +151,21 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
   // Optional: blank keeps what the resume gave. It places an individual
   // contributor on the career ladder (entry level, early career, mid-level).
   const yearsRaw = String(formData.get('yearsExperience') ?? '').trim()
-  const yearsExperience = yearsRaw === '' ? undefined : Number(yearsRaw)
+  const typedYears = yearsRaw === '' ? undefined : Number(yearsRaw)
+  // "Where are you in your career?" fills in the years when none were typed,
+  // so a new grad lands on entry-level jobs without having to type a 0.
+  const stageRaw = String(formData.get('careerStage') ?? '')
+  const careerStage = CAREER_STAGE_CHOICES.some((c) => c.key === stageRaw) ? (stageRaw as CareerStageChoice) : null
+  const yearsExperience = yearsForChoice(careerStage, typedYears)
 
   if (!highestLevelReached || !primaryFunction) {
     return { error: 'Please confirm your level and function before continuing.' }
   }
-  if (yearsExperience !== undefined && (!Number.isInteger(yearsExperience) || yearsExperience < 0 || yearsExperience > 60)) {
+  if (typedYears !== undefined && (!Number.isInteger(typedYears) || typedYears < 0 || typedYears > 60)) {
     return { error: 'Enter your years of experience as a whole number from 0 to 60, or leave it blank.' }
   }
 
-  await prisma.candidateProfile.update({
+  const updated = await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
       highestLevelReached,
@@ -167,7 +176,28 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
       ...(yearsExperience !== undefined ? { yearsExperience } : {}),
       onboardingResumeConfirmedAt: new Date(),
     },
+    select: { journey: true, journeyStage: true, currentJobStatus: true, highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true },
   })
+
+  // Students and early-career members: their school, if they gave one. Never
+  // blocks onboarding; they can add it later on the early-career plan.
+  const early = careerStage === 'new_grad' || careerStage === 'early'
+  let educationSaved = false
+  if (early && String(formData.get('schoolName') ?? '').trim()) {
+    const parsed = parseEducationForm(formData)
+    if (parsed.value) {
+      await saveMemberEducation(candidateId, parsed.value)
+        .then(() => (educationSaved = true))
+        .catch((error) => console.error('Failed to save onboarding education:', error))
+    }
+  }
+  const audience = earlyCareerAudience(updated)
+  if (careerStage) {
+    captureServerEvent(candidateId, 'career_stage_selected', { choice: careerStage, audience, yearsExperience: yearsExperience ?? null, typedYears: typedYears !== undefined })
+  }
+  if (audience) {
+    captureServerEvent(candidateId, 'early_career_journey_selected', { audience, journey: updated.journey, choice: careerStage, educationSaved, source: 'onboarding' })
+  }
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/location')

@@ -2,6 +2,7 @@ import 'server-only'
 import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -257,9 +258,9 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 export async function getSuggestedActions(candidateId: string, weekNumber = 1, opts: { withNudges?: boolean } = {}): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true, highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true } }),
   ])
-  const planned = p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+  const planned = p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p)) : general
   // On screens only (never auto-committed by the cron or first sprint): two
   // nudges from their profile (strengths, what to leave behind, how they
   // like to work), text only.

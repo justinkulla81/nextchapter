@@ -12,6 +12,9 @@ export interface PlaceTab {
   alsoMatches?: string[]
   // Only shown when the member is in one of the employed journeys.
   employedOnly?: boolean
+  // Only shown to students, new grads and people up to 5 years in
+  // (src/lib/early-career/audience.ts).
+  earlyCareerOnly?: boolean
   // Needs coaching or the recruiter network (membership, or a grant such as an
   // outplacement seat or coach code). Without it the tab leads to the Premium
   // page and is marked Premium.
@@ -55,6 +58,7 @@ export const PLACES: Place[] = [
     href: '/dashboard/find-my-job',
     tabs: [
       { label: 'Find a job', href: '/dashboard/find-my-job', alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] },
+      { label: 'Early career plan', href: '/dashboard/early-career', earlyCareerOnly: true },
       { label: 'Companies', href: '/dashboard/companies', alsoMatches: ['/dashboard/company-tracker'] },
       { label: 'Market', href: '/dashboard/market', alsoMatches: ['/dashboard/market-reality', '/dashboard/market-intelligence'] },
       { label: 'Pivot paths', href: '/dashboard/pivot-paths', alsoMatches: ['/dashboard/pivot'] },
@@ -149,8 +153,8 @@ export function activeTab(place: Place, pathname: string): PlaceTab | null {
   return best?.tab ?? null
 }
 
-export function visibleTabs(place: Place, opts: { employed: boolean }): PlaceTab[] {
-  return place.tabs.filter((t) => !t.employedOnly || opts.employed)
+export function visibleTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean }): PlaceTab[] {
+  return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer))
 }
 
 export { tabMatches }

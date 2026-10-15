@@ -1239,6 +1239,10 @@ model CandidateProfile {
   // Which action-plan item ids the candidate has checked off — plain
   // completion tracking, not a Search Action, so no points/effort fields.
   benefitsActionPlanCompletedItems String[]       @default([])
+  // Early-career checklist item ids the member checked off (src/lib/early-career/checklist.ts).
+  // Plain completion tracking like the benefits plan above; items the profile
+  // already proves (school, résumé) are detected, never stored here.
+  earlyCareerChecklistDone         String[]       @default([])
   gigDirectoryUnlockAnswer         String? // target rate/openness question — gates the Gig Directory
   // One-time points award for answering the Gig Directory unlock question — mirrors privacyOpenedUpBonusAt
   gigDirectoryUnlockBonusAt        DateTime?

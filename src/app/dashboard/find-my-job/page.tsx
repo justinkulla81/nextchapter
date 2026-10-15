@@ -118,6 +118,7 @@ import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGapInsightCard'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
+import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
@@ -773,6 +774,10 @@ async function FindMyJobBody({
   pivotFilter: PivotBoardFilter | null
 }) {
   const onBoard = tab === 'board'
+  // Early-career members (src/lib/early-career/audience.ts) skip the
+  // interim/fractional/board toolkit and expert networks: senior-only tools.
+  const audience = earlyCareerAudience(profile)
+  const showIndependentToolkit = featureVisible('interim_launch_plan', audience)
   // While a pivot filter is on, jobs are ranked as if the member were already in
   // the target function (their own function would rate every one a weak fit).
   const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
@@ -935,7 +940,7 @@ async function FindMyJobBody({
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
-    onBoard && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
   ])
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
@@ -1097,7 +1102,7 @@ async function FindMyJobBody({
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
                 <Lock className="size-3.5" aria-hidden />
               </span>
-              <p className="text-sm font-semibold text-warning">Executive Recruiters</p>
+              <p className="text-sm font-semibold text-warning">{audience ? 'Recruiters' : 'Executive Recruiters'}</p>
             </div>
             {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -1218,7 +1223,7 @@ async function FindMyJobBody({
       </div>
       )}
 
-      {onBoard && (
+      {onBoard && showIndependentToolkit && (
         <Suspense fallback={null}>
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>
