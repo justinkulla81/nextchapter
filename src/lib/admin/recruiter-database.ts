@@ -93,7 +93,7 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
       dossierUnlocked: status.unlocked,
       dossierReason: status.reason,
       metRequirementCount:
-        Number(status.referencesMet) + Number(status.evidenceMet) + Number(status.effortMet),
+        Number(status.referencesMet) + Number(status.evidenceMet) + Number(status.effortMet) + Number(status.minutesMet),
       onSprintTarget: c.weeklyBadgesEarned.length > 0,
       recruiterDatabaseOptIn: c.recruiterDatabaseOptIn,
       recruiterNotifiedAt: c.recruiterNotifiedAt,
