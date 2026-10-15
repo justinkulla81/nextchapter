@@ -27,7 +27,9 @@ export interface RosterSeat {
   invitedEmail: string
   invitedName: string | null
   status: 'INVITED' | 'ACTIVATED' | 'DEACTIVATED'
-  enrollmentMethod: 'SINGLE' | 'BULK_CSV'
+  enrollmentMethod: 'SINGLE' | 'BULK_CSV' | 'API'
+  externalId: string | null
+  cohort: string | null
   enrolledAt: Date
   activatedAt: Date | null
   placedAt: Date | null
@@ -63,6 +65,8 @@ export async function getOrgRoster(orgUser: CurrentOutplacementOrgUser, contract
       packageKey: true,
       candidateId: true,
       accessEndsAt: true,
+      externalId: true,
+      cohort: true,
       contract: { select: { termEndAt: true } },
     },
     orderBy: { enrolledAt: 'desc' },
@@ -82,6 +86,8 @@ export async function getOrgRoster(orgUser: CurrentOutplacementOrgUser, contract
       activatedAt: isSelf ? null : s.activatedAt,
       placedAt: isSelf ? null : s.placedAt,
       packageKey: s.packageKey,
+      externalId: isSelf ? null : s.externalId,
+      cohort: s.cohort,
       isSelf,
       access: (() => {
         const g = grants.get(s.id) ?? []
@@ -165,4 +171,49 @@ export async function setSeatAccessEnd(orgUser: CurrentOutplacementOrgUser, seat
   if (!endsAt) await grantSeatAccess(seatId, `employer:${orgUser.userId}`).catch(() => null)
   captureServerEvent(orgUser.userId, 'outplacement_seat_access_end_set', { orgId: orgUser.orgId, seatId, hasEnd: !!endsAt })
   return {}
+}
+
+// ── Cohorts ─────────────────────────────────────────────────────────────────
+
+export type CohortSummary = { cohort: string | null; invited: number; joined: number; placed: number; removed: number }
+
+export function summarizeCohorts(seats: RosterSeat[]): CohortSummary[] {
+  const m = new Map<string, CohortSummary>()
+  for (const s of seats) {
+    const k = s.cohort ?? ''
+    const c = m.get(k) ?? { cohort: s.cohort, invited: 0, joined: 0, placed: 0, removed: 0 }
+    if (s.status === 'INVITED') c.invited++
+    else if (s.status === 'ACTIVATED') c.joined++
+    else c.removed++
+    if (s.placedAt) c.placed++
+    m.set(k, c)
+  }
+  return [...m.values()].sort((a, b) => (a.cohort ?? '~').localeCompare(b.cohort ?? '~'))
+}
+
+// One change to everyone live in a cohort ('' = people with no cohort).
+export async function updateCohort(
+  orgUser: CurrentOutplacementOrgUser,
+  cohort: string,
+  change: { packageKey?: string | null; accessEndsAt?: Date | null; rename?: string | null },
+): Promise<{ error?: string; count?: number }> {
+  const own = await prisma.candidateProfile.findUnique({ where: { userId: orgUser.userId }, select: { id: true } })
+  const seats = await prisma.outplacementSeat.findMany({
+    where: { contract: { orgId: orgUser.orgId }, status: { not: 'DEACTIVATED' }, cohort: cohort || null, ...(own ? { NOT: { candidateId: own.id } } : {}) },
+    select: { id: true, status: true },
+  })
+  if (!seats.length) return { error: 'No one is in that cohort.' }
+  const data: Record<string, unknown> = {}
+  if (change.packageKey !== undefined) data.packageKey = change.packageKey
+  if (change.accessEndsAt !== undefined) data.accessEndsAt = change.accessEndsAt
+  if (change.rename !== undefined) data.cohort = change.rename?.trim().slice(0, 80) || null
+  await prisma.outplacementSeat.updateMany({ where: { id: { in: seats.map((s) => s.id) } }, data })
+  if (change.packageKey !== undefined || change.accessEndsAt !== undefined) {
+    for (const s of seats.filter((x) => x.status === 'ACTIVATED')) {
+      if (change.accessEndsAt !== undefined) await prisma.accessGrant.updateMany({ where: { source: 'outplacement_seat', sourceId: s.id }, data: { endsAt: change.accessEndsAt } })
+      await grantSeatAccess(s.id, `employer:${orgUser.userId}`, { prune: change.packageKey !== undefined }).catch(() => null)
+    }
+  }
+  captureServerEvent(orgUser.userId, 'outplacement_cohort_updated', { orgId: orgUser.orgId, seats: seats.length, package: change.packageKey !== undefined, accessEnd: change.accessEndsAt !== undefined, rename: change.rename !== undefined })
+  return { count: seats.length }
 }

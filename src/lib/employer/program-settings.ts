@@ -8,6 +8,7 @@
 // A NextChapter service is never offered beyond what the contract tier
 // includes. The company's own services don't depend on the tier.
 
+import { readComms, type CensusComms } from '@/lib/census/comms-settings'
 import type { OutplacementTier } from '@prisma/client'
 
 export type ProgramFeatureKey =
@@ -99,6 +100,7 @@ export type ProgramSettings = {
   brand: ProgramBrand
   services: Record<ProgramFeatureKey, ServiceChoice>
   packages: ProgramPackage[]
+  comms: CensusComms
 }
 
 export const EVERYONE = 'all'
@@ -143,7 +145,7 @@ export function readProgramSettings(json: unknown): ProgramSettings {
         .slice(0, 10)
     : []
   const brand: ProgramBrand = { logoUrl: cleanBrandLogo(o.brand?.logoUrl), accentColor: cleanBrandColor(o.brand?.accentColor) }
-  return { welcome: typeof o.welcome === 'string' && o.welcome.trim() ? o.welcome.trim().slice(0, 1000) : null, brand, services, packages }
+  return { welcome: typeof o.welcome === 'string' && o.welcome.trim() ? o.welcome.trim().slice(0, 1000) : null, brand, services, packages, comms: readComms(json) }
 }
 
 export type OfferedService = ProgramFeature & { provider: Provider; href: string | null; note: string | null }

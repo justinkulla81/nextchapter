@@ -104,7 +104,10 @@ function BulkEnrollForm({ contracts, packages }: { contracts: EnrollableContract
       <div className="space-y-2">
         <Label htmlFor="bulk-file">CSV file</Label>
         <Input id="bulk-file" name="file" type="file" accept=".csv,text/csv" required />
-        <p className="text-xs text-muted-foreground">Columns: email (required), name (optional). Up to 500 rows.</p>
+        <p className="text-xs text-muted-foreground">
+          Columns: email (required); optional name, employee_id, cohort, package, access_ends (YYYY-MM-DD), remove (yes). Up to 2,000 rows.
+          People already on your roster are updated, not added twice. The package above is for new people whose row has no package.
+        </p>
       </div>
       <SubmitButton pendingLabel="Uploading…">Upload and enroll</SubmitButton>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
@@ -112,6 +115,8 @@ function BulkEnrollForm({ contracts, packages }: { contracts: EnrollableContract
         <div className="space-y-1 text-sm">
           <p className="text-brand">
             {state.invited} invited, {state.linked} linked to existing accounts
+            {state.updated ? `, ${state.updated} updated` : ''}
+            {state.removed ? `, ${state.removed} removed` : ''}
             {state.failed > 0 ? `, ${state.failed} failed` : ''}.
           </p>
           {state.rowErrors.length > 0 && (

@@ -4,13 +4,14 @@ import { createResend } from '@/lib/email/resend-client'
 import OutplacementSeatInviteEmail from '@/emails/outplacement-seat-invite'
 import OutplacementSeatLinkedEmail from '@/emails/outplacement-seat-linked'
 import OutplacementOrgInviteEmail from '@/emails/outplacement-org-invite'
+import OutplacementAccessEndingEmail from '@/emails/outplacement-access-ending'
 
 function resendClient(): Resend | null {
   if (!process.env.RESEND_API_KEY) return null
   return createResend(process.env.RESEND_API_KEY)
 }
 
-export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }) {
+export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }, opts: { reminder?: boolean } = {}) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat invite email.')
@@ -20,7 +21,7 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
-      subject: `${orgName} set up a NextChapter benefit for you`,
+      subject: opts.reminder ? `Reminder: ${orgName} set up a NextChapter benefit for you` : `${orgName} set up a NextChapter benefit for you`,
       react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null }),
     })
     if (error) {
@@ -83,6 +84,30 @@ export async function sendOutplacementOrgInviteEmail(
     return { sent: true as const }
   } catch (error) {
     console.error('Failed to send outplacement org invite email:', error)
+    return { sent: false as const }
+  }
+}
+
+export async function sendOutplacementAccessEndingEmail(to: string, orgName: string, endsOn: string, dashboardUrl: string) {
+  const resend = resendClient()
+  if (!resend) {
+    console.warn('RESEND_API_KEY is not set — skipping outplacement access-ending email.')
+    return { sent: false as const }
+  }
+  try {
+    const { error } = await resend.emails.send({
+      from: 'NextChapter <support@launchyournextchapter.com>',
+      to,
+      subject: `Your ${orgName} NextChapter benefit ends ${endsOn}`,
+      react: OutplacementAccessEndingEmail({ orgName, endsOn, dashboardUrl }),
+    })
+    if (error) {
+      console.error('Failed to send outplacement access-ending email:', error)
+      return { sent: false as const }
+    }
+    return { sent: true as const }
+  } catch (error) {
+    console.error('Failed to send outplacement access-ending email:', error)
     return { sent: false as const }
   }
 }

@@ -110,13 +110,15 @@ describe('member career stage and the ±1 window', () => {
     expect(window({ highestLevelReached: 'IC', yearsExperience: 0 })).toEqual(['ENTRY', 'EARLY'])
     expect(window({ highestLevelReached: 'IC', yearsExperience: 3 })).toEqual(['ENTRY', 'EARLY', 'MID'])
     expect(window({ highestLevelReached: 'IC', yearsExperience: 6 })).toEqual(['EARLY', 'MID', 'SENIOR_IC_MGR'])
-    expect(window({ highestLevelReached: 'Director' })).toEqual(['SENIOR_MANAGER', 'DIRECTOR', 'VP'])
-    expect(window({ highestLevelReached: 'C-Suite' })).toEqual(['VP', 'EXECUTIVE'])
+    // Owner rule B (2026-10-15): director and above also see a second level down.
+    expect(window({ highestLevelReached: 'Director' })).toEqual(['SENIOR_IC_MGR', 'SENIOR_MANAGER', 'DIRECTOR', 'VP'])
+    expect(window({ highestLevelReached: 'VP' })).toEqual(['SENIOR_MANAGER', 'DIRECTOR', 'VP', 'EXECUTIVE'])
+    expect(window({ highestLevelReached: 'C-Suite' })).toEqual(['DIRECTOR', 'VP', 'EXECUTIVE'])
   })
 
   it('lets a member changing careers see one more stage down', () => {
     expect(window({ highestLevelReached: 'Manager', isPivoting: true })).toEqual(['EARLY', 'MID', 'SENIOR_IC_MGR', 'SENIOR_MANAGER'])
-    expect(window({ highestLevelReached: 'Director', isPivoting: true })).toEqual(['SENIOR_IC_MGR', 'SENIOR_MANAGER', 'DIRECTOR', 'VP'])
+    expect(window({ highestLevelReached: 'Director', isPivoting: true })).toEqual(['MID', 'SENIOR_IC_MGR', 'SENIOR_MANAGER', 'DIRECTOR', 'VP'])
   })
 
   it('never shows entry or early-career jobs to directors and VPs', () => {
@@ -179,3 +181,4 @@ describe('emails leave early-career jobs out unless EARLY_CAREER_IN_EMAILS is on
     }
   })
 })
+

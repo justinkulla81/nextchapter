@@ -33,8 +33,8 @@ describe('mid-level tier', () => {
     expect(midLevelRelevantFor({ highestLevelReached: 'DIRECTOR' })).toBe(false)
     expect(midLevelRelevantFor({ highestLevelReached: 'VP' })).toBe(false)
     expect(midLevelRelevantFor({ highestLevelReached: 'C-Suite' })).toBe(false)
-    // Pivoting adds one stage down: a director sees senior IC / manager jobs, not mid-level.
-    expect(midLevelRelevantFor({ highestLevelReached: 'Director', isPivoting: true })).toBe(false)
+    // Directors see two levels down; changing careers adds one more, reaching mid-level.
+    expect(midLevelRelevantFor({ highestLevelReached: 'Director', isPivoting: true })).toBe(true)
     expect(midLevelRelevantFor({ highestLevelReached: 'Manager', isPivoting: true })).toBe(true)
   })
 

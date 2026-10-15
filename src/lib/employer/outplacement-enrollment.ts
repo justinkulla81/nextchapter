@@ -12,6 +12,7 @@ import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
 import type { OutplacementEnrollmentMethod } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { grantSeatAccess } from '@/lib/access/grants'
+import { applyOutplacementCensus } from '@/lib/census/outplacement'
 
 // Partners Master Build Script §A7 — "single, bulk CSV, and [documented-
 // but-not-built] API enrollment." Real third-party API auth/integration is
@@ -78,14 +79,16 @@ export interface EnrollOneResult {
 //     needed — just a notice email. This is the "linking an existing one"
 //     path the spec calls out as a valid enrollment mechanism distinct from
 //     inviting a brand-new account.
-async function enrollOneSeat(
+export type SeatExtra = { externalId?: string | null; cohort?: string | null; accessEndsAt?: Date | null }
+
+export async function enrollOneSeat(
   contractId: string,
   orgName: string,
   email: string,
   name: string | null,
-  method: OutplacementEnrollmentMethod
-,
-  packageKey: string | null = null
+  method: OutplacementEnrollmentMethod,
+  packageKey: string | null = null,
+  extra: SeatExtra = {}
 ): Promise<EnrollOneResult> {
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
@@ -99,6 +102,7 @@ async function enrollOneSeat(
         candidateId: existing.id,
         activatedAt: new Date(),
         packageKey,
+        ...extra,
       },
     })
     await grantSeatAccess(linked.id).catch(() => null)
@@ -108,7 +112,7 @@ async function enrollOneSeat(
   }
 
   const seat = await prisma.outplacementSeat.create({
-    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method, packageKey },
+    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method, packageKey, ...extra },
   })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
@@ -176,6 +180,8 @@ export interface EnrollBulkResult {
   error?: string
   invited: number
   linked: number
+  updated?: number
+  removed?: number
   failed: number
   rowErrors: string[]
 }
@@ -186,66 +192,28 @@ export async function enrollBulkCsv(
   csvText: string,
   packageKey: string | null = null
 ): Promise<EnrollBulkResult> {
-  const contract = await prisma.outplacementContract.findFirst({
-    where: { id: contractId, orgId: orgUser.orgId, status: 'ACTIVE' },
-    include: {
-      org: { select: { name: true } },
-      _count: { select: { seats: { where: { status: { not: 'DEACTIVATED' } } } } },
-    },
-  })
-  if (!contract) return { error: 'That contract is not available for enrollment.', invited: 0, linked: 0, failed: 0, rowErrors: [] }
-
   const { rows, errors: parseErrors } = parseEnrollmentCsv(csvText)
   if (rows.length === 0) {
     return { error: parseErrors[0] ?? 'No valid rows found in this file.', invited: 0, linked: 0, failed: 0, rowErrors: parseErrors }
   }
-
-  const remainingCapacity = contract.seatCount - contract._count.seats
-  if (rows.length > remainingCapacity) {
-    return {
-      error: `This file has ${rows.length} people but this contract only has ${remainingCapacity} seat${remainingCapacity === 1 ? '' : 's'} left.`,
-      invited: 0,
-      linked: 0,
-      failed: 0,
-      rowErrors: parseErrors,
-    }
-  }
-
-  let invited = 0
-  let linked = 0
-  let failed = 0
-  const rowErrors = [...parseErrors]
-
-  for (const row of rows) {
-    const dup = await prisma.outplacementSeat.findFirst({
-      where: { contractId, invitedEmail: row.email, status: { not: 'DEACTIVATED' } },
-    })
-    if (dup) {
-      failed++
-      rowErrors.push(`Row ${row.line}: ${row.email} already has a seat on this contract — skipped.`)
-      continue
-    }
-    const result = await enrollOneSeat(contractId, contract.org.name, row.email, row.name, 'BULK_CSV', packageKey)
-    if (result.outcome === 'error') {
-      failed++
-      rowErrors.push(`Row ${row.line}: ${result.error}`)
-    } else if (result.outcome === 'invited') {
-      invited++
-    } else {
-      linked++
-    }
-  }
-
-  captureServerEvent(orgUser.userId, 'outplacement_seats_bulk_enrolled', {
+  // Census semantics: people already on the roster are updated, not refused.
+  const r = await applyOutplacementCensus({
     orgId: orgUser.orgId,
+    actor: orgUser.userId,
+    method: 'BULK_CSV',
     contractId,
-    rowCount: rows.length,
-    invited,
-    linked,
-    failed,
+    defaultPackage: packageKey,
+    people: rows.map((row) => ({ row: row.line, email: row.email, name: row.name, externalId: row.externalId, cohort: row.cohort, package: row.package, accessEnds: row.accessEnds, remove: row.remove })),
   })
-
-  return { invited, linked, failed, rowErrors }
+  if (r.fileError) return { error: r.fileError, invited: 0, linked: 0, failed: 0, rowErrors: parseErrors }
+  return {
+    invited: r.invited,
+    linked: r.linked,
+    updated: r.updated,
+    removed: r.removed,
+    failed: r.failed,
+    rowErrors: [...parseErrors, ...r.errors.map((e) => `Row ${e.row}: ${e.email ? `${e.email}: ` : ''}${e.message}`)],
+  }
 }
 
 // Called from CallbackHandler once an admin-generated magic link (fresh

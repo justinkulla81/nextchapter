@@ -56,7 +56,10 @@ export function RosterTable({ seats, packages = [] }: { seats: RosterSeat[]; pac
         <tbody>
           {seats.map((seat) => (
             <tr key={seat.id} className="border-t border-border">
-              <td className="px-3 py-2">{seat.invitedName ?? '—'}</td>
+              <td className="px-3 py-2">
+                {seat.invitedName ?? '—'}
+                {(seat.cohort || seat.externalId) && <span className="block text-xs text-muted-foreground">{[seat.cohort, seat.externalId && `ID ${seat.externalId}`].filter(Boolean).join(' · ')}</span>}
+              </td>
               <td className="px-3 py-2">{seat.invitedEmail}</td>
               <td className="px-3 py-2">{STATUS_LABEL[seat.status]}</td>
               {packages.length > 1 && (
@@ -65,7 +68,7 @@ export function RosterTable({ seats, packages = [] }: { seats: RosterSeat[]; pac
                 </td>
               )}
               <td className="px-3 py-2 align-top">{seat.isSelf || seat.status === 'DEACTIVATED' ? '—' : <SeatAccessControls seat={seat} />}</td>
-              <td className="px-3 py-2 text-muted-foreground">{seat.enrollmentMethod === 'BULK_CSV' ? 'Bulk CSV' : 'Single'}</td>
+              <td className="px-3 py-2 text-muted-foreground">{seat.enrollmentMethod === 'BULK_CSV' ? 'Spreadsheet' : seat.enrollmentMethod === 'API' ? 'HR system' : 'Single'}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.enrolledAt)}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.activatedAt)}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.placedAt)}</td>
