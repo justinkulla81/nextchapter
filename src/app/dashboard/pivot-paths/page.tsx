@@ -166,7 +166,7 @@ async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType
       <p className="text-xs text-muted-foreground">
         Job counts come from the live NextChapter job board at a level you could realistically land, refreshed nightly. Trends compare each
         role&apos;s share of new postings with the period before, and appear once there is enough history. Pay is the typical posted salary
-        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national BLS figures (Employment Projections and OEWS) via CareerOneStop, refreshed yearly.
+        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national BLS figures (Employment Projections and OEWS) via CareerOneStop, refreshed yearly. What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
       </p>
     </div>
   )

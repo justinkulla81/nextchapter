@@ -68,6 +68,8 @@ export interface PivotEdge {
   path: PayPath
   fit: EdgeFit
   why: string
+  /** Set on edges taken from O*NET's related occupations (onet.ts); hand-written edges leave it out. */
+  origin?: 'onet'
 }
 
 export interface PivotSource {

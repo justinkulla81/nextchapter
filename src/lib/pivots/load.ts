@@ -7,7 +7,8 @@ import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { readLikes } from '@/lib/profile/work-profile'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
-import { ROLES, SOURCES, detectSourceRole } from './pivot-map'
+import { ROLES, detectSourceRole } from './pivot-map'
+import { edgesFor } from './onet'
 import { isPeopleEnergy, rankPivots, type MarketContext, type MemberPivotInput, type PivotPathsResult } from './scoring'
 
 const WARN_DAYS = 90
@@ -68,7 +69,7 @@ async function loadCollaborationVector(candidateId: string): Promise<number | nu
 export async function loadPivotPaths(profile: PivotProfile): Promise<PivotPathsResult> {
   const state = stateCode(profile.currentState)
   const sourceKey = detectSourceRole({ title: profile.resumeLatestJobTitle, primaryFunction: profile.primaryFunction })
-  const roleKeys = ['*', ...(sourceKey ? [sourceKey, ...(SOURCES.get(sourceKey)?.edges.map((e) => e.to) ?? [])] : [])]
+  const roleKeys = ['*', ...(sourceKey ? [sourceKey, ...edgesFor(sourceKey).map((e) => e.to)] : [])]
   const fns = [...new Set(roleKeys.map((k) => ROLES.get(k)?.fn).filter((f): f is NonNullable<typeof f> => !!f))]
   const geos = ['US', 'REMOTE', ...(state ? [state] : [])]
 

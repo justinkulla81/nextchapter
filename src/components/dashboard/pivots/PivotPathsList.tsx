@@ -10,6 +10,7 @@ import { demandLine, type PivotSuggestion } from '@/lib/pivots/scoring'
 import { setPivotPathHidden } from '@/app/dashboard/pivot-paths/actions'
 import { pivotJobsHref } from '@/lib/pivots/pivot-map'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
+import { OnetAttribution } from '@/components/OnetAttribution'
 
 const PEOPLE_TAG: Record<PivotSuggestion['people'], { label: string; icon: typeof Users }> = {
   HIGH: { label: 'People-facing', icon: Users },
@@ -143,6 +144,8 @@ export function PivotPathsList({
         </Button>
       )}
 
+      {visible.some((s) => s.onet || s.origin === 'onet') && <OnetAttribution withBls={false} />}
+
       {stillHidden.length > 0 && (
         <div className="text-sm text-muted-foreground">
           <span>Hidden paths: </span>
@@ -197,6 +200,9 @@ function PivotPathCard({
               <PeopleIcon className="size-3" aria-hidden />
               {people.label}
             </span>
+            {s.origin === 'onet' && (
+              <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground">Listed as related by O*NET</span>
+            )}
             {s.highRejectionHighUpside && (
               <span className="inline-flex items-center gap-1 rounded-full bg-orange/15 px-2 py-0.5 text-orange">
                 <TrendingUp className="size-3" aria-hidden />
@@ -309,6 +315,17 @@ function PivotPathCard({
                 </li>
               ))}
             </ul>
+          )}
+          {s.onet && (
+            <div className="mt-2 text-sm">
+              <p className="text-xs font-medium text-muted-foreground">What O*NET lists for this work</p>
+              {s.onet.skills.length > 0 && <p className="text-foreground">Leans more on: {s.onet.skills.join(', ')}.</p>}
+              {s.onet.tools.length > 0 && <p className="text-foreground">Tools employers ask for: {s.onet.tools.join(', ')}.</p>}
+              <p className="text-xs text-muted-foreground">
+                O*NET: {s.onet.targetOccupation}
+                {s.onet.sourceOccupation ? `, compared with ${s.onet.sourceOccupation}` : ''}.
+              </p>
+            </div>
           )}
         </div>
       </div>

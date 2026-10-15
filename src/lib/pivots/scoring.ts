@@ -10,7 +10,6 @@ import { estimatePayChange, type PayBenchmarkRow } from '@/lib/outcomes/pay-chan
 import {
   GAP_WAY_LABEL,
   ROLES,
-  SOURCES,
   TIME_LABEL,
   detectSourceRole,
   type EdgeFit,
@@ -23,6 +22,7 @@ import { likesFit, workFit, type Likes, type WorkProfile } from '@/lib/profile/w
 import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
 import { aiOutlookForRole, type AiOutlook } from '@/lib/profile/ai-outlook'
 import { outlookForRole, outlookLine, outlookMultiplier } from './occupation-outlook'
+import { ONET_EDGE_MIN_OPEN, edgesFor, onetGaps, type OnetGaps } from './onet'
 
 // ── Inputs ──────────────────────────────────────────────────────────────────
 
@@ -161,6 +161,10 @@ export interface PivotSuggestion {
   likesGains: string | null
   /** AI exposure of the role's occupation group (0-100, report data), when known. */
   ai: AiOutlook | null
+  /** What O*NET says the target leans on beyond the member's starting point (shown with the O*NET credit). */
+  onet: OnetGaps | null
+  /** 'onet' when the path itself comes from O*NET's related occupations rather than the hand-written map. */
+  origin: 'curated' | 'onet'
   /** Internal ordering only — never shown. */
   rankScore: number
 }
@@ -515,11 +519,11 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
   const energy = member.peopleEnergyAnswer ?? energyFromCollaboration(member.collaborationVector)
   const energySource = member.peopleEnergyAnswer ? ('answer' as const) : energy ? ('assessment' as const) : null
   const contraction = detectContraction(idx, source, member, band, ctx.warn90)
-  const edges = sourceKey ? (SOURCES.get(sourceKey)?.edges ?? []) : []
+  const edges = edgesFor(sourceKey)
   const skillsLower = member.skills.map((s) => s.toLowerCase().trim()).filter(Boolean)
   const dismissed = new Set(member.dismissed)
 
-  const all: PivotSuggestion[] = edges.map((edge) => {
+  const scored: PivotSuggestion[] = edges.map((edge) => {
     const target = ROLES.get(edge.to)!
     const bands = landingBands(band, edge.path)
     const demand = computeDemand(idx, target.key, member, bands)
@@ -580,9 +584,13 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
       likesStill: lf.still,
       likesGains: lf.gains,
       ai: aiOutlookForRole(target.key),
+      onet: onetGaps(sourceKey, target.key, (aliases) => hasEvidence(skillsLower, aliases)),
+      origin: edge.origin === 'onet' ? ('onet' as const) : ('curated' as const),
       rankScore,
     }
   })
+  // Market-demand rule for O*NET's data-driven paths: not shown where the board has few such jobs.
+  const all = scored.filter((s) => s.origin === 'curated' || !marketReady || s.demand.nationalOpen >= ONET_EDGE_MIN_OPEN)
 
   all.sort((a, b) => b.rankScore - a.rankScore || a.label.localeCompare(b.label))
   return {
