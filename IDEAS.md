@@ -34,6 +34,15 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 - SMS accountability nudges — let a candidate opt in to text reminders (in addition to email) for extra accountability, with a 5-point one-time bonus for opting in (mirroring the existing salary/work-auth confirmation bonuses) and copy communicating that at the decision point. The `smsPhone`/`smsConsentedAt` fields and `updateSmsConsent` action already exist from an earlier pass, but the opt-in UI (onboarding contract page, Communication Preferences settings) has been deactivated for now — no actual send integration exists, and Twilio itself costs real money (~$0.0079/segment for US SMS plus ~$1-2/month per phone number), so this is deferred until that cost is worth taking on. `SmsConsentForm.tsx` was left in place, just unreferenced, so re-activating is mostly wiring the UI back in once Twilio is set up and the point-bonus mechanism is built. WhatsApp Business API is a real alternative to plain SMS worth weighing at the same time — richer message format, but needs Meta business verification (1-4 weeks) and only allows unsolicited sends outside a 24-hour reply window via pre-approved templates.
 
+## Safety / Fake-job detection
+
+*(Built: Scam watch. Detector in `src/lib/scam-shield/`, hooked into the Gmail sync, rapid-response email from Vic, `/dashboard/scam-watch`, public page `/scam-watch`, 10-minute `scam-watch` cron.)* Still not built:
+
+- True real-time alerts. Today the check runs on a 10-minute cron over Gmail. Gmail push notifications (Pub/Sub watch) would cut that to seconds but need a Google Cloud topic and webhook.
+- Compare against real company domains. The detector reads the claimed company from the email and checks the domains against it. A verified company-domain directory (see "Real company-email-domain verification" below) would make the match certain instead of heuristic.
+- Check job postings, not just email: flag a scam listing on the job board or in the tracker the same way.
+- Tune from feedback: review `scam_alert_marked_legit` events in PostHog to loosen rules that cry wolf.
+
 ## Dashboard
 
 - Gate access to the Executive Coach (Victoria) chat behind the unlock-tier system, the same way The Circle is gated — right now it stays fully unlocked/visible on the dashboard for everyone since the gating logic doesn't exist yet. `TIER_UNLOCKS[1]` in `src/lib/community/unlock-tier.ts` already lists "coach chat" as a Tier 1 unlock, so this would mean either changing that copy to reflect a real higher-tier gate, or explicitly deciding coach access should stay free at Tier 1 and this idea is moot.

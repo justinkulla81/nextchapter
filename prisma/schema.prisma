@@ -1545,6 +1545,7 @@ model CandidateProfile {
   companyWatchlist               CompanyWatchlistEntry[]
   emailConnection                EmailConnection?
   trackedEmailActivities         TrackedEmailActivity[]
+  scamAlerts                     ScamAlert[]
   adminEmailLogs                 AdminEmailLog[]
   calendarConnection             CalendarConnection?
   trackedCalendarEvents          TrackedCalendarEvent[]
@@ -4335,7 +4336,51 @@ model EmailConnection {
   // created/updated — a blocked attempt writes nothing here).
   connectedEmail   String?
 
+  // Gmail push notifications (see src/lib/email-tracking/gmail-push.ts): when
+  // Google's watch on this mailbox expires. A watch lasts at most 7 days, so
+  // the scam-watch cron renews anything expiring within a day. Null = no watch.
+  pushWatchExpiresAt DateTime?
+
   activities TrackedEmailActivity[]
+}
+
+// A fake-recruiter / fake-job email caught in a candidate's connected inbox
+// (see src/lib/scam-shield/). Only mail the detector flagged is stored here —
+// never the body — so the candidate's dashboard can say what was caught and
+// why. The rapid-response email from Vic is sent once per alert
+// (alertEmailSentAt); "this one is legit" feedback is how a false positive
+// gets corrected instead of silently ignored.
+enum ScamAlertLevel {
+  SUSPICIOUS
+  LIKELY_FAKE
+}
+
+model ScamAlert {
+  id                String           @id @default(cuid())
+  candidateId       String
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId      String?
+  externalMessageId String // Gmail message id — dedupe key alongside candidateId
+  threadId          String?
+  level             ScamAlertLevel
+  score             Int
+  claimedCompany    String?
+  fromAddress       String?
+  subject           String?
+  flaggedDomains    String[]
+  // [{ code, weight, detail }] — the plain-language reasons, as shown to the candidate.
+  signals           Json
+  emailDate         DateTime
+  detectedAt        DateTime         @default(now())
+  alertEmailSentAt  DateTime?
+  // The candidate told us this was a real recruiter — excluded from the
+  // active list; kept so the rule that misfired can be found and fixed.
+  markedLegitAt     DateTime?
+  // The candidate acknowledged it (read it, dealt with it).
+  acknowledgedAt    DateTime?
+
+  @@unique([candidateId, externalMessageId])
+  @@index([candidateId, detectedAt])
 }
 
 enum EmailDirection {

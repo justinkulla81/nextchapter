@@ -2,6 +2,8 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
+import { assessJobPosting } from '@/lib/scam-shield/assess-job-posting'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -80,7 +82,7 @@ export async function createPendingJobBoardPosting(
   submitterEmail: string
 ) {
   const companyName = fixAllCapsCompanyName(input.companyName)
-  return prisma.exclusiveJobPosting.create({
+  const posting = await prisma.exclusiveJobPosting.create({
     data: {
       title: input.title,
       companyName,
@@ -110,6 +112,22 @@ export async function createPendingJobBoardPosting(
       expiresAt: new Date(Date.now() + THIRTY_DAYS_MS),
     },
   })
+
+  // Scam check. Submissions already wait in 'pending' for admin review, where
+  // the same check is shown on the review card; this records that it fired so
+  // the rate of flagged submissions can be watched.
+  const scam = assessJobPosting({ ...input, companyName })
+  if (scam.level !== 'none') {
+    captureServerEvent(submitterId, 'job_posting_scam_flagged', {
+      postingId: posting.id,
+      source,
+      level: scam.level,
+      score: scam.score,
+      signalCodes: scam.signals.map((s) => s.code),
+      flaggedDomains: scam.flaggedDomains,
+    })
+  }
+  return posting
 }
 
 // The only path that pushes expiresAt forward — genuine re-confirmation,

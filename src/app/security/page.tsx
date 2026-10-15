@@ -96,6 +96,7 @@ export default function SecurityPage() {
             <li>Row-level access checks and role-scoped Postgres queries — every partner-facing query is written to select only what that role is permitted to see, not filtered after the fact.</li>
             <li>Server-only data-access modules for anything touching candidate identity, so a client component can never accidentally receive a row it shouldn&apos;t.</li>
             <li>Every individual-record view on a partner surface is logged with an actor and a reason.</li>
+            <li>Scam watch checks recruiter emails in a connected Gmail inbox automatically; it stores only the sender, subject, date, and reasons for emails it flags, never the full message.</li>
             <li>Recruiter access to a candidate is per-introduction and consent-based, revocable at any time — never a browsable database.</li>
           </ul>
         </Section>
