@@ -55,22 +55,6 @@ export async function addWatchlistCompany(
   revalidatePath('/dashboard', 'layout')
 }
 
-// Inline "Track this company" button used on Job Fit / NC Job Board cards —
-// same underlying add, just triggered with a known company name instead of
-// a typed form field.
-export async function addWatchlistCompanyByName(companyName: string): Promise<{ error?: string }> {
-  const profile = await getProfile()
-  if (!profile) return { error: 'You need to be logged in to do this.' }
-
-  const result = await addCompanyToWatchlist(profile.id, companyName)
-  if (result.error) return result
-
-  await logWatchlistAdd(profile.id, companyName)
-  revalidatePath('/dashboard/find-my-job')
-  revalidatePath('/dashboard', 'layout')
-  return {}
-}
-
 export async function removeWatchlistCompany(entryId: string): Promise<void> {
   const profile = await getProfile()
   if (!profile) return
