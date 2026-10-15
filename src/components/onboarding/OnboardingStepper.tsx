@@ -5,11 +5,18 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
-  { href: '/onboarding/desire', label: 'Your Path' },
-  { href: '/onboarding/resume', label: 'Resume' },
-  { href: '/onboarding/confirm', label: 'Confirm' },
-  { href: '/onboarding/location', label: 'Location' },
+  { href: '/onboarding/desire', label: 'Your Path', minutes: 1 },
+  { href: '/onboarding/resume', label: 'Resume', minutes: 2 },
+  { href: '/onboarding/confirm', label: 'Confirm', minutes: 1 },
+  { href: '/onboarding/location', label: 'Location', minutes: 1 },
 ]
+
+// "Step 2 of 4: Resume. About 2 minutes left." Always visible, so a phone (where
+// the dot labels are hidden) still says where you are and how much is left.
+export function stepSummary(index: number): string {
+  const left = STEPS.slice(index).reduce((n, s) => n + s.minutes, 0)
+  return `Step ${index + 1} of ${STEPS.length}: ${STEPS[index].label}. About ${left} minute${left === 1 ? '' : 's'} left.`
+}
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
@@ -22,8 +29,11 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   // reads as stale/wrong, so render nothing outside the actual 4 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
+  const current = STEPS.findIndex((step) => step.href === pathname)
+
   return (
-    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 py-6">
+    <>
+    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 pt-6 pb-2">
       {STEPS.map((step, i) => {
         const isActive = pathname === step.href
         const isDone = completion[i]
@@ -65,7 +75,7 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
           </>
         )
         return (
-          <li key={step.href} className="flex flex-1 items-center gap-2">
+          <li key={step.href} aria-current={isActive ? 'step' : undefined} className="flex flex-1 items-center gap-2">
             {isClickable ? (
               <Link href={step.href} className="flex items-center gap-2 hover:opacity-80">
                 {content}
@@ -78,5 +88,7 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
         )
       })}
     </ol>
+    <p className="mx-auto w-full max-w-2xl px-6 pb-4 text-sm text-muted-foreground">{stepSummary(current)} Your answers save as you go.</p>
+    </>
   )
 }

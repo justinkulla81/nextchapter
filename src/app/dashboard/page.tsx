@@ -163,6 +163,7 @@ export default async function DashboardPage() {
     ladderTier,
     moduleGates,
     jobCounts,
+    newCheer,
   ] = await Promise.all([
     getVerifiedSessionUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -208,6 +209,11 @@ export default async function DashboardPage() {
     getDossierLadderTier(profile.id),
     getModuleGateStatus(profile.id),
     getHomeJobCounts(profile.id),
+    prisma.supporterCheer.findFirst({
+      where: { seenAt: null, supporter: { candidateId: profile.id } },
+      orderBy: { createdAt: 'desc' },
+      select: { message: true, supporter: { select: { name: true } } },
+    }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -342,6 +348,18 @@ export default async function DashboardPage() {
         }
       />
 
+      {newCheer && (
+        <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
+          <p className="text-xs font-semibold tracking-wide text-success uppercase">A cheer for you</p>
+          <p className="text-base">{newCheer.message}</p>
+          <p className="text-sm text-muted-foreground">
+            From {newCheer.supporter.name}.{' '}
+            <Link href="/dashboard/supporters" className="font-medium text-brand underline underline-offset-4">
+              See your supporters
+            </Link>
+          </p>
+        </section>
+      )}
       {firstWeek && <FirstWeekCard step={firstWeek} />}
       {noteKind === 'coaching_form' && <CoachingFormReminderCard />}
       {noteKind === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
