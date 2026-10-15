@@ -84,8 +84,21 @@ export default async function CrmLeadsPage({
     sort.sort === 'name' ? [{ title: sort.dir }]
     : sort.sort === 'quality' ? [{ leadQuality: sort.dir }, { priorityScore: 'desc' }]
     : sort.sort === 'amount' ? [{ amountUsdMax: { sort: sort.dir, nulls: 'last' } }]
-    : sort.sort === 'due' ? [{ nextStepDueAt: { sort: sort.dir, nulls: 'last' } }]
+    : sort.sort === 'due' ? [{ priorityScore: 'desc' }] // real order is applied below from the org's deadline
     : [{ priorityScore: sort.dir }, { leadQuality: 'asc' }]
+
+  // The Deadline column shows the organization's earliest program deadline, so
+  // both this filter and the sort work on that, not on the lead's own reminder.
+  const deadlineMode = sp.deadline === 'has' || sp.deadline === 'upcoming' ? sp.deadline : ''
+  const now = new Date()
+  const deadlineWhere: Prisma.CrmDeadlineWhereInput =
+    deadlineMode === 'upcoming' ? { dueAt: { gte: now } } : { dueAt: { not: null } }
+  const orgWhere: Prisma.CrmOrganizationWhereInput[] = [
+    ...(funderKinds.length > 0 ? [{ investorProfile: { funderKind: { in: funderKinds } } }] : []),
+    ...(valueTypes.length > 0 ? [{ investorProfile: { valueTypes: { hasSome: valueTypes } } }] : []),
+    ...(states.length > 0 ? [{ usState: { in: states } }] : []),
+    ...(deadlineMode ? [{ deadlines: { some: deadlineWhere } }] : []),
+  ]
 
   const where: Prisma.CrmOpportunityWhereInput = {
     ...(status === 'open' ? { outcome: 'OPEN' } : status === 'closed' ? { outcome: { not: 'OPEN' } } : {}),
@@ -101,15 +114,32 @@ export default async function CrmLeadsPage({
     ...(pipe ? { pipeline: { key: pipe } } : {}),
     ...(quality ? { leadQuality: quality as CrmLeadQuality } : {}),
     ...(eligibility.length > 0 ? { eligibility: { in: eligibility } } : {}),
-    ...(funderKinds.length > 0 ? { org: { investorProfile: { funderKind: { in: funderKinds } } } } : {}),
-    ...(valueTypes.length > 0 ? { org: { investorProfile: { valueTypes: { hasSome: valueTypes } } } } : {}),
-    ...(states.length > 0 ? { org: { usState: { in: states } } } : {}),
+    ...(orgWhere.length > 0 ? { org: { AND: orgWhere } } : {}),
   }
 
-  const [total, rows, promised, { pipelines, sharedStageKeys, stateRows }] = await Promise.all([
-    prisma.crmOpportunity.count({ where }),
+  // Prisma cannot order by a to-many relation's field, so a deadline sort
+  // ranks the matching leads here and pages the ranked ids.
+  let dueOrder: string[] | null = null
+  if (sort.sort === 'due') {
+    const matches = await prisma.crmOpportunity.findMany({ where, select: { id: true, orgId: true } })
+    const orgIds = [...new Set(matches.map((m) => m.orgId).filter((x): x is string => !!x))]
+    const earliest = new Map(
+      (await prisma.crmDeadline.groupBy({
+        by: ['orgId'], where: { orgId: { in: orgIds }, ...deadlineWhere }, _min: { dueAt: true },
+      })).map((g) => [g.orgId, g._min.dueAt?.getTime() ?? null]),
+    )
+    const dir = sort.dir === 'desc' ? -1 : 1
+    dueOrder = matches
+      .map((m) => ({ id: m.id, t: (m.orgId && earliest.get(m.orgId)) || null }))
+      .sort((a, b) => (a.t === null ? 1 : b.t === null ? -1 : (a.t - b.t) * dir)) // undated always last
+      .map((m) => m.id)
+  }
+
+  const [total, fetched, promised, { pipelines, sharedStageKeys, stateRows }] = await Promise.all([
+    dueOrder ? Promise.resolve(dueOrder.length) : prisma.crmOpportunity.count({ where }),
     prisma.crmOpportunity.findMany({
-      where, orderBy, skip: (page - 1) * perPage, take: perPage,
+      where: dueOrder ? { id: { in: dueOrder.slice((page - 1) * perPage, page * perPage) } } : where,
+      orderBy, ...(dueOrder ? {} : { skip: (page - 1) * perPage, take: perPage }),
       select: {
         id: true, title: true, stageId: true, leadQuality: true, eligibility: true,
         priorityScore: true, priorityOverride: true, amountUsdMin: true, amountUsdMax: true,
@@ -123,7 +153,7 @@ export default async function CrmLeadsPage({
                 funderKind: true, valueTypes: true, preconditions: true, preconditionLeadTimeDays: true,
               },
             },
-            deadlines: { orderBy: [{ dueAt: 'asc' }], take: 1, select: { id: true, label: true, dueAt: true } },
+            deadlines: { where: deadlineWhere, orderBy: [{ dueAt: 'asc' }], take: 1, select: { id: true, label: true, dueAt: true } },
           },
         },
       },
@@ -132,13 +162,15 @@ export default async function CrmLeadsPage({
     getLeadLookups(),
   ])
 
+  const rank = dueOrder ? new Map(dueOrder.map((id, i) => [id, i])) : null
+  const rows = rank ? [...fetched].sort((a, b) => rank.get(a.id)! - rank.get(b.id)!) : fetched
   const stagesByPipeline = new Map(pipelines.map((p) => [p.key, p.stages]))
   const stageKeys = [...new Map(sharedStageKeys.map((s) => [s.key, { key: s.key, label: s.label }])).values()]
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams: Record<string, string> = {
     q, pipeline: pipe, quality, status,
     eligibility: eligibility.join(','), kind: funderKinds.join(','),
-    value: valueTypes.join(','), state: states.join(','),
+    value: valueTypes.join(','), state: states.join(','), deadline: deadlineMode,
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
   const qs = (over: Record<string, string | number>) => {
@@ -146,7 +178,6 @@ export default async function CrmLeadsPage({
     for (const [k, v] of Object.entries({ ...baseParams, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
-  const now = new Date()
 
   return (
     <div className="space-y-4">
@@ -201,6 +232,17 @@ export default async function CrmLeadsPage({
             options={stateRows.map((s) => ({ value: s.usState!, label: s.usState === 'NATIONAL' ? 'National' : s.usState! }))}
           />
         )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1 text-sm" role="group" aria-label="Deadline filter">
+        <span className="mr-1 text-muted-foreground">Deadline</span>
+        {([['', 'Any'], ['has', 'Has a date'], ['upcoming', 'Upcoming only']] as const).map(([v, label]) => (
+          <Link key={v} href={`/support/admin/crm/leads?${qs({ deadline: v, page: 1, ...(v ? { sort: 'due', dir: 'asc' } : {}) })}`}
+            aria-current={deadlineMode === v ? 'page' : undefined}
+            className={`rounded-md border px-2.5 py-1 ${deadlineMode === v ? 'border-brand bg-brand/10 font-semibold text-brand' : 'border-border hover:bg-muted'}`}>
+            {label}
+          </Link>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
