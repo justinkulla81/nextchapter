@@ -22,8 +22,10 @@ export const QUERIES = [
   'layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs',
   'laying off', 'workforce reduction', 'reduces workforce', 'cuts staff', 'headcount reduction',
   'restructuring job cuts', 'to lay off', 'eliminates positions', 'lays off percent of staff',
-  'layoffs AI automation', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
+  'corporate job cuts', 'cutting corporate jobs', 'plans to cut jobs', 'to eliminate jobs', 'confirms layoffs',
+  'reduction in force', 'layoffs AI automation', 'AI job cuts', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
   'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
+  'media entertainment layoffs', 'manufacturing layoffs', 'grocery layoffs',
 ]
 /** Searches in flight at once. */
 const SEARCH_CONCURRENCY = 4
