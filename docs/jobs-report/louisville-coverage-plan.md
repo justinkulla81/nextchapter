@@ -8,7 +8,7 @@ Counts come from the `ExclusiveJobPosting` table (the imported feed), not the fu
 
 - A text match on "louisville" returns 815 rows. That overstates Kentucky: 74 are Louisville, Colorado (IonQ, Infleqtion and others), 1 is another state, and 44 have an unclear location string. **About 735 are Louisville, Kentucky** (695 clear plus roughly 40 unclear that read as Kentucky).
 - 518 of the 815 rows (64%) come from the Jooble aggregator. The rest come from employer career sites. The `source` field says `ats_feed` for all rows, so it does not separate the two. Add a field that does.
-- 27% of rows are mid-level individual contributors and 73% are manager level or above.
+- Level mix (Oct 15 snapshot): 16% mid-level individual contributors, 21% senior individual contributors, 42% managers, 21% senior managers and above. So 84% are senior individual contributor roles or above and 63% are manager level or above. An earlier note in this file and in chat that said 73% and 90% "manager or above" was wrong; it grouped senior individual contributors with managers.
 - Location strings are inconsistent ("Louisville", "KY - Louisville", "HQ_Louisville", store codes, multi-site lists), so any geography report needs a normalized county code, not text matching.
 
 ## Denominators (all approximate; none is a metro openings count)

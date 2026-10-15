@@ -11,7 +11,8 @@ Frame: **mid-level and above only.** The feed contains no entry-level or hourly 
 | Louisville-area postings | 1,863 |
 | Distinct employers | 1,062 |
 | From the Jooble aggregator | 1,459 (78%) |
-| Manager level and above | 1,565 (84%) |
+| Senior individual contributor or above | 1,565 (84%) |
+| Manager level or above | 1,166 (63%) |
 | Mid-level individual contributor | 298 (16%) |
 | With stated pay | 448 (24%) |
 | Average stated minimum pay (all levels in feed) | about $111,000 (manager and above $113,700; mid-level IC $98,900) |
