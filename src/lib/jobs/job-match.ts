@@ -1,7 +1,7 @@
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
 import { likesFit, readLikes, workFit, type WorkProfile } from '@/lib/profile/work-profile'
 import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
-import { roleForTitle } from '@/lib/pivots/pivot-map'
+import { roleForPosting } from '@/lib/pivots/pivot-map'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
@@ -797,7 +797,7 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
 
   // How the kind of role suits how they like to work (work profile vs the role's usual shape).
   const likes = readLikes(c.workStyleAnswers)
-  const roleKey = c.workProfile || c.strengthKeys || likes.less.length ? roleForTitle(job.title) : null
+  const roleKey = c.workProfile || c.strengthKeys || likes.less.length ? roleForPosting(job.title, job.description, inferFunctionFromTitle(job.title)) : null
   if (roleKey && likes.less.length) {
     const still = likesFit({ less: likes.less, more: [] }, null, roleKey).still
     if (still) {

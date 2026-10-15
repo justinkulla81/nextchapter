@@ -1261,10 +1261,78 @@ export function titleMatchesRole(roleKey: string, title: string): boolean {
   return !!role && role.titles.test(title.toLowerCase())
 }
 
+const LEVEL_WORDS = /^(?:(?:senior|sr\.?|associate|assistant|deputy|executive|regional|area|group|global|interim|lead|principal)\s+)*(director|manager|vice president|vp|svp|evp|avp|head|supervisor|lead|specialist|analyst|consultant|coordinator|officer)$/
+
+/**
+ * Other ways to read a title: "Director, Product Marketing" and "Manager -
+ * Finance" also as "product marketing director", "director of product
+ * marketing" and "product marketing manager", so the role patterns see the
+ * kind of work after the comma or dash.
+ */
+export function titleVariants(title: string): string[] {
+  const t = title.toLowerCase().replace(/\s+/g, ' ').trim()
+  const out = [t]
+  const m = t.match(/^([^,\-–—|:(]+?)\s*[,\-–—|:(]\s*([^,\-–—|:()]+)/)
+  if (m) {
+    const lvl = m[1].trim().match(LEVEL_WORDS)
+    if (lvl) {
+      const area = m[2].replace(/[)]/g, '').trim()
+      const level = lvl[1]
+      out.push(`${area} ${level}`, `${level} of ${area}`, `${area} manager`, `head of ${area}`)
+    }
+  }
+  return out
+}
+
+/** A title that names a level but not a kind of work ("Director", "Senior Manager", "VP"). */
+export function isGenericTitle(title: string): boolean {
+  const t = title.toLowerCase().split(/[,\-–—|:(]/)[0].replace(/[^a-z ]/g, ' ').replace(/\b(senior|sr|junior|jr|lead|principal|associate|assistant|deputy|executive|regional|area|remote|interim|global|national|group)\b/g, ' ').replace(/\s+/g, ' ').trim()
+  return /^(director|manager|vice president|vp|svp|evp|head|team leader|team lead|supervisor|administrator|analyst|consultant|specialist|coordinator|officer)$/.test(t)
+}
+
+/**
+ * The role a posting belongs to when its title doesn't say ("Director",
+ * "Manager"): the role whose title patterns appear most in the start of the
+ * description, if at least twice and not tied. Null when unclear.
+ */
+// Words job boilerplate uses for everyone ("veterans", "partner", "president",
+// "owner"), so they never decide a role from a description.
+const NOT_FROM_DESCRIPTION = new Set(['executive', 'military_government', 'partnerships', 'clergy', 'legal_operations', 'scientist'])
+
+export function roleFromDescription(description: string | null | undefined): string | null {
+  if (!description) return null
+  const text = description.slice(0, 2000).toLowerCase()
+  const counts: [string, number][] = []
+  for (const r of ROLES.values()) {
+    if (NOT_FROM_DESCRIPTION.has(r.key)) continue
+    const n = text.match(new RegExp(r.titles.source, 'g'))?.length ?? 0
+    if (n) counts.push([r.key, n])
+  }
+  counts.sort((a, b) => b[1] - a[1])
+  const [best] = counts
+  // At least three mentions, and clearly ahead of the next kind of work.
+  // Near-duplicate roles in the same function (data analyst / data and analytics) don't count as a tie.
+  const rival = counts.find(([k]) => k !== best?.[0] && (ROLES.get(k)?.fn === null || ROLES.get(k)?.fn !== ROLES.get(best?.[0] ?? '')?.fn))
+  return best && best[1] >= 3 && (!rival || best[1] >= 2 * rival[1]) ? best[0] : null
+}
+
+/** A function (the board's classifier) to its representative role. */
+export function roleFromFunction(fn: string | null | undefined): string | null {
+  return fn ? (FUNCTION_DEFAULT_SOURCE[fn as PrimaryFunction] ?? null) : null
+}
+
+/**
+ * The role for a job: its title (and the part after a comma), else the
+ * function the board's classifier reads from the title, else, for a bare
+ * "Director"/"Manager", the description.
+ */
+export function roleForPosting(title: string, description?: string | null, inferredFunction?: string | null): string | null {
+  return roleForTitle(title) ?? roleFromFunction(inferredFunction) ?? (isGenericTitle(title) ? roleFromDescription(description) : null)
+}
+
 /** The map role a job title belongs to (first match in catalog order), or null. */
 export function roleForTitle(title: string): string | null {
-  const t = title.toLowerCase()
-  for (const r of ROLES.values()) if (r.titles.test(t)) return r.key
+  for (const t of titleVariants(title)) for (const r of ROLES.values()) if (r.titles.test(t)) return r.key
   return null
 }
 
