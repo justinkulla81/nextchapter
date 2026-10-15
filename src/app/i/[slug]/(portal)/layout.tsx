@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { lockedWorkspacesFor, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -53,7 +53,7 @@ export default async function InstitutionPortalLayout({
   // Admins also see what a higher tier adds (the upgrade path, product
   // design Packaging); everyone else sees only what they can open.
   const showLocked = access.tokens.has('INSTITUTION_ADMIN')
-  const locked = new Set(showLocked ? lockedWorkspacesFor(access.tokens, institution.tier).map((w) => w.key) : [])
+  const locked = new Set(showLocked ? lockedWorkspacesFor(access.tokens, institution.tier, {}, orgKindOf(institution.orgType)).map((w) => w.key) : [])
   const rail: RailItem[] = WORKSPACES.filter(
     (w) => access.workspaces.includes(w.key) || locked.has(w.key) || (w.release === 'V2' && institution.isDemo),
   ).map((w) => ({

@@ -4,7 +4,7 @@
 // the client-side rail renders from it too. It is presentation and routing
 // config; authorization happens in requireWorkspace() on the server.
 
-import type { InstitutionTier, InstitutionUserRole } from '@prisma/client'
+import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole } from '@prisma/client'
 
 export type WorkspaceKey =
   | 'candidate'
@@ -15,8 +15,10 @@ export type WorkspaceKey =
   | 'execed'
   | 'employer'
   | 'admin'
-  // V2, shown greyed out as "Coming" on demo tenants only.
   | 'workforce'
+  // Workforce customers (boards, economic development orgs, chambers):
+  // member companies, participants, layoffs, kept-in-region.
+  | 'hub'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -42,7 +44,7 @@ export type WorkspaceConfig = {
   key: WorkspaceKey
   label: string
   // A lucide-react icon name, resolved by the rail.
-  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare'
+  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin'
   release: Release
   requiredRoles: AccessToken[]
   // Path under /i/[slug]; the first tab is the workspace home.
@@ -52,7 +54,23 @@ export type WorkspaceConfig = {
   minTier?: InstitutionTier
   // Shown only when the college has this switched on (enabledFeatures).
   feature?: 'wioa'
+  // Which kind of customer has it: colleges, workforce customers, or (omitted) both.
+  orgKind?: OrgKind
   tabs: WorkspaceTab[]
+}
+
+// A college, or a workforce customer (board, economic development org,
+// chamber, community org): the Institution's orgType.
+export type OrgKind = 'college' | 'workforce'
+
+export const orgKindOf = (t: InstitutionOrgType | null | undefined): OrgKind => (!t || t === 'COLLEGE' ? 'college' : 'workforce')
+
+export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
+  COLLEGE: 'College or university',
+  WORKFORCE_BOARD: 'Workforce board',
+  ECONOMIC_DEVELOPMENT: 'Economic development',
+  CHAMBER: 'Chamber of commerce',
+  COMMUNITY_ORG: 'Community organization',
 }
 
 // Who can post alumni-only jobs and manage target companies matches
@@ -87,6 +105,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     release: 'V1',
     requiredRoles: ['ALUMNI_RELATIONS', 'INSTITUTION_ADMIN', 'VIEWER:alumni'],
     homePath: 'alumni',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'members', label: 'Members', comingIn: null },
@@ -110,6 +129,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     requiredRoles: ['DEVELOPMENT', 'INSTITUTION_ADMIN', 'VIEWER:development'],
     homePath: 'development',
     minTier: 'ADVANCEMENT',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'ROI dashboard', comingIn: null },
       { key: 'transition', label: 'In transition', comingIn: null },
@@ -126,6 +146,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // Coaches (a college's own) share the counselors' view of assigned members.
     requiredRoles: ['CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'],
     homePath: 'career',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Caseload', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'coaching', label: 'Coaching', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
@@ -147,6 +168,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     requiredRoles: ['FACULTY', 'EXEC_ED', 'INSTITUTION_ADMIN', 'VIEWER:teaching'],
     homePath: 'teaching',
     minTier: 'INSTITUTION',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Courses', comingIn: null },
       { key: 'faculty', label: 'Faculty', comingIn: null },
@@ -178,6 +200,25 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Shared Dossiers', comingIn: null },
       { key: 'page', label: 'Employer page and roles', comingIn: null },
+    ],
+  },
+  {
+    // A workforce customer's own work: the companies it serves, the people
+    // it's helping, layoffs in its region, and how many it kept local.
+    key: 'hub',
+    label: 'Program',
+    icon: 'MapPin',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub'],
+    homePath: 'hub',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'home', label: 'Dashboard', comingIn: null },
+      { key: 'companies', label: 'Member companies', comingIn: null },
+      { key: 'layoffs', label: 'Layoffs', comingIn: null },
+      { key: 'participants', label: 'Participants', comingIn: null },
+      { key: 'local', label: 'Kept in region', comingIn: null },
+      { key: 'region', label: 'Local market', comingIn: null },
     ],
   },
   {
@@ -238,20 +279,21 @@ export const TIER_LABELS: Record<InstitutionTier, string> = { CAREER: 'Career', 
 export type WorkspaceFeatures = { wioa?: boolean }
 
 const featureOn = (w: WorkspaceConfig, features: WorkspaceFeatures) => !w.feature || features[w.feature] === true
+const kindOn = (w: WorkspaceConfig, kind: OrgKind) => !w.orgKind || w.orgKind === kind
 
 // The V1 workspaces these tokens open on this license tier, in rail order.
 // No tier = ignore tiers (tests, config checks). Feature-gated workspaces
 // (the Workforce board) need the college to have switched them on.
-export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceKey[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
+export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceKey[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
     (w) => w.key,
   )
 }
 
 // Workspaces a role would open but the license tier doesn't include: shown
 // locked to admins, with the tier that adds them.
-export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceConfig[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
+export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceConfig[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
 }
 
 // True when the ONLY thing opening this workspace is a VIEWER seat.

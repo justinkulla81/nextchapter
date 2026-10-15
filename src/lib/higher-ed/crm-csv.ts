@@ -34,7 +34,7 @@ export type GiftRow = {
 
 const ROSTER_REQUIRED = ['external_id', 'email', 'first_name', 'last_name', 'affiliation'] as const
 const GIFT_REQUIRED = ['external_id', 'gift_date', 'amount'] as const
-const AFFILIATIONS: InstitutionAffiliation[] = ['ALUM', 'STUDENT', 'PARENT', 'STAFF_ALUM']
+const AFFILIATIONS: InstitutionAffiliation[] = ['ALUM', 'STUDENT', 'PARENT', 'STAFF_ALUM', 'PARTICIPANT']
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function table(text: string): { header: string[]; rows: string[][] } {

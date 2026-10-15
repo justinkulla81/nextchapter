@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Building2, Compass, GraduationCap, HandCoins, Landmark, MessagesSquare, Presentation, Settings, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Building2, Compass, GraduationCap, HandCoins, Landmark, MapPin, MessagesSquare, Presentation, Settings, Users, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { WorkspaceConfig } from '@/lib/higher-ed/workspaces'
 
@@ -16,6 +16,7 @@ const ICONS: Record<WorkspaceConfig['icon'], LucideIcon> = {
   BookOpen,
   Presentation,
   Landmark,
+  MapPin,
   MessagesSquare,
 }
 

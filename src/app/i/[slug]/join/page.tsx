@@ -19,7 +19,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
   const { t } = await searchParams
   const inst = await prisma.institution.findUnique({
     where: { slug },
-    select: { name: true, programBrandName: true, logoUrl: true, accentColor: true, profile: true },
+    select: { name: true, programBrandName: true, logoUrl: true, accentColor: true, profile: true, orgType: true },
   })
   if (!inst) notFound()
   const member = t ? await findMemberByToken(slug, t) : null
@@ -28,6 +28,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
   const hero = profile.heroImageUrl ?? profile.photos?.[0]?.url ?? null
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
+  const workforce = inst.orgType !== 'COLLEGE'
 
   return (
     <div className="min-h-screen bg-background" style={{ ['--primary' as string]: accent, ['--primary-foreground' as string]: readableTextOn(accent) }}>
@@ -46,10 +47,14 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>A clear read on your job market, updated every week.</li>
           <li>A plan for this week, and coaching when you want it.</li>
-          <li>Alumni who&apos;ll take your call, and jobs posted just for {inst.name} alumni.</li>
+          {workforce ? (
+            <li>Local employers first, so you can find your next role close to home.</li>
+          ) : (
+            <li>Alumni who&apos;ll take your call, and jobs posted just for {inst.name} alumni.</li>
+          )}
         </ul>
         <p className="text-sm text-muted-foreground">
-          Free for {inst.name} alumni. Your search stays yours: {inst.name} sees only what you choose to share, and you can change that any time.
+          Free {workforce ? `from ${inst.name}` : `for ${inst.name} alumni`}. Your search stays yours: {inst.name} sees only what you choose to share, and you can change that any time.
         </p>
         {member && !member.tokenUsed ? (
           <JoinButton slug={slug} token={t!} label={`Join ${brand}`} />
@@ -59,7 +64,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
           </Link>
         ) : (
           <div className="space-y-2 rounded-lg border border-border p-4 text-sm">
-            <p>Sign in with the email {inst.name} has on file for you, and we&apos;ll find you on the alumni list.</p>
+            <p>Sign in with the email {inst.name} has on file for you{workforce ? ' (the one you signed up with)' : ''}, and we&apos;ll find you on {workforce ? 'the list' : 'the alumni list'}.</p>
             <CollegeSignIn slug={slug} google={providers.google} microsoft={providers.microsoft} college={inst.name} />
             <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className="font-medium text-primary hover:underline">
               Sign in to join

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
+import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
@@ -460,6 +461,9 @@ async function JobRecommendationsSection({
   // How they like to work (work profile), for the per-job working-style read.
   const workProfile = await loadWorkProfile(profile.id).catch(() => null)
   const strengthKeysNow = await loadStrengths(profile.id).then(strengthKeys).catch(() => null)
+  // A workforce program's region: its jobs rank first within each fit level.
+  const area = await localAreaForCandidate(profile.id).catch(() => null)
+  const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
   const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
@@ -490,7 +494,7 @@ async function JobRecommendationsSection({
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow },
+      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow, local },
       toMatchJob(p, {
         sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
         ownershipType: company?.ownershipType ?? null,
@@ -532,7 +536,11 @@ async function JobRecommendationsSection({
   // actual complaint) still works fully without it.
   const rankedLockedBoardPostings = lockedBoardPostings
     .map((posting) => ({ posting, fitBucket: computeBoardListingFitBucket(profile, posting) }))
-    .sort((a, b) => FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket])
+    .sort(
+      (a, b) =>
+        FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
+        Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
+    )
 
   return (
     <div className="space-y-4">
@@ -604,7 +612,9 @@ async function JobRecommendationsSection({
                   ...visibleBoardPostings.map((posting) => {
                     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
                     return {
-                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)),
+                      rank:
+                        boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+                        (local?.isLocal(posting.location) ? 0.5 : 0),
                       node: (
                         <DiscoverJobCard
                           key={posting.id}
