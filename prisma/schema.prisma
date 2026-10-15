@@ -4971,6 +4971,11 @@ model ExclusiveJobPosting {
   // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
   // requirements often sit past it. Null = not read (older rows: parse the excerpt).
   yearsRequired   Json?
+  // O*NET-SOC occupation the crawler matched the title to (ncrawl scripts/onet_tag_jobs.py:
+  // O*NET alternate titles, local, no API call per job), e.g. "13-2051.00" / "Financial and
+  // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
+  socCode         String?
+  socTitle        String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -4981,6 +4986,7 @@ model ExclusiveJobPosting {
   @@index([postedAt])
   @@index([industry])
   @@index([locationState])
+  @@index([socCode])
   // Deleting a candidate sets this to null; without the index that scans the whole board.
   @@index([submittedByCandidateId])
 }

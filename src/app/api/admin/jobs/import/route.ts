@@ -82,6 +82,9 @@ interface ImportJobInput {
   requisitionId?: string | null
   repostKey?: string | null
   descHash?: string | null
+  // O*NET-SOC occupation matched by the crawler (optional like the fields above).
+  socCode?: string | null
+  socTitle?: string | null
 }
 
 interface ImportRequestBody {
@@ -289,7 +292,7 @@ export async function POST(request: NextRequest) {
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
-      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

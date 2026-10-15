@@ -31,6 +31,8 @@ export interface ImportSpecInput {
   requisitionId?: unknown
   repostKey?: unknown
   descHash?: unknown
+  socCode?: unknown
+  socTitle?: unknown
 }
 
 export interface ImportSpecFields {
@@ -42,6 +44,8 @@ export interface ImportSpecFields {
   requisitionId?: string | null
   repostKey?: string | null
   descHash?: string | null
+  socCode?: string | null
+  socTitle?: string | null
 }
 
 /** Trimmed single-line text up to `max` chars (longer is cut), else null. */
@@ -97,5 +101,12 @@ export function importSpecFields(
   if (has('requisitionId')) out.requisitionId = importText(job.requisitionId, 200)
   if (has('repostKey')) out.repostKey = importText(job.repostKey, 64)
   if (has('descHash')) out.descHash = importText(job.descHash, 64)
+  // O*NET-SOC code ("13-2051.00") and its title; a malformed code drops both.
+  if (has('socCode') || has('socTitle')) {
+    const soc = importText(job.socCode, 10)
+    const ok = soc !== null && /^\d{2}-\d{4}\.\d{2}$/.test(soc)
+    out.socCode = ok ? soc : null
+    out.socTitle = ok ? importText(job.socTitle, 150) : null
+  }
   return out
 }

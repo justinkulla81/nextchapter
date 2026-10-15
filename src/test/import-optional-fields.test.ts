@@ -47,3 +47,15 @@ describe('importSpecFields', () => {
     expect(out).toEqual({ externalJobId: '12345', requisitionId: 'R-1', repostKey: 'a'.repeat(64), descHash: null })
   })
 })
+
+describe('importSpecFields: O*NET-SOC occupation', () => {
+  const codes = new Set<string>()
+  it('keeps a well-formed SOC code and its title, drops a malformed one', () => {
+    expect(importSpecFields({ socCode: '13-2051.00', socTitle: 'Financial and Investment Analysts' }, () => [], codes)).toEqual({
+      socCode: '13-2051.00',
+      socTitle: 'Financial and Investment Analysts',
+    })
+    expect(importSpecFields({ socCode: '13-2051', socTitle: 'x' }, () => [], codes)).toEqual({ socCode: null, socTitle: null })
+    expect(importSpecFields({ socCode: null, socTitle: null }, () => [], codes)).toEqual({ socCode: null, socTitle: null })
+  })
+})
