@@ -135,6 +135,15 @@ const G = {
   communityTools: { key: 'communityTools', label: 'Community platforms and engagement metrics', way: 'course', example: 'CMX community courses; run a small online group for 60 days', evidence: ['community', 'discord', 'slack community', 'engagement'] },
   consultingFrameworks: { key: 'consultingFrameworks', label: 'Structured problem solving and slides', way: 'practice', example: 'Solve two case interviews and turn one into a 5-slide recommendation', evidence: ['consulting', 'strategy', 'case', 'powerpoint'] },
   cloud: { key: 'cloud', label: 'Cloud and automation (AWS or Azure, scripting, CI/CD)', way: 'certificate', example: 'AWS Certified Cloud Practitioner, then Solutions Architect Associate', evidence: ['aws', 'azure', 'gcp', 'terraform', 'ci/cd', 'python', 'powershell', 'bash', 'kubernetes'] },
+  teachingCert: { key: 'teachingCert', label: 'Teaching license or alternative certification', way: 'certificate', example: 'Your state’s alternative certification route (e.g. Teach For America, TEACH-NOW) or a substitute license to start', evidence: ['teaching certificate', 'teaching license', 'certified teacher', 'substitute'] },
+  designPortfolio: { key: 'designPortfolio', label: 'A design portfolio (Figma)', way: 'portfolio', example: 'Three case studies in Figma showing the problem, your process and the result', evidence: ['figma', 'portfolio', 'adobe', 'sketch', 'design'] },
+  msw: { key: 'msw', label: 'Social work degree and license (MSW, LSW/LCSW)', way: 'certificate', example: 'An MSW program (many are part-time or online), then your state license', evidence: ['msw', 'lcsw', 'lsw', 'social work'] },
+  itCert: { key: 'itCert', label: 'IT certification (CompTIA A+, Network+)', way: 'certificate', example: 'CompTIA A+, then Network+ or a Microsoft or Google IT certificate', evidence: ['comptia', 'a+', 'network+', 'help desk', 'active directory', 'it support'] },
+  finLicense: { key: 'finLicense', label: 'Advisor licenses (Series 65/66 or 7, then CFP)', way: 'certificate', example: 'Series 65 or 66 to start; many firms sponsor the Series 7 and CFP coursework', evidence: ['series 7', 'series 65', 'series 66', 'cfp', 'finra'] },
+  facilitiesCert: { key: 'facilitiesCert', label: 'Facilities or property credential', way: 'certificate', example: 'IFMA Facility Management Professional (FMP) or a state real estate or property management license', evidence: ['fmp', 'ifma', 'property management', 'real estate license', 'facilities'] },
+  paralegalCert: { key: 'paralegalCert', label: 'Paralegal certificate', way: 'certificate', example: 'An ABA-approved paralegal certificate (many take under a year)', evidence: ['paralegal', 'legal assistant', 'litigation support'] },
+  academy: { key: 'academy', label: 'Academy or certification for the service', way: 'certificate', example: 'Police academy, fire academy or EMT certification; veterans often get credit', evidence: ['academy', 'emt', 'police', 'firefighter', 'law enforcement'] },
+  officeTools: { key: 'officeTools', label: 'Office tools and calendar management', way: 'course', example: 'Microsoft 365 or Google Workspace courses; manage a shared calendar and inbox for someone', evidence: ['excel', 'outlook', 'microsoft office', 'google workspace', 'scheduling', 'calendar'] },
   ml: { key: 'ml', label: 'Machine learning and Python', way: 'course', example: 'A machine learning course (fast.ai or Coursera ML) plus one model you can show', evidence: ['machine learning', 'python', 'scikit', 'tensorflow', 'pytorch', 'modeling'] },
   peopleMgmt: { key: 'peopleMgmt', label: 'Managing a team (1:1s, hiring, performance)', way: 'practice', example: 'Lead a project with two or three people, run weekly 1:1s, and mentor a junior colleague', evidence: ['manager', 'managed', 'mentoring', 'team lead', 'tech lead', 'hiring'] },
   mediaRelations: { key: 'mediaRelations', label: 'Media relations and press materials', way: 'portfolio', example: 'Write a press release and a media pitch for a real announcement', evidence: ['press release', 'media relations', 'public relations', 'journalist', 'reporter', 'editor'] },
@@ -214,7 +223,7 @@ const ROLE_LIST: PivotRole[] = [
     key: 'teaching', label: 'Teaching and education', fn: null, people: 'HIGH',
     titles: /\b(teacher|educator|instructor|professor|lecturer|tutor|school counselor|assistant principal|academic advisor)\b/,
     examples: ['High School Teacher', 'Adjunct Professor', 'Special Education Teacher'],
-    needs: [],
+    needs: [G.teachingCert],
   },
   {
     key: 'nursing_clinical', label: 'Nursing and clinical care', fn: null, people: 'HIGH',
@@ -226,7 +235,7 @@ const ROLE_LIST: PivotRole[] = [
     key: 'admin_ea', label: 'Administrative and executive assistant', fn: 'Administration', people: 'MIXED',
     titles: /\b(executive assistant|administrative assistant|office manager|administrative (coordinator|specialist)|receptionist|office administrator)\b/,
     examples: ['Executive Assistant to the CEO', 'Administrative Assistant', 'Office Manager'],
-    needs: [],
+    needs: [G.officeTools],
     caution: 'Office and admin support has some of the highest AI task exposure of any occupation group.',
   },
   {
@@ -251,13 +260,13 @@ const ROLE_LIST: PivotRole[] = [
     key: 'design', label: 'Design', fn: 'Design', people: 'LOW',
     titles: /\b(designer|ux|ui|creative director|design (lead|manager|director)|head of design)\b/,
     examples: ['Product Designer', 'UX Designer', 'Creative Director'],
-    needs: [],
+    needs: [G.designPortfolio],
   },
   {
     key: 'legal', label: 'Legal', fn: 'Legal', people: 'MIXED',
     titles: /\b(attorney|lawyer|counsel|paralegal|legal (assistant|secretary|specialist)|general counsel|chief legal officer|head of legal)\b/,
     examples: ['Corporate Attorney', 'Senior Counsel', 'Paralegal'],
-    needs: [],
+    needs: [G.paralegalCert],
   },
   {
     key: 'executive', label: 'Executive and founder', fn: null, people: 'MIXED',
@@ -275,30 +284,54 @@ const ROLE_LIST: PivotRole[] = [
     key: 'it_infrastructure', label: 'IT and infrastructure', fn: null, people: 'MIXED',
     titles: /\b(it (specialist|manager|director|support|technician|analyst|administrator)|help ?desk|desktop support|network (engineer|administrator)|systems administrator|sysadmin|it operations|technical support (specialist|engineer))\b/,
     examples: ['IT Specialist', 'Network Engineer', 'Systems Administrator', 'Help Desk Technician'],
-    needs: [],
+    needs: [G.itCert],
   },
   {
     key: 'financial_advisor', label: 'Financial advising and wealth management', fn: null, people: 'HIGH', highRejectionHighUpside: true,
     titles: /\b(financial (advisor|adviser|planner)|wealth (manager|advisor|management)|private (banker|wealth)|investment advisor|branch manager|relationship banker|insurance (agent|advisor))\b/,
     examples: ['Financial Advisor', 'Wealth Manager', 'Private Banker', 'Relationship Banker'],
-    needs: [],
+    needs: [G.finLicense],
   },
   {
     key: 'social_work', label: 'Social work and counseling', fn: null, people: 'HIGH',
     titles: /\b(social worker|lcsw|msw|mental health counselor|substance abuse counselor|family (advocate|support specialist)|child welfare|behavioral health (specialist|counselor|clinician))\b/,
     examples: ['Social Worker', 'Mental Health Counselor', 'Child Welfare Specialist'],
-    needs: [],
+    needs: [G.msw],
   },
   {
     key: 'facilities_real_estate', label: 'Facilities, property and real estate', fn: null, people: 'MIXED',
     titles: /\b(facilit(y|ies) (manager|director|administrator|coordinator)|property manager|real estate (agent|broker|manager)|leasing (manager|agent|consultant)|maintenance manager|building manager|site manager)\b/,
     examples: ['Facilities Manager', 'Property Manager', 'Real Estate Agent', 'Maintenance Manager'],
-    needs: [],
+    needs: [G.facilitiesCert],
   },
   {
     key: 'physician', label: 'Physicians and medical leadership', fn: null, people: 'HIGH',
     titles: /\b(physician|medical director|chief medical officer|hospitalist|surgeon|psychiatrist|pediatrician|chief clinical officer|medical officer)\b/,
     examples: ['Physician', 'Medical Director', 'Chief Medical Officer', 'Hospitalist'],
+    needs: [],
+  },
+  {
+    key: 'clergy', label: 'Clergy and chaplaincy', fn: null, people: 'HIGH',
+    titles: /\b(pastor|minister|chaplain|priest|rabbi|imam|clergy|worship leader)\b/,
+    examples: ['Pastor', 'Hospital Chaplain', 'Youth Minister'],
+    needs: [],
+  },
+  {
+    key: 'public_safety', label: 'Police, fire and emergency services', fn: null, people: 'HIGH',
+    titles: /\b(police (officer|sergeant|lieutenant|captain|chief|detective)|chief of police|firefighter|fire (chief|captain|lieutenant|marshal)|paramedic|emt|sheriff|deputy sheriff|corrections officer|state trooper|dispatcher)\b/,
+    examples: ['Police Officer', 'Fire Captain', 'Paramedic', 'Chief of Police'],
+    needs: [G.academy],
+  },
+  {
+    key: 'scientist', label: 'Science and research', fn: null, people: 'LOW',
+    titles: /\b((?<!data )scientist|chemist|biologist|microbiologist|physicist|biostatistician|lab(oratory)? (manager|technician|director)|research associate)\b/,
+    examples: ['Research Scientist', 'Chemist', 'Laboratory Manager', 'Biostatistician'],
+    needs: [],
+  },
+  {
+    key: 'food_service', label: 'Food service and restaurants', fn: null, people: 'HIGH',
+    titles: /\b(food (service )?(manager|director|supervisor)|restaurant (manager|general manager)|chef|sous chef|kitchen manager|dietary (director|manager)|catering (manager|director))\b/,
+    examples: ['Restaurant Manager', 'Executive Chef', 'Food Service Director', 'Kitchen Manager'],
     needs: [],
   },
   {
@@ -710,6 +743,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'learning_development', brings: ['Onboarding and training programs', 'Manager coaching', 'Facilitation'], covers: ['facilitation'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Most generalists already run onboarding and training; L&D makes that the whole job.' },
       { to: 'compensation', brings: ['Pay and benefits administration', 'Job leveling exposure', 'Spreadsheet work'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Compensation is a specialist track with strong pay and steady demand; your benefits and pay administration is the starting point.' },
       { to: 'talent_acquisition', brings: ['Interviewing and hiring process', 'Employer knowledge', 'Candidate experience'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'In-house recruiting reuses your hiring process knowledge and is the most people-facing path inside HR.' },
+      { to: 'hrbp', brings: ['Employee relations', 'Policies', 'Partnering with managers'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'HR business partner is the usual next step for generalists who want to advise leaders.' },
     ],
   },
   {
@@ -733,6 +767,8 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'support_operations', brings: ['Queue and ticket management', 'Quality review', 'Knowing what slows a support team down'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Support operations runs the tools, staffing and automation behind the team: the part of support that is growing.' },
       { to: 'sales_development', brings: ['Phone confidence', 'Resilience', 'Quick rapport'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'A quick entry into sales with a commission upside; you already talk to strangers all day.' },
       { to: 'customer_education', brings: ['Explaining the product simply', 'Knowing common questions', 'Patience'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Customer education turns the answers you give one at a time into training that reaches everyone.' },
+      { to: 'it_infrastructure', brings: ['Troubleshooting', 'Patience with frustrated users', 'Ticketing systems'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Help desk and IT support are the classic next step from customer support, with a clear certification path.' },
+      { to: 'admin_ea', brings: ['Organization', 'Communication', 'Handling many requests'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Office and executive support roles pay well for support pros who are organized and calm.' },
     ],
   },
   {
@@ -755,6 +791,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'customer_success', brings: ['Account relationships', 'Renewals', 'Problem solving'], covers: ['crm'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Customer success keeps the relationship work with less quota pressure.' },
       { to: 'partnerships', brings: ['Long-cycle relationships', 'Negotiation', 'Joint planning'], covers: ['crm', 'quota'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Partner management is account management for other companies, often with more strategic scope.' },
       { to: 'implementation', brings: ['Customer onboarding', 'Expectation setting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Implementation uses your customer handling with a project focus and steadier pay.' },
+      { to: 'financial_advisor', brings: ['Client relationships', 'Retention', 'Explaining complex products'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Advisors win on relationships; account managers already keep clients for years.' },
     ],
   },
   {
@@ -769,6 +806,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'solutions_consulting', brings: ['Discovery', 'Demo experience', 'Deal strategy'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'If you are the seller who knows the product best, solutions consulting pays well without owning the quota alone.' },
       { to: 'product_marketing', brings: ['Why deals are won and lost', 'Buyer objections', 'Competitive knowledge'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Sellers who know why deals are won or lost make strong product marketers, with less quota pressure and more strategy.' },
       { to: 'marketing', brings: ['Buyer insight', 'Messaging that wins deals', 'Competitive knowledge'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'For sellers tired of quotas and rejection: marketing uses the same buyer knowledge and messaging without carrying a number.' },
+      { to: 'financial_advisor', brings: ['Prospecting', 'Building trust', 'Closing'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Financial advising rewards strong sellers who want to build their own book; firms sponsor the licenses.' },
     ],
   },
   {
@@ -783,6 +821,9 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'account_executive', brings: ['Knowing the buyer and the message', 'Presenting', 'Pipeline from campaigns'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Outgoing marketers who want more money and more time with people move into sales: you already know the buyer and the pitch, and sales pays for closing.' },
       { to: 'business_development', brings: ['Opening doors', 'Pitching', 'Partner relationships'], covers: ['prospecting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Business development rewards marketers who like building relationships and starting conversations, with pay tied to the deals they open.' },
       { to: 'product_management', brings: ['Customer and market insight', 'Positioning', 'Launches'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Product marketers often move into product management: you know the customer and the market, and you add owning what gets built.' },
+      { to: 'design', brings: ['Brand and visual sense', 'Campaign creative', 'Working with designers'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Marketers with an eye for design move into brand and visual design roles.' },
+      { to: 'communications', brings: ['Messaging', 'Press and launches', 'Writing'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Communications and PR are a short step from marketing, with more focus on reputation and the press.' },
+      { to: 'csr', brings: ['Storytelling about impact', 'Campaigns', 'Partnerships'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Corporate social responsibility teams hire marketers to run and tell the story of the company’s impact work.' },
     ],
   },
   {
@@ -830,6 +871,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'talent_acquisition', brings: ['Reading people', 'Communication', 'Organization'], time: 'months', path: 'RESET', fit: 'stretch', why: 'Campus and early-career recruiting values former teachers who connect easily with young candidates.' },
       { to: 'education_admin', brings: ['Working with students and families', 'School systems', 'Advising'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Advising, admissions and student services keep you in education, out of the classroom, often with better hours.' },
       { to: 'nonprofit_programs', brings: ['Program delivery', 'Working with communities', 'Grant-funded projects'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Nonprofits run education and youth programs that need exactly what teachers do well.' },
+      { to: 'social_work', brings: ['Working with children and families', 'Spotting kids who need help', 'Patience'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'School social work and family services suit teachers who want to help kids beyond the classroom.' },
     ],
   },
   {
@@ -841,6 +883,9 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'healthcare_sales', brings: ['Clinical credibility', 'Speaking to clinicians', 'Product knowledge in procedures'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Device and pharma companies pay well for people clinicians trust; the commission upside is real.' },
       { to: 'implementation', brings: ['Clinical workflow knowledge', 'Training colleagues', 'Calm under pressure'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Health-tech companies hire clinicians to roll out their software in hospitals.' },
       { to: 'compliance', brings: ['Regulatory awareness', 'Documentation', 'Quality and safety'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Healthcare compliance and quality roles value people who know how care actually happens.' },
+      { to: 'customer_success', brings: ['Clinical workflows', 'Training clinicians', 'Patient-first problem solving'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Health-tech companies hire nurses for customer success because they speak the customer’s language.' },
+      { to: 'product_management', brings: ['Knowing clinical workflows', 'What frustrates clinicians', 'Patient safety'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Nurses move into health-tech product roles to build tools that fit how care really works.' },
+      { to: 'customer_education', brings: ['Teaching patients and staff', 'Clinical training', 'Clear explanations'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Clinical educators at health-tech and device companies train customers on their products.' },
     ],
   },
   {
@@ -852,6 +897,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'people_operations', brings: ['Onboarding and office logistics', 'Confidentiality', 'Employee support'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Many people operations teams started as the office manager; your employee support is the foundation.' },
       { to: 'event_management', brings: ['Planning offsites and meetings', 'Vendor coordination', 'Budgets'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'If you have planned offsites and board meetings, you have already done event management.' },
       { to: 'customer_success', brings: ['Responsiveness', 'Organization', 'Professional communication'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Customer success rewards the same responsiveness and polish, with a clearer path up.' },
+      { to: 'legal', brings: ['Document management', 'Deadlines', 'Discretion'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'A paralegal certificate takes many executive assistants into law firms and legal teams.' },
     ],
   },
   {
@@ -993,6 +1039,53 @@ const SOURCE_LIST: PivotSource[] = [
     ],
   },
   {
+    role: 'clergy',
+    edges: [
+      { to: 'nonprofit_programs', brings: ['Leading a community', 'Running programs and volunteers', 'Fundraising'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Nonprofits hire clergy to lead programs and organizations; the mission and the people work carry straight over.' },
+      { to: 'fundraising', brings: ['Asking for support', 'Donor relationships', 'Telling a story that moves people'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'If you have led a capital campaign or annual giving, development roles pay for exactly that.' },
+      { to: 'people_operations', brings: ['Supporting people through hard times', 'Confidentiality', 'Conflict resolution'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Employee relations, wellbeing and chaplaincy-style roles inside companies use pastoral skills.' },
+      { to: 'learning_development', brings: ['Teaching and public speaking', 'Leading groups', 'Mentoring'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Corporate learning teams hire people who can teach and hold a room.' },
+      { to: 'education_admin', brings: ['Counseling students and families', 'Community programs', 'Mentoring'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Schools and colleges hire clergy into student life, advising and campus ministry roles.' },
+      { to: 'community_management', brings: ['Building community', 'Events', 'Volunteers'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Companies pay community managers to do what you have done for years: bring people together.' },
+      { to: 'social_work', brings: ['Pastoral care', 'Crisis support', 'Community resources'], time: 'longer', path: 'RESET', fit: 'stretch', why: 'Many clergy add a social work degree and move into counseling and case work.' },
+    ],
+  },
+  {
+    role: 'public_safety',
+    edges: [
+      { to: 'security_risk', brings: ['Threat assessment', 'Emergency response', 'Investigations'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Corporate security, emergency management and business continuity roles hire police, fire and EMS veterans first.' },
+      { to: 'public_sector', brings: ['Government operations', 'Public programs', 'Policy in practice'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Emergency management and public program roles keep you serving the public, often with better hours.' },
+      { to: 'compliance', brings: ['Rules and enforcement', 'Investigations', 'Documentation'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Compliance, safety and investigations roles in companies value enforcement experience.' },
+      { to: 'learning_development', brings: ['Training others', 'Drills and scenarios', 'Certification programs'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Training roles reward people who have run academies, drills and field training.' },
+      { to: 'operations_management', brings: ['Leading teams under pressure', 'Shift operations', 'Logistics'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Operations leadership is a natural move for officers and captains who ran shifts and stations.' },
+      { to: 'logistics_supply_chain', brings: ['Dispatch and coordination', 'Planning under pressure', 'Fleet and equipment'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Logistics and dispatch-style operations roles fit people who coordinate in real time.' },
+      { to: 'facilities_real_estate', brings: ['Site safety', 'Emergency plans', 'Vendor coordination'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Facilities and security management at campuses and hospitals value public safety experience.' },
+    ],
+  },
+  {
+    role: 'scientist',
+    edges: [
+      { to: 'data_scientist', brings: ['Statistics', 'Experiment design', 'Programming for analysis'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Data science is the most common move out of the lab: same scientific method, applied to business data.' },
+      { to: 'compliance', brings: ['Regulatory knowledge', 'Documentation', 'Quality systems'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Regulatory affairs and quality roles at pharma, biotech and manufacturing companies want scientists.' },
+      { to: 'clinical_operations', brings: ['Research protocols', 'Data integrity', 'Study management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Clinical research and study management roles build on lab and research experience.' },
+      { to: 'solutions_consulting', brings: ['Deep technical knowledge', 'Explaining science simply', 'Solving customer problems'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Application scientist and technical sales roles pay more for scientists who like people.' },
+      { to: 'healthcare_sales', brings: ['Scientific credibility', 'Presenting data', 'Building relationships with experts'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Medical science liaison and life-science sales roles value a science degree and the ability to explain it.' },
+      { to: 'product_management', brings: ['Knowing the science', 'Experiment-driven thinking', 'Technical depth'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Science and lab-tools companies hire scientists into product roles.' },
+      { to: 'teaching', brings: ['Deep subject knowledge', 'Explaining hard ideas', 'Lab skills'], time: 'months', path: 'RESET', fit: 'stretch', why: 'Schools are short of science teachers; alternative certification gets scientists into classrooms fast.' },
+    ],
+  },
+  {
+    role: 'food_service',
+    edges: [
+      { to: 'event_management', brings: ['Running service under pressure', 'Vendors and staffing', 'Catering'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Event and catering management uses the same skills, often with better hours.' },
+      { to: 'operations_management', brings: ['Running a business day to day', 'Staffing and scheduling', 'Food cost and margins'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Restaurant managers run full P&Ls; operations roles elsewhere pay for that.' },
+      { to: 'procurement', brings: ['Buying and vendor negotiation', 'Inventory and waste', 'Food cost'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Purchasing roles at food distributors, hospitals and campuses hire people who know food cost.' },
+      { to: 'logistics_supply_chain', brings: ['Inventory', 'Ordering and receiving', 'Throughput'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Food distribution and supply chain roles value kitchen and restaurant operators.' },
+      { to: 'customer_success', brings: ['Hospitality', 'Keeping guests happy', 'Handling complaints'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Hospitality skills transfer to customer success roles, especially at restaurant-tech companies.' },
+      { to: 'account_manager', brings: ['Relationships with regulars and vendors', 'Upselling', 'Service recovery'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Food and beverage distributors hire restaurant people as account managers.' },
+    ],
+  },
+  {
     role: 'journalism',
     edges: [
       { to: 'communications', brings: ['Writing fast and accurately', 'Knowing what reporters want', 'Interviewing'], time: 'quick', path: 'KEEP_SENIORITY', fit: 'close', why: 'Communications and PR are the other side of the newsroom: you already know what makes a story and how journalists work.' },
@@ -1011,6 +1104,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'education_admin', brings: ['Student and family programs', 'Outreach', 'Case management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Schools and universities hire nonprofit program people into student services and outreach.' },
       { to: 'program_management', brings: ['Running programs on a budget', 'Partners and stakeholders', 'Reporting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Corporate program management uses the same skills: coordinate people and money to an outcome.' },
       { to: 'community_management', brings: ['Building community', 'Events', 'Partnerships'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Community roles at companies reward people who know how to bring a group together.' },
+      { to: 'social_work', brings: ['Case work', 'Community resources', 'Program delivery'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Many nonprofit staff add a social work license to move into counseling and clinical roles.' },
     ],
   },
   {
@@ -1022,6 +1116,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'people_operations', brings: ['Student services processes', 'Policy and compliance', 'Helping people through systems'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'People operations is student services for employees.' },
       { to: 'learning_development', brings: ['Advising and coaching', 'Workshops', 'Program design'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Corporate learning teams hire people who have run advising, orientation and training programs.' },
       { to: 'customer_success', brings: ['Helping people succeed', 'Relationship building', 'Problem solving'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Customer success is advising for customers: keep them on track and succeeding.' },
+      { to: 'instructional_design', brings: ['Program design', 'Training and orientation', 'Learning outcomes'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Instructional design builds on running orientation, advising and training programs.' },
     ],
   },
   {
@@ -1043,6 +1138,7 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'account_manager', brings: ['Customer service', 'Sales targets', 'Merchandising'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Vendor-side account managers sell into retailers; you know how the buyer thinks.' },
       { to: 'account_executive', brings: ['Hitting sales targets', 'Coaching sellers', 'Customer focus'], time: 'months', path: 'RESET', fit: 'stretch', why: 'B2B sales pays well for people who have hit numbers with a team; expect to re-enter a level lower.' },
       { to: 'customer_success', brings: ['Customer focus', 'Problem solving', 'Training staff'], time: 'months', path: 'RESET', fit: 'adjacent', why: 'Customer success uses the service instincts you built on the floor, with office hours.' },
+      { to: 'facilities_real_estate', brings: ['Running a site', 'Vendors and maintenance', 'Safety'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Store managers move into facilities and property management, running sites with steadier hours.' },
     ],
   },
   {
@@ -1053,6 +1149,8 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'account_manager', brings: ['Group sales and corporate accounts', 'Relationship building'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'If you handled group or corporate accounts, account management is the same job in another industry.' },
       { to: 'account_executive', brings: ['Selling experiences', 'Rapport', 'Resilience'], time: 'months', path: 'RESET', fit: 'stretch', why: 'Hospitality sales people move into B2B sales for the commission upside.' },
       { to: 'operations_management', brings: ['Running a 24/7 operation', 'Staffing', 'Budgets'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Running a hotel or restaurant is operations management; other industries value that pace.' },
+      { to: 'facilities_real_estate', brings: ['Running a property', 'Vendors and maintenance', 'Guest and tenant service'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Property and facilities management is hotel operations without the front desk.' },
+      { to: 'admin_ea', brings: ['Organization', 'Service', 'Handling VIPs'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Executive assistant roles reward the polish and anticipation hospitality teaches.' },
     ],
   },
   {
@@ -1067,6 +1165,9 @@ const SOURCE_LIST: PivotSource[] = [
       { to: 'nonprofit_programs', brings: ['Mission focus', 'Leading teams', 'Running programs on a budget'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Nonprofits value leaders who run programs with discipline and serve a mission.' },
       { to: 'public_sector', brings: ['Government processes', 'Program management', 'Policy and regulation'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Civilian policy and program roles use your knowledge of how government works.' },
       { to: 'education_admin', brings: ['Training and mentoring', 'Operations', 'Rules and compliance'], time: 'months', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Schools and universities hire veterans into admissions, student services and operations.' },
+      { to: 'teaching', brings: ['Leading and training young people', 'Discipline and structure', 'Subject expertise'], time: 'months', path: 'RESET', fit: 'stretch', why: 'Programs for veterans fast-track you into teaching, especially in STEM and career-technical subjects.' },
+      { to: 'public_safety', brings: ['Discipline', 'Training under pressure', 'Teamwork'], time: 'months', path: 'RESET', fit: 'close', why: 'Police, fire and EMS departments recruit veterans, and many give academy credit for service.' },
+      { to: 'it_infrastructure', brings: ['Systems and equipment', 'Security clearance', 'Troubleshooting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'IT and cybersecurity roles value military technical training and clearances.' },
     ],
   },
 ]
@@ -1097,6 +1198,7 @@ export const SOURCE_DETECT_ORDER = [
   'nursing_clinical',
   'admin_ea',
   'data_analytics',
+  'scientist',
   'engineering',
   'product',
   'design',
@@ -1109,6 +1211,9 @@ export const SOURCE_DETECT_ORDER = [
   'financial_advisor',
   'social_work',
   'facilities_real_estate',
+  'clergy',
+  'public_safety',
+  'food_service',
   'operations',
   'executive',
 ] as const
@@ -1156,10 +1261,78 @@ export function titleMatchesRole(roleKey: string, title: string): boolean {
   return !!role && role.titles.test(title.toLowerCase())
 }
 
+const LEVEL_WORDS = /^(?:(?:senior|sr\.?|associate|assistant|deputy|executive|regional|area|group|global|interim|lead|principal)\s+)*(director|manager|vice president|vp|svp|evp|avp|head|supervisor|lead|specialist|analyst|consultant|coordinator|officer)$/
+
+/**
+ * Other ways to read a title: "Director, Product Marketing" and "Manager -
+ * Finance" also as "product marketing director", "director of product
+ * marketing" and "product marketing manager", so the role patterns see the
+ * kind of work after the comma or dash.
+ */
+export function titleVariants(title: string): string[] {
+  const t = title.toLowerCase().replace(/\s+/g, ' ').trim()
+  const out = [t]
+  const m = t.match(/^([^,\-–—|:(]+?)\s*[,\-–—|:(]\s*([^,\-–—|:()]+)/)
+  if (m) {
+    const lvl = m[1].trim().match(LEVEL_WORDS)
+    if (lvl) {
+      const area = m[2].replace(/[)]/g, '').trim()
+      const level = lvl[1]
+      out.push(`${area} ${level}`, `${level} of ${area}`, `${area} manager`, `head of ${area}`)
+    }
+  }
+  return out
+}
+
+/** A title that names a level but not a kind of work ("Director", "Senior Manager", "VP"). */
+export function isGenericTitle(title: string): boolean {
+  const t = title.toLowerCase().split(/[,\-–—|:(]/)[0].replace(/[^a-z ]/g, ' ').replace(/\b(senior|sr|junior|jr|lead|principal|associate|assistant|deputy|executive|regional|area|remote|interim|global|national|group)\b/g, ' ').replace(/\s+/g, ' ').trim()
+  return /^(director|manager|vice president|vp|svp|evp|head|team leader|team lead|supervisor|administrator|analyst|consultant|specialist|coordinator|officer)$/.test(t)
+}
+
+/**
+ * The role a posting belongs to when its title doesn't say ("Director",
+ * "Manager"): the role whose title patterns appear most in the start of the
+ * description, if at least twice and not tied. Null when unclear.
+ */
+// Words job boilerplate uses for everyone ("veterans", "partner", "president",
+// "owner"), so they never decide a role from a description.
+const NOT_FROM_DESCRIPTION = new Set(['executive', 'military_government', 'partnerships', 'clergy', 'legal_operations', 'scientist'])
+
+export function roleFromDescription(description: string | null | undefined): string | null {
+  if (!description) return null
+  const text = description.slice(0, 2000).toLowerCase()
+  const counts: [string, number][] = []
+  for (const r of ROLES.values()) {
+    if (NOT_FROM_DESCRIPTION.has(r.key)) continue
+    const n = text.match(new RegExp(r.titles.source, 'g'))?.length ?? 0
+    if (n) counts.push([r.key, n])
+  }
+  counts.sort((a, b) => b[1] - a[1])
+  const [best] = counts
+  // At least three mentions, and clearly ahead of the next kind of work.
+  // Near-duplicate roles in the same function (data analyst / data and analytics) don't count as a tie.
+  const rival = counts.find(([k]) => k !== best?.[0] && (ROLES.get(k)?.fn === null || ROLES.get(k)?.fn !== ROLES.get(best?.[0] ?? '')?.fn))
+  return best && best[1] >= 3 && (!rival || best[1] >= 2 * rival[1]) ? best[0] : null
+}
+
+/** A function (the board's classifier) to its representative role. */
+export function roleFromFunction(fn: string | null | undefined): string | null {
+  return fn ? (FUNCTION_DEFAULT_SOURCE[fn as PrimaryFunction] ?? null) : null
+}
+
+/**
+ * The role for a job: its title (and the part after a comma), else the
+ * function the board's classifier reads from the title, else, for a bare
+ * "Director"/"Manager", the description.
+ */
+export function roleForPosting(title: string, description?: string | null, inferredFunction?: string | null): string | null {
+  return roleForTitle(title) ?? roleFromFunction(inferredFunction) ?? (isGenericTitle(title) ? roleFromDescription(description) : null)
+}
+
 /** The map role a job title belongs to (first match in catalog order), or null. */
 export function roleForTitle(title: string): string | null {
-  const t = title.toLowerCase()
-  for (const r of ROLES.values()) if (r.titles.test(t)) return r.key
+  for (const t of titleVariants(title)) for (const r of ROLES.values()) if (r.titles.test(t)) return r.key
   return null
 }
 

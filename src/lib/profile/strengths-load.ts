@@ -35,6 +35,27 @@ async function perfPercentile(candidateId: string, primaryFunction: string | nul
   return { execution: r.execution / r.n, judgment: r.judgment / r.n, composure: r.composure / r.n, influence: r.influence / r.n }
 }
 
+const SIZE_RANK: Record<string, number> = { NONE: 0, ONE_TO_FIVE: 1, SIX_TO_TWENTY: 2, TWENTY_ONE_TO_FIFTY: 3, FIFTY_ONE_TO_TWO_HUNDRED: 4, TWO_HUNDRED_PLUS: 5 }
+const MONEY_RANK: Record<string, number> = { NONE: 0, UNDER_100K: 1, ONE_HUNDRED_K_TO_1M: 2, ONE_M_TO_10M: 3, TEN_M_TO_100M: 4, OVER_100M: 5 }
+const share = (mine: number, others: number[]) => (others.length >= MIN_PEERS ? others.filter((x) => x < mine).length / others.length : null)
+
+// Track Record scale and skills depth against peers in the same primary
+// function: the share of them below this person. Null under MIN_PEERS.
+async function peerPercentiles(candidateId: string, primaryFunction: string | null, mine: { team: string | null; budget: string | null; initiative: string | null; skills: number }) {
+  if (!primaryFunction) return null
+  const [tracks, peers] = await Promise.all([
+    prisma.trackRecordResponse.findMany({ where: { candidate: { primaryFunction }, candidateId: { not: candidateId } }, select: { largestTeamManaged: true, budgetOwned: true, largestInitiativeScope: true } }),
+    prisma.candidateProfile.findMany({ where: { primaryFunction, id: { not: candidateId }, isSampleData: false }, select: { resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true }, take: 3000 }),
+  ])
+  const scaleOf = (b: string | null, i: string | null) => Math.max(MONEY_RANK[b ?? ''] ?? 0, MONEY_RANK[i ?? ''] ?? 0)
+  const depthOf = (d: { strong: number; expert: number; total: number }) => d.expert * 2 + d.strong + 0.3 * Math.max(0, d.total - d.strong - d.expert)
+  return {
+    team: mine.team ? share(SIZE_RANK[mine.team] ?? 0, tracks.map((t) => SIZE_RANK[t.largestTeamManaged ?? ''] ?? 0)) : null,
+    scale: mine.budget || mine.initiative ? share(scaleOf(mine.budget, mine.initiative), tracks.map((t) => scaleOf(t.budgetOwned, t.largestInitiativeScope))) : null,
+    skills: share(mine.skills, peers.map((p) => depthOf(skillDepth(p)))),
+  }
+}
+
 const avg = (xs: (number | null)[]) => {
   const v = xs.filter((x): x is number => typeof x === 'number')
   return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null
@@ -96,6 +117,17 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
       : null,
     track: track ? { team: track.largestTeamManaged, org: track.largestOrgIndirect, budget: track.budgetOwned, pnl: track.pnlAccountability, initiative: track.largestInitiativeScope } : null,
     skills: skillDepth(profile),
+    peerPercentile: await safe(
+      peerPercentiles(candidateId, profile.primaryFunction, {
+        team: track?.largestTeamManaged ?? null,
+        budget: track?.budgetOwned ?? null,
+        initiative: track?.largestInitiativeScope ?? null,
+        skills: (() => {
+          const d = skillDepth(profile)
+          return d.expert * 2 + d.strong + 0.3 * Math.max(0, d.total - d.strong - d.expert)
+        })(),
+      }),
+    ),
     yearsExperience: profile.yearsExperience,
     picked: profile.topStrengths,
   })

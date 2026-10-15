@@ -14,7 +14,7 @@ import { scoreCompetition } from '@/lib/jobs/competition'
 import { annualizePay, statesFromLocation } from '@/lib/pay/market-pay'
 import { classifyLocation } from '@/lib/jobs/us-location'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { ROLES } from './pivot-map'
+import { ROLES, titleVariants } from './pivot-map'
 import type { Band, MarketStatRow } from './scoring'
 
 export interface MarketInputRow {
@@ -31,6 +31,8 @@ export interface MarketInputRow {
   salaryMax: number | null
   /** Null = still live on the board. */
   archivedAt: Date | null
+  /** For a generic title ("Director"), the role read from the description (rebuild-market-stats). */
+  roleHint?: string | null
 }
 
 const DAY = 86_400_000
@@ -68,10 +70,13 @@ const ROLE_LIST = [...ROLES.values()]
 
 /** Pivot roles whose title patterns match this title. */
 export function rolesForTitle(title: string): string[] {
-  const lower = title.toLowerCase()
-  const out: string[] = []
-  for (const r of ROLE_LIST) if (r.titles.test(lower)) out.push(r.key)
-  return out
+  const out = new Set<string>()
+  // The title as written first; "Director, Finance"-style titles also read the part after the comma.
+  for (const t of titleVariants(title)) {
+    for (const r of ROLE_LIST) if (r.titles.test(t)) out.add(r.key)
+    if (out.size) break
+  }
+  return [...out]
 }
 
 interface Acc {
@@ -124,7 +129,8 @@ export function aggregateMarketRows(rows: MarketInputRow[], now: Date): MarketSt
     const { states, isRemote } = statesFromLocation(r.location)
     const geos = ['US', ...(isRemote ? ['REMOTE'] : []), ...states]
     const band = bandForRow(r.level, r.title)
-    const roles = ['*', ...rolesForTitle(r.title)]
+    const byTitle = rolesForTitle(r.title)
+    const roles = ['*', ...(byTitle.length ? byTitle : r.roleHint ? [r.roleHint] : [])]
     const live = r.archivedAt === null
     const age = (t - (r.postedAt ?? r.createdAt).getTime()) / DAY
     const low =

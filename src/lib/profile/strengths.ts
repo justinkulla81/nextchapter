@@ -36,6 +36,8 @@ export type StrengthInput = {
   refs?: { adaptability?: number | null; followThrough?: number | null; presence?: number | null; collaboration?: number | null; composure?: number | null; count: number; superpowers: string[] } | null
   track?: { team?: string | null; org?: string | null; budget?: string | null; pnl?: string | null; initiative?: string | null } | null
   skills?: { strong: number; expert: number; total: number } | null
+  // Share of peers in the same function below this person (0..1), when there are enough peers.
+  peerPercentile?: { team?: number | null; scale?: number | null; skills?: number | null } | null
   yearsExperience?: number | null
   picked?: string[] // TOP_STRENGTH_OPTIONS values
 }
@@ -97,12 +99,25 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
   const t = input.track
   if (t) {
     const team = Math.max(SIZE[t.team ?? ''] ?? 0, (SIZE[t.org ?? ''] ?? 0) * 0.8)
-    if (t.team || t.org) sig.leadership.push({ v: team, w: 1, objective: true, evidence: t.team && SIZE_WORDS[t.team] ? `Led a team of ${SIZE_WORDS[t.team]}` : 'Led people indirectly' })
+    const tp = input.peerPercentile?.team
+    if (t.team || t.org)
+      sig.leadership.push({
+        v: typeof tp === 'number' ? Math.max(team, tp) : team,
+        w: 1,
+        objective: true,
+        evidence: `${t.team && SIZE_WORDS[t.team] ? `Led a team of ${SIZE_WORDS[t.team]}` : 'Led people indirectly'}${typeof tp === 'number' && tp >= 0.5 ? `, larger than ${Math.round(tp * 100)}% of people in your field` : ''}`,
+      })
     const money = Math.max(MONEY[t.budget ?? ''] ?? 0, MONEY[t.initiative ?? ''] ?? 0)
     const pnlBoost = t.pnl === 'PNL' ? 0.15 : 0
     if (t.budget || t.initiative || t.pnl) {
       const words = [t.budget && MONEY_WORDS[t.budget] ? `owned a budget of ${MONEY_WORDS[t.budget]}` : null, t.pnl === 'PNL' ? 'carried a P&L' : null, t.initiative && MONEY_WORDS[t.initiative] ? `led an initiative of ${MONEY_WORDS[t.initiative]}` : null].filter(Boolean)
-      sig.scale.push({ v: Math.min(1, money + pnlBoost), w: 1, objective: true, evidence: words.length ? `You ${words.join(', ')}` : 'Budget responsibility' })
+      const sp = input.peerPercentile?.scale
+      sig.scale.push({
+        v: typeof sp === 'number' ? Math.max(Math.min(1, money + pnlBoost), sp) : Math.min(1, money + pnlBoost),
+        w: 1,
+        objective: true,
+        evidence: `${words.length ? `You ${words.join(', ')}` : 'Budget responsibility'}${typeof sp === 'number' && sp >= 0.5 ? `, more than ${Math.round(sp * 100)}% of people in your field` : ''}`,
+      })
     }
   }
 
@@ -110,7 +125,13 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
   if (s && s.total > 0) {
     const used = Math.max(0, s.total - s.strong - s.expert)
     const v = Math.min(1, (s.expert * 2 + s.strong + 0.3 * used) / 10 + (input.yearsExperience ? Math.min(0.2, input.yearsExperience / 75) : 0))
-    sig.expertise.push({ v, w: 1, objective: true, evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}` })
+    const kp = input.peerPercentile?.skills
+    sig.expertise.push({
+      v: typeof kp === 'number' ? (v + kp) / 2 : v,
+      w: 1,
+      objective: true,
+      evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}${typeof kp === 'number' && kp >= 0.5 ? `; deeper than ${Math.round(kp * 100)}% of people in your field` : ''}`,
+    })
   }
 
   for (const p of input.picked ?? []) {
