@@ -78,19 +78,37 @@ export default async function CrmDatesPage() {
                     {daysAway <= 0 ? 'this week' : `in ${daysAway} days`}
                   </span>
                 </h2>
-                <ul className="mt-2 space-y-2">
-                  {items.map((d) => (
-                    <li key={d.id} className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-border p-3 text-sm">
-                      <span>
-                        {d.org ? (
-                          <Link href={`/support/admin/crm/organizations/${d.org.id}`} className="font-medium hover:underline">{d.org.name}</Link>
-                        ) : <span className="font-medium">{d.label}</span>}
-                        <span className="ml-2 text-muted-foreground">{d.label}</span>
-                      </span>
-                      <span className="text-xs font-medium">{formatDate(d.dueAt)}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-2 overflow-x-auto rounded-lg border border-border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/50 text-left">
+                        <th className="px-3 py-1.5 font-medium">Organization</th>
+                        <th className="px-3 py-1.5 font-medium">Program</th>
+                        <th className="px-3 py-1.5 font-medium whitespace-nowrap">Deadline</th>
+                        <th className="px-3 py-1.5 text-right font-medium whitespace-nowrap">Days left</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((d) => {
+                        const left = d.dueAt ? Math.ceil((d.dueAt.getTime() - now.getTime()) / DAY) : null
+                        return (
+                          <tr key={d.id} className="border-b border-border last:border-0">
+                            <td className="px-3 py-1.5">
+                              {d.org ? (
+                                <Link href={`/support/admin/crm/organizations/${d.org.id}`} className="font-medium hover:underline">{d.org.name}</Link>
+                              ) : <span className="font-medium">{d.label}</span>}
+                            </td>
+                            <td className="px-3 py-1.5 text-muted-foreground">{d.label}</td>
+                            <td className="px-3 py-1.5 font-medium whitespace-nowrap">{formatDate(d.dueAt)}</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums whitespace-nowrap">
+                              {left === null ? '—' : left <= 0 ? 'today' : left}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )
           })}
