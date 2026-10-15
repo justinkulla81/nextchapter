@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { stagedSummary } from '@/lib/forms/staged'
 
 const STEPS = [
   { href: '/onboarding/desire', label: 'Your Path', minutes: 1 },
@@ -10,13 +11,6 @@ const STEPS = [
   { href: '/onboarding/confirm', label: 'Confirm', minutes: 1 },
   { href: '/onboarding/location', label: 'Location', minutes: 1 },
 ]
-
-// "Step 2 of 4: Resume. About 2 minutes left." Always visible, so a phone (where
-// the dot labels are hidden) still says where you are and how much is left.
-export function stepSummary(index: number): string {
-  const left = STEPS.slice(index).reduce((n, s) => n + s.minutes, 0)
-  return `Step ${index + 1} of ${STEPS.length}: ${STEPS[index].label}. About ${left} minute${left === 1 ? '' : 's'} left.`
-}
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
@@ -88,7 +82,7 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
         )
       })}
     </ol>
-    <p className="mx-auto w-full max-w-2xl px-6 pb-4 text-sm text-muted-foreground">{stepSummary(current)} Your answers save as you go.</p>
+    <p className="mx-auto w-full max-w-2xl px-6 pb-4 text-sm text-muted-foreground">{stagedSummary(STEPS, current)} Your answers save as you go.</p>
     </>
   )
 }

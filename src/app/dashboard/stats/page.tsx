@@ -41,6 +41,8 @@ import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { buildUnlockLadder } from '@/lib/unlocks/ladder'
 import { ProgressUnlocks } from '@/components/dashboard/home/ProgressUnlocks'
+import { buildEvidenceTraits } from '@/lib/dossier/evidence-traits'
+import { loadTraitSignals } from '@/lib/dossier/evidence-signals'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
@@ -171,12 +173,14 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
-  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates] = await Promise.all([
+  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates, traitSignals] = await Promise.all([
     computeDossierCompleteness(profile.id),
     isDossierUnlocked(profile.id),
     getDossierLadderTier(profile.id),
     getModuleGateStatus(profile.id),
+    loadTraitSignals(profile.id),
   ])
+  const evidenceTraits = buildEvidenceTraits(traitSignals)
   const unlockLadder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
 
   return (
@@ -189,7 +193,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
           been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
-        <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} />
+        <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} traits={evidenceTraits} />
         <nav
           aria-label="Jump to section"
           className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-lg border border-border bg-muted/30 px-4 py-3"

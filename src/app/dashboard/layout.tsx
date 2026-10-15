@@ -18,7 +18,9 @@ import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
-import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
+import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { FRESH_HOURS } from '@/lib/jobs/competition'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
@@ -52,7 +54,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     needsFollowUpList,
     gmailConnected,
     helpRepliesWaiting,
-    newStrongCompaniesCount,
+    freshJobsCount,
     profile,
   ] = await Promise.all([
     getSupportNetworkUnreadCountForBadge(profileId),
@@ -61,7 +63,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getNeedsFollowUpList(profileId),
     isGmailConnected(profileId),
     getHelpRepliesWaiting(profileId),
-    getNewStrongCompaniesCountForBadge(profileId),
+    getFreshJobsCountForBadge(profileId),
     getDashboardProfile(),
   ])
   // One badge per place. Network adds up its three live signals: people to
@@ -73,7 +75,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     <>
     <DashboardNav
       badges={{
-        jobs: newStrongCompaniesCount,
+        jobs: freshJobsCount,
         network: needsFollowUpCount + messagesUnreadCount + supportNetworkUnreadCount,
         help: helpRepliesWaiting,
       }}
@@ -87,13 +89,22 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   )
 }
 
-// The nav badge is decoration: a failure or slow first compute must never take
-// the whole dashboard down, so any error reads as "no new signals".
-async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<number> {
+// New jobs that fit the member, posted in the last 72 hours: the same count the
+// Home Jobs module's prompt shows, answered from the board's shared in-memory
+// copy. The badge is decoration: any error reads as "nothing new".
+async function getFreshJobsCountForBadge(profileId: string): Promise<number> {
   try {
-    return await countNewStrongCompanies(profileId)
+    const [profile, dossier] = await Promise.all([getDashboardProfile(), isDossierUnlocked(profileId)])
+    const board = await loadBoardShortlist({
+      candidate: profile,
+      isCandidatePlus: dossier.unlocked,
+      postedWithinHours: FRESH_HOURS,
+      view: 'fresh',
+      size: 1,
+    })
+    return board.freshOpenTotal
   } catch (error) {
-    console.error('Failed to count new strong companies for nav badge:', error)
+    console.error('Failed to count fresh jobs for nav badge:', error)
     return 0
   }
 }

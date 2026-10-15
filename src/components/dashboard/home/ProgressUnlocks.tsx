@@ -3,10 +3,11 @@ import { Check } from 'lucide-react'
 import { HomeModule } from './HomeModule'
 import type { Rung } from '@/lib/unlocks/ladder'
 import type { DossierRequirement } from '@/lib/scoring/dossier-unlock'
+import { TRAIT_LEVEL_LABEL, type EvidenceTrait } from '@/lib/dossier/evidence-traits'
 
 // The Progress view: what the member's effort has built so far (their dossier
 // evidence) and the whole unlock ladder in one order. No points, no badge wall.
-export function ProgressUnlocks({ ladder, requirements }: { ladder: Rung[]; requirements: DossierRequirement[] }) {
+export function ProgressUnlocks({ ladder, requirements, traits }: { ladder: Rung[]; requirements: DossierRequirement[]; traits: EvidenceTrait[] }) {
   return (
     <div className="space-y-6">
       <HomeModule title="Your dossier is building">
@@ -34,6 +35,23 @@ export function ProgressUnlocks({ ladder, requirements }: { ladder: Rung[]; requ
         <Link href="/dashboard/recruiter-report" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
           Strengthen what recruiters see
         </Link>
+      </HomeModule>
+
+      <HomeModule title="What recruiters will see about how you work">
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {traits.map((t) => (
+            <li key={t.key} className="space-y-1.5 rounded-lg border border-border p-3 text-sm">
+              <p className="font-semibold">{t.label}</p>
+              <span className="flex gap-1" role="img" aria-label={TRAIT_LEVEL_LABEL[t.level]}>
+                {[1, 2, 3].map((n) => (
+                  <i key={n} className={n <= t.level ? 'h-1.5 w-6 rounded-full bg-success' : 'h-1.5 w-6 rounded-full bg-border'} />
+                ))}
+              </span>
+              <p className="text-xs font-medium">{TRAIT_LEVEL_LABEL[t.level]}</p>
+              <p className="text-xs text-muted-foreground">{t.shownBy}</p>
+            </li>
+          ))}
+        </ul>
       </HomeModule>
 
       <HomeModule title="Your unlocks">
