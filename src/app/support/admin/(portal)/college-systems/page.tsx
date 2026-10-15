@@ -21,7 +21,7 @@ export default async function CollegeSystemsPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">College systems</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Higher ed systems</h1>
         <p className="max-w-3xl text-muted-foreground">
           Group colleges that buy together (a state system, a multi-campus university). Each campus keeps its own portal and staff. People you add here sign in with
           the normal NextChapter login and open <span className="font-mono text-xs">{PORTAL_ORIGIN}/systems</span> for counts across campuses. They see no names.

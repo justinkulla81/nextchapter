@@ -138,15 +138,22 @@ export async function syncCompanyGraph(opts: { postingNameLimit?: number; orgCre
     result.crmOrganizationsLinked += 1
   }
 
-  // 5b. Every company with a job posting gets a CRM organization, tagged EMPLOYER
+  // 5b. Every company in the directory gets a CRM organization, tagged EMPLOYER
   // ("a company that employs people") and linked to its directory Company. This runs
   // after step 5 so a company that already has a same-named organization is linked,
-  // not duplicated. `orgCreateLimit` keeps a night's work bounded; the rest follows
-  // on later runs.
+  // not duplicated. An organization an admin marked KEPT_SEPARATE keeps its name, so
+  // a company with that name is left out rather than retried every night.
+  // `orgCreateLimit` keeps a night's work bounded; the rest follows on later runs.
+  const keptSeparateKeys = (
+    await prisma.crmOrganization.findMany({
+      where: { companyLinkState: 'KEPT_SEPARATE' },
+      select: { canonicalNameNormalized: true },
+    })
+  ).map((o) => o.canonicalNameNormalized)
   const needingOrg = await prisma.company.findMany({
     where: {
       crmOrganizations: { none: {} },
-      OR: [{ postings: { some: { archivedAt: null } } }, { jobOpenings: { some: {} } }],
+      ...(keptSeparateKeys.length ? { canonicalNameNormalized: { notIn: keptSeparateKeys } } : {}),
     },
     select: { id: true, name: true, canonicalNameNormalized: true, industry: true, hqMetro: true, website: true },
     orderBy: { createdAt: 'desc' },

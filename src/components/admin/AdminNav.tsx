@@ -304,8 +304,8 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Customers',
       collapsible: true,
       links: [
-        { href: `${A}/institutions`, label: 'Colleges' },
-        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
+        { href: `${A}/institutions`, label: 'Higher ed' },
+        { href: `${A}/college-systems`, label: 'Higher ed systems (multi-campus)' },
         { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
       ],
     },

@@ -32,7 +32,7 @@ export default async function InstitutionsAdminPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Colleges</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Higher ed</h1>
         <p className="text-muted-foreground">
           Set up a college workspace, brand it with their logo, colour and imagery, and invite their staff. A demo
           works exactly like the real portal, flagged so it is never mistaken for a customer. Each college&apos;s portal is at{' '}
