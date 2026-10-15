@@ -111,6 +111,8 @@ import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGap
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
+import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
+import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
 
 export const metadata: Metadata = { title: 'Find a job' }
 
@@ -309,6 +311,7 @@ async function JobRecommendationsSection({
   boardView,
   workTypes,
   greatFilters,
+  pivotFilter,
   myJobs,
   expertNetworks,
 }: {
@@ -319,6 +322,7 @@ async function JobRecommendationsSection({
   boardView: BoardView
   workTypes: WorkType[]
   greatFilters: GreatFilter[]
+  pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
   expertNetworks: ExpertNetworkCard[]
   contacts: {
@@ -394,7 +398,9 @@ async function JobRecommendationsSection({
     seniorityGroup
       ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
       : allSurfacedJobs
-  ).filter((j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)))
+  ).filter(
+    (j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
+  )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
@@ -643,11 +649,13 @@ async function JobRecommendationsSection({
 export default async function JobFitPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string; great?: string }>
+  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string; great?: string; pivot?: string }>
 }) {
   const profile = await getDashboardData()
-  const { seniority, view, types, tab: tabParam, great } = await searchParams
+  const { seniority, view, types, tab: tabParam, great, pivot } = await searchParams
   const greatFilters = parseGreatParam(great)
+  // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
+  const pivotFilter = pivotBoardFilter(pivot)
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
@@ -680,6 +688,7 @@ export default async function JobFitPage({
           workTypes={workTypes}
           greatFilters={greatFilters}
           tab={tab}
+          pivotFilter={pivotFilter}
         />
       </Suspense>
     </div>
@@ -708,6 +717,7 @@ async function FindMyJobBody({
   workTypes,
   greatFilters,
   tab,
+  pivotFilter,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -715,8 +725,12 @@ async function FindMyJobBody({
   workTypes: WorkType[]
   greatFilters: GreatFilter[]
   tab: BoardTab
+  pivotFilter: PivotBoardFilter | null
 }) {
   const onBoard = tab === 'board'
+  // While a pivot filter is on, jobs are ranked as if the member were already in
+  // the target function (their own function would rate every one a weak fit).
+  const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
   // the same Gmail connection managed on the Network with My Contacts page.
@@ -861,14 +875,14 @@ async function FindMyJobBody({
   const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
     loadBoardShortlist({
-      candidate: profile,
+      candidate: boardProfile,
       isCandidatePlus,
       where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
       view: boardView,
       // Mid-level jobs: for manager / senior-individual / pivoting members, or anyone who picks "Mid-level".
-      includeMidLevel: seniorityGroup ? seniorityGroup === 'MID_LEVEL' : midLevelRelevantFor(profile),
+      includeMidLevel: seniorityGroup ? seniorityGroup === 'MID_LEVEL' : midLevelRelevantFor(boardProfile),
       workTypes,
-      keep: keepGreat ?? undefined,
+      keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
@@ -1094,10 +1108,18 @@ async function FindMyJobBody({
               <SeniorityFilter surface="find_my_job" />
             </div>
           </div>
+          {pivotFilter ? (
+            <PivotBoardBanner target={pivotFilter.target} label={pivotFilter.label} openTotal={board.openTotal} />
+          ) : (
+            <Suspense fallback={null}>
+              <PivotBoardPrompt profile={profile} />
+            </Suspense>
+          )}
           <div className="mt-3">
             <Suspense fallback={<JobRecommendationsSkeleton />}>
               <JobRecommendationsSection
-                profile={profile}
+                profile={boardProfile}
+                pivotFilter={pivotFilter}
                 dossierReason={dossierStatus.reason}
                 board={board}
                 contacts={contacts}

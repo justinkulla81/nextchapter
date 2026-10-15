@@ -900,3 +900,8 @@ export function titleMatchesRole(roleKey: string, title: string): boolean {
   const role = ROLES.get(roleKey)
   return !!role && role.titles.test(title.toLowerCase())
 }
+
+/** The board filtered to a pivot target (find-my-job reads `pivot`). */
+export function pivotJobsHref(target: string): string {
+  return `/dashboard/find-my-job?pivot=${encodeURIComponent(target)}#job-recommendations`
+}

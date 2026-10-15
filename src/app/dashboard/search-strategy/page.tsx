@@ -31,6 +31,7 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
 import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
+import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -494,6 +495,11 @@ export default async function SearchStrategyPage() {
       </div>
 
       {actionPlanCard}
+
+      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
+      <Suspense fallback={null}>
+        <PivotPathsTeaser profile={profile} />
+      </Suspense>
 
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
         {wizardPageContent}
