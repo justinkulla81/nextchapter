@@ -55,8 +55,19 @@ const JOURNEY_PLAN: Record<JourneyType, { firstWeek: PlanItem[]; ongoing: PlanIt
     ongoing: [T('Have an informational call with someone in the field', 'OUTREACH_CALL'), T('Make progress on a bridge course or certificate', 'LEARNING_CERTIFICATE_STARTED')],
   },
   STUDENT_NEW_GRAD: {
-    firstWeek: [T('Build your first résumé', 'RESUME_UPDATE'), T('List 10 employers you’d like to work for', 'WATCHLIST_ADD'), T('Have a call with an alum in your field', 'OUTREACH_CALL')],
-    ongoing: [T('Do a mock interview', 'INTERVIEW_PREP')],
+    firstWeek: [
+      T('Build your first résumé from internships, projects and coursework', 'RESUME_UPDATE'),
+      T('Pick two or three target roles from your major'),
+      T('Set up your LinkedIn', 'LINKEDIN_SETUP'),
+      T('List 10 employers you’d like to work for', 'WATCHLIST_ADD'),
+      T('Have a call with an alum in your field', 'OUTREACH_CALL'),
+    ],
+    ongoing: [
+      T('Do a mock interview', 'INTERVIEW_PREP'),
+      T('Practice answers to 3 behavioral questions', 'INTERVIEW_BEHAVIORAL_PRACTICE'),
+      T('Ask one more alum for an informational interview', 'OUTREACH_MESSAGE'),
+      T('Make progress on a free course your target role asks for', 'LEARNING_MODULE'),
+    ],
   },
   RETURNING: {
     firstWeek: [T('Write a two-sentence story for your break'), T('Refresh one skill', 'LEARNING_MODULE'), T('Look at interim or part-time work', 'INTERIM_PROFILE_CREATED')],
@@ -166,15 +177,45 @@ const CASUAL_PLAN: PlanItem[] = [
 // Task-menu types that are about applying for jobs.
 export const APPLICATION_ACTION_TYPES = ['JOB_APPLICATION_SUBMITTED']
 
-export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStage | null, weekNumber: number, driver: MoveDriver | null = null): PlanItem[] {
+// Early career (src/lib/early-career/audience.ts) is a career stage that sits
+// on top of any journey: someone 2 to 5 years in going for a promotion gets
+// the promotion plan plus these; a new grad who was laid off gets the laid-off
+// plan plus the new-grad basics. Senior-only steps are dropped for both.
+export type PlanAudience = 'NEW_GRAD' | 'EARLY_CAREER' | null
+
+const AUDIENCE_PLAN: Record<'NEW_GRAD' | 'EARLY_CAREER', { firstWeek: PlanItem[]; ongoing: PlanItem[] }> = {
+  NEW_GRAD: {
+    firstWeek: [T('Ask an alum for a 20-minute informational interview', 'OUTREACH_CALL'), T('Practice answers to 3 behavioral questions', 'INTERVIEW_BEHAVIORAL_PRACTICE')],
+    ongoing: [T('Ask an alum for a 20-minute informational interview', 'OUTREACH_CALL')],
+  },
+  EARLY_CAREER: {
+    firstWeek: [T('Write down three wins with numbers'), T('Find a mentor or sponsor two levels up', 'OUTREACH_CALL'), T('Check your pay against the market')],
+    ongoing: [T('Have a coffee chat with someone two levels up', 'OUTREACH_CALL'), T('Close one skill gap for the next level', 'LEARNING_MODULE')],
+  },
+}
+
+const PROMOTION_COVERS = ['Write down three wins with numbers', 'Check your pay against the market']
+
+// Steps built for senior members (interim and fractional work, board seats).
+export const SENIOR_ONLY_ACTION_TYPES = ['INTERIM_PROFILE_CREATED']
+const SENIOR_ONLY_TEXT = /\b(fractional|interim)\b|\bboard (seats?|and advisory|positions?|work)\b|\badvisory (boards?|roles?|profile)\b/i
+
+function isSeniorOnly(item: { text: string; actionType?: string }): boolean {
+  return (!!item.actionType && SENIOR_ONLY_ACTION_TYPES.includes(item.actionType)) || SENIOR_ONLY_TEXT.test(item.text)
+}
+
+export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStage | null, weekNumber: number, audience: PlanAudience = null, driver: MoveDriver | null = null): PlanItem[] {
   // Not looking right now: the plan is about managing the career they have,
   // whichever journey they started on.
   if (stage === 'STAYING' || stage === 'PAUSED') {
     const own = journey ? normalizeJourney(journey) : null
     const plan = own && OWN_PLAN_WHEN_STAYING.has(own) ? JOURNEY_PLAN[own] : JOURNEY_PLAN.GROWING
-    return weekNumber <= 1 ? plan.firstWeek : plan.ongoing
+    const own_items = weekNumber <= 1 ? plan.firstWeek : plan.ongoing
+    return audience ? own_items.filter((i) => !isSeniorOnly(i)) : own_items
   }
   const stageItems = stage ? (STAGE_PLAN[stage] ?? []) : []
+  // A first offer gets the first-salary framing.
+  if (stage === 'OFFER' && audience === 'NEW_GRAD') return [T('Compare your offer with starting pay for the role, then ask for more once, politely')]
   // Landed and Offer are about the new job, not the search that got there.
   if (stage === 'LANDED' || stage === 'OFFER') return stageItems
   const key = journey ? normalizeJourney(journey) : null
@@ -185,7 +226,13 @@ export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStag
     if (driver) driverItems = weekNumber <= 1 ? DRIVER_PLAN[driver].firstWeek : DRIVER_PLAN[driver].ongoing
   }
   const journeyItems = j ? (weekNumber <= 1 ? j.firstWeek : j.ongoing) : []
-  return [...driverItems, ...stageItems, ...journeyItems]
+  const a = audience ? AUDIENCE_PLAN[audience] : null
+  // The promotion plan already asks for wins and next-level pay.
+  const audienceItems = (a ? (weekNumber <= 1 ? a.firstWeek : a.ongoing) : []).filter(
+    (i) => !(journey === 'PROMOTION' && PROMOTION_COVERS.includes(i.text))
+  )
+  const items = [...driverItems, ...stageItems, ...journeyItems, ...audienceItems]
+  return audience ? items.filter((i) => !isSeniorOnly(i)) : items
 }
 
 // Journey items first, then the general menu: no duplicate types, no
@@ -195,6 +242,7 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   stage: JourneyStage | null,
   weekNumber: number,
   general: T[],
+  audience: PlanAudience = null,
   driver: MoveDriver | null = null,
   weeksInStage = 0,
   // What this member's real results and connections call for (engagement.ts):
@@ -209,7 +257,8 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   const out: (T | PlanItem)[] = []
   const types = new Set<string>()
   const texts = new Set<string>()
-  for (const item of [...engagement, ...(lightTouch ? CASUAL_PLAN : []), ...journeyPlanItems(journey, stage, weekNumber, driver), ...gateItems(stage, weeksInStage), ...general]) {
+  for (const item of [...engagement, ...(lightTouch ? CASUAL_PLAN : []), ...journeyPlanItems(journey, stage, weekNumber, audience, driver), ...gateItems(stage, weeksInStage), ...general]) {
+    if (audience && isSeniorOnly(item)) continue
     if (!allowApply && item.actionType && APPLICATION_ACTION_TYPES.includes(item.actionType)) continue
     if (item.actionType ? types.has(item.actionType) : texts.has(item.text)) continue
     if (item.actionType) types.add(item.actionType)

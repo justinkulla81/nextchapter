@@ -2,6 +2,7 @@ import 'server-only'
 import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { getPace } from '@/lib/weekly/pace'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
@@ -262,7 +263,10 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1, o
     getGeneralSuggestedActions(candidateId, weekNumber),
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
-      select: { journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true },
+      select: {
+        journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true,
+        highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true,
+      },
     }),
   ])
   if (!p) return general
@@ -272,7 +276,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1, o
   const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
   const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
   // On screens only (never auto-committed by the cron or first sprint): two
   // nudges from their profile (strengths, what to leave behind, how they
   // like to work), text only.

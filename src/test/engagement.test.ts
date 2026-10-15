@@ -136,7 +136,7 @@ describe('the weekly plan', () => {
     const items = engagementPlanItems(s({ gmail: false, weeksInStage: 6 }))
     expect(items[0].text).toMatch(/Résumé|Widen|interim|Connect Gmail/i)
     expect(items.map((i) => i.text)).toContain('Connect Gmail')
-    const plan = shapePlan('LAID_OFF', 'APPLYING', 5, general, null, 0, items)
+    const plan = shapePlan('LAID_OFF', 'APPLYING', 5, general, null, null, 0, items)
     expect(plan.slice(0, items.length).map((p) => p.text)).toEqual(items.map((i) => i.text))
   })
   it('still helps someone managing their career: connect and prove, but no search gate', () => {

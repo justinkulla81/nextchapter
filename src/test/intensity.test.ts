@@ -64,7 +64,7 @@ describe('the pop-up stops asking for more of what is not working', () => {
 describe('a casual plan is light', () => {
   const general = [{ text: 'Apply to Full-Time Jobs', actionType: 'JOB_APPLICATION_SUBMITTED' }]
   it('has no application volume while applying, and keeps the right thing able to find them', () => {
-    const plan = shapePlan('LAID_OFF', 'APPLYING', 3, general, null, 0, [], true)
+    const plan = shapePlan('LAID_OFF', 'APPLYING', 3, general, null, null, 0, [], true)
     expect(plan.map((p) => p.actionType)).not.toContain('JOB_APPLICATION_SUBMITTED')
     expect(plan.map((p) => p.text).join(' ')).toMatch(/strongest-fit roles/)
     expect(plan.map((p) => p.text).join(' ')).toMatch(/references and Executive Dossier current/)
@@ -73,7 +73,7 @@ describe('a casual plan is light', () => {
     expect(shapePlan('LAID_OFF', 'APPLYING', 3, general).map((p) => p.actionType)).toContain('JOB_APPLICATION_SUBMITTED')
   })
   it('once casual searchers are interviewing, applications are back', () => {
-    expect(shapePlan('LAID_OFF', 'INTERVIEWING', 3, general, null, 0, [], true).map((p) => p.actionType)).toContain('JOB_APPLICATION_SUBMITTED')
+    expect(shapePlan('LAID_OFF', 'INTERVIEWING', 3, general, null, null, 0, [], true).map((p) => p.actionType)).toContain('JOB_APPLICATION_SUBMITTED')
   })
   it('does not change other journeys steps', () => {
     expect(journeyPlanItems('LAID_OFF', 'APPLYING', 1).length).toBeGreaterThan(0)

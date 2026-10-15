@@ -11,11 +11,14 @@ import { activeTab, lockReasonFor, placeForPath, resolveTabHref, statusLockedTab
 // never needs the main menu. Renders nothing outside the six places.
 export function PlaceTabs({
   employed,
+  earlyCareer = false,
   locks,
   paidAccess,
   tabBadges = {},
 }: {
   employed: boolean
+  /** Student, new grad or up to 5 years in: shows the Early career plan tab. */
+  earlyCareer?: boolean
   locks: NavLocks
   paidAccess: PaidAccess
   /** Live counts by tab href: something new for the member on that tab. */
@@ -24,8 +27,8 @@ export function PlaceTabs({
   const pathname = usePathname()
   const place = placeForPath(pathname)
   if (!place) return null
-  const tabs = visibleTabs(place, { employed, mode: locks.mode })
-  const statusLocked = locks.mode ? statusLockedTabs(place, { employed, mode: locks.mode }) : []
+  const tabs = visibleTabs(place, { employed, earlyCareer, mode: locks.mode })
+  const statusLocked = locks.mode ? statusLockedTabs(place, { employed, earlyCareer, mode: locks.mode }) : []
   if (tabs.length < 2) return null
   const current = activeTab(place, pathname)
 

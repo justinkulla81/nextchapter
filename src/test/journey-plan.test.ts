@@ -50,12 +50,12 @@ describe('thinking about a move', () => {
     expect(journeyPlanItems('READY_TO_MOVE', 'PREPARING', 1)).toEqual(journeyPlanItems('EXPLORING_MOVE', 'PREPARING', 1))
   })
   it('worry about a layoff puts runway and benefits first', () => {
-    const items = journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1, 'layoff_worry').map((p) => p.text)
+    const items = journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1, null, 'layoff_worry').map((p) => p.text)
     expect(items[0]).toMatch(/runway/i)
     expect(items.some((t) => /unemployment benefits/i.test(t))).toBe(true)
   })
   it('a driver adds nothing to other journeys', () => {
-    expect(journeyPlanItems('PROMOTION', 'PREPARING', 1, 'layoff_worry')).toEqual(journeyPlanItems('PROMOTION', 'PREPARING', 1))
+    expect(journeyPlanItems('PROMOTION', 'PREPARING', 1, null, 'layoff_worry')).toEqual(journeyPlanItems('PROMOTION', 'PREPARING', 1))
   })
 })
 
@@ -89,8 +89,8 @@ describe('time gates in an active search', () => {
     expect(gateItems('PAUSED', 20)).toEqual([])
   })
   it('reaches the plan, and the clock restarts when the stage changes', () => {
-    expect(shapePlan('LAID_OFF', 'APPLYING', 7, general, null, 7).map((p) => p.text)).toContain('Widen your targets: add a second role title or industry')
-    expect(shapePlan('LAID_OFF', 'INTERVIEWING', 7, general, null, 0).map((p) => p.text)).not.toContain('Widen your targets: add a second role title or industry')
+    expect(shapePlan('LAID_OFF', 'APPLYING', 7, general, null, null, 7).map((p) => p.text)).toContain('Widen your targets: add a second role title or industry')
+    expect(shapePlan('LAID_OFF', 'INTERVIEWING', 7, general, null, null, 0).map((p) => p.text)).not.toContain('Widen your targets: add a second role title or industry')
   })
 })
 

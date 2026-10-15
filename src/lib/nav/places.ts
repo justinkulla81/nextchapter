@@ -18,6 +18,9 @@ export interface PlaceTab {
   // situation: hidden when every one is hidden for it, muted with a way to update
   // their status when the rest are locked. A tab with none always shows.
   menuKeys?: MenuItemKey[]
+  // Only shown to students, new grads and people up to 5 years in
+  // (src/lib/early-career/audience.ts).
+  earlyCareerOnly?: boolean
   // Needs coaching or the recruiter network (membership, or a grant such as an
   // outplacement seat or coach code). Without it the tab leads to the Premium
   // page and is marked Premium.
@@ -61,6 +64,7 @@ export const PLACES: Place[] = [
     href: '/dashboard/find-my-job',
     tabs: [
       { menuKeys: ['jobs'], label: 'Find a job', href: '/dashboard/find-my-job', alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] },
+      { label: 'Early career plan', href: '/dashboard/early-career', earlyCareerOnly: true },
       { menuKeys: ['companies'], label: 'Companies', href: '/dashboard/companies', alsoMatches: ['/dashboard/company-tracker'] },
       { label: 'Market', href: '/dashboard/market', alsoMatches: ['/dashboard/market-reality', '/dashboard/market-intelligence'] },
       { label: 'Know your worth', href: '/dashboard/pay' },
@@ -168,12 +172,12 @@ export function tabSituation(tab: PlaceTab, mode: MenuMode | null | undefined): 
   return states.includes('locked') ? 'locked' : 'hide'
 }
 
-export function visibleTabs(place: Place, opts: { employed: boolean; mode?: MenuMode | null }): PlaceTab[] {
-  return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && tabSituation(t, opts.mode) !== 'hide')
+export function visibleTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
+  return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer) && tabSituation(t, opts.mode) !== 'hide')
 }
 
 // Tabs the member's situation turns off for now, to name in the "Turn on more tools" box.
-export function statusLockedTabs(place: Place, opts: { employed: boolean; mode?: MenuMode | null }): string[] {
+export function statusLockedTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
   return visibleTabs(place, opts).filter((t) => tabSituation(t, opts.mode) === 'locked').map((t) => t.label)
 }
 

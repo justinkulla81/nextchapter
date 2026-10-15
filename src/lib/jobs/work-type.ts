@@ -238,6 +238,9 @@ export function defaultWorkTypes(p: WorkTypeDefaultsInput): WorkType[] {
   if (saved.length > 0) return WORK_TYPES.filter((t) => saved.includes(t))
   if (p.journey === 'NEXT_ACT') return ['part_time', 'contract', 'advisory']
   const out = new Set<WorkType>(['full_time'])
+  // Students and new grads: internships are classified as contract work
+  // (INTERN_TITLE above), so they are on by default for this journey.
+  if (p.journey === 'STUDENT_NEW_GRAD') out.add('contract')
   if (p.interimConsultingInterest || p.gigDirectoryUnlockAnswer) {
     out.add('part_time')
     out.add('contract')
