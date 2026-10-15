@@ -20,6 +20,7 @@ import {
   type TimeToPivot,
 } from './pivot-map'
 import { workFit, type WorkProfile } from '@/lib/profile/work-profile'
+import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
 import { aiOutlookForRole, type AiOutlook } from '@/lib/profile/ai-outlook'
 import { outlookForRole, outlookLine, outlookMultiplier } from './occupation-outlook'
 
@@ -60,6 +61,8 @@ export interface MemberPivotInput {
   dismissed: string[]
   /** The ten-dimension work profile (src/lib/profile/work-profile.ts), when loaded. */
   workProfile?: WorkProfile | null
+  /** Standout strengths and weak spots (src/lib/profile/strengths.ts), when loaded. */
+  strengths?: StrengthKeys | null
 }
 
 export interface MarketStatRow {
@@ -147,6 +150,9 @@ export interface PivotSuggestion {
   /** How the role suits how the member likes to work (work profile): what matches and what clashes. */
   workFits: string[]
   workClashes: string[]
+  /** "Plays to your strength" / "leans on a weak spot" lines, when known. */
+  strengthPlays: string | null
+  strengthExposes: string | null
   /** AI exposure of the role's occupation group (0-100, report data), when known. */
   ai: AiOutlook | null
   /** Internal ordering only — never shown. */
@@ -527,6 +533,8 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
     let fit = EDGE_FIT_BASE[edge.fit]
     // How the role suits how they like to work, beyond people contact (tilt above).
     if (wf) fit += 0.12 * wf.score
+    const sn = strengthNotes(member.strengths, target.key)
+    fit += sn.delta
     if (target.needs.length > 0) fit += 0.1 * (alreadyHave.length / target.needs.length)
     if (member.targetFunction && target.fn === member.targetFunction) fit += 0.08
     fit = Math.max(0, Math.min(1, fit + tilt.delta))
@@ -558,6 +566,8 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
       personalityNote: tilt.note,
       workFits: wf?.fits ?? [],
       workClashes: wf?.clashes.map((c) => c.line) ?? [],
+      strengthPlays: sn.plays,
+      strengthExposes: sn.exposes,
       ai: aiOutlookForRole(target.key),
       rankScore,
     }

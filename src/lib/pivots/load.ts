@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { PayBenchmarkRow } from '@/lib/outcomes/pay-change-estimate'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
+import { loadStrengths } from '@/lib/profile/strengths-load'
+import { strengthKeys } from '@/lib/profile/strengths'
 import { ROLES, SOURCES, detectSourceRole } from './pivot-map'
 import { isPeopleEnergy, rankPivots, type MarketContext, type MemberPivotInput, type PivotPathsResult } from './scoring'
 
@@ -121,6 +123,7 @@ export async function loadPivotPaths(profile: PivotProfile): Promise<PivotPathsR
     collaborationVector,
     dismissed: pref?.dismissedTargets ?? [],
     workProfile: await loadWorkProfile(profile.id).catch(() => null),
+    strengths: await loadStrengths(profile.id).then(strengthKeys).catch(() => null),
   }
   const ctx: MarketContext = {
     stats,

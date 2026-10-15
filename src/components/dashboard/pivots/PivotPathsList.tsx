@@ -239,6 +239,12 @@ function PivotPathCard({
       )}
 
       {s.personalityNote && <p className="text-xs text-muted-foreground">{s.personalityNote}</p>}
+      {(s.strengthPlays || s.strengthExposes) && (
+        <div className="text-xs">
+          {s.strengthPlays && <p className="text-success">{s.strengthPlays}</p>}
+          {s.strengthExposes && <p className="text-warning">{s.strengthExposes}</p>}
+        </div>
+      )}
       {(s.workFits.length > 0 || s.workClashes.length > 0) && (
         <div className="text-xs">
           {s.workFits.length > 0 && <p className="text-success">Fits how you work: {s.workFits.map((f) => f.toLowerCase()).join('; ')}.</p>}

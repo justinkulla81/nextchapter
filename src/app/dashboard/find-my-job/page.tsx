@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { loadStrengths } from '@/lib/profile/strengths-load'
+import { strengthKeys } from '@/lib/profile/strengths'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
@@ -451,6 +453,7 @@ async function JobRecommendationsSection({
   ]
   // How they like to work (work profile), for the per-job working-style read.
   const workProfile = await loadWorkProfile(profile.id).catch(() => null)
+  const strengthKeysNow = await loadStrengths(profile.id).then(strengthKeys).catch(() => null)
   const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
@@ -481,7 +484,7 @@ async function JobRecommendationsSection({
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      { ...profile, culturePrefs, workProfile },
+      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow },
       toMatchJob(p, {
         sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
         ownershipType: company?.ownershipType ?? null,

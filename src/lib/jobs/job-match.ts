@@ -1,5 +1,6 @@
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
 import { workFit, type WorkProfile } from '@/lib/profile/work-profile'
+import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
 import { roleForTitle } from '@/lib/pivots/pivot-map'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
@@ -70,6 +71,8 @@ export interface MatchCandidate {
   skillLevels?: unknown
   // The ten-dimension work profile, when the caller loaded it.
   workProfile?: WorkProfile | null
+  // Standout strengths and weak spots, when the caller loaded them.
+  strengthKeys?: StrengthKeys | null
   yearsExperience: number | null
   hasJD: boolean
   hasMD: boolean
@@ -791,7 +794,19 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
   }
 
   // How the kind of role suits how they like to work (work profile vs the role's usual shape).
-  const roleKey = c.workProfile ? roleForTitle(job.title) : null
+  const roleKey = c.workProfile || c.strengthKeys ? roleForTitle(job.title) : null
+  if (roleKey && c.strengthKeys) {
+    const sn = strengthNotes(c.strengthKeys, roleKey)
+    if (sn.plays || sn.exposes) {
+      signals++
+      score += Math.round(100 * sn.delta)
+      if (sn.plays) evidence.push(sn.plays)
+      if (sn.exposes) {
+        evidence.push(sn.exposes)
+        notes.push(sn.exposes)
+      }
+    }
+  }
   if (c.workProfile && roleKey) {
     const wf = workFit(c.workProfile, roleKey)
     if (wf.fits.length || wf.clashes.length) {
