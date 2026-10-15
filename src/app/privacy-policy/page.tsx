@@ -104,6 +104,12 @@ export default function PrivacyPolicyPage() {
               video conferencing links. We never request this permission from members, and it
               gives no access to any member&apos;s Calendar.
             </li>
+            <li>
+              <strong>documents.readonly</strong> — used only by NextChapter team members, on their
+              own NextChapter work accounts, to read the meeting notes Google Meet attaches to
+              their own calls so the notes can be saved with the meeting record. We never request
+              this permission from members, and it gives no access to any member&apos;s documents.
+            </li>
           </ul>
           <p>
             NextChapter&apos;s use and transfer of information received from Google APIs will
