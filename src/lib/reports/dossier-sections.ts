@@ -23,7 +23,8 @@ import {
 import { computeReferenceAlignment, computeGrowthAreaReferenceContext } from '@/lib/references/testimony-processing'
 import { countOverDeliveringWeeks } from '@/lib/badges/milestone-badges'
 import { countAGradeWeeks } from '@/lib/scoring/market-reality-history'
-import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
+import { communityTierNarrative, computeCandidatePeerSupportCount, insightNarrative } from '@/lib/reports/community-tier'
+import { countInsightContributions } from '@/lib/job-reviews/data'
 import { buildReferenceVerification, type ReferenceVerification } from '@/lib/reports/reference-verification'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { isInternshipRole } from '@/lib/resume/work-history-facts'
@@ -173,6 +174,9 @@ export interface DossierData {
   impactOnPeople: {
     quotes: { theme: string; quoteText: string; refereeName: string }[]
     communityNarrative: string | null
+    // Credit for rating / reviewing / recommending past employers — a labeled
+    // tier, never a count (see insightTier in community-tier.ts).
+    insightNarrative: string | null
   }
   // Same draft/approve shape as positioning above — a raw self-report growth
   // area never reaches approvedText directly; Victoria drafts a
@@ -648,7 +652,7 @@ export const getDossierSections = cache(async function getDossierSections(candid
     gapDuration: candidate.gapDuration,
   })
 
-  const [positioning, howIOperate, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =
+  const [positioning, howIOperate, impactQuotes, peerSupportCount, insightCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =
     await Promise.all([
       getOrDraftPositioningStatement({ ...candidate, levelRankLabel: levelRank.label }),
       getHowIOperate(candidateId, candidate.topStrengths),
@@ -658,6 +662,7 @@ export const getDossierSections = cache(async function getDossierSections(candid
         orderBy: { approvedByCandidateAt: 'desc' },
       }),
       computeCandidatePeerSupportCount(candidateId),
+      countInsightContributions(candidateId),
       getOrDraftSelfAwareness(candidate),
       getLearningGrowth(candidateId),
       getCachedGenerations(candidateId, candidate.dossierGeneratedCache),
@@ -677,6 +682,7 @@ export const getDossierSections = cache(async function getDossierSections(candid
     impactOnPeople: {
       quotes: impactQuotes.map((q) => ({ theme: q.theme, quoteText: q.quoteText, refereeName: q.reference.refereeName })),
       communityNarrative: communityTierNarrative(peerSupportCount),
+      insightNarrative: insightNarrative(insightCount),
     },
     selfAwareness,
     learningGrowth,
@@ -713,7 +719,9 @@ export function getDossierSectionCompleteness(
         hasContent = !!dossier.aiFluencyExample
         break
       case 'impactOnPeople':
-        hasContent = dossier.impactOnPeople.quotes.length > 0 || !!dossier.impactOnPeople.communityNarrative
+        hasContent = dossier.impactOnPeople.quotes.length > 0 ||
+          !!dossier.impactOnPeople.communityNarrative ||
+          !!dossier.impactOnPeople.insightNarrative
         break
       case 'selfAwareness':
         // Approved text only — same rule as positioning above. An

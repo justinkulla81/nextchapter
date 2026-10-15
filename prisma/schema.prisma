@@ -1746,6 +1746,8 @@ model CandidateProfile {
   // preferences for the per-job match. Prisma-virtual back-relations; add no columns.
   cultureResponses  CompanyCultureResponse[]
   culturePreference CandidateCulturePreference?
+  jobReviews        JobExperienceReview[]
+  parallelPath      ParallelPath?
 
   // In-work track (Prisma-virtual back-relations; add no columns here).
   inWorkProfile       InWorkProfile?
@@ -1951,6 +1953,7 @@ model WorkHistoryEntry {
   resumeDerived         Boolean @default(false)
 
   references Reference[]
+  review     JobExperienceReview?
 
   // The directory company this job was at. companyName stays what the resume said.
   // This link is internal (grouping, alumni networks, feedback requests): a job here
@@ -14400,4 +14403,45 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// A member's own account of one past job: how they got it, how they were
+// engaged, how the employer was, what they liked and didn't. One row per work
+// history entry, editable. Structured answers only (no free text, so nothing
+// needs moderation and nothing can name a person). Private to the member and
+// platform staff; the only public effect is the helpfulness credit in the
+// Dossier (src/lib/reports/community-tier.ts) and, later, aggregates behind the
+// privacy floor. Text columns validated in src/lib/job-reviews/constants.ts so a
+// new option needs no DDL. SQL: prisma/manual/2026-10-15-job-reviews.sql
+model JobExperienceReview {
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  workHistoryId    String           @unique
+  workHistory      WorkHistoryEntry @relation(fields: [workHistoryId], references: [id], onDelete: Cascade)
+  companyId        String? // copied from the entry at save time, for aggregates
+  hiredVia         String? // JOB_BOARD | REFERRAL | RECRUITER | DIRECT_APPLY | INTERNAL_MOVE | NETWORK_OUTREACH | OTHER
+  workerType       String? // W2 | CONTRACT_1099 | OTHER
+  employerRating   Int?     @db.SmallInt // 1..5
+  wouldRecommend   String? // YES | DEPENDS | NO
+  liked            String[] @default([])
+  disliked         String[] @default([])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([candidateId])
+  @@index([companyId])
+}
+
+// What a member is doing alongside the search right now (contract, fractional,
+// a business, a part-time job, training). One row per member; no row = not
+// answered. Private: shown to the member and their coach, never in the Dossier
+// or to employers.
+model ParallelPath {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  paths       String[]         @default([]) // see PARALLEL_PATHS; empty array = "nothing alongside the search"
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }

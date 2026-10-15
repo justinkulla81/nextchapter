@@ -56,6 +56,33 @@ export function communityTierLabel(giveActionCount: number): string | null {
   return tier ? TIER_LABEL[tier] : null
 }
 
+// Helpfulness from sharing what members learned at work — rating an employer,
+// recommending (or not) a place, describing its culture, publishing a company tip.
+// Same rule as above: a labeled tier, never the count. Lower thresholds than the
+// give-action tiers because each contribution is a real, specific piece of
+// information about a named employer, and a member has only so many past jobs.
+export type InsightTier = 'contributor' | 'trusted' | 'go_to' | null
+
+export function insightTier(contributionCount: number): InsightTier {
+  if (contributionCount >= 8) return 'go_to'
+  if (contributionCount >= 3) return 'trusted'
+  if (contributionCount >= 1) return 'contributor'
+  return null
+}
+
+const INSIGHT_NARRATIVE: Record<Exclude<InsightTier, null>, string> = {
+  contributor: 'Shares what they have learned about past employers so other NextChapter members can decide where to apply.',
+  trusted:
+    'A trusted voice on employers within the NextChapter community — rates and reviews the places they have worked and says whether they would recommend them.',
+  go_to:
+    'A go-to source on employers within the NextChapter community — has rated, reviewed and recommended many of the places they have worked, helping other members choose well.',
+}
+
+export function insightNarrative(contributionCount: number): string | null {
+  const tier = insightTier(contributionCount)
+  return tier ? INSIGHT_NARRATIVE[tier] : null
+}
+
 // The one place this count is computed — shared by recruiter-report.ts and
 // dossier-sections.ts so both read the exact same underlying number, never
 // a duplicate/divergent calculation.
