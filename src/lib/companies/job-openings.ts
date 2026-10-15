@@ -22,6 +22,9 @@ export interface OpeningInput {
   salaryCurrency?: string | null
   postedAt?: Date | null
   sourceName?: string | null
+  // Every US state the import resolved for the posting (multi-location jobs, or a
+  // location text that names none); used when the location text yields no state.
+  locationStates?: string[] | null
 }
 
 export interface OpeningRow {
@@ -66,7 +69,9 @@ export function buildOpeningRow(
     const v = screenJobTitle(title)
     return v.keep ? v.level : null
   })()
-  const { states, isRemote } = statesFromLocation(input.location)
+  const parsed = statesFromLocation(input.location)
+  const isRemote = parsed.isRemote
+  const states = parsed.states.length ? parsed.states : (input.locationStates ?? []).filter((s) => /^[A-Z]{2}$/.test(s))
   const pay = annualizePay(input.salaryMin, input.salaryMax, input.salaryCurrency)
   const posted = input.postedAt && !Number.isNaN(input.postedAt.getTime()) ? input.postedAt : null
   return {

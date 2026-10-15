@@ -103,8 +103,17 @@ async function loadMembers(ids: string[]): Promise<Map<string, MemberRow>> {
   )
 }
 
-type BoardJob = { id: string; title: string; level: string | null; targetLevel: string | null; description: string | null }
-const BOARD_JOB_SELECT = { id: true, title: true, level: true, targetLevel: true, description: true } as const
+type BoardJob = { id: string; title: string; level: string | null; targetLevel: string | null; description: string | null; yearsRequired: unknown }
+const BOARD_JOB_SELECT = { id: true, title: true, level: true, targetLevel: true, description: true, yearsRequired: true } as const
+
+// The import reads the requirement from the FULL posting text and stores it; only
+// rows imported before that (or with no description) fall back to the stored excerpt.
+function boardYears(j: { description: string | null; yearsRequired: unknown } | undefined): YearsRequirement | null {
+  if (!j) return null
+  const stored = j.yearsRequired as YearsRequirement | null
+  if (stored && typeof stored === 'object' && typeof stored.min === 'number') return stored
+  return parseYearsRequired(j.description)
+}
 
 interface AppRow {
   id: string
@@ -143,7 +152,7 @@ async function resolveJobs(apps: AppRow[]): Promise<Map<string, ResolvedJob>> {
     title: j.title || appTitle,
     level: j.level,
     targetLevel: j.targetLevel,
-    yearsRequired: parseYearsRequired(j.description),
+    yearsRequired: boardYears(j),
     matchedBy,
   })
 
@@ -327,8 +336,8 @@ async function loadUnconfirmedClicks(since: Date, candidateId?: string) {
     const m = members.get(c.candidateId)
     if (!m) return []
     const b = c.source === 'job_board' ? boardMap.get(c.sourceId) : undefined
-    const desc = b?.description ?? surfacedMap.get(c.sourceId)?.description ?? null
-    const job = { title: b?.title ?? c.jobTitle, level: b?.level ?? null, targetLevel: b?.targetLevel ?? null, yearsRequired: parseYearsRequired(desc) }
+    const yearsRequired = b ? boardYears(b) : parseYearsRequired(surfacedMap.get(c.sourceId)?.description ?? null)
+    const job = { title: b?.title ?? c.jobTitle, level: b?.level ?? null, targetLevel: b?.targetLevel ?? null, yearsRequired }
     return [{ id: c.id, candidateId: c.candidateId, title: job.title, companyName: c.companyName, date: c.createdAt, yearsRequired: job.yearsRequired, result: classifyApplication(m, job) }]
   })
 }
