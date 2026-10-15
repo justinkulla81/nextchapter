@@ -24,6 +24,8 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Community
 
+- **Supporter extensions** — the supporter feature today is invite-by-email: a person with no login who gets a weekly effort-only note and can send a cheer. Next steps, in priority order: (1) let a supporter be a NextChapter member, accepting the invite in-app (the invite email always goes out and never reveals whether an account exists); (2) "share a win" (member taps once to tell supporters, who can only react); (3) "ask for help" (a specific small ask supporters can answer or ignore); (4) buddy pairs (two members share a Monday plan and a Friday result, reciprocal, no scoring; overlaps with Accountability partners under Interview Prep below); (5) quiet co-working hours, practice-interview swaps, one tip a week, offered intros the member accepts first. Guardrails for all of them: opt-in on both sides, supporters never see jobs, companies, names or messages, no nudges or read receipts, no comparison or leaderboards, caps on cheers and tips, pause automatically when the plan is "taking a break", and nothing for members in Confidential Search Mode on either side.
+
 - Add a news-article feed to the merged Community page — curated job-market/career-news items interspersed with candidate posts and activity, to give the feed something to show even when candidate activity is quiet. Needs an actual content/curation pipeline (an editorial source or a news API), which doesn't exist yet — logged here rather than built as part of the Community+Circle merge.
 
 ## Interview Prep
