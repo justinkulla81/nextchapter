@@ -41,6 +41,7 @@ import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/culture-profile'
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
+import { findTopEmployer, knownForLabel, topEmployerSourceLine } from '@/lib/companies/top-employers'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -160,7 +161,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const askerRequestsHere = askerRequests.filter((r) => r.companyId === id)
   const pendingToAnswerHere = pendingToAnswer.filter((r) => r.companyId === id)
 
-  captureServerEvent(profile.id, 'company_page_viewed', { companyId: id, companyName: company.name })
+  // On the curated list of employers known for pay / benefits (names only, no rank).
+  const topEmployer = findTopEmployer(company.canonicalNameNormalized) ?? findTopEmployer(company.name)
+
+  captureServerEvent(profile.id, 'company_page_viewed', {
+    companyId: id,
+    companyName: company.name,
+    knownFor: topEmployer ? topEmployer.reasons : null,
+  })
 
   const outcomeCells = latestOutcome
     ? suppressSmallCells([latestOutcome], (r) => r.applications, () => 'How members have fared')
@@ -191,6 +199,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <Suspense fallback={<CompanyMetaLineSkeleton />}>
             <CompanyMetaLine companyRow={companyRow} />
           </Suspense>
+          {topEmployer && (
+            <div className="mt-2 space-y-0.5">
+              <p className="text-sm text-foreground">
+                <span className="font-medium">Known for:</span> {knownForLabel(topEmployer)}
+              </p>
+              <p className="text-xs text-muted-foreground">{topEmployerSourceLine(topEmployer)}</p>
+            </div>
+          )}
         </div>
       </div>
 
