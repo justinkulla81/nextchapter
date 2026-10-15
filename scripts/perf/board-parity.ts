@@ -5,18 +5,33 @@
 //   set -a; . ./.env.local; set +a
 //   BASELINE_SORT=1 node --conditions=react-server --import tsx scripts/perf/board-parity.ts [members]
 //
-// BASELINE_SORT=1 sorts the baseline's rows by id as the new code does; without it the
-// baseline keeps Postgres storage order, so exact ties can fall differently — the
-// script then reports whether every difference is a tie (identical sort keys).
+// BASELINE_SORT=1 sorts the baseline's rows by id as the new code does (every path,
+// emails included, now ranks id-sorted rows); without it the baseline keeps Postgres
+// storage order, so exact ties can fall differently.
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist as oldShortlist, postedWithinWhere } from './baseline/board-shortlist'
 import { loadBoardShortlist as newShortlist } from '@/lib/jobs/board-shortlist'
 import { emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
-import { midLevelRelevantFor } from '@/lib/jobs/mid-level'
+import { midLevelInEmails, midLevelRelevantFor } from '@/lib/jobs/mid-level'
 import { defaultWorkTypes } from '@/lib/jobs/work-type'
 import { levelsInGroup } from '@/lib/jobs/job-seniority'
 
 type Opts = Parameters<typeof newShortlist>[0]
+
+// The three email paths' calls (fresh-job alerts 24h, coach digest 7 days, Job Search
+// Daily since the last send), with their real guards. One where object per case, so
+// old and new see the same window.
+function emailCases(c: Opts['candidate'], plus: boolean): { name: string; old: Opts; now: Opts }[] {
+  const guards = { fitScoring: emailFitScoringVersion(), includeMidLevel: midLevelInEmails() }
+  const alerts = postedWithinWhere(24)
+  const digest = postedWithinWhere(7 * 24)
+  const daily = { createdAt: { gte: new Date(Date.now() - 2 * 86_400_000) } }
+  return [
+    { name: 'email fresh-job alerts', old: { candidate: c, isCandidatePlus: plus, where: alerts, size: 30, ...guards }, now: { candidate: c, isCandidatePlus: plus, where: alerts, size: 30, ...guards } },
+    { name: 'email coach digest', old: { candidate: c, isCandidatePlus: plus, where: digest, size: 30, ...guards }, now: { candidate: c, isCandidatePlus: plus, where: digest, size: 30, ...guards } },
+    { name: 'email job search daily', old: { candidate: c, isCandidatePlus: plus, where: daily, size: 200, ...guards }, now: { candidate: c, isCandidatePlus: plus, where: daily, size: 200, ...guards } },
+  ]
+}
 async function main() {
   const n = Number(process.argv[2] ?? 10)
   const only = process.argv[3] || undefined // run just the cases whose name starts with this
@@ -33,16 +48,11 @@ async function main() {
       { name: 'coach view', old: { candidate: c, isCandidatePlus: plus }, now: { candidate: c, isCandidatePlus: plus } },
       { name: 'skill gaps', old: { candidate: c, isCandidatePlus: plus, size: 20 }, now: { candidate: c, isCandidatePlus: plus, size: 20 } },
       { name: 'fresh-jobs prompt', old: { candidate: c, isCandidatePlus: plus, where: postedWithinWhere(72), view: 'fresh', size: 3 }, now: { candidate: c, isCandidatePlus: plus, postedWithinHours: 72, view: 'fresh', size: 3 } },
-      { name: 'email (fresh alerts shape)', old: { candidate: c, isCandidatePlus: plus, where: postedWithinWhere(48), size: 30, fitScoring: emailFitScoringVersion() }, now: { candidate: c, isCandidatePlus: plus, where: postedWithinWhere(48), size: 30, fitScoring: emailFitScoringVersion() } },
+      ...emailCases(c, plus),
     ]
     for (const k of cases) {
       if (only && !k.name.startsWith(only)) continue
-      // The email paths still read the wide table in storage order, as before; compare
-      // them against the baseline in storage order too.
-      const sortSetting = process.env.BASELINE_SORT
-      if (k.name.startsWith('email')) process.env.BASELINE_SORT = '0'
       const a = await oldShortlist(k.old as never)
-      process.env.BASELINE_SORT = sortSetting
       const b = await newShortlist(k.now)
       const ids = (x: typeof a) => [...x.open.map((p) => p.id), '|', ...x.locked.map((p) => p.id)]
       const same = JSON.stringify(ids(a)) === JSON.stringify(ids(b))

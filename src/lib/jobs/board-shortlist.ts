@@ -38,14 +38,14 @@ const PER_COMPANY = 5
 // most expensive thing the site did. Two caches, per server instance, a minute each:
 //
 // - The whole board (light columns, US and not ghost risk), read from the narrow
-//   BoardLightRow copy (board-light-rows.ts), sorted by id. Board views that only
-//   narrow it by level — the board page, the coach view, skill gaps — and windows
-//   by posting date (the dashboard's fresh-jobs prompt) are cut from this one copy
-//   in memory instead of each loading their own. After the minute, the next
+//   BoardLightRow copy (board-light-rows.ts), sorted by id. Every view that only
+//   narrows it by level and/or a date window — the board page, the coach view,
+//   skill gaps, the dashboard's fresh-jobs prompt, and the email paths (fresh-job
+//   alerts, Job Search Daily, coach digest; splitBoardWhere) — is cut from this one
+//   copy in memory instead of each loading its own. After the minute, the next
 //   caller still gets the held copy at once while a fresh one loads (up to
 //   SHARED_STALE_MS old); only a cold server instance waits.
-// - Any other filter (the email paths: a date window written as a where): its own
-//   rows from the wide table, as before, keyed by the filter.
+// - Any other filter: its own rows from the wide table, keyed by the filter.
 //
 // Rows are read-only downstream; per-row work is memoised on them (rowFacts).
 const LIGHT_TTL_MS = 60_000
@@ -209,19 +209,78 @@ export function postedWithinFilter(hours: number, now = Date.now()): (p: { poste
   return (p) => (p.postedAt !== null ? p.postedAt.getTime() >= since : p.createdAt.getTime() >= since)
 }
 
+type DateRow = { postedAt: Date | null; createdAt: Date }
+
+const isDate = (v: unknown): v is Date => v instanceof Date && !Number.isNaN(v.getTime())
+const onlyKeys = (o: unknown, keys: string[]): o is Record<string, unknown> =>
+  !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === keys.length && keys.every((k) => k in (o as object))
+const gteDate = (v: unknown): Date | null => (onlyKeys(v, ['gte']) && isDate(v.gte) ? v.gte : null)
+
+/**
+ * A date window the email paths pass as a where, as the JS equivalent of the
+ * SQL Prisma writes for it; null for anything else:
+ * - postedWithinWhere(h): posted since, or (no posting date) imported since;
+ * - { createdAt: { gte } }: imported since.
+ */
+export function dateWindowFilter(where: unknown): ((p: DateRow) => boolean) | null {
+  if (onlyKeys(where, ['createdAt'])) {
+    const since = gteDate(where.createdAt)
+    if (!since) return null
+    const t = since.getTime()
+    return (p) => p.createdAt.getTime() >= t
+  }
+  if (onlyKeys(where, ['OR']) && Array.isArray(where.OR) && where.OR.length === 2) {
+    const [a, b] = where.OR as unknown[]
+    if (!onlyKeys(a, ['postedAt']) || !onlyKeys(b, ['postedAt', 'createdAt']) || b.postedAt !== null) return null
+    const since = gteDate(a.postedAt)
+    const since2 = gteDate(b.createdAt)
+    if (!since || !since2 || since.getTime() !== since2.getTime()) return null
+    const t = since.getTime()
+    return (p) => (p.postedAt !== null ? p.postedAt.getTime() >= t : p.createdAt.getTime() >= t)
+  }
+  return null
+}
+
+/**
+ * Splits a where into a level-only part (answered from a cached subset of the
+ * shared board) and date windows (applied per call). null when any part is
+ * neither — that where goes to the database.
+ */
+export function splitBoardWhere(
+  where: Prisma.ExclusiveJobPostingWhereInput | undefined
+): { levelWhere: Prisma.ExclusiveJobPostingWhereInput | undefined; windows: ((p: DateRow) => boolean)[] } | null {
+  const whole = dateWindowFilter(where)
+  if (whole) return { levelWhere: undefined, windows: [whole] }
+  if (where && onlyKeys(where, ['AND'])) {
+    const parts = (Array.isArray(where.AND) ? where.AND : [where.AND]) as Prisma.ExclusiveJobPostingWhereInput[]
+    const windows: ((p: DateRow) => boolean)[] = []
+    const rest: Prisma.ExclusiveJobPostingWhereInput[] = []
+    for (const part of parts) {
+      const w = dateWindowFilter(part)
+      if (w) windows.push(w)
+      else rest.push(part)
+    }
+    if (windows.length > 0) {
+      const levelWhere = rest.length === 0 ? undefined : { AND: rest }
+      return levelOnlyFilter(levelWhere) ? { levelWhere, windows } : null
+    }
+  }
+  return levelOnlyFilter(where) ? { levelWhere: where, windows: [] } : null
+}
+
 async function loadLightBoardRows(
   where: Prisma.ExclusiveJobPostingWhereInput | undefined,
   closedCounts: Map<string, number>,
   postedWithinHours?: number
 ): Promise<LightRow[]> {
-  const inMemory = levelOnlyFilter(where)
-  if (inMemory) {
+  const split = splitBoardWhere(where)
+  if (split) {
     const all = await loadSharedBoard(closedCounts)
-    const key = JSON.stringify(where ?? null)
-    const byLevel = subsetOf(all, key, inMemory)
-    if (postedWithinHours === undefined) return byLevel
-    // The window moves every call, so this cut isn't kept.
-    return byLevel.filter(postedWithinFilter(postedWithinHours))
+    const byLevel = subsetOf(all, JSON.stringify(split.levelWhere ?? null), levelOnlyFilter(split.levelWhere)!)
+    const windows = [...split.windows, ...(postedWithinHours === undefined ? [] : [postedWithinFilter(postedWithinHours)])]
+    if (windows.length === 0) return byLevel
+    // A window moves every call, so this cut isn't kept.
+    return byLevel.filter((p) => windows.every((w) => w(p)))
   }
   // Not expected: postedWithinHours is only passed with a level-only where.
   if (postedWithinHours !== undefined) where = { AND: [where ?? {}, postedWithinWhere(postedWithinHours)] }

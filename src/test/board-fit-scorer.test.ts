@@ -9,7 +9,7 @@ vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () 
 import { boardListingFitBucketScorer, computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { legacyComputeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket-legacy'
 import { boardListingFitBucketScorerFor } from '@/lib/jobs/email-fit-scoring'
-import { levelOnlyFilter, postedWithinFilter, boardLevelWindowWhere, rankBoardRows, type BoardRankRow } from '@/lib/jobs/board-shortlist'
+import { levelOnlyFilter, postedWithinFilter, postedWithinWhere, dateWindowFilter, splitBoardWhere, boardLevelWindowWhere, rankBoardRows, type BoardRankRow } from '@/lib/jobs/board-shortlist'
 import { mirrorCanAnswer, mirrorDisabledByEnv } from '@/lib/jobs/board-light-rows'
 import { roleFamiliesOf, titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import { EXCLUDE_MID_LEVEL_WHERE } from '@/lib/jobs/mid-level'
@@ -128,6 +128,42 @@ describe('board filters answered in memory', () => {
     expect(keep({ postedAt: h(73), createdAt: h(1) })).toBe(false) // a posting date wins over a recent import
     expect(keep({ postedAt: null, createdAt: h(10) })).toBe(true)
     expect(keep({ postedAt: null, createdAt: h(80) })).toBe(false)
+  })
+})
+
+describe('email date windows answered from the shared board', () => {
+  const h = (n: number) => new Date(Date.now() - n * 3_600_000)
+  it('postedWithinWhere matches the SQL: posting date, else import date', () => {
+    const keep = dateWindowFilter(postedWithinWhere(48))!
+    expect(keep({ postedAt: h(47), createdAt: h(500) })).toBe(true)
+    expect(keep({ postedAt: h(49), createdAt: h(1) })).toBe(false)
+    expect(keep({ postedAt: null, createdAt: h(10) })).toBe(true)
+    expect(keep({ postedAt: null, createdAt: h(50) })).toBe(false)
+  })
+
+  it('{ createdAt: { gte } } (Job Search Daily) is the import date only', () => {
+    const keep = dateWindowFilter({ createdAt: { gte: h(24) } })!
+    expect(keep({ postedAt: h(500), createdAt: h(23) })).toBe(true)
+    expect(keep({ postedAt: h(1), createdAt: h(25) })).toBe(false)
+  })
+
+  it('splits the email wheres (with and without the mid-level window) into level part + window', () => {
+    for (const w of [postedWithinWhere(72), { createdAt: { gte: h(24) } }]) {
+      const withWindow = splitBoardWhere(boardLevelWindowWhere(w, false))!
+      expect(withWindow.windows).toHaveLength(1)
+      expect(levelOnlyFilter(withWindow.levelWhere)!({ level: 'MID_IC' })).toBe(false)
+      const midIncluded = splitBoardWhere(boardLevelWindowWhere(w, true))!
+      expect(midIncluded.levelWhere).toBeUndefined()
+      expect(midIncluded.windows).toHaveLength(1)
+    }
+  })
+
+  it('leaves other date shapes to the database', () => {
+    expect(dateWindowFilter({ createdAt: { gt: h(1) } })).toBeNull()
+    expect(dateWindowFilter({ createdAt: { gte: h(1), lt: h(0) } })).toBeNull()
+    expect(dateWindowFilter({ OR: [{ postedAt: { gte: h(2) } }, { postedAt: null, createdAt: { gte: h(3) } }] })).toBeNull()
+    expect(splitBoardWhere({ AND: [postedWithinWhere(1), { title: 'x' }] })).toBeNull()
+    expect(splitBoardWhere({ title: 'x' })).toBeNull()
   })
 })
 
