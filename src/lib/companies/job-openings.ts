@@ -102,7 +102,7 @@ export function buildOpeningRow(
 }
 
 /**
- * Inserts or refreshes openings by URL in one statement. A row already held keeps its
+ * Inserts or refreshes openings by URL, in statements of at most 200 rows. A row already held keeps its
  * earliest first-seen date and latest last-seen date; whichever write saw the job
  * most recently decides whether it is closed. Returns rows written.
  */
@@ -110,7 +110,20 @@ export async function upsertOpenings(rows: OpeningRow[]): Promise<number> {
   if (rows.length === 0) return 0
   const byUrl = new Map<string, OpeningRow>()
   for (const r of rows) byUrl.set(r.url, r)
-  const payload = JSON.stringify([...byUrl.values()])
+  // Bounded statements: one giant upsert can run for many seconds under load,
+  // hold row locks the whole time and queue every other page behind it.
+  const unique = [...byUrl.values()]
+  let written = 0
+  for (let i = 0; i < unique.length; i += UPSERT_CHUNK) {
+    written += await upsertOpeningChunk(unique.slice(i, i + UPSERT_CHUNK))
+  }
+  return written
+}
+
+const UPSERT_CHUNK = 200
+
+async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
+  const payload = JSON.stringify(rows)
   return prisma.$executeRawUnsafe(
     `
     INSERT INTO "CompanyJobOpening" (
