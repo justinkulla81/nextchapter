@@ -221,6 +221,7 @@ function buildSections(
       title: 'Personalize',
       links: [
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
+        { href: '/dashboard/past-jobs', label: 'Past jobs and alumni', icon: Building2 },
         { href: '/dashboard/strengths', label: 'Why Hire Me', icon: Sparkles },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
