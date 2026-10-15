@@ -1,0 +1,9 @@
+[
+  {"name": "wd-uofl-health", "adapter": "workday", "type": "direct_ats", "employer": "UofL Health", "tenant": "uoflhealth", "wd": "wd1"},
+  {"name": "wd-baptist-health", "adapter": "workday", "type": "direct_ats", "employer": "Baptist Health", "tenant": "bhs", "wd": "wd1"},
+  {"name": "wd-brown-forman", "adapter": "workday", "type": "direct_ats", "employer": "Brown-Forman", "tenant": "bf", "wd": "wd5"},
+  {"name": "wd-elevance", "adapter": "workday", "type": "direct_ats", "employer": "Elevance Health", "tenant": "elevancehealth", "wd": "wd1"},
+  {"name": "wd-papa-johns", "adapter": "workday", "type": "direct_ats", "employer": "Papa John's", "tenant": "papajohns", "wd": "wd1"},
+  {"name": "wd-aes", "adapter": "workday", "type": "direct_ats", "employer": "AES", "tenant": "aes", "wd": "wd1"},
+  {"name": "usajobs-louisville", "adapter": "usajobs", "type": "public_sector", "location": "Louisville, Kentucky"}
+]
