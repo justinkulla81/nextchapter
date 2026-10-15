@@ -25,6 +25,14 @@ describe('titleScore', () => {
 })
 
 describe('isRelevant', () => {
+  it('files every notice from a watched agency, whatever its title', () => {
+    expect(isRelevant({ title: 'Innovation Hub Capacity Building', agencyCode: 'SBA' })).toBe(true)
+    expect(isRelevant({ title: 'Regional Technology Planning', agencyCode: 'DOC-EDA' })).toBe(true)
+    expect(isRelevant({ title: 'Digital Equity Competitive Grant', agencyCode: 'DOC-NTIA' })).toBe(true)
+  })
+  it('does not watch the rest of Commerce', () => {
+    expect(isRelevant({ title: 'Fisheries habitat restoration', agencyCode: 'DOC-NOAA' })).toBe(false)
+  })
   it('accepts a Labor Department issuer or a subject title', () => {
     expect(isRelevant({ title: 'Annual guidance', agencyCode: 'DOL-ETA' })).toBe(true)
     expect(isRelevant({ title: 'Reemployment services pilot', agencyCode: 'HHS-NIH' })).toBe(true)
