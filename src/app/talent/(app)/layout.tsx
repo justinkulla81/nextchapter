@@ -14,7 +14,7 @@ export default async function TalentLayout({ children }: { children: React.React
   const employer = await getTalentDashboardData()
   const messagesUnreadCount = await getEmployerUnreadCount(employer.id)
 
-  const brand = talentBrand(employer)
+  const brand = await talentBrand(employer)
 
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>

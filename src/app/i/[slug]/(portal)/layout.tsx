@@ -11,6 +11,7 @@ import { signOut } from '@/app/dashboard/actions'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
+import { organizationBrandFor } from '@/lib/organizations/service'
 
 async function getTagline(institutionId: string): Promise<string | null> {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true } })
@@ -43,7 +44,11 @@ export default async function InstitutionPortalLayout({
 
   const { institution } = access
   const tagline = await getTagline(institution.id)
-  const accent = institution.accentColor ?? '#2e7d5b'
+  // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
+  const orgBrand = await organizationBrandFor('HIGHER_ED', institution.id).catch(() => null)
+  const accent = orgBrand?.accent ?? institution.accentColor ?? '#2e7d5b'
+  const logoUrl = orgBrand?.logoUrl ?? institution.logoUrl
+  const programName = orgBrand?.name ?? institution.programBrandName
   const theme = {
     '--primary': accent,
     '--primary-foreground': readableTextOn(accent),
@@ -75,11 +80,11 @@ export default async function InstitutionPortalLayout({
 
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-          <InstitutionMark name={institution.name} logoUrl={institution.logoUrl} />
+          <InstitutionMark name={institution.name} logoUrl={logoUrl} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{institution.programBrandName ?? institution.name}</p>
+            <p className="truncate text-sm font-semibold">{programName ?? institution.name}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {[institution.programBrandName ? institution.name : null, tagline].filter(Boolean).join(' · ')}
+              {[programName ? institution.name : null, tagline].filter(Boolean).join(' · ')}
             </p>
           </div>
           <div className="ml-auto flex items-center gap-4 text-sm">

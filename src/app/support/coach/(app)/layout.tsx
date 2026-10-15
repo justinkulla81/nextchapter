@@ -32,7 +32,7 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
     (c) => c.isStalled || c.triggers.some((t) => t.type === 'RISK')
   ).length
 
-  const brand = coachBrand(coach)
+  const brand = await coachBrand(coach)
 
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
