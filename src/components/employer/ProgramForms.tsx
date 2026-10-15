@@ -248,7 +248,10 @@ export function SeatPackageSelect({ seatId, value, options }: { seatId: string; 
           start(async () => {
             const r = await setSeatPackage(seatId, next)
             if (r.error) setErr(r.error)
-            else (setErr(null), setV(next))
+            else {
+              setErr(null)
+              setV(next)
+            }
           })
         }}
       >

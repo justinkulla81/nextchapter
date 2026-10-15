@@ -344,7 +344,7 @@ export default async function MembershipPage() {
 
           <p className="text-sm text-muted-foreground">
             Board and advisory listings are unlocked on{' '}
-            <Link href="/dashboard/interim-work#launch-phase-4" className="text-primary underline underline-offset-4">
+            <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="text-primary underline underline-offset-4">
               Find Interim Work
             </Link>{' '}
             while your Membership is active. Benefits Network offers are redeemable from the{' '}

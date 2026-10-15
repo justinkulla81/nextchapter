@@ -117,7 +117,7 @@ export default function EqOverIqPage() {
             marketplaces, expert networks, and board &amp; advisory roles.
           </p>
           <Link
-            href="/dashboard/interim-work"
+            href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work"
             className="mt-4 inline-block text-sm font-medium text-[#C9A227] underline underline-offset-4 hover:text-[#C9A227]/80"
           >
             See Interim Work →

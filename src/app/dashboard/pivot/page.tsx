@@ -40,6 +40,13 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
         requirements come from O*NET, the US Department of Labor&apos;s occupation database, and pay and growth from the Bureau of Labor
         Statistics. These describe occupations in general, not a prediction for you.
       </p>
+      <p className="text-sm text-muted-foreground">
+        Want to see where jobs are actually opening near you? Try{' '}
+        <Link href="/dashboard/pivot-paths" className="text-primary underline-offset-4 hover:underline">
+          Pivot paths
+        </Link>
+        .
+      </p>
     </div>
   )
 

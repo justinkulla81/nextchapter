@@ -292,7 +292,7 @@ function InterimWorkRecommendation() {
         Worth considering: interim, fractional, or project work between now and your next role keeps your
         resume current and gives you something real to talk about.
       </p>
-      <Link href="/dashboard/interim-work" className="text-sm font-medium text-primary underline underline-offset-4">
+      <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-sm font-medium text-primary underline underline-offset-4">
         Find interim work →
       </Link>
     </div>

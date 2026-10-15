@@ -1,4 +1,5 @@
 import 'server-only'
+import { skillTerms } from '@/lib/profile/skill-matrix'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
@@ -7,8 +8,9 @@ import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { aggregateSkillGaps, jobSkillGap, type AggregatedSkillGap, type JobSkillGap } from '@/lib/jobs/job-skill-gap'
 
-export function memberSkillKeywords(profile: { resumeKeywords: string[]; confirmedSkillsHave: string[] }): string[] {
-  return [...new Set([...profile.resumeKeywords, ...profile.confirmedSkillsHave].map((k) => k.trim()).filter(Boolean))]
+// The skills matrix (resume, confirmed skills, certifications, minus removed).
+export function memberSkillKeywords(profile: { resumeKeywords: string[]; confirmedSkillsHave: string[]; certifications?: string[]; skillLevels?: unknown }): string[] {
+  return skillTerms(profile)
 }
 
 const BEST_FIT_JOBS = 60
@@ -24,7 +26,7 @@ export async function loadMemberSkillGap(candidateId: string): Promise<Aggregate
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
       isDossierUnlocked(candidateId),
     ])
-    const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS })
+    const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS, includeMidLevel: true, includeEarlyCareer: true })
     // Strong and good fits only: a gap against jobs the member would never be shortlisted for
     // is noise, not a skill to build.
     const fits = open.filter((p) => FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(profile, p)] <= 1)

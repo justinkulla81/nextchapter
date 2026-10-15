@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+import { loadStrengths } from '@/lib/profile/strengths-load'
+import { strengthKeys } from '@/lib/profile/strengths'
+import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import Link from 'next/link'
@@ -28,10 +31,14 @@ import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/D
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
+import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
+import { employerSignalsFor, greatFilterPredicate, parseGreatParam, GREAT_FILTER_LABEL, type GreatFilter } from '@/lib/jobs/great-employers'
+import { loadGreatSets, loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
 import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
+import { ALL_STAGES_WINDOW, memberStageWindow } from '@/lib/jobs/career-stage'
 import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -92,9 +99,27 @@ import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { loadSkillsFit } from '@/lib/careers/skills-fit-server'
 import { OnetAttribution } from '@/components/OnetAttribution'
+import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
+import { getCultureProfiles, getCulturePreferences } from '@/lib/companies/culture-profile'
+import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/insider-network'
+import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
+import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
+import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
+import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
+import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
+import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
+import { BoardTabs, type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
+import { MyJobsPanel } from '@/components/dashboard/one-board/MyJobsPanel'
+import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
+import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGapInsightCard'
+import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
+import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
+import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
+import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
+import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
 
-export const metadata: Metadata = { title: 'Find a Full-time Job' }
+export const metadata: Metadata = { title: 'Find a job' }
 
 const SURFACED_JOB_LIST_SIZE = 5
 // Free candidates only ever see the first 3 automated-search-partner
@@ -222,6 +247,52 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "This site can't be fetched automatically",
 }
 
+// Per-type empty states: what to do when a kind of work has nothing matching yet.
+function EmptyTypeNote({ type }: { type: WorkType }) {
+  switch (type) {
+    case 'full_time':
+      return (
+        <>
+          No full-time jobs match yet.{' '}
+          <Link href="/dashboard/search-strategy" className="text-primary underline underline-offset-4">
+            Add a target role or widen your search
+          </Link>{' '}
+          to see more.
+        </>
+      )
+    case 'part_time':
+      return (
+        <>
+          No part-time or fractional roles match yet. Most fractional work comes through marketplaces and your network —{' '}
+          <a href="#independent-work" className="text-primary underline underline-offset-4">
+            see the fractional marketplaces below
+          </a>
+          .
+        </>
+      )
+    case 'contract':
+      return (
+        <>
+          No contract roles match yet. Expert networks above pay for your time now, and the{' '}
+          <a href="#independent-work" className="text-primary underline underline-offset-4">
+            consultancy launch plan below
+          </a>{' '}
+          gets you to a first client.
+        </>
+      )
+    case 'advisory':
+      return (
+        <>
+          No advisory roles match yet — here&apos;s how to get on boards:{' '}
+          <a href="#launch-phase-4" className="text-primary underline underline-offset-4">
+            board and advisory directories
+          </a>{' '}
+          below, and the board-matched roles further down.
+        </>
+      )
+  }
+}
+
 function JobRecommendationsSkeleton() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -243,12 +314,22 @@ async function JobRecommendationsSection({
   contacts,
   seniorityGroup,
   boardView,
+  workTypes,
+  greatFilters,
+  pivotFilter,
+  myJobs,
+  expertNetworks,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   dossierReason: string
   board: BoardShortlist
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
+  workTypes: WorkType[]
+  greatFilters: GreatFilter[]
+  pivotFilter: PivotBoardFilter | null
+  myJobs: MyJobsView
+  expertNetworks: ExpertNetworkCard[]
   contacts: {
     id: string
     name: string
@@ -311,9 +392,27 @@ async function JobRecommendationsSection({
 
   // Partner-search jobs carry no stored level, so the seniority filter
   // classifies their titles the same way the board's jobs were levelled.
-  const surfacedJobs = seniorityGroup
-    ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
-    : allSurfacedJobs
+  // Great pay / great benefits: partner-search jobs carry no pay verdict or
+  // benefits of their own, so only the employer-level signals can keep them.
+  const [greatSets, payHighCompanies] = await Promise.all([
+    greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
+    loadPayHighCompanies(),
+  ])
+  const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
+  const surfacedJobs = (
+    seniorityGroup
+      ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
+      : allSurfacedJobs
+  ).filter(
+    (j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
+  )
+  const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
+  // Per selected type: anything to show at all? (drives the per-type empty notes)
+  const shownTypes = new Set<WorkType>([
+    ...surfacedJobs.map((j) => classifyWorkType(j)),
+    ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
+  ])
+  const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
 
   // Everyone sees every surfaced (search-partner) job; only employer / recruiter
   // exclusives stay Candidate+-only, and that rule lives in board-shortlist.ts.
@@ -347,7 +446,54 @@ async function JobRecommendationsSection({
     if (p.distribution !== 'TARGETED') return true
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
-  const contactsByPosting = await loadJobContacts(visibleBoardPostings, profile.id)
+  // Company ownership (public / PE / VC) for the culture read — one query for the jobs shown.
+  const companyIds = [...new Set(visibleBoardPostings.map((p) => p.companyId).filter((id): id is string => !!id))]
+  // Confidential searches never get company-level culture or insider counts: that would
+  // reveal the employer the card hides.
+  const disclosedCompanyIds = [
+    ...new Set(visibleBoardPostings.filter((p) => p.disclosure !== 'CONFIDENTIAL').map((p) => p.companyId).filter((id): id is string => !!id)),
+  ]
+  // How they like to work (work profile), for the per-job working-style read.
+  const workProfile = await loadWorkProfile(profile.id).catch(() => null)
+  const strengthKeysNow = await loadStrengths(profile.id).then(strengthKeys).catch(() => null)
+  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
+    loadJobContacts(visibleBoardPostings, profile.id),
+    companyIds.length > 0
+      ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })
+      : Promise.resolve([]),
+    // What members who worked at each company said (aggregate, privacy floor applied).
+    getCultureProfiles(disclosedCompanyIds, profile.id),
+    getCulturePreferences(profile.id),
+    // Same gate as the company page's insider list: tagged employment + Plus Market Intelligence.
+    Promise.all([hasTaggedEmployment(profile.id), getCandidateMarketIntelTier(profile.id)]).then(
+      ([tagged, tier]) => tagged && tierMeetsFeature(tier, 'insider_network')
+    ),
+    // Structured benefits for the jobs shown (empty until the import sends them).
+    loadJobBenefits(visibleBoardPostings.map((p) => p.id)),
+  ])
+  // Pay / benefits badges: employer signals (hiring index + curated list) and the job's own benefits.
+  // A confidential search names no employer, so it gets no employer badge.
+  const employerSignalsOf = (p: (typeof visibleBoardPostings)[number]) =>
+    p.disclosure === 'CONFIDENTIAL' ? undefined : employerSignalsFor(p.companyName, payHighCompanies)
+  const insiderCounts = insiderGate ? await countInsidersByCompany(disclosedCompanyIds, profile.id) : new Map<string, number>()
+  const companyById = new Map(companies.map((c) => [c.id, c]))
+  const insidersFor = (p: (typeof visibleBoardPostings)[number]) => {
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    const count = p.companyId ? (insiderCounts.get(p.companyId) ?? 0) : 0
+    return company && count > 0 ? { count, href: `/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}#insiders` } : undefined
+  }
+  // Per-job match and gaps (skills, culture, salary, goals, working style) — rules only, no AI.
+  const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    return matchJobToCandidate(
+      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow },
+      toMatchJob(p, {
+        sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
+        ownershipType: company?.ownershipType ?? null,
+        insiderCulture: p.companyId && p.disclosure !== 'CONFIDENTIAL' ? (cultureProfiles.get(p.companyId) ?? null) : null,
+      })
+    )
+  }
   // Per-job skills gap, from the job's own description only.
   const memberKeywords = memberSkillKeywords(profile)
   // Separate from the fit badge: how this kind of work lines up with theirs, from O*NET (null until that data is loaded).
@@ -386,10 +532,31 @@ async function JobRecommendationsSection({
 
   return (
     <div className="space-y-4">
+      {workTypes.includes('contract') && <ExpertNetworkRow networks={expertNetworks} />}
+      {emptyTypes.length > 0 && (visibleBoardPostings.length > 0 || lockedBoardPostings.length > 0 || surfacedJobs.length > 0) && (
+        <ul className="space-y-1">
+          {emptyTypes.map((t) => (
+            <li key={t} className="text-sm text-muted-foreground">
+              <EmptyTypeNote type={t} />
+            </li>
+          ))}
+        </ul>
+      )}
       {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No jobs surfaced yet — set a target role in your Goals to get started.
-        </p>
+        <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+          {greatFilters.length > 0 ? (
+            <p>
+              No jobs that fit you are marked {greatFilters.map((f) => GREAT_FILTER_LABEL[f].toLowerCase()).join(' and ')} with these
+              filters yet. Turn one off to see more.
+            </p>
+          ) : (
+            workTypes.map((t) => (
+              <p key={t}>
+                <EmptyTypeNote type={t} />
+              </p>
+            ))
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           {board.freshOpenTotal > 0 && boardView !== 'fresh' && (
@@ -432,8 +599,15 @@ async function JobRecommendationsSection({
                           contacts={contactsByPosting.get(posting.id)}
                           skillGap={skillGapFor(posting)}
                           skillsFit={skillsFitFor?.(posting.title)}
+                          match={matchFor(posting)}
+                          insiders={insidersFor(posting)}
+                          explainGapsEnabled={isExplainGapsEnabled()}
+                          track={myJobs.cardStates.get(trackKey('job_board', posting.id))}
+                          watched={watchedFor(posting.companyName)}
                           fitBucket={fitBucket}
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
+                          employer={employerSignalsOf(posting)}
+                          benefits={benefitsByPosting.get(posting.id)}
                         />
                       ),
                     }
@@ -452,6 +626,8 @@ async function JobRecommendationsSection({
                           idealMatch={computeSurfacedJobIsIdealMatch(profile, job, companySizeBandFor(job.companyName))}
                           worksHereContacts={worksHere.contacts}
                           worksHereTotalCount={worksHere.totalCount}
+                          track={myJobs.cardStates.get(trackKey('surfaced', job.id))}
+                          watched={watchedFor(job.companyName)}
                         />
                       ),
                     }
@@ -489,25 +665,47 @@ async function JobRecommendationsSection({
 export default async function JobFitPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seniority?: string; view?: string }>
+  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string; great?: string; pivot?: string }>
 }) {
   const profile = await getDashboardData()
-  const { seniority, view } = await searchParams
+  const { seniority, view, types, tab: tabParam, great, pivot } = await searchParams
+  const greatFilters = parseGreatParam(great)
+  // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
+  const pivotFilter = pivotBoardFilter(pivot)
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
+  // The URL wins (a shared link or a toggle just clicked); otherwise the member's
+  // saved choice, otherwise what they told us in onboarding.
+  const workTypes = parseWorkTypesParam(types) ?? defaultWorkTypes(profile)
+  const tab: BoardTab = tabParam === 'my_jobs' ? 'my_jobs' : 'board'
+  const [trackedCount, applicationCount] = await Promise.all([
+    prisma.trackedJob.count({ where: { candidateId: profile.id, dismissedAt: null, OR: [{ savedAt: { not: null } }, { jobPostingId: { not: null } }] } }),
+    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null }, trackedJob: null } }),
+  ])
 
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Find a Full-time Job</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Find a job</h1>
         <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
       </div>
+
+      <MyTabAnchors onMyJobs={tab === 'my_jobs'} />
+      <BoardTabs current={tab} myJobsCount={trackedCount + applicationCount} />
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       <Suspense fallback={<FindMyJobBodySkeleton />}>
-        <FindMyJobBody profile={profile} seniorityGroup={seniorityGroup} boardView={boardView} />
+        <FindMyJobBody
+          profile={profile}
+          seniorityGroup={seniorityGroup}
+          boardView={boardView}
+          workTypes={workTypes}
+          greatFilters={greatFilters}
+          tab={tab}
+          pivotFilter={pivotFilter}
+        />
       </Suspense>
     </div>
   )
@@ -532,11 +730,23 @@ async function FindMyJobBody({
   profile,
   seniorityGroup,
   boardView,
+  workTypes,
+  greatFilters,
+  tab,
+  pivotFilter,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
+  workTypes: WorkType[]
+  greatFilters: GreatFilter[]
+  tab: BoardTab
+  pivotFilter: PivotBoardFilter | null
 }) {
+  const onBoard = tab === 'board'
+  // While a pivot filter is on, jobs are ranked as if the member were already in
+  // the target function (their own function would rate every one a weak fit).
+  const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
   // the same Gmail connection managed on the Network with My Contacts page.
@@ -569,7 +779,7 @@ async function FindMyJobBody({
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
   const activeCount = jobPostings.filter(
-    (j) => j.source !== 'EMAIL_DETECTED' && j.interviewLandedAt === null && j.offerReceivedAt === null
+    (j) => j.source === 'MANUAL' && j.interviewLandedAt === null && j.offerReceivedAt === null
   ).length
   const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
 
@@ -669,15 +879,34 @@ async function FindMyJobBody({
   const isCandidatePlus = dossierStatus.unlocked
   // These three need isCandidatePlus (which A_LIST_ONLY postings this
   // candidate can open) but not each other.
-  const [board, matchedFullTimeRoles, watchlistView] = await Promise.all([
+  // Employer-posted roles for the selected kinds of work (board and consulting
+  // roles used to sit on the separate Interim Work page).
+  const matchedRoleTypes = [
+    ...(workTypes.includes('full_time') ? (['FULL_TIME'] as const) : []),
+    ...(workTypes.includes('contract') || workTypes.includes('part_time') ? (['CONSULTING_PAID', 'CONSULTING_UNPAID'] as const) : []),
+    ...(workTypes.includes('advisory') ? (['BOARD_PAID', 'BOARD_UNPAID'] as const) : []),
+  ]
+  // Great pay / great benefits (the `great` parameter): read only when a filter is on.
+  const greatSets = greatFilters.length > 0 ? await loadGreatSets() : null
+  const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
+  const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
     loadBoardShortlist({
-      candidate: profile,
+      candidate: boardProfile,
       isCandidatePlus,
       where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
       view: boardView,
+      // The member's stage, one up and one down (career-stage.ts; a pivot path adds
+      // one more down); a seniority-filter choice shows exactly that group instead.
+      stageWindow: seniorityGroup ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
+      includeMidLevel: true,
+      includeEarlyCareer: true,
+      workTypes,
+      keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
     }),
-    isCandidatePlus ? getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : Promise.resolve([]),
+    isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
+    loadMyJobs(profile.id, memberSkillKeywords(profile)),
+    onBoard && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
   ])
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
@@ -795,7 +1024,9 @@ async function FindMyJobBody({
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
 
-      {emailConnection && !emailConnection.needsReconnectAt && (
+      {!onBoard && <MyJobsPanel view={myJobs} />}
+
+      {!onBoard && emailConnection && !emailConnection.needsReconnectAt && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">
             <p>
@@ -808,6 +1039,7 @@ async function FindMyJobBody({
         </div>
       )}
 
+      {!onBoard && (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {/* Expandable like the tiles beside it, so a misread "application"
             can be spotted and removed (with a reason) instead of just counted. */}
@@ -826,8 +1058,10 @@ async function FindMyJobBody({
         ))}
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
       </div>
+      )}
 
-      {!profile.recruiterVisibilityConfirmedAt && (
+
+      {onBoard && !profile.recruiterVisibilityConfirmedAt && (
         <Card className="border-warning/40 bg-warning/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2.5">
@@ -855,69 +1089,112 @@ async function FindMyJobBody({
         </Card>
       )}
 
+      {onBoard && (
       <div id="apply-new-jobs" className="scroll-mt-4 space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Apply to New Jobs</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Search broadly, then check the boards tailored to you below — then come back and log
-            what you applied to.
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold tracking-tight">Apply to new jobs</h2>
+          <p className="text-sm text-muted-foreground">
+            One board for every kind of work. Pick the kinds you want — Save the jobs you like, and mark them
+            applied; we also pick up applications from your connected Gmail.
           </p>
+          <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
         </div>
+
+        <ApplyPrompts
+          prompts={myJobs.prompts.map((p) => ({
+            trackedJobId: p.trackedJobId,
+            title: p.title,
+            companyName: p.companyName,
+            clickedOn: p.clickedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          }))}
+        />
+        {myJobs.insight && <SkillsGapInsightCard insight={myJobs.insight} surface="board" compact />}
 
         <div id="job-recommendations" className="scroll-mt-4 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2.5">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
               <Sparkles className="size-3.5" aria-hidden />
             </span>
-            <p className="text-sm font-semibold text-foreground">Job Recommendations For You</p>
+            <p className="text-sm font-semibold text-foreground">
+              {workTypes.length === 1 ? `${WORK_TYPE_LABEL[workTypes[0]]} jobs for you` : 'Jobs for you'}
+            </p>
             <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
               +{applicationPoints} pts
             </span>
             <div className="ml-auto flex flex-wrap items-center gap-3">
               <BoardViewToggle surface="find_my_job" />
+              <GreatEmployerFilter surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />
             </div>
           </div>
+          {pivotFilter ? (
+            <PivotBoardBanner target={pivotFilter.target} label={pivotFilter.label} openTotal={board.openTotal} />
+          ) : (
+            <Suspense fallback={null}>
+              <PivotBoardPrompt profile={profile} />
+            </Suspense>
+          )}
           <div className="mt-3">
             <Suspense fallback={<JobRecommendationsSkeleton />}>
               <JobRecommendationsSection
-                profile={profile}
+                profile={boardProfile}
+                pivotFilter={pivotFilter}
                 dossierReason={dossierStatus.reason}
                 board={board}
                 contacts={contacts}
                 seniorityGroup={seniorityGroup}
                 boardView={boardView}
+                workTypes={workTypes}
+                greatFilters={greatFilters}
+                myJobs={myJobs}
+                expertNetworks={expertNetworks}
               />
             </Suspense>
           </div>
         </div>
       </div>
+      )}
 
-      <Suspense fallback={null}>
-        <LikelyOpeningsSection profile={profile} />
-      </Suspense>
+      {/* SEC filings and news before a senior search: full-time searches. */}
+      {onBoard && workTypes.includes('full_time') && (
+        <Suspense fallback={null}>
+          <LikelyOpeningsSection profile={profile} />
+        </Suspense>
+      )}
 
+      {onBoard && (
       <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
+        {/* Old Interim Work anchor (role-match emails link here). */}
+        <span id="board-advisory-work" className="block scroll-mt-4" aria-hidden />
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Employer-Matched Roles</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Employer-matched roles</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Full-time roles posted directly by employers on NextChapter, matched to your background.
+            Roles posted directly by employers on NextChapter and matched to your background:{' '}
+            {workTypes.map((t) => WORK_TYPE_LABEL[t].toLowerCase()).join(', ')}.
           </p>
         </div>
         {!isCandidatePlus ? (
           <LockedFeatureNotice
-            title="Employer-Matched Roles"
-            requirement="Unlock your Dossier to see employer-posted full-time roles matched to your background."
+            title="Employer-matched roles"
+            requirement="Unlock your Dossier to see employer-posted roles, board seats and consulting work matched to your background."
             status={dossierStatus.reason}
           />
         ) : (
           <MatchedRoleList
-            roles={matchedFullTimeRoles}
-            emptyMessage="No full-time roles match your background yet — check back soon."
+            roles={matchedRoles.filter((r) => workTypes.includes(roleProfileWorkType(r.type)))}
+            emptyMessage="No employer-posted roles match your background yet — check back soon."
           />
         )}
       </div>
+      )}
 
+      {onBoard && (
+        <Suspense fallback={null}>
+          <IndependentWorkSections profile={profile} types={workTypes} />
+        </Suspense>
+      )}
+
+      {!onBoard && (
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
 
@@ -948,7 +1225,8 @@ async function FindMyJobBody({
             {jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
 
-              if (posting.source === 'EMAIL_DETECTED') {
+              // Email-found and board-applied rows have no fit check — the simple status card.
+              if (posting.source !== 'MANUAL') {
                 const status = posting.offerReceivedAt
                   ? 'Offer received'
                   : posting.declinedAt
@@ -1481,6 +1759,9 @@ async function FindMyJobBody({
         </div>
       </div>
 
+      )}
+
+      {!onBoard && (
       <div id="company-tracker" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
@@ -1500,6 +1781,9 @@ async function FindMyJobBody({
         </Card>
       </div>
 
+      )}
+
+      {onBoard && (
       <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
@@ -1518,6 +1802,9 @@ async function FindMyJobBody({
         </Link>
       </div>
 
+      )}
+
+      {!onBoard && (
       <div id="mock-interview" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Complete a Mock Interview</h2>
@@ -1535,6 +1822,9 @@ async function FindMyJobBody({
         </Link>
       </div>
 
+      )}
+
+      {onBoard && (
       <div id="job-boards" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Job Boards</h2>
@@ -1547,6 +1837,9 @@ async function FindMyJobBody({
         <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
       </div>
 
+      )}
+
+      {onBoard && (
       <div id="resume-book" className="scroll-mt-4 border-t border-border pt-8">
         {profile.resumeBookOptIn && profile.resumeBookOptInConfirmedAt ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
@@ -1571,7 +1864,9 @@ async function FindMyJobBody({
         )}
       </div>
 
-      {profile.recruiterVisibilityConfirmedAt && (
+      )}
+
+      {onBoard && profile.recruiterVisibilityConfirmedAt && (
         <div className="space-y-1.5 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
           <Link href="/dashboard/privacy" className="inline-block underline underline-offset-4">

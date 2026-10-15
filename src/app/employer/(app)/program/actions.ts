@@ -6,6 +6,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-auth'
 import { uploadEmployerLogo } from '@/lib/employer/brand-upload'
 import { cleanBrandColor, EVERYONE, PROGRAM_FEATURES, readProgramSettings, type ProgramFeatureKey, type ProgramPackage, type ServiceChoice } from '@/lib/employer/program-settings'
+import { grantSeatAccess } from '@/lib/access/grants'
 
 export type ProgramFormState = { error?: string; ok?: string } | undefined
 type Result = { error?: string; ok?: boolean; message?: string }
@@ -97,7 +98,8 @@ export async function setSeatPackage(seatId: string, packageKey: string): Promis
   const s = await current(orgUser.orgId)
   if (packageKey !== EVERYONE && !s.packages.some((p) => p.key === packageKey)) return { error: 'That package no longer exists.' }
   const r = await prisma.outplacementSeat.updateMany({ where: { id: seatId, contract: { orgId: orgUser.orgId } }, data: { packageKey: packageKey === EVERYONE ? null : packageKey } })
-  captureServerEvent(orgUser.userId, 'outplacement_seat_package_set', { orgId: orgUser.orgId, packageKey })
+  if (r.count) await grantSeatAccess(seatId, `employer:${orgUser.userId}`, { prune: true }).catch(() => null)
+  captureServerEvent(orgUser.userId, 'outplacement_seat_package_set', { orgId: orgUser.orgId, seatId, packageKey })
   revalidatePath('/employer/roster')
   return r.count ? { ok: true } : { error: 'That seat is gone.' }
 }

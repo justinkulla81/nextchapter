@@ -6,8 +6,8 @@
 ],
 [
 "Software Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Staff Software Engineer",
@@ -21,8 +21,8 @@
 ],
 [
 "Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Account Executive",
@@ -76,8 +76,8 @@
 ],
 [
 "Financial Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Financial Analyst",
@@ -116,8 +116,8 @@
 ],
 [
 "HR Business Partner",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Executive Assistant to the CEO",
@@ -136,8 +136,8 @@
 ],
 [
 "Restaurant General Manager",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "General Manager, Payments",
@@ -151,8 +151,8 @@
 ],
 [
 "Associate Product Manager",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Principal, Growth Equity",
@@ -256,8 +256,8 @@
 ],
 [
 "Software Engineer - Edge",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Applied Legal Researcher",
@@ -311,8 +311,8 @@
 ],
 [
 "AI Solutions Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Compliance Engineer - North America",
@@ -321,8 +321,8 @@
 ],
 [
 "Scaled Outcomes Architect, Dublin, Russian-Speaking",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Revenue Operations Lead",
@@ -351,13 +351,13 @@
 ],
 [
 "Sales Engineer (Presales)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Backend Engineer, Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Foundation Model Inference",
@@ -396,8 +396,8 @@
 ],
 [
 "Backend Software Engineer, Airports",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer (Backend) - AI/ML Environments",
@@ -416,13 +416,13 @@
 ],
 [
 "Assistant General Counsel, Credit Cards",
-"C_SUITE",
-100
+"SR_MANAGER",
+52
 ],
 [
 "Full Stack Software Engineer, Sales Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Anti Abuse Engineer",
@@ -451,8 +451,8 @@
 ],
 [
 "Risk and Compliance Specialist - Global Trade",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Electrical Test Engineering Lead",
@@ -491,8 +491,8 @@
 ],
 [
 "Software Engineer, Cyber Frontier",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Marketing Lead, Japan",
@@ -521,8 +521,8 @@
 ],
 [
 "Equity and Reporting Accountant",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Engineer Intern",
@@ -541,13 +541,13 @@
 ],
 [
 "Software Engineer, Traffic",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "BDR Outbound (Korean Speaking)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Senior Site Reliability Engineer, Compute",
@@ -556,8 +556,8 @@
 ],
 [
 "Backend Engineer, Developer & End-user Experience Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Solutions Architect, Growth (Central)",
@@ -576,8 +576,8 @@
 ],
 [
 "Software Engineer, Consumer Revenue",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Paralegal, Contracts",
@@ -626,8 +626,8 @@
 ],
 [
 "Inbound Compliance Analyst (KYC)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Cards Monetization",
@@ -641,8 +641,8 @@
 ],
 [
 "Software Engineer, ML Data Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Engineer, Observability",
@@ -656,8 +656,8 @@
 ],
 [
 "Commercial Account Executive UKI/Nordics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer - Safety Platform",
@@ -686,13 +686,13 @@
 ],
 [
 "People Partner - Product and Product Design",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Digital Natives",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior AI Product Manager, Leaderboard",
@@ -726,8 +726,8 @@
 ],
 [
 "Web Design Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Search Storage",
@@ -756,8 +756,8 @@
 ],
 [
 "Sales Development Representative (SDR), EMEA",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "AI Support Engineer - Singapore",
@@ -766,13 +766,13 @@
 ],
 [
 "Software Engineer, Agent (Korean Speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Client Account Executive, EMEA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Solutions Engineer, Retail - CPG",
@@ -811,8 +811,8 @@
 ],
 [
 "Software Engineer, Infrastructure - Analytics Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Pre-sales Senior Technical Solutions Engineer (AI/ML - Digital Native Business) x2",
@@ -846,8 +846,8 @@
 ],
 [
 "Business Development Representative, EMEA",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Software Engineer: Platform",
@@ -871,8 +871,8 @@
 ],
 [
 "Software Engineer, Internal Identity",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer Internship, Android",
@@ -886,8 +886,8 @@
 ],
 [
 "Backend Engineer, Privy",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Integration Engineer III",
@@ -896,8 +896,8 @@
 ],
 [
 "Software Engineer, Network Firewall",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Marketing Programs Manager",
@@ -906,8 +906,8 @@
 ],
 [
 "SMB Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer (EAA)",
@@ -916,8 +916,8 @@
 ],
 [
 "Software Engineer, Creator",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Compute Infrastructure",
@@ -946,18 +946,18 @@
 ],
 [
 "Software Engineer, Agent (Thai Speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "PhD University Grad Data Scientist 2027 (USA)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Account Executive, Product (Link and Financial Connections)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Compliance Associate",
@@ -981,8 +981,8 @@
 ],
 [
 "Database Reliability Engineer - Core Team",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Executive IT Support Engineer, Tech Foundations",
@@ -991,13 +991,13 @@
 ],
 [
 "Backend Engineer, AI Security",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full Stack Engineer, Link",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Staff Software Engineer, Product ML Infrastructure",
@@ -1041,8 +1041,8 @@
 ],
 [
 "Commercial Account Executive - LATAM (Spanish Speaking) - Boston",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Startup Products",
@@ -1056,8 +1056,8 @@
 ],
 [
 "Product Security Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Senior Product Manager, Shopping Experiences",
@@ -1101,8 +1101,8 @@
 ],
 [
 "Software Engineer, Product Velocity",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Research Engineer, Post-Training",
@@ -1116,8 +1116,8 @@
 ],
 [
 "Software Engineer, Data Loading Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Agent Development - Financial Services",
@@ -1126,8 +1126,8 @@
 ],
 [
 "Growth Account Executive - Washington D.C.",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager of Managers, Service Infrastructure",
@@ -1156,18 +1156,18 @@
 ],
 [
 "Software Engineer II (Money Movement & Card Ledger)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Growth Recruiter, High Volume - Contract",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive | Strategic",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Enablement Program Manager, Support Engineering",
@@ -1196,13 +1196,13 @@
 ],
 [
 "Machine Learning Systems Engineer, Ads ML Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer II, Autonomous Freight Systems",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Employment Counsel - AMER",
@@ -1236,8 +1236,8 @@
 ],
 [
 "Mid Market Account Executive - DACH",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Developer Marketer - Sales",
@@ -1246,8 +1246,8 @@
 ],
 [
 "Software Engineer, Fulfillment Core Services",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Support Engineer (APAC)",
@@ -1271,8 +1271,8 @@
 ],
 [
 "Software Engineer, CDN Configuration Group",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Data Ops Engineer",
@@ -1296,8 +1296,8 @@
 ],
 [
 "Software Engineer, Cooperative AI",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Lyft AI Platform & Marketplace Applications",
@@ -1351,8 +1351,8 @@
 ],
 [
 "Backend Software Engineer, ChatGPT ImageGen",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Executive Engagement Marketing Manager, Americas",
@@ -1361,8 +1361,8 @@
 ],
 [
 "Business Development Representative - Danish, Norwegian or Swedish Speaking",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Forward Deployed Software Engineer - Edge Autonomous Systems",
@@ -1381,8 +1381,8 @@
 ],
 [
 "Data Engineer, Hardware & Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Partnership Sales Manager",
@@ -1441,8 +1441,8 @@
 ],
 [
 "Account Executive, SMB",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Operations Manager",
@@ -1506,8 +1506,8 @@
 ],
 [
 "Data Scientist, Inference Capacity Optimization",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Account Executive, Enterprise - Thailand",
@@ -1536,8 +1536,8 @@
 ],
 [
 "Mechanical Engineer, Sensing",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Compliance Engineer - EU",
@@ -1561,8 +1561,8 @@
 ],
 [
 "People Operations Generalist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Data Scientist, Monetization",
@@ -1586,8 +1586,8 @@
 ],
 [
 "Software Engineer, Graphics & Media",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Multimodal (API)",
@@ -1601,8 +1601,8 @@
 ],
 [
 "Account Executive, Product Sales - Currency Management",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed Engineer, Gov",
@@ -1626,8 +1626,8 @@
 ],
 [
 "Software Engineer, Frontend, Ramp Revenue",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Product Manager, Cloud",
@@ -1636,8 +1636,8 @@
 ],
 [
 "Account Executive, Strategic Platform Partnerships",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Software Engineer - Performance",
@@ -1661,13 +1661,13 @@
 ],
 [
 "Core Software Engineer (C++) - Remote",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Instant Loans",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Account Executive - Italy",
@@ -1706,8 +1706,8 @@
 ],
 [
 "Fullstack Engineer, Safety Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Partner Solutions Engineer - Pacific Time",
@@ -1731,8 +1731,8 @@
 ],
 [
 "Operations Analyst - US Government",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Technical Customer Support Engineer",
@@ -1741,8 +1741,8 @@
 ],
 [
 "Fullstack Software Engineer, Notifications Lifecycle",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Site Reliability Engineer",
@@ -1786,8 +1786,8 @@
 ],
 [
 "Product Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Data Scientist, Core",
@@ -1826,8 +1826,8 @@
 ],
 [
 "Solutions Integration Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Accounting Manager, GL Operations & Intercompany",
@@ -1856,18 +1856,18 @@
 ],
 [
 "IT Infrastructure Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Field Engineering, AI/ML Product Specialist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Growth and Monetization",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Machine Learning (Ads)",
@@ -1876,8 +1876,8 @@
 ],
 [
 "People Partner, Europe",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Accountant, Technical Revenue",
@@ -1906,13 +1906,13 @@
 ],
 [
 "Commercial Account Executive - LATAM (Portuguese Speaking) - Denver",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full Stack Software Engineer, Growth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success Manager (Greater China)",
@@ -1921,8 +1921,8 @@
 ],
 [
 "Global PubSec Transaction Attorney",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Customer Engineer, Majors, San Francisco",
@@ -1976,13 +1976,13 @@
 ],
 [
 "Software Engineer - Salesforce Platform (EAA)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "People Partner, APJ",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Retail Media & Audiences",
@@ -2006,8 +2006,8 @@
 ],
 [
 "Software Engineer II, Backend, tvScientific",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Delivery Solutions Architect - Public Sector",
@@ -2026,8 +2026,8 @@
 ],
 [
 "Software Engineer, System Enablement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Manager, Field Engineering - Lakebase",
@@ -2066,8 +2066,8 @@
 ],
 [
 "Operations Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Compliance Manager, Card",
@@ -2096,8 +2096,8 @@
 ],
 [
 "Product Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Field Technical Program Manager, Forward Deployed Engineering - Canada",
@@ -2106,8 +2106,8 @@
 ],
 [
 "Community Support Forecasting and Demand Planning Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Architect, (Italian fluency)",
@@ -2126,13 +2126,13 @@
 ],
 [
 "DevOps Engineer, Infrastructure & Security",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, YC",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Abuse Control Engineering",
@@ -2156,8 +2156,8 @@
 ],
 [
 "Software Engineer I",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Engineer 3 - GTM Tech",
@@ -2186,8 +2186,8 @@
 ],
 [
 "Software Engineer II (Backend, Enterprise)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Pre-Sales Solutions Architect",
@@ -2216,13 +2216,13 @@
 ],
 [
 "Account Executive, Platforms (New Business)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Commercial",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Programmatic Ads",
@@ -2236,8 +2236,8 @@
 ],
 [
 "Software Engineer - Backend",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success Manager, Ads Solutions",
@@ -2261,8 +2261,8 @@
 ],
 [
 "Scaled Outcomes Architect, New York",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Field Marketing Manager, SMB and Mid-Market - EMEA",
@@ -2321,8 +2321,8 @@
 ],
 [
 "Network Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "IT Logistics Lead, Singapore",
@@ -2336,8 +2336,8 @@
 ],
 [
 "Systems Software Engineer - Game Engine Network (C++)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Production Engineering",
@@ -2351,8 +2351,8 @@
 ],
 [
 "Backend Engineer/API, Payments and Risk",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Account Executive, Retail",
@@ -2431,13 +2431,13 @@
 ],
 [
 "Account Executive, Growth -Scale (East)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Security Risk Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Data Scientist, Marketing",
@@ -2446,8 +2446,8 @@
 ],
 [
 "Enterprise Sales Engineer - Nordics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Platform Reliability",
@@ -2456,8 +2456,8 @@
 ],
 [
 "Social Content Strategist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Data Scientist, Finance & Business Ops",
@@ -2511,8 +2511,8 @@
 ],
 [
 "Backend Software Engineer (Evals)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Solana Staking Protocol",
@@ -2521,8 +2521,8 @@
 ],
 [
 "Software Engineer, Data Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Enterprise Account Executive - CMEG",
@@ -2586,8 +2586,8 @@
 ],
 [
 "Analytics Engineer, GTM",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Android Engineer, Pick & Deliver",
@@ -2636,8 +2636,8 @@
 ],
 [
 "Network Deployment Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Service Mesh",
@@ -2666,8 +2666,8 @@
 ],
 [
 "Software Engineer, Growth Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Litigation Paralegal",
@@ -2711,8 +2711,8 @@
 ],
 [
 "Software Engineer, ML Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Mechanical Engineer, Packaging",
@@ -2721,8 +2721,8 @@
 ],
 [
 "IT Operations Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Sales Manager, AI",
@@ -2736,8 +2736,8 @@
 ],
 [
 "Senior AI Data & Analytics Engineer II",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director, Marketing - Figma Weave (New York, United States)",
@@ -2751,13 +2751,13 @@
 ],
 [
 "Deputy CISO and Cybersecurity Architect",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Systems Engineer (Data Intelligence & Analytics Team)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior ABM Marketing Manager",
@@ -2771,18 +2771,18 @@
 ],
 [
 "Camera Software Engineer, Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, AI Platforms",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Web Application Developer - Defense",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Manager, Enterprise Growth",
@@ -2791,8 +2791,8 @@
 ],
 [
 "Territory Account Executive (Based in Melbourne)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed Software Engineer, New Grad - US Government",
@@ -2801,8 +2801,8 @@
 ],
 [
 "Software Engineer, Agent Productivity",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Solutions Architecture (Pre-Sales)",
@@ -2816,8 +2816,8 @@
 ],
 [
 "Design Engineer (Web & Brand)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Data Scientist, Security",
@@ -2841,8 +2841,8 @@
 ],
 [
 "Software Engineer II, Backend (Streaming)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Principal Software Engineer, Game Safety",
@@ -2871,8 +2871,8 @@
 ],
 [
 "Full Stack Software Engineer, Agent Enablement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Machine Learning Engineer, Applied Science",
@@ -2881,8 +2881,8 @@
 ],
 [
 "Workload Porting & Performance Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing Manager, Marketplace",
@@ -2901,8 +2901,8 @@
 ],
 [
 "Software Engineer, Agent (Dutch speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "General Manager & VP, Asana for Services Management",
@@ -2921,8 +2921,8 @@
 ],
 [
 "Sales Systems Engineer, Enterprise Operations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Manager, Engineering",
@@ -2946,8 +2946,8 @@
 ],
 [
 "Field Security Specialist (Cyber Security Solutions Engineer)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Engineer, iOS Performance",
@@ -2956,8 +2956,8 @@
 ],
 [
 "Mid Market Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Corporate Counsel",
@@ -2976,8 +2976,8 @@
 ],
 [
 "Account Executive, Mid Market (Hunter)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Partner Solutions Architect - India",
@@ -2996,18 +2996,18 @@
 ],
 [
 "Security Software Engineer, Infrastructure Security (Staff or Senior)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, OpenAI Presence",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Geo Enterprise - ANZ",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Command",
@@ -3041,23 +3041,23 @@
 ],
 [
 "Business Analyst II (Lifecycle Marketing)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Data Scientist, Analytics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Core Account Executive - Banking, m/f/d",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Group Product Manager II, Creative Tech - tvScientific",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Customer Success Strategy & Operations Manager",
@@ -3066,8 +3066,8 @@
 ],
 [
 "Commercial Sales Engineer (Dublin)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Lead Product Analyst, Lifecycle Marketing",
@@ -3116,8 +3116,8 @@
 ],
 [
 "Software Engineer, C++",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "IT Engineer",
@@ -3156,13 +3156,13 @@
 ],
 [
 "Software Engineer, Model Routing & Inference",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "NPI Hardware Quality Engineer II, Accessories",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Context Engineer",
@@ -3186,18 +3186,18 @@
 ],
 [
 "Software Engineer, Financial Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Sales Engineer - Paris",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Engineer II, SE Desk - TOLA",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Workplace Operations Specialist",
@@ -3211,8 +3211,8 @@
 ],
 [
 "Account Executive, Enterprise Platforms, Hunter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Supply Chain Operations Program Manager, AI Infrastructure",
@@ -3236,8 +3236,8 @@
 ],
 [
 "Commercial Sales Engineer (AMER - West)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Payments Platform",
@@ -3246,8 +3246,8 @@
 ],
 [
 "Full-Stack Software Engineer, Applied Foundations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Development Manager, Enterprise",
@@ -3271,8 +3271,8 @@
 ],
 [
 "Account Executive , APAC",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Convert",
@@ -3316,13 +3316,13 @@
 ],
 [
 "Software Engineer, Search Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Hardware Operations Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Engineer Intern",
@@ -3356,8 +3356,8 @@
 ],
 [
 "Mechanical Engineer, Soft Goods Design",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Staff Software Engineer, Engineering Acceleration | Consumer Devices",
@@ -3401,13 +3401,13 @@
 ],
 [
 "Software Engineer, API Enterprise Controls",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Core Sales Engineer - TOLA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Legal Counsel - US Government",
@@ -3431,23 +3431,23 @@
 ],
 [
 "Infrastructure engineer (UK)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AI Risk & Compliance Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Commercial Hunter (Japanese Fluency)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Growth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Specialist Solutions Architect - Data Warehousing (Healthcare & Life Sciences)",
@@ -3461,8 +3461,8 @@
 ],
 [
 "Vulnerability Defense Software Engineer, Cloudforce One",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Executive Director, Center for Law and Education",
@@ -3491,33 +3491,33 @@
 ],
 [
 "Data Analyst, Credit Risk",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer II (Full Stack, Platform)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Software Engineer - Data Aquisition (systems)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Salesforce Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer I, Backend",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Territory Account Executive, Indonesia",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Product Manager, Gold Growth",
@@ -3541,18 +3541,18 @@
 ],
 [
 "Software Engineer, Enterprise Controls",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Frontend Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Group Product Manager, Financial Engineering",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "People Operations Lead",
@@ -3561,18 +3561,18 @@
 ],
 [
 "Firmware Test Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Productivity - Model Performance",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Benelux",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Talent Acquisition Partner",
@@ -3591,13 +3591,13 @@
 ],
 [
 "Physical Security Systems Engineer - APAC",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Associate Product Manager (New Grad)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Director of Development Marketing",
@@ -3641,8 +3641,8 @@
 ],
 [
 "Associate Sales Engineer, UK&I",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Commercial Sales Manager, Japan",
@@ -3651,8 +3651,8 @@
 ],
 [
 "Software Engineer, Account Authentication",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Agent Development (Arabic speaking)",
@@ -3666,13 +3666,13 @@
 ],
 [
 "Software Engineer, AI Enablement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Systems Software Engineer, Silicon Bringup",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Docs Product",
@@ -3696,8 +3696,8 @@
 ],
 [
 "Android Engineer, ChatGPT Library Team",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior CIAM Software Engineer",
@@ -3706,8 +3706,8 @@
 ],
 [
 "Enterprise Solutions Engineer - ANZ",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Forward Deployed (Privy)",
@@ -3771,8 +3771,8 @@
 ],
 [
 "Full Stack Engineer, Expansion",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Program Manager, Safety Systems Engineering",
@@ -3781,8 +3781,8 @@
 ],
 [
 "Enterprise Sales Engineer - Brazil",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AI Product Manager, Professional Services",
@@ -3801,8 +3801,8 @@
 ],
 [
 "Commercial Sales Engineer (Amsterdam)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Data Engineer, Growth Acquisition (Growth & Marketing Data)",
@@ -3816,13 +3816,13 @@
 ],
 [
 "Strategic Core Account Executive - Telco",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer I - New Grad, SF",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Forward Deployed Engineer - Mixed Reality",
@@ -3866,8 +3866,8 @@
 ],
 [
 "Electrical Engineer, Robotics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing, Industry Marketing",
@@ -3881,13 +3881,13 @@
 ],
 [
 "Analytics Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manufacturing Engineer - PCBA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Program Manager, AI Accelerator Software",
@@ -3941,8 +3941,8 @@
 ],
 [
 "Software Engineer II (Backend, Hardware Accelerate)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Software Engineering Intern, Web (Summer 2027)",
@@ -3971,8 +3971,8 @@
 ],
 [
 "Network Hardware Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Architect - Financial Services (Professional Services)",
@@ -4046,8 +4046,8 @@
 ],
 [
 "Software Engineer, Money Movement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Integrations",
@@ -4061,8 +4061,8 @@
 ],
 [
 "Senior ML & AI Technical Solutions Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. People Operations and Systems Generalist",
@@ -4081,13 +4081,13 @@
 ],
 [
 "Account Executive, Enterprise (Grower)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Economy Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Ads Platform",
@@ -4096,18 +4096,18 @@
 ],
 [
 "Software Engineer, Stripe Tax",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Data Orchestration",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Hardware",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Enterprise Account Executive - TTH",
@@ -4116,8 +4116,8 @@
 ],
 [
 "Group Product Manager, Verticals",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Compensation Operations Manager",
@@ -4131,8 +4131,8 @@
 ],
 [
 "Analytics Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Vice President, Human Resources",
@@ -4181,8 +4181,8 @@
 ],
 [
 "Account Executive, Growth, Upmarket",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Staff Software Engineer - Blockchain Platform",
@@ -4196,8 +4196,8 @@
 ],
 [
 "Software Engineer, Core Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Head of Product Education Engineering",
@@ -4251,8 +4251,8 @@
 ],
 [
 "Software Engineer II, Backend (Capital Orchestration)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Senior Named Account Executive, Boston",
@@ -4301,8 +4301,8 @@
 ],
 [
 "Solutions Engineer, Core Enterprise",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Recruiter, Tech [12-month FTC]",
@@ -4311,23 +4311,23 @@
 ],
 [
 "Strategic Financial Analyst, Revenue",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Account Executive (SF/U.S. West Coast)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Systems Engineer, Endpoint",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer - Core Interfaces",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Cloud Security Engineer",
@@ -4356,8 +4356,8 @@
 ],
 [
 "Software Engineer, Data Product Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager II, Engineering, Ads Serving Infrastructure",
@@ -4416,13 +4416,13 @@
 ],
 [
 "Integration Engineer (Global)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer - Full Stack",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Field Technical Program Manager, Forward Deployed Engineering",
@@ -4431,8 +4431,8 @@
 ],
 [
 "Software Engineer, GTM Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Managing Director, Healthcare & Life Sciences Practice -Life Sciences",
@@ -4456,8 +4456,8 @@
 ],
 [
 "Account Executive Lead - North America - Mid-Market",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Director of Engineering, Math",
@@ -4466,8 +4466,8 @@
 ],
 [
 "Backend Engineer, Payments Experiences",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Engineering Manager",
@@ -4481,8 +4481,8 @@
 ],
 [
 "Software Engineer, API Agents",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success & Enterprise Support Lead, APAC",
@@ -4491,18 +4491,18 @@
 ],
 [
 "Software Engineer, Growth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full Stack Engineer, Enterprise Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Bugbot",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Engineering Manager, Enterprise Foundations",
@@ -4516,8 +4516,8 @@
 ],
 [
 "Software Engineer, Robotics & Autonomous Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Manager, HR Compliance - Americas",
@@ -4566,8 +4566,8 @@
 ],
 [
 "Mechanical Engineer, Hardware Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategy & Operations Business Partner, Solution Architecture",
@@ -4581,8 +4581,8 @@
 ],
 [
 "Account Executive, Financial Services, Grower",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Vice President, Global Corporate Controller",
@@ -4641,13 +4641,13 @@
 ],
 [
 "Core Account Executive, Nordics (Digital Natives)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Distributed Systems Engineer - Data Platform - Analytics and Alerts",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Manager \u2013 Data & AI Support Engineering",
@@ -4696,13 +4696,13 @@
 ],
 [
 "Data Scientist, Algorithms",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Optimized Checkout & Link",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Software Engineer, Codex Cyber",
@@ -4726,13 +4726,13 @@
 ],
 [
 "Systems Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Product Sales, Metronome",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, International",
@@ -4751,8 +4751,8 @@
 ],
 [
 "Software Engineer, Credit",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Analyst, SEC Reporting & Technical Accounting",
@@ -4761,8 +4761,8 @@
 ],
 [
 "Protection Scientist Engineer, Integrity",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Software Engineering (Marketplace Performance)",
@@ -4786,8 +4786,8 @@
 ],
 [
 "People Partner, Agent Development",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager - Realtime",
@@ -4816,8 +4816,8 @@
 ],
 [
 "Named Core Account Executive - DNB",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Manager, Field Engineering Qatar&Africa",
@@ -4846,13 +4846,13 @@
 ],
 [
 "Software Engineer, Vulnerability Management",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive | Commercial",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Secure Execution",
@@ -4871,8 +4871,8 @@
 ],
 [
 "Product Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Senior Revenue Accountant",
@@ -4886,8 +4886,8 @@
 ],
 [
 "Product Manager, New Grad (2026) - Belgrade",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Talent Operations",
@@ -4936,8 +4936,8 @@
 ],
 [
 "Associate Customer Success Manager",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer II, Open Source Server",
@@ -4971,8 +4971,8 @@
 ],
 [
 "Security Engineer II - Vulnerability Management",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Senior Machine Learning Infrastructure Engineer, Embedding Platform",
@@ -4991,8 +4991,8 @@
 ],
 [
 "Product Engineer, Product Platform (Frontend)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Manager, Enterprise",
@@ -5046,8 +5046,8 @@
 ],
 [
 "Assistant General Counsel, Bankruptcy",
-"C_SUITE",
-100
+"SR_MANAGER",
+52
 ],
 [
 "Specialist Solutions Architect - Cloud Platform & Infrastructure (Azure)",
@@ -5106,8 +5106,8 @@
 ],
 [
 "Digital Customer Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Account Executive - Retail",
@@ -5126,13 +5126,13 @@
 ],
 [
 "People Partner Lead, CX",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Machine Learning Solutions Engineer \u2013 Robotics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Office of the Vice President for Institutional Advancement",
@@ -5156,8 +5156,8 @@
 ],
 [
 "Software Engineer - Platforms & Productivity",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "IT Service Desk Engineer",
@@ -5166,13 +5166,13 @@
 ],
 [
 "QA Engineer - Core Database (remote)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer \u2160",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Hardware Program Manager, Terminal Logistics",
@@ -5196,8 +5196,8 @@
 ],
 [
 "Software Engineer, Agent Builder",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing Director, Command by Asana",
@@ -5251,8 +5251,8 @@
 ],
 [
 "Full Stack Software Engineer, Codex",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Application Security Engineer",
@@ -5261,8 +5261,8 @@
 ],
 [
 "Optical Interconnect System Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Software Engineer, Cloud Platform",
@@ -5286,8 +5286,8 @@
 ],
 [
 "University Recruiter, Contract",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Field Engineer",
@@ -5321,18 +5321,18 @@
 ],
 [
 "Corporate Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Mid-Market Account Executive - Boston",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Hardware Tools Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Technical Program Manager, Developer Productivity",
@@ -5341,8 +5341,8 @@
 ],
 [
 "IT Controls Data Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer - Egress (Go/Rust)",
@@ -5356,8 +5356,8 @@
 ],
 [
 "Account Executive, Mid Market (TOLA)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Sourcing Manager, Engineering Technology & Software",
@@ -5381,8 +5381,8 @@
 ],
 [
 "Staff PLM & Engineering Applications Engineer, Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Engineer, Revenue and Financial Management",
@@ -5416,8 +5416,8 @@
 ],
 [
 "Backend Software Engineer, Applied Foundations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Full-Stack Engineer, App Journey (GraphQL)",
@@ -5446,8 +5446,8 @@
 ],
 [
 "Software Engineer, Engine Scalability",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior iOS Engineer",
@@ -5496,8 +5496,8 @@
 ],
 [
 "Site Reliability Engineer (US - Central/Eastern time)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Security Engineer, Detection & Response",
@@ -5506,8 +5506,8 @@
 ],
 [
 "Salesforce Applications Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Media Analytics Manager, Measurement & Attribution",
@@ -5516,8 +5516,8 @@
 ],
 [
 "Account Executive, Product - Issuing & Treasury (Hunter)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Technical Recruiter",
@@ -5526,13 +5526,13 @@
 ],
 [
 "AI deployment engineer (East)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Engineer II, SE Desk - Southeast",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Staff Software Engineer, Data Infrastructure",
@@ -5591,13 +5591,13 @@
 ],
 [
 "Data Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "General Manager | Busy Fast Food Restaurant",
-"C_SUITE",
-100
+"MANAGER",
+40
 ],
 [
 "Engineering Manager, Cloud & Data Security",
@@ -5616,13 +5616,13 @@
 ],
 [
 "Software Engineer, Data Access",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Center Research & Development Engineer, Mechanical - Industrial Compute",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Architect - Media",
@@ -5631,13 +5631,13 @@
 ],
 [
 "Software Engineer, Monetization Product & Platform",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "SMB Account Executive - French speaking",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Business Development Associate, Ocean Consolidations",
@@ -5661,8 +5661,8 @@
 ],
 [
 "Business Development Representative (BDR), LATAM Portuguese Speaking",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Developer Marketing Lead, APAC",
@@ -5686,8 +5686,8 @@
 ],
 [
 "Site Reliability Engineer (Senior or Staff), Infrastructure Security",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, CX Automation",
@@ -5711,8 +5711,8 @@
 ],
 [
 "Inside Sales Representative - Early Career (2026)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Strategic Finance, International & Marketing",
@@ -5726,18 +5726,18 @@
 ],
 [
 "Security Engineer, Detection and Response - EMEA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Machine Learning",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Scientist - Search",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success - Southern Europe",
@@ -5781,8 +5781,8 @@
 ],
 [
 "General Manager",
-"C_SUITE",
-100
+"MANAGER",
+40
 ],
 [
 "Senior Software Engineer, Full Stack - NYC",
@@ -5791,13 +5791,13 @@
 ],
 [
 "Bank Compliance Technology Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive - North America - Mid-Market",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Product Engineer, Product Foundry",
@@ -5826,8 +5826,8 @@
 ],
 [
 "Simulation Infrastructure Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Head of Field Marketing and Events, Gen AI",
@@ -5846,8 +5846,8 @@
 ],
 [
 "Startup Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Research Engineer, Data Agents",
@@ -5856,8 +5856,8 @@
 ],
 [
 "HR Generalist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Accounting Partner Growth Manager",
@@ -5871,13 +5871,13 @@
 ],
 [
 "Software Engineer, Platform Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer - Auth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Marketing Financial Operations Manager",
@@ -5906,13 +5906,13 @@
 ],
 [
 "Software Engineer, Backend (Product)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Recruiter (Fixed Term Contract)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Risk Operations, Collections",
@@ -5921,8 +5921,8 @@
 ],
 [
 "Commercial Account Executive (German speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "iOS Engineer III",
@@ -5936,13 +5936,13 @@
 ],
 [
 "Software Engineer, Agent - Travel & Hospitality",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Engineer (German speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product & Customer Experience Director",
@@ -5961,13 +5961,13 @@
 ],
 [
 "AI Deployment Engineer, Startups",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Infrastructure, Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Partner Solutions Architect - LatAm",
@@ -5991,8 +5991,8 @@
 ],
 [
 "Software Engineer, Data Infrastructure - Research",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing Manager, Advertising",
@@ -6006,8 +6006,8 @@
 ],
 [
 "Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Customer Success Manager",
@@ -6026,8 +6026,8 @@
 ],
 [
 "Business Development Representative - Dutch Speaking",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Network Engineer, App Platform",
@@ -6066,13 +6066,13 @@
 ],
 [
 "Full-stack Engineer - Creative Agents",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Lead GTM Enablement & Scale Architect, Product Enablement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Forward Deployed Engineer - Tokyo",
@@ -6101,8 +6101,8 @@
 ],
 [
 "Enterprise Solutions Engineer, Service Management",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "GCC Marketing Sr. Lead",
@@ -6116,13 +6116,13 @@
 ],
 [
 "Restaurant General Manager",
-"OTHER",
-0
+"MANAGER",
+40
 ],
 [
 "Software Engineer, Accounting",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AV & Events Engineer",
@@ -6151,13 +6151,13 @@
 ],
 [
 "Founding Account Executive (Brazil)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Product Sales - Tax",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Creator Experience",
@@ -6166,8 +6166,8 @@
 ],
 [
 "Distributed Systems Engineer - Data Platform - Logs and Audit Logs",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Accounting Manager",
@@ -6181,18 +6181,18 @@
 ],
 [
 "Software Engineer, Security",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Backend Engineer, Link (US)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Sales Engineer (Spanish speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Work Intake",
@@ -6206,8 +6206,8 @@
 ],
 [
 "Software Engineer, Tokenization",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Treasury Finance AI and Quantitative Analytics, Americas",
@@ -6221,8 +6221,8 @@
 ],
 [
 "Data Scientist, Business",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "CMO Executive Recruitment for Growth-Focused Brands",
@@ -6236,8 +6236,8 @@
 ],
 [
 "Operating Systems Engineer, Linux Kernel | Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Executive Escalations Senior Associate",
@@ -6246,13 +6246,13 @@
 ],
 [
 "Enterprise Solutions Engineer - Belgium",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer - New Grad",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Senior Named Account Executive (Austin/Houston)",
@@ -6266,8 +6266,8 @@
 ],
 [
 "AI Deployment Engineer - Startups",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategy & Operations Lead, Strategic Enablement, MC2",
@@ -6276,8 +6276,8 @@
 ],
 [
 "Software Engineer-",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Architect, Enterprise (French Speaking)",
@@ -6331,8 +6331,8 @@
 ],
 [
 "Commercial Account Executive - Sao Paulo (Portuguese Speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Presales Customer Engineer, Enterprise (based in Melbourne)",
@@ -6376,13 +6376,13 @@
 ],
 [
 "Salesforce Technical Architect",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Component Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Assistant Dean - Graduate Medical Education (GME)",
@@ -6391,8 +6391,8 @@
 ],
 [
 "Software Engineer, Privacy",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Payments Compliance",
@@ -6406,13 +6406,13 @@
 ],
 [
 "Product Engineer, GTM Growth Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Core Account Executive, Mexico City",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Account Executive, Strategic Pursuits, Aviation APAC (Based in Singapore)",
@@ -6456,8 +6456,8 @@
 ],
 [
 "IAM Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer - CAM",
@@ -6496,13 +6496,13 @@
 ],
 [
 "Backend Software Engineer, API Enterprise Controls",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "iOS Engineer II (AI Experiences)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Field Marketing Manager, Sponsorship & Experiential \u2014 United Kingdom",
@@ -6511,8 +6511,8 @@
 ],
 [
 "University Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Marketing Enablement & Technology",
@@ -6561,8 +6561,8 @@
 ],
 [
 "Software Engineer, Frontend",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Member of Technical Staff (Software Engineer, Computer Growth)",
@@ -6606,8 +6606,8 @@
 ],
 [
 "Account Executive, Product Sales (Tax)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "GTM Business Operations Manager",
@@ -6616,8 +6616,8 @@
 ],
 [
 "Data Analyst, People Analytics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Data Product Engineer",
@@ -6641,8 +6641,8 @@
 ],
 [
 "Infrastructure Software Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sales Manager, Small Business",
@@ -6671,8 +6671,8 @@
 ],
 [
 "Account Executive - Enterprise",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, Strategy and Business Operations",
@@ -6696,8 +6696,8 @@
 ],
 [
 "GTM Recruiter, AMER (Fixed Term)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Office Manager, Berlin",
@@ -6706,8 +6706,8 @@
 ],
 [
 "Mid-Market Account Executive - France",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Cloud Software Engineer - Efficiency Engineering",
@@ -6726,18 +6726,18 @@
 ],
 [
 "Cloud Operations Engineer (2nd Shift, Weekend)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Territory Account Executive - Digital Native Start Ups",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Financial Connections TechOps Integration Reliability Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Sensitive Deployments",
@@ -6751,13 +6751,13 @@
 ],
 [
 "HRBP, Core Business",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Recruiter II, G&A",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Controller Intern",
@@ -6771,8 +6771,8 @@
 ],
 [
 "AI Deployment Engineer, Messenger Integrations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Digital Native Named Account Executive (SF)",
@@ -6791,8 +6791,8 @@
 ],
 [
 "Network Deployment Engineer - APJC",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Mobile AI",
@@ -6811,8 +6811,8 @@
 ],
 [
 "Business Systems Engineer, Oracle STP",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Lead Generation Strategy and Operations",
@@ -6841,8 +6841,8 @@
 ],
 [
 "Safety Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Full-Stack Software Engineer, Ads",
@@ -6851,8 +6851,8 @@
 ],
 [
 "Software Engineer, Secure Development Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Accountant, Capital Markets",
@@ -6866,8 +6866,8 @@
 ],
 [
 "GTM Contract Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director of the Institute for LGBTQIA+ Community Engagement and Public Hist",
@@ -6891,8 +6891,8 @@
 ],
 [
 "Software Engineer, Backend (Consumer - Risk)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "GTM Operations",
@@ -6906,8 +6906,8 @@
 ],
 [
 "Software Engineer with Systems Depth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Demand Generation Marketing Manager, Private Equity",
@@ -6941,18 +6941,18 @@
 ],
 [
 "Product Engineer, New Products",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Integration Engineer, Metronome",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "IT Software Architect, SaaS Enablement and Governance",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed AI Engineer",
@@ -6961,18 +6961,18 @@
 ],
 [
 "Security GRC Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "HRBP, GTM",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Solutions Engineer - France",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Head of Sales Recruiting, AMER",
@@ -7006,13 +7006,13 @@
 ],
 [
 "Network Operations Engineer, Network Activation",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Central & Eastern Europe - Hebrew Speaking",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing Manager - Incident Response",
@@ -7051,8 +7051,8 @@
 ],
 [
 "Customer Success Lead - Western Europe",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineer (Machine Learning) Intern (Summer 2027)",
@@ -7161,8 +7161,8 @@
 ],
 [
 "Enterprise Core Sales Engineer - Southeast",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Technical Deployment Lead, Forward Deployed Engineering - Paris",
@@ -7181,18 +7181,18 @@
 ],
 [
 "Software Engineer- Fullstack- Tokyo",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "3P Systems Architect",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Technical Recruiter, Engineering Leadership",
@@ -7206,8 +7206,8 @@
 ],
 [
 "Software Engineer, Secrets Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Solutions Engineer, Cloudflare One (SASE/SSE)",
@@ -7216,13 +7216,13 @@
 ],
 [
 "Pre-Sales Customer Engineer, Digital Native",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full Stack Engineer, Enterprise & Ecosystem",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AI Solutions Developer",
@@ -7246,8 +7246,8 @@
 ],
 [
 "Android Engineer II (Healthcare)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Forward Deployed Engineer (FDE) - Seattle",
@@ -7261,8 +7261,8 @@
 ],
 [
 "AI Success Engineer - EDU",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Engineering Acceleration",
@@ -7271,8 +7271,8 @@
 ],
 [
 "Software Engineer - Fullstack",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff AI Solutions Engineer",
@@ -7296,13 +7296,13 @@
 ],
 [
 "Software Engineer, Codex Enterprise",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Designer, Engineering Acceleration",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Sales Manager, Energy",
@@ -7321,8 +7321,8 @@
 ],
 [
 "Client Success Lead",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Software Engineering Manager - Payments",
@@ -7331,8 +7331,8 @@
 ],
 [
 "AI Adoption Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Data Platform",
@@ -7356,8 +7356,8 @@
 ],
 [
 "Recruiter, AI/ML Research EMEA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success Manager - Denver",
@@ -7416,8 +7416,8 @@
 ],
 [
 "Software Engineer, Infrastructure - Core Experimentation",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Legal Engineer - Custom Solutions",
@@ -7456,8 +7456,8 @@
 ],
 [
 "Member of Data Staff (Analytics Engineer)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer - Avatar Personalization",
@@ -7481,8 +7481,8 @@
 ],
 [
 "Account Executive, Geo Enterprise - New York",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Software Engineer - Economy ML (Data Systems)",
@@ -7496,8 +7496,8 @@
 ],
 [
 "Financial Analyst, Business F&S",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Platform",
@@ -7506,8 +7506,8 @@
 ],
 [
 "Programmatic Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed Engineer (FDE) - NYC",
@@ -7516,8 +7516,8 @@
 ],
 [
 "[TEMPLATE] Integration Engineer (Metronome)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "SDK Engineer - JavaScript",
@@ -7531,13 +7531,13 @@
 ],
 [
 "Sales Engineer - Mid Market - West",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Scientist, Core Experimentation",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Core Engine Developer - Systems (C++)",
@@ -7576,8 +7576,8 @@
 ],
 [
 "Account Executive, Commercial (Grower)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Associate Dean, Strategic Initiatives & Development - School of Nursing",
@@ -7641,13 +7641,13 @@
 ],
 [
 "Platform Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Software Engineer, User Database Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Observability Infrastructure",
@@ -7666,13 +7666,13 @@
 ],
 [
 "Business Development Representative - Arabic Speaking",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Data Center Physical Security Systems Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, ChatGPT Sites",
@@ -7686,8 +7686,8 @@
 ],
 [
 "Solutions Engineer, Digital Natives (Strategics)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Mechanical Engineer",
@@ -7726,8 +7726,8 @@
 ],
 [
 "Strategic Core Account Executive - Insurance, m/f/d",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, Global Payouts \u2013 Cross-Border & Enterprise Capabilities",
@@ -7761,8 +7761,8 @@
 ],
 [
 "Full-Stack Engineer, Human Agent Tooling",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Specialist Solutions Architect - Cloud Platform & Infrastructure",
@@ -7801,8 +7801,8 @@
 ],
 [
 "Full Stack Engineer, Intelligence Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Platform Operations",
@@ -7836,8 +7836,8 @@
 ],
 [
 "Detection & Mitigation Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Expenses",
@@ -7856,8 +7856,8 @@
 ],
 [
 "Analyst II, Full Stack (Revenue Analytics)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Senior Security Operations Engineer",
@@ -7866,23 +7866,23 @@
 ],
 [
 "Software Engineer, API Frontiers",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AI Success Engineer - AMER",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Agent (French speaking)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Named Account Executive, Public Sector & Enterprise",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Vice President, Advancement and Philanthropic Engagement, Institute for Women's Policy Research",
@@ -7906,8 +7906,8 @@
 ],
 [
 "Software Engineer, Workload Enablement",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Staff Software Engineer - Security Infrastructure",
@@ -7921,8 +7921,8 @@
 ],
 [
 "Software Engineer - AI Developer Workflows",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Risk Strategist, Card Network Compliance",
@@ -7946,8 +7946,8 @@
 ],
 [
 "Sales Engineer, Enterprise",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager, IT",
@@ -7956,8 +7956,8 @@
 ],
 [
 "Software Engineer II, Android",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Principal Solutions Architect",
@@ -7976,8 +7976,8 @@
 ],
 [
 "Security Engineer, Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Customer Success Manager - Denver",
@@ -7986,8 +7986,8 @@
 ],
 [
 "Account Executive, Product Sales - Money Management ASEAN",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Product Manager, Order Quality",
@@ -8016,8 +8016,8 @@
 ],
 [
 "Software Engineer, Mobile",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Solutions Architect, Commercial - SF",
@@ -8041,18 +8041,18 @@
 ],
 [
 "Product Owner, Revenue Technology",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Analyst, Payments",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Productivity - Networking",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director of Accounting",
@@ -8066,8 +8066,8 @@
 ],
 [
 "Sales Operations Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Software Engineer, Compute Fleet Management",
@@ -8096,8 +8096,8 @@
 ],
 [
 "Software Engineer II (Backend, AI Experiences & AI Platform)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Sr Production Engineer- Public Sector",
@@ -8111,8 +8111,8 @@
 ],
 [
 "Software Engineer, Privacy Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director of Engineering, Core Product",
@@ -8136,13 +8136,13 @@
 ],
 [
 "Commercial Account Executive - Boston",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Associate Product Manager",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Senior iOS Engineer, Global Markets",
@@ -8166,8 +8166,8 @@
 ],
 [
 "Account Executive, SMB (New Business)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Development Manager, AI Discoverability and Scheduling Partnerships",
@@ -8206,8 +8206,8 @@
 ],
 [
 "Territory Account Executive, Digital Native (Hong Kong)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, Sensitive Deployments",
@@ -8216,8 +8216,8 @@
 ],
 [
 "Software Engineer, Early Career (AI)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "VoidZero Engineer",
@@ -8276,8 +8276,8 @@
 ],
 [
 "Integration Engineer, Professional Services",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Influencer Manager",
@@ -8316,13 +8316,13 @@
 ],
 [
 "GTM Strategy and Operations Associate",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Mid-Market Account Executive - French Fluent",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Architect - Digital Native Business",
@@ -8366,13 +8366,13 @@
 ],
 [
 "Software Engineer, Compute Foundations Systems",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Pre-Sales - Tokyo",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Solutions Architect (Lakebase)",
@@ -8391,8 +8391,8 @@
 ],
 [
 "Data Scientist, GTM Intelligence",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Observability",
@@ -8441,8 +8441,8 @@
 ],
 [
 "Insider Threat Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Policy Economist",
@@ -8461,8 +8461,8 @@
 ],
 [
 "Product Data Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Operations Lead, User Safety & Risk Operations",
@@ -8476,8 +8476,8 @@
 ],
 [
 "Privacy & Civil Liberties Engineer - New Grad",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Senior Software Engineer (Backend), Communications",
@@ -8496,13 +8496,13 @@
 ],
 [
 "Operations Associate, New Grad (Mexico)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Commercial Account Executive (Indonesia Market)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Account Based Marketing Manager",
@@ -8511,13 +8511,13 @@
 ],
 [
 "Group Product Marketing Manager",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Enterprise Business Development Representative",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Senior Software Engineer, Workers Runtime",
@@ -8541,8 +8541,8 @@
 ],
 [
 "Integration Engineer (Chicago)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Marketing Strategy & Operations Manager",
@@ -8551,8 +8551,8 @@
 ],
 [
 "Software Engineer, Web3 Backend",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, AI Retrieval",
@@ -8576,13 +8576,13 @@
 ],
 [
 "AI Deployment Engineer, Gov",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full-Stack Engineer (Back-End Leaning)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Backend (Capacity Modeling)",
@@ -8641,8 +8641,8 @@
 ],
 [
 "Governance, Risk & Compliance Analyst",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Invoicing and Billing",
@@ -8651,18 +8651,18 @@
 ],
 [
 "Software Engineer - Smart Contract, Bridge",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Android Engineer, Government Products",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Product - Terminal",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Forward Deployed Engineer - National Security Professional Services",
@@ -8691,8 +8691,8 @@
 ],
 [
 "Data Analyst, Financial Data Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Mechanical Engineer (NPI)",
@@ -8711,13 +8711,13 @@
 ],
 [
 "Geo Core Account Executive - Digital Natives",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Release Engineer | Consumer Devices",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Account Management",
@@ -8771,8 +8771,8 @@
 ],
 [
 "Account Executive, Bridge",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Head of Marketing - Japan",
@@ -8781,8 +8781,8 @@
 ],
 [
 "Software Engineer, Developer Experience",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Advanced Analyst, Guest Engagement",
@@ -8811,8 +8811,8 @@
 ],
 [
 "Software Engineer, Ad Formats",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Lead, Revenue Accounting, Technical",
@@ -8836,18 +8836,18 @@
 ],
 [
 "Automation Engineer I",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Site Reliability Engineer - ClickHouse",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, New Grad - Production Infrastructure",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Pre-sales Senior Technical Solutions Engineer (Data and AI)",
@@ -8861,8 +8861,8 @@
 ],
 [
 "Site Reliability Engineer (Senior or Staff), Storage Layer Services (SLS)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer (Full Stack), Global Actions",
@@ -8896,23 +8896,23 @@
 ],
 [
 "Software Engineer, Healthcare",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive | Mid-Market",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Android Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Backend Software Engineer - Infrastructure, Foundations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior paid marketing manager",
@@ -8921,8 +8921,8 @@
 ],
 [
 "Account Executive, Small Business",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Backend (Communications Platform)",
@@ -8931,13 +8931,13 @@
 ],
 [
 "Enterprise Solutions Engineer - Brazil",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "GTM Systems Architect",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Engineering Manager, International Expansion",
@@ -8956,8 +8956,8 @@
 ],
 [
 "Account Executive Lead - North America - Government",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Service Tools",
@@ -8971,13 +8971,13 @@
 ],
 [
 "Software Engineer II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Software Engineer, Stablecoin",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Distributed Training Engineer, Sora",
@@ -8986,8 +8986,8 @@
 ],
 [
 "Release Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed Architect, Japan",
@@ -9031,8 +9031,8 @@
 ],
 [
 "Strategic Core Account Executive - CPG",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Account Executive, Growth (Defence & MHA)",
@@ -9056,8 +9056,8 @@
 ],
 [
 "Territory Account Executive, Qatar",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Staff Software Engineer",
@@ -9091,8 +9091,8 @@
 ],
 [
 "Security engineer, application security (UK)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Product Manager, Databricks AI",
@@ -9131,8 +9131,8 @@
 ],
 [
 "Junior Software Engineer, Luxury",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Growth Marketing Manager, EMEA",
@@ -9146,13 +9146,13 @@
 ],
 [
 "AI Success Engineer, Government",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Detection & Response Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Partner Marketing Manager",
@@ -9186,8 +9186,8 @@
 ],
 [
 "Security Engineer 2 - Cyber Threat Intelligence",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Staff Software Engineer, Full Stack - NYC",
@@ -9206,13 +9206,13 @@
 ],
 [
 "Senior, Majors Account Executive",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Full Stack Engineer - Internal Audit",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Compliance Advisory Lead",
@@ -9226,8 +9226,8 @@
 ],
 [
 "Account Executive, Commercial Grower (Japanese Fluency)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Account Executive - Minnesota",
@@ -9241,8 +9241,8 @@
 ],
 [
 "Solutions Engineer, Privy",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Forward Deployed Engineer - Sydney",
@@ -9321,18 +9321,18 @@
 ],
 [
 "Software Engineer, New Grad - Infrastructure",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Account Executive, Startups (Grower)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Security engineer, detection and response",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Specialist Solutions Architect - Data Engineering & Warehousing",
@@ -9371,8 +9371,8 @@
 ],
 [
 "Client Platform Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer - Application Traffic team",
@@ -9386,23 +9386,23 @@
 ],
 [
 "Embedded Legal Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "AI Deployment Engineer, Codex | India",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive, Strategic",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Scientist - Inference, Community Support",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Data Analyst, Intern",
@@ -9416,13 +9416,13 @@
 ],
 [
 "Software Engineer, Public Sector - New Grad",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "People Strategy & Operations, Early Career",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Engineer, Search Systems",
@@ -9441,8 +9441,8 @@
 ],
 [
 "Software Engineer, Passport & Commerce, Android",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director, Procurement",
@@ -9466,8 +9466,8 @@
 ],
 [
 "Business Development Representative - Hebrew Speaking",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Machine Learning Engineer, Relevance and Personalization",
@@ -9531,13 +9531,13 @@
 ],
 [
 "Data Scientist - Product Analytics",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Ads Solutions - San Francisco",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Security Engineer",
@@ -9581,8 +9581,8 @@
 ],
 [
 "Systems Engineer, Data Intelligence & Analytics Team",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Engineer, Turkish or Arabic Speaking",
@@ -9591,8 +9591,8 @@
 ],
 [
 "Site Reliability Engineer II, tvScientific",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Forward Deployed Engineer, Compliance [Office of the CTO]",
@@ -9606,8 +9606,8 @@
 ],
 [
 "Mid-Market Account Executive - (Turkey)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Partner Marketing Operations Manager",
@@ -9616,8 +9616,8 @@
 ],
 [
 "Software Engineer, Security Observability",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Enterprise Account Executive - CMEG",
@@ -9626,8 +9626,8 @@
 ],
 [
 "Account Executive, New Logo - Chicago",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Guest & Host - Notifications",
@@ -9636,8 +9636,8 @@
 ],
 [
 "Inventory and Cost Accounting Lead",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Manager - Legal Entity Controller",
@@ -9646,8 +9646,8 @@
 ],
 [
 "Applied Risk Standards Architect",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Principal Strategy Manager, Developer GTM Growth",
@@ -9701,8 +9701,8 @@
 ],
 [
 "Security engineer, application security",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Manager, Revenue Accounting - Strategic Deals",
@@ -9766,13 +9766,13 @@
 ],
 [
 "Software Engineer, Agents",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Development Representative (BDR)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Software Engineer, Retirement AI",
@@ -9791,8 +9791,8 @@
 ],
 [
 "Systems Engineer, Email Service",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Infrastructure Engineer, Trading",
@@ -9801,8 +9801,8 @@
 ],
 [
 "Platform Engineer - Identity Infrastructure",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Engineering Manager, Mortgage",
@@ -9821,8 +9821,8 @@
 ],
 [
 "Enterprise Sales Engineer, Healthcare",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Backend - NYC",
@@ -9836,8 +9836,8 @@
 ],
 [
 "Physical Design Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Manager, Data Engineering",
@@ -9866,8 +9866,8 @@
 ],
 [
 "Wireless Regulatory Engineer - SAR",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Growth Marketing Lead, Programmatic & Video",
@@ -9891,13 +9891,13 @@
 ],
 [
 "Software Engineer, Frontend, Growth",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Commercial Account Executive - UK",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Engineering Manager, Machine Learning Platform",
@@ -9911,8 +9911,8 @@
 ],
 [
 "Software Engineer, Enterprise Verticals",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Staff Software Engineer, Configuration & Coordination",
@@ -9921,8 +9921,8 @@
 ],
 [
 "Network Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Customer Success Manager - US Public Sector",
@@ -9936,8 +9936,8 @@
 ],
 [
 "Product Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Marketing Lead",
@@ -9961,8 +9961,8 @@
 ],
 [
 "Systems Engineer, Growth Engineering",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Engagement Manager, User Operations",
@@ -9981,8 +9981,8 @@
 ],
 [
 "Software Engineer, AI Capture",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Data Engineer, Market Data",
@@ -10016,23 +10016,23 @@
 ],
 [
 "GTM Applications Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, Scaled Abuse",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "DevOps Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Software Engineer, CDP - Foundations",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Computer Graphics",
@@ -10046,13 +10046,13 @@
 ],
 [
 "Software Engineer II, Backend (PMI Integrations)",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Software Engineer II, Full Stack",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Platform Engineer, Forward Deployed Engineering (FDE) - NYC",
@@ -10066,8 +10066,8 @@
 ],
 [
 "Network Security Engineer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Marketing Manager, Growth",
@@ -10086,8 +10086,8 @@
 ],
 [
 "Software engineer, agents (UK)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr Software Engineer, Monetization Engineering",
@@ -10106,8 +10106,8 @@
 ],
 [
 "Security Engineer, Privy",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Manager, Engineering - Search",
@@ -10146,8 +10146,8 @@
 ],
 [
 "Hardware / Software CoDesign Engineer - 3P",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Software Engineer, Global Markets (Backend)",
@@ -10176,8 +10176,8 @@
 ],
 [
 "Software Engineer, Workers Deploy & Config",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Strategic Account Executive - Saudi Arabia",
@@ -10191,8 +10191,8 @@
 ],
 [
 "Software Engineer - GenAI inference",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Growth",
@@ -10241,13 +10241,13 @@
 ],
 [
 "Staff Accountant",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Auditor",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Staff Software Engineer",
@@ -10266,8 +10266,8 @@
 ],
 [
 "Executive Director of Student Housing",
-"C_SUITE",
-100
+"DIRECTOR",
+68
 ],
 [
 "Student Success Manager",
@@ -10311,8 +10311,8 @@
 ],
 [
 "Associate Dean of Students",
-"DIRECTOR",
-68
+"SR_MANAGER",
+52
 ],
 [
 "Managing Partner",
@@ -10346,8 +10346,8 @@
 ],
 [
 "CEO Office Strategy Associate",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Structural Steel Superintendent",
@@ -10456,8 +10456,8 @@
 ],
 [
 "Analyst II",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Accountant III",
@@ -10471,8 +10471,8 @@
 ],
 [
 "Program Analyst (GS-12)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "IT Specialist (GS-13)",
@@ -10531,8 +10531,8 @@
 ],
 [
 "Account Executive, AI",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Manager, External Manufacturing (CMO)",
@@ -10551,8 +10551,8 @@
 ],
 [
 "Assistant Superintendent of Schools",
-"DIRECTOR",
-68
+"VP",
+80
 ],
 [
 "Superintendent of Schools",
@@ -10561,6 +10561,5468 @@
 ],
 [
 "Electrical Superintendent - Data Center",
+"OTHER",
+0
+],
+[
+"Senior Associate, Corporate Development",
+"SENIOR_IC",
+45
+],
+[
+"M&A Associate",
+"SENIOR_IC",
+45
+],
+[
+"Managing Editor",
+"SR_MANAGER",
+50
+],
+[
+"Editor-in-Chief",
+"HEAD",
+72
+],
+[
+"Copy Editor",
+"OTHER",
+0
+],
+[
+"Customer Experience Lead",
+"SENIOR_IC",
+45
+],
+[
+"Retail Senior Associate",
+"OTHER",
+0
+],
+[
+"Business Editor",
+"SENIOR_IC",
+45
+],
+[
+"Assistant General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager II - LUK",
+"MANAGER",
+40
+],
+[
+"Financial Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Financial Analyst",
+"SENIOR_IC",
+45
+],
+[
+"FP&A Analyst",
+"MID_IC",
+30
+],
+[
+"Business Analyst",
+"MID_IC",
+30
+],
+[
+"Data Analyst",
+"MID_IC",
+30
+],
+[
+"Business Intelligence Analyst",
+"MID_IC",
+30
+],
+[
+"Credit Risk Analyst",
+"MID_IC",
+30
+],
+[
+"Investment Analyst",
+"MID_IC",
+30
+],
+[
+"Equity Research Analyst",
+"MID_IC",
+30
+],
+[
+"Budget Analyst",
+"MID_IC",
+30
+],
+[
+"Program Analyst",
+"MID_IC",
+30
+],
+[
+"Management Analyst",
+"MID_IC",
+30
+],
+[
+"Policy Analyst",
+"MID_IC",
+30
+],
+[
+"Pricing Analyst",
+"MID_IC",
+30
+],
+[
+"Actuarial Analyst",
+"MID_IC",
+30
+],
+[
+"Information Security Analyst",
+"MID_IC",
+30
+],
+[
+"Cybersecurity Analyst",
+"MID_IC",
+30
+],
+[
+"Systems Analyst",
+"MID_IC",
+30
+],
+[
+"Business Systems Analyst",
+"MID_IC",
+30
+],
+[
+"Marketing Analyst",
+"MID_IC",
+30
+],
+[
+"Supply Chain Analyst",
+"MID_IC",
+30
+],
+[
+"Procurement Analyst",
+"MID_IC",
+30
+],
+[
+"Compensation Analyst",
+"MID_IC",
+30
+],
+[
+"HRIS Analyst",
+"MID_IC",
+30
+],
+[
+"Fraud Analyst",
+"MID_IC",
+30
+],
+[
+"AML Analyst",
+"MID_IC",
+30
+],
+[
+"Tax Analyst",
+"MID_IC",
+30
+],
+[
+"Treasury Analyst",
+"MID_IC",
+30
+],
+[
+"Revenue Analyst",
+"MID_IC",
+30
+],
+[
+"Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Financial Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Software Engineer",
+"MID_IC",
+30
+],
+[
+"Software Engineer II",
+"EARLY_IC",
+25
+],
+[
+"Software Development Engineer",
+"MID_IC",
+30
+],
+[
+"Backend Engineer",
+"MID_IC",
+30
+],
+[
+"Frontend Engineer",
+"MID_IC",
+30
+],
+[
+"Full Stack Engineer",
+"MID_IC",
+30
+],
+[
+"Data Engineer",
+"MID_IC",
+30
+],
+[
+"Machine Learning Engineer",
+"SENIOR_IC",
+45
+],
+[
+"DevOps Engineer",
+"MID_IC",
+30
+],
+[
+"Site Reliability Engineer",
+"MID_IC",
+30
+],
+[
+"Cloud Engineer",
+"MID_IC",
+30
+],
+[
+"Network Engineer",
+"MID_IC",
+30
+],
+[
+"Security Engineer",
+"MID_IC",
+30
+],
+[
+"QA Engineer",
+"MID_IC",
+30
+],
+[
+"Test Automation Engineer",
+"MID_IC",
+30
+],
+[
+"Embedded Software Engineer",
+"MID_IC",
+30
+],
+[
+"Firmware Engineer",
+"MID_IC",
+30
+],
+[
+"Mechanical Engineer",
+"MID_IC",
+30
+],
+[
+"Electrical Engineer",
+"MID_IC",
+30
+],
+[
+"Civil Engineer",
+"MID_IC",
+30
+],
+[
+"Structural Engineer",
+"MID_IC",
+30
+],
+[
+"Chemical Engineer",
+"MID_IC",
+30
+],
+[
+"Process Engineer",
+"MID_IC",
+30
+],
+[
+"Manufacturing Engineer",
+"MID_IC",
+30
+],
+[
+"Quality Engineer",
+"MID_IC",
+30
+],
+[
+"Validation Engineer",
+"MID_IC",
+30
+],
+[
+"Controls Engineer",
+"MID_IC",
+30
+],
+[
+"Project Engineer",
+"MID_IC",
+30
+],
+[
+"Sales Engineer",
+"MID_IC",
+30
+],
+[
+"Engineer II",
+"EARLY_IC",
+25
+],
+[
+"Software Developer",
+"MID_IC",
+30
+],
+[
+"Java Developer",
+"MID_IC",
+30
+],
+[
+"Salesforce Developer",
+"MID_IC",
+30
+],
+[
+"Accountant",
+"MID_IC",
+30
+],
+[
+"Tax Accountant",
+"MID_IC",
+30
+],
+[
+"Cost Accountant",
+"MID_IC",
+30
+],
+[
+"General Ledger Accountant",
+"MID_IC",
+30
+],
+[
+"Internal Auditor",
+"MID_IC",
+30
+],
+[
+"IT Auditor",
+"MID_IC",
+30
+],
+[
+"Actuary",
+"SENIOR_IC",
+45
+],
+[
+"Economist",
+"MID_IC",
+30
+],
+[
+"Statistician",
+"MID_IC",
+30
+],
+[
+"Commercial Underwriter",
+"MID_IC",
+30
+],
+[
+"Financial Planner",
+"MID_IC",
+30
+],
+[
+"Credit Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Associate",
+"MID_IC",
+30
+],
+[
+"Private Equity Associate",
+"MID_IC",
+30
+],
+[
+"Investment Banking Associate",
+"MID_IC",
+30
+],
+[
+"Associate, Private Equity",
+"MID_IC",
+30
+],
+[
+"Litigation Associate",
+"MID_IC",
+30
+],
+[
+"Attorney",
+"MID_IC",
+30
+],
+[
+"Associate Attorney",
+"MID_IC",
+30
+],
+[
+"Lawyer",
+"MID_IC",
+30
+],
+[
+"Consultant",
+"MID_IC",
+30
+],
+[
+"Management Consultant",
+"MID_IC",
+30
+],
+[
+"Technology Consultant",
+"MID_IC",
+30
+],
+[
+"SAP Consultant",
+"MID_IC",
+30
+],
+[
+"Workday Consultant",
+"MID_IC",
+30
+],
+[
+"Strategy Consultant",
+"MID_IC",
+30
+],
+[
+"Data Scientist",
+"MID_IC",
+30
+],
+[
+"Scientist",
+"MID_IC",
+30
+],
+[
+"Scientist II",
+"EARLY_IC",
+25
+],
+[
+"Clinical Scientist",
+"MID_IC",
+30
+],
+[
+"Product Designer",
+"MID_IC",
+30
+],
+[
+"UX Designer",
+"MID_IC",
+30
+],
+[
+"UX Researcher",
+"MID_IC",
+30
+],
+[
+"Instructional Designer",
+"MID_IC",
+30
+],
+[
+"Technical Writer",
+"MID_IC",
+30
+],
+[
+"Marketing Specialist",
+"MID_IC",
+30
+],
+[
+"Digital Marketing Specialist",
+"MID_IC",
+30
+],
+[
+"Communications Specialist",
+"MID_IC",
+30
+],
+[
+"Procurement Specialist",
+"MID_IC",
+30
+],
+[
+"Compliance Specialist",
+"MID_IC",
+30
+],
+[
+"Regulatory Affairs Specialist",
+"MID_IC",
+30
+],
+[
+"IT Specialist",
+"MID_IC",
+30
+],
+[
+"Human Resources Specialist",
+"MID_IC",
+30
+],
+[
+"Contract Specialist",
+"MID_IC",
+30
+],
+[
+"Architect",
+"MID_IC",
+30
+],
+[
+"Enterprise Architect",
+"SENIOR_IC",
+45
+],
+[
+"Urban Planner",
+"MID_IC",
+30
+],
+[
+"Transportation Planner",
+"MID_IC",
+30
+],
+[
+"Demand Planner",
+"MID_IC",
+30
+],
+[
+"Product Owner",
+"MID_IC",
+30
+],
+[
+"Scrum Master",
+"MID_IC",
+30
+],
+[
+"Account Executive",
+"MID_IC",
+30
+],
+[
+"Program Analyst (GS-11)",
+"MID_IC",
+30
+],
+[
+"IT Specialist (GS-12)",
+"MID_IC",
+30
+],
+[
+"Accountant (GS-11)",
+"MID_IC",
+30
+],
+[
+"Program Analyst (GS-13)",
+"SENIOR_IC",
+45
+],
+[
+"Police Officer (GS-11)",
+"OTHER",
+0
+],
+[
+"Nurse (GS-12)",
+"OTHER",
+0
+],
+[
+"Medical Support Assistant (GS-11)",
+"OTHER",
+0
+],
+[
+"Contract Specialist (GS-9)",
+"EARLY_IC",
+25
+],
+[
+"Analyst",
+"OTHER",
+0
+],
+[
+"Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"Financial Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer I",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer 1",
+"ENTRY_IC",
+20
+],
+[
+"Engineer I",
+"ENTRY_IC",
+20
+],
+[
+"Junior Software Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Jr. Data Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Associate Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Associate Software Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Associate Consultant",
+"ENTRY_IC",
+20
+],
+[
+"Associate Scientist",
+"ENTRY_IC",
+20
+],
+[
+"Associate Accountant",
+"ENTRY_IC",
+20
+],
+[
+"Entry Level Accountant",
+"ENTRY_IC",
+20
+],
+[
+"Graduate Engineer",
+"ENTRY_IC",
+20
+],
+[
+"New Grad Software Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer Intern",
+"OTHER",
+0
+],
+[
+"Data Science Intern",
+"OTHER",
+0
+],
+[
+"Engineering Trainee",
+"OTHER",
+0
+],
+[
+"Apprentice Electrician",
+"OTHER",
+0
+],
+[
+"Staff Accountant",
+"ENTRY_IC",
+20
+],
+[
+"Accounting Clerk",
+"OTHER",
+0
+],
+[
+"Accounts Payable Specialist",
+"OTHER",
+0
+],
+[
+"Payroll Specialist",
+"OTHER",
+0
+],
+[
+"Customer Service Representative",
+"OTHER",
+0
+],
+[
+"Help Desk Analyst",
+"OTHER",
+0
+],
+[
+"IT Support Specialist",
+"OTHER",
+0
+],
+[
+"Desktop Support Technician",
+"OTHER",
+0
+],
+[
+"Technical Support Engineer",
+"OTHER",
+0
+],
+[
+"Marketing Coordinator",
+"OTHER",
+0
+],
+[
+"Administrative Assistant",
+"OTHER",
+0
+],
+[
+"Executive Assistant",
+"OTHER",
+0
+],
+[
+"Office Manager",
+"MANAGER",
+40
+],
+[
+"Receptionist",
+"OTHER",
+0
+],
+[
+"Data Entry Clerk",
+"OTHER",
+0
+],
+[
+"Lab Technician",
+"OTHER",
+0
+],
+[
+"Medical Laboratory Scientist",
+"OTHER",
+0
+],
+[
+"Registered Nurse",
+"OTHER",
+0
+],
+[
+"Pharmacy Technician",
+"OTHER",
+0
+],
+[
+"Maintenance Engineer",
+"OTHER",
+0
+],
+[
+"Building Engineer",
+"OTHER",
+0
+],
+[
+"Stationary Engineer",
+"OTHER",
+0
+],
+[
+"Field Service Engineer",
+"OTHER",
+0
+],
+[
+"Graphic Designer",
+"OTHER",
+0
+],
+[
+"Sales Associate",
+"OTHER",
+0
+],
+[
+"Bank Teller",
+"OTHER",
+0
+],
+[
+"Warehouse Associate",
+"OTHER",
+0
+],
+[
+"Truck Driver",
+"OTHER",
+0
+],
+[
+"Loan Processor",
+"OTHER",
+0
+],
+[
+"Recruiting Coordinator",
+"OTHER",
+0
+],
+[
+"HR Assistant",
+"OTHER",
+0
+],
+[
+"Customer Support Specialist",
+"OTHER",
+0
+],
+[
+"Assistant Accountant",
+"OTHER",
+0
+],
+[
+"Part-Time Accountant",
+"OTHER",
+0
+],
+[
+"Seasonal Tax Preparer",
+"OTHER",
+0
+],
+[
+"Research Assistant",
+"OTHER",
+0
+],
+[
+"Teacher",
+"OTHER",
+0
+],
+[
+"Associate",
+"OTHER",
+0
+],
+[
+"Tax Associate",
+"ENTRY_IC",
+20
+],
+[
+"Senior Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Engineering Manager",
+"MANAGER",
+40
+],
+[
+"Director of Finance",
+"DIRECTOR",
+65
+],
+[
+"Vice President, Engineering",
+"VP",
+80
+],
+[
+"Product Manager",
+"MANAGER",
+40
+],
+[
+"Senior Accountant",
+"SENIOR_IC",
+45
+],
+[
+"Lead Data Scientist",
+"SENIOR_IC",
+45
+],
+[
+"Principal Engineer",
+"SR_MANAGER",
+52
+],
+[
+"Controller",
+"MANAGER",
+40
+],
+[
+"Superintendent",
+"OTHER",
+0
+],
+[
+"Interim Superintendent",
+"OTHER",
+0
+],
+[
+"Superintendent of Schools",
+"C_SUITE",
+100
+],
+[
+"Superintendent - Springfield Public Schools",
+"C_SUITE",
+100
+],
+[
+"Construction Superintendent",
+"OTHER",
+0
+],
+[
+"Project Superintendent",
+"OTHER",
+0
+],
+[
+"Assistant Superintendent",
+"OTHER",
+0
+],
+[
+"Assistant Superintendent of Curriculum and Instruction",
+"VP",
+80
+],
+[
+"Assistant Superintendent for Human Resources",
+"VP",
+80
+],
+[
+"Deputy Superintendent",
+"VP",
+80
+],
+[
+"Associate Superintendent",
+"VP",
+80
+],
+[
+"Area Superintendent",
+"OTHER",
+0
+],
+[
+"Area Superintendent - Construction",
+"OTHER",
+0
+],
+[
+"Chief of Schools",
+"VP",
+80
+],
+[
+"Associate Principal",
+"SR_MANAGER",
+50
+],
+[
+"Club General Manager",
+"MANAGER",
+40
+],
+[
+"Clinical Supervisor",
+"MANAGER",
+40
+],
+[
+"BCBA Supervisor",
+"MANAGER",
+40
+],
+[
+"Assistant Principal",
+"SR_MANAGER",
+50
+],
+[
+"Vice Principal",
+"SR_MANAGER",
+50
+],
+[
+"Assistant Principal, Lincoln High School",
+"SR_MANAGER",
+50
+],
+[
+"Principal, Lincoln High School",
+"SCHOOL_LEADER",
+68
+],
+[
+"High School Principal",
+"SCHOOL_LEADER",
+68
+],
+[
+"Elementary School Principal",
+"SCHOOL_LEADER",
+68
+],
+[
+"Principal",
+"PRINCIPAL",
+70
+],
+[
+"Summer School Principal",
+"OTHER",
+0
+],
+[
+"Dean of Students",
+"SR_MANAGER",
+52
+],
+[
+"Dean of Culture",
+"SR_MANAGER",
+52
+],
+[
+"Dean of the School of Law",
+"C_SUITE",
+100
+],
+[
+"Dean, College of Engineering",
+"C_SUITE",
+100
+],
+[
+"Executive Director, Information Technology Services",
+"DIRECTOR",
+68
+],
+[
+"Executive Director I (226 Days)",
+"DIRECTOR",
+68
+],
+[
+"Executive Director",
+"C_SUITE",
+100
+],
+[
+"Assistant General Counsel",
+"SR_MANAGER",
+52
+],
+[
+"Senior General Counsel",
+"SENIOR_IC",
+45
+],
+[
+"General Counsel",
+"C_SUITE",
+100
+],
+[
+"Deputy General Counsel",
+"DIRECTOR",
+68
+],
+[
+"Principal Account Clerk",
+"OTHER",
+0
+],
+[
+"Principal Engineer",
+"SR_MANAGER",
+52
+],
+[
+"Principal, Private Equity",
+"PRINCIPAL",
+70
+],
+[
+"RN Case Manager",
+"OTHER",
+0
+],
+[
+"Care Manager",
+"OTHER",
+0
+],
+[
+"Case Manager",
+"OTHER",
+0
+],
+[
+"Senior Play \u2013 Choreographer Director",
+"OTHER",
+0
+],
+[
+"Managing Director, Capital Markets",
+"VP",
+80
+],
+[
+"Managing Director",
+"DIRECTOR",
+65
+],
+[
+"Managing Director, Investment Banking",
+"VP",
+80
+],
+[
+"Lateral Partner \u2013 M&A",
+"PARTNER",
+78
+],
+[
+"Corporate Associate",
+"MID_IC",
+30
+],
+[
+"Litigation Associate (3-5 years)",
+"MID_IC",
+30
+],
+[
+"Senior Associate, Tax",
+"SENIOR_IC",
+45
+],
+[
+"Summer Associate",
+"OTHER",
+0
+],
+[
+"First-Year Associate",
+"ENTRY_IC",
+20
+],
+[
+"Associate I",
+"OTHER",
+0
+],
+[
+"Actuary",
+"SENIOR_IC",
+45
+],
+[
+"Associate Actuary",
+"SENIOR_IC",
+45
+],
+[
+"Actuarial Analyst",
+"MID_IC",
+30
+],
+[
+"Actuarial Student",
+"OTHER",
+0
+],
+[
+"Actuary Intern",
+"OTHER",
+0
+],
+[
+"Senior Claims Adjuster",
+"MID_IC",
+30
+],
+[
+"Claims Adjuster",
+"OTHER",
+0
+],
+[
+"Account Executive, Commercial Lines",
+"MID_IC",
+30
+],
+[
+"Commercial Lines Producer",
+"MID_IC",
+30
+],
+[
+"Insurance Producer",
+"MID_IC",
+30
+],
+[
+"Producer",
+"MID_IC",
+30
+],
+[
+"Senior Producer, Commercial Lines",
+"SENIOR_IC",
+45
+],
+[
+"Executive Producer",
+"SR_MANAGER",
+52
+],
+[
+"Senior Producer",
+"SENIOR_IC",
+45
+],
+[
+"Club General Manager",
+"MANAGER",
+40
+],
+[
+"Superintendent",
+"C_SUITE",
+100,
+true
+],
+[
+"Interim Superintendent",
+"C_SUITE",
+100,
+true
+],
+[
+"Assistant Superintendent",
+"VP",
+80,
+true
+],
+[
+"Area Superintendent",
+"VP",
+80,
+true
+],
+[
+"Area Superintendent - Construction",
+"OTHER",
+0,
+true
+],
+[
+"Construction Superintendent",
+"OTHER",
+0,
+true
+],
+[
+"Superintendent - Field Operations",
+"OTHER",
+0,
+true
+],
+[
+"General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager Dunkin",
+"MANAGER",
+40
+],
+[
+"Fast Track General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager | Long Stay Hotel Property",
+"MANAGER",
+40
+],
+[
+"General Manager (1452) - 603 N. Miles St",
+"MANAGER",
+40
+],
+[
+"General Manager - Louisville",
+"MANAGER",
+40
+],
+[
+"General Manager Plano/Garland",
+"MANAGER",
+40
+],
+[
+"Retail General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager, Residential Products Business",
+"C_SUITE",
+100
+],
+[
+"General Manager, Fuels",
+"C_SUITE",
+100
+],
+[
+"General Manager, North America",
+"C_SUITE",
+100
+],
+[
+"Vice President, General Manager & Campus Lead, Devens",
+"C_SUITE",
+100
+],
+[
+"Senior Vice President and General Manager, Cloud",
+"C_SUITE",
+100
+],
+[
+"General Manager-Leading a team with Heart- $80k+",
+"MANAGER",
+40
+],
+[
+"Sodexo Live! - General Manager, Lucas Oil Stadium",
+"MANAGER",
+40
+],
+[
+"Plant General Manager (Dairy, Beverage Manufacturing)",
+"C_SUITE",
+100
+],
+[
+"Health Actuary Consulting Manager",
+"SENIOR_IC",
+45
+],
+[
+"Senior Assistant General Counsel",
+"SR_MANAGER",
+52
+],
+[
+"Associate Principal Scientist, Separations Science",
+"SR_MANAGER",
+52
+],
+[
+"Investment Banking Associate 1/2 M&A (Elite-Boutique)",
+"SENIOR_IC",
+45
+],
+[
+"Mental Health Case Manager (GS-12)",
+"MID_IC",
+30
+],
+[
+"U.S. Lateral Partner Recruitment and Integration Manager",
+"MANAGER",
+40
+],
+[
+"Chief Information Security Officer",
+"C_SUITE",
+100
+],
+[
+"Interim Chief Information Security Officer (CISO)",
+"C_SUITE",
+100
+],
+[
+"Virtual Chief Information Security Officer (vCISO)",
+"C_SUITE",
+100
+],
+[
+"Fractional CISO Consultant",
+"C_SUITE",
+100
+],
+[
+"Fractional HR Lead",
+"DIRECTOR",
+65
+],
+[
+"Interim HR Business Partner",
+"MID_IC",
+30
+],
+[
+"Licensed Physician (MD/DO) - Freelance AI Trainer",
+"SENIOR_IC",
+45
+],
+[
+"Physician - AI Clinical Reviewer",
+"SENIOR_IC",
+45
+],
+[
+"AI Tutor - Legal & Compliance",
+"SENIOR_IC",
+45
+],
+[
+"Board Members",
+"BOARD",
+95
+],
+[
+"Board Treasurer",
+"BOARD",
+95
+],
+[
+"Unarmed Security Officer",
+"OTHER",
+0
+],
+[
+"Secretary - Board of Directors",
+"OTHER",
+0
+],
+[
+"Senior Wealth Advisor",
+"SENIOR_IC",
+45
+],
+[
+"Administrator",
+"DIRECTOR",
+68
+],
+[
+"Nursing Home Administrator",
+"DIRECTOR",
+68
+],
+[
+"Licensed Nursing Home Administrator (LNHA)",
+"DIRECTOR",
+68
+],
+[
+"Systems Administrator",
+"OTHER",
+0
+],
+[
+"Benefits Administrator",
+"OTHER",
+0
+],
+[
+"Assistant Administrator",
+"MANAGER",
+45
+],
+[
+"Administrator in Training",
+"MANAGER",
+45
+],
+[
+"DON",
+"DIRECTOR",
+68
+],
+[
+"Executive Director - Assisted Living",
+"DIRECTOR",
+68
+],
+[
+"Community Executive Director",
+"DIRECTOR",
+68
+],
+[
+"Executive Director in Training",
+"MANAGER",
+45
+],
+[
+"CEO In Training (CIT)",
+"MANAGER",
+45
+],
+[
+"Regional Nurse Consultant",
+"SR_MANAGER",
+52
+],
+[
+"Maintenance Director",
+"MANAGER",
+45
+],
+[
+"Director of Maintenance",
+"DIRECTOR",
+65
+],
+[
+"Dining Services Director",
+"MANAGER",
+45
+],
+[
+"CULINARY DIRECTOR OF RESEARCH & DEVELOPMENT",
+"DIRECTOR",
+65
+],
+[
+"Chief of Geriatrics",
+"DIRECTOR",
+68
+],
+[
+"Recruiter",
+"MID_IC",
+30
+],
+[
+"Senior Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Technical Recruiter",
+"MID_IC",
+30
+],
+[
+"Senior Technical Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Lead Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Recruiting Manager",
+"MANAGER",
+40
+],
+[
+"Recruiting Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Partner",
+"MID_IC",
+30
+],
+[
+"TA Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Manager",
+"MANAGER",
+40
+],
+[
+"Talent Acquisition Specialist",
+"MID_IC",
+30
+],
+[
+"Senior Talent Acquisition Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Director, Talent Acquisition",
+"DIRECTOR",
+65
+],
+[
+"Head of Talent Acquisition",
+"HEAD",
+72
+],
+[
+"Head of Talent",
+"HEAD",
+72
+],
+[
+"Head of Recruiting",
+"HEAD",
+72
+],
+[
+"Executive Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Executive Search Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Corporate Recruiter",
+"MID_IC",
+30
+],
+[
+"Healthcare Recruiter",
+"MID_IC",
+30
+],
+[
+"Nurse Recruiter",
+"MID_IC",
+30
+],
+[
+"Campus Recruiter",
+"MID_IC",
+30
+],
+[
+"Sourcer",
+"MID_IC",
+30
+],
+[
+"Senior Sourcer",
+"MID_IC",
+30
+],
+[
+"Talent Sourcer",
+"MID_IC",
+30
+],
+[
+"Recruitment Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Employer Brand Manager",
+"MANAGER",
+40
+],
+[
+"Senior HRBP",
+"SENIOR_IC",
+45
+],
+[
+"Principal HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"Strategic HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"HRBP",
+"MID_IC",
+30
+],
+[
+"People Partner",
+"MID_IC",
+30
+],
+[
+"Senior People Partner",
+"SENIOR_IC",
+45
+],
+[
+"People Business Partner",
+"MID_IC",
+30
+],
+[
+"Senior HR Generalist",
+"SENIOR_IC",
+45
+],
+[
+"HR Manager",
+"MANAGER",
+40
+],
+[
+"Senior HR Manager",
+"MANAGER",
+40
+],
+[
+"HR Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Human Resources",
+"DIRECTOR",
+65
+],
+[
+"VP People",
+"VP",
+80
+],
+[
+"Chief People Officer",
+"C_SUITE",
+100
+],
+[
+"People Operations Manager",
+"MANAGER",
+40
+],
+[
+"People Operations Specialist",
+"MID_IC",
+30
+],
+[
+"People Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Employee Relations Manager",
+"MANAGER",
+40
+],
+[
+"Employee Relations Specialist",
+"MID_IC",
+30
+],
+[
+"Senior Employee Relations Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Employee Relations Investigator",
+"MID_IC",
+30
+],
+[
+"Labor Relations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Compensation Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Compensation Manager",
+"MANAGER",
+40
+],
+[
+"Total Rewards Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Analyst",
+"MID_IC",
+30
+],
+[
+"HRIS Manager",
+"MANAGER",
+40
+],
+[
+"Workforce Planning Manager",
+"MANAGER",
+40
+],
+[
+"L&D Manager",
+"MANAGER",
+40
+],
+[
+"Learning and Development Manager",
+"MANAGER",
+40
+],
+[
+"Learning & Development Specialist",
+"MID_IC",
+30
+],
+[
+"Learning and Development Partner",
+"MID_IC",
+30
+],
+[
+"Senior Learning Partner",
+"SENIOR_IC",
+45
+],
+[
+"Learning Experience Designer",
+"MID_IC",
+30
+],
+[
+"Senior Instructional Designer",
+"SENIOR_IC",
+45
+],
+[
+"Training Manager",
+"MANAGER",
+40
+],
+[
+"Corporate Trainer",
+"MID_IC",
+30
+],
+[
+"Senior Trainer",
+"OTHER",
+0
+],
+[
+"Organizational Development Consultant",
+"MID_IC",
+30
+],
+[
+"OD Consultant",
+"MID_IC",
+30
+],
+[
+"Organizational Effectiveness Manager",
+"MANAGER",
+40
+],
+[
+"Talent Management Manager",
+"MANAGER",
+40
+],
+[
+"Talent Development Manager",
+"MANAGER",
+40
+],
+[
+"Talent Development Specialist",
+"MID_IC",
+30
+],
+[
+"DEI Manager",
+"MANAGER",
+40
+],
+[
+"Diversity Equity Inclusion Manager",
+"MANAGER",
+40
+],
+[
+"Director of DEI",
+"DIRECTOR",
+65
+],
+[
+"Employee Experience Manager",
+"MANAGER",
+40
+],
+[
+"HR Operations Manager",
+"MANAGER",
+40
+],
+[
+"HR Specialist",
+"MID_IC",
+30
+],
+[
+"Senior HR Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Human Resources Business Partner",
+"MID_IC",
+30
+],
+[
+"HR Consultant",
+"MID_IC",
+30
+],
+[
+"Senior HR Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Change Management Consultant",
+"MID_IC",
+30
+],
+[
+"Talent Partner",
+"MID_IC",
+30
+],
+[
+"Senior Talent Partner",
+"SENIOR_IC",
+45
+],
+[
+"Recruiting Partner",
+"MID_IC",
+30
+],
+[
+"Recruitment Consultant",
+"MID_IC",
+30
+],
+[
+"Senior Recruitment Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Recruitment Manager",
+"MANAGER",
+40
+],
+[
+"Agency Recruiter",
+"MID_IC",
+30
+],
+[
+"Technical Sourcing Lead",
+"SENIOR_IC",
+45
+],
+[
+"RPO Recruiter",
+"MID_IC",
+30
+],
+[
+"Recruiter II",
+"MID_IC",
+30
+],
+[
+"Recruiter III",
+"SENIOR_IC",
+45
+],
+[
+"Senior Corporate Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Executive Talent Acquisition Partner",
+"SENIOR_IC",
+45
+],
+[
+"Leadership Recruiter",
+"MID_IC",
+30
+],
+[
+"Talent Acquisition Business Partner",
+"MID_IC",
+30
+],
+[
+"HR Lead",
+"SENIOR_IC",
+45
+],
+[
+"People Lead",
+"SENIOR_IC",
+45
+],
+[
+"People & Culture Manager",
+"MANAGER",
+40
+],
+[
+"Culture Manager",
+"MANAGER",
+40
+],
+[
+"Head of People Operations",
+"HEAD",
+72
+],
+[
+"Payroll Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Specialist",
+"OTHER",
+0
+],
+[
+"Leave Specialist",
+"OTHER",
+0
+],
+[
+"HR Coordinator",
+"OTHER",
+0
+],
+[
+"HR Administrator",
+"OTHER",
+0
+],
+[
+"HR Analyst",
+"MID_IC",
+30
+],
+[
+"People Analytics Manager",
+"MANAGER",
+40
+],
+[
+"People Analyst",
+"MID_IC",
+30
+],
+[
+"Learning Program Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Manager",
+"MANAGER",
+40
+],
+[
+"Talent Programs Manager",
+"MANAGER",
+40
+],
+[
+"Onboarding Specialist",
+"OTHER",
+0
+],
+[
+"Mobility Manager",
+"MANAGER",
+40
+],
+[
+"Global Mobility Specialist",
+"MID_IC",
+30
+],
+[
+"Workforce Analyst",
+"MID_IC",
+30
+],
+[
+"HR Director, Talent",
+"DIRECTOR",
+65
+],
+[
+"Recruiting Operations Manager",
+"MANAGER",
+40
+],
+[
+"Talent Operations Manager",
+"MANAGER",
+40
+],
+[
+"Executive Coach",
+"SENIOR_IC",
+45
+],
+[
+"Leadership Coach",
+"SENIOR_IC",
+45
+],
+[
+"Career Coach",
+"MID_IC",
+30
+],
+[
+"Senior Career Coach",
+"SENIOR_IC",
+45
+],
+[
+"Health Coach",
+"OTHER",
+0
+],
+[
+"Wellness Coach",
+"OTHER",
+0
+],
+[
+"Senior Health Coach",
+"MID_IC",
+30
+],
+[
+"Lead Health Coach",
+"MID_IC",
+30
+],
+[
+"Sales Coach",
+"OTHER",
+0
+],
+[
+"Sales Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Senior Sales Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Sales Enablement Specialist",
+"MID_IC",
+30
+],
+[
+"Sales Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Director of Sales Enablement",
+"DIRECTOR",
+65
+],
+[
+"Head of Enablement",
+"HEAD",
+72
+],
+[
+"Revenue Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Enablement Program Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Coach",
+"SENIOR_IC",
+45
+],
+[
+"Executive Leadership Coach",
+"SENIOR_IC",
+45
+],
+[
+"Professional Certified Coach",
+"SENIOR_IC",
+45
+],
+[
+"Coach",
+"OTHER",
+0
+],
+[
+"Life Coach",
+"OTHER",
+0
+],
+[
+"Business Coach",
+"OTHER",
+0
+],
+[
+"Performance Coach",
+"OTHER",
+0
+],
+[
+"Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Senior Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Instructional Coach",
+"OTHER",
+0
+],
+[
+"Literacy Coach",
+"OTHER",
+0
+],
+[
+"Math Coach",
+"OTHER",
+0
+],
+[
+"Academic Coach",
+"OTHER",
+0
+],
+[
+"Success Coach",
+"OTHER",
+0
+],
+[
+"Student Success Coach",
+"OTHER",
+0
+],
+[
+"Career Services Coach",
+"OTHER",
+0
+],
+[
+"Career Advisor",
+"OTHER",
+0
+],
+[
+"Career Counselor",
+"OTHER",
+0
+],
+[
+"Career Consultant",
+"MID_IC",
+30
+],
+[
+"Outplacement Consultant",
+"MID_IC",
+30
+],
+[
+"Career Transition Consultant",
+"MID_IC",
+30
+],
+[
+"Executive Career Coach",
+"SENIOR_IC",
+45
+],
+[
+"Coach, BetterUp",
+"OTHER",
+0
+],
+[
+"Fractional Coach",
+"OTHER",
+0
+],
+[
+"Certified Health Coach",
+"OTHER",
+0
+],
+[
+"Nutrition Coach",
+"OTHER",
+0
+],
+[
+"Fitness Coach",
+"OTHER",
+0
+],
+[
+"Head Coach",
+"OTHER",
+0
+],
+[
+"Assistant Coach",
+"OTHER",
+0
+],
+[
+"Basketball Coach",
+"OTHER",
+0
+],
+[
+"Clinical Coach",
+"OTHER",
+0
+],
+[
+"Nurse Coach",
+"OTHER",
+0
+],
+[
+"Recovery Coach",
+"OTHER",
+0
+],
+[
+"Peer Recovery Coach",
+"OTHER",
+0
+],
+[
+"Financial Coach",
+"OTHER",
+0
+],
+[
+"Money Coach",
+"OTHER",
+0
+],
+[
+"Customer Success Coach",
+"OTHER",
+0
+],
+[
+"Quality Coach",
+"OTHER",
+0
+],
+[
+"Coaching Manager",
+"MANAGER",
+40
+],
+[
+"Director of Coaching",
+"DIRECTOR",
+65
+],
+[
+"Head of Coaching",
+"HEAD",
+72
+],
+[
+"Coaching Program Manager",
+"MANAGER",
+40
+],
+[
+"Coach Operations Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Facilitator",
+"MID_IC",
+30
+],
+[
+"Executive Development Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Specialist",
+"MID_IC",
+30
+],
+[
+"Leadership Development Consultant",
+"MID_IC",
+30
+],
+[
+"Leadership Development Director",
+"DIRECTOR",
+65
+],
+[
+"Talent Coach",
+"OTHER",
+0
+],
+[
+"Team Coach",
+"OTHER",
+0
+],
+[
+"Sales Trainer",
+"MID_IC",
+30
+],
+[
+"Sales Training Manager",
+"MANAGER",
+40
+],
+[
+"Field Sales Trainer",
+"MID_IC",
+30
+],
+[
+"Sales Readiness Manager",
+"MANAGER",
+40
+],
+[
+"Customer Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Partner Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Technical Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Sales Productivity Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Enablement Specialist",
+"MID_IC",
+30
+],
+[
+"Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Enablement Program Manager",
+"SENIOR_IC",
+45
+],
+[
+"Mentor",
+"OTHER",
+0
+],
+[
+"Writing Coach",
+"OTHER",
+0
+],
+[
+"Interview Coach",
+"OTHER",
+0
+],
+[
+"Job Coach",
+"OTHER",
+0
+],
+[
+"Employment Specialist",
+"OTHER",
+0
+],
+[
+"Workforce Development Specialist",
+"OTHER",
+0
+],
+[
+"Executive Coaching Director",
+"DIRECTOR",
+65
+],
+[
+"Coaching Practice Lead",
+"SENIOR_IC",
+45
+],
+[
+"Wellbeing Coach",
+"OTHER",
+0
+],
+[
+"Mental Fitness Coach",
+"OTHER",
+0
+],
+[
+"Behavioral Health Coach",
+"OTHER",
+0
+],
+[
+"Diabetes Coach",
+"OTHER",
+0
+],
+[
+"Lifestyle Coach",
+"OTHER",
+0
+],
+[
+"Coach Manager",
+"MANAGER",
+40
+],
+[
+"Senior Coach",
+"OTHER",
+0
+],
+[
+"General Manager, Enterprise Business Unit",
+"C_SUITE",
+100
+],
+[
+"General Manager, Cloud Security",
+"C_SUITE",
+100
+],
+[
+"GM, Payments",
+"C_SUITE",
+100
+],
+[
+"Vice President & General Manager",
+"C_SUITE",
+100
+],
+[
+"Business Unit Head",
+"HEAD",
+72
+],
+[
+"Head of Business Unit",
+"HEAD",
+72
+],
+[
+"Business Unit President",
+"C_SUITE",
+100
+],
+[
+"Division President",
+"C_SUITE",
+100
+],
+[
+"President, North America",
+"C_SUITE",
+100
+],
+[
+"COO",
+"C_SUITE",
+100
+],
+[
+"VP Operations",
+"VP",
+80
+],
+[
+"Vice President of Operations",
+"VP",
+80
+],
+[
+"Director of Operations",
+"DIRECTOR",
+65
+],
+[
+"Senior Director, Operations",
+"DIRECTOR",
+65
+],
+[
+"Head of Operations",
+"HEAD",
+72
+],
+[
+"Chief of Staff",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Chief of Staff, Engineering",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Senior Chief of Staff",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Deputy Chief of Staff",
+"DIRECTOR",
+68
+],
+[
+"Managing Director, Consulting",
+"DIRECTOR",
+65
+],
+[
+"Country Manager",
+"DIRECTOR",
+65
+],
+[
+"Regional General Manager",
+"C_SUITE",
+100
+],
+[
+"General Manager, Hotel",
+"MANAGER",
+40
+],
+[
+"General Manager - Restaurant",
+"MANAGER",
+40
+],
+[
+"Plant Manager",
+"MANAGER",
+40
+],
+[
+"Site Leader",
+"SR_MANAGER",
+52
+],
+[
+"Site Director",
+"DIRECTOR",
+65
+],
+[
+"Operations Executive",
+"OTHER",
+0
+],
+[
+"Business Manager",
+"MANAGER",
+40
+],
+[
+"Strategy & Operations Manager",
+"MANAGER",
+40
+],
+[
+"BizOps Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Strategy and Operations",
+"HEAD",
+72
+],
+[
+"Executive Director, Strategy",
+"C_SUITE",
+100
+],
+[
+"Program Director",
+"DIRECTOR",
+65
+],
+[
+"Practice Leader",
+"SR_MANAGER",
+52
+],
+[
+"Business Leader",
+"OTHER",
+0
+],
+[
+"Commercial Director",
+"DIRECTOR",
+65
+],
+[
+"Area General Manager",
+"C_SUITE",
+100
+],
+[
+"Deputy General Manager",
+"C_SUITE",
+100
+],
+[
+"Senior General Manager",
+"C_SUITE",
+100
+],
+[
+"Associate General Manager",
+"OTHER",
+0
+],
+[
+"Group General Manager",
+"C_SUITE",
+100
+],
+[
+"Director, Business Operations",
+"DIRECTOR",
+65
+],
+[
+"Senior Manager, Strategy & Operations",
+"SR_MANAGER",
+50
+],
+[
+"Entrepreneur in Residence",
+"DIRECTOR",
+65
+],
+[
+"Operating Partner",
+"PARTNER",
+78
+],
+[
+"Operating Executive",
+"OTHER",
+0
+],
+[
+"Head of Business Operations",
+"HEAD",
+72
+],
+[
+"Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Associate Creative Director",
+"SR_MANAGER",
+52
+],
+[
+"Group Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Executive Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Art Director",
+"MID_IC",
+30
+],
+[
+"Senior Art Director",
+"SENIOR_IC",
+45
+],
+[
+"Group Art Director",
+"SR_MANAGER",
+52
+],
+[
+"Associate Art Director",
+"OTHER",
+0
+],
+[
+"Junior Art Director",
+"OTHER",
+0
+],
+[
+"Design Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Design",
+"HEAD",
+72
+],
+[
+"Design Lead",
+"SENIOR_IC",
+45
+],
+[
+"Lead Designer",
+"SENIOR_IC",
+45
+],
+[
+"Design Manager",
+"MANAGER",
+40
+],
+[
+"Senior Design Manager",
+"MANAGER",
+40
+],
+[
+"Brand Designer",
+"MID_IC",
+30
+],
+[
+"Senior Brand Designer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Designer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Designer",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Designer",
+"SR_MANAGER",
+52
+],
+[
+"Senior UX Designer",
+"SENIOR_IC",
+45
+],
+[
+"UI Designer",
+"MID_IC",
+30
+],
+[
+"UX/UI Designer",
+"MID_IC",
+30
+],
+[
+"Visual Designer",
+"MID_IC",
+30
+],
+[
+"Senior Visual Designer",
+"SENIOR_IC",
+45
+],
+[
+"Interaction Designer",
+"MID_IC",
+30
+],
+[
+"Senior UX Researcher",
+"SENIOR_IC",
+45
+],
+[
+"User Researcher",
+"MID_IC",
+30
+],
+[
+"Senior Graphic Designer",
+"SENIOR_IC",
+45
+],
+[
+"Motion Designer",
+"MID_IC",
+30
+],
+[
+"Senior Motion Designer",
+"SENIOR_IC",
+45
+],
+[
+"Copywriter",
+"MID_IC",
+30
+],
+[
+"Senior Copywriter",
+"SENIOR_IC",
+45
+],
+[
+"Associate Copywriter",
+"ENTRY_IC",
+20
+],
+[
+"Copy Director",
+"DIRECTOR",
+65
+],
+[
+"Copy Chief",
+"SR_MANAGER",
+52
+],
+[
+"Content Strategist",
+"MID_IC",
+30
+],
+[
+"Senior Content Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Content Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Content",
+"HEAD",
+72
+],
+[
+"Content Lead",
+"SENIOR_IC",
+45
+],
+[
+"Content Manager",
+"MANAGER",
+40
+],
+[
+"Senior Content Manager",
+"MANAGER",
+40
+],
+[
+"Content Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Editorial Director",
+"DIRECTOR",
+65
+],
+[
+"Senior Editor",
+"SENIOR_IC",
+45
+],
+[
+"Editor",
+"SENIOR_IC",
+45
+],
+[
+"Writer",
+"OTHER",
+0
+],
+[
+"Senior Writer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Writer",
+"SENIOR_IC",
+45
+],
+[
+"Speechwriter",
+"MID_IC",
+30
+],
+[
+"Senior Speechwriter",
+"SENIOR_IC",
+45
+],
+[
+"Senior Technical Writer",
+"SENIOR_IC",
+45
+],
+[
+"UX Writer",
+"MID_IC",
+30
+],
+[
+"Content Designer",
+"MID_IC",
+30
+],
+[
+"Senior Content Designer",
+"SENIOR_IC",
+45
+],
+[
+"Brand Strategist",
+"MID_IC",
+30
+],
+[
+"Creative Strategist",
+"MID_IC",
+30
+],
+[
+"Creative Lead",
+"SENIOR_IC",
+45
+],
+[
+"Creative Manager",
+"MANAGER",
+40
+],
+[
+"Creative Producer",
+"MID_IC",
+30
+],
+[
+"Video Producer",
+"MID_IC",
+30
+],
+[
+"Photographer",
+"OTHER",
+0
+],
+[
+"Illustrator",
+"OTHER",
+0
+],
+[
+"Animator",
+"OTHER",
+0
+],
+[
+"Design Researcher",
+"MID_IC",
+30
+],
+[
+"Service Designer",
+"MID_IC",
+30
+],
+[
+"Industrial Designer",
+"MID_IC",
+30
+],
+[
+"Packaging Designer",
+"OTHER",
+0
+],
+[
+"Experience Designer",
+"MID_IC",
+30
+],
+[
+"Principal Designer",
+"SR_MANAGER",
+52
+],
+[
+"Staff Designer",
+"SENIOR_IC",
+45
+],
+[
+"Brand Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Brand Design",
+"HEAD",
+72
+],
+[
+"VP Creative",
+"VP",
+80
+],
+[
+"Chief Creative Officer",
+"C_SUITE",
+100
+],
+[
+"Design Systems Lead",
+"SENIOR_IC",
+45
+],
+[
+"Design Program Manager",
+"MANAGER",
+40
+],
+[
+"Creative Operations Manager",
+"MANAGER",
+40
+],
+[
+"Studio Manager",
+"MANAGER",
+40
+],
+[
+"Studio Director",
+"DIRECTOR",
+65
+],
+[
+"Production Designer",
+"OTHER",
+0
+],
+[
+"Senior Financial Planner",
+"SENIOR_IC",
+45
+],
+[
+"Associate Financial Planner",
+"ENTRY_IC",
+20
+],
+[
+"Lead Financial Planner",
+"SENIOR_IC",
+45
+],
+[
+"CFP",
+"MID_IC",
+30
+],
+[
+"CERTIFIED FINANCIAL PLANNER",
+"MID_IC",
+30
+],
+[
+"Wealth Planner",
+"MID_IC",
+30
+],
+[
+"Senior Wealth Planner",
+"SENIOR_IC",
+45
+],
+[
+"Wealth Advisor",
+"MID_IC",
+30
+],
+[
+"Financial Advisor",
+"MID_IC",
+30
+],
+[
+"Private Wealth Advisor",
+"MID_IC",
+30
+],
+[
+"Paraplanner",
+"OTHER",
+0
+],
+[
+"Senior Demand Planner",
+"SENIOR_IC",
+45
+],
+[
+"Demand Planning Manager",
+"MANAGER",
+40
+],
+[
+"Supply Planner",
+"MID_IC",
+30
+],
+[
+"Senior Supply Planner",
+"SENIOR_IC",
+45
+],
+[
+"Supply Planning Manager",
+"MANAGER",
+40
+],
+[
+"S&OP Manager",
+"MANAGER",
+40
+],
+[
+"Master Scheduler",
+"OTHER",
+0
+],
+[
+"Inventory Planner",
+"MID_IC",
+30
+],
+[
+"Materials Planner",
+"OTHER",
+0
+],
+[
+"Production Planner",
+"OTHER",
+0
+],
+[
+"Merchandise Planner",
+"MID_IC",
+30
+],
+[
+"Allocation Analyst",
+"OTHER",
+0
+],
+[
+"Senior FP&A Analyst",
+"SENIOR_IC",
+45
+],
+[
+"FP&A Manager",
+"MANAGER",
+40
+],
+[
+"Director of FP&A",
+"DIRECTOR",
+65
+],
+[
+"Financial Planning Manager",
+"MANAGER",
+40
+],
+[
+"Financial Planning and Analysis Manager",
+"MANAGER",
+40
+],
+[
+"Senior Urban Planner",
+"SENIOR_IC",
+45
+],
+[
+"Planner II",
+"MID_IC",
+30
+],
+[
+"Planner III",
+"SENIOR_IC",
+45
+],
+[
+"Senior Planner",
+"SENIOR_IC",
+45
+],
+[
+"Principal Planner",
+"SENIOR_IC",
+45
+],
+[
+"City Planner",
+"DIRECTOR",
+68
+],
+[
+"Senior Transportation Planner",
+"SENIOR_IC",
+45
+],
+[
+"Regional Planner",
+"MID_IC",
+30
+],
+[
+"Land Use Planner",
+"MID_IC",
+30
+],
+[
+"Environmental Planner",
+"MID_IC",
+30
+],
+[
+"Planning Manager",
+"MANAGER",
+40
+],
+[
+"Planning Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Planning",
+"DIRECTOR",
+65
+],
+[
+"Long Range Planner",
+"MID_IC",
+30
+],
+[
+"Event Planner",
+"OTHER",
+0
+],
+[
+"Senior Event Planner",
+"SENIOR_IC",
+45
+],
+[
+"Meeting Planner",
+"OTHER",
+0
+],
+[
+"Senior Meeting Planner",
+"SENIOR_IC",
+45
+],
+[
+"Event Manager",
+"MANAGER",
+40
+],
+[
+"Senior Event Manager",
+"MANAGER",
+40
+],
+[
+"Events Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Events",
+"DIRECTOR",
+65
+],
+[
+"Conference Manager",
+"MANAGER",
+40
+],
+[
+"Meetings and Events Manager",
+"MANAGER",
+40
+],
+[
+"Strategic Planner",
+"MID_IC",
+30
+],
+[
+"Strategic Planning Manager",
+"MANAGER",
+40
+],
+[
+"Director of Strategic Planning",
+"DIRECTOR",
+65
+],
+[
+"Strategy and Planning Manager",
+"MANAGER",
+40
+],
+[
+"Media Planner",
+"MID_IC",
+30
+],
+[
+"Senior Media Planner",
+"SENIOR_IC",
+45
+],
+[
+"Workforce Planner",
+"MID_IC",
+30
+],
+[
+"Capacity Planner",
+"MID_IC",
+30
+],
+[
+"Capital Planner",
+"MID_IC",
+30
+],
+[
+"Maintenance Planner",
+"OTHER",
+0
+],
+[
+"Facilities Planner",
+"OTHER",
+0
+],
+[
+"Estate Planning Attorney",
+"MID_IC",
+30
+],
+[
+"Retirement Planner",
+"OTHER",
+0
+],
+[
+"Benefits Planner",
+"OTHER",
+0
+],
+[
+"Discharge Planner",
+"OTHER",
+0
+],
+[
+"Wedding Planner",
+"OTHER",
+0
+],
+[
+"Travel Planner",
+"OTHER",
+0
+],
+[
+"Account Planner",
+"MID_IC",
+30
+],
+[
+"Brand Planner",
+"MID_IC",
+30
+],
+[
+"Strategy Director, Planning",
+"DIRECTOR",
+65
+],
+[
+"Senior Program Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Hospital Administrator",
+"DIRECTOR",
+65
+],
+[
+"Healthcare Administrator",
+"MANAGER",
+45
+],
+[
+"Clinic Administrator",
+"MANAGER",
+45
+],
+[
+"Practice Administrator",
+"MANAGER",
+45
+],
+[
+"Medical Practice Administrator",
+"MANAGER",
+45
+],
+[
+"Department Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Department Administrator",
+"SENIOR_IC",
+45
+],
+[
+"School Administrator",
+"MANAGER",
+45
+],
+[
+"University Administrator",
+"OTHER",
+0
+],
+[
+"Research Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Research Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Grants Administrator",
+"MID_IC",
+30
+],
+[
+"Contract Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Contract Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Nonprofit Administrator",
+"OTHER",
+0
+],
+[
+"Court Administrator",
+"DIRECTOR",
+65
+],
+[
+"City Administrator",
+"C_SUITE",
+100
+],
+[
+"Town Administrator",
+"C_SUITE",
+100
+],
+[
+"Senior Systems Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Linux Systems Administrator",
+"OTHER",
+0
+],
+[
+"Database Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Database Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Network Administrator",
+"OTHER",
+0
+],
+[
+"Salesforce Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Salesforce Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Workday Administrator",
+"MID_IC",
+30
+],
+[
+"ServiceNow Administrator",
+"MID_IC",
+30
+],
+[
+"Business Administrator",
+"OTHER",
+0
+],
+[
+"Business Systems Administrator",
+"MID_IC",
+30
+],
+[
+"Payroll Administrator",
+"OTHER",
+0
+],
+[
+"Associate Administrator",
+"OTHER",
+0
+],
+[
+"Chief Administrative Officer",
+"C_SUITE",
+100
+],
+[
+"Director of Administration",
+"DIRECTOR",
+65
+],
+[
+"Administrative Director",
+"DIRECTOR",
+65
+],
+[
+"Administrative Manager",
+"MANAGER",
+40
+],
+[
+"Program Manager",
+"MANAGER",
+40
+],
+[
+"Senior Program Manager",
+"SENIOR_IC",
+45
+],
+[
+"Practice Manager",
+"MANAGER",
+40
+],
+[
+"Health Services Administrator",
+"MANAGER",
+45
+],
+[
+"Plan Administrator",
+"OTHER",
+0
+],
+[
+"Trust Administrator",
+"OTHER",
+0
+],
+[
+"Fund Administrator",
+"OTHER",
+0
+],
+[
+"LMS Administrator",
+"OTHER",
+0
+],
+[
+"Cloud Administrator",
+"OTHER",
+0
+],
+[
+"M365 Administrator",
+"OTHER",
+0
+],
+[
+"Senior Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Director",
+"DIRECTOR",
+65
+],
+[
+"Revenue Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Revenue Operations Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Revenue Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"RevOps Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Revenue Operations",
+"HEAD",
+72
+],
+[
+"Director, Revenue Operations",
+"DIRECTOR",
+65
+],
+[
+"Sales Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Sales Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Sales Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Operations Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Operations Specialist",
+"MID_IC",
+30
+],
+[
+"Marketing Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Business Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Business Operations Manager",
+"MANAGER",
+40
+],
+[
+"Business Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"GTM Operations Manager",
+"MANAGER",
+40
+],
+[
+"Go-to-Market Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Customer Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Operations Specialist",
+"OTHER",
+0
+],
+[
+"Operations Associate",
+"OTHER",
+0
+],
+[
+"Strategy & Operations Associate",
+"MID_IC",
+30
+],
+[
+"Strategy and Operations Manager",
+"MANAGER",
+40
+],
+[
+"Deal Desk Manager",
+"MANAGER",
+40
+],
+[
+"Sales Strategy Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Strategy Manager",
+"MANAGER",
+40
+],
+[
+"Commercial Operations Manager",
+"MANAGER",
+40
+],
+[
+"Clinical Operations Manager",
+"MANAGER",
+40
+],
+[
+"Program Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Program Manager",
+"MANAGER",
+40
+],
+[
+"Operations Coordinator",
+"OTHER",
+0
+],
+[
+"VP Revenue Operations",
+"VP",
+80
+],
+[
+"Senior Director Sales Operations",
+"DIRECTOR",
+65
+],
+[
+"Partner Operations Manager",
+"MANAGER",
+40
+],
+[
+"Field Operations Manager",
+"MANAGER",
+40
+],
+[
+"Regional Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Supervisor",
+"OTHER",
+0
+],
+[
+"Warehouse Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Senior PMM",
+"MANAGER",
+40
+],
+[
+"Principal Product Marketing Manager",
+"SR_MANAGER",
+52
+],
+[
+"Director of Product Marketing",
+"DIRECTOR",
+65
+],
+[
+"Head of Product Marketing",
+"HEAD",
+72
+],
+[
+"PMM",
+"MANAGER",
+40
+],
+[
+"Associate Product Marketing Manager",
+"OTHER",
+0
+],
+[
+"Growth Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Growth Marketer",
+"MID_IC",
+30
+],
+[
+"Growth Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Growth",
+"HEAD",
+72
+],
+[
+"Growth Manager",
+"MANAGER",
+40
+],
+[
+"Director of Growth Marketing",
+"DIRECTOR",
+65
+],
+[
+"Lifecycle Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Demand Generation Manager",
+"MANAGER",
+40
+],
+[
+"Senior Demand Generation Manager",
+"MANAGER",
+40
+],
+[
+"Performance Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Brand Manager",
+"MANAGER",
+40
+],
+[
+"Senior Brand Manager",
+"MANAGER",
+40
+],
+[
+"Associate Brand Manager",
+"MANAGER",
+40
+],
+[
+"Assistant Brand Manager",
+"MANAGER",
+40
+],
+[
+"Brand Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Brand",
+"DIRECTOR",
+65
+],
+[
+"Head of Brand",
+"HEAD",
+72
+],
+[
+"Senior Brand Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Brand Strategy Director",
+"DIRECTOR",
+65
+],
+[
+"Brand Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Director",
+"DIRECTOR",
+65
+],
+[
+"Digital Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Field Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Channel Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Customer Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Integrated Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Strategist",
+"MID_IC",
+30
+],
+[
+"Senior Marketing Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Brand Ambassador",
+"OTHER",
+0
+],
+[
+"Category Manager",
+"MANAGER",
+40
+],
+[
+"Senior Category Manager",
+"MANAGER",
+40
+],
+[
+"Trade Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Shopper Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Growth Analyst",
+"MID_IC",
+30
+],
+[
+"Growth Product Manager",
+"MANAGER",
+40
+],
+[
+"Business Unit Leader (Team Lead)",
+"MANAGER",
+40
+],
+[
+"AVP and Country Manager- Philippines",
+"SR_MANAGER",
+52
+],
+[
+"Senior Manager Talent Acquisition(Country Lead)",
+"SR_MANAGER",
+50
+],
+[
+"Country Manager (Mexico)",
+"DIRECTOR",
+65
+],
+[
+"Assistant Art Director",
+"OTHER",
+0
+],
+[
+"Art Director Intern",
+"OTHER",
+0
+],
+[
+"Creative Director / Art Director",
+"DIRECTOR",
+65
+],
+[
+"Recruiter Intern",
+"OTHER",
+0
+],
+[
+"Part-Time Recruiter",
+"OTHER",
+0
+],
+[
+"Driver Recruiter",
+"MID_IC",
+30
+],
+[
+"HR Generalist (Part-Time)",
+"OTHER",
+0
+],
+[
+"Executive Coach - Volunteer",
+"OTHER",
+0
+],
+[
+"Assistant Hospital Administrator",
+"OTHER",
+0
+],
+[
+"Senior Director, Executive Coaching",
+"DIRECTOR",
+65
+],
+[
+"VP & GM, Public Sector",
+"C_SUITE",
+100
+],
+[
+"Group Product Manager, Google Maps AI Platform",
+"SR_MANAGER",
+50
+],
+[
+"Principal Technical Recruiter",
+"SR_MANAGER",
+52
+],
+[
+"Principal Medical Writer (Device)",
+"SR_MANAGER",
+52
+],
+[
+"Strategy & Operations Associate - CEO Office",
+"MID_IC",
+30
+],
+[
+"Senior HRBP Manager",
+"SENIOR_IC",
+45
+],
+[
+"Director of Photography",
+"SENIOR_IC",
+45
+],
+[
+"Associate Partner",
+"PRINCIPAL",
+70
+],
+[
+"Expert Associate Partner",
+"PRINCIPAL",
+70
+],
+[
+"Associate Partner, Strategy & Transactions",
+"PRINCIPAL",
+70
+],
+[
+"Studio Head",
+"HEAD",
+72
+],
+[
+"Head of Studio",
+"HEAD",
+72
+],
+[
+"Showrunner",
+"DIRECTOR",
+65
+],
+[
+"Supervising Producer",
+"SR_MANAGER",
+52
+],
+[
+"Co-Executive Producer",
+"SR_MANAGER",
+52
+],
+[
+"VFX Supervisor",
+"SR_MANAGER",
+52
+],
+[
+"Animation Supervisor",
+"SR_MANAGER",
+52
+],
+[
+"Associate Media Director",
+"SR_MANAGER",
+52
+],
+[
+"Engagement Manager",
+"SR_MANAGER",
+52
+],
+[
+"Senior Engagement Manager",
+"SR_MANAGER",
+52
+],
+[
+"Line Producer",
+"SENIOR_IC",
+45
+],
+[
+"Managing Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Audio Lead",
+"SENIOR_IC",
+45
+],
+[
+"Lead Animator",
+"SENIOR_IC",
+45
+],
+[
+"Senior Technical Artist",
+"SENIOR_IC",
+45
+],
+[
+"Solution Architect",
+"SENIOR_IC",
+45
+],
+[
+"Assistant Director of Photography",
+"OTHER",
+0
+],
+[
+"Post-Production Supervisor",
+"MANAGER",
+40
+],
+[
+"Music Supervisor",
+"MANAGER",
+40
+],
+[
+"Account Supervisor",
+"MANAGER",
+40
+],
+[
+"Media Supervisor",
+"MANAGER",
+40
+],
+[
+"Sound Designer",
+"MID_IC",
+30
+],
+[
+"Technical Artist",
+"MID_IC",
+30
+],
+[
+"Composer",
+"MID_IC",
+30
+],
+[
+"Anchor",
+"MID_IC",
+30
+],
+[
+"News Anchor",
+"MID_IC",
+30
+],
+[
+"Morning Anchor",
+"MID_IC",
+30
+],
+[
+"Reporter",
+"MID_IC",
+30
+],
+[
+"General Assignment Reporter",
+"MID_IC",
+30
+],
+[
+"Report Writer",
+"OTHER",
+0
+],
+[
+"Reporter, Investigative",
+"MID_IC",
+30
+],
+[
+"Meteorologist",
+"MID_IC",
+30
+],
+[
+"Chief Meteorologist",
+"SENIOR_IC",
+45
+],
+[
+"Chief Engineer",
+"DIRECTOR",
+65
+],
+[
+"Engineering Fellow",
+"HEAD",
+72
+],
+[
+"Technical Fellow",
+"HEAD",
+72
+],
+[
+"Associate Technical Fellow",
+"PRINCIPAL",
+70
+],
+[
+"Senior Technical Fellow",
+"VP",
+80
+],
+[
+"Fellow",
+"OTHER",
+0
+],
+[
+"Postdoctoral Fellow",
+"OTHER",
+0
+],
+[
+"Senior Member of Technical Staff",
+"SENIOR_IC",
+45
+],
+[
+"Distinguished Member of Technical Staff",
+"PRINCIPAL",
+70
+],
+[
+"Principal Investigator",
+"SENIOR_IC",
+45
+],
+[
+"R&D Staff Member",
+"SENIOR_IC",
+45
+],
+[
+"Research and Development Staff Member",
+"SENIOR_IC",
+45
+],
+[
+"Section Head",
+"SR_MANAGER",
+52
+],
+[
+"Division Leader",
+"DIRECTOR",
+65
+],
+[
+"Associate Laboratory Director",
+"VP",
+80
+],
+[
+"Facility Security Officer",
+"MANAGER",
+40
+],
+[
+"FSO",
+"MANAGER",
+40
+],
+[
+"Assistant Facility Security Officer",
+"MID_IC",
+30
+],
+[
+"ISSO",
+"MANAGER",
+40
+],
+[
+"ISSM",
+"MANAGER",
+40
+],
+[
+"Information System Security Officer",
+"MANAGER",
+40
+],
+[
+"Industrial Security Specialist",
+"MID_IC",
+30
+],
+[
+"Subcontracts Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Subcontracts Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Proposal Writer",
+"MID_IC",
+30
+],
+[
+"EVM Analyst",
+"MID_IC",
+30
+],
+[
+"Logistician",
+"MID_IC",
+30
+],
+[
+"Targeting Analyst",
+"MID_IC",
+30
+],
+[
+"SIGINT Analyst",
+"MID_IC",
+30
+],
+[
+"Engineer Staff",
+"SENIOR_IC",
+45
+],
+[
+"Engr Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Systems Engineer Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Software Engineer Staff",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer Senior Staff",
+"SR_MANAGER",
+50
+],
+[
+"Engineer Associate",
+"OTHER",
+0
+],
+[
+"Systems Engineer Senior",
+"MID_IC",
+30
+],
+[
+"Site Lead",
+"MANAGER",
+40
+],
+[
+"Task Order Lead",
+"MANAGER",
+40
+],
+[
+"Test Pilot",
+"SENIOR_IC",
+45
+],
+[
+"Experimental Test Pilot",
+"SENIOR_IC",
+45
+],
+[
+"Chief Engineer, Maintenance",
+"OTHER",
+0
+],
+[
+"Chief Engineer - Hotel",
+"OTHER",
+0
+],
+[
+"Sound Engineer",
+"OTHER",
+0
+],
+[
+"Cyber Security Engineer Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Producer - Commercial Lines",
+"MID_IC",
+30
+],
+[
+"Principal Engineer, Enterprise AI \u2014 Technical Fellow Office",
+"SR_MANAGER",
+52
+],
+[
+"Data Center Chief Engineer",
+"MID_IC",
+30
+],
+[
+"Sr. Chief Engineer, DCEO, AWS DC Operations Engineering, DCEO",
+"SENIOR_IC",
+45
+],
+[
+"Civil Site Engineer - Section Head - Charleston",
+"SR_MANAGER",
+52
+],
+[
+"Deputy Division Leader",
+"SR_MANAGER",
+52
+],
+[
+"Associate Producer",
+"ENTRY_IC",
+20
+],
+[
+"Field Producer",
+"MID_IC",
+30
+],
+[
+"Insurance Agency Producer",
+"MID_IC",
+30
+],
+[
+"Court Reporter",
+"OTHER",
+0
+],
+[
+"Report Developer",
+"OTHER",
+0
+],
+[
+"Co-Anchor",
+"MID_IC",
+30
+],
+[
+"Anchor Store Manager",
+"OTHER",
+0
+],
+[
+"Sports Anchor/Reporter",
+"MID_IC",
+30
+],
+[
+"MMJ Reporter",
+"MID_IC",
+30
+],
+[
+"Assistant Account Supervisor",
+"OTHER",
+0
+],
+[
+"Account Supervisor - Call Center",
+"OTHER",
+0
+],
+[
+"Site Lead - Security Officer",
+"OTHER",
+0
+],
+[
+"Site Lead, Warehouse",
+"OTHER",
+0
+],
+[
+"Chief Engineer - Stationary",
+"OTHER",
+0
+],
+[
+"Chief Engineer (Marine)",
+"OTHER",
+0
+],
+[
+"Chief Engineer, F-35 Program",
+"DIRECTOR",
+65
+],
+[
+"Assistant Chief Engineer",
+"OTHER",
+0
+],
+[
+"Program Chief Engineer",
+"DIRECTOR",
+65
+],
+[
+"Composer Intern",
+"OTHER",
+0
+],
+[
+"Postdoctoral Fellow, Engineering",
+"OTHER",
+0
+],
+[
+"Engineering Fellowship Program",
+"OTHER",
+0
+],
+[
+"FSO Tax - Manager",
+"MANAGER",
+40
+],
+[
+"FSO - Insurance - Senior Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Assistant FSO",
+"MID_IC",
+30
+],
+[
+"ISSO II",
+"MANAGER",
+40
+],
+[
+"Junior ISSO",
+"OTHER",
+0
+],
+[
+"Nurse Staff",
+"OTHER",
+0
+],
+[
+"Engineer, Staff - Intern",
+"OTHER",
+0
+],
+[
+"HR Manager, Staff Development",
+"MANAGER",
+40
+],
+[
+"Director of Photography / Editor",
+"SENIOR_IC",
+45
+],
+[
+"DP/Editor",
+"SENIOR_IC",
+45
+],
+[
+"Second Unit Director of Photography",
+"OTHER",
+0
+],
+[
+"Expert Associate Partner - Digital",
+"PRINCIPAL",
+70
+],
+[
+"Associate Partner Manager",
+"MANAGER",
+40
+],
+[
+"Engagement Manager, Community",
+"MANAGER",
+40
+],
+[
+"Studio Head Stylist",
+"OTHER",
+0
+],
+[
+"Research and Development Associate Staff Member",
+"MID_IC",
+30
+],
+[
+"R&D S&E, Mechanical Engineering",
+"MID_IC",
+30
+],
+[
+"Principal Investigator - Clinical Research",
+"SENIOR_IC",
+45
+],
+[
+"Co-Principal Investigator",
+"SENIOR_IC",
+45
+],
+[
+"Line Producer - Intern",
+"OTHER",
+0
+],
+[
+"EVM Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"Targeting Analyst - Junior",
+"OTHER",
+0
+],
+[
+"Subcontracts Administrator 2",
+"MID_IC",
+30
+],
+[
+"Sr. Subcontracts Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer I",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer II",
+"EARLY_IC",
+25
+],
+[
+"Associate Software Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Junior Financial Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Financial Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Staff Accountant",
+"ENTRY_IC",
+20
+],
+[
+"Staff Auditor",
+"ENTRY_IC",
+20
+],
+[
+"Audit Associate",
+"ENTRY_IC",
+20
+],
+[
+"Tax Associate",
+"ENTRY_IC",
+20
+],
+[
+"Tax Associate Attorney",
+"MID_IC",
+30
+],
+[
+"Investment Banking Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Investment Banking Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Analyst, Corporate Strategy",
+"ENTRY_IC",
+20
+],
+[
+"Associate, Marketing",
+"EARLY_IC",
+25
+],
+[
+"Marketing Associate",
+"EARLY_IC",
+25
+],
+[
+"Product Associate",
+"EARLY_IC",
+25
+],
+[
+"Associate Product Manager",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer, New Grad",
+"ENTRY_IC",
+20
+],
+[
+"Data Analyst (New Grad 2026)",
+"ENTRY_IC",
+20
+],
+[
+"New College Grad - Process Integration Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Finance Rotational Program",
+"ENTRY_IC",
+20
+],
+[
+"Leadership Development Program - Operations",
+"ENTRY_IC",
+20
+],
+[
+"Sales Development Representative",
+"ENTRY_IC",
+20
+],
+[
+"Associate Consultant",
+"ENTRY_IC",
+20
+],
+[
+"Associate Attorney",
+"MID_IC",
+30
+],
+[
+"Junior Attorney",
+"ENTRY_IC",
+20
+],
+[
+"First-Year Associate",
+"ENTRY_IC",
+20
+],
+[
+"Summer Associate",
+"OTHER",
+0
+],
+[
+"Junior Developer",
+"ENTRY_IC",
+20
+],
+[
+"Junior Recruiter",
+"ENTRY_IC",
+20
+],
+[
+"Associate Scientist",
+"ENTRY_IC",
+20
+],
+[
+"Program Analyst (GS-07)",
+"ENTRY_IC",
+20
+],
+[
+"Program Analyst (GS-09)",
+"EARLY_IC",
+25
+],
+[
+"Compliance Specialist II",
+"EARLY_IC",
+25
+],
+[
+"Entry Level Accountant",
+"ENTRY_IC",
+20
+],
+[
+"Help Desk Analyst I",
+"OTHER",
+0
+],
+[
+"Data Scientist I",
+"ENTRY_IC",
+20
+],
+[
+"Engineer I",
+"ENTRY_IC",
+20
+],
+[
+"Engineer II",
+"EARLY_IC",
+25
+],
+[
+"Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Accountant-1",
+"ENTRY_IC",
+20
+],
+[
+"Associate Account Executive",
+"ENTRY_IC",
+20
+],
+[
+"Associate Account Executive, UK&I",
+"ENTRY_IC",
+20
+],
+[
+"Systems Engineer Senior I",
+"MID_IC",
+30
+],
+[
+"Staff Hardware QA Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Weeks - Project Engineer-Houston. TX 1",
+"MID_IC",
+30
+],
+[
+"Embedded Systems Software Engineer \u2013 Linux, Containers & Tactical SDR",
+"MID_IC",
+30
+],
+[
+"Associate or Mid-Level Guidance Nav & Control Engineer",
+"MID_IC",
+30
+],
+[
+"Software Engineering Intern",
+"OTHER",
+0
+],
+[
+"Co-op Engineer",
+"OTHER",
+0
+],
+[
+"Customer Service Representative",
+"OTHER",
+0
+],
+[
+"Graduate Research Assistant",
+"OTHER",
+0
+],
+[
+"Associate Designer",
 "OTHER",
 0
 ]

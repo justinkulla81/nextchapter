@@ -5,6 +5,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { markSeatPlacedAction, deactivateSeatAction } from '@/app/employer/(app)/roster/actions'
 import type { RosterSeat } from '@/lib/employer/outplacement-roster'
 import { SeatPackageSelect } from './ProgramForms'
+import { SeatAccessControls } from './SeatAccessControls'
 
 const STATUS_LABEL: Record<RosterSeat['status'], string> = {
   INVITED: 'Invited',
@@ -44,6 +45,7 @@ export function RosterTable({ seats, packages = [] }: { seats: RosterSeat[]; pac
             <th className="px-3 py-2 font-medium">Email</th>
             <th className="px-3 py-2 font-medium">Status</th>
             {packages.length > 1 && <th className="px-3 py-2 font-medium">Package</th>}
+            <th className="px-3 py-2 font-medium">Access</th>
             <th className="px-3 py-2 font-medium">Method</th>
             <th className="px-3 py-2 font-medium">Enrolled</th>
             <th className="px-3 py-2 font-medium">Activated</th>
@@ -62,6 +64,7 @@ export function RosterTable({ seats, packages = [] }: { seats: RosterSeat[]; pac
                   {seat.isSelf || seat.status === 'DEACTIVATED' ? (packages.find((p) => p.key === (seat.packageKey ?? 'all'))?.name ?? '—') : <SeatPackageSelect seatId={seat.id} value={seat.packageKey ?? 'all'} options={packages} />}
                 </td>
               )}
+              <td className="px-3 py-2 align-top">{seat.isSelf || seat.status === 'DEACTIVATED' ? '—' : <SeatAccessControls seat={seat} />}</td>
               <td className="px-3 py-2 text-muted-foreground">{seat.enrollmentMethod === 'BULK_CSV' ? 'Bulk CSV' : 'Single'}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.enrolledAt)}</td>
               <td className="px-3 py-2 tabular-nums">{fmt(seat.activatedAt)}</td>

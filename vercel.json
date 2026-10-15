@@ -49,6 +49,10 @@
       "schedule": "0 10 * * *"
     },
     {
+      "path": "/api/cron/board-light-rows",
+      "schedule": "40 9 * * *"
+    },
+    {
       "path": "/api/cron/ats-job-board-feed",
       "schedule": "30 10 * * *"
     },
@@ -91,6 +95,14 @@
     {
       "path": "/api/cron/company-signals",
       "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-hiring-index",
+      "schedule": "40 7 * * *"
+    },
+    {
+      "path": "/api/cron/pivot-market",
+      "schedule": "20 8 * * *"
     },
     {
       "path": "/api/cron/funding-opportunities",
@@ -170,7 +182,7 @@
     },
     {
       "path": "/api/cron/fresh-job-alerts",
-      "schedule": "0 21 * * *"
+      "schedule": "30 13,16,19,22,1 * * *"
     },
     {
       "path": "/api/cron/likely-openings",

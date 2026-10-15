@@ -147,6 +147,42 @@ export async function seedCommunity(
     ].map((n) => ({ ...n, institutionId, createdBy: 'demo-seed', ...S })),
   })
 
+  // Class notes, a job-search circle, a career fair with booths, and a referral.
+  await db.classNote.createMany({
+    data: [
+      { institutionId, memberId: o(25), kind: 'career', body: 'Started as VP of Operations at a regional health system this month. Grateful to the two alumni who took my calls.', createdAt: ago(3), ...S },
+      { institutionId, memberId: o(26), kind: 'life', body: 'We moved back to Pittsburgh after ten years in Chicago. Coffee, anyone?', createdAt: ago(8), ...S },
+      { institutionId, memberId: o(27), kind: 'achievement', body: 'My first book, on small-business finance, comes out in the spring.', createdAt: ago(12), ...S },
+      { institutionId, memberId: featured, kind: 'career', body: 'Finished a data analytics certificate and looking for analyst roles in operations. Happy to compare notes.', createdAt: ago(1), ...S },
+    ],
+  })
+  const circle = await db.jobSearchCircle.create({
+    data: { institutionId, name: 'Fall circle: back to work', focus: 'Mid-career alumni after a layoff', facilitator: 'Dana Whitfield (career coach)', startsAt: new Date(now.getTime() + 9 * DAY), weeks: 6, meetingTime: 'Tuesdays 6:00 pm', meetingUrl: 'https://meet.example.com/fall-circle', capacity: 6, createdBy: 'demo-seed', ...S },
+    select: { id: true },
+  })
+  await db.jobSearchCircleMember.createMany({ data: [o(28), o(29), o(30)].map((m, k) => ({ circleId: circle.id, memberId: m, goal: ['Three interviews by week 4', 'Decide between ops and analytics', 'Get back to a director role'][k], ...S })) })
+  const fair = await db.collegeEvent.create({
+    data: { institutionId, title: 'Virtual career fair', kind: 'career_fair', startsAt: new Date(Math.floor((now.getTime() + 20 * DAY) / DAY) * DAY + 17 * 3600_000), location: 'Online', createdBy: 'demo-seed', ...S },
+    select: { id: true },
+  })
+  const booths = await Promise.all(
+    [
+      { employerName: a.employers[0] ?? 'Harbor Ridge Manufacturing', roles: 'Operations manager, plant controller, quality engineer', pitch: 'Three alumni lead our plants. We hire people who fix things.' },
+      { employerName: a.employers[1] ?? 'Northgate Media', roles: 'Account executive, content strategist', pitch: 'Fast growth, real training, and a W&J alum runs sales.' },
+      { employerName: a.employers[2] ?? 'Granite Arch Insurance', roles: 'Claims analyst, data analyst, underwriting trainee', pitch: 'Stable, remote-friendly roles with tuition support.' },
+    ].map((b) => db.fairBooth.create({ data: { ...b, eventId: fair.id, meetingUrl: 'https://meet.example.com/booth', ...S }, select: { id: true } })),
+  )
+  await db.fairBoothVisit.createMany({
+    data: [
+      { boothId: booths[0].id, memberId: o(31), note: 'Ten years in plant operations; interested in the ops manager role.', shareDossier: true, ...S },
+      { boothId: booths[2].id, memberId: o(32), note: 'Looking at data analyst roles after a certificate.', ...S },
+    ],
+  })
+  const employerCo = a.employers[0] ?? 'Harbor Ridge Manufacturing'
+  await db.alumniIntroRequest.create({
+    data: { institutionId, requesterMemberId: featured, targetMemberId: o(33), companyName: employerCo, purpose: 'referral', note: 'I’m applying for the senior analyst role; would you be open to referring me?', referralJobUrl: 'https://jobs.example.com/senior-analyst', status: 'ACCEPTED', respondedAt: ago(1), ...S },
+  }).catch(() => null)
+
   // The demo system: both demo colleges, counted side by side at /systems.
   const system = await db.institutionSystem.upsert({ where: { slug: DEMO_SYSTEM_SLUG }, create: { slug: DEMO_SYSTEM_SLUG, name: 'Demo college system', ...S }, update: {}, select: { id: true } })
   await db.institution.update({ where: { id: institutionId }, data: { systemId: system.id } })

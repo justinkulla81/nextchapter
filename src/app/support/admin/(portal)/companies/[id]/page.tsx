@@ -14,6 +14,7 @@ import type { RankedSkill } from '@/lib/companies/skills-extraction'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NervousEmployeePanel } from '@/components/admin/NervousEmployeePanel'
 import { CompanyLocalPartners } from '@/components/admin/CompanyLocalPartners'
+import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { OWNERSHIP_LABEL } from '@/lib/market-intelligence/target-list'
 import { setCompanyOwnershipType } from './actions'
@@ -84,6 +85,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
           </Suspense>
         </div>
       </div>
+
+      {/* ── Hiring history and pay (shared public facts) ── */}
+      <Suspense fallback={<CompanyHiringIndexSkeleton />}>
+        <CompanyHiringIndex companyId={id} viewer="admin" />
+      </Suspense>
 
       {/* ── Ownership (PE/VC) — Phase 9 §A3.3/§A3.7, admin-set only ── */}
       <Card>

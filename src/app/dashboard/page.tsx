@@ -1,9 +1,12 @@
 import type { MarketRealityReport } from '@prisma/client'
+import { MarketFlagsCard } from '@/components/dashboard/MarketFlagsCard'
+import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProgramCard'
 import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
 import { checkInDue, effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
+import { CultureSurveyPrompt } from '@/components/dashboard/CultureSurveyPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -162,7 +165,7 @@ export default async function DashboardPage() {
     computeProbabilityGrade(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber),
+    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
     hasStartedSprint(profile.id),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     // Prompt 60 — passive fallback for candidates whose consent was granted
@@ -294,6 +297,12 @@ export default async function DashboardPage() {
       </div>
 
       <OutplacementProgramCard candidateId={profile.id} />
+
+      <Suspense fallback={null}>
+        <MarketFlagsCard candidateId={profile.id} />
+      </Suspense>
+
+      <WorkStylePrompt candidateId={profile.id} limit={3} />
 
       {journeyNow && stageNow && checkInDue(profile) && (
         <JourneyCheckInCard journeyLabel={getJourney(journeyNow).label} stageLabel={getStage(stageNow).label} />
@@ -433,6 +442,11 @@ export default async function DashboardPage() {
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
 
       {stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
+
+      {/* Insider culture survey: describe a company you worked at (aggregate-only). */}
+      <Suspense fallback={null}>
+        <CultureSurveyPrompt candidateId={profile.id} />
+      </Suspense>
 
       {searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
 

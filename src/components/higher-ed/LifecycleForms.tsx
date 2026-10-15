@@ -60,32 +60,37 @@ const PURPOSES = [
   ['applying', 'Applying'],
   ['interviewing', 'Interviewing'],
   ['offer', 'Weighing an offer'],
+  ['referral', 'Asking for a referral'],
 ] as const
 
 export function AskIntro({ slug, targetMemberId, companyName, name }: { slug: string; targetMemberId: string; companyName: string; name: string }) {
   const [open, setOpen] = useState(false)
   const [purpose, setPurpose] = useState<string>('applying')
   const [note, setNote] = useState('')
+  const [jobUrl, setJobUrl] = useState('')
   const { pending, r, run } = useRun()
   if (r?.ok) return <Msg r={r} />
   if (!open)
     return (
       <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-        Ask {name.split(' ')[0]} for 15 minutes
+        Ask {name.split(' ')[0]} for 15 minutes or a referral
       </Button>
     )
   return (
     <div className={cn('w-full space-y-2', pending && 'cursor-wait')}>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Why you're asking">
+      <select aria-label="Why you're asking" className={sel} value={purpose} onChange={(e) => setPurpose(e.target.value)}>
         {PURPOSES.map(([k, l]) => (
-          <Button key={k} type="button" size="sm" role="radio" aria-checked={purpose === k} variant={purpose === k ? 'default' : 'outline'} onClick={() => setPurpose(k)}>
+          <option key={k} value={k}>
             {l}
-          </Button>
+          </option>
         ))}
-      </div>
+      </select>
+      {purpose === 'referral' && (
+        <input aria-label="Link to the job" type="url" className={sel} placeholder="Link to the job you want to be referred for (https://…)" value={jobUrl} onChange={(e) => setJobUrl(e.target.value)} />
+      )}
       <textarea aria-label="A short note" className={area} placeholder="What you’d like to ask, in a sentence or two." value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
       <div className="flex gap-2">
-        <Button size="sm" disabled={pending} onClick={() => run(() => askForAlumniIntro(slug, targetMemberId, companyName, purpose, note))}>
+        <Button size="sm" disabled={pending} onClick={() => run(() => askForAlumniIntro(slug, targetMemberId, companyName, purpose, note, purpose === 'referral' ? jobUrl : null))}>
           {pending ? 'Sending…' : 'Send request'}
         </Button>
         <Button size="sm" variant="ghost" disabled={pending} onClick={() => setOpen(false)}>

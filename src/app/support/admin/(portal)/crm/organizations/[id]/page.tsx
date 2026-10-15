@@ -20,6 +20,8 @@ import { loadOrgDemandData } from '@/lib/crm/org-page-data'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { Suspense } from 'react'
+import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 
 export const maxDuration = 30
 
@@ -351,6 +353,14 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         <CrmOrgBackgroundSections
           org={{ id: org.id, name: org.name, canonicalNameNormalized: org.canonicalNameNormalized, companyId: org.companyId }}
         />
+
+        {/* Hiring history, employer pay level and layoffs — the linked directory
+            company's public business facts only (company wall). */}
+        {org.companyId && (
+          <Suspense fallback={<CompanyHiringIndexSkeleton />}>
+            <CompanyHiringIndex companyId={org.companyId} viewer="crm" />
+          </Suspense>
+        )}
       </section>
 
       {/* ── Candidates ───────────────────────────────────────────────────── */}
