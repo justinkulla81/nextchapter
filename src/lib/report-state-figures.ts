@@ -15,7 +15,7 @@ export interface StateFigures {
 }
 
 export const STATE_FIGURES_EDITION = {
-  slug: 'displacement-report-september-2026',
+  slug: 'white-collar-employment-report-september-2026',
   month: 'August 2026',
   period: 'August 2025 to August 2026',
   source: 'BLS State Employment and Unemployment, August 2026 (Sep 18, 2026)',

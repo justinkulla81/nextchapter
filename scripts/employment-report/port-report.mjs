@@ -1,8 +1,8 @@
 // Port the authored report HTML into the Next.js edition page.
 //
-//   node scripts/displacement/port-report.mjs [source.html] [route-dir]
+//   node scripts/employment-report/port-report.mjs [source.html] [route-dir]
 //
-// Writes, from incoming-report/displacement-report-september-2026.html by default:
+// Writes, from incoming-report/white-collar-employment-report-september-2026.html by default:
 //   <route>/report-body.ts    body markup (cover through footer), verbatim
 //   <route>/report-styles.ts  the <style> blocks, every selector scoped to .ncr
 //   public/reports/report-charts.js  the inline chart script, with null guards
@@ -11,8 +11,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import postcss from 'postcss'
 
-const SRC = process.argv[2] ?? 'incoming-report/displacement-report-september-2026.html'
-const ROUTE = process.argv[3] ?? 'src/app/reports/displacement-report-september-2026'
+const SRC = process.argv[2] ?? 'incoming-report/white-collar-employment-report-september-2026.html'
+const ROUTE = process.argv[3] ?? 'src/app/reports/white-collar-employment-report-september-2026'
 const html = fs.readFileSync(SRC, 'utf8')
 
 const asTemplate = (s) => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
@@ -33,7 +33,7 @@ const patch = (re, fn, label) => {
 patch(
   /(<div class="actions">[\s\S]*?<\/div>\n)/,
   (m) =>
-    `${m}    <p style="margin:0;font-size:.8rem"><a id="pdf-direct" href="/reports/displacement-report-2026-09.pdf" download style="color:var(--muted);text-underline-offset:2px">Media or researcher? Download the PDF directly →</a></p>\n`,
+    `${m}    <p style="margin:0;font-size:.8rem"><a id="pdf-direct" href="/reports/white-collar-employment-report-2026-09.pdf" download style="color:var(--muted);text-underline-offset:2px">Media or researcher? Download the PDF directly →</a></p>\n`,
   'pdf-direct link',
 )
 let n = 0
@@ -46,7 +46,7 @@ const base = path.basename(SRC)
 fs.writeFileSync(
   path.join(ROUTE, 'report-body.ts'),
   `// AUTO-EXTRACTED verbatim from the authored report HTML (incoming-report/
-// ${base}), body only, by scripts/displacement/port-report.mjs. Links already
+// ${base}), body only, by scripts/employment-report/port-report.mjs. Links already
 // point at /reports/*. Charts render into the empty .plot divs via
 // public/reports/report-charts.js. Interactive pieces (Logo, newsletter slot,
 // PDF gate) are layered on by ReportEnhancements via the ids/classes below.
@@ -77,7 +77,7 @@ fs.writeFileSync(
 // prefixed with .ncr so the report's CSS styles only the report document and
 // never the site chrome. :root/body/* fold onto .ncr; the two font tokens
 // point at the site's next/font variables. Regenerate with
-// scripts/displacement/port-report.mjs.
+// scripts/employment-report/port-report.mjs.
 export const REPORT_CSS = \`${asTemplate(root.toString().trim())}\`
 `,
 )
@@ -95,7 +95,7 @@ fs.writeFileSync(
 // word, table and note is already in the server HTML. Download buttons work as
 // normal links on the website; inside the Claude viewer (window.claude) they
 // route through the downloads capability. Verbatim from the authored report,
-// with defensive guards, by scripts/displacement/port-report.mjs.
+// with defensive guards, by scripts/employment-report/port-report.mjs.
 ${js}
 `,
 )

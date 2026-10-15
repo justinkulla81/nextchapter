@@ -36,7 +36,7 @@ export function generateMetadata(): Metadata {
       description,
       url: URL,
       siteName: 'NextChapter',
-      images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png`, width: 1200, height: 630 }],
+      images: [{ url: `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png`, width: 1200, height: 630 }],
     },
     twitter: { card: 'summary_large_image', title: 'NextChapter White-Collar Long-Search Index', description },
   }
@@ -360,7 +360,7 @@ export default function WhiteCollarIndexPage() {
       </main>
 
       <section className="border-t border-light-gray bg-white px-6 py-16">
-        <NewsletterSignup source="displacement-report" />
+        <NewsletterSignup source="employment-report" />
       </section>
 
       <PublicSiteFooter page="reports" />

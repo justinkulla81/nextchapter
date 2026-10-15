@@ -1,4 +1,4 @@
-// Adds (or refreshes) the News rows for the White Collar Employment Report (the Displacement Report through Oct 12, 2026), so the report
+// Adds (or refreshes) the News rows for the White Collar Employment Report, so the report
 // appears on the homepage and /news as "NextChapter Report" cards that link to
 // the report's own page in the same tab.
 //
@@ -12,9 +12,9 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const SITE = 'https://launchyournextchapter.com'
-const SLUG = 'displacement-report-september-2026'
+const SLUG = 'white-collar-employment-report-september-2026'
 const URL = `${SITE}/reports/${SLUG}`
-const OG = `${SITE}/reports/displacement-report-2026-09-og.png?v=1.72`
+const OG = `${SITE}/reports/white-collar-employment-report-2026-09-og.png?v=1.72`
 
 // Tags are mapped to the site's fixed tag vocabulary (src/lib/news/tags.ts):
 // 'news' and 'data_research' stand in for the report's "reports"/"data" topics,
@@ -39,12 +39,12 @@ const items = [
     newsTitle: 'Jobs are growing, and some searches are taking longer: the September 2026 NextChapter White Collar Employment Report',
     newsPublishedAt: new Date('2026-10-05T12:00:00Z'),
     newsBlurb:
-      'Monthly white-collar employment report (published as the Displacement Report through October 12, 2026): 612,000 jobs added in nine months, about one opening per unemployed person, the White-Collar Long-Search Index at 162, AI attribution in SEC filings, plus skills, states and what public programs are adding.',
+      'Monthly white-collar employment report: 612,000 jobs added in nine months, about one opening per unemployed person, the White-Collar Long-Search Index at 162, AI attribution in SEC filings, plus skills, states and what public programs are adding.',
   },
   {
     ...base,
     // Distinct slug so the correction is its own card; both link to the report.
-    newsSlug: 'displacement-report-september-2026-v1-2-correction',
+    newsSlug: 'white-collar-employment-report-september-2026-v1-2-correction',
     title: 'Correction and Q3 addendum: NextChapter White Collar Employment Report v1.2',
     newsTitle: 'Correction and Q3 addendum: NextChapter White Collar Employment Report v1.2',
     newsPublishedAt: new Date('2026-10-06T12:00:00Z'),
@@ -53,7 +53,7 @@ const items = [
   },
   {
     ...base,
-    newsSlug: 'displacement-report-september-2026-v1-6',
+    newsSlug: 'white-collar-employment-report-september-2026-v1-6',
     title: 'NextChapter White Collar Employment Report v1.6: immigration, college AI programs, retraining and a correction',
     newsTitle: 'NextChapter White Collar Employment Report v1.6: immigration, college AI programs, retraining and a correction',
     newsPublishedAt: new Date('2026-10-06T20:00:00Z'),
@@ -62,7 +62,7 @@ const items = [
   },
   {
     ...base,
-    newsSlug: 'displacement-report-september-2026-v1-72',
+    newsSlug: 'white-collar-employment-report-september-2026-v1-72',
     title: 'NextChapter White Collar Employment Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
     newsTitle: 'NextChapter White Collar Employment Report v1.72: AI exposure by occupation, degree holders, student debt and productivity',
     newsPublishedAt: new Date('2026-10-07T20:00:00Z'),

@@ -25,7 +25,7 @@ export const OCCUPATION_TRENDS_SOURCE = {
   version: '1.72',
   title: 'NextChapter White Collar Employment Report',
   note: 'NextChapter calculation from Census CPS microdata; AI exposure from Eloundou et al. (2024)',
-  url: 'https://launchyournextchapter.com/reports/displacement-report-september-2026',
+  url: 'https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026',
 } as const
 
 export const OCCUPATION_TRENDS: OccupationTrendRow[] = [

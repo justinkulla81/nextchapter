@@ -105,7 +105,7 @@ export function ReportNewsletterPopup({ placement }: { placement: string }) {
               out. Free, unsubscribe any time.
             </p>
             <form action={action} noValidate className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
-              <input type="hidden" name="source" value="displacement-report-popup" />
+              <input type="hidden" name="source" value="employment-report-popup" />
               <div className="hidden" aria-hidden>
                 <label htmlFor="report-popup-website">Website</label>
                 <input id="report-popup-website" name="website" type="text" tabIndex={-1} autoComplete="off" />

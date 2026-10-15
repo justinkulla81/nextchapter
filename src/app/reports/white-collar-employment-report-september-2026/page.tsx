@@ -10,12 +10,12 @@ import { organizationRef, personRef } from '@/lib/seo/jsonld'
 import { REPORT_CSS } from './report-styles'
 import { REPORT_BODY_HTML } from './report-body'
 
-const SLUG = 'displacement-report-september-2026'
+const SLUG = 'white-collar-employment-report-september-2026'
 const URL = `${SITE_URL}/reports/${SLUG}`
-const OG_IMAGE = `${SITE_URL}/reports/displacement-report-2026-09-og.png?v=20261013`
-const PDF_HREF = '/reports/displacement-report-2026-09.pdf'
+const OG_IMAGE = `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png?v=20261013`
+const PDF_HREF = '/reports/white-collar-employment-report-2026-09.pdf'
 const PDF_FILENAME = 'NextChapter-White-Collar-Employment-Report-September-2026.pdf'
-const BRIEF_HREF = '/reports/displacement-report-2026-09-brief.pdf'
+const BRIEF_HREF = '/reports/white-collar-employment-report-2026-09-brief.pdf'
 const REPO_URL = 'https://github.com/justinkulla81/nextchapter-displacement-report'
 const PUBLISHED = '2026-10-05'
 const MODIFIED = '2026-10-13'
@@ -88,9 +88,9 @@ const jsonLd = {
       distribution: [
         { '@type': 'DataDownload', name: 'Full report (55 pages)', encodingFormat: 'application/pdf', contentUrl: `${SITE_URL}${PDF_HREF}` },
         { '@type': 'DataDownload', name: 'Brief (12 pages)', encodingFormat: 'application/pdf', contentUrl: `${SITE_URL}${BRIEF_HREF}` },
-        { '@type': 'DataDownload', name: 'Report figures', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/displacement-report-2026-09-data.csv` },
+        { '@type': 'DataDownload', name: 'Report figures', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/white-collar-employment-report-2026-09-data.csv` },
         { '@type': 'DataDownload', name: 'SEC Item 2.05 AI coding', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/sec-item205-ai-coding-2026.csv` },
-        { '@type': 'DataDownload', name: 'Q3 2026 revenue per employee', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/displacement-report-2026-q3-revenue-per-employee.csv` },
+        { '@type': 'DataDownload', name: 'Q3 2026 revenue per employee', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/white-collar-employment-report-2026-q3-revenue-per-employee.csv` },
       ],
     },
     {
@@ -189,7 +189,7 @@ const jsonLd = {
   ],
 }
 
-export default function DisplacementReportSeptember2026() {
+export default function WhiteCollarEmploymentReportSeptember2026() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />

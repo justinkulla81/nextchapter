@@ -33,7 +33,7 @@ if (!csr2025 || !csr2026) throw new Error('Customer service series missing from 
 const out = buildOccupationTrendsFile(exposure.rows, {
   edition: arg('edition'),
   version: arg('version'),
-  url: arg('url', 'https://launchyournextchapter.com/reports/displacement-report-september-2026'),
+  url: arg('url', 'https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026'),
   csrEmployment: { y2025: csr2025, y2026: csr2026 },
   csrMarginThousands: Number(arg('csr-margin')),
 })

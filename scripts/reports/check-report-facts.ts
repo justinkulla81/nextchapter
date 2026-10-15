@@ -2,7 +2,7 @@
  * Flags figures stored in code that the latest report edition no longer
  * contains. Run each month after the new edition's PDF is built:
  *
- *   npm run report:check-facts -- [public/reports/displacement-report-2026-09.pdf]
+ *   npm run report:check-facts -- [public/reports/white-collar-employment-report-2026-09.pdf]
  *
  * Exit code 1 when any stored figure is not found, so it can gate a refresh.
  * "Not found" means look at it: the figure may be rounded or reworded in the
@@ -14,7 +14,7 @@ import { FIXED_FACTS } from '../../src/lib/pitch/report-facts'
 import { LONGER_SEARCH_FIGURES } from '../../src/lib/marketing/longer-search-message'
 import { checkFacts, type FactToCheck } from '../../src/lib/reports/fact-check'
 
-const pdf = process.argv[2] ?? 'public/reports/displacement-report-2026-09.pdf'
+const pdf = process.argv[2] ?? 'public/reports/white-collar-employment-report-2026-09.pdf'
 const text = execFileSync('pdftotext', ['-layout', path.resolve(pdf), '-'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
 
 const facts: FactToCheck[] = []

@@ -1,4 +1,4 @@
-// The NextChapter White Collar Employment Report (published as the NextChapter Displacement Report through October 12, 2026): the list of published editions.
+// The NextChapter White Collar Employment Report: the list of published editions.
 //
 // This is the one place a new edition is registered. Adding next month is a
 // single entry at the top of REPORT_EDITIONS; the hub, the sitemap, the news
@@ -6,13 +6,6 @@
 
 /** The report's name from the October 2026 edition on. */
 export const REPORT_NAME = 'NextChapter White Collar Employment Report'
-
-/**
- * The name the report was published under through October 12, 2026 (renamed October 13, 2026; measures unchanged). Keep it for
- * citing those editions by their published title; new editions and new copy use
- * REPORT_NAME.
- */
-export const REPORT_LEGACY_NAME = 'NextChapter Displacement Report'
 
 /** URL-slug prefix for editions published under the current name. */
 export const REPORT_SLUG_PREFIX = 'white-collar-employment-report-'
@@ -55,13 +48,13 @@ export interface ReportEdition {
 // Newest first is the job of helpers below; author order here is free.
 export const REPORT_EDITIONS: ReportEdition[] = [
   {
-    slug: 'displacement-report-september-2026',
+    slug: 'white-collar-employment-report-september-2026',
     month: 'September 2026',
     title: 'Jobs are growing, and some searches are taking longer',
     dek: 'The economy added 612,000 jobs in the first nine months of 2026 and there is about one opening per unemployed person, while long searches among managers and professionals were about a third more common than a year earlier. The monthly read on how people are working, being hired and changing jobs, with what public programs and technology are adding.',
     publishedAt: '2026-10-05',
     updatedAt: '2026-10-13',
-    ogImage: '/reports/displacement-report-2026-09-og.png',
+    ogImage: '/reports/white-collar-employment-report-2026-09-og.png',
   },
 ]
 
@@ -75,7 +68,7 @@ export function latestReport(): ReportEdition | null {
   return reportsNewestFirst()[0] ?? null
 }
 
-/** The canonical path for an edition, e.g. /reports/displacement-report-september-2026. */
+/** The canonical path for an edition, e.g. /reports/white-collar-employment-report-september-2026. */
 export function reportPath(edition: ReportEdition): string {
   return `/reports/${edition.slug}`
 }
