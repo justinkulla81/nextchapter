@@ -12,7 +12,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Coaching / Recruiting
 
-- Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
+- (Partly built 2026-10-14 for coaches only: booking inside NextChapter with Meet links on the shared calendar; per-coach calendar connection and recruiters are still open, see docs/OPEN_ITEMS.md.) Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
 
 ## Auth
 
@@ -61,7 +61,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Engagement / Gamification (not built)
 
-- **Pivot Tool** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
+- **Pivot Tool (built 2026-10-14 as `/dashboard/pivot`, see docs/CAREER_TAXONOMY.md; the Victoria-initiated prompt after a stuck period is not built)** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
 - **Accountability partners** — opt-in peer pairing by function/level/week-in-search, with an anti-ghost mechanism (48-hour confirmation to activate the pairing, auto-dissolve after 2 missed check-ins, clean rematch). Distinct from the existing Support Network (which is the candidate's own personal contacts) — this would be candidate-to-candidate pairing within NextChapter.
 - **Opt-in leaderboard** — anonymized, opt-in ranking by function or cohort. Would need enough active candidates in a given function/cohort to be meaningful rather than exposing individuals.
 

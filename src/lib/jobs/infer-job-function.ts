@@ -185,7 +185,21 @@ function inferByStructure(lower: string): string | null {
   return null
 }
 
+// Pure in the title, and the board asks for every live job's title on each
+// load (150k+, most of them distinct) — remembered, up to a bound.
+const FUNCTION_MEMO_MAX = 300_000
+const functionMemo = new Map<string, string | null>()
+
 export function inferFunctionFromTitle(title: string): string | null {
+  const hit = functionMemo.get(title)
+  if (hit !== undefined) return hit
+  const fn = inferFunctionFromTitleUncached(title)
+  if (functionMemo.size >= FUNCTION_MEMO_MAX) functionMemo.clear()
+  functionMemo.set(title, fn)
+  return fn
+}
+
+function inferFunctionFromTitleUncached(title: string): string | null {
   const lower = stripRetailFinancePhrases(stripExecutiveOfficePhrase(title.toLowerCase()))
   for (const entry of FUNCTION_KEYWORDS) {
     const hits = entry.keywords.filter((kw) => lower.includes(kw))

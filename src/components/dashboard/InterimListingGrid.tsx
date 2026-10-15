@@ -28,6 +28,7 @@ export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox =
               <CardTitle className="flex items-center gap-2 text-base">
                 <OutboundPartnerLink
                   href={listing.url}
+                  listingId={listing.id}
                   partnerName={listing.name}
                   section="interim_work"
                   className="text-primary underline underline-offset-4"

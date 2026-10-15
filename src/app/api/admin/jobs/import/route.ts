@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
@@ -7,6 +7,13 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
+import { importOptionalFields, importSpecFields } from '@/lib/jobs/import-optional-fields'
+import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
+import { parseYearsRequired } from '@/lib/jobs/years-required'
+import { Prisma } from '@prisma/client'
+import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
+import { importBenefitsFields } from '@/lib/jobs/benefits'
+import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 
 export const maxDuration = 300
 
@@ -49,6 +56,32 @@ interface ImportJobInput {
   sourceCount?: number | null
   sourceName?: string | null
   industry?: string | null
+  // Posted on a school/district board (ncrawl k12 sources): bare
+  // "Superintendent" there is the district head.
+  schoolContext?: boolean
+  // One-board fields, from ncrawl derive.py. All optional: an older exporter that
+  // doesn't send them leaves the stored values untouched (see rowData).
+  employmentType?: string | null // employment_type_norm
+  payPeriod?: string | null // salary_period
+  paySource?: string | null // salary_source
+  workArrangement?: string | null // work_arrangement
+  compensationType?: string | null // paid | equity_only | unpaid
+  // Structured benefits (ncrawl benefits_json / benefits_strong). Optional: an
+  // exporter that doesn't send them leaves stored benefits untouched.
+  benefitsJson?: unknown // compact JSON string or object (src/lib/jobs/benefits.ts)
+  benefitsStrong?: unknown // 0/1 or boolean
+  // Location parts and ids (ncrawl derive.py), all optional like the fields above:
+  // loc_city / loc_state (US 2-letter) / loc_country (ISO-2), every listed
+  // location (locations_json → locationStates), the source's own job and
+  // requisition ids, the repost key and the description hash.
+  locationCity?: string | null
+  locationState?: string | null
+  locationCountry?: string | null
+  locations?: string[] | null
+  externalJobId?: string | null
+  requisitionId?: string | null
+  repostKey?: string | null
+  descHash?: string | null
 }
 
 interface ImportRequestBody {
@@ -83,7 +116,7 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    const verdict = screenImportedJob(job.title, job.location)
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
@@ -99,8 +132,20 @@ function storableSalary(n: number | null | undefined): number | null {
   return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 2_147_483_647 ? Math.round(n) : null
 }
 
+// The years-of-experience requirement, read from the FULL description the sender
+// sent (only an excerpt is stored); null when the text names none. Left out when
+// there is no description, so a row keeps what it holds.
+function yearsRequiredOf(description: string | null | undefined) {
+  if (!description?.trim()) return {}
+  const years = parseYearsRequired(description)
+  return { yearsRequired: years ? (years as unknown as Prisma.InputJsonValue) : Prisma.DbNull }
+}
+
 function rowData({ job, level }: Screened) {
   return {
+    ...importOptionalFields(job),
+    ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
+    ...yearsRequiredOf(job.description),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
@@ -121,8 +166,21 @@ function rowData({ job, level }: Screened) {
 
 type RowData = ReturnType<typeof rowData>
 
+// Prisma.DbNull (a JSON column set to SQL NULL) reads back as null, and jsonb
+// hands objects back with its own key order — compare with keys sorted.
+function comparable(v: unknown): string {
+  const norm = (x: unknown): unknown => {
+    if (x === Prisma.DbNull || x === undefined || x === null) return null
+    if (Array.isArray(x)) return x.map(norm)
+    if (x instanceof Date) return x.toISOString()
+    if (typeof x === 'object') return Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, norm((x as Record<string, unknown>)[k])]))
+    return x
+  }
+  return JSON.stringify(norm(v))
+}
+
 function changed(before: Record<string, unknown>, after: RowData): boolean {
-  return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
+  return (Object.keys(after) as (keyof RowData)[]).some((k) => comparable(before[k]) !== comparable(after[k]))
 }
 
 // The company's job-opening history (CompanyJobOpening) and each job's market pay.
@@ -141,6 +199,21 @@ async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => st
     await applyMarketPay(rows.map((r) => r.url))
   } catch (error) {
     console.error('jobs import: could not record company openings', error)
+  }
+}
+
+// Structured benefits, for the jobs whose sender included them. Stored with raw
+// SQL once the columns exist (great-employers-data.ts); best-effort, like the
+// opening history — a benefits write must never fail the import.
+async function recordBenefits(kept: Screened[]) {
+  try {
+    const rows = kept.flatMap((k) => {
+      const f = importBenefitsFields(k.job)
+      return 'benefitsStrong' in f ? [{ url: k.job.url, benefits: f.benefits ?? null, benefitsStrong: f.benefitsStrong ?? null }] : []
+    })
+    for (let i = 0; i < rows.length; i += 1000) await writeJobBenefits(rows.slice(i, i + 1000))
+  } catch (error) {
+    console.error('jobs import: could not record benefits', error)
   }
 }
 
@@ -171,6 +244,13 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
   const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
   await closeOpeningsSafely()
+  // The board's narrow copy of this table is kept in step by triggers; after a
+  // full sync, check it (and repair any drift) once the response is sent.
+  after(() =>
+    reconcileBoardLightRows()
+      .then((r) => console.log('jobs import: board light rows reconciled', r))
+      .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
+  )
   return NextResponse.json({ archived: result.count, live: live - result.count })
 }
 
@@ -207,6 +287,9 @@ export async function POST(request: NextRequest) {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
+      employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
+      locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
@@ -279,6 +362,7 @@ export async function POST(request: NextRequest) {
   }
 
   await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  await recordBenefits(kept)
 
   let archived = 0
   if (body.fullSync) {

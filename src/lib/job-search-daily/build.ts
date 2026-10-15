@@ -1,7 +1,10 @@
 import 'server-only'
+import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
@@ -14,7 +17,7 @@ import {
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { boardListingFitBucketFor, emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import {
@@ -90,6 +93,8 @@ export interface JobSearchDailyContent {
   reconnect: DailyItem | null
   article: DailyItem | null
   unlock: DailyItem | null
+  // One nudge from their profile (strengths, market, what to leave behind), at most once a week each.
+  fromProfile: DailyItem | null
   action: { label: string; href: string }
   quote: Quote | null
   freshCount: number // new items (jobs, company moves, contact, article) — 0 means nothing new today
@@ -176,16 +181,23 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // tens of thousands at once, so "the newest 500" would be an arbitrary
   // slice rather than the ones that fit.
   const dossier = await isDossierUnlocked(candidate.id)
+  // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
+  const fitScoring = emailFitScoringVersion()
   const shortlist = await loadBoardShortlist({
     candidate,
     isCandidatePlus: dossier.unlocked,
     where: { createdAt: { gte: jobsSince } },
     size: 200,
+    fitScoring,
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
+    includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
   })
-  const postings = [...shortlist.open, ...shortlist.locked]
+  const postings = emailSafeJobs([...shortlist.open, ...shortlist.locked])
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
-    const bucket = computeBoardListingFitBucket(candidate, p)
+    const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
     return bucket === 'strong' || bucket === 'good'
   })
   const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)
@@ -566,6 +578,11 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? Math.floor((now.getTime() - candidate.registrationCompletedAt.getTime()) / DAY_MS) + 1
     : null
 
+  // One profile nudge, each kind at most once a week (the key carries the week).
+  const week = Math.floor(now.getTime() / (7 * DAY_MS))
+  const nudge = (await profileNudges(candidate.id, { market: true }).catch(() => [])).find((n) => !shownKeys.has(`profile:${n.key}:${week}`))
+  const fromProfile: DailyItem | null = nudge ? { key: `profile:${nudge.key}:${week}`, title: nudge.lead, detail: nudge.text, href: `${appUrl}${nudge.href}?src=job_search_daily` } : null
+
   const freshCount = jobItems.length + freshJobItems.length + likelyOpenings.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
@@ -586,6 +603,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     reconnect,
     article,
     unlock,
+    fromProfile,
     action,
     quote,
     freshCount,
@@ -601,7 +619,7 @@ export function shownItemKeys(content: JobSearchDailyContent): string[] {
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
     ...content.likelyOpenings.map((i) => i.key),
-    ...[content.reconnect, content.article, content.unlock].filter((i): i is DailyItem => !!i).map((i) => i.key),
+    ...[content.reconnect, content.article, content.unlock, content.fromProfile].filter((i): i is DailyItem => !!i).map((i) => i.key),
     ...(content.quote ? [`quote:${content.quote.id}`] : []),
   ]
 }

@@ -1,6 +1,6 @@
 import 'server-only'
-import { prisma } from '@/lib/prisma'
 import { repostKey } from '@/lib/jobs/ghost-risk'
+import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
 
 // How many times each company + title + location has been posted and closed. One query over
 // the closed postings (thousands, not tens of thousands), memoised for a few
@@ -9,13 +9,11 @@ const TTL_MS = 5 * 60 * 1000
 let cache: { at: number; counts: Promise<Map<string, number>> } | null = null
 
 async function load(): Promise<Map<string, number>> {
-  const rows = await prisma.exclusiveJobPosting.groupBy({
-    by: ['companyName', 'title', 'location'],
-    where: { archivedAt: { not: null } },
-    _count: { _all: true },
-  })
+  // From the narrow BoardLightRow copy when it's there (board-light-rows.ts) — the
+  // same rows; the wide table took ~7 s to group.
+  const rows = await groupClosedPostings()
   const counts = new Map<string, number>()
-  for (const r of rows) counts.set(repostKey(r.companyName, r.title, r.location), r._count._all)
+  for (const r of rows) counts.set(repostKey(r.companyName, r.title, r.location), r.count)
   return counts
 }
 

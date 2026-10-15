@@ -1,4 +1,5 @@
 import 'server-only'
+import { loadStrengths } from '@/lib/profile/strengths-load'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
@@ -129,6 +130,14 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
     return
   }
 
+  // The computed standout strengths, so the LinkedIn headline, About, resume
+  // summary and pitches lead with what this person is best at.
+  const st = await loadStrengths(candidateId).catch(() => null)
+  const lead = st ? (st.shape === 'peaked' ? st.peaks : st.shape === 'balanced' ? st.broad.slice(0, 4) : []) : []
+  const strengthsNote = lead.length
+    ? `\n\n${st!.shape === 'peaked' ? 'Their standout strengths (lead with these where it fits)' : 'They are strong across several areas (sell range and reliability)'}: ${lead.map((x) => `${x.label} (${x.evidence.join('; ')})`).join(' | ')}. Use only facts given here or in the core statement.`
+    : ''
+
   let text: string
   try {
     const client = getAnthropicClient()
@@ -139,7 +148,7 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
       messages: [
         {
           role: 'user',
-          content: `${PROMPT_PREFIX}${narrative.coreStatement}\n\n${LEVEL_RANK_CONTEXT_PREFIX}${levelRank.label ?? 'not available'}${candidate?.confidentialSearchMode ? CONFIDENTIAL_MODE_PROMPT_SUFFIX : ''}`,
+          content: `${PROMPT_PREFIX}${narrative.coreStatement}${strengthsNote}\n\n${LEVEL_RANK_CONTEXT_PREFIX}${levelRank.label ?? 'not available'}${candidate?.confidentialSearchMode ? CONFIDENTIAL_MODE_PROMPT_SUFFIX : ''}`,
         },
       ],
     })

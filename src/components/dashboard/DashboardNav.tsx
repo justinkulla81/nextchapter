@@ -7,7 +7,11 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import {
   Home,
+  CalendarClock,
+  FileText,
+  Compass,
   Briefcase,
+  Signpost,
   Users,
   User,
   Menu,
@@ -22,7 +26,6 @@ import {
   Building2,
   BookOpen,
   Video,
-  Repeat,
   PartyPopper,
   Contact,
   FolderOpen,
@@ -100,7 +103,11 @@ function buildSections(
   isActiveMember: boolean,
   helpRepliesWaiting: number,
   newStrongCompaniesCount: number,
-  showInWork: boolean
+  documentRequestCount: number,
+  showInWork: boolean,
+  // Coaching / recruiter network unlocked by membership or a grant (an
+  // outplacement seat, a coach's code): src/lib/access/grants.ts.
+  paidAccess: { coaching: boolean; recruiters: boolean } = { coaching: false, recruiters: false }
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -168,20 +175,28 @@ function buildSections(
         // account tier instead of three separate asks. Executive Coach/
         // Executive Recruiter are additionally gated on real Membership
         // (Market Intelligence isn't — out of scope for that gate).
-        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
-        {
-          href: '/dashboard/premium',
-          label: 'Executive Recruiter',
-          icon: Building2,
-          badge: 'Premium',
-          ...membershipLock,
-        },
+        paidAccess.coaching
+          ? { href: '/dashboard/my-coaching', label: 'Executive Coach', icon: GraduationCap }
+          : { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
+        paidAccess.recruiters
+          ? { href: '/dashboard/recruiter-requests', label: 'Executive Recruiter', icon: Building2 }
+          : {
+              href: '/dashboard/premium',
+              label: 'Executive Recruiter',
+              icon: Building2,
+              badge: 'Premium',
+              ...membershipLock,
+            },
       ],
     },
     {
       title: 'Working and Learning',
       links: [
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        // One board for full-time, part-time, contract and board work (Interim Work merged in).
+        { href: '/dashboard/find-my-job', label: 'Find a job', icon: Briefcase, ...gmailLock },
+        // Market-ranked career pivots (src/lib/pivots), for anyone changing direction.
+        { href: '/dashboard/pivot-paths', label: 'Pivot paths', icon: Signpost },
+        { href: '/dashboard/market', label: 'Your job market', icon: Signpost },
         // Only for employed journeys (PROMOTION, READY_TO_MOVE, EXPLORING_MOVE,
         // NEXT_ACT): reviews, raises, promotion and feedback.
         ...(showInWork ? [{ href: '/dashboard/in-work', label: 'Reviews, Raises and Promotion', icon: TrendingUp }] : []),
@@ -195,8 +210,8 @@ function buildSections(
         ...(isEarlyCareer === false
           ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
           : []),
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
+        { href: '/dashboard/pivot', label: 'Explore other roles', icon: Compass },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],
@@ -205,8 +220,11 @@ function buildSections(
       title: 'Personalize',
       links: [
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
+        { href: '/dashboard/strengths', label: 'Why Hire Me', icon: Sparkles },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/book-session', label: 'Book a coach session', icon: CalendarClock },
+        { href: '/dashboard/documents', label: 'Documents', icon: FileText, badge: documentRequestCount > 0 ? String(documentRequestCount) : undefined },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
         { href: '/dashboard/membership', label: 'Membership', icon: Award },
       ],
@@ -279,7 +297,9 @@ function NavContent({
   isActiveMember,
   helpRepliesWaiting,
   newStrongCompaniesCount,
+  documentRequestCount,
   showInWork,
+  paidAccess,
   collapsedSections,
   onToggleSection,
 }: {
@@ -297,7 +317,9 @@ function NavContent({
   isActiveMember: boolean
   helpRepliesWaiting: number
   newStrongCompaniesCount: number
+  documentRequestCount: number
   showInWork: boolean
+  paidAccess?: { coaching: boolean; recruiters: boolean }
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -315,7 +337,9 @@ function NavContent({
     isActiveMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
-    showInWork
+    documentRequestCount,
+    showInWork,
+    paidAccess
   )
 
   return (
@@ -458,7 +482,9 @@ export function DashboardNav({
   isActiveMember = false,
   helpRepliesWaiting = 0,
   newStrongCompaniesCount = 0,
+  documentRequestCount = 0,
   showInWork = false,
+  paidAccess,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -472,7 +498,9 @@ export function DashboardNav({
   isActiveMember?: boolean
   helpRepliesWaiting?: number
   newStrongCompaniesCount?: number
+  documentRequestCount?: number
   showInWork?: boolean
+  paidAccess?: { coaching: boolean; recruiters: boolean }
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -521,7 +549,9 @@ export function DashboardNav({
           isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
           newStrongCompaniesCount={newStrongCompaniesCount}
+          documentRequestCount={documentRequestCount}
           showInWork={showInWork}
+          paidAccess={paidAccess}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -629,7 +659,9 @@ export function DashboardNav({
               isActiveMember={isActiveMember}
             helpRepliesWaiting={helpRepliesWaiting}
               newStrongCompaniesCount={newStrongCompaniesCount}
+              documentRequestCount={documentRequestCount}
           showInWork={showInWork}
+          paidAccess={paidAccess}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

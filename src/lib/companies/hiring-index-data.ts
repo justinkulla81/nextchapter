@@ -67,7 +67,7 @@ const INDUSTRY_LABEL: Record<string, string> = {
   industrial: 'Industrial', life_sciences: 'Life sciences', consumer: 'Consumer', nonprofit: 'Nonprofit',
   government: 'Government', energy: 'Energy', professional_services: 'Professional services', logistics: 'Logistics',
   real_estate: 'Real estate', media: 'Media', higher_education: 'Higher education', agriculture: 'Agriculture',
-  association: 'Association',
+  association: 'Association', aerospace_defense: 'Aerospace & defense', telecom: 'Telecommunications',
 }
 
 export function industryLabel(raw: string | null): string | null {

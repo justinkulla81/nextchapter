@@ -8,8 +8,9 @@ export const maxDuration = 300
 
 const BREAK_ANSWER_WINDOW_DAYS = 30
 
-// Instant new-job alerts — daily at 21:00 UTC (5pm ET), after the morning's
-// crawl import, for strong fits posted in the last 24 hours. Sends nothing
+// Instant new-job alerts — every 3 hours during US daytime (13:30–01:30 UTC),
+// after the crawler's hot-tier imports, for strong fits posted in the last 24
+// hours; still at most one alert per member per 24 hours. Sends nothing
 // until FRESH_JOB_ALERTS_ENABLED=true; until then it reports who would get one.
 export const GET = withCronRun('fresh-job-alerts', async () => {
 
@@ -37,6 +38,7 @@ export const GET = withCronRun('fresh-job-alerts', async () => {
   let sent = 0
   let wouldSend = 0
   let failed = 0
+  let capped = 0
   for (const candidate of eligible) {
     const lastAnswer = candidate.searchCheckIns[0]?.answer
     if (lastAnswer && lastAnswer !== 'STILL_SEARCHING') continue
@@ -44,13 +46,14 @@ export const GET = withCronRun('fresh-job-alerts', async () => {
       const result = await sendFreshJobAlert(candidate.id, { dryRun: !enabled })
       if (result.sent) sent++
       else if (result.reason === 'dry run') wouldSend++
+      else if (result.reason === 'already alerted today') capped++
     } catch (error) {
       failed++
       console.error('Fresh job alert failed for candidate', candidate.id, error)
     }
   }
 
-  const summary = { enabled, checked: eligible.length, sent, wouldSend, failed }
+  const summary = { enabled, checked: eligible.length, sent, wouldSend, capped, failed }
   captureServerEvent('cron', 'fresh_job_alerts_run', summary)
   return NextResponse.json(summary)
 })

@@ -40,11 +40,12 @@ export function ghostRisk({ priorClosedCount, ageDays }: GhostInput): GhostVerdi
   if (ageDays > LIKELY_AGE_DAYS) {
     return { level: 'likely', reason: `Open for ${Math.floor(ageDays)} days without closing` }
   }
-  if (priorClosedCount === 1 && ageDays > WATCH_AGE_DAYS) {
-    return { level: 'watch', reason: 'Reposted after closing once, and still open after 60+ days' }
+  // Either signal alone is worth watching (owner's rule, 2026-10-14).
+  if (priorClosedCount === 1) {
+    return { level: 'watch', reason: 'Closed and reposted once before' }
   }
-  if (ageDays > WATCH_AGE_DAYS && priorClosedCount >= 1) {
-    return { level: 'watch', reason: 'Previously closed and reposted' }
+  if (ageDays > WATCH_AGE_DAYS) {
+    return { level: 'watch', reason: `Open for ${Math.floor(ageDays)} days` }
   }
   return { level: 'none', reason: null }
 }

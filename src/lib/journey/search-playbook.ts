@@ -102,7 +102,7 @@ const LAID_OFF: PlaybookMilestone[] = [
     title: 'Week 20: open a second track',
     summary: 'Start work that pays or proves your value while the main search continues.',
     actions: [
-      { text: 'Look at interim, fractional or contract work as a bridge.', href: '/dashboard/interim-work' },
+      { text: 'Look at interim, fractional or contract work as a bridge.', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' },
       { text: 'Check when unemployment benefits end and what you will do then.', href: '/dashboard/benefits' },
       { text: 'Re-check your pay expectations against current openings.' },
     ],
@@ -238,7 +238,7 @@ const CAREER_CHANGE: PlaybookMilestone[] = [
     title: 'Test a bridge role',
     summary: 'A contract, fractional or adjacent role can move you across faster than waiting for the perfect one.',
     actions: [
-      { text: 'Look for contract, interim or adjacent roles that touch the new field.', href: '/dashboard/interim-work' },
+      { text: 'Look for contract, interim or adjacent roles that touch the new field.', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' },
       { text: 'Decide what title and pay you will accept to get in.' },
     ],
   },
@@ -280,7 +280,7 @@ const RETURNING: PlaybookMilestone[] = [
     atWeek: 20,
     title: 'Widen the way back in',
     summary: 'Part-time, contract or fractional work can be the first step to a full-time role.',
-    actions: [{ text: 'Consider part-time or fractional work as a first step.', href: '/dashboard/interim-work' }],
+    actions: [{ text: 'Consider part-time or fractional work as a first step.', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' }],
   },
 ]
 

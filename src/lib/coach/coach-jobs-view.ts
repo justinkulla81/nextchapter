@@ -33,7 +33,7 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
 
   const isCandidatePlus = dossierStatus.unlocked
   // Best-fitting jobs only — the board is tens of thousands of rows (see board-shortlist.ts).
-  const board = await loadBoardShortlist({ candidate, isCandidatePlus })
+  const board = await loadBoardShortlist({ candidate, isCandidatePlus, includeMidLevel: true, includeEarlyCareer: true })
   const eligible = board.open
   const lockedCount = board.lockedTotal
 

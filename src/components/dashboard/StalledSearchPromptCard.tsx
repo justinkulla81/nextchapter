@@ -96,7 +96,7 @@ export function StalledSearchPromptCard({
           {showInterimSuggestion && (
             <Button
               nativeButton={false}
-              render={<Link href="/dashboard/interim-work" onClick={() => trackClick('INTERIM_WORK')} />}
+              render={<Link href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" onClick={() => trackClick('INTERIM_WORK')} />}
               size="sm"
               variant="ghost"
             >
