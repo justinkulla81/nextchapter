@@ -12,6 +12,7 @@ import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
 import FreshJobAlertEmail from '@/emails/fresh-job-alert'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
+import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-job-alert-cap'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -20,6 +21,11 @@ import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
  * Switched on by FRESH_JOB_ALERTS_ENABLED=true (founder approved 2026-10-10,
  * on condition that only very strong fits are sent — see
  * isVeryStrongBoardFitFor). While off, the cron only counts who would get one.
+ *
+ * Runs several times a day (vercel.json), shortly after the crawler's
+ * 3-hourly hot-tier imports, so a job reaches the member within hours of
+ * posting. The cap still holds: claimFreshJobAlert allows at most one alert
+ * per member per rolling 24 hours, even across overlapping runs.
  *
  * Rules: at most one alert per member per day; only very strong fits
  * posted in the last 24 hours; at most 2 jobs; never a job already sent in an alert or
@@ -38,7 +44,8 @@ type AlertResult = { sent: boolean; reason: string; jobCount: number }
 
 export async function sendFreshJobAlert(candidateId: string, options: { dryRun?: boolean } = {}): Promise<AlertResult> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
-  const dayAgo = new Date(Date.now() - 86_400_000)
+  const dayAgo = new Date(Date.now() - FRESH_ALERT_COOLDOWN_MS)
+  // Cheap early exit; the binding check is the transactional claim below.
   if (await prisma.freshJobAlertSend.findFirst({ where: { candidateId, sentAt: { gte: dayAgo } } })) {
     return { sent: false, reason: 'already alerted today', jobCount: 0 }
   }
@@ -61,7 +68,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     prisma.jobSearchDailyItem.findMany({ where: { candidateId, itemKey: { startsWith: 'job:' } }, select: { itemKey: true } }),
   ])
   const skip = new Set([...alerted.map((a) => a.postingId), ...shownDaily.map((d) => d.itemKey.slice(4))])
-  const jobs = emailSafeJobs(board.open)
+  let jobs = emailSafeJobs(board.open)
     .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }
@@ -72,11 +79,13 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   const to = userData.user?.email
   if (!to) return { sent: false, reason: 'no email', jobCount: jobs.length }
 
-  // Claim the jobs first so a retry or overlapping run can't double-send.
-  await prisma.freshJobAlertSend.createMany({
-    data: jobs.map((p) => ({ candidateId, postingId: p.id })),
-    skipDuplicates: true,
-  })
+  // Claim the jobs first (cap re-checked in a Serializable transaction) so a
+  // retry or overlapping run can't double-send.
+  const claim = await claimFreshJobAlert(prisma, candidateId, jobs.map((p) => p.id))
+  if (claim.status === 'cooldown') return { sent: false, reason: 'already alerted today', jobCount: 0 }
+  if (claim.status === 'nothing_new') return { sent: false, reason: 'no new strong fits', jobCount: 0 }
+  const claimed = new Set(claim.postingIds)
+  jobs = jobs.filter((p) => claimed.has(p.id))
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const subject = neutralizeEmailSubject(

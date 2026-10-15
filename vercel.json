@@ -182,7 +182,7 @@
     },
     {
       "path": "/api/cron/fresh-job-alerts",
-      "schedule": "0 21 * * *"
+      "schedule": "30 13,16,19,22,1 * * *"
     },
     {
       "path": "/api/cron/likely-openings",
