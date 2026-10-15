@@ -1,0 +1,93 @@
+# One-click load of the occupation skills data (O*NET and BLS) behind the "Roles your
+# skills carry into" card. Run it from the Actions tab: pick this workflow, "Run workflow".
+# It downloads the files on a GitHub runner (which can reach onetcenter.org and bls.gov),
+# turns the BLS workbooks into CSV, and runs scripts/import-occupations.ts.
+#
+# Needs two repository secrets, the same database URLs the app uses:
+#   DATABASE_URL, DIRECT_URL
+# The first run should stay a dry run (the default): it prints what would be loaded and
+# writes nothing. Untick "Dry run" for the real load.
+name: Import occupation data
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Dry run (print counts, write nothing)
+        type: boolean
+        default: true
+      push_schema:
+        description: Create the occupation tables first (prisma db push, never drops data)
+        type: boolean
+        default: true
+      onet_url:
+        description: O*NET database, Text format (.zip). Latest is listed at onetcenter.org/database.html
+        default: https://www.onetcenter.org/dl_files/database/db_29_3_text.zip
+      onet_version:
+        description: O*NET release number, for the record
+        default: '29.3'
+      oews_url:
+        description: BLS OEWS national workbook (.zip). Listed at bls.gov/oes/tables.htm
+        default: https://www.bls.gov/oes/special-requests/oesm24nat.zip
+      oews_year:
+        description: OEWS data year
+        default: '2024'
+      top_code_annual:
+        description: That year's annual wage ceiling, from the OEWS notes (blank leaves top-coded medians empty)
+        default: '239200'
+      projections_url:
+        description: BLS Employment Projections Table 1.2 (occupation.xlsx). Listed at bls.gov/emp/tables.htm
+        default: https://www.bls.gov/emp/tables/occupation.xlsx
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      # bls.gov refuses requests that do not look like a browser.
+      UA: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check secrets
+        run: |
+          test -n "$DATABASE_URL" && test -n "$DIRECT_URL" || { echo "::error::Add DATABASE_URL and DIRECT_URL as repository secrets (Settings, Secrets and variables, Actions)."; exit 1; }
+
+      - name: Create the occupation tables
+        if: ${{ inputs.push_schema && !inputs.dry_run }}
+        run: npx prisma db push --skip-generate
+
+      - name: Download
+        run: |
+          mkdir -p data/onet data/oews
+          curl -fsSL -A "$UA" -o data/onet.zip "${{ inputs.onet_url }}"
+          curl -fsSL -A "$UA" -o data/oews.zip "${{ inputs.oews_url }}"
+          curl -fsSL -A "$UA" -o data/projections.xlsx "${{ inputs.projections_url }}"
+          unzip -q -o data/onet.zip -d data/onet
+          unzip -q -o data/oews.zip -d data/oews
+
+      - name: Convert the BLS workbooks to CSV
+        run: |
+          pip install --quiet openpyxl
+          OEWS_XLSX=$(find data/oews -iname '*national*.xlsx' | head -1)
+          test -n "$OEWS_XLSX" || { echo "::error::No national OEWS workbook found in the zip."; find data/oews; exit 1; }
+          python3 scripts/xlsx_to_csv.py "$OEWS_XLSX" data/oews.csv
+          python3 scripts/xlsx_to_csv.py data/projections.xlsx data/projections.csv "Table 1.2"
+
+      - name: Import
+        run: |
+          ONET_DIR=$(dirname "$(find data/onet -name 'Occupation Data.txt' | head -1)")
+          test -f "$ONET_DIR/Occupation Data.txt" || { echo "::error::Occupation Data.txt not found in the O*NET zip."; find data/onet | head -30; exit 1; }
+          ARGS=(--onet "$ONET_DIR" --onet-version "${{ inputs.onet_version }}" --oews data/oews.csv --oews-year "${{ inputs.oews_year }}" --projections data/projections.csv)
+          if [ -n "${{ inputs.top_code_annual }}" ]; then ARGS+=(--top-code-annual "${{ inputs.top_code_annual }}"); fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS+=(--dry-run); fi
+          npx tsx scripts/import-occupations.ts "${ARGS[@]}"
