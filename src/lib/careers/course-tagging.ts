@@ -14,7 +14,7 @@ import { normalizeSkillText } from '@/lib/careers/vectors'
 export interface TaggableSkill {
   id: string
   name: string
-  kind: 'SKILL' | 'KNOWLEDGE' | 'TECHNOLOGY'
+  kind: 'SKILL' | 'KNOWLEDGE' | 'ABILITY' | 'ACTIVITY' | 'TECHNOLOGY'
 }
 
 const GENERIC_PARTS = new Set([
@@ -26,7 +26,8 @@ const GENERIC_PARTS = new Set([
 const GENERIC_TOOLS = new Set(['microsoft office', 'microsoft windows', 'internet', 'email', 'e mail', 'spreadsheet'])
 
 export function skillMatchTerms(skill: TaggableSkill): string[] {
-  if (skill.kind === 'SKILL') return []
+  // Only named tools and knowledge areas are tagged. Skills, abilities and work activities are too generic to say what a course teaches.
+  if (skill.kind !== 'TECHNOLOGY' && skill.kind !== 'KNOWLEDGE') return []
   const name = normalizeSkillText(skill.name)
   if (skill.kind === 'TECHNOLOGY') {
     return name.length >= 3 && !GENERIC_TOOLS.has(name) ? [name] : []

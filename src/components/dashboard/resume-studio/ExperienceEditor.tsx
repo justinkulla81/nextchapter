@@ -85,6 +85,7 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
       >
         Add a role
       </Button>
+      {roles.length >= 25 && <p className="text-xs text-muted-foreground">That is the most roles a resume can hold here. Remove one to add another.</p>}
     </section>
   )
 }

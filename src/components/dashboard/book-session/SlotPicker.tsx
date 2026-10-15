@@ -43,13 +43,15 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
   }, [mounted, coachId, slots.length])
 
   const times = days.find((d) => d.key === day)?.times ?? []
+  // After a booking the slot list refreshes and the time just taken disappears; a stale choice must not stay selected.
+  const chosen = times.some((t) => t.iso === startsAt) ? startsAt : ''
   const zone = mounted ? new Intl.DateTimeFormat('en-US', { timeZoneName: 'long' }).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value : null
 
   if (!mounted) return <p className="text-sm text-muted-foreground">Loading times in your time zone…</p>
 
   return (
     <form action={action} className="space-y-4">
-      <input type="hidden" name="startsAt" value={startsAt} />
+      <input type="hidden" name="startsAt" value={chosen} />
       <div>
         <Label>
           <span className="text-sm font-medium text-foreground">Day</span>
@@ -73,7 +75,7 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
       <div>
         <Label>
           <span className="text-sm font-medium text-foreground">Time</span>
-          <select className={selectClass} value={startsAt} onChange={(e) => setStartsAt(e.target.value)} disabled={times.length === 0}>
+          <select className={selectClass} value={chosen} onChange={(e) => setStartsAt(e.target.value)} disabled={times.length === 0}>
             <option value="">{times.length === 0 ? 'Choose a day first' : 'Choose a time'}</option>
             {times.map((t) => (
               <option key={t.iso} value={t.iso}>
@@ -85,10 +87,10 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
         {times.length === 0 && <p className="mt-1 text-xs text-muted-foreground">Times appear once you pick a day.</p>}
       </div>
       {zone && <p className="text-xs text-muted-foreground">Times are shown in your time zone: {zone}.</p>}
-      <SubmitButton pendingLabel="Booking…" savedLabel={`Book with ${coachName.split(' ')[0]}`} disabled={!startsAt}>
+      <SubmitButton pendingLabel="Booking…" savedLabel={`Book with ${coachName.split(' ')[0]}`} disabled={!chosen}>
         {`Book with ${coachName.split(' ')[0]}`}
       </SubmitButton>
-      {!startsAt && <p className="text-xs text-muted-foreground">Choose a day and a time to turn on the Book button.</p>}
+      {!chosen && <p className="text-xs text-muted-foreground">Choose a day and a time to turn on the Book button.</p>}
       {state?.message && (
         <p role="status" className="text-sm text-foreground">
           {state.message}

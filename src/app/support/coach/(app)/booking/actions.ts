@@ -53,5 +53,9 @@ export async function cancelCoachSession(_prev: CoachBookingState, formData: For
   if (!result.ok) return { error: result.error }
   captureServerEvent(coach.id, 'coach_session_cancelled', { bookingId, coachId: coach.id, candidateId: result.candidateId, by: 'COACH' })
   revalidatePath('/support/coach/booking')
-  return { message: 'Cancelled. Your client has been told.' }
+  return {
+    message: result.calendarWarning
+      ? 'Cancelled and your client has been told. We could not remove the calendar invitation, so please delete it from your Google Calendar.'
+      : 'Cancelled. Your client has been told.',
+  }
 }

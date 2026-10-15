@@ -1,4 +1,4 @@
-import { STATE_NAMES } from '@/lib/workforce/places'
+import { toStateCode } from '@/lib/careers/state'
 import { METRO_AREA_CODES, STATE_FIPS } from '@/lib/market/metro-areas'
 
 /**
@@ -19,14 +19,7 @@ export interface AreaRef {
   state: AreaEntry | null
 }
 
-export function stateAbbreviation(state: string | null | undefined): string | null {
-  if (!state) return null
-  const t = state.trim()
-  if (!t) return null
-  if (STATE_NAMES[t.toUpperCase()]) return t.toUpperCase()
-  const lower = t.toLowerCase()
-  return Object.entries(STATE_NAMES).find(([, name]) => name.toLowerCase() === lower)?.[0] ?? null
-}
+export const stateAbbreviation = toStateCode
 
 const norm = (s: string) => s.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim()
 

@@ -165,6 +165,7 @@ export function ResumeEditor({
           <Button type="button" variant="outline" disabled={doc.education.length >= 10} onClick={() => setDoc((d) => ({ ...d, education: [...d.education, { schoolName: '', degreeLabel: null, dateLabel: null }] }))}>
             Add a school
           </Button>
+          {doc.education.length >= 10 && <p className="text-xs text-muted-foreground">That is the most schools you can list. Remove one to add another.</p>}
         </section>
 
         <section className="space-y-3" aria-labelledby="studio-skills">

@@ -159,13 +159,14 @@ export function toolGaps(
   haveSkillIds: ReadonlySet<string> = new Set()
 ): ToolGap[] {
   const have = new Set(resumeKeywords.map(normalizeSkillText).filter(Boolean))
-  const haveText = [...have].join(' | ')
+  // Whole phrases only: a tool named "R" or "Java" must not count as shown because a keyword like "JavaScript" contains the letters.
+  const mentioned = (name: string) => [...have].some((k) => k === name || ` ${k} `.includes(` ${name} `))
   const out: (ToolGap & { importance: number })[] = []
   for (const [id, t] of target.elements) {
     if (t.kind !== 'TECHNOLOGY') continue
     if (source?.elements.has(id) || haveSkillIds.has(id)) continue
     const name = normalizeSkillText(t.name)
-    if (!name || have.has(name) || haveText.includes(name)) continue
+    if (!name || mentioned(name)) continue
     out.push({ skillId: id, name: t.name, hotTech: t.hotTech, importance: t.importance })
   }
   return out

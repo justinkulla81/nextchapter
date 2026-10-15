@@ -37,13 +37,13 @@ export function nameVariants(toolName: string): string[] {
 
 /**
  * Hand-written aliases for terms the name rule cannot get: abbreviations and shorthand. The value
- * is the tool's common name, found among O*NET's technology skills by the build script; if O*NET
- * does not have a tool by that name the alias is simply not stored.
+ * is the tool's common name, matched EXACTLY against O*NET's technology skills (or their variants)
+ * by the build script; if O*NET has no tool by that name the alias is simply not stored. Keep
+ * entries to cases where the two names clearly mean the same product.
  */
 export const BUILTIN_ALIASES: Record<string, string> = {
   sfdc: 'salesforce',
   'salesforce crm': 'salesforce',
-  ms: 'microsoft',
   'ms excel': 'microsoft excel',
   'ms word': 'microsoft word',
   'ms powerpoint': 'microsoft powerpoint',
@@ -63,9 +63,7 @@ export const BUILTIN_ALIASES: Record<string, string> = {
   powerbi: 'microsoft power bi',
   gcp: 'google cloud platform',
   aws: 'amazon web services',
-  's3': 'amazon web services',
   k8s: 'kubernetes',
-  'ci cd': 'jenkins',
   qb: 'quickbooks',
   'quick books': 'quickbooks',
   netsuite: 'oracle netsuite',
@@ -76,10 +74,8 @@ export const BUILTIN_ALIASES: Record<string, string> = {
   jira: 'atlassian jira',
   tableau: 'tableau',
   looker: 'looker',
-  'adobe creative suite': 'adobe photoshop',
   photoshop: 'adobe photoshop',
   illustrator: 'adobe illustrator',
-  'sap erp': 'sap',
   workday: 'workday',
   'applicant tracking system': 'applicant tracking',
 }
@@ -136,11 +132,11 @@ export interface ToolCandidate {
  * variants first, then the shortest tool whose name contains the term as a whole phrase. Null if
  * none, so an alias is never attached to the wrong tool by guesswork.
  */
-export function findToolByName(term: string, tools: ToolCandidate[]): ToolCandidate | null {
+export function findToolByName(term: string, tools: ToolCandidate[], options: { exactOnly?: boolean } = {}): ToolCandidate | null {
   const t = normalizeSkillText(term)
   if (!t) return null
   const exact = tools.find((tool) => nameVariants(tool.name).includes(t))
-  if (exact) return exact
+  if (exact || options.exactOnly) return exact ?? null
   const containing = tools.filter((tool) => containsPhrase(normalizeSkillText(tool.name), t)).sort((a, b) => a.name.length - b.name.length)
   return containing[0] ?? null
 }
@@ -154,7 +150,8 @@ export function buildAliasRows(tools: ToolCandidate[], extraTerms: string[] = []
     if (a.length >= 2 && !rows.has(a)) rows.set(a, { alias: a, skillId, source })
   }
   for (const [alias, canonical] of Object.entries(BUILTIN_ALIASES)) {
-    const tool = findToolByName(canonical, tools)
+    // Hand-written shorthand must name a tool exactly; a loose "contains" match could credit a person with the wrong product.
+    const tool = findToolByName(canonical, tools, { exactOnly: true })
     if (tool) put(alias, tool.id, 'BUILTIN')
   }
   for (const tool of tools) for (const v of nameVariants(tool.name)) put(v, tool.id, 'NAME')

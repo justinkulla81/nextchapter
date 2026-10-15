@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   candidateCanUpload,
+  dueDateFromInput,
   isDocumentStatus,
   isOverdue,
   needsCandidateAction,
@@ -10,6 +11,20 @@ import {
 } from '@/lib/documents/status'
 
 const ALL: DocumentStatus[] = ['REQUESTED', 'UPLOADED', 'ACCEPTED', 'NEEDS_CHANGES', 'CANCELLED']
+
+describe('due dates', () => {
+  it('stores a calendar date as noon UTC so it reads the same date everywhere in the US', () => {
+    expect(dueDateFromInput('2026-10-20')?.toISOString()).toBe('2026-10-20T12:00:00.000Z')
+    expect(dueDateFromInput('20/10/2026')).toBeNull()
+    expect(dueDateFromInput('2026-13-40')).toBeNull()
+  })
+
+  it('is not overdue until the due date has ended on the west coast', () => {
+    const due = dueDateFromInput('2026-10-20')!
+    expect(isOverdue(due, 'REQUESTED', new Date('2026-10-21T01:00:00Z'))).toBe(false) // 6pm Pacific on the due date
+    expect(isOverdue(due, 'REQUESTED', new Date('2026-10-21T07:00:00Z'))).toBe(true)
+  })
+})
 
 describe('document request lifecycle', () => {
   it('lets the candidate upload until the request is accepted or cancelled', () => {
@@ -32,7 +47,7 @@ describe('document request lifecycle', () => {
 
   it('is overdue only when due, past due, and still waiting on the candidate', () => {
     const now = new Date('2026-10-14T12:00:00Z')
-    const yesterday = new Date('2026-10-13T12:00:00Z')
+    const yesterday = new Date('2026-10-12T12:00:00Z')
     expect(isOverdue(yesterday, 'REQUESTED', now)).toBe(true)
     expect(isOverdue(yesterday, 'UPLOADED', now)).toBe(false)
     expect(isOverdue(null, 'REQUESTED', now)).toBe(false)

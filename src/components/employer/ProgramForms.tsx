@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { usePreservedFormAction } from '@/lib/forms/use-preserved-form'
 import { saveProgramDetails, saveProgramLook, savePackages, saveProgramService, setSeatPackage } from '@/app/employer/(app)/program/actions'
 import type { ProgramFeatureKey, ProgramPackage, Provider, ServiceChoice } from '@/lib/employer/program-settings'
 
@@ -48,10 +49,11 @@ export function ProgramDetailsForm({ programBrandName, welcome }: { programBrand
 
 // Logo and accent color for the bar your people see across the top of their dashboard.
 export function ProgramLookForm({ logoUrl, accentColor }: { logoUrl: string | null; accentColor: string | null }) {
-  const [state, action] = useActionState(saveProgramLook, undefined)
+  // Submitted without React's form reset, so a rejected color does not also clear the chosen logo file.
+  const { state, pending, onSubmit } = usePreservedFormAction(saveProgramLook)
   const [color, setColor] = useState(accentColor ?? '')
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className={cn('space-y-4', pending && 'cursor-progress')}>
       <div className="space-y-1.5">
         <Label htmlFor="pg-logo">Logo</Label>
         {logoUrl && (
@@ -76,7 +78,9 @@ export function ProgramLookForm({ logoUrl, accentColor }: { logoUrl: string | nu
         <p className="text-xs text-muted-foreground">Used for the bar across the top of your people’s dashboard. Text on it is picked for contrast. Leave blank for NextChapter green.</p>
       </div>
       <div className="flex items-center gap-3">
-        <SubmitButton pendingLabel="Saving…">Save look</SubmitButton>
+        <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
+          {pending ? 'Saving…' : 'Save look'}
+        </Button>
         {(state?.ok || state?.error) && (
           <p role={state.error ? 'alert' : 'status'} className={cn('text-sm', state.error ? 'text-destructive' : 'text-muted-foreground')}>
             {state.error ?? state.ok}

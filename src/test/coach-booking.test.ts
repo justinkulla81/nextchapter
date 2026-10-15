@@ -96,3 +96,17 @@ describe('generateSlots', () => {
     expect(isOpenSlot(local('2026-01-12 12:00'), input)).toBe(false)
   })
 })
+
+describe('clock changes', () => {
+  it('moves a time skipped by the spring change forward, not back', () => {
+    // 2026-03-08: US clocks jump from 2:00 to 3:00. 2:30 does not exist; it becomes 3:30 daylight time.
+    const t = zonedWallTimeToInstant(2026, 3, 8, 2 * 60 + 30, NY)
+    expect(t.toISOString()).toBe('2026-03-08T07:30:00.000Z')
+    expect(zonedParts(t, NY).hour).toBe(3)
+  })
+
+  it('takes the first occurrence of a time repeated by the autumn change', () => {
+    // 2026-11-01: 1:30 happens twice. The first is daylight time (05:30Z).
+    expect(zonedWallTimeToInstant(2026, 11, 1, 90, NY).toISOString()).toBe('2026-11-01T05:30:00.000Z')
+  })
+})

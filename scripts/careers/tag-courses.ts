@@ -11,7 +11,7 @@ async function main() {
   const dryRun = process.argv.includes('--dry-run')
   const [courses, skillRows] = await Promise.all([
     prisma.course.findMany({ select: { id: true, title: true, description: true, keywords: true } }),
-    prisma.skill.findMany({ where: { kind: { not: 'SKILL' } }, select: { id: true, name: true, kind: true } }),
+    prisma.skill.findMany({ where: { kind: { in: ['KNOWLEDGE', 'TECHNOLOGY'] } }, select: { id: true, name: true, kind: true } }),
   ])
   if (skillRows.length === 0) {
     console.error('No skills found. Run careers:import-onet first.')

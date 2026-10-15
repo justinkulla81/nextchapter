@@ -1,13 +1,14 @@
 'use client'
 
-import { useActionState } from 'react'
-import { SubmitButton } from '@/components/ui/submit-button'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { usePreservedFormAction } from '@/lib/forms/use-preserved-form'
 import { uploadDocument } from '@/app/dashboard/documents/actions'
 
 export function UploadDocumentForm({ requestId, title, hasFile }: { requestId: string; title: string; hasFile: boolean }) {
-  const [state, action] = useActionState(uploadDocument, undefined)
+  const { state, pending, formRef, onSubmit } = usePreservedFormAction(uploadDocument, { resetOnSuccess: true })
   return (
-    <form action={action} className="space-y-2">
+    <form ref={formRef} onSubmit={onSubmit} className={cn('space-y-2', pending && 'cursor-progress')}>
       <input type="hidden" name="requestId" value={requestId} />
       <label className="block space-y-1 text-sm">
         <span className="font-medium text-foreground">{hasFile ? 'Replace the file' : 'Choose a file'}</span>
@@ -21,9 +22,9 @@ export function UploadDocumentForm({ requestId, title, hasFile }: { requestId: s
         />
       </label>
       <p className="text-xs text-muted-foreground">PDF, Word, Excel, image, text or CSV, up to 10 MB.</p>
-      <SubmitButton size="sm" pendingLabel="Uploading…" savedLabel={hasFile ? 'Replace document' : 'Upload document'}>
-        {hasFile ? 'Replace document' : 'Upload document'}
-      </SubmitButton>
+      <Button type="submit" size="sm" disabled={pending} className={cn(pending && 'cursor-progress')}>
+        {pending ? 'Uploading…' : hasFile ? 'Replace document' : 'Upload document'}
+      </Button>
       {state?.message && (
         <p role="status" className="text-xs text-muted-foreground">
           {state.message}

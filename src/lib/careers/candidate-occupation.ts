@@ -34,7 +34,9 @@ export async function resolveCandidateOccupation(candidateId: string): Promise<O
   const saved = await prisma.candidateOccupation.findUnique({ where: { candidateId } })
   const savedUsable = saved && taxonomy.profiles.has(saved.socCode)
   if (savedUsable) {
-    const stillCurrent = saved.source === 'CANDIDATE_CONFIRMED' || saved.matchedFrom === title || (!title && saved.source === 'FUNCTION_PROXY')
+    // Every saved match, including one the member confirmed, is tied to the resume job title it was made from. A new
+    // resume with a different latest title means the match is re-made (the member is asked again if it is unclear).
+    const stillCurrent = saved.matchedFrom === title || (!title && saved.source === 'FUNCTION_PROXY')
     if (stillCurrent) {
       return { status: 'resolved', socCode: saved.socCode, title: taxonomy.profiles.get(saved.socCode)!.title, source: saved.source as OccupationSource, matchedFrom: saved.matchedFrom }
     }
@@ -74,11 +76,13 @@ async function saveOccupation(candidateId: string, socCode: string, source: Occu
   })
 }
 
-/** The candidate picked an occupation from the list; this sticks until they change it. */
-export async function confirmCandidateOccupation(candidateId: string, socCode: string, matchedFrom: string): Promise<boolean> {
+/** The candidate picked an occupation from the list; this holds until their latest resume job title changes. */
+export async function confirmCandidateOccupation(candidateId: string, socCode: string): Promise<boolean> {
   const taxonomy = await getTaxonomy()
   if (!taxonomy?.profiles.has(socCode)) return false
-  await saveOccupation(candidateId, socCode, 'CANDIDATE_CONFIRMED', 1, matchedFrom)
+  // Remember which resume title this choice was made against, so it lapses if that title changes.
+  const profile = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { resumeLatestJobTitle: true } })
+  await saveOccupation(candidateId, socCode, 'CANDIDATE_CONFIRMED', 1, profile?.resumeLatestJobTitle?.trim() ?? '')
   return true
 }
 

@@ -89,20 +89,19 @@ export async function saveBookingConfig(coachId: string, config: CoachBookingCon
   return { ok: true }
 }
 
-async function slotInput(coachId: string, now: Date) {
+/**
+ * Everything the booking page needs in one load: the coach's settings and the slots open right now.
+ * Slots are only worked out when booking is on and hours are set, so a coach who has not opened their
+ * calendar costs no booking query.
+ */
+export async function loadBookingView(coachId: string, now = new Date()): Promise<{ config: CoachBookingConfig; slots: Date[] }> {
   const { config, windows } = await getBookingConfig(coachId)
+  if (!config.enabled || windows.length === 0) return { config, slots: [] }
   const busy = await prisma.coachBooking.findMany({
     where: { coachId, status: 'CONFIRMED', endsAt: { gte: now } },
     select: { startsAt: true, endsAt: true },
   })
-  return { config, input: { settings: config, windows, busy, now } }
-}
-
-/** Open slots for a coach, or [] if booking is off or no hours are set. */
-export async function listOpenSlots(coachId: string, now = new Date()): Promise<Date[]> {
-  const { config, input } = await slotInput(coachId, now)
-  if (!config.enabled || input.windows.length === 0) return []
-  return generateSlots(input)
+  return { config, slots: generateSlots({ settings: config, windows, busy, now }) }
 }
 
 /**
@@ -151,33 +150,45 @@ export async function bookSlot(input: { coachId: string; candidateId: string; st
   if (booked.error !== undefined) return { ok: false, error: booked.error }
 
   const { booking, settings } = booked
-  const coach = await prisma.coach.findUniqueOrThrow({ where: { id: input.coachId }, select: { fullName: true, workEmail: true } })
-  const clientName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'your client'
-  const attendees = [coach.workEmail, candidate.email].filter((e): e is string => Boolean(e))
+  // The booking is committed. Everything below is best-effort: a failure here must not turn a
+  // successful booking into an error (which would invite a retry that then says the time is taken).
+  let meetUrl: string | null = settings.fallbackMeetingUrl
+  try {
+    const coach = await prisma.coach.findUniqueOrThrow({ where: { id: input.coachId }, select: { fullName: true, workEmail: true } })
+    const clientName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'your client'
+    const attendees = [coach.workEmail, candidate.email].filter((e): e is string => Boolean(e))
 
-  const event = await createMeetEvent({
-    summary: `Coaching session: ${coach.fullName} and ${clientName}`,
-    description: 'A NextChapter coaching session. To change or cancel it, use your NextChapter dashboard.',
-    start: booking.startsAt,
-    end: booking.endsAt,
-    attendeeEmails: attendees,
-    requestId: booking.id,
-  })
-  const meetUrl = event?.meetUrl ?? settings.fallbackMeetingUrl
-  if (event) {
-    await prisma.coachBooking.update({ where: { id: booking.id }, data: { googleEventId: event.eventId, meetUrl } })
-  }
+    const event = await createMeetEvent({
+      summary: `Coaching session: ${coach.fullName} and ${clientName}`,
+      description: 'A NextChapter coaching session. To change or cancel it, use your NextChapter dashboard.',
+      start: booking.startsAt,
+      end: booking.endsAt,
+      attendeeEmails: attendees,
+      requestId: booking.id,
+    })
+    meetUrl = event?.meetUrl ?? settings.fallbackMeetingUrl
+    if (event) {
+      try {
+        await prisma.coachBooking.update({ where: { id: booking.id }, data: { googleEventId: event.eventId, meetUrl } })
+      } catch (error) {
+        // Without the event id a later cancel cannot remove the calendar event. Log loudly so it can be cleaned up by hand.
+        console.error(`Booking ${booking.id} created calendar event ${event.eventId} but could not store it:`, error)
+      }
+    }
 
-  // Google already emailed an invitation when the event was made; otherwise send our own.
-  if (!event) {
-    const detail = { startsAt: booking.startsAt, timezone: settings.timezone, meetUrl }
-    if (candidate.email) await sendBookingEmail({ to: candidate.email, kind: 'booked', otherPartyName: coach.fullName, ...detail })
-    await sendBookingEmail({ to: coach.workEmail, kind: 'booked', otherPartyName: clientName, ...detail })
+    // Google already emailed an invitation when the event was made; otherwise send our own.
+    if (!event) {
+      const detail = { startsAt: booking.startsAt, timezone: settings.timezone, meetUrl }
+      if (candidate.email) await sendBookingEmail({ to: candidate.email, kind: 'booked', otherPartyName: coach.fullName, ...detail })
+      await sendBookingEmail({ to: coach.workEmail, kind: 'booked', otherPartyName: clientName, ...detail })
+    }
+  } catch (error) {
+    console.error(`Booking ${booking.id} was saved but its calendar event or email failed:`, error)
   }
   return { ok: true, bookingId: booking.id, meetUrl }
 }
 
-export async function cancelBooking(input: { bookingId: string; by: 'COACH' | 'CANDIDATE'; coachId?: string; candidateId?: string }): Promise<Result<{ coachId: string; candidateId: string }>> {
+export async function cancelBooking(input: { bookingId: string; by: 'COACH' | 'CANDIDATE'; coachId?: string; candidateId?: string }): Promise<Result<{ coachId: string; candidateId: string; calendarWarning: boolean }>> {
   const booking = await prisma.coachBooking.findFirst({
     where: {
       id: input.bookingId,
@@ -189,8 +200,21 @@ export async function cancelBooking(input: { bookingId: string; by: 'COACH' | 'C
   if (booking.status !== 'CONFIRMED') return { ok: false, error: 'This session was already cancelled.' }
   if (booking.startsAt.getTime() < Date.now()) return { ok: false, error: 'This session has already happened, so it cannot be cancelled.' }
 
-  await prisma.coachBooking.update({ where: { id: booking.id }, data: { status: 'CANCELLED', cancelledBy: input.by } })
-  const removed = booking.googleEventId ? await deleteCalendarEvent(booking.googleEventId) : false
+  // Only one of two people cancelling at the same moment gets to do the follow-up work.
+  const claimed = await prisma.coachBooking.updateMany({ where: { id: booking.id, status: 'CONFIRMED' }, data: { status: 'CANCELLED', cancelledBy: input.by } })
+  if (claimed.count === 0) return { ok: false, error: 'This session was already cancelled.' }
+
+  let calendarWarning = false
+  let removed = false
+  if (booking.googleEventId) {
+    removed = await deleteCalendarEvent(booking.googleEventId)
+    // The session is cancelled here either way, but if Google would not remove the event the invitation is still
+    // on both calendars. Say so, so the person can delete it by hand, and log it.
+    if (!removed) {
+      calendarWarning = true
+      console.error(`Booking ${booking.id} cancelled but calendar event ${booking.googleEventId} could not be removed.`)
+    }
+  }
 
   // Google sends its own cancellation when it removed the event; otherwise tell the other person ourselves.
   if (!removed) {
@@ -203,7 +227,7 @@ export async function cancelBooking(input: { bookingId: string; by: 'COACH' | 'C
       await sendBookingEmail({ to: booking.coach.workEmail, kind: 'cancelled', otherPartyName: clientName, startsAt: booking.startsAt, timezone, meetUrl: null })
     }
   }
-  return { ok: true, coachId: booking.coachId, candidateId: booking.candidateId }
+  return { ok: true, coachId: booking.coachId, candidateId: booking.candidateId, calendarWarning }
 }
 
 export async function listUpcomingForCoach(coachId: string) {

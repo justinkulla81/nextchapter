@@ -53,7 +53,7 @@ export default async function DocumentsPage() {
                         <>
                           {'. '}
                           <span className={overdue ? 'font-medium text-foreground' : ''}>
-                            {overdue ? 'Was due' : 'Due'} {r.dueAt.toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                            {overdue ? 'Was due' : 'Due'} {r.dueAt.toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' })}
                           </span>
                         </>
                       )}

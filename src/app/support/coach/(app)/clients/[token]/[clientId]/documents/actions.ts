@@ -1,11 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { cancelDocumentRequest, createDocumentRequest, requesterDocumentUrl, reviewRequestedDocument, type Requester } from '@/lib/documents/requests'
 import { sendDocumentRequestedEmail } from '@/lib/email/send-document-requested'
+import { dueDateFromInput } from '@/lib/documents/status'
 
 export type CoachDocumentState = { error?: string; message?: string } | undefined
 
@@ -25,8 +25,8 @@ export async function requestDocument(token: string, clientId: string, _prev: Co
   if (!s) return INVALID
 
   const dueRaw = String(formData.get('dueAt') ?? '').trim()
-  const dueAt = dueRaw ? new Date(`${dueRaw}T23:59:59`) : null
-  if (dueAt && Number.isNaN(dueAt.getTime())) return { error: 'That due date is not valid. Pick a date from the calendar or leave it blank.' }
+  const dueAt = dueRaw ? dueDateFromInput(dueRaw) : null
+  if (dueRaw && !dueAt) return { error: 'That due date is not valid. Pick a date from the calendar or leave it blank.' }
 
   const created = await createDocumentRequest({
     requester: s.requester,
@@ -49,12 +49,11 @@ export async function requestDocument(token: string, clientId: string, _prev: Co
   let emailed = false
   if (s.client.email) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const title = String(formData.get('title') ?? '').trim().slice(0, 150)
     const result = await sendDocumentRequestedEmail({
       to: s.client.email,
       requesterLabel: s.requester.label,
-      title,
-      instructions: String(formData.get('instructions') ?? '').trim().slice(0, 2000) || null,
+      title: created.title,
+      instructions: created.instructions,
       dueAt,
       uploadUrl: `${appUrl}/dashboard/documents`,
     })
@@ -68,10 +67,7 @@ export async function requestDocument(token: string, clientId: string, _prev: Co
 export async function reviewDocument(token: string, clientId: string, requestId: string, outcome: 'ACCEPTED' | 'NEEDS_CHANGES', _prev: CoachDocumentState, formData: FormData): Promise<CoachDocumentState> {
   const s = await scope(token, clientId)
   if (!s) return INVALID
-  // The request must belong to this client, not just to this coach.
-  const owns = await prisma.documentRequest.findFirst({ where: { id: requestId, candidateId: s.client.id }, select: { id: true } })
-  if (!owns) return INVALID
-  const result = await reviewRequestedDocument(s.requester, requestId, outcome, String(formData.get('note') ?? ''))
+  const result = await reviewRequestedDocument(s.requester, s.client.id, requestId, outcome, String(formData.get('note') ?? ''))
   if (!result.ok) return { error: result.error }
   captureServerEvent(s.coach.id, 'document_reviewed', { requestId, candidateId: s.client.id, outcome, requesterType: 'COACH', hasNote: Boolean(String(formData.get('note') ?? '').trim()) })
   revalidatePath(`/support/coach/clients/${token}/${clientId}/documents`)
@@ -81,9 +77,7 @@ export async function reviewDocument(token: string, clientId: string, requestId:
 export async function cancelRequest(token: string, clientId: string, requestId: string): Promise<CoachDocumentState> {
   const s = await scope(token, clientId)
   if (!s) return INVALID
-  const owns = await prisma.documentRequest.findFirst({ where: { id: requestId, candidateId: s.client.id }, select: { id: true } })
-  if (!owns) return INVALID
-  const result = await cancelDocumentRequest(s.requester, requestId)
+  const result = await cancelDocumentRequest(s.requester, s.client.id, requestId)
   if (!result.ok) return { error: result.error }
   captureServerEvent(s.coach.id, 'document_request_cancelled', { requestId, candidateId: s.client.id, requesterType: 'COACH' })
   revalidatePath(`/support/coach/clients/${token}/${clientId}/documents`)
@@ -93,9 +87,7 @@ export async function cancelRequest(token: string, clientId: string, requestId: 
 export async function getClientDocumentUrl(token: string, clientId: string, requestId: string): Promise<string | null> {
   const s = await scope(token, clientId)
   if (!s) return null
-  const owns = await prisma.documentRequest.findFirst({ where: { id: requestId, candidateId: s.client.id }, select: { id: true } })
-  if (!owns) return null
-  const url = await requesterDocumentUrl(s.requester, requestId)
+  const url = await requesterDocumentUrl(s.requester, s.client.id, requestId)
   if (url) captureServerEvent(s.coach.id, 'document_opened', { requestId, candidateId: s.client.id, by: 'coach' })
   return url
 }

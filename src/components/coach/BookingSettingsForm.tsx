@@ -1,11 +1,11 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { usePreservedFormAction } from '@/lib/forms/use-preserved-form'
 import { saveBookingSettings } from '@/app/support/coach/(app)/booking/actions'
 import { END_OPTIONS, formatMinute, START_OPTIONS } from '@/lib/coach/booking/format'
 import { SLOT_MINUTE_CHOICES, WEEKDAY_LABELS, type AvailabilityWindow } from '@/lib/coach/booking/slots'
@@ -17,13 +17,14 @@ const selectClass = 'h-9 rounded-md border border-input bg-transparent px-2 text
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
 export function BookingSettingsForm({ config, windows, timeZones }: { config: CoachBookingConfig; windows: AvailabilityWindow[]; timeZones: string[] }) {
-  const [state, action] = useActionState(saveBookingSettings, undefined)
+  // Submitted without React's form reset: a rejected save (an end time before a start time, say) keeps every edit.
+  const { state, pending, onSubmit } = usePreservedFormAction(saveBookingSettings)
   const [slotMinutes, setSlotMinutes] = useState(config.slotMinutes)
   const byDay = new Map(windows.map((w) => [w.weekday, w]))
   const [open, setOpen] = useState<Record<number, boolean>>(() => Object.fromEntries(DISPLAY_ORDER.map((d) => [d, byDay.has(d)])))
 
   return (
-    <form action={action} className="space-y-6">
+    <form onSubmit={onSubmit} className={cn('space-y-6', pending && 'cursor-progress')}>
       <label className="flex items-center gap-2 text-sm font-medium text-foreground">
         <input type="checkbox" name="enabled" defaultChecked={config.enabled} className="size-4" />
         Let my clients book sessions
@@ -109,9 +110,9 @@ export function BookingSettingsForm({ config, windows, timeZones }: { config: Co
         <span className="block text-xs text-muted-foreground">We make a Google Meet link for each session when we can. This is the link clients get if we cannot.</span>
       </Label>
 
-      <SubmitButton pendingLabel="Saving…" savedLabel="Save booking settings">
-        Save booking settings
-      </SubmitButton>
+      <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
+        {pending ? 'Saving…' : 'Save booking settings'}
+      </Button>
       {state?.message && (
         <p role="status" className="text-sm text-foreground">
           {state.message}

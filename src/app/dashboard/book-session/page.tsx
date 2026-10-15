@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CalendarClock } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
-import { getBookingConfig, listOpenSlots, listUpcomingForCandidate } from '@/lib/coach/booking/service'
+import { listUpcomingForCandidate, loadBookingView } from '@/lib/coach/booking/service'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SlotPicker } from '@/components/dashboard/book-session/SlotPicker'
@@ -36,16 +36,16 @@ export default async function BookSessionPage() {
   }
 
   let coach: { id: string; fullName: string } | null = null
-  let config: Awaited<ReturnType<typeof getBookingConfig>>['config'] | null = null
+  let config: Awaited<ReturnType<typeof loadBookingView>>['config'] | null = null
   let slots: Date[] = []
   let upcoming: Awaited<ReturnType<typeof listUpcomingForCandidate>> = []
   let failed = false
   try {
     coach = await prisma.coach.findUnique({ where: { id: profile.coachId }, select: { id: true, fullName: true } })
     if (coach) {
-      const [cfg, open, mine] = await Promise.all([getBookingConfig(coach.id), listOpenSlots(coach.id), listUpcomingForCandidate(profile.id)])
-      config = cfg.config
-      slots = open
+      const [view, mine] = await Promise.all([loadBookingView(coach.id), listUpcomingForCandidate(profile.id)])
+      config = view.config
+      slots = view.slots
       upcoming = mine
     }
   } catch (error) {

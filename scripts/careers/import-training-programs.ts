@@ -40,6 +40,10 @@ async function main() {
       )
     )
   }
+  // A program missing from this release is no longer on the state's approved list: remove it, so
+  // withdrawn programs are not shown as publicly funded. Only this state's WIOA list is touched.
+  const removed = await prisma.trainingProgram.deleteMany({ where: { state, fundingSource: 'WIOA_ETPL', importedAt: { lt: now } } })
+  console.log(`Removed ${removed.count} programs no longer on the ${state} list.`)
   console.log('Done.')
 }
 

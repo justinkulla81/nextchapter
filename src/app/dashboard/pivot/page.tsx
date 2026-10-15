@@ -28,7 +28,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 export default async function PivotPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams
   const profile = await getDashboardProfile()
-  const wageFloor: WageFloor = (first(params.floor) in WAGE_FLOOR_RATIO ? first(params.floor) : DEFAULT_WAGE_FLOOR) as WageFloor
+  const wageFloor: WageFloor = (Object.hasOwn(WAGE_FLOOR_RATIO, first(params.floor)) ? first(params.floor) : DEFAULT_WAGE_FLOOR) as WageFloor
   const query = first(params.q).trim().slice(0, 100)
   const changing = first(params.change) === '1'
 
@@ -95,7 +95,6 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
               ? `We could not match “${resolution.matchedFrom}” to a single occupation. Pick the closest one, or search for another title.`
               : 'Search for the job title closest to what you do now, then pick it from the list.'
           }
-          matchedFrom={resolution.status === 'needs_choice' ? resolution.matchedFrom : ''}
           candidates={candidates}
           query={query}
         />
@@ -165,7 +164,7 @@ export default async function PivotPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="space-y-4">
           {options.map((option, i) => (
-            <PivotOptionCard key={option.socCode} fromSoc={resolution.socCode} rank={i + 1} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} tasks={tasksBySoc.get(option.socCode) ?? []} />
+            <PivotOptionCard key={option.socCode} fromSoc={resolution.socCode} rank={i + 1} currentTarget={profile.targetRoleType} option={option} state={state} stateLabel={profile.currentState ?? 'near you'} stateCode={toStateCode(profile.currentState)} tasks={tasksBySoc.get(option.socCode) ?? []} />
           ))}
         </div>
       )}

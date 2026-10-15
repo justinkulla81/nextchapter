@@ -108,3 +108,30 @@ describe('keywordCoverage', () => {
     expect(keywordCoverage('We are a friendly team.', base())).toEqual({ found: [], missing: [] })
   })
 })
+
+import { fitToLimits } from '@/lib/resume/studio/document'
+
+describe('limits and messages', () => {
+  it('trims profile-built data to fit so the draft can always be opened', () => {
+    const doc = base()
+    doc.summary = 'x'.repeat(3000)
+    doc.workHistory[0].bullets = [`y`.repeat(900)]
+    doc.certifications = Array.from({ length: 40 }, (_, i) => `Cert ${i} ${'z'.repeat(200)}`)
+    doc.education = Array.from({ length: 14 }, (_, i) => ({ schoolName: `School ${i}`, degreeLabel: null, dateLabel: null }))
+    const fitted = fitToLimits(doc)
+    expect(parseResumeDocument(fitted).ok).toBe(true)
+    expect(fitted.education).toHaveLength(10)
+    expect(fitted.certifications).toHaveLength(30)
+  })
+
+  it('names the field and the limit when something is too long', () => {
+    const doc = base()
+    doc.skills = ['s'.repeat(80)]
+    const r = parseResumeDocument(doc)
+    expect(r.ok).toBe(false)
+    if (!r.ok) {
+      expect(r.error).toContain('A skill can be up to 60 characters')
+      expect(r.error).not.toMatch(/expected string/i)
+    }
+  })
+})

@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { addPivotSkillsToPlan, setPivotTargetRole } from '@/app/dashboard/pivot/actions'
+import { addPivotSkillsToPlan } from '@/app/dashboard/pivot/actions'
+import { SetTargetRoleForm } from '@/components/dashboard/pivot/SetTargetRoleForm'
 import { PivotActionForm } from '@/components/dashboard/pivot/PivotActionForm'
 import { LocalDemand } from '@/components/dashboard/pivot/LocalDemand'
 import { PivotPathImpression } from '@/components/dashboard/pivot/PivotPathImpression'
@@ -66,6 +67,7 @@ export function PivotOptionCard({
   tasks,
   fromSoc,
   rank,
+  currentTarget,
 }: {
   option: PivotOption
   state: string | null
@@ -74,6 +76,7 @@ export function PivotOptionCard({
   tasks: string[]
   fromSoc: string
   rank: number
+  currentTarget: string | null
 }) {
   const overlapBand = option.overlap === null ? null : bandFor(option.overlap)
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
@@ -165,17 +168,11 @@ export function PivotOptionCard({
               fields={[{ name: 'socCode', value: option.socCode }, ...skillsToAdd.map((s) => ({ name: 'skill', value: s }))]}
               label="Add these skills to my plan"
               pendingLabel="Adding…"
-              variant="default"
+              variant="outline"
               ariaLabel={`Add the skills for ${option.title} to my plan`}
             />
           )}
-          <PivotActionForm
-            action={setPivotTargetRole}
-            fields={[{ name: 'socCode', value: option.socCode }]}
-            label="Make this my target role"
-            pendingLabel="Saving…"
-            ariaLabel={`Make ${option.title} my target role`}
-          />
+          <SetTargetRoleForm socCode={option.socCode} title={option.title} currentTarget={currentTarget} />
         </div>
       </CardContent>
     </Card>

@@ -10,13 +10,11 @@ import { PivotActionForm } from '@/components/dashboard/pivot/PivotActionForm'
 export function OccupationChooser({
   heading,
   intro,
-  matchedFrom,
   candidates,
   query,
 }: {
   heading: string
   intro: string
-  matchedFrom: string
   candidates: TitleCandidate[]
   query: string
 }) {
@@ -49,10 +47,7 @@ export function OccupationChooser({
                 <span className="text-sm text-foreground">{c.title}</span>
                 <PivotActionForm
                   action={confirmOccupation}
-                  fields={[
-                    { name: 'socCode', value: c.socCode },
-                    { name: 'matchedFrom', value: query || matchedFrom },
-                  ]}
+                  fields={[{ name: 'socCode', value: c.socCode }]}
                   label="This is my job"
                   pendingLabel="Saving…"
                   ariaLabel={`Use ${c.title} as my current occupation`}

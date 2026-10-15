@@ -1,5 +1,6 @@
 import 'server-only'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import {
@@ -69,10 +70,17 @@ export async function generateNoteSummary(coachId: string, candidateId: string):
   const existingSummary = existing ? parseStoredSummary(existing.summary) : null
   if (existing && existingSummary && existing.fingerprint === fingerprint) return { ok: true, summary: existingSummary }
 
+  // Reserve the run BEFORE calling the model, under a per-coach lock, so two clicks at once cannot both
+  // slip under the daily cap. A reserved run counts against the cap even if the call then fails.
   const startOfDay = new Date()
   startOfDay.setUTCHours(0, 0, 0, 0)
-  const usedToday = await prisma.coachNoteSummaryRun.count({ where: { coachId, createdAt: { gte: startOfDay } } })
-  if (usedToday >= DAILY_SUMMARIES_PER_COACH) {
+  const run = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`note-summary:${coachId}`}))`)
+    const usedToday = await tx.coachNoteSummaryRun.count({ where: { coachId, createdAt: { gte: startOfDay } } })
+    if (usedToday >= DAILY_SUMMARIES_PER_COACH) return null
+    return tx.coachNoteSummaryRun.create({ data: { coachId, candidateId, inputChars: input.text.length, ok: false }, select: { id: true } })
+  })
+  if (!run) {
     return { ok: false, error: `You have used today’s ${DAILY_SUMMARIES_PER_COACH} summaries. You can make more tomorrow, and your notes are still all here to read.` }
   }
 
@@ -92,7 +100,7 @@ export async function generateNoteSummary(coachId: string, candidateId: string):
     console.error('Failed to generate coach note summary:', error)
   }
 
-  await prisma.coachNoteSummaryRun.create({ data: { coachId, candidateId, inputChars: input.text.length, ok: summary !== null } })
+  await prisma.coachNoteSummaryRun.update({ where: { id: run.id }, data: { ok: summary !== null } })
   if (!summary) return { ok: false, error: 'We could not write the summary just now. Your notes are safe. Try again in a minute.' }
 
   await prisma.coachNoteSummary.upsert({

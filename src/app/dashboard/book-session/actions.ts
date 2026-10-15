@@ -46,5 +46,9 @@ export async function cancelMySession(_prev: BookSessionState, formData: FormDat
   if (!result.ok) return { error: result.error }
   captureServerEvent(profile.id, 'coach_session_cancelled', { bookingId, coachId: result.coachId, candidateId: profile.id, by: 'CANDIDATE' })
   revalidatePath('/dashboard/book-session')
-  return { message: 'Cancelled.' }
+  return {
+    message: result.calendarWarning
+      ? 'Cancelled here. We could not remove the calendar invitation, so please delete it from your Google Calendar.'
+      : 'Cancelled.',
+  }
 }

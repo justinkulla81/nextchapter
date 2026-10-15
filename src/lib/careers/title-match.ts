@@ -29,8 +29,10 @@ const ABBREVIATIONS: Record<string, string> = {
 
 // Level markers say how senior, not what the work is. O*NET occupations are
 // level-free, so they would only dilute the match.
+// "assistant", "staff" and "head" are deliberately NOT here: in "Executive Assistant" and
+// "Chief of Staff" they are the role itself, and removing them would leave "executive" or "chief".
 const LEVEL_WORDS = new Set([
-  'senior', 'junior', 'lead', 'principal', 'staff', 'associate', 'assistant', 'head',
+  'senior', 'junior', 'lead', 'principal', 'associate',
   'i', 'ii', 'iii', 'iv', 'v', 'entry', 'level', 'intern', 'trainee',
 ])
 const FILLER = new Set(['of', 'the', 'and', 'for', 'to', 'in', 'at', 'a', 'an', 'amp'])
@@ -67,12 +69,16 @@ export interface TitleEntry {
   title: string
   // Normalized forms: the occupation title itself plus every alternate title.
   normalized: string
+  tokens: string[]
 }
 
 export interface TitleIndex {
   entries: TitleEntry[]
   exact: Map<string, Set<string>> // normalized title -> SOC codes
   titles: Map<string, string> // SOC -> canonical title
+  // token -> positions in `entries`, so a lookup only scores titles that share a word with the query
+  // instead of every one of the ~60,000 alternate titles.
+  byToken: Map<string, number[]>
 }
 
 export function buildTitleIndex(
@@ -82,10 +88,18 @@ export function buildTitleIndex(
   const entries: TitleEntry[] = []
   const exact = new Map<string, Set<string>>()
   const titles = new Map<string, string>()
+  const byToken = new Map<string, number[]>()
   const add = (socCode: string, title: string) => {
-    const normalized = normalizeTitle(title)
+    const tokens = titleTokens(title)
+    const normalized = tokens.join(' ')
     if (!normalized) return
-    entries.push({ socCode, title, normalized })
+    const at = entries.length
+    entries.push({ socCode, title, normalized, tokens })
+    for (const t of new Set(tokens)) {
+      const list = byToken.get(t)
+      if (list) list.push(at)
+      else byToken.set(t, [at])
+    }
     const set = exact.get(normalized) ?? new Set<string>()
     set.add(socCode)
     exact.set(normalized, set)
@@ -95,7 +109,7 @@ export function buildTitleIndex(
     add(o.socCode, o.title)
   }
   for (const a of altTitles) add(a.socCode, a.title)
-  return { entries, exact, titles }
+  return { entries, exact, titles, byToken }
 }
 
 export interface TitleCandidate {
@@ -129,9 +143,15 @@ export function matchTitle(index: TitleIndex, raw: string, limit = 8): TitleMatc
 
   // Best score per occupation across its title and every alternate title.
   const best = new Map<string, number>()
-  for (const e of index.entries) {
-    const score = e.normalized === normalized ? 1 : diceScore(tokens, e.normalized.split(' '))
-    if (score >= CANDIDATE_FLOOR && score > (best.get(e.socCode) ?? 0)) best.set(e.socCode, score)
+  const seen = new Set<number>()
+  for (const t of new Set(tokens)) {
+    for (const at of index.byToken.get(t) ?? []) {
+      if (seen.has(at)) continue
+      seen.add(at)
+      const e = index.entries[at]
+      const score = e.normalized === normalized ? 1 : diceScore(tokens, e.tokens)
+      if (score >= CANDIDATE_FLOOR && score > (best.get(e.socCode) ?? 0)) best.set(e.socCode, score)
+    }
   }
   const candidates: TitleCandidate[] = [...best.entries()]
     .map(([socCode, score]) => ({ socCode, title: index.titles.get(socCode) ?? socCode, score }))

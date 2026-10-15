@@ -9,7 +9,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { buildResumeDocumentData } from '@/lib/resume/export/document-data'
 import { RESUME_TEMPLATE_META } from '@/lib/resume/export/template-meta'
-import { blankResumeDocument, parseResumeDocument } from '@/lib/resume/studio/document'
+import { blankResumeDocument, fitToLimits, parseResumeDocument } from '@/lib/resume/studio/document'
 import { summarizeDocument } from '@/lib/resume/studio/writing-checks'
 
 const MAX_DRAFTS = 20
@@ -36,7 +36,8 @@ export async function createDraft(_prev: StudioActionState, formData: FormData):
   }
 
   const fromProfile = formData.get('source') !== 'blank'
-  const document = fromProfile ? await buildResumeDocumentData(profile.id) : blankResumeDocument()
+  // Profile data was never held to the editor's limits, so trim it to fit rather than create a draft that cannot be opened.
+  const document = fromProfile ? fitToLimits(await buildResumeDocumentData(profile.id)) : blankResumeDocument()
   const name = String(formData.get('name') ?? '').trim().slice(0, 100) || (fromProfile ? 'Draft from my profile' : 'Blank draft')
 
   const draft = await prisma.resumeDraft.create({

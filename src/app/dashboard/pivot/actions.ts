@@ -26,8 +26,7 @@ export async function confirmOccupation(_prev: PivotActionState, formData: FormD
   const profile = await currentCandidate()
   if (!profile) return LOGGED_OUT
   const socCode = String(formData.get('socCode') ?? '')
-  const matchedFrom = String(formData.get('matchedFrom') ?? '').slice(0, 200)
-  const ok = await confirmCandidateOccupation(profile.id, socCode, matchedFrom)
+  const ok = await confirmCandidateOccupation(profile.id, socCode)
   if (!ok) return { error: 'We could not find that occupation. Search again and pick one from the list.' }
   captureServerEvent(profile.id, 'pivot_occupation_confirmed', { candidateId: profile.id, socCode, source: 'CANDIDATE_CONFIRMED' })
   revalidatePath('/dashboard/pivot')
@@ -43,10 +42,16 @@ export async function addPivotSkillsToPlan(_prev: PivotActionState, formData: Fo
   const taxonomy = await getTaxonomy()
   if (!taxonomy?.profiles.has(socCode)) return { error: 'We could not find that occupation. Reload the page and try again.' }
 
+  // Only skills this occupation actually lists (its tools and knowledge areas) can be added, whatever the form sends.
+  const listed = new Set(
+    [...(taxonomy.profiles.get(socCode)?.elements.values() ?? [])]
+      .filter((e) => e.kind === 'TECHNOLOGY' || e.kind === 'KNOWLEDGE')
+      .map((e) => e.name.trim().toLowerCase())
+  )
   const requested = formData
     .getAll('skill')
-    .map((v) => String(v).trim())
-    .filter(Boolean)
+    .map((v) => String(v).trim().slice(0, 100))
+    .filter((v) => v && listed.has(v.toLowerCase()))
     .slice(0, 12)
   if (requested.length === 0) return { error: 'This role has no specific skills to add.' }
 

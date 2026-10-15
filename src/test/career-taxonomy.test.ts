@@ -726,3 +726,40 @@ describe('skills fit', () => {
     expect(a.status === 'mapped' && b.status === 'mapped' && a.band === b.band).toBe(true)
   })
 })
+
+
+describe('review fixes: matching', () => {
+  it('does not hide a tool because its name sits inside a longer resume keyword', () => {
+    const target = occ('15-1252.00', 'Dev', { elements: [['tech:java', el('Java', 'TECHNOLOGY', 80, null)], ['tech:r', el('R', 'TECHNOLOGY', 70, null)]] })
+    const names = toolGaps(null, target, ['JavaScript', 'research and reporting']).map((g) => g.name)
+    expect(names).toContain('Java')
+    // "R" is shorter than a usable alias and is not credited from an unrelated keyword either.
+    expect(toolGaps(null, target, ['Java']).map((g) => g.name)).not.toContain('Java')
+  })
+
+  it('keeps "assistant" in a title so Executive Assistant is not read as Chief Executives', () => {
+    const index = buildTitleIndex(
+      [{ socCode: '11-1011.00', title: 'Chief Executives' }, { socCode: '43-6011.00', title: 'Executive Secretaries and Executive Administrative Assistants' }],
+      [{ socCode: '11-1011.00', title: 'Chief Executive Officer' }]
+    )
+    const m = matchTitle(index, 'Executive Assistant')
+    expect(m.kind === 'EXACT' && m.socCode === '11-1011.00').toBe(false)
+  })
+
+  it('credits only exact tool names for hand-written aliases', () => {
+    const tools = [{ id: 'tech:microsoft-teams', name: 'Microsoft Teams' }, { id: 'tech:jenkins', name: 'Jenkins' }]
+    const { rows } = buildAliasRows(tools)
+    const aliases = new Set(rows.map((r) => r.alias))
+    expect(aliases.has('ms')).toBe(false)
+    expect(aliases.has('ci cd')).toBe(false)
+  })
+
+  it('only tags courses with tools and knowledge areas', () => {
+    const skills: TaggableSkill[] = [
+      { id: 'ability:x', name: 'Oral Comprehension', kind: 'ABILITY' },
+      { id: 'activity:y', name: 'Analyzing Data or Information', kind: 'ACTIVITY' },
+      { id: 'tech:python', name: 'Python', kind: 'TECHNOLOGY' },
+    ]
+    expect(tagCourse({ title: 'Oral comprehension and analyzing data or information with Python', description: '', keywords: [] }, skills)).toEqual(['tech:python'])
+  })
+})

@@ -77,17 +77,24 @@ function offsetMinutes(instant: Date, timeZone: string): number {
 }
 
 /**
- * The instant at which the clock in `timeZone` reads the given wall time. A time that
- * does not exist (skipped by the spring clock change) resolves to the moment just
- * after the gap; an ambiguous one (repeated in autumn) resolves to the first occurrence.
+ * The instant at which the clock in `timeZone` reads the given wall time.
+ *
+ * Around a clock change a wall time can be skipped (spring) or happen twice (autumn). A repeated
+ * time resolves to its first occurrence. A skipped time moves forward by the length of the gap, so
+ * 2:30 on the morning US clocks spring forward resolves to 3:30 daylight time, never an hour early.
  */
 export function zonedWallTimeToInstant(year: number, month: number, day: number, minuteOfDay: number, timeZone: string): Date {
   const naive = Date.UTC(year, month - 1, day, 0, minuteOfDay)
-  let guess = naive - offsetMinutes(new Date(naive), timeZone) * MINUTE
-  // The offset at the guess can differ from the offset at the naive time across a clock change.
-  const corrected = naive - offsetMinutes(new Date(guess), timeZone) * MINUTE
-  if (corrected !== guess) guess = corrected
-  return new Date(guess)
+  // The zone's offset a half-day before and after: a clock change in between shows as two different offsets.
+  const before = offsetMinutes(new Date(naive - 12 * 60 * MINUTE), timeZone)
+  const after = offsetMinutes(new Date(naive + 12 * 60 * MINUTE), timeZone)
+  const candidates = [...new Set([naive - before * MINUTE, naive - after * MINUTE])]
+  const reads = (instant: number) => {
+    const p = zonedParts(new Date(instant), timeZone)
+    return p.year === year && p.month === month && p.day === day && p.hour * 60 + p.minute === minuteOfDay
+  }
+  const valid = candidates.filter(reads)
+  return new Date(valid.length > 0 ? Math.min(...valid) : Math.max(...candidates))
 }
 
 function weekdayOf(year: number, month: number, day: number): number {

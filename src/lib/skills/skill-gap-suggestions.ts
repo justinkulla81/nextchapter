@@ -4,6 +4,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { normalizeTitle } from '@/lib/careers/title-match'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { resolveCandidateOccupation, occupationForRoleText } from '@/lib/careers/candidate-occupation'
 import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
@@ -22,7 +23,7 @@ export interface SkillGapSuggestions {
   modernSkills: string[]
   // Present when the roleGaps were grounded in O*NET requirements for the target occupation, so the
   // screen can credit O*NET (CC BY 4.0). Absent on suggestions made without it.
-  basis?: { source: 'onet'; targetTitle: string }
+  basis?: { source: 'onet'; targetTitle: string; targetSoc: string }
 }
 
 export type SuggestionListKey = 'resumeGaps' | 'roleGaps' | 'modernSkills'
@@ -59,6 +60,7 @@ interface SkillGapProfile {
   growthAreas: string[]
   skillGapSuggestions: unknown
   skillGapSuggestionsFingerprint: string | null
+  resumeLatestJobTitle?: string | null
 }
 
 // Cheap equality check on the handful of fields that should actually
@@ -66,7 +68,10 @@ interface SkillGapProfile {
 // target role, or new target industries. Order-independent so re-saving
 // the same tags/industries in a different order doesn't trigger a
 // pointless (metered) regeneration.
-function computeFingerprint(profile: SkillGapProfile, grounding: SkillGapGrounding | null): string {
+// onetKey is a CHEAP stand-in for "what O*NET grounding would say": the latest job title and the
+// occupation the member confirmed. It is computed without matching titles or loading skills, so a
+// cache hit stays as cheap as it was before grounding existed.
+function computeFingerprint(profile: SkillGapProfile, onetKey: string | null): string {
   const base = [
     [...profile.resumeKeywords].sort().join('|'),
     profile.primaryFunction ?? '',
@@ -79,7 +84,7 @@ function computeFingerprint(profile: SkillGapProfile, grounding: SkillGapGroundi
   ].join('::')
   // Only when the career taxonomy is loaded, so candidates' cached suggestions
   // aren't invalidated (and re-bought) before there is anything to ground them in.
-  return grounding ? `${base}::onet:${grounding.key}` : base
+  return onetKey !== null ? `${base}::onet:${onetKey}` : base
 }
 
 // The target occupation is the one their stated target role maps to, else the
@@ -165,18 +170,26 @@ export async function getOrGenerateSkillGapSuggestions(candidateId: string): Pro
       growthAreas: true,
       skillGapSuggestions: true,
       skillGapSuggestionsFingerprint: true,
+      resumeLatestJobTitle: true,
     },
   })
 
-  const grounding = await loadGrounding(profile)
-  const fingerprint = computeFingerprint(profile, grounding)
-  const basis: SkillGapSuggestions['basis'] = grounding ? { source: 'onet', targetTitle: grounding.targetTitle } : undefined
-  const viewed = (source: 'cache' | 'generated' | 'fallback') =>
-    captureServerEvent(candidateId, 'skill_gap_viewed', { candidateId, targetSoc: grounding?.targetSoc ?? null, fromSoc: grounding?.sourceSoc ?? null, grounded: grounding !== null, source })
-  if (profile.skillGapSuggestions && profile.skillGapSuggestionsFingerprint === fingerprint) {
-    viewed('cache')
-    return profile.skillGapSuggestions as unknown as SkillGapSuggestions
+  // Cheap check first. Only when the taxonomy is loaded does the key include the member's latest job
+  // title and the occupation they confirmed; the grounding itself is built only on a cache miss.
+  const taxonomyLoaded = (await getTaxonomy()) !== null
+  const confirmed = taxonomyLoaded ? await prisma.candidateOccupation.findUnique({ where: { candidateId }, select: { socCode: true } }).catch(() => null) : null
+  const onetKey = taxonomyLoaded ? `${normalizeTitle(profile.resumeLatestJobTitle ?? '')}|${confirmed?.socCode ?? ''}` : null
+  const fingerprint = computeFingerprint(profile, onetKey)
+  const stored = profile.skillGapSuggestions as unknown as SkillGapSuggestions | null
+  if (stored && profile.skillGapSuggestionsFingerprint === fingerprint) {
+    captureServerEvent(candidateId, 'skill_gap_viewed', { candidateId, targetSoc: stored.basis?.targetSoc ?? null, grounded: Boolean(stored.basis), source: 'cache' })
+    return stored
   }
+
+  const grounding = await loadGrounding(profile)
+  const basis: SkillGapSuggestions['basis'] = grounding ? { source: 'onet', targetTitle: grounding.targetTitle, targetSoc: grounding.targetSoc } : undefined
+  const viewed = (source: 'generated' | 'fallback') =>
+    captureServerEvent(candidateId, 'skill_gap_viewed', { candidateId, targetSoc: grounding?.targetSoc ?? null, fromSoc: grounding?.sourceSoc ?? null, grounded: grounding !== null, source })
 
   const generated = await generateViaLLM(profile, grounding)
   if (!generated) {

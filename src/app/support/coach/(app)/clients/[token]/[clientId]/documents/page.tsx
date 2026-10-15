@@ -57,7 +57,7 @@ export default async function ClientDocumentsPage({ params }: { params: Promise<
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Asked {r.createdAt.toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                    {r.dueAt ? `, due ${r.dueAt.toLocaleDateString('en-US', { dateStyle: 'medium' })}` : ''}
+                    {r.dueAt ? `, due ${r.dueAt.toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' })}` : ''}
                     {r.uploadedAt ? `. Uploaded ${r.uploadedAt.toLocaleDateString('en-US', { dateStyle: 'medium' })}` : ''}.
                   </p>
                   {r.fileName && (
