@@ -38,6 +38,9 @@ import { computeAndRecordLeaderboardBadges, getLeaderboardBadgeHistory } from '@
 import { LeaderboardBoardCard } from '@/components/dashboard/LeaderboardBoardCard'
 import { LeaderboardFilters } from '@/components/dashboard/LeaderboardFilters'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
+import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { buildUnlockLadder } from '@/lib/unlocks/ladder'
+import { ProgressUnlocks } from '@/components/dashboard/home/ProgressUnlocks'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
@@ -168,6 +171,13 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
+  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates] = await Promise.all([
+    computeDossierCompleteness(profile.id),
+    isDossierUnlocked(profile.id),
+    getDossierLadderTier(profile.id),
+    getModuleGateStatus(profile.id),
+  ])
+  const unlockLadder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
 
   return (
     <div className="space-y-8">
@@ -179,6 +189,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
           been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
+        <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} />
         <nav
           aria-label="Jump to section"
           className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-lg border border-border bg-muted/30 px-4 py-3"
