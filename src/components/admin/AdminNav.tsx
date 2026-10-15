@@ -120,7 +120,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       title: 'Ecosystem',
       collapsible: true,
       links: [
-        { href: '/support/admin/crm/organizations?type=EMPLOYER', label: 'Companies' },
+        { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
         { href: '/support/admin/crm/colleges', label: 'Higher ed' },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
         { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
