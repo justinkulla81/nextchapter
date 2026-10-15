@@ -25,5 +25,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     memberId: access.memberId,
     preview: access.mode !== 'own',
   })
-  return NextResponse.redirect(new URL(target, request.url))
+  // Built-in portal pages are written with {slug} (e.g. course auditing).
+  return NextResponse.redirect(new URL(target.replace('{slug}', slug), request.url))
 }
