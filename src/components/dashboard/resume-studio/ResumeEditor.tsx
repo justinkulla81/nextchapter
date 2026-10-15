@@ -14,6 +14,7 @@ import type { ResumeDocumentData } from '@/lib/resume/export/document-data'
 import { resumeToPlainText } from '@/lib/resume/studio/document'
 import { summarizeDocument } from '@/lib/resume/studio/writing-checks'
 import { keywordCoverage, type KeywordCoverage } from '@/lib/resume/studio/keyword-coverage'
+import { OnetAttribution } from '@/components/OnetAttribution'
 import { saveDraft } from '@/app/dashboard/resume/studio/actions'
 import { Field, TextAreaField, ReorderControls, moveItem, removeAt, replaceAt, splitList } from '@/components/dashboard/resume-studio/EditorParts'
 import { ExperienceEditor } from '@/components/dashboard/resume-studio/ExperienceEditor'
@@ -265,6 +266,7 @@ export function ResumeEditor({
                       <span className="text-foreground">Named in the posting, not on your resume:</span> {coverage.missing.length > 0 ? coverage.missing.join(', ') : 'none'}.
                     </p>
                     <p className="text-xs text-muted-foreground">Only add a term if you have really used it. Mentioning a skill is not the same as having it.</p>
+                    <OnetAttribution compact />
                   </>
                 )}
               </div>
