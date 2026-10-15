@@ -8,6 +8,7 @@ import { useFormStatus } from 'react-dom'
 import {
   Home,
   Briefcase,
+  Signpost,
   Users,
   User,
   Menu,
@@ -182,6 +183,8 @@ function buildSections(
       links: [
         // One board for full-time, part-time, contract and board work (Interim Work merged in).
         { href: '/dashboard/find-my-job', label: 'Find a job', icon: Briefcase, ...gmailLock },
+        // Market-ranked career pivots (src/lib/pivots), for anyone changing direction.
+        { href: '/dashboard/pivot-paths', label: 'Pivot paths', icon: Signpost },
         // Only for employed journeys (PROMOTION, READY_TO_MOVE, EXPLORING_MOVE,
         // NEXT_ACT): reviews, raises, promotion and feedback.
         ...(showInWork ? [{ href: '/dashboard/in-work', label: 'Reviews, Raises and Promotion', icon: TrendingUp }] : []),
