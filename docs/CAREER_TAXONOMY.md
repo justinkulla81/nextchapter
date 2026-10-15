@@ -35,6 +35,10 @@ Attribution: every page that shows O*NET-derived content renders `OnetAttributio
 
 All importers are re-runnable. Until step 2 is done, the Pivot Tool says occupation data isn't loaded and job cards show no skills-fit line.
 
+### One-click load (GitHub Actions)
+
+Steps 1 to 3 can be run without a laptop: Actions tab, **Import career taxonomy**, **Run workflow** (`.github/workflows/import-career-taxonomy.yml`). A GitHub runner downloads the O*NET and BLS files, converts the BLS workbooks to CSV (`scripts/xlsx_to_csv.py`), applies the three SQL files (safe to repeat) and runs `careers:import-onet` then `careers:import-bls`. It needs `DATABASE_URL` and `DIRECT_URL` as repository secrets. "Dry run" is ticked by default and writes nothing; untick it for the real load. The default download links are the ones expected for O*NET 29.3 and OEWS 2024, so check them against the pages in the table above before relying on them. Steps 4 and 5 are not part of it.
+
 ## How it works
 
 - **Similarity** (`vectors.ts`): each occupation is a vector of rated elements (importance x level), centred on the mean across occupations, otherwise everything scores about 0.9 against everything. "Lines up with your current work" is a separate measure: how much of what the target asks for the current occupation already covers. Abilities take part in the comparison but are never offered as something to build.

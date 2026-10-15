@@ -1,0 +1,124 @@
+# One-click load of the career taxonomy (O*NET and BLS data behind the Pivot Tool, skills
+# fit and local pay). Run it from the Actions tab: pick this workflow, "Run workflow".
+# It downloads the files on a GitHub runner (which can reach onetcenter.org and bls.gov),
+# turns the BLS workbooks into CSV, and runs the same importers as docs/CAREER_TAXONOMY.md:
+# careers:import-onet, then careers:import-bls.
+#
+# Needs two repository secrets, the database URLs the app uses: DATABASE_URL, DIRECT_URL.
+# The first run should stay a dry run (the default): it prints what would be loaded and
+# writes nothing. Untick "Dry run" for the real load. Aliases, course tags and training
+# programs (setup steps 4 and 5) are separate and not run here.
+name: Import career taxonomy
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Dry run (print counts, write nothing)
+        type: boolean
+        default: true
+      create_tables:
+        description: Create the taxonomy tables first (the three prisma/manual SQL files, safe to repeat)
+        type: boolean
+        default: true
+      onet_url:
+        description: O*NET database, Text format (.zip). Current release is listed at onetcenter.org/database.html
+        default: https://www.onetcenter.org/dl_files/database/db_29_3_text.zip
+      onet_version:
+        description: O*NET release number, for the record
+        default: '29.3'
+      oews_year:
+        description: OEWS data year. The three zips below must be for the same year
+        default: '2024'
+      oews_national_url:
+        description: BLS OEWS national zip. Listed at bls.gov/oes/tables.htm
+        default: https://www.bls.gov/oes/special-requests/oesm24nat.zip
+      oews_state_url:
+        description: BLS OEWS state zip (leave blank to skip)
+        default: https://www.bls.gov/oes/special-requests/oesm24st.zip
+      oews_metro_url:
+        description: BLS OEWS metropolitan and nonmetropolitan area zip (leave blank to skip)
+        default: https://www.bls.gov/oes/special-requests/oesm24ma.zip
+      projections_url:
+        description: BLS Employment Projections table 1.2 (occupation.xlsx). Listed at bls.gov/emp/tables.htm
+        default: https://www.bls.gov/emp/tables/occupation.xlsx
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      # bls.gov refuses requests that do not look like a browser.
+      UA: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check secrets and write the env file the import scripts read
+        run: |
+          test -n "$DATABASE_URL" && test -n "$DIRECT_URL" || { echo "::error::Add DATABASE_URL and DIRECT_URL as repository secrets (Settings, Secrets and variables, Actions)."; exit 1; }
+          printf 'DATABASE_URL=%s\nDIRECT_URL=%s\n' "$DATABASE_URL" "$DIRECT_URL" > .env.local
+
+      - name: Create the taxonomy tables
+        if: ${{ inputs.create_tables && !inputs.dry_run }}
+        run: |
+          for f in 2026-10-14-career-taxonomy 2026-10-14-training-matching 2026-10-15-career-local; do
+            psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -f "prisma/manual/$f.sql"
+          done
+
+      - name: Download
+        run: |
+          mkdir -p data/onet data/nat data/st data/ma
+          get() { curl -fsSL -A "$UA" -o "$1" "$2"; }
+          get data/onet.zip "${{ inputs.onet_url }}"
+          unzip -q -o data/onet.zip -d data/onet
+          get data/nat.zip "${{ inputs.oews_national_url }}"
+          unzip -q -o data/nat.zip -d data/nat
+          if [ -n "${{ inputs.oews_state_url }}" ]; then get data/st.zip "${{ inputs.oews_state_url }}"; unzip -q -o data/st.zip -d data/st; fi
+          if [ -n "${{ inputs.oews_metro_url }}" ]; then get data/ma.zip "${{ inputs.oews_metro_url }}"; unzip -q -o data/ma.zip -d data/ma; fi
+          get data/projections.xlsx "${{ inputs.projections_url }}"
+
+      - name: Convert the BLS workbooks to CSV
+        run: |
+          pip install --quiet openpyxl
+          conv() { # dir, pattern, out
+            f=$(find "$1" -iname "$2" | head -1)
+            test -n "$f" || { echo "::error::No workbook matching $2 in $1."; find "$1"; exit 1; }
+            python3 scripts/xlsx_to_csv.py "$f" "$3"
+          }
+          conv data/nat 'national*.xlsx' data/national.csv
+          if [ -n "${{ inputs.oews_state_url }}" ]; then conv data/st 'state*.xlsx' data/state.csv; fi
+          if [ -n "${{ inputs.oews_metro_url }}" ]; then conv data/ma 'msa*.xlsx' data/msa.csv; fi
+          python3 scripts/xlsx_to_csv.py data/projections.xlsx data/projections.csv "Table 1.2"
+
+      - name: Import O*NET
+        run: |
+          ONET_DIR=$(dirname "$(find data/onet -name 'Occupation Data.txt' | head -1)")
+          test -f "$ONET_DIR/Occupation Data.txt" || { echo "::error::Occupation Data.txt not found in the O*NET zip."; find data/onet | head -30; exit 1; }
+          FLAGS=""; if [ "${{ inputs.dry_run }}" = "true" ]; then FLAGS="--dry-run"; fi
+          npm run careers:import-onet -- --dir "$ONET_DIR" --version "${{ inputs.onet_version }}" $FLAGS
+
+      - name: Import BLS
+        run: |
+          ARGS=(--oews data/national.csv --wage-year "${{ inputs.oews_year }}" --projections data/projections.csv)
+          if [ -f data/state.csv ]; then ARGS+=(--oews-state data/state.csv); fi
+          if [ -f data/msa.csv ]; then ARGS+=(--oews-metro data/msa.csv); fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS+=(--dry-run); fi
+          set +e
+          npm run careers:import-bls -- "${ARGS[@]}" 2>&1 | tee bls.log
+          status=${PIPESTATUS[0]}
+          # The BLS importer keeps only occupations already in the database, so on a first dry
+          # run (nothing loaded yet) it has nothing to check against. That is expected.
+          if [ "$status" != 0 ] && [ "${{ inputs.dry_run }}" = "true" ] && grep -q "No occupations found" bls.log; then
+            echo "::warning::BLS dry run skipped: it needs the O*NET occupations loaded first. Run once without Dry run, then dry-run again to check BLS."
+            exit 0
+          fi
+          exit "$status"
