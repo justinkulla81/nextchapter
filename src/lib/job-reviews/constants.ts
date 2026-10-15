@@ -85,3 +85,17 @@ export const answeredCount = (r: ReviewInput): number =>
 export function cleanParallelPaths(input: unknown): string[] {
   return many(PARALLEL_PATHS, input)
 }
+
+export type ParallelPathView = { state: 'unanswered' } | { state: 'none' } | { state: 'some'; labels: string[] }
+
+/**
+ * How a coach reads a client's parallel paths: not answered yet (worth asking), an
+ * explicit "nothing alongside the search", or the paths in the order the member sees
+ * them. Unknown values are dropped. Unlike the job board, every path counts here,
+ * school and training included — a coach should know what a client is busy with.
+ */
+export function parallelPathView(paths: readonly string[] | null | undefined): ParallelPathView {
+  if (paths === null || paths === undefined) return { state: 'unanswered' }
+  const labels = PARALLEL_PATHS.filter((o) => paths.includes(o.value)).map((o) => o.label)
+  return labels.length === 0 ? { state: 'none' } : { state: 'some', labels }
+}
