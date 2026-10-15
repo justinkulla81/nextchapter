@@ -5711,8 +5711,8 @@
 ],
 [
 "Inside Sales Representative - Early Career (2026)",
-"ENTRY_IC",
-20
+"OTHER",
+0
 ],
 [
 "Strategic Finance, International & Marketing",
@@ -15743,8 +15743,8 @@ true
 ],
 [
 "Targeting Analyst - Junior",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Subcontracts Administrator 2",
@@ -16023,6 +16023,191 @@ true
 ],
 [
 "Associate Designer",
+"OTHER",
+0
+],
+[
+"Data Analyst - Junior",
+"ENTRY_IC",
+20
+],
+[
+"Business Analyst-Junior",
+"ENTRY_IC",
+20
+],
+[
+"Business Analyst Junior",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer, Jr.",
+"ENTRY_IC",
+20
+],
+[
+"Data Analyst (Jr.)",
+"ENTRY_IC",
+20
+],
+[
+"Budget Analyst (Junior Level) \u2013 Global Security Programs",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer - Entry/Junior Level",
+"ENTRY_IC",
+20
+],
+[
+"Entry/Junior Level Data Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Junior/Entry Data Analyst",
+"ENTRY_IC",
+20
+],
+[
+"SSRS Developer (Junior Level)",
+"OTHER",
+0
+],
+[
+"Junior to Senior Software Engineer",
+"OTHER",
+0
+],
+[
+"Senior Data Analyst - Junior",
+"SENIOR_IC",
+45
+],
+[
+"Teacher - Junior High",
+"OTHER",
+0
+],
+[
+"Entry-Level Manufacturing Worker",
+"OTHER",
+0
+],
+[
+"Entry Level Positions \u2013 Apply Today",
+"OTHER",
+0
+],
+[
+"Entry Level Tax Preparer",
+"OTHER",
+0
+],
+[
+"Entry Level Sales Representative",
+"OTHER",
+0
+],
+[
+"Early Career Sales Rep - Reno, NV",
+"OTHER",
+0
+],
+[
+"Entry-Level Sales Account Manager | Paid Training",
+"OTHER",
+0
+],
+[
+"Early Career - Family Medicine Physician",
+"OTHER",
+0
+],
+[
+"Pediatric NP/PA - Urgent Care (New Grad/Early Career)",
+"OTHER",
+0
+],
+[
+"Cytotech or Cytotechnologist in South Carolina (New Grads Apply!)",
+"OTHER",
+0
+],
+[
+"Entry Level Service Advisor | Prince William County",
+"OTHER",
+0
+],
+[
+"SkillBridge \u2013 Power Systems Engineer I",
+"OTHER",
+0
+],
+[
+"Operations Manager In Training - New Graduate & Early Career - East Coast Fulfillment Center",
+"OTHER",
+0
+],
+[
+"Public Health Worker - Entry Level Training Program - Draper",
+"OTHER",
+0
+],
+[
+"Junior Associate Attorney \u2013 Workers' Compensation",
+"ENTRY_IC",
+20
+],
+[
+"Social Worker I",
+"OTHER",
+0
+],
+[
+"Software Engineer I (Multiple Positions)",
+"ENTRY_IC",
+20
+],
+[
+"Entry-Level Marketing Associate",
+"ENTRY_IC",
+20
+],
+[
+"New Graduate- Associate Electrical Engineer - Nuclear Design Team",
+"ENTRY_IC",
+20
+],
+[
+"Early Career Geologist",
+"ENTRY_IC",
+20
+],
+[
+"Project Engineer 1 McLean - Fall 2026/Spring 2027 College Grads",
+"ENTRY_IC",
+20
+],
+[
+"Contract Specialist (GS-7)",
+"ENTRY_IC",
+20
+],
+[
+"Program Analyst (GS-9)",
+"EARLY_IC",
+25
+],
+[
+"General Engineer (GS-9)",
+"OTHER",
+0
+],
+[
+"Product Marketing Representative - Entry Level",
 "OTHER",
 0
 ]
