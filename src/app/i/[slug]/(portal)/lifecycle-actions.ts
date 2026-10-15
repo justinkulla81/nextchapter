@@ -38,11 +38,11 @@ async function staff(slug: string, ws: WorkspaceKey, roles: AccessToken[]): Prom
 
 // ── Members ────────────────────────────────────────────────────────────────
 
-export async function askForAlumniIntro(slug: string, targetMemberId: string, companyName: string, purpose: string, note: string): Promise<Result> {
+export async function askForAlumniIntro(slug: string, targetMemberId: string, companyName: string, purpose: string, note: string, referralJobUrl: string | null = null): Promise<Result> {
   const m = await member(slug)
   if (!m) return { error: PREVIEW }
   if (!INTRO_PURPOSES.some((p) => p.key === purpose)) return { error: 'Pick why you’re asking.' }
-  const r = await requestAlumniIntro({ institutionId: m.ctx.institution.id, requesterMemberId: m.memberId, targetMemberId, companyName, purpose: purpose as IntroPurpose, note: note.trim(), createdBy: m.ctx.userId })
+  const r = await requestAlumniIntro({ institutionId: m.ctx.institution.id, requesterMemberId: m.memberId, targetMemberId, companyName, purpose: purpose as IntroPurpose, note: note.trim(), createdBy: m.ctx.userId, referralJobUrl })
   if ('error' in r) return { error: r.error }
   captureServerEvent(m.ctx.userId, 'he_alumni_intro_requested', { institutionId: m.ctx.institution.id, requestId: r.id, purpose })
   revalidatePath(`/i/${slug}/candidate/network`)

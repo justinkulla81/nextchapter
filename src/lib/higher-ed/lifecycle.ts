@@ -26,6 +26,7 @@ export const INTRO_PURPOSES = [
   { key: 'applying', label: 'Applying there' },
   { key: 'interviewing', label: 'Interviewing there' },
   { key: 'offer', label: 'Weighing an offer from them' },
+  { key: 'referral', label: 'Asking for a referral for a role there' },
 ] as const
 export type IntroPurpose = (typeof INTRO_PURPOSES)[number]['key']
 
@@ -51,7 +52,9 @@ export const INTRO_BODY = `Hi {{firstName}},
 
 Accept or decline on your {{college}} page (your email is shared only if you accept): {{link}}`
 
-export async function requestAlumniIntro(args: { institutionId: string; requesterMemberId: string; targetMemberId: string; companyName: string; purpose: IntroPurpose; note: string; createdBy: string }) {
+export async function requestAlumniIntro(args: { institutionId: string; requesterMemberId: string; targetMemberId: string; companyName: string; purpose: IntroPurpose; note: string; createdBy: string; referralJobUrl?: string | null }) {
+  const jobUrl = args.referralJobUrl?.trim() || null
+  if (args.purpose === 'referral' && jobUrl && !/^https?:\/\/\S+$/.test(jobUrl)) return { error: 'The job link must start with http.' }
   if (args.requesterMemberId === args.targetMemberId) return { error: 'That’s you.' }
   const eligible = (await alumniAtCompany(args.institutionId, args.companyName, args.requesterMemberId)).some((a) => a.memberId === args.targetMemberId)
   if (!eligible) return { error: 'They no longer share that they work there.' }
@@ -65,7 +68,7 @@ export async function requestAlumniIntro(args: { institutionId: string; requeste
   if (open >= 5) return { error: 'You have five requests waiting. Give them a few days.' }
   const [req, requester, inst] = await Promise.all([
     prisma.alumniIntroRequest.create({
-      data: { institutionId: args.institutionId, requesterMemberId: args.requesterMemberId, targetMemberId: args.targetMemberId, companyName: args.companyName, purpose: args.purpose, note: args.note.slice(0, 1000) || null },
+      data: { institutionId: args.institutionId, requesterMemberId: args.requesterMemberId, targetMemberId: args.targetMemberId, companyName: args.companyName, purpose: args.purpose, note: args.note.slice(0, 1000) || null, referralJobUrl: args.purpose === 'referral' ? jobUrl : null },
       select: { id: true },
     }),
     prisma.institutionMember.findUniqueOrThrow({ where: { id: args.requesterMemberId }, select: { firstName: true, lastName: true, classYear: true } }),
@@ -109,17 +112,17 @@ export async function myAlumniIntros(memberId: string) {
       where: { requesterMemberId: memberId },
       orderBy: { requestedAt: 'desc' },
       take: 20,
-      select: { id: true, companyName: true, status: true, requestedAt: true, target: { select: { firstName: true, lastName: true, email: true } } },
+      select: { id: true, companyName: true, status: true, requestedAt: true, purpose: true, referredAt: true, target: { select: { firstName: true, lastName: true, email: true } } },
     }),
     prisma.alumniIntroRequest.findMany({
       where: { targetMemberId: memberId },
       orderBy: { requestedAt: 'desc' },
       take: 20,
-      select: { id: true, companyName: true, purpose: true, note: true, status: true, requestedAt: true, requester: { select: { firstName: true, lastName: true, classYear: true, email: true } } },
+      select: { id: true, companyName: true, purpose: true, note: true, status: true, requestedAt: true, referralJobUrl: true, referredAt: true, requester: { select: { firstName: true, lastName: true, classYear: true, email: true } } },
     }),
   ])
   return {
-    sent: sent.map((s) => ({ id: s.id, companyName: s.companyName, status: s.status, name: shortName(s.target.firstName, s.target.lastName), email: s.status === 'ACCEPTED' ? s.target.email : null })),
+    sent: sent.map((s) => ({ id: s.id, companyName: s.companyName, status: s.status, referral: s.purpose === 'referral', referred: !!s.referredAt, name: shortName(s.target.firstName, s.target.lastName), email: s.status === 'ACCEPTED' ? s.target.email : null })),
     received: received.map((r) => ({
       id: r.id,
       companyName: r.companyName,
@@ -128,6 +131,9 @@ export async function myAlumniIntros(memberId: string) {
       status: r.status,
       name: `${[r.requester.firstName, r.requester.lastName].filter(Boolean).join(' ')}${r.requester.classYear ? ` '${String(r.requester.classYear).slice(2)}` : ''}`,
       email: r.status === 'ACCEPTED' ? r.requester.email : null,
+      referral: r.purpose === 'referral',
+      referralJobUrl: r.referralJobUrl,
+      referred: !!r.referredAt,
     })),
   }
 }

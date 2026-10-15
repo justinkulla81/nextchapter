@@ -4894,6 +4894,8 @@ model ExclusiveJobPosting {
   @@index([postedAt])
   @@index([industry])
   @@index([locationState])
+  // Deleting a candidate sets this to null; without the index that scans the whole board.
+  @@index([submittedByCandidateId])
 }
 
 // A narrow copy of ExclusiveJobPosting's light columns (what the board ranks
@@ -11857,6 +11859,8 @@ model Institution {
   volunteerRoles       VolunteerRole[]
   newsPosts            CollegeNewsPost[]
   dataRequests         DataRequest[]
+  classNotes           ClassNote[]
+  jobSearchCircles     JobSearchCircle[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11947,8 +11951,8 @@ model InstitutionMember {
   purchases            InstitutionPurchase[]
   dossierIntroRequests DossierIntroRequest[]
   enrollments          Enrollment[]
-  introsRequested      AlumniIntroRequest[]  @relation("IntroRequester")
-  introsReceived       AlumniIntroRequest[]  @relation("IntroTarget")
+  introsRequested      AlumniIntroRequest[]    @relation("IntroRequester")
+  introsReceived       AlumniIntroRequest[]    @relation("IntroTarget")
   officeHoursBooked    OfficeHourSlot[]
   eventRsvps           EventRsvp[]
   opportunitiesPosted  AlumniOpportunity[]
@@ -11956,11 +11960,14 @@ model InstitutionMember {
   groupMemberships     AlumniGroupMember[]
   auditRequests        AuditRequest[]
   mentoringSignups     MentoringSignup[]
-  pairsAsMentor        MentoringPair[]       @relation("PairMentor")
-  pairsAsMentee        MentoringPair[]       @relation("PairMentee")
+  pairsAsMentor        MentoringPair[]         @relation("PairMentor")
+  pairsAsMentee        MentoringPair[]         @relation("PairMentee")
   questions            AlumniQuestion[]
   answers              AlumniAnswer[]
   volunteerSignups     VolunteerSignup[]
+  classNotes           ClassNote[]
+  circleMemberships    JobSearchCircleMember[]
+  fairVisits           FairBoothVisit[]
 
   @@unique([institutionId, externalId])
   @@unique([institutionId, email])
@@ -13968,9 +13975,13 @@ model AlumniIntroRequest {
   targetMemberId    String
   target            InstitutionMember  @relation("IntroTarget", fields: [targetMemberId], references: [id], onDelete: Cascade)
   companyName       String
-  purpose           String // 'exploring' | 'applying' | 'interviewing' | 'offer'
+  purpose           String // 'exploring' | 'applying' | 'interviewing' | 'offer' | 'referral'
   note              String?            @db.Text
   status            DossierIntroStatus @default(REQUESTED)
+  // A referral: the posting they want to be referred for, and when the alum
+  // says they referred them.
+  referralJobUrl    String?
+  referredAt        DateTime?
   requestedAt       DateTime           @default(now())
   respondedAt       DateTime?
   isSampleData      Boolean            @default(false)
@@ -14026,7 +14037,8 @@ model CollegeEvent {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  rsvps EventRsvp[]
+  rsvps  EventRsvp[]
+  booths FairBooth[]
 
   @@index([institutionId, startsAt])
 }
@@ -14400,4 +14412,93 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// Class notes: a short update an alum shares with their class (a new job, a
+// move, a book, a wedding). Shown in the alumni news by class; staff can hide.
+model ClassNote {
+  id            String            @id @default(cuid())
+  institutionId String
+  institution   Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  kind          String // 'career' | 'life' | 'achievement' | 'other'
+  body          String            @db.Text
+  hiddenAt      DateTime?
+  isSampleData  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([institutionId, createdAt])
+}
+
+// Job-search circles: about six alumni and a facilitator (staff or a coach)
+// meeting weekly for a set number of weeks.
+model JobSearchCircle {
+  id            String                  @id @default(cuid())
+  institutionId String
+  institution   Institution             @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  focus         String?
+  facilitator   String // name shown to members
+  startsAt      DateTime
+  weeks         Int                     @default(6)
+  meetingTime   String? // "Tuesdays 6:00 pm"
+  meetingUrl    String?
+  capacity      Int                     @default(6)
+  createdBy     String
+  isSampleData  Boolean                 @default(false)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  members       JobSearchCircleMember[]
+
+  @@index([institutionId, startsAt])
+}
+
+model JobSearchCircleMember {
+  id           String            @id @default(cuid())
+  circleId     String
+  circle       JobSearchCircle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  goal         String?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@unique([circleId, memberId])
+}
+
+// Virtual career fair: booths (approved employers) inside a CollegeEvent of
+// kind 'career_fair'. A visit is an alum saying "I'm interested", with an
+// optional note; the employer sees the alum's name and note, and their
+// Dossier only when the alum chose to share it.
+model FairBooth {
+  id                    String           @id @default(cuid())
+  eventId               String
+  event                 CollegeEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  institutionEmployerId String?
+  employerName          String
+  pitch                 String?          @db.Text
+  roles                 String?          @db.Text
+  meetingUrl            String?
+  isSampleData          Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  visits                FairBoothVisit[]
+
+  @@index([eventId])
+}
+
+model FairBoothVisit {
+  id           String            @id @default(cuid())
+  boothId      String
+  booth        FairBooth         @relation(fields: [boothId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  note         String?           @db.Text
+  shareDossier Boolean           @default(false)
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@unique([boothId, memberId])
 }

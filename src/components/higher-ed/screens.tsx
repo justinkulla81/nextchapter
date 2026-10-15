@@ -3,6 +3,7 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
@@ -1270,6 +1271,7 @@ async function CandidatePeople(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <PeopleSections {...props} />
+      <ConnectSections ctx={props.ctx} />
       <CandidateNetwork {...props} />
     </div>
   )
@@ -1312,9 +1314,22 @@ async function AdminServicesAll(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <FeaturesPanel ctx={props.ctx} />
+      <MonthlyEmailPanel ctx={props.ctx} />
       <SettingsServices {...props} />
     </div>
   )
+}
+
+async function AdminPrivacyAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AdminPrivacy {...props} />
+      <ConsentHistory ctx={props.ctx} />
+    </div>
+  )
+}
+async function StaffConnectScreen(props: ScreenProps) {
+  return <StaffConnect ctx={props.ctx} />
 }
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
@@ -1325,7 +1340,9 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:community': AlumniCommunity,
   'alumni:volunteers': AlumniVolunteers,
   'teaching:auditors': TeachingAuditors,
-  'admin:privacy': AdminPrivacy,
+  'admin:privacy': AdminPrivacyAll,
+  'alumni:connect': StaffConnectScreen,
+  'career:circles': StaffConnectScreen,
   'candidate:giveback': CandidateGiveBack,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentRoi,
