@@ -22,3 +22,16 @@ Name events `snake_case`, past-tense-ish and specific (`job_rated`, not
 `posthog.capture()` client-side for user-initiated actions; use
 `posthog-node` server-side for events that only happen in a Server Action
 (add the package when the first such event is needed).
+
+## Jobs report scope
+
+Every jobs report, local (a metro or county) and national, covers **all white-collar
+jobs at every level**, entry-level included, not only mid-level and above.
+White-collar means Census major occupation groups 1 and 2 (management, business and
+financial; professional and related), the same definition the White Collar
+Employment Report uses. Do not filter entry-level postings out of the data, the
+pipeline, or the report. The all-jobs frame (every occupation) is secondary and
+must be labeled as such; never blend frames into one number. If the data does not
+yet include entry-level white-collar postings, say so in the report and fix the
+data, rather than reporting a mid-level-and-above view as the whole. Spec:
+`docs/specs/NextChapter_Jobs_Report_Spec.md`.
