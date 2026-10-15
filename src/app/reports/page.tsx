@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: 'Monthly, independent data on how people are working, being hired and changing jobs, AI and public programs.',
     url: URL,
     siteName: 'NextChapter',
-    images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png`, width: 1200, height: 630 }],
+    images: [{ url: `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png`, width: 1200, height: 630 }],
   },
   twitter: { card: 'summary_large_image', title: 'NextChapter White Collar Employment Report' },
 }

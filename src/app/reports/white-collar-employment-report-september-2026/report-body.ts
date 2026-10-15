@@ -1,5 +1,5 @@
 // AUTO-EXTRACTED verbatim from the authored report HTML (incoming-report/
-// displacement-report-september-2026.html), body only, by scripts/displacement/port-report.mjs. Links already
+// white-collar-employment-report-september-2026.html), body only, by scripts/employment-report/port-report.mjs. Links already
 // point at /reports/*. Charts render into the empty .plot divs via
 // public/reports/report-charts.js. Interactive pieces (Logo, newsletter slot,
 // PDF gate) are layered on by ReportEnhancements via the ids/classes below.
@@ -20,12 +20,12 @@ export const REPORT_BODY_HTML = `<header class="cover">
     </div>
     <div class="cover-meta"><span>Published October 5, 2026</span><span>Reference period: September 1–30, 2026</span><span>Version 1.72 (revised October 13, 2026)</span><span>Source data available through October 2, 2026 (CPS microdata through August)</span><span>Justin Kulla, Founder and CEO · <a href="mailto:jkulla@launchyournextchapter.com" style="color:inherit">jkulla@launchyournextchapter.com</a></span></div>
     <div class="actions">
-      <a class="btn" id="pdf-btn" href="/reports/displacement-report-2026-09.pdf" download="NextChapter-White-Collar-Employment-Report-September-2026.pdf"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10"/></svg>Full report (PDF, 55 pages)</a>
-      <a class="btn ghost" id="brief-btn" href="/reports/displacement-report-2026-09-brief.pdf" download="NextChapter-White-Collar-Employment-Report-September-2026-Brief.pdf">Brief (PDF, 12 pages)</a>
+      <a class="btn" id="pdf-btn" href="/reports/white-collar-employment-report-2026-09.pdf" download="NextChapter-White-Collar-Employment-Report-September-2026.pdf"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10"/></svg>Full report (PDF, 55 pages)</a>
+      <a class="btn ghost" id="brief-btn" href="/reports/white-collar-employment-report-2026-09-brief.pdf" download="NextChapter-White-Collar-Employment-Report-September-2026-Brief.pdf">Brief (PDF, 12 pages)</a>
       <a class="btn ghost" href="#method">Methodology</a>
-      <a class="btn ghost" href="/reports/displacement-report-2026-09-data.csv" id="csv-btn" download>Data (CSV)</a>
+      <a class="btn ghost" href="/reports/white-collar-employment-report-2026-09-data.csv" id="csv-btn" download>Data (CSV)</a>
     </div>
-    <p style="margin:0;font-size:.8rem"><a id="pdf-direct" href="/reports/displacement-report-2026-09.pdf" download style="color:var(--muted);text-underline-offset:2px">Media or researcher? Download the PDF directly →</a></p>
+    <p style="margin:0;font-size:.8rem"><a id="pdf-direct" href="/reports/white-collar-employment-report-2026-09.pdf" download style="color:var(--muted);text-underline-offset:2px">Media or researcher? Download the PDF directly →</a></p>
     <div class="status" id="dl-status" role="status"></div>
   </div>
 </header>
@@ -1580,9 +1580,9 @@ export const REPORT_BODY_HTML = `<header class="cover">
   </div>
   <div class="box cite">
     <div class="eyebrow">How to cite</div>
-    <code id="cite-text">Kulla, J. (2026, October 5). NextChapter White Collar Employment Report: September 2026 (Version 1.72, revised October 13, 2026). NextChapter. https://launchyournextchapter.com/reports/displacement-report-september-2026</code>
+    <code id="cite-text">Kulla, J. (2026, October 5). NextChapter White Collar Employment Report: September 2026 (Version 1.72, revised October 13, 2026). NextChapter. https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026</code>
     <button class="btn2 no-print" type="button" id="copy-cite">Copy citation</button>
-    <p class="note">Data: <a href="/reports/displacement-report-2026-09-data.csv">report figures (CSV)</a> · <a href="/reports/wc-index.csv">White-Collar Index history, 2015–2026 (CSV)</a> · <a href="/reports/sec-item205-ai-coding-2026.csv">SEC restructuring filings coded for AI (CSV)</a> · <a href="/reports/displacement-report-2026-q3-revenue-per-employee.csv">revenue per employee sample (CSV)</a>. Charts and data may be republished with attribution under CC BY 4.0. Index code is available on request.</p>
+    <p class="note">Data: <a href="/reports/white-collar-employment-report-2026-09-data.csv">report figures (CSV)</a> · <a href="/reports/wc-index.csv">White-Collar Index history, 2015–2026 (CSV)</a> · <a href="/reports/sec-item205-ai-coding-2026.csv">SEC restructuring filings coded for AI (CSV)</a> · <a href="/reports/white-collar-employment-report-2026-q3-revenue-per-employee.csv">revenue per employee sample (CSV)</a>. Charts and data may be republished with attribution under CC BY 4.0. Index code is available on request.</p>
   </div>
 </section>
 

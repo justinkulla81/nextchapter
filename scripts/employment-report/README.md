@@ -1,6 +1,6 @@
 # White Collar Employment Report pipeline
 
-Scripts that produce the data behind the **NextChapter White Collar Employment Report** (published as the NextChapter Displacement Report through October 12, 2026)
+Scripts that produce the data behind the **NextChapter White Collar Employment Report**
 (`/reports`) and the **White-Collar Long-Search Index** (`/reports/white-collar-index`).
 All figures come from public sources; no NextChapter customer data is used.
 

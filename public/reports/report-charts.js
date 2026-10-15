@@ -3,7 +3,7 @@
 // word, table and note is already in the server HTML. Download buttons work as
 // normal links on the website; inside the Claude viewer (window.claude) they
 // route through the downloads capability. Verbatim from the authored report,
-// with defensive guards, by scripts/displacement/port-report.mjs.
+// with defensive guards, by scripts/employment-report/port-report.mjs.
 (function(){
   var NS="http://www.w3.org/2000/svg";
   function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}

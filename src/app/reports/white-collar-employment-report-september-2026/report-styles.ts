@@ -2,7 +2,7 @@
 // prefixed with .ncr so the report's CSS styles only the report document and
 // never the site chrome. :root/body/* fold onto .ncr; the two font tokens
 // point at the site's next/font variables. Regenerate with
-// scripts/displacement/port-report.mjs.
+// scripts/employment-report/port-report.mjs.
 export const REPORT_CSS = `/* Layout: industry research report — cover band, disclosure, executive summary, numbered chapters with labeled exhibits, appendix; sticky contents rail on wide screens; print/PDF styles. */
 .ncr{
   /* NextChapter brand tokens (from launchyournextchapter.com globals.css). Single light theme by design. */

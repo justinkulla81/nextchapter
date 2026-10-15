@@ -1,7 +1,7 @@
 import re, sys
 from bs4 import BeautifulSoup
 # Usage: python3 build_brief.py <report.html> <brief.html>
-FULL='https://launchyournextchapter.com/reports/displacement-report-september-2026'
+FULL='https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026'
 s=open(sys.argv[1]).read()
 b=BeautifulSoup(s,'html.parser')
 main=b.find('main')
@@ -79,8 +79,8 @@ for anc in ['#jobs','#research','#applying','#skills','#jobsfuture','#newbiz','#
 html=html.replace('Chapter 0','Section 0').replace('Ch. 01','Index').replace('Ch. 06','Age').replace('Ch. 14','Grads')
 # cover
 html=html.replace('<div class="eyebrow">The NextChapter White Collar Employment Report · September 2026</div>','<div class="eyebrow">The NextChapter White Collar Employment Report · September 2026 · Monthly brief</div>')
-html=html.replace('download="NextChapter-Displacement-Report-September-2026.pdf"','download="NextChapter-Displacement-Report-September-2026-Brief.pdf"')
-html=html.replace('href="displacement-report-2026-09.pdf"','href="displacement-report-2026-09-brief.pdf"',1)
+html=html.replace('download="NextChapter-White-Collar-Employment-Report-September-2026.pdf"','download="NextChapter-White-Collar-Employment-Report-September-2026-Brief.pdf"')
+html=html.replace('href="white-collar-employment-report-2026-09.pdf"','href="white-collar-employment-report-2026-09-brief.pdf"',1)
 html=html.replace('Download PDF</a>','Download brief (PDF)</a>\n      <a class="btn ghost" href="'+FULL+'">Full report (50 pages)</a>',1)
 # hidden chart stubs so the chart script runs
 stubs=''.join(f'<figure class="exhibit chart" id="{i}" style="display:none"><div class="plot"></div></figure>' for i in ['fig-payrolls','fig-industry','fig-reasons','fig-cutstates'] if f'id="{i}"' not in html)

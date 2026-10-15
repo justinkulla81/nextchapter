@@ -56,6 +56,18 @@ const nextConfig: NextConfig = {
         destination: '/support/admin/crm/meeting-prep',
         permanent: true,
       },
+      // The report's former name: editions and files published before the
+      // rename stay reachable from emails, LinkedIn posts and search results.
+      {
+        source: '/reports/displacement-report-september-2026',
+        destination: '/reports/white-collar-employment-report-september-2026',
+        permanent: true,
+      },
+      {
+        source: '/reports/displacement-report-2026-:rest',
+        destination: '/reports/white-collar-employment-report-2026-:rest',
+        permanent: true,
+      },
       {
         source: '/crucible/:path*',
         destination: '/noexperience/:path*',
