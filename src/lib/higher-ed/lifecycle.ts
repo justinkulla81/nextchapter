@@ -5,6 +5,7 @@
 // report. Names shown to other alumni are first name, last initial and class;
 // employers and titles only for alumni who share their outcome.
 
+import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
 import 'server-only'
 import { Prisma, type JourneyStage, type JourneyType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -341,10 +342,13 @@ export async function programRecommendations(institutionId: string, candidateId:
   if (!candidateId || !cohorts.length) return []
   const [report, profile] = await Promise.all([
     prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' }, select: { gapAnalysis: true } }),
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { growthAreas: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { growthAreas: true, skillsToBuild: true, resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true } }),
   ])
   const gaps = ((report?.gapAnalysis as { gaps?: { area?: string; remediation?: string }[] } | null)?.gaps ?? []).map((g) => `${g.area ?? ''} ${g.remediation ?? ''}`.toLowerCase())
-  const growth = (profile?.growthAreas ?? []).map((g) => g.replace(/_/g, ' ').toLowerCase())
+  // Growth areas plus the skills the person said they want to build.
+  const growth = [...(profile?.growthAreas ?? []), ...(profile?.skillsToBuild ?? [])].map((g) => g.replace(/_/g, ' ').toLowerCase())
+  // Skills they already hold at strong or expert aren't worth a program.
+  const held = new Set(profile ? buildSkillMatrix(profile).filter((r) => r.level !== 'used').map((r) => r.key) : [])
   const text = [...gaps, ...growth]
   if (!text.length) return []
   const out: { cohortId: string; program: string; cohort: string; startsAt: Date; skill: string; from: 'report' | 'growth' }[] = []
@@ -352,6 +356,7 @@ export async function programRecommendations(institutionId: string, candidateId:
   for (const c of cohorts) {
     for (const skill of c.program.skills) {
       const s = skill.toLowerCase()
+      if (held.has(s)) continue
       const hitGap = gaps.some((g) => g.includes(s))
       const hitGrowth = growth.some((g) => g.includes(s))
       if ((hitGap || hitGrowth) && !seen.has(c.program.name)) {

@@ -24,6 +24,7 @@ const FIT_STYLE: Record<PivotSuggestion['fitLabel'], string> = {
 
 export function PivotPathsList({
   suggestions,
+  more = [],
   hidden,
   sourceFunction,
   sourceRole,
@@ -32,6 +33,8 @@ export function PivotPathsList({
   surface,
 }: {
   suggestions: PivotSuggestion[]
+  // Every other path from the starting role, shown on request.
+  more?: PivotSuggestion[]
   hidden: { key: string; label: string }[]
   sourceFunction: string | null
   sourceRole: string | null
@@ -43,6 +46,7 @@ export function PivotPathsList({
   const [restored, setRestored] = useState<string[]>([])
   const [note, setNote] = useState<{ text: string; undo?: string } | null>(null)
   const [pending, startTransition] = useTransition()
+  const [showAll, setShowAll] = useState(false)
   const viewed = useRef(false)
 
   useEffect(() => {
@@ -83,7 +87,7 @@ export function PivotPathsList({
     })
   }
 
-  const visible = suggestions.filter((s) => !hiddenNow.includes(s.target))
+  const visible = [...suggestions, ...(showAll ? more : [])].filter((s) => !hiddenNow.includes(s.target))
   const stillHidden = hidden.filter((h) => !restored.includes(h.key))
 
   return (
@@ -119,6 +123,18 @@ export function PivotPathsList({
           </li>
         ))}
       </ol>
+
+      {more.length > 0 && !showAll && (
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowAll(true)
+            posthog.capture('pivot_paths_show_all', { extra: more.length, sourceRole, surface })
+          }}
+        >
+          Show all {suggestions.length + more.length} paths
+        </Button>
+      )}
 
       {stillHidden.length > 0 && (
         <div className="text-sm text-muted-foreground">
@@ -223,6 +239,26 @@ function PivotPathCard({
       )}
 
       {s.personalityNote && <p className="text-xs text-muted-foreground">{s.personalityNote}</p>}
+      {(s.workFits.length > 0 || s.workClashes.length > 0) && (
+        <div className="text-xs">
+          {s.workFits.length > 0 && <p className="text-success">Fits how you work: {s.workFits.map((f) => f.toLowerCase()).join('; ')}.</p>}
+          {s.workClashes.map((c) => (
+            <p key={c} className="text-warning">
+              {c}
+            </p>
+          ))}
+        </div>
+      )}
+      {s.ai && (
+        <div className="text-sm">
+          <p className="text-xs font-medium text-muted-foreground">AI and this field</p>
+          <p className="text-foreground">
+            {s.ai.line}{' '}
+            {s.ai.trend === 'shrinking' && <span>Jobs in this group fell {Math.abs(s.ai.employmentChangePct).toFixed(1)}% from 2022 to 2026.</span>}
+          </p>
+          {(s.ai.aiSkills === 'critical' || s.ai.aiSkills === 'important') && <p className="text-xs text-muted-foreground">What to learn: {s.ai.tools}.</p>}
+        </div>
+      )}
       {s.caution && <p className="text-xs text-warning">{s.caution}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2">

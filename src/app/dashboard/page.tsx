@@ -1,4 +1,5 @@
 import type { MarketRealityReport } from '@prisma/client'
+import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProgramCard'
 import { JourneyCheckInCard } from '@/components/dashboard/JourneyCheckInCard'
 import { checkInDue, effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
@@ -295,6 +296,8 @@ export default async function DashboardPage() {
       </div>
 
       <OutplacementProgramCard candidateId={profile.id} />
+
+      <WorkStylePrompt candidateId={profile.id} limit={3} />
 
       {journeyNow && stageNow && checkInDue(profile) && (
         <JourneyCheckInCard journeyLabel={getJourney(journeyNow).label} stageLabel={getStage(stageNow).label} />

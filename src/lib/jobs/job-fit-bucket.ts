@@ -1,4 +1,5 @@
 import 'server-only'
+import { skillTerms } from '@/lib/profile/skill-matrix'
 import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { priorityMultiplier } from '@/lib/matching/compute-match-score'
@@ -108,6 +109,10 @@ type FitCandidate = Pick<
 > & {
   // Optional so narrower selects keep compiling; absent reads as not set.
   targetFunction?: string | null
+  // The rest of the skills matrix; absent = resume keywords only.
+  confirmedSkillsHave?: string[]
+  certifications?: string[]
+  skillLevels?: unknown
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -501,7 +506,8 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
     targetFns: target ? titleFunctions(target).map((f) => f.toLowerCase()) : [],
     targetFamilies: target ? roleFamiliesOf(target) : [],
     industryWords: industryPhrases(c).map((p) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`)),
-    keywords: (c.resumeKeywords ?? []).filter((kw) => !!kw).map((kw) => kw.toLowerCase()),
+    // The skills matrix: resume, confirmed skills and certifications, minus any the person removed.
+    keywords: skillTerms(c),
     // Whole words only: a plain substring test read "CA" inside "North Carolina".
     cityWord:
       city && city.toLowerCase() !== 'remote'
@@ -818,6 +824,9 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       targetRoleType: true,
       targetFunction: true,
       resumeKeywords: true,
+      confirmedSkillsHave: true,
+      certifications: true,
+      skillLevels: true,
       yearsExperience: true,
       industryContext: true,
       secondaryIndustryContext: true,

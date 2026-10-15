@@ -1047,6 +1047,23 @@ model CandidateProfile {
   // confirmed yet" — falls back to displaying resumeKeywords directly.
   confirmedSkillsHave             String[]  @default([])
   skillsHaveConfirmedAt           DateTime?
+  // The skills matrix (src/lib/profile/skill-matrix.ts): the person's own
+  // level per skill and skills they removed, keyed by lowercase skill.
+  // Everything else in the matrix is derived from resumeKeywords,
+  // confirmedSkillsHave and certifications on read.
+  skillLevels                     Json      @default("{}")
+  // Work profile (src/lib/profile/work-profile.ts): the person's own answers
+  // on the ten "this or that" dimensions, -2..+2, with when they answered.
+  workStyleAnswers                Json      @default("{}")
+  // Strengths (src/lib/profile/strengths.ts): the last computed peaks and the
+  // AI-written "why hire me", keyed by an input fingerprint so it is only
+  // rewritten when the inputs change.
+  strengthCache                   Json?
+  strengthCacheKey                String?
+  // Search expansions the person opted into from the addressable-market
+  // check (src/lib/profile/addressable-market.ts): extra roles, industries,
+  // states and remote, added to their job search.
+  searchExpansion                 Json      @default("{}")
   // Candidate-authored, edited on My Profile — "what could you help another
   // NextChapter member with" (interview prep for a function, a specific
   // tool, negotiating, breaking into an industry, ...), shown on their

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import Link from 'next/link'
@@ -448,6 +449,8 @@ async function JobRecommendationsSection({
   const disclosedCompanyIds = [
     ...new Set(visibleBoardPostings.filter((p) => p.disclosure !== 'CONFIDENTIAL').map((p) => p.companyId).filter((id): id is string => !!id)),
   ]
+  // How they like to work (work profile), for the per-job working-style read.
+  const workProfile = await loadWorkProfile(profile.id).catch(() => null)
   const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
@@ -478,7 +481,7 @@ async function JobRecommendationsSection({
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      { ...profile, culturePrefs },
+      { ...profile, culturePrefs, workProfile },
       toMatchJob(p, {
         sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
         ownershipType: company?.ownershipType ?? null,

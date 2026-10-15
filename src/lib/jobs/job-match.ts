@@ -1,4 +1,7 @@
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
+import { workFit, type WorkProfile } from '@/lib/profile/work-profile'
+import { roleForTitle } from '@/lib/pivots/pivot-map'
+import { skillTerms } from '@/lib/profile/skill-matrix'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
@@ -63,6 +66,10 @@ export interface MatchCandidate {
   resumeKeywords: string[]
   confirmedSkillsHave: string[]
   certifications: string[]
+  // The person's own levels and removals in the skills matrix.
+  skillLevels?: unknown
+  // The ten-dimension work profile, when the caller loaded it.
+  workProfile?: WorkProfile | null
   yearsExperience: number | null
   hasJD: boolean
   hasMD: boolean
@@ -169,7 +176,7 @@ function parseMinYears(text: string): number | null {
 }
 
 export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & { missing: string[]; yearsShort: number | null } {
-  const keywords = [...new Set([...c.resumeKeywords, ...c.confirmedSkillsHave, ...c.certifications].map((k) => k.trim()).filter(Boolean))]
+  const keywords = skillTerms(c)
   const text = jobText(job)
   const credential = detectRequiredCredential(text)
   const credentialOk = candidateMeetsCredentialGate(c, credential)
@@ -783,6 +790,21 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
     }
   }
 
+  // How the kind of role suits how they like to work (work profile vs the role's usual shape).
+  const roleKey = c.workProfile ? roleForTitle(job.title) : null
+  if (c.workProfile && roleKey) {
+    const wf = workFit(c.workProfile, roleKey)
+    if (wf.fits.length || wf.clashes.length) {
+      signals++
+      score += Math.round(15 * wf.score)
+      if (wf.fits.length) evidence.push(`Suits how you work: ${wf.fits.slice(0, 2).map((f) => f.toLowerCase()).join('; ')}`)
+      if (wf.clashes.length) {
+        evidence.push(wf.clashes[0].line)
+        notes.push(`${wf.clashes[0].line} Ask what a typical week looks like before you apply.`)
+      }
+    }
+  }
+
   if (signals === 0) {
     return { key: 'workStyle', score: null, status: 'unknown', evidence: ["The posting doesn't say where or how the work happens — ask before you apply"], notes: [] }
   }
@@ -857,7 +879,7 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
 
 /** Fields of CandidateProfile the match reads — for a Prisma select. */
 export const MATCH_CANDIDATE_FIELDS = [
-  'resumeKeywords', 'confirmedSkillsHave', 'certifications', 'yearsExperience', 'hasJD', 'hasMD', 'hasDO',
+  'resumeKeywords', 'confirmedSkillsHave', 'certifications', 'skillLevels', 'yearsExperience', 'hasJD', 'hasMD', 'hasDO',
   'isPeopleManager', 'teamSizeManaged', 'targetCompanySize', 'targetCompanyStage', 'priorityMission',
   'priorityWorkLife', 'priorityJobSecurity', 'priorityBrandName', 'equityImportant', 'targetCompMin',
   'compFlexible', 'lastSalary', 'targetRoleType', 'targetFunction', 'primaryFunction', 'secondaryFunction',

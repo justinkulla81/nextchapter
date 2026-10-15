@@ -901,6 +901,13 @@ export function titleMatchesRole(roleKey: string, title: string): boolean {
   return !!role && role.titles.test(title.toLowerCase())
 }
 
+/** The map role a job title belongs to (first match in catalog order), or null. */
+export function roleForTitle(title: string): string | null {
+  const t = title.toLowerCase()
+  for (const r of ROLES.values()) if (r.titles.test(t)) return r.key
+  return null
+}
+
 /** The board filtered to a pivot target (find-my-job reads `pivot`). */
 export function pivotJobsHref(target: string): string {
   return `/dashboard/find-my-job?pivot=${encodeURIComponent(target)}#job-recommendations`

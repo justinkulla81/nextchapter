@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Spinner } from '@/components/ui/spinner'
 import { PivotPathsList } from '@/components/dashboard/pivots/PivotPathsList'
 import { PeopleEnergyQuestion } from '@/components/dashboard/pivots/PeopleEnergyQuestion'
+import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -84,8 +85,11 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
 
       <PeopleEnergyQuestion current={result.energy} source={result.energySource} />
 
+      <WorkStylePrompt candidateId={profile.id} limit={4} />
+
       <PivotPathsList
         suggestions={result.suggestions}
+        more={result.more}
         hidden={result.hidden}
         sourceFunction={profile.primaryFunction}
         sourceRole={result.source.key}

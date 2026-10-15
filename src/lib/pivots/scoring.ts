@@ -19,6 +19,8 @@ import {
   type PivotRole,
   type TimeToPivot,
 } from './pivot-map'
+import { workFit, type WorkProfile } from '@/lib/profile/work-profile'
+import { aiOutlookForRole, type AiOutlook } from '@/lib/profile/ai-outlook'
 import { outlookForRole, outlookLine, outlookMultiplier } from './occupation-outlook'
 
 // ── Inputs ──────────────────────────────────────────────────────────────────
@@ -56,6 +58,8 @@ export interface MemberPivotInput {
   /** "Live and together" vs "focused and written" from How I Work Best (collaboration, about -1..+1), if taken. */
   collaborationVector: number | null
   dismissed: string[]
+  /** The ten-dimension work profile (src/lib/profile/work-profile.ts), when loaded. */
+  workProfile?: WorkProfile | null
 }
 
 export interface MarketStatRow {
@@ -140,6 +144,11 @@ export interface PivotSuggestion {
   outlook: { line: string; occupation: string; medianWage: number | null; wageYear: string | null } | null
   /** Why personality moved this path, in plain words, when it did. */
   personalityNote: string | null
+  /** How the role suits how the member likes to work (work profile): what matches and what clashes. */
+  workFits: string[]
+  workClashes: string[]
+  /** AI exposure of the role's occupation group (0-100, report data), when known. */
+  ai: AiOutlook | null
   /** Internal ordering only — never shown. */
   rankScore: number
 }
@@ -155,6 +164,8 @@ export interface PivotPathsResult {
   source: { key: string; label: string } | null
   contraction: Contraction
   suggestions: PivotSuggestion[]
+  /** Every other path from the member's starting role, ranked, past the top suggestions. */
+  more: PivotSuggestion[]
   hidden: { key: string; label: string }[]
   energy: PeopleEnergy | null
   energySource: 'answer' | 'assessment' | null
@@ -512,7 +523,10 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
     const brings = [...edge.brings]
 
     const tilt = personalityTilt(energy, target)
+    const wf = member.workProfile ? workFit(member.workProfile, target.key) : null
     let fit = EDGE_FIT_BASE[edge.fit]
+    // How the role suits how they like to work, beyond people contact (tilt above).
+    if (wf) fit += 0.12 * wf.score
     if (target.needs.length > 0) fit += 0.1 * (alreadyHave.length / target.needs.length)
     if (member.targetFunction && target.fn === member.targetFunction) fit += 0.08
     fit = Math.max(0, Math.min(1, fit + tilt.delta))
@@ -542,6 +556,9 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
       pay,
       outlook: occ ? { line: outlookLine(occ), occupation: occ.title, medianWage: occ.medianWage, wageYear: occ.wageYear } : null,
       personalityNote: tilt.note,
+      workFits: wf?.fits ?? [],
+      workClashes: wf?.clashes.map((c) => c.line) ?? [],
+      ai: aiOutlookForRole(target.key),
       rankScore,
     }
   })
@@ -551,6 +568,7 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
     source: source ? { key: source.key, label: source.label } : null,
     contraction,
     suggestions: all.filter((s) => !dismissed.has(s.target)).slice(0, MAX_SUGGESTIONS),
+    more: all.filter((s) => !dismissed.has(s.target)).slice(MAX_SUGGESTIONS),
     hidden: all.filter((s) => dismissed.has(s.target)).map((s) => ({ key: s.target, label: s.label })),
     energy,
     energySource,

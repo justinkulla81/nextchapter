@@ -1,7 +1,9 @@
 import 'server-only'
+import { skillTerms } from '@/lib/profile/skill-matrix'
 import { prisma } from '@/lib/prisma'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { PayBenchmarkRow } from '@/lib/outcomes/pay-change-estimate'
+import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { ROLES, SOURCES, detectSourceRole } from './pivot-map'
 import { isPeopleEnergy, rankPivots, type MarketContext, type MemberPivotInput, type PivotPathsResult } from './scoring'
 
@@ -18,6 +20,7 @@ export interface PivotProfile {
   remotePreference: string | null
   openToRelocation: boolean
   resumeKeywords: string[]
+  skillLevels?: unknown
   confirmedSkillsHave: string[]
   certifications: string[]
   targetCompMin: number | null
@@ -112,11 +115,12 @@ export async function loadPivotPaths(profile: PivotProfile): Promise<PivotPathsR
     state,
     remotePreference: profile.remotePreference,
     openToRelocation: profile.openToRelocation,
-    skills: [...profile.resumeKeywords, ...profile.confirmedSkillsHave, ...profile.certifications],
+    skills: skillTerms(profile),
     targetCompMin: profile.targetCompMin,
     peopleEnergyAnswer: isPeopleEnergy(pref?.peopleEnergy) ? pref!.peopleEnergy as MemberPivotInput['peopleEnergyAnswer'] : null,
     collaborationVector,
     dismissed: pref?.dismissedTargets ?? [],
+    workProfile: await loadWorkProfile(profile.id).catch(() => null),
   }
   const ctx: MarketContext = {
     stats,
@@ -152,6 +156,7 @@ export const PIVOT_PROFILE_SELECT = {
   remotePreference: true,
   openToRelocation: true,
   resumeKeywords: true,
+  skillLevels: true,
   confirmedSkillsHave: true,
   certifications: true,
   targetCompMin: true,
