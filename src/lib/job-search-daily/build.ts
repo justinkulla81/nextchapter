@@ -4,6 +4,7 @@ import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
@@ -188,8 +189,10 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     where: { createdAt: { gte: jobsSince } },
     size: 200,
     fitScoring,
-    // Mid-level jobs stay out of emails until the owner turns on MID_LEVEL_IN_EMAILS.
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
   })
   const postings = emailSafeJobs([...shortlist.open, ...shortlist.locked])
   const fitting = postings.filter((p) => {

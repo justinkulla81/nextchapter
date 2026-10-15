@@ -26,7 +26,7 @@ export async function loadMemberSkillGap(candidateId: string): Promise<Aggregate
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
       isDossierUnlocked(candidateId),
     ])
-    const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS })
+    const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS, includeMidLevel: true, includeEarlyCareer: true })
     // Strong and good fits only: a gap against jobs the member would never be shortlisted for
     // is noise, not a skill to build.
     const fits = open.filter((p) => FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(profile, p)] <= 1)

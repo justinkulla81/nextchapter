@@ -14,6 +14,9 @@ export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }
   const board = await loadBoardShortlist({
     candidate: profile,
     isCandidatePlus: dossier.unlocked,
+    // The member's stage window decides (career-stage.ts); on-site, not an email.
+    includeMidLevel: true,
+    includeEarlyCareer: true,
     postedWithinHours: FRESH_HOURS,
     view: 'fresh',
     size: 3,

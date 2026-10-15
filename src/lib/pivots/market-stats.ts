@@ -40,6 +40,9 @@ const DAY = 86_400_000
 /** The board's level rung (job-seniority) to a pivot band; unknown rungs read the title. */
 export function bandForRow(level: string | null, title: string): Band {
   switch (level) {
+    // Early-career postings (career-stage.ts) are individual roles too.
+    case 'ENTRY_IC':
+    case 'EARLY_IC':
     case 'MID_IC':
     case 'SENIOR_IC':
     case 'PRINCIPAL':
