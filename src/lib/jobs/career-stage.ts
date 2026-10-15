@@ -110,12 +110,16 @@ export function memberCareerStage(m: StageMember): CareerStage | null {
 /** Members whose stage is unknown: mid-level and up, as before the early-career rungs. */
 export const UNKNOWN_STAGE_WINDOW: StageWindow = { lo: stageIndex('MID'), hi: stageIndex('EXECUTIVE') }
 
-/** The member's stage, one up and one down (two down when changing careers). */
+/**
+ * The member's stage, one up and one down; director-and-above members also see
+ * a second level down (owner's call 2026-10-15 — senior people often step down
+ * a level); changing careers adds one more level down.
+ */
 export function memberStageWindow(m: StageMember): StageWindow {
   const stage = memberCareerStage(m)
   if (!stage) return UNKNOWN_STAGE_WINDOW
   const i = stageIndex(stage)
-  const down = m.isPivoting ? 2 : 1
+  const down = (i >= stageIndex('DIRECTOR') ? 2 : 1) + (m.isPivoting ? 1 : 0)
   return { lo: Math.max(0, i - down), hi: Math.min(CAREER_STAGES.length - 1, i + 1) }
 }
 
