@@ -144,9 +144,16 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
   // read), while the full list becomes targetIndustries.
   const targetIndustries = formData.getAll('industries').map(String).filter(Boolean)
   const industryContext = targetIndustries[0] ?? null
+  // Optional: blank keeps what the resume gave. It places an individual
+  // contributor on the career ladder (entry level, early career, mid-level).
+  const yearsRaw = String(formData.get('yearsExperience') ?? '').trim()
+  const yearsExperience = yearsRaw === '' ? undefined : Number(yearsRaw)
 
   if (!highestLevelReached || !primaryFunction) {
     return { error: 'Please confirm your level and function before continuing.' }
+  }
+  if (yearsExperience !== undefined && (!Number.isInteger(yearsExperience) || yearsExperience < 0 || yearsExperience > 60)) {
+    return { error: 'Enter your years of experience as a whole number from 0 to 60, or leave it blank.' }
   }
 
   await prisma.candidateProfile.update({
@@ -157,6 +164,7 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
       industryContext,
       targetRoleType,
       targetIndustries,
+      ...(yearsExperience !== undefined ? { yearsExperience } : {}),
       onboardingResumeConfirmedAt: new Date(),
     },
   })
