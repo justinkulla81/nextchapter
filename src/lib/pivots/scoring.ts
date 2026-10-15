@@ -299,6 +299,7 @@ export function demandScore(d: Demand, openToRelocation: boolean): number {
 // ── Pay ─────────────────────────────────────────────────────────────────────
 
 const STATE_PAY_MIN_SAMPLE = 15
+export const PAY_DELTA_DISPLAY_CAP = 0.4
 const NATIONAL_PAY_MIN_SAMPLE = 10
 
 function rolePay(idx: StatIndex, benchmarks: PayBenchmarkLite[], role: PivotRole, band: Band, state: string | null): number | null {
@@ -338,7 +339,15 @@ export function computePay(
   const against = ownTarget ? ('your target pay' as const) : fieldPay ? ('your current field' as const) : null
   if (targetMedian && baseline) {
     const delta = targetMedian / baseline - 1
-    const dir = Math.abs(delta) < 0.05 ? 'about the same as' : delta > 0 ? `about ${fmtPct(delta)} higher than` : `about ${fmtPct(delta)} lower than`
+    // Posted pay leans senior (the board is mostly senior roles), so very large gaps are shown as a floor, not a precise figure.
+    const dir =
+      Math.abs(delta) < 0.05
+        ? 'about the same as'
+        : delta > PAY_DELTA_DISPLAY_CAP
+          ? `more than ${fmtPct(PAY_DELTA_DISPLAY_CAP)} higher than`
+          : delta < -PAY_DELTA_DISPLAY_CAP
+            ? `more than ${fmtPct(PAY_DELTA_DISPLAY_CAP)} lower than`
+            : `about ${fmtPct(delta)} ${delta > 0 ? 'higher' : 'lower'} than`
     return { deltaPct: delta, targetMedian, against, summary: `Typical posted pay ${fmtK(targetMedian)}, ${dir} ${against}.` }
   }
   if (targetMedian) return { deltaPct: null, targetMedian, against: null, summary: `Typical posted pay ${fmtK(targetMedian)}.` }

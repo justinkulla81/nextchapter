@@ -211,6 +211,8 @@ describe('rankPivots', () => {
     const field = rankPivots(member({ title: 'Recruiter' }), { ...EMPTY_CTX, stats: rows }).suggestions.find((s) => s.target === 'account_executive')!
     expect(field.pay.deltaPct).toBeCloseTo(0.2)
     expect(field.pay.summary).toBe('Typical posted pay $132k, about 20% higher than your current field.')
+    const big = rankPivots(member({ title: 'Recruiter', targetCompMin: 60_000 }), { ...EMPTY_CTX, stats: rows }).suggestions.find((s) => s.target === 'account_executive')!
+    expect(big.pay.summary).toBe('Typical posted pay $132k, more than 40% higher than your target pay.')
     const own = rankPivots(member({ title: 'Recruiter', targetCompMin: 120_000 }), { ...EMPTY_CTX, stats: rows }).suggestions.find((s) => s.target === 'account_executive')!
     expect(own.pay.against).toBe('your target pay')
   })
