@@ -21,6 +21,7 @@ import {
   BIGGEST_BARRIER_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
+import { PersonalizationQuestion } from '@/components/ui/personalization-question'
 import type { CandidateProfile, CoachingStylePreference, ChangePacePreference, ChangeReadiness } from '@prisma/client'
 
 const CONSISTENCY_LABELS = [
@@ -130,8 +131,12 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>When you&apos;re stuck, what kind of push works better for you?</Label>
+      <PersonalizationQuestion
+        id="coaching-style"
+        question="When you're stuck, what kind of push works better for you?"
+        payoff="Victoria coaches you in the style that gets you moving, instead of a generic pep talk."
+        optional
+      >
         <ChoiceButtons
           name="coachingStylePreference"
           options={COACHING_STYLE_OPTIONS}
@@ -139,10 +144,14 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
           onChange={setCoachingStylePreference}
           columns={3}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>How do you like to make progress?</Label>
+      <PersonalizationQuestion
+        id="change-pace"
+        question="How do you like to make progress?"
+        payoff="Your weekly plan is sized to your pace, so it stays doable."
+        optional
+      >
         <ChoiceButtons
           name="changePacePreference"
           options={CHANGE_PACE_OPTIONS}
@@ -150,10 +159,14 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
           onChange={setChangePacePreference}
           columns={3}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>Are you looking for a big change, or more of the same?</Label>
+      <PersonalizationQuestion
+        id="change-readiness"
+        question="Are you looking for a big change, or more of the same?"
+        payoff="Your job and pivot suggestions lean toward how much change you actually want."
+        optional
+      >
         <ChoiceButtons
           name="changeReadiness"
           options={CHANGE_READINESS_OPTIONS}
@@ -161,7 +174,7 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
           onChange={setChangeReadiness}
           columns={1}
         />
-      </div>
+      </PersonalizationQuestion>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
