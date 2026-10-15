@@ -18,6 +18,8 @@
 // proves too weak in practice; the vocabulary here is deliberately broad
 // and easy to extend without switching approaches.
 
+import onetTech from '@/lib/onet/tech-terms.json'
+
 export const SKILL_TERMS: string[] = [
   // Finance / accounting
   'excel', 'sox', 'sarbanes-oxley', 'netsuite', 'sap', 'oracle', 'quickbooks', 'workday',
@@ -45,6 +47,19 @@ export const SKILL_TERMS: string[] = [
   'go-to-market', 'strategic planning', 'board reporting', 'team building',
 ]
 
+// Plus the tools O*NET marks Hot Technology or In Demand (src/lib/onet/tech-terms.json,
+// built by scripts/pivots/import-onet.ts from the O*NET Web Services import): named
+// products ("tableau", "autocad", "kubernetes"), each with the ways postings write it,
+// so a gap names a real tool rather than a loose keyword. Tools already in the list
+// above are left to it; ambiguous everyday names are left out (tech-term-rules.ts).
+const ONET_TERMS: { term: string; patterns: RegExp[] }[] = (onetTech as { terms: { term: string; aliases: string[] }[] }).terms.map((t) => ({
+  term: t.term,
+  patterns: t.aliases.map((a) => new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(a)}(?:[^a-z0-9]|$)`, 'i')),
+}))
+
+/** Every term the scan can return (the hand-written list, then O*NET tools). */
+export const ALL_SKILL_TERMS: string[] = [...SKILL_TERMS, ...ONET_TERMS.map((t) => t.term)]
+
 export interface RankedSkill {
   term: string
   count: number
@@ -71,6 +86,9 @@ export function extractTopSkills(postingTexts: string[], limit: number = 10): Ra
         seenInThisPosting.add(term)
         counts.set(term, (counts.get(term) ?? 0) + 1)
       }
+    }
+    for (const t of ONET_TERMS) {
+      if (t.patterns.some((p) => p.test(lower))) counts.set(t.term, (counts.get(t.term) ?? 0) + 1)
     }
   }
 
