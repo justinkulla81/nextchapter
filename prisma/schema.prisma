@@ -674,6 +674,9 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Candidate+ search-effort target in minutes for THIS member. Null uses the
+  // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
 
@@ -1766,6 +1769,7 @@ model CandidateProfile {
   inWorkFeedback      InWorkFeedback[]
   inWorkOutcomes      InWorkOutcome[]
   inWorkEmailSends    InWorkEmailSend[]
+  searchSupporters    SearchSupporter[]
   accessGrants        AccessGrant[]
 
   @@index([privacyTier])
@@ -14548,6 +14552,37 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// A person the member chose to keep them accountable: a friend, family member
+// or coach with no NextChapter login. They get a weekly summary of effort only
+// (minutes, days active, counts; never names, jobs or messages) and can send a
+// short cheer. Never available in Confidential Search Mode.
+model SearchSupporter {
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name         String
+  email        String
+  token        String           @unique @default(cuid())
+  createdAt    DateTime         @default(now())
+  revokedAt    DateTime?
+  lastDigestAt DateTime?
+  cheers       SupporterCheer[]
+
+  @@unique([candidateId, email])
+  @@index([candidateId])
+}
+
+model SupporterCheer {
+  id          String          @id @default(cuid())
+  supporterId String
+  supporter   SearchSupporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+  message     String
+  createdAt   DateTime        @default(now())
+  seenAt      DateTime?
+
+  @@index([supporterId, createdAt])
 }
 
 // A member's own account of one past job: how they got it, how they were

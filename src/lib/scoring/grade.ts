@@ -34,8 +34,8 @@ export const GRADE_LABEL: Record<Grade, string> = {
   A: 'Excellent',
   B: 'Good',
   C: 'Average',
-  D: 'Needs work',
-  F: 'Critical gap',
+  D: 'Room to grow',
+  F: 'Biggest opportunity',
 }
 
 // Deliberately no raw numbers shown anywhere in the product — a number
@@ -49,8 +49,8 @@ export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
   A: "Excellent — you'll likely move fast. This is rare, and it means almost everything here is already working in your favor.",
   B: 'Good — a real strength, with a bit more sharpening to reach the top tier.',
   C: "You have some good stuff going, but it's clearly not working the way it needs to yet — this takes real, focused work to fix. Most candidates land here.",
-  D: 'Needs work — this is actively holding you back, and it needs attention before the rest of your search can gain traction.',
-  F: 'Critical gap — a major weakness or missing piece here is the single highest-leverage thing to fix first.',
+  D: 'Room to grow — improving this will make the biggest difference to how the rest of your search goes.',
+  F: 'Biggest opportunity — a missing piece here is the single highest-leverage thing to add first, and it is the fastest way to move.',
 }
 
 // What a recruiter looking at this candidate's material would conclude —
