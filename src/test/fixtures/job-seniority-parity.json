@@ -11161,8 +11161,8 @@
 ],
 [
 "Enterprise Architect",
-"MID_IC",
-30
+"SENIOR_IC",
+45
 ],
 [
 "Urban Planner",
@@ -11901,8 +11901,8 @@
 ],
 [
 "Producer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Producer, Commercial Lines",
@@ -11916,8 +11916,8 @@
 ],
 [
 "Senior Producer",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Club General Manager",
@@ -13873,8 +13873,8 @@ true
 ],
 [
 "Video Producer",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Photographer",
@@ -15098,7 +15098,662 @@ true
 ],
 [
 "Director of Photography",
+"SENIOR_IC",
+45
+],
+[
+"Associate Partner",
+"PRINCIPAL",
+70
+],
+[
+"Expert Associate Partner",
+"PRINCIPAL",
+70
+],
+[
+"Associate Partner, Strategy & Transactions",
+"PRINCIPAL",
+70
+],
+[
+"Studio Head",
+"HEAD",
+72
+],
+[
+"Head of Studio",
+"HEAD",
+72
+],
+[
+"Showrunner",
+"DIRECTOR",
+65
+],
+[
+"Supervising Producer",
+"SR_MANAGER",
+52
+],
+[
+"Co-Executive Producer",
+"SR_MANAGER",
+52
+],
+[
+"VFX Supervisor",
+"SR_MANAGER",
+52
+],
+[
+"Animation Supervisor",
+"SR_MANAGER",
+52
+],
+[
+"Associate Media Director",
+"SR_MANAGER",
+52
+],
+[
+"Engagement Manager",
+"SR_MANAGER",
+52
+],
+[
+"Senior Engagement Manager",
+"SR_MANAGER",
+52
+],
+[
+"Line Producer",
+"SENIOR_IC",
+45
+],
+[
+"Managing Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Audio Lead",
+"SENIOR_IC",
+45
+],
+[
+"Lead Animator",
+"SENIOR_IC",
+45
+],
+[
+"Senior Technical Artist",
+"SENIOR_IC",
+45
+],
+[
+"Solution Architect",
+"SENIOR_IC",
+45
+],
+[
+"Assistant Director of Photography",
 "OTHER",
 0
+],
+[
+"Post-Production Supervisor",
+"MANAGER",
+40
+],
+[
+"Music Supervisor",
+"MANAGER",
+40
+],
+[
+"Account Supervisor",
+"MANAGER",
+40
+],
+[
+"Media Supervisor",
+"MANAGER",
+40
+],
+[
+"Sound Designer",
+"MID_IC",
+30
+],
+[
+"Technical Artist",
+"MID_IC",
+30
+],
+[
+"Composer",
+"MID_IC",
+30
+],
+[
+"Anchor",
+"MID_IC",
+30
+],
+[
+"News Anchor",
+"MID_IC",
+30
+],
+[
+"Morning Anchor",
+"MID_IC",
+30
+],
+[
+"Reporter",
+"MID_IC",
+30
+],
+[
+"General Assignment Reporter",
+"MID_IC",
+30
+],
+[
+"Report Writer",
+"OTHER",
+0
+],
+[
+"Reporter, Investigative",
+"MID_IC",
+30
+],
+[
+"Meteorologist",
+"MID_IC",
+30
+],
+[
+"Chief Meteorologist",
+"SENIOR_IC",
+45
+],
+[
+"Chief Engineer",
+"DIRECTOR",
+65
+],
+[
+"Engineering Fellow",
+"HEAD",
+72
+],
+[
+"Technical Fellow",
+"HEAD",
+72
+],
+[
+"Associate Technical Fellow",
+"PRINCIPAL",
+70
+],
+[
+"Senior Technical Fellow",
+"VP",
+80
+],
+[
+"Fellow",
+"OTHER",
+0
+],
+[
+"Postdoctoral Fellow",
+"OTHER",
+0
+],
+[
+"Senior Member of Technical Staff",
+"SENIOR_IC",
+45
+],
+[
+"Distinguished Member of Technical Staff",
+"PRINCIPAL",
+70
+],
+[
+"Principal Investigator",
+"SENIOR_IC",
+45
+],
+[
+"R&D Staff Member",
+"SENIOR_IC",
+45
+],
+[
+"Research and Development Staff Member",
+"SENIOR_IC",
+45
+],
+[
+"Section Head",
+"SR_MANAGER",
+52
+],
+[
+"Division Leader",
+"DIRECTOR",
+65
+],
+[
+"Associate Laboratory Director",
+"VP",
+80
+],
+[
+"Facility Security Officer",
+"MANAGER",
+40
+],
+[
+"FSO",
+"MANAGER",
+40
+],
+[
+"Assistant Facility Security Officer",
+"MID_IC",
+30
+],
+[
+"ISSO",
+"MANAGER",
+40
+],
+[
+"ISSM",
+"MANAGER",
+40
+],
+[
+"Information System Security Officer",
+"MANAGER",
+40
+],
+[
+"Industrial Security Specialist",
+"MID_IC",
+30
+],
+[
+"Subcontracts Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Subcontracts Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Proposal Writer",
+"MID_IC",
+30
+],
+[
+"EVM Analyst",
+"MID_IC",
+30
+],
+[
+"Logistician",
+"MID_IC",
+30
+],
+[
+"Targeting Analyst",
+"MID_IC",
+30
+],
+[
+"SIGINT Analyst",
+"MID_IC",
+30
+],
+[
+"Engineer Staff",
+"SENIOR_IC",
+45
+],
+[
+"Engr Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Systems Engineer Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Software Engineer Staff",
+"SENIOR_IC",
+45
+],
+[
+"Software Engineer Senior Staff",
+"SR_MANAGER",
+50
+],
+[
+"Engineer Associate",
+"OTHER",
+0
+],
+[
+"Systems Engineer Senior",
+"MID_IC",
+30
+],
+[
+"Site Lead",
+"MANAGER",
+40
+],
+[
+"Task Order Lead",
+"MANAGER",
+40
+],
+[
+"Test Pilot",
+"SENIOR_IC",
+45
+],
+[
+"Experimental Test Pilot",
+"SENIOR_IC",
+45
+],
+[
+"Chief Engineer, Maintenance",
+"OTHER",
+0
+],
+[
+"Chief Engineer - Hotel",
+"OTHER",
+0
+],
+[
+"Sound Engineer",
+"OTHER",
+0
+],
+[
+"Cyber Security Engineer Sr Stf",
+"SR_MANAGER",
+50
+],
+[
+"Producer - Commercial Lines",
+"MID_IC",
+30
+],
+[
+"Principal Engineer, Enterprise AI \u2014 Technical Fellow Office",
+"SR_MANAGER",
+52
+],
+[
+"Data Center Chief Engineer",
+"MID_IC",
+30
+],
+[
+"Sr. Chief Engineer, DCEO, AWS DC Operations Engineering, DCEO",
+"SENIOR_IC",
+45
+],
+[
+"Civil Site Engineer - Section Head - Charleston",
+"SR_MANAGER",
+52
+],
+[
+"Deputy Division Leader",
+"SR_MANAGER",
+52
+],
+[
+"Associate Producer",
+"OTHER",
+0
+],
+[
+"Field Producer",
+"MID_IC",
+30
+],
+[
+"Insurance Agency Producer",
+"MID_IC",
+30
+],
+[
+"Court Reporter",
+"OTHER",
+0
+],
+[
+"Report Developer",
+"OTHER",
+0
+],
+[
+"Co-Anchor",
+"MID_IC",
+30
+],
+[
+"Anchor Store Manager",
+"OTHER",
+0
+],
+[
+"Sports Anchor/Reporter",
+"MID_IC",
+30
+],
+[
+"MMJ Reporter",
+"MID_IC",
+30
+],
+[
+"Assistant Account Supervisor",
+"OTHER",
+0
+],
+[
+"Account Supervisor - Call Center",
+"OTHER",
+0
+],
+[
+"Site Lead - Security Officer",
+"OTHER",
+0
+],
+[
+"Site Lead, Warehouse",
+"OTHER",
+0
+],
+[
+"Chief Engineer - Stationary",
+"OTHER",
+0
+],
+[
+"Chief Engineer (Marine)",
+"OTHER",
+0
+],
+[
+"Chief Engineer, F-35 Program",
+"DIRECTOR",
+65
+],
+[
+"Assistant Chief Engineer",
+"OTHER",
+0
+],
+[
+"Program Chief Engineer",
+"DIRECTOR",
+65
+],
+[
+"Composer Intern",
+"OTHER",
+0
+],
+[
+"Postdoctoral Fellow, Engineering",
+"OTHER",
+0
+],
+[
+"Engineering Fellowship Program",
+"OTHER",
+0
+],
+[
+"FSO Tax - Manager",
+"MANAGER",
+40
+],
+[
+"FSO - Insurance - Senior Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Assistant FSO",
+"MID_IC",
+30
+],
+[
+"ISSO II",
+"MANAGER",
+40
+],
+[
+"Junior ISSO",
+"OTHER",
+0
+],
+[
+"Nurse Staff",
+"OTHER",
+0
+],
+[
+"Engineer, Staff - Intern",
+"OTHER",
+0
+],
+[
+"HR Manager, Staff Development",
+"MANAGER",
+40
+],
+[
+"Director of Photography / Editor",
+"SENIOR_IC",
+45
+],
+[
+"DP/Editor",
+"SENIOR_IC",
+45
+],
+[
+"Second Unit Director of Photography",
+"OTHER",
+0
+],
+[
+"Expert Associate Partner - Digital",
+"PRINCIPAL",
+70
+],
+[
+"Associate Partner Manager",
+"MANAGER",
+40
+],
+[
+"Engagement Manager, Community",
+"MANAGER",
+40
+],
+[
+"Studio Head Stylist",
+"OTHER",
+0
+],
+[
+"Research and Development Associate Staff Member",
+"MID_IC",
+30
+],
+[
+"R&D S&E, Mechanical Engineering",
+"MID_IC",
+30
+],
+[
+"Principal Investigator - Clinical Research",
+"SENIOR_IC",
+45
+],
+[
+"Co-Principal Investigator",
+"SENIOR_IC",
+45
+],
+[
+"Line Producer - Intern",
+"OTHER",
+0
+],
+[
+"EVM Analyst I",
+"OTHER",
+0
+],
+[
+"Targeting Analyst - Junior",
+"OTHER",
+0
+],
+[
+"Subcontracts Administrator 2",
+"MID_IC",
+30
+],
+[
+"Sr. Subcontracts Administrator",
+"SENIOR_IC",
+45
 ]
 ]
