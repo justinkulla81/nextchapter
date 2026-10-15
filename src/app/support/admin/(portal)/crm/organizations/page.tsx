@@ -65,7 +65,7 @@ export default async function CrmOrganizationsPage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, name: true, orgTypes: true, goals: true, hqRegion: true, dealStatus: true,
+        id: true, name: true, orgTypes: true, hiringClient: true, goals: true, hqRegion: true, dealStatus: true,
         investorProfile: { select: { checkSizeNote: true } },
         _count: { select: { affiliations: true, opportunities: true, researchItems: true } },
       },
@@ -177,6 +177,7 @@ export default async function CrmOrganizationsPage({
                   </td>
                   <td className="px-3 py-2">
                     <span className="flex flex-wrap gap-1">
+                      {o.hiringClient && <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">Hiring client</span>}
                       {o.orgTypes.map((t) => (
                         <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
                       ))}

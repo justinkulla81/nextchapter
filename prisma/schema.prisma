@@ -9888,6 +9888,11 @@ model CrmOrganization {
   canonicalNameNormalized String @unique
 
   orgTypes CrmOrgType[] @default([])
+  /// This company is a client we hire for or place candidates with. Distinct
+  /// from the EMPLOYER org type, which only says it employs people. Set by hand
+  /// (or backfilled from real employer accounts); never inferred from postings.
+  hiringClient   Boolean   @default(false)
+  hiringClientAt DateTime?
   goals    CrmGoal[]    @default([])
   website  String?
   hqCity   String?

@@ -13,13 +13,13 @@ export type OrgRelationshipFilter = OrgRelationship | 'all'
 
 export const ORG_RELATIONSHIP_LABELS: Record<OrgRelationshipFilter, string> = {
   all: 'All companies',
-  hiring: 'Hiring',
+  hiring: 'Hiring clients',
   outplacement: 'Outplacement',
   search: 'Search firms',
 }
 
 const WHERE: Record<OrgRelationship, Prisma.CrmOrganizationWhereInput> = {
-  hiring: { orgTypes: { has: 'EMPLOYER' } },
+  hiring: { hiringClient: true },
   outplacement: {
     OR: [{ orgTypes: { hasSome: ['OUTPLACEMENT_LEAD', 'OUTPLACEMENT_FIRM'] } }, { outplacementOrgId: { not: null } }],
   },
@@ -31,5 +31,8 @@ export function isOrgRelationshipFilter(v: string | undefined): v is OrgRelation
 }
 
 export function relationshipWhere(rel: OrgRelationshipFilter): Prisma.CrmOrganizationWhereInput {
-  return rel === 'all' ? { OR: ORG_RELATIONSHIPS.map((r) => WHERE[r]) } : WHERE[rel]
+  // "All companies" also takes in plain employers, which no relationship button covers.
+  return rel === 'all'
+    ? { OR: [{ orgTypes: { has: 'EMPLOYER' } }, ...ORG_RELATIONSHIPS.map((r) => WHERE[r])] }
+    : WHERE[rel]
 }

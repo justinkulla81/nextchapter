@@ -20,6 +20,7 @@ import { loadOrgDemandData } from '@/lib/crm/org-page-data'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { CrmHiringClient } from '@/components/admin/CrmHiringClient'
 import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
@@ -176,6 +177,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             ))}
             {org.hqRegion && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{org.hqRegion}</span>}
           </div>
+          <CrmHiringClient orgId={org.id} value={org.hiringClient} />
           {org.focus && <p className="mt-3 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
         </div>
 
