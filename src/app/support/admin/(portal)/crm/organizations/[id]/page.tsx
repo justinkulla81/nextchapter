@@ -17,6 +17,7 @@ import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 import { loadOrgDemandData } from '@/lib/crm/org-page-data'
+import { schoolsWithCoreRecruiter } from '@/lib/higher-ed/recruiting'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -64,7 +65,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   // Candidates who have worked here: free-text work history matched on the same
   // normalized name the organization is keyed by, plus employment rows on the
   // linked directory Company. One person can appear in both, so merge by id.
-  const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows] = await Promise.all([
+  const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows, coreSchools] = await Promise.all([
     loadOrgDemandData(org),
     loadWarmDoors({ orgId: org.id }).catch(() => []),
     prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }),
@@ -91,6 +92,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           take: 50,
         })
       : Promise.resolve([]),
+    // Colleges that flag this company as a core recruiter. Admin-only: a college never sees another's list.
+    org.companyId ? schoolsWithCoreRecruiter(org.companyId).catch(() => []) : Promise.resolve([]),
   ])
   const meetings = [...meetingRows.reduce((m, a) => {
     const key = a.sourceRef?.split(':')[0] ?? a.id
@@ -144,7 +147,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   captureServerEvent(org.id, 'crm_org_page_viewed', {
     orgName: org.name, prospectScore: rating.score, prospectBand: rating.band,
     openJobs: demand.openJobs.length, candidatesWhoWant: demand.wantToWork.length,
-    layoffsPastYear: demand.layoffYear.events, laidOffPastYear: demand.layoffYear.employees, openMandates: demand.mandates.length,
+    layoffsPastYear: demand.layoffYear.events, laidOffPastYear: demand.layoffYear.employees, openMandates: demand.mandates.length, coreRecruiterColleges: coreSchools.length,
   })
 
   const BAND_LABEL: Record<ProspectBand, string> = { hot: 'Hot prospect', warm: 'Warm prospect', cool: 'Cool', cold: 'Cold' }
@@ -224,7 +227,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         ))}
       </nav>
 
-      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-5">
+      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3 lg:grid-cols-6">
         <div>
           <p className="text-2xl font-semibold">{demand.layoffYear.events === 0 ? '0' : demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''}` : 'Not stated'}</p>
           <p className="text-xs text-muted-foreground">
@@ -247,6 +250,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         <div>
           <p className="text-2xl font-semibold">{demand.mandates.length}</p>
           <p className="text-xs text-muted-foreground">Open recruiter mandates</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{coreSchools.length}</p>
+          <p className="text-xs text-muted-foreground">Colleges with it as a core recruiter</p>
         </div>
       </section>
 
@@ -490,6 +497,15 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </ul>
         )}
       </section>
+
+      {coreSchools.length > 0 && (
+        <section id="schools" className="scroll-mt-16 space-y-3">
+          <h2 className="text-lg font-semibold">Colleges that list it as a core recruiter ({coreSchools.length})</h2>
+          <ul className="flex flex-wrap gap-2 text-sm">
+            {coreSchools.map((c) => <li key={c.institutionId} className="rounded-full bg-muted px-3 py-1">{c.name}</li>)}
+          </ul>
+        </section>
+      )}
 
       {/* ── Layoffs ──────────────────────────────────────────────────────── */}
       <section id="layoffs" className="scroll-mt-16 space-y-3">

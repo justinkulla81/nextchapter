@@ -13,6 +13,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { flagTargetCompany, unflagTargetCompany } from '@/lib/companies/institution-targets'
+import { setCoreRecruiter, addRecruitingDate, removeRecruitingDate, addEarlyCareerRole, archiveEarlyCareerRole } from '@/lib/higher-ed/recruiting'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import { updateInstitutionBranding, uploadInstitutionImage } from '@/lib/institution/admin'
 import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
@@ -118,6 +119,68 @@ export async function removeTargetCompany(slug: string, companyId: string): Prom
   if (!ctx) return
   await unflagTargetCompany(ctx.institution.id, companyId)
   captureServerEvent(ctx.userId, 'institution_target_company_removed', { institutionId: ctx.institution.id })
+  revalidatePath(`/i/${slug}`, 'layout')
+}
+
+const field = (formData: FormData, k: string) => (formData.get(k) as string | null)?.trim() || ''
+
+/** Flag a target company as a core recruiter (or clear the flag), with its recruiter contact. */
+export async function saveCoreRecruiter(slug: string, companyId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change target companies.' }
+  const core = field(formData, 'core') === 'yes'
+  const result = await setCoreRecruiter({
+    institutionId: ctx.institution.id, companyId, core,
+    contactName: field(formData, 'contactName'), contactEmail: field(formData, 'contactEmail'),
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, core ? 'institution_core_recruiter_flagged' : 'institution_core_recruiter_cleared', { institutionId: ctx.institution.id, companyId })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function addRecruitingDateAction(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change the recruiting calendar.' }
+  const result = await addRecruitingDate({
+    institutionId: ctx.institution.id, companyName: fixAllCapsCompanyName(field(formData, 'companyName')),
+    kind: field(formData, 'kind'), title: field(formData, 'title'), startsAt: field(formData, 'startsAt'),
+    location: field(formData, 'location'), url: field(formData, 'url'), note: field(formData, 'note'), createdBy: ctx.email,
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, 'institution_recruiting_date_added', { institutionId: ctx.institution.id, companyId: result.companyId, kind: field(formData, 'kind') })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function removeRecruitingDateAction(slug: string, id: string): Promise<void> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return
+  await removeRecruitingDate(ctx.institution.id, id)
+  captureServerEvent(ctx.userId, 'institution_recruiting_date_removed', { institutionId: ctx.institution.id, dateId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+}
+
+export async function addEarlyCareerRoleAction(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change early-career roles.' }
+  const result = await addEarlyCareerRole({
+    institutionId: ctx.institution.id, companyName: fixAllCapsCompanyName(field(formData, 'companyName')),
+    kind: field(formData, 'kind'), title: field(formData, 'title'), location: field(formData, 'location'),
+    applyUrl: field(formData, 'applyUrl'), deadline: field(formData, 'deadline'), classYears: field(formData, 'classYears'),
+    note: field(formData, 'note'), createdBy: ctx.email,
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, 'institution_early_career_role_added', { institutionId: ctx.institution.id, companyId: result.companyId, kind: field(formData, 'kind') })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function archiveEarlyCareerRoleAction(slug: string, id: string): Promise<void> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return
+  await archiveEarlyCareerRole(ctx.institution.id, id)
+  captureServerEvent(ctx.userId, 'institution_early_career_role_archived', { institutionId: ctx.institution.id, roleId: id })
   revalidatePath(`/i/${slug}`, 'layout')
 }
 

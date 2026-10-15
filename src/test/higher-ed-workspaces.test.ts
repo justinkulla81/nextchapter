@@ -70,8 +70,8 @@ describe('read-only and tabs', () => {
   })
 
   it('Career Services tabs follow the role', () => {
-    expect(tabsFor(set('EMPLOYER_RELATIONS'), 'career').map((t) => t.key)).toEqual(['jobs', 'companies', 'region', 'employers'])
-    expect(tabsFor(set('CAREER_SERVICES'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'jobs', 'companies', 'outcomes', 'checkins', 'students', 'circles', 'region', 'employers'])
+    expect(tabsFor(set('EMPLOYER_RELATIONS'), 'career').map((t) => t.key)).toEqual(['jobs', 'companies', 'recruiting', 'region', 'employers'])
+    expect(tabsFor(set('CAREER_SERVICES'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'jobs', 'companies', 'recruiting', 'outcomes', 'checkins', 'students', 'circles', 'region', 'employers'])
     // A college's coach sees the caseload, coaching and circles, not jobs or companies.
     expect(tabsFor(set('COACH'), 'career').map((t) => t.key)).toEqual(['home', 'coaching', 'circles', 'region', 'employers'])
     // Alumni Relations can post alumni jobs but not manage target companies (permissions.ts).
