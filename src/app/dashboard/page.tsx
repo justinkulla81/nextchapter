@@ -399,7 +399,7 @@ export default async function DashboardPage() {
         </HomeModule>
         {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
           <div className="lg:col-span-2">
-            <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} />
+            <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
           </div>
         )}
       </div>

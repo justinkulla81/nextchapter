@@ -5,7 +5,17 @@ import { nextRung, type Rung } from '@/lib/unlocks/ladder'
 // Where the member stands on the single unlock ladder, and the one next
 // thing. Everyone has a dossier from day one; it is "still building" until
 // Candidate+ marks it complete.
-export function UnlocksModule({ ladder, evidenceAreas, evidenceTotal }: { ladder: Rung[]; evidenceAreas: number; evidenceTotal: number }) {
+export function UnlocksModule({
+  ladder,
+  evidenceAreas,
+  evidenceTotal,
+  confidential = false,
+}: {
+  ladder: Rung[]
+  evidenceAreas: number
+  evidenceTotal: number
+  confidential?: boolean
+}) {
   const next = nextRung(ladder)
   const openCount = ladder.filter((r) => r.state === 'open').length
   return (
@@ -41,6 +51,11 @@ export function UnlocksModule({ ladder, evidenceAreas, evidenceTotal }: { ladder
         </div>
       ) : (
         <p className="rounded-lg bg-white/10 p-4 text-sm font-semibold">Every unlock is open.</p>
+      )}
+      {confidential && (
+        <p className="text-sm text-white/80">
+          Confidential mode is on, so recruiters and hiring managers cannot see your Candidate+ mark until you choose to show it.
+        </p>
       )}
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
         <Link href="/dashboard/stats" className="font-medium underline underline-offset-4">
