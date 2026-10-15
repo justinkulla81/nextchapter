@@ -43,7 +43,7 @@ const MAX_PLAUSIBLE = 40
 // Words that tie a number of years to work experience, looked for just after
 // the "years" token (e.g. "years of progressive leadership experience").
 const EXPERIENCE_AFTER =
-  /^\W{0,3}(?:of\s+)?(?:[\w&/,'’-]+\s+){0,7}?(?:experience|exp\b|background|track record|work(?:ing)?\b|tenure|in (?:a|an|the)\b|in\s+\w+|leading|managing|building|progressive|post-?(?:graduate|mba|degree)|professional|industry|hands-on|relevant|related|leadership|as (?:a|an)\b|serving|selling|practicing|practice|with\b)/i
+  /^\W{0,3}(?:of\s+)?(?:[\w&/,'’-]+\s+){0,7}?(?:experience|exp\b|background|track record|work(?:ing)?\b|tenure|in (?:a|an|the)\b|in\s+\w+|leading|managing|building|progressive|post-?(?:graduate|mba|degree)|professional|industry|hands-on|relevant|related|leadership|as (?:a|an)\b|serving|selling|practicing|practice)/i
 
 // Words before the number that make it an experience requirement on their own
 // ("minimum of", "at least", "requires").
@@ -51,14 +51,36 @@ const REQUIREMENT_BEFORE = /(minimum(?:\s+of)?|min\.?|at least|requires?|require
 
 // Non-experience uses of a number of years.
 const NOT_EXPERIENCE_AFTER =
-  /^\W{0,2}(?:old\b|of age\b|ago\b|in business\b|in operation\b|running\b|of (?:service to|serving) (?:our|the) (?:community|clients|customers)|warranty|contract|term\b|appointment|assignment|vesting|cliff|commitment|history\b|of growth|of (?:continuous|consecutive) growth|anniversary)/i
+  /^\W{0,2}(?:old\b|of age\b|ago\b|in business\b|in operation\b|running\b|of (?:service to|serving) (?:our|the) (?:community|clients|customers)|warranty|contract|term\b|appointment|assignment|vesting|cliff|commitment|history\b|of growth|of (?:continuous|consecutive) growth|anniversary|in duration|duration)/i
 const NOT_EXPERIENCE_BEFORE =
-  /(founded|established|for over|for more than|over the (?:past|last|next)|in the (?:past|last|next)|within|every|each|up to|first|next|past|last|company with|organization with|firm with|our)\s*$/i
+  /(founded|established|for over|for more than|over the (?:past|last|next)|in the (?:past|last|next)|within(?: the (?:last|past))?|every|each|up to|first|next|past|last|company with|organization with|firm with|our|ages?|aged|nte|not to exceed|term|period|eligibility period \(?|spent|has been|have been|less than|fewer than|no more than|under)\s*\(?$/i
 
-const PREFERRED_WORDS = /\b(preferred|preferably|ideally|ideal candidate|nice to have|a plus|is a plus|bonus|desired|desirable|would be (?:great|helpful)|advantageous|strongly preferred)\b/i
+const PREFERRED_WORDS = /\b(preferred|preferably|ideally|ideal candidates?|nice to have|a plus|is a plus|bonus|desired|desirable|would be (?:great|helpful)|advantageous|strongly preferred)\b/i
 const PREFERRED_HEADING = /(preferred|desired|nice[- ]to[- ]have|bonus)\s+(qualifications|skills|requirements|experience|attributes)|\bnice to haves?\b|\bpluses\b|\bbonus points\b/gi
 const REQUIRED_HEADING = /(required|minimum|basic|essential|key)\s+(qualifications|skills|requirements|experience)|\brequirements\s*:|\bqualifications\s*:|\bwhat you(?:'|’)ll (?:need|bring)\b|\bmust[- ]haves?\b|\bwho you are\b/gi
-const OR_EQUIVALENT = /\bor (?:the )?equivalent\b|\bor (?:an )?equivalent combination\b/i
+// "or equivalent experience", "…or equivalent." — not "at or equivalent to the GS-09 grade".
+const OR_EQUIVALENT = /\bor (?:an? |the )?equivalent (?:combination|experience|education|work|training|degree|background)\b|\bor (?:the )?equivalent\s*(?:[.,;)]|$)/i
+const REQUIRED_WORD = /\b(required|requires|must have|must possess|minimum)\b/gi
+const PREFERRED_WORDS_G = new RegExp(PREFERRED_WORDS.source, 'gi')
+
+// Which keyword governs the number: the nearest one after it in the sentence
+// ("5 years of experience preferred", "…is required"); failing that, one
+// before it in the same clause ("Ideally 5 years…", "Ideal candidates have
+// 3-5 years") — so "A degree is preferred and 5 years of experience is
+// required" reads as required.
+function sentenceSaysPreferred(sentence: string, at: number, atEnd: number): boolean {
+  if (!PREFERRED_WORDS.test(sentence)) return false
+  const hits: { at: number; end: number; preferred: boolean }[] = []
+  for (const [re, preferred] of [[PREFERRED_WORDS_G, true], [REQUIRED_WORD, false]] as const) {
+    re.lastIndex = 0
+    for (let m = re.exec(sentence); m; m = re.exec(sentence)) hits.push({ at: m.index, end: m.index + m[0].length, preferred })
+  }
+  const after = hits.filter((h) => h.at >= atEnd).sort((a, b) => a.at - b.at)[0]
+  if (after) return after.preferred
+  const before = hits.filter((h) => h.end <= at).sort((a, b) => b.end - a.end)[0]
+  if (!before) return false
+  return before.preferred && !/\band\b|;|\bbut\b/i.test(sentence.slice(before.end, at))
+}
 
 function toNumber(raw: string): number | null {
   const s = raw.toLowerCase().trim()
@@ -87,12 +109,12 @@ interface Candidate extends YearsRequirement {
 }
 
 // The text of the sentence/bullet containing [start, end).
-function sentenceAround(text: string, start: number, end: number): string {
+function sentenceAround(text: string, start: number, end: number): { sentence: string; offset: number } {
   const before = text.slice(0, start)
   const sentStart = Math.max(before.lastIndexOf('. '), before.lastIndexOf('\n'), before.lastIndexOf('•'), before.lastIndexOf(';')) + 1
   const afterRel = text.slice(end).search(/(\.\s|\n|•|;)/)
   const sentEnd = afterRel === -1 ? text.length : end + afterRel
-  return text.slice(sentStart, sentEnd)
+  return { sentence: text.slice(sentStart, sentEnd), offset: sentStart }
 }
 
 // Position of the last match (its end when `end` is set) — -1 when none.
@@ -156,8 +178,8 @@ export function parseYearsRequired(raw: string | null | undefined): YearsRequire
       if (!tiedToExperience) continue
 
       taken.push([start, end])
-      const sentence = sentenceAround(text, start, end)
-      const preferred = PREFERRED_WORDS.test(sentence) || underPreferredHeading(text, start)
+      const { sentence, offset } = sentenceAround(text, start, end)
+      const preferred = sentenceSaysPreferred(sentence, start - offset, end - offset) || underPreferredHeading(text, start)
       found.push({
         start,
         min,

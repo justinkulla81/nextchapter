@@ -42,6 +42,14 @@ describe('parseYearsRequired — not an experience requirement', () => {
     'We have been in business for 40 years.',
     'Benefits vest over 4 years.',
     'Reports to the CEO. Competitive salary.',
+    'Eligibility period (one to five years) are determined by the VHA Education Loan Repayment Service.',
+    'This is a Term NTE 3 YEARS. Cannot be made permanent.',
+    'Contracts often exceed one million dollars and one year in duration per project.',
+    'Citizen has spent ten years building the only live network of its kind.',
+    'We welcome candidates with less than five years of IT audit experience.',
+    'Serving children and youth, ages six weeks to 18 years, with medical, educational, or other needs.',
+    'You must have served in the 1895 series within the last five years to qualify.',
+    'Position may be filled as a Term Appointment NTE 5 years and cannot be made permanent.',
     '',
   ])('%s', (text) => {
     expect(p(text)).toBeNull()
@@ -70,6 +78,16 @@ describe('parseYearsRequired — preferred vs required', () => {
   it('required beats preferred even when the preferred number is larger', () => {
     const text = 'Requirements:\n- 5+ years of experience in sales\nNice to have:\n- 10+ years of experience in enterprise sales'
     expect(p(text)).toMatchObject({ min: 5, strength: 'required' })
+  })
+  it('the keyword nearest the number decides', () => {
+    expect(p('A bachelor’s degree is preferred and at least 5 years of laboratory sales experience is required.')?.strength).toBe('required')
+    expect(p('Must have a CPA; 5 years of Big 4 experience preferred')?.strength).toBe('preferred')
+  })
+  it('"at or equivalent to the GS-09 grade" is not "or equivalent"', () => {
+    expect(p('Your resume must demonstrate at least one year of specialized experience at or equivalent to the GS-09 grade level')).toMatchObject({ min: 1, orEquivalent: false })
+  })
+  it('or equivalent at the end of a sentence', () => {
+    expect(p('Bachelor’s degree and 6+ years of experience, or equivalent.')?.orEquivalent).toBe(true)
   })
   it('or equivalent is flagged', () => {
     const r = p('5+ years of relevant experience or equivalent combination of education and experience')
