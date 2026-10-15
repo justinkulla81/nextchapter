@@ -27,7 +27,12 @@ describe('job seniority', () => {
       expect(classifyTitleRung(title).rung, title).toBe('MID_IC')
       expect(screenJobTitle(title).keep, title).toBe(false)
     }
-    for (const title of ['Software Engineer I', 'Junior Accountant', 'Associate Consultant', 'Help Desk Analyst', 'Contract Specialist (GS-9)', 'Police Officer (GS-11)']) {
+    // Level I / junior / associate professional titles are entry-level (ENTRY_IC), GS-9 early career.
+    for (const title of ['Software Engineer I', 'Junior Accountant', 'Associate Consultant']) {
+      expect(classifyTitleRung(title).rung, title).toBe('ENTRY_IC')
+    }
+    expect(classifyTitleRung('Contract Specialist (GS-9)').rung).toBe('EARLY_IC')
+    for (const title of ['Help Desk Analyst', 'Police Officer (GS-11)']) {
       expect(classifyTitleRung(title).rung, title).toBe('OTHER')
     }
   })
