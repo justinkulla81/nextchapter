@@ -11,6 +11,8 @@ A monthly report on what employers are posting, a sibling of the White Collar Em
 | **All jobs** | Every level, entry-level and hourly included | WARN layoffs (all levels), BLS JOLTS openings, BLS employment |
 | **Mid-level and above** (core) | Mid-level IC and up | Our own history, white-collar occupation benchmarks |
 
+**Local reports (a metro or county) lead with a third frame: all white-collar jobs at every level, entry-level included.** White-collar means Census major occupation groups 1 and 2 (management, business and financial; professional and related), the same definition the Employment Report uses. The crawler must keep entry-level white-collar postings (analysts, associates, coordinators, trainees) and tag each posting's occupation group, so the local report matches the national report's scope. The all-jobs frame stays secondary.
+
 Rules: never blend frames into one number. WARN has no levels, so it is compared only with the all-jobs frame and shown as labeled context in the mid-level frame. Show both frames side by side where the question allows; present one frame alone where a comparison would not be apples to apples. Within each frame, W-2 and 1099 are reported separately.
 
 ## Chapters

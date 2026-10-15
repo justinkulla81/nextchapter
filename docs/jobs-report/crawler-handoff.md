@@ -42,3 +42,7 @@ Monthly White Collar Jobs Report. First run: Louisville / Jefferson County KY pl
 The report session cannot read `jobs.db` (it lives on Justin's Mac). Load the data into new tables in the NextChapter Supabase project (`uvoulytrsrxasqzutlmq`), or export a SQLite or Parquet file to a location the report session can open. Include the schema. Do not change existing `ExclusiveJobPosting` columns.
 
 Report back when sources are in and the data is readable, and flag anything that is infeasible or disallowed.
+
+## Update 2026-10-15: local reports need all white-collar levels
+
+Local reports must cover all white-collar jobs at every level, entry-level included, not only mid-level and above. White-collar = Census major occupation groups 1 and 2 (management, business and financial; professional and related). Stop screening out entry-level white-collar postings (analysts, associates, coordinators, trainees, junior roles) for the Louisville metro and for any metro crawled for a local report. Store the level (add an `ENTRY` level) and an occupation group tag (SOC major group, or a `white_collar` flag with the rule that set it) on every posting. Keep the non-white-collar postings too, flagged, for the all-jobs frame.
