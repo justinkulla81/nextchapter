@@ -14143,3 +14143,123 @@ model InstitutionSystemUser {
 
   @@unique([systemId, email])
 }
+
+// ── OCCUPATION SKILLS DATA (O*NET + BLS) ─────────────────────────────────────
+// Public reference data, never per-person. O*NET (U.S. Dept. of Labor, CC BY 4.0 —
+// credit "O*NET" wherever it is shown) describes what each occupation needs; BLS
+// OEWS and Employment Projections add pay and outlook. Joined on the 6-digit SOC
+// code. Filled by an import script; read by src/lib/occupations/*. The pure scoring
+// there takes plain objects, so none of these tables is needed to run its tests.
+
+// One O*NET-SOC occupation (e.g. "11-2021.00"). socCode is the 6-digit SOC ("11-2021")
+// BLS keys on; several O*NET-SOC rows can share one. isTarget is set at import by
+// isTargetOccupation (src/lib/occupations/target-occupations.ts): white-collar
+// professional and management occupations. It says nothing about seniority.
+model OnetOccupation {
+  onetSocCode String  @id
+  socCode     String
+  title       String
+  description String?
+  jobZone     Int?
+  isTarget    Boolean @default(false)
+  dataVersion String?
+
+  elements   OnetOccupationElement[]
+  techSkills OnetTechSkill[]
+  altTitles  OnetAlternateTitle[]
+  related    OnetRelatedOccupation[] @relation("OnetRelatedFrom")
+
+  @@index([socCode])
+  @@index([isTarget])
+}
+
+// A scored element of an occupation. kind: 'SKILL' | 'KNOWLEDGE' | 'ABILITY' | 'ACTIVITY'.
+// importance is O*NET's IM scale (1-5), level its LV scale (0-7).
+model OnetOccupationElement {
+  id          String         @id @default(cuid())
+  onetSocCode String
+  occupation  OnetOccupation @relation(fields: [onetSocCode], references: [onetSocCode], onDelete: Cascade)
+  kind        String
+  elementId   String
+  elementName String
+  importance  Float
+  level       Float
+
+  @@unique([onetSocCode, kind, elementId])
+  @@index([onetSocCode])
+}
+
+// Named software and tools an occupation uses (O*NET Technology Skills). hotTechnology
+// and inDemand are O*NET's own flags.
+model OnetTechSkill {
+  id            String         @id @default(cuid())
+  onetSocCode   String
+  occupation    OnetOccupation @relation(fields: [onetSocCode], references: [onetSocCode], onDelete: Cascade)
+  example       String
+  commodity     String?
+  hotTechnology Boolean        @default(false)
+  inDemand      Boolean        @default(false)
+
+  @@unique([onetSocCode, example])
+  @@index([onetSocCode])
+}
+
+// Alternate and reported job titles, for mapping a free-text title to an occupation.
+// normalizedTitle is normalizeTitle(title) (src/lib/occupations/title-to-soc.ts).
+model OnetAlternateTitle {
+  id              String         @id @default(cuid())
+  onetSocCode     String
+  occupation      OnetOccupation @relation(fields: [onetSocCode], references: [onetSocCode], onDelete: Cascade)
+  title           String
+  normalizedTitle String
+
+  @@unique([onetSocCode, normalizedTitle])
+  @@index([normalizedTitle])
+}
+
+// O*NET's related occupations (tier: 'Primary-Short' | 'Primary-Long' | 'Supplemental').
+model OnetRelatedOccupation {
+  id                 String         @id @default(cuid())
+  onetSocCode        String
+  occupation         OnetOccupation @relation("OnetRelatedFrom", fields: [onetSocCode], references: [onetSocCode], onDelete: Cascade)
+  relatedOnetSocCode String
+  tier               String?
+  relatedIndex       Int?
+
+  @@unique([onetSocCode, relatedOnetSocCode])
+  @@index([onetSocCode])
+}
+
+// BLS OEWS pay and employment by occupation and area. areaType: 'NATIONAL' | 'STATE'
+// | 'METRO'. topCoded is true when BLS reports the figure only as a floor (">= $239,200"),
+// so executive pay is understated and a pay difference involving it must not be shown.
+model OccupationWage {
+  id         String  @id @default(cuid())
+  socCode    String
+  areaType   String
+  areaCode   String
+  year       Int
+  employment Int?
+  wageP10    Int?
+  wageP25    Int?
+  wageMedian Int?
+  wageP75    Int?
+  wageP90    Int?
+  topCoded   Boolean @default(false)
+
+  @@unique([socCode, areaType, areaCode, year])
+  @@index([socCode])
+}
+
+// BLS Employment Projections, national, per occupation.
+model OccupationProjection {
+  socCode          String   @id
+  baseYear         Int
+  projectedYear    Int
+  employmentBase   Int?
+  employmentProj   Int?
+  changePct        Float?
+  annualOpenings   Int?
+  typicalEducation String?
+  updatedAt        DateTime @updatedAt
+}
