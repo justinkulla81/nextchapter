@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { PersonalizationQuestion } from '@/components/ui/personalization-question'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
@@ -70,15 +71,13 @@ export function SearchStrategyForm({
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <div className="space-y-2">
-        <Label htmlFor="gapDuration">
-          How long have you been searching?
-          {!profile.gapDuration && <UnansweredBadge />}
-        </Label>
-        <p className="text-xs text-muted-foreground">
-          Keep this current as your search goes on — it&apos;s a real input to how your Market
-          Reality grade reads a longer search.
-        </p>
+      <PersonalizationQuestion
+        id="gap-duration"
+        htmlFor="gapDuration"
+        question="How long have you been searching?"
+        payoff="Your Market Reality grade reads a longer search fairly. Keep this current as your search goes on."
+        badge={!profile.gapDuration && <UnansweredBadge />}
+      >
         <Select name="gapDuration" defaultValue={profile.gapDuration ?? 'none'}>
           <SelectTrigger id="gapDuration" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one">
@@ -98,9 +97,14 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
+      <PersonalizationQuestion
+        id="target-industries"
+        question="Which industries do you want to work in?"
+        payoff="Job matches and market data focus on the industries you pick."
+        badge={profile.targetIndustries.length === 0 && inferredIndustries.length === 0 && <UnansweredBadge />}
+      >
         {inferredIndustries.length > 0 && (
           <p className="text-sm text-muted-foreground">
             Your past industries included:{' '}
@@ -108,10 +112,6 @@ export function SearchStrategyForm({
             We&apos;ve added these below — remove any that don&apos;t apply, or add more.
           </p>
         )}
-        <Label>
-          Target industries
-          {profile.targetIndustries.length === 0 && inferredIndustries.length === 0 && <UnansweredBadge />}
-        </Label>
         <div id="targetIndustries" className="scroll-mt-4">
           <TagInput
             name="targetIndustries"
@@ -120,13 +120,15 @@ export function SearchStrategyForm({
             capitalizeFirstLetter
           />
         </div>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label htmlFor="primaryFunction">
-          Your primary job function
-          {!profile.primaryFunction && <UnansweredBadge />}
-        </Label>
+      <PersonalizationQuestion
+        id="primary-function"
+        htmlFor="primaryFunction"
+        question="What is your primary job function?"
+        payoff="Jobs, pivot paths and skills recommendations start from your function."
+        badge={!profile.primaryFunction && <UnansweredBadge />}
+      >
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
           <SelectTrigger id="primaryFunction" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one" />
@@ -139,14 +141,15 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label htmlFor="secondaryFunction">Add a second job function</Label>
-        <p className="text-xs text-muted-foreground">
-          Only set this if your most recent role(s) are in a different function than the bulk of
-          your career — we&apos;ll match jobs against both. Leave as &quot;None&quot; otherwise.
-        </p>
+      <PersonalizationQuestion
+        id="secondary-function"
+        htmlFor="secondaryFunction"
+        question="Do your recent roles sit in a second job function?"
+        payoff="We match jobs against both functions. Leave as “None” if your career has stayed in one."
+        optional
+      >
         <Select name="secondaryFunction" defaultValue={profile.secondaryFunction ?? 'none'}>
           <SelectTrigger id="secondaryFunction" className="w-full">
             <SelectValue placeholder="None" />
@@ -160,93 +163,103 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="highestLevelReached">
-            Seniority — highest level reached
-            {!profile.highestLevelReached && <UnansweredBadge />}
-          </Label>
-          <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
-          <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
-            <SelectTrigger id="highestLevelReached" className="w-full scroll-mt-4">
-              <SelectValue placeholder="Select one">
-                {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Not set</SelectItem>
-              {HIGHEST_LEVEL_OPTIONS.map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <PersonalizationQuestion
+        id="highest-level"
+        htmlFor="highestLevelReached"
+        question="What is the highest level you have reached?"
+        payoff="Jobs are matched to a level you could realistically land."
+        badge={!profile.highestLevelReached && <UnansweredBadge />}
+      >
+        <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
+          <SelectTrigger id="highestLevelReached" className="w-full scroll-mt-4">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Not set</SelectItem>
+            {HIGHEST_LEVEL_OPTIONS.map((level) => (
+              <SelectItem key={level} value={level}>
+                {level}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PersonalizationQuestion>
 
-        <div className="space-y-2">
-          <Label htmlFor="targetRoleType">
-            Target role
-            {!profile.targetRoleType && <UnansweredBadge />}
-          </Label>
-          {/* Disabled inputs aren't included in FormData, so the real
-              submitted value lives in this hidden input instead. */}
-          <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
-          <Input
-            id="targetRoleType"
-            className="scroll-mt-4"
-            value={isTargetFlexible ? 'Flexible' : targetRoleType}
-            onChange={(e) => setTargetRoleType(e.target.value)}
-            disabled={isTargetFlexible}
-          />
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="targetRoleFlexible"
-              checked={isTargetFlexible}
-              onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
-            />
-            <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
-              I&apos;m flexible — open to a range of roles
-            </Label>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="isPivoting"
-          name="isPivoting"
-          value="on"
-          checked={isPivoting}
-          onCheckedChange={(checked) => setIsPivoting(checked === true)}
+      <PersonalizationQuestion
+        id="target-role"
+        htmlFor="targetRoleType"
+        question="What role are you aiming for next?"
+        payoff="Job matches and skills recommendations aim at this role."
+        badge={!profile.targetRoleType && <UnansweredBadge />}
+      >
+        {/* Disabled inputs aren't included in FormData, so the real
+            submitted value lives in this hidden input instead. */}
+        <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
+        <Input
+          id="targetRoleType"
+          className="scroll-mt-4"
+          value={isTargetFlexible ? 'Flexible' : targetRoleType}
+          onChange={(e) => setTargetRoleType(e.target.value)}
+          disabled={isTargetFlexible}
         />
-        <Label htmlFor="isPivoting" className="font-normal">I&apos;m considering a <em>career pivot</em> to a different role or function, not just changing employers</Label>
-      </div>
-
-      {isPivoting && (
-        <div className="space-y-2">
-          <Label htmlFor="targetFunction">Target job function</Label>
-          <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
-            <SelectTrigger id="targetFunction" className="w-full">
-              <SelectValue placeholder="Select one" />
-            </SelectTrigger>
-            <SelectContent>
-              {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-                <SelectItem key={fn} value={fn}>
-                  {fn}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            The function you want to be doing next — it can differ from your background.
-          </p>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="targetRoleFlexible"
+            checked={isTargetFlexible}
+            onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
+          />
+          <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
+            I&apos;m flexible — open to a range of roles
+          </Label>
         </div>
-      )}
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
+      <PersonalizationQuestion
+        id="pivoting"
+        question="Are you considering a career pivot?"
+        payoff="Pivot paths and job matches reach toward the function you want to move into."
+        optional
+      >
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="isPivoting"
+            name="isPivoting"
+            value="on"
+            checked={isPivoting}
+            onCheckedChange={(checked) => setIsPivoting(checked === true)}
+          />
+          <Label htmlFor="isPivoting" className="font-normal">I&apos;m considering a <em>career pivot</em> to a different role or function, not just changing employers</Label>
+        </div>
+        {isPivoting && (
+          <div className="space-y-2">
+            <Label htmlFor="targetFunction">Which function do you want to be doing next?</Label>
+            <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
+              <SelectTrigger id="targetFunction" className="w-full">
+                <SelectValue placeholder="Select one" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+                  <SelectItem key={fn} value={fn}>
+                    {fn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">It can differ from your background.</p>
+          </div>
+        )}
+      </PersonalizationQuestion>
+
+      <PersonalizationQuestion
+        id="start-lower"
+        question="Would you start at a lower level or title?"
+        payoff="You see more openings, and employers see why you would take the step."
+        optional
+      >
         <div className="flex items-center gap-2">
           <Checkbox
             id="willingToStartLower"
@@ -267,54 +280,65 @@ export function SearchStrategyForm({
             defaultValue={profile.startLowerRationale ?? ''}
           />
         )}
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="targetCompanySize">Target company size</Label>
-          <Select name="targetCompanySize" defaultValue={profile.targetCompanySize ?? 'Any'}>
-            <SelectTrigger id="targetCompanySize" className="w-full">
-              <SelectValue placeholder="Select one">
-                {(value: string | null) =>
-                  value ? (value === 'Any' ? 'Any size' : `${value} employees`) : 'Select one'
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {COMPANY_SIZE_OPTIONS.map((size) => (
-                <SelectItem key={size} value={size}>
-                  {size === 'Any' ? 'Any size' : `${size} employees`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="targetCompanyStage">Target company type</Label>
-          <Select name="targetCompanyStage" defaultValue={profile.targetCompanyStage ?? 'any'}>
-            <SelectTrigger id="targetCompanyStage" className="w-full">
-              <SelectValue placeholder="Select one">
-                {(value: string | null) =>
-                  COMPANY_STAGE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {COMPANY_STAGE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PersonalizationQuestion
+        id="company-size"
+        htmlFor="targetCompanySize"
+        question="What size of company do you want to work for?"
+        payoff="Company and job suggestions lean toward the size you prefer."
+        optional
+      >
+        <Select name="targetCompanySize" defaultValue={profile.targetCompanySize ?? 'Any'}>
+          <SelectTrigger id="targetCompanySize" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) =>
+                value ? (value === 'Any' ? 'Any size' : `${value} employees`) : 'Select one'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {COMPANY_SIZE_OPTIONS.map((size) => (
+              <SelectItem key={size} value={size}>
+                {size === 'Any' ? 'Any size' : `${size} employees`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label htmlFor="remotePreference">
-          Location preference
-          {!profile.remotePreference && <UnansweredBadge />}
-        </Label>
+      <PersonalizationQuestion
+        id="company-stage"
+        htmlFor="targetCompanyStage"
+        question="What type of company do you want to work for?"
+        payoff="Company and job suggestions lean toward the type you prefer."
+        optional
+      >
+        <Select name="targetCompanyStage" defaultValue={profile.targetCompanyStage ?? 'any'}>
+          <SelectTrigger id="targetCompanyStage" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) =>
+                COMPANY_STAGE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {COMPANY_STAGE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PersonalizationQuestion>
+
+      <PersonalizationQuestion
+        id="location-preference"
+        htmlFor="remotePreference"
+        question="Where do you want to work?"
+        payoff="Job counts and matches reflect remote, hybrid or on-site roles near you."
+        badge={!profile.remotePreference && <UnansweredBadge />}
+      >
         <Select
           name="remotePreference"
           value={remotePreference}
@@ -335,13 +359,15 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label htmlFor="applicationVolumeGoal">
-          Applications per week you&apos;re aiming for{' '}
-          <span className="font-normal text-muted-foreground">(optional)</span>
-        </Label>
+      <PersonalizationQuestion
+        id="application-volume"
+        htmlFor="applicationVolumeGoal"
+        question="How many applications per week are you aiming for?"
+        payoff="Your weekly plan and progress tracking use your own target."
+        optional
+      >
         <Input
           id="applicationVolumeGoal"
           name="applicationVolumeGoal"
@@ -350,19 +376,26 @@ export function SearchStrategyForm({
           defaultValue={profile.applicationVolumeGoal ?? 15}
           className="w-32"
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <label className="flex items-start gap-2 text-sm">
-        <Checkbox
-          name="willingToFollowUpOnApplications"
-          value="on"
-          defaultChecked={profile.willingToFollowUpOnApplications ?? undefined}
-        />
-        <span>
-          I&apos;m willing to follow up on applications I&apos;ve submitted (a short note to a
-          recruiter or hiring manager a week or two after applying)
-        </span>
-      </label>
+      <PersonalizationQuestion
+        id="follow-up"
+        question="Will you follow up on applications you have submitted?"
+        payoff="Your coach can plan follow-up notes with you after you apply."
+        optional
+      >
+        <label className="flex items-start gap-2 text-sm">
+          <Checkbox
+            name="willingToFollowUpOnApplications"
+            value="on"
+            defaultChecked={profile.willingToFollowUpOnApplications ?? undefined}
+          />
+          <span>
+            I&apos;m willing to follow up on applications I&apos;ve submitted (a short note to a
+            recruiter or hiring manager a week or two after applying)
+          </span>
+        </label>
+      </PersonalizationQuestion>
 
       <div className="space-y-1 rounded-lg border border-border bg-muted/40 p-3">
         <Label className="text-sm font-semibold">References target</Label>
@@ -385,8 +418,13 @@ export function SearchStrategyForm({
         </Link>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
+      <PersonalizationQuestion
+        id="comp-minimum"
+        htmlFor="targetCompMin"
+        question="What is the minimum comp you are able to take?"
+        payoff="Pay comparisons and job matches use your real floor."
+        optional
+      >
         <div className="flex items-center gap-2">
           <div className="relative w-36">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -406,84 +444,94 @@ export function SearchStrategyForm({
             ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
           </span>
         </div>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-3">
-        <Label className="text-sm font-semibold">Flexibility</Label>
-        <div className="flex items-center gap-2">
-          <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
-          <Label htmlFor="compFlexible" className="font-normal">
-            I have flexibility on compensation
-          </Label>
+      <PersonalizationQuestion
+        id="flexibility"
+        question="Where are you flexible?"
+        payoff="You see roles that fit your real tradeoffs on pay, equity, relocation, travel and interim work."
+        optional
+      >
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
+            <Label htmlFor="compFlexible" className="font-normal">
+              I have flexibility on compensation
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="equityImportant"
+              name="equityImportant"
+              value="on"
+              defaultChecked={profile.equityImportant}
+            />
+            <Label htmlFor="equityImportant" className="font-normal">
+              Equity matters to me
+            </Label>
+          </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="openToRelocation"
+              name="openToRelocation"
+              value="on"
+              checked={openToRelocation}
+              onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
+            />
+            <Label htmlFor="openToRelocation" className="font-normal">
+              I&apos;m open to relocating for the right role
+            </Label>
+          </div>
+          {openToRelocation && (
+            <Textarea
+              name="relocationNotes"
+              placeholder="Relocation notes (optional)"
+              defaultValue={profile.relocationNotes ?? ''}
+              rows={2}
+            />
+          )}
+          <div className="flex items-start gap-2">
+            <Checkbox id="travelWillingness" name="travelWillingness" value="on" defaultChecked={profile.travelWillingness} />
+            <Label htmlFor="travelWillingness" className="font-normal">
+              I&apos;m willing to travel for a role (not the same as relocating)
+            </Label>
+          </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="interimConsultingInterest"
+              name="interimConsultingInterest"
+              defaultChecked={profile.interimConsultingInterest}
+            />
+            <Label htmlFor="interimConsultingInterest" className="font-normal">
+              I&apos;d consider fractional or interim consulting work while I search
+            </Label>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="equityImportant"
-            name="equityImportant"
-            value="on"
-            defaultChecked={profile.equityImportant}
-          />
-          <Label htmlFor="equityImportant" className="font-normal">
-            Equity matters to me
-          </Label>
-        </div>
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="openToRelocation"
-            name="openToRelocation"
-            value="on"
-            checked={openToRelocation}
-            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
-          />
-          <Label htmlFor="openToRelocation" className="font-normal">
-            I&apos;m open to relocating for the right role
-          </Label>
-        </div>
-        {openToRelocation && (
-          <Textarea
-            name="relocationNotes"
-            placeholder="Relocation notes (optional)"
-            defaultValue={profile.relocationNotes ?? ''}
-            rows={2}
-          />
-        )}
-        <div className="flex items-start gap-2">
-          <Checkbox id="travelWillingness" name="travelWillingness" value="on" defaultChecked={profile.travelWillingness} />
-          <Label htmlFor="travelWillingness" className="font-normal">
-            I&apos;m willing to travel for a role (not the same as relocating)
-          </Label>
-        </div>
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="interimConsultingInterest"
-            name="interimConsultingInterest"
-            defaultChecked={profile.interimConsultingInterest}
-          />
-          <Label htmlFor="interimConsultingInterest" className="font-normal">
-            I&apos;d consider fractional or interim consulting work while I search
-          </Label>
-        </div>
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label>
-          Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
-        </Label>
-        <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
+      <PersonalizationQuestion
+        id="tradeoffs"
+        question="What matters most to you right now?"
+        payoff="Your matches weigh what you rank first. Use the arrows to rank: 1 matters most, 5 matters least."
+        optional
+      >
         <TradeoffRanking profile={profile} />
-      </div>
+      </PersonalizationQuestion>
 
-      <div className="space-y-2">
-        <Label htmlFor="dealBreakers">
-          Are there any other important considerations for your next job? (optional)
-        </Label>
+      <PersonalizationQuestion
+        id="deal-breakers"
+        htmlFor="dealBreakers"
+        question="Is there anything else important for your next job?"
+        payoff="Your coach keeps your deal-breakers in mind when suggesting roles."
+        optional
+      >
         <Textarea
           id="dealBreakers"
           name="dealBreakers"
           rows={2}
           defaultValue={profile.dealBreakers ?? ''}
         />
-      </div>
+      </PersonalizationQuestion>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
