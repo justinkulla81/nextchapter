@@ -1,4 +1,5 @@
 import 'server-only'
+import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
@@ -253,12 +254,18 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 // The week's plan, by journey and stage (src/lib/journey/plan.ts): the
 // journey's own steps first, then the general menu below, without
 // application tasks outside an active search and with nothing while Paused.
-export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
+export async function getSuggestedActions(candidateId: string, weekNumber = 1, opts: { withNudges?: boolean } = {}): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
     prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
   ])
-  return p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+  const planned = p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+  // On screens only (never auto-committed by the cron or first sprint): two
+  // nudges from their profile (strengths, what to leave behind, how they
+  // like to work), text only.
+  if (!opts.withNudges) return planned
+  const nudges = await profileNudges(candidateId).catch(() => [])
+  return [...nudges.slice(0, 2).map((n) => ({ text: `${n.lead}: ${n.text}` })), ...planned]
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {

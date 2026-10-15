@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
+import { CoachProfileContextCard } from '@/components/coach/CoachProfileContext'
 import { notFound } from 'next/navigation'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
@@ -55,6 +57,9 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <Suspense fallback={null}>
+          <CoachProfileContextCard candidateId={candidate.id} />
+        </Suspense>
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment</p>
           <p className="mt-1 text-lg font-semibold text-foreground">

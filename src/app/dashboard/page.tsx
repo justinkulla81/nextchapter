@@ -165,7 +165,7 @@ export default async function DashboardPage() {
     computeProbabilityGrade(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber),
+    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
     hasStartedSprint(profile.id),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     // Prompt 60 — passive fallback for candidates whose consent was granted

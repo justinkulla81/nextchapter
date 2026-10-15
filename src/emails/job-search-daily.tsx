@@ -164,7 +164,7 @@ export default function JobSearchDailyEmail({
   appUrl,
   unsubscribeUrl,
 }: JobSearchDailyEmailProps) {
-  const { score, priorities, todos, applications, networking, jobs, companyMoves, article, unlock, action, quote } =
+  const { score, priorities, todos, applications, networking, jobs, companyMoves, article, unlock, action, quote, fromProfile } =
     content
   const pct = score && score.target > 0 ? Math.min(100, Math.round((score.earned / score.target) * 100)) : 0
   const newForYou = [...jobs.items, ...companyMoves, ...(article ? [article] : [])]
@@ -224,6 +224,22 @@ export default function JobSearchDailyEmail({
                 </li>
               ))}
             </ul>
+          </>
+        )}
+
+        {fromProfile && (
+          <>
+            <p style={label}>From your profile</p>
+            <p style={li}>
+              <strong>{fromProfile.title}.</strong>{' '}
+              {fromProfile.href ? (
+                <a href={fromProfile.href} style={itemLink}>
+                  {fromProfile.detail}
+                </a>
+              ) : (
+                fromProfile.detail
+              )}
+            </p>
           </>
         )}
 
