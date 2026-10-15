@@ -133,15 +133,41 @@ Onboarding feeds this: the Your goal answers decide which recruiters count as "f
 2. **Apply with Dossier.** Not in scope while exclusive jobs stay gated. Revisit if that changes.
 3. **Auto-apply for members.** Out of scope here. Recommendation is assisted apply (we prepare
    the packet, the member submits) as a separate project, not auto-submit.
-4. **Supporters** (new in the redesign): decide whether sign-up asks about them or leaves it to
+4. **Supporters** (new in the redesign): decided, sign-up does not ask. They stay with
    first-week day 1.
-5. **Friends and family tagging** for the scan and contacts: tag by relationship and exclude
-   from activity counts; not yet designed against the contacts data model.
+5. **Friends and family tagging**: decided, tag by relationship (family, friend, professional,
+   unknown) and exclude family and friends from activity counts and nudges, while keeping them
+   available as warm contacts. Built after the cards, against the contacts model. Not designed
+   in detail yet.
+6. **Google verification status.** Not recorded anywhere in the repo (`docs/SETUP.md` still
+   says no candidate OAuth is configured). Someone needs to check the Google Cloud Console.
+   Until it clears, the new sign-up flow ships behind a flag.
+
+## Spine gaps
+
+The journeys branch's spine has 33 signals in five groups (who, want, how, situation, proof).
+Most of the five cards map onto it directly: Your goal = `want`, Your plan = `how`, and the
+situation card = `situation`. But `proof` holds only the skills assessment, so these have no
+spine entry yet and need one (each with a `readBy` file, which the spine's own test enforces):
+resume, personality/working-style assessment, references, LinkedIn, screening answers (work
+authorization, background and drug test, non-compete), and interim-work availability. Adding
+them to the spine is part of building Your strengths, Your dealbreakers and Your people.
+
+## Built so far
+
+- `src/lib/google/grant.ts` (+ `src/test/google-grant.test.ts`, 11 tests): reads which scopes
+  Google actually granted and enforces personal-Gmail-only (Workspace accounts rejected by the
+  `hd` claim). The personal-only rule is off for existing Connect buttons and on for sign-up.
+- The existing combined Gmail + Calendar callback now checks the granted scopes before saving
+  either connection. Before this, unticking one box still created both. New error codes have
+  plain-language copy in `connect-error-copy.ts`. This is a behavior change on a live path.
 
 ## Build order
 
-1. Rebase on main plus the two branches; read the full spine.
-2. Join screen, scope check, personal-Gmail rule, reveal (behind a flag).
+1. Rebase on main plus the two branches once they merge (none had merged at last check; the
+   redesign branch was still moving). Spine read: done.
+2. Join screen, scope check (done), personal-Gmail rule (done, not yet used), reveal (behind a
+   flag).
 3. Your goal and Your plan cards, as the fast lane.
 4. Your dealbreakers, Your strengths, Your people.
 5. Effort fix, soft gates, retire the old pages and the no-op points.

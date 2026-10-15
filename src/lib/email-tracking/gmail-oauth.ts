@@ -108,6 +108,9 @@ interface GoogleTokenResponse {
   expires_in: number
   token_type: string
   scope: string
+  // Present because the scopes include openid; carries the account's email and
+  // (for Workspace accounts) the hd claim. See google/grant.ts.
+  id_token?: string
 }
 
 function requireCredentials(): { clientId: string; clientSecret: string } {

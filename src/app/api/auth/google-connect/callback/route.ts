@@ -16,6 +16,7 @@ import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 import { consumeOAuthReturnStateStrict } from '@/lib/google/oauth-return-path'
+import { checkGoogleGrant } from '@/lib/google/grant'
 
 // One token exchange grants both the Gmail and Calendar scopes (requested
 // together in buildCombinedGoogleAuthUrl), so this upserts both connection
@@ -63,6 +64,16 @@ export async function GET(request: NextRequest) {
     }
 
     const profile = await getOrCreateCandidateProfile(user.id)
+
+    // Google's consent screen lets a member untick Gmail or Calendar and still
+    // return a code. The token's own scope is the only truth, so check it
+    // before writing either connection row.
+    const grant = checkGoogleGrant({ scope: tokens.scope })
+    if (!grant.ok) {
+      captureServerEvent(profile.id, 'google_connect_missing_scope', { problem: grant.problem })
+      return NextResponse.redirect(new URL(`${returnTo}?gmailError=${grant.problem}`, request.url))
+    }
+
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
     // §4.6 hard block — same check as the Gmail-only callback, before
