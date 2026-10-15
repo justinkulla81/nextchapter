@@ -75,7 +75,7 @@ export async function generateNoteSummary(coachId: string, candidateId: string):
   const startOfDay = new Date()
   startOfDay.setUTCHours(0, 0, 0, 0)
   const run = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`note-summary:${coachId}`}))`)
+    await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`note-summary:${coachId}`}))`)
     const usedToday = await tx.coachNoteSummaryRun.count({ where: { coachId, createdAt: { gte: startOfDay } } })
     if (usedToday >= DAILY_SUMMARIES_PER_COACH) return null
     return tx.coachNoteSummaryRun.create({ data: { coachId, candidateId, inputChars: input.text.length, ok: false }, select: { id: true } })

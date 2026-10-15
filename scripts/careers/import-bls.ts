@@ -64,7 +64,7 @@ async function main() {
       if (dryRun) continue
       await prisma.occupation.updateMany({ where: { socCode: { in: targets } }, data: { medianWage: r.medianWage, employment: r.employment, wageYear } })
     }
-    console.log(`National: ${rows.length} rows read, ${matched} occupations updated.`)
+    console.log(`National: ${rows.length} rows read, ${matched} occupations ${dryRun ? 'would be' : ''} updated.`.replace('  ', ' '))
   }
 
   const areaFiles: [string | undefined, WageAreaType][] = [
@@ -111,7 +111,7 @@ async function main() {
         data: { growthPct: r.growthPct, annualOpenings: r.annualOpenings, typicalEducation: r.typicalEducation, projectionPeriod: r.period },
       })
     }
-    console.log(`Projections: ${rows.length} rows read, ${matched} occupations updated.`)
+    console.log(`Projections: ${rows.length} rows read, ${matched} occupations ${dryRun ? 'would be' : ''} updated.`.replace('  ', ' '))
   }
   if (dryRun) console.log('Dry run: nothing written.')
 }

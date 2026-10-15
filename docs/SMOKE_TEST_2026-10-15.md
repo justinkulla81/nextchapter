@@ -2,6 +2,10 @@
 
 Nothing in this release has run against a real database. Run this once after the SQL and data are loaded, with a real candidate account, a coach account that has that candidate as a client, and an outplacement org admin. Each step says what you should see and what a failure probably means.
 
+## Already tested on a scratch Postgres 16 (not your database)
+
+The seven SQL files ran cleanly twice in a row (so re-running is safe) and created 18 tables with row-level security on. The O*NET, BLS and training-list importers loaded fixture files and applied the white-collar scope, wage-ceiling flags and removal of withdrawn programs. The app's own code then read that data: a Cambridge, MA address resolved to the Boston metro and a pay comparison used metro figures on both sides. A booking race between two people gave one winner, a failed calendar call did not break the booking, and cancelling twice was handled. This also found and fixed a real bug (the booking lock call would have failed on first use). What this did not cover: real O*NET and BLS file sizes and layouts, the browser screens, Google Calendar, email, storage uploads and the AI calls.
+
 ## Before you start
 1. SQL applied (see `docs/RELEASE_2026-10-14.md`, plus `2026-10-15-career-local.sql`). Check that the tables exist, for example `Occupation`, `OccupationWage`, `ResumeDraft`, `DocumentRequest`, `CoachBooking`, `CoachNoteSummary`.
 2. Private storage bucket `requested-documents` exists.

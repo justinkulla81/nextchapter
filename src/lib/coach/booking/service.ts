@@ -125,7 +125,7 @@ export async function bookSlot(input: { coachId: string; candidateId: string; st
 
   const booked = await prisma.$transaction(
     async (tx) => {
-      await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${input.coachId}))`)
+      await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${input.coachId}))`)
       const settings = await tx.coachBookingSettings.findUnique({ where: { coachId: input.coachId } })
       if (!settings?.enabled) return { error: 'This coach is not taking bookings right now.' as const }
       const [windows, busy] = await Promise.all([
