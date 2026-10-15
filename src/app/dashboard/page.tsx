@@ -53,6 +53,8 @@ import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrateg
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { buildUnlockLadder } from '@/lib/unlocks/ladder'
+import { firstWeekStep } from '@/lib/onboarding/first-week'
+import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
@@ -292,6 +294,7 @@ export default async function DashboardPage() {
             : 'culture_survey'
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber }))
 
+  const firstWeek = firstWeekStep(profile.registrationCompletedAt)
   const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
   const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
 
@@ -339,6 +342,7 @@ export default async function DashboardPage() {
         }
       />
 
+      {firstWeek && <FirstWeekCard step={firstWeek} />}
       {noteKind === 'coaching_form' && <CoachingFormReminderCard />}
       {noteKind === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
       {noteKind === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}

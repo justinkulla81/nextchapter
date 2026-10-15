@@ -60,6 +60,7 @@ export const PLACES: Place[] = [
       { label: 'References', href: '/dashboard/references', alsoMatches: ['/dashboard/work-samples'] },
       { label: 'Community', href: '/dashboard/community', alsoMatches: ['/dashboard/circle'] },
       { label: 'Inbox', href: '/dashboard/messages' },
+      { label: 'My supporters', href: '/dashboard/supporters' },
       { label: 'My groups', href: '/dashboard/groups', alsoMatches: ['/dashboard/universities'] },
       { label: 'Recruiters and coaches', href: '/dashboard/recruiter-requests', alsoMatches: ['/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier', '/dashboard/premium'] },
     ],

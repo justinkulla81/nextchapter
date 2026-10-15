@@ -1755,6 +1755,7 @@ model CandidateProfile {
   inWorkFeedback      InWorkFeedback[]
   inWorkOutcomes      InWorkOutcome[]
   inWorkEmailSends    InWorkEmailSend[]
+  searchSupporters    SearchSupporter[]
 
   @@index([privacyTier])
   @@index([currentJobStatus])
@@ -14400,4 +14401,35 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// A person the member chose to keep them accountable: a friend, family member
+// or coach with no NextChapter login. They get a weekly summary of effort only
+// (minutes, days active, counts; never names, jobs or messages) and can send a
+// short cheer. Never available in Confidential Search Mode.
+model SearchSupporter {
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name         String
+  email        String
+  token        String           @unique @default(cuid())
+  createdAt    DateTime         @default(now())
+  revokedAt    DateTime?
+  lastDigestAt DateTime?
+  cheers       SupporterCheer[]
+
+  @@unique([candidateId, email])
+  @@index([candidateId])
+}
+
+model SupporterCheer {
+  id          String          @id @default(cuid())
+  supporterId String
+  supporter   SearchSupporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+  message     String
+  createdAt   DateTime        @default(now())
+  seenAt      DateTime?
+
+  @@index([supporterId, createdAt])
 }
