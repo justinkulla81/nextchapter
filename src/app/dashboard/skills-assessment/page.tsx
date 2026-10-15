@@ -5,6 +5,8 @@ import { SkillsAssessmentForm } from '@/components/dashboard/SkillsAssessmentFor
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SkillMatrix } from '@/components/dashboard/SkillMatrix'
 import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
+import { LikesCard } from '@/components/dashboard/LikesCard'
+import { readLikes } from '@/lib/profile/work-profile'
 import { buildSkillMatrix, readSkillLevels } from '@/lib/profile/skill-matrix'
 
 export const metadata: Metadata = { title: 'Skills Inventory' }
@@ -46,6 +48,8 @@ export default async function SkillsAssessmentPage() {
       </Card>
 
       <WorkStylePrompt candidateId={profile.id} all />
+
+      <LikesCard initial={readLikes(profile.workStyleAnswers)} />
 
       <Card>
         <CardHeader>

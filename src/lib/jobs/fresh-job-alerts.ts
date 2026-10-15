@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { classifyWorkType } from '@/lib/jobs/work-type'
 import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
@@ -61,8 +62,10 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     where: postedWithinWhere(WINDOW_HOURS),
     size: 30,
     fitScoring,
-    // Mid-level jobs stay out of emails until the owner turns on MID_LEVEL_IN_EMAILS.
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
   })
   const [alerted, shownDaily] = await Promise.all([
     prisma.freshJobAlertSend.findMany({ where: { candidateId }, select: { postingId: true } }),

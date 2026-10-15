@@ -48,6 +48,7 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
       badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
     },
     { href: '/support/coach/invite-client', label: 'Invite a client' },
+    { href: '/support/coach/access', label: 'Codes and sessions' },
     { href: `/support/coach/invite/${accessToken}`, label: 'Share invite link' },
     { href: '/support/coach/settings', label: 'Settings' },
   ]

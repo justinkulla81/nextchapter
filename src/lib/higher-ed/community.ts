@@ -5,6 +5,7 @@
 // are their own choice: the directory lists only those who opted in, and
 // titles and employers only for alumni who share their outcome.
 
+import { peopleWhoWorkLikeYou } from '@/lib/profile/people-like-you'
 import 'server-only'
 import { Prisma, type JourneyType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -216,7 +217,7 @@ export async function isGroupLeader(groupId: string, memberId: string) {
 // say nothing. (Work interests, the RIASEC module, can join this once it's
 // built in NextChapter.)
 export async function peopleLikeYou(institutionId: string, memberId: string) {
-  const me = await prisma.institutionMember.findUnique({ where: { id: memberId }, select: { major: true, candidate: { select: { primaryFunction: true } } } })
+  const me = await prisma.institutionMember.findUnique({ where: { id: memberId }, select: { major: true, candidateId: true, candidate: { select: { primaryFunction: true } } } })
   if (!me) return null
   const fn = me.candidate?.primaryFunction ?? null
   const rows = await prisma.$queryRaw<{ title: string | null; employer: string | null; journey: JourneyType | null; sameMajor: boolean; sameFunction: boolean }[]>`
@@ -236,7 +237,17 @@ export async function peopleLikeYou(institutionId: string, memberId: string) {
   const major = rows.filter((r) => r.sameMajor)
   const func = rows.filter((r) => r.sameFunction)
   const changers = func.filter((r) => r.journey === 'CAREER_CHANGE')
+  // Alumni who work like you (ten-dimension work profile), from alumni who share their outcome.
+  const workAlike = me.candidateId
+    ? await prisma.$queryRaw<{ candidateId: string; title: string | null; employer: string | null }[]>`
+        select m."candidateId", d.title, d.employer from public."InstitutionMember" m
+        join private.v_member_directory d on d."memberId" = m.id
+        where m."institutionId" = ${institutionId} and m.id <> ${memberId} and m."candidateId" is not null and d."shareOutcome"`
+        .then((pool) => peopleWhoWorkLikeYou(me.candidateId!, pool))
+        .catch(() => null)
+    : null
   return {
+    workAlike,
     major: me.major,
     fn,
     majorCount: major.length >= MIN_CELL_SIZE ? major.length : null,

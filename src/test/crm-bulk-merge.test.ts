@@ -6,7 +6,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: { crmPerson: { findMany } } }))
 vi.mock('@/lib/admin/auth', () => ({ requireAdmin: async () => ({ email: 'admin@example.com' }) }))
 vi.mock('@/lib/crm/merge-person', () => ({ mergePersonRecords }))
 vi.mock('@/lib/posthog/server', () => ({ captureServerEvent: vi.fn() }))
-vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
+vi.mock('next/cache', async (importOriginal) => ({ ...(await importOriginal<typeof import('next/cache')>()), revalidatePath: vi.fn() }))
 // Imported by actions.ts but unused by the merge path; stubbed so the module
 // loads without their own server-side dependencies.
 vi.mock('@/lib/candidates/invite', () => ({}))

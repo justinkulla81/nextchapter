@@ -10,6 +10,9 @@ import { PivotPathsList } from '@/components/dashboard/pivots/PivotPathsList'
 import { PeopleEnergyQuestion } from '@/components/dashboard/pivots/PeopleEnergyQuestion'
 import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 import { readSearchExpansion } from '@/lib/profile/search-expansion'
+import { readLikes } from '@/lib/profile/work-profile'
+import { LikesCard } from '@/components/dashboard/LikesCard'
+import { WorkAlikeCard } from '@/components/dashboard/WorkAlikeCard'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -89,6 +92,12 @@ async function PivotPathsBody({ profile }: { profile: Awaited<ReturnType<typeof 
       </p>
 
       <PeopleEnergyQuestion current={result.energy} source={result.energySource} />
+
+      <LikesCard initial={readLikes(profile.workStyleAnswers)} />
+
+      <Suspense fallback={null}>
+        <WorkAlikeCard candidateId={profile.id} />
+      </Suspense>
 
       <WorkStylePrompt candidateId={profile.id} limit={4} />
 

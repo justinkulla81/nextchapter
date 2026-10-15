@@ -5,6 +5,7 @@ import { getWeeklyOutcomes } from '@/lib/weekly/outcomes'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { postedAgo } from '@/lib/jobs/competition'
@@ -86,8 +87,10 @@ async function findNewStrongFitJobs(
     where: postedWithinWhere(WINDOW_DAYS * 24),
     size: SHORTLIST_SIZE,
     fitScoring,
-    // Mid-level jobs stay out of emails until the owner turns on MID_LEVEL_IN_EMAILS.
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
   })
   return emailSafeJobs(board.open)
     .filter((p) => !trackedUrls.has(normalizeUrl(p.url) ?? ''))

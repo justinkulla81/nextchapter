@@ -59,6 +59,8 @@
     "report:index": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_white_collar_index.py --start 2015-01 --out public/reports/wc-index.csv",
     "report:companions": "node --env-file=.env.local scripts/displacement/run-python.mjs scripts/displacement/nc_openings_and_aiwashing.py --db $HOME/nextchapter-jobs/data/jobs.db",
     "report:chart-post": "tsx scripts/reports/monthly-chart-post.ts",
+    "report:refresh-trends": "tsx scripts/reports/refresh-trends-data.ts",
+    "report:check-facts": "tsx scripts/reports/check-report-facts.ts",
     "report:news": "tsx --env-file=.env.local scripts/displacement/add-news-item.ts",
     "report:indexnow": "tsx --env-file=.env.local scripts/displacement/indexnow.ts",
     "seed:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/seed-demo.ts",

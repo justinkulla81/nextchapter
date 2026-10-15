@@ -12,6 +12,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import {
   addLearnerForm,
+  uploadLearnersForm,
   addOfficeHoursForm,
   answerAlumniIntroAction,
   askForAlumniIntro,
@@ -60,32 +61,37 @@ const PURPOSES = [
   ['applying', 'Applying'],
   ['interviewing', 'Interviewing'],
   ['offer', 'Weighing an offer'],
+  ['referral', 'Asking for a referral'],
 ] as const
 
 export function AskIntro({ slug, targetMemberId, companyName, name }: { slug: string; targetMemberId: string; companyName: string; name: string }) {
   const [open, setOpen] = useState(false)
   const [purpose, setPurpose] = useState<string>('applying')
   const [note, setNote] = useState('')
+  const [jobUrl, setJobUrl] = useState('')
   const { pending, r, run } = useRun()
   if (r?.ok) return <Msg r={r} />
   if (!open)
     return (
       <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-        Ask {name.split(' ')[0]} for 15 minutes
+        Ask {name.split(' ')[0]} for 15 minutes or a referral
       </Button>
     )
   return (
     <div className={cn('w-full space-y-2', pending && 'cursor-wait')}>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Why you're asking">
+      <select aria-label="Why you're asking" className={sel} value={purpose} onChange={(e) => setPurpose(e.target.value)}>
         {PURPOSES.map(([k, l]) => (
-          <Button key={k} type="button" size="sm" role="radio" aria-checked={purpose === k} variant={purpose === k ? 'default' : 'outline'} onClick={() => setPurpose(k)}>
+          <option key={k} value={k}>
             {l}
-          </Button>
+          </option>
         ))}
-      </div>
+      </select>
+      {purpose === 'referral' && (
+        <input aria-label="Link to the job" type="url" className={sel} placeholder="Link to the job you want to be referred for (https://…)" value={jobUrl} onChange={(e) => setJobUrl(e.target.value)} />
+      )}
       <textarea aria-label="A short note" className={area} placeholder="What you’d like to ask, in a sentence or two." value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
       <div className="flex gap-2">
-        <Button size="sm" disabled={pending} onClick={() => run(() => askForAlumniIntro(slug, targetMemberId, companyName, purpose, note))}>
+        <Button size="sm" disabled={pending} onClick={() => run(() => askForAlumniIntro(slug, targetMemberId, companyName, purpose, note, purpose === 'referral' ? jobUrl : null))}>
           {pending ? 'Sending…' : 'Send request'}
         </Button>
         <Button size="sm" variant="ghost" disabled={pending} onClick={() => setOpen(false)}>
@@ -543,6 +549,64 @@ export function RapidResponseForm(props: { slug: string; warnNoticeId: string | 
       </fieldset>
       <div className="flex items-center gap-3">
         <SubmitButton pendingLabel="Creating…">Create the offer and sign-up page</SubmitButton>
+        <Msg r={state} />
+      </div>
+    </form>
+  )
+}
+
+export function LearnerUploadForm({ slug, cohorts, clients }: { slug: string; cohorts: { id: string; label: string }[]; clients: { id: string; name: string }[] }) {
+  const [state, action] = useActionState<FormResult, FormData>(uploadLearnersForm.bind(null, slug), undefined)
+  const [cohortId, setCohortId] = useState(cohorts[0]?.id ?? '')
+  const [payer, setPayer] = useState('EMPLOYER')
+  const [clientId, setClientId] = useState(clients[0]?.id ?? '')
+  if (!cohorts.length) return null
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="lu-cohort">Cohort</Label>
+        <select id="lu-cohort" name="cohortId" className={sel} value={cohortId} onChange={(e) => setCohortId(e.target.value)}>
+          {cohorts.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <fieldset className="space-y-1.5">
+        <legend className="text-sm font-medium">Who pays, when the row doesn’t say</legend>
+        <input type="hidden" name="payer" value={payer} />
+        <div className="flex flex-wrap gap-1">
+          {[
+            ['EMPLOYER', 'Employer'],
+            ['SELF_PAY', 'Self-pay'],
+            ['WIOA_VOUCHER', 'WIOA'],
+          ].map(([k, l]) => (
+            <Button key={k} type="button" size="sm" variant={payer === k ? 'default' : 'outline'} aria-pressed={payer === k} onClick={() => setPayer(k)}>
+              {l}
+            </Button>
+          ))}
+        </div>
+      </fieldset>
+      {payer === 'EMPLOYER' && clients.length > 0 && (
+        <div className="space-y-1.5">
+          <Label htmlFor="lu-client">Corporate client</Label>
+          <select id="lu-client" name="clientId" className={sel} value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div className="space-y-1.5 sm:col-span-3">
+        <Label htmlFor="lu-file">CSV file</Label>
+        <Input id="lu-file" name="file" type="file" accept=".csv,text/csv" required />
+        <p className="text-xs text-muted-foreground">Columns: email, first_name, last_name; optional payer (EMPLOYER, SELF_PAY, WIOA_VOUCHER, BOARD_CONTRACT) and employer (a corporate client’s name). Up to 2,000 rows.</p>
+      </div>
+      <div className="flex items-center gap-3 sm:col-span-3">
+        <SubmitButton pendingLabel="Uploading…">Upload learners</SubmitButton>
         <Msg r={state} />
       </div>
     </form>

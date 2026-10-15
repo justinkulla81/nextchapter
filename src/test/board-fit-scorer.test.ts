@@ -111,13 +111,14 @@ describe('role families', () => {
 describe('board filters answered in memory', () => {
   const row = (level: string | null) => ({ level })
   it('level window and level lists match the SQL Prisma writes', () => {
-    const exclMid = levelOnlyFilter(boardLevelWindowWhere(undefined, false))!
+    const exclMid = levelOnlyFilter(boardLevelWindowWhere(undefined))!
     expect(exclMid(row(null))).toBe(true)
     expect(exclMid(row('VP'))).toBe(true)
     expect(exclMid(row('MID_IC'))).toBe(false)
-    expect(levelOnlyFilter(boardLevelWindowWhere(undefined, true))!(row('MID_IC'))).toBe(true)
-    expect(levelOnlyFilter(boardLevelWindowWhere({}, true))!(row(null))).toBe(true)
-    const list = levelOnlyFilter(boardLevelWindowWhere({ level: { in: ['VP', 'MID_IC'] } }, false))!
+    expect(exclMid(row('ENTRY_IC'))).toBe(false)
+    expect(levelOnlyFilter(boardLevelWindowWhere(undefined, { includeMidLevel: true }))!(row('MID_IC'))).toBe(true)
+    expect(levelOnlyFilter(boardLevelWindowWhere({}, { includeMidLevel: true }))!(row(null))).toBe(true)
+    const list = levelOnlyFilter(boardLevelWindowWhere({ level: { in: ['VP', 'MID_IC'] } }))!
     expect(list(row('VP'))).toBe(true)
     expect(list(row('MID_IC'))).toBe(false) // the window still applies
     expect(list(row(null))).toBe(false) // SQL IN never matches NULL
@@ -129,7 +130,8 @@ describe('board filters answered in memory', () => {
     expect(levelOnlyFilter({ createdAt: { gte: new Date() } })).toBeNull()
     expect(levelOnlyFilter({ AND: [{}, { postedAt: null }] })).toBeNull()
     expect(levelOnlyFilter({ level: 'VP' })).toBeNull()
-    expect(levelOnlyFilter({ OR: [{ level: null }] })).toBeNull()
+    expect(levelOnlyFilter({ OR: [{ title: 'x' }] })).toBeNull()
+    expect(levelOnlyFilter({ OR: [] })).toBeNull()
     expect(levelOnlyFilter({ level: { in: ['VP'] }, title: 'x' })).toBeNull()
   })
 
@@ -163,11 +165,12 @@ describe('email date windows answered from the shared board', () => {
 
   it('splits the email wheres (with and without the mid-level window) into level part + window', () => {
     for (const w of [postedWithinWhere(72), { createdAt: { gte: h(24) } }]) {
-      const withWindow = splitBoardWhere(boardLevelWindowWhere(w, false))!
+      const withWindow = splitBoardWhere(boardLevelWindowWhere(w))!
       expect(withWindow.windows).toHaveLength(1)
       expect(levelOnlyFilter(withWindow.levelWhere)!({ level: 'MID_IC' })).toBe(false)
-      const midIncluded = splitBoardWhere(boardLevelWindowWhere(w, true))!
-      expect(midIncluded.levelWhere).toBeUndefined()
+      expect(levelOnlyFilter(withWindow.levelWhere)!({ level: 'EARLY_IC' })).toBe(false)
+      const midIncluded = splitBoardWhere(boardLevelWindowWhere(w, { includeMidLevel: true }))!
+      expect(levelOnlyFilter(midIncluded.levelWhere)!({ level: 'MID_IC' })).toBe(true)
       expect(midIncluded.windows).toHaveLength(1)
     }
   })

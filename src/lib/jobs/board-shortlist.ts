@@ -13,7 +13,7 @@ import { classifyLocation } from '@/lib/jobs/us-location'
 import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
-import { EXCLUDE_MID_LEVEL_WHERE, MID_LEVEL_RUNG } from '@/lib/jobs/mid-level'
+import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { classifyWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 
@@ -81,14 +81,10 @@ function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): Light
 // next. Sorted by id, the same board always ranks the same way.
 const byId = (a: LightRow, b: LightRow) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 
-let shared: { at: number; rows: Promise<LightRow[]> } | null = null
-let loading: Promise<LightRow[]> | null = null
-
-// The previous load's rows by id. A reload hands back the previous object for any
-// row that hasn't changed, so the per-row work memoised on it (rowFacts, the fit
-// scorer's posting side — ~2-3 s for the whole board) is only redone for rows
-// that did change.
-let previousById = new Map<string, LightRow>()
+// The previous load's rows by id (per shared board). A reload hands back the
+// previous object for any row that hasn't changed, so the per-row work memoised
+// on it (rowFacts, the fit scorer's posting side — ~2-3 s for the whole board)
+// is only redone for rows that did change.
 const LIGHT_KEYS = Object.keys(LIGHT_SELECT) as (keyof LightRow)[]
 function sameRow(a: LightRow, b: LightRow): boolean {
   for (const k of LIGHT_KEYS) {
@@ -118,40 +114,77 @@ function internRepeated(rows: LightRow[]): void {
   }
 }
 
-function reuseUnchanged(rows: LightRow[]): LightRow[] {
+function reuseUnchanged(rows: LightRow[], previous: Map<string, LightRow>): { rows: LightRow[]; byId: Map<string, LightRow> } {
   internRepeated(rows)
   const kept = new Map<string, LightRow>()
   const out = rows.map((r) => {
-    const before = previousById.get(r.id)
+    const before = previous.get(r.id)
     const keep = before && sameRow(before, r) ? before : r
     kept.set(keep.id, keep)
     return keep
   })
-  previousById = kept
-  return out
+  return { rows: out, byId: kept }
 }
 
-function loadSharedBoard(closedCounts: Map<string, number>): Promise<LightRow[]> {
-  const now = Date.now()
-  if (shared && now - shared.at < LIGHT_TTL_MS) return shared.rows
-  if (!loading) {
-    const started = now
-    const next = (async () => reuseUnchanged(keepRelevant(await findLightRows(liveBoardWhere()), closedCounts).sort(byId)))()
-    loading = next
-    next.then(
-      () => {
-        shared = { at: started, rows: next }
-        loading = null
-      },
-      (error) => {
-        console.error('Board light rows: load failed', error)
-        loading = null
-      }
-    )
+// Two shared boards: the core one (everything but the early-career rungs) that
+// every view reads, and the early-career one (ENTRY_IC, EARLY_IC), loaded only
+// when a view's level window includes those rungs — so members who never see
+// early-career jobs, and every email path, don't pay to load them.
+function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string): (closedCounts: Map<string, number>) => Promise<LightRow[]> {
+  let shared: { at: number; rows: Promise<LightRow[]> } | null = null
+  let loading: Promise<LightRow[]> | null = null
+  let previousById = new Map<string, LightRow>()
+  return (closedCounts) => {
+    const now = Date.now()
+    if (shared && now - shared.at < LIGHT_TTL_MS) return shared.rows
+    if (!loading) {
+      const started = now
+      const next = (async () => {
+        const out = reuseUnchanged(keepRelevant(await findLightRows(liveBoardWhere(extra)), closedCounts).sort(byId), previousById)
+        previousById = out.byId
+        return out.rows
+      })()
+      loading = next
+      next.then(
+        () => {
+          shared = { at: started, rows: next }
+          loading = null
+        },
+        (error) => {
+          console.error(`Board light rows (${name}): load failed`, error)
+          loading = null
+        }
+      )
+    }
+    // Past the minute: the held copy, while the new one loads.
+    if (shared && now - shared.at < SHARED_STALE_MS) return shared.rows
+    return loading
   }
-  // Past the minute: the held copy, while the new one loads.
-  if (shared && now - shared.at < SHARED_STALE_MS) return shared.rows
-  return loading
+}
+
+const loadCoreBoard = sharedBoard({ OR: [{ level: null }, { level: { notIn: EARLY_CAREER_RUNGS } }] }, 'core')
+const loadEarlyCareerBoard = sharedBoard({ level: { in: EARLY_CAREER_RUNGS } }, 'early career')
+
+// Both boards in one id-sorted array, kept while neither changes (so subsets cut
+// from it are reused too).
+let merged: { core: LightRow[]; early: LightRow[]; rows: LightRow[] } | null = null
+function mergeById(core: LightRow[], early: LightRow[]): LightRow[] {
+  if (merged && merged.core === core && merged.early === early) return merged.rows
+  const rows: LightRow[] = new Array(core.length + early.length)
+  let i = 0
+  let j = 0
+  let k = 0
+  while (i < core.length && j < early.length) rows[k++] = byId(core[i], early[j]) <= 0 ? core[i++] : early[j++]
+  while (i < core.length) rows[k++] = core[i++]
+  while (j < early.length) rows[k++] = early[j++]
+  merged = { core, early, rows }
+  return rows
+}
+
+async function loadSharedBoard(closedCounts: Map<string, number>, withEarlyCareer: boolean): Promise<LightRow[]> {
+  if (!withEarlyCareer) return loadCoreBoard(closedCounts)
+  const [core, early] = await Promise.all([loadCoreBoard(closedCounts), loadEarlyCareerBoard(closedCounts)])
+  return mergeById(core, early)
 }
 
 // Subsets of the shared board, by filter key, so a view's array (and everything
@@ -196,11 +229,29 @@ export function levelOnlyFilter(where: Prisma.ExclusiveJobPostingWhereInput | un
     }
     return null
   }
-  // EXCLUDE_MID_LEVEL_WHERE: no level, or any level but mid-level.
-  if (keys[0] === 'OR' && JSON.stringify(where) === JSON.stringify(EXCLUDE_MID_LEVEL_WHERE)) {
-    return (p) => p.level === null || p.level !== MID_LEVEL_RUNG
+  // An OR of level conditions — a stage window (career-stage.ts stageWindowWhere:
+  // no level, or a level in the window) or EXCLUDE_MID_LEVEL_WHERE.
+  if (keys[0] === 'OR') {
+    const parts = (Array.isArray(where.OR) ? where.OR : [where.OR]) as Prisma.ExclusiveJobPostingWhereInput[]
+    const filters = parts.map(levelCondition)
+    if (filters.length === 0 || filters.some((f) => f === null)) return null
+    return (p) => filters.some((f) => f!(p))
   }
   return null
+}
+
+// One OR branch: { level: null }, { level: { not: X } } (SQL: a job with no level
+// never matches), or anything levelOnlyFilter answers.
+function levelCondition(where: Prisma.ExclusiveJobPostingWhereInput): ((p: { level: string | null }) => boolean) | null {
+  if (where && typeof where === 'object' && Object.keys(where).length === 1 && 'level' in where) {
+    const level = where.level
+    if (level === null) return (p) => p.level === null
+    if (level && typeof level === 'object' && Object.keys(level).length === 1 && typeof (level as { not?: unknown }).not === 'string') {
+      const not = (level as { not: string }).not
+      return (p) => p.level !== null && p.level !== not
+    }
+  }
+  return levelOnlyFilter(where)
 }
 
 /** postedWithinWhere(hours) in memory: posted in the window, or (no posting date) imported in it. */
@@ -275,8 +326,10 @@ async function loadLightBoardRows(
 ): Promise<LightRow[]> {
   const split = splitBoardWhere(where)
   if (split) {
-    const all = await loadSharedBoard(closedCounts)
-    const byLevel = subsetOf(all, JSON.stringify(split.levelWhere ?? null), levelOnlyFilter(split.levelWhere)!)
+    const keep = levelOnlyFilter(split.levelWhere)!
+    const withEarlyCareer = EARLY_CAREER_RUNGS.some((level) => keep({ level }))
+    const all = await loadSharedBoard(closedCounts, withEarlyCareer)
+    const byLevel = subsetOf(all, JSON.stringify(split.levelWhere ?? null), keep)
     const windows = [...split.windows, ...(postedWithinHours === undefined ? [] : [postedWithinFilter(postedWithinHours)])]
     if (windows.length === 0) return byLevel
     // A window moves every call, so this cut isn't kept.
@@ -396,6 +449,14 @@ export async function loadBoardShortlist(opts: {
   fitScoring?: FitScoringVersion
   /** Include mid-level (MID_IC) jobs. Off by default — every email path relies on that (mid-level.ts). */
   includeMidLevel?: boolean
+  /** Include early-career (ENTRY_IC, EARLY_IC) jobs. Off by default — every email path relies on that. */
+  includeEarlyCareer?: boolean
+  /**
+   * The ladder window to show (career-stage.ts). Omitted: the candidate's own
+   * stage window (their stage, one up, one down), or every stage with no candidate.
+   * An explicit seniority-filter choice passes ALL_STAGES_WINDOW and its own where.
+   */
+  stageWindow?: StageWindow
   /** One-board work types to keep; omitted keeps every type (emails, reports). */
   workTypes?: WorkType[]
   /**
@@ -417,7 +478,9 @@ export async function loadBoardShortlist(opts: {
   // in the database — this filters the view, it deletes nothing — and the board
   // totals below are computed over what is kept, so they match what is shown.
   // The level window is part of the filter (and so of the light-row cache key).
-  const light = await loadLightBoardRows(boardLevelWindowWhere(opts.where, opts.includeMidLevel), closedCounts, opts.postedWithinHours)
+  const window = opts.stageWindow ?? (opts.candidate ? memberStageWindow(opts.candidate) : ALL_STAGES_WINDOW)
+  const levelWhere = boardLevelWindowWhere(opts.where, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
+  const light = await loadLightBoardRows(levelWhere, closedCounts, opts.postedWithinHours)
   const ranked = rankBoardRows(light, opts)
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
@@ -436,12 +499,17 @@ export async function loadBoardShortlist(opts: {
   }
 }
 
-/** The board query's level window: mid-level (MID_IC) jobs only when asked for. */
+/**
+ * The board query's level window: the stage window's rungs (jobs with no level
+ * always stay in), less mid-level (MID_IC) and early-career (ENTRY_IC, EARLY_IC)
+ * jobs unless asked for. Part of the light-row filter and so of its cache key.
+ */
 export function boardLevelWindowWhere(
   where: Prisma.ExclusiveJobPostingWhereInput | undefined,
-  includeMidLevel?: boolean
-): Prisma.ExclusiveJobPostingWhereInput | undefined {
-  return includeMidLevel ? where : { AND: [where ?? {}, EXCLUDE_MID_LEVEL_WHERE] }
+  opts: { window?: StageWindow; includeMidLevel?: boolean; includeEarlyCareer?: boolean } = {}
+): Prisma.ExclusiveJobPostingWhereInput {
+  const exclude = [...(opts.includeMidLevel ? [] : MID_LEVEL_RUNGS), ...(opts.includeEarlyCareer ? [] : EARLY_CAREER_RUNGS)]
+  return { AND: [where ?? {}, stageWindowWhere(opts.window ?? ALL_STAGES_WINDOW, exclude)] }
 }
 
 export type BoardRankRow = LightRow

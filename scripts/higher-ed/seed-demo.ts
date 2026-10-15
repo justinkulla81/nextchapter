@@ -15,7 +15,7 @@ async function main() {
   for (const slug of slugs) {
     const tenant = DEMO_TENANTS[slug]
     if (!tenant) throw new Error(`No demo fixture "${slug}". Known: ${Object.keys(DEMO_TENANTS).join(', ')}`)
-    const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 120_000, maxWait: 20_000 })
+    const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 600_000, maxWait: 20_000 })
     const sample = await seedDemoContent(result.institutionId, 'demo-seed')
     console.log(`Seeded /i/${slug}:`, { ...result, sampleJobs: sample.jobs, targetCompanies: sample.targets })
   }

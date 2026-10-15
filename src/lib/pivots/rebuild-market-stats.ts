@@ -1,4 +1,7 @@
 import 'server-only'
+import { isGenericTitle, roleFromDescription, roleFromFunction } from './pivot-map'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { rolesForTitle } from './market-stats'
 import { prisma } from '@/lib/prisma'
 import { aggregateMarketRows, type MarketInputRow } from './market-stats'
 
@@ -49,6 +52,19 @@ export async function rebuildPivotMarketStats(now = new Date()): Promise<{ rowsR
     rows.push(...page)
     if (page.length < PAGE_SIZE) break
     cursor = page[page.length - 1].id
+  }
+
+  // Generic titles ("Director", "Manager"): read the start of the description
+  // to place them (about a quarter of the board).
+  // Titles no role pattern matches: the board's function classifier first, then
+  // (bare "Director"/"Manager") the description.
+  for (const r of rows) if (rolesForTitle(r.title).length === 0) r.roleHint = roleFromFunction(inferFunctionFromTitle(r.title))
+  const generic = rows.filter((r) => !r.roleHint && isGenericTitle(r.title) && rolesForTitle(r.title).length === 0)
+  for (let i = 0; i < generic.length; i += 1000) {
+    const ids = generic.slice(i, i + 1000).map((r) => r.id)
+    const descs = await prisma.$queryRaw<{ id: string; d: string | null }[]>`select id, left(description, 2000) as d from public."ExclusiveJobPosting" where id = any(${ids})`
+    const byId = new Map(descs.map((x) => [x.id, x.d]))
+    for (const r of generic.slice(i, i + 1000)) r.roleHint = roleFromDescription(byId.get(r.id))
   }
 
   const stats = aggregateMarketRows(rows, now)

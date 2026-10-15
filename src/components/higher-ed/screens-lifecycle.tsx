@@ -3,6 +3,7 @@
 // milestones, what grads with my major do). Staff: events, segments,
 // milestones, the board report. Workforce: ETPL helper and rapid response.
 
+import { MarkReferred } from './ConnectForms'
 import Link from 'next/link'
 import { ArrowRight, CalendarDays, Clock, Landmark, Megaphone, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -151,6 +152,11 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
                   <span className="font-medium">{r.name}</span> · {r.purpose.toLowerCase()} at {r.companyName}
                 </p>
                 {r.note && <p className="text-xs text-muted-foreground">&ldquo;{r.note}&rdquo;</p>}
+                {r.referral && r.referralJobUrl && (
+                  <a href={r.referralJobUrl} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
+                    The role they want to be referred for
+                  </a>
+                )}
                 {canAct && <AnswerIntro slug={slug} requestId={r.id} />}
               </li>
             ))}
@@ -229,7 +235,9 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
                     {s.name} at {s.companyName}
                   </span>
                   <span className="text-muted-foreground">
-                    {s.status === 'ACCEPTED' && s.email ? (
+                    {s.referral && s.referred ? (
+                      'Referred'
+                    ) : s.status === 'ACCEPTED' && s.email ? (
                       <a href={`mailto:${s.email}`} className="text-primary hover:underline">
                         {s.email}
                       </a>
@@ -246,13 +254,16 @@ export async function CandidateNetwork({ ctx, searchParams }: Props) {
                 .map((r) => (
                   <li key={r.id} className="flex flex-wrap justify-between gap-2 p-3">
                     <span>
-                      {r.name} asked about {r.companyName}
+                      {r.name} asked {r.referral ? 'for a referral' : 'about'} {r.referral ? `at ${r.companyName}` : r.companyName}
                     </span>
-                    {r.email && (
-                      <a href={`mailto:${r.email}`} className="text-primary hover:underline">
-                        {r.email}
-                      </a>
-                    )}
+                    <span className="flex flex-wrap items-center gap-2">
+                      {r.email && (
+                        <a href={`mailto:${r.email}`} className="text-primary hover:underline">
+                          {r.email}
+                        </a>
+                      )}
+                      {r.referral && (r.referred ? <span className="text-muted-foreground">Referred</span> : canAct ? <MarkReferred slug={slug} introId={r.id} /> : null)}
+                    </span>
                   </li>
                 ))}
             </ul>
