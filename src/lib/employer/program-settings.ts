@@ -93,14 +93,25 @@ export const PROGRAM_FEATURES: ProgramFeature[] = [
 export type Provider = 'nextchapter' | 'own'
 export type ServiceChoice = { on: boolean; provider: Provider; url: string | null; note: string | null }
 export type ProgramPackage = { key: string; name: string; services: ProgramFeatureKey[] }
+export type ProgramBrand = { logoUrl: string | null; accentColor: string | null }
 export type ProgramSettings = {
   welcome: string | null
+  /** The company's look on its people's dashboards. Kept in this JSON, so it needs no schema change. */
+  brand: ProgramBrand
   services: Record<ProgramFeatureKey, ServiceChoice>
   packages: ProgramPackage[]
   comms: CensusComms
 }
 
 export const EVERYONE = 'all'
+
+export function cleanBrandColor(value: unknown): string | null {
+  return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? value.trim().toUpperCase() : null
+}
+
+function cleanBrandLogo(value: unknown): string | null {
+  return typeof value === 'string' && /^https:\/\/\S+$/.test(value.trim()) ? value.trim() : null
+}
 
 export function tierIncludes(tier: OutplacementTier | null, key: ProgramFeatureKey): boolean {
   const f = PROGRAM_FEATURES.find((x) => x.key === key)
@@ -113,7 +124,7 @@ function defaultChoice(f: ProgramFeature): ServiceChoice {
 }
 
 export function readProgramSettings(json: unknown): ProgramSettings {
-  const o = (json ?? {}) as { features?: Record<string, unknown>; services?: Record<string, Partial<ServiceChoice>>; packages?: unknown; welcome?: unknown }
+  const o = (json ?? {}) as { features?: Record<string, unknown>; services?: Record<string, Partial<ServiceChoice>>; packages?: unknown; welcome?: unknown; brand?: { logoUrl?: unknown; accentColor?: unknown } }
   const services = Object.fromEntries(
     PROGRAM_FEATURES.map((f) => {
       const stored = o.services?.[f.key] ?? {}
@@ -133,7 +144,8 @@ export function readProgramSettings(json: unknown): ProgramSettings {
         .map((p) => ({ key: p.key, name: p.name.slice(0, 60), services: (p.services ?? []).filter((k) => PROGRAM_FEATURES.some((f) => f.key === k)) }))
         .slice(0, 10)
     : []
-  return { welcome: typeof o.welcome === 'string' && o.welcome.trim() ? o.welcome.trim().slice(0, 1000) : null, services, packages, comms: readComms(json) }
+  const brand: ProgramBrand = { logoUrl: cleanBrandLogo(o.brand?.logoUrl), accentColor: cleanBrandColor(o.brand?.accentColor) }
+  return { welcome: typeof o.welcome === 'string' && o.welcome.trim() ? o.welcome.trim().slice(0, 1000) : null, brand, services, packages, comms: readComms(json) }
 }
 
 export type OfferedService = ProgramFeature & { provider: Provider; href: string | null; note: string | null }

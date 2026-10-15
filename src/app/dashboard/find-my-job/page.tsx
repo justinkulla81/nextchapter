@@ -97,6 +97,8 @@ import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
+import { loadSkillsFit } from '@/lib/careers/skills-fit-server'
+import { OnetAttribution } from '@/components/OnetAttribution'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
 import { getCultureProfiles, getCulturePreferences } from '@/lib/companies/culture-profile'
 import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/insider-network'
@@ -494,6 +496,11 @@ async function JobRecommendationsSection({
   }
   // Per-job skills gap, from the job's own description only.
   const memberKeywords = memberSkillKeywords(profile)
+  // Separate from the fit badge: how this kind of work lines up with theirs, from O*NET (null until that data is loaded).
+  const skillsFitFor = await loadSkillsFit(profile.id, memberKeywords).catch((error) => {
+    console.error('Skills fit unavailable:', error)
+    return null
+  })
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
       title: p.title,
@@ -591,6 +598,7 @@ async function JobRecommendationsSection({
                           competition={competitionFor(posting)}
                           contacts={contactsByPosting.get(posting.id)}
                           skillGap={skillGapFor(posting)}
+                          skillsFit={skillsFitFor?.(posting.title)}
                           match={matchFor(posting)}
                           insiders={insidersFor(posting)}
                           explainGapsEnabled={isExplainGapsEnabled()}
@@ -646,6 +654,8 @@ async function JobRecommendationsSection({
           )}
         </div>
       )}
+
+      {skillsFitFor && <OnetAttribution />}
 
       <InterestedJobsList jobs={interestedJobs} />
     </div>

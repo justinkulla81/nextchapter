@@ -3,8 +3,10 @@ import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
+import { ProgramBar } from '@/components/dashboard/ProgramBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
@@ -61,6 +63,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     activeMember,
     helpRepliesWaiting,
     newStrongCompaniesCount,
+    documentRequestCount,
     resumeCount,
     coverLetterCount,
     marketRealityReportCount,
@@ -81,6 +84,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     isActiveMember(profileId),
     getHelpRepliesWaiting(profileId),
     getNewStrongCompaniesCountForBadge(profileId),
+    countOpenRequestsForCandidate(profileId),
     // Counts, not the wide profile: the nav badge only needs how many of each exist.
     prisma.resume.count({ where: { candidateId: profileId } }),
     prisma.jobPosting.count({ where: { candidateId: profileId, AND: [{ coverLetter: { not: null } }, { coverLetter: { not: '' } }] } }),
@@ -132,6 +136,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       isActiveMember={activeMember}
       helpRepliesWaiting={helpRepliesWaiting}
       newStrongCompaniesCount={newStrongCompaniesCount}
+      documentRequestCount={documentRequestCount}
       showInWork={isInWorkMember(profile)}
       paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
     />
@@ -215,6 +220,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Higher Ed: the member's college brand, when they joined through one. */}
       <Suspense fallback={null}>
         <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
+      </Suspense>
+      {/* Outplacement: the employer's brand, when they enrolled this person and set a look. */}
+      <Suspense fallback={null}>
+        <ProgramBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
       </Suspense>
       <Suspense
         fallback={

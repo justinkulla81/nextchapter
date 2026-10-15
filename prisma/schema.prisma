@@ -1721,6 +1721,11 @@ model CandidateProfile {
   // see BenefitsNetworkCompletion's own comment for the hard rule that this
   // must never be read by computeDossierCompetencies/computeCategoryGrades.
   benefitsNetworkCompletions  BenefitsNetworkCompletion[]
+  occupation                  CandidateOccupation?
+  resumeDrafts                ResumeDraft[]
+  documentRequests            DocumentRequest[]
+  coachBookings               CoachBooking[]
+  coachNoteSummaries          CoachNoteSummary[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -5113,6 +5118,10 @@ model Coach {
   gender             String?
   languages          String[]
   timezone           String?
+  bookingSettings    CoachBookingSettings?
+  availability       CoachAvailabilityWindow[]
+  bookings           CoachBooking[]
+  noteSummaries      CoachNoteSummary[]
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -5998,6 +6007,9 @@ model Course {
   // your industry" section. Empty by default; starts empty until an admin
   // tags content, which is expected, not a bug.
   industries               String[] @default([])
+
+  // Taxonomy skills this course teaches (CourseSkill; see docs/CAREER_TAXONOMY.md).
+  skills CourseSkill[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -14465,6 +14477,342 @@ model InstitutionSystemUser {
   @@unique([systemId, email])
 }
 
+// ── CAREER TAXONOMY (O*NET + BLS) ────────────────────────────────────────────
+// Public, government-maintained occupation and skills data — O*NET (US Dept.
+// of Labor, CC BY 4.0) for what each occupation requires, BLS OEWS and
+// Employment Projections for pay and growth. Loaded by scripts/careers/*,
+// never written by the app. Keyed by O*NET-SOC code ("13-2011.00"); the first
+// seven characters are the 2018 SOC code every government system uses.
+// Setup and sources: docs/CAREER_TAXONOMY.md. Table DDL: prisma/manual/2026-10-14-career-taxonomy.sql.
+model Occupation {
+  socCode          String   @id
+  title            String
+  description      String   @db.Text
+  // O*NET Job Zone 1-5: how much preparation the work needs. Used to keep a
+  // senior candidate's pivots at a comparable level.
+  jobZone          Int?
+  // BLS OEWS national estimates. Null where BLS suppresses or top-codes.
+  medianWage       Int? // annual USD
+  employment       Int?
+  wageYear         Int?
+  // BLS Employment Projections.
+  growthPct        Float? // projected % change over the projection period
+  annualOpenings   Int?
+  projectionPeriod String? // "2024-34"
+  typicalEducation String?
+  onetVersion      String?
+  updatedAt        DateTime @updatedAt
+
+  skills        OccupationSkill[]
+  altTitles     OccupationAltTitle[]
+  relatedFrom   OccupationRelated[]  @relation("OccupationRelatedFrom")
+  relatedTo     OccupationRelated[]  @relation("OccupationRelatedTo")
+  candidates    CandidateOccupation[]
+  tasks         OccupationTask[]
+
+  @@index([title])
+}
+
+// One row per O*NET skill, knowledge area or technology/tool.
+model Skill {
+  id          String @id // "skill:2.A.1.a", "knowledge:2.C.1.a", "tech:salesforce"
+  name        String
+  kind        String // SKILL | KNOWLEDGE | TECHNOLOGY
+  occupations OccupationSkill[]
+  courses     CourseSkill[]
+  aliases     SkillAlias[]
+
+  @@index([kind])
+}
+
+model OccupationSkill {
+  socCode    String
+  skillId    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  // O*NET ratings rescaled to 0-100. Technology rows have no level.
+  importance Float
+  level      Float?
+  hotTech    Boolean    @default(false)
+
+  @@id([socCode, skillId])
+  @@index([skillId])
+}
+
+model OccupationAltTitle {
+  id              String     @id @default(cuid())
+  socCode         String
+  occupation      Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  title           String
+  titleNormalized String
+
+  @@unique([socCode, titleNormalized])
+  @@index([titleNormalized])
+}
+
+// O*NET's own curated "related occupations" list.
+model OccupationRelated {
+  socCode        String
+  relatedSocCode String
+  occupation     Occupation @relation("OccupationRelatedFrom", fields: [socCode], references: [socCode], onDelete: Cascade)
+  related        Occupation @relation("OccupationRelatedTo", fields: [relatedSocCode], references: [socCode], onDelete: Cascade)
+  tier           String // O*NET relatedness tier
+  rank           Int
+
+  @@id([socCode, relatedSocCode])
+}
+
+// Which occupation a candidate's most recent job maps to. A cache of a
+// deterministic title match or of the candidate choosing from a short list.
+// There is no metered AI path: an ambiguous title is never guessed at.
+model CandidateOccupation {
+  candidateId String           @id
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  socCode     String
+  occupation  Occupation       @relation(fields: [socCode], references: [socCode])
+  source      String // TITLE_EXACT | TITLE_FUZZY | FUNCTION_PROXY | CANDIDATE_CONFIRMED
+  confidence  Float
+  matchedFrom String // the title text that was matched
+  matchedAt   DateTime         @default(now())
+
+  @@index([socCode])
+}
+
+// Which taxonomy skills a catalog course teaches, so a skill gap can point at a
+// course. AUTO rows come from scripts/careers/tag-courses.ts (whole-phrase match on
+// the course text) and are rebuilt on each run; ADMIN rows are kept.
+model CourseSkill {
+  courseId String
+  skillId  String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill    Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source   String // AUTO | ADMIN
+
+  @@id([courseId, skillId])
+  @@index([skillId])
+}
+
+// Training a state has approved for public funding (WIOA Eligible Training Provider
+// Lists), loaded per state from a CSV by scripts/careers/import-training-programs.ts.
+// Formats and availability vary by state, so coverage is whatever has been imported.
+model TrainingProgram {
+  id            String   @id @default(cuid())
+  state         String // 2-letter US state code
+  providerName  String
+  programName   String
+  url           String?
+  // 6-digit SOC codes ("13-2011") the program prepares for, when the list says.
+  socCodes      String[] @default([])
+  credential    String?
+  deliveryMode  String? // IN_PERSON | ONLINE | HYBRID
+  costUsd       Int?
+  durationWeeks Int?
+  fundingSource String   @default("WIOA_ETPL")
+  sourceName    String // e.g. "Massachusetts ETPL, September 2026"
+  importedAt    DateTime @default(now())
+
+  @@unique([state, providerName, programName])
+  @@index([state])
+}
+
+// ── RESUME STUDIO ────────────────────────────────────────────────────────────
+// A candidate-edited resume, kept as the same structured document the export
+// templates already render (ResumeDocumentData, src/lib/resume/export/document-data.ts),
+// so what they edit is exactly what the PDF and Word downloads contain. Many drafts
+// per candidate (for example one tailored per target role). Saving overwrites the
+// draft; "Duplicate" is how a candidate keeps a version.
+model ResumeDraft {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name           String
+  templateId     String           @default("classic")
+  document       Json
+  // The posting text last pasted in for the keyword check, so it is there next visit.
+  jobDescription String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId, updatedAt])
+}
+
+// ── REQUESTED DOCUMENTS ──────────────────────────────────────────────────────
+// Someone with a reason to ask (today a coach, for their client) requests a
+// document; the candidate uploads it; the requester accepts it or asks for
+// changes. One model for the whole flow so new requesters (an institution's
+// career office, an outplacement employer) reuse it instead of adding another
+// upload table. Files live in the private 'requested-documents' storage bucket
+// under {candidateId}/{requestId}/..., reached only through short-lived signed
+// URLs after an ownership check. Existing one-off uploads (resume, work samples,
+// offer letters) are not migrated into this.
+model DocumentRequest {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Who asked. requesterId is a bare id (no FK) because the requester lives in
+  // different tables per type, like other cross-portal ids in this schema.
+  requesterType  String // COACH | INSTITUTION | EMPLOYER | ADMIN
+  requesterId    String
+  // Name shown to the candidate, captured when the request was made.
+  requesterLabel String
+
+  title          String
+  instructions   String?          @db.Text
+  dueAt          DateTime?
+
+  // REQUESTED | UPLOADED | ACCEPTED | NEEDS_CHANGES | CANCELLED
+  status         String           @default("REQUESTED")
+
+  filePath       String?
+  fileName       String?
+  contentType    String?
+  sizeBytes      Int?
+  uploadedAt     DateTime?
+
+  reviewedAt     DateTime?
+  reviewNote     String?          @db.Text
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId, status])
+  @@index([requesterType, requesterId, status])
+}
+
+// ── COACH SESSION BOOKING ────────────────────────────────────────────────────
+// A coach sets weekly hours; their clients book open slots; a Google Calendar event
+// with a Meet link is created on NextChapter's connected calendar (the same connection
+// webinars use) with coach and client invited. We do NOT read the coach's own
+// calendar, so personal appointments are not seen: the coach keeps their hours
+// current, and cancels a booking here if something comes up.
+model CoachBookingSettings {
+  coachId         String  @id
+  coach           Coach   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  enabled         Boolean @default(false)
+  // IANA zone the weekly hours are written in, e.g. "America/New_York".
+  timezone        String  @default("America/New_York")
+  slotMinutes     Int     @default(45)
+  bufferMinutes   Int     @default(15)
+  minNoticeHours  Int     @default(24)
+  maxDaysAhead    Int     @default(21)
+  // Shown when no calendar event (and so no Meet link) could be made.
+  fallbackMeetingUrl String?
+  updatedAt       DateTime @updatedAt
+}
+
+// One window per weekday per row (weekday 0 = Sunday); minutes from local midnight.
+model CoachAvailabilityWindow {
+  id          String @id @default(cuid())
+  coachId     String
+  coach       Coach  @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+
+  @@index([coachId])
+}
+
+model CoachBooking {
+  id            String           @id @default(cuid())
+  coachId       String
+  coach         Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startsAt      DateTime
+  endsAt        DateTime
+  // CONFIRMED | CANCELLED
+  status        String           @default("CONFIRMED")
+  cancelledBy   String? // COACH | CANDIDATE
+  meetUrl       String?
+  googleEventId String?
+  createdAt     DateTime         @default(now())
+
+  @@index([coachId, startsAt])
+  @@index([candidateId, startsAt])
+}
+
+// ── COACH NOTE SUMMARIES ─────────────────────────────────────────────────────
+// An AI-written summary of one coach's own private session notes on one client,
+// generated only when the coach asks, and cached until a new session is logged. Each
+// call to the model is metered (see CoachNoteSummaryRun and the per-coach daily cap in
+// src/lib/coach/note-summary-service.ts). Coach-only: never shown to the client, and
+// built only from sessions this coach logged, not another coach's.
+model CoachNoteSummary {
+  coachId      String
+  candidateId  String
+  coach        Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  summary      Json // { whereThingsStand, themes[], openCommitments[], watchouts[] }
+  sessionCount Int
+  // Changes whenever the notes it was built from change; a mismatch means the summary is stale.
+  fingerprint  String
+  truncated    Boolean          @default(false)
+  generatedAt  DateTime         @default(now())
+
+  @@id([coachId, candidateId])
+}
+
+// One row per model call, for the daily cap and for cost reporting.
+model CoachNoteSummaryRun {
+  id          String   @id @default(cuid())
+  coachId     String
+  candidateId String
+  inputChars  Int
+  ok          Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([coachId, createdAt])
+}
+
+// ── CAREER TAXONOMY, PART 2: LOCAL PAY, TASKS, SKILL ALIASES ────────────────
+// BLS OEWS wage percentiles and employment by nation, state and metro area, keyed by the
+// 6-digit SOC code BLS publishes at ("13-2011"; every O*NET-SOC code that starts with it
+// shares the row). Loaded by scripts/careers/import-bls.ts. A percentile BLS does not
+// publish stays null; ceilingHit means at least one was withheld because it was at or
+// above BLS's published wage ceiling (about $239,200 a year), which is common above the
+// median for executives. Area codes: "US", the 2-digit state FIPS, or the 5-digit CBSA.
+model OccupationWage {
+  soc6       String
+  areaType   String // NATIONAL | STATE | METRO
+  areaCode   String
+  areaName   String
+  year       Int?
+  employment Int?
+  wageP10    Int?
+  wageP25    Int?
+  wageMedian Int?
+  wageP75    Int?
+  wageP90    Int?
+  ceilingHit Boolean @default(false)
+
+  @@id([soc6, areaType, areaCode])
+  @@index([areaType, areaCode])
+}
+
+// What a job does day to day: O*NET task statements, Core tasks first.
+model OccupationTask {
+  id         String     @id @default(cuid())
+  socCode    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  taskId     Int
+  text       String     @db.Text
+  taskType   String // CORE | SUPPLEMENTAL
+
+  @@unique([socCode, taskId])
+}
+
+// Other ways people write a tool or skill ("SFDC" for Salesforce) mapped to the O*NET skill
+// they mean. Built offline (scripts/careers/build-skill-aliases.ts), looked up at runtime, so
+// matching never calls a model.
+model SkillAlias {
+  alias   String @id // normalized
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source  String // BUILTIN | NAME | LLM | ADMIN
+
+  @@index([skillId])
+}
 // Class notes: a short update an alum shares with their class (a new job, a
 // move, a book, a wedding). Shown in the alumni news by class; staff can hide.
 model ClassNote {
