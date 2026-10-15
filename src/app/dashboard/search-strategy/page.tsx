@@ -31,6 +31,9 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
 import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
+import { getPlatform } from '@/lib/platforms/directory'
+import type { PlatformStageKey } from '@/lib/platforms/stages'
+import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
 import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
@@ -245,6 +248,23 @@ export default async function SearchStrategyPage() {
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
+  // Pre-fill the independent-work question from what email and logged work
+  // already show, so the candidate confirms instead of answering from scratch.
+  const platformRows = await prisma.candidatePlatformActivity.findMany({
+    where: { candidateId: profile.id, kind: 'WORK' },
+    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
+  })
+  const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
+  const independentWorkSuggestions = suggestIndependentWork(
+    platformRows.flatMap((r) => {
+      const platform = getPlatform(r.platformKey)
+      return platform
+        ? [{ name: platform.name, category: platform.category, stage: r.stage as PlatformStageKey, lastProgressAt: r.lastProgressAt, dismissed: !!r.dismissedAt }]
+        : []
+    }),
+    profile.workHistory
+  )
+
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // 5 pages, one at a time, like the Market Reality Assessment wizard — no
@@ -426,10 +446,11 @@ export default async function SearchStrategyPage() {
       <CardContent>
         <OtherSearchStrengthenersForm
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
+          independentWorkInitial={independentWorkInitial}
+          independentWorkSuggestions={independentWorkSuggestions}
           optionalQuestionsInitial={{
             networkingLevel: profile.networkingLevel,
             learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
             triedExecutiveCoaching: profile.triedExecutiveCoaching,
             connectedWithRecruiters: profile.connectedWithRecruiters,
             recruiterConnectionCount: profile.recruiterConnectionCount,

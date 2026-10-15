@@ -8,6 +8,11 @@ import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
+import {
+  hasAnyIndependentWork,
+  isIndependentWorkAnswered,
+  parseIndependentWorkExperience,
+} from '@/lib/independent-work/experience'
 
 export type OptionalQuestionsState = { error?: string } | undefined
 
@@ -41,9 +46,16 @@ export async function answerOptionalQuestions(
   const networkingLevel = networkingLevelRaw ? Number(networkingLevelRaw) : null
   const learnedNewSkillsLevelRaw = formData.get('learnedNewSkillsLevel')
   const learnedNewSkillsLevel = learnedNewSkillsLevelRaw ? Number(learnedNewSkillsLevelRaw) : null
-  const triedPartTimeOrConsultingRaw = formData.get('triedPartTimeOrConsulting') as string | null
-  const triedPartTimeOrConsulting =
-    triedPartTimeOrConsultingRaw === 'yes' ? true : triedPartTimeOrConsultingRaw === 'no' ? false : null
+  // The per-type answer replaces the old single yes/no; the old boolean is
+  // derived from it so the checklist and sprint scoring keep working.
+  const independentWorkExperience = parseIndependentWorkExperience({
+    consulting: formData.get('independentWork_consulting'),
+    expert_network: formData.get('independentWork_expert_network'),
+    fractional: formData.get('independentWork_fractional'),
+    part_time: formData.get('independentWork_part_time'),
+  })
+  const independentWorkAnswered = isIndependentWorkAnswered(independentWorkExperience)
+  const triedPartTimeOrConsulting = independentWorkAnswered ? hasAnyIndependentWork(independentWorkExperience) : null
   const triedExecutiveCoachingRaw = formData.get('triedExecutiveCoaching') as string | null
   const triedExecutiveCoaching =
     triedExecutiveCoachingRaw === 'yes' ? true : triedExecutiveCoachingRaw === 'no' ? false : null
@@ -71,10 +83,18 @@ export async function answerOptionalQuestions(
       networkingLevel,
       learnedNewSkillsLevel,
       triedPartTimeOrConsulting,
+      independentWorkExperience,
       triedExecutiveCoaching,
       connectedWithRecruiters,
       recruiterConnectionCount,
     },
+  })
+
+  captureServerEvent(candidateId, 'independent_work_experience_answered', {
+    candidateId,
+    ...independentWorkExperience,
+    prefilledTypes: formData.getAll('independentWork_prefilled').map(String),
+    source: 'search_strategy',
   })
 
   await maybeAwardSearchStrategyCompleteBonus(candidateId)
