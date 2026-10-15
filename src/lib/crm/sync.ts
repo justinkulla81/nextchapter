@@ -128,7 +128,7 @@ export async function buildSweepContext(
  * "does this belong in the CRM?" review. True when the person's only role is
  * Friends and family (the same test meeting-prep uses). Cached per sweep.
  */
-async function isFriendsFamilyOnly(personId: string, cache: Map<string, boolean>): Promise<boolean> {
+export async function isFriendsFamilyOnly(personId: string, cache: Map<string, boolean>): Promise<boolean> {
   const hit = cache.get(personId)
   if (hit !== undefined) return hit
   const row = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { roles: true } })
