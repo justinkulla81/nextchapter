@@ -4835,6 +4835,19 @@ model ExclusiveJobPosting {
   workArrangement  String? // remote | hybrid | onsite
   compensationType String? // paid | equity_only | unpaid
 
+  // Structured benefits the ncrawl import read from the posting (benefits_json:
+  // only the keys it found — health, k401_match_pct, parental_leave_weeks, …, plus
+  // its own score/strong). benefitsStrong is our rule over it
+  // (src/lib/jobs/benefits.ts). Null = never sent. Two partial indexes (not
+  // expressible here) serve the board's "Great pay" / "Great benefits" filters:
+  // prisma/manual/2026-10-14-job-benefits.sql.
+  // @ignore: kept out of the generated client, so a full-row read never selects
+  // them (the app reads and writes them with raw SQL that first checks they
+  // exist — src/lib/jobs/great-employers-data.ts), while the schema still knows
+  // them and a db push won't drop them.
+  benefits       Json?    @ignore
+  benefitsStrong Boolean? @ignore
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
   @@index([status, archivedAt])

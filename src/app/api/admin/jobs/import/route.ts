@@ -9,6 +9,8 @@ import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow
 import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { importOptionalFields } from '@/lib/jobs/import-optional-fields'
 import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
+import { importBenefitsFields } from '@/lib/jobs/benefits'
+import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 
 export const maxDuration = 300
 
@@ -61,6 +63,10 @@ interface ImportJobInput {
   paySource?: string | null // salary_source
   workArrangement?: string | null // work_arrangement
   compensationType?: string | null // paid | equity_only | unpaid
+  // Structured benefits (ncrawl benefits_json / benefits_strong). Optional: an
+  // exporter that doesn't send them leaves stored benefits untouched.
+  benefitsJson?: unknown // compact JSON string or object (src/lib/jobs/benefits.ts)
+  benefitsStrong?: unknown // 0/1 or boolean
 }
 
 interface ImportRequestBody {
@@ -154,6 +160,21 @@ async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => st
     await applyMarketPay(rows.map((r) => r.url))
   } catch (error) {
     console.error('jobs import: could not record company openings', error)
+  }
+}
+
+// Structured benefits, for the jobs whose sender included them. Stored with raw
+// SQL once the columns exist (great-employers-data.ts); best-effort, like the
+// opening history — a benefits write must never fail the import.
+async function recordBenefits(kept: Screened[]) {
+  try {
+    const rows = kept.flatMap((k) => {
+      const f = importBenefitsFields(k.job)
+      return 'benefitsStrong' in f ? [{ url: k.job.url, benefits: f.benefits ?? null, benefitsStrong: f.benefitsStrong ?? null }] : []
+    })
+    for (let i = 0; i < rows.length; i += 1000) await writeJobBenefits(rows.slice(i, i + 1000))
+  } catch (error) {
+    console.error('jobs import: could not record benefits', error)
   }
 }
 
@@ -300,6 +321,7 @@ export async function POST(request: NextRequest) {
   }
 
   await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  await recordBenefits(kept)
 
   let archived = 0
   if (body.fullSync) {
