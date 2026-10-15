@@ -144,6 +144,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   captureServerEvent(org.id, 'crm_org_page_viewed', {
     orgName: org.name, prospectScore: rating.score, prospectBand: rating.band,
     openJobs: demand.openJobs.length, candidatesWhoWant: demand.wantToWork.length,
+    layoffsPastYear: demand.layoffYear.events, laidOffPastYear: demand.layoffYear.employees, openMandates: demand.mandates.length,
   })
 
   const BAND_LABEL: Record<ProspectBand, string> = { hot: 'Hot prospect', warm: 'Warm prospect', cool: 'Cool', cold: 'Cold' }
@@ -154,6 +155,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     { id: 'contacts', label: 'Contacts', n: org.affiliations.length },
     { id: 'candidates', label: 'Candidates', n: demand.wantToWork.length + alumniList.length },
     { id: 'jobs', label: 'Open jobs', n: demand.openJobs.length },
+    { id: 'mandates', label: 'Recruiter mandates', n: demand.mandates.length },
     { id: 'layoffs', label: 'Layoffs', n: demand.notices.length + demand.layoffNews.length },
     { id: 'research', label: 'News & research', n: demand.researchNews.length + org.researchItems.length },
     { id: 'data', label: 'Data', n: null },
@@ -221,6 +223,32 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </a>
         ))}
       </nav>
+
+      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-5">
+        <div>
+          <p className="text-2xl font-semibold">{demand.layoffYear.events === 0 ? '0' : demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''}` : 'Not stated'}</p>
+          <p className="text-xs text-muted-foreground">
+            People laid off, past 12 months
+            {demand.layoffYear.events > 0 && ` (${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'})`}
+          </p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.openJobs.length}</p>
+          <p className="text-xs text-muted-foreground">Open jobs · {demand.newPostings90d} new in 90 days</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{alumniList.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who worked here</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.wantToWork.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who applied</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.mandates.length}</p>
+          <p className="text-xs text-muted-foreground">Open recruiter mandates</p>
+        </div>
+      </section>
 
       {warmDoors.length > 0 && (
         <section aria-label="Strong candidates with a warm way in" className="rounded-lg border border-border bg-muted/40 p-4">
@@ -443,6 +471,26 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         )}
       </section>
 
+      {/* ── Recruiter mandates ───────────────────────────────────────────── */}
+      <section id="mandates" className="scroll-mt-16 space-y-3">
+        <h2 className="text-lg font-semibold">Recruiter mandates ({demand.mandates.length})</h2>
+        {demand.mandates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No recruiter has an open search naming this organization as the client.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {demand.mandates.map((m) => (
+              <li key={m.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                <span>
+                  <span className="font-medium">{m.role}</span>
+                  <span className="text-muted-foreground">{[m.location, m.kind].filter(Boolean).map((t) => ` · ${t}`)}</span>
+                </span>
+                <span className="text-xs text-muted-foreground">{m.by} · since {formatDate(m.since)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {/* ── Layoffs ──────────────────────────────────────────────────────── */}
       <section id="layoffs" className="scroll-mt-16 space-y-3">
         <h2 className="text-lg font-semibold">Layoffs</h2>
@@ -450,6 +498,18 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           <p className="text-sm text-muted-foreground">No layoff notices or layoff news found for this organization.</p>
         ) : (
           <>
+            {demand.layoffYear.events > 0 && (
+              <p className="text-sm">
+                <span className="font-medium">Past 12 months: </span>
+                {demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''} people` : 'headcount not stated'}
+                {` across ${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'}`}
+                <span className="text-muted-foreground">
+                  {demand.layoffYear.filingEvents > 0 && ` · ${demand.layoffYear.fromFilings.toLocaleString()} from ${demand.layoffYear.filingEvents} filed or logged`}
+                  {demand.layoffYear.newsOnlyEvents > 0 && ` · ${demand.layoffYear.fromNewsOnly.toLocaleString()} from ${demand.layoffYear.newsOnlyEvents} reported in the news only`}
+                  {demand.layoffYear.unstated > 0 && ` · ${demand.layoffYear.unstated} gave no number, so the total is a minimum`}
+                </span>
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {demand.layoffTimeline.status === 'recent_cut' && 'A recent cut, and no rehiring seen since.'}
               {demand.layoffTimeline.status === 'hiring_again' && 'Cut roles, and has posted new jobs since.'}

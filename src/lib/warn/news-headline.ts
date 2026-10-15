@@ -84,7 +84,7 @@ const HEADCOUNT = new RegExp(
 )
 
 /** Words that make the subject a description rather than a company's name. */
-const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress)\b/i
+const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress|prepares|preparing|plans|announces|confirms|reveals|begins|starts)\b/i
 
 function count(n: string | undefined, k: string | undefined): number | null {
   if (!n) return null
@@ -117,7 +117,7 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const company = raw.replace(/^the /i, '').replace(/[,:]$/, '').trim()
+  const company = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').trim()
   if (company.length < 2 || NOT_A_NAME.test(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
