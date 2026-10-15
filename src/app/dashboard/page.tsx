@@ -3,7 +3,7 @@ import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProg
 import { effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
-import { CultureSurveyPrompt } from '@/components/dashboard/CultureSurveyPrompt'
+import { MemberInsightPrompt } from '@/components/dashboard/MemberInsightPrompt'
 import { after } from 'next/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -297,7 +297,7 @@ export default async function DashboardPage() {
           ? 'got_hired'
           : searchPlaybook
             ? 'search_playbook'
-            : 'culture_survey'
+            : 'culture_survey' // the last-priority prompt slot: rate a former job, else describe a company's culture
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber }))
 
   const firstWeek = firstWeekStep(profile.registrationCompletedAt)
@@ -368,7 +368,7 @@ export default async function DashboardPage() {
       {noteKind === 'search_playbook' && searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
       {noteKind === 'culture_survey' && (
         <Suspense fallback={null}>
-          <CultureSurveyPrompt candidateId={profile.id} />
+          <MemberInsightPrompt candidateId={profile.id} />
         </Suspense>
       )}
 
