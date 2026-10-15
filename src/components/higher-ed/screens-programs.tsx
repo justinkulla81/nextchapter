@@ -30,7 +30,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { StatTile } from './StatTile'
 import { ApplyToCohort, CapstoneControls, CapstoneForm, ClientForm, CohortForm, EnrollmentControls, ProgramForm } from './ProgramForms'
-import { CohortRulesForm, LearnerForm, ProgressControls } from './LifecycleForms'
+import { CohortRulesForm, LearnerForm, LearnerUploadForm, ProgressControls } from './LifecycleForms'
 import { completionBlocker } from '@/lib/higher-ed/programs'
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { status?: string } }
@@ -207,6 +207,14 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
           <summary className="cursor-pointer text-sm font-medium text-primary">Enroll someone who isn’t an alum (a client’s employee, a community member)</summary>
           <div className="pt-3">
             <LearnerForm slug={ctx.institution.slug} cohorts={cohortOptions} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
+          </div>
+        </details>
+      )}
+      {edit && cohortOptions.length > 0 && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Upload a spreadsheet of learners</summary>
+          <div className="pt-3">
+            <LearnerUploadForm slug={ctx.institution.slug} cohorts={cohortOptions} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
           </div>
         </details>
       )}

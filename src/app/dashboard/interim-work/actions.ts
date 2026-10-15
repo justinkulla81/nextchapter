@@ -57,6 +57,7 @@ export async function submitGigDirectoryUnlock(_prevState: FormState, formData: 
   }
 
   revalidatePath('/dashboard/interim-work')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function submitInterimOfferDefinition(
@@ -86,6 +87,7 @@ export async function submitInterimOfferDefinition(
   captureServerEvent(profile.id, 'interim_launch_phase_completed', { phase: 2 })
 
   revalidatePath('/dashboard/interim-work')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Independent of eeocGenderIdentity — see the enum's comment in schema.prisma.
@@ -108,6 +110,7 @@ export async function setBoardDiversityListingsOptIn(optIn: boolean): Promise<vo
   captureServerEvent(profile.id, 'board_diversity_listings_opt_in_set', { optIn })
 
   revalidatePath('/dashboard/interim-work')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Re-ask at the top of Interim Work for anyone who hasn't said yes on
@@ -123,6 +126,7 @@ export async function answerBoardAdvisoryWillingness(willing: boolean): Promise<
   await setBoardAdvisoryWillingness(profile.id, willing)
 
   revalidatePath('/dashboard/interim-work')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function markInterimOutreachStarted(): Promise<void> {
@@ -141,6 +145,7 @@ export async function markInterimOutreachStarted(): Promise<void> {
   captureServerEvent(profile.id, 'interim_launch_phase_completed', { phase: 6 })
 
   revalidatePath('/dashboard/interim-work')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Self-report "I created a profile" checkbox on a marketplace listing (Prompt
@@ -158,4 +163,5 @@ export async function markInterimMarketplaceSignup(listingId: string) {
   await markInterimMarketplaceSignupCore(profile.id, listingId, 'SELF_REPORTED')
 
   revalidatePath('/dashboard/interim-work', 'layout')
+  revalidatePath('/dashboard/find-my-job')
 }

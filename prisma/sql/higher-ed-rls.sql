@@ -180,7 +180,8 @@ begin
     'AlumniIntroRequest', 'OfficeHourSlot', 'CollegeEvent', 'EventRsvp', 'Segment', 'RapidResponse',
     'AlumniOpportunity', 'OpportunityInterest', 'AlumniGroup', 'AlumniGroupMember', 'AuditCourse', 'AuditRequest',
     'MentoringCohort', 'MentoringSignup', 'MentoringPair', 'AlumniQuestion', 'AlumniAnswer', 'VolunteerRole', 'VolunteerSignup',
-    'CollegeNewsPost', 'DataRequest', 'InstitutionSystem', 'InstitutionSystemUser'
+    'CollegeNewsPost', 'DataRequest', 'InstitutionSystem', 'InstitutionSystemUser',
+    'ClassNote', 'JobSearchCircle', 'JobSearchCircleMember', 'FairBooth', 'FairBoothVisit'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     -- Supabase anonymous sign-ins also get the `authenticated` role. This

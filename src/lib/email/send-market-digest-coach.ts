@@ -20,7 +20,7 @@ export async function sendMarketDigestCoachEmail(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   // The digest shows each consented client's week and new roles; the button
   // takes the coach to the full caseload.
-  const caseloadUrl = `${appUrl}/support/coach/caseload/${coach.accessToken}`
+  const caseloadUrl = `${appUrl}/support/coach/clients/${coach.accessToken}`
   const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'coach', coach.id)
 
   const clients = digest.clients.map((c) => ({

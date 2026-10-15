@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
@@ -95,6 +97,18 @@ export default async function ResumePage({
           </Card>
         </div>
       )}
+
+      <Card>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+          <div className="space-y-1">
+            <p className="font-medium text-foreground">Edit and tailor your resume</p>
+            <p className="text-sm text-muted-foreground">Write it line by line, keep a version for each kind of role, and check it against a job posting.</p>
+          </div>
+          <Button nativeButton={false} render={<Link href="/dashboard/resume/studio" />}>
+            Open resume studio
+          </Button>
+        </CardContent>
+      </Card>
 
       <ResumeExportForm />
 

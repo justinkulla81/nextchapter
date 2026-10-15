@@ -1,7 +1,7 @@
 import type { Fact } from './types'
 
 // Figures quoted from the NextChapter White Collar Employment Report, September 2026
-// (version 1.8, published October 13, 2026; figures unchanged from v1.72). Every value below is copied from
+// (Version 1.72, revised October 13, 2026). Every value below is copied from
 // a named exhibit; nothing is derived here. Update this file, not the slide
 // rules, when a new edition changes a number. Keyed by slide id.
 

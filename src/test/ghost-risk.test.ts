@@ -13,10 +13,12 @@ describe('ghostRisk', () => {
     expect(v.reason).toMatch(/closed 2 times/)
   })
 
-  it('treats a job open past 90 days as likely, 60 days with a prior closure as watch', () => {
+  it('treats a job open past 90 days as likely; open past 60 days or reposted once as watch', () => {
     expect(ghostRisk({ priorClosedCount: 0, ageDays: 120 }).level).toBe('likely')
     expect(ghostRisk({ priorClosedCount: 1, ageDays: 70 }).level).toBe('watch')
-    expect(ghostRisk({ priorClosedCount: 1, ageDays: 10 }).level).toBe('none')
+    expect(ghostRisk({ priorClosedCount: 1, ageDays: 10 }).level).toBe('watch')
+    expect(ghostRisk({ priorClosedCount: 0, ageDays: 61 }).level).toBe('watch')
+    expect(ghostRisk({ priorClosedCount: 0, ageDays: 60 }).level).toBe('none')
   })
 })
 

@@ -1,4 +1,5 @@
 import 'server-only'
+import { loadStrengths } from '@/lib/profile/strengths-load'
 import { cache } from 'react'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -275,6 +276,18 @@ function closedLoopCallouts(namedReasons: NamedReason[]): ClosedLoopCallout[] {
   return callouts
 }
 
+// The computed standout strengths, with evidence, for prompts (no AI here).
+async function strengthsLine(candidateId: string): Promise<string> {
+  try {
+    const st = await loadStrengths(candidateId)
+    if (st.shape === 'emerging') return 'Standout strengths: not enough evidence yet.'
+    const lead = st.shape === 'peaked' ? st.peaks : st.broad.slice(0, 4)
+    return `${st.shape === 'peaked' ? 'Standout strengths (lead with these)' : 'Strong across several areas (sell range)'}: ${lead.map((x) => `${x.label} (${x.evidence.join('; ')})`).join(' | ')}`
+  } catch {
+    return 'Standout strengths: not available.'
+  }
+}
+
 async function getOrDraftPositioningStatement(candidate: {
   id: string
   firstName: string | null
@@ -306,7 +319,8 @@ Level: ${candidate.highestLevelReached ?? 'not given'}
 Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${candidate.levelRankLabel ?? 'not available'}
 Years of experience: ${candidate.yearsExperience ?? 'not given'}
 Target role: ${candidate.targetRoleType ?? 'not given'}
-How they're known by colleagues: ${candidate.knownFor ?? 'not given'}`
+How they're known by colleagues: ${candidate.knownFor ?? 'not given'}
+${await strengthsLine(candidate.id)}`
 
     const stream = client.messages.stream({
       model: 'claude-sonnet-5',
@@ -365,7 +379,7 @@ export async function getHowIOperate(
   const alignmentByStrength = new Map(alignment.map((a) => [a.strength, a]))
   const strengthLabelByValue = new Map<string, string>(TOP_STRENGTH_OPTIONS.map((o) => [o.value, o.label]))
 
-  const superpowers: DossierSuperpower[] = candidateTopStrengths.slice(0, 3).map((strength) => {
+  const picked: DossierSuperpower[] = candidateTopStrengths.slice(0, 3).map((strength) => {
     const match = alignmentByStrength.get(strength)
     return {
       label: strengthLabelByValue.get(strength) ?? strength,
@@ -374,6 +388,15 @@ export async function getHowIOperate(
       totalReferences: match?.totalReferences ?? 0,
     }
   })
+  // Computed peaks (backed by assessments, references or Track Record) lead;
+  // the person's own picks fill the rest. Weak spots never appear here.
+  const computed = await loadStrengths(candidateId).catch(() => null)
+  const peaks: DossierSuperpower[] = (computed?.peaks ?? []).map((pk) => {
+    const refLine = pk.evidence.find((e) => /reference/.test(e))
+    const n = refLine ? Number(refLine.match(/^(\d+)/)?.[1] ?? 0) : 0
+    return { label: pk.label, referenceConfirmed: n > 0, confirmedByCount: n, totalReferences: n }
+  })
+  const superpowers = [...peaks, ...picked.filter((x) => !peaks.some((pk) => pk.label.toLowerCase() === x.label.toLowerCase()))].slice(0, 3)
 
   // Verified, hard-to-fake sustained effort — moved here from the deleted
   // "What Drives Me" section, positioned right next to Superpowers. Grade

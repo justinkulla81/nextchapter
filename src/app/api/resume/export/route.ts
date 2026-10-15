@@ -3,7 +3,8 @@ import { Packer } from 'docx'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { buildResumeDocumentData } from '@/lib/resume/export/document-data'
+import { buildResumeDocumentData, type ResumeDocumentData } from '@/lib/resume/export/document-data'
+import { parseResumeDocument } from '@/lib/resume/studio/document'
 import { isResumeTemplateId, RESUME_TEMPLATES } from '@/lib/resume/export/templates'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -53,7 +54,16 @@ export async function POST(request: NextRequest) {
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
-  const data = await buildResumeDocumentData(profile.id)
+  // The resume editor sends the document it is showing, so a download matches the screen
+  // even before it is saved. Anything else is built from the candidate's profile as before.
+  let data: ResumeDocumentData
+  if (body && 'document' in body) {
+    const parsed = parseResumeDocument(body.document)
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+    data = parsed.data
+  } else {
+    data = await buildResumeDocumentData(profile.id)
+  }
   const template = RESUME_TEMPLATES[templateId]
 
   const fileBaseName = `${slugify(data.name)}-resume-${templateId}`
@@ -67,7 +77,7 @@ export async function POST(request: NextRequest) {
     fileBuffer = await renderToBuffer(pdfDocument)
   }
 
-  captureServerEvent(profile.id, 'resume_exported', { candidateId: profile.id, templateId, format })
+  captureServerEvent(profile.id, 'resume_exported', { candidateId: profile.id, templateId, format, source: body && 'document' in body ? 'studio' : 'profile' })
 
   return new NextResponse(new Uint8Array(fileBuffer), {
     headers: {
