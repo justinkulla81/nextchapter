@@ -10,7 +10,7 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { parseGifts, parseRoster, type RowError } from './crm-csv'
+import { parseGifts, parseRoster, type RosterRow, type RowError } from './crm-csv'
 
 export type ImportResult = { runId: string; imported: number; updated: number; skipped: number; errors: RowError[]; fileError?: string }
 
@@ -32,8 +32,14 @@ async function finishRun(runId: string, rowCount: number, errors: RowError[], fi
 }
 
 export async function importRoster(args: { institutionId: string; csv: string; fileName: string; createdBy: string }): Promise<ImportResult> {
-  const run = await startRun(args.institutionId, 'IMPORT_ROSTER', args.fileName, args.createdBy)
   const { rows, errors, fileError } = parseRoster(args.csv)
+  return importRosterRows({ ...args, rows, errors, fileError })
+}
+
+// Shared by the CSV upload and the census API (records already parsed).
+export async function importRosterRows(args: { institutionId: string; rows: RosterRow[]; errors: RowError[]; fileError?: string; fileName: string; createdBy: string }): Promise<ImportResult> {
+  const run = await startRun(args.institutionId, 'IMPORT_ROSTER', args.fileName, args.createdBy)
+  const { rows, errors, fileError } = args
   let imported = 0
   let updated = 0
   if (!fileError) {

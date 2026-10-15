@@ -7,6 +7,10 @@ import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
+import { listOrgKeys } from '@/lib/census/api-keys'
+import { readComms } from '@/lib/census/comms-settings'
+import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
+import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
 import type { ComponentType } from 'react'
 import { ArrowRight, Lock, Users } from 'lucide-react'
 import type { InstitutionMemberStatus, InstitutionUserRole } from '@prisma/client'
@@ -843,7 +847,7 @@ const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
-  const [members, joined, invitable, runs, outbox] = await Promise.all([
+  const [members, joined, invitable, runs, outbox, keys, inst] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     countInvitable(ctx.institution.id),
@@ -862,7 +866,19 @@ async function AdminRoster({ ctx }: ScreenProps) {
           select: { id: true, email: true, claimToken: true, claimedAt: true },
         })
       : Promise.resolve([]),
+    listOrgKeys('institution', ctx.institution.id),
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }),
   ])
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://launchyournextchapter.com'
+  const example = `curl -X POST ${base}/api/v1/census \\
+  -H "Authorization: Bearer nck_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "people": [ { "external_id": "100234", "email": "pat@example.edu", "first_name": "Pat", "last_name": "Lee",
+                     "affiliation": "ALUM", "class_year": 2012 } ] }'
+
+The same columns as the roster file. Matched on external_id, then email. To put learners in a program cohort:
+  -d '{ "cohortId": "<cohort id>", "learners": [ { "email": "…", "first_name": "…", "last_name": "…", "payer": "WIOA_VOUCHER" } ] }'
+GET the same address to read your roster back (join status only).`
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-3">
@@ -911,6 +927,24 @@ async function AdminRoster({ ctx }: ScreenProps) {
           <CrmUploadForm id="roster" title="Alumni roster" columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
           <CrmUploadForm id="gifts" title="Gifts" columns={GIFT_COLUMNS} action={uploadCrmFile.bind(null, slug, 'gifts')} />
         </div>
+      </section>
+      <section aria-labelledby="connect" className="space-y-3">
+        <h2 id="connect" className="text-base font-semibold">
+          Connect your CRM
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">Send roster changes automatically instead of uploading files. Each call shows up in the upload history below.</p>
+        <OrgKeysPanel
+          keys={keys.map((k) => ({ ...k, createdAt: k.createdAt.toISOString(), lastUsedAt: k.lastUsedAt?.toISOString() ?? null, revokedAt: k.revokedAt?.toISOString() ?? null }))}
+          makeKey={makeCollegeKey.bind(null, slug)}
+          turnOff={turnOffCollegeKey.bind(null, slug)}
+          example={example}
+        />
+      </section>
+      <section aria-labelledby="reminders" className="space-y-2">
+        <h2 id="reminders" className="text-base font-semibold">
+          Invitation reminders
+        </h2>
+        <CommsToggles value={readComms(inst.enabledFeatures)} save={saveCollegeComms.bind(null, slug)} showAccessNotice={false} />
       </section>
       {runs.length > 0 && (
         <Table caption="Upload history" head={['When', 'File', 'Rows', 'Problems', 'Result']}>

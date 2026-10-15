@@ -8,6 +8,7 @@ import 'server-only'
 import type { CapstoneStatus, EnrollmentStatus, ProgramPayer } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import type { LearnerRow } from './crm-csv'
 
 const DAY = 86_400_000
 // WIOA counts employment in the second quarter after exit; we use 180 days.
@@ -387,6 +388,35 @@ export async function addLearner(args: { institutionId: string; cohortId: string
     select: { id: true },
   })
   return { id: e.id, memberId: member.id }
+}
+
+// A spreadsheet of learners into one cohort. Payer per row (else the form's),
+// employer matched to a corporate client by name. People already in the
+// cohort are left as they are.
+export async function importLearners(args: { institutionId: string; cohortId: string; rows: LearnerRow[]; defaultPayer: ProgramPayer; defaultClientId: string | null }) {
+  const clients = await prisma.corporateClient.findMany({ where: { institutionId: args.institutionId }, select: { id: true, name: true } })
+  const PAYERS: ProgramPayer[] = ['SELF_PAY', 'EMPLOYER', 'RESILIENCE_FUND', 'WIOA_VOUCHER', 'BOARD_CONTRACT', 'PELL']
+  let enrolled = 0
+  let already = 0
+  const errors: { row: number; message: string }[] = []
+  for (const r of args.rows) {
+    const payer = r.payer ? (PAYERS.find((p) => p === r.payer || p.replace('_VOUCHER', '') === r.payer) ?? null) : args.defaultPayer
+    if (!payer) {
+      errors.push({ row: r.row, message: `Payer must be one of ${PAYERS.join(', ')}.` })
+      continue
+    }
+    const client = r.employer ? clients.find((c) => c.name.toLowerCase() === r.employer!.toLowerCase()) : null
+    if (r.employer && !client) {
+      errors.push({ row: r.row, message: `No corporate client called “${r.employer}”. Add it first, or leave employer blank.` })
+      continue
+    }
+    const res = await addLearner({ institutionId: args.institutionId, cohortId: args.cohortId, firstName: r.firstName, lastName: r.lastName, email: r.email, payer, corporateClientId: client?.id ?? args.defaultClientId })
+    if ('error' in res) {
+      if (res.error?.startsWith('They’re already')) already++
+      else errors.push({ row: r.row, message: res.error ?? 'Couldn’t enroll.' })
+    } else enrolled++
+  }
+  return { enrolled, already, errors }
 }
 
 // ── Credentials (Open Badges 2.0, hosted verification) ──────────────────────

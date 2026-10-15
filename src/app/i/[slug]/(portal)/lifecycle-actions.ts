@@ -13,7 +13,8 @@ import { prisma } from '@/lib/prisma'
 import { addOfficeHours, answerAlumniIntro, bookOfficeHour, cancelOfficeHour, checkIn, EVENT_KINDS, INTRO_PURPOSES, requestAlumniIntro, rsvp, type IntroPurpose } from '@/lib/higher-ed/lifecycle'
 import { collegeTimeZone, zonedToUtc } from '@/lib/higher-ed/time-zone'
 import { deleteSegment, parseFilters, saveSegment } from '@/lib/higher-ed/segments'
-import { addLearner, setCohortRules, setProgress } from '@/lib/higher-ed/programs'
+import { addLearner, importLearners, setCohortRules, setProgress } from '@/lib/higher-ed/programs'
+import { parseLearners } from '@/lib/higher-ed/crm-csv'
 import { createRapidResponse, setRapidResponseActive } from '@/lib/higher-ed/rapid-response'
 
 type Result = { error?: string; ok?: boolean; message?: string }
@@ -216,6 +217,24 @@ export async function addLearnerForm(slug: string, _prev: FormResult, f: FormDat
   captureServerEvent(ctx.userId, 'he_learner_added', { institutionId: ctx.institution.id, enrollmentId: r.id, payer })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Enrolled.' }
+}
+
+export async function uploadLearnersForm(slug: string, _prev: FormResult, f: FormData): Promise<FormResult> {
+  const ctx = await staff(slug, 'execed', ['EXEC_ED', 'INSTITUTION_ADMIN'])
+  if (!ctx) return { error: 'Only Exec Ed staff or an admin can add learners.' }
+  const file = f.get('file')
+  if (!(file instanceof File) || file.size === 0) return { error: 'Choose a CSV file.' }
+  if (file.size > 5 * 1024 * 1024) return { error: 'That file is over 5 MB. Split it up.' }
+  const parsed = parseLearners(await file.text())
+  if (parsed.fileError) return { error: parsed.fileError }
+  const payer = (['SELF_PAY', 'EMPLOYER', 'WIOA_VOUCHER', 'BOARD_CONTRACT'].includes(str(f, 'payer')) ? str(f, 'payer') : 'SELF_PAY') as ProgramPayer
+  const r = await importLearners({ institutionId: ctx.institution.id, cohortId: str(f, 'cohortId'), rows: parsed.rows, defaultPayer: payer, defaultClientId: payer === 'EMPLOYER' ? str(f, 'clientId') || null : null })
+  const errors = [...parsed.errors, ...r.errors]
+  captureServerEvent(ctx.userId, 'he_learners_uploaded', { institutionId: ctx.institution.id, cohortId: str(f, 'cohortId'), enrolled: r.enrolled, already: r.already, errors: errors.length })
+  revalidatePath(`/i/${slug}`, 'layout')
+  const summary = `${r.enrolled} enrolled${r.already ? `, ${r.already} already in the cohort` : ''}${errors.length ? `, ${errors.length} skipped` : ''}.`
+  const detail = errors.slice(0, 8).map((e) => `Row ${e.row}: ${e.message}`).join(' ')
+  return errors.length && !r.enrolled ? { error: `${summary} ${detail}` } : { ok: true, message: errors.length ? `${summary} ${detail}` : summary }
 }
 
 // ── Workforce board: rapid response ────────────────────────────────────────

@@ -1755,11 +1755,11 @@ model CandidateProfile {
   inWorkFeedback      InWorkFeedback[]
   inWorkOutcomes      InWorkOutcome[]
   inWorkEmailSends    InWorkEmailSend[]
+  accessGrants        AccessGrant[]
 
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
-  accessGrants AccessGrant[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -5145,15 +5145,15 @@ model Coach {
   // What this coach is strongest at, beyond the older industries / seniorityFit fields.
   // functions: PRIMARY_FUNCTION_OPTIONS values this coach works in (matching used to compare
   // a member's function against `industries`, which only worked if a coach typed one in).
-  functions      String[] @default([])
+  functions      String[]          @default([])
   // Free-form skills this coach is strong in (e.g. "negotiation", "executive presence").
-  skills         String[] @default([])
+  skills         String[]          @default([])
   // The styles this coach actually delivers: a subset of COACHING_STYLES
   // (PUSH, SUPPORT, ACCOUNTABILITY, STRATEGY, PRACTICAL, SPACE) in src/lib/coach/coaching-style.ts.
-  coachingStyles String[] @default([])
+  coachingStyles String[]          @default([])
   // Where clients book sessions (Calendly, cal.com, Google booking page).
-  schedulingUrl String?
-  accessCodes   CoachAccessCode[]
+  schedulingUrl  String?
+  accessCodes    CoachAccessCode[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -7641,6 +7641,7 @@ enum OutplacementSeatStatus {
 enum OutplacementEnrollmentMethod {
   SINGLE
   BULK_CSV
+  API
 }
 
 // The buying company. One org can run multiple contracts over time — a
@@ -7764,6 +7765,15 @@ model OutplacementSeat {
   // When this person's access ends, if not the contract's end (census window).
   accessEndsAt             DateTime?
   packageKey               String?
+  // The employer's own HR id for this person (census upsert key) and the
+  // group they were enrolled with ("March RIF, Austin").
+  externalId               String?
+  cohort                   String?
+  // Census communications (opt-in per org): join reminders and the notice
+  // that access is about to end.
+  lastReminderAt           DateTime?
+  reminderCount            Int       @default(0)
+  accessNoticeAt           DateTime?
   shareOutcomeWithEmployer Boolean   @default(false)
   shareOutcomeChangedAt    DateTime?
 
@@ -7774,6 +7784,7 @@ model OutplacementSeat {
   @@index([contractId])
   @@index([candidateId])
   @@index([contractId, status])
+  @@index([contractId, externalId])
 }
 
 // The four-role RBAC for an employer-portal login. Distinct from the
@@ -10765,6 +10776,24 @@ model CrmBroadcastRecipient {
 /// you visit, including hostile ones; a bearer token it holds can do exactly
 /// what the capture endpoint allows and nothing else, can be revoked on its
 /// own, and never grants access to the admin portal.
+/// A customer org's census API key: an outplacement firm or a college pushes
+/// its people to POST /api/v1/census with it. Stored hashed; shown once.
+model OrgApiKey {
+  id         String    @id @default(cuid())
+  orgKind    String // 'outplacement' | 'institution'
+  orgId      String
+  label      String
+  prefix     String // first characters, to tell keys apart
+  tokenHash  String    @unique
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  useCount   Int       @default(0)
+  revokedAt  DateTime?
+
+  @@index([orgKind, orgId])
+}
+
 model CrmCaptureToken {
   id             String    @id @default(cuid())
   /// SHA-256 of the token. The plaintext is shown once at creation and never

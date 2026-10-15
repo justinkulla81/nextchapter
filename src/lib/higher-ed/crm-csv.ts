@@ -53,13 +53,25 @@ export function parseRoster(text: string, now = new Date()): { rows: RosterRow[]
   const { header, rows } = table(text)
   const missing = missingColumns(header, ROSTER_REQUIRED)
   if (missing.length) return { rows: [], errors: [], fileError: `Missing column${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}` }
+  return parseRosterRecords(
+    rows.map((cells) => Object.fromEntries(header.map((h, i) => [h, cells[i] ?? '']))),
+    now,
+    2, // 1-based, after the header, as a spreadsheet shows it
+  )
+}
 
+// The same checks for records that arrive as JSON (the census API): keys
+// are the CSV column names.
+export function parseRosterRecords(records: Record<string, unknown>[], now = new Date(), firstRow = 1): { rows: RosterRow[]; errors: RowError[] } {
   const out: RosterRow[] = []
   const errors: RowError[] = []
   const seen = new Set<string>()
-  rows.forEach((cells, i) => {
-    const row = i + 2 // 1-based, after the header, as a spreadsheet shows it
-    const get = (col: string) => (cells[header.indexOf(col)] ?? '').trim()
+  records.forEach((rec, i) => {
+    const row = i + firstRow
+    const get = (col: string) => {
+      const v = rec[col]
+      return v === null || v === undefined ? '' : String(v).trim()
+    }
     const externalId = get('external_id')
     const email = get('email').toLowerCase()
     const affiliation = get('affiliation').toUpperCase().replace(/\s+/g, '_') as InstitutionAffiliation
@@ -92,6 +104,31 @@ export function parseRoster(text: string, now = new Date()): { rows: RosterRow[]
       doNotContact: truthy(get('do_not_contact')),
     })
   })
+  return { rows: out, errors }
+}
+
+// Learners for a cohort (workforce and exec-ed programs): people who aren't
+// alumni. email, first_name, last_name required; payer and employer optional.
+export type LearnerRow = { row: number; email: string; firstName: string; lastName: string; payer: string | null; employer: string | null }
+
+export function parseLearners(text: string): { rows: LearnerRow[]; errors: RowError[]; fileError?: string } {
+  const { header, rows } = table(text)
+  const missing = missingColumns(header, ['email', 'first_name', 'last_name'])
+  if (missing.length) return { rows: [], errors: [], fileError: `Missing column${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}` }
+  const out: LearnerRow[] = []
+  const errors: RowError[] = []
+  const seen = new Set<string>()
+  rows.forEach((cells, i) => {
+    const row = i + 2
+    const get = (col: string) => (header.includes(col) ? (cells[header.indexOf(col)] ?? '').trim() : '')
+    const email = get('email').toLowerCase()
+    if (!EMAIL.test(email)) return errors.push({ row, column: 'email', message: `"${get('email')}" isn't an email address.` })
+    if (seen.has(email)) return errors.push({ row, column: 'email', message: `${email} appears twice in this file.` })
+    if (!get('first_name') || !get('last_name')) return errors.push({ row, column: 'first_name', message: 'First and last name are required.' })
+    seen.add(email)
+    out.push({ row, email, firstName: get('first_name'), lastName: get('last_name'), payer: get('payer').toUpperCase().replace(/\s+/g, '_') || null, employer: get('employer') || null })
+  })
+  if (out.length + errors.length > 2000) return { rows: [], errors: [], fileError: '2,000 rows at most. Split the file.' }
   return { rows: out, errors }
 }
 

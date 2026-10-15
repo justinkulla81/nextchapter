@@ -193,6 +193,10 @@
       "schedule": "30 7 * * *"
     },
     {
+      "path": "/api/cron/census-comms",
+      "schedule": "0 15 * * *"
+    },
+    {
       "path": "/api/cron/higher-ed-weekly",
       "schedule": "0 13 * * 1"
     },
