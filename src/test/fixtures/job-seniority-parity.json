@@ -116,8 +116,8 @@
 ],
 [
 "HR Business Partner",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Executive Assistant to the CEO",
@@ -686,8 +686,8 @@
 ],
 [
 "People Partner - Product and Product Design",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Solutions Engineer, Digital Natives",
@@ -1161,8 +1161,8 @@
 ],
 [
 "Growth Recruiter, High Volume - Contract",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Account Executive | Strategic",
@@ -1561,8 +1561,8 @@
 ],
 [
 "People Operations Generalist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Data Scientist, Monetization",
@@ -1786,8 +1786,8 @@
 ],
 [
 "Product Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Sr. Data Scientist, Core",
@@ -1876,8 +1876,8 @@
 ],
 [
 "People Partner, Europe",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Accountant, Technical Revenue",
@@ -1981,8 +1981,8 @@
 ],
 [
 "People Partner, APJ",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Staff Product Manager, Retail Media & Audiences",
@@ -2066,8 +2066,8 @@
 ],
 [
 "Operations Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Compliance Manager, Card",
@@ -3056,8 +3056,8 @@
 ],
 [
 "Group Product Manager II, Creative Tech - tvScientific",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Customer Success Strategy & Operations Manager",
@@ -3551,8 +3551,8 @@
 ],
 [
 "Group Product Manager, Financial Engineering",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "People Operations Lead",
@@ -4116,8 +4116,8 @@
 ],
 [
 "Group Product Manager, Verticals",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Compensation Operations Manager",
@@ -4786,8 +4786,8 @@
 ],
 [
 "People Partner, Agent Development",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Product Manager - Realtime",
@@ -5126,8 +5126,8 @@
 ],
 [
 "People Partner Lead, CX",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Machine Learning Solutions Engineer \u2013 Robotics",
@@ -5286,8 +5286,8 @@
 ],
 [
 "University Recruiter, Contract",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Field Engineer",
@@ -5856,8 +5856,8 @@
 ],
 [
 "HR Generalist",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Accounting Partner Growth Manager",
@@ -5911,8 +5911,8 @@
 ],
 [
 "Technical Recruiter (Fixed Term Contract)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Risk Operations, Collections",
@@ -6511,8 +6511,8 @@
 ],
 [
 "University Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Software Engineer, Marketing Enablement & Technology",
@@ -6696,8 +6696,8 @@
 ],
 [
 "GTM Recruiter, AMER (Fixed Term)",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Office Manager, Berlin",
@@ -6751,13 +6751,13 @@
 ],
 [
 "HRBP, Core Business",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Recruiter II, G&A",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Business Controller Intern",
@@ -6866,8 +6866,8 @@
 ],
 [
 "GTM Contract Recruiter",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Director of the Institute for LGBTQIA+ Community Engagement and Public Hist",
@@ -6966,8 +6966,8 @@
 ],
 [
 "HRBP, GTM",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Enterprise Solutions Engineer - France",
@@ -7356,8 +7356,8 @@
 ],
 [
 "Recruiter, AI/ML Research EMEA",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Customer Success Manager - Denver",
@@ -8316,8 +8316,8 @@
 ],
 [
 "GTM Strategy and Operations Associate",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Mid-Market Account Executive - French Fluent",
@@ -8511,8 +8511,8 @@
 ],
 [
 "Group Product Marketing Manager",
-"MANAGER",
-40
+"SR_MANAGER",
+50
 ],
 [
 "Enterprise Business Development Representative",
@@ -11911,8 +11911,8 @@
 ],
 [
 "Executive Producer",
-"OTHER",
-0
+"SR_MANAGER",
+52
 ],
 [
 "Senior Producer",
@@ -12103,8 +12103,8 @@ true
 ],
 [
 "Interim HR Business Partner",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Licensed Physician (MD/DO) - Freelance AI Trainer",
@@ -12235,5 +12235,2870 @@ true
 "Chief of Geriatrics",
 "DIRECTOR",
 68
+],
+[
+"Recruiter",
+"MID_IC",
+30
+],
+[
+"Senior Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Technical Recruiter",
+"MID_IC",
+30
+],
+[
+"Senior Technical Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Lead Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Recruiting Manager",
+"MANAGER",
+40
+],
+[
+"Recruiting Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Partner",
+"MID_IC",
+30
+],
+[
+"TA Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Lead",
+"SENIOR_IC",
+45
+],
+[
+"Talent Acquisition Manager",
+"MANAGER",
+40
+],
+[
+"Talent Acquisition Specialist",
+"MID_IC",
+30
+],
+[
+"Senior Talent Acquisition Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Director, Talent Acquisition",
+"DIRECTOR",
+65
+],
+[
+"Head of Talent Acquisition",
+"HEAD",
+72
+],
+[
+"Head of Talent",
+"HEAD",
+72
+],
+[
+"Head of Recruiting",
+"HEAD",
+72
+],
+[
+"Executive Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Executive Search Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Corporate Recruiter",
+"MID_IC",
+30
+],
+[
+"Healthcare Recruiter",
+"MID_IC",
+30
+],
+[
+"Nurse Recruiter",
+"MID_IC",
+30
+],
+[
+"Campus Recruiter",
+"MID_IC",
+30
+],
+[
+"Sourcer",
+"MID_IC",
+30
+],
+[
+"Senior Sourcer",
+"MID_IC",
+30
+],
+[
+"Talent Sourcer",
+"MID_IC",
+30
+],
+[
+"Recruitment Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Employer Brand Manager",
+"MANAGER",
+40
+],
+[
+"Senior HRBP",
+"SENIOR_IC",
+45
+],
+[
+"Principal HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"Strategic HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"HRBP",
+"MID_IC",
+30
+],
+[
+"People Partner",
+"MID_IC",
+30
+],
+[
+"Senior People Partner",
+"SENIOR_IC",
+45
+],
+[
+"People Business Partner",
+"MID_IC",
+30
+],
+[
+"Senior HR Generalist",
+"SENIOR_IC",
+45
+],
+[
+"HR Manager",
+"MANAGER",
+40
+],
+[
+"Senior HR Manager",
+"MANAGER",
+40
+],
+[
+"HR Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Human Resources",
+"DIRECTOR",
+65
+],
+[
+"VP People",
+"VP",
+80
+],
+[
+"Chief People Officer",
+"C_SUITE",
+100
+],
+[
+"People Operations Manager",
+"MANAGER",
+40
+],
+[
+"People Operations Specialist",
+"MID_IC",
+30
+],
+[
+"People Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Employee Relations Manager",
+"MANAGER",
+40
+],
+[
+"Employee Relations Specialist",
+"MID_IC",
+30
+],
+[
+"Senior Employee Relations Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Employee Relations Investigator",
+"MID_IC",
+30
+],
+[
+"Labor Relations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Compensation Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Compensation Manager",
+"MANAGER",
+40
+],
+[
+"Total Rewards Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Analyst",
+"MID_IC",
+30
+],
+[
+"HRIS Manager",
+"MANAGER",
+40
+],
+[
+"Workforce Planning Manager",
+"MANAGER",
+40
+],
+[
+"L&D Manager",
+"MANAGER",
+40
+],
+[
+"Learning and Development Manager",
+"MANAGER",
+40
+],
+[
+"Learning & Development Specialist",
+"MID_IC",
+30
+],
+[
+"Learning and Development Partner",
+"MID_IC",
+30
+],
+[
+"Senior Learning Partner",
+"SENIOR_IC",
+45
+],
+[
+"Learning Experience Designer",
+"MID_IC",
+30
+],
+[
+"Senior Instructional Designer",
+"SENIOR_IC",
+45
+],
+[
+"Training Manager",
+"MANAGER",
+40
+],
+[
+"Corporate Trainer",
+"MID_IC",
+30
+],
+[
+"Senior Trainer",
+"OTHER",
+0
+],
+[
+"Organizational Development Consultant",
+"MID_IC",
+30
+],
+[
+"OD Consultant",
+"MID_IC",
+30
+],
+[
+"Organizational Effectiveness Manager",
+"MANAGER",
+40
+],
+[
+"Talent Management Manager",
+"MANAGER",
+40
+],
+[
+"Talent Development Manager",
+"MANAGER",
+40
+],
+[
+"Talent Development Specialist",
+"MID_IC",
+30
+],
+[
+"DEI Manager",
+"MANAGER",
+40
+],
+[
+"Diversity Equity Inclusion Manager",
+"MANAGER",
+40
+],
+[
+"Director of DEI",
+"DIRECTOR",
+65
+],
+[
+"Employee Experience Manager",
+"MANAGER",
+40
+],
+[
+"HR Operations Manager",
+"MANAGER",
+40
+],
+[
+"HR Specialist",
+"MID_IC",
+30
+],
+[
+"Senior HR Specialist",
+"SENIOR_IC",
+45
+],
+[
+"Human Resources Business Partner",
+"MID_IC",
+30
+],
+[
+"HR Consultant",
+"MID_IC",
+30
+],
+[
+"Senior HR Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Change Management Consultant",
+"MID_IC",
+30
+],
+[
+"Talent Partner",
+"MID_IC",
+30
+],
+[
+"Senior Talent Partner",
+"SENIOR_IC",
+45
+],
+[
+"Recruiting Partner",
+"MID_IC",
+30
+],
+[
+"Recruitment Consultant",
+"MID_IC",
+30
+],
+[
+"Senior Recruitment Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Recruitment Manager",
+"MANAGER",
+40
+],
+[
+"Agency Recruiter",
+"MID_IC",
+30
+],
+[
+"Technical Sourcing Lead",
+"SENIOR_IC",
+45
+],
+[
+"RPO Recruiter",
+"MID_IC",
+30
+],
+[
+"Recruiter II",
+"MID_IC",
+30
+],
+[
+"Recruiter III",
+"SENIOR_IC",
+45
+],
+[
+"Senior Corporate Recruiter",
+"SENIOR_IC",
+45
+],
+[
+"Executive Talent Acquisition Partner",
+"SENIOR_IC",
+45
+],
+[
+"Leadership Recruiter",
+"MID_IC",
+30
+],
+[
+"Talent Acquisition Business Partner",
+"MID_IC",
+30
+],
+[
+"HR Lead",
+"SENIOR_IC",
+45
+],
+[
+"People Lead",
+"SENIOR_IC",
+45
+],
+[
+"People & Culture Manager",
+"MANAGER",
+40
+],
+[
+"Culture Manager",
+"MANAGER",
+40
+],
+[
+"Head of People Operations",
+"HEAD",
+72
+],
+[
+"Payroll Manager",
+"MANAGER",
+40
+],
+[
+"Benefits Specialist",
+"OTHER",
+0
+],
+[
+"Leave Specialist",
+"OTHER",
+0
+],
+[
+"HR Coordinator",
+"OTHER",
+0
+],
+[
+"HR Administrator",
+"OTHER",
+0
+],
+[
+"HR Analyst",
+"MID_IC",
+30
+],
+[
+"People Analytics Manager",
+"MANAGER",
+40
+],
+[
+"People Analyst",
+"MID_IC",
+30
+],
+[
+"Learning Program Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Manager",
+"MANAGER",
+40
+],
+[
+"Talent Programs Manager",
+"MANAGER",
+40
+],
+[
+"Onboarding Specialist",
+"OTHER",
+0
+],
+[
+"Mobility Manager",
+"MANAGER",
+40
+],
+[
+"Global Mobility Specialist",
+"MID_IC",
+30
+],
+[
+"Workforce Analyst",
+"MID_IC",
+30
+],
+[
+"HR Director, Talent",
+"DIRECTOR",
+65
+],
+[
+"Recruiting Operations Manager",
+"MANAGER",
+40
+],
+[
+"Talent Operations Manager",
+"MANAGER",
+40
+],
+[
+"Executive Coach",
+"SENIOR_IC",
+45
+],
+[
+"Leadership Coach",
+"SENIOR_IC",
+45
+],
+[
+"Career Coach",
+"MID_IC",
+30
+],
+[
+"Senior Career Coach",
+"SENIOR_IC",
+45
+],
+[
+"Health Coach",
+"OTHER",
+0
+],
+[
+"Wellness Coach",
+"OTHER",
+0
+],
+[
+"Senior Health Coach",
+"MID_IC",
+30
+],
+[
+"Lead Health Coach",
+"MID_IC",
+30
+],
+[
+"Sales Coach",
+"OTHER",
+0
+],
+[
+"Sales Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Senior Sales Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Sales Enablement Specialist",
+"MID_IC",
+30
+],
+[
+"Sales Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Director of Sales Enablement",
+"DIRECTOR",
+65
+],
+[
+"Head of Enablement",
+"HEAD",
+72
+],
+[
+"Revenue Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Enablement Program Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Coach",
+"SENIOR_IC",
+45
+],
+[
+"Executive Leadership Coach",
+"SENIOR_IC",
+45
+],
+[
+"Professional Certified Coach",
+"SENIOR_IC",
+45
+],
+[
+"Coach",
+"OTHER",
+0
+],
+[
+"Life Coach",
+"OTHER",
+0
+],
+[
+"Business Coach",
+"OTHER",
+0
+],
+[
+"Performance Coach",
+"OTHER",
+0
+],
+[
+"Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Senior Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Agile Coach",
+"SENIOR_IC",
+45
+],
+[
+"Instructional Coach",
+"OTHER",
+0
+],
+[
+"Literacy Coach",
+"OTHER",
+0
+],
+[
+"Math Coach",
+"OTHER",
+0
+],
+[
+"Academic Coach",
+"OTHER",
+0
+],
+[
+"Success Coach",
+"OTHER",
+0
+],
+[
+"Student Success Coach",
+"OTHER",
+0
+],
+[
+"Career Services Coach",
+"OTHER",
+0
+],
+[
+"Career Advisor",
+"OTHER",
+0
+],
+[
+"Career Counselor",
+"OTHER",
+0
+],
+[
+"Career Consultant",
+"MID_IC",
+30
+],
+[
+"Outplacement Consultant",
+"MID_IC",
+30
+],
+[
+"Career Transition Consultant",
+"MID_IC",
+30
+],
+[
+"Executive Career Coach",
+"SENIOR_IC",
+45
+],
+[
+"Coach, BetterUp",
+"OTHER",
+0
+],
+[
+"Fractional Coach",
+"OTHER",
+0
+],
+[
+"Certified Health Coach",
+"OTHER",
+0
+],
+[
+"Nutrition Coach",
+"OTHER",
+0
+],
+[
+"Fitness Coach",
+"OTHER",
+0
+],
+[
+"Head Coach",
+"OTHER",
+0
+],
+[
+"Assistant Coach",
+"OTHER",
+0
+],
+[
+"Basketball Coach",
+"OTHER",
+0
+],
+[
+"Clinical Coach",
+"OTHER",
+0
+],
+[
+"Nurse Coach",
+"OTHER",
+0
+],
+[
+"Recovery Coach",
+"OTHER",
+0
+],
+[
+"Peer Recovery Coach",
+"OTHER",
+0
+],
+[
+"Financial Coach",
+"OTHER",
+0
+],
+[
+"Money Coach",
+"OTHER",
+0
+],
+[
+"Customer Success Coach",
+"OTHER",
+0
+],
+[
+"Quality Coach",
+"OTHER",
+0
+],
+[
+"Coaching Manager",
+"MANAGER",
+40
+],
+[
+"Director of Coaching",
+"DIRECTOR",
+65
+],
+[
+"Head of Coaching",
+"HEAD",
+72
+],
+[
+"Coaching Program Manager",
+"MANAGER",
+40
+],
+[
+"Coach Operations Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Facilitator",
+"MID_IC",
+30
+],
+[
+"Executive Development Manager",
+"MANAGER",
+40
+],
+[
+"Leadership Development Specialist",
+"MID_IC",
+30
+],
+[
+"Leadership Development Consultant",
+"MID_IC",
+30
+],
+[
+"Leadership Development Director",
+"DIRECTOR",
+65
+],
+[
+"Talent Coach",
+"OTHER",
+0
+],
+[
+"Team Coach",
+"OTHER",
+0
+],
+[
+"Sales Trainer",
+"MID_IC",
+30
+],
+[
+"Sales Training Manager",
+"MANAGER",
+40
+],
+[
+"Field Sales Trainer",
+"MID_IC",
+30
+],
+[
+"Sales Readiness Manager",
+"MANAGER",
+40
+],
+[
+"Customer Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Partner Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Technical Enablement Manager",
+"MANAGER",
+40
+],
+[
+"Sales Productivity Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Enablement Specialist",
+"MID_IC",
+30
+],
+[
+"Enablement Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Enablement Program Manager",
+"SENIOR_IC",
+45
+],
+[
+"Mentor",
+"OTHER",
+0
+],
+[
+"Writing Coach",
+"OTHER",
+0
+],
+[
+"Interview Coach",
+"OTHER",
+0
+],
+[
+"Job Coach",
+"OTHER",
+0
+],
+[
+"Employment Specialist",
+"OTHER",
+0
+],
+[
+"Workforce Development Specialist",
+"OTHER",
+0
+],
+[
+"Executive Coaching Director",
+"DIRECTOR",
+65
+],
+[
+"Coaching Practice Lead",
+"SENIOR_IC",
+45
+],
+[
+"Wellbeing Coach",
+"OTHER",
+0
+],
+[
+"Mental Fitness Coach",
+"OTHER",
+0
+],
+[
+"Behavioral Health Coach",
+"OTHER",
+0
+],
+[
+"Diabetes Coach",
+"OTHER",
+0
+],
+[
+"Lifestyle Coach",
+"OTHER",
+0
+],
+[
+"Coach Manager",
+"MANAGER",
+40
+],
+[
+"Senior Coach",
+"OTHER",
+0
+],
+[
+"General Manager, Enterprise Business Unit",
+"C_SUITE",
+100
+],
+[
+"General Manager, Cloud Security",
+"C_SUITE",
+100
+],
+[
+"GM, Payments",
+"C_SUITE",
+100
+],
+[
+"Vice President & General Manager",
+"C_SUITE",
+100
+],
+[
+"Business Unit Head",
+"HEAD",
+72
+],
+[
+"Head of Business Unit",
+"HEAD",
+72
+],
+[
+"Business Unit President",
+"C_SUITE",
+100
+],
+[
+"Division President",
+"C_SUITE",
+100
+],
+[
+"President, North America",
+"C_SUITE",
+100
+],
+[
+"COO",
+"C_SUITE",
+100
+],
+[
+"VP Operations",
+"VP",
+80
+],
+[
+"Vice President of Operations",
+"VP",
+80
+],
+[
+"Director of Operations",
+"DIRECTOR",
+65
+],
+[
+"Senior Director, Operations",
+"DIRECTOR",
+65
+],
+[
+"Head of Operations",
+"HEAD",
+72
+],
+[
+"Chief of Staff",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Chief of Staff, Engineering",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Senior Chief of Staff",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"Deputy Chief of Staff",
+"DIRECTOR",
+68
+],
+[
+"Managing Director, Consulting",
+"DIRECTOR",
+65
+],
+[
+"Country Manager",
+"DIRECTOR",
+65
+],
+[
+"Regional General Manager",
+"C_SUITE",
+100
+],
+[
+"General Manager, Hotel",
+"MANAGER",
+40
+],
+[
+"General Manager - Restaurant",
+"MANAGER",
+40
+],
+[
+"Plant Manager",
+"MANAGER",
+40
+],
+[
+"Site Leader",
+"SR_MANAGER",
+52
+],
+[
+"Site Director",
+"DIRECTOR",
+65
+],
+[
+"Operations Executive",
+"OTHER",
+0
+],
+[
+"Business Manager",
+"MANAGER",
+40
+],
+[
+"Strategy & Operations Manager",
+"MANAGER",
+40
+],
+[
+"BizOps Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Strategy and Operations",
+"HEAD",
+72
+],
+[
+"Executive Director, Strategy",
+"C_SUITE",
+100
+],
+[
+"Program Director",
+"DIRECTOR",
+65
+],
+[
+"Practice Leader",
+"SR_MANAGER",
+52
+],
+[
+"Business Leader",
+"OTHER",
+0
+],
+[
+"Commercial Director",
+"DIRECTOR",
+65
+],
+[
+"Area General Manager",
+"C_SUITE",
+100
+],
+[
+"Deputy General Manager",
+"C_SUITE",
+100
+],
+[
+"Senior General Manager",
+"C_SUITE",
+100
+],
+[
+"Associate General Manager",
+"OTHER",
+0
+],
+[
+"Group General Manager",
+"C_SUITE",
+100
+],
+[
+"Director, Business Operations",
+"DIRECTOR",
+65
+],
+[
+"Senior Manager, Strategy & Operations",
+"SR_MANAGER",
+50
+],
+[
+"Entrepreneur in Residence",
+"DIRECTOR",
+65
+],
+[
+"Operating Partner",
+"PARTNER",
+78
+],
+[
+"Operating Executive",
+"OTHER",
+0
+],
+[
+"Head of Business Operations",
+"HEAD",
+72
+],
+[
+"Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Associate Creative Director",
+"SR_MANAGER",
+52
+],
+[
+"Group Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Executive Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Art Director",
+"MID_IC",
+30
+],
+[
+"Senior Art Director",
+"SENIOR_IC",
+45
+],
+[
+"Group Art Director",
+"SR_MANAGER",
+52
+],
+[
+"Associate Art Director",
+"OTHER",
+0
+],
+[
+"Junior Art Director",
+"OTHER",
+0
+],
+[
+"Design Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Design",
+"HEAD",
+72
+],
+[
+"Design Lead",
+"SENIOR_IC",
+45
+],
+[
+"Lead Designer",
+"SENIOR_IC",
+45
+],
+[
+"Design Manager",
+"MANAGER",
+40
+],
+[
+"Senior Design Manager",
+"MANAGER",
+40
+],
+[
+"Brand Designer",
+"MID_IC",
+30
+],
+[
+"Senior Brand Designer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Product Designer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Product Designer",
+"SENIOR_IC",
+45
+],
+[
+"Principal Product Designer",
+"SR_MANAGER",
+52
+],
+[
+"Senior UX Designer",
+"SENIOR_IC",
+45
+],
+[
+"UI Designer",
+"MID_IC",
+30
+],
+[
+"UX/UI Designer",
+"MID_IC",
+30
+],
+[
+"Visual Designer",
+"MID_IC",
+30
+],
+[
+"Senior Visual Designer",
+"SENIOR_IC",
+45
+],
+[
+"Interaction Designer",
+"MID_IC",
+30
+],
+[
+"Senior UX Researcher",
+"SENIOR_IC",
+45
+],
+[
+"User Researcher",
+"MID_IC",
+30
+],
+[
+"Senior Graphic Designer",
+"SENIOR_IC",
+45
+],
+[
+"Motion Designer",
+"MID_IC",
+30
+],
+[
+"Senior Motion Designer",
+"SENIOR_IC",
+45
+],
+[
+"Copywriter",
+"MID_IC",
+30
+],
+[
+"Senior Copywriter",
+"SENIOR_IC",
+45
+],
+[
+"Associate Copywriter",
+"OTHER",
+0
+],
+[
+"Copy Director",
+"DIRECTOR",
+65
+],
+[
+"Copy Chief",
+"SR_MANAGER",
+52
+],
+[
+"Content Strategist",
+"MID_IC",
+30
+],
+[
+"Senior Content Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Content Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Content",
+"HEAD",
+72
+],
+[
+"Content Lead",
+"SENIOR_IC",
+45
+],
+[
+"Content Manager",
+"MANAGER",
+40
+],
+[
+"Senior Content Manager",
+"MANAGER",
+40
+],
+[
+"Content Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Editorial Director",
+"DIRECTOR",
+65
+],
+[
+"Senior Editor",
+"SENIOR_IC",
+45
+],
+[
+"Editor",
+"SENIOR_IC",
+45
+],
+[
+"Writer",
+"OTHER",
+0
+],
+[
+"Senior Writer",
+"SENIOR_IC",
+45
+],
+[
+"Staff Writer",
+"SENIOR_IC",
+45
+],
+[
+"Speechwriter",
+"MID_IC",
+30
+],
+[
+"Senior Speechwriter",
+"SENIOR_IC",
+45
+],
+[
+"Senior Technical Writer",
+"SENIOR_IC",
+45
+],
+[
+"UX Writer",
+"MID_IC",
+30
+],
+[
+"Content Designer",
+"MID_IC",
+30
+],
+[
+"Senior Content Designer",
+"SENIOR_IC",
+45
+],
+[
+"Brand Strategist",
+"MID_IC",
+30
+],
+[
+"Creative Strategist",
+"MID_IC",
+30
+],
+[
+"Creative Lead",
+"SENIOR_IC",
+45
+],
+[
+"Creative Manager",
+"MANAGER",
+40
+],
+[
+"Creative Producer",
+"MID_IC",
+30
+],
+[
+"Video Producer",
+"OTHER",
+0
+],
+[
+"Photographer",
+"OTHER",
+0
+],
+[
+"Illustrator",
+"OTHER",
+0
+],
+[
+"Animator",
+"OTHER",
+0
+],
+[
+"Design Researcher",
+"MID_IC",
+30
+],
+[
+"Service Designer",
+"MID_IC",
+30
+],
+[
+"Industrial Designer",
+"MID_IC",
+30
+],
+[
+"Packaging Designer",
+"OTHER",
+0
+],
+[
+"Experience Designer",
+"MID_IC",
+30
+],
+[
+"Principal Designer",
+"SR_MANAGER",
+52
+],
+[
+"Staff Designer",
+"SENIOR_IC",
+45
+],
+[
+"Brand Creative Director",
+"DIRECTOR",
+65
+],
+[
+"Head of Brand Design",
+"HEAD",
+72
+],
+[
+"VP Creative",
+"VP",
+80
+],
+[
+"Chief Creative Officer",
+"C_SUITE",
+100
+],
+[
+"Design Systems Lead",
+"SENIOR_IC",
+45
+],
+[
+"Design Program Manager",
+"MANAGER",
+40
+],
+[
+"Creative Operations Manager",
+"MANAGER",
+40
+],
+[
+"Studio Manager",
+"MANAGER",
+40
+],
+[
+"Studio Director",
+"DIRECTOR",
+65
+],
+[
+"Production Designer",
+"OTHER",
+0
+],
+[
+"Senior Financial Planner",
+"SENIOR_IC",
+45
+],
+[
+"Associate Financial Planner",
+"OTHER",
+0
+],
+[
+"Lead Financial Planner",
+"SENIOR_IC",
+45
+],
+[
+"CFP",
+"MID_IC",
+30
+],
+[
+"CERTIFIED FINANCIAL PLANNER",
+"MID_IC",
+30
+],
+[
+"Wealth Planner",
+"MID_IC",
+30
+],
+[
+"Senior Wealth Planner",
+"SENIOR_IC",
+45
+],
+[
+"Wealth Advisor",
+"MID_IC",
+30
+],
+[
+"Financial Advisor",
+"MID_IC",
+30
+],
+[
+"Private Wealth Advisor",
+"MID_IC",
+30
+],
+[
+"Paraplanner",
+"OTHER",
+0
+],
+[
+"Senior Demand Planner",
+"SENIOR_IC",
+45
+],
+[
+"Demand Planning Manager",
+"MANAGER",
+40
+],
+[
+"Supply Planner",
+"MID_IC",
+30
+],
+[
+"Senior Supply Planner",
+"SENIOR_IC",
+45
+],
+[
+"Supply Planning Manager",
+"MANAGER",
+40
+],
+[
+"S&OP Manager",
+"MANAGER",
+40
+],
+[
+"Master Scheduler",
+"OTHER",
+0
+],
+[
+"Inventory Planner",
+"MID_IC",
+30
+],
+[
+"Materials Planner",
+"OTHER",
+0
+],
+[
+"Production Planner",
+"OTHER",
+0
+],
+[
+"Merchandise Planner",
+"MID_IC",
+30
+],
+[
+"Allocation Analyst",
+"OTHER",
+0
+],
+[
+"Senior FP&A Analyst",
+"SENIOR_IC",
+45
+],
+[
+"FP&A Manager",
+"MANAGER",
+40
+],
+[
+"Director of FP&A",
+"DIRECTOR",
+65
+],
+[
+"Financial Planning Manager",
+"MANAGER",
+40
+],
+[
+"Financial Planning and Analysis Manager",
+"MANAGER",
+40
+],
+[
+"Senior Urban Planner",
+"SENIOR_IC",
+45
+],
+[
+"Planner II",
+"MID_IC",
+30
+],
+[
+"Planner III",
+"SENIOR_IC",
+45
+],
+[
+"Senior Planner",
+"SENIOR_IC",
+45
+],
+[
+"Principal Planner",
+"SENIOR_IC",
+45
+],
+[
+"City Planner",
+"DIRECTOR",
+68
+],
+[
+"Senior Transportation Planner",
+"SENIOR_IC",
+45
+],
+[
+"Regional Planner",
+"MID_IC",
+30
+],
+[
+"Land Use Planner",
+"MID_IC",
+30
+],
+[
+"Environmental Planner",
+"MID_IC",
+30
+],
+[
+"Planning Manager",
+"MANAGER",
+40
+],
+[
+"Planning Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Planning",
+"DIRECTOR",
+65
+],
+[
+"Long Range Planner",
+"MID_IC",
+30
+],
+[
+"Event Planner",
+"OTHER",
+0
+],
+[
+"Senior Event Planner",
+"SENIOR_IC",
+45
+],
+[
+"Meeting Planner",
+"OTHER",
+0
+],
+[
+"Senior Meeting Planner",
+"SENIOR_IC",
+45
+],
+[
+"Event Manager",
+"MANAGER",
+40
+],
+[
+"Senior Event Manager",
+"MANAGER",
+40
+],
+[
+"Events Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Events",
+"DIRECTOR",
+65
+],
+[
+"Conference Manager",
+"MANAGER",
+40
+],
+[
+"Meetings and Events Manager",
+"MANAGER",
+40
+],
+[
+"Strategic Planner",
+"MID_IC",
+30
+],
+[
+"Strategic Planning Manager",
+"MANAGER",
+40
+],
+[
+"Director of Strategic Planning",
+"DIRECTOR",
+65
+],
+[
+"Strategy and Planning Manager",
+"MANAGER",
+40
+],
+[
+"Media Planner",
+"MID_IC",
+30
+],
+[
+"Senior Media Planner",
+"SENIOR_IC",
+45
+],
+[
+"Workforce Planner",
+"MID_IC",
+30
+],
+[
+"Capacity Planner",
+"MID_IC",
+30
+],
+[
+"Capital Planner",
+"MID_IC",
+30
+],
+[
+"Maintenance Planner",
+"OTHER",
+0
+],
+[
+"Facilities Planner",
+"OTHER",
+0
+],
+[
+"Estate Planning Attorney",
+"MID_IC",
+30
+],
+[
+"Retirement Planner",
+"OTHER",
+0
+],
+[
+"Benefits Planner",
+"OTHER",
+0
+],
+[
+"Discharge Planner",
+"OTHER",
+0
+],
+[
+"Wedding Planner",
+"OTHER",
+0
+],
+[
+"Travel Planner",
+"OTHER",
+0
+],
+[
+"Account Planner",
+"MID_IC",
+30
+],
+[
+"Brand Planner",
+"MID_IC",
+30
+],
+[
+"Strategy Director, Planning",
+"DIRECTOR",
+65
+],
+[
+"Senior Program Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Hospital Administrator",
+"DIRECTOR",
+65
+],
+[
+"Healthcare Administrator",
+"MANAGER",
+45
+],
+[
+"Clinic Administrator",
+"MANAGER",
+45
+],
+[
+"Practice Administrator",
+"MANAGER",
+45
+],
+[
+"Medical Practice Administrator",
+"MANAGER",
+45
+],
+[
+"Department Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Department Administrator",
+"SENIOR_IC",
+45
+],
+[
+"School Administrator",
+"MANAGER",
+45
+],
+[
+"University Administrator",
+"OTHER",
+0
+],
+[
+"Research Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Research Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Grants Administrator",
+"MID_IC",
+30
+],
+[
+"Contract Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Contract Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Nonprofit Administrator",
+"OTHER",
+0
+],
+[
+"Court Administrator",
+"DIRECTOR",
+65
+],
+[
+"City Administrator",
+"C_SUITE",
+100
+],
+[
+"Town Administrator",
+"C_SUITE",
+100
+],
+[
+"Senior Systems Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Linux Systems Administrator",
+"OTHER",
+0
+],
+[
+"Database Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Database Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Network Administrator",
+"OTHER",
+0
+],
+[
+"Salesforce Administrator",
+"MID_IC",
+30
+],
+[
+"Senior Salesforce Administrator",
+"SENIOR_IC",
+45
+],
+[
+"Workday Administrator",
+"MID_IC",
+30
+],
+[
+"ServiceNow Administrator",
+"MID_IC",
+30
+],
+[
+"Business Administrator",
+"OTHER",
+0
+],
+[
+"Business Systems Administrator",
+"MID_IC",
+30
+],
+[
+"Payroll Administrator",
+"OTHER",
+0
+],
+[
+"Associate Administrator",
+"OTHER",
+0
+],
+[
+"Chief Administrative Officer",
+"C_SUITE",
+100
+],
+[
+"Director of Administration",
+"DIRECTOR",
+65
+],
+[
+"Administrative Director",
+"DIRECTOR",
+65
+],
+[
+"Administrative Manager",
+"MANAGER",
+40
+],
+[
+"Program Manager",
+"MANAGER",
+40
+],
+[
+"Senior Program Manager",
+"SENIOR_IC",
+45
+],
+[
+"Practice Manager",
+"MANAGER",
+40
+],
+[
+"Health Services Administrator",
+"MANAGER",
+45
+],
+[
+"Plan Administrator",
+"OTHER",
+0
+],
+[
+"Trust Administrator",
+"OTHER",
+0
+],
+[
+"Fund Administrator",
+"OTHER",
+0
+],
+[
+"LMS Administrator",
+"OTHER",
+0
+],
+[
+"Cloud Administrator",
+"OTHER",
+0
+],
+[
+"M365 Administrator",
+"OTHER",
+0
+],
+[
+"Senior Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Director",
+"DIRECTOR",
+65
+],
+[
+"Revenue Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Revenue Operations Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Revenue Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"RevOps Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Revenue Operations",
+"HEAD",
+72
+],
+[
+"Director, Revenue Operations",
+"DIRECTOR",
+65
+],
+[
+"Sales Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Sales Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Sales Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Marketing Operations Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Operations Specialist",
+"MID_IC",
+30
+],
+[
+"Marketing Ops Lead",
+"SENIOR_IC",
+45
+],
+[
+"Business Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Business Operations Manager",
+"MANAGER",
+40
+],
+[
+"Business Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"GTM Operations Manager",
+"MANAGER",
+40
+],
+[
+"Go-to-Market Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Customer Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Analyst",
+"MID_IC",
+30
+],
+[
+"Senior Operations Analyst",
+"SENIOR_IC",
+45
+],
+[
+"Operations Lead",
+"SENIOR_IC",
+45
+],
+[
+"Operations Specialist",
+"OTHER",
+0
+],
+[
+"Operations Associate",
+"OTHER",
+0
+],
+[
+"Strategy & Operations Associate",
+"MID_IC",
+30
+],
+[
+"Strategy and Operations Manager",
+"MANAGER",
+40
+],
+[
+"Deal Desk Manager",
+"MANAGER",
+40
+],
+[
+"Sales Strategy Manager",
+"MANAGER",
+40
+],
+[
+"Revenue Strategy Manager",
+"MANAGER",
+40
+],
+[
+"Commercial Operations Manager",
+"MANAGER",
+40
+],
+[
+"Clinical Operations Manager",
+"MANAGER",
+40
+],
+[
+"Program Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Program Manager",
+"MANAGER",
+40
+],
+[
+"Operations Coordinator",
+"OTHER",
+0
+],
+[
+"VP Revenue Operations",
+"VP",
+80
+],
+[
+"Senior Director Sales Operations",
+"DIRECTOR",
+65
+],
+[
+"Partner Operations Manager",
+"MANAGER",
+40
+],
+[
+"Field Operations Manager",
+"MANAGER",
+40
+],
+[
+"Regional Operations Manager",
+"MANAGER",
+40
+],
+[
+"Operations Supervisor",
+"OTHER",
+0
+],
+[
+"Warehouse Operations Manager",
+"MANAGER",
+40
+],
+[
+"Senior Product Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Senior PMM",
+"MANAGER",
+40
+],
+[
+"Principal Product Marketing Manager",
+"SR_MANAGER",
+52
+],
+[
+"Director of Product Marketing",
+"DIRECTOR",
+65
+],
+[
+"Head of Product Marketing",
+"HEAD",
+72
+],
+[
+"PMM",
+"MANAGER",
+40
+],
+[
+"Associate Product Marketing Manager",
+"OTHER",
+0
+],
+[
+"Growth Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Growth Marketer",
+"MID_IC",
+30
+],
+[
+"Growth Lead",
+"SENIOR_IC",
+45
+],
+[
+"Head of Growth",
+"HEAD",
+72
+],
+[
+"Growth Manager",
+"MANAGER",
+40
+],
+[
+"Director of Growth Marketing",
+"DIRECTOR",
+65
+],
+[
+"Lifecycle Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Demand Generation Manager",
+"MANAGER",
+40
+],
+[
+"Senior Demand Generation Manager",
+"MANAGER",
+40
+],
+[
+"Performance Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Brand Manager",
+"MANAGER",
+40
+],
+[
+"Senior Brand Manager",
+"MANAGER",
+40
+],
+[
+"Associate Brand Manager",
+"MANAGER",
+40
+],
+[
+"Assistant Brand Manager",
+"MANAGER",
+40
+],
+[
+"Brand Director",
+"DIRECTOR",
+65
+],
+[
+"Director of Brand",
+"DIRECTOR",
+65
+],
+[
+"Head of Brand",
+"HEAD",
+72
+],
+[
+"Senior Brand Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Brand Strategy Director",
+"DIRECTOR",
+65
+],
+[
+"Brand Lead",
+"SENIOR_IC",
+45
+],
+[
+"Senior Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Director",
+"DIRECTOR",
+65
+],
+[
+"Digital Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Field Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Channel Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Customer Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Integrated Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Marketing Strategist",
+"MID_IC",
+30
+],
+[
+"Senior Marketing Strategist",
+"SENIOR_IC",
+45
+],
+[
+"Brand Ambassador",
+"OTHER",
+0
+],
+[
+"Category Manager",
+"MANAGER",
+40
+],
+[
+"Senior Category Manager",
+"MANAGER",
+40
+],
+[
+"Trade Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Shopper Marketing Manager",
+"MANAGER",
+40
+],
+[
+"Growth Analyst",
+"MID_IC",
+30
+],
+[
+"Growth Product Manager",
+"MANAGER",
+40
+],
+[
+"Business Unit Leader (Team Lead)",
+"MANAGER",
+40
+],
+[
+"AVP and Country Manager- Philippines",
+"SR_MANAGER",
+52
+],
+[
+"Senior Manager Talent Acquisition(Country Lead)",
+"SR_MANAGER",
+50
+],
+[
+"Country Manager (Mexico)",
+"DIRECTOR",
+65
+],
+[
+"Assistant Art Director",
+"OTHER",
+0
+],
+[
+"Art Director Intern",
+"OTHER",
+0
+],
+[
+"Creative Director / Art Director",
+"DIRECTOR",
+65
+],
+[
+"Recruiter Intern",
+"OTHER",
+0
+],
+[
+"Part-Time Recruiter",
+"OTHER",
+0
+],
+[
+"Driver Recruiter",
+"MID_IC",
+30
+],
+[
+"HR Generalist (Part-Time)",
+"OTHER",
+0
+],
+[
+"Executive Coach - Volunteer",
+"OTHER",
+0
+],
+[
+"Assistant Hospital Administrator",
+"OTHER",
+0
+],
+[
+"Senior Director, Executive Coaching",
+"DIRECTOR",
+65
+],
+[
+"VP & GM, Public Sector",
+"C_SUITE",
+100
+],
+[
+"Group Product Manager, Google Maps AI Platform",
+"SR_MANAGER",
+50
+],
+[
+"Principal Technical Recruiter",
+"SR_MANAGER",
+52
+],
+[
+"Principal Medical Writer (Device)",
+"SR_MANAGER",
+52
+],
+[
+"Strategy & Operations Associate - CEO Office",
+"MID_IC",
+30
+],
+[
+"Senior HRBP Manager",
+"SENIOR_IC",
+45
+],
+[
+"Director of Photography",
+"OTHER",
+0
 ]
 ]
