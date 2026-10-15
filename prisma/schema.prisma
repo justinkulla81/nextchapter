@@ -5262,6 +5262,10 @@ model CoachClientInvite {
   invitedAt    DateTime  @default(now())
   acceptedAt   DateTime?
   candidateId  String?   @unique
+  // Sessions the client has paid the coach for (billed outside NextChapter),
+  // granted when they accept; validDays from acceptance, null = no end.
+  sessions     Int?
+  validDays    Int?
 
   @@unique([coachId, invitedEmail])
   @@index([invitedEmail])

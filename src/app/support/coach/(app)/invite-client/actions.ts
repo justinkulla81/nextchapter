@@ -7,6 +7,7 @@ import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
 import { sendCoachClientInviteEmail } from '@/lib/email/send-coach-client-invite'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { coachSetSessions } from '@/lib/access/grants'
 
 export type CoachClientInviteState = { error?: string; sent?: boolean } | undefined
 
@@ -29,8 +30,16 @@ export async function sendCoachClientInvite(
   const email = (formData.get('email') as string | null)?.trim().toLowerCase()
   const name = (formData.get('name') as string | null)?.trim() || null
   if (!email || !email.includes('@')) return { error: 'Enter a valid email address.' }
+  const num = (k: string) => {
+    const v = String(formData.get(k) ?? '').trim()
+    return v === '' ? null : Number(v)
+  }
+  const sessions = num('sessions')
+  const validDays = num('validDays')
+  if (sessions !== null && !(Number.isInteger(sessions) && sessions >= 1 && sessions <= 100)) return { error: 'Sessions must be a whole number from 1 to 100, or blank.' }
+  if (validDays !== null && !(Number.isInteger(validDays) && validDays >= 1 && validDays <= 730)) return { error: 'Days must be a whole number from 1 to 730, or blank for no end.' }
 
-  return sendOrResendInvite(coach, email, name)
+  return sendOrResendInvite(coach, email, name, { sessions, validDays })
 }
 
 // Reused by both the "invite a new client" form and the per-row "resend"
@@ -39,7 +48,9 @@ export async function sendCoachClientInvite(
 async function sendOrResendInvite(
   coach: { id: string; fullName: string; firmName: string | null },
   email: string,
-  name: string | null
+  name: string | null,
+  // undefined (a resend) keeps whatever the invite already has.
+  paid?: { sessions: number | null; validDays: number | null }
 ): Promise<CoachClientInviteState> {
   // A different, already-registered candidate owns this email — never
   // silently reassign coachId onto their existing profile (see the
@@ -59,11 +70,13 @@ async function sendOrResendInvite(
     return { error: 'This person has already accepted an invite from you.' }
   }
 
-  const invite =
-    priorInvite ??
-    (await prisma.coachClientInvite.create({
-      data: { coachId: coach.id, invitedEmail: email, invitedName: name },
-    }))
+  const invite = priorInvite
+    ? paid
+      ? await prisma.coachClientInvite.update({ where: { id: priorInvite.id }, data: { sessions: paid.sessions, validDays: paid.validDays } })
+      : priorInvite
+    : await prisma.coachClientInvite.create({
+        data: { coachId: coach.id, invitedEmail: email, invitedName: name, sessions: paid?.sessions ?? null, validDays: paid?.validDays ?? null },
+      })
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -79,7 +92,7 @@ async function sendOrResendInvite(
 
   await sendCoachClientInviteEmail(email, coach.fullName, coach.firmName, actionLink)
 
-  captureServerEvent(coach.id, 'coach_client_invite_sent', { coachId: coach.id, inviteId: invite.id })
+  captureServerEvent(coach.id, 'coach_client_invite_sent', { coachId: coach.id, inviteId: invite.id, sessions: invite.sessions, validDays: invite.validDays })
 
   return { sent: true }
 }
@@ -132,7 +145,10 @@ export async function finishAcceptingCoachInvite(inviteToken: string): Promise<{
     data: { acceptedAt: new Date(), candidateId: profile.id },
   })
 
-  captureServerEvent(profile.id, 'coach_client_invite_accepted', { coachId: invite.coachId, inviteId: invite.id })
+  // Sessions the coach set on the invite become the client's sessions with them.
+  if (invite.sessions) await coachSetSessions(invite.coachId, profile.id, invite.sessions, invite.validDays, `invite:${invite.id}`).catch(() => null)
+
+  captureServerEvent(profile.id, 'coach_client_invite_accepted', { coachId: invite.coachId, inviteId: invite.id, sessions: invite.sessions })
 
   return {}
 }
