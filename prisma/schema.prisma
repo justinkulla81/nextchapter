@@ -1205,6 +1205,8 @@ model CandidateProfile {
   // What I Need) — both forms are retakeable any time.
   trackRecordCompletedAt      DateTime?
   whatINeedCompletedAt        DateTime?
+  // Work Interests (O*NET Interest Profiler) — same one-time bonus pattern.
+  workInterestsCompletedAt    DateTime?
 
   // LinkedIn & job-search behaviors
   linkedInUrl                   String?
@@ -1503,6 +1505,7 @@ model CandidateProfile {
   performanceAssessmentResponses PerformanceAssessmentResponse[]
   trackRecordResponse            TrackRecordResponse?
   whatINeedResponse              WhatINeedResponse?
+  workInterestsResponse          WorkInterestsResponse?
   resumeWalkthroughSession       ResumeWalkthroughSession?
   resumes                        Resume[]
   jobPostings                    JobPosting[]
@@ -2629,6 +2632,28 @@ model WhatINeedResponse {
   // Six WorkValueDomain keys, most to least important — the report
   // headline and tie-breaker per spec §4.4.
   domainRank String[]
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Work Interests (spec module 5) — O*NET Interest Profiler short form:
+// 60 likes/dislikes answered 1-5, scored into the six Holland RIASEC areas.
+// One row per candidate.
+model WorkInterestsResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // [{index: 1-60, answer: 1-5}] — index is the O*NET question number.
+  answers Json
+
+  // {REALISTIC: n, ...} — sum of the 10 answers per area (10-50).
+  scores Json
+
+  // Top three RIASEC areas, highest score first — the "Holland code".
+  topAreas String[]
 
   completedAt DateTime?
   createdAt   DateTime  @default(now())
