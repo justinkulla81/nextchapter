@@ -674,6 +674,9 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Candidate+ search-effort target in minutes for THIS member. Null uses the
+  // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
 

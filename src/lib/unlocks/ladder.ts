@@ -4,7 +4,6 @@
 // Home, Progress and every locked page say the same thing.
 
 import {
-  DOSSIER_EFFORT_MINUTES_TARGET,
   DOSSIER_UNLOCK_APPLICATION_TARGET,
   DOSSIER_UNLOCK_OUTREACH_TARGET,
   DOSSIER_UNLOCK_REFERENCE_TARGET,
@@ -40,7 +39,6 @@ function plural(n: number, one: string, many: string) {
 
 export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
-  const unmet = (key: string) => completeness.requirements.find((r) => r.key === key && !r.met)
 
   const jobDetailOpen = gate('matchedJobsFullDetail')?.unlocked === true && gate('community')?.unlocked === true
   const shapeOpen = atLeast(tier, 'PREVIEW')
@@ -49,7 +47,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
   const unpostedOpen = tier === 'UNPOSTED_ROLES'
 
   const plusNeeds: string[] = []
-  if (!status.minutesMet) plusNeeds.push(`${plural(Math.max(0, DOSSIER_EFFORT_MINUTES_TARGET - status.effortMinutes), 'minute', 'minutes')} of search effort`)
+  if (!status.minutesMet) plusNeeds.push(`${plural(Math.max(0, status.effortTarget - status.effortMinutes), 'minute', 'minutes')} of search effort`)
   if (!status.referencesMet) plusNeeds.push(plural(Math.max(0, DOSSIER_UNLOCK_REFERENCE_TARGET - status.completedReferenceCount), 'reference', 'references'))
   if (!status.evidenceMet) plusNeeds.push('one assessment')
   if (!status.effortMet) {

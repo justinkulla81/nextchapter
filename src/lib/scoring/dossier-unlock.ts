@@ -15,7 +15,7 @@ import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import { getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
 import {
-  DOSSIER_EFFORT_MINUTES_TARGET,
+  effortTargetFor,
   DOSSIER_UNLOCK_REFERENCE_TARGET,
   DOSSIER_UNLOCK_OUTREACH_TARGET,
   DOSSIER_UNLOCK_APPLICATION_TARGET,
@@ -99,6 +99,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
       where: { id: candidateId },
       select: {
         skillsAssessmentCompletedAt: true,
+        effortMinutesTargetOverride: true,
         profileConfirmedAt: true,
         industryConfirmedAt: true,
         functionConfirmedAt: true,
@@ -128,13 +129,14 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
   ].filter((v) => v !== null).length
   const profileFieldsTotal = 6
 
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
   const requirements: DossierRequirement[] = [
     {
       key: 'effort',
-      label: `${DOSSIER_EFFORT_MINUTES_TARGET} minutes of search effort`,
-      met: effortMinutes >= DOSSIER_EFFORT_MINUTES_TARGET,
-      current: Math.min(effortMinutes, DOSSIER_EFFORT_MINUTES_TARGET),
-      target: DOSSIER_EFFORT_MINUTES_TARGET,
+      label: `${effortTarget} minutes of search effort`,
+      met: effortMinutes >= effortTarget,
+      current: Math.min(effortMinutes, effortTarget),
+      target: effortTarget,
     },
     {
       key: 'references',
@@ -238,6 +240,7 @@ export interface DossierUnlockStatus {
   effortMet: boolean // outreach AND applications both at/above target
   minutesMet: boolean // lifetime search-effort minutes at/above target
   effortMinutes: number
+  effortTarget: number // this member's target, which an admin may have overridden
   alternatePath: AlternateUnlockPath
   completedReferenceCount: number
   outreachCount: number
@@ -255,7 +258,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
       prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true, effortMinutesTargetOverride: true } }),
       prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
       prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
       hasAlternateUnlockPath(candidateId),
@@ -265,7 +268,8 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
   const referencesMet = completedReferenceCount >= DOSSIER_UNLOCK_REFERENCE_TARGET
   const evidenceMet = Boolean(hasOperatingProfile) || Boolean(hasPersonalityProfile) || profile.skillsAssessmentCompletedAt !== null
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
-  const minutesMet = effortMinutes >= DOSSIER_EFFORT_MINUTES_TARGET
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
+  const minutesMet = effortMinutes >= effortTarget
   const unlocked = (referencesMet && evidenceMet && effortMet && minutesMet) || alternatePath.met
 
   const missing: string[] = []
@@ -278,7 +282,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     missing.push(`[${remaining} more completed reference${remaining === 1 ? '' : 's'}](/dashboard/references)`)
   }
   if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
-  if (!minutesMet) missing.push(`${DOSSIER_EFFORT_MINUTES_TARGET - effortMinutes} more minutes of search effort`)
+  if (!minutesMet) missing.push(`${effortTarget - effortMinutes} more minutes of search effort`)
   if (!effortMet) {
     const missingOutreach = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - outreachCount)
     const missingApplications = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - applicationCount)
@@ -299,6 +303,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     effortMet,
     minutesMet,
     effortMinutes,
+    effortTarget,
     alternatePath,
     completedReferenceCount,
     outreachCount,

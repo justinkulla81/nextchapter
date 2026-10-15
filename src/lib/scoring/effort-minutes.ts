@@ -9,7 +9,6 @@ import { getEarnedPoints } from '@/lib/weekly/action-effort'
 // dossier is about proving how hard someone works, and this is the part of
 // that which no CV can show. Lifetime, not a recent window: nobody waits on
 // the calendar, a candidate who puts in the time gets there sooner.
-export { DOSSIER_EFFORT_MINUTES_TARGET } from '@/lib/scoring/dossier-targets'
 
 interface StoredAction {
   points?: number

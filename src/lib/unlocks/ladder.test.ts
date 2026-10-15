@@ -10,6 +10,7 @@ const status = (over: Partial<DossierUnlockStatus> = {}): DossierUnlockStatus =>
   effortMet: false,
   minutesMet: false,
   effortMinutes: 330,
+  effortTarget: 480,
   alternatePath: { met: false, gradeMet: false, streakMet: false, reason: 'not yet met' },
   completedReferenceCount: 2,
   outreachCount: 2,

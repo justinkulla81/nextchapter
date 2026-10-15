@@ -142,3 +142,15 @@ export async function updateCandidateLeadSource(candidateId: string, formData: F
   revalidatePath(`/support/admin/candidates/${candidateId}`)
   revalidatePath('/support/admin/candidates')
 }
+
+// Overrides the Candidate+ search-effort target for one member. Blank clears it
+// and the product default applies again.
+export async function setEffortMinutesTarget(candidateId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const raw = String(formData.get('minutes') ?? '').trim()
+  const value = raw === '' ? null : Number(raw)
+  if (value !== null && (!Number.isInteger(value) || value < 1 || value > 100_000)) return
+  await prisma.candidateProfile.update({ where: { id: candidateId }, data: { effortMinutesTargetOverride: value } })
+  captureServerEvent(candidateId, 'effort_target_overridden', { minutes: value, setByEmail: admin.email })
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+}
