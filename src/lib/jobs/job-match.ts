@@ -537,8 +537,16 @@ const INDUSTRY_WORDS: Record<string, string[]> = {
   real_estate: ['real estate', 'property', 'proptech'],
   media: ['media', 'entertainment', 'publishing', 'advertising'],
   agriculture: ['agri', 'farm', 'food'],
+  aerospace_defense: ['aerospace', 'defense', 'defence', 'aviation', 'military', 'national security'],
+  telecom: ['telecom', 'wireless', 'broadband'],
+}
+// Crawler keys whose words don't read well from the key itself.
+const INDUSTRY_LABELS: Record<string, string> = {
+  aerospace_defense: 'Aerospace & defense',
+  telecom: 'Telecommunications',
 }
 const INDUSTRY_LABEL = (k: string) => {
+  if (INDUSTRY_LABELS[k]) return INDUSTRY_LABELS[k]
   const t = k.replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
