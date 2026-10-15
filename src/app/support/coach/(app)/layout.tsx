@@ -6,6 +6,8 @@ import { getCoachUnreadCount } from '@/lib/messaging/threads'
 import { getCoachCaseload } from '@/lib/coach/caseload'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { prisma } from '@/lib/prisma'
+import { brandStyle } from '@/lib/partners/brand'
+import { coachBrand } from '@/lib/partners/resolve-brand'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -30,10 +32,12 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
     (c) => c.isStalled || c.triggers.some((t) => t.type === 'RISK')
   ).length
 
+  const brand = coachBrand(coach)
+
   return (
-    <div className="theme-partner min-h-screen">
+    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="COACH" />
-      <CoachNav accessToken={coach.accessToken} messagesUnreadCount={messagesUnreadCount} actionCount={attentionNeededCount} />
+      <CoachNav accessToken={coach.accessToken} messagesUnreadCount={messagesUnreadCount} actionCount={attentionNeededCount} brand={brand} />
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an
           explicit offset (rather than relying on fixed chrome painting over

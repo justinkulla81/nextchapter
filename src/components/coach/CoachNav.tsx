@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
+import type { PartnerBrand } from '@/lib/partners/brand'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -100,8 +101,10 @@ export function CoachNav({
   accessToken,
   messagesUnreadCount = 0,
   actionCount = 0,
+  brand,
 }: {
   accessToken: string
+  brand?: PartnerBrand
   messagesUnreadCount?: number
   actionCount?: number
 }) {
@@ -114,7 +117,7 @@ export function CoachNav({
 
   return (
     <>
-      <PartnerTopBar surface="coach">
+      <PartnerTopBar surface="coach" brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -130,7 +133,7 @@ export function CoachNav({
       </PartnerTopBar>
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-coach" />
+        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-coach" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
         <NavContent pathname={pathname} links={links} />
       </aside>
 
@@ -138,7 +141,7 @@ export function CoachNav({
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-coach" />
+            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-coach" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>

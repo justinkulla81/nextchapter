@@ -4,6 +4,8 @@ import type { RoleGrantRole } from '@prisma/client'
 import { EmployerNav } from '@/components/employer/EmployerNav'
 import { getCurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
+import { brandStyle } from '@/lib/partners/brand'
+import { outplacementBrand } from '@/lib/partners/resolve-brand'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -21,11 +23,12 @@ const ORG_ROLE_TO_GRANT_ROLE: Record<string, RoleGrantRole> = {
 
 export default async function EmployerAppLayout({ children }: { children: React.ReactNode }) {
   const orgUser = await getCurrentOutplacementOrgUser()
+  const brand = await outplacementBrand(orgUser.orgId)
 
   return (
-    <div className="theme-partner min-h-screen">
+    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="EMPLOYER" />
-      <EmployerNav role={orgUser.role} />
+      <EmployerNav role={orgUser.role} brand={brand} />
       {/* pt-14 clears the fixed top bar — see RecruiterAppLayout's identical comment. */}
       <div className="pt-14">
         <RoleContextBanner
