@@ -13,7 +13,13 @@ import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
-import { DOSSIER_EFFORT_MINUTES_TARGET, getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
+import { getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
+import {
+  DOSSIER_EFFORT_MINUTES_TARGET,
+  DOSSIER_UNLOCK_REFERENCE_TARGET,
+  DOSSIER_UNLOCK_OUTREACH_TARGET,
+  DOSSIER_UNLOCK_APPLICATION_TARGET,
+} from '@/lib/scoring/dossier-targets'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 
 // §7.3 — band adjustment. Executive is told applications are lowest-yield
@@ -185,9 +191,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
 // the old six-category letter grade (bounty claims, Exclusive Jobs,
 // Candidate+ postings, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
-export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
-export const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
-export const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
+export { DOSSIER_UNLOCK_REFERENCE_TARGET, DOSSIER_UNLOCK_OUTREACH_TARGET, DOSSIER_UNLOCK_APPLICATION_TARGET }
 
 // Market Reality Redesign Part 2 — the alternate path to a full unlock:
 // achieving a real Market Reality B-or-better, OR consistently hitting

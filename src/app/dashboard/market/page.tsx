@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { AlertTriangle, Compass } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
@@ -7,6 +8,7 @@ import { AI_NEED_LABEL } from '@/lib/profile/ai-outlook'
 import { stateName } from '@/lib/pivots/scoring'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
+import { MarketFlagsCard } from '@/components/dashboard/MarketFlagsCard'
 
 export const metadata: Metadata = { title: 'Your job market' }
 
@@ -23,6 +25,9 @@ export default async function MarketPage() {
   const industries = m.expansions.filter((e) => e.kind === 'industry')
   return (
     <div className="space-y-8">
+      <Suspense fallback={null}>
+        <MarketFlagsCard candidateId={profile.id} />
+      </Suspense>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Your job market</h1>
         <p className="max-w-2xl text-muted-foreground">

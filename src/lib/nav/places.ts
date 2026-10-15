@@ -80,7 +80,7 @@ export const PLACES: Place[] = [
     tabs: [
       { label: 'My story', href: '/dashboard/strengths', alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] },
       { label: 'My profile', href: '/dashboard/profile', alsoMatches: ['/dashboard/resume', '/dashboard/linkedin', '/dashboard/portfolio'] },
-      { label: 'My work profile', href: '/dashboard/work-profile', alsoMatches: ['/dashboard/skills-assessments', '/dashboard/skills-assessment', '/dashboard/retake-assessment'] },
+      { label: 'My work profile', href: '/dashboard/skills-assessments', alsoMatches: ['/dashboard/work-profile', '/dashboard/skills-assessment', '/dashboard/retake-assessment'] },
       { label: 'My search', href: '/dashboard/search-strategy', alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan', '/dashboard/platforms'] },
       { label: 'For recruiters', href: '/dashboard/recruiter-report', alsoMatches: ['/dashboard/privacy'] },
       { label: 'Membership', href: '/dashboard/membership' },
