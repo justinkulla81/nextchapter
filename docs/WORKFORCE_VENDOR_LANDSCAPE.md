@@ -31,3 +31,21 @@ Research done 2026-10-14 from web searches and one pasted vendor page (CareerTea
 1. State and metro wage and projection data from BLS (free), so the Pivot Tool is locally accurate.
 2. Outcome reporting that agencies can use, after a privacy review of anything participant-level.
 3. White-label for boards. A workforce-board portal does not exist yet; institutions and outplacement employers have branding (see `docs/OPEN_ITEMS.md`).
+
+## Added 2026-10-15: outplacement, hiring, AI job-matching and resume tools
+
+Same caveat: web searches only, nothing confirmed with the companies.
+
+| Company | What it is | Signals | Us |
+|---|---|---|---|
+| **CareerArc outplacement** | Now **INTOO USA**. Gi Group bought CareerArc's outplacement arm in July 2020 and rebranded it. On-demand outplacement pairing job matching with coaching, assessments and resume help. Executive outplacement is a separate offer. CareerArc's social-recruiting business is separate. | Claims 80,000+ transitions a year and 97% satisfaction (self-reported). No published pricing. | **Direct competitor** for the employer outplacement portal and for laid-off professionals. |
+| **Humanly** | Employer-side conversational AI recruiting: two-way chat over SMS, email, voice and video for screening, scheduling and reminders; interview notes; ATS integrations. Bought Sprockets, Qualifi and HourWork. | Funding figures conflict: company says $24M total after a $7M round (May 2025); one directory lists a $25M Series B (April 2026) and $49.1M total. Pricing unpublished. | **Adjacent, employer side.** Not our user. Overlaps only with the Talent and recruiter portals' screening and scheduling, which we have not built. A possible integration partner, not a rival. |
+| **Jack & Jill** | AI agents for both sides: "Jack" interviews a candidate (about 20 minutes) and learns what they want; "Jill" represents employers; matched people are introduced directly to the hiring manager instead of applying. London, US expansion. | Seed $20M (October 2025, Creandum) and Series A $40M (Air Street, Madrona, Antler), about $60M in total per press, though one headline says $50M. About 350,000 people on its network. | **Direct competitor** to our job board, matching and coach-style guidance, especially for people who would rather be matched than search. Unknown whether it serves senior professionals as we do. |
+| **Apply.io** | **Not found.** Searches returned unrelated products (Applyflow, Applied, onapply). Need its web address or a description. | | |
+| **Enhancv** | Freemium resume builder: 20+ templates, LinkedIn import, tailoring to a job description, cover letters, AI content, tracks views and downloads. Founded 2014. | One review lists $79.94 per six months; the free tier is limited. No funding data found. | **Direct competitor to Resume Studio.** Has more templates, LinkedIn import and view tracking than we do. Note our Resume page currently links candidates to Enhancv for professional help. |
+
+### What this changes
+
+- **Outplacement is a real fight.** INTOO is large and established. Our edge: the layoff-specific data (WARN, rapid response), confidential search, recruiter introductions, and per-person outcome reporting that employers can use. We have no published pricing to compare and no payment system yet.
+- **Resume Studio gaps vs Enhancv:** import from a LinkedIn profile or uploaded resume into sections, more template choice, per-job tailoring suggestions, and view/download tracking.
+- **Jack & Jill's approach** (an interview that builds a profile, then introductions) is the thing to learn from: our onboarding already collects the same facts, so the missing piece is acting on them for the person.
