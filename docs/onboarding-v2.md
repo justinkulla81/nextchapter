@@ -99,12 +99,19 @@ Onboarding feeds this: the Your goal answers decide which recruiters count as "f
 - The Dossier shows facts, not points: weeks active, outreach, applications, interviews,
   references. Inbox and calendar logging makes them verified rather than self-reported.
 - Points stay as the weekly motivator and equal minutes of effort.
-- **Required fix:** `sumEffortMinutes` adds up every earned point in every sprint. Setup
-  bonuses (Gmail connected, Calendar connected, first-sprint welcome bonus, profile
-  confirmations) and community actions are logged into the same sprint list
-  (`logCatalogAction`), so they likely count as "search effort." Effort that employers see
-  should count only job-getting actions: outreach, calls, follow-ups, applications,
-  interviews, references, learning. Setup earns progress, not minutes.
+- **Required fix (for the redesign work to make):** `sumEffortMinutes` adds up every earned
+  point in every sprint. Confirmed from the code: the Gmail/Calendar connect callbacks log
+  GMAIL_CONNECTED and CALENDAR_CONNECTED (10 points each, 5 on reconnect) into the sprint list
+  via `logCatalogAction`, and the first-sprint welcome bonus (5 points, `isGoalBonus`) is in
+  the same list. Likely too, not traced: profile confirmations (5 each), mood check-ins (3),
+  and community actions (5-30). Effort that employers see should count only job-getting
+  actions: outreach, calls, follow-ups, applications, interviews, references, learning. Setup
+  earns progress, not minutes.
+- The action category cannot do the filtering: outreach and community actions share the
+  "connecting" category, so use an explicit allow-list of action types. The weekly recap and
+  finish-line emails already skip goal-bonus and profile-checklist rows
+  (`isProfileChecklistActionType`), so there is a precedent to follow.
+- Not changed here: `effort-minutes.ts` belongs to the redesign branch.
 
 ## Cuts and consolidation
 
@@ -120,11 +127,10 @@ Onboarding feeds this: the Your goal answers decide which recruiters count as "f
 
 ## Open decisions
 
-1. **Exclusive jobs.** The redesign branch makes them a Candidate+ unlock. Product intent is
-   that everyone can see them and the Dossier is attached to the application. Needs agreement
-   with the redesign work before either side builds it.
-2. **Apply with Dossier.** Not built. I have not yet read how applying to an exclusive job
-   works today.
+1. **Exclusive jobs: decided, keep the redesign.** They stay a Candidate+ unlock. Onboarding
+   does not change this. (An earlier idea of showing them to everyone and attaching the Dossier
+   to the application is dropped for now.)
+2. **Apply with Dossier.** Not in scope while exclusive jobs stay gated. Revisit if that changes.
 3. **Auto-apply for members.** Out of scope here. Recommendation is assisted apply (we prepare
    the packet, the member submits) as a separate project, not auto-submit.
 4. **Supporters** (new in the redesign): decide whether sign-up asks about them or leaves it to
