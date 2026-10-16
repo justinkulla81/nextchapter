@@ -1,19 +1,26 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
 
+export interface BackchannelPerson {
+  name: string
+  title: string | null
+  email: string | null
+  // Prefilled Gmail draft when we have their email, else their contact page.
+  actionUrl: string
+}
+
 interface BackchannelMatchEmailProps {
   firstName: string | null
   companyName: string
   role: string | null
+  // NC's own page for the listing, when we have it; the role isn't a link otherwise.
+  roleUrl: string | null
   appliedOn: string | null
-  contact: { name: string; title: string | null }
-  moreContactCount: number
+  people: BackchannelPerson[]
+  moreCount: number
+  moreUrl: string
+  // One example of the draft each Email button opens.
   note: { subject: string; body: string }
-  // Opens a prefilled compose window when the contact has an email on file;
-  // otherwise falls back to the candidate's network page.
-  actionUrl: string
-  actionLabel: string
-  contactHasEmail: boolean
   otherCompanyCount: number
   otherCompaniesUrl: string
   unsubscribeUrl: string
@@ -50,10 +57,14 @@ const button: React.CSSProperties = {
   backgroundColor: '#2e7d5b',
   color: '#ffffff',
   textDecoration: 'none',
-  padding: '12px 24px',
+  padding: '8px 16px',
   borderRadius: '8px',
-  marginTop: '16px',
   ...emailStyles.cta,
+  fontSize: '14px',
+}
+
+const personRow: React.CSSProperties = {
+  padding: '16px 0 0',
 }
 
 const footer: React.CSSProperties = {
@@ -65,45 +76,64 @@ export default function BackchannelMatchEmail({
   firstName,
   companyName,
   role,
+  roleUrl,
   appliedOn,
-  contact,
-  moreContactCount,
+  people,
+  moreCount,
+  moreUrl,
   note,
-  actionUrl,
-  actionLabel,
-  contactHasEmail,
   otherCompanyCount,
   otherCompaniesUrl,
   unsubscribeUrl,
 }: BackchannelMatchEmailProps) {
-  const applied = role ? <strong>{role}</strong> : 'a role'
+  const roleLabel = role ? <strong>{role}</strong> : 'a role'
+  const roleNode = role && roleUrl ? <a href={roleUrl} style={{ color: '#0b2545' }}>{roleLabel}</a> : roleLabel
 
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        {contact.name} works at {companyName}.
+        You may have a way in at {companyName}.
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        you applied for {applied} at {companyName}
-        {appliedOn ? ` on ${appliedOn}` : ''}, and {contact.name}
-        {contact.title ? ` (${contact.title})` : ''} is in your network
-        {moreContactCount > 0 ? `, along with ${moreContactCount} other ${moreContactCount === 1 ? 'person' : 'people'}` : ''}.
-        A heads-up from someone inside gets your name in front of a real person, not just a queue.
+        you applied for {roleNode} at {companyName}
+        {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} in your network
+        work{people.length + moreCount === 1 ? 's' : ''} there. A heads-up from someone inside gets your name in front of
+        a real person, not just a queue.
       </p>
+      <div>
+        {people.map((person) => (
+          <div key={person.actionUrl} style={personRow}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{person.name}</p>
+            {person.title && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.title}</p>}
+            {person.email && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.email}</p>}
+            <p style={{ margin: '8px 0 0' }}>
+              {person.email ? (
+                <a href={person.actionUrl} style={button}>
+                  Email {person.name.split(/\s+/)[0]}
+                </a>
+              ) : (
+                <a href={person.actionUrl} style={{ color: '#0b2545' }}>
+                  No email yet. Add one on their contact page
+                </a>
+              )}
+            </p>
+          </div>
+        ))}
+        {moreCount > 0 && (
+          <p style={{ ...personRow, margin: 0 }}>
+            <a href={moreUrl} style={{ color: '#0b2545' }}>
+              And {moreCount} more at {companyName}
+            </a>
+          </p>
+        )}
+      </div>
       <p style={{ marginBottom: 0 }}>
-        <strong>{contactHasEmail ? 'Here’s a note you can send as-is:' : 'Here’s a note you can send:'}</strong>
+        <strong>Each Email button opens a Gmail draft like this one, addressed to that person:</strong>
       </p>
       <p style={noteBox}>{note.body}</p>
-      <a href={actionUrl} style={button}>
-        {actionLabel}
-      </a>
-      <p style={emailStyles.muted}>
-        {contactHasEmail
-          ? 'Opens a draft in Gmail. Edit it, then send. If they’ve moved on, skip this one.'
-          : 'We don’t have an email for them yet. Add one on their contact page, or copy the note above.'}
-      </p>
+      <p style={emailStyles.muted}>Edit it, then send. If someone has moved on, skip them.</p>
       {otherCompanyCount > 0 && (
         <p style={emailStyles.muted}>
           You also know people at {otherCompanyCount} other{' '}

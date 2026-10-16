@@ -6,6 +6,7 @@ import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { draftBackchannelNote, type BackchannelContact } from '@/lib/email/backchannel-note'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { readStoredLinks } from '@/lib/jobs/application-posting-link'
 
 // `contacts` must already be ranked best-first (see rankBackchannelContacts) —
 // the email leads with contacts[0] and mentions the rest as a count.
@@ -29,17 +30,35 @@ export async function sendBackchannelMatchEmail(
   // #jobs-applied is the Application Tracker section's scroll anchor on
   // Find Full-Time Jobs (see find-my-job/page.tsx).
   const otherCompaniesUrl = `${appUrl}/dashboard/find-my-job#jobs-applied`
-  const [lead, ...rest] = contacts
+  const MAX_LISTED = 5
+  const listed = contacts.slice(0, MAX_LISTED)
+  const people = listed.map((c) => {
+    const draft = draftBackchannelNote({
+      contactName: c.name,
+      role: job.role,
+      companyName: job.companyName,
+      senderFirstName: candidate.firstName,
+    })
+    return {
+      name: c.name,
+      title: c.title,
+      email: c.email,
+      actionUrl: c.email
+        ? gmailComposeHref(c.email, draft.subject, draft.body)
+        : `${appUrl}/dashboard/network/contacts/${c.id}`,
+    }
+  })
   const note = draftBackchannelNote({
-    contactName: lead.name,
+    contactName: listed[0].name,
     role: job.role,
     companyName: job.companyName,
     senderFirstName: candidate.firstName,
   })
-  const contactHasEmail = Boolean(lead.email)
-  const actionUrl = lead.email
-    ? gmailComposeHref(lead.email, note.subject, note.body)
-    : `${appUrl}/dashboard/network/contacts/${lead.id}`
+  // Link the role to NC's own listing page when this application is matched to
+  // a board posting; applications NC has no listing for just show plain text.
+  const boardLink = (await readStoredLinks([job.id]).catch(() => new Map())).get(job.id)
+  const roleUrl = boardLink?.postingId ? `${appUrl}/dashboard/jobs/${boardLink.postingId}?src=email` : null
+
   const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const resend = createResend(process.env.RESEND_API_KEY)
@@ -47,7 +66,7 @@ export async function sendBackchannelMatchEmail(
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to: email,
-    subject: `${lead.name} works at ${job.companyName}`,
+    subject: `A way in at ${job.companyName}`,
     react: BackchannelMatchEmail({
       firstName: candidate.firstName,
       companyName: job.companyName,
@@ -55,12 +74,11 @@ export async function sendBackchannelMatchEmail(
       appliedOn: job.appliedAt
         ? job.appliedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
         : null,
-      contact: { name: lead.name, title: lead.title },
-      moreContactCount: rest.length,
+      roleUrl,
+      people,
+      moreCount: Math.max(0, contacts.length - MAX_LISTED),
+      moreUrl: `${appUrl}/dashboard/network/contacts`,
       note,
-      actionUrl,
-      actionLabel: contactHasEmail ? `Email ${lead.name.split(/\s+/)[0]}` : 'Open their contact page',
-      contactHasEmail,
       otherCompanyCount,
       otherCompaniesUrl,
       unsubscribeUrl,
@@ -75,9 +93,10 @@ export async function sendBackchannelMatchEmail(
   captureServerEvent(candidate.id, 'backchannel_match_email_sent', {
     jobId: job.id,
     companyName: job.companyName,
-    contactId: lead.id,
+    contactIds: listed.map((c) => c.id),
     matchedContactCount: contacts.length,
-    contactHasEmail,
+    contactsWithEmail: listed.filter((c) => c.email).length,
+    roleLinkedToListing: Boolean(roleUrl),
     otherCompanyCount,
   })
 
