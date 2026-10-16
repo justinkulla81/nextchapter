@@ -17,6 +17,7 @@ import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWind
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -479,6 +480,12 @@ export async function loadBoardShortlist(opts: {
    * including the per-work-type counts — is over the kept jobs. Omitted keeps all.
    */
   keep?: (p: BoardRankRow) => boolean
+  /** Board search (board-search-index.ts): relevance tier per job (0 best), null drops it. Board only — never the emails. */
+  relevance?: (p: BoardRankRow) => number | null
+  /** Board sort; omitted or 'best' is the fit order (within relevance tiers when searching). */
+  sort?: BoardSort
+  /** Jobs per company before the rest are held back (default PER_COMPANY); a company: search lifts it. */
+  perCompany?: number
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -534,6 +541,9 @@ export function rankBoardRows(
     now?: Date
     workTypes?: WorkType[]
     keep?: (p: BoardRankRow) => boolean
+    relevance?: (p: BoardRankRow) => number | null
+    sort?: BoardSort
+    perCompany?: number
   }
 ) {
   const size = opts.size ?? 300
@@ -547,7 +557,19 @@ export function rankBoardRows(
   const functions = new Set(
     [opts.candidate.primaryFunction, opts.candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
   )
-  const open: { id: string; rank: number; offFunction: number; crowd: number; gap: number; at: number; company: string; title: string }[] = []
+  const open: {
+    id: string
+    rank: number
+    offFunction: number
+    crowd: number
+    gap: number
+    at: number
+    company: string
+    title: string
+    rel: number
+    posted: number
+    pay: number
+  }[] = []
   const locked: typeof open = []
   const now = opts.now ?? new Date()
   let freshOpenTotal = 0
@@ -556,6 +578,8 @@ export function rankBoardRows(
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
   for (const p of light) {
     if (opts.keep && !opts.keep(p)) continue
+    const rel = opts.relevance ? opts.relevance(p) : 0
+    if (rel === null) continue
     if (typeFilter) {
       const workType = workTypeOf(p)
       if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) countByWorkType[workType]++
@@ -582,6 +606,9 @@ export function rankBoardRows(
       offFunction: functions.has(facts.titleFunction) ? 0 : 1,
       gap: calibratedLevelDistance(candidateLevel, facts.levelRank),
       at: p.createdAt.getTime(),
+      rel,
+      posted: (p.postedAt ?? p.createdAt).getTime(),
+      pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
     }
     // Everyone can open everything except employer / recruiter exclusives.
     if (canOpen) open.push(entry)
@@ -594,9 +621,19 @@ export function rankBoardRows(
   // places) and at most PER_COMPANY per company, so one employer can't fill
   // the whole list. If that leaves room, the held-back ones fill it.
   const best = (list: typeof open) => {
+    const fit = (a: (typeof open)[number], b: (typeof open)[number]) =>
+      a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+    // Search: newest / highest pay first, or relevance tier then fit. No search: fit, as always.
     const sorted = list.sort(
-      (a, b) => a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+      opts.sort === 'newest'
+        ? (a, b) => b.posted - a.posted || fit(a, b)
+        : opts.sort === 'pay'
+          ? (a, b) => b.pay - a.pay || fit(a, b)
+          : opts.relevance
+            ? (a, b) => a.rel - b.rel || fit(a, b)
+            : fit
     )
+    const perCompanyCap = opts.perCompany ?? PER_COMPANY
     const picked: string[] = []
     const heldBack: string[] = []
     const seenTitles = new Set<string>()
@@ -607,7 +644,7 @@ export function rankBoardRows(
       if (seenTitles.has(titleKey)) continue
       seenTitles.add(titleKey)
       const n = perCompany.get(e.company) ?? 0
-      if (e.company && n >= PER_COMPANY) {
+      if (e.company && n >= perCompanyCap) {
         if (heldBack.length < size) heldBack.push(e.id)
         continue
       }
