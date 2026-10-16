@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { addManualAlias, decideAbbreviation, mergeCompanyGroup, mergeOrganizationGroup, type DuplicateResult } from '@/app/support/admin/(portal)/crm/duplicates/actions'
+import { addManualAlias, decideAbbreviation, dismissDuplicateGroup, mergeCompanyGroup, mergeOrganizationGroup, type DuplicateResult } from '@/app/support/admin/(portal)/crm/duplicates/actions'
 
 function useAction() {
   const [pending, start] = useTransition()
@@ -23,31 +23,84 @@ function Result({ result }: { result: DuplicateResult | null }) {
     : <p role="alert" className="text-xs text-red-700">{result.error}</p>
 }
 
-/** "Keep this one" for each record in a duplicate group, with a confirmation before anything merges. */
-export function MergeGroupActions({ members, kind = 'organization' }: { members: { id: string; name: string }[]; kind?: 'organization' | 'company' }) {
+export interface DuplicateMember {
+  id: string
+  name: string
+  detail: string
+  href?: string
+}
+
+/**
+ * One duplicate group: the suggested record to keep is pre-selected (with the reason),
+ * any other can be chosen, then Merge folds the rest into it (after a confirmation) or
+ * Not duplicates dismisses the group for good.
+ */
+export function DuplicateGroup({
+  kind, groupKey, members, suggestedId, reason, note,
+}: {
+  kind: 'organization' | 'company'
+  groupKey: string
+  members: DuplicateMember[]
+  suggestedId: string
+  reason: string
+  note?: string
+}) {
   const { pending, result, run } = useAction()
-  const [choice, setChoice] = useState<string | null>(null)
-  const keep = members.find((m) => m.id === choice)
-  const others = members.filter((m) => m.id !== choice)
+  const [keepId, setKeepId] = useState(suggestedId)
+  const [confirming, setConfirming] = useState(false)
+  const keep = members.find((m) => m.id === keepId) ?? members[0]
+  const others = members.filter((m) => m.id !== keep.id)
   if (result?.ok) return <Result result={result} />
   return (
-    <div className={`space-y-2 ${pending ? 'cursor-wait' : ''}`}>
-      {!keep ? (
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Keep one record">
-          <span className="text-xs text-muted-foreground">Merge, keeping:</span>
-          {members.map((m) => (
-            <button key={m.id} type="button" className={quiet} onClick={() => setChoice(m.id)}>{m.name}</button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+    <div className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
+      {note && <p className="text-xs text-muted-foreground">{note}</p>}
+      <fieldset className="space-y-1" disabled={pending}>
+        <legend className="sr-only">Record to keep. The others merge into it.</legend>
+        {members.map((m) => (
+          <label key={m.id} className="flex cursor-pointer flex-wrap items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-muted/60">
+            <span className="flex items-center gap-2">
+              <input
+                type="radio" name={`keep-${groupKey}`} value={m.id} checked={keepId === m.id}
+                onChange={() => { setKeepId(m.id); setConfirming(false) }}
+              />
+              {m.href
+                ? <a href={m.href} className="font-medium hover:underline">{m.name}</a>
+                : <span className="font-medium">{m.name}</span>}
+              {m.id === suggestedId && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">Suggested</span>}
+            </span>
+            <span className="text-xs text-muted-foreground">{m.detail}</span>
+          </label>
+        ))}
+      </fieldset>
+      <p className="px-2 text-xs text-muted-foreground">Suggested: {reason}.</p>
+
+      {confirming ? (
+        <div className="flex flex-wrap items-center gap-2 px-2 text-xs">
           <span>
             Merge {others.length === 1 ? `“${others[0].name}”` : `${others.length} records`} into “{keep.name}”?{' '}
             {kind === 'company' ? 'Their postings, resumes, intel and CRM records move to it.' : 'Their people, deals and activity move to it.'} This can’t be undone.
           </span>
-          <button type="button" autoFocus className={quiet} disabled={pending} onClick={() => setChoice(null)}>Cancel</button>
-          <button type="button" className={danger} disabled={pending} onClick={() => run(() => (kind === 'company' ? mergeCompanyGroup : mergeOrganizationGroup)(keep.id, members.map((m) => m.id)))}>
+          <button type="button" autoFocus className={quiet} disabled={pending} onClick={() => setConfirming(false)}>Cancel</button>
+          <button
+            type="button" className={danger} disabled={pending}
+            onClick={() => run(() => (kind === 'company' ? mergeCompanyGroup : mergeOrganizationGroup)(keep.id, members.map((m) => m.id)))}
+          >
             {pending ? 'Merging…' : 'Merge records'}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 px-2" role="group" aria-label="Decide this group">
+          <button
+            type="button" disabled={pending} onClick={() => setConfirming(true)}
+            className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground disabled:opacity-60"
+          >
+            Merge into “{keep.name}”
+          </button>
+          <button
+            type="button" disabled={pending} className="h-8 rounded-md border border-border px-3 text-sm hover:bg-muted"
+            onClick={() => run(() => dismissDuplicateGroup(kind === 'company' ? 'COMPANY' : 'ORGANIZATION', groupKey))}
+          >
+            {pending ? 'Saving…' : 'Not duplicates'}
           </button>
         </div>
       )}
