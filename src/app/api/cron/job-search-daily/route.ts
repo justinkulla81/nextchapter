@@ -10,6 +10,12 @@ import { withCronRun } from '@/lib/cron/run'
 export const maxDuration = 300
 
 const BREAK_ANSWER_WINDOW_DAYS = 30
+// Building one candidate's email is several queries plus a send, so a serial
+// pass over every candidate outgrows the limit. A few workers share the list.
+const CONCURRENCY = 4
+// Stop starting new candidates here so the run finishes cleanly (and records
+// its result) instead of being killed at the limit.
+const DEADLINE_MS = 240_000
 
 // Job Search Daily — every day at 12:00 UTC (8am ET), an hour ahead of the
 // weekday-rotation email from candidate-email-dispatch, which it's sent on
@@ -41,35 +47,54 @@ export const GET = withCronRun('job-search-daily', async () => {
     },
   })
 
+  const queue = eligible.filter((candidate) => {
+    if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) return false
+    if (notLookingNow(candidate)) return false
+    const lastAnswer = candidate.searchCheckIns[0]?.answer
+    return !lastAnswer || lastAnswer === 'STILL_SEARCHING'
+  })
+
+  const startedAt = Date.now()
   let sent = 0
   let skippedNothingNew = 0
   let failed = 0
-  for (const candidate of eligible) {
-    if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
-    if (notLookingNow(candidate)) continue
-    const lastAnswer = candidate.searchCheckIns[0]?.answer
-    if (lastAnswer && lastAnswer !== 'STILL_SEARCHING') continue
-    try {
-      if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) continue
-      const result = await sendJobSearchDaily(candidate.id)
-      if (result.sent) sent++
-      else if (result.reason === 'nothing new') skippedNothingNew++
-    } catch (error) {
-      failed++
-      console.error('Job Search Daily failed for candidate', candidate.id, error)
+  let skippedForTime = 0
+  let next = 0
+
+  // Workers pull the next candidate until none are left or the deadline
+  // passes. Candidates not reached are counted, never silently lost.
+  const worker = async () => {
+    while (next < queue.length) {
+      const candidate = queue[next++]
+      if (Date.now() - startedAt > DEADLINE_MS) {
+        skippedForTime++
+        continue
+      }
+      try {
+        if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) continue
+        const result = await sendJobSearchDaily(candidate.id)
+        if (result.sent) sent++
+        else if (result.reason === 'nothing new') skippedNothingNew++
+      } catch (error) {
+        failed++
+        console.error('Job Search Daily failed for candidate', candidate.id, error)
+      }
     }
   }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker))
+  if (skippedForTime > 0) console.error(`Job Search Daily: ${skippedForTime} candidate(s) not reached before the ${DEADLINE_MS}ms deadline`)
 
   captureServerEvent('cron', 'job_search_daily_run', {
     checked: eligible.length,
     sent,
     skippedNothingNew,
     failed,
+    skippedForTime,
   })
-  return NextResponse.json({
-    checked: eligible.length,
-    sent,
-    skippedNothingNew,
-    failed,
-  })
+  // Candidates left unsent make the run FAILED so the job watchdog emails about
+  // it. Re-running by hand is safe: anyone already sent today is skipped.
+  return NextResponse.json(
+    { checked: eligible.length, sent, skippedNothingNew, failed, skippedForTime },
+    { status: skippedForTime > 0 ? 500 : 200 }
+  )
 })
