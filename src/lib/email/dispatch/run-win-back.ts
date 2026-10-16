@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { sendWinBackEmail } from '@/lib/email/send-win-back'
-import { effectiveJourney } from '@/lib/journey/journey'
+import { effectiveJourney, returnDateOf } from '@/lib/journey/journey'
 import { nextWinBackStep, WIN_BACK_AFTER_DAYS } from '@/lib/winback/sequence'
 
 // Daily. Members with no login or page activity for 21+ days get up to three
@@ -33,9 +33,15 @@ export async function runWinBack(now = new Date()) {
   for (const c of candidates) {
     try {
       if (!shouldSendWeeklyExtraForTier(c.notificationTier)) continue
-      // Away on purpose: quiet is expected.
-      if (effectiveJourney(c) === 'TIME_OFF') continue
       const lastActivity = last.get(c.id) ?? c.createdAt
+      // Away on purpose: quiet is expected until the return date. With no date
+      // set, quiet is expected for the first 90 days, then they get the same
+      // nudges as anyone else.
+      if (effectiveJourney(c) === 'TIME_OFF') {
+        const back = returnDateOf(c.journeyDetails)
+        const awayOnPurpose = back ? back.getTime() > now.getTime() : now.getTime() - lastActivity.getTime() < 90 * 86_400_000
+        if (awayOnPurpose) continue
+      }
       const already = await prisma.candidateEmailSendLog.count({ where: { candidateId: c.id, emailKey: 'WIN_BACK', sentForDate: { gt: lastActivity } } })
       const step = nextWinBackStep(lastActivity, already, now)
       if (!step) continue

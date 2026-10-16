@@ -24,6 +24,10 @@ const MORE: Array<{ key: CheckInAnswer; label: string }> = [
   { key: 'ready', label: 'I am ready to start applying' },
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'landed', label: 'I started a new job' },
+  { key: 'promotion', label: 'I am going for a promotion' },
+  { key: 'career_change', label: 'I am changing careers' },
+  { key: 'time_off', label: 'I am taking time off' },
+  { key: 'building', label: 'I am starting something of my own' },
 ]
 
 export function JourneyCheckInDialog({ stageLabel }: { stageLabel: string }) {

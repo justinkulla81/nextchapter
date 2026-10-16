@@ -14,7 +14,7 @@ import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptI
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
 import { loadAffiliations } from '@/lib/affiliations/load'
 import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
-import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -116,6 +116,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             offering: detailText(profile.journeyDetails, 'offering'),
             openDays: detailText(profile.journeyDetails, 'openDays'),
             engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+            venture: detailText(profile.journeyDetails, 'venture'),
           }}
         />
       </div>
@@ -131,6 +132,12 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             email, Gmail, and recruiter sharing.
           </p>
         </div>
+        {!profile.confidentialSearchMode && effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed && (
+          <p role="status" className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            Your situation is one where you have a job. Confidential Search Mode is off, so other members and your colleges could see your search.
+            Turn it on below if you don&apos;t want anyone at work to find out.
+          </p>
+        )}
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
 
