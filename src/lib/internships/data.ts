@@ -68,7 +68,7 @@ export async function listInternships(institutionId: string, filters: Internship
       take: INTERNSHIP_PAGE_SIZE,
       select: {
         id: true, title: true, companyName: true, location: true, locationState: true, remote: true, field: true, term: true,
-        termYear: true, deadline: true, url: true, salaryMin: true, salaryMax: true, payPeriod: true, postedAt: true, institutionId: true,
+        termYear: true, deadline: true, url: true, salaryMin: true, salaryMax: true, payPeriod: true, postedAt: true, institutionId: true, sourceName: true,
       },
     }),
     prisma.internshipPosting.count({ where }),
