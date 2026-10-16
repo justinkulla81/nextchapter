@@ -49,8 +49,13 @@ export default async function CoachDossierPage() {
     )
   }
 
-  const coach = await prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
   const hasConsented = profile.coachDossierConsentedAt !== null
+  // The notes lookup only matters once sharing is on, and doesn't depend on the
+  // coach row, so start both together.
+  const [coach, coachingNotes] = await Promise.all([
+    prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } }),
+    hasConsented ? getCoachingNotes(profile.id) : Promise.resolve(null),
+  ])
 
   if (!hasConsented) {
     return (
@@ -80,8 +85,6 @@ export default async function CoachDossierPage() {
     )
   }
 
-  const coachingNotes = await getCoachingNotes(profile.id)
-
   captureServerEvent(profile.id, 'coach_dossier_self_viewed')
 
   return (
@@ -104,7 +107,7 @@ export default async function CoachDossierPage() {
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Coaching Notes
         </p>
-        <CoachingNotesPanel notes={coachingNotes} />
+        <CoachingNotesPanel notes={coachingNotes!} />
       </div>
 
       <div className="border-t border-border pt-6">
