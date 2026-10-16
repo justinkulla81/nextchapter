@@ -123,7 +123,7 @@ def http(url, data=None, headers=None, method=None, timeout=30):
 
 def robots_disallows(base, path):
     try:
-        txt = http(urllib.parse.urljoin(base, "/robots.txt"), timeout=15)
+        txt = http(urllib.parse.urljoin(base, "/robots.txt"), headers={"Accept": "text/plain"}, timeout=15)
     except Exception:
         return False
     applies = False
@@ -160,10 +160,12 @@ def crawl_workday(src, log):
     sites = [src["site"]] if src.get("site") else []
     if not sites:
         try:
-            robots = http(base + "/robots.txt", timeout=15)
+            robots = http(base + "/robots.txt", headers={"Accept": "text/plain"}, timeout=15)
             sites = list(dict.fromkeys(re.findall(r"Sitemap:\s*https?://[^/]+/([^/]+)/siteMap\.xml", robots)))
         except Exception as e:
             log(f"  {src['name']}: site discovery failed: {e}"); return
+        if not sites:
+            log(f"  {src['name']}: no Workday site found in robots.txt; set \"site\" in the sources file"); return
     for site in sites:
         api = f"{base}/wday/cxs/{tenant}/{site}/jobs"
         if robots_disallows(base, f"/wday/cxs/{tenant}/{site}/jobs"):
@@ -172,7 +174,8 @@ def crawl_workday(src, log):
         while total is None or offset < total:
             page = json.loads(http(api, {"appliedFacets": {}, "limit": 20, "offset": offset,
                                           "searchText": src.get("search", "Louisville")}))
-            total = page.get("total", 0)
+            if total is None:
+                total = page.get("total", 0)  # Workday reports the total on the first page only
             posts = page.get("jobPostings", [])
             if not posts: break
             for p in posts:
@@ -296,11 +299,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sources", default=os.path.join(HERE, "louisville_sources.json"))
     ap.add_argument("--only")
+    ap.add_argument("--name", help="run only the source with this name")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--out", default=os.path.join(HERE, "out"))
     a = ap.parse_args()
     log = lambda s: print(s, file=sys.stderr, flush=True)
-    sources = [s for s in json.load(open(a.sources)) if not a.only or s["adapter"] == a.only]
+    sources = [s for s in json.load(open(a.sources)) if (not a.only or s["adapter"] == a.only) and (not a.name or s["name"] == a.name)]
     os.makedirs(a.out, exist_ok=True)
     for src in sources:
         fn = ADAPTERS.get(src["adapter"])

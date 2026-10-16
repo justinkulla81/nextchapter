@@ -61,6 +61,9 @@ def main():
     data = {}
     for i in range(0, len(flat), 25):
         data.update(fetch(flat[i:i + 25], this_year - 2, this_year))
+    if not data:
+        sys.exit("BLS returned no series (daily request limit for unregistered use, or a blocked host). "
+                 "Set BLS_API_KEY (free at https://data.bls.gov/registrationEngine/) and retry.")
     # latest month present for every metro's unemployment rate
     common = None
     for k in metros:
