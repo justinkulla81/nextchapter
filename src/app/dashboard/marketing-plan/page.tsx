@@ -56,8 +56,7 @@ export default async function MarketingPlanPage({
 }: {
   searchParams: Promise<{ label?: string; scenario?: string }>
 }) {
-  const profile = await getDashboardData()
-  const { label: initialLabel, scenario: initialScenario } = await searchParams
+  const [profile, { label: initialLabel, scenario: initialScenario }] = await Promise.all([getDashboardData(), searchParams])
   const unlocked = profile.contentComfortLevel !== null && profile.contentVenues.length > 0
 
   if (!unlocked) {

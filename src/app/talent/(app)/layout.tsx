@@ -12,9 +12,7 @@ export const metadata: Metadata = {
 
 export default async function TalentLayout({ children }: { children: React.ReactNode }) {
   const employer = await getTalentDashboardData()
-  const messagesUnreadCount = await getEmployerUnreadCount(employer.id)
-
-  const brand = await talentBrand(employer)
+  const [messagesUnreadCount, brand] = await Promise.all([getEmployerUnreadCount(employer.id), talentBrand(employer)])
 
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>

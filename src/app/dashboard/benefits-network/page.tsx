@@ -18,8 +18,7 @@ function firstValue(v: string | string[] | undefined): string | undefined {
 }
 
 export default async function BenefitsNetworkPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const profile = await getDashboardProfile()
-  const params = await searchParams
+  const [profile, params] = await Promise.all([getDashboardProfile(), searchParams])
 
   const filters: BenefitsNetworkFilters = {
     function: firstValue(params.function) || undefined,

@@ -229,14 +229,17 @@ async function buildSkillsLayer({
   const state = resolveState(profile.currentState)
   const stateLabel = profile.currentState ?? 'near you'
 
-  const curated = await optionsForLabels(
-    depth,
-    [...result.suggestions, ...result.more].map((s) => ({ key: s.target, label: s.label }))
-  ).catch(() => new Map<string, PivotOption>())
+  // The curated options and the role-lookup search are independent reads.
+  const [curated, candidates] = await Promise.all([
+    optionsForLabels(
+      depth,
+      [...result.suggestions, ...result.more].map((s) => ({ key: s.target, label: s.label }))
+    ).catch(() => new Map<string, PivotOption>()),
+    lookup ? searchOccupationTitles(lookup) : Promise.resolve([]),
+  ])
   const shown = new Set([...curated.values()].map((o) => o.socCode))
   const similar = similarRoles(depth, shown)
   const looked = role ? describePivot(depth.input, role) : null
-  const candidates = lookup ? await searchOccupationTitles(lookup) : []
   const tasksBySoc = await getCoreTasks([...new Set([...curated.values(), ...similar, ...(looked ? [looked] : [])].map((o) => o.socCode))])
 
   const details: SkillsLayer['details'] = {}

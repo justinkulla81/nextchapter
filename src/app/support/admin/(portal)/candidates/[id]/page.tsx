@@ -234,6 +234,9 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     getStakeholderThreads(id, 'COACH'),
   ])
   stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
+  // Also independent; used far down the JSX, so start it now instead of awaiting inline.
+  const grantsP = grantsFor(id)
+  grantsP.catch(() => {})
 
   const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
@@ -1164,7 +1167,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
             <CardContent>
               <AdminAccessPanel
                 candidateId={id}
-                grants={(await grantsFor(id)).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
+                grants={(await grantsP).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
               />
             </CardContent>
           </Card>

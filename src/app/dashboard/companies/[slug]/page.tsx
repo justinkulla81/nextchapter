@@ -43,6 +43,7 @@ import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/cu
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
 import { ReviewSummaryPanel } from '@/components/companies/ReviewSummaryPanel'
 import { getCompanyReviewSummary } from '@/lib/job-reviews/data'
+import { SectionSkeleton } from '@/components/ui/section-skeleton'
 import { findTopEmployer, knownForLabel, topEmployerSourceLine } from '@/lib/companies/top-employers'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -52,6 +53,51 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     select: { name: true },
   })
   return { title: company ? company.name : 'Company' }
+}
+
+// The culture aggregate and review summary are the slowest reads on this page
+// and nothing else depends on them, so they stream in behind the card.
+async function CompanyCultureSection({
+  companyId: id,
+  companyName,
+  slug,
+  candidateId,
+}: {
+  companyId: string
+  companyName: string
+  slug: string
+  candidateId: string
+}) {
+  const [cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
+    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
+    getCultureProfile(id, candidateId),
+    getCultureSurveyCompanies(candidateId),
+    getCompanyReviewSummary(id, candidateId),
+  ])
+  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
+  return (
+    <>
+      <CultureProfileBars profile={cultureProfile} />
+      {ownCulture && (
+        <CultureSurveyOwnEntry
+          companyId={id}
+          companyName={companyName}
+          companySlug={slug}
+          initial={ownCulture.answers}
+          isCurrent={ownCulture.isCurrent}
+        />
+      )}
+      <div className="space-y-2 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
+        <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
+      </div>
+      {cultureProfile.shown && (
+        <p className="text-xs text-muted-foreground">
+          Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
+        </p>
+      )}
+    </>
+  )
 }
 
 const TENURE_LABEL: Record<string, string> = {
@@ -104,13 +150,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // (see autoTagAllWorkHistory's own comment). Awaited before the
   // hasTaggedEmployment check below so a first-ever visit already reads
   // as tagged, not "add where you've worked to unlock this."
-  await autoTagAllWorkHistory(profile.id)
+  // The tagging step only gates the hasTaggedEmployment read, so it is chained
+  // to that read inside the Promise.all below and the other, independent
+  // queries run alongside it instead of waiting behind it.
 
   const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, secondDegreeContacts, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
-      hasTaggedEmployment(profile.id),
+      autoTagAllWorkHistory(profile.id).then(() => hasTaggedEmployment(profile.id)),
       getPublishedIntelForCompany(id),
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
@@ -146,7 +194,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -154,12 +202,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       where: { candidateId: profile.id, companyId: id, isCurrent: true },
       select: { visibleAsInsider: true },
     }),
-    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
-    getCultureProfile(id, profile.id),
-    getCultureSurveyCompanies(profile.id),
-    getCompanyReviewSummary(id, profile.id),
   ])
-  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
 
   const askerRequestsHere = askerRequests.filter((r) => r.companyId === id)
   const pendingToAnswerHere = pendingToAnswer.filter((r) => r.companyId === id)
@@ -282,25 +325,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <CultureProfileBars profile={cultureProfile} />
-          {ownCulture && (
-            <CultureSurveyOwnEntry
-              companyId={id}
-              companyName={company.name}
-              companySlug={slug}
-              initial={ownCulture.answers}
-              isCurrent={ownCulture.isCurrent}
-            />
-          )}
-          <div className="space-y-2 border-t border-border pt-4">
-            <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
-            <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
-          </div>
-          {cultureProfile.shown && (
-            <p className="text-xs text-muted-foreground">
-              Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
-            </p>
-          )}
+          <Suspense fallback={<SectionSkeleton label="Loading what people say…" />}>
+            <CompanyCultureSection companyId={id} companyName={company.name} slug={slug} candidateId={profile.id} />
+          </Suspense>
         </CardContent>
       </Card>
 

@@ -80,7 +80,14 @@ const SECTIONS: SectionDef[] = [
 // pattern instead of two different UI languages.
 export default async function ProfileHubPage() {
   const profile = await getDashboardData()
-  const items = await getProfileChecklistItems(profile.id)
+  const [items, latestAnalysis] = await Promise.all([
+    getProfileChecklistItems(profile.id),
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true, dimensionFindings: true },
+    }),
+  ])
   const pointsByType = new Map(items.map((i) => [i.actionType, i]))
 
   // Prompt 87 point 1 — the reassuring-tone pattern from Prompt 83 point 6
@@ -114,11 +121,6 @@ export default async function ProfileHubPage() {
   // analysis's own findings, same JSON shape market-reality-report.ts
   // already reads for the same purpose.
   const latestResume = profile.resumes[0]
-  const latestAnalysis = await prisma.resumeAnalysis.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { createdAt: 'desc' },
-    select: { createdAt: true, dimensionFindings: true },
-  })
   const hasResumeFindings = latestAnalysis
     ? Object.values(latestAnalysis.dimensionFindings as unknown as Record<DimensionKey, Finding[]>).flat().length > 0
     : false
