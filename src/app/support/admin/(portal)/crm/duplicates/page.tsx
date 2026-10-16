@@ -5,7 +5,7 @@ import { ttlCached } from '@/lib/admin/ttl-cache'
 import { findAbbreviationSuggestions, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { suggestKeeper } from '@/lib/duplicates/suggest'
 import { decidedAliasPairs } from '@/lib/companies/company-alias'
-import { DuplicateGroup, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
+import { DuplicateGroupList, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
 
 export const maxDuration = 60
 
@@ -114,25 +114,21 @@ export default async function DuplicateOrganizationsPage() {
       {rows.length === 0 ? (
         <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No duplicate names found.</p>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
-          {rows.slice(0, PAGE_LIMIT).map((g) => (
-            <li key={g.squashed} className="p-3 text-sm">
-              <DuplicateGroup
-                kind="organization"
-                groupKey={g.squashed}
-                suggestedId={g.keeper.id}
-                reason={reasonFor(g.keeper.basis, 'organization')}
-                note={g.short ? 'Very short name: check these are the same company.' : undefined}
-                members={g.members.map((o) => ({
-                  id: o.id,
-                  name: o.name,
-                  href: `/support/admin/crm/organizations/${o.id}`,
-                  detail: `${o._count.affiliations} people · ${o._count.opportunities} deals · ${o._count.mandates} mandates${o.hiringClient ? ' · hiring client' : ''}${o.companyId ? '' : ' · not linked to a company'}`,
-                }))}
-              />
-            </li>
-          ))}
-        </ul>
+        <DuplicateGroupList
+          kind="organization"
+          groups={rows.slice(0, PAGE_LIMIT).map((g) => ({
+            groupKey: g.squashed,
+            suggestedId: g.keeper.id,
+            reason: reasonFor(g.keeper.basis, 'organization'),
+            note: g.short ? 'Very short name: check these are the same company.' : undefined,
+            members: g.members.map((o) => ({
+              id: o.id,
+              name: o.name,
+              href: `/support/admin/crm/organizations/${o.id}`,
+              detail: `${o._count.affiliations} people · ${o._count.opportunities} deals · ${o._count.mandates} mandates${o.hiringClient ? ' · hiring client' : ''}${o.companyId ? '' : ' · not linked to a company'}`,
+            })),
+          }))}
+        />
       )}
       {rows.length > PAGE_LIMIT && (
         <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {rows.length.toLocaleString()} groups.</p>
@@ -146,19 +142,15 @@ export default async function DuplicateOrganizationsPage() {
         {companyRows.length === 0 ? (
           <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No duplicate companies found.</p>
         ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border">
-            {companyRows.slice(0, PAGE_LIMIT).map((g) => (
-              <li key={g.squashed} className="p-3 text-sm">
-                <DuplicateGroup
-                  kind="company"
-                  groupKey={g.squashed}
-                  suggestedId={g.keeper.id}
-                  reason={reasonFor(g.keeper.basis, 'company')}
-                  members={g.members.map((c) => ({ id: c.id, name: c.name, detail: `${(jobsOf.get(c.id) ?? 0).toLocaleString()} postings` }))}
-                />
-              </li>
-            ))}
-          </ul>
+          <DuplicateGroupList
+            kind="company"
+            groups={companyRows.slice(0, PAGE_LIMIT).map((g) => ({
+              groupKey: g.squashed,
+              suggestedId: g.keeper.id,
+              reason: reasonFor(g.keeper.basis, 'company'),
+              members: g.members.map((c) => ({ id: c.id, name: c.name, detail: `${(jobsOf.get(c.id) ?? 0).toLocaleString()} postings` })),
+            }))}
+          />
         )}
         {companyRows.length > PAGE_LIMIT && (
           <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {companyRows.length.toLocaleString()} groups.</p>
