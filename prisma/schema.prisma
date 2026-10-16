@@ -15472,3 +15472,23 @@ model InternshipPosting {
   @@index([institutionId])
   @@index([addedBy, lastConfirmedAt])
 }
+
+// Who did what in a partner portal: exports, brand and team changes, demo access.
+// One table for every portal type; portal + refId says whose it is (the portal's
+// own record id), so each partner sees only their own activity. Written best-effort
+// and never used to gate anything.
+model PartnerAuditEvent {
+  id          String           @id @default(cuid())
+  portal      OrgWorkspaceType
+  refId       String
+  actorUserId String?
+  actorLabel  String?
+  action      String
+  targetType  String?
+  targetId    String?
+  detail      Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([portal, refId, createdAt])
+  @@index([actorUserId, createdAt])
+}

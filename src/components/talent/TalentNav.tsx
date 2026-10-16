@@ -51,6 +51,7 @@ function buildLinks(messagesUnreadCount: number): NavLink[] {
     { href: '/talent/analytics', label: 'Hiring Analytics' },
     { href: '/talent/job-board/submissions', label: 'Job Board' },
     { href: '/talent/team', label: 'Team' },
+    { href: '/talent/activity', label: 'Downloads and activity' },
     { href: '/talent/settings', label: 'Settings' },
   ]
 }

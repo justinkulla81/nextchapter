@@ -46,10 +46,11 @@ function buildLinks(role: OutplacementRole): NavLink[] {
       { href: '/employer/reporting', label: 'Reporting' },
       { href: '/employer/invoices', label: 'Invoices' },
       { href: '/employer/team', label: 'Team' },
+      { href: '/employer/activity', label: 'Downloads and activity' },
       { href: '/employer/connect', label: 'HR system and emails' }
     )
   } else if (role === 'VIEWER') {
-    links.push({ href: '/employer/reporting', label: 'Reporting' })
+    links.push({ href: '/employer/reporting', label: 'Reporting' }, { href: '/employer/activity', label: 'Downloads and activity' })
   } else if (role === 'LEGAL') {
     links.push({ href: '/employer/compliance', label: 'Compliance pack' })
   } else if (role === 'FINANCE') {
