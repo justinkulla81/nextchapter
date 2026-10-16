@@ -54,21 +54,22 @@ async function thisWeekSprintTargetCount(): Promise<number> {
   })
 }
 
-// The three counts over the ~320k-row ExclusiveJobPosting table (one a sequential scan) took
+// The two big counts over the ~320k-row ExclusiveJobPosting table (one a sequential scan) took
 // 15-60s each in production. They are admin-only global numbers, so they are cached across
 // serverless instances with unstable_cache (5 minutes, tag 'admin-job-counts') instead of
-// only per instance. Meaning of each count is unchanged.
+// only per instance. Meaning of each count is unchanged. The pending-listings count is NOT in
+// here: it is the badge admins act on, it reads few rows through an index, and it must update
+// as soon as a listing is approved or rejected.
 export const ADMIN_JOB_COUNTS_TAG = 'admin-job-counts'
 
 const loadJobPostingCounts = unstable_cache(
   async () => {
     const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
-    const [pendingJobBoardListings, newJobBoardListings, liveJobBoardListings] = await Promise.all([
-      prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
+    const [newJobBoardListings, liveJobBoardListings] = await Promise.all([
       prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
       prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
     ])
-    return { pendingJobBoardListings, newJobBoardListings, liveJobBoardListings }
+    return { newJobBoardListings, liveJobBoardListings }
   },
   ['admin-job-posting-counts-v1'],
   { revalidate: 300, tags: [ADMIN_JOB_COUNTS_TAG] },
@@ -97,6 +98,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
 
   const [
     jobCounts,
+    pendingJobBoardListings,
     pendingBountyClaims,
     unresolvedReferenceDisputes,
     pendingIntroRequests,
@@ -113,6 +115,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     sprintTargetCount,
   ] = await Promise.all([
     loadJobPostingCounts(),
+    prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
     prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
     prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
     prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
@@ -129,7 +132,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     thisWeekSprintTargetCount(),
   ])
 
-  const { pendingJobBoardListings, newJobBoardListings, liveJobBoardListings } = jobCounts
+  const { newJobBoardListings, liveJobBoardListings } = jobCounts
   return {
     approvalsNeeded: {
       pendingJobBoardListings,
