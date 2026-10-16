@@ -177,3 +177,26 @@ Also built in this pass, beyond the list:
 - **A journey or stage change rebuilds this week's plan at once** (`rebuildCurrentWeekPlan`): finished and started steps stay with their points, open ones are replaced, and the new journey's setup steps appear in its first week instead of being skipped by account age.
 
 Limits to know: the feasibility table is a judgment table, not a prediction, and is not yet joined to the O*NET data (which is not loaded in production); industries are multi-select but have no feasibility check; the settings page does not yet tell the member "your plan now follows X and your N finished steps stay".
+
+## 9. Second pass (2026-10-16): the "not done" list, and "what would it take"
+
+| Item | Decision and status |
+|---|---|
+| Mood check-ins in employer reporting | Decided: follow `docs/AFFILIATIONS.md` (mood is never shared). The alumni sentiment card and its query are removed |
+| Contract accept or decline | Kept and made real: "not right now" now sets a casual search intensity unless the member already chose one |
+| Daily-email time (`actionWindow`) | Retired: the selector is removed from Privacy (the daily cron runs once a day, so it could not be honored). Column kept |
+| Recruiter count, pet-friendly question | Retired from the forms. Columns kept |
+| Covenant details | Now shown back to the member inside their non-compete plan step |
+| Seven Track Record fields | Now read: functions owned feed the pivot check (a head start), sector history feeds the industry check, approval authority, situations, mandate, company stages and the accomplishment to confirm appear in Build your case |
+| Spine | Track Record, What I Need, Work Interests and the coaching form are in the spine, so the guard test covers them |
+| Industries | `industry-feasibility.ts`: same, easy, domain to learn (regulated), or bigger step, with a head start for sectors worked in. Shown on Search Strategy and in the explorer |
+| Unasked questions | Added: hours a week (all journeys), board experience and sectors (Next act), number of clients (Fractional). Each has a plan step |
+| Confirmation message | After a settings save or a check-in: "Your plan now follows X. Your N finished steps stay, with their points." |
+| O*NET | Not connected. The what-it-would-take map works from a curated profile of 12 functions. Where O*NET data is loaded, the Pivot Tool's skill-level detail sits below it on the same page. Joining them (using skill similarity to adjust the tier) is still open |
+| `OutplacementContract.journey` SQL | Applied to the production project (nullable column, additive) |
+
+New: **What would it take?** on Pivot paths (`pathway.ts`): what you have, what you need, time, cost ranges (typical, not quotes), what is hard, entry roles, informal and formal routes, and, when the member says why they like it, smaller ways to get the same thing and honest "worth knowing" notes. It never blocks. Saving puts the field on their list as exploring; committing is on Search Strategy.
+
+New: **Learning paths** (`learning-paths.ts`), each tied to one goal, labeled as told or inferred: a field they committed to, a field they are exploring (a cheap test first), the next level they named, a skill to build, AI exposure, board readiness. Several can run at once; the weekly plan shows the next step of the first two; progress is stored and survives journey changes. Shown on Pivot paths and Learn New Skills.
+
+Still open: the feasibility and cost tables are judgment, not data, and should be reviewed by someone who knows each field; `howHeard` and `justStartedSearch` are kept (acquisition and a form helper); `prisma/manual/2026-10-16-career-change-pivoting.sql` (flag existing Changing careers members) is not yet applied.
