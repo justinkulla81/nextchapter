@@ -12,7 +12,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
 import { AUDIENCE_LABELS, getService, PRICING_LABELS, type Audience, type Pricing, type ServiceSetting } from '@/lib/higher-ed/services'
-import { DEMO_PERSONAS, orgKindOf } from '@/lib/higher-ed/workspaces'
+import { DEMO_PERSONAS, demoPersonaTokens, getWorkspace, orgBasePath, orgKindOf, workspacesFor } from '@/lib/higher-ed/workspaces'
 import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { seedDemoContent } from '@/lib/institution/admin'
@@ -35,9 +35,11 @@ export async function setDemoPersona(slug: string, formData: FormData) {
   const persona = String(formData.get('persona') ?? 'all')
   if (!DEMO_PERSONAS.some((p) => p.key === persona)) throw new Error(`Unknown persona ${persona}`)
   const cookieStore = await cookies()
-  cookieStore.set(DEMO_PREVIEW_COOKIE, persona, { path: '/i', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
+  cookieStore.set(DEMO_PREVIEW_COOKIE, persona, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
   captureServerEvent(access.userId, 'he_demo_persona_changed', { institutionId: access.institution.id, slug, persona })
-  redirect(`/i/${slug}`)
+  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: access.institution.id }, select: { tier: true, orgType: true, enabledFeatures: true } })
+  const first = workspacesFor(demoPersonaTokens(persona), inst.tier, { wioa: (inst.enabledFeatures as { wioa?: boolean } | null)?.wioa === true }, orgKindOf(inst.orgType))[0]
+  redirect(`${orgBasePath(slug, inst.orgType)}${first ? `/${getWorkspace(first)!.homePath}` : ''}`)
 }
 
 export async function resetDemoData(slug: string): Promise<{ error?: string; members?: number }> {
@@ -81,7 +83,7 @@ export async function startViewAs(slug: string, _prev: { error?: string } | null
   })
   if ('error' in result) return result
   captureServerEvent(access.userId, 'he_view_as_started', { institutionId: access.institution.id, slug })
-  redirect(`/i/${slug}`)
+  redirect(orgBasePath(slug, access.institution.orgType))
 }
 
 // ── Services (Settings › Services) ──────────────────────────────────────────

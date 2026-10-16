@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 import { memberInvite } from '@/lib/workforce/member-access'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -15,7 +15,7 @@ export default async function MemberInvitePage({ params }: { params: Promise<{ s
   const { slug, token } = await params
   const inst = await prisma.institution.findUnique({ where: { slug }, select: { name: true, programBrandName: true, logoUrl: true, accentColor: true } })
   if (!inst) notFound()
-  const [invite, user] = await Promise.all([memberInvite(slug, token), getCurrentUser()])
+  const [invite, user] = await Promise.all([memberInvite(slug, token), getOrgUser()])
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
   return (
@@ -37,7 +37,7 @@ export default async function MemberInvitePage({ params }: { params: Promise<{ s
               <AcceptMemberInvite slug={slug} token={token} email={user.email ?? ''} />
             ) : (
               <p className="text-sm">
-                <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/member/${token}`)}`} className="font-medium text-primary hover:underline">
+                <Link href={`/i/login?next=${encodeURIComponent(`/i/${slug}/member/${token}`)}`} className="font-medium text-primary hover:underline">
                   Sign in with {invite.invitedEmail ?? 'the email this went to'}
                 </Link>{' '}
                 to accept.

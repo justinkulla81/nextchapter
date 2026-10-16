@@ -42,6 +42,9 @@ export type InstitutionAccess = {
   // tenant; 'view-as' = nc_admin with a logged View-as on a real tenant;
   // 'demo-guest' = a prospect's guest pass to a demo they generated (read-only).
   mode: 'own' | 'demo-admin' | 'view-as' | 'demo-guest'
+  // Which login this request came from: the org portal's, the candidate
+  // site's (members only), or a demo guest pass.
+  via?: 'org' | 'candidate' | 'guest'
   demoPersona: string | null
   staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null }[]
   memberId: string | null
@@ -71,6 +74,9 @@ export async function resolveInstitutionAccess(
     email: string | null
     demoPersona?: string | null
     now?: Date
+    // A candidate-portal session: only the person's own membership counts
+    // (the Candidate workspace), never staff, employer or admin roles.
+    memberOnly?: boolean
   },
   db: Db = prisma,
 ): Promise<InstitutionAccess | null> {
@@ -84,8 +90,9 @@ export async function resolveInstitutionAccess(
   const { enabledFeatures, ...institution } = row
   const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
 
+  const memberOnly = !!args.memberOnly
   const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
-    db.institutionUser.findMany({
+    memberOnly ? [] : db.institutionUser.findMany({
       where: { institutionId: institution.id, userId: args.userId, revokedAt: null, acceptedAt: { not: null } },
       select: { id: true, role: true, workspace: true },
     }),
@@ -93,7 +100,7 @@ export async function resolveInstitutionAccess(
       where: { institutionId: institution.id, candidate: { userId: args.userId }, status: { not: 'OPTED_OUT' } },
       select: { id: true },
     }),
-    db.institutionEmployer.findMany({
+    memberOnly ? [] : db.institutionEmployer.findMany({
       where: {
         institutionId: institution.id,
         status: 'APPROVED',
@@ -103,7 +110,7 @@ export async function resolveInstitutionAccess(
       },
       select: { employerProfileId: true },
     }),
-    isNcAdmin(args.userId, args.email, db),
+    memberOnly ? false : isNcAdmin(args.userId, args.email, db),
   ])
 
   const own = new Set<AccessToken>()

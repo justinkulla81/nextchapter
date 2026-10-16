@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { getWorkspace, lockedWorkspacesFor, orgKindOf, TIER_LABELS } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { ViewAsForm } from '@/components/higher-ed/ViewAsForm'
 
@@ -16,12 +16,12 @@ export default async function InstitutionRootPage({
   const { slug } = await params
   const { denied } = await searchParams
   const access = await getInstitutionAccess(slug)
-  if (access === 'signed-out') redirect(`/auth/login?next=${encodeURIComponent(`/i/${slug}`)}`)
+  if (access === 'signed-out') redirect(`/i/login?next=${encodeURIComponent(`/i/${slug}`)}`)
   if (!access) notFound()
 
   const first = access.workspaces[0]
   const deniedLabel = denied ? (getWorkspace(denied)?.label ?? denied) : null
-  if (first && !denied) redirect(`/i/${slug}/${getWorkspace(first)!.homePath}`)
+  if (first && !denied) redirect(`${orgBasePath(slug, access.institution.orgType)}/${getWorkspace(first)!.homePath}`)
   // A staff role whose workspaces the college's license doesn't include.
   const inst = first ? null : await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { tier: true } })
   const locked = inst ? lockedWorkspacesFor(access.ownTokens, inst.tier, {}, orgKindOf(access.institution.orgType)) : []
@@ -49,9 +49,16 @@ export default async function InstitutionRootPage({
         <>
           <h1 className="text-xl font-semibold">No workspace at {access.institution.name} yet</h1>
           <p className="text-sm text-muted-foreground">
-            You&apos;re signed in as {access.email}, which doesn&apos;t hold a staff role, a membership or an approved employer seat here.
+            {access.via === 'candidate'
+              ? `You're signed in to the job-seeker site as ${access.email}, and that login only opens a member's own page here.`
+              : `You're signed in as ${access.email}, which doesn't hold a staff role, a membership or an approved employer seat here.`}{' '}
             If you were invited, open the invite link from your email. Otherwise ask an administrator at {access.institution.name}.
           </p>
+          {access.via === 'candidate' && (
+            <a href={`/i/login?next=${encodeURIComponent(`/i/${slug}`)}`} className="inline-block text-sm font-medium text-primary hover:underline">
+              Staff, member companies and NextChapter: sign in to the organization portal
+            </a>
+          )}
         </>
       )}
       {access.isNcAdmin && !access.institution.isDemo && access.mode !== 'view-as' && <ViewAsForm slug={slug} institutionName={access.institution.name} />}

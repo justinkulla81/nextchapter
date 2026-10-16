@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, labelFor, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, labelFor, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
@@ -30,7 +30,7 @@ export default async function WorkspacePage({
   if (!active || (tab && tab.length > 1)) notFound()
 
   const Screen = WORKSPACE_SCREENS[`${config.key}:${active.key}`]
-  const base = `/i/${slug}/${config.homePath}`
+  const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
   return (
     <div className="space-y-6">

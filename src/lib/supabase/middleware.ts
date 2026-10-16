@@ -24,6 +24,7 @@ export async function updateSession(request: NextRequest) {
   // processing. request.headers is mutated in place, so this survives the
   // supabaseResponse reassignment in the setAll cookie-refresh branch below.
   request.headers.set('x-pathname', request.nextUrl.pathname)
+  request.headers.set('x-search', request.nextUrl.search)
 
   let supabaseResponse = NextResponse.next({ request })
 
