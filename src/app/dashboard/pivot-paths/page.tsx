@@ -5,7 +5,10 @@ import { PathwayExplorer } from '@/components/dashboard/pathway/PathwayExplorer'
 import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import { getLearningPaths } from '@/lib/journey/learning-paths-data'
 import { PIVOT_REASONS, ownedFunctionsFrom } from '@/lib/journey/pathway'
-import { pivotOf } from '@/lib/journey/pivot'
+import { activeTargets, pivotInterestsOf, pivotOf } from '@/lib/journey/pivot'
+import { pivotIdeas } from '@/lib/journey/pivot-ideas'
+import { PivotRadar } from '@/components/dashboard/pathway/PivotRadar'
+import { PivotIdeas } from '@/components/dashboard/pathway/PivotIdeas'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
@@ -75,12 +78,28 @@ async function WhatItTakes({ profile, target, why }: { profile: Awaited<ReturnTy
     getLearningPaths(profile.id),
   ])
   const reason = PIVOT_REASONS.find((r) => r.key === why)?.key ?? null
-  const saved = pivotOf(profile.journeyDetails)?.targets.some((t) => t.function === target) ?? false
+  const saved = activeTargets(pivotOf(profile.journeyDetails)).some((t) => t.function === target)
   if (target) {
     after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: target, why: reason }))
   }
+  const pivot = pivotOf(profile.journeyDetails)
+  const interests = pivotInterestsOf(profile.journeyDetails)
+  const ideas = pivotIdeas({
+    from: profile.primaryFunction,
+    keywords: [...profile.resumeKeywords, ...profile.confirmedSkillsHave],
+    ownedFunctions: ownedFunctionsFrom(tr?.functionsOwnedOutsideCore),
+    seniorLevel: (profile.levelRankScore ?? 0) >= 60,
+    currentIndustry: profile.industryContext,
+    sectorHistory: tr?.sectorHistory ?? [],
+    reason,
+    onRadar: (pivot?.targets ?? []).map((t) => t.function),
+    industriesOnRadar: interests.industries.map((i) => i.name),
+    skillsToBuild: profile.skillsToBuild,
+  })
   return (
     <div className="space-y-6">
+      <PivotRadar pivot={pivot} interests={interests} />
+      <PivotIdeas ideas={ideas} from={profile.primaryFunction} />
       <PathwayExplorer
         from={profile.primaryFunction}
         keywords={[...profile.resumeKeywords, ...profile.confirmedSkillsHave]}

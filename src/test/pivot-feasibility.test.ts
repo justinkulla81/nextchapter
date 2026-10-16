@@ -65,8 +65,8 @@ describe('commitment decides what we search for', () => {
     expect(text).not.toMatch(/Design|Operations/)
     // A change they have not committed to is not planned for, only questioned, and only now and then.
     expect(text).not.toMatch(/Engineering plan/)
-    expect(pivotPlanItems(p, on).map((i) => i.text).join('|')).toMatch(/open to Engineering/)
-    expect(pivotPlanItems(p, off).map((i) => i.text).join('|')).not.toMatch(/open to Engineering/)
+    expect(pivotPlanItems(p, on).map((i) => i.text).join('|')).toMatch(/wondering about Engineering/)
+    expect(pivotPlanItems(p, off).map((i) => i.text).join('|')).not.toMatch(/Engineering/)
   })
   it('reads nothing from a profile with no pivot', () => {
     expect(pivotOf(null)).toBeNull()

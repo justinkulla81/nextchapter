@@ -157,7 +157,7 @@ export type Pathway = {
 const lower = (s: string) => s.toLowerCase()
 
 // Skills the member already has: résumé keywords and confirmed skills that match what this function asks for.
-function matchedSkills(core: string[], keywords: string[]): string[] {
+export function matchedSkills(core: string[], keywords: string[]): string[] {
   const k = keywords.map(lower)
   return core.filter((c) => {
     const words = lower(c).split(/[^a-z0-9+#]+/).filter((w) => w.length > 2 && !['and', 'the', 'such', 'with'].includes(w))

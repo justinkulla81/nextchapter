@@ -1,6 +1,6 @@
 import { IndustryRealityCheck } from '@/components/dashboard/pathway/IndustryRealityCheck'
 import { parseRelocation } from '@/lib/journey/relocation'
-import { pivotOf } from '@/lib/journey/pivot'
+import { activeTargets, pivotOf } from '@/lib/journey/pivot'
 import { careerOf, isCareerAnswered } from '@/lib/journey/career'
 import { CareerGoalsForm } from '@/components/dashboard/CareerGoalsForm'
 import type { Metadata } from 'next'
@@ -405,7 +405,7 @@ export default async function SearchStrategyPage() {
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
           relocation={parseRelocation(profile.journeyDetails, profile.openToRelocation)}
-          pivotTargets={pivotOf(profile.journeyDetails)?.targets ?? []}
+          pivotTargets={activeTargets(pivotOf(profile.journeyDetails))}
           seniorLevel={(profile.levelRankScore ?? 0) >= 60}
           canSwitchJourney={!!stageJourney && stageJourney !== 'CAREER_CHANGE' && getJourney(stageJourney).searching}
           journey={stageJourney}

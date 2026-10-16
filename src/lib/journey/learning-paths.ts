@@ -6,7 +6,7 @@
 
 import { assessPivot } from './feasibility'
 import { FUNCTION_PROFILES, costText, buildPathway } from './pathway'
-import { isCommitted, type PivotDetails } from './pivot'
+import { isCommitted, stanceOf, type PivotDetails } from './pivot'
 import type { CareerDetails } from './career'
 
 export type GoalKind = 'PIVOT' | 'NEXT_LEVEL' | 'SKILL' | 'AI' | 'BOARD'
@@ -40,7 +40,7 @@ export type PathInput = {
 const step = (pathId: string, n: number, title: string, kind: PathStep['kind'], hours?: number): PathStep => ({ id: `${pathId}:${n}`, title, kind, hours })
 
 function pivotPath(input: PathInput, t: PivotDetails['targets'][number]): LearningPath | null {
-  if (t.tier === 'SAME' || t.tier === 'LEVEL_GATED') return null
+  if (t.tier === 'SAME' || t.tier === 'LEVEL_GATED' || stanceOf(t) === 'SET_ASIDE') return null
   const fn = t.function
   const id = `pivot-${fn.toLowerCase().replace(/[^a-z]+/g, '-')}`
   const a = assessPivot(input.from, fn, { seniorLevel: input.seniorLevel, ownedFunctions: input.ownedFunctions })

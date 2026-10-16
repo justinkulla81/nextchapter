@@ -18,7 +18,7 @@ import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strat
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
 import { buildRelocation, opensToMove } from '@/lib/journey/relocation'
-import { buildTarget, isCommitted, pivotOf, primaryPivot } from '@/lib/journey/pivot'
+import { buildTarget, isCommitted, mergeTarget, moveStance, pivotOf, primaryPivot, stanceOf } from '@/lib/journey/pivot'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { effectiveJourney, effectiveStage, getJourney } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
@@ -111,12 +111,16 @@ export async function updateSearchStrategy(
   } catch {
     pivotInput = []
   }
-  const targets = pivotInput.map((x) => {
+  const chosen = pivotInput.map((x) => {
     const built = buildTarget(fromFunction, x.function, x, now, (current?.levelRankScore ?? 0) >= 60)
-    // Keep the original commit date when nothing about the commitment changed.
-    const before = previous?.targets.find((t) => t.function === x.function)
-    return before?.committedAt && built.committedAt && before.route === built.route && before.hoursPerWeek === built.hoursPerWeek ? { ...built, committedAt: before.committedAt } : built
+    return mergeTarget(previous?.targets.find((t) => t.function === x.function), built, now)
   })
+  // An idea they unticked is set aside, not deleted: we keep the story and they can come back to it.
+  const setAside = (previous?.targets ?? [])
+    .filter((t) => !pivotInput.some((x) => x.function === t.function))
+    .map((t) => (stanceOf(t) === 'SET_ASIDE' ? t : moveStance(t, { stance: 'SET_ASIDE' }, now)))
+  const targets = [...chosen, ...setAside]
+  const ready = (t: (typeof targets)[number]) => isCommitted(t) && stanceOf(t) !== 'SET_ASIDE'
   const pivot = { targets, updatedAt: now.toISOString() }
   const main = primaryPivot(pivot)
   // Only touch the pivot fields when this form says something about them: openness was chosen now or
@@ -179,10 +183,11 @@ export async function updateSearchStrategy(
   captureServerEvent(profile.id, 'search_strategy_updated', {
     relocationScope: relocation.scope,
     relocationStates: relocation.states ?? [],
-    openFunctions: targets.map((t) => t.function),
-    committedFunctions: targets.filter(isCommitted).map((t) => t.function),
+    openFunctions: targets.filter((t) => stanceOf(t) !== 'SET_ASIDE').map((t) => t.function),
+    setAsideFunctions: targets.filter((t) => stanceOf(t) === 'SET_ASIDE').map((t) => t.function),
+    committedFunctions: targets.filter(ready).map((t) => t.function),
   })
-  for (const t of targets.filter(isCommitted)) {
+  for (const t of targets.filter(ready)) {
     if (!previous?.targets.some((x) => x.function === t.function && x.committedAt)) {
       captureServerEvent(profile.id, 'pivot_committed', { from: fromFunction, to: t.function, tier: t.tier, route: t.route, hoursPerWeek: t.hoursPerWeek })
     }
@@ -191,7 +196,7 @@ export async function updateSearchStrategy(
   // They made changing careers the main goal: switch the journey, keep the stage and everything they did.
   const wantsSwitch = formData.get('makeCareerChange') === 'on'
   const currentJourney = current ? effectiveJourney(current) : null
-  if (wantsSwitch && targets.some(isCommitted) && currentJourney && currentJourney !== 'CAREER_CHANGE' && getJourney(currentJourney).searching) {
+  if (wantsSwitch && targets.some(ready) && currentJourney && currentJourney !== 'CAREER_CHANGE' && getJourney(currentJourney).searching) {
     await applyJourneyChange(profile.id, { journey: 'CAREER_CHANGE', stage: effectiveStage(current!) ?? undefined, source: 'SETTINGS', note: 'Committed to a change of function' })
   }
 

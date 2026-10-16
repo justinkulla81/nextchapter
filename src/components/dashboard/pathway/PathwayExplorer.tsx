@@ -200,19 +200,19 @@ export function PathwayExplorer({
 
           <div className="flex flex-wrap items-center gap-3">
             {alreadySaved ? (
-              <p className="text-sm text-muted-foreground">{target} is on your list. Commit to it, or take it off, on Search Strategy.</p>
+              <p className="text-sm text-muted-foreground">{target} is on your radar. Update how it feels in Your radar above, or plan it on Search Strategy.</p>
             ) : (
               <form action={saveExploredTarget}>
                 <input type="hidden" name="target" value={target!} />
                 <input type="hidden" name="why" value={why ?? ''} />
-                <SubmitButton>Add {target} to my list</SubmitButton>
+                <SubmitButton>Put {target} on my radar</SubmitButton>
               </form>
             )}
             <a href="/dashboard/search-strategy" className="text-sm font-medium text-brand underline underline-offset-4">
               Commit to a plan on Search Strategy
             </a>
           </div>
-          {FUNCTION_PROFILES[target!] && <p className="text-xs text-muted-foreground">Adding it gives you a first step to test it cheaply. Committing gives you a full learning path in your weekly plan.</p>}
+          {FUNCTION_PROFILES[target!] && <p className="text-xs text-muted-foreground">Putting it on your radar gives you a small first step to test it cheaply and no deadline. Planning it later gives you a full learning path in your weekly plan.</p>}
         </div>
       )}
     </section>

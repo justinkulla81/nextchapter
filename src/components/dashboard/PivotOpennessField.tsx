@@ -48,6 +48,9 @@ export function PivotOpennessField({
   return (
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium">Are you open to work in other fields? Pick all that apply.</legend>
+      <p className="text-xs text-muted-foreground">
+        Only thinking about it? That is fine. Put it on your radar on <a href="/dashboard/pivot-paths" className="underline underline-offset-4">Pivot paths</a>, with no commitment. Pick it here when you are ready to plan it. Unticking something sets it aside; we keep the story.
+      </p>
       <input type="hidden" name="pivotJson" value={JSON.stringify(payload)} />
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
         {options.map((fn) => (
