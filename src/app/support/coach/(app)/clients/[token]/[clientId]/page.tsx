@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { CoachProfileContextCard } from '@/components/coach/CoachProfileContext'
+import { CoachParallelPathsCard } from '@/components/coach/CoachParallelPathsCard'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { notFound } from 'next/navigation'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
@@ -37,11 +39,12 @@ export default async function PreSessionBriefPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const [brief, platformActivity, noteSummary] = await Promise.all([
+  const [brief, platformActivity, noteSummary, parallelPaths] = await Promise.all([
     getPreSessionBrief(candidate.id),
     // Same consent as the rest of this brief (getCoachClient above).
     getPlatformActivity(candidate.id).then((rows) => rows.filter((r) => !r.dismissed)),
     getNoteSummaryView(coach.id, candidate.id),
+    getParallelPaths(candidate.id),
   ])
 
   return (
@@ -63,6 +66,8 @@ export default async function PreSessionBriefPage({
         <Suspense fallback={null}>
           <CoachProfileContextCard candidateId={candidate.id} />
         </Suspense>
+
+        <CoachParallelPathsCard paths={parallelPaths} />
 
         <NoteSummaryCard token={token} clientId={clientId} view={noteSummary.view} sessionsWithNotes={noteSummary.sessionsWithNotes} dailyLimit={DAILY_SUMMARIES_PER_COACH} />
 
