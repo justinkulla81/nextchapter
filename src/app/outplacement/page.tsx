@@ -273,7 +273,7 @@ export default async function OutplacementPage() {
                 <Link href="/dossier" className="text-primary underline underline-offset-4">
                   /dossier
                 </Link>
-                . Your organization&apos;s reporting access ends per the contract term.
+                . Your company&apos;s reporting access ends per the contract term.
               </p>
             </div>
           </div>

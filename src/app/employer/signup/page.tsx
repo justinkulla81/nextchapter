@@ -21,11 +21,11 @@ export default function EmployerSignupPage() {
       icon={Building2}
       portalLabel="Employers"
       title="Employer accounts are set up with your contract"
-      description="NextChapter for Employers accounts aren't self-serve — they're provisioned when your organization sets up an outplacement contract."
+      description="NextChapter for Employers accounts aren't self-serve — they're provisioned when your company sets up a NextChapter contract (outplacement, growth or learning)."
     >
       <div className="space-y-4 text-sm text-muted-foreground">
         <p>
-          If your organization already has a NextChapter outplacement contract, check your email for an
+          If your company already has a NextChapter contract, check your email for an
           invite from NextChapter, or ask whoever set up the account to invite you from their Team page.
         </p>
         <p>Starting a new contract? Reach out and we&apos;ll get your account set up.</p>

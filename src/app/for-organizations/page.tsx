@@ -119,7 +119,7 @@ export default function ForOrganizationsPage() {
                   Employers
                 </Link>
                 <Link href="/employer/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Outplacement &amp; HR
+                  Outplacement, growth &amp; learning
                 </Link>
                 <Link href="/recruiters/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Recruiters &amp; Agencies

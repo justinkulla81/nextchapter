@@ -4,13 +4,13 @@ import { Briefcase, GraduationCap, LifeBuoy, Sprout } from 'lucide-react'
 import { NOINDEX } from '@/lib/seo/canonical'
 import { portalHostOn } from '@/lib/portal-hosts'
 
-export const metadata: Metadata = { ...NOINDEX, title: 'NextChapter for organizations' }
+export const metadata: Metadata = { ...NOINDEX, title: 'NextChapter for employers' }
 
-// The organization portal's front door (organization.<site>): one place for
+// The employer portal's front door (employer.<site>): one place for
 // an employer's work with NextChapter. Outplacement, Growth and Learning
 // share one employer account (/employer); Hiring has its own (/talent).
-export default function OrganizationHome() {
-  const on = portalHostOn('organization')
+export default function EmployerHome() {
+  const on = portalHostOn('employer')
   const hiring = on ? '/hiring' : '/talent/dashboard'
   const outplacement = on ? '/outplacement' : '/employer'
   const employerLogin = on ? '/outplacement/login' : '/employer/login'
@@ -23,7 +23,7 @@ export default function OrganizationHome() {
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-4 py-12">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">NextChapter for organizations</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">NextChapter for employers</h1>
         <p className="text-muted-foreground">Hiring, outplacement, growth and learning, with one partner.</p>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2">

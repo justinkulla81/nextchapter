@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { portalHostFor, portalHostOn, publicPathFor } from '@/lib/portal-hosts'
 
-// On a portal's own host (recruiter., coach., organization.), in-app links
+// On a portal's own host (recruiter., coach., employer.), in-app links
 // written in app form (/recruiters/search, /talent/roles) render the same
 // page as the public address (/search, /hiring/roles): show the public one.
 export function PortalCanonicalUrl() {
