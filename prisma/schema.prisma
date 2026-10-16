@@ -5078,6 +5078,8 @@ model ExclusiveJobPosting {
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
+  // Covers the admin "new listings, not rejected, last 7 days" count as an index-only scan.
+  @@index([createdAt, status])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
