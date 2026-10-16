@@ -13,6 +13,7 @@ import {
   type DismissReason,
   type PreferenceChange,
 } from '@/lib/jobs/job-dismiss'
+import { captureMatchBaselineFor } from '@/lib/personalization/match-snapshot'
 
 // Passing on a board job with reasons (job-dismiss.ts), its undo, and the member's answers
 // to "Hide all X?". The job is marked on the existing TrackedJob row ("Not interested",
@@ -69,6 +70,8 @@ export async function dismissBoardJob(jobId: string, rawReasons: string[], note?
   })
 
   const changes = preferenceChanges(reasons, postingFacts(posting))
+  // A hide changes which jobs match: keep what matching read before it (personalization read-backs).
+  if (changes.some((c) => c.action !== 'downweight')) await captureMatchBaselineFor(candidateId)
   for (const c of changes) {
     const existing = await prisma.jobDismissPreference.findUnique({ where: { candidateId_kind_value: { candidateId, kind: c.kind, value: c.value } } })
     const revived = !existing || existing.undoneAt !== null
@@ -135,6 +138,7 @@ export async function decideDismissPreference(preferenceId: string, decision: 'h
   const pref = await prisma.jobDismissPreference.findFirst({ where: { id: preferenceId, candidateId } })
   if (!pref) return { ok: false }
   const now = new Date()
+  if (decision !== 'keep') await captureMatchBaselineFor(candidateId)
   if (decision === 'hide') {
     await prisma.jobDismissPreference.update({ where: { id: pref.id }, data: { action: 'hide', askedAt: now } })
     captureServerEvent(candidateId, 'dismiss_preference_applied', { kind: pref.kind, action: 'hide', source: 'ask' })

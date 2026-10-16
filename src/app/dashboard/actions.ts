@@ -39,6 +39,7 @@ import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strat
 import type { PassiveToActiveTrigger } from '@/lib/dashboard/passive-to-active-prompt'
 import type { StalledSearchTier } from '@/lib/dashboard/stalled-search-prompt'
 import { withoutPrefill } from '@/lib/resume/resume-prefill'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -393,6 +394,7 @@ export async function confirmIndustry(
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const industryContext = (formData.get('industryContext') as string) || null
+  await captureMatchBaseline(profile)
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },

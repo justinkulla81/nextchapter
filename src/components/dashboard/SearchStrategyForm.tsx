@@ -32,6 +32,7 @@ import { MAX_TRAVEL_OPTIONS } from '@/lib/jobs/requirements'
 
 const MAX_TRAVEL_CHOICES = MAX_TRAVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))
 import type { CandidateProfile } from '@prisma/client'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
 
 // A quiet visual flag next to a Label — not answered yet, in-context, no
 // separate legend needed. Only used on the fields search-strategy-checklist.ts
@@ -58,6 +59,7 @@ export function SearchStrategyForm({
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   useAdvanceSearchStrategyPageOnSave(pending, !!state?.error)
+  const retune = useRetuneAfterSave('search_strategy', pending, !!state?.error)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
   const [targetRoleType, setTargetRoleType] = useState(
@@ -73,6 +75,7 @@ export function SearchStrategyForm({
   return (
     <form
       action={formAction}
+      onSubmit={retune.onSubmit}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2">

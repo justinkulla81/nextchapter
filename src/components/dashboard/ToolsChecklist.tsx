@@ -5,6 +5,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { saveConfirmedTools } from '@/app/dashboard/skills-assessment/tools-actions'
+import { startRetune } from '@/components/dashboard/RetuneMoment'
 
 /**
  * "Tools you use": tick the tools you work with. The ones your résumé or LinkedIn already
@@ -36,6 +37,7 @@ export function ToolsChecklist({ options, confirmedAt }: { options: { name: stri
       }
       posthog.capture('tools_confirmed', { count: checked.size })
       setSaved(new Date().toISOString())
+      startRetune('tools')
     })
   }
 

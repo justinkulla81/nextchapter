@@ -1,18 +1,17 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { saveHomeCity } from '@/app/dashboard/find-my-job/city-actions'
+import { startRetune } from '@/components/dashboard/RetuneMoment'
 
 /**
  * "Add your city": without one, the board can't count local jobs (relevance.ts geography) and
  * shows only remote jobs and the places they'd move to. One click opens the two fields.
  */
 export function AddCityPrompt({ surface, states, fallback }: { surface: string; states: string[]; fallback: string }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
@@ -30,7 +29,8 @@ export function AddCityPrompt({ surface, states, fallback }: { surface: string; 
       }
       posthog.capture('home_city_added', { surface, state })
       setDone(true)
-      router.refresh()
+      // The retune refreshes the page once it has the new numbers.
+      startRetune('city')
     })
   }
 

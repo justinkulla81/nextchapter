@@ -193,6 +193,8 @@ export type BreadthCandidate = StageMember & {
   remotePreference?: string | null
   openToRelocation?: boolean | null
   relocationNotes?: string | null
+  /** Use this occupation instead of resolving one (a past profile: personalization/match-compute.ts). */
+  socOverride?: string | null
 } & SkillMatrixInput
 
 const memberSocMemo = new Map<string, { at: number; soc: string | null }>()
@@ -225,7 +227,7 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     if (role) pivotTargets.set(role.key, role.label)
   }
   const [soc, similarity, anchor, skills] = await Promise.all([
-    memberSoc(candidate, sourceRole),
+    candidate.socOverride !== undefined ? Promise.resolve(candidate.socOverride) : memberSoc(candidate, sourceRole),
     loadSimilarityIndex(),
     homeAnchor(candidate),
     memberSkills(candidate),

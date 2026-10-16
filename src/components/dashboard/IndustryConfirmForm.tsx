@@ -9,6 +9,7 @@ import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
 
 const POINTS = estimateActionEffort({ actionType: 'INDUSTRY_CONFIRM' }).points
 
@@ -25,6 +26,7 @@ export function IndustryConfirmForm({
   const [state, formAction, pending] = useActionState(confirmIndustry, undefined)
   const [value, setValue] = useState(industryContext ?? '')
 
+  const retune = useRetuneAfterSave('industry', pending, !!state?.error, value.trim())
   const isConfirmed = !!confirmedAt
   const isDirty = value !== (industryContext ?? '')
   const canConfirm = !isConfirmed || isDirty
@@ -32,6 +34,7 @@ export function IndustryConfirmForm({
   return (
     <form
       action={formAction}
+      onSubmit={retune.onSubmit}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <ConfirmHint show={!isConfirmed} />

@@ -43,10 +43,11 @@ export async function loadActivePreferences(candidateId: string): Promise<Active
 }
 
 /** The member's dismiss rules, or null without a member. Board and every job email apply them. */
-export async function loadDismissRules(candidateId: string | null): Promise<DismissRules | null> {
+export async function loadDismissRules(candidateId: string | null, preferencesOverride?: ActivePreference[]): Promise<DismissRules | null> {
   if (!candidateId) return null
   const [preferences, dismissed, occupations, confirmed] = await Promise.all([
-    loadActivePreferences(candidateId),
+    // An earlier set of preferences (personalization/match-compute.ts: a member's board before a change).
+    preferencesOverride ? Promise.resolve(preferencesOverride) : loadActivePreferences(candidateId),
     prisma.trackedJob.findMany({ where: { candidateId, source: 'job_board', dismissedAt: { not: null } }, select: { sourceId: true } }),
     loadJobSocs(),
     getConfirmedGhostIds(),

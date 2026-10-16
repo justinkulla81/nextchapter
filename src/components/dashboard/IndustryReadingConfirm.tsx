@@ -5,6 +5,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { confirmIndustryBuckets } from '@/app/dashboard/search-strategy/industry-actions'
+import { startRetune } from '@/components/dashboard/RetuneMoment'
 
 /**
  * "We read 'Venture capital / AI startups' as …": when a member's industry text reads as
@@ -28,6 +29,7 @@ export function IndustryReadingConfirm({ text, suggested, options }: { text: str
       }
       posthog.capture('industry_reading_confirmed', { buckets: picked, changed: picked.join('|') !== suggested.join('|') })
       setDone(true)
+      startRetune('industry')
     })
   }
 

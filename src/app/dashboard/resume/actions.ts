@@ -23,6 +23,7 @@ import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 import { computeResumeAnalysis } from '@/lib/scoring/resume-analysis/compute'
 import { computeMarketRealityComponents } from '@/lib/scoring/market-reality/compute'
 import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -164,6 +165,8 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   // chain below moves to after(), giving it the rest of onboarding's
   // several screens to finish instead of making the candidate watch a
   // spinner for it.
+  // What matching read before this résumé, for the read-back's retune (personalization/retune.ts).
+  await captureMatchBaseline(profile)
   await extractProfileFieldsFromResume(resume.id)
 
   // Real gap this closes: a resume that passes the "is this a resume at

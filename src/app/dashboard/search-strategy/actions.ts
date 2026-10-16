@@ -27,6 +27,7 @@ import type {
   PublicDisclosureComfort,
   ReferralRecency,
 } from '@prisma/client'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export type FormState = { error?: string } | undefined
 
@@ -53,6 +54,7 @@ export async function updateSearchStrategy(
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  await captureMatchBaseline(profile)
 
   const rankedOrder = formData.getAll('tradeoffOrder').map(String) as Array<
     (typeof TRADEOFF_PRIORITIES)[number]['key']

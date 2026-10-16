@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { skillKey } from '@/lib/profile/skill-matrix'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 const MAX = 40
 
@@ -23,6 +24,7 @@ export async function saveConfirmedTools(checked: string[], offered: string[]): 
   const on = clean(checked)
   const off = new Set(clean(offered).filter((o) => !on.includes(o)).map(skillKey))
   const profile = await getOrCreateCandidateProfile(user.id)
+  await captureMatchBaseline(profile)
   const current = profile.confirmedSkillsHave ?? []
   const kept = current.filter((s) => !off.has(skillKey(s)))
   const have = new Set(kept.map(skillKey))

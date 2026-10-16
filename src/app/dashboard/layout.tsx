@@ -1,3 +1,4 @@
+import { RetuneHost } from '@/components/dashboard/RetuneMoment'
 import type { Metadata } from 'next'
 import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
@@ -167,6 +168,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="theme-candidate min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
+      {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
+      <RetuneHost />
       <HashScrollFix />
       {/* lg:pl matches DashboardNav's fixed w-72 sidebar (see DashboardNav.tsx)
           — without it, the sidebar paints over this banner's left edge on

@@ -663,6 +663,20 @@ export function boardLevelWindowWhere(
 
 export type BoardRankRow = LightRow
 
+/**
+ * Every live job in a member's own level window (mid-level and early-career rungs included),
+ * from the shared in-memory board: what their market size and the personalization read-backs
+ * (src/lib/personalization/match-compute.ts) count over.
+ */
+export async function loadMemberMarketRows(candidate: FitCandidate & StageMemberLike, window?: StageWindow): Promise<BoardRankRow[]> {
+  const closedCounts = await getClosedPostingCounts()
+  return loadLightBoardRows(
+    boardLevelWindowWhere(undefined, { window: window ?? memberStageWindow(candidate), includeMidLevel: true, includeEarlyCareer: true }),
+    closedCounts
+  )
+}
+type StageMemberLike = Parameters<typeof memberStageWindow>[0]
+
 /** Jobs relevant on every criterion in their own industries (no fit needed): the member's market size for its tier. */
 export function countRelevant(rows: BoardRankRow[], place: (p: BoardRankRow) => BreadthPlacement | null): number {
   let n = 0

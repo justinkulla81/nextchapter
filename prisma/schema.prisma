@@ -687,6 +687,8 @@ model CandidateProfile {
   candidatePlusUnlockedAt         DateTime?
   candidatePlusUnlockSource       String?
   candidatePlusRevokedAt          DateTime?
+  // The one-time Candidate+ unlock screen was shown (prisma/manual/2026-10-16-match-snapshots.sql).
+  candidatePlusUnlockSeenAt       DateTime?
   effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
@@ -1061,6 +1063,7 @@ model CandidateProfile {
   // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
   boardBreadth                    String?
   jobDismissPreferences           JobDismissPreference[]
+  matchSnapshots                  MemberMatchSnapshot[]
   // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
   // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
   // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
@@ -5260,6 +5263,27 @@ model JobClickEvent {
 // with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
 // askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
 // prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+// What a member's matching read and what it gave them (src/lib/personalization/match-snapshot.ts):
+// 'baseline' (inputs just before a save that changes matching), 'retune' (the recompute after
+// it, with counts and reasons), 'daily' (Job Search Daily's count, for the weekly trend).
+// prisma/manual/2026-10-16-match-snapshots.sql.
+model MemberMatchSnapshot {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  trigger     String?
+  inputs      Json
+  checked     Int?
+  relevant    Int?
+  strong      Int?
+  detail      Json?
+  ms          Int?
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
 model JobDismissPreference {
   id          String           @id @default(cuid())
   candidateId String
