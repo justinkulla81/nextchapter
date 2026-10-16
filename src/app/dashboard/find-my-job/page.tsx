@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
+import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
@@ -107,7 +108,7 @@ import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/ins
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
-import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
+import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
 import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
@@ -117,9 +118,20 @@ import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGapInsightCard'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
+import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
+import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
+import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearchTracker'
+import { buildBoardSearch, type BoardSearch } from '@/lib/jobs/board-search-index'
+import {
+  isSearchActive,
+  metroLabel,
+  parseBoardSearchParams,
+  REMOTE_FILTER_LABEL,
+  type BoardSearchParams,
+} from '@/lib/jobs/board-search'
 
 export const metadata: Metadata = { title: 'Find a job' }
 
@@ -295,6 +307,74 @@ function EmptyTypeNote({ type }: { type: WorkType }) {
   }
 }
 
+/** The board search as the results section sees it (see board-search.ts). */
+interface BoardSearchView {
+  params: BoardSearchParams
+  /** Anything narrows the board (a sort alone only reorders it). */
+  active: boolean
+  matcher: BoardSearch | null
+  /** Other board filters that are on, for analytics and the empty state. */
+  filtersActive: string[]
+  /** "for “VP finance” in Texas". */
+  summary: string
+  /** "remote " / "hybrid " / "on-site " before "jobs", or "". */
+  arrangement: string
+  /** Every current URL parameter, for the empty state's "broaden" links. */
+  urlParams: Record<string, string>
+}
+
+function boardSearchSummary(p: BoardSearchParams): string {
+  const parts: string[] = []
+  if (p.q) parts.push(`for “${p.q}”`)
+  if (p.loc) parts.push(`in ${/^metro:/i.test(p.loc) ? metroLabel(p.loc.slice(6).toUpperCase()) : p.loc}`)
+  return parts.join(' ')
+}
+
+// No results: say what was searched and offer the ways to broaden it, each a link.
+function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
+  const href = (change: (sp: URLSearchParams) => void) => {
+    const sp = new URLSearchParams(search.urlParams)
+    change(sp)
+    return `?${sp.toString()}#apply-new-jobs`
+  }
+  const p = search.params
+  const broaden: { label: string; href: string }[] = []
+  if (p.loc) broaden.push({ label: 'Search every location', href: href((sp) => sp.delete('loc')) })
+  if (p.remote) broaden.push({ label: 'Show every work arrangement', href: href((sp) => sp.delete('remote')) })
+  if (search.filtersActive.length > 0) {
+    broaden.push({
+      label: 'Turn off the other filters',
+      href: href((sp) => ['seniority', 'view', 'great', 'pivot', 'types'].forEach((k) => sp.delete(k))),
+    })
+  }
+  if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: href((sp) => (sp.delete('loc'), sp.delete('remote'))) })
+  return (
+    <div className="space-y-2 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+      <p className="font-medium text-foreground">
+        No {search.arrangement}jobs {search.summary} yet.
+      </p>
+      <p>
+        Try fewer or broader words, or the other form of an abbreviation (VP or vice president, FP&amp;A or financial planning).
+        Quoted phrases must match exactly.
+      </p>
+      <ul className="flex flex-wrap gap-x-4 gap-y-1">
+        {broaden.map((b) => (
+          <li key={b.label}>
+            <a href={b.href} className="text-primary underline underline-offset-4">
+              {b.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href={href((sp) => ['q', 'loc', 'remote', 'sort'].forEach((k) => sp.delete(k)))} className="text-primary underline underline-offset-4">
+            Clear the search
+          </a>
+        </li>
+      </ul>
+    </div>
+  )
+}
+
 function JobRecommendationsSkeleton() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -322,10 +402,13 @@ async function JobRecommendationsSection({
   pivotFilter,
   myJobs,
   expertNetworks,
+  search,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   dossierReason: string
   board: BoardShortlist
+  /** The board search (null with none): results keep the shortlist's order (relevance / sort). */
+  search: BoardSearchView | null
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
@@ -408,12 +491,16 @@ async function JobRecommendationsSection({
       ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
       : allSurfacedJobs
   ).filter(
-    (j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
+    (j) =>
+      workTypes.some((t) => t === memberWorkType(j)) &&
+      (!keepGreat || keepGreat(j)) &&
+      (!pivotFilter || pivotFilter.matchesTitle(j.title)) &&
+      (!search?.matcher || search.matcher.matchesPlain(j) !== null)
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
-    ...surfacedJobs.map((j) => classifyWorkType(j)),
+    ...surfacedJobs.map((j) => memberWorkType(j)).filter((t): t is WorkType => t !== null),
     ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
   ])
   const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
@@ -460,6 +547,9 @@ async function JobRecommendationsSection({
   // How they like to work (work profile), for the per-job working-style read.
   const workProfile = await loadWorkProfile(profile.id).catch(() => null)
   const strengthKeysNow = await loadStrengths(profile.id).then(strengthKeys).catch(() => null)
+  // A workforce program's region: its jobs rank first within each fit level.
+  const area = await localAreaForCandidate(profile.id).catch(() => null)
+  const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
   const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
@@ -490,7 +580,7 @@ async function JobRecommendationsSection({
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow },
+      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow, local },
       toMatchJob(p, {
         sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
         ownershipType: company?.ownershipType ?? null,
@@ -532,7 +622,15 @@ async function JobRecommendationsSection({
   // actual complaint) still works fully without it.
   const rankedLockedBoardPostings = lockedBoardPostings
     .map((posting) => ({ posting, fitBucket: computeBoardListingFitBucket(profile, posting) }))
-    .sort((a, b) => FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket])
+    .sort((a, b) =>
+      // A search keeps the shortlist's order (it is already relevance, then fit, or the chosen sort).
+      search
+        ? 0
+        : FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
+          Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
+    )
+  const shortlistOrder = new Map(openBoardPostings.map((p, i) => [p.id, i]))
+  const searchResultCount = board.openTotal + board.lockedTotal + surfacedJobs.length
 
   return (
     <div className="space-y-4">
@@ -546,7 +644,28 @@ async function JobRecommendationsSection({
           ))}
         </ul>
       )}
-      {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+      {search && search.active && (
+        <BoardSearchTracker
+          q={search.params.q}
+          loc={search.params.loc}
+          remote={search.params.remote}
+          sort={search.params.sort}
+          resultCount={searchResultCount}
+          filtersActive={search.filtersActive}
+        />
+      )}
+      {search && search.active && searchResultCount > 0 && (
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          <span className="font-medium text-foreground">
+            {searchResultCount.toLocaleString()} {search.arrangement}job{searchResultCount === 1 ? '' : 's'}
+          </span>{' '}
+          {search.summary}
+          {board.lockedTotal > 0 && <> · {board.lockedTotal.toLocaleString()} of them Candidate+ only</>}
+        </p>
+      )}
+      {search && search.active && visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+        <BoardSearchEmpty search={search} />
+      ) : visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
           {greatFilters.length > 0 ? (
             <p>
@@ -603,8 +722,14 @@ async function JobRecommendationsSection({
                   // the member does alongside the search counts as one competition level lower.
                   ...visibleBoardPostings.map((posting) => {
                     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
+                    const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
                     return {
-                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)),
+                      // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
+                      rank:
+                        searchRank !== null
+                          ? searchRank
+                          : boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+                            (local?.isLocal(posting.location) ? 0.5 : 0),
                       node: (
                         <DiscoverJobCard
                           key={posting.id}
@@ -622,6 +747,7 @@ async function JobRecommendationsSection({
                           idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
                           employer={employerSignalsOf(posting)}
                           benefits={benefitsByPosting.get(posting.id)}
+                          searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
                         />
                       ),
                     }
@@ -630,8 +756,8 @@ async function JobRecommendationsSection({
                     const fitBucket = computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))
                     const worksHere = worksHereFor(job.companyName)
                     return {
-                      // Partner-search jobs: competition unknown, so "medium".
-                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], 1, matchesParallelPath(job, parallelPaths)),
+                      // Partner-search jobs: competition unknown, so "medium". With a search, after the board's results.
+                      rank: (search ? shortlistOrder.size + 1 : 0) + boardRank(FIT_BUCKET_SORT_RANK[fitBucket], 1, matchesParallelPath(job, parallelPaths)),
                       node: (
                         <NextSurfacedJobCard
                           key={job.id}
@@ -679,10 +805,34 @@ async function JobRecommendationsSection({
 export default async function JobFitPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seniority?: string; view?: string; types?: string; tab?: string; great?: string; pivot?: string }>
+  searchParams: Promise<{
+    seniority?: string
+    view?: string
+    types?: string
+    tab?: string
+    great?: string
+    pivot?: string
+    q?: string
+    loc?: string
+    remote?: string
+    sort?: string
+  }>
 }) {
   const profile = await getDashboardData()
-  const { seniority, view, types, tab: tabParam, great, pivot } = await searchParams
+  const allParams = await searchParams
+  const { seniority, view, types, tab: tabParam, great, pivot } = allParams
+  const boardSearch = parseBoardSearchParams(allParams)
+  // Other board filters that are on (search analytics, and the no-results suggestions).
+  const filtersActive = [
+    seniority && 'seniority',
+    view && view !== 'all' && 'view',
+    great && 'great',
+    pivot && 'pivot',
+    types && 'types',
+  ].filter((f): f is string => !!f)
+  const urlParams = Object.fromEntries(
+    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string')
+  )
   const greatFilters = parseGreatParam(great)
   // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
   const pivotFilter = pivotBoardFilter(pivot)
@@ -722,6 +872,9 @@ export default async function JobFitPage({
           greatFilters={greatFilters}
           tab={tab}
           pivotFilter={pivotFilter}
+          boardSearch={boardSearch}
+          filtersActive={filtersActive}
+          urlParams={urlParams}
         />
       </Suspense>
     </div>
@@ -752,6 +905,9 @@ async function FindMyJobBody({
   greatFilters,
   tab,
   pivotFilter,
+  boardSearch,
+  filtersActive,
+  urlParams,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -761,8 +917,15 @@ async function FindMyJobBody({
   greatFilters: GreatFilter[]
   tab: BoardTab
   pivotFilter: PivotBoardFilter | null
+  boardSearch: BoardSearchParams
+  filtersActive: string[]
+  urlParams: Record<string, string>
 }) {
   const onBoard = tab === 'board'
+  // Early-career members (src/lib/early-career/audience.ts) skip the
+  // interim/fractional/board toolkit and expert networks: senior-only tools.
+  const audience = earlyCareerAudience(profile)
+  const showIndependentToolkit = featureVisible('interim_launch_plan', audience)
   // While a pivot filter is on, jobs are ranked as if the member were already in
   // the target function (their own function would rate every one a weak fit).
   const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
@@ -906,8 +1069,24 @@ async function FindMyJobBody({
     ...(workTypes.includes('advisory') ? (['BOARD_PAID', 'BOARD_UNPAID'] as const) : []),
   ]
   // Great pay / great benefits (the `great` parameter): read only when a filter is on.
-  const greatSets = greatFilters.length > 0 ? await loadGreatSets() : null
+  // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
+  const [greatSets, searchMatcher] = await Promise.all([
+    greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
+    onBoard ? buildBoardSearch(boardSearch) : Promise.resolve(null),
+  ])
   const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
+  const searchView: BoardSearchView | null =
+    onBoard && (isSearchActive(boardSearch) || boardSearch.sort !== 'best')
+      ? {
+          params: boardSearch,
+          active: isSearchActive(boardSearch),
+          matcher: searchMatcher,
+          filtersActive,
+          summary: boardSearchSummary(boardSearch),
+          arrangement: boardSearch.remote ? `${REMOTE_FILTER_LABEL[boardSearch.remote].toLowerCase()} ` : '',
+          urlParams,
+        }
+      : null
   const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
     loadBoardShortlist({
       candidate: boardProfile,
@@ -921,11 +1100,15 @@ async function FindMyJobBody({
       includeEarlyCareer: true,
       workTypes,
       keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
+      relevance: searchMatcher?.relevance,
+      sort: onBoard && boardSearch.sort !== 'best' ? boardSearch.sort : undefined,
+      // company:Name shows that company's jobs, not just its first five.
+      perCompany: searchMatcher && searchMatcher.parsed.companies.length > 0 ? 300 : undefined,
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
-    onBoard && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
   ])
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
@@ -1087,7 +1270,7 @@ async function FindMyJobBody({
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
                 <Lock className="size-3.5" aria-hidden />
               </span>
-              <p className="text-sm font-semibold text-warning">Executive Recruiters</p>
+              <p className="text-sm font-semibold text-warning">{audience ? 'Recruiters' : 'Executive Recruiters'}</p>
             </div>
             {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -1116,8 +1299,9 @@ async function FindMyJobBody({
             One board for every kind of work. Pick the kinds you want — Save the jobs you like, and mark them
             applied; we also pick up applications from your connected Gmail.
           </p>
-          <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
         </div>
+        <BoardSearchBar />
+        <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
 
         <ApplyPrompts
           prompts={myJobs.prompts.map((p) => ({
@@ -1168,6 +1352,7 @@ async function FindMyJobBody({
                 greatFilters={greatFilters}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
+                search={searchView}
               />
             </Suspense>
           </div>
@@ -1208,7 +1393,7 @@ async function FindMyJobBody({
       </div>
       )}
 
-      {onBoard && (
+      {onBoard && showIndependentToolkit && (
         <Suspense fallback={null}>
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>

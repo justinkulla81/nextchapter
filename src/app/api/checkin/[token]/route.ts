@@ -9,19 +9,23 @@ import { changeForAnswer, effectiveJourney, effectiveStage, type CheckInAnswer }
 // — same access-control shape as /ref/[token] (an unguessable cuid token
 // IS the auth), but a single GET click instead of a form: each of the
 // email's 3 buttons links straight here with a different `answer` param.
+// The middle answer is "not looking right now: managing my career". Its stored
+// value is still TAKING_A_BREAK (the database enum); `taking_a_break` is still
+// accepted so links in emails already sent keep working.
 const ANSWER_MAP: Record<string, SearchCheckInAnswer> = {
   still_searching: 'STILL_SEARCHING',
+  managing_my_career: 'TAKING_A_BREAK',
   taking_a_break: 'TAKING_A_BREAK',
   got_an_offer: 'GOT_AN_OFFER',
 }
 const EMAIL_TO_CHECK_IN: Record<SearchCheckInAnswer, CheckInAnswer> = {
   STILL_SEARCHING: 'nothing',
-  TAKING_A_BREAK: 'break',
+  TAKING_A_BREAK: 'managing',
   GOT_AN_OFFER: 'offer',
 }
 const ANSWER_SLUG: Record<SearchCheckInAnswer, string> = {
   STILL_SEARCHING: 'still_searching',
-  TAKING_A_BREAK: 'taking_a_break',
+  TAKING_A_BREAK: 'managing_my_career',
   GOT_AN_OFFER: 'got_an_offer',
 }
 
@@ -50,7 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       data: { answer, respondedAt: new Date() },
     })
     // The email promises the answer changes things; now it does
-    // (src/lib/journey/apply.ts): a break pauses, an offer moves to Offer.
+    // (src/lib/journey/apply.ts): not looking right now moves to Managing your career, an offer moves to Offer.
     const profile = await prisma.candidateProfile.findUnique({
       where: { id: checkIn.candidateId },
       select: { journey: true, journeyStage: true, currentJobStatus: true },

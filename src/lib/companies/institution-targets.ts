@@ -18,13 +18,16 @@ export interface TargetCompany {
   industry: string | null
   note: string | null
   flaggedAt: Date
+  coreRecruiter: boolean
+  recruiterContactName: string | null
+  recruiterContactEmail: string | null
 }
 
 export async function listTargetCompanies(institutionId: string): Promise<TargetCompany[]> {
   const rows = await prisma.institutionTargetCompany.findMany({
     where: { institutionId },
-    orderBy: { createdAt: 'desc' },
-    select: { companyId: true, note: true, createdAt: true, company: { select: { name: true, industry: true } } },
+    orderBy: [{ coreRecruiter: 'desc' }, { createdAt: 'desc' }],
+    select: { companyId: true, note: true, createdAt: true, coreRecruiter: true, recruiterContactName: true, recruiterContactEmail: true, company: { select: { name: true, industry: true } } },
   })
   return rows.map((r) => ({
     companyId: r.companyId,
@@ -32,6 +35,9 @@ export async function listTargetCompanies(institutionId: string): Promise<Target
     industry: r.company.industry,
     note: r.note,
     flaggedAt: r.createdAt,
+    coreRecruiter: r.coreRecruiter,
+    recruiterContactName: r.recruiterContactName,
+    recruiterContactEmail: r.recruiterContactEmail,
   }))
 }
 

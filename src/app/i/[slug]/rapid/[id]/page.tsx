@@ -5,6 +5,7 @@ import { readableTextOn } from '@/lib/higher-ed/branding'
 import { publicRapidResponse } from '@/lib/higher-ed/rapid-response'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { RapidSignUpForm } from '@/components/higher-ed/RapidSignUpForm'
+import { SeatSignUpForm } from '@/components/higher-ed/SeatSignUpForm'
 
 export const metadata: Metadata = { robots: { index: false, follow: false } }
 
@@ -13,7 +14,7 @@ const day = (d: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day:
 // The public page for one rapid-response offer, shared with affected workers.
 export default async function RapidPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params
-  const inst = await prisma.institution.findUnique({ where: { slug }, select: { name: true, logoUrl: true, accentColor: true } })
+  const inst = await prisma.institution.findUnique({ where: { slug }, select: { name: true, programBrandName: true, logoUrl: true, accentColor: true, orgType: true } })
   if (!inst) notFound()
   const r = await publicRapidResponse(slug, id)
   const accent = inst.accentColor ?? '#2e7d5b'
@@ -22,13 +23,19 @@ export default async function RapidPage({ params }: { params: Promise<{ slug: st
       <main className="mx-auto max-w-xl space-y-6 px-4 py-10">
         <div className="flex items-center gap-3">
           <InstitutionMark name={inst.name} logoUrl={inst.logoUrl} />
-          <p className="font-semibold">{inst.name} and your local workforce board</p>
+          <p className="font-semibold">{inst.orgType === 'COLLEGE' ? `${inst.name} and your local workforce board` : (inst.programBrandName ?? inst.name)}</p>
         </div>
         {r ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">{r.title}</h1>
             <p className="whitespace-pre-line text-muted-foreground">{r.message}</p>
-            {r.cohorts.length ? (
+            {r.seats ? (
+              r._count.participants < r.seats ? (
+                <SeatSignUpForm slug={slug} id={id} orgName={inst.programBrandName ?? inst.name} />
+              ) : (
+                <p className="text-sm">All the seats for this offer are taken. Contact your local career center for other options.</p>
+              )
+            ) : r.cohorts.length ? (
               <RapidSignUpForm
                 slug={slug}
                 id={id}

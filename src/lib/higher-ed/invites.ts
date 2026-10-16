@@ -39,7 +39,7 @@ export async function countInvitable(institutionId: string): Promise<number> {
 export async function sendJoinInvites(args: { institutionId: string; createdBy: string }): Promise<{ sent: number; remaining: number; demo: boolean }> {
   const inst = await prisma.institution.findUniqueOrThrow({
     where: { id: args.institutionId },
-    select: { slug: true, name: true, programBrandName: true, isDemo: true },
+    select: { slug: true, name: true, programBrandName: true, isDemo: true, orgType: true },
   })
   const brand = inst.programBrandName ?? inst.name
   const members = await prisma.institutionMember.findMany({
@@ -50,8 +50,17 @@ export async function sendJoinInvites(args: { institutionId: string; createdBy: 
   })
   if (members.length === 0) return { sent: 0, remaining: 0, demo: inst.isDemo }
 
-  const subject = `${inst.name} has your back: your career toolkit is ready`
-  const body = `Hi {{firstName}},
+  const workforce = inst.orgType !== 'COLLEGE'
+  const subject = workforce ? `${inst.name} is covering your job search support` : `${inst.name} has your back: your career toolkit is ready`
+  const body = workforce
+    ? `Hi {{firstName}},
+
+${inst.name} is giving you ${brand}, free: a clear read on your job market, a plan for each week, coaching, and local employers who are hiring. What you do in it stays yours.
+
+Start in one click: {{link}}
+
+${inst.name}`
+    : `Hi {{firstName}},
 
 ${inst.name} now gives every alum ${brand}: a clear read on your job market, a plan for this week, coaching, and alumni who'll take your call. It's free, and what you do in it stays yours.
 

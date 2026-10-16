@@ -491,7 +491,11 @@ export function SuccessSprintCard({
   weekStartDate,
   marketRealityGrade,
   hasUnresolvedResumeIssues,
+  title = 'Weekly Search Sprint',
 }: {
+  // "Weekly Search Sprint" for people searching; "Your weekly plan" for people
+  // growing in a job, where "search" would be the wrong word.
+  title?: string
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
   weeklyPoints: number
@@ -796,7 +800,7 @@ export function SuccessSprintCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Sprint</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">

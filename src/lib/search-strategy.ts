@@ -50,11 +50,11 @@ export function getSearchStage(candidate: {
   gapDuration: GapDurationBucket | null
   journey?: JourneyType | null
 }): SearchStage | null {
-  // Anyone on an employed journey (ready to move, thinking about it,
+  // Anyone on an employed journey (thinking about a move,
   // promotion, career change, next act) is quietly looking, never "since you
   // separated" (src/lib/journey).
   const journey = effectiveJourney(candidate)
-  if (journey && getJourney(journey).employed) return 'QUIETLY_LOOKING'
+  if (journey && getJourney(journey).employed && getJourney(journey).searching) return 'QUIETLY_LOOKING'
   if (candidate.currentJobStatus === 'EMPLOYED_CONSIDERING_MOVE') return 'QUIETLY_LOOKING'
   if (!candidate.gapDuration) return null
   return GAP_DURATION_TO_STAGE[candidate.gapDuration]

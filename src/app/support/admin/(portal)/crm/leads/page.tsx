@@ -8,6 +8,7 @@ import { AdminMultiFilter } from '@/components/admin/AdminMultiFilter'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmStageSelect } from '@/components/admin/CrmStageSelect'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { CrmDeadlineFilter } from '@/components/admin/CrmDeadlineFilter'
 import { CrmLeadBulkBar } from '@/components/admin/CrmLeadBulkBar'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -234,16 +235,14 @@ export default async function CrmLeadsPage({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 text-sm" role="group" aria-label="Deadline filter">
-        <span className="mr-1 text-muted-foreground">Deadline</span>
-        {([['', 'Any'], ['has', 'Has a date'], ['upcoming', 'Upcoming only']] as const).map(([v, label]) => (
-          <Link key={v} href={`/support/admin/crm/leads?${qs({ deadline: v, page: 1, ...(v ? { sort: 'due', dir: 'asc' } : {}) })}`}
-            aria-current={deadlineMode === v ? 'page' : undefined}
-            className={`rounded-md border px-2.5 py-1 ${deadlineMode === v ? 'border-brand bg-brand/10 font-semibold text-brand' : 'border-border hover:bg-muted'}`}>
-            {label}
-          </Link>
-        ))}
-      </div>
+      <CrmDeadlineFilter
+        current={deadlineMode}
+        options={([['', 'Any'], ['has', 'Has a date'], ['upcoming', 'Upcoming only']] as const).map(([v, label]) => ({
+          value: v, label,
+          href: `/support/admin/crm/leads?${qs({ deadline: v, page: 1, ...(v ? { sort: 'due', dir: 'asc' } : {}) })}`,
+        }))}
+        context={{ pipeline: pipe, status, sort: sort.sort, dir: sort.dir, totalBefore: total }}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{total.toLocaleString()} leads</p>

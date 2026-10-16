@@ -1,4 +1,6 @@
 import 'server-only'
+import { notInternshipWhere } from '@/lib/internships/exclude'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
@@ -43,12 +45,13 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
   const companyName = company?.name ?? ''
   const [postings, notices, trackingStart, wageRows, filingMap, federalRow] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
-      where: { companyId, institutionScopeId: null, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN' },
+      where: { companyId, institutionScopeId: null, status: 'approved', distribution: { not: 'EXCLUDED' }, disclosure: 'OPEN', AND: [notInternshipWhere()] },
+      // employmentType: internship rows stay out (internships are Higher Ed portal only); intern titles are dropped below.
       select: {
         title: true, url: true, createdAt: true, archivedAt: true, badges: true, postingType: true, sourceCategory: true,
         salaryMin: true, salaryMax: true, salaryCurrency: true, audienceTier: true, source: true,
       },
-    }),
+    }).then((rows) => rows.filter((r) => !isInternshipJob(r))),
     prisma.warnNotice.findMany({
       where: { companyId, noticeDate: { gte: new Date(Date.now() - TWO_YEARS_MS) } },
       select: { noticeDate: true, employees: true, layoffType: true, sourceUrl: true },

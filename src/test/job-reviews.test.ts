@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answeredCount, cleanParallelPaths, cleanReview } from '@/lib/job-reviews/constants'
+import { answeredCount, cleanParallelPaths, cleanReview, parallelPathView } from '@/lib/job-reviews/constants'
 import { insightNarrative, insightTier } from '@/lib/reports/community-tier'
 import { summarizeReviews, type ReviewRow } from '@/lib/job-reviews/aggregate'
 
@@ -99,5 +99,19 @@ describe('summarizeReviews — privacy floor', () => {
 
   it('exposes no member ids', () => {
     expect(JSON.stringify(summarizeReviews('co', three, null))).not.toMatch(/"candidateId"|"a"|"b"|"c"/)
+  })
+})
+
+describe('parallelPathView (what a coach reads)', () => {
+  it('distinguishes not answered from an explicit "nothing"', () => {
+    expect(parallelPathView(null)).toEqual({ state: 'unanswered' })
+    expect(parallelPathView(undefined)).toEqual({ state: 'unanswered' })
+    expect(parallelPathView([])).toEqual({ state: 'none' })
+  })
+  it('lists labels in the order the member sees them and drops unknown values', () => {
+    expect(parallelPathView(['TRAINING', 'CONTRACT_1099', 'nope'])).toEqual({ state: 'some', labels: ['1099 contract work', 'School or training'] })
+  })
+  it('an only-unknown list reads as nothing', () => {
+    expect(parallelPathView(['nope'])).toEqual({ state: 'none' })
   })
 })

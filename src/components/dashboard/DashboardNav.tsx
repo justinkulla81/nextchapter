@@ -9,6 +9,7 @@ import { Home, Briefcase, Users, BookOpen, User, LifeBuoy, Menu, X, Lock, type L
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 import { PLACES, entryHref, placeForPath, type PlaceKey } from '@/lib/nav/places'
+import type { MenuMode } from '@/lib/journey/menu'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -46,11 +47,13 @@ interface NavProps {
   hasEmailConnection: boolean
   skillsAssessmentCompleted: boolean
   employed: boolean
+  // The member's situation: tools it turns off are hidden or locked (src/lib/journey/menu.ts).
+  mode?: MenuMode | null
 }
 
-function PlaceList({ pathname, onNavigate, badges, hasEmailConnection, skillsAssessmentCompleted, employed }: NavProps & { pathname: string; onNavigate?: () => void }) {
+function PlaceList({ pathname, onNavigate, badges, hasEmailConnection, skillsAssessmentCompleted, employed, mode }: NavProps & { pathname: string; onNavigate?: () => void }) {
   const current = placeForPath(pathname)?.key ?? null
-  const locks = { hasEmailConnection, skillsAssessmentCompleted }
+  const locks = { hasEmailConnection, skillsAssessmentCompleted, mode }
   return (
     <nav aria-label="Main" className="flex h-full flex-col gap-3 px-4 py-6">
       <Logo className="px-2 text-xl text-navy" />
@@ -134,12 +137,13 @@ export function DashboardNav({
   hasEmailConnection = false,
   skillsAssessmentCompleted = false,
   employed = false,
+  mode = null,
 }: Partial<NavProps>) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const current = placeForPath(pathname)?.key ?? null
-  const locks = { hasEmailConnection, skillsAssessmentCompleted }
-  const shared = { badges, hasEmailConnection, skillsAssessmentCompleted, employed }
+  const locks = { hasEmailConnection, skillsAssessmentCompleted, mode }
+  const shared = { badges, hasEmailConnection, skillsAssessmentCompleted, employed, mode }
   const onPhoneTab = current !== null && PHONE_TABS.includes(current)
 
   return (

@@ -9,6 +9,7 @@ import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
 import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { statesFromLocation } from '@/lib/pay/market-pay'
+import { SHARED_METRO_STATES } from '@/lib/jobs/metro-states'
 import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { roleFamiliesOf } from '@/lib/constants/role-family-keywords'
@@ -386,23 +387,6 @@ function postingIsRemote(posting: Pick<FitPostingLike, 'targetRemotePolicy' | 'l
   if (posting.targetRemotePolicy) return posting.targetRemotePolicy === 'remote'
   if (posting.location && /\bremote\b/i.test(posting.location)) return true
   return !!posting.description && /\b(fully remote|100% remote|remote[- ]first|this (?:is a|role is) remote)\b/i.test(posting.description)
-}
-
-// States that share a commuting metro with a neighbour (New York/Hoboken,
-// Washington/Arlington, Philadelphia/Camden, Boston/Nashua) — a job across
-// that line is local, not a move.
-const SHARED_METRO_STATES: Record<string, string[]> = {
-  NY: ['NJ', 'CT'],
-  NJ: ['NY', 'PA'],
-  CT: ['NY'],
-  PA: ['NJ', 'DE'],
-  DE: ['PA'],
-  DC: ['MD', 'VA'],
-  MD: ['DC', 'VA'],
-  VA: ['DC', 'MD'],
-  MA: ['NH', 'RI'],
-  NH: ['MA'],
-  RI: ['MA'],
 }
 
 function placeFit(m: FitCandidateContext, j: FitPostingContext): PlaceFit {

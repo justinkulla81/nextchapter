@@ -99,7 +99,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/company-links', label: 'Company links' },
-        { href: '/support/admin/school-links', label: 'School links' },
+        { href: '/support/admin/school-links', label: 'Higher ed links' },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },
@@ -110,6 +110,23 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
+      ],
+    },
+    {
+      // One section per kind of organization or person we work with, so the
+      // names here are the vocabulary used everywhere else in the CRM.
+      // Companies, recruiters and coaches are views over People and
+      // Organizations (a filter, not a separate table).
+      title: 'Ecosystem',
+      collapsible: true,
+      links: [
+        { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
+        { href: '/support/admin/crm/colleges', label: 'Higher ed' },
+        { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
+        { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
+        { href: '/support/admin/crm/mandates', label: 'Mandates' },
+        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
+        { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
       ],
     },
     {
@@ -141,13 +158,10 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // Pending == not yet promoted to a lead or dismissed — the one
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
-        { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
         { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
         { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
         { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
-        { href: '/support/admin/crm/colleges', label: 'Colleges' },
-        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
       ],
     },
@@ -291,8 +305,8 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         { href: `${A}/organizations`, label: 'Organizations (all portals)' },
-        { href: `${A}/institutions`, label: 'Colleges' },
-        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
+        { href: `${A}/institutions`, label: 'Higher ed' },
+        { href: `${A}/college-systems`, label: 'Higher ed systems (multi-campus)' },
         { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
       ],
     },

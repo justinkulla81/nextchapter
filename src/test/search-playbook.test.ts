@@ -41,8 +41,11 @@ describe('playbookPosition', () => {
     expect(p?.current).toBeNull()
     expect(p?.next?.atWeek).toBe(4)
   })
-  it('has no playbook for a new graduate', () => {
-    expect(playbookPosition({ journey: 'STUDENT_NEW_GRAD', stage: 'APPLYING', lastJobEndedAt: null, searchStartedAt: weeksAgo(5), now: NOW })).toBeNull()
+  it('has a new-grad playbook: week 5 is the alumni-conversations milestone', () => {
+    const p = playbookPosition({ journey: 'STUDENT_NEW_GRAD', stage: 'APPLYING', lastJobEndedAt: null, searchStartedAt: weeksAgo(5), now: NOW })
+    expect(p?.current?.atWeek).toBe(4)
+    expect(p?.next?.atWeek).toBe(8)
+    expect(p?.isLongTermUnemployed).toBe(false)
   })
 })
 

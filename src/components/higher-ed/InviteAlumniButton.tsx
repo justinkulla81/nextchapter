@@ -7,7 +7,7 @@ import { sendInvitations } from '@/app/i/[slug]/(portal)/staff-actions'
 
 // Sending email to alumni is irreversible, so it takes a confirm step that
 // says exactly how many and what they'll get.
-export function InviteAlumniButton({ slug, count, isDemo, collegeName }: { slug: string; count: number; isDemo: boolean; collegeName: string }) {
+export function InviteAlumniButton({ slug, count, isDemo, collegeName, people = 'alumni' }: { slug: string; count: number; isDemo: boolean; collegeName: string; people?: string }) {
   const [confirming, setConfirming] = useState(false)
   const [pending, start] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
@@ -18,8 +18,8 @@ export function InviteAlumniButton({ slug, count, isDemo, collegeName }: { slug:
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm">
             {isDemo
-              ? `Record join invitations for ${Math.min(count, 100)} demo alumni? Nothing is emailed on a demo.`
-              : `Email ${Math.min(count, 100)} alumni a one-click invitation to join, from ${collegeName}?`}
+              ? `Record join invitations for ${Math.min(count, 100)} demo ${people}? Nothing is emailed on a demo.`
+              : `Email ${Math.min(count, 100)} ${people} a one-click invitation to join, from ${collegeName}?`}
           </span>
           <Button
             disabled={pending}
@@ -38,7 +38,7 @@ export function InviteAlumniButton({ slug, count, isDemo, collegeName }: { slug:
           </Button>
         </div>
       ) : (
-        <Button onClick={() => setConfirming(true)}>Invite {count.toLocaleString()} alumni to join</Button>
+        <Button onClick={() => setConfirming(true)}>Invite {count.toLocaleString()} {people} to join</Button>
       )}
       {message && (
         <p role="status" className="text-sm text-muted-foreground">

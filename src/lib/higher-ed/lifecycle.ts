@@ -378,7 +378,8 @@ export async function programRecommendations(institutionId: string, candidateId:
 
 export type StageHelp = { key: string; title: string; detail: string; href: string }
 
-export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean; journey?: JourneyType | null }): StageHelp[] {
+export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean; journey?: JourneyType | null; workforce?: boolean }): StageHelp[] {
+  if (opts.workforce) return workforceStageHelp(stage, slug, opts.hasPrograms)
   const b = `/i/${slug}/candidate`
   const items: Record<string, StageHelp> = {
     outcomes: { key: 'outcomes', title: 'What alumni like you do', detail: 'Where grads with your major work, and their milestones.', href: `${b}/network` },
@@ -405,13 +406,40 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
     INTERVIEWING: ['interview', 'officeHours', 'mentors'],
     OFFER: ['offer', 'mentors'],
     LANDED: ['share', 'giveBack', 'groups'],
+    STAYING: ['mentors', 'groups', 'programs'],
     PAUSED: [],
   }
   let keys = stage ? by[stage] : by.EXPLORING
-  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'LANDED') keys = ['promotion', ...keys]
+  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'STAYING' && stage !== 'LANDED') keys = ['promotion', ...keys]
   if (opts.journey === 'EXPLORING_MOVE' && stage === 'EXPLORING') keys = ['worth', ...keys]
   if (stage === 'LANDED') keys = ['firstReview', ...keys]
   return keys.slice(0, 4)
     .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
     .map((k) => items[k])
+}
+
+// A workforce program's participants: no alumni network, so local jobs,
+// coaching, practice and training, and telling the program where they landed.
+function workforceStageHelp(stage: JourneyStage | null, slug: string, hasPrograms: boolean): StageHelp[] {
+  const items: Record<string, StageHelp> = {
+    localJobs: { key: 'localJobs', title: 'Local jobs first', detail: 'Roles near you, ranked first, matched to your skills.', href: '/dashboard/find-my-job' },
+    coaching: { key: 'coaching', title: 'Talk to a coach', detail: 'One-to-one help with your plan and your story.', href: '/dashboard/coaching-match' },
+    practice: { key: 'practice', title: 'Résumé and interview practice', detail: 'An AI first pass, then a person.', href: '/dashboard/interview-prep' },
+    pivots: { key: 'pivots', title: 'Where people like you moved', detail: 'Next roles for your background, and the skills each takes.', href: '/dashboard/pivot-paths' },
+    programs: { key: 'programs', title: 'Close a gap', detail: 'Short courses, often free with WIOA funding.', href: `/i/${slug}/candidate/programs` },
+    worth: { key: 'worth', title: 'Know what you’re worth', detail: 'Your offer against the local market.', href: '/dashboard/in-work?tab=salary' },
+    landed: { key: 'landed', title: 'Tell us where you landed', detail: 'It helps the program show how many people stay local.', href: '/dashboard/got-hired' },
+    firstReview: { key: 'firstReview', title: 'Set up your first review', detail: 'Log wins as they happen, so your 90-day review writes itself.', href: '/dashboard/in-work?tab=impact' },
+  }
+  const by: Record<JourneyStage, string[]> = {
+    EXPLORING: ['localJobs', 'pivots', 'programs', 'coaching'],
+    PREPARING: ['programs', 'practice', 'coaching', 'localJobs'],
+    APPLYING: ['localJobs', 'practice', 'coaching'],
+    INTERVIEWING: ['practice', 'coaching'],
+    OFFER: ['worth', 'coaching'],
+    LANDED: ['landed', 'firstReview'],
+    STAYING: ['pivots', 'programs'],
+    PAUSED: [],
+  }
+  return (stage ? by[stage] : by.EXPLORING).filter((k) => k !== 'programs' || hasPrograms).map((k) => items[k])
 }

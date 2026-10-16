@@ -4,7 +4,7 @@
 // company-signals job does the same incrementally; this runs it with a large
 // limit after the schema change, then reports what it did.
 //
-// Run: node --env-file=.env.local --conditions=react-server --import tsx scripts/sync-company-graph.ts [--names=N]
+// Run: node --env-file=.env.local --conditions=react-server --import tsx scripts/sync-company-graph.ts [--names=N] [--orgs=N]
 
 import { syncCompanyGraph } from '../src/lib/companies/company-graph-sync'
 import { prisma } from '../src/lib/prisma'
@@ -12,8 +12,10 @@ import { prisma } from '../src/lib/prisma'
 async function main() {
   const arg = process.argv.find((a) => a.startsWith('--names='))
   const postingNameLimit = arg ? Number(arg.split('=')[1]) : 20000
+  const orgsArg = process.argv.find((a) => a.startsWith('--orgs='))
+  const orgCreateLimit = orgsArg ? Number(orgsArg.split('=')[1]) : 20000
   const started = Date.now()
-  const result = await syncCompanyGraph({ postingNameLimit })
+  const result = await syncCompanyGraph({ postingNameLimit, orgCreateLimit })
   console.log(JSON.stringify(result, null, 2))
   console.log(`done in ${Math.round((Date.now() - started) / 1000)}s`)
   await prisma.$disconnect()

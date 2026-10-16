@@ -6,6 +6,10 @@ Zero-context reference set for the NextChapter codebase. Start with **Setup & Op
 |---|---|
 | [SETUP.md](./SETUP.md) | External services, environment variables, local dev, deploys, scheduled cron jobs — "how do I run this and keep it running." |
 | [PRODUCT_VISION_CANDIDATE.md](./PRODUCT_VISION_CANDIDATE.md) | Everything a candidate (job seeker) sees and does — onboarding, grading/points/badges, every dashboard page, Victoria the AI coach, candidate emails. |
+| [CANDIDATE_JOURNEYS_AND_FEATURES.md](./CANDIDATE_JOURNEYS_AND_FEATURES.md) | Current summary of the candidate side: journeys, statuses, active vs casual, menu, personalization, emails, gates, affiliations, features, open gaps. |
+| [CANDIDATE_STAGES.md](./CANDIDATE_STAGES.md) | Each stage: who is in it, key activities and the feature for each, what the menu shows and locks, emails, marketing text. Generated: `npm run docs:stages`. |
+| [CANDIDATE_MENU.md](./CANDIDATE_MENU.md) | The situation-based menu: pillars, show / locked / hidden rules, phone bar. |
+| [AFFILIATIONS.md](./AFFILIATIONS.md) | Several affiliations at once: who owns the journey, who sees what. |
 | [PRODUCT_VISION_ADMIN_ORGS.md](./PRODUCT_VISION_ADMIN_ORGS.md) | Everything that isn't the candidate dashboard — internal admin portal, coach/recruiter/employer portals, NC Job Board, Employer Reference, Market Pulse, cross-portal messaging, org marketing pages. |
 | [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | Readable map of `prisma/schema.prisma`'s ~69 models, grouped by domain, with the schema-wide house rules (no migration history, `cuid()` ids, append-only history models). |
 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) | Visual/interaction design: tokens, typography, component patterns, status/grade/empty-state conventions. Pairs with [design-principles.md](../design-principles.md), the binding rule set every new feature is checked against. |

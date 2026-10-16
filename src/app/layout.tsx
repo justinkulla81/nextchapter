@@ -31,7 +31,7 @@ const sourceSerif4 = localFont({
 const siteUrl = "https://launchyournextchapter.com";
 const title = "NextChapter — Welcome to your Next Chapter";
 const description =
-  "NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Assessment with a personalized action plan. Free for candidates, always.";
+  "NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Assessment with a personalized action plan, whether you're searching, thinking about a move, or growing in your current job. Free for candidates, always.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

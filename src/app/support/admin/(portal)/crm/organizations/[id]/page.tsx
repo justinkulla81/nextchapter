@@ -17,9 +17,12 @@ import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 import { loadOrgDemandData } from '@/lib/crm/org-page-data'
+import { schoolsWithCoreRecruiter } from '@/lib/higher-ed/recruiting'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { CrmHiringClient } from '@/components/admin/CrmHiringClient'
+import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 
@@ -34,6 +37,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     include: {
       organization: { select: { id: true, name: true } },
       affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
+      mandates: { include: { recruiter: { select: { id: true, fullName: true } } }, orderBy: { createdAt: 'desc' } },
       opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
       deadlines: { orderBy: [{ dueAt: 'asc' }] },
       researchItems: true,
@@ -65,7 +69,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   // Candidates who have worked here: free-text work history matched on the same
   // normalized name the organization is keyed by, plus employment rows on the
   // linked directory Company. One person can appear in both, so merge by id.
-  const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows] = await Promise.all([
+  const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows, coreSchools] = await Promise.all([
     loadOrgDemandData(org),
     loadWarmDoors({ orgId: org.id }).catch(() => []),
     prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }),
@@ -92,6 +96,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           take: 50,
         })
       : Promise.resolve([]),
+    // Colleges that flag this company as a core recruiter. Admin-only: a college never sees another's list.
+    org.companyId ? schoolsWithCoreRecruiter(org.companyId).catch(() => []) : Promise.resolve([]),
   ])
   const meetings = [...meetingRows.reduce((m, a) => {
     const key = a.sourceRef?.split(':')[0] ?? a.id
@@ -145,6 +151,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   captureServerEvent(org.id, 'crm_org_page_viewed', {
     orgName: org.name, prospectScore: rating.score, prospectBand: rating.band,
     openJobs: demand.openJobs.length, candidatesWhoWant: demand.wantToWork.length,
+    layoffsPastYear: demand.layoffYear.events, laidOffPastYear: demand.layoffYear.employees, openMandates: demand.mandates.length, coreRecruiterColleges: coreSchools.length,
   })
 
   const BAND_LABEL: Record<ProspectBand, string> = { hot: 'Hot prospect', warm: 'Warm prospect', cool: 'Cool', cold: 'Cold' }
@@ -155,6 +162,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     { id: 'contacts', label: 'Contacts', n: org.affiliations.length },
     { id: 'candidates', label: 'Candidates', n: demand.wantToWork.length + alumniList.length },
     { id: 'jobs', label: 'Open jobs', n: demand.openJobs.length },
+    { id: 'mandates', label: 'Recruiter mandates', n: demand.mandates.length },
     { id: 'layoffs', label: 'Layoffs', n: demand.notices.length + demand.layoffNews.length },
     { id: 'research', label: 'News & research', n: demand.researchNews.length + org.researchItems.length },
     { id: 'data', label: 'Data', n: null },
@@ -175,6 +183,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             ))}
             {org.hqRegion && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{org.hqRegion}</span>}
           </div>
+          <CrmHiringClient orgId={org.id} value={org.hiringClient} />
           {org.focus && <p className="mt-3 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
         </div>
 
@@ -222,6 +231,36 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </a>
         ))}
       </nav>
+
+      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div>
+          <p className="text-2xl font-semibold">{demand.layoffYear.events === 0 ? '0' : demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''}` : 'Not stated'}</p>
+          <p className="text-xs text-muted-foreground">
+            People laid off, past 12 months
+            {demand.layoffYear.events > 0 && ` (${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'})`}
+          </p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.openJobs.length}</p>
+          <p className="text-xs text-muted-foreground">Open jobs · {demand.newPostings90d} new in 90 days</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{alumniList.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who worked here</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.wantToWork.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who applied</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.mandates.length}</p>
+          <p className="text-xs text-muted-foreground">Open recruiter mandates</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{coreSchools.length}</p>
+          <p className="text-xs text-muted-foreground">Colleges with it as a core recruiter</p>
+        </div>
+      </section>
 
       {warmDoors.length > 0 && (
         <section aria-label="Strong candidates with a warm way in" className="rounded-lg border border-border bg-muted/40 p-4">
@@ -297,6 +336,23 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             </ul>
           )}
         </div>
+
+        {org.mandates.length > 0 && (
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Recruiters with a mandate ({org.mandates.length})</h3>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {org.mandates.map((m) => (
+                <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                  <span>
+                    <Link href={`/support/admin/crm/people/${m.recruiter.id}`} className="font-medium hover:underline">{m.recruiter.fullName}</Link>
+                    {m.scope && <span className="text-muted-foreground"> — {m.scope}</span>}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{MANDATE_STATUS_LABELS[m.status]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <details open={org.introPathsAsTarget.length > 0} className="rounded-lg border border-border p-3">
           <summary className="cursor-pointer text-sm font-semibold">
@@ -444,6 +500,35 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         )}
       </section>
 
+      {/* ── Recruiter mandates ───────────────────────────────────────────── */}
+      <section id="mandates" className="scroll-mt-16 space-y-3">
+        <h2 className="text-lg font-semibold">Recruiter mandates ({demand.mandates.length})</h2>
+        {demand.mandates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No recruiter has an open search naming this organization as the client.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {demand.mandates.map((m) => (
+              <li key={m.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm">
+                <span>
+                  <span className="font-medium">{m.role}</span>
+                  <span className="text-muted-foreground">{[m.location, m.kind].filter(Boolean).map((t) => ` · ${t}`)}</span>
+                </span>
+                <span className="text-xs text-muted-foreground">{m.by} · since {formatDate(m.since)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {coreSchools.length > 0 && (
+        <section id="schools" className="scroll-mt-16 space-y-3">
+          <h2 className="text-lg font-semibold">Colleges that list it as a core recruiter ({coreSchools.length})</h2>
+          <ul className="flex flex-wrap gap-2 text-sm">
+            {coreSchools.map((c) => <li key={c.institutionId} className="rounded-full bg-muted px-3 py-1">{c.name}</li>)}
+          </ul>
+        </section>
+      )}
+
       {/* ── Layoffs ──────────────────────────────────────────────────────── */}
       <section id="layoffs" className="scroll-mt-16 space-y-3">
         <h2 className="text-lg font-semibold">Layoffs</h2>
@@ -451,6 +536,18 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           <p className="text-sm text-muted-foreground">No layoff notices or layoff news found for this organization.</p>
         ) : (
           <>
+            {demand.layoffYear.events > 0 && (
+              <p className="text-sm">
+                <span className="font-medium">Past 12 months: </span>
+                {demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''} people` : 'headcount not stated'}
+                {` across ${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'}`}
+                <span className="text-muted-foreground">
+                  {demand.layoffYear.filingEvents > 0 && ` · ${demand.layoffYear.fromFilings.toLocaleString()} from ${demand.layoffYear.filingEvents} filed or logged`}
+                  {demand.layoffYear.newsOnlyEvents > 0 && ` · ${demand.layoffYear.fromNewsOnly.toLocaleString()} from ${demand.layoffYear.newsOnlyEvents} reported in the news only`}
+                  {demand.layoffYear.unstated > 0 && ` · ${demand.layoffYear.unstated} gave no number, so the total is a minimum`}
+                </span>
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {demand.layoffTimeline.status === 'recent_cut' && 'A recent cut, and no rehiring seen since.'}
               {demand.layoffTimeline.status === 'hiring_again' && 'Cut roles, and has posted new jobs since.'}

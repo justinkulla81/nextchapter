@@ -1,10 +1,27 @@
+import type { CoachingStylePreference } from '@prisma/client'
+
 export type DirectnessLevel = 'provisional' | 'direct' | 'straight' | 'reckoning'
 
 // weekNumber tracks weeks of program participation (weeklySprints + 1), the
 // same signal already used for the Week 4/8/13 checkpoints elsewhere in the
 // app — there's no separately-tracked "date last employed" field to compute
 // literal weeks-unemployed from.
-export function computeDirectnessLevel(weekNumber: number, casuallySearching: boolean): DirectnessLevel {
+// preference is what the member told us at onboarding about the kind of push
+// that works for them. Tenure still sets the baseline; the preference moves it
+// one way or the other. Tough love never starts below "direct"; gentle never
+// goes past "direct". Nothing is ever punitive either way.
+export function computeDirectnessLevel(
+  weekNumber: number,
+  casuallySearching: boolean,
+  preference: CoachingStylePreference | null = null
+): DirectnessLevel {
+  const base = baseLevel(weekNumber, casuallySearching)
+  if (preference === 'TOUGH_LOVE' && base === 'provisional') return 'direct'
+  if (preference === 'GENTLE_ENCOURAGEMENT' && (base === 'straight' || base === 'reckoning')) return 'direct'
+  return base
+}
+
+function baseLevel(weekNumber: number, casuallySearching: boolean): DirectnessLevel {
   if (casuallySearching) return 'provisional'
   if (weekNumber <= 4) return 'provisional'
   if (weekNumber <= 8) return 'direct'

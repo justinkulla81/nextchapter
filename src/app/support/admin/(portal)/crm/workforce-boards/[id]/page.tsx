@@ -12,6 +12,8 @@ import { SECTOR_LABELS } from '@/lib/workforce/sector'
 import { COLLEGE_ROLES, type CollegeRole } from '@/lib/workforce/college-pages'
 import { getNationalLaborData, monthLabel } from '@/lib/market/bls-national'
 import { formatDate } from '@/lib/crm/labels'
+import { getAreaBrief } from '@/lib/workforce/area-brief-data'
+import { AreaBriefView } from '@/components/workforce/AreaBriefView'
 
 export const maxDuration = 60
 
@@ -120,6 +122,7 @@ export default async function WorkforceBoardPage({
   const layoffNews = news.filter((n) => n.topic === 'layoffs')
   const aiNews = news.filter((n) => n.topic === 'ai')
   const windowLabel = windowDef.label.toLowerCase()
+  const brief = await getAreaBrief({ boardId: board.id }).catch(() => null)
 
   return (
     <div className="space-y-6">
@@ -144,6 +147,17 @@ export default async function WorkforceBoardPage({
           <BoardContact role="Board chair" name={board.chairName} email={board.chairEmail} phone={board.chairPhone} />
         </div>
       </header>
+
+      <details className="rounded-lg border border-border p-4" open>
+        <summary className="cursor-pointer text-base font-semibold">Area brief: what this board would receive</summary>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Anonymous NextChapter member counts (never below 10, never anyone in Confidential Search Mode), layoffs filed, who is hiring, local news and funding.
+          Preview only: nothing is sent to the board from here.
+        </p>
+        <div className="mt-4">
+          {brief ? <AreaBriefView brief={brief} audience="board" /> : <Empty>We could not build the brief for this board.</Empty>}
+        </div>
+      </details>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile

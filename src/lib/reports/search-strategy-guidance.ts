@@ -1,3 +1,4 @@
+import { cultureContext } from '@/lib/culture/culture-fit'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
@@ -102,6 +103,7 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
         compFlexible: true,
         willingToStartLower: true,
         dealBreakers: true,
+        cultureFit: true,
         isPivoting: true,
         openToRelocation: true,
         interimConsultingInterest: true,
@@ -161,7 +163,7 @@ Considering a pivot to a different function/industry: ${candidate.isPivoting ? '
 Open to relocation: ${candidate.openToRelocation ? 'yes' : 'no'}
 Open to fractional/interim consulting while searching: ${candidate.interimConsultingInterest ? 'yes' : 'no'}
 Application volume goal (per week): ${candidate.applicationVolumeGoal ?? 'not specified'} (we recommend 15/week as a baseline)
-Other deal-breakers/considerations: ${candidate.dealBreakers ?? 'not specified'}
+Other deal-breakers/considerations: ${candidate.dealBreakers ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 What's getting in their way: ${labelsFor(BLOCKER_OPTIONS, candidate.blockers)}
 What's driving their search: ${labelsFor(MOTIVATIONS_OPTIONS, candidate.motivations)}
 Coaching push they respond to: ${labelFor(COACHING_STYLE_OPTIONS, candidate.coachingStylePreference)}

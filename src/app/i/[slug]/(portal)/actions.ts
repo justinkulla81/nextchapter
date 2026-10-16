@@ -12,10 +12,11 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
 import { AUDIENCE_LABELS, getService, PRICING_LABELS, type Audience, type Pricing, type ServiceSetting } from '@/lib/higher-ed/services'
-import { DEMO_PERSONAS } from '@/lib/higher-ed/workspaces'
+import { DEMO_PERSONAS, orgKindOf } from '@/lib/higher-ed/workspaces'
 import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { seedDemoContent } from '@/lib/institution/admin'
+import { reseedWorkforceDemo } from '@/lib/workforce/demo'
 import { logViewAs } from '@/lib/higher-ed/audit'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -28,7 +29,9 @@ async function requireDemoAdmin(slug: string) {
 }
 
 export async function setDemoPersona(slug: string, formData: FormData) {
-  const access = await requireDemoAdmin(slug)
+  // An nc_admin on a demo, or a prospect on that demo's guest pass.
+  const found = await getInstitutionAccess(slug)
+  const access = found !== 'signed-out' && found && found.institution.isDemo && (found.isNcAdmin || found.mode === 'demo-guest') ? found : await requireDemoAdmin(slug)
   const persona = String(formData.get('persona') ?? 'all')
   if (!DEMO_PERSONAS.some((p) => p.key === persona)) throw new Error(`Unknown persona ${persona}`)
   const cookieStore = await cookies()
@@ -39,6 +42,13 @@ export async function setDemoPersona(slug: string, formData: FormData) {
 
 export async function resetDemoData(slug: string): Promise<{ error?: string; members?: number }> {
   const access = await requireDemoAdmin(slug)
+  if (access.institution.orgType !== 'COLLEGE') {
+    const r = await reseedWorkforceDemo(slug)
+    if ('error' in r) return { error: r.error }
+    captureServerEvent(access.userId, 'he_demo_reset', { institutionId: access.institution.id, slug, workforce: true })
+    revalidatePath(`/i/${slug}`, 'layout')
+    return { members: 150 }
+  }
   const tenant = DEMO_TENANTS[slug]
   if (!tenant) return { error: `No demo fixture for "${slug}", so there's nothing to reset it to.` }
   const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 120_000, maxWait: 20_000 })
@@ -97,7 +107,8 @@ export async function saveService(
   key: string,
   patch: { on?: boolean; audience?: string[]; ownerOffice?: string; ownerName?: string | null; pricing?: string; linkUrl?: string | null; provider?: string },
 ): Promise<{ error?: string }> {
-  const service = getService(key)
+  const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true } })
+  const service = getService(key, orgKindOf(inst?.orgType))
   if (!service) return { error: 'That service no longer exists. Reload the page.' }
   const clean: Partial<ServiceSetting> = {}
   if (patch.on !== undefined) clean.on = patch.on
@@ -110,7 +121,7 @@ export async function saveService(
   }
   if (patch.provider !== undefined) {
     if (!['college', 'nextchapter', 'both'].includes(patch.provider)) return { error: 'Pick who provides it.' }
-    if (!service.builtIn && patch.provider !== 'college') return { error: 'NextChapter doesn’t offer this one; it has to be your college’s own.' }
+    if (!service.builtIn && patch.provider !== 'college') return { error: 'NextChapter doesn’t offer this one; it has to be your own.' }
     clean.provider = patch.provider as ServiceSetting['provider']
   }
   if (patch.linkUrl !== undefined) {

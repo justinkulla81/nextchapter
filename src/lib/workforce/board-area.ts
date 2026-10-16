@@ -1,3 +1,4 @@
+import { countyKey } from './places'
 /**
  * The counties a board serves: those its service area lists, and for a
  * board drawn by city or town the counties its places are in. A board for a
@@ -20,4 +21,11 @@ export const COLLEGE_SECTORS: Record<number, string> = {
 }
 export const COLLEGE_SIZES: Record<number, string> = {
   1: 'Under 1,000', 2: '1,000–4,999', 3: '5,000–9,999', 4: '10,000–19,999', 5: '20,000+',
+}
+
+/** Whether a member's county is in a board's service area. Unknown county: not in it. */
+export function inBoardArea(county: string | null, b: { counties: string[]; placeCounties: string[]; statewide: boolean }): boolean {
+  const keys = boardCountyKeys(b)
+  if (keys === 'all') return true
+  return !!county && keys.includes(countyKey(county))
 }
