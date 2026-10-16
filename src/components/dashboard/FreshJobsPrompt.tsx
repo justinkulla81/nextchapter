@@ -1,45 +1,22 @@
 import type { CandidateProfile } from '@prisma/client'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
-import { FRESH_HOURS, postedAgo } from '@/lib/jobs/competition'
+import { getFreshJobsPeek, FRESH_PEEK_COUNT_CAP } from '@/lib/jobs/fresh-jobs-peek'
+import { postedAgo } from '@/lib/jobs/competition'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
-import { boardBreadthFor } from '@/lib/jobs/search-breadth'
 
 /**
- * Dashboard prompt: jobs that fit the member and were posted in the last 72
- * hours — the window when an application gets the most attention. Cut from
- * the board's shared in-memory copy (postedWithinHours), so it stays cheap.
+ * Dashboard prompt: new jobs in the member's field from the last 72 hours — the window
+ * when an application gets the most attention. A small query, not the ranked board
+ * (fresh-jobs-peek.ts); the Jobs board has the full, ranked list.
  */
 export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }) {
-  // A decoration: if the board can't load, Home still renders without it (an error
-  // thrown inside a streamed section would otherwise replace the whole page).
-  const board = await (async () => {
-    try {
-      const dossier = await isDossierUnlocked(profile.id)
-      return await loadBoardShortlist({
-        candidate: profile,
-        isCandidatePlus: dossier.unlocked,
-        // The member's stage window decides (career-stage.ts); on-site, not an email.
-        includeMidLevel: true,
-        includeEarlyCareer: true,
-        postedWithinHours: FRESH_HOURS,
-        view: 'fresh',
-        size: 3,
-        // Same breadth as the board (search-breadth.ts).
-        breadth: boardBreadthFor(profile),
-      })
-    } catch (error) {
-      console.error('Failed to load fresh jobs prompt:', error)
-      return null
-    }
-  })()
-  if (!board || board.freshOpenTotal === 0) return null
-  const top = board.open.slice(0, 3)
+  const { count, top } = await getFreshJobsPeek(profile.primaryFunction, profile.secondaryFunction)
+  if (count === 0) return null
+  const total = count >= FRESH_PEEK_COUNT_CAP ? `${FRESH_PEEK_COUNT_CAP}+` : String(count)
 
   return (
     <div className="rounded-lg border border-orange/40 bg-orange/10 p-4">
       <p className="text-sm font-semibold text-foreground">
-        {board.freshOpenTotal} new job{board.freshOpenTotal === 1 ? '' : 's'} that fit you — posted in the last 72 hours
+        {total} new job{count === 1 ? '' : 's'} in your field — posted in the last 72 hours
       </p>
       <p className="mt-1 text-sm text-muted-foreground">Early applicants get most of the interviews. Apply to these first.</p>
       <ul className="mt-2 space-y-1 text-sm">
@@ -55,10 +32,10 @@ export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }
       <TrackedLink
         href="/dashboard/find-my-job?view=fresh#job-recommendations"
         event="fresh_jobs_prompt_clicked"
-        properties={{ count: board.freshOpenTotal }}
+        properties={{ count }}
         className="mt-3 inline-block text-sm font-medium text-primary underline underline-offset-4"
       >
-        See all {board.freshOpenTotal} and apply
+        See new jobs and apply
       </TrackedLink>
     </div>
   )
