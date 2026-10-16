@@ -1,0 +1,101 @@
+[
+  {
+    "name": "wd-st-jude-children-s-research-hospital",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "St. Jude Children's Research Hospital",
+    "tenant": "stjude",
+    "wd": "wd1",
+    "site": "stjude"
+  },
+  {
+    "name": "wd-terminix",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Terminix",
+    "tenant": "terminix",
+    "wd": "wd1",
+    "site": "terminix"
+  },
+  {
+    "name": "wd-sedgwick",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Sedgwick",
+    "tenant": "sedgwick",
+    "wd": "wd1",
+    "site": "Sedgwick"
+  },
+  {
+    "name": "wd-medtronic",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Medtronic",
+    "tenant": "medtronic",
+    "wd": "wd1",
+    "site": "MedtronicCareers"
+  },
+  {
+    "name": "wd-smith-nephew",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Smith & Nephew",
+    "tenant": "smithnephew",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-regions",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regions",
+    "tenant": "regions",
+    "wd": "wd5",
+    "site": "regions_careers"
+  },
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Truist",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-smith-nephew",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Smith Nephew",
+    "tenant": "smithnephew",
+    "wd": "wd5",
+    "site": "External"
+  }
+]

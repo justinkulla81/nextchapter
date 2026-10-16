@@ -15,7 +15,38 @@
       "charlotte"
     ],
     "stateFips": "21",
-    "cbsa": "31140"
+    "cbsa": "31140",
+    "cities": {
+      "louisville": "21111",
+      "jeffersontown": "21111",
+      "shively": "21111",
+      "st. matthews": "21111",
+      "saint matthews": "21111",
+      "middletown": "21111",
+      "anchorage": "21111",
+      "prospect": "21111",
+      "fern creek": "21111",
+      "valley station": "21111",
+      "okolona": "21111",
+      "pleasure ridge park": "21111",
+      "shepherdsville": "21029",
+      "mount washington": "21029",
+      "la grange": "21185",
+      "pewee valley": "21185",
+      "shelbyville": "21211",
+      "new albany": "18043",
+      "floyds knobs": "18043",
+      "jeffersonville": "18019",
+      "clarksville": "18019",
+      "sellersburg": "18019",
+      "charlestown": "18019"
+    },
+    "states": [
+      "KY",
+      "IN"
+    ],
+    "search": "Louisville",
+    "defaultLocation": "Louisville, KY"
   },
   "indianapolis": {
     "label": "Indianapolis, IN",
@@ -25,7 +56,27 @@
       "18097"
     ],
     "stateFips": "18",
-    "cbsa": "26900"
+    "cbsa": "26900",
+    "cities": {
+      "indianapolis": "18097",
+      "lawrence": "18097",
+      "speedway": "18097",
+      "carmel": "18057",
+      "fishers": "18057",
+      "westfield": "18057",
+      "noblesville": "18057",
+      "greenwood": "18081",
+      "franklin": "18081",
+      "plainfield": "18063",
+      "avon": "18063",
+      "brownsburg": "18063",
+      "zionsville": "18011"
+    },
+    "states": [
+      "IN"
+    ],
+    "search": "Indianapolis",
+    "defaultLocation": "Indianapolis, IN"
   },
   "nashville": {
     "label": "Nashville, TN",
@@ -35,7 +86,31 @@
       "47037"
     ],
     "stateFips": "47",
-    "cbsa": "34980"
+    "cbsa": "34980",
+    "cities": {
+      "nashville": "47037",
+      "antioch": "47037",
+      "madison": "47037",
+      "goodlettsville": "47037",
+      "old hickory": "47037",
+      "donelson": "47037",
+      "franklin": "47187",
+      "brentwood": "47187",
+      "nolensville": "47187",
+      "spring hill": "47187",
+      "murfreesboro": "47149",
+      "smyrna": "47149",
+      "la vergne": "47149",
+      "hendersonville": "47165",
+      "gallatin": "47165",
+      "mount juliet": "47189",
+      "lebanon": "47189"
+    },
+    "states": [
+      "TN"
+    ],
+    "search": "Nashville",
+    "defaultLocation": "Nashville, TN"
   },
   "cincinnati": {
     "label": "Cincinnati, OH",
@@ -45,7 +120,41 @@
       "39061"
     ],
     "stateFips": "39",
-    "cbsa": "17140"
+    "cbsa": "17140",
+    "cities": {
+      "cincinnati": "39061",
+      "blue ash": "39061",
+      "evendale": "39061",
+      "sharonville": "39061",
+      "norwood": "39061",
+      "sycamore": "39061",
+      "montgomery": "39061",
+      "mariemont": "39061",
+      "mason": "39165",
+      "lebanon": "39165",
+      "west chester": "39165",
+      "fairfield": "39017",
+      "hamilton": "39017",
+      "west chester township": "39017",
+      "liberty township": "39017",
+      "milford": "39025",
+      "loveland": "39025",
+      "florence": "21015",
+      "hebron": "21015",
+      "burlington": "21015",
+      "boone": "21015",
+      "covington": "21117",
+      "erlanger": "21117",
+      "fort mitchell": "21117",
+      "crestview hills": "21117"
+    },
+    "states": [
+      "OH",
+      "KY",
+      "IN"
+    ],
+    "search": "Cincinnati",
+    "defaultLocation": "Cincinnati, OH"
   },
   "columbus-oh": {
     "label": "Columbus, OH",
@@ -55,7 +164,30 @@
       "39049"
     ],
     "stateFips": "39",
-    "cbsa": "18140"
+    "cbsa": "18140",
+    "cities": {
+      "columbus": "39049",
+      "dublin": "39049",
+      "westerville": "39049",
+      "new albany": "39049",
+      "hilliard": "39049",
+      "grove city": "39049",
+      "gahanna": "39049",
+      "worthington": "39049",
+      "reynoldsburg": "39049",
+      "whitehall": "39049",
+      "upper arlington": "39049",
+      "powell": "39041",
+      "lewis center": "39041",
+      "delaware": "39041",
+      "pickerington": "39045",
+      "lancaster": "39045"
+    },
+    "states": [
+      "OH"
+    ],
+    "search": "Columbus",
+    "defaultLocation": "Columbus, OH"
   },
   "memphis": {
     "label": "Memphis, TN",
@@ -65,7 +197,26 @@
       "47157"
     ],
     "stateFips": "47",
-    "cbsa": "32820"
+    "cbsa": "32820",
+    "cities": {
+      "memphis": "47157",
+      "germantown": "47157",
+      "collierville": "47157",
+      "bartlett": "47157",
+      "cordova": "47157",
+      "arlington": "47157",
+      "southaven": "28033",
+      "olive branch": "28033",
+      "horn lake": "28033",
+      "west memphis": "05035"
+    },
+    "states": [
+      "TN",
+      "MS",
+      "AR"
+    ],
+    "search": "Memphis",
+    "defaultLocation": "Memphis, TN"
   },
   "charlotte": {
     "label": "Charlotte, NC",
@@ -75,7 +226,28 @@
       "37119"
     ],
     "stateFips": "37",
-    "cbsa": "16740"
+    "cbsa": "16740",
+    "cities": {
+      "charlotte": "37119",
+      "huntersville": "37119",
+      "matthews": "37119",
+      "pineville": "37119",
+      "cornelius": "37119",
+      "davidson": "37119",
+      "concord": "37025",
+      "kannapolis": "37025",
+      "gastonia": "37071",
+      "mooresville": "37097",
+      "fort mill": "45091",
+      "rock hill": "45091",
+      "tega cay": "45091"
+    },
+    "states": [
+      "NC",
+      "SC"
+    ],
+    "search": "Charlotte",
+    "defaultLocation": "Charlotte, NC"
   },
   "lexington-ky": {
     "label": "Lexington, KY",
@@ -92,5 +264,92 @@
     "include": "(,|\\s|-|^)(ky|kentucky)\\M",
     "exclude": "^$",
     "countyFips": []
+  },
+  "pittsburgh": {
+    "label": "Pittsburgh / Allegheny County, PA",
+    "include": "pittsburgh|coraopolis|moon township|monroeville|bethel park",
+    "exclude": "^$",
+    "countyFips": [
+      "42003"
+    ],
+    "stateFips": "42",
+    "cbsa": "38300",
+    "peers": [
+      "cincinnati",
+      "columbus-oh",
+      "cleveland",
+      "philadelphia",
+      "baltimore"
+    ],
+    "cities": {
+      "pittsburgh": "42003",
+      "coraopolis": "42003",
+      "moon township": "42003",
+      "robinson township": "42003",
+      "mckees rocks": "42003",
+      "monroeville": "42003",
+      "bethel park": "42003",
+      "wilkinsburg": "42003",
+      "sewickley": "42003",
+      "carnegie": "42003",
+      "oakdale": "42003",
+      "wexford": "42003",
+      "green tree": "42003",
+      "bridgeville": "42003",
+      "west mifflin": "42003",
+      "homestead": "42003",
+      "munhall": "42003",
+      "north shore": "42003",
+      "oakmont": "42003",
+      "cheswick": "42003",
+      "mt. lebanon": "42003",
+      "mount lebanon": "42003",
+      "penn hills": "42003",
+      "cranberry township": "42019",
+      "warrendale": "42019",
+      "cranberry twp": "42019",
+      "butler": "42019",
+      "canonsburg": "42125",
+      "southpointe": "42125",
+      "washington": "42125",
+      "cecil township": "42125",
+      "aliquippa": "42007",
+      "beaver": "42007"
+    },
+    "states": [
+      "PA"
+    ],
+    "search": "Pittsburgh",
+    "defaultLocation": "Pittsburgh, PA"
+  },
+  "cleveland": {
+    "label": "Cleveland, OH",
+    "include": "cleveland",
+    "exclude": "^$",
+    "countyFips": [
+      "39035"
+    ],
+    "stateFips": "39",
+    "cbsa": "17460"
+  },
+  "philadelphia": {
+    "label": "Philadelphia, PA",
+    "include": "philadelphia",
+    "exclude": "^$",
+    "countyFips": [
+      "42101"
+    ],
+    "stateFips": "42",
+    "cbsa": "37980"
+  },
+  "baltimore": {
+    "label": "Baltimore, MD",
+    "include": "baltimore",
+    "exclude": "^$",
+    "countyFips": [
+      "24510"
+    ],
+    "stateFips": "24",
+    "cbsa": "12580"
   }
 }

@@ -24,39 +24,26 @@ from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = "NextChapterResearch/1.0 (+https://launchyournextchapter.com/reports)"
 
-# County FIPS for the Louisville metro (verify metro membership before publishing).
-METRO_COUNTIES = {"21111": "Jefferson KY", "21029": "Bullitt KY", "21103": "Henry KY", "21163": "Meade KY",
-                  "21179": "Nelson KY", "21185": "Oldham KY", "21211": "Shelby KY", "21215": "Spencer KY",
-                  "21223": "Trimble KY", "18019": "Clark IN", "18043": "Floyd IN", "18061": "Harrison IN",
-                  "18143": "Scott IN", "18175": "Washington IN"}
-CITY_COUNTY = {
-    "louisville": "21111", "jeffersontown": "21111", "shively": "21111", "st. matthews": "21111",
-    "saint matthews": "21111", "middletown": "21111", "anchorage": "21111", "prospect": "21111",
-    "fern creek": "21111", "valley station": "21111", "okolona": "21111", "pleasure ridge park": "21111",
-    "shepherdsville": "21029", "mount washington": "21029", "la grange": "21185", "pewee valley": "21185",
-    "shelbyville": "21211", "new albany": "18043", "jeffersonville": "18019", "clarksville": "18019",
-    "sellersburg": "18019", "charlestown": "18019", "floyds knobs": "18043",
-}
+# Place being crawled; set from geos.json by main(). Cities map to county FIPS; a location is "in the
+# metro" when it names one of the cities and does not name a different state.
+GEO = {"key": "louisville-metro", "cities": {}, "states": [], "search": "", "default": ""}
+US_STATES = set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split())
 
 def county_for(location):
-    loc = (location or "").lower()
-    if not loc:
+    loc = location or ""
+    low = loc.lower()
+    if not low:
         return None
-    in_ky = bool(re.search(r"\b(ky|kentucky)\b", loc)) or "louisville" in loc
-    in_in = bool(re.search(r"\b(in|indiana)\b", loc))
-    for city, fips in CITY_COUNTY.items():
-        if city in loc:
-            if fips.startswith("21") and in_in and not in_ky:
-                continue
-            if fips.startswith("18") and in_ky and not in_in:
-                continue
+    tokens = set(re.findall(r"\b([A-Z]{2})\b", loc)) & US_STATES
+    if tokens and not (tokens & set(GEO["states"])):
+        return None  # names a state outside this metro's states
+    for city, fips in GEO["cities"].items():
+        if re.search(r"\b" + re.escape(city) + r"\b", low):
             return fips
     return None
 
 def in_metro(location):
-    if re.search(r"louisville,?\s*(co|colorado|ne|nebraska|oh|ohio|ms|mississippi|tn|ga)\b", (location or "").lower()):
-        return False
-    return county_for(location) in METRO_COUNTIES
+    return county_for(location) is not None
 
 MONEY = re.compile(r"\$\s?([\d,]+(?:\.\d+)?)\s*(k)?(?:\s*/\s*(?:hour|hr|year|yr))?(?:\s*(?:-|–|to)\s*\$?\s?([\d,]+(?:\.\d+)?)\s*(k)?)?", re.I)
 
@@ -138,8 +125,8 @@ def robots_disallows(base, path):
     return False
 
 def mk(source, employer, ext_id, **kw):
-    rec = {"posting_id": f"{source['name']}:{ext_id}", "source_name": source["name"], "source_type": source["type"],
-           "employer": employer}
+    pid = f"{source['name']}:{ext_id}" if GEO["key"] == "louisville-metro" else f"{GEO['key']}:{source['name']}:{ext_id}"
+    rec = {"posting_id": pid, "source_name": source["name"], "source_type": source["type"], "employer": employer, "geo": GEO["key"]}
     rec.update(kw)
     d = rec.get("description") or ""
     rec["desc_hash"] = hashlib.sha1(d.encode()).hexdigest() if d else None
@@ -154,7 +141,9 @@ def mk(source, employer, ext_id, **kw):
 # ---- adapters -------------------------------------------------------------
 
 def crawl_workday(src, log):
-    """Workday public CxS JSON API. src: tenant, wd (e.g. wd1), site (optional), employer, search."""
+    """Workday public CxS JSON API. src: tenant, wd (e.g. wd1), site (optional), employer, search.
+    List pages are read in order; posting details are fetched 8 at a time."""
+    from concurrent.futures import ThreadPoolExecutor
     tenant, wd = src["tenant"], src.get("wd", "wd1")
     base = f"https://{tenant}.{wd}.myworkdayjobs.com"
     sites = [src["site"]] if src.get("site") else []
@@ -166,34 +155,47 @@ def crawl_workday(src, log):
             log(f"  {src['name']}: site discovery failed: {e}"); return
         if not sites:
             log(f"  {src['name']}: no Workday site found in robots.txt; set \"site\" in the sources file"); return
+    cap = int(src.get("max", 0)) or 10**9
+
+    def detail(site, p):
+        path = p.get("externalPath", "")
+        try:
+            d = json.loads(http(f"{base}/wday/cxs/{tenant}/{site}{path}", method="GET"))
+            return p, d.get("jobPostingInfo", {})
+        except Exception:
+            return p, {}
+
+    kept = 0
     for site in sites:
         api = f"{base}/wday/cxs/{tenant}/{site}/jobs"
         if robots_disallows(base, f"/wday/cxs/{tenant}/{site}/jobs"):
             log(f"  {src['name']}/{site}: disallowed by robots.txt, skipped"); continue
         offset, total = 0, None
-        while total is None or offset < total:
+        while (total is None or offset < total) and kept < cap:
             page = json.loads(http(api, {"appliedFacets": {}, "limit": 20, "offset": offset,
-                                          "searchText": src.get("search", "Louisville")}))
+                                          "searchText": src.get("search", GEO["search"])}))
             if total is None:
                 total = page.get("total", 0)  # Workday reports the total on the first page only
             posts = page.get("jobPostings", [])
             if not posts: break
+            todo = []
             for p in posts:
                 loc = p.get("locationsText", "")
                 if not src.get("all_local") and loc and not in_metro(loc) and "locations" not in loc.lower():
                     continue
+                todo.append(p)
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                results = list(ex.map(lambda p: detail(site, p), todo))
+            for p, info in results:
                 path = p.get("externalPath", "")
-                try:
-                    d = json.loads(http(f"{base}/wday/cxs/{tenant}/{site}{path}", method="GET"))
-                    info = d.get("jobPostingInfo", {})
-                except Exception:
-                    info = {}
+                loc = p.get("locationsText", "")
                 loc_full = info.get("location") or loc
                 addl = info.get("additionalLocations") or []
                 if src.get("all_local"):
-                    loc_full = f"{loc_full}, Louisville, KY" if loc_full else "Louisville, KY"
+                    loc_full = f"{loc_full}, {GEO['default']}" if loc_full else GEO["default"]
                 elif not (in_metro(loc_full) or any(in_metro(a) for a in addl)):
                     continue
+                kept += 1
                 yield mk(src, src.get("employer", tenant), info.get("jobReqId") or path.rsplit("_", 1)[-1],
                          title=info.get("title") or p.get("title", ""), req_id=info.get("jobReqId"),
                          url=info.get("externalUrl") or base + "/" + site + path,
@@ -201,7 +203,7 @@ def crawl_workday(src, log):
                          locations=[loc_full] + list(addl), employment_type=info.get("timeType"),
                          posted_at=info.get("startDate"), posted_precision="date")
             offset += 20
-            time.sleep(0.3)
+            time.sleep(0.15)
 
 def crawl_greenhouse(src, log):
     data = json.loads(http(f"https://boards-api.greenhouse.io/v1/boards/{src['token']}/jobs?content=true"))
@@ -293,11 +295,11 @@ def crawl_neogov(src, log):
                 lo = f(pay.group(1)); hi = f(pay.group(2)) if pay.group(2) else lo
                 per = {"Hourly": "hour", "Annually": "year", "Monthly": "month", "Biweekly": "biweek"}[pay.group(3)]
             rec = mk(src, src.get("employer", agency), jid, title=title, url="https://www.governmentjobs.com" + href,
-                     description=desc, location_raw=loc or "Louisville, KY", locations=[loc] if loc else None,
+                     description=desc, location_raw=loc or GEO["default"], locations=[loc] if loc else None,
                      employment_type=sched.group(1) if sched else None, pay_min=lo, pay_max=hi, pay_period=per,
                      pay_stated=lo is not None, posted_at=None, posted_precision="relative",
                      employer_domain=dept.group(1) if dept else None)
-            rec["county_fips"] = rec["county_fips"] or src.get("county_fips", "21111")  # city-government postings
+            rec["county_fips"] = rec["county_fips"] or src.get("county_fips") or (list(GEO["cities"].values())[0] if GEO["cities"] else None)  # city-government postings
             yield rec
             time.sleep(0.2)
         page += 1
@@ -355,7 +357,7 @@ def crawl_applitrack(src, log):
         posted = re.search(r"Date Posted:\s*([0-9/]+)", body)
         yield mk(src, src.get("employer", src["district"]), jid, title=title,
                  url=f"{root}/default.aspx?AppliTrackJobId={jid}&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1",
-                 description=body[:8000], location_raw=src.get("location", "Louisville, KY"), employer_domain=category,
+                 description=body[:8000], location_raw=src.get("location", GEO["default"]), employer_domain=category,
                  posted_at=posted.group(1) if posted else None, posted_precision="date")
         time.sleep(0.2)
 
@@ -389,7 +391,7 @@ ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_cs
 
 # ---- loading --------------------------------------------------------------
 
-COLS = ["posting_id", "source_name", "source_type", "employer", "employer_domain", "title", "req_id", "url", "description",
+COLS = ["posting_id", "geo", "source_name", "source_type", "employer", "employer_domain", "title", "req_id", "url", "description",
         "desc_hash", "location_raw", "city", "state", "county_fips", "locations", "level", "arrangement", "employment_type",
         "pay_min", "pay_max", "pay_period", "pay_stated", "posted_at", "posted_precision", "source_updated_at"]
 
@@ -418,7 +420,7 @@ def upsert(recs, run_id, src_name):
 
 def mark_missed(src_name, seen_ids, run_id, close_after=2):
     """Postings of this source not seen this run: bump missed_runs; close after N consecutive misses."""
-    rows = rest(f"jobsreport_posting?source_name=eq.{urllib.parse.quote(src_name)}&closed_at=is.null&select=posting_id,missed_runs",
+    rows = rest(f"jobsreport_posting?source_name=eq.{urllib.parse.quote(src_name)}&geo=eq.{urllib.parse.quote(GEO['key'])}&closed_at=is.null&select=posting_id,missed_runs",
                 method="GET") or []
     for r in rows:
         if r["posting_id"] in seen_ids: continue
@@ -429,13 +431,20 @@ def mark_missed(src_name, seen_ids, run_id, close_after=2):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--sources", default=os.path.join(HERE, "louisville_sources.json"))
+    ap.add_argument("--geo", default="louisville-metro", help="place key in geos.json")
+    ap.add_argument("--sources", help="sources file (default: louisville_sources.json or sources/<geo>.json)")
     ap.add_argument("--only")
     ap.add_argument("--name", help="run only the source with this name")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--out", default=os.path.join(HERE, "out"))
+    ap.add_argument("--out")
     a = ap.parse_args()
     log = lambda s: print(s, file=sys.stderr, flush=True)
+    g = json.load(open(os.path.join(HERE, "geos.json")))[a.geo]
+    GEO.update({"key": a.geo, "cities": g["cities"], "states": g["states"], "search": g["search"], "default": g["defaultLocation"]})
+    if not a.sources:
+        legacy = os.path.join(HERE, "louisville_sources.json")
+        a.sources = legacy if a.geo == "louisville-metro" else os.path.join(HERE, "sources", f"{a.geo}.json")
+    a.out = a.out or os.path.join(HERE, "out", a.geo)
     sources = [s for s in json.load(open(a.sources)) if (not a.only or s["adapter"] == a.only) and (not a.name or s["name"] == a.name)]
     os.makedirs(a.out, exist_ok=True)
     for src in sources:
@@ -445,7 +454,7 @@ def main():
         run_id = None
         try:
             if not a.dry_run:
-                run_id = rest("jobsreport_run", [{"geo": "louisville-metro", "source_name": src["name"],
+                run_id = rest("jobsreport_run", [{"geo": a.geo, "source_name": src["name"],
                                                   "source_type": src["type"]}], prefer="return=representation")[0]["run_id"]
             for r in fn(src, log):
                 recs.append(r)

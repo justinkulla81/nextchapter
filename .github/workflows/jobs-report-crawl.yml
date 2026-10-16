@@ -1,0 +1,35 @@
+# Weekly crawl of employers' public career sites for the jobs report (Louisville, Pittsburgh and peers).
+# Needs two repository secrets: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
+# Rows are upserted into jobsreport_posting; a posting missing from two consecutive runs is closed, which is
+# what makes reposts, closures and functions gaining or losing measurable after the second run.
+name: Jobs report crawl
+
+on:
+  schedule:
+    - cron: '17 9 * * 1'   # Mondays 09:17 UTC
+  workflow_dispatch:
+    inputs:
+      geo:
+        description: 'Place key from scripts/jobsreport/geos.json (blank = all configured places)'
+        required: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        geo: [louisville-metro, pittsburgh, indianapolis, nashville, cincinnati, columbus-oh, memphis, charlotte]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Crawl ${{ matrix.geo }}
+        if: ${{ github.event.inputs.geo == '' || github.event.inputs.geo == matrix.geo }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python3 scripts/jobsreport/crawl.py --geo ${{ matrix.geo }}
