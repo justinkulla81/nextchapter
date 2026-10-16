@@ -1,83 +1,98 @@
 #!/usr/bin/env python3
 """
-Like-for-like peer metro comparison from the BLS public API: for one month and one
-seasonal-adjustment basis, the same series for every metro.
+Like-for-like peer metro comparison from BLS bulk data files: for one month and one basis,
+the same series for every metro. No API key and no daily request limit.
 
-  python3 scripts/jobsreport/peer_bls.py --geo louisville-metro --months 14
+  python3 scripts/jobsreport/peer_bls.py --geo louisville-metro
   python3 scripts/jobsreport/peer_bls.py --geo louisville-metro --out scripts/jobsreport/out/peer-bls.json
+  python3 scripts/jobsreport/peer_bls.py --geo louisville-metro --api     # BLS public API instead (needs BLS_API_KEY)
 
-Series (BLS series IDs; 20 characters):
-  LAUS unemployment rate, not seasonally adjusted: LAUMT + state(2) + CBSA(5) + 000000 + 03
-  LAUS labor force:                                 ... + 06
-  CES total nonfarm, not seasonally adjusted:       SMU + state(2) + CBSA(5) + 00000000 + 01
-Metro-area LAUS and CES series are published not seasonally adjusted, so every metro here is
-compared on the same basis. Pass BLS_API_KEY for the v2 API (higher limits); without one the v1
-limits apply (25 series, 10 years).
-
-Reads metro definitions from geos.json ("cbsa", "stateFips"). Status: written without network
-access to api.bls.gov (blocked in the authoring environment); not yet run. Series IDs follow the
-documented BLS formats and must be confirmed on first run (the script prints any series BLS
-reports as not found).
+Series (20 characters, verified against the BLS files):
+  LAUS unemployment rate, not seasonally adjusted:  LAUMT + state(2) + CBSA(5) + 00000003
+  LAUS labor force:                                  LAUMT + state(2) + CBSA(5) + 00000006
+  CES total nonfarm (thousands), not seasonally adjusted: SMU + state(2) + CBSA(5) + 0000000001
+Metro series are not seasonally adjusted, so every metro is on the same basis.
+Files: download.bls.gov/pub/time.series/la/la.data.60.Metro and sm/sm.data.54.TotalNonFarm.All
+(about 40 MB each, cached in out/bls-cache/).
 """
 import argparse, json, os, sys, urllib.request
-from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-API = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+UA = "NextChapterResearch/1.0 (research@launchyournextchapter.com)"  # BLS asks for a contact in the user agent
+FILES = {"la": "https://download.bls.gov/pub/time.series/la/la.data.60.Metro",
+         "sm": "https://download.bls.gov/pub/time.series/sm/sm.data.54.TotalNonFarm.All"}
 
 def series_ids(g):
     base = f"{g['stateFips']}{g['cbsa']}"
-    return {"unemployment_rate": f"LAUMT{base}000000003", "labor_force": f"LAUMT{base}000000006",
-            "nonfarm": f"SMU{base}00000000001"}
+    return {"unemployment_rate": f"LAUMT{base}00000003", "labor_force": f"LAUMT{base}00000006",
+            "nonfarm": f"SMU{base}0000000001"}
 
-def fetch(ids, start, end):
-    body = {"seriesid": ids, "startyear": str(start), "endyear": str(end)}
+def cached(name, url, refresh=False):
+    d = os.path.join(HERE, "out", "bls-cache"); os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, name)
+    if refresh or not os.path.exists(path):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=300) as r, open(path, "wb") as f:
+            while chunk := r.read(1 << 20): f.write(chunk)
+    return path
+
+def read_series(path, wanted):
+    out = {s: {} for s in wanted}
+    with open(path, encoding="utf-8", errors="replace") as f:
+        next(f)
+        for line in f:
+            sid = line[:20].strip()
+            if sid in out:
+                p = line.split("\t")
+                if p[2].strip().startswith("M") and p[2].strip() != "M13" and p[3].strip() not in ("", "-"):
+                    out[sid][f"{p[1].strip()}-{p[2].strip()[1:]}"] = float(p[3])
+    return out
+
+def read_api(wanted):
     key = os.environ.get("BLS_API_KEY")
-    if key: body["registrationkey"] = key
-    req = urllib.request.Request(API, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        out = json.load(r)
-    if out.get("status") != "REQUEST_SUCCEEDED":
-        print("BLS:", out.get("message"), file=sys.stderr)
-    for m in out.get("message", []):
-        print("BLS note:", m, file=sys.stderr)
-    return {s["seriesID"]: {f"{d['year']}-{d['period'][1:]}": float(d["value"].replace(",", "")) for d in s["data"] if d["period"].startswith("M")}
-            for s in out.get("Results", {}).get("series", [])}
+    if not key: sys.exit("--api needs BLS_API_KEY (free at https://data.bls.gov/registrationEngine/)")
+    from datetime import date
+    body = {"seriesid": list(wanted), "startyear": str(date.today().year - 2), "endyear": str(date.today().year), "registrationkey": key}
+    req = urllib.request.Request("https://api.bls.gov/publicAPI/v2/timeseries/data/", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    out = json.load(urllib.request.urlopen(req, timeout=60))
+    if out.get("status") != "REQUEST_SUCCEEDED": sys.exit(f"BLS: {out.get('message')}")
+    return {s["seriesID"]: {f"{d['year']}-{d['period'][1:]}": float(d["value"].replace(",", "")) for d in s["data"] if d["period"].startswith("M")} for s in out["Results"]["series"]}
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--geo", default="louisville-metro")
-    ap.add_argument("--months", type=int, default=14)
     ap.add_argument("--out")
+    ap.add_argument("--api", action="store_true")
+    ap.add_argument("--refresh", action="store_true", help="re-download the cached BLS files")
     a = ap.parse_args()
     geos = json.load(open(os.path.join(HERE, "geos.json")))
-    keys = [a.geo] + [p for p in geos[a.geo].get("peers", [])]
+    keys = [a.geo] + geos[a.geo].get("peers", [])
     metros = {k: geos[k] for k in keys if geos[k].get("cbsa") and geos[k].get("stateFips")}
-    missing = [k for k in keys if k not in metros]
-    if missing: print("no cbsa/stateFips in geos.json for:", ", ".join(missing), file=sys.stderr)
     ids = {k: series_ids(g) for k, g in metros.items()}
-    flat = [s for d in ids.values() for s in d.values()]
-    this_year = date.today().year
-    data = {}
-    for i in range(0, len(flat), 25):
-        data.update(fetch(flat[i:i + 25], this_year - 2, this_year))
-    if not data:
-        sys.exit("BLS returned no series (daily request limit for unregistered use, or a blocked host). "
-                 "Set BLS_API_KEY (free at https://data.bls.gov/registrationEngine/) and retry.")
-    # latest month present for every metro's unemployment rate
+    la_ids = [s for d in ids.values() for m, s in d.items() if s.startswith("LAU")]
+    sm_ids = [s for d in ids.values() for m, s in d.items() if s.startswith("SMU")]
+    if a.api:
+        data = read_api(la_ids + sm_ids)
+    else:
+        data = read_series(cached("la.data.60.Metro", FILES["la"], a.refresh), la_ids)
+        data.update(read_series(cached("sm.data.54.TotalNonFarm.All", FILES["sm"], a.refresh), sm_ids))
+    missing = [s for s, v in data.items() if not v]
+    if missing: print("no data for series:", ", ".join(missing), file=sys.stderr)
     common = None
     for k in metros:
         months = set(data.get(ids[k]["unemployment_rate"], {}))
         common = months if common is None else common & months
-    latest = max(common) if common else None
+    if not common: sys.exit("no month common to every metro's unemployment series")
+    latest = max(common)
+    ago = f"{int(latest[:4]) - 1}-{latest[5:]}"
     rows = []
     for k, g in metros.items():
-        ur, nf = data.get(ids[k]["unemployment_rate"], {}), data.get(ids[k]["nonfarm"], {})
-        yo = lambda s, m: (round(100 * (s[m] / s[f"{int(m[:4]) - 1}-{m[5:]}"] - 1), 1)
-                           if m in s and f"{int(m[:4]) - 1}-{m[5:]}" in s else None)
+        ur, nf, lf = (data.get(ids[k][m], {}) for m in ("unemployment_rate", "nonfarm", "labor_force"))
         rows.append({"geo": k, "label": g["label"], "month": latest,
-                     "unemployment_rate": ur.get(latest), "unemployment_rate_year_ago": ur.get(f"{int(latest[:4]) - 1}-{latest[5:]}") if latest else None,
-                     "nonfarm_thousands": nf.get(latest), "nonfarm_12m_pct": yo(nf, latest) if latest else None})
+                     "unemployment_rate": ur.get(latest), "unemployment_rate_year_ago": ur.get(ago),
+                     "unemployment_change_pts": round(ur[latest] - ur[ago], 1) if latest in ur and ago in ur else None,
+                     "nonfarm_thousands": nf.get(latest), "nonfarm_12m_pct": round(100 * (nf[latest] / nf[ago] - 1), 1) if latest in nf and ago in nf else None,
+                     "nonfarm_latest_month": max(nf) if nf else None, "labor_force_thousands": round(lf[latest] / 1000, 1) if latest in lf else None})
     result = {"basis": "not seasonally adjusted", "month": latest, "rows": rows}
     print(json.dumps(result, indent=2))
     if a.out:
