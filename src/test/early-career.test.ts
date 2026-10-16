@@ -45,10 +45,28 @@ describe('early-career rungs', () => {
   })
 
   it('keeps internships, students, temporary, hourly and clerical work out', () => {
-    for (const t of ['Software Engineering Intern', 'Co-op Engineer', 'Apprentice Electrician', 'Student Assistant', 'Administrative Assistant',
-      'Customer Service Representative', 'Graduate Research Assistant', 'Help Desk Analyst I', 'Summer Associate', 'Marketing Coordinator']) {
+    for (const t of ['Software Engineering Intern', 'Co-op Engineer', 'Apprentice Electrician', 'Student Assistant', 'Personal Assistant',
+      'Customer Service Representative', 'Graduate Research Assistant', 'Help Desk Analyst I', 'Summer Associate', 'Medical Office Assistant',
+      'Patient Coordinator', 'Retail Team Leader', 'Designer, C&B', 'Visual Merchandising Associate', 'CNC Programmer', 'Staff Nurse']) {
       expect(classifyTitleRung(t).rank, t).toBe(0)
     }
+  })
+
+  it('takes professional office assistants, coordinators and early professional families (2026-10-15)', () => {
+    for (const t of ['Administrative Assistant', 'Marketing Coordinator', 'Recruiting Coordinator', 'Legal Assistant', 'Claims Adjuster',
+      'Assistant Buyer', 'Junior Graphic Designer']) {
+      expect(rung(t), t).toBe('ENTRY_IC')
+    }
+    for (const t of ['Executive Assistant', 'Paralegal', 'Programmer', 'Graphic Designer', 'Buyer', 'Production Planner', 'Payroll Specialist',
+      'Staff Writer', 'Associate Executive Recruiter', 'Analyst']) {
+      expect(rung(t), t).toBe('EARLY_IC')
+    }
+    expect(rung('Staff Attorney')).toBe('MID_IC')
+    expect(rung('Staff Engineer')).toBe('SR_MANAGER')
+    expect(rung('Executive Recruiter')).toBe('SENIOR_IC')
+    // Assistants and coordinators top out at EARLY_IC whatever the years asked.
+    expect(refineLevelByYears('Administrative Assistant', rung('Administrative Assistant') === 'ENTRY_IC' ? { rung: 'ENTRY_IC', rank: 20 } : { rung: 'OTHER', rank: 0 },
+      '5+ years of administrative experience required').rung).toBe('EARLY_IC')
   })
 
   it('never moves a senior title down', () => {
@@ -63,7 +81,7 @@ describe('early-career rungs', () => {
     expect(refineLevelByYears('Financial Analyst', mid, '0-2 years of experience in accounting').rung).toBe('ENTRY_IC')
     expect(refineLevelByYears('Financial Analyst', mid, 'Requires 3+ years of experience').rung).toBe('EARLY_IC')
     expect(refineLevelByYears('Financial Analyst', mid, '10+ years of experience').rung).toBe('MID_IC')
-    expect(refineLevelByYears('Financial Analyst', mid, null).rung).toBe('MID_IC')
+    expect(refineLevelByYears('Financial Analyst', mid, null).rung).toBe('EARLY_IC')
     // A level marker in the title wins over the text.
     expect(refineLevelByYears('Software Engineer II', classifyTitleRung('Software Engineer II'), '0-2 years of experience').rung).toBe('EARLY_IC')
     // Senior titles are never refined.

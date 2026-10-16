@@ -102,7 +102,7 @@ describe('classifyApplication verdicts', () => {
     expect(r.seniority).toBe('big_up')
   })
   it('years overqualified with unknown level is underselling', () => {
-    const r = classifyApplication(member({ yearsExperience: 20 }), { title: 'Analyst', yearsRequired: req(2, 4) })
+    const r = classifyApplication(member({ yearsExperience: 20 }), { title: 'Associate', yearsRequired: req(2, 4) })
     expect(r.seniority).toBe('unknown')
     expect(r.verdict).toBe('underselling')
   })
