@@ -722,38 +722,47 @@ async function CommunityTab({
     )
   }
 
-  const [communities, pendingAutoJoinNotices] = await Promise.all([
-    getCandidateCommunities(candidateId),
-    getPendingAutoJoinNotices(candidateId),
-  ])
+  // The posts query needs the selected community (from the community list); the
+  // feed, notes, cohort, groups and leaderboard do not, so those load alongside
+  // that chain instead of waiting behind it.
+  const [{ communities, pendingAutoJoinNotices, posts }, [communityFeed, marketBrief, unreadNotes, cohort, groups, leaderboardTeaser]] =
+    await Promise.all([
+      (async () => {
+        const [communities, pendingAutoJoinNotices] = await Promise.all([
+          getCandidateCommunities(candidateId),
+          getPendingAutoJoinNotices(candidateId),
+        ])
+        const activeCommunity = communities.find((c) => c.communityId === searchParams.community) ?? null
+        const posts = await prisma.communityPost.findMany({
+          where: {
+            isActive: true,
+            ...communityPostWhere(activeCommunity),
+            ...communityGroupWhere(searchParams.group),
+            ...communityModerationWhere(candidateId),
+          },
+          include: {
+            candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } },
+            reactions: { where: { candidateId } },
+            _count: { select: { reactions: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        })
+        return { communities, pendingAutoJoinNotices, posts }
+      })(),
+      Promise.all([
+        getCommunityFeed(),
+        getMarketBriefFeedItems(),
+        getUnreadEncouragementNotes(candidateId),
+        layoffCohortId ? getCohortInfo(layoffCohortId, candidateId) : Promise.resolve(null),
+        getCandidateGroups(candidateId),
+        // §19 — condensed top-3-of-Action-Score module. Skipped entirely for
+        // Confidential Search Mode candidates: this is a public teaser inviting
+        // opt-in, and §4.1 hard-excludes them from ever appearing here regardless.
+        confidentialSearchMode ? Promise.resolve(null) : computeBoard('ACTION_SCORE', {}, candidateId),
+      ]),
+    ])
   const activeCommunity = communities.find((c) => c.communityId === searchParams.community) ?? null
-
-  const [posts, communityFeed, marketBrief, unreadNotes, cohort, groups, leaderboardTeaser] = await Promise.all([
-    prisma.communityPost.findMany({
-      where: {
-        isActive: true,
-        ...communityPostWhere(activeCommunity),
-        ...communityGroupWhere(searchParams.group),
-        ...communityModerationWhere(candidateId),
-      },
-      include: {
-        candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } },
-        reactions: { where: { candidateId } },
-        _count: { select: { reactions: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    }),
-    getCommunityFeed(),
-    getMarketBriefFeedItems(),
-    getUnreadEncouragementNotes(candidateId),
-    layoffCohortId ? getCohortInfo(layoffCohortId, candidateId) : Promise.resolve(null),
-    getCandidateGroups(candidateId),
-    // §19 — condensed top-3-of-Action-Score module. Skipped entirely for
-    // Confidential Search Mode candidates: this is a public teaser inviting
-    // opt-in, and §4.1 hard-excludes them from ever appearing here regardless.
-    confidentialSearchMode ? Promise.resolve(null) : computeBoard('ACTION_SCORE', {}, candidateId),
-  ])
   const feed = [...communityFeed, ...marketBrief]
 
   return (
