@@ -244,6 +244,19 @@ export default function JobSearchDailyEmail({
           </>
         )}
 
+        {content.whatChanged.length > 0 && (
+          <>
+            <p style={label}>What changed for you</p>
+            <ul style={list}>
+              {content.whatChanged.map((line) => (
+                <li key={line} style={li}>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {todos.length > 0 && (
           <>
             <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>

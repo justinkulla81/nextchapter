@@ -1,4 +1,5 @@
 import { RetuneHost } from '@/components/dashboard/RetuneMoment'
+import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
 import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
@@ -195,6 +196,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       >
         <DashboardNavWithBadges profileId={profile.id} />
       </Suspense>
+      {/* The one-time "Candidate+ unlocked" screen, with the member's own numbers. */}
+      {hardGateStatus !== 'search_strategy_required' && (
+        <Suspense fallback={null}>
+          <CandidatePlusUnlockLoader profileId={profile.id} />
+        </Suspense>
+      )}
       {/* Not over the Search Strategy gate: that screen has one job. */}
       {hardGateStatus !== 'search_strategy_required' && (
         <Suspense fallback={null}>

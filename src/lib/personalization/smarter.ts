@@ -51,3 +51,39 @@ export function smarterLines(input: {
   if (input.toolsConfirmed && input.newThisWeekSkills > 0) out.push(`New this week: ${s(input.newThisWeekSkills, 'job')} that match${input.newThisWeekSkills === 1 ? 'es' : ''} your confirmed tools and skills.`)
   return out.slice(0, input.max ?? 2)
 }
+
+/** A move this small in the week-on-week match count isn't news. */
+export const TREND_MIN_SHARE = 0.1
+export const TREND_MIN_JOBS = 3
+
+/**
+ * Job Search Daily's "What changed for you": at most three lines — the match count against a
+ * week ago, what we learned since the last email, and saved jobs that closed before they
+ * applied. Empty when nothing changed (the section is left out).
+ */
+export function whatChangedLines(input: {
+  matchesNow: number | null
+  matchesWeekAgo: number | null
+  /** Retunes since the last email, newest first. */
+  learned: { trigger: string | null; before: number | null; after: number | null }[]
+  closedBeforeApplied: number
+}): string[] {
+  const out: string[] = []
+  const { matchesNow: now, matchesWeekAgo: then } = input
+  if (now !== null && then !== null && then > 0) {
+    const delta = now - then
+    if (Math.abs(delta) >= TREND_MIN_JOBS && Math.abs(delta) / then >= TREND_MIN_SHARE) {
+      out.push(`Your matches: ${n(now)}, ${delta > 0 ? 'up' : 'down'} from ${n(then)} a week ago (${delta > 0 ? '+' : '−'}${Math.round((Math.abs(delta) / then) * 100)}%).`)
+    }
+  }
+  const l = input.learned.find((r) => r.before !== null && r.after !== null && r.before !== r.after)
+  if (l) {
+    const phrase = l.trigger && l.trigger in TRIGGER_PHRASE ? TRIGGER_PHRASE[l.trigger as RetuneTrigger] : 'updated your profile'
+    out.push(`You ${phrase}: ${n(l.before!)} → ${s(l.after!, 'match', 'matches')}.`)
+  }
+  if (input.closedBeforeApplied > 0) {
+    const c = input.closedBeforeApplied
+    out.push(`${s(c, 'job')} you saved closed before you applied. Applying within 72 hours of saving beats the rush.`)
+  }
+  return out.slice(0, 3)
+}

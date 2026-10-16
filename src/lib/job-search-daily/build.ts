@@ -4,6 +4,7 @@ import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { whatChangedLines } from '@/lib/personalization/smarter'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
@@ -99,6 +100,10 @@ export interface JobSearchDailyContent {
   action: { label: string; href: string }
   quote: Quote | null
   freshCount: number // new items (jobs, company moves, contact, article) — 0 means nothing new today
+  // "What changed for you" (personalization/smarter.ts whatChangedLines): at most three lines; empty = left out.
+  whatChanged: string[]
+  // The member's strict match count today (board-shortlist.ts marketSize), kept after a send for next week's trend.
+  matchCount: number | null
 }
 
 type Candidate = CandidateProfile
@@ -198,6 +203,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     includeEarlyCareer: earlyCareerInEmails(),
   })
   const postings = emailSafeJobs(shortlist.open)
+  const whatChanged = await loadWhatChanged(candidate.id, shortlist.breadth.marketSize, lastSend?.sentAt ?? new Date(now.getTime() - DAY_MS), now)
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
     const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
@@ -616,6 +622,49 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     action,
     quote,
     freshCount,
+    whatChanged,
+    matchCount: shortlist.breadth.marketSize,
+  }
+}
+
+const CLOSED_REASONS = ['removed', 'expired', 'aged_out']
+
+/** The inputs to "What changed for you": last week's count, retunes since the last email, saved jobs that closed unapplied. Never throws. */
+async function loadWhatChanged(candidateId: string, matchesNow: number | null, since: Date, now: Date): Promise<string[]> {
+  try {
+    const [weekAgo, learned, saved] = await Promise.all([
+      prisma.memberMatchSnapshot.findFirst({
+        where: { candidateId, kind: 'daily', createdAt: { gte: new Date(now.getTime() - 9 * DAY_MS), lte: new Date(now.getTime() - 5 * DAY_MS) } },
+        orderBy: { createdAt: 'asc' },
+        select: { relevant: true },
+      }),
+      prisma.memberMatchSnapshot.findMany({
+        where: { candidateId, kind: 'retune', createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { trigger: true, relevant: true, detail: true },
+      }),
+      prisma.trackedJob.findMany({
+        where: { candidateId, source: 'job_board', savedAt: { not: null }, dismissedAt: null, OR: [{ jobPostingId: null }, { jobPosting: { appliedAt: null } }] },
+        select: { sourceId: true },
+        take: 500,
+      }),
+    ])
+    const closedBeforeApplied =
+      saved.length === 0
+        ? 0
+        : await prisma.exclusiveJobPosting.count({
+            where: { id: { in: saved.map((t) => t.sourceId) }, archivedAt: { gte: since }, closeReason: { in: CLOSED_REASONS } },
+          })
+    return whatChangedLines({
+      matchesNow,
+      matchesWeekAgo: weekAgo?.relevant ?? null,
+      learned: learned.map((r) => ({ trigger: r.trigger, after: r.relevant, before: (r.detail as { before?: { matches?: number } | null } | null)?.before?.matches ?? null })),
+      closedBeforeApplied,
+    })
+  } catch (error) {
+    console.error('Job Search Daily: what changed unavailable:', error)
+    return []
   }
 }
 

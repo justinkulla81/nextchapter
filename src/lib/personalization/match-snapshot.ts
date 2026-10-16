@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { loadActivePreferences } from '@/lib/jobs/job-dismiss-server'
 import { memberBreadthVector } from '@/lib/jobs/search-breadth-server'
 import { matchInputsOf, parseMatchInputs, sameMatchInputs, type MatchInputs } from '@/lib/personalization/match-inputs'
-import type { MatchProfile, MatchState } from '@/lib/personalization/match-compute'
+import type { MatchProfile } from '@/lib/personalization/match-compute'
 
 // MemberMatchSnapshot reads and writes (prisma/manual/2026-10-16-match-snapshots.sql). Every
 // write is best-effort: a failure here never fails the save or the page that called it.
@@ -42,7 +42,7 @@ export async function captureMatchBaseline(profile: MatchProfile): Promise<void>
   try {
     const [inputs, latest] = await Promise.all([
       savedMatchInputs(profile),
-      prisma.memberMatchSnapshot.findFirst({ where: { candidateId: profile.id }, orderBy: { createdAt: 'desc' }, select: { inputs: true } }),
+      prisma.memberMatchSnapshot.findFirst({ where: { candidateId: profile.id, kind: { in: ['baseline', 'retune'] } }, orderBy: { createdAt: 'desc' }, select: { inputs: true } }),
     ])
     const prev = latest ? parseMatchInputs(latest.inputs) : null
     if (prev && sameMatchInputs(prev, inputs)) return
@@ -59,7 +59,7 @@ export async function captureMatchBaseline(profile: MatchProfile): Promise<void>
  */
 export async function previousMatchInputs(candidateId: string, now: MatchInputs): Promise<{ inputs: MatchInputs; at: Date; unchanged: boolean } | null> {
   const rows = await prisma.memberMatchSnapshot.findMany({
-    where: { candidateId, createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } },
+    where: { candidateId, kind: { in: ['baseline', 'retune'] }, createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } },
     orderBy: { createdAt: 'desc' },
     take: 10,
     select: { inputs: true, createdAt: true, kind: true },
@@ -79,7 +79,7 @@ export async function recordMatchSnapshot(input: {
   kind: 'retune' | 'daily'
   trigger?: string | null
   inputs: MatchInputs
-  state: Pick<MatchState, 'counts' | 'ms'> | { counts: { checked: number; matches: number; strong: number | null }; ms: number | null }
+  state: { counts: { checked: number | null; matches: number; strong: number | null }; ms: number | null }
   detail?: Record<string, unknown>
 }): Promise<void> {
   try {

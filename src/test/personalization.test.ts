@@ -244,3 +244,19 @@ describe('your board got smarter', () => {
     expect(smarterLines({ ...base, lastRetune: { trigger: 'tools', at: new Date('2026-10-01T00:00:00Z'), before: 40, after: 60 } })).toEqual([])
   })
 })
+
+import { whatChangedLines } from '@/lib/personalization/smarter'
+
+describe('Job Search Daily: what changed for you', () => {
+  it('omitted when nothing changed', () => {
+    expect(whatChangedLines({ matchesNow: 64, matchesWeekAgo: 62, learned: [], closedBeforeApplied: 0 })).toEqual([])
+    expect(whatChangedLines({ matchesNow: 64, matchesWeekAgo: null, learned: [{ trigger: 'tools', before: 40, after: 40 }], closedBeforeApplied: 0 })).toEqual([])
+  })
+  it('trend, newly learned, and closed-before-applied — three lines at most', () => {
+    expect(whatChangedLines({ matchesNow: 64, matchesWeekAgo: 52, learned: [{ trigger: 'city', before: 1240, after: 410 }], closedBeforeApplied: 2 })).toEqual([
+      'Your matches: 64, up from 52 a week ago (+23%).',
+      'You added your city: 1,240 → 410 matches.',
+      '2 jobs you saved closed before you applied. Applying within 72 hours of saving beats the rush.',
+    ])
+  })
+})

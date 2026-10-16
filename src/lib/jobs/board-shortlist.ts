@@ -484,6 +484,8 @@ export interface BoardShortlist {
     wideTotal: number
     /** Jobs relevant on every criterion (relevance.ts), before the market tier and the display cap. */
     relevantTotal: number
+    /** The member's whole market (relevant in their own industries, their full level window) when this call saw only a date window of it; else relevantTotal. Null without breadth. */
+    marketSize: number | null
     /** The market tier applied (relevance.ts MARKET_TIERS key); null = no breadth. */
     marketTier: string | null
     /** Wide's one-relaxed extras shown. */
@@ -637,6 +639,7 @@ export async function loadBoardShortlist(opts: {
       narrowTotal: ranked.narrowTotal,
       wideTotal: ranked.wideTotal,
       relevantTotal: ranked.relevantTotal,
+      marketSize: classifier ? (marketSize ?? ranked.relevantTotal) : null,
       marketTier: ranked.marketTier,
       extrasTotal: ranked.extrasTotal,
       goodMoreIds: ranked.goodMoreIds,
