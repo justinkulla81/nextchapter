@@ -14,6 +14,7 @@ import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
+import { RepostNote } from '@/components/jobs/RepostNote'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
@@ -369,6 +370,7 @@ export function DiscoverJobCard({
           <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
             <LowCompetitionBadge competition={competition} />
+            <RepostNote posting={posting} />
             <WorkTypePayChips workType={workType} pay={payLabel} />
             {comparePay && posting.payVsMarket && (
               <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
