@@ -29,7 +29,10 @@ describe('active versus casual', () => {
     expect(workingNowOf({})).toBe(false)
   })
   it('casual searchers skip the progress-pushing emails; unset and active members still get them', () => {
-    expect(NOT_CASUAL_WHERE.OR).toEqual([{ searchIntensity: null }, { searchIntensity: 'ACTIVELY_SEARCHING' }])
+    expect(NOT_CASUAL_WHERE.AND[0]).toEqual({ OR: [{ searchIntensity: null }, { searchIntensity: 'ACTIVELY_SEARCHING' }] })
+    // Not-searching journeys and people managing their career are left out too.
+    expect(JSON.stringify(NOT_CASUAL_WHERE.AND[1])).toContain('GROWING')
+    expect(JSON.stringify(NOT_CASUAL_WHERE.AND[2])).toContain('STAYING')
   })
 })
 

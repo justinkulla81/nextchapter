@@ -7,6 +7,7 @@ import { getPace } from '@/lib/weekly/pace'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
+import { isNotSearching } from '@/lib/journey/intensity'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -276,7 +277,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1, o
   const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
   const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isNotSearching(effectiveJourney(p), effectiveStage(p)) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
   // On screens only (never auto-committed by the cron or first sprint): two
   // nudges from their profile (strengths, what to leave behind, how they
   // like to work), text only.

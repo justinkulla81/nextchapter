@@ -1,3 +1,4 @@
+import { isNotSearching } from './intensity'
 import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
@@ -60,7 +61,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     journey,
     stage,
     tone: p.coachingStylePreference,
-    casual: isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
+    casual: isNotSearching(journey, stage) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
     workingNow: workingNowOf(p.journeyDetails),
     conversations,
     aiDisplaced: p.aiDisplacementReason === 'yes' || p.aiDisplacementReason === 'partly',

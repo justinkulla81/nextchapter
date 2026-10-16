@@ -14,9 +14,9 @@ export const metadata: Metadata = { title: 'Screening Questions' }
 const RED_FLAGS_POINTS = estimateActionEffort({ actionType: 'RED_FLAGS_CONFIRMED' }).points
 
 // One of three sub-pages under the My Profile hub (see
-// /dashboard/profile/page.tsx). Shared with your coach and recruiter/
-// employer contacts — helps them match you to roles you're actually
-// eligible for, and flag issues before an offer, not after. Section order
+// /dashboard/profile/page.tsx). Private to the member (affiliations/
+// visibility.ts: screening is visible to no affiliation); it only sharpens
+// their own plan (redFlagGuidance in journey/engagement.ts). Section order
 // puts the most sensitive item (demographic self-ID — protected-class
 // data) in the middle, flanked by the two less-invasive sections.
 export default async function ScreeningPage() {
@@ -31,8 +31,9 @@ export default async function ScreeningPage() {
         </Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Screening Questions</h1>
         <p className="mt-1 text-muted-foreground">
-          Shared with your coach and recruiter/employer contacts — helps them match you to roles
-          you&apos;re actually eligible for, and flag issues before an offer, not after.
+          Private to you. Nobody else sees these answers, not your coach, a recruiter, a college or an
+          employer. We use them to sharpen your own weekly plan and warn you about roles you may not be
+          eligible for, before an offer and not after.
         </p>
         <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>

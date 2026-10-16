@@ -56,6 +56,8 @@ export async function applyJourneyChange(candidateId: string, requested: Journey
     data.journeyStage = toStage
     if (stageChanged) data.journeyStageChangedAt = now
   }
+  // Changing careers means pivoting: ranking and the pivot steps read this flag.
+  if (journeyChanged && toJourney === 'CAREER_CHANGE') data.isPivoting = true
   if (change.details) data.journeyDetails = { ...((p.journeyDetails as Record<string, unknown>) ?? {}), ...change.details } as Prisma.InputJsonValue
   if (Object.keys(data).length) await prisma.candidateProfile.update({ where: { id: candidateId }, data })
 
