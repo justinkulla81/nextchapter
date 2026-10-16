@@ -20,6 +20,13 @@ const OUTBOUND_LOOKBACK_DAYS = 7
 // lookback, since after this it reads as stale nagging rather than a timely
 // nudge.
 const INTERVIEW_LOOKBACK_DAYS = 14
+// Email rows are only read this far back. Every signal above looks at most 21
+// days back (a meeting's thank-you check needs mail sent after it), and an
+// unanswered message older than a month is stale nagging. Loading the whole
+// history ran production out of memory on accounts with years of synced mail,
+// which took the dashboard down for them.
+const EMAIL_HISTORY_DAYS = 30
+const EMAIL_HISTORY_MAX_ROWS = 2000
 
 // trackedEmailActivity.fromAddress stores the raw RFC 5322 header value
 // (sync-gmail.ts writes `from`/`to` straight from the parsed message), which
@@ -201,8 +208,21 @@ export const getNeedsFollowUpList = cache(async function getNeedsFollowUpList(ca
       : Promise.resolve([]),
     emailConnection && !emailConnection.disconnectedAt
       ? prisma.trackedEmailActivity.findMany({
-          where: { candidateId, dismissedAt: null },
+          where: {
+            candidateId,
+            dismissedAt: null,
+            detectedAt: { gte: new Date(now - EMAIL_HISTORY_DAYS * 24 * 60 * 60 * 1000) },
+          },
           orderBy: { detectedAt: 'desc' },
+          take: EMAIL_HISTORY_MAX_ROWS,
+          select: {
+            id: true,
+            direction: true,
+            fromAddress: true,
+            subject: true,
+            isRecruiterContact: true,
+            detectedAt: true,
+          },
         })
       : Promise.resolve([]),
     prisma.supportNetworkContact.findMany({
