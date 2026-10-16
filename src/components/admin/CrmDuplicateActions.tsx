@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { decideAbbreviation, mergeOrganizationGroup, type DuplicateResult } from '@/app/support/admin/(portal)/crm/duplicates/actions'
+import { addManualAlias, decideAbbreviation, mergeCompanyGroup, mergeOrganizationGroup, type DuplicateResult } from '@/app/support/admin/(portal)/crm/duplicates/actions'
 
 function useAction() {
   const [pending, start] = useTransition()
@@ -24,7 +24,7 @@ function Result({ result }: { result: DuplicateResult | null }) {
 }
 
 /** "Keep this one" for each record in a duplicate group, with a confirmation before anything merges. */
-export function MergeGroupActions({ members }: { members: { id: string; name: string }[] }) {
+export function MergeGroupActions({ members, kind = 'organization' }: { members: { id: string; name: string }[]; kind?: 'organization' | 'company' }) {
   const { pending, result, run } = useAction()
   const [choice, setChoice] = useState<string | null>(null)
   const keep = members.find((m) => m.id === choice)
@@ -42,11 +42,11 @@ export function MergeGroupActions({ members }: { members: { id: string; name: st
       ) : (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span>
-            Merge {others.length === 1 ? `“${others[0].name}”` : `${others.length} records`} into “{keep.name}”? Their people, deals and
-            activity move to it. This can’t be undone.
+            Merge {others.length === 1 ? `“${others[0].name}”` : `${others.length} records`} into “{keep.name}”?{' '}
+            {kind === 'company' ? 'Their postings, resumes, intel and CRM records move to it.' : 'Their people, deals and activity move to it.'} This can’t be undone.
           </span>
           <button type="button" autoFocus className={quiet} disabled={pending} onClick={() => setChoice(null)}>Cancel</button>
-          <button type="button" className={danger} disabled={pending} onClick={() => run(() => mergeOrganizationGroup(keep.id, members.map((m) => m.id)))}>
+          <button type="button" className={danger} disabled={pending} onClick={() => run(() => (kind === 'company' ? mergeCompanyGroup : mergeOrganizationGroup)(keep.id, members.map((m) => m.id)))}>
             {pending ? 'Merging…' : 'Merge records'}
           </button>
         </div>
@@ -81,5 +81,41 @@ export function AbbreviationActions({ abbreviation, full }: { abbreviation: { id
       )}
       <Result result={result} />
     </div>
+  )
+}
+
+/** Type a name and the company it stands for, for renames the suggestions can't find. */
+export function AliasForm() {
+  const { pending, result, run } = useAction()
+  const [name, setName] = useState('')
+  const [company, setCompany] = useState('')
+  const field = 'h-8 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand'
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        run(async () => {
+          const r = await addManualAlias(name, company)
+          if (r.ok) { setName(''); setCompany('') } // keep what was typed when it fails
+          return r
+        })
+      }}
+      className={`space-y-2 ${pending ? 'cursor-wait' : ''}`}
+    >
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="space-y-1 text-xs">
+          <span className="block text-muted-foreground">This name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} className={`${field} w-48`} placeholder="e.g. Rtx" />
+        </label>
+        <label className="space-y-1 text-xs">
+          <span className="block text-muted-foreground">means this company</span>
+          <input value={company} onChange={(e) => setCompany(e.target.value)} className={`${field} w-56`} placeholder="e.g. Raytheon" />
+        </label>
+        <button type="submit" disabled={pending} className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground">
+          {pending ? 'Saving…' : 'Save alias'}
+        </button>
+      </div>
+      <Result result={result} />
+    </form>
   )
 }

@@ -28,9 +28,7 @@ export default async function ContactProfilePage({
   params: Promise<{ id: string }>
   searchParams: Promise<{ purpose?: string; ask?: string; hook?: string; role?: string; from?: string }>
 }) {
-  const { id } = await params
-  const sp = await searchParams
-  const profile = await getDashboardData()
+  const [{ id }, sp, profile] = await Promise.all([params, searchParams, getDashboardData()])
 
   const contact = await prisma.supportNetworkContact.findFirst({
     where: { id, candidateId: profile.id },

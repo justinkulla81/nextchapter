@@ -197,7 +197,7 @@
 [
 "Platform Engineer",
 "logies\n\nDeveloping and iterating best practices to increase the quality and velocity of deployments\n\nImplementing industry best practices for system hardening and configuration management\n\nRequired Qualifications:\n\n0-4+ years of experience working with commercial cloud service providers such as AWS, GCP, or Azure\n\nExperience designing and deploying self-managed Kubernetes to commer",
-"EARLY_IC"
+"MID_IC"
 ],
 [
 "Risk Analyst - Global Fixed Income",
@@ -257,7 +257,7 @@
 [
 "Mechanical Commissioning Engineer",
 "te with Design/Construction Team\n\nAssess, recommend and implement industry best practices into new and existing Critical Environment Programs\n\nDevelop process documentation and training materials\n\nQualifications:\n\n4-10+ years experience with Mechanical / HVAC Systems\n\nBachelor\u2019s / Associates Degree as a Mechanical Engineer or relevant experience including Military a plus\n\nExperience commissioning enterprise data centers, colos, and hyperscale companies\n\nData Center Project experience on projects 5 MW or larger a plus\n\n3-5 years of Quality Assurance / Quality Controls, Commissioning, MEP Coordination, or other relevant experience\n\nPrevious experience working with a GC or 3rd Party CxA",
-"EARLY_IC"
+"MID_IC"
 ],
 [
 "Pre-Award Grants Specialist II",
@@ -792,7 +792,7 @@
 [
 "Senior Financial Analyst",
 "0-2 years of experience",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Associate Attorney",
@@ -857,6 +857,131 @@
 [
 "Claims Adjuster",
 "No prior experience required; paid licensing provided.",
+"ENTRY_IC"
+],
+[
+"IT Support Specialist",
+"Qualifications: Bachelor's degree required. 1-2 years of experience.",
+"ENTRY_IC"
+],
+[
+"IT Support Specialist",
+"High school diploma; 1 year of experience.",
+"OTHER"
+],
+[
+"Customer Support Specialist",
+"Qualifications: Bachelor's degree required. ",
+"ENTRY_IC"
+],
+[
+"Customer Support Specialist",
+"No degree needed.",
+"OTHER"
+],
+[
+"Sales Specialist",
+"BA/BS in business preferred.",
+"ENTRY_IC"
+],
+[
+"Sales Specialist Golf",
+"Qualifications: Bachelor's degree required. ",
+"OTHER"
+],
+[
+"Inventory Specialist",
+"4-year degree required.",
+"ENTRY_IC"
+],
+[
+"Patient Access Specialist",
+"Qualifications: Bachelor's degree required. ",
+"OTHER"
+],
+[
+"Regulatory Liaison II",
+"Qualifications: Bachelor's degree required. ",
+"EARLY_IC"
+],
+[
+"Senior Compliance Liaison",
+"Qualifications: Bachelor's degree required. 8+ years of experience.",
+"MID_IC"
+],
+[
+"Customer Service Representative",
+"Qualifications: Bachelor's degree required. ",
+"OTHER"
+],
+[
+"Operations Supervisor",
+"Qualifications: Bachelor's degree required. ",
+"EARLY_IC"
+],
+[
+"Warehouse Coordinator",
+"Qualifications: Bachelor's degree required. ",
+"OTHER"
+],
+[
+"Senior Accountant",
+"Requires 2+ years of public accounting experience.",
+"MID_IC"
+],
+[
+"Senior Accountant",
+"Requires 5+ years of accounting experience.",
+"SENIOR_IC"
+],
+[
+"Senior Financial Analyst",
+"3-5 years of FP&A experience.",
+"MID_IC"
+],
+[
+"Senior Software Engineer",
+"2+ years of experience.",
+"SENIOR_IC"
+],
+[
+"Senior Consultant",
+"Bachelor's degree and 2-4 years of consulting experience.",
+"MID_IC"
+],
+[
+"Financial Analyst",
+"4+ years of experience in corporate finance.",
+"MID_IC"
+],
+[
+"Financial Analyst",
+"3-5 years of experience.",
+"EARLY_IC"
+],
+[
+"Product Marketing Manager",
+"1-3 years of product marketing experience.",
+"ENTRY_IC"
+],
+[
+"Product Marketing Manager",
+"6+ years of B2B marketing experience.",
+"MID_IC"
+],
+[
+"Outside Sales Representative",
+"1+ years of B2B sales experience.",
+"ENTRY_IC"
+],
+[
+"Systems Administrator",
+"5+ years administering Linux servers.",
+"EARLY_IC"
+],
+[
+"Program Analyst (GS-7/9/11)",
+"Bachelor's degree with superior academic achievement.",
 "ENTRY_IC"
 ]
 ]

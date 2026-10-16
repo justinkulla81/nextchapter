@@ -31,7 +31,11 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
   })
   if (!interaction) notFound()
 
-  const brief = await generateEvidenceBrief(id, employer.id, interaction.roleId ?? undefined)
+  // The eligible-submission lookup doesn't depend on the brief, so run them together.
+  const [brief, submission] = await Promise.all([
+    generateEvidenceBrief(id, employer.id, interaction.roleId ?? undefined),
+    getEligibleSubmissionForEmployerCandidate(employer.id, id),
+  ])
   if (!brief) notFound()
 
   const dueWindow = getDueOutcomeWindow(interaction)
@@ -42,7 +46,6 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
   // entries never came through a recruiter submission, so this section is
   // absent for those, same as it was effectively unreachable for most
   // candidates under the retired Hiring Manager portal.
-  const submission = await getEligibleSubmissionForEmployerCandidate(employer.id, id)
   let guide: Awaited<ReturnType<typeof prisma.interviewGuide.findUnique>> = null
   let panel: Awaited<ReturnType<typeof getPanel>> = null
   let scorecardRows: Awaited<ReturnType<typeof getScorecardComparison>> = []

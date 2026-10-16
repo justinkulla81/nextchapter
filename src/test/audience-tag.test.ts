@@ -83,7 +83,8 @@ describe('X-NextChapter-Audience header', () => {
   })
 
   it('reads the intake layout, defaulting to candidate', async () => {
-    // eslint-disable-next-line react/no-children-prop -- the layout's props type requires children
+    // IntakeEmailLayout types `children` as a required prop, which createElement's third argument doesn't satisfy.
+    // eslint-disable-next-line react/no-children-prop
     const mk = (audience?: 'recruiter') => createElement(IntakeEmailLayout, { heading: 'h', footerNote: 'f', audience, children: 'body' })
     await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 's', react: mk() })
     expect(headerOf()).toBe('candidate')

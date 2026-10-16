@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { TrendingUp, TrendingDown, Minus, Users, TriangleAlert, Check } from 'lucide-react'
 import type { CompanySizeBand, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -24,6 +25,7 @@ import { CompanyDirectoryViewed, RankedCompanyLink } from '@/components/companie
 import { FeedbackRequests } from '@/components/companies/FeedbackRequests'
 import { AiPayPremiumCard } from '@/components/companies/AiPayPremiumCard'
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
+import { SectionSkeleton } from '@/components/ui/section-skeleton'
 
 export const metadata: Metadata = { title: 'Companies' }
 
@@ -143,8 +145,67 @@ async function loadDirectoryRows(nameWhere: Prisma.CompanyWhereInput, useBulk: b
   return rows
 }
 
+type DashboardProfile = Awaited<ReturnType<typeof getDashboardProfile>>
+
+function sortFromParams(params: SearchParams): 'fit' | 'az' {
+  return params.sort === 'az' ? 'az' : 'fit'
+}
+
+// The title, intro and sort toggle need no data, so they paint straight away
+// and the same markup is reused once the ranked directory has loaded.
+function CompaniesHeading({ params, children }: { params: SearchParams; children?: React.ReactNode }) {
+  const sort = sortFromParams(params)
+  return (
+    <div className="space-y-2">
+      <h1 className="text-2xl font-semibold tracking-tight">Companies</h1>
+      <p className="text-muted-foreground">
+        {sort === 'fit'
+          ? 'Ranked for you: who is hiring, who is cutting, how close they are, and who you know. Every company shows why it landed where it did.'
+          : 'Hiring signal, who to talk to, and how members have fared — for any company you’re targeting.'}
+      </p>
+      <div className="flex items-center gap-2 pt-1" role="group" aria-label="Sort companies">
+        <Button
+          nativeButton={false}
+          render={<Link href={`/dashboard/companies?${buildQuery(params, { sort: undefined, page: undefined })}`} />}
+          variant={sort === 'fit' ? 'default' : 'outline'}
+          size="sm"
+          aria-pressed={sort === 'fit'}
+        >
+          Best fit for me
+        </Button>
+        <Button
+          nativeButton={false}
+          render={<Link href={`/dashboard/companies?${buildQuery(params, { sort: 'az', page: undefined })}`} />}
+          variant={sort === 'az' ? 'default' : 'outline'}
+          size="sm"
+          aria-pressed={sort === 'az'}
+        >
+          A–Z
+        </Button>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export default async function CompaniesIndexPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
+  const profile = await getDashboardProfile()
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <CompaniesHeading params={params} />
+          <SectionSkeleton label="Loading companies…" lines={6} />
+        </div>
+      }
+    >
+      <CompaniesDirectory params={params} profile={profile} />
+    </Suspense>
+  )
+}
+
+async function CompaniesDirectory({ params, profile }: { params: SearchParams; profile: DashboardProfile }) {
   const query = params.q?.trim() ?? ''
   const page = Math.max(1, Number(params.page) || 1)
   const filterJobs = params.jobs === '1'
@@ -156,9 +217,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
   // "Best fit" is the default: this page is research for a job search, and an
   // alphabetical list of every company in the system answers no question a
   // searcher actually has. A–Z stays one click away for looking up a name.
-  const sort: 'fit' | 'az' = params.sort === 'az' ? 'az' : 'fit'
-
-  const profile = await getDashboardProfile()
+  const sort = sortFromParams(params)
 
   // Ranking is needed for the Best fit order and for the "Strong signals only"
   // filter; plain A–Z lookups skip it (it is a handful of bulk reads).
@@ -251,33 +310,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
         hasFilters={filterJobs || filterNc1 || filterNc2 || filterMine || filterNoContracting || filterStrong}
         hasQuery={!!query}
       />
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Companies</h1>
-        <p className="text-muted-foreground">
-          {sort === 'fit'
-            ? 'Ranked for you: who is hiring, who is cutting, how close they are, and who you know. Every company shows why it landed where it did.'
-            : 'Hiring signal, who to talk to, and how members have fared — for any company you’re targeting.'}
-        </p>
-        <div className="flex items-center gap-2 pt-1" role="group" aria-label="Sort companies">
-          <Button
-            nativeButton={false}
-            render={<Link href={`/dashboard/companies?${buildQuery(params, { sort: undefined, page: undefined })}`} />}
-            variant={sort === 'fit' ? 'default' : 'outline'}
-            size="sm"
-            aria-pressed={sort === 'fit'}
-          >
-            Best fit for me
-          </Button>
-          <Button
-            nativeButton={false}
-            render={<Link href={`/dashboard/companies?${buildQuery(params, { sort: 'az', page: undefined })}`} />}
-            variant={sort === 'az' ? 'default' : 'outline'}
-            size="sm"
-            aria-pressed={sort === 'az'}
-          >
-            A–Z
-          </Button>
-        </div>
+      <CompaniesHeading params={params}>
         {localEconomy && (
           <p className="text-sm text-muted-foreground">
             {[
@@ -311,7 +344,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
             .
           </p>
         )}
-      </div>
+      </CompaniesHeading>
 
       <FeedbackRequests candidateId={profile.id} />
       {aiPay && <AiPayPremiumCard row={aiPay} functionName={aiPay.function} />}

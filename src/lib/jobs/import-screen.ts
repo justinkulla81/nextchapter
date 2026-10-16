@@ -1,4 +1,4 @@
-import { ENTRY_IC_FLOOR, refineLevelByYears, screenJobTitle, type ClassifyOptions, type RungName } from '@/lib/jobs/job-seniority'
+import { degreeLift, ENTRY_IC_FLOOR, refineLevelByYears, screenJobTitle, type ClassifyOptions, type RungName } from '@/lib/jobs/job-seniority'
 import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 
@@ -39,11 +39,16 @@ export function screenImportedJob(
   const location = cleanJobLocation(rawLocation)
   if (!isUsLocation(location) || namesNonUsPlace(title, location, NON_US)) return { keep: false, reason: 'outside the US' }
   const verdict = screenJobTitle(title, { ...opts, floor: IMPORT_SENIORITY_FLOOR })
-  if (!verdict.keep) return { keep: false, reason: verdict.reason }
+  // An excluded title whose posting asks for a bachelor's degree can still be an
+  // early professional role (degreeLift: allowlisted families, never frontline/clinical/retail).
+  const lifted = verdict.keep ? null : degreeLift(title, opts.description)
+  if (!verdict.keep && !lifted) return { keep: false, reason: verdict.reason }
+  const rung = verdict.keep ? verdict.level : lifted!.rung
   // The posting's years requirement settles the stage of an early or mid-level
-  // professional title with no level marker of its own (never above MID_IC).
-  const level = verdict.level === 'ENTRY_IC' || verdict.level === 'EARLY_IC' || verdict.level === 'MID_IC'
-    ? refineLevelByYears(title, { rung: verdict.level as RungName, rank: 0 }, opts.description).rung
-    : verdict.level
+  // professional title with no level marker of its own (never above MID_IC),
+  // and brings a second-grade "Senior" title asking 3 years or fewer to MID_IC.
+  const level = rung === 'ENTRY_IC' || rung === 'EARLY_IC' || rung === 'MID_IC' || rung === 'SENIOR_IC'
+    ? refineLevelByYears(title, { rung: rung as RungName, rank: 0 }, opts.description).rung
+    : rung
   return { keep: true, level, location }
 }

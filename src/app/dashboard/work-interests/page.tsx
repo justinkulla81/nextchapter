@@ -19,14 +19,10 @@ export const metadata: Metadata = { title: 'Work Interests' }
 
 export default async function WorkInterestsPage() {
   const profile = await getDashboardProfile()
-  const response = await prisma.workInterestsResponse.findUnique({ where: { candidateId: profile.id } })
-
-  let questions: InterestQuestion[] | null = null
-  try {
-    questions = await fetchInterestQuestions()
-  } catch {
-    questions = null
-  }
+  const [response, questions] = await Promise.all([
+    prisma.workInterestsResponse.findUnique({ where: { candidateId: profile.id } }),
+    fetchInterestQuestions().catch((): InterestQuestion[] | null => null),
+  ])
 
   const initialAnswers: Record<number, number> = {}
   for (const a of (response?.answers ?? []) as unknown as InterestAnswer[]) initialAnswers[a.index] = a.answer
