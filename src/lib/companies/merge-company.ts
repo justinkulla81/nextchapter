@@ -2,6 +2,8 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { mergeOrganizations } from '@/lib/crm/merge-organization'
+import { moveCultureResponses } from '@/lib/companies/culture-profile'
+import { moveInstitutionTargets } from '@/lib/institution/merge-company-targets'
 
 export type MergeCompanyResult = { ok: true; merged: string; orgNote: string } | { ok: false; reason: string }
 
@@ -46,13 +48,8 @@ export async function mergeCompanies(
     for (const r of survivorEmployment) await tx.memberEmployment.deleteMany({ where: { companyId: sourceId, candidateId: r.candidateId } })
     await tx.memberEmployment.updateMany({ where: from, data: to })
 
-    const survivorCulture = await tx.companyCultureResponse.findMany({ where: { companyId: survivorId }, select: { candidateId: true } })
-    for (const r of survivorCulture) await tx.companyCultureResponse.deleteMany({ where: { companyId: sourceId, candidateId: r.candidateId } })
-    await tx.companyCultureResponse.updateMany({ where: from, data: to })
-
-    const survivorTargets = await tx.institutionTargetCompany.findMany({ where: { companyId: survivorId }, select: { institutionId: true } })
-    for (const r of survivorTargets) await tx.institutionTargetCompany.deleteMany({ where: { companyId: sourceId, institutionId: r.institutionId } })
-    await tx.institutionTargetCompany.updateMany({ where: from, data: to })
+    await moveCultureResponses(tx, survivorId, sourceId)
+    await moveInstitutionTargets(tx, survivorId, sourceId)
 
     // One hiring profile per company: keep the survivor's, or move the source's into the empty slot.
     const survivorProfile = await tx.companyHiringProfile.findUnique({ where: { companyId: survivorId }, select: { id: true } })
