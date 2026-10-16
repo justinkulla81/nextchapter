@@ -4,6 +4,9 @@ import { OrganizationWizard } from '@/components/admin/OrganizationWizard'
 
 export const metadata = { title: 'New organization' }
 
+// Creating a demo can seed a few hundred rows across several portals; give it the plan's longest budget.
+export const maxDuration = 300
+
 // One place to create a customer and give it one or many portals, live or as a demo.
 // Arriving from a won CRM deal (?crm=<id>) pre-fills the name and links the two.
 export default async function NewOrganizationPage({ searchParams }: { searchParams: Promise<{ crm?: string }> }) {

@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { createInstitution } from '@/lib/institution/admin'
 import { createOutplacementOrg } from '@/lib/admin/outplacement-contracts'
+import { clearDemoData, seedDemoCollege, seedDemoWorkspace } from '@/lib/demo/seed'
+import { sizesFor } from '@/lib/demo/scenarios'
 import { normalizeHex, mergeBrand, type PartnerBrand } from '@/lib/partners/brand'
 import { INTEGRATIONS, PORTALS, isPortalType, portalMeta, resolveIntegrations, type IntegrationKey, type PortalType } from './portals'
 import { slugify, uniqueSlug } from './slug'
@@ -93,16 +95,27 @@ export async function createOrganization(input: CreateOrganizationInput, adminEm
 
   const links: Array<{ type: PortalType; label: string; href: string; note: string }> = []
   const undo: Array<() => Promise<unknown>> = []
+  const demoUserIds: string[] = []
   try {
     for (const type of input.portals) {
       const made = await createWorkspace(org, type, { demo, contactName, contactEmail, domain, undo })
-      await prisma.orgWorkspace.create({
+      const ws = await prisma.orgWorkspace.create({
         data: { orgId: org.id, type, refId: made.refId, status: made.pending ? 'PENDING' : 'ACTIVE', inviteEmail: made.inviteEmail ?? null, inviteToken: made.inviteToken ?? null },
       })
+      if (demo) demoUserIds.push(...(await seedDemoWorkspace(org, ws)))
       links.push({ type, label: portalMeta(type).label, href: made.href, note: made.note })
     }
+    if (demo && demoUserIds.length) {
+      await prisma.organization.update({ where: { id: org.id }, data: { features: { demoUserIds } } })
+    }
   } catch (error) {
-    for (const fn of undo.reverse()) await fn().catch(() => null)
+    if (demo) {
+      // A demo can hold a lot of rows; remove all of it, not just the portal records.
+      const fresh = await prisma.organization.findUnique({ where: { id: org.id }, include: { workspaces: true } })
+      if (fresh) await clearDemoData({ ...fresh, features: { demoUserIds } }).catch(() => null)
+    } else {
+      for (const fn of undo.reverse()) await fn().catch(() => null)
+    }
     await prisma.organization.delete({ where: { id: org.id } }).catch(() => null)
     console.error('createOrganization failed:', error)
     return { ok: false, error: error instanceof Error && error.message.startsWith('Could not') ? error.message : 'Something went wrong creating a portal, so nothing was created. Try again.' }
@@ -137,6 +150,11 @@ async function createWorkspace(
 
   switch (type) {
     case 'HIGHER_ED': {
+      if (demo) {
+        // The college demo engine creates the college itself, with sample data.
+        const id = await seedDemoCollege(org, sizesFor(org.demoScenario))
+        return { refId: id, href: `/i/${org.slug}`, note: 'Demo college with 200 sample alumni. Use the demo bar inside it to reset, jump ahead or preview as a role.' }
+      }
       const r = await createInstitution({
         name: org.name,
         slug: org.slug,
@@ -274,3 +292,42 @@ export async function integrationsFor(type: PortalType, refId: string): Promise<
 }
 
 export { PORTALS, slugify }
+
+/**
+ * Puts a demo back to its starting state: removes everything it created and
+ * builds it again at the same size, keeping the organization, its brand and its address.
+ */
+export async function resetDemoOrganization(id: string, adminEmail: string | null): Promise<{ error?: string }> {
+  const org = await prisma.organization.findUnique({ where: { id }, include: { workspaces: true } })
+  if (!org) return { error: 'Organization not found.' }
+  if (!org.isDemo) return { error: 'Only a demo organization can be reset.' }
+  const types = org.workspaces.map((w) => w.type as PortalType)
+  await clearDemoData(org)
+  await prisma.orgWorkspace.deleteMany({ where: { orgId: id } })
+  const fresh = await prisma.organization.update({ where: { id }, data: { features: {}, demoExpiresAt: new Date(Date.now() + DEMO_DAYS * 86_400_000) } })
+  const undo: Array<() => Promise<unknown>> = []
+  const demoUserIds: string[] = []
+  try {
+    for (const type of types) {
+      const made = await createWorkspace(fresh, type, { demo: true, contactName: null, contactEmail: null, domain: fresh.domain, undo })
+      const ws = await prisma.orgWorkspace.create({ data: { orgId: id, type, refId: made.refId, status: made.pending ? 'PENDING' : 'ACTIVE' } })
+      demoUserIds.push(...(await seedDemoWorkspace(fresh, ws)))
+    }
+    await prisma.organization.update({ where: { id }, data: { features: { demoUserIds } } })
+  } catch (error) {
+    console.error('resetDemoOrganization failed:', error)
+    const partial = await prisma.organization.findUnique({ where: { id }, include: { workspaces: true } })
+    if (partial) await clearDemoData({ ...partial, features: { demoUserIds } }).catch(() => null)
+    return { error: 'The demo could not be rebuilt. Its data was cleared; try Reset again.' }
+  }
+  captureServerEvent(adminEmail ?? 'admin', 'demo_organization_reset', { organizationId: id, portals: types })
+  return {}
+}
+
+export async function extendDemoOrganization(id: string, adminEmail: string | null): Promise<{ error?: string }> {
+  const org = await prisma.organization.findUnique({ where: { id }, select: { isDemo: true } })
+  if (!org?.isDemo) return { error: 'Only a demo organization can be extended.' }
+  await prisma.organization.update({ where: { id }, data: { demoExpiresAt: new Date(Date.now() + DEMO_DAYS * 86_400_000) } })
+  captureServerEvent(adminEmail ?? 'admin', 'demo_organization_extended', { organizationId: id })
+  return {}
+}

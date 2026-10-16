@@ -29,6 +29,10 @@
       "schedule": "0 13 * * *"
     },
     {
+      "path": "/api/cron/demo-expiry",
+      "schedule": "30 5 * * *"
+    },
+    {
       "path": "/api/cron/supporter-digest",
       "schedule": "0 15 * * 0"
     },

@@ -3,9 +3,13 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getOrganization, ownedTypes } from '@/lib/organizations/service'
 import { INTEGRATIONS, integrationApplies, portalMeta, resolveIntegrations, type PortalType } from '@/lib/organizations/portals'
-import { DeleteDemoButton, IntegrationToggles, OrganizationBrandForm } from '@/components/admin/OrganizationControls'
+import { DeleteDemoButton, DemoControls, IntegrationToggles, OrganizationBrandForm } from '@/components/admin/OrganizationControls'
+import { demoTargets } from '@/lib/demo/access'
 
 export const metadata = { title: 'Organization' }
+
+// Resetting rebuilds the whole demo, which can take a while.
+export const maxDuration = 300
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 
@@ -70,7 +74,12 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
       {org.isDemo && (
         <section className="space-y-2 rounded-md border border-border p-4" aria-labelledby="demo">
           <h2 id="demo" className="text-lg font-semibold">Demo</h2>
-          <p className="text-sm text-muted-foreground">Sample data only, kept out of real numbers. {org.demoScenario ? `${org.demoScenario} amount of data.` : ''}</p>
+          <p className="text-sm text-muted-foreground">Sample data only, kept out of real numbers, no real email sent. {org.demoScenario ? `${org.demoScenario} amount of data.` : ''}</p>
+          <DemoControls
+            organizationId={org.id}
+            targets={demoTargets(org, org.workspaces).map((t) => ({ key: t.key, label: t.label, needsLink: t.email !== null }))}
+            expires={org.demoExpiresAt ? org.demoExpiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null}
+          />
           <DeleteDemoButton organizationId={org.id} name={org.name} />
         </section>
       )}

@@ -4,7 +4,7 @@ import { useActionState, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { accentReadableOnWhite, normalizeHex } from '@/lib/partners/brand'
 import type { IntegrationKey } from '@/lib/organizations/portals'
-import { deleteDemoOrganizationAction, toggleIntegrationAction, updateBrandAction } from '@/app/support/admin/(portal)/organizations/actions'
+import { deleteDemoOrganizationAction, demoAccessLinkAction, extendDemoAction, resetDemoAction, toggleIntegrationAction, updateBrandAction } from '@/app/support/admin/(portal)/organizations/actions'
 
 const input = 'h-9 w-full rounded-md border border-input bg-background px-3 text-sm'
 
@@ -121,6 +121,115 @@ export function DeleteDemoButton({ organizationId, name }: { organizationId: str
         </button>
       </div>
       {error && <p role="alert" className="text-destructive">{error}</p>}
+    </div>
+  )
+}
+
+export interface DemoTargetView {
+  key: string
+  label: string
+  needsLink: boolean
+}
+
+// Everything an admin does with a demo: open it as each role, reset it, keep it longer.
+export function DemoControls({ organizationId, targets, expires }: { organizationId: string; targets: DemoTargetView[]; expires: string | null }) {
+  const router = useRouter()
+  const [pending, start] = useTransition()
+  const [busy, setBusy] = useState<string | null>(null)
+  const [link, setLink] = useState<{ key: string; url: string } | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+
+  function open(key: string) {
+    setError(null)
+    setMessage(null)
+    setBusy(key)
+    start(async () => {
+      const r = await demoAccessLinkAction(organizationId, key)
+      setBusy(null)
+      if (r.error || !r.url) return setError(r.error ?? 'Could not make a link.')
+      setLink({ key, url: r.url })
+    })
+  }
+  function copy(url: string) {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => setMessage('Link copied. It works once and expires within the hour.'))
+      .catch(() => setMessage('Select the link and copy it.'))
+  }
+
+  return (
+    <div className={`space-y-4 ${pending ? 'cursor-wait' : ''}`}>
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Open the demo as</h3>
+        <ul className="space-y-2">
+          {targets.map((t) => (
+            <li key={t.key} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm">
+              <span>{t.label}</span>
+              <button type="button" onClick={() => open(t.key)} disabled={pending} className="rounded-full border border-border px-4 py-1.5 font-semibold disabled:cursor-wait disabled:opacity-60">
+                {busy === t.key ? 'Making link…' : t.needsLink ? 'Get sign-in link' : 'Open'}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {link && (
+          <div role="status" className="space-y-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-sm">
+            <p className="break-all">
+              <a href={link.url} target="_blank" rel="noreferrer" className="font-medium text-primary underline underline-offset-4">{link.url.slice(0, 90)}{link.url.length > 90 ? '…' : ''}</a>
+            </p>
+            <button type="button" onClick={() => copy(link.url)} className="rounded-full border border-border px-3 py-1 text-xs font-semibold">Copy link</button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        {!confirmReset ? (
+          <button type="button" onClick={() => setConfirmReset(true)} className="rounded-full border border-border px-4 py-2 text-sm font-semibold">
+            Reset demo data
+          </button>
+        ) : (
+          <span className="flex flex-wrap items-center gap-2 text-sm" role="alertdialog" aria-label="Confirm reset">
+            Rebuild all sample data from scratch?
+            <button type="button" onClick={() => setConfirmReset(false)} className="rounded-full border border-border px-3 py-1.5 font-semibold">Keep it</button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                start(async () => {
+                  setError(null)
+                  const r = await resetDemoAction(organizationId)
+                  setConfirmReset(false)
+                  if (r.error) return setError(r.error)
+                  setMessage('Demo rebuilt.')
+                  router.refresh()
+                })
+              }
+              className="rounded-full bg-primary px-3 py-1.5 font-semibold text-primary-foreground disabled:cursor-wait"
+            >
+              {pending ? 'Rebuilding…' : 'Yes, reset'}
+            </button>
+          </span>
+        )}
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const r = await extendDemoAction(organizationId)
+              if (r.error) return setError(r.error)
+              setMessage('Extended by 30 days.')
+              router.refresh()
+            })
+          }
+          className="rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:cursor-wait"
+        >
+          Keep for 30 more days
+        </button>
+        {expires && <span className="text-xs text-muted-foreground">Expires {expires}</span>}
+      </div>
+      {message && <p role="status" className="text-sm text-success">{message}</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>
   )
 }

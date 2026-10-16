@@ -2,10 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
-import { createOrganization, setIntegration, updateOrganizationBrand, type CreateOrganizationResult } from '@/lib/organizations/service'
+import { createOrganization, extendDemoOrganization, resetDemoOrganization, setIntegration, updateOrganizationBrand, type CreateOrganizationResult } from '@/lib/organizations/service'
 import { uploadOrganizationLogo } from '@/lib/organizations/logo'
 import { isPortalType, type IntegrationKey, type PortalType } from '@/lib/organizations/portals'
 import { prisma } from '@/lib/prisma'
+import { clearDemoData } from '@/lib/demo/seed'
+import { createDemoAccessLink } from '@/lib/demo/access'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === 'string' ? (fd.get(k) as string).trim() : '')
 
@@ -69,15 +72,30 @@ export async function deleteDemoOrganizationAction(organizationId: string): Prom
   const org = await prisma.organization.findUnique({ where: { id: organizationId }, include: { workspaces: true } })
   if (!org) return { error: 'Organization not found.' }
   if (!org.isDemo) return { error: 'Only demo organizations can be deleted here.' }
-  for (const w of org.workspaces) {
-    if (!w.refId) continue
-    if (w.type === 'HIGHER_ED') await prisma.institution.delete({ where: { id: w.refId } }).catch(() => null)
-    if (w.type === 'OUTPLACEMENT') await prisma.outplacementEmployerOrg.delete({ where: { id: w.refId } }).catch(() => null)
-    if (w.type === 'COACH') await prisma.coach.delete({ where: { id: w.refId } }).catch(() => null)
-    if (w.type === 'HIRING') await prisma.employerProfile.delete({ where: { id: w.refId } }).catch(() => null)
-    if (w.type === 'RECRUITER') await prisma.recruiterFirm.delete({ where: { id: w.refId } }).catch(() => null)
-  }
+  await clearDemoData(org)
   await prisma.organization.delete({ where: { id: organizationId } })
   revalidatePath('/support/admin/organizations')
   return {}
+}
+
+export async function resetDemoAction(organizationId: string): Promise<{ error?: string }> {
+  const admin = await requireAdmin()
+  const r = await resetDemoOrganization(organizationId, admin.email ?? null)
+  revalidatePath(`/support/admin/organizations/${organizationId}`)
+  return r
+}
+
+export async function extendDemoAction(organizationId: string): Promise<{ error?: string }> {
+  const admin = await requireAdmin()
+  const r = await extendDemoOrganization(organizationId, admin.email ?? null)
+  revalidatePath(`/support/admin/organizations/${organizationId}`)
+  return r
+}
+
+// One-time sign-in link to a sample account of a demo. Logged, because it opens a portal as someone else.
+export async function demoAccessLinkAction(organizationId: string, key: string): Promise<{ url?: string; error?: string }> {
+  const admin = await requireAdmin()
+  const r = await createDemoAccessLink(organizationId, key)
+  if (r.url) captureServerEvent(admin.email ?? 'admin', 'demo_access_link_created', { organizationId, key })
+  return r
 }
