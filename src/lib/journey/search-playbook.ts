@@ -132,7 +132,7 @@ const LAID_OFF: PlaybookMilestone[] = [
   },
 ]
 
-const READY_TO_MOVE: PlaybookMilestone[] = [
+const EXPLORING_MOVE_MILESTONES: PlaybookMilestone[] = [
   {
     atWeek: 4,
     title: 'First month of searching: go through people',
@@ -353,8 +353,7 @@ const STUDENT_NEW_GRAD: PlaybookMilestone[] = [
 export const PLAYBOOKS: Partial<Record<JourneyType, PlaybookMilestone[]>> = {
   STUDENT_NEW_GRAD,
   LAID_OFF,
-  READY_TO_MOVE,
-  EXPLORING_MOVE: READY_TO_MOVE,
+  EXPLORING_MOVE: EXPLORING_MOVE_MILESTONES,
   PROMOTION,
   CAREER_CHANGE,
   RETURNING,

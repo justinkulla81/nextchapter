@@ -12,10 +12,6 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
     expect(SITUATION_TO_JOURNEY.worried_let_go).toBe('EXPLORING_MOVE')
     expect(SITUATION_TO_JOURNEY.ready_to_move).toBe('EXPLORING_MOVE')
   })
-  it('members already on the retired Ready for a new job journey read as Thinking about a move', () => {
-    expect(effectiveJourney({ journey: 'READY_TO_MOVE' })).toBe('EXPLORING_MOVE')
-    expect(getJourney('READY_TO_MOVE').key).toBe('EXPLORING_MOVE')
-  })
   it('managing my career is its own journey: not searching, and never silent', () => {
     expect(getJourney('GROWING')).toMatchObject({ searching: false, employed: true, defaultStage: 'STAYING' })
     expect(getStage('STAYING').label).toBe('Managing your career')
@@ -52,7 +48,7 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
     expect(stageForTiming('EXPLORING_MOVE', 'now')).toBe('APPLYING')
     expect(stageForTiming('EXPLORING_MOVE', '1_3_months')).toBe('PREPARING')
     expect(stageForTiming('EXPLORING_MOVE', '3_6_months')).toBe('EXPLORING')
-    expect(stageForTiming('READY_TO_MOVE', '1_3_months')).toBe('PREPARING')
+    expect(stageForTiming('EXPLORING_MOVE', '1_3_months')).toBe('PREPARING')
     expect(stageForTiming('PROMOTION', 'curious')).toBe('EXPLORING')
   })
   it('each check-in answer is a change', () => {

@@ -6,7 +6,6 @@ import { JOURNEYS, type JourneyType } from '@/lib/journey/journey'
 // homepage and the onboarding situation step so the two never drift.
 const ICONS: Record<JourneyType, LucideIcon> = {
   LAID_OFF: Briefcase,
-  READY_TO_MOVE: DoorOpen, // legacy; not shown
   EXPLORING_MOVE: Shield,
   GROWING: LineChart,
   PROMOTION: TrendingUp,

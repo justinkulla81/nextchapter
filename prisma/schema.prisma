@@ -167,7 +167,6 @@ enum SearchIntensity {
 // CurrentJobStatus is still written alongside it (mapped) for older readers.
 enum JourneyType {
   LAID_OFF // laid off, let go, or resigned without the next job
-  READY_TO_MOVE // legacy: merged into EXPLORING_MOVE (read through normalizeJourney)
   EXPLORING_MOVE // employed and thinking about a move: curious, unhappy, ready, or worried about a layoff (journeyDetails.moveDriver)
   GROWING // employed and staying: reviews, raises, promotion, new skills, recession-proofing
   PROMOTION // the next level, inside or outside

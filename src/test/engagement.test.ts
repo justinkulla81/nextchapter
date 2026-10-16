@@ -55,7 +55,6 @@ describe('connect prompts follow what the person is doing', () => {
     expect(connectReason('GROWING', 'gmail')).toMatch(/managers, sponsors and mentors/)
     expect(connectReason('EXPLORING_MOVE', 'gmail')).toMatch(/never contact anyone/)
     expect(connectReason('CAREER_CHANGE', 'linkedin')).toMatch(/field you want/)
-    expect(connectReason('READY_TO_MOVE', 'gmail')).toBe(connectReason('EXPLORING_MOVE', 'gmail'))
   })
 })
 

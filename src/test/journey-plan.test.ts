@@ -46,9 +46,6 @@ describe('thinking about a move', () => {
     expect(journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1).map((p) => p.text)).toContain('Compare your pay with the market')
     expect(journeyPlanItems('EXPLORING_MOVE', 'PREPARING', 1).map((p) => p.text)).toContain('Line up two references you trust')
   })
-  it('a retired Ready for a new job member gets the same plan', () => {
-    expect(journeyPlanItems('READY_TO_MOVE', 'PREPARING', 1)).toEqual(journeyPlanItems('EXPLORING_MOVE', 'PREPARING', 1))
-  })
   it('worry about a layoff puts runway and benefits first', () => {
     const items = journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1, null, 'layoff_worry').map((p) => p.text)
     expect(items[0]).toMatch(/runway/i)

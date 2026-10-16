@@ -10,7 +10,7 @@ describe('searchClock', () => {
     expect(c).toEqual({ weeks: 14, basis: 'SINCE_LAST_JOB' })
   })
   it('counts weeks since applying started for an employed member', () => {
-    const c = searchClock({ journey: 'READY_TO_MOVE', stage: 'APPLYING', lastJobEndedAt: weeksAgo(100), searchStartedAt: weeksAgo(9), now: NOW })
+    const c = searchClock({ journey: 'EXPLORING_MOVE', stage: 'APPLYING', lastJobEndedAt: weeksAgo(100), searchStartedAt: weeksAgo(9), now: NOW })
     expect(c).toEqual({ weeks: 9, basis: 'SINCE_SEARCH_STARTED' })
   })
   it('is quiet when no search is running', () => {
@@ -33,7 +33,7 @@ describe('playbookPosition', () => {
   it('flags long-term unemployment only for the laid-off clock at 27+ weeks', () => {
     const laid = playbookPosition({ journey: 'LAID_OFF', stage: 'APPLYING', lastJobEndedAt: weeksAgo(28), searchStartedAt: null, now: NOW })
     expect(laid?.isLongTermUnemployed).toBe(true)
-    const employed = playbookPosition({ journey: 'READY_TO_MOVE', stage: 'APPLYING', lastJobEndedAt: null, searchStartedAt: weeksAgo(28), now: NOW })
+    const employed = playbookPosition({ journey: 'EXPLORING_MOVE', stage: 'APPLYING', lastJobEndedAt: null, searchStartedAt: weeksAgo(28), now: NOW })
     expect(employed?.isLongTermUnemployed).toBe(false)
   })
   it('shows the first milestone as next before it is reached', () => {
