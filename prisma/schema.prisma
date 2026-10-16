@@ -9989,6 +9989,7 @@ model CrmOrganization {
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
   institution      Institution?
+  organization     Organization?
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
@@ -15366,6 +15367,73 @@ model CoachAccessCode {
   @@index([coachId])
 }
 
+// ── ORGANIZATIONS (the customer behind one or many partner portals) ─────────
+// A customer is one Organization. It owns one workspace per portal type it
+// bought (higher ed, outplacement, workforce, coach, hiring, recruiter). The
+// existing per-portal tables (Institution, OutplacementEmployerOrg, Coach,
+// EmployerProfile, RecruiterFirm) stay as they are; a workspace points at one
+// of them by refId, so nothing is migrated. Brand set here overrides the brand
+// each portal stores for itself. Demo organizations carry sample data only.
+enum OrgWorkspaceType {
+  HIGHER_ED
+  OUTPLACEMENT
+  WORKFORCE
+  COACH
+  HIRING
+  RECRUITER
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Brand shown in every portal this organization owns.
+  brandName   String?
+  logoUrl     String?
+  accentColor String?
+
+  // Demo: sample data only, never counted in real metrics, expires.
+  isDemo         Boolean   @default(false)
+  demoScenario   String?
+  demoExpiresAt  DateTime?
+  isSampleData   Boolean   @default(false)
+
+  // Which cross-portal connections are turned on for this organization.
+  features Json @default("{}")
+
+  crmOrganizationId String?          @unique
+  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
+
+  createdBy  String?
+  workspaces OrgWorkspace[]
+
+  @@index([isDemo, demoExpiresAt])
+}
+
+model OrgWorkspace {
+  id     String           @id @default(cuid())
+  orgId  String
+  org    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  type   OrgWorkspaceType
+  // The portal's own record: Institution, OutplacementEmployerOrg, Coach,
+  // EmployerProfile or RecruiterFirm id. Null until it exists (a hiring team
+  // exists only once its first person signs up through the invite).
+  refId  String?
+  // ACTIVE | PENDING (waiting on the first sign-up) | SUSPENDED
+  status String           @default("ACTIVE")
+  // For workspaces whose first admin signs up themselves.
+  inviteEmail String?
+  inviteToken String?      @unique
+  createdAt   DateTime     @default(now())
+
+  @@unique([orgId, type])
+  @@index([type, refId])
+}
+
 // Internships (owner rule: internships only appear in Higher Ed portals). Their
 // own table, never ExclusiveJobPosting, so no member board, email, alert, pivot
 // or company count can read one by accident. Written by the ncrawl internship
@@ -15405,4 +15473,24 @@ model InternshipPosting {
   @@index([archivedAt, field])
   @@index([institutionId])
   @@index([addedBy, lastConfirmedAt])
+}
+
+// Who did what in a partner portal: exports, brand and team changes, demo access.
+// One table for every portal type; portal + refId says whose it is (the portal's
+// own record id), so each partner sees only their own activity. Written best-effort
+// and never used to gate anything.
+model PartnerAuditEvent {
+  id          String           @id @default(cuid())
+  portal      OrgWorkspaceType
+  refId       String
+  actorUserId String?
+  actorLabel  String?
+  action      String
+  targetType  String?
+  targetId    String?
+  detail      Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([portal, refId, createdAt])
+  @@index([actorUserId, createdAt])
 }

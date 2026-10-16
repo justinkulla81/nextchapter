@@ -35,6 +35,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const org = await prisma.crmOrganization.findFirst({
     where: { OR: [{ id: param }, { canonicalNameNormalized: canonicalFromSlug(param) }] },
     include: {
+      organization: { select: { id: true, name: true } },
       affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
       mandates: { include: { recruiter: { select: { id: true, fullName: true } } }, orderBy: { createdAt: 'desc' } },
       opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
@@ -758,6 +759,28 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             <CrmGraduateOrganization orgId={org.id} outplacementOrgId={org.outplacementOrgId} />
           </div>
         )}
+
+        <div>
+          <h3 className="mb-1 text-sm font-semibold">Customer portals</h3>
+          {org.organization ? (
+            <p className="text-sm">
+              This record is the customer{' '}
+              <Link href={`/support/admin/organizations/${org.organization.id}`} className="font-medium text-primary underline underline-offset-4">
+                {org.organization.name}
+              </Link>
+              . Its portals, brand and demo are managed there.
+            </p>
+          ) : (
+            <>
+              <p className="mb-2 text-xs text-muted-foreground">
+                When this deal is won, create the customer: choose its portals (one or many), brand it, and make it live or a demo with sample data.
+              </p>
+              <Link href={`/support/admin/organizations/new?crm=${org.id}`} className="inline-block rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                Create organization and portals
+              </Link>
+            </>
+          )}
+        </div>
       </section>
     </div>
   )

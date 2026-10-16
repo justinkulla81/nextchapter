@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
+import type { PartnerBrand } from '@/lib/partners/brand'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -50,6 +51,7 @@ function buildLinks(messagesUnreadCount: number): NavLink[] {
     { href: '/talent/analytics', label: 'Hiring Analytics' },
     { href: '/talent/job-board/submissions', label: 'Job Board' },
     { href: '/talent/team', label: 'Team' },
+    { href: '/talent/activity', label: 'Downloads and activity' },
     { href: '/talent/settings', label: 'Settings' },
   ]
 }
@@ -98,7 +100,7 @@ function NavContent({
   )
 }
 
-export function TalentNav({ messagesUnreadCount = 0 }: { messagesUnreadCount?: number }) {
+export function TalentNav({ messagesUnreadCount = 0, brand }: { messagesUnreadCount?: number; brand?: PartnerBrand }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const links = buildLinks(messagesUnreadCount)
@@ -106,7 +108,7 @@ export function TalentNav({ messagesUnreadCount = 0 }: { messagesUnreadCount?: n
 
   return (
     <>
-      <PartnerTopBar surface="employer">
+      <PartnerTopBar surface="employer" brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -122,7 +124,7 @@ export function TalentNav({ messagesUnreadCount = 0 }: { messagesUnreadCount?: n
       </PartnerTopBar>
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" />
+        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
         <NavContent pathname={pathname} links={links} />
       </aside>
 
@@ -130,7 +132,7 @@ export function TalentNav({ messagesUnreadCount = 0 }: { messagesUnreadCount?: n
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" />
+            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>

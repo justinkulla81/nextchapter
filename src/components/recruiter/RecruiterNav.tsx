@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
+import type { PartnerBrand } from '@/lib/partners/brand'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -50,6 +51,7 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
     { href: `/recruiters/job-board/submit/${accessToken}`, label: 'Post to Job Board' },
     { href: `/recruiters/job-board/submissions/${accessToken}`, label: 'My Postings' },
     { href: `/recruiters/calibrate/${accessToken}`, label: 'Search Calibration Memo' },
+    { href: '/recruiters/activity', label: 'Downloads and activity' },
     { href: '/recruiters/settings', label: 'Settings' },
   ]
 }
@@ -100,8 +102,10 @@ export function RecruiterNav({
   messagesUnreadCount = 0,
   actionCount = 0,
   talentDraftCount = 0,
+  brand,
 }: {
   accessToken: string
+  brand?: PartnerBrand
   messagesUnreadCount?: number
   actionCount?: number
   // NextChapter Talent replies waiting for this recruiter's approval.
@@ -118,7 +122,7 @@ export function RecruiterNav({
 
   return (
     <>
-      <PartnerTopBar surface="recruiter">
+      <PartnerTopBar surface="recruiter" brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -134,7 +138,7 @@ export function RecruiterNav({
       </PartnerTopBar>
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" />
+        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
         <NavContent pathname={pathname} links={links} />
       </aside>
 
@@ -142,7 +146,7 @@ export function RecruiterNav({
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" />
+            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>
