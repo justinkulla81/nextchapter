@@ -15,7 +15,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 
 *Claims to review before launch:* the "best coach" superlative (logged in `docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
 
-## 2. Journeys (why you are moving): 8
+## 2. Journeys (why you are moving): 11 (see `docs/JOURNEY_AUDIT.md`; the table below lists the first 8, plus Taking a break, Happy with fractional and Building something of my own)
 
 | Journey | Starts at | Confidential by default | Goal |
 |---|---|---|---|
