@@ -91,6 +91,10 @@ const nextConfig: NextConfig = {
         source: "/ingest/decide",
         destination: `${posthogHost}/decide`,
       },
+      // College and workforce org portals: public addresses for the /i app
+      // (its own login cookie; see src/lib/supabase/portal.ts).
+      { source: "/highered/:path*", destination: "/i/:path*" },
+      { source: "/workforce/:path*", destination: "/i/:path*" },
     ];
   },
   // Unhashed files in public/ otherwise get `max-age=0, must-revalidate`, so a returning

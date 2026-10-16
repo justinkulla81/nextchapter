@@ -24,7 +24,11 @@ function withBudget<T>(work: Promise<T>, ms: number, label: string): Promise<T> 
   return Promise.race([work, timeout]).finally(() => clearTimeout(timer))
 }
 
-const WINDOW_DAYS = 7
+const WINDOW_DAYS = 7 // activity counts
+// New roles are the last 72h (the product's apply-early window). A 7-day window
+// ranks ~120k board rows per client and ran the cron out of time on a small instance;
+// the 24h alert cron ranks ~11k and finishes in ~20s.
+const NEW_ROLES_HOURS = 72
 const MAX_JOBS_PER_CLIENT = 3
 const SHORTLIST_SIZE = 30
 
@@ -55,7 +59,7 @@ export interface DigestClient {
   /** Why this client needs a conversation this week (stalled, risk triggers). */
   attention: string[]
   goodNews: string[]
-  /** Strong-fit roles posted in the last 7 days the client hasn't already tracked. */
+  /** Strong-fit roles posted in the last 72 hours the client hasn't already tracked. */
   newJobs: DigestJob[]
   fullViewPath: string
 }
@@ -92,7 +96,7 @@ function normalizeUrl(url: string | null | undefined): string | null {
   }
 }
 
-// Strong-fit board roles posted in the last week, minus anything the client
+// Strong-fit board roles posted in the last 72 hours, minus anything the client
 // is already tracking or has already applied to. Same fit gate as the
 // client's own fresh-job alert (isVeryStrongBoardFitFor), so a coach sees what
 // the client sees — nothing looser.
@@ -100,17 +104,19 @@ async function findNewStrongFitJobs(
   candidateId: string,
   candidate: Parameters<typeof loadBoardShortlist>[0]['candidate']
 ): Promise<DigestJob[]> {
+  const t0 = Date.now()
   const [dossier, tracked] = await Promise.all([
     isDossierUnlocked(candidateId),
     prisma.jobPosting.findMany({ where: { candidateId, url: { not: null } }, select: { url: true } }),
   ])
+  console.log(`Coach digest: dossier+tracked for ${candidateId.slice(0, 8)} ${Date.now() - t0}ms`)
   const trackedUrls = new Set(tracked.map((t) => normalizeUrl(t.url)).filter((u): u is string => !!u))
   // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
   const fitScoring = emailFitScoringVersion()
   const board = await loadBoardShortlist({
     candidate,
     isCandidatePlus: dossier.unlocked,
-    where: postedWithinWhere(WINDOW_DAYS * 24),
+    where: postedWithinWhere(NEW_ROLES_HOURS),
     size: SHORTLIST_SIZE,
     fitScoring,
     // Mid-level and early-career jobs stay out of emails until the owner turns on
@@ -143,8 +149,10 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
   const unavailableNames: string[] = []
   const clients: DigestClient[] = []
 
-  await Promise.all(
-    caseload.map(async (entry) => {
+  // One client at a time: each ranks the board in memory, and doing three at
+  // once on a small instance is what ran the cron out of memory/time.
+  for (const entry of caseload) {
+    await (async () => {
       const profile = profileById.get(entry.id)
       // Same gate as the Full Client View: being assigned is not consent.
       if (!profile || profile.coachDossierConsentedAt === null) {
@@ -202,8 +210,8 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         newJobs,
         fullViewPath: `/support/coach/clients/${accessToken}/${entry.id}/full`,
       })
-    })
-  )
+    })()
+  }
 
   clients.sort((a, b) => b.attention.length - a.attention.length || a.name.localeCompare(b.name))
   notSharedNames.sort()

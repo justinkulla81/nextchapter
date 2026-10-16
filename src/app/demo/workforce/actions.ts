@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { InstitutionOrgType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { DEMO_GUEST_COOKIE, DEMO_GUEST_DAYS, guestCookieValue, guestSlugs } from '@/lib/higher-ed/demo-guest'
 import { generateWorkforceDemo } from '@/lib/workforce/demo'
@@ -25,7 +25,7 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
   const email = values.email.toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Add your work email so we know who the demo is for.', values }
 
-  const user = await getCurrentUser()
+  const user = await getOrgUser()
   const admin = user ? await isNcAdmin(user.id, user.email ?? null) : false
   if (!admin) {
     if (!(await allowByIp('workforce-demo', 3, DAY_MS)) || !(await allowByTarget('workforce-demo-email', email, 3, DAY_MS))) return { error: RATE_LIMITED_MESSAGE, values }
@@ -54,7 +54,7 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
   if (!admin) {
     const store = await cookies()
     const mine = guestSlugs(store.get(DEMO_GUEST_COOKIE)?.value)
-    store.set(DEMO_GUEST_COOKIE, guestCookieValue([...mine, r.slug]), { path: '/i', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: DEMO_GUEST_DAYS * 86_400 })
+    store.set(DEMO_GUEST_COOKIE, guestCookieValue([...mine, r.slug]), { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: DEMO_GUEST_DAYS * 86_400 })
   }
-  redirect(`/i/${r.slug}/hub`)
+  redirect(`/workforce/${r.slug}/hub`)
 }

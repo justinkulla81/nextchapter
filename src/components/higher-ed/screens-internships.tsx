@@ -16,6 +16,8 @@ import { InternshipLink, InternshipsViewed } from './InternshipTracking'
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: Record<string, string | undefined> }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+// Aggregator partner terms ask us to name them next to their listings.
+const ATTRIBUTED_SOURCES = new Set(['Jooble', 'Careerjet'])
 const selectClass = 'h-9 rounded-md border border-input bg-background px-2 text-sm'
 
 export async function InternshipsScreen({ ctx, searchParams }: Props) {
@@ -92,7 +94,7 @@ export async function InternshipsScreen({ ctx, searchParams }: Props) {
             {rows.map((r) => {
               const pay = payBasisLabel({ title: r.title, salaryMin: r.salaryMin, salaryMax: r.salaryMax, payPeriod: r.payPeriod, workType: 'internship' })
               const term = r.term ? `${INTERNSHIP_TERM_LABEL[r.term as InternshipTerm] ?? r.term}${r.termYear ? ` ${r.termYear}` : ''}` : null
-              const facts = [r.field ? INTERNSHIP_FIELD_LABEL[r.field as InternshipField] : null, term, pay, r.deadline ? `Apply by ${dateFmt.format(r.deadline)}` : null].filter(Boolean)
+              const facts = [r.field ? INTERNSHIP_FIELD_LABEL[r.field as InternshipField] : null, term, pay, r.deadline ? `Apply by ${dateFmt.format(r.deadline)}` : null, r.sourceName && ATTRIBUTED_SOURCES.has(r.sourceName) ? `via ${r.sourceName}` : null].filter(Boolean)
               return (
                 <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="min-w-0">

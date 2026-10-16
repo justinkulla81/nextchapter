@@ -85,7 +85,7 @@ export async function inviteInstitutionUser(input: {
 // lets one person be both college staff and an alum, and /i/[slug] resolves
 // both from the same login. Returns the slug so the caller can land them there.
 export async function finishAcceptingInstitutionInvite(inviteToken: string): Promise<{ error?: string; slug?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('org')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -80,7 +80,9 @@ export function CallbackHandler() {
             ? 'eqoveriq'
             : nextIsOutplacementOrgInvite
               ? 'employer'
-              : undefined
+              : nextIsInstitutionInvite || (institutionJoinPath && /\/member\//.test(institutionJoinPath))
+                ? 'org'
+                : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token

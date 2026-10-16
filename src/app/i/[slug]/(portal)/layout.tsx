@@ -3,7 +3,9 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { signOutOrg } from './session-actions'
+import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -38,7 +40,8 @@ export default async function InstitutionPortalLayout({
     // x-pathname is set by the proxy (src/lib/supabase/middleware.ts), so a
     // deep link comes back to the same page after login.
     const path = (await headers()).get('x-pathname') ?? `/i/${slug}`
-    redirect(`/auth/login?next=${encodeURIComponent(path)}`)
+    const login = path.startsWith('/workforce/') ? '/workforce/login' : path.startsWith('/highered/') ? '/highered/login' : '/i/login'
+    redirect(`${login}?next=${encodeURIComponent(path)}`)
   }
   if (!access) notFound()
 
@@ -65,12 +68,13 @@ export default async function InstitutionPortalLayout({
     key: w.key,
     label: labelFor(w, orgKindOf(institution.orgType)),
     icon: w.icon,
-    href: `/i/${slug}/${w.homePath}`,
+    href: `${orgBasePath(slug, institution.orgType)}/${w.homePath}`,
     badge: w.release === 'V2' ? 'Coming' : locked.has(w.key) && w.minTier ? `${TIER_LABELS[w.minTier]} tier` : null,
   }))
 
   return (
     <div className="theme-partner flex min-h-screen flex-col bg-background" style={theme}>
+      <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
       {institution.isDemo && (
         <DemoBar
           slug={slug}
@@ -105,7 +109,7 @@ export default async function InstitutionPortalLayout({
             ) : (
               <>
                 <span className="hidden text-muted-foreground sm:inline">{access.email}</span>
-                <form action={signOut}>
+                <form action={access.via === 'org' ? signOutOrg.bind(null, `${orgBasePath(slug, institution.orgType)}`) : signOut}>
                   <button type="submit" className="font-medium text-muted-foreground hover:text-foreground">
                     Sign out
                   </button>

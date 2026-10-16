@@ -73,6 +73,10 @@ export type OrgKind = 'college' | 'workforce'
 
 export const orgKindOf = (t: InstitutionOrgType | null | undefined): OrgKind => (!t || t === 'COLLEGE' ? 'college' : 'workforce')
 
+// The portal's public address: /highered/<slug> for a college,
+// /workforce/<slug> for a workforce org (both served from /i/<slug>).
+export const orgBasePath = (slug: string, t: InstitutionOrgType | null | undefined) => `/${orgKindOf(t) === 'workforce' ? 'workforce' : 'highered'}/${slug}`
+
 export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
   COLLEGE: 'College or university',
   WORKFORCE_BOARD: 'Workforce board',

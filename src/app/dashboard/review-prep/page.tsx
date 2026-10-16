@@ -38,6 +38,13 @@ export default async function ReviewPrepPage() {
         <p className="mt-1 text-muted-foreground">
           For a review, a raise, a promotion or an offer conversation. This is what you have already recorded, and what you save here is private to you.
         </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Want to log wins as they happen, or prep for each review cycle?{' '}
+          <Link href="/dashboard/in-work" className="text-primary underline underline-offset-4">
+            Open Reviews and raises
+          </Link>
+          .
+        </p>
         <p className="mt-2 text-sm font-medium text-foreground">{STRENGTH_COPY[c.strength]}</p>
       </div>
 

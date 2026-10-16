@@ -146,7 +146,7 @@ export default async function CrmDatesPage() {
                     <td className="px-3 py-1.5 whitespace-nowrap text-muted-foreground">
                       {d.lastCheckedAt ? formatDate(d.lastCheckedAt) : 'Never'}
                     </td>
-                    <td className="px-3 py-1.5">
+                    <td className="min-w-72 px-3 py-1.5">
                       <CrmDateCheckButton deadlineId={d.id} hasSource={Boolean(d.sourceUrl ?? d.org?.website)} sourceUrl={d.sourceUrl ?? d.org?.website} />
                     </td>
                   </tr>
