@@ -1,101 +1,144 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, ChevronDown, ArrowRight, type LucideIcon } from 'lucide-react'
+import { Building2, Users, Landmark, GraduationCap, HeartHandshake, ChevronDown, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { ContactForm } from '@/components/marketing/ContactForm'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: 'For Organizations',
+  title: 'For Organizations and Coaches',
   description:
-    'Whether you hire, recruit, place, fund, or serve jobseekers, NextChapter partners with employers, agencies, and institutions. See how we work together.',
+    'What NextChapter gives employers, recruiters, coaches, colleges, nonprofits and workforce agencies, in plain terms. Free for the people you serve.',
   alternates: { canonical: '/for-organizations' },
   openGraph: {
-    title: 'For Organizations — NextChapter',
-    description:
-      'Whether you hire, recruit, place, fund, or serve jobseekers, NextChapter partners with employers, agencies, and institutions.',
+    title: 'For Organizations and Coaches — NextChapter',
+    description: 'What NextChapter gives employers, recruiters, coaches, colleges, nonprofits and workforce agencies, in plain terms.',
     url: 'https://launchyournextchapter.com/for-organizations',
   },
 }
 
-const ORG_CARDS: {
-  href: string
+// One card per kind of partner: who it's for, exactly what they get, where to
+// read more and where to log in. Employers have four programs on one account.
+type Partner = {
+  id: string
   title: string
-  teaser: string
+  who: string
   icon: LucideIcon
   accent: string
-}[] = [
+  gets: string[]
+  learnMore: { href: string; label: string }
+  login: { href: string; label: string } | null
+}
+
+const EMPLOYER_PROGRAMS: { title: string; who: string; gets: string; href: string }[] = [
   {
-    // Points at Talent (post a role, hire our candidates directly) — not
-    // /employers/outplacement, a different product (help departing
-    // employees relaunch). This teaser has always described Talent's
-    // pitch, so the two were mismatched until this fix.
+    title: 'Hiring',
+    who: 'Filling roles',
+    gets: 'Post a role, see matched candidates who chose to be seen, and ask for introductions.',
     href: '/talent',
-    title: 'Employers',
-    teaser: 'Hire for how people actually work, at one flat price.',
-    icon: Building2,
-    accent: 'text-brand bg-brand/10',
   },
   {
-    href: '/recruiters',
-    title: 'Recruiters & Agencies',
-    teaser: 'Source verified, opted-in talent the filters miss.',
-    icon: Users,
-    accent: 'text-light-blue bg-light-blue/10',
-  },
-  {
+    title: 'Outplacement',
+    who: 'People leaving',
+    gets: 'A seat for each person: job-search tools, coaching and a recruiter network. You see participation and outcomes as counts.',
     href: '/outplacement',
-    title: 'Outplacement & HR',
-    teaser: 'Give departing employees a real relaunch.',
-    icon: Briefcase,
-    accent: 'text-orange bg-orange/10',
   },
   {
-    href: '/government-workforce',
-    title: 'Government & Workforce',
-    teaser: 'Help the people you serve get back to work faster.',
-    icon: Landmark,
-    accent: 'text-navy bg-navy/10',
+    title: 'Growth',
+    who: 'People staying',
+    gets: 'Review and raise prep, promotion plans, and internal roles only your people see. You see counts by team, never who.',
+    href: '#contact',
   },
   {
-    href: '/nonprofits',
-    title: 'Nonprofits & Academia',
-    teaser: 'Partner on the mission, and on the research.',
-    icon: GraduationCap,
-    accent: 'text-success bg-success/10',
-  },
-  {
-    href: '/coaches',
-    title: 'Coaches',
-    teaser: 'Stop rebuilding context before every session.',
-    icon: HeartHandshake,
-    accent: 'text-brand bg-brand/10',
+    title: 'Learning',
+    who: 'People staying',
+    gets: 'A skills plan for each person’s role and next role, with the courses you cover first. You see how many started and finished.',
+    href: '#contact',
   },
 ]
 
-const WHY_PARTNER = [
+const PARTNERS: Partner[] = [
   {
-    title: "They leave with something durable.",
-    body: 'Not a login that expires — a verified Executive Dossier, references, and a membership that outlasts any contract or engagement.',
+    id: 'recruiters',
+    title: 'Recruiters and agencies',
+    who: 'Search firms, staffing agencies and in-house sourcers.',
+    icon: Users,
+    accent: 'text-light-blue bg-light-blue/10',
+    gets: [
+      'Search candidates who opted in to be found, with their resume and work history.',
+      'A resume page in your logo, with each resume routed to the right recruiter.',
+      'Candidates who arrive with their file already built.',
+    ],
+    learnMore: { href: '/recruiters', label: 'For recruiters' },
+    login: { href: '/recruiters/login', label: 'Recruiter log in' },
   },
   {
-    title: 'You see what&apos;s actually happening.',
-    body: 'Live utilization and aggregate outcomes for your program, not a quarterly PDF you have to chase down.',
+    id: 'coaches',
+    title: 'Coaches',
+    who: 'Independent career coaches and coaching practices. No organization needed.',
+    icon: HeartHandshake,
+    accent: 'text-brand bg-brand/10',
+    gets: [
+      'Invite your clients with a code; you keep billing them your way.',
+      'See the plan, applications and progress each client chooses to share, before every session.',
+      'Track sessions left and share your scheduling link.',
+    ],
+    learnMore: { href: '/coaches', label: 'For coaches' },
+    login: { href: '/support/coach/login', label: 'Coach log in' },
   },
   {
-    title: 'Free for the people you serve.',
-    body: 'The core candidate platform is free, always — your organization pays for the reporting, compliance, and program layer on top of it.',
+    id: 'colleges',
+    title: 'Colleges and nonprofits',
+    who: 'Alumni relations, career services, development and mission-driven programs.',
+    icon: GraduationCap,
+    accent: 'text-success bg-success/10',
+    gets: [
+      'A workspace for your alumni or participants, in your colors.',
+      'Outcomes reporting in counts, with small groups held back.',
+      'Mentors, employer partners and jobs posted only for your people.',
+    ],
+    learnMore: { href: '/nonprofits', label: 'For colleges and nonprofits' },
+    login: null,
+  },
+  {
+    id: 'workforce',
+    title: 'Government and workforce',
+    who: 'Workforce boards, economic development groups, chambers and state agencies.',
+    icon: Landmark,
+    accent: 'text-navy bg-navy/10',
+    gets: [
+      'A program workspace for job seekers in your region.',
+      'A layoff response sign-up page for workers affected by a layoff in your area.',
+      'Your member companies, with hiring and outplacement seats you can sponsor.',
+    ],
+    learnMore: { href: '/government-workforce', label: 'For government and workforce' },
+    login: null,
   },
 ]
+
+const LOGINS: { href: string; label: string }[] = [
+  { href: '/talent/login', label: 'Employers: hiring' },
+  { href: '/employer/login', label: 'Employers: outplacement, growth and learning' },
+  { href: '/recruiters/login', label: 'Recruiters' },
+  { href: '/support/coach/login', label: 'Coaches' },
+]
+
+function Gets({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+      {items.map((g) => (
+        <li key={g} className="flex gap-2">
+          <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" />
+          <span>{g}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export default function ForOrganizationsPage() {
   return (
     <div className="flex flex-1 flex-col">
-      {/* Hero — same header/hero pattern as the candidate homepage
-          (src/app/page.tsx): white header with nav + Log in, centered bold
-          navy headline, muted subhead, orange accent rule at the base. */}
       <section className="relative bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
           <Link href="/">
@@ -110,131 +153,115 @@ export default function ForOrganizationsPage() {
                 Log in
                 <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
               </summary>
-              <div className="absolute right-0 z-10 mt-2 w-48 rounded-md border border-border bg-white py-1 shadow-md">
-                {/* Each entry routes to the SAME login the matching tile
-                    below links to — e.g. "Employers" here must land on the
-                    same portal as the "Employers" card, not a different,
-                    unrelated one. */}
-                <Link href="/talent/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Employers
-                </Link>
-                <Link href="/employer/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Outplacement, growth &amp; learning
-                </Link>
-                <Link href="/recruiters/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Recruiters &amp; Agencies
-                </Link>
-                <Link href="/support/coach/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Coaches
-                </Link>
+              <div className="absolute right-0 z-10 mt-2 w-72 rounded-md border border-border bg-white py-1 shadow-md">
+                {LOGINS.map((l) => (
+                  <Link key={l.href} href={l.href} className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
+                    {l.label}
+                  </Link>
+                ))}
               </div>
             </details>
           </nav>
         </div>
 
-        <div className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-6xl">For organizations</h1>
+        <div className="mx-auto max-w-4xl px-6 pt-16 pb-16 text-center">
+          <p className="text-sm font-semibold tracking-wide text-brand uppercase">For organizations and coaches</p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-navy sm:text-6xl">Work with NextChapter</h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            NextChapter is a candidate-first platform that helps people get back to work — and a partner to
-            the organizations that hire, place, fund, and serve them. Choose your path below, or read the monthly{' '}
-            <Link href="/reports/latest" className="text-brand underline underline-offset-4">White Collar Employment Report</Link>{' '}
-            for the labor-market data behind it.
+            Find yourself below and see exactly what you get. NextChapter is always free for the people you serve; you pay for the program and reporting on top.
           </p>
+          <nav aria-label="Jump to" className="mt-8 flex flex-wrap justify-center gap-2 text-sm">
+            {[{ id: 'employers', title: 'Employers' }, ...PARTNERS].map((p) => (
+              <a key={p.id} href={`#${p.id}`} className="rounded-full border border-border px-3 py-1.5 font-medium text-navy hover:border-brand hover:text-brand">
+                {p.title}
+              </a>
+            ))}
+          </nav>
         </div>
 
         <div className="h-1.5 w-full bg-orange" />
       </section>
 
-      {/* Org-type picker */}
-      <section className="bg-off-white py-20">
+      {/* Employers: four programs, one account. */}
+      <section id="employers" aria-labelledby="employers-title" className="scroll-mt-6 bg-off-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {ORG_CARDS.map((card) => {
-              const Icon = card.icon
-              return (
-                <Link key={card.href} href={card.href} className="group block h-full">
-                  <Card className="h-full border-light-gray bg-white transition-colors group-hover:border-brand group-hover:shadow-md">
-                    <CardContent className="pt-6">
-                      <div className={cn('flex size-11 items-center justify-center rounded-lg', card.accent)}>
-                        <Icon className="size-5" />
-                      </div>
-                      <h2 className="mt-4 flex items-center gap-1.5 font-semibold text-navy">
-                        {card.title}
-                        <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-brand" />
-                      </h2>
-                      <p className="mt-2 text-sm text-muted-foreground">{card.teaser}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
+          <div className="flex items-start gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+              <Building2 className="size-5" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 id="employers-title" className="text-2xl font-bold tracking-tight text-navy">
+                Employers
+              </h2>
+              <p className="mt-1 max-w-3xl text-muted-foreground">
+                Companies of any size. Four programs on one employer account: hire, help people leaving, and keep and grow the people staying.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Why partner with NextChapter — same 3-beat pattern as the
-          candidate homepage's "three beats" section. */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-navy">Why organizations partner with us</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            Every path above sits on the same free, candidate-first platform — what changes is the reporting
-            and program layer built for your role.
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {EMPLOYER_PROGRAMS.map((p) => (
+              <Link key={p.title} href={p.href} className="group block h-full rounded-xl border border-light-gray bg-white p-5 transition-colors hover:border-brand">
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{p.who}</p>
+                <h3 className="mt-1 font-semibold text-navy group-hover:text-brand">{p.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{p.gets}</p>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Whatever the program, your people’s activity stays private to them. You see counts across a group, and a name only when someone chooses to share it,
+            such as raising a hand for an internal role.{' '}
+            <a href="#contact" className="font-medium text-brand underline underline-offset-4">
+              Ask about Growth or Learning
+            </a>
           </p>
         </div>
-        <div className="mx-auto mt-12 grid max-w-6xl gap-8 px-6 sm:grid-cols-3">
-          {WHY_PARTNER.map((beat) => (
-            <div key={beat.title} className="rounded-xl border border-light-gray bg-off-white p-6">
-              <p className="font-semibold text-navy">{beat.title}</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{beat.body}</p>
+      </section>
+
+      {PARTNERS.map((p, i) => {
+        const Icon = p.icon
+        return (
+          <section key={p.id} id={p.id} aria-labelledby={`${p.id}-title`} className={cn('scroll-mt-6 py-16', i % 2 === 0 ? 'bg-white' : 'bg-off-white')}>
+            <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-[1fr_auto] md:items-start">
+              <div className="flex items-start gap-4">
+                <div className={cn('flex size-11 shrink-0 items-center justify-center rounded-lg', p.accent)}>
+                  <Icon className="size-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 id={`${p.id}-title`} className="text-2xl font-bold tracking-tight text-navy">
+                    {p.title}
+                  </h2>
+                  <p className="mt-1 text-muted-foreground">{p.who}</p>
+                  <Gets items={p.gets} />
+                </div>
+              </div>
+              <div className="flex gap-4 text-sm md:flex-col md:items-end md:pt-2">
+                <Link href={p.learnMore.href} className="font-medium text-brand underline underline-offset-4">
+                  {p.learnMore.label} →
+                </Link>
+                {p.login && (
+                  <Link href={p.login.href} className="text-muted-foreground hover:text-foreground">
+                    {p.login.label}
+                  </Link>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        )
+      })}
 
-      {/* Featured: the recruiter resume-intake product. */}
-      <section className="bg-white py-16">
-        <div className="mx-auto grid max-w-5xl items-center gap-8 px-6 md:grid-cols-[1fr_auto]">
-          <div>
-            <p className="text-sm font-semibold tracking-wide text-brand uppercase">New for recruiting firms</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-navy">Turn every resume your website attracts into a candidate you can place.</h2>
-            <p className="mt-3 text-muted-foreground">
-              A page in your own logo and colors, resumes routed to the right recruiter, and candidates who arrive with
-              their file built. Set up in about ten minutes.
-            </p>
-          </div>
-          <Button nativeButton={false} size="lg" className="h-12 px-8" render={<Link href="/recruiters" />}>
-            See it for recruiters →
-          </Button>
-        </div>
-      </section>
-
-      <section id="contact" className="bg-off-white py-16">
+      <section id="contact" className="scroll-mt-6 bg-navy py-16">
         <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-2xl font-bold tracking-tight text-navy">Talk to us</h2>
-          <p className="mt-2 mb-6 text-muted-foreground">Tell us about your organization and what you want to do. We reply within one business day.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-white">Talk to us</h2>
+          <p className="mt-2 mb-6 text-light-blue">
+            Not sure which fits, or want Growth or Learning for your company? Tell us what you’re trying to do. We reply within one business day. Or read the monthly{' '}
+            <Link href="/reports/latest" className="text-white underline underline-offset-4">
+              White Collar Employment Report
+            </Link>{' '}
+            for the data behind it.
+          </p>
           <div className="rounded-xl border border-border bg-white p-6 sm:p-8">
             <ContactForm initialAudience="ORGANIZATION" source="organizations" />
           </div>
-        </div>
-      </section>
-
-      <section className="bg-navy py-16 text-center text-white">
-        <div className="mx-auto max-w-2xl px-6">
-          <h2 className="text-2xl font-bold tracking-tight">Not sure which one fits?</h2>
-          <p className="mt-2 text-light-blue">
-            Start with Outplacement &amp; HR — most of what applies there (pricing, compliance, reporting)
-            carries over to the other organization types.
-          </p>
-          <Button
-            nativeButton={false}
-            size="lg"
-            variant="success"
-            className="mt-6 h-12 px-8"
-            render={<Link href="/outplacement" />}
-          >
-            See Outplacement &amp; HR →
-          </Button>
         </div>
       </section>
     </div>

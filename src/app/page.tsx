@@ -473,7 +473,7 @@ export default async function Home() {
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">
             <span className="font-medium">Hiring, recruiting, or coaching?</span>
             <Link href="/for-organizations" className="underline underline-offset-4">
-              See how NextChapter works for organizations
+              See how NextChapter works for organizations and coaches
             </Link>
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">

@@ -295,7 +295,7 @@ export default async function OutplacementPage() {
 
         <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
           <Link href="/for-organizations" className="underline underline-offset-4">
-            ← All organization types
+            ← Everyone we work with
           </Link>
           {' · '}
           <Link href="/pricing" className="underline underline-offset-4">
