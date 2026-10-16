@@ -92,6 +92,20 @@ function ProfileFacts({ p }: { p: HiringProfileView }) {
   )
 }
 
+// Current vs past (job-status.ts): how many of its openings are open, closed by the
+// employer, or aged out; how long they stay up; how often roles come back.
+function LifecycleLine({ stats }: { stats: NonNullable<CompanyHiringIndex['lifecycle']> }) {
+  const n = (x: number) => x.toLocaleString('en-US')
+  const parts = [
+    `${n(stats.open)} open`,
+    `${n(stats.closed)} closed by the employer`,
+    `${n(stats.expired)} no longer listed (aged out)`,
+    stats.medianDaysOpen !== null ? `median ${stats.medianDaysOpen} days open before closing` : null,
+    stats.repostedRoles > 0 ? `${n(stats.repostedRoles)} ${stats.repostedRoles === 1 ? 'role' : 'roles'} posted more than once (${n(stats.reposts)} reposts)` : 'no roles reposted',
+  ].filter(Boolean)
+  return <p className="text-sm text-muted-foreground">{parts.join(' · ')}</p>
+}
+
 export function CompanyHiringIndexView({ companyId, viewer, data }: { companyId: string; viewer: 'candidate' | 'admin' | 'crm'; data: CompanyHiringIndex }) {
   const hasAnything = data.profile || data.openTotal > 0 || data.pastTotal > 0
   return (
@@ -114,6 +128,7 @@ export function CompanyHiringIndexView({ companyId, viewer, data }: { companyId:
             ) : (
               <p className="text-sm text-muted-foreground">The hiring profile is computed overnight; check back tomorrow.</p>
             )}
+            {data.lifecycle && <LifecycleLine stats={data.lifecycle} />}
             <CompanyOpeningsList
               companyId={companyId}
               viewer={viewer}
