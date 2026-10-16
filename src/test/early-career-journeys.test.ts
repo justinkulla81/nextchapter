@@ -175,8 +175,8 @@ describe('weekly plan by career stage', () => {
 })
 
 describe('job board and nav personalization', () => {
-  it('turns internships (contract) on by default for students only', () => {
-    expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD' })).toEqual(['full_time', 'contract'])
+  it('gives students full-time (entry-level) jobs by default: internships are Higher Ed portal only', () => {
+    expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD' })).toEqual(['full_time'])
     expect(defaultWorkTypes({ journey: 'READY_TO_MOVE' })).toEqual(['full_time'])
     expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD', jobBoardWorkTypes: ['full_time'] })).toEqual(['full_time'])
   })

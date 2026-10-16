@@ -14,6 +14,7 @@ import { Prisma } from '@prisma/client'
 import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 import { importBenefitsFields } from '@/lib/jobs/benefits'
 import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 
 export const maxDuration = 300
 
@@ -119,6 +120,12 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
+    // Internships never go on the member board; they have their own table and
+    // import (/api/admin/internships/import) and show only in Higher Ed portals.
+    if (isInternshipJob({ title: job.title, employmentType: job.employmentType })) {
+      skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
+      continue
+    }
     const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })

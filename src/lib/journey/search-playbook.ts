@@ -336,9 +336,9 @@ const STUDENT_NEW_GRAD: PlaybookMilestone[] = [
   {
     atWeek: 12,
     title: 'No interviews yet? Widen the door',
-    summary: 'Internships, rotational programs, contract-to-hire and roles one step adjacent to your target are real ways in.',
+    summary: 'Rotational programs, contract-to-hire and roles one step adjacent to your target are real ways in. Internships are listed in your college’s NextChapter portal.',
     actions: [
-      { text: 'Look at internships and entry-level roles near your target.', href: '/dashboard/find-my-job?seniority=ENTRY_LEVEL' },
+      { text: 'Look at entry-level roles near your target.', href: '/dashboard/find-my-job?seniority=ENTRY_LEVEL' },
       { text: 'Have someone in the field read your résumé.', href: '/dashboard/resume' },
     ],
   },

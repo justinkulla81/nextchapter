@@ -15,7 +15,7 @@ import {
   type MyJobsFunnel,
   type SkillsGapInsight,
 } from '@/lib/jobs/my-jobs'
-import { classifyWorkType, isWorkType, type WorkType } from '@/lib/jobs/work-type'
+import { classifyWorkType, isWorkType, type JobWorkType } from '@/lib/jobs/work-type'
 
 /** Which board a tracked job came from — same values as JobClickEvent.source. */
 export type TrackSource = 'job_board' | 'surfaced' | 'matched_role'
@@ -26,7 +26,7 @@ export interface TrackRef {
   title: string
   companyName: string | null
   url: string | null
-  workType: WorkType
+  workType: JobWorkType
 }
 
 export const trackKey = (source: string, sourceId: string) => `${source}:${sourceId}`
@@ -44,7 +44,7 @@ export interface MyJobItem {
   title: string
   companyName: string | null
   url: string | null
-  workType: WorkType | null
+  workType: JobWorkType | null
   status: JobStatus
   /** Where we learned of it: saved on the board, applied on the board, found in Gmail, or logged in the tracker. */
   origin: 'board' | 'email' | 'tracker'

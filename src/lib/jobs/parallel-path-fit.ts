@@ -1,4 +1,4 @@
-import { classifyWorkType, type WorkType, type WorkTypeInput } from '@/lib/jobs/work-type'
+import { classifyWorkType, type JobWorkType, type WorkTypeInput } from '@/lib/jobs/work-type'
 
 // What a member is doing alongside the search (ParallelPath.paths, set on the Past jobs
 // page) shapes the board in two small ways, both pure and unit-tested
@@ -21,7 +21,7 @@ const CONSULTING_TITLE = /\b(consult\w*|freelance)\b/i
 
 type PostingLike = WorkTypeInput
 
-function matchesPath(path: string, posting: PostingLike, workType: WorkType): boolean {
+function matchesPath(path: string, posting: PostingLike, workType: JobWorkType): boolean {
   switch (path) {
     case 'CONTRACT_1099':
       return workType === 'contract' && !W2_MARKER.test(`${posting.title}\n${(posting.description ?? '').slice(0, 3000)}`)

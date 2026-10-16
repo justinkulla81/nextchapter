@@ -14,7 +14,8 @@ import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
-import { classifyWorkType, type WorkType } from '@/lib/jobs/work-type'
+import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
+import { notInternshipWhere } from '@/lib/internships/exclude'
 import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
@@ -28,7 +29,10 @@ export function liveBoardWhere(extra: Prisma.ExclusiveJobPostingWhereInput = {})
     distribution: { not: 'EXCLUDED' },
     OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     // AND, not a spread: an extra OR must not replace the expiry OR above.
-    AND: [extra],
+    // Internships are never on a member surface (they live in the Higher Ed
+    // portals): rows the crawler typed as internships stay out here, and
+    // intern titles are dropped in keepRelevant.
+    AND: [notInternshipWhere(), extra],
   }
 }
 
@@ -62,6 +66,9 @@ function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): Light
   // Locations repeat (~30k distinct over 150k jobs).
   const nonUs = new Map<string | null, boolean>()
   return all.filter((p) => {
+    // Internships only appear in Higher Ed portals, never on a member's board,
+    // emails, alerts or counts — all of which are cut from these rows.
+    if (isInternshipJob(p)) return false
     let outside = nonUs.get(p.location)
     if (outside === undefined) {
       outside = classifyLocation(p.location) === 'non_us'
@@ -382,7 +389,8 @@ function rowFacts(p: BoardRankRow): RowFacts {
 }
 function workTypeOf(p: BoardRankRow): WorkType {
   const f = rowFacts(p)
-  if (!f.workType) f.workType = classifyWorkType({ title: p.title, employmentType: p.employmentType })
+  // keepRelevant already dropped internships; 'contract' only satisfies the type.
+  if (!f.workType) f.workType = memberWorkType({ title: p.title, employmentType: p.employmentType }) ?? 'contract'
   return f.workType
 }
 

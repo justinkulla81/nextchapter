@@ -108,7 +108,7 @@ import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/ins
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
-import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
+import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
 import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
@@ -410,12 +410,12 @@ async function JobRecommendationsSection({
       ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
       : allSurfacedJobs
   ).filter(
-    (j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
+    (j) => workTypes.some((t) => t === memberWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
-    ...surfacedJobs.map((j) => classifyWorkType(j)),
+    ...surfacedJobs.map((j) => memberWorkType(j)).filter((t): t is WorkType => t !== null),
     ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
   ])
   const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
