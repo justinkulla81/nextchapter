@@ -4,9 +4,18 @@ import { AudienceTag } from '@/lib/email/audience-tag'
 interface BackchannelMatchEmailProps {
   firstName: string | null
   companyName: string
-  contactNames: string[]
+  role: string | null
+  appliedOn: string | null
+  contact: { name: string; title: string | null }
+  moreContactCount: number
+  note: { subject: string; body: string }
+  // Opens a prefilled compose window when the contact has an email on file;
+  // otherwise falls back to the candidate's network page.
+  actionUrl: string
+  actionLabel: string
+  contactHasEmail: boolean
   otherCompanyCount: number
-  applicationTrackerUrl: string
+  otherCompaniesUrl: string
   unsubscribeUrl: string
 }
 
@@ -26,12 +35,22 @@ const logo: React.CSSProperties = {
   color: '#0b2545',
 }
 
+const noteBox: React.CSSProperties = {
+  backgroundColor: '#f4f6f8',
+  borderRadius: '8px',
+  padding: '16px',
+  margin: '8px 0 0',
+  whiteSpace: 'pre-wrap',
+  fontSize: '14px',
+  lineHeight: '1.6',
+}
+
 const button: React.CSSProperties = {
   display: 'inline-block',
   backgroundColor: '#2e7d5b',
   color: '#ffffff',
   textDecoration: 'none',
-  padding: '12px 20px',
+  padding: '12px 24px',
   borderRadius: '8px',
   marginTop: '16px',
   ...emailStyles.cta,
@@ -45,43 +64,55 @@ const footer: React.CSSProperties = {
 export default function BackchannelMatchEmail({
   firstName,
   companyName,
-  contactNames,
+  role,
+  appliedOn,
+  contact,
+  moreContactCount,
+  note,
+  actionUrl,
+  actionLabel,
+  contactHasEmail,
   otherCompanyCount,
-  applicationTrackerUrl,
+  otherCompaniesUrl,
   unsubscribeUrl,
 }: BackchannelMatchEmailProps) {
-  const namesText = contactNames.join(', ')
+  const applied = role ? <strong>{role}</strong> : 'a role'
 
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        You know someone at {companyName}.
+        {contact.name} works at {companyName}.
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        you applied to {companyName}, and {namesText} {contactNames.length === 1 ? 'is' : 'are'}{' '}
-        already in your networking list.
+        you applied for {applied} at {companyName}
+        {appliedOn ? ` on ${appliedOn}` : ''}, and {contact.name}
+        {contact.title ? ` (${contact.title})` : ''} is in your network
+        {moreContactCount > 0 ? `, along with ${moreContactCount} other ${moreContactCount === 1 ? 'person' : 'people'}` : ''}.
+        A heads-up from someone inside gets your name in front of a real person, not just a queue.
+      </p>
+      <p style={{ marginBottom: 0 }}>
+        <strong>{contactHasEmail ? 'Here’s a note you can send as-is:' : 'Here’s a note you can send:'}</strong>
+      </p>
+      <p style={noteBox}>{note.body}</p>
+      <a href={actionUrl} style={button}>
+        {actionLabel}
+      </a>
+      <p style={emailStyles.muted}>
+        {contactHasEmail
+          ? 'Opens a draft in Gmail. Edit it, then send. If they’ve moved on, skip this one.'
+          : 'We don’t have an email for them yet. Add one on their contact page, or copy the note above.'}
       </p>
       {otherCompanyCount > 0 && (
-        <p>
-          That&apos;s not the only one — you have connections at{' '}
-          <strong>
-            {otherCompanyCount} other {otherCompanyCount === 1 ? 'company' : 'companies'}
-          </strong>{' '}
-          you&apos;ve applied to as well.
+        <p style={emailStyles.muted}>
+          You also know people at {otherCompanyCount} other{' '}
+          {otherCompanyCount === 1 ? 'company' : 'companies'} you’ve applied to.{' '}
+          <a href={otherCompaniesUrl} style={{ color: '#4a5568' }}>
+            See who
+          </a>
         </p>
       )}
-      <p>
-        A referral or a quick heads-up from someone inside a company puts your application in
-        front of a real person instead of sitting in a queue with hundreds of others —
-        it&apos;s one of the highest-leverage things you can do for an application you&apos;ve
-        already sent. A short message like &quot;I just applied for the [role] — would you mind
-        mentioning it to the hiring manager?&quot; is usually all it takes.
-      </p>
-      <a href={applicationTrackerUrl} style={button}>
-        See who you know →
-      </a>
       <p style={footer}>
         <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
           Turn off these emails
