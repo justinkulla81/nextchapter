@@ -22,13 +22,14 @@ export const GET = withCronRun('market-digest-employers', async () => {
       // Same "candidates looking for your roles" match used on the Talent
       // dashboard home — real people who opted in and match what this
       // employer is hiring for, not an external job-market count that says
-      // nothing about who's actually available to them.
+      // nothing about who's actually available to them. Only Candidate+
+      // members are returned (the only gate), so none are locked teasers.
       const matches = await getCandidatesLookingForYourRoles(employer.id, MAX_MATCH_LINES)
       const matchLines = matches.map((m) => ({
-        displayName: candidateDisplayName(m.candidate, m.locked),
+        displayName: candidateDisplayName(m.candidate, false),
         roleTitle: m.roleTitle,
         matchLabel: m.match.label,
-        locked: m.locked,
+        locked: false,
       }))
 
       if (matchLines.length === 0 && !nugget) continue

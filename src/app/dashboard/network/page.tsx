@@ -23,6 +23,7 @@ import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialMo
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
+import { RecruitersForYouCard } from '@/components/dashboard/RecruitersForYouCard'
 import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
@@ -728,6 +729,10 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <AlumniNetworkCarousel groups={alumniGroups} />
+
+      <Suspense fallback={null}>
+        <RecruitersForYouCard candidateId={profile.id} />
+      </Suspense>
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
       {/* §4.6 hard block leaves no EmailConnection row behind, so

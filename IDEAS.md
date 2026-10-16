@@ -73,6 +73,22 @@ Each one costs money or needs Justin's own account or key, so none is set up unp
 - **Gamma.** AI decks and docs for pitch, partner or college-pilot decks. Confirm the intended use first.
 - **pg_trgm Postgres extension.** Free; it speeds up the "Include past jobs" search once closed jobs pass about 100k. Adding a database extension needs a go-ahead.
 
+## Fractional marketplace (approved spec, not built: launch when Candidate+ numbers justify it)
+
+Approved by Justin on 2026-10-16, then deferred the same day: there aren't enough Candidate+ members yet for a real marketplace. The groundwork it needs is live: Candidate+ Verified, the evidence score and Evidence badge (src/lib/evidence/score.ts), and imported reviews from other platforms (Work Samples page). The `ClientReview` table already exists for the reviews employers would leave after an engagement; nothing writes to it yet.
+
+**Launch trigger to revisit:** 100+ Candidate+ members who have opted in to fractional work (or sooner if employers start asking for fractional talent). Until then the spec below stays parked.
+
+- **Tiers.** Member (free): every job, never shown to recruiters or employers, never listed. Candidate+ (the existing unlock, isDossierUnlocked): can opt in to be listed. Candidate+ Verified (Candidate+ plus at least one reference, work sample, imported review or client review; the Dossier never counts): listed first, with an Evidence badge and score.
+- **Who is listed.** Opt-in Candidate+ members who give availability (days per week) and a day-rate range. Reuse the existing fractional / interim / `interimConsultingInterest` fields where they exist.
+- **Public page** at https://launchyournextchapter.com/fractional, no login: anonymous cards with headline, function, years of experience, availability, day-rate range, evidence badges and score. Verified members first. A seed-free empty state that looks deliberate while few people are listed.
+- **Names.** Anonymous by default: no name, photo or current employer (many members are employed and searching confidentially). A member can choose "show my name and photo", shown as first name and last initial (as Upwork and Toptal do). Members in Confidential Search Mode can never be shown by name, whatever they chose.
+- **Employers.** Every employer setup (the Talent / hiring portal installation) gets a "Fractional talent" tab listing the same people, matched to that employer's needs.
+- **Flow.** The employer requests an intro, the member accepts or declines, and contact details are shared only after the member accepts. Reuse the existing intro / request inbox patterns (RecruiterCandidateIntroduction is the closest).
+- **No fees** at first.
+- **Events:** fractional_listing_opted_in, fractional_intro_requested, fractional_intro_accepted / fractional_intro_declined, fractional_profile_name_shown_toggled.
+- **Open question for launch:** ordering by evidence score on a public, employer-facing list. The recruiter opt-in pool deliberately orders by recency only (no score) so it can't act as an automated screen under NYC Local Law 144; get counsel's read before ranking marketplace cards by score.
+
 ## Monetization
 
 - Stripe payments — env vars (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) are configured in `.env.local` but there is no Stripe code anywhere in `src/` — nothing charges anyone today. Everything on the platform is free. When this gets built: Stripe Checkout for one-off paid coaching sessions, Stripe Subscriptions for a recurring coaching package, a webhook handler for subscription lifecycle events, and (later) employer-side subscription tiers for the Talent/Hiring Manager portal. Deferred until real paid-coaching demand is validated — don't build billing before there's a first paying customer.

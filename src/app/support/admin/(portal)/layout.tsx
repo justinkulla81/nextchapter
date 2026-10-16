@@ -108,7 +108,8 @@ async function AdminNavWithBadges() {
     requests:
       approvalsNeeded.pendingBountyClaims +
       approvalsNeeded.unresolvedReferenceDisputes +
-      approvalsNeeded.pendingIntroRequests,
+      approvalsNeeded.pendingIntroRequests +
+      approvalsNeeded.pendingImportedReviews,
     needsCompletion,
   }
 

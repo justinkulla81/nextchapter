@@ -11,6 +11,7 @@ export interface AdminApprovalsNeeded {
   pendingBountyClaims: number
   unresolvedReferenceDisputes: number
   pendingIntroRequests: number
+  pendingImportedReviews: number
   pendingScholarshipApplications: number
   pendingIdentityMatches: number
   pendingEqOverIqApplications: number
@@ -102,6 +103,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     pendingBountyClaims,
     unresolvedReferenceDisputes,
     pendingIntroRequests,
+    pendingImportedReviews,
     pendingScholarshipApplications,
     pendingIdentityMatches,
     pendingEqOverIqApplications,
@@ -119,6 +121,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
     prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
     prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
+    prisma.externalReviewStat.count({ where: { status: 'NEEDS_REVIEW' } }).catch(() => 0),
     prisma.scholarshipApplication.count({ where: { status: 'PENDING' } }),
     prisma.candidateIdentityMatch.count({ where: { status: 'PENDING' } }),
     prisma.eqOverIqContributorProfile.count({ where: { submittedAt: { not: null }, status: 'PENDING' } }),
@@ -139,6 +142,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
       pendingBountyClaims,
       unresolvedReferenceDisputes,
       pendingIntroRequests,
+      pendingImportedReviews,
       pendingScholarshipApplications,
       pendingIdentityMatches,
       pendingEqOverIqApplications,

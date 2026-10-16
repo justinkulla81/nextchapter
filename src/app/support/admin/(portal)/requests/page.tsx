@@ -4,7 +4,7 @@ import { listAllAuthUsers } from '@/lib/admin/auth-users'
 import { getAdminRequests, type AdminRequestRow } from '@/lib/admin/requests'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
-import { markJobBoardIntroRequestStatus } from './actions'
+import { decideImportedReviews, markJobBoardIntroRequestStatus } from './actions'
 
 export const maxDuration = 30
 
@@ -15,6 +15,7 @@ const TYPE_LABEL: Record<AdminRequestRow['type'], string> = {
   bounty_claim: 'Offer Bonus claim',
   job_board_intro: 'Job Board intro',
   known_contact_intro: 'Intro via our contact',
+  imported_reviews: 'Imported reviews',
 }
 
 export default async function AdminRequestsPage({
@@ -51,7 +52,31 @@ export default async function AdminRequestsPage({
         ),
     },
     { header: 'Email', render: (r) => r.candidateEmail },
-    { header: 'Summary', render: (r) => r.summary },
+    {
+      header: 'Summary',
+      render: (r) =>
+        r.review ? (
+          <div className="space-y-0.5">
+            <p>{r.summary}</p>
+            <p className="text-xs text-muted-foreground">
+              <a href={r.review.profileUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                Public profile
+              </a>
+              {r.review.screenshotUrl && (
+                <>
+                  {' · '}
+                  <a href={r.review.screenshotUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                    Screenshot
+                  </a>
+                </>
+              )}
+              {r.review.checkNote ? ` · ${r.review.checkNote}` : ''}
+            </p>
+          </div>
+        ) : (
+          r.summary
+        ),
+    },
     { header: 'Status', render: (r) => r.status },
     {
       header: 'Requested',
@@ -61,7 +86,20 @@ export default async function AdminRequestsPage({
     {
       header: 'Actions',
       render: (r) =>
-        (r.type === 'job_board_intro' || r.type === 'known_contact_intro') && r.status === 'pending' ? (
+        r.type === 'imported_reviews' ? (
+          <div className="flex gap-2">
+            <form action={decideImportedReviews.bind(null, r.id.replace('imported-reviews-', ''), 'CONFIRMED')}>
+              <button type="submit" className="text-sm text-primary underline underline-offset-4">
+                Confirm
+              </button>
+            </form>
+            <form action={decideImportedReviews.bind(null, r.id.replace('imported-reviews-', ''), 'REJECTED')}>
+              <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+                Reject
+              </button>
+            </form>
+          </div>
+        ) : (r.type === 'job_board_intro' || r.type === 'known_contact_intro') && r.status === 'pending' ? (
           <div className="flex gap-2">
             <form action={markJobBoardIntroRequestStatus.bind(null, r.id.replace('intro-', ''), 'contacted')}>
               <button type="submit" className="text-sm text-primary underline underline-offset-4">
@@ -90,7 +128,8 @@ export default async function AdminRequestsPage({
         <h1 className="text-2xl font-semibold tracking-tight">Requests</h1>
         <p className="mt-1 text-muted-foreground">
           Everything candidates have asked for, in one place — premium coaching, recruiter visibility
-          opt-ins, disputed references, Offer Bonus claims, and Job Board intro requests.
+          opt-ins, disputed references, Offer Bonus claims, Job Board intro requests, and imported reviews
+          from other platforms that our link check couldn&apos;t confirm.
         </p>
       </div>
 

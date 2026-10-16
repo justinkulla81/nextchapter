@@ -1530,6 +1530,8 @@ model CandidateProfile {
   jobClickEvents                 JobClickEvent[]
   trackedJobs                    TrackedJob[]
   workSamples                    WorkSample[]
+  externalReviewStats            ExternalReviewStat[]
+  clientReviews                  ClientReview[]
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
@@ -2428,6 +2430,56 @@ model WorkSample {
   createdAt        DateTime @default(now())
 
   @@index([candidateId])
+}
+
+/// Review stats a member brings from another fractional or freelance
+/// platform (Upwork, Toptal, ...). Counts as evidence for Candidate+ Verified.
+/// status: SELF_REPORTED (link given, not yet checked), LINK_CHECKED (one
+/// polite fetch of the public profile confirmed name and numbers),
+/// NEEDS_REVIEW (couldn't check: on the admin review list), CONFIRMED (an
+/// admin confirmed it), REJECTED (an admin could not; no credit).
+model ExternalReviewStat {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  platform      String // upwork | toptal | catalant | contra | ateam | fiverr_pro | malt | linkedin_services | other
+  platformLabel String? // what they typed when platform is "other"
+  profileUrl    String
+  rating        Float // 0-5
+  reviewCount   Int
+  jobsCompleted Int?
+  screenshotUrl String?
+  status        String           @default("SELF_REPORTED")
+  checkNote     String? // plain-language result of the link check or the admin decision
+  checkedAt     DateTime?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId])
+  @@index([status])
+}
+
+/// A review from a NextChapter client after real work together (later: the
+/// fractional marketplace). Weighted highest in the evidence score. No UI yet;
+/// only PUBLISHED rows count.
+model ClientReview {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId      String?
+  reviewerName    String
+  reviewerEmail   String?
+  reviewerCompany String?
+  rating          Float // 1-5
+  body            String?          @db.Text
+  engagementTitle String?
+  status          String           @default("PENDING") // PENDING | PUBLISHED | HIDDEN
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([candidateId, status])
 }
 
 model InterviewResponse {

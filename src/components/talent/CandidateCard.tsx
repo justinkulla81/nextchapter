@@ -7,6 +7,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import type { MatchResult } from '@/lib/matching/compute-match-score'
 import { expressInterest, saveCandidate } from '@/app/talent/(app)/roles/[id]/candidates/actions'
 import { candidateDisplayName } from '@/lib/talent/candidate-identity'
+import { EvidenceBadge } from '@/components/evidence/EvidenceBadge'
 
 export function CandidateCard({
   candidate,
@@ -14,7 +15,7 @@ export function CandidateCard({
   roleId,
   effortSummary,
   roleLabel,
-  locked = false,
+  evidence,
 }: {
   candidate: Pick<
     CandidateProfile,
@@ -31,42 +32,31 @@ export function CandidateCard({
   // of the employer's active roles. Match Inbox (single-role context) omits
   // this since the role is already the page's subject.
   roleLabel?: string
-  // Dossier not yet unlocked — a real match, shown as a teaser (name
-  // withheld, no Save/Compare) rather than filtered out entirely. Express
-  // Interest still works: it's the same expressInterest action every
-  // unlocked candidate uses, which already emails the candidate and shows
-  // up in their dashboard's employer-interest inbox — a locked candidate
-  // who hears a real employer is interested has real reason to finish
-  // unlocking, and the employer already registered interest for when they do.
-  locked?: boolean
+  // Candidate+ Verified + evidence score. Only Candidate+ members reach this
+  // card at all (Candidate+ is the only gate for employer visibility).
+  evidence?: { verified: boolean; score: number }
 }) {
   const posthog = usePostHog()
 
   return (
-    <div className={locked ? 'space-y-2 rounded-lg border border-dashed border-border p-4' : 'space-y-2 rounded-lg border border-border p-4'}>
+    <div className="space-y-2 rounded-lg border border-border p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 font-medium text-foreground">
-            {candidateDisplayName(candidate, locked)}
-            {!locked && (
-              <span
-                className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white"
-                title="Candidate+: completed their dossier with real references, assessments and search effort"
-              >
-                Candidate+
-              </span>
-            )}
+            {candidateDisplayName(candidate, false)}
+            <span
+              className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white"
+              title="Candidate+: real references, assessments and search effort on file"
+            >
+              Candidate+
+            </span>
+            {evidence && <EvidenceBadge verified={evidence.verified} score={evidence.score} />}
           </p>
           <p className="text-sm text-muted-foreground">
             {[candidate.primaryFunction, candidate.highestLevelReached, candidate.currentCity]
               .filter(Boolean)
               .join(' · ')}
           </p>
-          {locked && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Name unlocks once their Executive Dossier completes.
-            </p>
-          )}
         </div>
         <div className="flex flex-col items-end gap-1">
           <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
@@ -80,18 +70,18 @@ export function CandidateCard({
         <form action={expressInterest.bind(null, candidate.id, roleId)}>
           <SubmitButton
             size="sm"
-            onClick={() => posthog?.capture('express_interest_clicked', { candidateId: candidate.id, roleId, locked })}
+            onClick={() =>
+              posthog?.capture('express_interest_clicked', { candidateId: candidate.id, roleId, verified: evidence?.verified ?? false })
+            }
           >
-            {locked ? "I'm interested — notify me" : 'Express Interest'}
+            Express Interest
           </SubmitButton>
         </form>
-        {!locked && (
-          <form action={saveCandidate.bind(null, candidate.id, roleId)}>
-            <Button type="submit" variant="outline" size="sm">
-              Save for later
-            </Button>
-          </form>
-        )}
+        <form action={saveCandidate.bind(null, candidate.id, roleId)}>
+          <Button type="submit" variant="outline" size="sm">
+            Save for later
+          </Button>
+        </form>
       </div>
     </div>
   )

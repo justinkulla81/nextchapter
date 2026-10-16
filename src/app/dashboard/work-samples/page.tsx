@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { EvidenceCard } from '@/components/dashboard/EvidenceCard'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { WorkSampleForm } from '@/components/dashboard/WorkSampleForm'
 import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGateForm'
@@ -23,6 +25,9 @@ export default async function WorkSamplesPage() {
           <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
+        <Suspense fallback={null}>
+          <EvidenceCard candidateId={profile.id} />
+        </Suspense>
 
         <div className="space-y-4 border-t border-border pt-8">
           <div>
@@ -53,6 +58,9 @@ export default async function WorkSamplesPage() {
           <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
+        <Suspense fallback={null}>
+          <EvidenceCard candidateId={profile.id} />
+        </Suspense>
 
         <div className="space-y-4 border-t border-border pt-8">
           <div>
@@ -87,6 +95,10 @@ export default async function WorkSamplesPage() {
           after result.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <EvidenceCard candidateId={profile.id} />
+      </Suspense>
 
       <WorkSampleForm />
 
