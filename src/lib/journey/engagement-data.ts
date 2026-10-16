@@ -63,6 +63,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     casual: isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
     workingNow: workingNowOf(p.journeyDetails),
     conversations,
+    aiDisplaced: p.aiDisplacementReason === 'yes' || p.aiDisplacementReason === 'partly',
     culture: parseCultureFit(p.cultureFit),
     details: {
       returnDate: returnDateOf(p.journeyDetails),

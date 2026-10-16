@@ -35,9 +35,8 @@ for (const j of JOURNEYS) {
   lines.push('')
 }
 
-lines.push('## Collected but not yet driving anything', '')
-lines.push('These fields are collected elsewhere in the product but are not in the spine, because nothing reads them to change a plan, a lesson, a connection or an opportunity. Either give each a consumer or stop asking.', '')
-lines.push('- `aiDisplacementReason`', '- `travelWillingness`', '- `biggestBarriers`', '')
+lines.push('## Collected outside the spine', '')
+lines.push('Optional answers that drive something but are not asked as a spine question: `aiDisplacementReason` (adds an AI outlook step to the plan), `travelWillingness` (job matching) and `biggestBarriers` (the report and rewrite actions).', '')
 
 writeFileSync(join(__dirname, '../../docs/PERSONALIZATION_SPINE.md'), lines.join('\n'))
 console.log('Wrote docs/PERSONALIZATION_SPINE.md')
