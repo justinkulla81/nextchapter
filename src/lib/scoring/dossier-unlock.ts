@@ -13,7 +13,7 @@ import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
-import { getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
+import { getLifetimeEffortMinutes, sumEffortMinutes } from '@/lib/scoring/effort-minutes'
 import {
   effortTargetFor,
   DOSSIER_UNLOCK_REFERENCE_TARGET,
@@ -81,9 +81,7 @@ export interface DossierCompleteness {
 export const computeDossierCompleteness = cache(computeDossierCompletenessUncached)
 
 async function computeDossierCompletenessUncached(candidateId: string): Promise<DossierCompleteness> {
-  const band = (await getSeniorityBand(candidateId)) ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
-  const outreachTarget = OUTREACH_TARGET_BY_BAND[band]
-  const applicationTarget = APPLICATION_TARGET_BY_BAND[band]
+  const band = await getSeniorityBand(candidateId)
 
   const [
     completedReferenceCount,
@@ -97,16 +95,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
-      select: {
-        skillsAssessmentCompletedAt: true,
-        effortMinutesTargetOverride: true,
-        profileConfirmedAt: true,
-        industryConfirmedAt: true,
-        functionConfirmedAt: true,
-        salaryConfirmedAt: true,
-        workAuthConfirmedAt: true,
-        linkedInConfirmedAt: true,
-      },
+      select: COMPLETENESS_PROFILE_SELECT,
     }),
     prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
@@ -114,6 +103,57 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window — matches application-trends.ts's existing pattern
     getLifetimeEffortMinutes(candidateId),
   ])
+
+  return buildDossierCompleteness({
+    band,
+    completedReferenceCount,
+    profile,
+    hasOperatingProfile: Boolean(hasOperatingProfile),
+    hasPersonalityProfile: Boolean(hasPersonalityProfile),
+    outreachCount,
+    applicationCount,
+    effortMinutes,
+  })
+}
+
+const COMPLETENESS_PROFILE_SELECT = {
+  skillsAssessmentCompletedAt: true,
+  effortMinutesTargetOverride: true,
+  profileConfirmedAt: true,
+  industryConfirmedAt: true,
+  functionConfirmedAt: true,
+  salaryConfirmedAt: true,
+  workAuthConfirmedAt: true,
+  linkedInConfirmedAt: true,
+} as const
+
+interface CompletenessInputs {
+  band: SeniorityBand | null
+  completedReferenceCount: number
+  profile: {
+    skillsAssessmentCompletedAt: Date | null
+    effortMinutesTargetOverride: number | null
+    profileConfirmedAt: Date | null
+    industryConfirmedAt: Date | null
+    functionConfirmedAt: Date | null
+    salaryConfirmedAt: Date | null
+    workAuthConfirmedAt: Date | null
+    linkedInConfirmedAt: Date | null
+  }
+  hasOperatingProfile: boolean
+  hasPersonalityProfile: boolean
+  outreachCount: number
+  applicationCount: number
+  effortMinutes: number
+}
+
+// The pure half of the completeness check, shared by the single-candidate and
+// batched loaders so the two can never disagree.
+export function buildDossierCompleteness(input: CompletenessInputs): DossierCompleteness {
+  const { completedReferenceCount, profile, hasOperatingProfile, hasPersonalityProfile, outreachCount, applicationCount, effortMinutes } = input
+  const resolvedBand = input.band ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
+  const outreachTarget = OUTREACH_TARGET_BY_BAND[resolvedBand]
+  const applicationTarget = APPLICATION_TARGET_BY_BAND[resolvedBand]
 
   // §7.2 item 2 — "100% personalization/profile," approximated from the
   // established one-time confirmation fields this codebase already tracks
@@ -155,7 +195,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     {
       key: 'behavioralAssessments',
       label: 'Both behavioral assessments (Operating Profile + Personality Profile)',
-      met: Boolean(hasOperatingProfile) && Boolean(hasPersonalityProfile),
+      met: hasOperatingProfile && hasPersonalityProfile,
       current: (hasOperatingProfile ? 1 : 0) + (hasPersonalityProfile ? 1 : 0),
       target: 2,
     },
@@ -184,6 +224,67 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
 
   const metCount = requirements.filter((r) => r.met).length
   return { requirements, metCount, totalCount: requirements.length, isComplete: metCount === requirements.length }
+}
+
+// One batched read for many candidates (the recruiter search list), returning
+// exactly what computeDossierCompleteness returns for each id: the same counts
+// and flags, grouped in the database instead of fetched candidate by candidate.
+// Ids without a profile are omitted (the single-candidate version throws).
+export async function computeDossierCompletenessMany(candidateIds: string[]): Promise<Map<string, DossierCompleteness>> {
+  const ids = [...new Set(candidateIds)]
+  const result = new Map<string, DossierCompleteness>()
+  if (ids.length === 0) return result
+
+  const [analyses, references, profiles, operating, personality, outreach, applications, sprints] = await Promise.all([
+    prisma.resumeAnalysis.findMany({
+      where: { candidateId: { in: ids } },
+      orderBy: { createdAt: 'desc' },
+      select: { candidateId: true, seniorityBand: true },
+    }),
+    prisma.reference.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, status: 'COMPLETED' }, _count: { _all: true } }),
+    prisma.candidateProfile.findMany({ where: { id: { in: ids } }, select: { id: true, ...COMPLETENESS_PROFILE_SELECT } }),
+    prisma.candidateAssessmentResponse.findMany({ where: { candidateId: { in: ids } }, distinct: ['candidateId'], select: { candidateId: true } }),
+    prisma.performanceAssessmentResponse.findMany({ where: { candidateId: { in: ids } }, distinct: ['candidateId'], select: { candidateId: true } }),
+    prisma.outreachLog.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids } }, _count: { _all: true } }),
+    prisma.jobPosting.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, appliedAt: { not: null } }, _count: { _all: true } }),
+    prisma.weeklySprint.findMany({ where: { candidateId: { in: ids } }, select: { candidateId: true, committedActions: true } }),
+  ])
+
+  // Newest analysis first, so the first row seen per candidate is the latest.
+  const bandById = new Map<string, SeniorityBand | null>()
+  for (const a of analyses) {
+    if (!bandById.has(a.candidateId)) bandById.set(a.candidateId, (a.seniorityBand as SeniorityBand | undefined) ?? null)
+  }
+  const countOf = (rows: { candidateId: string; _count: { _all: number } }[]) =>
+    new Map(rows.map((r) => [r.candidateId, r._count._all]))
+  const referenceCounts = countOf(references)
+  const outreachCounts = countOf(outreach)
+  const applicationCounts = countOf(applications)
+  const hasOperating = new Set(operating.map((r) => r.candidateId))
+  const hasPersonality = new Set(personality.map((r) => r.candidateId))
+  const sprintsById = new Map<string, { committedActions: unknown }[]>()
+  for (const sprint of sprints) {
+    const list = sprintsById.get(sprint.candidateId)
+    if (list) list.push(sprint)
+    else sprintsById.set(sprint.candidateId, [sprint])
+  }
+
+  for (const { id, ...profile } of profiles) {
+    result.set(
+      id,
+      buildDossierCompleteness({
+        band: bandById.get(id) ?? null,
+        completedReferenceCount: referenceCounts.get(id) ?? 0,
+        profile,
+        hasOperatingProfile: hasOperating.has(id),
+        hasPersonalityProfile: hasPersonality.has(id),
+        outreachCount: outreachCounts.get(id) ?? 0,
+        applicationCount: applicationCounts.get(id) ?? 0,
+        effortMinutes: sumEffortMinutes(sprintsById.get(id) ?? []),
+      })
+    )
+  }
+  return result
 }
 
 // The real access gate — deliberately lighter than full Dossier

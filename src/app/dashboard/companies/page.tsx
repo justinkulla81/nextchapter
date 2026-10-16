@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { TrendingUp, TrendingDown, Minus, Users, TriangleAlert, Check } from 'lucide-react'
-import type { CompanySizeBand, Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,13 +11,14 @@ import {
   getCandidateContactCountsByCompany,
   getCompaniesWithAnyMemberContact,
 } from '@/lib/companies/candidate-contacts-at-company'
-import { loadBulkCompanyRows, loadCompanyRankingData } from '@/lib/companies/company-ranking-data'
+import { loadCompanyRankingData } from '@/lib/companies/company-ranking-data'
 import {
   COMPANIES_VISIT_SESSION_MS,
   getLastCompaniesVisit,
   newStrongIdsFromRankingData,
 } from '@/lib/companies/new-strong-companies'
 import type { LocalEconomy } from '@/lib/companies/local-economy'
+import { loadDirectoryPage, loadDirectoryRows } from '@/lib/companies/directory-rows'
 import { rankCompanies, type CompanyRanking, type FitBand } from '@/lib/companies/company-ranking'
 import { CompanyDirectoryViewed, RankedCompanyLink } from '@/components/companies/CompanyDirectoryAnalytics'
 import { FeedbackRequests } from '@/components/companies/FeedbackRequests'
@@ -79,70 +78,6 @@ function buildQuery(params: SearchParams, overrides: Partial<SearchParams>): str
     if (value) usp.set(key, value)
   }
   return usp.toString()
-}
-
-interface DirectoryRow {
-  id: string
-  name: string
-  canonicalNameNormalized: string
-  industry: string | null
-  sizeBand: CompanySizeBand | null
-  hqMetro: string | null
-  signals: { trajectory: string; openRolesTotal: number; weekStartDate: Date }[]
-  _count: { memberEmployment: number }
-}
-
-async function queryDirectoryRows(nameWhere: Prisma.CompanyWhereInput): Promise<DirectoryRow[]> {
-  return prisma.company.findMany({
-    where: nameWhere,
-    orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      canonicalNameNormalized: true,
-      industry: true,
-      sizeBand: true,
-      hqMetro: true,
-      signals: { orderBy: { weekStartDate: 'desc' }, take: 1, select: { trajectory: true, openRolesTotal: true, weekStartDate: true } },
-      _count: { select: { memberEmployment: true } },
-    },
-  })
-}
-
-// Rows in A–Z order. When the ranking is being loaded anyway, the heavy part
-// (every company with its newest signal) comes from the in-process bulk cache
-// the ranking already uses, and only the ordered id list (so the database's
-// own name ordering is kept exactly) and the per-company member counts are
-// queried here. Falls back to the direct query if the cache lacks a row.
-async function loadDirectoryRows(nameWhere: Prisma.CompanyWhereInput, useBulk: boolean): Promise<DirectoryRow[]> {
-  if (!useBulk) return queryDirectoryRows(nameWhere)
-  const [ids, memberCounts, bulk] = await Promise.all([
-    prisma.company.findMany({ where: nameWhere, orderBy: { name: 'asc' }, select: { id: true } }),
-    prisma.memberEmployment.groupBy({ by: ['companyId'], _count: { _all: true } }),
-    loadBulkCompanyRows(),
-  ])
-  const byId = new Map(bulk.map((c) => [c.id, c]))
-  const countById = new Map(memberCounts.map((m) => [m.companyId, m._count._all]))
-  const rows: DirectoryRow[] = []
-  for (const { id } of ids) {
-    const c = byId.get(id)
-    if (!c) return queryDirectoryRows(nameWhere)
-    rows.push({
-      id: c.id,
-      name: c.name,
-      canonicalNameNormalized: c.canonicalNameNormalized,
-      industry: c.industry,
-      sizeBand: c.sizeBand,
-      hqMetro: c.hqMetro,
-      signals: c.signals.map((s) => ({
-        trajectory: s.trajectory,
-        openRolesTotal: s.openRolesTotal,
-        weekStartDate: s.weekStartDate,
-      })),
-      _count: { memberEmployment: countById.get(c.id) ?? 0 },
-    })
-  }
-  return rows
 }
 
 type DashboardProfile = Awaited<ReturnType<typeof getDashboardProfile>>
@@ -232,13 +167,20 @@ async function CompaniesDirectory({ params, profile }: { params: SearchParams; p
     : Promise.resolve(null)
   const aiPayPromise = profile.primaryFunction ? loadAiPayPremium() : Promise.resolve(null)
 
-  // The directory is ~12k rows; filter/paginate in application code rather
-  // than building conditional Prisma `where` branches for signals that live on
-  // a related weekly-snapshot table.
   const nameWhere = query ? { name: { contains: query, mode: 'insensitive' as const } } : {}
-  const allCompanies = await loadDirectoryRows(nameWhere, needsRanking)
+  const anyFilter = filterJobs || filterNc1 || filterNc2 || filterMine || filterNoContracting || filterStrong
 
-  const companyNames = allCompanies.map((c) => c.name)
+  // Plain A–Z with no filters needs no signals, ranking or full list: the
+  // database counts and pages it, and only the visible rows' contact counts
+  // are looked up. Anything else filters/ranks the whole list in memory
+  // (signals live on a weekly-snapshot table and the viewer's contacts are
+  // per-user); its viewer-independent inputs come from short in-process caches
+  // in directory-rows.ts.
+  const pagedInDatabase = !needsRanking && !anyFilter
+  const allCompanies = pagedInDatabase ? [] : await loadDirectoryRows(nameWhere, true)
+  const dbPage = pagedInDatabase ? await loadDirectoryPage(nameWhere, (page - 1) * PAGE_SIZE, PAGE_SIZE) : null
+
+  const companyNames = dbPage ? dbPage.rows.map((c) => c.name) : allCompanies.map((c) => c.name)
   const recentCutoff = recentSignalCutoff()
 
   // Always computed (the member's contacts are loaded once per request and
@@ -288,9 +230,9 @@ async function CompaniesDirectory({ params, profile }: { params: SearchParams; p
     if (lastVisit) newStrongIds = newStrongIdsFromRankingData(rankable, candidate, lastVisit)
   }
 
-  const totalCount = ordered.length
+  const totalCount = dbPage ? dbPage.total : ordered.length
   const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
-  const companies = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const companies = dbPage ? dbPage.rows : ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const filterCheckboxes: { key: keyof SearchParams; label: string; checked: boolean }[] = [
     { key: 'jobs', label: 'Has open roles', checked: filterJobs },
