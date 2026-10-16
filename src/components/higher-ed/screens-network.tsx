@@ -15,6 +15,7 @@ import { collegeJobs, employerProfileFor, employerRoles, introStatusFor, listCol
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inviteStudents, sendMentorInvites } from '@/app/i/[slug]/(portal)/network-actions'
 import { studentCounts } from '@/lib/higher-ed/students'
+import { memberCompanyFor } from '@/lib/workforce/company-portal'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
 import { ConfirmActionButton } from './ConfirmActionButton'
@@ -181,6 +182,19 @@ export async function CareerEmployers({ ctx }: Props) {
 // ── Employer › Shared Dossiers and page ─────────────────────────────────────
 
 export async function EmployerDossiersWithIntros({ ctx }: Props) {
+  // A workforce org's member company sees shared Dossiers only while hiring.
+  if (ctx.institution.orgType !== 'COLLEGE') {
+    const c = await memberCompanyFor(ctx)
+    if (!c?.hiring) {
+      return (
+        <EmptyState
+          icon={Users}
+          title="Say you're hiring to see local job seekers"
+          description="On Overview, answer “Yes, hiring”. You'll see the profiles people in the program chose to share with hiring companies."
+        />
+      )
+    }
+  }
   const [rows, employerProfileId] = await Promise.all([listEmployerDossiers(ctx), employerProfileFor(ctx)])
   if (!rows.length) {
     return <EmptyState icon={Users} title="No shared Dossiers yet" description="Members appear here only after they choose to share their Dossier with employers." />

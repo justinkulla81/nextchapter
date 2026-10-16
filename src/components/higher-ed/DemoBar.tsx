@@ -15,6 +15,7 @@ export function DemoBar({
   persona,
   guest = false,
   canReset = true,
+  canSkip = true,
   personas,
 }: {
   slug: string
@@ -24,6 +25,8 @@ export function DemoBar({
   guest?: boolean
   // Reset and skip-ahead need a college fixture; generated demos have none.
   canReset?: boolean
+  // "Skip ahead 60 days" moves a college's quiet periods; workforce demos have none.
+  canSkip?: boolean
   personas: { key: string; label: string }[]
 }) {
   const [confirming, setConfirming] = useState(false)
@@ -80,6 +83,7 @@ export function DemoBar({
 
             {isNcAdmin && canReset && (
             <>
+            {canSkip && (
             <Button
               size="sm"
               variant="outline"
@@ -94,6 +98,7 @@ export function DemoBar({
             >
               Skip ahead 60 days
             </Button>
+            )}
             {confirming ? (
               <span className="flex items-center gap-2">
                 <span>Delete and reseed all of this demo&apos;s data?</span>

@@ -27,10 +27,11 @@ export default async function MemberInvitePage({ params }: { params: Promise<{ s
         </div>
         {invite ? (
           <>
-            <h1 className="text-2xl font-semibold tracking-tight">{invite.name}: meet local job seekers</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{invite.name} in {brand}</h1>
             <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-              <li>See verified profiles of people in {inst.name}&apos;s program who chose to share them with hiring member companies.</li>
-              <li>Ask for an introduction. Each person says yes or no, and you get their email only on a yes.</li>
+              <li>When you have a layoff, ask {inst.name} for free career-support seats and get a sign-up page for your people.</li>
+              <li>See how your people are doing: how many joined, are interviewing and landed, and how many stayed local. Counts only.</li>
+              <li>When you&apos;re hiring, see verified profiles people chose to share and ask for an introduction. They say yes or no.</li>
             </ul>
             {user ? (
               <AcceptMemberInvite slug={slug} token={token} email={user.email ?? ''} />

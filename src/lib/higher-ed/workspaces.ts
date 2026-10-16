@@ -40,6 +40,8 @@ export type WorkspaceTab = {
   modules?: import('./modules').ModuleKey[]
   // Only for this kind of customer (omitted = both).
   orgKind?: OrgKind
+  // Its name on a workforce customer's portal, when different.
+  workforceLabel?: string
 }
 
 export type WorkspaceConfig = {
@@ -58,8 +60,12 @@ export type WorkspaceConfig = {
   feature?: 'wioa'
   // Which kind of customer has it: colleges, workforce customers, or (omitted) both.
   orgKind?: OrgKind
+  // Its name on a workforce customer's portal, when different.
+  workforceLabel?: string
   tabs: WorkspaceTab[]
 }
+
+export const labelFor = (x: { label: string; workforceLabel?: string }, kind: OrgKind) => (kind === 'workforce' && x.workforceLabel ? x.workforceLabel : x.label)
 
 // A college, or a workforce customer (board, economic development org,
 // chamber, community org): the Institution's orgType.
@@ -199,13 +205,17 @@ export const WORKSPACES: WorkspaceConfig[] = [
   {
     key: 'employer',
     label: 'Employer',
+    // A workforce org's member company: its layoffs, its people, its hiring.
+    workforceLabel: 'Your company',
     icon: 'Building2',
     release: 'V1',
     requiredRoles: ['EMPLOYER'],
     homePath: 'employer',
     tabs: [
-      { key: 'home', label: 'Shared Dossiers', comingIn: null },
-      { key: 'page', label: 'Employer page and roles', comingIn: null },
+      { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
+      { key: 'home', label: 'Shared Dossiers', workforceLabel: 'Hiring', comingIn: null },
+      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce' },
+      { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null },
     ],
   },
   {
@@ -361,7 +371,7 @@ export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: st
   return DEMO_PERSONAS.filter((p) => workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
     key: p.key,
     label:
-      ({ all: 'Everything', ...(kind === 'workforce' ? { MEMBER: 'Participant (job seeker)', WORKFORCE_PARTNER: 'Program staff', EMPLOYER: 'Hiring member company' } : {}) } as Record<string, string>)[p.key] ?? p.label,
+      ({ all: 'Everything', ...(kind === 'workforce' ? { MEMBER: 'Participant (job seeker)', WORKFORCE_PARTNER: 'Program staff', EMPLOYER: 'Member company' } : {}) } as Record<string, string>)[p.key] ?? p.label,
   }))
 }
 

@@ -7,10 +7,10 @@ import { Building2, MapPin, Users } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
-import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, small, type LocalSplit } from '@/lib/workforce/hub'
+import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm } from './HubForms'
+import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm, SeatRequestAnswer } from './HubForms'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -76,7 +76,7 @@ export async function HubCompanies({ ctx }: Props) {
                 <Th>Joined</Th>
                 <Th>Layoffs</Th>
                 <Th>Hiring</Th>
-                <Th>Hiring access</Th>
+                <Th>Portal access</Th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +100,7 @@ export async function HubCompanies({ ctx }: Props) {
                   <td className="px-3 py-2">{ctx.readOnly ? (c.hiring ? 'Hiring' : '—') : <HiringToggle slug={slug} companyId={c.id} hiring={c.hiring} />}</td>
                   <td className="px-3 py-2">
                     {c.employerProfileId ? (
-                      <span className="text-xs text-emerald-800">{c.hiring ? 'Connected' : 'Connected, paused'}</span>
+                      <span className="text-xs text-emerald-800">Connected</span>
                     ) : ctx.readOnly ? (
                       <span className="text-xs text-muted-foreground">{c.invitedAt ? 'Invited' : '—'}</span>
                     ) : (
@@ -119,16 +119,37 @@ export async function HubCompanies({ ctx }: Props) {
 
 export async function HubLayoffs({ ctx, searchParams }: Props) {
   const slug = ctx.institution.slug
-  const [rows, companies, notices, inst, given] = await Promise.all([
+  const [rows, companies, notices, inst, given, requests] = await Promise.all([
     hubLayoffs(ctx.institution.id),
     prisma.memberCompany.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
     regionNotices(ctx.institution.id).catch(() => []),
     prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { includedSeats: true } }),
     prisma.rapidResponse.aggregate({ where: { institutionId: ctx.institution.id, isActive: true, memberCompanyId: { not: null } }, _sum: { seats: true } }),
+    seatRequests(ctx.institution.id),
   ])
   const seatsLeft = inst.includedSeats - (given._sum.seats ?? 0)
   return (
     <div className="space-y-6">
+      {requests.length > 0 && (
+        <section aria-labelledby="requests" className="space-y-2">
+          <h2 id="requests" className="text-base font-semibold">
+            Seat requests from member companies
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div>
+                  <p className="font-medium">
+                    {r.memberCompany?.name ?? 'A member company'} · {(r.seats ?? 0).toLocaleString()} people · asked {day(r.requestedAt)}
+                  </p>
+                  {r.requestNote && <p className="text-xs text-muted-foreground">“{r.requestNote}”</p>}
+                </div>
+                {ctx.readOnly ? <span className="text-xs text-muted-foreground">Waiting</span> : <SeatRequestAnswer slug={slug} id={r.id} requested={r.seats ?? 1} />}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!ctx.readOnly && (
         <section className="space-y-3 rounded-lg border border-border bg-card p-4" aria-labelledby="open-seats">
           <h2 id="open-seats" className="text-base font-semibold">

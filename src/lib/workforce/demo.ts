@@ -177,13 +177,33 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     }),
   )
 
-  // The hiring companies have connected logins (sample employer accounts).
+  // Four companies have connected logins (sample employer accounts): the
+  // three hiring ones, and one that isn't hiring but just asked for seats.
   for (const [k, c] of companies.entries()) {
-    if (k % 3 !== 1) continue
+    if (k % 3 !== 1 && k !== 5) continue
     const ep = await prisma.employerProfile.create({ data: { userId: `${demoUserPrefix(slug)}employer-${k}`, companyName: c.name, companyIndustry: COMPANIES[k].industry, contactName: 'Talent team', isSampleData: true }, select: { id: true } })
     await prisma.institutionEmployer.create({ data: { institutionId, employerProfileId: ep.id, status: 'APPROVED', approvedBy: 'member-invite', approvedAt: now, isSampleData: true } })
     await prisma.memberCompany.update({ where: { id: c.id }, data: { employerProfileId: ep.id, connectedAt: now, invitedEmail: `talent@${c.name.toLowerCase().replace(/[^a-z]+/g, '')}.example.com` } })
   }
+
+  // A seat request waiting for the org's answer.
+  await prisma.rapidResponse.create({
+    data: {
+      institutionId,
+      memberCompanyId: companies[5].id,
+      seats: 35,
+      employerName: companies[5].name,
+      title: `Free career support for ${companies[5].name} employees`,
+      message: '',
+      programIds: [],
+      isActive: false,
+      requestStatus: 'REQUESTED',
+      requestNote: 'Closing the bottling line in six weeks; mostly supervisors and maintenance leads.',
+      requestedAt: new Date(now.getTime() - 2 * DAY),
+      createdBy: 'demo',
+      isSampleData: true,
+    },
+  })
 
   // Three layoffs with seats; the newest still open.
   const layoffSpecs = [

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addMemberCompany, addParticipant, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addMemberCompany, addParticipant, answerSeatRequestAction, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
 const area = 'min-h-20 w-full rounded-md border border-input bg-background p-2 text-sm'
@@ -277,7 +277,7 @@ export function MemberAccess({
       <span className="flex flex-col items-start gap-1">
         {invitedAt && <span className="text-xs text-muted-foreground">Invited {new Date(invitedAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>}
         <Button type="button" size="xs" variant="outline" onClick={() => setOpen(true)}>
-          {invitedAt ? 'Resend invite' : 'Give hiring access'}
+          {invitedAt ? 'Resend invite' : 'Give portal access'}
         </Button>
       </span>
     )
@@ -310,6 +310,49 @@ export function MemberAccess({
           {msg.path}
         </a>
       )}
+    </span>
+  )
+}
+
+// A member company's seat request: approve (seats editable) or decline.
+export function SeatRequestAnswer({ slug, id, requested }: { slug: string; id: string; requested: number }) {
+  const [seats, setSeats] = useState(String(requested))
+  const [done, setDone] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [confirmDecline, setConfirmDecline] = useState(false)
+  const [pending, start] = useTransition()
+  const run = (approve: boolean) =>
+    start(async () => {
+      setErr(null)
+      const r = await answerSeatRequestAction(slug, id, approve, approve ? Number(seats) : undefined)
+      if (r.error) setErr(r.error)
+      else setDone(approve ? 'Approved. The company now has its sign-up page.' : 'Declined.')
+    })
+  if (done) return <span className="text-xs text-muted-foreground">{done}</span>
+  return (
+    <span className={cn('flex flex-wrap items-center gap-2', pending && 'cursor-wait')}>
+      <label htmlFor={`sra-${id}`} className="text-xs">
+        Seats
+      </label>
+      <Input id={`sra-${id}`} type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} className="h-7 w-20" />
+      <Button type="button" size="xs" disabled={pending} onClick={() => run(true)}>
+        Approve
+      </Button>
+      {confirmDecline ? (
+        <>
+          <Button type="button" size="xs" variant="destructive" disabled={pending} onClick={() => run(false)}>
+            Decline request
+          </Button>
+          <Button type="button" size="xs" variant="ghost" autoFocus onClick={() => setConfirmDecline(false)}>
+            Keep
+          </Button>
+        </>
+      ) : (
+        <Button type="button" size="xs" variant="outline" onClick={() => setConfirmDecline(true)}>
+          Decline
+        </Button>
+      )}
+      {err && <span className="text-xs text-destructive">{err}</span>}
     </span>
   )
 }

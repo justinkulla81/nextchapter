@@ -26,12 +26,12 @@ export default function MemberCompanyInviteEmail({ orgName, companyName, acceptU
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
-        {orgName} has given {companyName} access to local job seekers in its program: people who chose to share a verified profile with hiring member companies.
-        You can see their profiles and ask for an introduction. Each person says yes or no.
+        {orgName} has given {companyName} access to its member portal. When you have a layoff, ask for free career-support seats for your people and see how they&apos;re doing
+        (counts only). When you&apos;re hiring, meet local job seekers who chose to share a verified profile, and ask for an introduction. Each person says yes or no.
       </p>
       <p>
         <a href={acceptUrl} style={button}>
-          Open your access
+          Open your company portal
         </a>
       </p>
       <p style={footer}>This link signs you in once. If you weren&apos;t expecting it, you can ignore this email.</p>

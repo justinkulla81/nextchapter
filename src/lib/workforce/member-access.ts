@@ -1,10 +1,10 @@
-// Hiring access for a workforce org's member companies: the org invites the
+// Portal access for a workforce org's member companies: the org invites the
 // company's contact; the contact signs in from the one-time link, gets (or
 // keeps) a NextChapter Talent employer account, and is connected to the
-// company as an approved employer of the org. They then see the Dossiers of
-// participants who chose to share with hiring member companies, and can ask
-// for introductions the participant accepts or declines. Turning "hiring"
-// off pauses the access; on again restores it.
+// company as an approved employer of the org ("Your company" workspace:
+// layoffs and seats, how its people are doing, jobs it posts). While the
+// company is marked hiring it also sees the Dossiers participants chose to
+// share, and can ask for introductions they accept or decline.
 
 import 'server-only'
 import { randomBytes } from 'crypto'
@@ -27,7 +27,7 @@ export async function inviteMemberCompany(args: { institutionId: string; company
   const email = args.email.trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Add the contact’s email.' }
   const token = randomBytes(18).toString('base64url')
-  await prisma.memberCompany.update({ where: { id: company.id }, data: { inviteToken: token, invitedEmail: email, invitedAt: new Date(), contactEmail: email, hiring: true } })
+  await prisma.memberCompany.update({ where: { id: company.id }, data: { inviteToken: token, invitedEmail: email, invitedAt: new Date(), contactEmail: email } })
   const path = memberInvitePath(company.institution.slug, token)
   // Demo orgs never email: staff copy the link instead.
   if (company.institution.isDemo) return { ok: true as const, sent: false, path }
@@ -66,17 +66,15 @@ export async function acceptMemberInvite(args: { slug: string; token: string; us
       create: { institutionId: invite.institutionId, employerProfileId: profile.id, status: 'APPROVED', approvedBy: 'member-invite', approvedAt: new Date() },
       update: { status: 'APPROVED', approvedBy: 'member-invite', approvedAt: new Date() },
     }),
-    prisma.memberCompany.update({ where: { id: invite.id }, data: { employerProfileId: profile.id, connectedAt: new Date(), inviteToken: null, hiring: true } }),
+    prisma.memberCompany.update({ where: { id: invite.id }, data: { employerProfileId: profile.id, connectedAt: new Date(), inviteToken: null } }),
   ])
   return { ok: true as const, companyId: invite.id, institutionId: invite.institutionId }
 }
 
-// Hiring off pauses a connected company's access; on restores it.
+// A connected company keeps its portal access; "hiring" only decides
+// whether it sees shared Dossiers (checked where they're listed).
 export async function syncMemberAccess(institutionId: string, companyId: string) {
-  const c = await prisma.memberCompany.findFirst({ where: { id: companyId, institutionId }, select: { hiring: true, employerProfileId: true } })
+  const c = await prisma.memberCompany.findFirst({ where: { id: companyId, institutionId }, select: { employerProfileId: true } })
   if (!c?.employerProfileId) return
-  await prisma.institutionEmployer.updateMany({
-    where: { institutionId, employerProfileId: c.employerProfileId },
-    data: c.hiring ? { status: 'APPROVED', approvedAt: new Date() } : { status: 'PENDING' },
-  })
+  await prisma.institutionEmployer.updateMany({ where: { institutionId, employerProfileId: c.employerProfileId }, data: { status: 'APPROVED' } })
 }

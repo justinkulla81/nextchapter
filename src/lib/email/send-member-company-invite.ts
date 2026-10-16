@@ -12,7 +12,7 @@ export async function sendMemberCompanyInviteEmail(to: string, orgName: string, 
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to,
-      subject: `${orgName} gave ${companyName} access to local job seekers`,
+      subject: `${orgName} added ${companyName} to its member portal`,
       react: MemberCompanyInviteEmail({ orgName, companyName, acceptUrl }),
     })
     if (error) {

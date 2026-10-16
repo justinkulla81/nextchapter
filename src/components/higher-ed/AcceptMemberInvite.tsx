@@ -22,7 +22,7 @@ export function AcceptMemberInvite({ slug, token, email }: { slug: string; token
           })
         }
       >
-        {pending ? 'Connecting…' : 'Accept and see job seekers'}
+        {pending ? 'Connecting…' : 'Accept and open your company portal'}
       </Button>
       {error && (
         <p role="alert" className="text-sm text-destructive">

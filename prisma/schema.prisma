@@ -14444,6 +14444,11 @@ model RapidResponse {
   memberCompanyId String?
   memberCompany   MemberCompany?      @relation(fields: [memberCompanyId], references: [id], onDelete: SetNull)
   seats           Int?
+  // A member company asking its workforce org for seats: REQUESTED until
+  // the org approves (seats given, sign-up page opens) or declines.
+  requestStatus   String?
+  requestNote     String?
+  requestedAt     DateTime?
   participants    InstitutionMember[] @relation("RapidResponseParticipants")
   warnNoticeId    String?
   warnNotice      WarnNotice?         @relation(fields: [warnNoticeId], references: [id], onDelete: SetNull)

@@ -9,6 +9,7 @@ import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib
 import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
 import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
+import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
 import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
@@ -1558,4 +1559,6 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:participants': HubParticipants,
   'hub:local': HubLocal,
   'hub:region': Region,
+  'employer:overview': CompanyOverview,
+  'employer:support': CompanySupport,
 }

@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -58,7 +58,7 @@ export default async function InstitutionPortalLayout({
     (w) => access.workspaces.includes(w.key) || locked.has(w.key) || (w.release === 'V2' && institution.isDemo),
   ).map((w) => ({
     key: w.key,
-    label: w.label,
+    label: labelFor(w, orgKindOf(institution.orgType)),
     icon: w.icon,
     href: `/i/${slug}/${w.homePath}`,
     badge: w.release === 'V2' ? 'Coming' : locked.has(w.key) && w.minTier ? `${TIER_LABELS[w.minTier]} tier` : null,
@@ -73,6 +73,7 @@ export default async function InstitutionPortalLayout({
           guest={access.mode === 'demo-guest'}
           persona={access.demoPersona}
           canReset
+          canSkip={orgKindOf(institution.orgType) === 'college'}
           personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier)}
         />
       )}
