@@ -2764,6 +2764,8 @@ model EmployerProfile {
   cultureVerifiedAt         DateTime?
 
   marketDigestOptedOut Boolean @default(false)
+  /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
+  marketDigestLastSentAt DateTime?
 
   // Relations
   savedSearches         SavedSearch[]

@@ -16,6 +16,9 @@ const COACH_CONCURRENCY = 3
 // Stop starting new coaches here so the run finishes cleanly (and records
 // OK) instead of being killed at the limit with nothing recorded.
 const DEADLINE_MS = 240_000
+// The cron is weekly; a coach sent within this window is not sent again, so
+// re-running the job after a partial run only reaches the coaches it missed.
+const ALREADY_SENT_WINDOW_MS = 5 * 24 * 3_600_000
 
 // Per-client: each client who has consented to coach access (the same
 // coachDossierConsentedAt gate as the Full Client View) gets their own
@@ -24,7 +27,11 @@ const DEADLINE_MS = 240_000
 // along as a footer.
 export const GET = withCronRun('market-digest-coaches', async () => {
   const coaches = await prisma.coach.findMany({
-    where: { isSampleData: false, marketDigestOptedOut: false },
+    where: {
+      isSampleData: false,
+      marketDigestOptedOut: false,
+      OR: [{ marketDigestLastSentAt: null }, { marketDigestLastSentAt: { lt: new Date(Date.now() - ALREADY_SENT_WINDOW_MS) } }],
+    },
     select: {
       id: true,
       fullName: true,
@@ -71,7 +78,13 @@ export const GET = withCronRun('market-digest-coaches', async () => {
       if (digest.clients.length === 0 && roleLines.length === 0 && !nugget) return
 
       const result = await sendMarketDigestCoachEmail(coach, digest, roleLines, nugget)
-      if (result.sent) sentCount += 1
+      if (result.sent) {
+        sentCount += 1
+        // Best-effort: a failed stamp must not hide the send that happened.
+        await prisma.coach
+          .update({ where: { id: coach.id }, data: { marketDigestLastSentAt: new Date() } })
+          .catch((e) => console.error('Coach market digest: could not stamp last-sent for', coach.id, e))
+      }
     } catch (error) {
       console.error('Coach market digest failed for coach', coach.id, error)
     }
@@ -99,5 +112,8 @@ export const GET = withCronRun('market-digest-coaches', async () => {
 
   const summary = { checked: coaches.length, sent: sentCount, skippedForTime }
   captureServerEvent('cron', 'coach_market_digest_run', summary)
-  return NextResponse.json(summary)
+  // Coaches left unsent make the run FAILED so the job watchdog emails about it.
+  // The job is not auto-retried (it emails coaches); re-running it by hand is
+  // safe because coaches already sent are skipped.
+  return NextResponse.json(summary, { status: skippedForTime > 0 ? 500 : 200 })
 })
