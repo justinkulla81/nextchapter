@@ -5,6 +5,8 @@ import { getOrganization, ownedTypes } from '@/lib/organizations/service'
 import { INTEGRATIONS, integrationApplies, portalMeta, resolveIntegrations, type PortalType } from '@/lib/organizations/portals'
 import { DeleteDemoButton, DemoControls, IntegrationToggles, OrganizationBrandForm } from '@/components/admin/OrganizationControls'
 import { demoTargets } from '@/lib/demo/access'
+import { prisma } from '@/lib/prisma'
+import { describeAuditAction } from '@/lib/partners/audit-labels'
 
 export const metadata = { title: 'Organization' }
 
@@ -20,6 +22,10 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   if (!org) notFound()
   const owned = ownedTypes(org)
   const on = resolveIntegrations(org.features, owned)
+  const refs = org.workspaces.filter((w) => w.refId).map((w) => ({ portal: w.type, refId: w.refId as string }))
+  const activity = refs.length
+    ? await prisma.partnerAuditEvent.findMany({ where: { OR: refs }, orderBy: { createdAt: 'desc' }, take: 15 })
+    : []
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -57,6 +63,24 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
             )
           })}
         </ul>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="recent">
+        <h2 id="recent" className="text-lg font-semibold">Recent activity across portals</h2>
+        {activity.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing yet. Downloads, brand changes and demo sign-ins appear here as they happen.</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {activity.map((e) => (
+              <li key={e.id} className="flex flex-wrap gap-x-2">
+                <span className="text-muted-foreground">{e.createdAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                <span>{portalMeta(e.portal as PortalType).label}:</span>
+                <span>{describeAuditAction(e.action)}</span>
+                {e.actorLabel ? <span className="text-muted-foreground">by {e.actorLabel}</span> : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="space-y-3" aria-labelledby="brand">
