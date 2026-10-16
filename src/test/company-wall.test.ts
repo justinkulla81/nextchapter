@@ -120,6 +120,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/candidates/lead-source.ts': 'attribution, writes only',
     'src/lib/candidates/link-invite.ts': 'attribution, writes only',
     'src/lib/companies/company-graph-sync.ts': 'nightly job: links CRM orgs to companies',
+    'src/lib/companies/merge-company.ts': 'admin-only: imported only by the CRM Duplicates actions; merges two companies and their CRM organizations',
     'src/lib/contact/process-submission.ts': 'contact form writes a CRM lead',
     'src/lib/geo/local-partners.ts': 'admin geography tooling',
     'src/lib/help/crm-note.ts': 'help request writes a CRM note',

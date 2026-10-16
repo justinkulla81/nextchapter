@@ -3,9 +3,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { ttlCached } from '@/lib/admin/ttl-cache'
-import { findAbbreviationSuggestions } from '@/lib/companies/company-duplicates'
+import { findAbbreviationSuggestions, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { decidedAliasPairs } from '@/lib/companies/company-alias'
-import { MergeGroupActions, AbbreviationActions } from '@/components/admin/CrmDuplicateActions'
+import { MergeGroupActions, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
 
 export const maxDuration = 60
 
@@ -45,6 +45,28 @@ export default async function DuplicateOrganizationsPage() {
     },
   })
   const byId = new Map(orgs.map((o) => [o.id, o]))
+
+  // The directory companies behind them can be duplicated too (the same letters, 6+ of them).
+  const companyGroups = await prisma.$queryRaw<{ ids: string[] }[]>`
+    SELECT array_agg(id) AS ids
+      FROM "Company"
+     WHERE length(regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g')) >= ${MIN_SQUASHED_LENGTH}
+     GROUP BY regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g')
+    HAVING count(*) > 1`
+  const companyIds = companyGroups.flatMap((g) => g.ids)
+  const [companies, boardCounts, openingCounts] = await Promise.all([
+    prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, name: true } }),
+    prisma.exclusiveJobPosting.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds } }, _count: { _all: true } }),
+    prisma.companyJobOpening.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds } }, _count: { _all: true } }),
+  ])
+  const companyById = new Map(companies.map((c) => [c.id, c]))
+  const jobsOf = new Map<string, number>()
+  for (const r of [...boardCounts, ...openingCounts]) if (r.companyId) jobsOf.set(r.companyId, (jobsOf.get(r.companyId) ?? 0) + r._count._all)
+  const companyRows = companyGroups
+    .map((g) => ({
+      members: g.ids.flatMap((id) => (companyById.has(id) ? [companyById.get(id)!] : [])).sort((a, b) => (jobsOf.get(b.id) ?? 0) - (jobsOf.get(a.id) ?? 0)),
+    }))
+    .sort((a, b) => a.members[0].name.localeCompare(b.members[0].name))
   const weight = (o: { _count: { affiliations: number; opportunities: number; mandates: number } }) =>
     o._count.affiliations + o._count.opportunities + o._count.mandates
   const rows = groups
@@ -57,7 +79,7 @@ export default async function DuplicateOrganizationsPage() {
     .sort((a, b) => b.activity - a.activity || a.squashed.localeCompare(b.squashed))
 
   captureServerEvent(admin.email ?? 'admin', 'crm_duplicates_viewed', {
-    groups: rows.length, abbreviationSuggestions: abbreviations.length, shortNameGroups: rows.filter((r) => r.short).length,
+    groups: rows.length, companyGroups: companyRows.length, abbreviationSuggestions: abbreviations.length, shortNameGroups: rows.filter((r) => r.short).length,
   })
 
   return (
@@ -66,7 +88,7 @@ export default async function DuplicateOrganizationsPage() {
         <h1 className="text-2xl font-semibold">Duplicate organizations</h1>
         <p className="max-w-prose text-sm text-muted-foreground">
           Organizations whose names differ only by spacing, punctuation or &quot;&amp;&quot;. Groups with people or deals
-          attached are first. Pick the record to keep and the others merge into it.
+          attached are first. Pick the record to keep and the others merge into it. Companies and abbreviations are below.
         </p>
         <p className="text-sm text-muted-foreground">
           {rows.length.toLocaleString()} groups · {rows.filter((r) => r.short).length.toLocaleString()} with very short names, which may be different companies
@@ -95,6 +117,43 @@ export default async function DuplicateOrganizationsPage() {
           ))}
         </ul>
       )}
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">Duplicate companies ({companyRows.length.toLocaleString()})</h2>
+        <p className="max-w-prose text-sm text-muted-foreground">
+          The directory companies behind job postings and resumes, with names that are the same letters. Merging moves postings, resumes, intel and
+          CRM records to the one you keep, and the other name keeps resolving to it.
+        </p>
+        {companyRows.length === 0 ? (
+          <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No duplicate companies found.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {companyRows.slice(0, PAGE_LIMIT).map((g) => (
+              <li key={g.members.map((m) => m.id).join('-')} className="space-y-1 p-3 text-sm">
+                {g.members.map((c) => (
+                  <p key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium">{c.name}</span>
+                    <span className="text-xs text-muted-foreground">{(jobsOf.get(c.id) ?? 0).toLocaleString()} postings</span>
+                  </p>
+                ))}
+                <MergeGroupActions kind="company" members={g.members.map((c) => ({ id: c.id, name: c.name }))} />
+              </li>
+            ))}
+          </ul>
+        )}
+        {companyRows.length > PAGE_LIMIT && (
+          <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {companyRows.length.toLocaleString()} groups.</p>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">Add an alias by hand</h2>
+        <p className="max-w-prose text-sm text-muted-foreground">
+          For renames and abbreviations the suggestions can&apos;t find, like Rtx and Raytheon. If a company already exists under the left name it is
+          merged into the one on the right; otherwise future resumes and postings with that name resolve to it.
+        </p>
+        <AliasForm />
+      </section>
+
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Possible abbreviations ({abbreviations.length.toLocaleString()})</h2>
         <p className="max-w-prose text-sm text-muted-foreground">
