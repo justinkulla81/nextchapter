@@ -9,6 +9,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { placeAt } from '@/lib/workforce/local'
 import { STATE_NAMES } from '@/lib/workforce/places'
+import { mainOrigin } from '@/lib/org-hosts'
 import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
 import { answerSeatRequest } from '@/lib/workforce/company-portal'
 
@@ -92,7 +93,7 @@ export async function openLayoffSeats(slug: string, _prev: HubResult, f: FormDat
   })
   captureServerEvent(ctx.userId, 'hub_layoff_seats_opened', { institutionId: ctx.institution.id, companyId: company.id, rapidResponseId: r.id, seats, fromWarn: !!warnNoticeId })
   revalidatePath(`/i/${slug}`, 'layout')
-  return { ok: true, message: `Seats open. Share the sign-up page: /i/${slug}/rapid/${r.id}` }
+  return { ok: true, message: `Seats open. Share the sign-up page: ${mainOrigin()}/i/${slug}/rapid/${r.id}` }
 }
 
 export async function setLayoffOpen(slug: string, id: string, isActive: boolean): Promise<Result> {

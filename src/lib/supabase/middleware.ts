@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith } from '@/lib/supabase/portal'
+import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith, type PortalKey } from '@/lib/supabase/portal'
 
 // Whether ANY Supabase session cookie is present for the relevant portal —
 // checked with startsWith (not equality) because @supabase/ssr chunks a
@@ -16,7 +16,10 @@ function hasSupabaseSessionCookie(request: NextRequest, cookieBaseName?: string)
     .some((c) => (cookieBaseName ? c.name.startsWith(cookieBaseName) : c.name.startsWith('sb-') && c.name.includes('auth-token')))
 }
 
-export async function updateSession(request: NextRequest) {
+// `portal` overrides the path-based choice (an org portal's own subdomain);
+// `rewriteTo` serves another path at the same address (its /i app).
+export async function updateSession(request: NextRequest, opts: { portal?: PortalKey; rewriteTo?: URL } = {}) {
+  const respond = () => (opts.rewriteTo ? NextResponse.rewrite(opts.rewriteTo, { request }) : NextResponse.next({ request }))
   // Forward the pathname as a REQUEST header (not a response header) so
   // headers().get('x-pathname') in Server Component layouts (e.g.
   // src/app/dashboard/layout.tsx) can actually see it — setting a header on
@@ -26,7 +29,7 @@ export async function updateSession(request: NextRequest) {
   request.headers.set('x-pathname', request.nextUrl.pathname)
   request.headers.set('x-search', request.nextUrl.search)
 
-  let supabaseResponse = NextResponse.next({ request })
+  let supabaseResponse = respond()
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     console.warn('Supabase env vars are not set — skipping session refresh.')
@@ -39,7 +42,7 @@ export async function updateSession(request: NextRequest) {
   // token gets silently refreshed, so a portal whose cookie never gets
   // refreshed here would hard-expire on its Supabase access-token TTL with
   // no recovery path.
-  const portal = portalForPath(request.nextUrl.pathname)
+  const portal = opts.portal ?? portalForPath(request.nextUrl.pathname)
   const portalCookieName = portal ? PORTAL_COOKIE_NAMES[portal] : undefined
 
   // supabase.auth.getUser() is a real network round-trip to Supabase's auth
@@ -65,7 +68,7 @@ export async function updateSession(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({ request })
+            supabaseResponse = respond()
             cookiesToSet.forEach(({ name, value, options }) =>
               supabaseResponse.cookies.set(name, value, options)
             )

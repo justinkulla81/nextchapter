@@ -5,6 +5,7 @@
 // config; authorization happens in requireWorkspace() on the server.
 
 import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole } from '@prisma/client'
+import { orgAppPath, type OrgHostKind } from '@/lib/org-hosts'
 
 export type WorkspaceKey =
   | 'candidate'
@@ -73,9 +74,11 @@ export type OrgKind = 'college' | 'workforce'
 
 export const orgKindOf = (t: InstitutionOrgType | null | undefined): OrgKind => (!t || t === 'COLLEGE' ? 'college' : 'workforce')
 
-// The portal's public address: /highered/<slug> for a college,
-// /workforce/<slug> for a workforce org (both served from /i/<slug>).
-export const orgBasePath = (slug: string, t: InstitutionOrgType | null | undefined) => `/${orgKindOf(t) === 'workforce' ? 'workforce' : 'highered'}/${slug}`
+// The portal's public address (src/lib/org-hosts.ts): its own subdomain
+// (workforce. / highered.), or /workforce/<slug> and /highered/<slug> on the
+// main host while subdomains are off. Served from /i/<slug> either way.
+export const orgHostKindOf = (t: InstitutionOrgType | null | undefined): OrgHostKind => (orgKindOf(t) === 'workforce' ? 'workforce' : 'highered')
+export const orgBasePath = (slug: string, t: InstitutionOrgType | null | undefined) => orgAppPath(slug, orgHostKindOf(t))
 
 export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
   COLLEGE: 'College or university',
