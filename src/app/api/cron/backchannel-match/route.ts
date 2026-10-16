@@ -23,14 +23,34 @@ import { isCircularEmailMatch } from '@/lib/network/backchannel-circular'
 // to share a substring. Strict equality misses some real abbreviations
 // ("Hyland" for "Hyland Software") but that's a missed nudge, not a false
 // claim mailed to the candidate.
-export const GET = withCronRun('backchannel-match', async () => {
+//
+// Optional query params, for testing against one real account without
+// emailing everyone (the route is still behind the CRON_SECRET bearer check):
+//   candidateId=<id>  only that candidate
+//   dryRun=1          report what would be sent; send nothing, mark nothing
+//   force=1           with candidateId only: ignore "already notified" so an
+//                     application that already got the email can be re-sent
+export const GET = withCronRun('backchannel-match', async (request) => {
+  const params = request.nextUrl.searchParams
+  const candidateId = params.get('candidateId')
+  const dryRun = params.get('dryRun') === '1'
+  const force = params.get('force') === '1'
+  if (force && !candidateId) {
+    return NextResponse.json({ error: 'force requires candidateId' }, { status: 400 })
+  }
+
   // Selects every applied job with a company name (not just still-unnotified
   // ones) so the email can tell the candidate how many OTHER companies
   // they've applied to also have a network connection, beyond the one this
   // particular send calls out — backchannelEmailSentAt is filtered in code
   // below to find which one to actually notify about.
   const eligible = await prisma.candidateProfile.findMany({
-    where: { registrationCompletedAt: { not: null }, isSampleData: false, weeklyReportOptedOut: false },
+    where: {
+      registrationCompletedAt: { not: null },
+      isSampleData: false,
+      weeklyReportOptedOut: false,
+      ...(candidateId ? { id: candidateId } : {}),
+    },
     select: {
       id: true,
       userId: true,
@@ -44,6 +64,7 @@ export const GET = withCronRun('backchannel-match', async () => {
   })
 
   let sentCount = 0
+  const wouldSend: { candidateId: string; jobId: string; companyName: string; contactCount: number }[] = []
   for (const candidate of eligible) {
     try {
       if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
@@ -82,11 +103,16 @@ export const GET = withCronRun('backchannel-match', async () => {
       )
 
       for (const job of candidate.jobPostings) {
-        if (!job.companyName || job.backchannelEmailSentAt) continue
+        if (!job.companyName || (job.backchannelEmailSentAt && !force)) continue
         // Ranked best-first, and anyone confirmed to have left is dropped —
         // the email leads with the first one and drafts a note to them.
         const matchedContacts = rankBackchannelContacts(contactsAt(job))
         if (matchedContacts.length === 0) continue
+
+        if (dryRun) {
+          wouldSend.push({ candidateId: candidate.id, jobId: job.id, companyName: job.companyName, contactCount: matchedContacts.length })
+          break
+        }
 
         const otherCompanyCount = Math.max(0, matchedCompanyNames.size - 1)
         const result = await sendBackchannelMatchEmail(
@@ -104,5 +130,5 @@ export const GET = withCronRun('backchannel-match', async () => {
     }
   }
 
-  return NextResponse.json({ checked: eligible.length, sent: sentCount })
+  return NextResponse.json(dryRun ? { checked: eligible.length, dryRun: true, wouldSend } : { checked: eligible.length, sent: sentCount })
 })
