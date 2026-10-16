@@ -74,8 +74,28 @@ export const MEMBER_SKILLS_FULL = 8
  * Posting skills first (concrete); with none, the member's skills fit to the job's occupation
  * (O*NET, careers/skills-fit.ts bands). Unknown when neither says.
  */
-export function skillsMatch(input: { jobSkills: readonly string[]; memberVocab: ReadonlySet<string>; occupationBand?: 'close' | 'good' | 'partial' | 'few' | null }): SkillsMatch {
-  if (input.memberVocab.size < MEMBER_SKILLS_MIN) return 'unknown'
+/** Posting tools (O*NET ids) and member tools needed before the tool overlap decides. */
+export const JOB_TOOLS_MIN = 2
+export const MEMBER_TOOLS_MIN = 3
+
+export function skillsMatch(input: {
+  jobSkills: readonly string[]
+  memberVocab: ReadonlySet<string>
+  occupationBand?: 'close' | 'good' | 'partial' | 'few' | null
+  /** O*NET skill / tool ids the posting names (text-skill-ids.ts) and the member's skills map to. */
+  jobSkillIds?: readonly string[]
+  memberSkillIds?: ReadonlySet<string>
+}): SkillsMatch {
+  // The posting's named tools against the member's, through the same O*NET aliases: the widest
+  // vocabulary, so it decides first when both sides name enough.
+  const jobIds = input.jobSkillIds ?? []
+  if (jobIds.length >= JOB_TOOLS_MIN && (input.memberSkillIds?.size ?? 0) >= MEMBER_TOOLS_MIN) {
+    let n = 0
+    for (const id of jobIds) if (input.memberSkillIds!.has(id)) n++
+    if (n >= SKILLS_STRONG_MIN || (n >= 1 && n / jobIds.length >= 0.5)) return 'strong'
+    return n >= 1 ? 'weak' : 'none'
+  }
+  if (input.memberVocab.size < MEMBER_SKILLS_MIN) return input.occupationBand ? bandMatch(input.occupationBand) : 'unknown'
   if (input.jobSkills.length > 0) {
     let n = 0
     for (const s of input.jobSkills) if (input.memberVocab.has(s.toLowerCase())) n++
@@ -187,6 +207,8 @@ export const WIDE_EXTRAS_WHEN_FULL = 150
 /** Wide when Narrow is short: Narrow plus extras up to this total, fits up to this rank (2 = stretch). */
 export const WIDE_TOTAL_WHEN_SHORT = 250
 export const WIDE_SHORT_MAX_FIT_RANK = 2
+/** A Narrow under NARROW_SHOW.min widens on its own, with bridge jobs, up to this many. Tune here. */
+export const AUTO_WIDEN_FILL = 60
 
 // ── Explanation ────────────────────────────────────────────────────────────────
 
@@ -195,9 +217,22 @@ export const WIDE_SHORT_MAX_FIT_RANK = 2
  * showing the 120 that fit you best." / "23 jobs match you on level, field, location and
  * skills. Widen for 140 more, each with how to bridge the gap."
  */
-export function relevanceLine(input: { breadth: 'narrow' | 'wide'; relevant: number; shown: number; field: string; place: string | null; extras: number }): string {
+export function relevanceLine(input: {
+  breadth: 'narrow' | 'wide'
+  relevant: number
+  shown: number
+  field: string
+  place: string | null
+  extras: number
+  /** Narrow was short and widened with bridge jobs on its own. */
+  autoWidened?: boolean
+}): string {
   const n = (x: number) => x.toLocaleString()
   const where = input.place ? ` ${input.place}` : ''
+  if (input.autoWidened) {
+    const strong = input.shown - input.extras
+    return `Only ${n(strong)} ${input.field} job${strong === 1 ? '' : 's'}${where} fit you on every count right now, so we added ${n(input.extras)} worth a look — each says what transfers and how to bridge the gap.`
+  }
   if (input.breadth === 'wide') {
     return `${n(input.shown - input.extras)} jobs that fit you on every count, plus ${n(input.extras)} that need one bridge — each says what transfers and how to close the gap.`
   }
@@ -230,6 +265,21 @@ export interface Bridge {
  * two occupations (O*NET); the steps link into Learning, the skills gap, and the company's
  * insiders or the Network page.
  */
+/**
+ * O*NET items every desk job rates highly: naming them as "what transfers" or "what's missing"
+ * says nothing. Left out of bridges.
+ */
+export const GENERIC_ONET = new Set([
+  'english language', 'customer and personal service', 'administration and management', 'mathematics', 'administrative',
+  'reading comprehension', 'active listening', 'speaking', 'writing', 'critical thinking', 'monitoring', 'coordination',
+  'time management', 'social perceptiveness', 'judgment and decision making', 'complex problem solving', 'active learning',
+  'service orientation', 'instructing', 'learning strategies', 'education and training', 'computers and electronics',
+])
+const specific = (xs: string[] | undefined) => (xs ?? []).filter((x) => !GENERIC_ONET.has(x.trim().toLowerCase()))
+
+/** Function-relaxed Wide jobs that come in through O*NET similarity alone need at least this (search-breadth.ts scores). */
+export const FUNCTION_RELAX_MIN_SIMILARITY = 0.86
+
 export function buildBridge(input: {
   relaxed: Relaxed
   fieldLabel: string
@@ -244,18 +294,20 @@ export function buildBridge(input: {
   companyHref?: string | null
 }): Bridge {
   const list = (xs: string[], n = 3) => xs.slice(0, n).map((x) => x.toLowerCase()).join(', ')
-  const shared = input.have.length > 0 ? input.have : (input.occupationShared ?? [])
+  const have = specific(input.have)
+  const missingSpecific = specific(input.missing)
+  const shared = have.length > 0 ? have : specific(input.occupationShared)
   const transfers =
     input.relaxed === 'industry'
       ? `The same work as yours (${input.fieldLabel})${shared.length > 0 ? `, with your ${list(shared)}` : ''}.`
       : input.relaxed === 'skills'
-        ? `Your field and level${input.have.length > 0 ? `, and your ${list(input.have)}` : ''}.`
+        ? `Your field and level${have.length > 0 ? `, and your ${list(have)}` : ''}.`
         : shared.length > 0
           ? `Your ${list(shared)}.`
           : 'Most of the same core skills as your own work (O*NET).'
-  const gaps = [...(input.relaxed === 'industry' && input.jobIndustry ? [`${input.jobIndustry} know-how`] : []), ...input.missing.slice(0, 3)]
+  const gaps = [...(input.relaxed === 'industry' && input.jobIndustry ? [`${input.jobIndustry} know-how`] : []), ...missingSpecific.slice(0, 3)]
   const missing = gaps.length > 0 ? `${gaps.map((g) => g.toLowerCase()).join(', ')}.` : 'Nothing specific in the posting — check the description.'
-  const first = input.missing[0]
+  const first = missingSpecific[0]
   const learn = first
     ? { label: `Learn ${first.toLowerCase()}`, href: `/dashboard/learning?q=${encodeURIComponent(first)}` }
     : input.relaxed === 'industry' && input.jobIndustry
@@ -266,3 +318,4 @@ export function buildBridge(input: {
     : { label: 'Find someone who does this work', href: '/dashboard/network' }
   return { relaxed: input.relaxed, transfers, missing, learn, network }
 }
+

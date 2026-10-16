@@ -15,6 +15,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import FreshJobAlertEmail from '@/emails/fresh-job-alert'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-job-alert-cap'
+import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
+import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -62,6 +64,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     where: postedWithinWhere(WINDOW_HOURS),
     size: 30,
     fitScoring,
+    // A small strict market fills with bridge jobs (labelled) instead of going out near-empty.
+    autoWidenTo: 30,
     // Mid-level and early-career jobs stay out of emails until the owner turns on
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
@@ -111,6 +115,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
         company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : p.companyName,
         location: p.location,
         postedAgo: postedAgo(p),
+        // A small strict market widens with bridge jobs (still very strong fits); they say so.
+        bridgeNote: board.breadth.bridges.has(p.id) ? bridgeEmailNote(board.breadth.bridges.get(p.id)!, jobIndustryBucket(p.industry)) : null,
       })),
       boardUrl: `${appUrl}/dashboard/find-my-job?view=fresh&src=fresh_job_alert#job-recommendations`,
       unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'freshJobAlerts'),

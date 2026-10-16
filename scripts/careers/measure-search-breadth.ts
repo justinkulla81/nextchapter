@@ -60,12 +60,13 @@ async function main() {
     console.log(`window ${rows.length} | OLD: bare-function field ${oldField}, old Narrow set ${oldNarrow}`)
     console.log(`NEW funnel: own sub-function/occupation ${fnOwn} → + place ${fnGeo} → + skills ${fnGeoSkills} → + own industry ${allFour} | relevant (incl. strong fits outside their industries) ${narrow.breadth.relevantTotal}`)
     console.log(`of the ${oldField} old-field jobs, each criterion alone removes: ${JSON.stringify(removed)}`)
-    console.log(`default ${boardBreadthFor(profile)} | tier ${narrow.breadth.marketTier} | Narrow ${total(narrow)} (more good matches ${narrow.breadth.goodMoreIds.length}) | Wide ${total(wide)} (extras ${wide.breadth.extrasTotal})`)
-    console.log(`line: ${relevanceLine({ breadth: 'narrow', relevant: narrow.breadth.relevantTotal, shown: narrow.breadth.narrowTotal, field: subFunctionLabel(m.subFunction) ?? m.functionLabel ?? 'matching', place: null, extras: 0 })}`)
+    console.log(`default ${boardBreadthFor(profile)} | tier ${narrow.breadth.marketTier} | Narrow ${total(narrow)}${narrow.breadth.autoWidened ? ` (auto-widened: ${narrow.breadth.narrowTotal} strong + ${narrow.breadth.bridges.size} bridge)` : ''} (more good matches ${narrow.breadth.goodMoreIds.length}) | Wide ${total(wide)} (extras ${wide.breadth.extrasTotal})`)
+    console.log(`member skills: ${m.vocab?.size ?? 0} posting-vocabulary terms, ${m.skillIds?.size ?? 0} O*NET skills/tools`)
+    console.log(`line: ${relevanceLine({ breadth: 'narrow', relevant: narrow.breadth.relevantTotal, shown: narrow.breadth.autoWidened ? narrow.breadth.wideTotal : narrow.breadth.narrowTotal, field: subFunctionLabel(m.subFunction) ?? m.functionLabel ?? 'matching', place: null, extras: narrow.breadth.extrasTotal, autoWidened: narrow.breadth.autoWidened })}`)
     console.log(`ms: narrow warm ${narrowMs} | wide warm ${wideMs}`)
     const keywords = memberSkillKeywords(profile)
     let shown = 0
-    for (const p of wide.open) {
+    for (const p of narrow.open) {
       const placed = c.place(p)
       if (!placed || placed.relaxed === null || placed.relaxed === 'out' || shown >= 4) continue
       shown++

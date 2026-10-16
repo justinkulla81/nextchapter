@@ -29,6 +29,7 @@ import {
   WIDE_EXTRAS_WHEN_FULL,
   WIDE_TOTAL_WHEN_SHORT,
   WIDE_SHORT_MAX_FIT_RANK,
+  AUTO_WIDEN_FILL,
   type MarketTier,
   type Relaxed,
 } from '@/lib/jobs/relevance'
@@ -467,6 +468,10 @@ export interface BoardShortlist {
     extrasTotal: number
     /** "Show more good matches": the next good matches by fit (ids, open jobs only), paged in on request. */
     goodMoreIds: string[]
+    /** Narrow was short of the band, so it widened with bridge jobs (shown after the strong matches). */
+    autoWidened: boolean
+    /** Jobs shown that need a bridge, and the criterion each relaxes. */
+    bridges: ReadonlyMap<string, Relaxed>
     classifier: BreadthClassifier | null
   }
   /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
@@ -537,6 +542,8 @@ export async function loadBoardShortlist(opts: {
   breadth?: Breadth | 'off'
   /** Rank by breadth and label, but keep jobs neither breadth would show (a search: the member asked for them). */
   breadthKeepUnmatched?: boolean
+  /** A short Narrow auto-widens with bridge jobs up to this many (relevance.ts AUTO_WIDEN_FILL by default). */
+  autoWidenTo?: number
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -601,6 +608,8 @@ export async function loadBoardShortlist(opts: {
       marketTier: ranked.marketTier,
       extrasTotal: ranked.extrasTotal,
       goodMoreIds: ranked.goodMoreIds,
+      autoWidened: ranked.autoWidened,
+      bridges: ranked.bridges,
       classifier,
     },
     dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
@@ -658,6 +667,8 @@ export function rankBoardRows(
     place?: (p: BoardRankRow) => BreadthPlacement | null
     breadth?: Breadth
     breadthKeepUnmatched?: boolean
+    /** Auto-widen a short Narrow up to this many jobs (emails pass their own count). Default AUTO_WIDEN_FILL. */
+    autoWidenTo?: number
     /**
      * The member's relevant-job count for the market tier (relevance.ts MARKET_TIERS), when
      * this call sees only part of it (an email's date window). Omitted: this call's own count.
@@ -763,6 +774,8 @@ export function rankBoardRows(
   let goodMoreIds: string[] = []
   let marketTierKey: MarketTier['key'] | null = null
   let extrasTotal = 0
+  let autoWidened = false
+  const bridges = new Map<string, Relaxed>()
   const capByType = new Map<WorkType, number>()
   if (selecting) {
     const isRelevant = (e: Entry) => e.placed!.relaxed === null && (e.placed!.crit.industry || e.rank === 0)
@@ -784,14 +797,20 @@ export function rankBoardRows(
     goodMoreIds = good.slice(NARROW_SHOW.max, NARROW_SHOW.max + GOOD_MORE_MAX).filter((e) => e.canOpen).map((e) => e.id)
     const full = good.length >= NARROW_SHOW.min
     const relevantSet = new Set(relevantAll)
+    // A small strict market widens on its own (owner's rule): Narrow becomes Wide with bridges,
+    // filled up to the band, so neither the board nor an email is ever near-empty.
+    autoWidened = opts.breadth === 'narrow' && !full
+    const fillTo = autoWidened ? Math.max(NARROW_SHOW.min, opts.autoWidenTo ?? AUTO_WIDEN_FILL) : WIDE_TOTAL_WHEN_SHORT
     const extras = entries
       .filter((e) => typeOk(e) && RELAX_ORDER.includes(e.placed!.relaxed as Relaxed) && !relevantSet.has(e) && (full ? e.rank === 0 : e.rank <= WIDE_SHORT_MAX_FIT_RANK))
-      .sort((a, b) => a.cls - b.cls || byFit(a, b))
-      .slice(0, full ? WIDE_EXTRAS_WHEN_FULL : Math.max(0, WIDE_TOTAL_WHEN_SHORT - narrowSel.length))
+      // Good fits first, then the relax order (industry, function, skills), then fit.
+      .sort((a, b) => Number(a.rank > 1) - Number(b.rank > 1) || a.cls - b.cls || byFit(a, b))
+      .slice(0, full ? WIDE_EXTRAS_WHEN_FULL : Math.max(0, fillTo - narrowSel.length))
     extrasTotal = extras.length
     narrowTotal = narrowSel.length
     wideTotal = narrowSel.length + extras.length
-    selected = opts.breadth === 'narrow' ? narrowSel : [...narrowSel, ...extras]
+    for (const e of extras) bridges.set(e.id, e.placed!.relaxed as Relaxed)
+    selected = opts.breadth === 'narrow' && !autoWidened ? narrowSel : [...narrowSel, ...extras]
   } else {
     selected = entries.filter(typeOk)
   }
@@ -868,6 +887,8 @@ export function rankBoardRows(
     marketTier: marketTierKey,
     extrasTotal,
     goodMoreIds,
+    autoWidened,
+    bridges,
     openTotal: open.length,
     lockedTotal: locked.length,
     freshOpenTotal,

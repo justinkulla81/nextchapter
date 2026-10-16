@@ -137,6 +137,8 @@ export interface MemberBreadthVector {
   geo?: MemberGeo
   /** Skill-vocabulary terms (skills-extraction.ts) their skills matrix shows, lowercase. */
   vocab?: ReadonlySet<string>
+  /** O*NET skill / tool ids their skills matrix maps to (alias layer). */
+  skillIds?: ReadonlySet<string>
   /** Their skills fit to an occupation (careers/skills-fit.ts band), memoised; null when unknown. */
   occupationBand?: (soc: string) => 'close' | 'good' | 'partial' | 'few' | null
   /** What an occupation uses that they don't show (O*NET tools, then knowledge), for bridges. */

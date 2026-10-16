@@ -2,6 +2,8 @@ import 'server-only'
 import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
+import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
@@ -189,6 +191,8 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     where: { createdAt: { gte: jobsSince } },
     size: 200,
     fitScoring,
+    // A small strict market fills with bridge jobs (labelled "Worth a look") instead of a near-empty email.
+    autoWidenTo: 60,
     // Mid-level and early-career jobs stay out of emails until the owner turns on
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
@@ -206,7 +210,13 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
     key: `job:${p.id}`,
     title: p.title,
-    detail: [p.companyName, p.location, isFresh(p, now) ? postedAgo(p, now) : null, knowLine(p.companyName)]
+    detail: [
+      shortlist.breadth.bridges.has(p.id) ? bridgeEmailNote(shortlist.breadth.bridges.get(p.id)!, jobIndustryBucket(p.industry)) : null,
+      p.companyName,
+      p.location,
+      isFresh(p, now) ? postedAgo(p, now) : null,
+      knowLine(p.companyName),
+    ]
       .filter(Boolean)
       .join(' · '),
     href: jobsUrl,

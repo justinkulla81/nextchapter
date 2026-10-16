@@ -83,6 +83,11 @@ describe('market tiers and the line', () => {
     expect(marketTierFor(4_200).key).toBe('much_higher')
     expect(marketTierFor(12_000).key).toBe('strictest')
   })
+  it('says when a small market widened on its own', () => {
+    expect(relevanceLine({ breadth: 'narrow', relevant: 3, shown: 60, field: 'Operations', place: 'remote', extras: 57, autoWidened: true })).toBe(
+      'Only 3 Operations jobs remote fit you on every count right now, so we added 57 worth a look — each says what transfers and how to bridge the gap.'
+    )
+  })
   it('says why the list is short', () => {
     expect(relevanceLine({ breadth: 'narrow', relevant: 4200, shown: 120, field: 'Operations', place: null, extras: 0 })).toBe(
       "There are 4,200 Operations roles at your level, so we're only showing the 120 that fit you best."
@@ -91,7 +96,22 @@ describe('market tiers and the line', () => {
   })
 })
 
+describe('skills through O*NET tools', () => {
+  it('the posting\'s named tools against the member\'s decide first', () => {
+    const member = new Set(['tool:salesforce', 'tool:tableau', 'tool:excel'])
+    expect(skillsMatch({ jobSkills: [], memberVocab: new Set(), jobSkillIds: ['tool:salesforce', 'tool:tableau', 'tool:sql'], memberSkillIds: member })).toBe('strong')
+    expect(skillsMatch({ jobSkills: [], memberVocab: new Set(), jobSkillIds: ['tool:kubernetes', 'tool:terraform'], memberSkillIds: member })).toBe('none')
+    expect(skillsMatch({ jobSkills: [], memberVocab: new Set(), jobSkillIds: ['tool:kubernetes', 'tool:tableau', 'tool:go'], memberSkillIds: member })).toBe('weak')
+  })
+})
+
 describe('bridges', () => {
+  it('leave out generic O*NET items', () => {
+    const b = buildBridge({ relaxed: 'function', fieldLabel: 'Operations', have: [], missing: ['English language', 'Mathematics'], occupationShared: ['Administration and management', 'Customer and personal service'], companyName: null })
+    expect(b.transfers).toBe('Most of the same core skills as your own work (O*NET).')
+    expect(b.missing).toMatch(/^Nothing specific/)
+  })
+
   it('what transfers, what is missing, one learning and one networking step', () => {
     const b = buildBridge({ relaxed: 'industry', fieldLabel: 'Recruiting and talent acquisition', have: ['Workday', 'Sourcing'], missing: ['Greenhouse'], jobIndustry: 'Healthcare & Hospital Systems', companyName: 'Acme', companyHref: '/dashboard/companies/acme#insiders' })
     expect(b.transfers).toBe('The same work as yours (Recruiting and talent acquisition), with your workday, sourcing.')

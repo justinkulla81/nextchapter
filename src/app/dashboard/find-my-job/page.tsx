@@ -39,6 +39,8 @@ import { buildBridge, relevanceLine, type Bridge } from '@/lib/jobs/relevance'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
 import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
+import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
+import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
@@ -688,6 +690,45 @@ async function JobRecommendationsSection({
           Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
     )
   const shortlistOrder = new Map(openBoardPostings.map((p, i) => [p.id, i]))
+  // Bridge jobs (a short market widened, or Wide's extras) get their own section after the strong matches.
+  const bridgeIds = board.breadth.bridges
+  const strongBoardPostings = search ? visibleBoardPostings : visibleBoardPostings.filter((p) => !bridgeIds.has(p.id))
+  const bridgeBoardPostings = search ? [] : visibleBoardPostings.filter((p) => bridgeIds.has(p.id))
+  const boardCard = (posting: (typeof visibleBoardPostings)[number]) => {
+    const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
+    const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
+    return {
+      // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
+      rank:
+        searchRank !== null
+          ? searchRank
+          : reasonRank(posting.id) * 1000 +
+            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+            (local?.isLocal(posting.location) ? 0.5 : 0),
+      node: (
+        <DiscoverJobCard
+          key={posting.id}
+          posting={posting}
+          competition={competitionFor(posting)}
+          contacts={contactsByPosting.get(posting.id)}
+          skillGap={skillGapFor(posting)}
+          skillsFit={skillsFitFor?.(posting.title)}
+          match={matchFor(posting)}
+          insiders={insidersFor(posting)}
+          explainGapsEnabled={isExplainGapsEnabled()}
+          track={myJobs.cardStates.get(trackKey('job_board', posting.id))}
+          watched={watchedFor(posting.companyName)}
+          fitBucket={fitBucket}
+          idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
+          employer={employerSignalsOf(posting)}
+          benefits={benefitsByPosting.get(posting.id)}
+          searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
+          matchReason={reasons.get(posting.id)}
+          bridge={bridgeFor(posting)}
+        />
+      ),
+    }
+  }
   const searchResultCount = board.openTotal + board.lockedTotal + surfacedJobs.length
 
   return (
@@ -787,6 +828,9 @@ async function JobRecommendationsSection({
             </p>
           )}
 
+          {bridgeBoardPostings.length > 0 && (
+            <h3 className="text-sm font-semibold text-foreground">Strong matches ({strongBoardPostings.length})</h3>
+          )}
           <div className="divide-y divide-border rounded-md border border-border">
             <ShowMoreList pageSize={5}>
               {[
@@ -797,41 +841,7 @@ async function JobRecommendationsSection({
                 ...[
                   // Within a fit level, low-competition jobs come first; a role that matches what
                   // the member does alongside the search counts as one competition level lower.
-                  ...visibleBoardPostings.map((posting) => {
-                    const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
-                    const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
-                    return {
-                      // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
-                      rank:
-                        searchRank !== null
-                          ? searchRank
-                          : reasonRank(posting.id) * 1000 +
-                            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
-                            (local?.isLocal(posting.location) ? 0.5 : 0),
-                      node: (
-                        <DiscoverJobCard
-                          key={posting.id}
-                          posting={posting}
-                          competition={competitionFor(posting)}
-                          contacts={contactsByPosting.get(posting.id)}
-                          skillGap={skillGapFor(posting)}
-                          skillsFit={skillsFitFor?.(posting.title)}
-                          match={matchFor(posting)}
-                          insiders={insidersFor(posting)}
-                          explainGapsEnabled={isExplainGapsEnabled()}
-                          track={myJobs.cardStates.get(trackKey('job_board', posting.id))}
-                          watched={watchedFor(posting.companyName)}
-                          fitBucket={fitBucket}
-                          idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
-                          employer={employerSignalsOf(posting)}
-                          benefits={benefitsByPosting.get(posting.id)}
-                          searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
-                          matchReason={reasons.get(posting.id)}
-                          bridge={bridgeFor(posting)}
-                        />
-                      ),
-                    }
-                  }),
+                  ...strongBoardPostings.map(boardCard),
                   ...visibleSurfacedJobs.map((job) => {
                     const fitBucket = computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))
                     const worksHere = worksHereFor(job.companyName)
@@ -865,6 +875,22 @@ async function JobRecommendationsSection({
               ]}
             </ShowMoreList>
           </div>
+
+          {bridgeBoardPostings.length > 0 && (
+            <section aria-labelledby="bridge-jobs-heading" className="space-y-2">
+              <div>
+                <h3 id="bridge-jobs-heading" className="text-sm font-semibold text-foreground">
+                  Worth a look, with how to bridge ({bridgeBoardPostings.length})
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Each misses one thing — another industry, a neighbouring field, or fewer of its skills. Open one to see what transfers and how to close the gap.
+                </p>
+              </div>
+              <div className="divide-y divide-border rounded-md border border-border">
+                <ShowMoreList pageSize={5}>{bridgeBoardPostings.map((p) => boardCard(p).node)}</ShowMoreList>
+              </div>
+            </section>
+          )}
 
           {board.breadth.goodMoreIds.length > 0 && <GoodMatchesMore ids={board.breadth.goodMoreIds} surface="find_my_job" />}
 
@@ -1506,7 +1532,8 @@ async function FindMyJobBody({
               {relevanceLine({
                 breadth: breadthMode,
                 relevant: board.breadth.relevantTotal,
-                shown: breadthMode === 'narrow' ? board.breadth.narrowTotal : board.breadth.wideTotal,
+                shown: breadthMode === 'narrow' && !board.breadth.autoWidened ? board.breadth.narrowTotal : board.breadth.wideTotal,
+                autoWidened: board.breadth.autoWidened,
                 extras: board.breadth.extrasTotal,
                 field: `${subFunctionLabel(board.breadth.classifier.member.subFunction) ?? board.breadth.classifier.member.functionLabel ?? 'matching'}`,
                 place: placePhrase(profile, board.breadth.classifier.member),
@@ -1518,6 +1545,15 @@ async function FindMyJobBody({
                 {breadthMode === 'narrow' ? 'Widen' : 'Narrow it'}
               </a>
             </p>
+          )}
+          {board.breadth.classifier && breadthMode !== 'off' && !board.breadth.classifier.member.geo?.homeArea && (
+            <div className="mt-2">
+              <AddCityPrompt
+                surface="find_my_job"
+                states={[...US_STATE_CODES].sort()}
+                fallback={placePhrase(profile, board.breadth.classifier.member) ?? 'remote jobs'}
+              />
+            </div>
           )}
           {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
             <div className="mt-2">

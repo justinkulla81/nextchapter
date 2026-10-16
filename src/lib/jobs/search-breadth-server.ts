@@ -7,11 +7,13 @@ import { SKILL_TERMS } from '@/lib/companies/skills-extraction'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
 import { computeSkillsFit, type SkillsFit } from '@/lib/careers/skills-fit'
+import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { cityState, localArea } from '@/lib/workforce/local'
 import { placeKeys } from '@/lib/workforce/places'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import {
   COMMUTE_MILES,
+  FUNCTION_RELAX_MIN_SIMILARITY,
   geoMatch,
   memberGeo,
   relaxedCriterion,
@@ -94,15 +96,17 @@ export interface JobOccupations {
   industries: Map<string, string>
   /** Live job id → the skills its posting asks for (lowercase), when it lists any. */
   skills: Map<string, readonly string[]>
+  /** Live job id → O*NET skill / tool ids its title and description name (text-skill-ids.ts). */
+  skillIds: Map<string, readonly string[]>
 }
 
 let jobSocs: { at: number; value: Promise<JobOccupations> } | null = null
 let jobSocsLoading: Promise<JobOccupations> | null = null
 
 async function readJobSocs(): Promise<JobOccupations> {
-  const rows = await prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null; industry: string | null; skills: string[] }[]>`
-    SELECT "id", "socCode", "subFunction", "industry", "skills" FROM "ExclusiveJobPosting"
-    WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0)`
+  const rows = await prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null; industry: string | null; skills: string[]; skillIds: string[] }[]>`
+    SELECT "id", "socCode", "subFunction", "industry", "skills", "skillIds" FROM "ExclusiveJobPosting"
+    WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0 OR cardinality("skillIds") > 0)`
   const pool = new Map<string, string>()
   const intern = (v: string) => {
     let hit = pool.get(v)
@@ -113,6 +117,7 @@ async function readJobSocs(): Promise<JobOccupations> {
   const subs = new Map<string, string>()
   const industries = new Map<string, string>()
   const skills = new Map<string, readonly string[]>()
+  const skillIds = new Map<string, readonly string[]>()
   const bucketOf = new Map<string, string | null>()
   for (const r of rows) {
     if (r.socCode) socs.set(r.id, intern(r.socCode))
@@ -123,8 +128,9 @@ async function readJobSocs(): Promise<JobOccupations> {
       if (b) industries.set(r.id, b)
     }
     if (r.skills && r.skills.length > 0) skills.set(r.id, r.skills.map((x) => intern(x.toLowerCase())))
+    if (r.skillIds && r.skillIds.length > 0) skillIds.set(r.id, r.skillIds.map(intern))
   }
-  return { socs, subs, industries, skills }
+  return { socs, subs, industries, skills, skillIds }
 }
 
 /** Live job id → O*NET occupation and stored sub-function. */
@@ -147,7 +153,13 @@ export function loadJobSocs(): Promise<JobOccupations> {
     )
   }
   if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
-  return jobSocsLoading!.catch(() => ({ socs: new Map<string, string>(), subs: new Map<string, string>(), industries: new Map<string, string>(), skills: new Map<string, readonly string[]>() }))
+  return jobSocsLoading!.catch(() => ({
+    socs: new Map<string, string>(),
+    subs: new Map<string, string>(),
+    industries: new Map<string, string>(),
+    skills: new Map<string, readonly string[]>(),
+    skillIds: new Map<string, readonly string[]>(),
+  }))
 }
 
 // ── Member vector ──────────────────────────────────────────────────────────────
@@ -236,6 +248,7 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     industries,
     geo: memberGeo({ homeArea, currentState: candidate.currentState, remotePreference: candidate.remotePreference, openToRelocation: candidate.openToRelocation, relocationNotes: candidate.relocationNotes }),
     vocab: skills.vocab,
+    skillIds: skills.ids,
     ...(await occupationBander(soc && hasTitle ? soc : null, skills.keywords)),
   }
 }
@@ -249,15 +262,20 @@ async function homeCommuteArea(c: BreadthCandidate): Promise<ReadonlySet<string>
   return area?.keys ?? null
 }
 
-const vocabMemo = new Map<string, { keywords: string[]; vocab: ReadonlySet<string> }>()
-/** Their skills matrix as keywords, and the skill-vocabulary terms it shows (the words postings' skills use). */
-async function memberSkills(c: BreadthCandidate): Promise<{ keywords: string[]; vocab: ReadonlySet<string> }> {
+const vocabMemo = new Map<string, { keywords: string[]; vocab: ReadonlySet<string>; ids: ReadonlySet<string> }>()
+/**
+ * Their skills matrix as keywords; the posting-vocabulary terms it shows (skills-extraction.ts);
+ * and the O*NET skills / tools it maps to through the alias layer (careers/skill-aliases.ts).
+ */
+async function memberSkills(c: BreadthCandidate): Promise<{ keywords: string[]; vocab: ReadonlySet<string>; ids: ReadonlySet<string> }> {
   const keywords = skillTerms(c)
   const key = keywords.join('|')
   const hit = vocabMemo.get(key)
   if (hit) return hit
   const vocab = new Set(SKILL_TERMS.filter((t) => memberHasSkill(t, keywords)).map((t) => t.toLowerCase()))
-  const out = { keywords, vocab }
+  const viaAliases = await skillIdsFromKeywords(keywords).catch(() => new Set<string>())
+  const ids = new Set([...viaAliases, ...textSkillIds(...keywords)])
+  const out = { keywords, vocab, ids }
   if (vocabMemo.size > 2000) vocabMemo.clear()
   vocabMemo.set(key, out)
   return out
@@ -364,7 +382,8 @@ function functionMatch(m: MemberBreadthVector, cls: JobClass | null, soc: string
   // The title says another function: never theirs, whatever the occupation tag says (the
   // crawler's tag can be wrong: "VP, Product Marketing" tagged as an HR occupation).
   const titleFn = facts.titleFunction || (facts.targetFunction ?? '').trim().toLowerCase()
-  if (titleFn && !m.functions.has(titleFn)) return cls ? 'adjacent' : 'none'
+  const similarEnough = (c: JobClass) => c.kind !== 'skills' || (m.socFromTitle && (c.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY)
+  if (titleFn && !m.functions.has(titleFn)) return cls && similarEnough(cls) ? 'adjacent' : 'none'
   const close = closeOccupation(m, soc)
   if (m.subFunction) {
     const sub = SUB_FUNCTION_BY_KEY.get(m.subFunction)
@@ -372,10 +391,15 @@ function functionMatch(m: MemberBreadthVector, cls: JobClass | null, soc: string
     if (jobSub === m.subFunction) return 'own'
     // Another sub-function of their function (HR business partner for a recruiter): related, not theirs.
     if (jobSub) return 'adjacent'
-    return close ? 'own' : cls ? 'adjacent' : 'none'
+    if (close) return 'own'
+    if (cls?.kind === 'skills') return m.socFromTitle && (cls.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY ? 'adjacent' : 'none'
+    return cls ? 'adjacent' : 'none'
   }
   if (close) return 'own'
   if (!cls) return 'none'
+  // A job related only through O*NET skill similarity needs a high bar, and a real occupation
+  // of theirs to compare (a stand-in for "Operations" matched accountants).
+  if (cls.kind === 'skills') return m.socFromTitle && (cls.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY ? 'adjacent' : 'none'
   if (cls.kind !== 'field') return 'adjacent'
   if (m.soc && m.socFromTitle) return 'adjacent' // same function, but not their occupation
   return 'own' // no sub-function or title occupation on file: their function is all we know
@@ -452,6 +476,8 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
           jobSkills: occupations.skills.get(row.id) ?? [],
           memberVocab: member.vocab ?? new Set(),
           occupationBand: soc && member.occupationBand ? member.occupationBand(soc) : null,
+          jobSkillIds: occupations.skillIds.get(row.id),
+          memberSkillIds: member.skillIds,
         }),
         industry: member.industries.size === 0 || member.industries.has(occupations.industries.get(row.id) ?? ''),
       },

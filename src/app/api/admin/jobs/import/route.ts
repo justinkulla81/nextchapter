@@ -10,6 +10,7 @@ import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
 import { functionLabelFor } from '@/lib/jobs/job-functions'
 import { subFunctionFor } from '@/lib/jobs/sub-functions'
+import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
 import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
@@ -200,6 +201,8 @@ function rowData({ job, level }: Screened) {
     location: cleanLocation(job.location),
     description: excerptOf(job.description),
     skills: skillsFrom(job.title, job.description),
+    // O*NET skills / tools the full posting names (text-skill-ids.ts): the board's skills criterion.
+    skillIds: [...textSkillIds(job.title, job.description, skillsFrom(job.title, job.description).join(' , '))].sort(),
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
@@ -391,7 +394,7 @@ export async function POST(request: NextRequest) {
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
-      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true,
+      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

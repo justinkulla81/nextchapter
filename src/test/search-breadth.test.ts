@@ -290,10 +290,15 @@ describe('board ranking with relevance', () => {
   const candidate = { highestLevelReached: 'Director', primaryFunction: 'Human Resources' } as Parameters<typeof rankBoardRows>[1]['candidate']
   const base = { candidate, isCandidatePlus: true, now, place: (p: BoardRankRow) => placement[p.id] }
 
-  it('Narrow shows only jobs relevant on every criterion; geography is never relaxed', () => {
+  it('a short Narrow widens on its own with bridge jobs; geography is never relaxed', () => {
     const r = rankBoardRows(rows, { ...base, breadth: 'narrow' })
-    expect(r.openIds).toEqual(['a'])
+    expect(r.openIds[0]).toBe('a')
     expect(r.relevantTotal).toBe(1)
+    expect(r.autoWidened).toBe(true)
+    expect(r.openIds).toContain('c')
+    expect(r.openIds).not.toContain('e')
+    expect(r.bridges.get('c')).toBe('industry')
+    expect(r.bridges.has('a')).toBe(false)
   })
 
   it('Wide adds jobs missing exactly one relaxable criterion, in relax order', () => {

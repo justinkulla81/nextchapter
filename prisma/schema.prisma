@@ -4984,6 +4984,9 @@ model ExclusiveJobPosting {
   // of which only a short excerpt is stored: ~15 MB for the whole board instead of
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
   skills String[] @default([])
+  // O*NET skills and tools (Skill.id, via SkillAlias) the title, description and skills name —
+  // the board's skills criterion (src/lib/jobs/relevance.ts). prisma/manual/2026-10-16-job-skill-ids.sql.
+  skillIds String[] @default([])
 
   // Market pay for this role (src/lib/pay/market-pay.ts), copied from its
   // CompanyJobOpening row nightly and at import. A benchmark for the role's

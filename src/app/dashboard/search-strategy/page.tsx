@@ -42,6 +42,8 @@ import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/in
 import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { IndustryReadingConfirm } from '@/components/dashboard/IndustryReadingConfirm'
+import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
+import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { readMemberIndustries } from '@/lib/profile/industry-reading'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 
@@ -574,6 +576,11 @@ export default async function SearchStrategyPage() {
         if (!text || profile.industryBuckets.length > 0 || !reading.uncertain) return null
         return <IndustryReadingConfirm text={text} suggested={reading.buckets} options={INDUSTRY_BUCKET_NAMES.filter((n) => n !== 'Other')} />
       })()}
+
+      {/* No home city: local jobs can't count (relevance.ts geography). One click to add it. */}
+      {(!profile.currentCity?.trim() || !profile.currentState?.trim()) && (
+        <AddCityPrompt surface="search_strategy" states={[...US_STATE_CODES].sort()} fallback="remote jobs and places you said you'd move to" />
+      )}
 
       {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
       <Suspense fallback={null}>
