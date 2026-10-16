@@ -1,3 +1,4 @@
+import { parseRelocation, wouldMoveTo } from '@/lib/journey/relocation'
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
 import { likesFit, readLikes, workFit, type WorkProfile } from '@/lib/profile/work-profile'
 import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
@@ -112,6 +113,8 @@ export interface MatchCandidate {
   currentCity: string | null
   currentState: string | null
   openToRelocation: boolean
+  // journeyDetails.relocation says how far (src/lib/journey/relocation.ts).
+  journeyDetails?: unknown
   travelWillingness: boolean
   interimConsultingInterest: boolean
   // A workforce program's region, when the member is in one: jobs inside it
@@ -745,7 +748,7 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
     if (where.states.some((s) => myStates.includes(s))) {
       score += 10
       evidence.push(`In your state (${where.states.find((s) => myStates.includes(s))})`)
-    } else if (c.openToRelocation) {
+    } else if (where.states.some((s) => wouldMoveTo(parseRelocation(c.journeyDetails, c.openToRelocation), s, myStates[0] ?? null))) {
       score -= 10
       evidence.push(`Based in ${place} — a move, which you said you're open to`)
     } else {
@@ -914,6 +917,6 @@ export const MATCH_CANDIDATE_FIELDS = [
   'priorityWorkLife', 'priorityJobSecurity', 'priorityBrandName', 'equityImportant', 'targetCompMin',
   'compFlexible', 'lastSalary', 'targetRoleType', 'targetFunction', 'primaryFunction', 'secondaryFunction',
   'targetIndustries', 'industryContext', 'isPivoting', 'highestLevelReached', 'levelRankScore',
-  'willingToStartLower', 'remotePreference', 'currentCity', 'currentState', 'openToRelocation',
+  'willingToStartLower', 'remotePreference', 'currentCity', 'currentState', 'openToRelocation', 'journeyDetails',
   'travelWillingness', 'interimConsultingInterest',
 ] as const satisfies readonly (keyof MatchCandidate)[]

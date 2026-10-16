@@ -200,6 +200,25 @@ export function isBenefitsComplete(candidate: { benefitsPrioritiesBonusAt: Date 
   return !!candidate.benefitsPrioritiesBonusAt
 }
 
+// People who are not job searching (managing a career, a break, fractional work, building
+// something) finish the shorter set: marketing, networking, negotiation and benefits, plus what
+// they want from their career when that applies. They are never asked for job-search targets.
+export function isNonSearcherStrategyComplete(
+  candidate: Parameters<typeof isMarketingPlanWillingnessComplete>[0] &
+    Parameters<typeof isNetworkingWillingnessComplete>[0] &
+    Parameters<typeof isNegotiationInterviewComfortComplete>[0] &
+    Parameters<typeof isBenefitsComplete>[0],
+  career: { required: boolean; answered: boolean },
+): boolean {
+  return (
+    isMarketingPlanWillingnessComplete(candidate) &&
+    isNetworkingWillingnessComplete(candidate) &&
+    isNegotiationInterviewComfortComplete(candidate) &&
+    isBenefitsComplete(candidate) &&
+    (!career.required || career.answered)
+  )
+}
+
 // All 7 Search Strategy wizard pages — used both to gate
 // SEARCH_STRATEGY_COMPLETE (see maybeAwardSearchStrategyCompleteBonus in
 // search-strategy-complete.ts) and to drive the wizard's own step-complete

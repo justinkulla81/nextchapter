@@ -1,0 +1,109 @@
+// Facts about a member's situation that make their plan specific: when severance and
+// coverage end, how long they were away, a day rate, months of runway. One list drives
+// the settings form, what the server accepts and the plan steps, so a question is never
+// asked without something reading the answer. Stored in journeyDetails. Pure and
+// client-safe.
+
+import type { JourneyType } from '@prisma/client'
+
+export type SituationField = {
+  key: string
+  journeys: readonly JourneyType[]
+  label: string
+  kind: 'date' | 'number' | 'choice'
+  min?: number
+  max?: number
+  options?: readonly { value: string; label: string }[]
+}
+
+export const SITUATION_FIELDS: readonly SituationField[] = [
+  { key: 'severanceEnds', journeys: ['LAID_OFF'], label: 'When does your severance pay end?', kind: 'date' },
+  { key: 'benefitsEnd', journeys: ['LAID_OFF'], label: 'When does your health coverage end?', kind: 'date' },
+  { key: 'monthlyNeed', journeys: ['LAID_OFF'], label: 'About how much do you need each month, in dollars?', kind: 'number', min: 500, max: 100000 },
+  { key: 'noticeWeeks', journeys: ['EXPLORING_MOVE'], label: 'How many weeks of notice would you give?', kind: 'number', min: 0, max: 26 },
+  { key: 'moveBy', journeys: ['EXPLORING_MOVE'], label: 'Move by (optional)', kind: 'date' },
+  { key: 'breakMonths', journeys: ['RETURNING'], label: 'How many months were you away?', kind: 'number', min: 1, max: 240 },
+  {
+    key: 'returnHours',
+    journeys: ['RETURNING'],
+    label: 'What hours are you looking for?',
+    kind: 'choice',
+    options: [
+      { value: 'FULL', label: 'Full time' },
+      { value: 'PART', label: 'Part time' },
+      { value: 'FLEX', label: 'Flexible' },
+    ],
+  },
+  { key: 'dayRate', journeys: ['NEXT_ACT', 'FRACTIONAL'], label: 'Your day rate, in dollars', kind: 'number', min: 100, max: 20000 },
+  { key: 'hoursPerWeek', journeys: ['NEXT_ACT'], label: 'Hours a week you want to work', kind: 'number', min: 1, max: 40 },
+  { key: 'runwayMonths', journeys: ['ENTREPRENEUR'], label: 'About how many months of runway do you have?', kind: 'number', min: 0, max: 120 },
+  { key: 'payEnds', journeys: ['TIME_OFF'], label: 'When does your leave pay or coverage end? (optional)', kind: 'date' },
+]
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+
+// A value the form sent, made safe. Blank or invalid means "leave it as it is".
+export function parseSituationValue(f: SituationField, raw: string): string | number | null {
+  const v = raw.trim()
+  if (!v) return null
+  if (f.kind === 'date') return DATE.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime()) ? v : null
+  if (f.kind === 'number') {
+    const n = Number(v)
+    return Number.isFinite(n) && Number.isInteger(n) && n >= (f.min ?? 0) && n <= (f.max ?? Number.MAX_SAFE_INTEGER) ? n : null
+  }
+  return f.options?.some((o) => o.value === v) ? v : null
+}
+
+export function situationFieldsFor(journey: JourneyType | null): SituationField[] {
+  return journey ? SITUATION_FIELDS.filter((f) => f.journeys.includes(journey)) : []
+}
+
+const DAY = 86_400_000
+const weeksText = (days: number) => (days <= 7 ? 'about a week' : `${Math.round(days / 7)} weeks`)
+
+export type SituationPlanItem = { text: string; actionType?: string }
+
+export function situationPlanItems(journey: JourneyType | null, details: unknown, opts: { fn?: string | null; now?: Date } = {}): SituationPlanItem[] {
+  if (!journey) return []
+  const d = (details ?? {}) as Record<string, unknown>
+  const now = opts.now ?? new Date()
+  const daysTo = (key: string) => (typeof d[key] === 'string' && DATE.test(d[key] as string) ? Math.ceil((new Date(`${d[key]}T12:00:00Z`).getTime() - now.getTime()) / DAY) : null)
+  const num = (key: string) => (typeof d[key] === 'number' ? (d[key] as number) : null)
+  const out: SituationPlanItem[] = []
+  if (journey === 'LAID_OFF') {
+    const sev = daysTo('severanceEnds')
+    if (sev !== null && sev >= 0 && sev <= 70) out.push({ text: `Your severance ends in ${weeksText(sev)}: work out what you will live on after that date` })
+    const ben = daysTo('benefitsEnd')
+    if (ben !== null && ben >= 0 && ben <= 60) out.push({ text: `Your health coverage ends in ${weeksText(ben)}: price COBRA against the marketplace and decide before the deadline` })
+    const need = num('monthlyNeed')
+    if (need) out.push({ text: `You need about $${need.toLocaleString('en-US')} a month: divide your savings and severance by it to know how many months you have` })
+  }
+  if (journey === 'EXPLORING_MOVE') {
+    const by = daysTo('moveBy')
+    if (by !== null && by > 0 && by <= 150) out.push({ text: `You want to move within ${weeksText(by)}: work back from that date and put the offer deadline on your calendar` })
+    const notice = num('noticeWeeks')
+    if (notice !== null && notice >= 4) out.push({ text: `You would give ${notice} weeks of notice: tell target employers your earliest start date early` })
+  }
+  if (journey === 'RETURNING') {
+    const months = num('breakMonths')
+    if (months && months >= 12) out.push({ text: `After ${months} months away, refresh one skill that changed while you were gone`, actionType: 'LEARNING_MODULE' })
+    if (d.returnHours === 'PART' || d.returnHours === 'FLEX') out.push({ text: 'Look at part-time, contract and returnship roles: they are the usual way back in when you want flexible hours' })
+  }
+  if (journey === 'NEXT_ACT' || journey === 'FRACTIONAL') {
+    const rate = num('dayRate')
+    if (rate) out.push({ text: `Check your $${rate.toLocaleString('en-US')} day rate against what ${opts.fn ?? 'your'} advisory and fractional work pays` })
+  }
+  if (journey === 'NEXT_ACT') {
+    const hours = num('hoursPerWeek')
+    if (hours) out.push({ text: `You want about ${hours} hours a week: sketch the two or three engagements that would fill them` })
+  }
+  if (journey === 'ENTREPRENEUR') {
+    const runway = num('runwayMonths')
+    if (runway !== null && runway <= 6) out.push({ text: `You have about ${runway} months of runway: decide the date by which you would take contract work` })
+  }
+  if (journey === 'TIME_OFF') {
+    const pay = daysTo('payEnds')
+    if (pay !== null && pay >= 0 && pay <= 56) out.push({ text: `Your leave pay or coverage ends in ${weeksText(pay)}: confirm what happens next` })
+  }
+  return out
+}

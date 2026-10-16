@@ -1,5 +1,6 @@
 'use server'
 
+import { parseSituationValue, situationFieldsFor } from '@/lib/journey/situation'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { ACTIVE_SEARCH_STAGES, JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
@@ -387,6 +388,11 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
     const days = Number(text('openDays'))
     if (text('openDays') && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
     if (validDate(text('engagementEnds'))) details.engagementEnds = text('engagementEnds')
+  }
+  // Facts that make the plan specific for this situation (src/lib/journey/situation.ts). Blank leaves the old value.
+  for (const f of situationFieldsFor(journey)) {
+    const v = parseSituationValue(f, text(f.key))
+    if (v !== null) details[f.key] = v
   }
   await applyJourneyChange(profile.id, {
     journey,

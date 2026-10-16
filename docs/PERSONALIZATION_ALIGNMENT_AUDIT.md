@@ -154,3 +154,26 @@ Checked against `CandidateProfile`, `WorkHistoryEntry` and `EducationEntry` befo
 7. **Close the spine gap:** add red flags, Track Record, What I Need, Work Interests, lastSalary and the coaching form to `spine.ts` so the guard covers them, and remove or implement the two unbacked claims.
 8. **Add the section 5 questions**, journey by journey, starting with Managing my career and Promotion (they feed the employer and college products).
 9. **Retire or finish dead fields:** the orphans in 3a. Delete rather than keep collecting.
+
+## 8. Status of the fix list (updated 2026-10-16)
+
+| # | Fix | Status |
+|---|---|---|
+| 1 | Screening copy matches the privacy rule | Done |
+| 2 | Journey-aware Search Strategy and hard gate | Done: not-searching journeys are exempt from the dashboard gate, see a shorter wizard (career, marketing, networking, negotiation, benefits), no culture card, and a checklist that no longer lists search items. Staying and promotion members get a "What you want from your career" page |
+| 3 | Pace and progress emails for the four not-searching journeys, and for anyone who says they are not looking | Done |
+| 4 | Changing careers sets the pivot flag | Done. Run `prisma/manual/2026-10-16-career-change-pivoting.sql` to flag existing members |
+| 5 | Targets in the plan text | Done: industries, comp floor, application and outreach goals, follow-up, widening by places they named |
+| 6 | Read what we collect | Done for venture, graduation date, self-reported prior applications, application goal, outreach goal, follow-up willingness. Not done: workingNow (still only a casual flag), `calendar` signal |
+| 7 | Spine covers the new questions and red flags | Done for relocation, open functions, career, red flags, situation facts. Track Record, What I Need, Work Interests and the coaching form are still not in the spine |
+| 8 | New questions by journey | Done for severance end, coverage end, monthly need, notice, move-by, break length, return hours, day rate, hours a week, runway, leave-pay end, review date, next level, pay or level focus, 12-month intent. Not done: time available per week for every journey, board experience and sectors, number of clients, target date to decide |
+| 9 | Retire dead fields | Not done. Still collected and unread: restrictiveCovenantDetails, wantsAnimalFriendlyWorkplace, contractAccepted, justStartedSearch, howHeard, actionWindow, recruiterConnectionCount, seven Track Record fields. Deleting needs a decision per field |
+
+Also built in this pass, beyond the list:
+
+- **Relocation scope** replaces the yes/no: stay local, a wider area (25 to 250 miles), particular states, or anywhere. Matching treats a listed state as a move the member would make and everything else as out of reach. A radius covers the home state only, because distance across state lines is not measured.
+- **Openness to other fields, with a sanity check and a commitment.** `src/lib/journey/feasibility.ts` rates a change from one function to another: natural move, bridge (months of learning and proof), rebuild (formal training and a step down), licensed, or a level (not a function). Small moves are searched at once. Bridges and rebuilds are saved but not searched until the member chooses a route (learn on their own or formal training), hours a week, and says they commit. The commitment is remembered in `journeyDetails.pivot`, sets the target function and pivot flag, and puts a weekly learning block with the education steps into the plan.
+- **Searcher and career changer at once:** yes. The journey says why, the stage says how close, and the pivot is an overlay that any searching journey can carry. After a commitment the member can tick "Make changing careers my main plan"; the journey changes, the stage stays, and nothing they did is lost.
+- **A journey or stage change rebuilds this week's plan at once** (`rebuildCurrentWeekPlan`): finished and started steps stay with their points, open ones are replaced, and the new journey's setup steps appear in its first week instead of being skipped by account age.
+
+Limits to know: the feasibility table is a judgment table, not a prediction, and is not yet joined to the O*NET data (which is not loaded in production); industries are multi-select but have no feasibility check; the settings page does not yet tell the member "your plan now follows X and your N finished steps stay".

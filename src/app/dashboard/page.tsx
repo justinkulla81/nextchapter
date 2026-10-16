@@ -256,7 +256,7 @@ export default async function DashboardPage() {
     return b.startDate.getTime() - a.startDate.getTime()
   })
   const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
-  const searchStrategyChecklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
+  const searchStrategyChecklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries, searching: !journeyNow || getJourney(journeyNow).searching, employed: !!journeyNow && getJourney(journeyNow).employed })
 
   // Prompt 45 §8: on_track is measured against the system's points_target
   // (the ramp), never against whatever the candidate personally committed

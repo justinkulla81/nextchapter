@@ -1,3 +1,4 @@
+import { SITUATION_FIELDS } from '@/lib/journey/situation'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -117,6 +118,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             openDays: detailText(profile.journeyDetails, 'openDays'),
             engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
             venture: detailText(profile.journeyDetails, 'venture'),
+            situation: Object.fromEntries(SITUATION_FIELDS.map((f) => [f.key, detailText(profile.journeyDetails, f.key)])),
           }}
         />
       </div>

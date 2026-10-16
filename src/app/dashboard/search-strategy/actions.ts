@@ -12,11 +12,15 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
+import { PRIMARY_FUNCTION_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
+import { buildRelocation, opensToMove } from '@/lib/journey/relocation'
+import { buildTarget, isCommitted, pivotOf, primaryPivot } from '@/lib/journey/pivot'
+import { applyJourneyChange } from '@/lib/journey/apply'
+import { effectiveJourney, effectiveStage, getJourney } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
 import type {
@@ -72,7 +76,6 @@ export async function updateSearchStrategy(
   const targetIndustries = formData.getAll('targetIndustries') as string[]
   // Option-list values are normalised on write ('DIRECTOR' -> 'Director') — see candidate-profile-normalize.ts.
   const primaryFunction = normalizeFunctionValue(formData.get('primaryFunction') as string | null)
-  const targetFunction = normalizeFunctionValue(formData.get('targetFunction') as string | null)
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
   const secondaryFunction = secondaryFunctionRaw === 'none' ? null : normalizeFunctionValue(secondaryFunctionRaw)
   const gapDurationRaw = (formData.get('gapDuration') as string | null) || null
@@ -87,9 +90,41 @@ export async function updateSearchStrategy(
   const willingToFollowUpOnApplications = formData.get('willingToFollowUpOnApplications') === 'on'
   const targetCompMinThousands = parseCompMinThousands(formData.get('targetCompMinThousands'))
   const targetCompMin = targetCompMinThousands ? targetCompMinThousands * 1000 : null
-  const isPivoting = formData.get('isPivoting') === 'on'
-  const openToRelocation = formData.get('openToRelocation') === 'on'
+  // How far they will go (src/lib/journey/relocation.ts). The yes/no stays in step for readers that only know it.
+  const relocation = buildRelocation({
+    scope: formData.get('relocationScope') as string | null,
+    radiusMiles: Number(formData.get('relocationRadius')) || null,
+    states: formData.getAll('relocationStates').map(String),
+  })
+  const openToRelocation = opensToMove(relocation)
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
+
+  // Openness to other fields, with the sanity check and any commitment (src/lib/journey/pivot.ts).
+  const now = new Date()
+  const current = await prisma.candidateProfile.findUnique({ where: { id: profile.id }, select: { journeyDetails: true, levelRankScore: true, journey: true, journeyStage: true, currentJobStatus: true } })
+  const fromFunction = primaryFunction ?? profile.primaryFunction
+  const previous = pivotOf(current?.journeyDetails)
+  let pivotInput: { function: string; route?: string | null; hoursPerWeek?: number | null; commit?: boolean; how?: string | null }[] = []
+  try {
+    const parsed = JSON.parse(String(formData.get('pivotJson') ?? '[]'))
+    if (Array.isArray(parsed)) pivotInput = parsed.filter((x) => x && typeof x.function === 'string' && (PRIMARY_FUNCTION_OPTIONS as readonly string[]).includes(x.function))
+  } catch {
+    pivotInput = []
+  }
+  const targets = pivotInput.map((x) => {
+    const built = buildTarget(fromFunction, x.function, x, now, (current?.levelRankScore ?? 0) >= 60)
+    // Keep the original commit date when nothing about the commitment changed.
+    const before = previous?.targets.find((t) => t.function === x.function)
+    return before?.committedAt && built.committedAt && before.route === built.route && before.hoursPerWeek === built.hoursPerWeek ? { ...built, committedAt: before.committedAt } : built
+  })
+  const pivot = { targets, updatedAt: now.toISOString() }
+  const main = primaryPivot(pivot)
+  // Only touch the pivot fields when this form says something about them: openness was chosen now or
+  // before. A target set elsewhere (Pivot paths) or by the Changing careers journey is left alone.
+  const touchPivot = formData.has('pivotJson') && (targets.length > 0 || (previous?.targets.length ?? 0) > 0)
+  const isPivoting = !!main
+  const targetFunction = main?.function ?? null
+  const journeyDetails = { ...((current?.journeyDetails as Record<string, unknown> | null) ?? {}), relocation, pivot } as Prisma.InputJsonValue
   const travelWillingness = formData.get('travelWillingness') === 'on'
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
@@ -104,7 +139,8 @@ export async function updateSearchStrategy(
       targetRoleType,
       targetIndustries,
       primaryFunction,
-      targetFunction,
+      ...(touchPivot && { targetFunction }),
+      journeyDetails,
       secondaryFunction,
       gapDuration,
       highestLevelReached,
@@ -118,7 +154,7 @@ export async function updateSearchStrategy(
       dealBreakers,
       applicationVolumeGoal,
       willingToFollowUpOnApplications,
-      isPivoting,
+      ...(touchPivot && { isPivoting }),
       openToRelocation,
       relocationNotes,
       travelWillingness,
@@ -140,7 +176,24 @@ export async function updateSearchStrategy(
     },
   })
 
-  captureServerEvent(profile.id, 'search_strategy_updated', {})
+  captureServerEvent(profile.id, 'search_strategy_updated', {
+    relocationScope: relocation.scope,
+    relocationStates: relocation.states ?? [],
+    openFunctions: targets.map((t) => t.function),
+    committedFunctions: targets.filter(isCommitted).map((t) => t.function),
+  })
+  for (const t of targets.filter(isCommitted)) {
+    if (!previous?.targets.some((x) => x.function === t.function && x.committedAt)) {
+      captureServerEvent(profile.id, 'pivot_committed', { from: fromFunction, to: t.function, tier: t.tier, route: t.route, hoursPerWeek: t.hoursPerWeek })
+    }
+  }
+
+  // They made changing careers the main goal: switch the journey, keep the stage and everything they did.
+  const wantsSwitch = formData.get('makeCareerChange') === 'on'
+  const currentJourney = current ? effectiveJourney(current) : null
+  if (wantsSwitch && targets.some(isCommitted) && currentJourney && currentJourney !== 'CAREER_CHANGE' && getJourney(currentJourney).searching) {
+    await applyJourneyChange(profile.id, { journey: 'CAREER_CHANGE', stage: effectiveStage(current!) ?? undefined, source: 'SETTINGS', note: 'Committed to a change of function' })
+  }
 
   // highestLevelReached feeds levelRankScore (job-fit matching sitewide) —
   // same recompute FunctionConfirmForm's confirm action triggers.

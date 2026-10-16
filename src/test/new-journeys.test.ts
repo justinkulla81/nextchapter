@@ -29,7 +29,7 @@ describe('plans for the three', () => {
   it('each has its own plan in Managing your career, not the generic career plan', () => {
     expect(journeyPlanItems('FRACTIONAL', 'STAYING', 1).map((p) => p.text)).toContain('List your current engagements and when each one ends')
     expect(journeyPlanItems('TIME_OFF', 'STAYING', 1).map((p) => p.text)).toContain('Set your expected return date')
-    expect(journeyPlanItems('ENTREPRENEUR', 'STAYING', 1).map((p) => p.text)).toContain('Tell us what you are building and where it stands')
+    expect(journeyPlanItems('ENTREPRENEUR', 'STAYING', 1).map((p) => p.text)).toContain('Add what you are building and where it stands to your situation (Privacy)')
   })
   it('keeps the entrepreneur plan to tracking and checking in', () => {
     const t = journeyPlanItems('ENTREPRENEUR', 'STAYING', 3).map((p) => p.text).join(' ')
