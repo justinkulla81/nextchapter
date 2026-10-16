@@ -9,6 +9,18 @@ import { prisma } from '@/lib/prisma'
 import { clearDemoData } from '@/lib/demo/seed'
 import { createDemoAccessLink } from '@/lib/demo/access'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { recordPartnerAudit } from '@/lib/partners/audit'
+
+// Writes the same audit entry to every portal the organization has, so each
+// partner sees admin changes to their own account on their activity page.
+async function auditOrganization(organizationId: string, actor: string | null, action: string, detail?: Record<string, string | boolean>) {
+  const workspaces = await prisma.orgWorkspace.findMany({ where: { orgId: organizationId, refId: { not: null } }, select: { type: true, refId: true } })
+  await Promise.all(
+    workspaces.map((w) =>
+      recordPartnerAudit({ portal: w.type, refId: w.refId as string, actorLabel: actor ? `${actor} (NextChapter staff)` : 'NextChapter staff', action, detail: detail ?? null }),
+    ),
+  )
+}
 
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === 'string' ? (fd.get(k) as string).trim() : '')
 
@@ -54,6 +66,7 @@ export async function updateBrandAction(organizationId: string, _prev: BrandStat
   if (str(formData, 'removeLogo') === 'on') logoUrl = null
   const r = await updateOrganizationBrand(organizationId, { name: str(formData, 'brandName') || null, logoUrl, accent: str(formData, 'accent') || null }, admin.email ?? null)
   if (r.error) return { error: r.error }
+  await auditOrganization(organizationId, admin.email ?? null, 'brand.updated')
   revalidatePath(`/support/admin/organizations/${organizationId}`)
   return { ok: true }
 }
@@ -61,6 +74,7 @@ export async function updateBrandAction(organizationId: string, _prev: BrandStat
 export async function toggleIntegrationAction(organizationId: string, key: IntegrationKey, on: boolean): Promise<{ error?: string }> {
   const admin = await requireAdmin()
   const r = await setIntegration(organizationId, key, on, admin.email ?? null)
+  if (!r.error) await auditOrganization(organizationId, admin.email ?? null, 'connection.toggled', { key, on })
   revalidatePath(`/support/admin/organizations/${organizationId}`)
   return r
 }
@@ -96,6 +110,9 @@ export async function extendDemoAction(organizationId: string): Promise<{ error?
 export async function demoAccessLinkAction(organizationId: string, key: string): Promise<{ url?: string; error?: string }> {
   const admin = await requireAdmin()
   const r = await createDemoAccessLink(organizationId, key)
-  if (r.url) captureServerEvent(admin.email ?? 'admin', 'demo_access_link_created', { organizationId, key })
+  if (r.url) {
+    captureServerEvent(admin.email ?? 'admin', 'demo_access_link_created', { organizationId, key })
+    await auditOrganization(organizationId, admin.email ?? null, 'demo.access', { key })
+  }
   return r
 }
