@@ -1,11 +1,11 @@
-import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { ttlCached } from '@/lib/admin/ttl-cache'
 import { findAbbreviationSuggestions, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
+import { suggestKeeper } from '@/lib/duplicates/suggest'
 import { decidedAliasPairs } from '@/lib/companies/company-alias'
-import { MergeGroupActions, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
+import { DuplicateGroup, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
 
 export const maxDuration = 60
 
@@ -30,6 +30,10 @@ const SHORT_NAME = 6
 export default async function DuplicateOrganizationsPage() {
   const admin = await requireAdmin()
   const [allSuggestions, decided] = await Promise.all([getAbbreviationSuggestions(), decidedAliasPairs()])
+  // Groups an admin dismissed. A missing table reads as "none".
+  const dismissed = await prisma.duplicateDismissal.findMany({ select: { kind: true, groupKey: true } })
+    .then((r) => new Set(r.map((d) => `${d.kind}|${d.groupKey}`)))
+    .catch(() => new Set<string>())
   const abbreviations = allSuggestions.filter((a) => !decided.has(`${a.abbreviation.canonicalNameNormalized}|${a.fullName.id}`))
 
   const groups = await prisma.$queryRaw<{ squashed: string; ids: string[] }[]>`
@@ -47,36 +51,48 @@ export default async function DuplicateOrganizationsPage() {
   const byId = new Map(orgs.map((o) => [o.id, o]))
 
   // The directory companies behind them can be duplicated too (the same letters, 6+ of them).
-  const companyGroups = await prisma.$queryRaw<{ ids: string[] }[]>`
-    SELECT array_agg(id) AS ids
+  const companyGroups = await prisma.$queryRaw<{ squashed: string; ids: string[] }[]>`
+    SELECT regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') AS squashed, array_agg(id) AS ids
       FROM "Company"
      WHERE length(regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g')) >= ${MIN_SQUASHED_LENGTH}
      GROUP BY regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g')
     HAVING count(*) > 1`
   const companyIds = companyGroups.flatMap((g) => g.ids)
-  const [companies, boardCounts, openingCounts] = await Promise.all([
-    prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, name: true } }),
+  const [companies, orgLinks, boardCounts, openingCounts] = await Promise.all([
+    prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, name: true, createdAt: true } }),
+    prisma.crmOrganization.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds } }, _count: { _all: true } }),
     prisma.exclusiveJobPosting.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds } }, _count: { _all: true } }),
     prisma.companyJobOpening.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds } }, _count: { _all: true } }),
   ])
   const companyById = new Map(companies.map((c) => [c.id, c]))
   const jobsOf = new Map<string, number>()
   for (const r of [...boardCounts, ...openingCounts]) if (r.companyId) jobsOf.set(r.companyId, (jobsOf.get(r.companyId) ?? 0) + r._count._all)
+  const hasOrg = new Set(orgLinks.flatMap((r) => (r.companyId ? [r.companyId] : [])))
   const companyRows = companyGroups
-    .map((g) => ({
-      members: g.ids.flatMap((id) => (companyById.has(id) ? [companyById.get(id)!] : [])).sort((a, b) => (jobsOf.get(b.id) ?? 0) - (jobsOf.get(a.id) ?? 0)),
-    }))
+    .filter((g) => !dismissed.has(`COMPANY|${g.squashed}`))
+    .map((g) => {
+      const members = g.ids.flatMap((id) => (companyById.has(id) ? [companyById.get(id)!] : [])).sort((a, b) => (jobsOf.get(b.id) ?? 0) - (jobsOf.get(a.id) ?? 0))
+      const keeper = suggestKeeper(members.map((c) => ({ id: c.id, activity: jobsOf.get(c.id) ?? 0, linked: hasOrg.has(c.id), createdAt: c.createdAt })))
+      return { squashed: g.squashed, members, keeper }
+    })
+    .filter((g) => g.members.length > 1)
     .sort((a, b) => a.members[0].name.localeCompare(b.members[0].name))
   const weight = (o: { _count: { affiliations: number; opportunities: number; mandates: number } }) =>
     o._count.affiliations + o._count.opportunities + o._count.mandates
   const rows = groups
-    .map((g) => ({
-      squashed: g.squashed,
-      short: g.squashed.length < SHORT_NAME,
-      members: g.ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])).sort((a, b) => weight(b) - weight(a)),
-    }))
-    .map((g) => ({ ...g, activity: g.members.reduce((n, o) => n + weight(o), 0) }))
+    .filter((g) => !dismissed.has(`ORGANIZATION|${g.squashed}`))
+    .map((g) => {
+      const members = g.ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])).sort((a, b) => weight(b) - weight(a))
+      const keeper = suggestKeeper(members.map((o) => ({ id: o.id, activity: weight(o) + (o.hiringClient ? 5 : 0), linked: Boolean(o.companyId), createdAt: o.createdAt })))
+      return { squashed: g.squashed, short: g.squashed.length < SHORT_NAME, members, keeper, activity: members.reduce((n, o) => n + weight(o), 0) }
+    })
+    .filter((g) => g.members.length > 1)
     .sort((a, b) => b.activity - a.activity || a.squashed.localeCompare(b.squashed))
+
+  const reasonFor = (basis: 'activity' | 'linked' | 'oldest', kind: 'organization' | 'company') =>
+    basis === 'activity' ? (kind === 'company' ? 'it has the most postings' : 'it has the most people and deals')
+    : basis === 'linked' ? 'it is linked to a company record'
+    : 'it is the oldest record'
 
   captureServerEvent(admin.email ?? 'admin', 'crm_duplicates_viewed', {
     groups: rows.length, companyGroups: companyRows.length, abbreviationSuggestions: abbreviations.length, shortNameGroups: rows.filter((r) => r.short).length,
@@ -88,7 +104,7 @@ export default async function DuplicateOrganizationsPage() {
         <h1 className="text-2xl font-semibold">Duplicate organizations</h1>
         <p className="max-w-prose text-sm text-muted-foreground">
           Organizations whose names differ only by spacing, punctuation or &quot;&amp;&quot;. Groups with people or deals
-          attached are first. Pick the record to keep and the others merge into it. Companies and abbreviations are below.
+          attached are first. The record I&apos;d keep is pre-selected; choose another if you prefer, then merge, or mark the group as not duplicates. Companies and abbreviations are below.
         </p>
         <p className="text-sm text-muted-foreground">
           {rows.length.toLocaleString()} groups · {rows.filter((r) => r.short).length.toLocaleString()} with very short names, which may be different companies
@@ -100,22 +116,26 @@ export default async function DuplicateOrganizationsPage() {
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border">
           {rows.slice(0, PAGE_LIMIT).map((g) => (
-            <li key={g.squashed} className="space-y-1 p-3 text-sm">
-              {g.short && <p className="text-xs text-muted-foreground">Very short name: check these are the same company.</p>}
-              {g.members.map((o) => (
-                <p key={o.id} className="flex flex-wrap items-center justify-between gap-2">
-                  <Link href={`/support/admin/crm/organizations/${o.id}`} className="font-medium hover:underline">{o.name}</Link>
-                  <span className="text-xs text-muted-foreground">
-                    {o._count.affiliations} people · {o._count.opportunities} deals · {o._count.mandates} mandates
-                    {o.hiringClient ? ' · hiring client' : ''}
-                    {o.companyId ? '' : ' · not linked to a company'}
-                  </span>
-                </p>
-              ))}
-              <MergeGroupActions members={g.members.map((o) => ({ id: o.id, name: o.name }))} />
+            <li key={g.squashed} className="p-3 text-sm">
+              <DuplicateGroup
+                kind="organization"
+                groupKey={g.squashed}
+                suggestedId={g.keeper.id}
+                reason={reasonFor(g.keeper.basis, 'organization')}
+                note={g.short ? 'Very short name: check these are the same company.' : undefined}
+                members={g.members.map((o) => ({
+                  id: o.id,
+                  name: o.name,
+                  href: `/support/admin/crm/organizations/${o.id}`,
+                  detail: `${o._count.affiliations} people · ${o._count.opportunities} deals · ${o._count.mandates} mandates${o.hiringClient ? ' · hiring client' : ''}${o.companyId ? '' : ' · not linked to a company'}`,
+                }))}
+              />
             </li>
           ))}
         </ul>
+      )}
+      {rows.length > PAGE_LIMIT && (
+        <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {rows.length.toLocaleString()} groups.</p>
       )}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Duplicate companies ({companyRows.length.toLocaleString()})</h2>
@@ -128,14 +148,14 @@ export default async function DuplicateOrganizationsPage() {
         ) : (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {companyRows.slice(0, PAGE_LIMIT).map((g) => (
-              <li key={g.members.map((m) => m.id).join('-')} className="space-y-1 p-3 text-sm">
-                {g.members.map((c) => (
-                  <p key={c.id} className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium">{c.name}</span>
-                    <span className="text-xs text-muted-foreground">{(jobsOf.get(c.id) ?? 0).toLocaleString()} postings</span>
-                  </p>
-                ))}
-                <MergeGroupActions kind="company" members={g.members.map((c) => ({ id: c.id, name: c.name }))} />
+              <li key={g.squashed} className="p-3 text-sm">
+                <DuplicateGroup
+                  kind="company"
+                  groupKey={g.squashed}
+                  suggestedId={g.keeper.id}
+                  reason={reasonFor(g.keeper.basis, 'company')}
+                  members={g.members.map((c) => ({ id: c.id, name: c.name, detail: `${(jobsOf.get(c.id) ?? 0).toLocaleString()} postings` }))}
+                />
               </li>
             ))}
           </ul>
@@ -180,9 +200,6 @@ export default async function DuplicateOrganizationsPage() {
           </ul>
         )}
       </section>
-      {rows.length > PAGE_LIMIT && (
-        <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {rows.length.toLocaleString()} groups.</p>
-      )}
     </div>
   )
 }

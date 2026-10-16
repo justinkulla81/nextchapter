@@ -7446,6 +7446,18 @@ model CompanyAlias {
   @@index([aliasKey])
 }
 
+/// "These are not duplicates": a group of same-letter names an admin has dismissed
+/// from the Duplicates page. groupKey is the name with spacing, punctuation and "&" removed.
+model DuplicateDismissal {
+  id             String   @id @default(cuid())
+  kind           String // ORGANIZATION | COMPANY
+  groupKey       String
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([kind, groupKey])
+}
+
 model CompanyJobOpening {
   id             String    @id @default(cuid())
   companyId      String
