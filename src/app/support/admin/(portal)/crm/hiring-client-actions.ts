@@ -19,3 +19,19 @@ export async function setHiringClient(orgId: string, value: boolean): Promise<bo
   revalidatePath(`${CRM}/organizations`)
   return true
 }
+
+/** Flags or unflags every ticked organization. Returns how many actually changed. */
+export async function bulkSetHiringClient(formData: FormData, value: boolean): Promise<{ changed: number; unchanged: number }> {
+  const admin = await requireAdmin()
+  const ids = [...new Set(formData.getAll('selected').map(String).filter(Boolean))]
+  if (ids.length === 0) return { changed: 0, unchanged: 0 }
+  const { count } = await prisma.crmOrganization.updateMany({
+    where: { id: { in: ids }, hiringClient: !value },
+    data: { hiringClient: value, hiringClientAt: value ? new Date() : null },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'hiring_clients_bulk_set', {
+    hiringClient: value, selected: ids.length, changed: count, orgIds: ids.slice(0, 100),
+  })
+  revalidatePath(`${CRM}/organizations`)
+  return { changed: count, unchanged: ids.length - count }
+}
