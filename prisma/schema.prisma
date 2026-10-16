@@ -1142,6 +1142,11 @@ model CandidateProfile {
   clearancePolygraph              String?
   licensesHeld                    String[]  @default([])
   licensesAnsweredAt              DateTime?
+  // Fields last filled from the résumé and not yet confirmed by the member
+  // (src/lib/resume/resume-prefill.ts): shown as "From your résumé — confirm",
+  // and the only non-blank fields a later résumé may replace.
+  // prisma/manual/2026-10-16-resume-prefill.sql.
+  resumePrefilledFields           String[]  @default([])
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy

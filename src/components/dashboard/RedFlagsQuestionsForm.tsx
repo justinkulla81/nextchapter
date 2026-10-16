@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import type { CurrentJobStatus } from '@prisma/client'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 import { CLEARANCE_HELD_OPTIONS, LICENSE_KEYS, LICENSE_LABEL, POLYGRAPH_HELD_OPTIONS } from '@/lib/jobs/requirements'
 
 const YES_NO_OPTIONS = [
@@ -42,7 +43,16 @@ const CLEARANCE_STATUS_OPTIONS = [
   { value: 'lapsed', label: 'Lapsed' },
 ] as const
 
-export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJobStatus: CurrentJobStatus | null; initial?: RedFlagsInitial }) {
+export function RedFlagsQuestionsForm({
+  currentJobStatus,
+  initial,
+  prefilled = [],
+}: {
+  currentJobStatus: CurrentJobStatus | null
+  initial?: RedFlagsInitial
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
+}) {
   const [state, formAction, pending] = useActionState<RedFlagsState, FormData>(answerRedFlags, undefined)
   const [firedForCause, setFiredForCause] = useState(yesNo(initial?.firedForCause))
   const [restrictiveCovenant, setRestrictiveCovenant] = useState(yesNo(initial?.hasRestrictiveCovenant))
@@ -136,6 +146,7 @@ export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJo
         <p className="text-xs text-muted-foreground">
           Some jobs require an active clearance. We use this to flag them for you and to show cleared roles.
         </p>
+        <FromResumeTag show={prefilled.includes('clearanceLevel')} section="clearance" fields={['clearanceLevel']} submits={false} />
         <ChoiceButtons name="clearanceLevel" options={CLEARANCE_HELD_OPTIONS} value={clearance || null} onChange={setClearance} columns={5} responsive compact />
         {holdsClearance && (
           <>
@@ -155,6 +166,7 @@ export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJo
         <Label>
           Which of these licenses do you hold? <span className="font-normal text-muted-foreground">(optional)</span>
         </Label>
+        <FromResumeTag show={prefilled.includes('licensesHeld')} section="licenses" fields={['licensesHeld']} submits={false} />
         <div role="group" aria-label="Licenses held" className="flex flex-wrap gap-2">
           {LICENSE_KEYS.map((k) => {
             const on = licenses.includes(k)

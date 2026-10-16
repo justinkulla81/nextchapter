@@ -140,6 +140,8 @@ export async function updateSearchStrategy(
       // the explicit Regenerate action below.
       searchStrategyGuidance: null,
       searchStrategyGuidanceGeneratedAt: null,
+      // They set their function here: it is theirs now, not a résumé guess (resume-prefill.ts).
+      resumePrefilledFields: profile.resumePrefilledFields.filter((f) => f !== 'primaryFunction'),
     },
   })
 

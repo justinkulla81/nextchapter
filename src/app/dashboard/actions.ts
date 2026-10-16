@@ -38,6 +38,7 @@ import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import type { PassiveToActiveTrigger } from '@/lib/dashboard/passive-to-active-prompt'
 import type { StalledSearchTier } from '@/lib/dashboard/stalled-search-prompt'
+import { withoutPrefill } from '@/lib/resume/resume-prefill'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -353,6 +354,7 @@ export async function confirmProfile(
       currentState: (formData.get('currentState') as string) || null,
       metroArea: normalizeMetroArea(currentCity),
       profileConfirmedAt: new Date(),
+      resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'basics'),
     },
   })
   revalidatePath('/dashboard')
@@ -378,7 +380,7 @@ export async function confirmEducation(
   // silently erase a value set by resume extraction.
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { highestEducationLevel, hasJD, hasMD, hasMBA },
+    data: { highestEducationLevel, hasJD, hasMD, hasMBA, resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'education') },
   })
   revalidatePath('/dashboard/profile')
 }
@@ -398,6 +400,7 @@ export async function confirmIndustry(
       industryContext,
       industryBucket: normalizeIndustryBucket(industryContext),
       industryConfirmedAt: new Date(),
+      resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'industry'),
     },
   })
   revalidatePath('/dashboard')
@@ -419,7 +422,7 @@ export async function updateResumeKeywords(
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { resumeKeywords },
+    data: { resumeKeywords, resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'keywords') },
   })
   captureServerEvent(profile.id, 'resume_keywords_updated', { count: resumeKeywords.length })
   revalidatePath('/dashboard/profile')
@@ -462,6 +465,7 @@ export async function confirmFunctionAndExperience(
       resumeLatestJobTitle: (formData.get('resumeLatestJobTitle') as string) || null,
       yearsExperience: yearsExperience ? Number(yearsExperience) : null,
       functionConfirmedAt: new Date(),
+      resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'function'),
     },
   })
   revalidatePath('/dashboard')
@@ -555,7 +559,7 @@ export async function confirmWorkAuthorization(
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { workAuthorization, visaStatus, workAuthConfirmedAt: new Date() },
+    data: { workAuthorization, visaStatus, workAuthConfirmedAt: new Date(), resumePrefilledFields: withoutPrefill(profile.resumePrefilledFields, 'workAuth') },
   })
   // Read by the job requirement match ("US citizens only", "No visa sponsorship"; requirements.ts).
   if (workAuthorization !== profile.workAuthorization || !profile.workAuthConfirmedAt) {

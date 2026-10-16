@@ -41,6 +41,7 @@ import {
   validateAnswers,
   type CoachingOnboardingAnswers,
 } from '@/lib/coach/onboarding-form'
+import { clearResumePrefillMarks } from '@/lib/resume/clear-prefill-marks'
 
 export type FormState = { error?: string } | undefined
 
@@ -181,6 +182,8 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
     },
     select: { journey: true, journeyStage: true, currentJobStatus: true, highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true },
   })
+  // The member just confirmed these from their résumé.
+  await clearResumePrefillMarks(candidateId, ['primaryFunction', 'industryContext', ...(yearsExperience !== undefined ? (['yearsExperience'] as const) : [])])
 
   // Students and early-career members: their school, if they gave one. Never
   // blocks onboarding; they can add it later on the early-career plan.
@@ -348,6 +351,8 @@ export async function updateLocationAndSearchStatus(
       onboardingComfortConfirmedAt: now,
     },
   })
+  // The member just told us where they live.
+  await clearResumePrefillMarks(candidateId, ['currentCity', 'currentState'])
 
   // What this journey tells us about their situation, kept in journeyDetails, and the stage it implies.
   const details: Record<string, unknown> = {}

@@ -56,6 +56,7 @@ export default async function ScreeningPage() {
           <AnsweredConfirmSection answered={redFlagsAnswered}>
             <RedFlagsQuestionsForm
               currentJobStatus={profile.currentJobStatus}
+              prefilled={profile.resumePrefilledFields}
               initial={{
                 firedForCause: profile.firedForCause,
                 hasRestrictiveCovenant: profile.hasRestrictiveCovenant,
@@ -104,6 +105,7 @@ export default async function ScreeningPage() {
               workAuthorization={profile.workAuthorization}
               visaStatus={profile.visaStatus}
               confirmedAt={profile.workAuthConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </AnsweredConfirmSection>
         </CardContent>
