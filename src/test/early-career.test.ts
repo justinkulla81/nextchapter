@@ -17,16 +17,16 @@ import {
   type StageMember,
 } from '@/lib/jobs/career-stage'
 import { screenImportedJob } from '@/lib/jobs/import-screen'
-import { classifyTitleRung, levelsInGroup, refineLevelByYears, seniorityGroupOf, SENIORITY_GROUPS, yearsStage } from '@/lib/jobs/job-seniority'
+import { classifyTitleRung, levelForPosting, levelsInGroup, refineLevelByYears, seniorityGroupOf, SENIORITY_GROUPS, yearsStage } from '@/lib/jobs/job-seniority'
 import { levelStep } from '@/lib/jobs/job-fit-bucket'
 import { emailSafeJobs } from '@/lib/jobs/mid-level'
 
 const rung = (title: string) => classifyTitleRung(title).rung
 
 describe('early-career rungs', () => {
-  it('matches ncrawl (Python) on the years-refinement parity cases', () => {
+  it('matches ncrawl (Python) on the years-refinement and bachelor\'s-lift parity cases', () => {
     const mismatches = (yearsParity as [string, string, string][])
-      .map(([title, text, expected]) => ({ title, expected, got: refineLevelByYears(title, classifyTitleRung(title), text).rung }))
+      .map(([title, text, expected]) => ({ title, expected, got: levelForPosting(title, text).rung }))
       .filter((m) => m.got !== m.expected)
     expect(mismatches).toEqual([])
   })
@@ -84,8 +84,13 @@ describe('early-career rungs', () => {
     expect(refineLevelByYears('Financial Analyst', mid, null).rung).toBe('EARLY_IC')
     // A level marker in the title wins over the text.
     expect(refineLevelByYears('Software Engineer II', classifyTitleRung('Software Engineer II'), '0-2 years of experience').rung).toBe('EARLY_IC')
-    // Senior titles are never refined.
-    expect(refineLevelByYears('Senior Financial Analyst', classifyTitleRung('Senior Financial Analyst'), '1+ years of experience').rung).toBe('SENIOR_IC')
+    // A second-grade "Senior" title asking 3 years or fewer is mid-level (2026-10-16); engineering
+    // "Senior" titles and senior titles asking more keep SENIOR_IC.
+    expect(refineLevelByYears('Senior Financial Analyst', classifyTitleRung('Senior Financial Analyst'), '1+ years of experience').rung).toBe('MID_IC')
+    expect(refineLevelByYears('Senior Financial Analyst', classifyTitleRung('Senior Financial Analyst'), '6+ years of experience').rung).toBe('SENIOR_IC')
+    expect(refineLevelByYears('Senior Software Engineer', classifyTitleRung('Senior Software Engineer'), '2+ years of experience').rung).toBe('SENIOR_IC')
+    // A 4-year minimum is mid-level.
+    expect(refineLevelByYears('Financial Analyst', mid, '4+ years of experience').rung).toBe('MID_IC')
     expect(yearsStage('a 2-year contract')).toBeNull()
   })
 

@@ -30,6 +30,12 @@ import {
   ENTRY_PREFIX,
   ENTRY_WORDS,
   EXPLICIT_LEVEL,
+  BACHELOR,
+  DEGREE_GATED,
+  DEGREE_NOUN,
+  DEGREE_VETO,
+  FED_LIFT_VETO,
+  SENIOR_SECOND_GRADE,
   FRONTLINE,
   JUNIOR_MARK,
   LEVEL_ONE,
@@ -85,13 +91,20 @@ function stripReportingRef(title: string): string {
   return out || title
 }
 
-// Federal pay grade appended to USAJOBS titles ("Program Analyst (GS-14)"):
-// 13 = senior individual, 14 = senior manager, 15 = director; SES, SL, ST =
-// executive. A higher rank from the title itself wins (ties keep the title's).
+// Federal pay grade appended to USAJOBS titles ("Program Analyst (GS-14)", a
+// promotion ladder lowest grade first: "(GS-7/11)"). The LOWEST grade sets the
+// level. 13 = senior individual, 14 = senior manager, 15 = director; SES, SL,
+// ST = executive. A higher rank from the title itself wins (ties keep the title's).
 const GRADE_RANK: Record<number, { rung: RungName; rank: number }> = {
   13: { rung: 'SENIOR_IC', rank: 45 },
   14: { rung: 'SR_MANAGER', rank: 52 },
   15: { rung: 'DIRECTOR', rank: 65 },
+}
+const OTHER: { rung: RungName; rank: number } = { rung: 'OTHER', rank: 0 }
+
+/** Uniformed, clinical-floor, wage-style, clerical and frontline series are never lifted by grade. */
+function fedVetoed(bare: string): boolean {
+  return MID_GRADE_VETO.test(bare) || FED_LIFT_VETO.test(bare) || FRONTLINE.test(bare) || NEGATIVE.test(bare)
 }
 
 export type ClassifyOptions = {
@@ -104,24 +117,22 @@ export function classifyTitleRung(rawTitle: string | null | undefined, opts: Cla
   if (!m || !rawTitle) return classifyTitleOnly(rawTitle, opts)
   const bare = rawTitle.slice(0, m.index).trim()
   let base = classifyTitleOnly(bare, opts)
-  let grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
-  if (!m[3]) {
-    const n = Number(m[2])
-    const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
-    // GS-11/12: mid-level professional, unless the series is uniformed,
-    // clinical-floor or frontline (or the title screens itself out).
-    if (gs && (n === 11 || n === 12) && !MID_GRADE_VETO.test(bare) && !FRONTLINE.test(bare) && !NEGATIVE.test(bare)) {
-      grade = { rung: 'MID_IC', rank: MID_IC_RANK }
-    }
-    // GS-10 and below are the federal entry grades: the title alone must not lift them to
-    // mid-level. A professional series at GS-5 to GS-8 is entry-level, at GS-9/10 early-career.
-    if (gs && n <= 10 && (base.rung === 'MID_IC' || base.rung === 'ENTRY_IC' || base.rung === 'EARLY_IC')) {
-      if (n >= 5 && n <= 8 && !MID_GRADE_VETO.test(bare)) base = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
-      else if (n >= 9 && !MID_GRADE_VETO.test(bare)) base = { rung: 'EARLY_IC', rank: EARLY_IC_RANK }
-      else base = { rung: 'OTHER', rank: 0 }
-    }
+  if (m[3]) return 90 > base.rank ? { rung: 'EVP_SVP', rank: 90 } : base
+  // A ladder topping out at GS-12 or below is levelled by its LOWEST grade (where a hire
+  // starts); one reaching GS-13+ by its highest, as before.
+  const nums = (m[0].match(/\d{1,2}/g) ?? []).map(Number)
+  const n = Math.max(...nums) <= 12 ? Math.min(...nums) : Math.max(...nums)
+  const graded = n >= 13 ? GRADE_RANK[Math.min(n, 15)] : OTHER
+  const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
+  if (gs && n <= 12 && base.rank <= MID_IC_RANK) {
+    // OPM education qualifications (owner, 2026-10-16): GS-7/8 entry-level,
+    // GS-9/10 early-career, GS-11/12 mid-level; GS-6 and below stay out.
+    if (n <= 6 || fedVetoed(bare)) base = OTHER
+    else if (n <= 8) base = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
+    else if (n <= 10) base = { rung: 'EARLY_IC', rank: EARLY_IC_RANK }
+    else base = { rung: 'MID_IC', rank: MID_IC_RANK }
   }
-  return grade.rank > base.rank ? grade : base
+  return graded.rank > base.rank ? graded : base
 }
 
 /** Mid-level professional allowlist (ncrawl/taxonomy.py MID_IC), minus entry/support/frontline markers. */
@@ -268,7 +279,7 @@ function earlyBroaden(title: string, base: { rung: RungName; rank: number }): { 
 /**
  * The career stage a posting's years-of-experience requirement points to
  * (ncrawl years.py years_stage): ENTRY for 0-1 years ("0-2", "1+", "1-3"),
- * EARLY for a 2-4 year minimum, MID for 5+; null when the text names none.
+ * EARLY for a 2-3 year minimum, MID for 4+; null when the text names none.
  */
 export function yearsStage(description: string | null | undefined): 'ENTRY' | 'EARLY' | 'MID' | null {
   if (!description) return null
@@ -277,7 +288,8 @@ export function yearsStage(description: string | null | undefined): 'ENTRY' | 'E
   const y = parseYearsRequired(text)
   if (!y) return null
   if ((y.min <= 1 && (y.max === null || y.max <= 3)) || (y.max !== null && y.max <= 2)) return 'ENTRY'
-  if (y.min <= 4) return 'EARLY'
+  // About 2-4 years is early-career, 4-7 mid-level (owner, 2026-10-16): a 4-year minimum is mid.
+  if (y.min <= 3) return 'EARLY'
   return 'MID'
 }
 
@@ -286,20 +298,50 @@ const STAGE_RUNG = { ENTRY, EARLY, MID: { rung: 'MID_IC' as RungName, rank: MID_
 /**
  * An early or mid-level professional title without its own level marker takes
  * its stage from the posting's years requirement ("Financial Analyst" asking
- * 0-2 years is entry, 3+ early, 5+ mid). Never moves a job above MID_IC or
- * touches anything ranked above it. Mirrors ncrawl refine_level_by_years.
+ * 0-2 years is entry, 2-3 early, 4+ mid). Never moves a job above MID_IC or
+ * touches anything ranked above it, except a second-grade "Senior" title asking
+ * 3 years or fewer, which comes down to MID_IC. Mirrors ncrawl refine_level_by_years.
  */
 export function refineLevelByYears(
   title: string,
   level: { rung: RungName; rank: number },
   description: string | null | undefined
 ): { rung: RungName; rank: number } {
+  // A second-grade "Senior" title (Senior Accountant, Senior Financial Analyst, Big Four
+  // Senior Consultant) asking 3 years or fewer is mid-level (never lower).
+  if (level.rung === 'SENIOR_IC' && description && SENIOR_SECOND_GRADE.test(title)) {
+    const s = yearsStage(description)
+    return s === 'ENTRY' || s === 'EARLY' ? STAGE_RUNG.MID : level
+  }
   if (!['ENTRY_IC', 'EARLY_IC', 'MID_IC'].includes(level.rung) || !description) return level
   if (EXPLICIT_LEVEL.test(title) || ENTRY_EXPLICIT.test(title)) return level
   let stage = yearsStage(description)
   // Assistant and coordinator roles top out at early-career, however many years the posting asks for.
   if (stage === 'MID' && EARLY_CAP.test(title)) stage = 'EARLY'
   return stage ? STAGE_RUNG[stage] : level
+}
+
+/**
+ * Bachelor's-degree signal (ncrawl taxonomy.py degree_lift, 2026-10-16): an excluded title whose
+ * posting asks for a bachelor's joins ENTRY_IC (EARLY_IC with a level-II marker, MID_IC when
+ * senior) when it is an allowlisted unsure professional title (DEGREE_GATED, DEGREE_NOUN). Never
+ * for frontline, clinical, retail, store, hourly or commission work, or a manager/supervisor title.
+ */
+export function degreeLift(title: string, description: string | null | undefined): { rung: RungName; rank: number } | null {
+  if (!title || !description || !BACHELOR.test(description)) return null
+  if (DEGREE_VETO.test(title) || EARLY_HARD_EXCLUDE.test(title) || FRONTLINE.test(title) || NEGATIVE.test(title) ||
+      ALLOW_MANAGEMENT.test(title) || /\bsupervisor\b/i.test(title)) return null
+  if (!DEGREE_GATED.test(title) && !DEGREE_NOUN.test(title)) return null
+  if (ALLOW_UPPER.test(title)) return MID
+  if (ALLOW_TWO.test(title)) return EARLY
+  return ENTRY
+}
+
+/** A posting's level (ncrawl level_for_posting): the title's rung, the bachelor's lift for an excluded title, then the years refinement. */
+export function levelForPosting(title: string, description: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
+  let level = classifyTitleRung(title, opts)
+  if (level.rank === 0) level = degreeLift(title, description) ?? level
+  return refineLevelByYears(title, level, description)
 }
 
 /** The seniority groups shown to people, most senior first. */

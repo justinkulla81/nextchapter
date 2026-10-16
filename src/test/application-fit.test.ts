@@ -193,8 +193,8 @@ describe('aggregate math', () => {
 describe('coachingSuggestion', () => {
   const m = member({ highestLevelReached: 'Manager', yearsExperience: 8 })
   const up2 = classifyApplication(m, { title: 'Chief Marketing Officer', yearsRequired: null })
-  const same = classifyApplication(m, { title: 'Marketing Manager', yearsRequired: null })
-  const yrsReach = classifyApplication(m, { title: 'Marketing Manager', yearsRequired: req(20) })
+  const same = classifyApplication(m, { title: 'Manager, Marketing', yearsRequired: null })
+  const yrsReach = classifyApplication(m, { title: 'Manager, Marketing', yearsRequired: req(20) })
   const down2 = classifyApplication(member({ highestLevelReached: 'VP' }), { title: 'Senior Analyst', yearsRequired: null })
 
   it('too few to read', () => {
