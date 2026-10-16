@@ -253,7 +253,55 @@ def crawl_usajobs(src, log):
         if page * 500 >= int(d["SearchResult"]["SearchResultCountAll"]): break
         page += 1
 
-ADAPTERS = {"workday": crawl_workday, "greenhouse": crawl_greenhouse, "lever": crawl_lever, "usajobs": crawl_usajobs}
+def crawl_neogov(src, log):
+    """NEOGOV / governmentjobs.com agency pages (HTML). src: agency slug, employer."""
+    agency = src["agency"]
+    base = f"https://www.governmentjobs.com/careers/{agency}"
+    page, seen, total, empty = 1, set(), None, 0
+    while empty < 3 and page <= 40:
+        html = http(f"{base}?page={page}", headers={"X-Requested-With": "XMLHttpRequest", "Accept": "text/html"})
+        if total is None:
+            t = re.search(r'job-postings-number">\s*(\d+)', html)
+            total = int(t.group(1)) if t else None
+        parts = re.split(r'(?=<li class="list-item" data-job-id=")', html)
+        items = [(re.search(r'data-job-id="(\d+)"', b).group(1), b) for b in parts if b.startswith('<li class="list-item"')]
+        items = [(i, b) for i, b in items if i not in seen]
+        empty = empty + 1 if not items else 0
+        if total is not None and len(seen) >= total: break
+        for jid, block in items:
+            seen.add(jid)
+            m = re.search(r'class="item-details-link"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', block, re.S)
+            if not m: continue
+            href, title = m.group(1), strip_html(m.group(2))
+            loc = (re.search(r'<ul class="list-meta">\s*<li>(.*?)</li>', block, re.S) or [None, ""])[1]
+            loc = strip_html(loc)
+            sched = re.search(r"(Full_Time|Part_Time|Temporary|Seasonal|Per_Diem)", block)
+            pay = re.search(r"(\$[\d,]+(?:\.\d+)?)(?:\s*-\s*(\$[\d,]+(?:\.\d+)?))?\s*(Hourly|Annually|Monthly|Biweekly)", block)
+            dept = re.search(r'data-department-name="([^"]*)"', block)
+            posted = strip_html((re.search(r'list-entry-starts"><span>(.*?)</span>', block, re.S) or [None, ""])[1])
+            try:
+                detail = http("https://www.governmentjobs.com" + href, headers={"Accept": "text/html"})
+                body = re.search(r'id="details-info"[^>]*>(.*?)id="details-benefits"', detail, re.S)
+                desc = strip_html(body.group(1)) if body else strip_html((re.search(r'list-entry">(.*?)</div>', block, re.S) or [None, ""])[1])
+            except Exception:
+                desc = strip_html((re.search(r'list-entry">(.*?)</div>', block, re.S) or [None, ""])[1])
+            lo = hi = per = None
+            if pay:
+                f = lambda t: float(t.replace("$", "").replace(",", ""))
+                lo = f(pay.group(1)); hi = f(pay.group(2)) if pay.group(2) else lo
+                per = {"Hourly": "hour", "Annually": "year", "Monthly": "month", "Biweekly": "biweek"}[pay.group(3)]
+            rec = mk(src, src.get("employer", agency), jid, title=title, url="https://www.governmentjobs.com" + href,
+                     description=desc, location_raw=loc or "Louisville, KY", locations=[loc] if loc else None,
+                     employment_type=sched.group(1) if sched else None, pay_min=lo, pay_max=hi, pay_period=per,
+                     pay_stated=lo is not None, posted_at=None, posted_precision="relative",
+                     employer_domain=dept.group(1) if dept else None)
+            rec["county_fips"] = rec["county_fips"] or src.get("county_fips", "21111")  # city-government postings
+            yield rec
+            time.sleep(0.2)
+        page += 1
+        if page > 60: break
+
+ADAPTERS = {"neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 
