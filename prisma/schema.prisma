@@ -3505,6 +3505,18 @@ model JobPosting {
   // The board job this application came from, when it came from one (My jobs).
   trackedJob TrackedJob?
 
+  // The board posting (ExclusiveJobPosting.id) this application was for, found by
+  // src/lib/jobs/application-posting-match.ts at tracking time and by backfill:
+  // method 'board_card' | 'url' | 'ats_id' | 'company_title' | 'ambiguous' | 'none',
+  // confidence 0–1, boardMatchedAt = when it was last matched (null = never).
+  // Plain id, no relation. @ignore: added by hand (prisma/manual/2026-10-16-application-board-link.sql),
+  // so a full-row read never selects them; read and written with raw SQL once they
+  // exist (src/lib/jobs/application-posting-link.ts).
+  boardJobId           String?   @ignore
+  boardMatchMethod     String?   @ignore
+  boardMatchConfidence Float?    @ignore
+  boardMatchedAt       DateTime? @ignore
+
   @@index([candidateId, createdAt])
 }
 
@@ -4992,6 +5004,21 @@ model ExclusiveJobPosting {
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
   socCode         String?
   socTitle        String?
+  // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
+  // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
+  // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
+  closeReason     String?
+  reopenCount     Int?
+  // The same role seen before / listed twice (crawler repost_groups.py): times it
+  // came back, its original first-seen date, and on the copy shown, how many other
+  // listings of it were collapsed into this one (those are archived 'duplicate').
+  repostCount       Int?
+  repostFirstSeenAt DateTime?
+  duplicateCount    Int?
+  // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
+  // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
+  // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
+  recruiterName     String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -5003,6 +5030,9 @@ model ExclusiveJobPosting {
   @@index([industry])
   @@index([locationState])
   @@index([socCode])
+  // Application → posting matching looks ATS / requisition ids up (prisma/manual/2026-10-16-application-board-link.sql).
+  @@index([externalJobId])
+  @@index([requisitionId])
   // Deleting a candidate sets this to null; without the index that scans the whole board.
   @@index([submittedByCandidateId])
 }
@@ -5051,6 +5081,9 @@ model JobBoardIntroRequest {
   posting      ExclusiveJobPosting @relation(fields: [postingId], references: [id], onDelete: Cascade)
   contactEmail String?
   status       String              @default("pending") // 'pending' | 'contacted' | 'closed'
+  // 'listing' — intro on a confidential listing; 'known_contact' — NextChapter knows someone
+  // at the employer and the member asked for an intro (Who to contact panel).
+  kind         String              @default("listing")
   createdAt    DateTime            @default(now())
 
   @@index([candidateId, createdAt])
@@ -7219,6 +7252,7 @@ model Company {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+  aliases          CompanyAlias[]
   // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
   warnNotices      WarnNotice[]
 
@@ -7268,6 +7302,22 @@ model Company {
 // other open sources). Keyed by the listing URL, same as ExclusiveJobPosting.
 // Employer/recruiter exclusives, confidential searches and institution-scoped jobs
 // are never written here, so every row is safe to show any member.
+/// A name that means a company ("AWS" for Amazon Web Services), decided by an admin.
+/// CONFIRMED aliases resolve new resume and posting names to the company; REJECTED
+/// ones record "these are not the same" so the pair is never suggested again.
+model CompanyAlias {
+  id             String   @id @default(cuid())
+  aliasKey       String // normalizeOrgName() of the abbreviation
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status         String   @default("CONFIRMED") // CONFIRMED | REJECTED
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([aliasKey, companyId])
+  @@index([aliasKey])
+}
+
 model CompanyJobOpening {
   id             String    @id @default(cuid())
   companyId      String
@@ -7294,6 +7344,7 @@ model CompanyJobOpening {
   firstSeenAt    DateTime
   lastSeenAt     DateTime
   closedAt       DateTime? // null = still open
+  closeReason    String? // why it closed (job-status.ts); null = open, or closed before reasons were kept
   sourceName     String?
   source         String // 'import' | 'crawler_history' | 'board'
 

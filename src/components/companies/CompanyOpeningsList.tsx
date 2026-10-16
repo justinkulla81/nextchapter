@@ -134,7 +134,8 @@ export function CompanyOpeningsList({
                 {[
                   o.location,
                   groupLabel(o.seniorityGroup),
-                  o.closedAt ? `Open ${monthYear(o.openedAt)} – ${monthYear(o.closedAt)}` : `Posted ${monthYear(o.openedAt)}`,
+                  o.closedAt ? `${o.closedLabel ?? 'Closed'} · open ${monthYear(o.openedAt)} – ${monthYear(o.closedAt)}` : `Posted ${monthYear(o.openedAt)}`,
+                  o.repostLine,
                 ]
                   .filter(Boolean)
                   .join(' · ')}

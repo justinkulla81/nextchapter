@@ -11,8 +11,21 @@ describe('job seniority', () => {
   })
 
   it('keeps manager-and-up and senior individual roles', () => {
-    for (const title of ['Senior Software Engineer', 'Product Manager', 'Director of Finance', 'Senior Financial Analyst', 'Assistant Vice President, Credit Risk']) {
+    for (const title of ['Senior Software Engineer', 'Senior Product Manager', 'Manager, Product Management', 'Director of Finance', 'Senior Financial Analyst', 'Assistant Vice President, Credit Risk']) {
       expect(screenJobTitle(title).keep, title).toBe(true)
+    }
+  })
+
+  it('places individual-contributor "Manager" titles by real seniority (2026-10-15)', () => {
+    for (const title of ['Product Manager', 'Project Manager', 'Program Manager', 'Key Account Manager']) {
+      expect(classifyTitleRung(title).rung, title).toBe('MID_IC')
+    }
+    for (const title of ['Account Manager', 'Customer Success Manager', 'Office Manager', 'Territory Manager']) {
+      expect(classifyTitleRung(title).rung, title).toBe('EARLY_IC')
+    }
+    expect(classifyTitleRung('Senior Account Manager').rung).toBe('SENIOR_IC')
+    for (const title of ['Manager, Engineering', 'Manager of Account Management', 'General Manager', 'Regional Account Manager']) {
+      expect(classifyTitleRung(title).rank, title).toBeGreaterThanOrEqual(40)
     }
   })
 
@@ -23,8 +36,14 @@ describe('job seniority', () => {
   })
 
   it('tags mid-level professional roles MID_IC, still below the manager floor', () => {
-    for (const title of ['Financial Analyst', 'Software Engineer', 'Accountant', 'Data Scientist', 'Program Analyst (GS-12)']) {
+    for (const title of ['Data Scientist', 'Attorney', 'Sales Engineer', 'Senior Paralegal', 'Program Analyst (GS-12)']) {
       expect(classifyTitleRung(title).rung, title).toBe('MID_IC')
+      expect(screenJobTitle(title).keep, title).toBe(false)
+    }
+    // Unmarked analyst / engineer / accountant titles read 2-5 years (2026-10-15); the
+    // posting's years requirement lifts them to MID_IC.
+    for (const title of ['Financial Analyst', 'Software Engineer', 'Accountant', 'Recruiter', 'UX Designer']) {
+      expect(classifyTitleRung(title).rung, title).toBe('EARLY_IC')
       expect(screenJobTitle(title).keep, title).toBe(false)
     }
     // Level I / junior / associate professional titles are entry-level (ENTRY_IC), GS-9 early career.

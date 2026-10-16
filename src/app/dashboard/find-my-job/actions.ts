@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import type { ApplicationChannel, DeclineParty, JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
@@ -16,6 +17,7 @@ import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
 import { explainGaps, isExplainGapsEnabled, type ExplainGapsResult } from '@/lib/jobs/explain-gaps'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
@@ -201,6 +203,8 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
   await generateInterviewPrep(jobPosting.id, profile.id)
 
   captureServerEvent(profile.id, 'interview_landed', { jobId: jobPosting.id, source: 'interview_tracking_quick_add' })
+  // Link to the board posting for admin application fit (title / company come from analyzeJobFit above).
+  after(() => linkApplicationToBoard(jobPosting.id))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -298,6 +302,7 @@ export async function markApplied(
     data: { appliedAt: new Date(), channel: channel ?? null },
   })
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
+  after(() => linkApplicationToBoard(jobPostingId))
 
   // Real, verified signal — a specific tracked posting just moved to
   // Applied — so this earns the Search Action directly rather than relying
@@ -613,6 +618,8 @@ export async function updateApplicationDetails(jobPostingId: string, formData: F
   }
 
   await prisma.jobPosting.update({ where: { id: jobPostingId }, data: { title, url } })
+  // A corrected title or link can change which board posting this was.
+  if (jobPosting.appliedAt) after(() => linkApplicationToBoard(jobPostingId))
   revalidatePath('/dashboard/find-my-job')
 }
 

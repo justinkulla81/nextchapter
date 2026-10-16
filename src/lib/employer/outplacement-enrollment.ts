@@ -13,6 +13,7 @@ import type { OutplacementEnrollmentMethod } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { grantSeatAccess } from '@/lib/access/grants'
 import { applyOutplacementCensus } from '@/lib/census/outplacement'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Partners Master Build Script §A7 — "single, bulk CSV, and [documented-
 // but-not-built] API enrollment." Real third-party API auth/integration is
@@ -27,9 +28,6 @@ import { applyOutplacementCensus } from '@/lib/census/outplacement'
 // the reporting/roster split (see outplacement-reporting.ts vs.
 // outplacement-roster.ts) that enforces the actual privacy boundary.
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 export interface EnrollableContract {
   id: string
@@ -117,7 +115,7 @@ export async function enrollOneSeat(
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     email,
-    `${appUrl()}/auth/callback?next=outplacement-seat&inviteToken=${seat.inviteToken}`,
+    `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=outplacement-seat&inviteToken=${seat.inviteToken}`,
     { isFirstSend: true }
   )
   if (error || !actionLink) {

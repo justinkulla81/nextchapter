@@ -2,6 +2,8 @@ import 'server-only'
 import type { Company } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { aliasCompanyId } from '@/lib/companies/company-alias'
+import { squashKey, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { resolveCompanyIndustry } from '@/lib/market/company-industry'
 import { resolveCompanyDescription } from '@/lib/market/company-description'
@@ -23,8 +25,28 @@ export async function getOrCreateCompany(rawName: string): Promise<Company> {
   const name = fixAllCapsCompanyName(rawName.trim())
   const canonicalNameNormalized = normalizeOrgName(name)
 
+  // An abbreviation an admin has confirmed ("AWS") is the company it stands for,
+  // even if a separate row for the abbreviation already exists.
+  const aliased = await aliasCompanyId(canonicalNameNormalized)
+  if (aliased) {
+    const target = await prisma.company.findUnique({ where: { id: aliased } })
+    if (target) return target
+  }
+
   const existing = await prisma.company.findUnique({ where: { canonicalNameNormalized } })
   if (existing) return existing
+
+  // A spelling variant of a company we already have ("JPMorgan Chase" for "JP
+  // Morgan Chase") is that company, not a new one. Abbreviations are never
+  // resolved here; those are suggested for review (see company-duplicates.ts).
+  const squashed = squashKey(canonicalNameNormalized)
+  if (squashed.length >= MIN_SQUASHED_LENGTH) {
+    const variant = await prisma.$queryRaw<Company[]>`
+      SELECT * FROM "Company"
+       WHERE regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') = ${squashed}
+       ORDER BY "createdAt" ASC LIMIT 1`
+    if (variant[0]) return variant[0]
+  }
 
   return prisma.company.upsert({
     where: { canonicalNameNormalized },

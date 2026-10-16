@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { demoEmail } from './people'
 import type { PortalType } from '@/lib/organizations/portals'
+import { callbackOriginForAppPath, urlForAppPath } from '@/lib/portal-hosts'
 
 // Sign-in to a demo is a one-time link minted by an admin for one sample account.
 // There is no shared password, and the sample accounts use a reserved test domain
@@ -59,13 +60,13 @@ export async function createDemoAccessLink(organizationId: string, key: string):
   if (!org.isDemo) return { error: 'Sign-in links are only made for demo organizations.' }
   const target = demoTargets(org, org.workspaces).find((t) => t.key === key)
   if (!target) return { error: 'That role is not part of this demo.' }
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
-  if (!target.email) return { url: `${base}${target.home}` }
+  if (!target.email) return { url: urlForAppPath(target.home) }
   const admin = createAdminClient()
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: target.email,
-    options: { redirectTo: `${base}/auth/callback?next=${encodeURIComponent(target.home)}` },
+    // Back to the portal's own host, so the session lands in its cookie jar.
+    options: { redirectTo: `${callbackOriginForAppPath(target.home)}/auth/callback?next=${encodeURIComponent(target.home)}` },
   })
   const url = data?.properties?.action_link
   if (error || !url) return { error: 'Could not make a sign-in link. Try again.' }

@@ -14,6 +14,8 @@ import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
+import { RepostNote } from '@/components/jobs/RepostNote'
+import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
@@ -369,6 +371,7 @@ export function DiscoverJobCard({
           <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
             <LowCompetitionBadge competition={competition} />
+            <RepostNote posting={posting} />
             <WorkTypePayChips workType={workType} pay={payLabel} />
             {comparePay && posting.payVsMarket && (
               <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
@@ -433,7 +436,7 @@ export function DiscoverJobCard({
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
         {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} insiders={confidential ? undefined : insiders} />}
-        {contacts && <WhoToContact contacts={contacts} />}
+        <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (
@@ -480,50 +483,6 @@ function RequestIntroButton({ postingId }: { postingId: string }) {
         Request intro
       </SubmitButton>
     </form>
-  )
-}
-
-function WhoToContact({ contacts }: { contacts: JobContacts }) {
-  return (
-    <div className="space-y-1 text-sm">
-      <p className="font-medium text-foreground">Who to contact</p>
-      {contacts.firm && (
-        <p className="text-muted-foreground">
-          Search firm:{' '}
-          {contacts.firm.url ? (
-            <a href={contacts.firm.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
-              {contacts.firm.name}
-            </a>
-          ) : (
-            contacts.firm.name
-          )}{' '}
-          — the consultant named on the posting runs this search.
-        </p>
-      )}
-      {contacts.known.map((c) => (
-        <p key={c.id} className="text-muted-foreground">
-          <span className="text-foreground">You know {c.name}</span>
-          {c.title && `, ${c.title}`}
-          {c.role === 'recruiter' ? ' (recruiter)' : ' (likely hiring manager)'} —{' '}
-          {c.email ? (
-            <a href={`mailto:${c.email}`} className="text-primary underline underline-offset-4">
-              {c.email}
-            </a>
-          ) : c.linkedinUrl ? (
-            <a href={c.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
-              LinkedIn
-            </a>
-          ) : (
-            'no contact details saved'
-          )}
-        </p>
-      ))}
-      <p className="text-muted-foreground">
-        <a href={contacts.linkedinSearchUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
-          Find recruiters there on LinkedIn
-        </a>
-      </p>
-    </div>
   )
 }
 

@@ -124,6 +124,8 @@ import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
 import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
+import { PastJobsToggle } from '@/components/jobs/PastJobsToggle'
+import { PastJobsSection } from '@/components/jobs/PastJobsSection'
 import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearchTracker'
 import { buildBoardSearch, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
 import { boardHref, boardHrefWithout, BOARD_SEARCH_URL_PARAMS } from '@/lib/jobs/board-url'
@@ -1327,6 +1329,7 @@ async function FindMyJobBody({
           </p>
         </div>
         <BoardSearchBar />
+        <PastJobsToggle />
         <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
 
         <ApplyPrompts
@@ -1390,6 +1393,13 @@ async function FindMyJobBody({
           </div>
         </div>
       </div>
+      )}
+
+      {/* Past jobs: a separate, labelled section, only with "Include past jobs" on (job-status.ts). */}
+      {onBoard && urlParams.past === '1' && (
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading past jobs…</p>}>
+          <PastJobsSection search={boardSearch} />
+        </Suspense>
       )}
 
       {/* SEC filings and news before a senior search: full-time searches. */}

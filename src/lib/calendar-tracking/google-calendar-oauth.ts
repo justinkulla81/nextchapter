@@ -1,5 +1,6 @@
 import 'server-only'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Prompt 79 — candidate-facing Calendar Connect. Shares the
 // CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET OAuth client with Gmail (Prompt 76)
@@ -17,7 +18,8 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const SCOPE = 'https://www.googleapis.com/auth/calendar.events.readonly'
 
 function getRedirectUri(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // The candidate app's host (candidate.<site> once it's switched on), where the session cookie is.
+  const appUrl = callbackOriginForAppPath('/dashboard')
   return `${appUrl}/api/auth/calendar/callback`
 }
 

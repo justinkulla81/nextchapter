@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getCoachCaseload } from '@/lib/coach/caseload'
+import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
@@ -186,7 +187,18 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         return
       }
       const risks = entry.triggers.filter((t) => t.type === 'RISK')
-      const attention = [...(entry.isStalled ? ['Search has stalled — no recent activity'] : []), ...risks.map((t) => t.label)]
+      // isStalled is the avoidance pattern, not inactivity: a committed action type
+      // left incomplete week after week while other actions get done. Say which one,
+      // the same way the coach's own client page does.
+      const avoidance = entry.isStalled ? await detectAvoidancePattern(entry.id).catch(() => null) : null
+      const attention = [
+        ...(avoidance
+          ? [`Keeps leaving "${avoidance.actionType}" actions incomplete (${avoidance.weeksAvoided} weeks running)`]
+          : entry.isStalled
+            ? ['Keeps leaving a committed action incomplete']
+            : []),
+        ...risks.map((t) => t.label),
+      ]
       clients.push({
         id: entry.id,
         name: entry.name,

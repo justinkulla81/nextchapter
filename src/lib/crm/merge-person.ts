@@ -46,6 +46,7 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
     await tx.crmActivity.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmTask.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmSourceRecord.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.crmMandate.updateMany({ where: { recruiterId: sourceId }, data: { recruiterId: targetId } })
     await tx.crmResearchItem.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.productFeedback.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
 

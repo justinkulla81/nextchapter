@@ -10,6 +10,7 @@ import { sendRecruiterCandidateInviteEmail } from '@/lib/email/send-recruiter-ca
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { createConsentedIntroductionIfMissing } from '@/lib/recruiter/introductions'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 export type AddSourcedCandidateState = { error?: string; added?: boolean } | undefined
 
@@ -73,11 +74,10 @@ export async function inviteSourcedCandidate(sourcedCandidateId: string): Promis
 
   const isFirstSend = sourced.status === 'ADDED'
   const inviteToken = sourced.inviteToken ?? crypto.randomUUID()
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   const { actionLink, error: inviteError } = await createPreConfirmedInviteUser(
     sourced.email,
-    `${appUrl}/auth/callback?next=recruiter-source&inviteToken=${inviteToken}`,
+    `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=recruiter-source&inviteToken=${inviteToken}`,
     { isFirstSend }
   )
   if (inviteError || !actionLink) {

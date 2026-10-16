@@ -72,7 +72,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
 export async function archiveExclusiveJobPosting(postingId: string) {
   await requireAdmin()
 
-  await prisma.exclusiveJobPosting.update({ where: { id: postingId }, data: { archivedAt: new Date() } })
+  await prisma.exclusiveJobPosting.update({ where: { id: postingId }, data: { archivedAt: new Date(), closeReason: 'manual' } })
   invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }

@@ -16,6 +16,8 @@ import {
   type SkillsGapInsight,
 } from '@/lib/jobs/my-jobs'
 import { classifyWorkType, isWorkType, type JobWorkType } from '@/lib/jobs/work-type'
+import { loadPostingLifecycles } from '@/lib/jobs/past-jobs-data'
+import { lifecycleBadge, lifecycleSentence, type JobLifecycleStatus } from '@/lib/jobs/job-status'
 
 /** Which board a tracked job came from — same values as JobClickEvent.source. */
 export type TrackSource = 'job_board' | 'surfaced' | 'matched_role'
@@ -53,6 +55,16 @@ export interface MyJobItem {
   date: Date
   nextStep: string
   ref: TrackRef | null
+  /** For a board job that has closed or aged out since it was saved (job-status.ts); null while it is live. */
+  listing: PastListing | null
+}
+
+/** A saved/applied board job that is no longer listed: shown with a status banner, never silently dropped. */
+export interface PastListing {
+  status: Extract<JobLifecycleStatus, 'closed' | 'expired'>
+  badge: string
+  sentence: string
+  closedAt: Date
 }
 
 export interface ApplyPrompt {
@@ -195,6 +207,7 @@ export async function loadMyJobs(
       date: dateOf(status, t.savedAt, app, t.updatedAt),
       nextStep: NEXT_STEP[status],
       ref: refOf(t),
+      listing: null,
     })
   }
 
@@ -218,6 +231,7 @@ export async function loadMyJobs(
       date: s.reactedAt ?? s.surfacedAt,
       nextStep: NEXT_STEP.saved,
       ref: { source: 'surfaced', sourceId: s.id, title: s.title, companyName: s.companyName, url: s.url, workType },
+      listing: null,
     })
   }
 
@@ -239,8 +253,11 @@ export async function loadMyJobs(
       date: dateOf(status, null, a, a.createdAt),
       nextStep: NEXT_STEP[status],
       ref: null,
+      listing: null,
     })
   }
+
+  await attachPastListings(items, now)
 
   const order: Record<JobStatus, number> = { offer: 0, interviewing: 1, applied: 2, saved: 3, closed: 4 }
   items.sort((x, y) => order[x.status] - order[y.status] || y.date.getTime() - x.date.getTime())
@@ -259,6 +276,27 @@ export async function loadMyJobs(
     insight,
     cardStates,
     watchedCompanies: new Set(watch.map((w) => w.companyNameNormalized)),
+  }
+}
+
+/**
+ * Marks board jobs that have closed or aged out since the member saved or applied
+ * (job-status.ts) — My jobs shows them with a banner and alternatives instead of
+ * letting them silently disappear. Best-effort: a failed read leaves them unmarked.
+ */
+async function attachPastListings(items: MyJobItem[], now: Date) {
+  const ids = items.filter((i) => i.ref?.source === 'job_board').map((i) => i.ref!.sourceId)
+  if (ids.length === 0) return
+  try {
+    const lives = await loadPostingLifecycles(ids, now)
+    for (const i of items) {
+      if (i.ref?.source !== 'job_board') continue
+      const l = lives.get(i.ref.sourceId)
+      if (!l || !l.isPast || !l.closedAt || (l.status !== 'closed' && l.status !== 'expired')) continue
+      i.listing = { status: l.status, badge: lifecycleBadge(l), sentence: lifecycleSentence(l) ?? '', closedAt: l.closedAt }
+    }
+  } catch (error) {
+    console.error('My jobs: could not load listing status', error)
   }
 }
 

@@ -8,6 +8,7 @@ export type AdminRequestType =
   | 'reference_dispute'
   | 'bounty_claim'
   | 'job_board_intro'
+  | 'known_contact_intro'
 
 export interface AdminRequestRow {
   id: string
@@ -50,7 +51,10 @@ export async function getAdminRequests(authUsers: Map<string, AuthUserSummary>):
     }),
     prisma.jobBoardIntroRequest.findMany({
       where: { status: 'pending' },
-      include: { candidate: { select: { id: true, firstName: true, lastName: true, userId: true } } },
+      include: {
+        candidate: { select: { id: true, firstName: true, lastName: true, userId: true } },
+        posting: { select: { title: true, companyName: true } },
+      },
     }),
   ])
 
@@ -116,11 +120,16 @@ export async function getAdminRequests(authUsers: Map<string, AuthUserSummary>):
   for (const i of introRequests) {
     rows.push({
       id: `intro-${i.id}`,
-      type: 'job_board_intro',
+      type: i.kind === 'known_contact' ? 'known_contact_intro' : 'job_board_intro',
       candidateId: i.candidate.id,
       candidateName: candidateName(i.candidate.firstName, i.candidate.lastName),
       candidateEmail: getAuthEmail(authUsers, i.candidate.userId),
-      summary: 'Requested intro on a confidential Job Board listing',
+      // known_contact: from the job's "Who to contact" panel — NextChapter has a warm
+      // contact at this employer (see the CRM organization) and the member asked for an intro.
+      summary:
+        i.kind === 'known_contact'
+          ? `Wants an intro at ${i.posting.companyName} for ${i.posting.title} — we know someone there (see CRM)`
+          : 'Requested intro on a confidential Job Board listing',
       requestedAt: i.createdAt,
       status: i.status,
       detailHref: `/support/admin/candidates/${i.candidate.id}`,

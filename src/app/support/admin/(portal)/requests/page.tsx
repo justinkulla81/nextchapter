@@ -14,6 +14,7 @@ const TYPE_LABEL: Record<AdminRequestRow['type'], string> = {
   reference_dispute: 'Reference dispute',
   bounty_claim: 'Offer Bonus claim',
   job_board_intro: 'Job Board intro',
+  known_contact_intro: 'Intro via our contact',
 }
 
 export default async function AdminRequestsPage({
@@ -60,7 +61,7 @@ export default async function AdminRequestsPage({
     {
       header: 'Actions',
       render: (r) =>
-        r.type === 'job_board_intro' && r.status === 'pending' ? (
+        (r.type === 'job_board_intro' || r.type === 'known_contact_intro') && r.status === 'pending' ? (
           <div className="flex gap-2">
             <form action={markJobBoardIntroRequestStatus.bind(null, r.id.replace('intro-', ''), 'contacted')}>
               <button type="submit" className="text-sm text-primary underline underline-offset-4">

@@ -1,8 +1,26 @@
 import {
+  ADMIN_CONTEXT_EXCLUDE,
+  ADMIN_FAMILY,
+  ALLOW_LOWER,
+  ALLOW_LOWER_STRICT,
+  ALLOW_MANAGEMENT,
+  ALLOW_TWO,
+  ALLOW_UPPER,
   BARE_PROFESSIONAL,
   BOARD,
   EARLY_ASSOCIATE,
+  EARLY_CAP,
+  EARLY_DEFAULT,
+  EARLY_DEFAULT_KEEP,
+  EARLY_ENTRY_FAMILY,
   EARLY_EXCLUDE,
+  EARLY_FAMILY,
+  EARLY_FAMILY_EXCLUDE,
+  EARLY_HARD_EXCLUDE,
+  ENTRY_FAMILY,
+  ENTRY_FAMILY_EXCLUDE,
+  EXEC_ASSISTANT,
+  RECRUIT_FAMILY,
   EARLY_IC_RANK,
   ENTRY_ANALYST,
   ENTRY_EXPLICIT,
@@ -138,7 +156,7 @@ function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOp
   const fixed = titleOverride(title, !!opts.schoolContext)
   if (fixed && fixed.mode === 'set') return { rung: fixed.name, rank: fixed.rank }
   const base = ladder(title)
-  return fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base
+  return earlyBroaden(title, fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base)
 }
 
 function ladder(title: string): { rung: RungName; rank: number } {
@@ -185,7 +203,9 @@ function stripEntry(title: string): string {
 
 function isMidRole(residual: string, title: string): boolean {
   if (!residual || residual.toLowerCase() === title.toLowerCase()) return false
-  return BARE_PROFESSIONAL.test(residual) || classifyTitleOnly(residual).rung === 'MID_IC'
+  if (BARE_PROFESSIONAL.test(residual)) return true
+  const rung = classifyTitleOnly(residual).rung
+  return rung === 'MID_IC' || rung === 'EARLY_IC' || rung === 'ENTRY_IC'
 }
 
 const ENTRY: { rung: RungName; rank: number } = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
@@ -211,6 +231,38 @@ function earlyStage(title: string): { rung: RungName; rank: number } | null {
   if (EARLY_ASSOCIATE.test(title)) return EARLY
   if (ENTRY_ANALYST.test(title)) return ENTRY
   return null
+}
+
+// ── Early-career broadening (ncrawl taxonomy.py _early_allow / _early_broaden, 2026-10-15) ──
+// 1. A title the ladder left at OTHER that is an allowlisted early professional office role
+//    (administrative assistants and coordinators, executive assistants, paralegals, programmers,
+//    designers, recruiters, buyers, planners, claims adjusters, writers, function associates and
+//    specialists) joins ENTRY_IC / EARLY_IC. Interns, temporary/hourly, clinical, childcare, retail,
+//    hospitality, warehouse and plant work never do.
+// 2. An unmarked MID_IC title in a family the market reads as 2-5 years ("Software Engineer",
+//    "Financial Analyst", "Recruiter") defaults to EARLY_IC. Nothing above MID_IC moves.
+const MID: { rung: RungName; rank: number } = { rung: 'MID_IC', rank: MID_IC_RANK }
+
+function earlyAllow(title: string): { rung: RungName; rank: number } | null {
+  if (EARLY_HARD_EXCLUDE.test(title) || FRONTLINE.test(title) || ALLOW_MANAGEMENT.test(title)) return null
+  const upper = ALLOW_UPPER.test(title)
+  const two = ALLOW_TWO.test(title)
+  if (ADMIN_FAMILY.test(title) && !ADMIN_CONTEXT_EXCLUDE.test(title)) {
+    return EXEC_ASSISTANT.test(title) || upper || two ? EARLY : ENTRY
+  }
+  if (RECRUIT_FAMILY.test(title)) return upper ? MID : ALLOW_LOWER_STRICT.test(title) ? ENTRY : EARLY
+  if (EARLY_FAMILY.test(title) && !EARLY_FAMILY_EXCLUDE.test(title)) {
+    return upper ? MID : two ? EARLY : ALLOW_LOWER.test(title) ? ENTRY : EARLY
+  }
+  if (EARLY_ENTRY_FAMILY.test(title)) return upper ? MID : EARLY
+  if (ENTRY_FAMILY.test(title) && !ENTRY_FAMILY_EXCLUDE.test(title)) return upper || two ? EARLY : ENTRY
+  return null
+}
+
+function earlyBroaden(title: string, base: { rung: RungName; rank: number }): { rung: RungName; rank: number } {
+  if (base.rank === 0) return earlyAllow(title) ?? base
+  if (base.rung === 'MID_IC' && EARLY_DEFAULT.test(title) && !EARLY_DEFAULT_KEEP.test(title)) return EARLY
+  return base
 }
 
 /**
@@ -244,7 +296,9 @@ export function refineLevelByYears(
 ): { rung: RungName; rank: number } {
   if (!['ENTRY_IC', 'EARLY_IC', 'MID_IC'].includes(level.rung) || !description) return level
   if (EXPLICIT_LEVEL.test(title) || ENTRY_EXPLICIT.test(title)) return level
-  const stage = yearsStage(description)
+  let stage = yearsStage(description)
+  // Assistant and coordinator roles top out at early-career, however many years the posting asks for.
+  if (stage === 'MID' && EARLY_CAP.test(title)) stage = 'EARLY'
   return stage ? STAGE_RUNG[stage] : level
 }
 

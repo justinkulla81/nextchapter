@@ -16,7 +16,8 @@ import { withCronRun } from '@/lib/cron/run'
 export const GET = withCronRun('expire-job-postings', async () => {
   const result = await prisma.exclusiveJobPosting.updateMany({
     where: { archivedAt: null, expiresAt: { lt: new Date() } },
-    data: { archivedAt: new Date() },
+    // closeReason 'expired': not reconfirmed in time (src/lib/jobs/job-status.ts).
+    data: { archivedAt: new Date(), closeReason: 'expired' },
   })
 
   return NextResponse.json({ expired: result.count })
