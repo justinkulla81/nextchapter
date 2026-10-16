@@ -6,7 +6,7 @@ import type { JourneyType, JourneyStage } from '@prisma/client'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 
 // The journeys that are employed and get the workspace.
-export const IN_WORK_JOURNEYS: readonly JourneyType[] = ['PROMOTION', 'READY_TO_MOVE', 'EXPLORING_MOVE', 'NEXT_ACT']
+export const IN_WORK_JOURNEYS: readonly JourneyType[] = ['PROMOTION', 'EXPLORING_MOVE', 'NEXT_ACT']
 
 type JourneyFields = Parameters<typeof effectiveJourney>[0]
 

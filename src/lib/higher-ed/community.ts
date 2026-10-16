@@ -286,7 +286,6 @@ export async function requestAudit(courseId: string, memberId: string, note: str
 
 export const LEARNING_PATHS: Record<JourneyType, { title: string; steps: string[] }> = {
   LAID_OFF: { title: 'Back to work, stronger', steps: ['Take the Market Reality Grade to see your gaps', 'Close the biggest gap with a short program (WIOA funding or a scholarship may pay)', 'Add the credential to LinkedIn and your Dossier', 'Apply with an intro from someone inside'] },
-  READY_TO_MOVE: { title: 'The next role', steps: ['Benchmark your skills against your target role', 'One credential that proves the gap is closed', 'Ask alumni at your target companies'] },
   EXPLORING_MOVE: { title: 'Stay ready', steps: ['Know your market and your worth', 'Audit a course in the field you’re curious about', 'One coffee chat a month with an alum'] },
   PROMOTION: { title: 'The next level', steps: ['Find the gap to the next level', 'A leadership program from Exec Ed', 'Log wins as they happen (In-work track)'] },
   CAREER_CHANGE: { title: 'Into a new field', steps: ['See what alumni in that field do', 'Audit a course, then a certificate in the new field', 'A capstone or project for proof', 'Three informational calls with alumni'] },
