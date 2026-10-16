@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { guessTitleFromConfirmationText } from './ats-patterns'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -63,6 +64,7 @@ export async function syncJobPostingFromEmail(
     if (existingMatch) {
       if (!existingMatch.appliedAt) {
         await prisma.jobPosting.update({ where: { id: existingMatch.id }, data: { appliedAt: emailDate } })
+        await linkApplicationToBoard(existingMatch.id)
         if (awardPoints) await creditApplicationSubmitted(candidateId)
       }
       return
@@ -85,7 +87,7 @@ export async function syncJobPostingFromEmail(
     })
     if (sameDayRows.some((r) => orgNamesMatch(r.companyName ?? '', companyName))) return
 
-    await prisma.jobPosting.create({
+    const created = await prisma.jobPosting.create({
       data: {
         candidateId,
         source: 'EMAIL_DETECTED',
@@ -95,6 +97,8 @@ export async function syncJobPostingFromEmail(
         appliedAt: emailDate,
       },
     })
+    // Link to the board posting (never throws) so admin application fit can read its years and rung.
+    await linkApplicationToBoard(created.id)
     if (awardPoints) await creditApplicationSubmitted(candidateId)
     return
   }

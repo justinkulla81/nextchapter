@@ -2,7 +2,7 @@ import 'server-only'
 import type { JobPostingSource } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { ttlCached } from '@/lib/admin/ttl-cache'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { matchApplications, readStoredLinks, storeLinks, type ApplicationLink } from '@/lib/jobs/application-posting-link'
 import { parseYearsRequired, type YearsRequirement } from '@/lib/jobs/years-required'
 import { classifyTitleRung } from '@/lib/jobs/job-seniority'
 import {
@@ -17,18 +17,17 @@ import {
 
 // Prisma reads for the admin application-fit view (pure logic is in
 // application-fit.ts). Everything here goes through an index — the board
-// table is ~180k rows and the prod DB has had load trouble, so a page view
+// table is ~340k rows and the prod DB has had load trouble, so a page view
 // never scans it:
 //   applications   JobPosting, paged by id, filtered by appliedAt
-//   the job        1. the board card it was applied from (TrackedJob → id)
-//                  2. the same URL on the board (ExclusiveJobPosting.url, unique)
-//                  3. same company + exact title on the board — company via
-//                     Company.canonicalNameNormalized (unique) then
-//                     ExclusiveJobPosting.companyId (indexed)
-//                  4. the posting text the member pasted (MANUAL rows)
+//   the job        the board posting the application is linked to
+//                  (src/lib/jobs/application-posting-link.ts: board card, same
+//                  URL incl. ATS variants, same ATS / requisition id, or same
+//                  employer + normalized title posted in the 60 days before
+//                  applying — never a guess between two roles). An application
+//                  never matched is matched on load and the link stored. Else
+//                  the surfaced card, else the posting text the member pasted.
 //   member years   yearsExperience, else first work-history start date
-// Gmail-detected applications carry only a company and (sometimes) a title,
-// so their years requirement is known only when step 3 finds the posting.
 
 const PAGE = 500
 const MAX_APPLICATIONS = 10_000
@@ -45,7 +44,7 @@ interface ResolvedJob {
   targetLevel: string | null
   yearsRequired: YearsRequirement | null
   /** How the job was found — for the coverage readout. */
-  matchedBy: 'board_card' | 'url' | 'company_title' | 'pasted_text' | 'title_only' | 'none'
+  matchedBy: 'board_card' | 'url' | 'ats_id' | 'company_title' | 'pasted_text' | 'ambiguous' | 'title_only' | 'none'
 }
 
 interface MemberRow extends ApplyFitMember {
@@ -60,8 +59,6 @@ function titleRung(title: string | null): string | null {
   const { rung } = classifyTitleRung(title)
   return rung === 'OTHER' ? null : rung
 }
-
-const normTitle = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim()
 
 async function loadMembers(ids: string[]): Promise<Map<string, MemberRow>> {
   if (ids.length === 0) return new Map()
@@ -122,49 +119,52 @@ interface AppRow {
   url: string | null
   title: string | null
   companyName: string | null
+  location: string | null
   extractedText: string | null
   appliedAt: Date | null
   createdAt: Date
   trackedJob: { source: string; sourceId: string } | null
 }
 
-// Finds the posting behind each application, in the order described above.
+// Finds the posting behind each application: the stored board link (or, for an
+// application never matched yet, the link computed now and stored), else the
+// surfaced card, else the text the member pasted.
 async function resolveJobs(apps: AppRow[]): Promise<Map<string, ResolvedJob>> {
   const out = new Map<string, ResolvedJob>()
+  const stored = await readStoredLinks(apps.map((a) => a.id), { fresh: true })
+  const fresh = apps.filter((a) => !stored.has(a.id))
+  const computed = new Map<string, ApplicationLink>()
+  for (let i = 0; i < fresh.length; i += 200) {
+    for (const [id, l] of await matchApplications(fresh.slice(i, i + 200))) {
+      computed.set(id, { postingId: l.postingId, method: l.method, confidence: l.confidence })
+    }
+  }
+  // Lazy backfill: store what was computed (a no-op until the columns exist).
+  if (computed.size) await storeLinks(computed).catch((err) => console.error('[admin/apply-fit] storing board links failed', err))
+  const linkOf = (id: string) => stored.get(id) ?? computed.get(id)
+
   const boardIds = new Set<string>()
   const surfacedIds = new Set<string>()
   for (const a of apps) {
-    if (a.trackedJob?.source === 'job_board') boardIds.add(a.trackedJob.sourceId)
+    const l = linkOf(a.id)
+    if (l?.postingId) boardIds.add(l.postingId)
     if (a.trackedJob?.source === 'surfaced') surfacedIds.add(a.trackedJob.sourceId)
   }
-  const urls = [...new Set(apps.filter((a) => a.url && !a.trackedJob).map((a) => a.url!))]
-
-  const [byId, byUrl, surfaced] = await Promise.all([
+  const [byId, surfaced] = await Promise.all([
     boardIds.size ? prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...boardIds] } }, select: BOARD_JOB_SELECT }) : [],
-    urls.length ? prisma.exclusiveJobPosting.findMany({ where: { url: { in: urls } }, select: { ...BOARD_JOB_SELECT, url: true } }) : [],
     surfacedIds.size ? prisma.surfacedJob.findMany({ where: { id: { in: [...surfacedIds] } }, select: { id: true, title: true, description: true } }) : [],
   ])
   const boardById = new Map<string, BoardJob>(byId.map((j) => [j.id, j]))
-  const boardByUrl = new Map<string, BoardJob>(byUrl.map((j) => [j.url, j]))
   const surfacedById = new Map(surfaced.map((s) => [s.id, s]))
 
-  const fromBoard = (j: BoardJob, matchedBy: ResolvedJob['matchedBy'], appTitle: string | null): ResolvedJob => ({
-    title: j.title || appTitle,
-    level: j.level,
-    targetLevel: j.targetLevel,
-    yearsRequired: boardYears(j),
-    matchedBy,
-  })
-
-  const needCompany: AppRow[] = []
   for (const a of apps) {
-    const tj = a.trackedJob
-    const board = tj?.source === 'job_board' ? boardById.get(tj.sourceId) : a.url ? boardByUrl.get(a.url) : undefined
-    if (board) {
-      out.set(a.id, fromBoard(board, tj ? 'board_card' : 'url', a.title))
+    const l = linkOf(a.id)
+    const board = l?.postingId ? boardById.get(l.postingId) : undefined
+    if (board && l && l.method !== 'ambiguous' && l.method !== 'none') {
+      out.set(a.id, { title: board.title || a.title, level: board.level, targetLevel: board.targetLevel, yearsRequired: boardYears(board), matchedBy: l.method })
       continue
     }
-    const s = tj?.source === 'surfaced' ? surfacedById.get(tj.sourceId) : undefined
+    const s = a.trackedJob?.source === 'surfaced' ? surfacedById.get(a.trackedJob.sourceId) : undefined
     if (s) {
       out.set(a.id, { title: s.title, level: null, targetLevel: null, yearsRequired: parseYearsRequired(s.description), matchedBy: 'board_card' })
       continue
@@ -173,36 +173,8 @@ async function resolveJobs(apps: AppRow[]): Promise<Map<string, ResolvedJob>> {
       out.set(a.id, { title: a.title, level: null, targetLevel: null, yearsRequired: parseYearsRequired(a.extractedText), matchedBy: 'pasted_text' })
       continue
     }
-    if (a.title && a.companyName) needCompany.push(a)
-    else out.set(a.id, { title: a.title, level: null, targetLevel: null, yearsRequired: null, matchedBy: a.title ? 'title_only' : 'none' })
-  }
-
-  // Same company + exact title on the board, via the two indexed lookups.
-  if (needCompany.length) {
-    const norms = [...new Set(needCompany.map((a) => normalizeOrgName(a.companyName!)).filter(Boolean))]
-    const companies = norms.length
-      ? await prisma.company.findMany({ where: { canonicalNameNormalized: { in: norms } }, select: { id: true, canonicalNameNormalized: true } })
-      : []
-    const companyIdByNorm = new Map(companies.map((c) => [c.canonicalNameNormalized, c.id]))
-    const titles = [...new Set(needCompany.map((a) => a.title!.trim()))]
-    const matches = companies.length
-      ? await prisma.exclusiveJobPosting.findMany({
-          where: { companyId: { in: companies.map((c) => c.id) }, title: { in: titles, mode: 'insensitive' } },
-          select: { ...BOARD_JOB_SELECT, companyId: true, createdAt: true },
-          orderBy: { createdAt: 'desc' },
-          take: 2000,
-        })
-      : []
-    const byKey = new Map<string, BoardJob>()
-    for (const m of matches) {
-      const key = `${m.companyId}|${normTitle(m.title)}`
-      if (!byKey.has(key)) byKey.set(key, m) // newest first
-    }
-    for (const a of needCompany) {
-      const cid = companyIdByNorm.get(normalizeOrgName(a.companyName!))
-      const hit = cid ? byKey.get(`${cid}|${normTitle(a.title!)}`) : undefined
-      out.set(a.id, hit ? fromBoard(hit, 'company_title', a.title) : { title: a.title, level: null, targetLevel: null, yearsRequired: null, matchedBy: 'title_only' })
-    }
+    const matchedBy = l?.method === 'ambiguous' ? 'ambiguous' : a.title ? 'title_only' : 'none'
+    out.set(a.id, { title: a.title, level: null, targetLevel: null, yearsRequired: null, matchedBy })
   }
   return out
 }
@@ -226,6 +198,7 @@ async function loadApplications(where: { since?: Date; candidateId?: string }, m
         url: true,
         title: true,
         companyName: true,
+        location: true,
         extractedText: true,
         appliedAt: true,
         createdAt: true,
@@ -359,7 +332,7 @@ export async function getApplicationFitOverview(days: FitWindowDays, sortMembers
     return { candidateId: r.candidateId, memberLevel: m?.highestLevelReached ?? null, memberFunction: m?.primaryFunction ?? null, result: r.result }
   })
   const aggregate = aggregateApplicationFit(classified, { sortMembersBy })
-  const matchedBy = { board_card: 0, url: 0, company_title: 0, pasted_text: 0, title_only: 0, none: 0 }
+  const matchedBy = { board_card: 0, url: 0, ats_id: 0, company_title: 0, pasted_text: 0, ambiguous: 0, title_only: 0, none: 0 }
   for (const r of rows) matchedBy[r.matchedBy]++
   const clickCounts = { total: clicks.length, reaching: 0, on_target: 0, underselling: 0, unknown: 0 }
   for (const c of clicks) clickCounts[c.result.verdict]++

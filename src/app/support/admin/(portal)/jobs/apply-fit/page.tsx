@@ -12,9 +12,11 @@ export const maxDuration = 30
 
 const MATCHED_BY_LABEL: Record<string, string> = {
   board_card: 'Applied from a board card',
-  url: 'Same URL on the board',
-  company_title: 'Same company + title on the board',
+  url: 'Same posting URL (tracking and ATS variants ignored)',
+  ats_id: 'Same ATS job or requisition ID',
+  company_title: 'Same employer + title, posted in the 60 days before applying',
   pasted_text: 'Posting text the member pasted',
+  ambiguous: 'Two or more possible postings, left unlinked',
   title_only: 'Title only (no posting found)',
   none: 'No title or posting',
 }
