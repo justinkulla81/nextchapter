@@ -30,13 +30,13 @@ async function main() {
     const cold = rankBoardRows(rows, { ...base, place: c?.place, breadth: 'narrow' })
     const coldMs = ms(t)
     t = performance.now()
-    rankBoardRows(rows, { ...base, place: c?.place, breadth: 'wide', moreAtLevel: true })
+    rankBoardRows(rows, { ...base, place: c?.place, breadth: 'wide' })
     const warmMs = ms(t)
     t = performance.now()
     const c2 = await loadBreadthClassifier(candidate)
     rankBoardRows(rows, { ...base, place: c2?.place, breadth: 'narrow' })
     const nextRequest = ms(t)
-    console.log(`${id}: rank without breadth ${plain} | member vector ${member} | rank+classify cold ${coldMs} | warm ${warmMs} | next request (memo) ${nextRequest} | narrow ${cold.narrowTotal} wide ${cold.wideTotal}`)
+    console.log(`${id}: rank without breadth ${plain} | member vector ${member} | rank+classify cold ${coldMs} | warm ${warmMs} | next request (memo) ${nextRequest} | narrow ${cold.narrowTotal} (filter ${cold.narrowFilter}) wide ${cold.wideTotal}`)
   }
 }
 

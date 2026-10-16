@@ -40,6 +40,8 @@ import {
 import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
+import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
+import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -295,7 +297,10 @@ export function DiscoverJobCard({
   benefits,
   searchResult,
   matchReason,
+  dismissible = true,
 }: {
+  /** Show the X (pass on it with reasons). On by default for board cards. */
+  dismissible?: boolean
   posting: ExclusiveJobPosting
   /** Why the job is on the member's board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …". */
   matchReason?: MatchReason
@@ -323,6 +328,8 @@ export function DiscoverJobCard({
   watched?: boolean
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
+  const [dismissed, setDismissed] = useState<DismissResult | null>(null)
+  const [undoing, startUndo] = useTransition()
   const confidential = posting.disclosure === 'CONFIDENTIAL'
   const workType = classifyWorkType(posting)
   const payLabel = payBasisLabel({ ...posting, workType })
@@ -345,6 +352,34 @@ export function DiscoverJobCard({
       fitBucket,
       workType,
     })
+  }
+
+  if (dismissed) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm text-muted-foreground" role="status">
+        <span>
+          Passed on {posting.title}
+          {dismissed.applied.length > 0 && ` — we ${dismissed.applied.map((a) => `hid ${a.label}`).join(' and ')}`}.
+        </span>
+        <button
+          type="button"
+          disabled={undoing}
+          aria-busy={undoing}
+          onClick={() =>
+            startUndo(async () => {
+              const r = await undoDismissBoardJob(posting.id).catch(() => null)
+              if (r?.ok) {
+                posthog.capture('dismiss_undone', { jobId: posting.id, scope: 'job' })
+                setDismissed(null)
+              }
+            })
+          }
+          className={cn('text-primary underline underline-offset-4', undoing && 'cursor-wait')}
+        >
+          Undo
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -409,6 +444,9 @@ export function DiscoverJobCard({
             <SeniorityBadge level={posting.level} />
             {idealMatch && <IdealMatchBadge />}
             <FitBadge bucket={fitBucket} />
+            {dismissible && (
+              <DismissJobButton jobId={posting.id} title={posting.title} companyName={confidential ? null : posting.companyName} onDismissed={(r) => setDismissed(r)} />
+            )}
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </span>
         </span>

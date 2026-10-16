@@ -40,6 +40,7 @@ import { getPlatform } from '@/lib/platforms/directory'
 import type { PlatformStageKey } from '@/lib/platforms/stages'
 import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
 import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -561,6 +562,11 @@ export default async function SearchStrategyPage() {
       {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
       <Suspense fallback={null}>
         <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
+      {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
+      <Suspense fallback={null}>
+        <MarketSizeSection member={profile} surface="search_strategy" />
       </Suspense>
 
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>

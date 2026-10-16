@@ -1054,6 +1054,7 @@ model CandidateProfile {
   // career stage (senior Narrow, junior Wide) and job emails use Narrow
   // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
   boardBreadth                    String?
+  jobDismissPreferences           JobDismissPreference[]
   // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
   // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
   // when the board loads. Null = function not split, or nothing on the allowlists
@@ -5177,6 +5178,65 @@ model JobClickEvent {
 // Tracker, Gmail sync (interview / rejection emails) and every application stat
 // already read — so status lives there and is never kept twice. Gmail-detected
 // applications are linked here by company + title (src/lib/jobs/my-jobs.ts).
+// What the board learned from a member's dismissals (src/lib/jobs/job-dismiss.ts): kind
+// 'company' | 'industry' | 'title' | 'level' | 'location' | 'pay_floor', its value (a
+// normalised key; the floor in USD a year), how many dismissals said so, and what is done
+// with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
+// askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
+// prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+model JobDismissPreference {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  value       String
+  label       String
+  count       Int              @default(0)
+  action      String           @default("downweight")
+  askedAt     DateTime?
+  undoneAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  @@unique([candidateId, kind, value])
+}
+
+// A member said a board job looks like a ghost job ('ghost'), is too good to be true
+// ('too_good') or has red flags ('red_flags'). Feeds ghost risk (ghost-risk.ts) and the
+// admin review list (/support/admin/job-flags). No FK on postingId: a flag outlives the posting.
+model JobPostingFlag {
+  id          String    @id @default(cuid())
+  postingId   String
+  candidateId String
+  kind        String
+  note        String?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([postingId, candidateId, kind])
+  @@index([kind, createdAt])
+}
+
+// Market size per function x sub-function x level band x industry bucket x geography
+// (a state code, 'remote', or ''), rebuilt nightly from the board (src/lib/market/
+// market-size-stats.ts). Recent = last 14 days, prior = the 28 before. '' = unknown / none;
+// fn '*' holds the whole board's totals.
+model MarketTargetStat {
+  fn           String
+  subFunction  String
+  band         String
+  industry     String
+  geo          String
+  openNow      Int      @default(0)
+  newRecent    Int      @default(0)
+  newPrior     Int      @default(0)
+  closedRecent Int      @default(0)
+  closedPrior  Int      @default(0)
+  computedAt   DateTime @default(now())
+
+  @@id([fn, subFunction, band, industry, geo])
+}
+
 model TrackedJob {
   id          String           @id @default(cuid())
   candidateId String
@@ -5201,6 +5261,11 @@ model TrackedJob {
   promptAnswer     String? // 'applied' | 'not_yet' | 'not_interested'
   promptAnsweredAt DateTime?
   dismissedAt      DateTime? // "Not interested" — hidden from My jobs
+  // Why they passed on it (board X, src/lib/jobs/job-dismiss.ts): 'company' | 'industry' |
+  // 'skills' | 'title' | 'level' | 'pay' | 'location' | 'ghost' | 'too_good' | 'red_flags' |
+  // 'applied_elsewhere' | 'other', and an optional note. prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+  dismissReasons   String[]  @default([])
+  dismissNote      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

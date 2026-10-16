@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { SUB_FUNCTION_BY_KEY, subFunctionFor } from '@/lib/jobs/sub-functions'
+import { memberCareerStage, stageOfRung, type StageMember } from '@/lib/jobs/career-stage'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { edgesFor } from '@/lib/pivots/onet'
 import { onetSocForRole } from '@/lib/pivots/onet-soc'
@@ -12,7 +13,8 @@ import {
   hasBreadthBasis,
   memberFunctions,
   pivotTargetIndex,
-  keptByNarrow,
+  narrowFlagsOf,
+  NEAR_TWIN_SCORE,
   MATCH_KIND_RANK,
   type Breadth,
   type JobBreadthFacts,
@@ -71,21 +73,17 @@ export function loadSimilarityIndex(): Promise<SimilarityIndex> {
 export interface JobOccupations {
   socs: Map<string, string>
   subs: Map<string, string>
+  /** Live job id → industry bucket (industry-buckets.ts), when the job has one. */
+  industries: Map<string, string>
 }
 
 let jobSocs: { at: number; value: Promise<JobOccupations> } | null = null
 let jobSocsLoading: Promise<JobOccupations> | null = null
 
 async function readJobSocs(): Promise<JobOccupations> {
-  // subFunction may not exist yet (prisma/manual/2026-10-16-sub-functions.sql not applied): read without it.
-  const rows = await prisma
-    .$queryRaw<{ id: string; socCode: string | null; subFunction: string | null }[]>`
-      SELECT "id", "socCode", "subFunction" FROM "ExclusiveJobPosting"
-      WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL)`
-    .catch(() =>
-      prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null }[]>`
-        SELECT "id", "socCode", NULL::text AS "subFunction" FROM "ExclusiveJobPosting" WHERE "archivedAt" IS NULL AND "socCode" IS NOT NULL`
-    )
+  const rows = await prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null; industry: string | null }[]>`
+    SELECT "id", "socCode", "subFunction", "industry" FROM "ExclusiveJobPosting"
+    WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL)`
   const pool = new Map<string, string>()
   const intern = (v: string) => {
     let hit = pool.get(v)
@@ -94,11 +92,18 @@ async function readJobSocs(): Promise<JobOccupations> {
   }
   const socs = new Map<string, string>()
   const subs = new Map<string, string>()
+  const industries = new Map<string, string>()
+  const bucketOf = new Map<string, string | null>()
   for (const r of rows) {
     if (r.socCode) socs.set(r.id, intern(r.socCode))
     if (r.subFunction) subs.set(r.id, intern(r.subFunction))
+    if (r.industry) {
+      let b = bucketOf.get(r.industry)
+      if (b === undefined) bucketOf.set(r.industry, (b = normalizeIndustryBucket(r.industry)))
+      if (b && b !== 'Other') industries.set(r.id, b)
+    }
   }
-  return { socs, subs }
+  return { socs, subs, industries }
 }
 
 /** Live job id → O*NET occupation and stored sub-function. */
@@ -121,12 +126,12 @@ export function loadJobSocs(): Promise<JobOccupations> {
     )
   }
   if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
-  return jobSocsLoading!.catch(() => ({ socs: new Map<string, string>(), subs: new Map<string, string>() }))
+  return jobSocsLoading!.catch(() => ({ socs: new Map<string, string>(), subs: new Map<string, string>(), industries: new Map<string, string>() }))
 }
 
 // ── Member vector ──────────────────────────────────────────────────────────────
 
-export type BreadthCandidate = {
+export type BreadthCandidate = StageMember & {
   id?: string | null
   primaryFunction?: string | null
   secondaryFunction?: string | null
@@ -188,6 +193,7 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
   return {
     subFunction,
     socFromTitle: hasTitle,
+    stage: memberCareerStage(candidate),
     functions,
     targetFunction,
     targetFunctionLabel: targetFunction ? target : null,
@@ -204,7 +210,7 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
 
 // ── Job facts ──────────────────────────────────────────────────────────────────
 
-type BreadthRow = { id: string; title: string; targetFunction: string | null }
+type BreadthRow = { id: string; title: string; targetFunction: string | null; level?: string | null }
 
 // Per row (rows are shared by every request until the board reloads, and unchanged rows
 // survive a reload): the title's function and its readings for the role patterns.
@@ -242,11 +248,22 @@ export function jobBreadthFacts(row: BreadthRow, occupations: JobOccupations): J
 
 // ── The board's classifier ─────────────────────────────────────────────────────
 
-/** A job's place on the member's board: rank (field 0, pivot 1, skills 2) and whether Narrow keeps it too. */
+/**
+ * A job's place on the member's board: its rank (field, related field, pivot, skills) and
+ * the Narrow filters it passes (search-breadth.ts NARROW_FLAG). The board picks the filter
+ * per member and window (chooseNarrowFilter).
+ */
 export interface BreadthPlacement {
   rank: number
-  inNarrow: boolean
+  flags: number
   cls: JobClass
+}
+
+/** The job's occupation is the member's own, or a near-identical one. */
+function closeOccupation(m: MemberBreadthVector, soc: string | undefined): boolean {
+  // A stand-in occupation (no title) says nothing about how close a job is to their own work.
+  if (!soc || !m.soc || !m.socFromTitle) return false
+  return soc === m.soc || (m.similar.get(soc)?.score ?? 0) >= NEAR_TWIN_SCORE
 }
 
 export interface BreadthClassifier {
@@ -261,7 +278,7 @@ export interface BreadthClassifier {
 const PLACEMENT_MEMO_MAX = 200
 const placementMemos = new Map<string, { occupations: JobOccupations; memo: WeakMap<object, BreadthPlacement | null> }>()
 function placementMemo(m: MemberBreadthVector, occupations: JobOccupations): WeakMap<object, BreadthPlacement | null> {
-  const key = JSON.stringify([[...m.functions], m.targetFunction, m.soc, m.subFunction, [...m.pivotTargets.keys()], m.similar.size])
+  const key = JSON.stringify([[...m.functions], m.targetFunction, m.soc, m.subFunction, [...m.pivotTargets.keys()], m.similar.size, [...m.industries], m.stage])
   const hit = placementMemos.get(key)
   if (hit && hit.occupations === occupations) return hit.memo
   if (placementMemos.size >= PLACEMENT_MEMO_MAX) placementMemos.delete(placementMemos.keys().next().value as string)
@@ -288,7 +305,15 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
       if (hit !== undefined) return hit
       const cls = classifyJob(member, jobBreadthFacts(row, occupations), 'wide')
       const placed = cls
-        ? { cls, rank: MATCH_KIND_RANK[cls.kind], inNarrow: keptByNarrow(cls) }
+        ? {
+            cls,
+            rank: MATCH_KIND_RANK[cls.kind],
+            flags: narrowFlagsOf(cls, {
+              industryOk: member.industries.size === 0 || member.industries.has(occupations.industries.get(row.id) ?? ''),
+              sameStage: !!member.stage && stageOfRung(row.level) === member.stage,
+              closeOccupation: closeOccupation(member, occupations.socs.get(row.id)),
+            }),
+          }
         : null
       memo.set(row, placed)
       return placed

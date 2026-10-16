@@ -13,6 +13,10 @@ import {
   matchReason,
   matchReasonSentence,
   keptByNarrow,
+  NARROW_FLAG,
+  chooseNarrowFilter,
+  narrowFlagsOf,
+  narrowExplanation,
   memberFunctions,
   parseBreadth,
   passesSkillsThreshold,
@@ -289,14 +293,15 @@ describe('board ranking with breadth', () => {
     employmentType: null,
   }) as BoardRankRow
   const rows = [row('a', 'Director of Sales'), row('b', 'HR Director'), row('c', 'Director, Labor Relations'), row('d', 'Director of Nursing')]
+  const ctx = { industryOk: true, sameStage: true, closeOccupation: false }
   const placement: Record<string, BreadthPlacement | null> = {
-    a: { rank: 1, inNarrow: true, cls: { kind: 'pivot', pivot: 'x' } },
-    b: { rank: 0, inNarrow: true, cls: { kind: 'field' } },
-    c: { rank: 2, inNarrow: false, cls: { kind: 'skills', score: 0.8 } },
+    a: { rank: 2, flags: narrowFlagsOf({ kind: 'pivot', pivot: 'x' }, ctx), cls: { kind: 'pivot', pivot: 'x' } },
+    b: { rank: 0, flags: narrowFlagsOf({ kind: 'field' }, ctx), cls: { kind: 'field' } },
+    c: { rank: 3, flags: narrowFlagsOf({ kind: 'skills', score: 0.8 }, ctx), cls: { kind: 'skills', score: 0.8 } },
     d: null,
   }
   const candidate = { highestLevelReached: 'Director', primaryFunction: 'Human Resources' } as Parameters<typeof rankBoardRows>[1]['candidate']
-  const base = { candidate, isCandidatePlus: true, now, place: (p: BoardRankRow) => placement[p.id] }
+  const base = { candidate, isCandidatePlus: true, now, place: (p: BoardRankRow) => placement[p.id], narrowBand: { min: 1, max: 150 } }
 
   it('Narrow drops skills matches under its bar and unrelated jobs; counts both breadths', () => {
     const r = rankBoardRows(rows, { ...base, breadth: 'narrow' })
@@ -313,16 +318,68 @@ describe('board ranking with breadth', () => {
     expect(rankBoardRows(rows, { ...base, breadth: 'narrow', breadthKeepUnmatched: true }).openIds).toEqual(['b', 'a', 'c', 'd'])
   })
 
-  it('Wide with moreAtLevel puts every other job in "more", fit-ranked, apart from the main list', () => {
-    const r = rankBoardRows(rows, { ...base, breadth: 'wide', moreAtLevel: true })
+  it('Narrow tightens while above the band, as long as the tighter tier keeps the minimum', () => {
+    const r = rankBoardRows(rows, { ...base, breadth: 'narrow', narrowBand: { min: 1, max: 1 } })
+    expect(r.openIds).toEqual(['b'])
+    expect(r.narrowFilter & NARROW_FLAG.CLOSE).toBeTruthy()
+  })
+
+  it('Narrow loosens only when it falls short of the band', () => {
+    const r = rankBoardRows(rows, { ...base, breadth: 'narrow', narrowBand: { min: 3, max: 150 } })
+    expect(r.narrowFilter).toBe(NARROW_FLAG.WIDE)
     expect(r.openIds).toEqual(['b', 'a', 'c'])
-    expect(r.moreIds).toEqual(['d'])
-    expect(r.moreTotal).toBe(1)
-    expect(rankBoardRows(rows, { ...base, breadth: 'narrow', moreAtLevel: true }).moreIds).toEqual([])
+  })
+
+  it('Wide never shows a job on neither breadth (no "everything at your level")', () => {
+    expect(rankBoardRows(rows, { ...base, breadth: 'wide' }).openIds).not.toContain('d')
+  })
+
+  it('dismiss rules: hidden jobs are left out and counted; a penalty ranks a job lower within its kind', () => {
+    const hidden = rankBoardRows(rows, { ...base, breadth: 'wide', dismiss: { hidden: (p) => p.id === 'a', penalty: () => 0, preferences: [], dismissedIds: new Set(['a']) } })
+    expect(hidden.openIds).toEqual(['b', 'c'])
+    expect(hidden.dismissedHidden).toBe(1)
   })
 
   it('no breadth: the board as before', () => {
     const r = rankBoardRows(rows, { candidate, isCandidatePlus: true, now })
     expect(r.openTotal).toBe(4)
+  })
+})
+
+describe('adaptive Narrow', () => {
+  const F = NARROW_FLAG
+  const field = (extra = 0) => F.WIDE | F.RELATED | F.NARROW | F.CLOSE | F.FIELD | extra
+  const hist = (pairs: [number, number][]) => new Map(pairs)
+  const band = { min: 40, max: 150 }
+  it('stays at Narrow when that lands in the band', () => {
+    expect(chooseNarrowFilter(hist([[field(), 70], [F.WIDE | F.RELATED | F.NARROW, 30]]), band)).toBe(F.NARROW)
+  })
+  it('tightens step by step while above the band', () => {
+    const h = hist([[F.WIDE | F.RELATED | F.NARROW, 400], [field(), 200], [field(F.INDUSTRY), 150], [field(F.INDUSTRY | F.LEVEL), 60]])
+    expect(chooseNarrowFilter(h, band)).toBe(F.NARROW | F.CLOSE | F.FIELD | F.INDUSTRY | F.LEVEL)
+  })
+  it('skips a step that would fall under the minimum and keeps going', () => {
+    // Own industry leaves only 10: skipped; level still applies.
+    const h = hist([[field(F.LEVEL), 100], [field(), 300], [field(F.INDUSTRY), 10]])
+    expect(chooseNarrowFilter(h, band)).toBe(F.NARROW | F.CLOSE | F.FIELD | F.LEVEL)
+  })
+  it('loosens to related fields, then Wide, only when short', () => {
+    expect(chooseNarrowFilter(hist([[F.WIDE | F.RELATED, 30], [field(), 20]]), band)).toBe(F.RELATED)
+    expect(chooseNarrowFilter(hist([[F.WIDE, 30], [field(), 2]]), band)).toBe(F.WIDE)
+  })
+  it('flags by kind, industry, level and occupation', () => {
+    const all = { industryOk: true, sameStage: true, closeOccupation: true }
+    expect(narrowFlagsOf({ kind: 'field' }, all)).toBe(field(F.INDUSTRY | F.LEVEL | F.OCCUPATION))
+    expect(narrowFlagsOf({ kind: 'related_field' }, all)).toBe(F.WIDE | F.RELATED)
+    expect(narrowFlagsOf({ kind: 'skills', score: 0.75, related: true }, all)).toBe(F.WIDE)
+    expect(narrowFlagsOf({ kind: 'skills', score: 0.95, related: true }, { ...all, closeOccupation: false }) & F.CLOSE).toBeTruthy()
+    expect(narrowFlagsOf({ kind: 'pivot', pivot: 'x' }, all) & F.FIELD).toBe(0)
+  })
+  it('explains what it did in plain words', () => {
+    const m = { subFunction: 'fin_fpa', functionLabel: 'Finance', industries: new Set(['Healthcare']) }
+    expect(narrowExplanation(F.NARROW | F.CLOSE | F.FIELD | F.INDUSTRY, 84, m)).toBe('We narrowed to FP&A and corporate finance roles in Healthcare — 84 jobs.')
+    expect(narrowExplanation(F.NARROW | F.CLOSE | F.FIELD | F.INDUSTRY | F.LEVEL, 84, m)).toBe('We narrowed to FP&A and corporate finance roles in Healthcare at your level — 84 jobs.')
+    expect(narrowExplanation(F.NARROW, 120, m)).toBe('Your field, pivots and close skills matches — 120 jobs.')
+    expect(narrowExplanation(F.WIDE, 12, m)).toMatch(/^Few jobs fit tightly/)
   })
 })

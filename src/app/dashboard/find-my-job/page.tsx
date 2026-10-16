@@ -34,8 +34,11 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
-import { MoreAtLevelSection } from '@/components/dashboard/MoreAtLevelSection'
-import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason } from '@/lib/jobs/search-breadth'
+import { boardBreadthFor, MATCH_KIND_RANK, narrowExplanation, type Breadth, type MatchReason } from '@/lib/jobs/search-breadth'
+import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
+import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
@@ -623,7 +626,7 @@ async function JobRecommendationsSection({
   const reasonRank = (id: string) => {
     if (!board.breadth.classifier) return 0
     const r = reasons.get(id)
-    return r ? (r.kind === 'industry_pivot' ? MATCH_KIND_RANK.pivot : MATCH_KIND_RANK[r.kind]) : 3
+    return r ? (r.kind === 'industry_pivot' ? MATCH_KIND_RANK.pivot : MATCH_KIND_RANK[r.kind]) : 9
   }
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
@@ -698,6 +701,11 @@ async function JobRecommendationsSection({
             Search again with skills and industries
           </TrackedLink>
         </p>
+      )}
+      {search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW) && (
+        <Suspense fallback={null}>
+          <MarketSizeSection member={profile} surface="board_search" searchCount={searchResultCount} searchQuery={search.params.q} />
+        </Suspense>
       )}
       {search && search.active && searchResultCount > 0 && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -833,16 +841,6 @@ async function JobRecommendationsSection({
             </ShowMoreList>
           </div>
 
-          {board.more.total > 0 && (
-            <MoreAtLevelSection
-              surface="find_my_job"
-              total={board.more.total}
-              ids={board.more.ids}
-              first={board.more.first}
-              firstFitBuckets={Object.fromEntries(board.more.first.map((p) => [p.id, computeBoardListingFitBucket(profile, p)]))}
-            />
-          )}
-
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockCandidatePlusCallout
               reason={dossierReason}
@@ -962,6 +960,8 @@ export default async function JobFitPage({
     </div>
   )
 }
+
+const DISMISS_REASON_LABEL = new Map<string, string>(DISMISS_REASONS.map((r) => [r.key, r.label.toLowerCase()]))
 
 function FindMyJobBodySkeleton() {
   return (
@@ -1176,7 +1176,7 @@ async function FindMyJobBody({
           urlParams,
         }
       : null
-  const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
+  const [board, matchedRoles, watchlistView, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
     loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
@@ -1201,13 +1201,20 @@ async function FindMyJobBody({
       // Narrow / Wide. A search keeps every match (the member asked for them), ranked and labelled by breadth.
       breadth: breadthMode,
       breadthKeepUnmatched: !!searchView?.active,
-      // Wide also lists every other job at the member's level, below, a page at a time.
-      moreAtLevel: breadthMode === 'wide',
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
     onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    // Board jobs they passed on, for "Review" (job-dismiss.ts).
+    onBoard
+      ? prisma.trackedJob.findMany({
+          where: { candidateId: profile.id, source: 'job_board', dismissedAt: { not: null } },
+          orderBy: { dismissedAt: 'desc' },
+          take: 20,
+          select: { sourceId: true, title: true, companyName: true, dismissReasons: true, dismissedAt: true },
+        })
+      : Promise.resolve([]),
   ])
   // The board is in: load this instance's search index in the background (a no-op
   // while it is fresh), so the member's first search finds it ready instead of
@@ -1455,6 +1462,42 @@ async function FindMyJobBody({
               holdsClearance={holdsClearance(profile)}
             />
           </div>
+          {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
+            <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
+              {breadthMode === 'narrow'
+                ? narrowExplanation(board.breadth.narrowFilter, board.breadth.narrowTotal, board.breadth.classifier.member)
+                : `Your field, related fields, pivots and shared skills — ${board.breadth.wideTotal.toLocaleString()} jobs.`}{' '}
+              <a
+                href={boardHref(urlParams, { breadth: breadthMode === 'narrow' ? 'wide' : 'narrow' }, { hash: 'job-recommendations' })}
+                className="text-primary underline underline-offset-4"
+              >
+                {breadthMode === 'narrow' ? 'Widen' : 'Narrow it'}
+              </a>
+            </p>
+          )}
+          {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
+            <div className="mt-2">
+              <PassedOnPanel
+                because={becauseLine(board.dismiss.rules.preferences)}
+                hiddenCount={board.dismiss.hidden}
+                preferences={board.dismiss.rules.preferences.map((p) => ({
+                  id: p.id,
+                  kind: p.kind,
+                  label: p.label,
+                  count: p.count,
+                  action: p.action,
+                  ask: shouldAskToHide(p),
+                }))}
+                jobs={passedOnJobs.map((j) => ({
+                  jobId: j.sourceId,
+                  title: j.title,
+                  companyName: j.companyName,
+                  reasons: j.dismissReasons.map((r) => DISMISS_REASON_LABEL.get(r) ?? r),
+                  dismissedOn: j.dismissedAt!.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                }))}
+              />
+            </div>
+          )}
           {pivotFilter ? (
             <PivotBoardBanner
               target={pivotFilter.target}

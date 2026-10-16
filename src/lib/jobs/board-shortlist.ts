@@ -20,7 +20,9 @@ import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-lig
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
 import { loadBreadthClassifier, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
-import { emailBreadthFor, type Breadth } from '@/lib/jobs/search-breadth'
+import { chooseNarrowFilter, emailBreadthFor, jobsWith, NARROW_FLAG, type Breadth } from '@/lib/jobs/search-breadth'
+import { type DismissRules } from '@/lib/jobs/job-dismiss'
+import { loadDismissRules } from '@/lib/jobs/job-dismiss-server'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -442,13 +444,16 @@ export interface BoardShortlist {
    * basis, or turned off), jobs each breadth would show (open + locked, every other
    * filter applied), and the member's classifier for the reason labels.
    */
-  breadth: { applied: Breadth | null; narrowTotal: number; wideTotal: number; classifier: BreadthClassifier | null }
-  /**
-   * "More jobs at your level" (Wide with moreAtLevel): open jobs in the level window on
-   * neither breadth — how many, the best MORE_AT_LEVEL_MAX ids by fit, and the first
-   * page loaded in full. Empty otherwise.
-   */
-  more: { total: number; ids: string[]; first: ExclusiveJobPosting[] }
+  breadth: {
+    applied: Breadth | null
+    narrowTotal: number
+    wideTotal: number
+    /** The filter Narrow settled on for this member and window (search-breadth.ts NARROW_FLAG bits). */
+    narrowFilter: number
+    classifier: BreadthClassifier | null
+  }
+  /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
+  dismiss: { hidden: number; rules: DismissRules | null }
 }
 
 /**
@@ -515,8 +520,6 @@ export async function loadBoardShortlist(opts: {
   breadth?: Breadth | 'off'
   /** Rank by breadth and label, but keep jobs neither breadth would show (a search: the member asked for them). */
   breadthKeepUnmatched?: boolean
-  /** Wide: every other job in the level window as "More jobs at your level" (BoardShortlist.more). Board only. */
-  moreAtLevel?: boolean
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -531,10 +534,16 @@ export async function loadBoardShortlist(opts: {
   const keep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
   const breadth = opts.breadth ?? (opts.candidate ? emailBreadthFor(opts.candidate) : 'off')
   // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
-  const [light, classifier] = await Promise.all([
+  const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
+  const [light, classifier, dismissRules] = await Promise.all([
     loadLightBoardRows(levelWhere, closedCounts, opts.postedWithinHours),
     breadth === 'off' ? null : loadBreadthClassifier(opts.candidate).catch((error) => {
       console.error('Search breadth unavailable, showing the whole window:', error)
+      return null
+    }),
+    // Dismissals (job-dismiss.ts) apply everywhere a member's jobs are picked: board and emails.
+    loadDismissRules(candidateId).catch((error) => {
+      console.error('Dismiss preferences unavailable:', error)
       return null
     }),
   ])
@@ -543,10 +552,10 @@ export async function loadBoardShortlist(opts: {
     keep,
     place: classifier?.place,
     breadth: breadth === 'off' ? undefined : breadth,
+    dismiss: dismissRules ?? undefined,
   })
-  const moreFirst = ranked.moreIds.slice(0, MORE_AT_LEVEL_PAGE)
   const full = new Map(
-    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds, ...moreFirst] } } })).map((p) => [p.id, p])
+    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
   )
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
 
@@ -563,9 +572,10 @@ export async function loadBoardShortlist(opts: {
       applied: classifier && breadth !== 'off' && !opts.breadthKeepUnmatched ? breadth : null,
       narrowTotal: ranked.narrowTotal,
       wideTotal: ranked.wideTotal,
+      narrowFilter: ranked.narrowFilter,
       classifier,
     },
-    more: { total: ranked.moreTotal, ids: ranked.moreIds, first: inOrder(moreFirst) },
+    dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
   }
 }
 
@@ -586,10 +596,6 @@ export type BoardRankRow = LightRow
 
 /** Rank of a job a search kept that neither breadth would show (after every breadth kind). */
 const MATCH_RANK_UNMATCHED = 9
-/** "More jobs at your level": at most this many ids are ranked and handed to the page; it loads them a page at a time. */
-export const MORE_AT_LEVEL_MAX = 500
-/** Full rows loaded with the board for the first page of "More jobs at your level". */
-export const MORE_AT_LEVEL_PAGE = 20
 
 /** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
 export function rankBoardRows(
@@ -610,8 +616,10 @@ export function rankBoardRows(
     place?: (p: BoardRankRow) => BreadthPlacement | null
     breadth?: Breadth
     breadthKeepUnmatched?: boolean
-    /** Wide only: keep the jobs on neither breadth as a separate, fit-ranked list (moreIds). */
-    moreAtLevel?: boolean
+    /** Narrow's target band (search-breadth.ts NARROW_BAND); for tests and tuning. */
+    narrowBand?: { min: number; max: number }
+    /** What the member's dismissals taught the board (job-dismiss.ts): jobs to leave out, and a rank penalty. */
+    dismiss?: DismissRules
   }
 ) {
   const defaultSize = opts.size ?? 300
@@ -637,40 +645,53 @@ export function rankBoardRows(
     rel: number
     posted: number
     pay: number
-    /** Breadth rank: field 0, pivot 1, skills match 2, kept-but-unmatched 3 (0 with no breadth). */
+    /** Breadth rank: field 0, related 1, pivot 2, skills 3, kept-but-unmatched 9 (0 with no breadth). */
     cls: number
+    /** Learned from the member's dismissals (job-dismiss.ts): higher ranks lower. 0 = none. */
+    pen: number
   }[] = []
   const locked: typeof open = []
-  // "More jobs at your level" (Wide): open jobs in the window on neither breadth, ranked by fit alone.
-  const more: typeof open = []
-  const moreMode = opts.moreAtLevel && opts.breadth === 'wide' && !opts.breadthKeepUnmatched && !!opts.place
   const now = opts.now ?? new Date()
   let freshOpenTotal = 0
   let lowCompetitionOpenTotal = 0
   const countByWorkType: Record<WorkType, number> = { full_time: 0, part_time: 0, contract: 0, advisory: 0 }
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
-  let narrowTotal = 0
-  let wideTotal = 0
+
+  // Pass 1 (cheap, memoised per row): which jobs are candidates at all, and each one's
+  // breadth placement. Narrow's tier is picked from these counts (search-breadth.ts
+  // chooseNarrowTier), so it adapts to the member and the current filters.
+  const breadthOn = !!opts.place && !!opts.breadth
+  const candidates: { p: BoardRankRow; placed: BreadthPlacement | null | undefined }[] = []
+  const hist = new Map<number, number>()
+  let dismissedHidden = 0
   for (const p of light) {
     if (opts.keep && !opts.keep(p)) continue
+    if (opts.dismiss?.hidden(p)) {
+      dismissedHidden++
+      continue
+    }
+    const placed = breadthOn ? opts.place!(p) : undefined
+    if (placed && (!typeFilter || typeFilter.has(workTypeOf(p)))) hist.set(placed.flags, (hist.get(placed.flags) ?? 0) + 1)
+    candidates.push({ p, placed })
+  }
+  const narrowFilter = chooseNarrowFilter(hist, opts.narrowBand)
+  const required = opts.breadth === 'narrow' ? narrowFilter : NARROW_FLAG.WIDE
+  const narrowTotal = jobsWith(hist, narrowFilter)
+  const wideTotal = jobsWith(hist, NARROW_FLAG.WIDE)
+
+  // Pass 2: the jobs shown at the chosen tier, scored and ranked.
+  for (const { p, placed } of candidates) {
     const rel = opts.relevance ? opts.relevance(p) : 0
     if (rel === null) continue
-    // Search breadth: a job off the member's board at this breadth is skipped (still
-    // counted for the other breadth); with breadthKeepUnmatched it stays, ranked last.
-    const placed = opts.place && opts.breadth ? opts.place(p) : undefined
-    const shown = placed === undefined || (!!placed && (opts.breadth === 'wide' || placed.inNarrow))
+    // A job off the member's board at this breadth is skipped; with breadthKeepUnmatched
+    // (a search) it stays, ranked after every breadth kind.
+    const shown = placed === undefined || (!!placed && (placed.flags & required) === required)
     if (typeFilter) {
       const workType = workTypeOf(p)
       if ((shown || opts.breadthKeepUnmatched) && !isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) countByWorkType[workType]++
       if (!typeFilter.has(workType)) continue
     }
-    if (placed) {
-      wideTotal++
-      if (placed.inNarrow) narrowTotal++
-    }
-    // Wide with moreAtLevel: every other job in the level window goes to "More jobs at your level".
-    const toMore = !shown && !!moreMode && placed === null
-    if (!shown && !opts.breadthKeepUnmatched && !toMore) continue
+    if (!shown && !opts.breadthKeepUnmatched) continue
     const cls = placed === undefined ? 0 : shown ? placed!.rank : MATCH_RANK_UNMATCHED
     const facts = rowFacts(p)
     const company = facts.company
@@ -679,9 +700,9 @@ export function rankBoardRows(
     const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
     const low = competition === 'low'
     const rank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
-    // The prompts count only jobs that fit (strong or good), on the main list.
-    if (!toMore && canOpen && fresh && rank <= 1) freshOpenTotal++
-    if (!toMore && canOpen && low && rank <= 1) lowCompetitionOpenTotal++
+    // The prompts count only jobs that fit (strong or good).
+    if (canOpen && fresh && rank <= 1) freshOpenTotal++
+    if (canOpen && low && rank <= 1) lowCompetitionOpenTotal++
     if (opts.view === 'fresh' && !fresh) continue
     if (opts.view === 'low_competition' && !low) continue
     const entry = {
@@ -697,11 +718,10 @@ export function rankBoardRows(
       posted: (p.postedAt ?? p.createdAt).getTime(),
       pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
       cls,
+      pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
     }
     // Everyone can open everything except employer / recruiter exclusives.
-    if (toMore) {
-      if (canOpen) more.push(entry)
-    } else if (canOpen) open.push(entry)
+    if (canOpen) open.push(entry)
     else locked.push(entry)
   }
 
@@ -712,7 +732,7 @@ export function rankBoardRows(
   // the whole list. If that leaves room, the held-back ones fill it.
   const best = (list: typeof open, size = defaultSize) => {
     const fit = (a: (typeof open)[number], b: (typeof open)[number]) =>
-      a.cls - b.cls || a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+      a.cls - b.cls || a.pen - b.pen || a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
     // Search: newest / highest pay first, or relevance tier then fit. No search: fit, as always.
     const sorted = list.sort(
       opts.sort === 'newest'
@@ -747,8 +767,8 @@ export function rankBoardRows(
   return {
     openIds: best(open),
     lockedIds: best(locked),
-    moreIds: moreMode ? best(more, MORE_AT_LEVEL_MAX) : [],
-    moreTotal: more.length,
+    narrowFilter,
+    dismissedHidden,
     openTotal: open.length,
     lockedTotal: locked.length,
     freshOpenTotal,

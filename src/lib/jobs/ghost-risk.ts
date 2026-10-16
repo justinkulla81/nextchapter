@@ -22,6 +22,8 @@ export interface GhostInput {
   priorClosedCount: number
   /** Days since this posting was first seen. */
   ageDays: number
+  /** Members who passed on it as a ghost job or too good to be true (JobPostingFlag). */
+  memberFlags?: number
 }
 
 export interface GhostVerdict {
@@ -33,7 +35,13 @@ export const LIKELY_PRIOR_CLOSURES = 2
 export const WATCH_AGE_DAYS = 60
 export const LIKELY_AGE_DAYS = 90
 
-export function ghostRisk({ priorClosedCount, ageDays }: GhostInput): GhostVerdict {
+/** This many members flagging a posting as a ghost / too good makes it 'likely'; one makes it 'watch'. */
+export const LIKELY_MEMBER_FLAGS = 2
+
+export function ghostRisk({ priorClosedCount, ageDays, memberFlags = 0 }: GhostInput): GhostVerdict {
+  if (memberFlags >= LIKELY_MEMBER_FLAGS) {
+    return { level: 'likely', reason: `${memberFlags} members flagged it as a ghost job or too good to be true` }
+  }
   if (priorClosedCount >= LIKELY_PRIOR_CLOSURES) {
     return { level: 'likely', reason: `Posted and closed ${priorClosedCount} times before — looks like an evergreen listing` }
   }
@@ -46,6 +54,9 @@ export function ghostRisk({ priorClosedCount, ageDays }: GhostInput): GhostVerdi
   }
   if (ageDays > WATCH_AGE_DAYS) {
     return { level: 'watch', reason: `Open for ${Math.floor(ageDays)} days` }
+  }
+  if (memberFlags === 1) {
+    return { level: 'watch', reason: 'A member flagged it as a ghost job or too good to be true' }
   }
   return { level: 'none', reason: null }
 }
