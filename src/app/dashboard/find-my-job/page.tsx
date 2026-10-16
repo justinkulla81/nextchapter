@@ -37,11 +37,11 @@ import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
 import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason, type MemberBreadthVector } from '@/lib/jobs/search-breadth'
 import { buildBridge, relevanceLine, type Bridge } from '@/lib/jobs/relevance'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
+import { whyThisJob } from '@/lib/personalization/why-this-job'
 import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
-import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
-import { ToolsNudge } from '@/components/dashboard/ToolsNudge'
-import { US_STATE_CODES } from '@/lib/pay/market-pay'
+import { KnowYouSection } from '@/components/dashboard/KnowYouSection'
+import { statesFromLocation } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
@@ -673,8 +673,27 @@ async function JobRecommendationsSection({
   const bridgeIds = board.breadth.bridges
   const strongBoardPostings = search ? visibleBoardPostings : visibleBoardPostings.filter((p) => !bridgeIds.has(p.id))
   const bridgeBoardPostings = search ? [] : visibleBoardPostings.filter((p) => bridgeIds.has(p.id))
+  // "Why this job": up to three fits and one honest gap, in one line (personalization/why-this-job.ts).
+  const whyFor = (p: (typeof visibleBoardPostings)[number], match: ReturnType<typeof matchFor>, gap: ReturnType<typeof skillGapFor>, bridge: Bridge | undefined) => {
+    const c = board.breadth.classifier
+    const crit = c ? (c.place(p)?.crit ?? c.criteria(p).crit) : null
+    return whyThisJob({
+      reason: reasons.get(p.id),
+      crit,
+      jobRemote: (p.targetRemotePolicy ?? '').toLowerCase() === 'remote' || statesFromLocation(p.location).isRemote,
+      city: c?.member.geo?.anchor ? (profile.currentCity?.trim() ?? null) : null,
+      hasIndustries: (c?.member.industries.size ?? 0) > 0,
+      have: gap.have,
+      missing: gap.missing,
+      blocker: match.requirements.find((r) => r.status === 'blocker')?.label ?? null,
+      bridgeGap: bridge ? bridge.missing.split(', ')[0].replace(/\.$/, '') : null,
+    })
+  }
   const boardCard = (posting: (typeof visibleBoardPostings)[number]) => {
     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
+    const match = matchFor(posting)
+    const gap = skillGapFor(posting)
+    const bridge = bridgeFor(posting)
     const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
     return {
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
@@ -690,9 +709,9 @@ async function JobRecommendationsSection({
           posting={posting}
           competition={competitionFor(posting)}
           contacts={contactsByPosting.get(posting.id)}
-          skillGap={skillGapFor(posting)}
+          skillGap={gap}
           skillsFit={skillsFitFor?.(posting.title)}
-          match={matchFor(posting)}
+          match={match}
           insiders={insidersFor(posting)}
           explainGapsEnabled={isExplainGapsEnabled()}
           candidatePlus={candidatePlus}
@@ -704,7 +723,8 @@ async function JobRecommendationsSection({
           benefits={benefitsByPosting.get(posting.id)}
           searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
           matchReason={reasons.get(posting.id)}
-          bridge={bridgeFor(posting)}
+          bridge={bridge}
+          why={whyFor(posting, match, gap, bridge)}
         />
       ),
     }
@@ -1511,15 +1531,11 @@ async function FindMyJobBody({
               </a>
             </p>
           )}
-          {board.breadth.classifier && !profile.toolsConfirmedAt && <ToolsNudge />}
-          {board.breadth.classifier && breadthMode !== 'off' && !board.breadth.classifier.member.geo?.anchor && (
-            <div className="mt-2">
-              <AddCityPrompt
-                surface="find_my_job"
-                states={[...US_STATE_CODES].sort()}
-                fallback={placePhrase(profile, board.breadth.classifier.member) ?? 'remote jobs'}
-              />
-            </div>
+          {/* What matching reads (and what's missing, with its payoff), the precision meter, and what changed. */}
+          {board.breadth.classifier && (
+            <Suspense fallback={null}>
+              <KnowYouSection profile={profile} cityFallback={placePhrase(profile, board.breadth.classifier.member) ?? 'remote jobs'} />
+            </Suspense>
           )}
           {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
             <div className="mt-2">

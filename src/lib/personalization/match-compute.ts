@@ -33,6 +33,9 @@ export interface MatchState {
   /** Matches posted in the last 7 days; and those whose skills and tools match (strong). */
   newThisWeek: number
   newThisWeekSkills: number
+  /** Jobs they passed on themselves; and jobs hidden because of what those taught (a company, a pay floor, "Hide all"). */
+  passedOn: number
+  hiddenLikeThem: number
 }
 
 const WEEK_MS = 7 * 86_400_000
@@ -102,10 +105,12 @@ async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?
   let clearanceMet = 0
   let newThisWeek = 0
   let newThisWeekSkills = 0
+  let hiddenLikeThem = 0
   for (const p of rows) {
     if (keepSector && !keepSector(p)) continue
     if (rules?.hidden(p)) {
       verdicts.set(p.id, verdictOf({ dismissed: true }))
+      if (!rules.dismissedIds.has(p.id)) hiddenLikeThem++
       continue
     }
     const crit = (opts.live ? classifier.place(p)?.crit : undefined) ?? classifier.criteria(p).crit
@@ -148,5 +153,7 @@ async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?
     clearanceMet,
     newThisWeek,
     newThisWeekSkills,
+    passedOn: rules?.dismissedIds.size ?? 0,
+    hiddenLikeThem,
   }
 }

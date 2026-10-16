@@ -69,8 +69,8 @@ export interface MarketSizeView {
   areas: MarketArea[]
   /** For too many: the biggest industries inside the target. */
   slices: { label: string; openNow: number }[]
-  /** Jobs relevant to them on every criterion (relevance.ts), and the market tier that applied. */
-  relevant: { count: number; tier: string | null } | null
+  /** Jobs relevant to them on every criterion (relevance.ts), the strong fits among them, and the market tier that applied. */
+  relevant: { count: number; strong?: number; tier: string | null } | null
 }
 
 const STAGE_WORDS: Record<CareerStage, string> = {
@@ -117,7 +117,7 @@ function sum(rows: StatRow[], f: Filter): Counts {
 const boardHref = (q?: string) => `/dashboard/find-my-job?breadth=wide${q ? `&q=${encodeURIComponent(q)}` : ''}#job-recommendations`
 
 /** The market for the member's target, with the prompt to show and the nearby areas. Null without a function or stats. */
-export async function loadMarketSize(m: MarketMember, relevant?: { count: number; tier: string | null }): Promise<MarketSizeView | null> {
+export async function loadMarketSize(m: MarketMember, relevant?: { count: number; strong?: number; tier: string | null }): Promise<MarketSizeView | null> {
   const target = memberMarketTarget(m)
   if (!target) return null
   const [rows, totals] = await Promise.all([rowsFor(target.fn), rowsFor('*')])

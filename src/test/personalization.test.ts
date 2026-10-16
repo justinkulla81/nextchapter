@@ -197,3 +197,50 @@ describe('honesty rule: the "thinking" steps are bound to the server action', ()
     }
   })
 })
+
+import { whyThisJob } from '@/lib/personalization/why-this-job'
+
+describe('why this job', () => {
+  const crit = { fn: 'own', geo: 0, geoNote: null, skills: 'strong', industry: 'own', industryName: 'Technology & Software' } as const
+  it('up to three fits, then one honest gap', () => {
+    const w = whyThisJob({ reason: { kind: 'field', label: 'Your field' }, crit, jobRemote: false, city: 'Sunnyvale', hasIndustries: true, have: ['Workday', 'SQL', 'Excel'], missing: ['Tableau'] })
+    expect(w).toEqual({ fits: ['Your field', 'Uses Workday, SQL', 'Near Sunnyvale'], gap: 'asks for Tableau' })
+  })
+  it('keeps ring notes, prefers a blocker as the gap, never repeats a skills label', () => {
+    const w = whyThisJob({
+      reason: { kind: 'skills', label: 'Skills match: scheduling · 45 mi away', sharedSkills: ['scheduling'] },
+      crit: { ...crit, geo: 1, geoNote: '45 mi away' },
+      jobRemote: false,
+      city: 'Sunnyvale',
+      hasIndustries: false,
+      have: ['scheduling'],
+      missing: ['Tableau'],
+      blocker: 'Requires active TS/SCI',
+    })
+    expect(w).toEqual({ fits: ['Skills match: scheduling', '45 mi away'], gap: 'Requires active TS/SCI' })
+  })
+})
+
+import { smarterLines } from '@/lib/personalization/smarter'
+
+describe('your board got smarter', () => {
+  const now = new Date('2026-10-16T15:00:00Z')
+  it('only real changes, at most two', () => {
+    expect(smarterLines({ passedOn: 0, hiddenLikeThem: 0, hasHides: false, toolsConfirmed: false, newThisWeekSkills: 5, lastRetune: null, now })).toEqual([])
+    const lines = smarterLines({
+      passedOn: 3,
+      hiddenLikeThem: 214,
+      hasHides: true,
+      toolsConfirmed: true,
+      newThisWeekSkills: 18,
+      lastRetune: { trigger: 'city', at: new Date('2026-10-14T15:00:00Z'), before: 1240, after: 410 },
+      now,
+    })
+    expect(lines).toEqual(['Since you added your city on Oct 14: 1,240 → 410 matches.', 'Because you passed on 3 jobs, we hid 214 like them.'])
+  })
+  it('no line for a retune that changed nothing, or one over a week old', () => {
+    const base = { passedOn: 0, hiddenLikeThem: 0, hasHides: false, toolsConfirmed: true, newThisWeekSkills: 0, now }
+    expect(smarterLines({ ...base, lastRetune: { trigger: 'tools', at: now, before: 40, after: 40 } })).toEqual([])
+    expect(smarterLines({ ...base, lastRetune: { trigger: 'tools', at: new Date('2026-10-01T00:00:00Z'), before: 40, after: 60 } })).toEqual([])
+  })
+})

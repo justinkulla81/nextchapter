@@ -42,6 +42,7 @@ import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
 import type { Bridge } from '@/lib/jobs/relevance'
+import type { WhyThisJob } from '@/lib/personalization/why-this-job'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
 import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
@@ -291,6 +292,7 @@ export function DiscoverJobCard({
   searchResult,
   matchReason,
   bridge,
+  why,
   dismissible = true,
   candidatePlus = false,
 }: {
@@ -298,6 +300,8 @@ export function DiscoverJobCard({
   candidatePlus?: boolean
   /** Wide's one-relaxed jobs (relevance.ts): what transfers, what's missing, how to close it. */
   bridge?: Bridge
+  /** "Why this job" (personalization/why-this-job.ts): up to three fits and one gap, one line. Replaces the reason and bridge lines. */
+  why?: WhyThisJob
   /** Show the X (pass on it with reasons). On by default for board cards. */
   dismissible?: boolean
   posting: ExclusiveJobPosting
@@ -412,12 +416,26 @@ export function DiscoverJobCard({
             </span>
             {/* The edge, visible without opening the card. */}
             <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
-            {matchReason && (
+            {why && (why.fits.length > 0 || why.gap) ? (
+              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReason ? matchReasonSentence(matchReason) : undefined}>
+                {why.fits.length > 0 && (
+                  <>
+                    <span className="font-medium text-foreground">Why:</span> {why.fits.join(' · ')}
+                  </>
+                )}
+                {why.gap && (
+                  <>
+                    {why.fits.length > 0 && ' — '}
+                    <span className="font-medium text-foreground">Gap:</span> {why.gap}
+                  </>
+                )}
+              </span>
+            ) : matchReason && (
               <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReasonSentence(matchReason)}>
                 <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
               </span>
             )}
-            {bridge && (
+            {bridge && !why && (
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">What transfers:</span> {bridge.transfers}
               </span>
