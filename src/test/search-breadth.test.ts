@@ -12,6 +12,7 @@ import {
   isSeniorMember,
   matchReason,
   matchReasonSentence,
+  keptByNarrow,
   memberFunctions,
   parseBreadth,
   passesSkillsThreshold,
@@ -104,6 +105,8 @@ function member(over: Partial<MemberBreadthVector> = {}): MemberBreadthVector {
     ]),
     functionLabel: 'Human Resources',
     industries: new Set(['Technology & Software']),
+    subFunction: null,
+    socFromTitle: true,
     ...over,
   }
 }
@@ -114,6 +117,7 @@ function job(over: Partial<JobBreadthFacts> & { title?: string } = {}): JobBread
     titleFunction: '',
     targetFunction: null,
     soc: null,
+    subFunction: () => null,
     pivotRole: (roles) => {
       for (const r of roles) if ((r === 'business_development' && /business development/.test(title)) || (r === 'people_operations' && /people operations/.test(title))) return r
       return null
@@ -155,6 +159,45 @@ describe('classifyJob', () => {
     // Unrelated and under the Wide bar for unrelated pairs.
     expect(classifyJob(m, job({ soc: '11-9199.02' }), 'wide')).toBeNull()
     expect(classifyJob(m, job({ soc: '99-9999.00' }), 'wide')).toBeNull()
+  })
+})
+
+describe('sub-functions in the classifier', () => {
+  const ops = (sub: string | null) =>
+    member({ functions: memberFunctions(['Operations']), subFunction: sub, soc: '11-1021.00', pivotTargets: new Map(), pivotTargetsByFunction: new Map() })
+  const opsJob = (sub: string | null, soc: string | null = null) => job({ titleFunction: 'operations', subFunction: () => sub, soc })
+
+  it('"Your field" is the member\'s own sub-function', () => {
+    expect(classifyJob(ops('ops_supply_chain'), opsJob('ops_supply_chain'), 'narrow')).toEqual({ kind: 'field' })
+  })
+
+  it('an adjacent or unreadable sub-function is a "Related field" on Wide only', () => {
+    expect(classifyJob(ops('ops_supply_chain'), opsJob('ops_facilities'), 'wide')).toEqual({ kind: 'related_field', subFunction: 'ops_facilities' })
+    expect(classifyJob(ops('ops_supply_chain'), opsJob('ops_facilities'), 'narrow')).toBeNull()
+    expect(classifyJob(ops('ops_supply_chain'), opsJob(null), 'wide')).toEqual({ kind: 'related_field', subFunction: null })
+  })
+
+  it('a far sub-function is out — unless the skills are close (not boxed in)', () => {
+    expect(classifyJob(ops('ops_supply_chain'), opsJob('ops_revenue'), 'wide')).toBeNull()
+    const m = ops('ops_supply_chain')
+    m.similar = new Map([['13-1081.00', { score: 0.9, related: true, title: 'Logisticians', shared: ['Transportation'] }]])
+    expect(classifyJob(m, opsJob('ops_revenue', '13-1081.00'), 'narrow')).toMatchObject({ kind: 'skills' })
+  })
+
+  it('member sub-function unknown: their occupation narrows a split function', () => {
+    const m = ops(null)
+    m.similar = new Map([['11-3071.00', { score: 0.82, related: false, title: 'Transportation Managers', shared: [] }]])
+    expect(classifyJob(m, opsJob('ops_supply_chain', '11-3071.00'), 'narrow')).toEqual({ kind: 'field' })
+    expect(classifyJob(m, opsJob('ops_facilities'), 'narrow')).toEqual({ kind: 'field' }) // no occupation on the job: can't tell
+    expect(classifyJob(m, opsJob('ops_facilities', '37-1011.00'), 'narrow')).toBeNull()
+    expect(classifyJob(m, opsJob('ops_facilities', '37-1011.00'), 'wide')).toEqual({ kind: 'related_field', subFunction: 'ops_facilities' })
+  })
+
+  it('labels "Related field: <sub-function>" and Narrow never keeps it', () => {
+    expect(matchReason(ops('ops_supply_chain'), { kind: 'related_field', subFunction: 'ops_facilities' }, { soc: null }, () => false).label).toBe('Related field: Facilities and workplace')
+    expect(keptByNarrow({ kind: 'related_field' })).toBe(false)
+    expect(keptByNarrow({ kind: 'skills', score: 0.9, related: true })).toBe(true)
+    expect(keptByNarrow({ kind: 'skills', score: 0.75, related: true })).toBe(false)
   })
 })
 
@@ -268,6 +311,14 @@ describe('board ranking with breadth', () => {
 
   it('a search keeps unmatched jobs, ranked last', () => {
     expect(rankBoardRows(rows, { ...base, breadth: 'narrow', breadthKeepUnmatched: true }).openIds).toEqual(['b', 'a', 'c', 'd'])
+  })
+
+  it('Wide with moreAtLevel puts every other job in "more", fit-ranked, apart from the main list', () => {
+    const r = rankBoardRows(rows, { ...base, breadth: 'wide', moreAtLevel: true })
+    expect(r.openIds).toEqual(['b', 'a', 'c'])
+    expect(r.moreIds).toEqual(['d'])
+    expect(r.moreTotal).toBe(1)
+    expect(rankBoardRows(rows, { ...base, breadth: 'narrow', moreAtLevel: true }).moreIds).toEqual([])
   })
 
   it('no breadth: the board as before', () => {

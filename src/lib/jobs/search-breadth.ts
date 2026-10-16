@@ -20,6 +20,7 @@
 // on each job, and the precomputed similarity table.
 
 import { CAREER_STAGES, memberCareerStage, type StageMember } from '@/lib/jobs/career-stage'
+import { adjacentSubFunctions, hasSubFunctions, SUB_FUNCTION_BY_KEY, subFunctionLabel } from '@/lib/jobs/sub-functions'
 
 export const BREADTHS = ['narrow', 'wide'] as const
 export type Breadth = (typeof BREADTHS)[number]
@@ -122,6 +123,13 @@ export interface MemberBreadthVector {
   functionLabel: string | null
   /** Industry buckets they come from or target (industry-buckets.ts), for the industry pivot label. */
   industries: Set<string>
+  /**
+   * Their sub-function (sub-functions.ts) within a function that is split, from their
+   * latest title or occupation; null when it isn't split or nothing on the lists matches.
+   */
+  subFunction: string | null
+  /** Their occupation was read from their own title (not a stand-in for their function). */
+  socFromTitle: boolean
 }
 
 /** Functions too broad to say what kind of work it is. */
@@ -156,17 +164,27 @@ export interface JobBreadthFacts {
   soc: string | null
   /** The first of these pivot-map roles whose title patterns the job's title matches, or null. */
   pivotRole: (roles: Iterable<string>) => string | null
+  /** The job's sub-function within this function (stored at import, else read from its title / occupation); lazy. */
+  subFunction: (fn: string) => string | null
 }
 
-export type MatchKind = 'field' | 'pivot' | 'skills'
+export type MatchKind = 'field' | 'related_field' | 'pivot' | 'skills'
 
 /** Field first, then pivots, then skills matches (owner's order). */
-export const MATCH_KIND_RANK: Record<MatchKind, number> = { field: 0, pivot: 1, skills: 2 }
+export const MATCH_KIND_RANK: Record<MatchKind, number> = { field: 0, related_field: 1, pivot: 2, skills: 3 }
+
+/** Kinds Narrow keeps outright (a skills match must also pass Narrow's bar; a related field is Wide only). */
+export function keptByNarrow(cls: JobClass): boolean {
+  if (cls.kind === 'related_field') return false
+  return cls.kind !== 'skills' || passesSkillsThreshold({ score: cls.score ?? 0, related: cls.related }, 'narrow')
+}
 
 export interface JobClass {
   kind: MatchKind
   /** Pivot: the target role key, or 'fn:<function>' for the target function. */
   pivot?: string
+  /** Related field: the job's sub-function (null = its title doesn't say). */
+  subFunction?: string | null
   /** Skills: the occupation similarity, and whether O*NET relates the two. */
   score?: number
   related?: boolean
@@ -179,10 +197,28 @@ export interface JobClass {
  */
 export function classifyJob(m: MemberBreadthVector, job: JobBreadthFacts, breadth: Breadth): JobClass | null {
   const fn = job.titleFunction || lower(job.targetFunction)
-  if ((fn && m.functions.has(fn)) || (job.targetFunction && m.functions.has(lower(job.targetFunction)))) return { kind: 'field' }
-  if (job.soc && m.soc && job.soc === m.soc) return { kind: 'field' }
-  if (m.targetFunction && fn === m.targetFunction) return { kind: 'pivot', pivot: `fn:${m.targetFunction}` }
+  const ownFn = fn && m.functions.has(fn) ? fn : job.targetFunction && m.functions.has(lower(job.targetFunction)) ? lower(job.targetFunction) : null
+  const sameOccupation = !!job.soc && !!m.soc && job.soc === m.soc
   const sim = job.soc ? m.similar.get(job.soc) : undefined
+  // Within the member's own function: "Your field" is their own sub-function when the
+  // function is split (sub-functions.ts). The rest of the function isn't dropped: an
+  // adjacent sub-function — or one we can't read — is a "Related field" on Wide, and any
+  // job whose skills are close enough still comes in below as a skills match.
+  let related: JobClass | null = null
+  if (ownFn) {
+    const memberSub = m.subFunction ? SUB_FUNCTION_BY_KEY.get(m.subFunction) : undefined
+    if (!memberSub || memberSub.fn.toLowerCase() !== ownFn) {
+      // Not split, or the member's sub-function is unknown: their occupation narrows a
+      // split function instead (a job far from it is a related field), else the whole function.
+      if (!hasSubFunctions(ownFn) || !m.soc || !m.socFromTitle || !job.soc || sameOccupation || (sim && passesSkillsThreshold(sim, 'wide'))) return { kind: 'field' }
+      related = { kind: 'related_field', subFunction: job.subFunction(ownFn) }
+    } else {
+      const jobSub = job.subFunction(ownFn)
+      if (jobSub === m.subFunction || sameOccupation) return { kind: 'field' }
+      if (jobSub === null || adjacentSubFunctions(m.subFunction!, jobSub)) related = { kind: 'related_field', subFunction: jobSub }
+    }
+  } else if (sameOccupation) return { kind: 'field' }
+  if (m.targetFunction && fn === m.targetFunction) return { kind: 'pivot', pivot: `fn:${m.targetFunction}` }
   // A near-twin occupation is a skills match before any title-pattern pivot is tried.
   if (sim && passesSkillsThreshold(sim, 'narrow')) return { kind: 'skills', score: sim.score, related: sim.related }
   if (m.pivotTargets.size > 0) {
@@ -190,6 +226,7 @@ export function classifyJob(m: MemberBreadthVector, job: JobBreadthFacts, breadt
     const role = candidates ? job.pivotRole(candidates) : null
     if (role) return { kind: 'pivot', pivot: role }
   }
+  if (related && breadth === 'wide') return related
   if (sim && passesSkillsThreshold(sim, breadth)) return { kind: 'skills', score: sim.score, related: sim.related }
   return null
 }
@@ -225,6 +262,10 @@ export function matchReason(
     }
     return { kind: 'field', label: 'Your field' }
   }
+  if (cls.kind === 'related_field') {
+    const sub = subFunctionLabel(cls.subFunction)
+    return { kind: 'related_field', label: sub ? `Related field: ${sub}` : 'Related field' }
+  }
   if (cls.kind === 'pivot') {
     const to = cls.pivot?.startsWith('fn:') ? m.targetFunctionLabel : m.pivotTargets.get(cls.pivot ?? '')
     const from = cls.pivot?.startsWith('fn:') ? m.functionLabel : m.sourceLabel
@@ -241,6 +282,8 @@ export function matchReasonSentence(r: MatchReason): string {
   switch (r.kind) {
     case 'field':
       return 'Shown because it is in your field.'
+    case 'related_field':
+      return 'Shown because it is close to your own work, in the same function.'
     case 'industry_pivot':
       return `Shown because it is your kind of work in another industry (${r.label.replace(/^Pivot: /, '')}).`
     case 'pivot':

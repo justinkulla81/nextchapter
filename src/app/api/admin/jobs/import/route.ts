@@ -9,6 +9,8 @@ import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow
 import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
 import { functionLabelFor } from '@/lib/jobs/job-functions'
+import { subFunctionFor } from '@/lib/jobs/sub-functions'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
 import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
@@ -180,8 +182,16 @@ function yearsRequiredOf(description: string | null | undefined) {
 }
 
 function rowData({ job, level }: Screened) {
+  const optional = importOptionalFields(job)
+  const sentFunction = 'function' in job && job.function !== undefined ? functionLabelFor(job.function) : null
   return {
-    ...importOptionalFields(job),
+    // Sub-function (sub-functions.ts): allowlisted title patterns / O*NET codes within the job's function.
+    subFunction: subFunctionFor({
+      title: job.title,
+      fn: sentFunction ?? inferFunctionFromTitle(job.title.trim()),
+      soc: (optional as { socCode?: string | null }).socCode ?? null,
+    }),
+    ...optional,
     ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
     ...yearsRequiredOf(job.description),
     ...('recruiterName' in job && job.recruiterName !== undefined ? { recruiterName: importText(job.recruiterName, 120) } : {}),
@@ -381,7 +391,7 @@ export async function POST(request: NextRequest) {
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
-      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true,
+      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

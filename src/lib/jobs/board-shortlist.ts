@@ -443,6 +443,12 @@ export interface BoardShortlist {
    * filter applied), and the member's classifier for the reason labels.
    */
   breadth: { applied: Breadth | null; narrowTotal: number; wideTotal: number; classifier: BreadthClassifier | null }
+  /**
+   * "More jobs at your level" (Wide with moreAtLevel): open jobs in the level window on
+   * neither breadth — how many, the best MORE_AT_LEVEL_MAX ids by fit, and the first
+   * page loaded in full. Empty otherwise.
+   */
+  more: { total: number; ids: string[]; first: ExclusiveJobPosting[] }
 }
 
 /**
@@ -509,6 +515,8 @@ export async function loadBoardShortlist(opts: {
   breadth?: Breadth | 'off'
   /** Rank by breadth and label, but keep jobs neither breadth would show (a search: the member asked for them). */
   breadthKeepUnmatched?: boolean
+  /** Wide: every other job in the level window as "More jobs at your level" (BoardShortlist.more). Board only. */
+  moreAtLevel?: boolean
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -536,8 +544,9 @@ export async function loadBoardShortlist(opts: {
     place: classifier?.place,
     breadth: breadth === 'off' ? undefined : breadth,
   })
+  const moreFirst = ranked.moreIds.slice(0, MORE_AT_LEVEL_PAGE)
   const full = new Map(
-    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
+    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds, ...moreFirst] } } })).map((p) => [p.id, p])
   )
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
 
@@ -556,6 +565,7 @@ export async function loadBoardShortlist(opts: {
       wideTotal: ranked.wideTotal,
       classifier,
     },
+    more: { total: ranked.moreTotal, ids: ranked.moreIds, first: inOrder(moreFirst) },
   }
 }
 
@@ -573,6 +583,13 @@ export function boardLevelWindowWhere(
 }
 
 export type BoardRankRow = LightRow
+
+/** Rank of a job a search kept that neither breadth would show (after every breadth kind). */
+const MATCH_RANK_UNMATCHED = 9
+/** "More jobs at your level": at most this many ids are ranked and handed to the page; it loads them a page at a time. */
+export const MORE_AT_LEVEL_MAX = 500
+/** Full rows loaded with the board for the first page of "More jobs at your level". */
+export const MORE_AT_LEVEL_PAGE = 20
 
 /** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
 export function rankBoardRows(
@@ -593,9 +610,11 @@ export function rankBoardRows(
     place?: (p: BoardRankRow) => BreadthPlacement | null
     breadth?: Breadth
     breadthKeepUnmatched?: boolean
+    /** Wide only: keep the jobs on neither breadth as a separate, fit-ranked list (moreIds). */
+    moreAtLevel?: boolean
   }
 ) {
-  const size = opts.size ?? 300
+  const defaultSize = opts.size ?? 300
   const fitBucket = boardListingFitBucketScorerFor(opts.fitScoring ?? 'v2', opts.candidate)
   const countByCompany = companyCounts(light)
   // Within a fit level, roles nearest the candidate's own level come first
@@ -622,6 +641,9 @@ export function rankBoardRows(
     cls: number
   }[] = []
   const locked: typeof open = []
+  // "More jobs at your level" (Wide): open jobs in the window on neither breadth, ranked by fit alone.
+  const more: typeof open = []
+  const moreMode = opts.moreAtLevel && opts.breadth === 'wide' && !opts.breadthKeepUnmatched && !!opts.place
   const now = opts.now ?? new Date()
   let freshOpenTotal = 0
   let lowCompetitionOpenTotal = 0
@@ -646,8 +668,10 @@ export function rankBoardRows(
       wideTotal++
       if (placed.inNarrow) narrowTotal++
     }
-    if (!shown && !opts.breadthKeepUnmatched) continue
-    const cls = placed === undefined ? 0 : shown ? placed!.rank : 3
+    // Wide with moreAtLevel: every other job in the level window goes to "More jobs at your level".
+    const toMore = !shown && !!moreMode && placed === null
+    if (!shown && !opts.breadthKeepUnmatched && !toMore) continue
+    const cls = placed === undefined ? 0 : shown ? placed!.rank : MATCH_RANK_UNMATCHED
     const facts = rowFacts(p)
     const company = facts.company
     const canOpen = !isBoardPostingLockedForViewer(p, opts.isCandidatePlus)
@@ -655,9 +679,9 @@ export function rankBoardRows(
     const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
     const low = competition === 'low'
     const rank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
-    // The prompts count only jobs that fit (strong or good).
-    if (canOpen && fresh && rank <= 1) freshOpenTotal++
-    if (canOpen && low && rank <= 1) lowCompetitionOpenTotal++
+    // The prompts count only jobs that fit (strong or good), on the main list.
+    if (!toMore && canOpen && fresh && rank <= 1) freshOpenTotal++
+    if (!toMore && canOpen && low && rank <= 1) lowCompetitionOpenTotal++
     if (opts.view === 'fresh' && !fresh) continue
     if (opts.view === 'low_competition' && !low) continue
     const entry = {
@@ -675,7 +699,9 @@ export function rankBoardRows(
       cls,
     }
     // Everyone can open everything except employer / recruiter exclusives.
-    if (canOpen) open.push(entry)
+    if (toMore) {
+      if (canOpen) more.push(entry)
+    } else if (canOpen) open.push(entry)
     else locked.push(entry)
   }
 
@@ -684,7 +710,7 @@ export function rankBoardRows(
   // title per company (big employers post the same role in dozens of
   // places) and at most PER_COMPANY per company, so one employer can't fill
   // the whole list. If that leaves room, the held-back ones fill it.
-  const best = (list: typeof open) => {
+  const best = (list: typeof open, size = defaultSize) => {
     const fit = (a: (typeof open)[number], b: (typeof open)[number]) =>
       a.cls - b.cls || a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
     // Search: newest / highest pay first, or relevance tier then fit. No search: fit, as always.
@@ -721,6 +747,8 @@ export function rankBoardRows(
   return {
     openIds: best(open),
     lockedIds: best(locked),
+    moreIds: moreMode ? best(more, MORE_AT_LEVEL_MAX) : [],
+    moreTotal: more.length,
     openTotal: open.length,
     lockedTotal: locked.length,
     freshOpenTotal,

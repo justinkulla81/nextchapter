@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+import { SUB_FUNCTION_BY_KEY, subFunctionFor } from '@/lib/jobs/sub-functions'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { edgesFor } from '@/lib/pivots/onet'
 import { onetSocForRole } from '@/lib/pivots/onet-soc'
@@ -11,7 +12,7 @@ import {
   hasBreadthBasis,
   memberFunctions,
   pivotTargetIndex,
-  passesSkillsThreshold,
+  keptByNarrow,
   MATCH_KIND_RANK,
   type Breadth,
   type JobBreadthFacts,
@@ -66,24 +67,42 @@ export function loadSimilarityIndex(): Promise<SimilarityIndex> {
   return similarityMemo.value
 }
 
-let jobSocs: { at: number; value: Promise<Map<string, string>> } | null = null
-let jobSocsLoading: Promise<Map<string, string>> | null = null
-
-async function readJobSocs(): Promise<Map<string, string>> {
-  const rows = await prisma.$queryRaw<{ id: string; socCode: string }[]>`
-    SELECT "id", "socCode" FROM "ExclusiveJobPosting" WHERE "archivedAt" IS NULL AND "socCode" IS NOT NULL`
-  const pool = new Map<string, string>()
-  const out = new Map<string, string>()
-  for (const r of rows) {
-    let soc = pool.get(r.socCode)
-    if (soc === undefined) pool.set(r.socCode, (soc = r.socCode))
-    out.set(r.id, soc)
-  }
-  return out
+/** Live job id → O*NET occupation, and → sub-function stored at import (sub-functions.ts). */
+export interface JobOccupations {
+  socs: Map<string, string>
+  subs: Map<string, string>
 }
 
-/** Live job id → O*NET occupation. */
-export function loadJobSocs(): Promise<Map<string, string>> {
+let jobSocs: { at: number; value: Promise<JobOccupations> } | null = null
+let jobSocsLoading: Promise<JobOccupations> | null = null
+
+async function readJobSocs(): Promise<JobOccupations> {
+  // subFunction may not exist yet (prisma/manual/2026-10-16-sub-functions.sql not applied): read without it.
+  const rows = await prisma
+    .$queryRaw<{ id: string; socCode: string | null; subFunction: string | null }[]>`
+      SELECT "id", "socCode", "subFunction" FROM "ExclusiveJobPosting"
+      WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL)`
+    .catch(() =>
+      prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null }[]>`
+        SELECT "id", "socCode", NULL::text AS "subFunction" FROM "ExclusiveJobPosting" WHERE "archivedAt" IS NULL AND "socCode" IS NOT NULL`
+    )
+  const pool = new Map<string, string>()
+  const intern = (v: string) => {
+    let hit = pool.get(v)
+    if (hit === undefined) pool.set(v, (hit = v))
+    return hit
+  }
+  const socs = new Map<string, string>()
+  const subs = new Map<string, string>()
+  for (const r of rows) {
+    if (r.socCode) socs.set(r.id, intern(r.socCode))
+    if (r.subFunction) subs.set(r.id, intern(r.subFunction))
+  }
+  return { socs, subs }
+}
+
+/** Live job id → O*NET occupation and stored sub-function. */
+export function loadJobSocs(): Promise<JobOccupations> {
   const now = Date.now()
   if (jobSocs && now - jobSocs.at < JOB_SOC_TTL_MS) return jobSocs.value
   if (!jobSocsLoading) {
@@ -102,7 +121,7 @@ export function loadJobSocs(): Promise<Map<string, string>> {
     )
   }
   if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
-  return jobSocsLoading!.catch(() => new Map<string, string>())
+  return jobSocsLoading!.catch(() => ({ socs: new Map<string, string>(), subs: new Map<string, string>() }))
 }
 
 // ── Member vector ──────────────────────────────────────────────────────────────
@@ -116,6 +135,8 @@ export type BreadthCandidate = {
   industryContext?: string | null
   secondaryIndustryContext?: string | null
   targetIndustries?: string[] | null
+  /** Saved sub-function (sub-functions.ts); re-derived on each board view and saved when it changes. */
+  subFunction?: string | null
 }
 
 const memberSocMemo = new Map<string, { at: number; soc: string | null }>()
@@ -153,7 +174,20 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
       .map((s) => normalizeIndustryBucket(s ?? null))
       .filter((b): b is string => !!b && b !== 'Other')
   )
+  // Their sub-function: their latest title (or occupation) within their primary function, else their secondary one.
+  // Their occupation only counts when it was read from a real title: with no title it is a
+  // stand-in for their function, and a sub-function from a stand-in would be a guess.
+  const hasTitle = !!candidate.resumeLatestJobTitle?.trim()
+  const titleSoc = hasTitle ? soc : null
+  const subFunction =
+    subFunctionFor({ title: candidate.resumeLatestJobTitle, fn: candidate.primaryFunction, soc: titleSoc }) ??
+    subFunctionFor({ title: candidate.resumeLatestJobTitle, fn: candidate.secondaryFunction, soc: titleSoc })
+  if (candidate.id && (candidate.subFunction ?? null) !== subFunction && candidate.subFunction !== undefined) {
+    prisma.candidateProfile.update({ where: { id: candidate.id }, data: { subFunction } }).catch(() => undefined)
+  }
   return {
+    subFunction,
+    socFromTitle: hasTitle,
     functions,
     targetFunction,
     targetFunctionLabel: targetFunction ? target : null,
@@ -174,10 +208,11 @@ type BreadthRow = { id: string; title: string; targetFunction: string | null }
 
 // Per row (rows are shared by every request until the board reloads, and unchanged rows
 // survive a reload): the title's function and its readings for the role patterns.
-const factsByRow = new WeakMap<BreadthRow, { titleFunction: string; variants: string[] | null }>()
+const factsByRow = new WeakMap<BreadthRow, { titleFunction: string; variants: string[] | null; subFn?: string; sub?: string | null }>()
 
 /** A job's side of the classifier. Nothing here depends on the member, so it is worked out once per row. */
-export function jobBreadthFacts(row: BreadthRow, socs: Map<string, string>): JobBreadthFacts {
+export function jobBreadthFacts(row: BreadthRow, occupations: JobOccupations): JobBreadthFacts {
+  const { socs, subs } = occupations
   let f = factsByRow.get(row)
   if (!f) factsByRow.set(row, (f = { titleFunction: (inferFunctionFromTitle(row.title) ?? '').toLowerCase(), variants: null }))
   const facts = f
@@ -185,6 +220,15 @@ export function jobBreadthFacts(row: BreadthRow, socs: Map<string, string>): Job
     titleFunction: facts.titleFunction,
     targetFunction: row.targetFunction,
     soc: socs.get(row.id) ?? null,
+    subFunction: (fn) => {
+      if (facts.subFn !== fn) {
+        const stored = subs.get(row.id)
+        const storedFn = stored ? SUB_FUNCTION_BY_KEY.get(stored)?.fn.toLowerCase() : undefined
+        facts.sub = stored && (storedFn === fn || (fn === 'people' && storedFn === 'human resources')) ? stored : subFunctionFor({ title: row.title, fn, soc: socs.get(row.id) })
+        facts.subFn = fn
+      }
+      return facts.sub ?? null
+    },
     pivotRole: (roles) => {
       facts.variants ??= titleVariants(row.title)
       for (const key of roles) {
@@ -207,7 +251,7 @@ export interface BreadthPlacement {
 
 export interface BreadthClassifier {
   member: MemberBreadthVector
-  socs: Map<string, string>
+  occupations: JobOccupations
   /** Classified at Wide; null = not on either board. */
   place: (row: BreadthRow) => BreadthPlacement | null
 }
@@ -215,14 +259,14 @@ export interface BreadthClassifier {
 // Placements per member (by what the classifier reads), kept across requests: a member's
 // next board view only re-classifies rows that changed. Bounded; dropped with the job-occupation map.
 const PLACEMENT_MEMO_MAX = 200
-const placementMemos = new Map<string, { socs: Map<string, string>; memo: WeakMap<object, BreadthPlacement | null> }>()
-function placementMemo(m: MemberBreadthVector, socs: Map<string, string>): WeakMap<object, BreadthPlacement | null> {
-  const key = JSON.stringify([[...m.functions], m.targetFunction, m.soc, [...m.pivotTargets.keys()], m.similar.size])
+const placementMemos = new Map<string, { occupations: JobOccupations; memo: WeakMap<object, BreadthPlacement | null> }>()
+function placementMemo(m: MemberBreadthVector, occupations: JobOccupations): WeakMap<object, BreadthPlacement | null> {
+  const key = JSON.stringify([[...m.functions], m.targetFunction, m.soc, m.subFunction, [...m.pivotTargets.keys()], m.similar.size])
   const hit = placementMemos.get(key)
-  if (hit && hit.socs === socs) return hit.memo
+  if (hit && hit.occupations === occupations) return hit.memo
   if (placementMemos.size >= PLACEMENT_MEMO_MAX) placementMemos.delete(placementMemos.keys().next().value as string)
   const memo = new WeakMap<object, BreadthPlacement | null>()
-  placementMemos.set(key, { socs, memo })
+  placementMemos.set(key, { occupations, memo })
   return memo
 }
 
@@ -233,18 +277,18 @@ function placementMemo(m: MemberBreadthVector, socs: Map<string, string>): WeakM
  */
 export async function loadBreadthClassifier(candidate: BreadthCandidate | null | undefined): Promise<BreadthClassifier | null> {
   if (!candidate) return null
-  const [member, socs] = await Promise.all([memberBreadthVector(candidate), loadJobSocs()])
+  const [member, occupations] = await Promise.all([memberBreadthVector(candidate), loadJobSocs()])
   if (!hasBreadthBasis(member)) return null
-  const memo = placementMemo(member, socs)
+  const memo = placementMemo(member, occupations)
   return {
     member,
-    socs,
+    occupations,
     place: (row) => {
       const hit = memo.get(row)
       if (hit !== undefined) return hit
-      const cls = classifyJob(member, jobBreadthFacts(row, socs), 'wide')
+      const cls = classifyJob(member, jobBreadthFacts(row, occupations), 'wide')
       const placed = cls
-        ? { cls, rank: MATCH_KIND_RANK[cls.kind], inNarrow: cls.kind !== 'skills' || passesSkillsThreshold({ score: cls.score ?? 0, related: cls.related }, 'narrow') }
+        ? { cls, rank: MATCH_KIND_RANK[cls.kind], inNarrow: keptByNarrow(cls) }
         : null
       memo.set(row, placed)
       return placed
@@ -266,9 +310,9 @@ export function breadthReasonsFor(
   const out = new Map<string, MatchReason>()
   const has = (skill: string) => memberHasSkill(skill, memberKeywords)
   for (const p of postings) {
-    const cls = classifyJob(classifier.member, jobBreadthFacts(p, classifier.socs), 'wide')
+    const cls = classifyJob(classifier.member, jobBreadthFacts(p, classifier.occupations), 'wide')
     if (!cls) continue
-    const soc = classifier.socs.get(p.id) ?? null
+    const soc = classifier.occupations.socs.get(p.id) ?? null
     out.set(p.id, matchReason(classifier.member, cls, { soc, industryBucket: normalizeIndustryBucket(p.industry) }, has, p.skills))
   }
   return out

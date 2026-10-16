@@ -8,6 +8,7 @@ import { memberStageWindow, memberCareerStage } from '../../src/lib/jobs/career-
 import { boardBreadthFor, defaultBreadth } from '../../src/lib/jobs/search-breadth'
 import { breadthReasonsFor } from '../../src/lib/jobs/search-breadth-server'
 import { memberSkillKeywords } from '../../src/lib/jobs/skill-gap-data'
+import { inferFunctionFromTitle } from '../../src/lib/jobs/infer-job-function'
 
 async function main() {
   const ids = process.argv.slice(2)
@@ -21,7 +22,7 @@ async function main() {
     const t1 = Date.now()
     const narrow = await loadBoardShortlist({ ...base, breadth: 'narrow' })
     const t2 = Date.now()
-    const wide = await loadBoardShortlist({ ...base, breadth: 'wide', size: 300 })
+    const wide = await loadBoardShortlist({ ...base, breadth: 'wide', size: 300, moreAtLevel: true })
     const t3 = Date.now()
     const wide2 = await loadBoardShortlist({ ...base, breadth: 'wide', size: 300 })
     const t4 = Date.now()
@@ -32,6 +33,12 @@ async function main() {
     console.log(`jobs in window (no breadth) ${total(off)} | narrow ${total(narrow)} (${narrow.breadth.narrowTotal}) | wide ${total(wide)} (${wide.breadth.wideTotal})`)
     console.log(`ms: first load ${t0 - tw} | no-breadth warm ${t1 - t0} | narrow ${t2 - t1} | wide ${t3 - t2} | wide again (warm) ${t4 - t3} | rows ${wide2.open.length}`)
     if (!c) continue
+    console.log(`wide main ${total(wide)} + more at your level ${wide.more.total} (ranked ids ${wide.more.ids.length}, first page ${wide.more.first.length})`)
+    const fns = c.member.functions
+    const oldField = await loadBoardShortlist({ ...base, breadth: 'off', keep: (p) => fns.has((inferFunctionFromTitle(p.title) ?? '').toLowerCase()) })
+    const newField = await loadBoardShortlist({ ...base, breadth: 'wide', keep: (p) => c.place(p)?.cls.kind === 'field' })
+    const related = await loadBoardShortlist({ ...base, breadth: 'wide', keep: (p) => c.place(p)?.cls.kind === 'related_field' })
+    console.log(`member sub-function ${c.member.subFunction} | "Your field": function-level (before) ${total(oldField)} → now ${total(newField)} | related field (Wide) ${total(related)}`)
     const reasons = breadthReasonsFor(c, wide.open, memberSkillKeywords(profile))
     const kinds: Record<string, number> = {}
     for (const r of reasons.values()) kinds[r.kind] = (kinds[r.kind] ?? 0) + 1
@@ -42,7 +49,7 @@ async function main() {
     const shown = new Set<string>()
     for (const p of skillsOnly.open) {
       const r = skillReasons.get(p.id)
-      if (r?.kind !== 'skills' || shown.size >= 8 || shown.has(p.title)) continue
+      if (r?.kind !== 'skills' || shown.size >= 10 || shown.has(p.title)) continue
       shown.add(p.title)
       console.log(`  skills: ${p.title} @ ${p.companyName} [${p.socTitle}] → ${r.label}`)
     }

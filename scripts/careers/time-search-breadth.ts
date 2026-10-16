@@ -30,7 +30,7 @@ async function main() {
     const cold = rankBoardRows(rows, { ...base, place: c?.place, breadth: 'narrow' })
     const coldMs = ms(t)
     t = performance.now()
-    rankBoardRows(rows, { ...base, place: c?.place, breadth: 'wide' })
+    rankBoardRows(rows, { ...base, place: c?.place, breadth: 'wide', moreAtLevel: true })
     const warmMs = ms(t)
     t = performance.now()
     const c2 = await loadBreadthClassifier(candidate)

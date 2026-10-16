@@ -34,6 +34,7 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
+import { MoreAtLevelSection } from '@/components/dashboard/MoreAtLevelSection'
 import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason } from '@/lib/jobs/search-breadth'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
@@ -832,6 +833,16 @@ async function JobRecommendationsSection({
             </ShowMoreList>
           </div>
 
+          {board.more.total > 0 && (
+            <MoreAtLevelSection
+              surface="find_my_job"
+              total={board.more.total}
+              ids={board.more.ids}
+              first={board.more.first}
+              firstFitBuckets={Object.fromEntries(board.more.first.map((p) => [p.id, computeBoardListingFitBucket(profile, p)]))}
+            />
+          )}
+
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockCandidatePlusCallout
               reason={dossierReason}
@@ -1190,6 +1201,8 @@ async function FindMyJobBody({
       // Narrow / Wide. A search keeps every match (the member asked for them), ranked and labelled by breadth.
       breadth: breadthMode,
       breadthKeepUnmatched: !!searchView?.active,
+      // Wide also lists every other job at the member's level, below, a page at a time.
+      moreAtLevel: breadthMode === 'wide',
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),

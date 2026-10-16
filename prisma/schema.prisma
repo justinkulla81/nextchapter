@@ -1054,6 +1054,11 @@ model CandidateProfile {
   // career stage (senior Narrow, junior Wide) and job emails use Narrow
   // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
   boardBreadth                    String?
+  // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
+  // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
+  // when the board loads. Null = function not split, or nothing on the allowlists
+  // matched. prisma/manual/2026-10-16-sub-functions.sql.
+  subFunction                     String?
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
@@ -5031,6 +5036,10 @@ model ExclusiveJobPosting {
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
   socCode           String?
   socTitle          String?
+  // Sub-function (src/lib/jobs/sub-functions.ts, e.g. 'ops_facilities'): allowlisted title
+  // patterns and O*NET codes within the job's function, set at import and backfilled
+  // (scripts/careers/backfill-sub-functions.ts). Null = not split / not on the lists.
+  subFunction       String?
   // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
   // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
   // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
