@@ -61,7 +61,7 @@ const ADVISORY_TITLE =
 // "Intern", "Interns", "Internship", a student co-op — never "Internal",
 // "International" or "Co-op Marketing Manager" (cooperative marketing, a real job).
 const INTERN_TITLE =
-  /\b(intern|interns|internships?)\b|\bco-?op\s+(student|intern|program|term|position|role|engineer(ing)?\s+(student|intern))s?\b|\b(student|engineering|summer|fall|spring|winter|20\d\d)\s+co-?op\b/i
+  /\b(intern|interns|internships?|student trainee)\b|\bco-?op\s+(student|intern|program|term|position|role|engineer(ing)?\s+(student|intern))s?\b|\b(student|engineering|summer|fall|spring|winter|20\d\d)\s+co-?op\b/i
 const FRACTIONAL_TITLE = /\b(fractional|part[- ]time|per diem|prn)\b/i
 const INTERIM_TITLE = /\binterim\b/i
 // "Contract Manager" and "Contract Specialist" are full-time jobs about contracts; the

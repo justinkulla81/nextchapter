@@ -7,7 +7,7 @@
 // professional field below. Anything else (retail, warehouse, clinical floor,
 // camp, unpaid "opportunities") stays out.
 
-import { INTERN_PROGRAM_STAFF } from '@/lib/jobs/work-type'
+import { INTERN_PROGRAM_STAFF, isInternshipJob } from '@/lib/jobs/work-type'
 
 export const INTERNSHIP_FIELDS = [
   'healthcare',
@@ -74,8 +74,6 @@ export function internshipField(title: string, department?: string | null): Inte
   return null
 }
 
-const INTERN_WORD = /\b(intern|interns|internships?)\b|\bco-?op\b/i
-
 // Hourly, frontline, clinical-floor and camp work: not what a career office lists.
 const NON_PROFESSIONAL =
   /\b(retail|store|cashier|warehouse|driver|delivery|lifeguard|camp counselor|counselor[- ]in[- ]training|barista|server|custodial|janitor|housekeep|landscap|grounds|cook|kitchen|restaurant|sales associate|customer service|call center|teller|merchandiser|pharmacy|pharmacist|nurs(e|ing)|medical intern|surgical|residen(t|cy)|dental|veterinar|physical therap|occupational therap|athletic|fitness|childcare|child care|daycare|babysit|nanny|valet|security guard|production worker|laborer|seasonal associate|brand ambassador|campus ambassador|door[- ]to[- ]door|commission[- ]only|mlm)\b/i
@@ -90,9 +88,11 @@ export type InternshipVerdict = { keep: true; field: InternshipField } | { keep:
  * co-op (not a job running an internship program), in a professional field,
  * not frontline work, and not unpaid unless it says it earns academic credit.
  */
-export function screenInternship(input: { title: string; description?: string | null; department?: string | null }): InternshipVerdict {
+export function screenInternship(input: { title: string; description?: string | null; department?: string | null; employmentType?: string | null }): InternshipVerdict {
   const title = input.title.trim()
-  if (!INTERN_WORD.test(title)) return { keep: false, reason: 'not an internship' }
+  // The same test the member board uses to keep internships out (work-type.ts),
+  // incl. federal Pathways "Student Trainee (Accounting)" and student co-ops.
+  if (!isInternshipJob({ title, employmentType: input.employmentType })) return { keep: false, reason: 'not an internship' }
   if (INTERN_PROGRAM_STAFF.test(title)) return { keep: false, reason: 'runs an internship program (a staff job)' }
   if (NON_PROFESSIONAL.test(title)) return { keep: false, reason: 'frontline or clinical work' }
   if (UNPAID_TITLE.test(title)) return { keep: false, reason: 'unpaid' }

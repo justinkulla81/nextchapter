@@ -10,6 +10,7 @@ export interface InternshipImportInput {
   location?: string | null
   description?: string | null
   department?: string | null
+  employmentType?: string | null
   locationState?: string | null
   remote?: boolean | null
   term?: string | null
@@ -59,7 +60,7 @@ export function prepareInternship(
   const companyName = str(input.companyName)
   const url = str(input.url)
   if (!title || !companyName || !url) return { keep: false, url, reason: 'missing required field (title, companyName, or url)' }
-  const verdict = screenInternship({ title, description: input.description, department: input.department })
+  const verdict = screenInternship({ title, description: input.description, department: input.department, employmentType: input.employmentType })
   if (!verdict.keep) return { keep: false, url, reason: verdict.reason }
   const location = h.cleanLocation(input.location)
   if (location && h.isNonUs(location)) return { keep: false, url, reason: 'outside the US' }

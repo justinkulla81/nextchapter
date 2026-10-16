@@ -123,6 +123,9 @@ describe('internship screen (crawler stream and import)', () => {
     expect(screenInternship({ title: 'Marketing Intern', description: 'This is an unpaid internship.' }).keep).toBe(false)
     expect(screenInternship({ title: 'Marketing Intern', description: 'This is an unpaid internship for academic credit.' }).keep).toBe(true)
     expect(screenInternship({ title: 'Intern' }).keep).toBe(false)
+    expect(screenInternship({ title: 'Co-op Marketing Manager' }).keep).toBe(false)
+    expect(screenInternship({ title: 'Student Trainee (Accounting) (GS-4)' })).toEqual({ keep: true, field: 'finance' })
+    expect(screenInternship({ title: 'Summer Analyst, Investment Banking', employmentType: 'internship' })).toEqual({ keep: true, field: 'finance' })
     expect(screenInternship({ title: 'Senior Financial Analyst' }).keep).toBe(false)
   })
   it('reads term, year and deadline', () => {
