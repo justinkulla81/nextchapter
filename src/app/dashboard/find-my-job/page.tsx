@@ -964,15 +964,8 @@ async function FindMyJobBody({
   const jobPostings = profile.jobPostings
   // Applications per conversation over the last four weeks (read-only, no
   // metered calls). See src/lib/jobs/search-efficiency.ts.
-  const searchEfficiency = await loadSearchEfficiency(profile.id)
-  if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
-    captureServerEvent(profile.id, 'search_efficiency_viewed', {
-      state: searchEfficiency.state,
-      applications: searchEfficiency.applications,
-      conversations: searchEfficiency.conversations,
-      applicationsPerConversation: searchEfficiency.applicationsPerConversation,
-    })
-  }
+  // Started here and awaited with the batch below, so it runs alongside those reads instead of before them.
+  const searchEfficiencyPromise = loadSearchEfficiency(profile.id)
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
   const activeCount = jobPostings.filter(
@@ -1033,6 +1026,9 @@ async function FindMyJobBody({
     appliedCompanyBands,
     contacts,
     jobsWithHelpfulContacts,
+    searchEfficiency,
+    greatSets,
+    searchMatcher,
   ] = await Promise.all([
     emailConnectionPromise,
     // §4.8 — only fetched (and only ever true) for Confidential Search Mode
@@ -1061,7 +1057,20 @@ async function FindMyJobBody({
       where: { candidateId: profile.id },
       select: { id: true, helpfulContacts: { select: { id: true, name: true, email: true, linkedinUrl: true } } },
     }),
+    searchEfficiencyPromise,
+    // Great pay / great benefits (the `great` parameter): read only when a filter is on.
+    greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
+    // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
+    onBoard ? buildBoardSearch(boardSearch) : Promise.resolve(null),
   ])
+  if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
+    captureServerEvent(profile.id, 'search_efficiency_viewed', {
+      state: searchEfficiency.state,
+      applications: searchEfficiency.applications,
+      conversations: searchEfficiency.conversations,
+      applicationsPerConversation: searchEfficiency.applicationsPerConversation,
+    })
+  }
   if (emailConnection) {
     after(() =>
       syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
@@ -1083,12 +1092,6 @@ async function FindMyJobBody({
     ...(workTypes.includes('contract') || workTypes.includes('part_time') ? (['CONSULTING_PAID', 'CONSULTING_UNPAID'] as const) : []),
     ...(workTypes.includes('advisory') ? (['BOARD_PAID', 'BOARD_UNPAID'] as const) : []),
   ]
-  // Great pay / great benefits (the `great` parameter): read only when a filter is on.
-  // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
-  const [greatSets, searchMatcher] = await Promise.all([
-    greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
-    onBoard ? buildBoardSearch(boardSearch) : Promise.resolve(null),
-  ])
   const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const searchView: BoardSearchView | null =
     onBoard && (isSearchActive(boardSearch) || boardSearch.sort !== 'best')
