@@ -286,10 +286,13 @@ export function DiscoverJobCard({
   watched,
   employer,
   benefits,
+  searchResult,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
   idealMatch?: boolean
+  /** Shown as a board search result: its 1-based rank and the query, for job_search_result_clicked. */
+  searchResult?: { rank: number; q: string; loc: string }
   /** The employer's pay level and curated "known for" (great-employers.ts); none for a confidential search. */
   employer?: EmployerSignals
   /** The posting's structured benefits, when the import sent them. */
@@ -320,6 +323,7 @@ export function DiscoverJobCard({
   const sources = employer?.topEmployer?.sources ?? ''
 
   function handleClick() {
+    if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
     void recordJobClick({
       source: 'job_board',
       sourceId: posting.id,
