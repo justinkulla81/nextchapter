@@ -1,6 +1,7 @@
 import 'server-only'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { prisma } from '@/lib/prisma'
+import { squashKey, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { displayCompanyName, fixAllCapsCompanyName, normalizeOrgName } from '@/lib/text/org-name-match'
 
 // Every job that is added gets tied to its directory Company at the moment it is
@@ -69,6 +70,23 @@ export async function linkCompaniesBulk(rawNames: (string | null | undefined)[])
   if (keys.length === 0) return out
   const found = await prisma.company.findMany({ where: { canonicalNameNormalized: { in: keys } }, select: { id: true, canonicalNameNormalized: true } })
   const idByKey = new Map(found.map((c) => [c.canonicalNameNormalized, c.id]))
+  // Spelling variants of a company we already have ("JPMorgan Chase" for "JP Morgan
+  // Chase") resolve to it instead of becoming a second one.
+  const unresolved = keys.filter((k) => !idByKey.has(k))
+  const squashedOf = new Map(unresolved.map((k) => [k, squashKey(k)]))
+  const squashedKeys = [...new Set([...squashedOf.values()].filter((sq) => sq.length >= MIN_SQUASHED_LENGTH))]
+  if (squashedKeys.length > 0) {
+    const variants = await prisma.$queryRaw<{ id: string; sq: string }[]>`
+      SELECT id, regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') AS sq
+        FROM "Company"
+       WHERE regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') = ANY(${squashedKeys})
+       ORDER BY "createdAt" DESC`
+    const idBySquashed = new Map(variants.map((v) => [v.sq, v.id])) // earliest wins: DESC order, last set
+    for (const k of unresolved) {
+      const id = idBySquashed.get(squashedOf.get(k)!)
+      if (id) idByKey.set(k, id)
+    }
+  }
   const missing = keys.filter((k) => !idByKey.has(k))
   if (missing.length > 0) {
     await prisma.company.createMany({
