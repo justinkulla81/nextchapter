@@ -170,7 +170,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
     <div className="space-y-4">
       <CollegesViewTracker q={q} state={state} tier={tier} sort={sort} contacts={contactsFilter} theme={theme} rel={rel} results={total} />
       <header>
-        <h1 className="text-2xl font-semibold">Colleges</h1>
+        <h1 className="text-2xl font-semibold">Higher ed</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           Every four-year college (community colleges are not included), ranked as a pilot partner for mid-career alumni facing layoffs and AI. The score
           (out of 100) adds four parts: contacts (30) — a named leader with their own email for career services, alumni,
