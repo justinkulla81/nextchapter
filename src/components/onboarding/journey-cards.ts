@@ -1,4 +1,4 @@
-import { Briefcase, Coffee, Compass, DoorOpen, GraduationCap, Layers, LineChart, RefreshCw, Rocket, Shield, Shuffle, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Briefcase, Coffee, Compass, GraduationCap, Layers, LineChart, RefreshCw, Rocket, Shield, Shuffle, TrendingUp, type LucideIcon } from 'lucide-react'
 import { JOURNEY_TO_SITUATION, type SituationKey } from '@/lib/constants/onboarding'
 import { JOURNEYS, type JourneyType } from '@/lib/journey/journey'
 
