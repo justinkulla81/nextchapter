@@ -6,7 +6,7 @@ import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { getConsentedCandidateIds } from '@/lib/recruiter/introductions'
-import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { computeDossierCompletenessMany } from '@/lib/scoring/dossier-unlock'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 import type { CandidateProfile, Prisma } from '@prisma/client'
 
@@ -149,16 +149,12 @@ export default async function RecruiterSearchPage({
   // read of fit-against-these-filters and are never mutated by Dossier
   // completeness, so the two signals stay visually distinguishable (badge
   // vs. match label) rather than blended into one number.
-  const completenessByCandidateId = new Map(
-    await Promise.all(
-      candidates.map(async (c) => [c.id, (await computeDossierCompleteness(c.id)).isComplete] as const)
-    )
-  )
+  const completenessByCandidateId = await computeDossierCompletenessMany(candidates.map((c) => c.id))
 
   const scored = candidates
     .map((candidate) => {
       const match = computeMatchScore(candidate, roleFilter)
-      const dossierComplete = completenessByCandidateId.get(candidate.id) ?? false
+      const dossierComplete = completenessByCandidateId.get(candidate.id)?.isComplete ?? false
       const rankScore = match.score + (dossierComplete ? rankingWeightDossierCompleteness : 0)
       return { candidate, match, dossierComplete, rankScore }
     })
