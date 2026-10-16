@@ -6,8 +6,9 @@ import { accessFor } from '@/lib/access/grants'
 import { buttonVariants } from '@/components/ui/button'
 import { RedeemCoachCodeForm } from '@/components/dashboard/RedeemCoachCodeForm'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 
-export const metadata: Metadata = { title: 'Executive coach' }
+export const metadata: Metadata = { title: 'Coaching' }
 
 const VIA: Record<string, string> = {
   outplacement_seat: 'your former employer’s program',
@@ -30,7 +31,7 @@ export default async function MyCoachingPage() {
   return (
     <div className="mx-auto max-w-lg space-y-8">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">Executive coach</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{earlyCareerAudience(profile) ? 'Career coach' : 'Executive coach'}</h1>
         {c.on ? (
           <p className="text-muted-foreground">
             Coaching comes with {VIA[c.via ?? 'membership']}.

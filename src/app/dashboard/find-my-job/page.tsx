@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
+import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
@@ -107,7 +108,7 @@ import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/ins
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
-import { classifyWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
+import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
 import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
@@ -117,6 +118,7 @@ import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGapInsightCard'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
+import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
@@ -408,12 +410,12 @@ async function JobRecommendationsSection({
       ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
       : allSurfacedJobs
   ).filter(
-    (j) => workTypes.includes(classifyWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
+    (j) => workTypes.some((t) => t === memberWorkType(j)) && (!keepGreat || keepGreat(j)) && (!pivotFilter || pivotFilter.matchesTitle(j.title))
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
-    ...surfacedJobs.map((j) => classifyWorkType(j)),
+    ...surfacedJobs.map((j) => memberWorkType(j)).filter((t): t is WorkType => t !== null),
     ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
   ])
   const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
@@ -460,6 +462,9 @@ async function JobRecommendationsSection({
   // How they like to work (work profile), for the per-job working-style read.
   const workProfile = await loadWorkProfile(profile.id).catch(() => null)
   const strengthKeysNow = await loadStrengths(profile.id).then(strengthKeys).catch(() => null)
+  // A workforce program's region: its jobs rank first within each fit level.
+  const area = await localAreaForCandidate(profile.id).catch(() => null)
+  const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
   const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
@@ -490,7 +495,7 @@ async function JobRecommendationsSection({
   const matchFor = (p: (typeof visibleBoardPostings)[number]) => {
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     return matchJobToCandidate(
-      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow },
+      { ...profile, culturePrefs, workProfile, strengthKeys: strengthKeysNow, local },
       toMatchJob(p, {
         sizeBand: company?.sizeBand ?? companySizeBandFor(p.companyName),
         ownershipType: company?.ownershipType ?? null,
@@ -532,7 +537,11 @@ async function JobRecommendationsSection({
   // actual complaint) still works fully without it.
   const rankedLockedBoardPostings = lockedBoardPostings
     .map((posting) => ({ posting, fitBucket: computeBoardListingFitBucket(profile, posting) }))
-    .sort((a, b) => FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket])
+    .sort(
+      (a, b) =>
+        FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
+        Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
+    )
 
   return (
     <div className="space-y-4">
@@ -604,7 +613,9 @@ async function JobRecommendationsSection({
                   ...visibleBoardPostings.map((posting) => {
                     const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
                     return {
-                      rank: boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)),
+                      rank:
+                        boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+                        (local?.isLocal(posting.location) ? 0.5 : 0),
                       node: (
                         <DiscoverJobCard
                           key={posting.id}
@@ -763,6 +774,10 @@ async function FindMyJobBody({
   pivotFilter: PivotBoardFilter | null
 }) {
   const onBoard = tab === 'board'
+  // Early-career members (src/lib/early-career/audience.ts) skip the
+  // interim/fractional/board toolkit and expert networks: senior-only tools.
+  const audience = earlyCareerAudience(profile)
+  const showIndependentToolkit = featureVisible('interim_launch_plan', audience)
   // While a pivot filter is on, jobs are ranked as if the member were already in
   // the target function (their own function would rate every one a weak fit).
   const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
@@ -925,7 +940,7 @@ async function FindMyJobBody({
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
-    onBoard && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
   ])
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
@@ -1087,7 +1102,7 @@ async function FindMyJobBody({
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
                 <Lock className="size-3.5" aria-hidden />
               </span>
-              <p className="text-sm font-semibold text-warning">Executive Recruiters</p>
+              <p className="text-sm font-semibold text-warning">{audience ? 'Recruiters' : 'Executive Recruiters'}</p>
             </div>
             {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -1208,7 +1223,7 @@ async function FindMyJobBody({
       </div>
       )}
 
-      {onBoard && (
+      {onBoard && showIndependentToolkit && (
         <Suspense fallback={null}>
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>

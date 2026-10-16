@@ -29,7 +29,7 @@ function Choice({ name, label, help, value, onChange }: { name: string; label: s
   )
 }
 
-export function WelcomeForm({ action, collegeName }: { action: (prev: State, formData: FormData) => Promise<State>; collegeName: string }) {
+export function WelcomeForm({ action, collegeName, workforce = false }: { action: (prev: State, formData: FormData) => Promise<State>; collegeName: string; workforce?: boolean }) {
   const [state, formAction] = useActionState(action, null)
   // Defaults per the spec: outcome sharing on, search detail off.
   const [shareOutcome, setShareOutcome] = useState(true)
@@ -39,18 +39,23 @@ export function WelcomeForm({ action, collegeName }: { action: (prev: State, for
     <form action={formAction} className="space-y-4">
       <Choice
         name="shareOutcome"
-        label={`Tell ${collegeName} when you land a job`}
-        help="Your new employer and title, so the college can celebrate it and keep your record current. Nothing about your search."
+        label={workforce ? `Tell ${collegeName} when you land a job, and where` : `Tell ${collegeName} when you land a job`}
+        help={
+          workforce
+            ? `Your new employer, title and city, so ${collegeName} can count how many people stay in the region. Nothing about your search.`
+            : 'Your new employer and title, so the college can celebrate it and keep your record current. Nothing about your search.'
+        }
         value={shareOutcome}
         onChange={setShareOutcome}
       />
       <Choice
         name="shareSearchDetail"
-        label="Let Career Services see your progress"
+        label={workforce ? `Let ${collegeName}'s career team see your progress` : 'Let Career Services see your progress'}
         help="Your weekly progress and activity, so a counselor can help. Never your assessments or messages."
         value={shareSearchDetail}
         onChange={setShareSearchDetail}
       />
+      {!workforce && (
       <label className="flex items-start gap-3 rounded-lg border border-border bg-card p-4 text-sm">
         <input type="checkbox" name="takeCalls" checked={takeCalls} onChange={(e) => setTakeCalls(e.target.checked)} className="mt-0.5 size-4" />
         <span>
@@ -58,6 +63,7 @@ export function WelcomeForm({ action, collegeName }: { action: (prev: State, for
           <span className="block text-muted-foreground">Up to two short calls a month. You can stop any time.</span>
         </span>
       </label>
+      )}
       {state?.error && (
         <p role="alert" className="text-sm text-destructive">
           {state.error}

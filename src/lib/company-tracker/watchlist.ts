@@ -1,4 +1,6 @@
 import 'server-only'
+import { notInternshipWhere } from '@/lib/internships/exclude'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
@@ -103,6 +105,8 @@ async function loadActivePostings(): Promise<ActivePosting[]> {
       status: 'approved',
       distribution: { not: 'EXCLUDED' },
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      // Internships are Higher Ed portal only (internships/exclude.ts).
+      AND: [notInternshipWhere()],
     },
     select: {
       id: true,
@@ -115,7 +119,7 @@ async function loadActivePostings(): Promise<ActivePosting[]> {
       source: true,
     },
     orderBy: { createdAt: 'desc' },
-  })
+  }).then((rows) => rows.filter((r) => !isInternshipJob(r)))
 }
 
 // This candidate's own automated-search-partner matches (see

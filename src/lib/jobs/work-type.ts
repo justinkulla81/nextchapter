@@ -7,10 +7,18 @@
 // description, when we hold one). No AI, no per-view cost. Anything we can't tell
 // is full-time, since that is what almost every board job is.
 
+// The four types a member's job board offers. Internships are a fifth kind of
+// job but never a member board type: the owner's rule is that internships only
+// appear in Higher Ed portals (src/lib/internships/), so 'internship' is not in
+// WORK_TYPES, can't be saved as a board preference or picked in the URL, and
+// every member surface drops it (isInternshipJob).
 export const WORK_TYPES = ['full_time', 'part_time', 'contract', 'advisory'] as const
 export type WorkType = (typeof WORK_TYPES)[number]
+/** What classifyWorkType can say about a job: a member board type, or an internship. */
+export type JobWorkType = WorkType | 'internship'
 
-export const WORK_TYPE_LABEL: Record<WorkType, string> = {
+export const WORK_TYPE_LABEL: Record<JobWorkType, string> = {
+  internship: 'Internship',
   full_time: 'Full-time',
   part_time: 'Part-time & fractional',
   contract: 'Contract & 1099',
@@ -18,7 +26,8 @@ export const WORK_TYPE_LABEL: Record<WorkType, string> = {
 }
 
 /** Short label for a job card chip. */
-export const WORK_TYPE_CHIP: Record<WorkType, string> = {
+export const WORK_TYPE_CHIP: Record<JobWorkType, string> = {
+  internship: 'Internship',
   full_time: 'Full-time',
   part_time: 'Part-time',
   contract: 'Contract',
@@ -31,7 +40,7 @@ export function isWorkType(v: unknown): v is WorkType {
 
 // The crawler's employment_type_norm values (ncrawl/derive.py norm_employment_type),
 // plus 'advisory' / 'board' for a sender that classifies those itself.
-const EMPLOYMENT_TYPE_TO_WORK_TYPE: Record<string, WorkType> = {
+const EMPLOYMENT_TYPE_TO_WORK_TYPE: Record<string, JobWorkType> = {
   full_time: 'full_time',
   part_time: 'part_time',
   fractional: 'part_time',
@@ -39,7 +48,9 @@ const EMPLOYMENT_TYPE_TO_WORK_TYPE: Record<string, WorkType> = {
   interim: 'contract',
   contract: 'contract',
   temporary: 'contract',
-  internship: 'contract',
+  internship: 'internship',
+  co_op: 'internship',
+  coop: 'internship',
   advisory: 'advisory',
   board: 'advisory',
 }
@@ -47,7 +58,10 @@ const EMPLOYMENT_TYPE_TO_WORK_TYPE: Record<string, WorkType> = {
 /** Board, advisory and trustee seats — never "Financial Advisor", which is a full-time job. */
 const ADVISORY_TITLE =
   /\b(board (member|director|seat|chair|advisor|trustee)|independent director|non[- ]executive director|board of (directors|trustees)|advisory (board|council|committee)|\btrustee\b|board observer)/i
-const INTERN_TITLE = /\bintern(ship)?\b/i
+// "Intern", "Interns", "Internship", a student co-op — never "Internal",
+// "International" or "Co-op Marketing Manager" (cooperative marketing, a real job).
+const INTERN_TITLE =
+  /\b(intern|interns|internships?|student trainee)\b|\bco-?op\s+(student|intern|program|term|position|role|engineer(ing)?\s+(student|intern))s?\b|\b(student|engineering|summer|fall|spring|winter|20\d\d)\s+co-?op\b/i
 const FRACTIONAL_TITLE = /\b(fractional|part[- ]time|per diem|prn)\b/i
 const INTERIM_TITLE = /\binterim\b/i
 // "Contract Manager" and "Contract Specialist" are full-time jobs about contracts; the
@@ -65,8 +79,12 @@ export interface WorkTypeInput {
   employmentType?: string | null
 }
 
-/** Which of the four board types a job is. */
-export function classifyWorkType(input: WorkTypeInput): WorkType {
+/**
+ * Which of the four board types a job is, or 'internship'. Internships never
+ * reach a member: callers drop them (isInternshipJob) before showing anything.
+ */
+export function classifyWorkType(input: WorkTypeInput): JobWorkType {
+  if (isInternshipJob(input)) return 'internship'
   const sent = input.employmentType?.trim().toLowerCase().replace(/[\s-]+/g, '_')
   if (sent && EMPLOYMENT_TYPE_TO_WORK_TYPE[sent]) {
     // The crawler can't see board seats; a board title wins over its "full_time".
@@ -74,7 +92,6 @@ export function classifyWorkType(input: WorkTypeInput): WorkType {
     return EMPLOYMENT_TYPE_TO_WORK_TYPE[sent]
   }
   const t = input.title
-  if (INTERN_TITLE.test(t)) return 'contract'
   if (ADVISORY_TITLE.test(t)) return 'advisory'
   if (FRACTIONAL_TITLE.test(t)) return 'part_time'
   if (INTERIM_TITLE.test(t) || CONTRACT_TITLE.test(t)) return 'contract'
@@ -84,6 +101,24 @@ export function classifyWorkType(input: WorkTypeInput): WorkType {
     if (DESC_PART_TIME.test(d)) return 'part_time'
   }
   return 'full_time'
+}
+
+/** An internship or co-op (by the crawler's employment type or the title). Never shown on a member surface. */
+export function isInternshipJob(input: { title: string; employmentType?: string | null }): boolean {
+  const sent = input.employmentType?.trim().toLowerCase().replace(/[\s-]+/g, '_')
+  if (sent && EMPLOYMENT_TYPE_TO_WORK_TYPE[sent] === 'internship') return true
+  return INTERN_TITLE.test(input.title) && !INTERN_PROGRAM_STAFF.test(input.title)
+}
+
+// Staff who run internship programs hold real jobs: "Internship Program Manager",
+// "Coordinator, Internships", "Director of Internships and Co-ops".
+export const INTERN_PROGRAM_STAFF =
+  /\b(intern(ship)?s?|co-?ops?)\s+(program(s)?\s+)?(manager|coordinator|director|recruiter|supervisor|lead|specialist|advisor|administrator)\b|\b(manager|coordinator|director|recruiter|supervisor|specialist|advisor|administrator|head)\b,?\s+(of\s+|for\s+)?(the\s+)?([a-z&]+\s+){0,2}(internships|interns|intern programs?|internship programs?|co-?ops)\b/i
+
+/** A member board type, or null for an internship (which no member board shows). */
+export function memberWorkType(input: WorkTypeInput): WorkType | null {
+  const t = classifyWorkType(input)
+  return t === 'internship' ? null : t
 }
 
 // ── compensation ─────────────────────────────────────────────────────────
@@ -163,7 +198,7 @@ export function payBasisLabel(input: {
   salaryCurrency?: string | null
   payPeriod?: string | null
   compensationType?: string | null
-  workType?: WorkType
+  workType?: JobWorkType
 }): string | null {
   const kind = compensationKind(input)
   if (kind === 'unpaid') return 'Unpaid'
@@ -189,7 +224,7 @@ export function payBasisLabel(input: {
  */
 export type PayComparison = { compare: false; reason: string } | { compare: true; basis: 'year' | 'hour' }
 
-export function payComparison(workType: WorkType, kind: CompensationKind, period: PayPeriod | null): PayComparison {
+export function payComparison(workType: JobWorkType, kind: CompensationKind, period: PayPeriod | null): PayComparison {
   if (kind !== 'paid') return { compare: false, reason: kind === 'unpaid' ? 'Unpaid role' : 'Paid in equity' }
   if (workType !== 'full_time') return { compare: false, reason: `${WORK_TYPE_CHIP[workType]} pay isn't compared with full-time salaries` }
   return { compare: true, basis: period === 'hour' ? 'hour' : 'year' }
@@ -238,6 +273,8 @@ export function defaultWorkTypes(p: WorkTypeDefaultsInput): WorkType[] {
   if (saved.length > 0) return WORK_TYPES.filter((t) => saved.includes(t))
   if (p.journey === 'NEXT_ACT') return ['part_time', 'contract', 'advisory']
   const out = new Set<WorkType>(['full_time'])
+  // Students and new grads get full-time (entry-level) jobs here; internships
+  // are never on the member board — they live in the Higher Ed portals.
   if (p.interimConsultingInterest || p.gigDirectoryUnlockAnswer) {
     out.add('part_time')
     out.add('contract')

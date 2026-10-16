@@ -25,10 +25,12 @@ import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectR
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS } from '@/lib/jobs/competition'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
-import { checkInDue, effectiveStage, getStage } from '@/lib/journey/journey'
+import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
+import { menuMode } from '@/lib/journey/menu'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -89,6 +91,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       hasEmailConnection={gmailConnected}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
       employed={isInWorkMember(profile)}
+      mode={menuMode(effectiveStage(profile), effectiveJourney(profile))}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
@@ -162,7 +165,8 @@ async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
   return (
     <PlaceTabs
       employed={isInWorkMember(profile)}
-      locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null }}
+      earlyCareer={earlyCareerAudience(profile) !== null}
+      locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
       paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
       tabBadges={{ '/dashboard/companies': newCompanies, '/dashboard/documents': documentRequests }}
     />

@@ -65,7 +65,7 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
   return (
     <div className="space-y-6">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Programs run in cohorts. Alumni apply from their Programs tab; you enroll them and record who pays (self-pay, an employer, the Resilience Fund
+        Programs run in cohorts. People apply from their Learn tab; you enroll them and record who pays (self-pay, an employer, the Resilience Fund
         {showWioa ? ', a WIOA voucher' : ''} or Pell), and completers earn the program&apos;s credential. Taught by your{' '}
         <Link href={`/i/${ctx.institution.slug}/teaching/faculty`} className="text-primary hover:underline">
           faculty
@@ -258,7 +258,7 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
           ))}
         </ul>
       ) : (
-        <EmptyState icon={GraduationCap} title="No one here yet" description="Alumni apply from their Programs tab once a program has a cohort." />
+        <EmptyState icon={GraduationCap} title="No one here yet" description="People apply from their Learn tab once a program has a cohort." />
       )}
     </div>
   )

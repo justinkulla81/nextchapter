@@ -14,6 +14,7 @@ import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-re
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
+import { EngagementCard } from '@/components/dashboard/EngagementCard'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
@@ -59,6 +60,8 @@ import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
+import { EarlyCareerHomeModule } from '@/components/dashboard/early-career/EarlyCareerHomeModule'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -121,6 +124,8 @@ export default async function DashboardPage() {
   // whether "Has anything changed?" is due at this stage's pace.
   const journeyNow = effectiveJourney(profile)
   const stageNow = effectiveStage(profile)
+  // Students, new grads and people up to 5 years in get their own plan module.
+  const audience = earlyCareerAudience(profile)
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // The registration-time after() callback in getDashboardData that
@@ -298,7 +303,7 @@ export default async function DashboardPage() {
           : searchPlaybook
             ? 'search_playbook'
             : 'culture_survey' // the last-priority prompt slot: rate a former job, else describe a company's culture
-  after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber }))
+  after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber, audience }))
 
   const firstWeek = firstWeekStep(profile.registrationCompletedAt)
   const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
@@ -361,6 +366,11 @@ export default async function DashboardPage() {
         </section>
       )}
       {firstWeek && <FirstWeekCard step={firstWeek} />}
+      {audience && (
+        <Suspense fallback={null}>
+          <EarlyCareerHomeModule audience={audience} profile={profile} />
+        </Suspense>
+      )}
       {noteKind === 'coaching_form' && <CoachingFormReminderCard />}
       {noteKind === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
       {noteKind === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
@@ -376,6 +386,13 @@ export default async function DashboardPage() {
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
+
+      {/* What would make this plan work harder for them: connections and, when a
+          search has stalled, new things to try. Its own boundary, so it never
+          holds up the page. */}
+      <Suspense fallback={null}>
+        <EngagementCard candidateId={profile.id} />
+      </Suspense>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6 lg:col-span-2">
@@ -402,6 +419,7 @@ export default async function DashboardPage() {
             weekStartDate={weekStartDate}
             marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
             hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
+            title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
           />
         </div>
         <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>

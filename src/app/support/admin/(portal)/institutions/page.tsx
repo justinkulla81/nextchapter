@@ -9,7 +9,8 @@ import { STAFF_ROLE_LABELS, TIER_LABELS, getWorkspace } from '@/lib/higher-ed/wo
 import { SubmitButton } from '@/components/ui/submit-button'
 import { loadDemoContent, removeCollegeStaff, resendCollegeStaffInvite, resetDemoFixture } from './actions'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
-import { SERVICES, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { servicesFor, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { orgKindOf } from '@/lib/higher-ed/workspaces'
 
 // The college portal lives on the main site (its session cookie), not on the
 // admin subdomain.
@@ -23,7 +24,7 @@ export default async function InstitutionsAdminPage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, slug: true, name: true, programBrandName: true, accentColor: true, logoUrl: true, profile: true,
-      isDemo: true, isSampleData: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true, alumniCount: true, licenseStartAt: true, licenseEndAt: true,
+      isDemo: true, isSampleData: true, orgType: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true, alumniCount: true, licenseStartAt: true, licenseEndAt: true,
       users: { where: { revokedAt: null }, select: { id: true, invitedEmail: true, fullName: true, role: true, workspace: true, acceptedAt: true } },
       _count: { select: { targetCompanies: true, scopedJobPostings: true, members: true } },
     },
@@ -38,6 +39,13 @@ export default async function InstitutionsAdminPage() {
           works exactly like the real portal, flagged so it is never mistaken for a customer. Each college&apos;s portal is at{' '}
           <span className="font-mono text-xs">{PORTAL_ORIGIN}/i/&lt;slug&gt;</span>; invited staff sign in with the normal
           NextChapter login and land there. NextChapter admins see every workspace on a demo college.
+        </p>
+        <p className="text-sm">
+          Workforce boards, economic development orgs and chambers:{' '}
+          <a href="/demo/workforce" target="_blank" className="font-medium text-primary hover:underline">
+            generate a workforce demo
+          </a>{' '}
+          for any region. Yours don&apos;t expire; ones prospects make last 30 days.
         </p>
       </div>
 
@@ -67,7 +75,7 @@ export default async function InstitutionsAdminPage() {
                       Open portal
                     </a>{' '}
                     · {c.slug} · {TIER_LABELS[c.tier]} tier · {c._count.members.toLocaleString()} members · {c.includedSeats.toLocaleString()} seats ·{' '}
-                    {SERVICES.filter((sv) => serviceSettingsFrom(c.enabledFeatures)[sv.key].on).length} services on ·{' '}
+                    {servicesFor(orgKindOf(c.orgType)).filter((sv) => serviceSettingsFrom(c.enabledFeatures, orgKindOf(c.orgType))[sv.key].on).length} services on ·{' '}
                     {c.crmOrganizationId ? (
                       <a href={`/support/admin/crm/organizations/${c.crmOrganizationId}`} className="underline underline-offset-4">
                         CRM record

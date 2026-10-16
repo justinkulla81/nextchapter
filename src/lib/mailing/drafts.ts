@@ -90,7 +90,7 @@ export async function draftDueEditions(now = new Date()): Promise<{ drafted: str
 /** Emails you once for every draft the cadence job made that you haven't been told about. */
 export async function requestApprovals(): Promise<number> {
   const pending = await prisma.mailingEdition.findMany({
-    where: { status: 'DRAFT', cadenceListId: { not: null }, approvalRequestedAt: null },
+    where: { status: 'DRAFT', OR: [{ cadenceListId: { not: null } }, { createdByEmail: 'board-brief-job' }], approvalRequestedAt: null },
     include: { lists: { include: { list: { select: { name: true, cadence: true } } } } },
     orderBy: { createdAt: 'asc' },
   })
@@ -106,7 +106,7 @@ export async function requestApprovals(): Promise<number> {
     const listNames = e.lists.map((l) => `${l.list.name} (${CADENCE_LABEL[l.list.cadence].toLowerCase()})`).join(', ')
     rows.push(
       `<li style="margin-bottom:12px"><a href="${appUrl()}/support/admin/crm/mailing/editions/${e.id}"><b>${escapeHtml(e.title)}</b></a><br>` +
-      `Subject: ${escapeHtml(e.subject || '(none yet)')}<br>To: ${listNames} · ${c.total} ${c.total === 1 ? 'person' : 'people'}</li>`,
+      `Subject: ${escapeHtml(e.subject || '(none yet)')}<br>${e.lists.length ? `To: ${listNames} · ${c.total} ${c.total === 1 ? 'person' : 'people'}` : 'No readership yet: choose who it goes to on the edition page'}</li>`,
     )
   }
   const resend = createResend(process.env.RESEND_API_KEY)

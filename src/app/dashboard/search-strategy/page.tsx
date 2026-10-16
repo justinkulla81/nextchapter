@@ -24,6 +24,9 @@ import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetwork
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
 import { OtherSearchStrengthenersForm } from '@/components/dashboard/OtherSearchStrengthenersForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { CultureFitForm } from '@/components/dashboard/CultureFitForm'
+import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -278,6 +281,10 @@ export default async function SearchStrategyPage() {
   // Motivations come first — those are the two Victoria needs before she'll
   // review the strategy at all, so they shouldn't be buried behind an
   // optional page.
+  // Culture is part of a search; it is not asked of people who are not looking.
+  const stageJourney = effectiveJourney(profile)
+  const showCulture = !!stageJourney && getJourney(stageJourney).searching
+  const cultureAnswered = parseCultureFit(profile.cultureFit) !== null
   const wizardPages: WizardPage[] = [
     { key: 'target-role', label: 'Target Role & Company', items: [{ key: 'target-role', complete: targetRoleComplete }] },
     {
@@ -285,6 +292,9 @@ export default async function SearchStrategyPage() {
       label: "What's Getting in the Way",
       items: [{ key: 'blockers-motivations', complete: blockersMotivationsComplete }],
     },
+    ...(showCulture
+      ? [{ key: 'culture', label: 'Culture & Working Environment', items: [{ key: 'culture', complete: cultureAnswered }] }]
+      : []),
     {
       key: 'marketing-networking',
       label: 'Your Marketing & Networking Plan',
@@ -409,6 +419,22 @@ export default async function SearchStrategyPage() {
       </CardContent>
     </Card>,
 
+    ...(showCulture
+      ? [
+          <Card key="culture">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                If it matters to you, we turn it into questions to ask in interviews, checks on an offer and people to ask what a company is really like. If it
+                does not matter, we leave it out.
+              </p>
+              <CultureFitForm fit={parseCultureFit(profile.cultureFit)} />
+            </CardContent>
+          </Card>,
+        ]
+      : []),
     <Card key="marketing-networking">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</CardTitle>

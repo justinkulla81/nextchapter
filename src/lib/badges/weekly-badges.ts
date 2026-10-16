@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import { maybeCreateMilestonePost } from '@/lib/community/milestone-posts'
 import { persistWeeklyBadgesAndNotify } from '@/lib/badges/badge-notifications'
 
@@ -79,7 +80,7 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
     ])
 
   const weekNumber = priorSprintCount + 1
-  const pointsTarget = pointsNeededForA(weekNumber)
+  const pointsTarget = pointsNeededForA(weekNumber, await getPace(candidateId))
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
 
   const pointsAchieved = committedActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
