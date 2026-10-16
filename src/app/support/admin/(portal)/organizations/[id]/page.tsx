@@ -6,6 +6,7 @@ import { INTEGRATIONS, integrationApplies, portalMeta, resolveIntegrations, type
 import { DeleteDemoButton, DemoControls, IntegrationToggles, OrganizationBrandForm } from '@/components/admin/OrganizationControls'
 import { demoTargets } from '@/lib/demo/access'
 import { prisma } from '@/lib/prisma'
+import { frontDoorUrl } from '@/lib/organizations/front-door'
 import { organizationOverview } from '@/lib/organizations/overview'
 import { describeAuditAction } from '@/lib/partners/audit-labels'
 
@@ -40,7 +41,7 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
           {org.isDemo ? <span className="ml-1 rounded-full bg-warn/20 px-2 py-0.5 align-middle text-xs font-medium">Demo</span> : <span className="ml-1 rounded-full bg-success/15 px-2 py-0.5 align-middle text-xs font-medium text-success">Live</span>}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Address <code className="rounded bg-muted px-1.5 py-0.5">/p/{org.slug}</code>
+          Front door <a href={frontDoorUrl(org.slug)} className="underline underline-offset-4">{frontDoorUrl(org.slug)}</a>
           {org.domain ? <> · {org.domain}</> : null}
           {org.crmOrganizationId ? <> · <Link href={`/support/admin/crm/organizations/${org.crmOrganizationId}`} className="underline underline-offset-4">CRM record</Link></> : null}
           {org.isDemo && org.demoExpiresAt ? <> · expires {org.demoExpiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</> : null}

@@ -3,6 +3,7 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
 import { CANDIDATE_ORG_PAGES, HOSTS, LEGACY_EMPLOYER_HOST_PREFIX, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
+import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations/front-door'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
 export const ADMIN_HOST = 'admin.launchyournextchapter.com'
@@ -33,6 +34,16 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/support/admin'
     return NextResponse.redirect(url, 308)
+  }
+
+  // <slug>.<site> is a customer's front door (src/lib/organizations/front-door.ts).
+  if (CUSTOMER_SUBDOMAINS_ON) {
+    const customer = customerSlugForHost(host)
+    if (customer && !/^\/(_next|api|auth|ingest)(\/|$)/.test(pathname) && !/\.[a-z0-9]+$/i.test(pathname)) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/p/${customer}`
+      return NextResponse.rewrite(url)
+    }
   }
 
   if (ORG_SUBDOMAINS_ON) {
