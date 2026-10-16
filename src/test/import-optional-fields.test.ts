@@ -59,3 +59,19 @@ describe('importSpecFields: O*NET-SOC occupation', () => {
     expect(importSpecFields({ socCode: null, socTitle: null }, () => [], codes)).toEqual({ socCode: null, socTitle: null })
   })
 })
+
+describe('repost and duplicate import fields', () => {
+  const codes = new Set(['CA'])
+  it('reads counts and the original first-seen date, only when sent', () => {
+    expect(importSpecFields({}, () => [], codes)).toEqual({})
+    const out = importSpecFields({ reopenCount: '2', repostCount: 3, duplicateCount: 1, repostFirstSeenAt: '2026-08-02T04:35:08.156822+00:00' }, () => [], codes)
+    expect(out.reopenCount).toBe(2)
+    expect(out.repostCount).toBe(3)
+    expect(out.duplicateCount).toBe(1)
+    expect(out.repostFirstSeenAt?.toISOString()).toBe('2026-08-02T04:35:08.156Z')
+  })
+  it('stores junk as null', () => {
+    const out = importSpecFields({ reopenCount: -1, repostCount: 'many', duplicateCount: 1.5, repostFirstSeenAt: 'yesterday' }, () => [], codes)
+    expect(out).toEqual({ reopenCount: null, repostCount: null, duplicateCount: null, repostFirstSeenAt: null })
+  })
+})

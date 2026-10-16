@@ -33,6 +33,10 @@ export interface ImportSpecInput {
   descHash?: unknown
   socCode?: unknown
   socTitle?: unknown
+  reopenCount?: unknown
+  repostCount?: unknown
+  repostFirstSeenAt?: unknown
+  duplicateCount?: unknown
 }
 
 export interface ImportSpecFields {
@@ -46,6 +50,24 @@ export interface ImportSpecFields {
   descHash?: string | null
   socCode?: string | null
   socTitle?: string | null
+  reopenCount?: number | null
+  repostCount?: number | null
+  repostFirstSeenAt?: Date | null
+  duplicateCount?: number | null
+}
+
+/** A whole count 0–10,000 (a numeric string is read), else null. */
+export function importCount(v: unknown): number | null {
+  const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v
+  return typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= 10_000 ? n : null
+}
+
+/** An ISO date/time from 2000 up to a day ahead, else null. */
+export function importDate(v: unknown, now: Date = new Date()): Date | null {
+  if (typeof v !== 'string' || !v.trim()) return null
+  const d = new Date(v.trim())
+  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < 2000 || d.getTime() > now.getTime() + 86_400_000) return null
+  return d
 }
 
 /** Trimmed single-line text up to `max` chars (longer is cut), else null. */
@@ -108,5 +130,11 @@ export function importSpecFields(
     out.socCode = ok ? soc : null
     out.socTitle = ok ? importText(job.socTitle, 150) : null
   }
+  // How many times the crawler saw this listing close and come back (job-status.ts).
+  // Reposts and duplicates (crawler repost_groups.py): counts, and the role's original first-seen date.
+  if (has('reopenCount')) out.reopenCount = importCount(job.reopenCount)
+  if (has('repostCount')) out.repostCount = importCount(job.repostCount)
+  if (has('duplicateCount')) out.duplicateCount = importCount(job.duplicateCount)
+  if (has('repostFirstSeenAt')) out.repostFirstSeenAt = importDate(job.repostFirstSeenAt)
   return out
 }

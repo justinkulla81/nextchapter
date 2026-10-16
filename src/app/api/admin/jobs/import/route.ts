@@ -15,6 +15,10 @@ import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 import { importBenefitsFields } from '@/lib/jobs/benefits'
 import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 import { isInternshipJob } from '@/lib/jobs/work-type'
+import { FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
+import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
+
+const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
 export const maxDuration = 300
 
@@ -86,6 +90,16 @@ interface ImportJobInput {
   // O*NET-SOC occupation matched by the crawler (optional like the fields above).
   socCode?: string | null
   socTitle?: string | null
+  // Times the crawler saw this listing close and come back (jobs.reopen_count).
+  reopenCount?: number | null
+  // The same role seen before / listed twice (crawler repost_groups.py): times it came
+  // back, its original first-seen date (ISO), how many other copies this one stands
+  // for, and — on a second copy — the url of the copy shown. A second copy is never
+  // put on the board: it is archived as 'duplicate' (a current job, not a past one).
+  repostCount?: number | null
+  repostFirstSeenAt?: string | null
+  duplicateCount?: number | null
+  duplicateOf?: string | null
 }
 
 interface ImportRequestBody {
@@ -227,12 +241,42 @@ async function recordBenefits(kept: Screened[]) {
   }
 }
 
+// A second copy of a listed role (job-status.ts 'duplicate'): a copy already on the
+// board is archived with closeReason 'duplicate' (its company-history row follows at the
+// next finalize or the nightly hiring index — closeArchivedOpenings); a new one is not created. Confirmed, so finalize leaves it be.
+async function collapseDuplicates(urls: string[], now: Date): Promise<number> {
+  if (urls.length === 0) return 0
+  const result = await prisma.exclusiveJobPosting.updateMany({
+    where: { url: { in: urls }, addedBy: 'ncrawl', OR: [{ archivedAt: null }, { closeReason: { not: 'duplicate' } }, { closeReason: null }] },
+    data: { archivedAt: now, closeReason: 'duplicate', lastConfirmedAt: now },
+  })
+  return result.count
+}
+
 async function closeOpeningsSafely() {
   try {
     await closeArchivedOpenings()
   } catch (error) {
     console.error('jobs import: could not close archived openings', error)
   }
+}
+
+// Archives every ncrawl row the run didn't confirm and records WHY (job-status.ts):
+// past its freshness window (director and above 60 days, others 30, from the posted
+// date or else the import date) → 'aged_out', since the crawl's export drops it even
+// if it is still up; otherwise the employer stopped listing it → 'removed'. One
+// statement, the same rows the old updateMany archived.
+async function archiveStale(startedAt: Date, now: Date): Promise<number> {
+  const senior = seniorWindowLevels(levelsInAnyGroup())
+  return prisma.$executeRaw`
+    UPDATE "ExclusiveJobPosting"
+    SET "archivedAt" = ${now},
+        "closeReason" = CASE
+          WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
+          THEN 'aged_out' ELSE 'removed' END
+    WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
+      AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
+  `
 }
 
 async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
@@ -252,7 +296,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
     )
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
-  const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
+  const archivedCount = await archiveStale(startedAt, new Date())
   await closeOpeningsSafely()
   // The board's narrow copy of this table is kept in step by triggers; after a
   // full sync, check it (and repair any drift) once the response is sent.
@@ -261,7 +305,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
       .then((r) => console.log('jobs import: board light rows reconciled', r))
       .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
   )
-  return NextResponse.json({ archived: result.count, live: live - result.count })
+  return NextResponse.json({ archived: archivedCount, live: live - archivedCount })
 }
 
 export async function POST(request: NextRequest) {
@@ -289,7 +333,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '"jobs" must be an array' }, { status: 400 })
   }
 
-  const { kept, skipped } = screen(body.jobs)
+  const screened = screen(body.jobs)
+  const skipped = screened.skipped
+  // Second copies of a role already listed elsewhere: collapsed, never on the board.
+  const isDuplicate = (k: Screened) => typeof k.job.duplicateOf === 'string' && !!k.job.duplicateOf.trim() && k.job.duplicateOf.trim() !== k.job.url
+  const duplicates = screened.kept.filter(isDuplicate)
+  const kept = screened.kept.filter((k) => !isDuplicate(k))
   const urls = kept.map((k) => k.job.url)
   const existing = await prisma.exclusiveJobPosting.findMany({
     where: { url: { in: urls } },
@@ -299,7 +348,8 @@ export async function POST(request: NextRequest) {
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
-      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
+      repostCount: true, repostFirstSeenAt: true, duplicateCount: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
@@ -311,6 +361,7 @@ export async function POST(request: NextRequest) {
       dryRun: true,
       wouldCreate: toCreate.length,
       wouldUpdate: toUpdate.length,
+      wouldCollapse: duplicates.length,
       wouldArchive: body.fullSync
         ? await prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } } })
         : 0,
@@ -349,7 +400,7 @@ export async function POST(request: NextRequest) {
   if (toUpdate.length > 0) {
     await prisma.exclusiveJobPosting.updateMany({
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
-      data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
+      data: { archivedAt: null, closeReason: null, expiresAt, lastConfirmedAt: now },
     })
     for (const k of unlinked) {
       const companyId = companyIds.get(rowData(k).companyName)
@@ -371,6 +422,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
   await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
   await recordBenefits(kept)
 
@@ -378,11 +430,12 @@ export async function POST(request: NextRequest) {
   if (body.fullSync) {
     const result = await prisma.exclusiveJobPosting.updateMany({
       where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } },
-      data: { archivedAt: new Date() },
+      // Small single-call runs only; the batched finalize below tells removed from aged out.
+      data: { archivedAt: new Date(), closeReason: 'removed' },
     })
     archived = result.count
     await closeOpeningsSafely()
   }
 
-  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })
+  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, collapsed, skipped })
 }

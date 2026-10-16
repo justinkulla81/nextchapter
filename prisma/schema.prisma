@@ -4992,6 +4992,17 @@ model ExclusiveJobPosting {
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
   socCode         String?
   socTitle        String?
+  // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
+  // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
+  // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
+  closeReason     String?
+  reopenCount     Int?
+  // The same role seen before / listed twice (crawler repost_groups.py): times it
+  // came back, its original first-seen date, and on the copy shown, how many other
+  // listings of it were collapsed into this one (those are archived 'duplicate').
+  repostCount       Int?
+  repostFirstSeenAt DateTime?
+  duplicateCount    Int?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -7311,6 +7322,7 @@ model CompanyJobOpening {
   firstSeenAt    DateTime
   lastSeenAt     DateTime
   closedAt       DateTime? // null = still open
+  closeReason    String? // why it closed (job-status.ts); null = open, or closed before reasons were kept
   sourceName     String?
   source         String // 'import' | 'crawler_history' | 'board'
 
