@@ -2764,8 +2764,6 @@ model EmployerProfile {
   cultureVerifiedAt         DateTime?
 
   marketDigestOptedOut Boolean @default(false)
-  /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
-  marketDigestLastSentAt DateTime?
 
   // Relations
   savedSearches         SavedSearch[]
@@ -5210,6 +5208,8 @@ model Coach {
   // Weekly Market Digest opt-out — same convention as CandidateProfile's
   // marketDigestOptedOut, no other digest exists for coaches yet.
   marketDigestOptedOut Boolean @default(false)
+  /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
+  marketDigestLastSentAt DateTime?
 
   // Coach-Candidate Matching System, Phase 1 — structured self-description
   // used only for shortlist ranking (src/lib/coach/matching.ts), framed as
