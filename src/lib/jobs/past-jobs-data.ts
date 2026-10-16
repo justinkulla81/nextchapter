@@ -102,7 +102,8 @@ export async function searchPastJobs(search: BoardSearchParams, limit = PAST_JOB
   const parsed = parseSearchQuery(search.q)
   if (isEmptyQuery(parsed) || (parsed.terms.length === 0 && parsed.companies.length === 0)) return []
   const loc = parseLocationQuery(search.loc)
-  const hay = Prisma.sql`regexp_replace(lower(o."title" || ' ' || o."companyName" || ' ' || coalesce(o."function", '')), '[^a-z0-9]', '', 'g')`
+  // The punctuation-blind haystack, computed once per row (h.hay below).
+  const hay = Prisma.sql`h.hay`
   // Collapsed duplicates are current jobs, never past ones.
   const conds: Prisma.Sql[] = [Prisma.sql`o."closedAt" IS NOT NULL`, Prisma.sql`o."closeReason" IS DISTINCT FROM 'duplicate'`]
   for (const t of parsed.terms) {
@@ -128,6 +129,10 @@ export async function searchPastJobs(search: BoardSearchParams, limit = PAST_JOB
            o."function", o."industry", o."level", o."payAnnualMin", o."payAnnualMax", o."postedAt", o."firstSeenAt",
            o."closedAt", o."closeReason", c."canonicalNameNormalized" AS "companySlug"
     FROM "CompanyJobOpening" o
+    -- OFFSET 0 keeps the subquery from being inlined, so the regexp runs once per row, not once per search word.
+    CROSS JOIN LATERAL (
+      SELECT regexp_replace(lower(o."title" || ' ' || o."companyName" || ' ' || coalesce(o."function", '')), '[^a-z0-9]', '', 'g') AS hay OFFSET 0
+    ) h
     LEFT JOIN "Company" c ON c."id" = o."companyId"
     WHERE ${Prisma.join(conds, ' AND ')}
     ORDER BY o."closedAt" DESC
@@ -166,10 +171,12 @@ export async function searchPastJobs(search: BoardSearchParams, limit = PAST_JOB
 
 // SQL twin of jobLifecycle's past status: a stored reason wins; with none, past the
 // freshness window at close (director and above 60 days, others 30) counts as expired.
-const EXPIRED_SQL = Prisma.sql`(
+// COALESCE: a NULL reason must read as "not expired", never as SQL NULL (NOT NULL drops the row).
+const EXPIRED_SQL = Prisma.sql`COALESCE(
   o."closeReason" IN ('aged_out', 'expired')
   OR (o."closeReason" IS NULL AND o."closedAt" - COALESCE(o."postedAt", o."firstSeenAt")
-      > make_interval(days => CASE WHEN o."seniorityGroup" IN ('EXECUTIVE', 'VP', 'DIRECTOR') THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END))
+      > make_interval(days => CASE WHEN o."seniorityGroup" IN ('EXECUTIVE', 'VP', 'DIRECTOR') THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)),
+  false
 )`
 const DAYS_OPEN_SQL = Prisma.sql`EXTRACT(EPOCH FROM (o."closedAt" - COALESCE(o."postedAt", o."firstSeenAt"))) / 86400.0`
 
