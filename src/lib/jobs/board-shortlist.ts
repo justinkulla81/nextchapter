@@ -18,6 +18,7 @@ import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
+import { sectorKeep } from '@/lib/jobs/employer-sector'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -106,7 +107,7 @@ function sameRow(a: LightRow, b: LightRow): boolean {
 // instead of one per row (the shared board is ~160k rows).
 const REPEATED_COLUMNS = [
   'companyName', 'audienceTier', 'source', 'targetFunction', 'targetLevel', 'targetRemotePolicy',
-  'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType',
+  'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType', 'employerSector', 'requirementTags',
 ] as const satisfies readonly (keyof LightRow)[]
 function internRepeated(rows: LightRow[]): void {
   const pool = new Map<string, string>()
@@ -486,6 +487,12 @@ export async function loadBoardShortlist(opts: {
   sort?: BoardSort
   /** Jobs per company before the rest are held back (default PER_COMPANY); a company: search lifts it. */
   perCompany?: number
+  /**
+   * Employer sectors to leave out (employer-sector.ts). Omitted: the member's own
+   * saved choice (candidate.hiddenEmployerSectors) — so every email path, which
+   * passes the member's profile, never includes a sector they turned off.
+   */
+  hiddenSectors?: readonly string[]
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -496,7 +503,10 @@ export async function loadBoardShortlist(opts: {
   const window = opts.stageWindow ?? (opts.candidate ? memberStageWindow(opts.candidate) : ALL_STAGES_WINDOW)
   const levelWhere = boardLevelWindowWhere(opts.where, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
   const light = await loadLightBoardRows(levelWhere, closedCounts, opts.postedWithinHours)
-  const ranked = rankBoardRows(light, opts)
+  const hidden = opts.hiddenSectors ?? (opts.candidate as { hiddenEmployerSectors?: string[] | null } | null)?.hiddenEmployerSectors ?? []
+  const inSector = sectorKeep(hidden)
+  const keep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const ranked = rankBoardRows(light, { ...opts, keep })
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
   )

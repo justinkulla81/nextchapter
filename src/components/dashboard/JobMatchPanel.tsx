@@ -14,6 +14,7 @@ import {
   type OverallMatch,
 } from '@/lib/jobs/job-match-types'
 import { explainJobGaps } from '@/app/dashboard/find-my-job/actions'
+import { JobRequirementDetails } from '@/components/dashboard/JobRequirementLabels'
 
 // The per-job match and gaps (src/lib/jobs/job-match.ts) on a board card: a compact
 // line in the card header, and a "Your match and gaps" section inside the card.
@@ -89,6 +90,7 @@ export function JobMatchDetails({
         <span className="font-normal text-muted-foreground"> — {OVERALL_MATCH_LABEL[match.overall].toLowerCase()}</span>
       </summary>
       <div className="space-y-3 px-3 pb-3">
+        <JobRequirementDetails jobId={jobId} checks={match.requirements} surface="board_card" />
         {match.gaps.length > 0 ? (
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">What to address in your application</p>

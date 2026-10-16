@@ -19,6 +19,8 @@ import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { shownFromHidden } from '@/lib/jobs/employer-sector'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetworkingForm'
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
@@ -401,6 +403,13 @@ export default async function SearchStrategyPage() {
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
         />
+        <div id="employer-sectors" className="scroll-mt-4 space-y-2 border-t border-border pt-4">
+          <p className="text-sm font-medium text-foreground">Which employers do you want jobs from?</p>
+          <p className="text-xs text-muted-foreground">
+            Turn a sector off and its jobs leave your board and your job emails. You can change this any time, here or on the board.
+          </p>
+          <EmployerSectorFilter surface="search_strategy" shown={shownFromHidden(profile.hiddenEmployerSectors)} updateUrl={false} />
+        </div>
       </CardContent>
     </Card>,
 

@@ -7,7 +7,10 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
-import { importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
+import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
+import { functionLabelFor } from '@/lib/jobs/job-functions'
+import { isEmployerSector } from '@/lib/jobs/employer-sector'
+import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
 import { parseYearsRequired } from '@/lib/jobs/years-required'
 import { Prisma } from '@prisma/client'
@@ -103,6 +106,14 @@ interface ImportJobInput {
   // The person the source names as the job's contact or poster (ncrawl jobs.recruiter_name).
   // Optional like the fields above: left out, the stored value is untouched.
   recruiterName?: string | null
+  // The crawler's function code (engineering, data_ai, …; ncrawl taxonomy + function_fallback),
+  // stored as its display label in targetFunction (job-functions.ts). Optional like the fields above.
+  function?: string | null
+  // private | government | nonprofit | academia (ncrawl/sector.py). Optional.
+  employerSector?: string | null
+  // Hard requirements read from the full posting (ncrawl/requirements.py): a list of
+  // { flag, …, evidence }. Optional; an empty list clears what the row held.
+  requirementFlags?: unknown
 }
 
 interface ImportRequestBody {
@@ -188,7 +199,23 @@ function rowData({ job, level }: Screened) {
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
-    industry: job.industry?.trim() || null,
+    industry: canonicalIndustry(job.industry),
+    ...('function' in job && job.function !== undefined ? { targetFunction: functionLabelFor(job.function) } : {}),
+    ...('employerSector' in job && job.employerSector !== undefined
+      ? { employerSector: isEmployerSector(job.employerSector) ? job.employerSector : null }
+      : {}),
+    ...requirementFieldsOf(job),
+  }
+}
+
+// Requirement flags as sent, validated (requirements.ts), plus the tag string the
+// board filters on. Left out when the sender didn't send them, so a row keeps what it holds.
+function requirementFieldsOf(job: ImportJobInput) {
+  if (!('requirementFlags' in job) || job.requirementFlags === undefined) return {}
+  const flags = parseRequirementFlags(job.requirementFlags)
+  return {
+    requirementFlags: flags.length ? (flags as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+    requirementTags: requirementTagsFor(flags),
   }
 }
 
@@ -354,6 +381,7 @@ export async function POST(request: NextRequest) {
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
+      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

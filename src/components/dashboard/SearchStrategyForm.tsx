@@ -27,6 +27,10 @@ import {
   HIGHEST_LEVEL_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { MAX_TRAVEL_OPTIONS } from '@/lib/jobs/requirements'
+
+const MAX_TRAVEL_CHOICES = MAX_TRAVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))
 import type { CandidateProfile } from '@prisma/client'
 
 // A quiet visual flag next to a Label — not answered yet, in-context, no
@@ -64,6 +68,7 @@ export function SearchStrategyForm({
   const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
   const [isPivoting, setIsPivoting] = useState(profile.isPivoting)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
+  const [maxTravel, setMaxTravel] = useState<string | null>(profile.maxTravelPct === null ? null : String(profile.maxTravelPct))
 
   return (
     <form
@@ -427,7 +432,7 @@ export function SearchStrategyForm({
             Equity matters to me
           </Label>
         </div>
-        <div className="flex items-start gap-2">
+        <div id="relocation" className="flex scroll-mt-4 items-start gap-2">
           <Checkbox
             id="openToRelocation"
             name="openToRelocation"
@@ -447,11 +452,20 @@ export function SearchStrategyForm({
             rows={2}
           />
         )}
-        <div className="flex items-start gap-2">
-          <Checkbox id="travelWillingness" name="travelWillingness" value="on" defaultChecked={profile.travelWillingness} />
-          <Label htmlFor="travelWillingness" className="font-normal">
-            I&apos;m willing to travel for a role (not the same as relocating)
+        <div id="travel" className="scroll-mt-4 space-y-2">
+          <Label className="font-normal">
+            How much travel can you take on? (not the same as relocating)
+            {maxTravel === null && <UnansweredBadge />}
           </Label>
+          <ChoiceButtons
+            name="maxTravelPct"
+            options={MAX_TRAVEL_CHOICES}
+            value={maxTravel}
+            onChange={setMaxTravel}
+            columns={4}
+            responsive
+            compact
+          />
         </div>
         <div className="flex items-start gap-2">
           <Checkbox

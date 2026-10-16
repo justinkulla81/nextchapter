@@ -557,6 +557,10 @@ export async function confirmWorkAuthorization(
     where: { id: profile.id },
     data: { workAuthorization, visaStatus, workAuthConfirmedAt: new Date() },
   })
+  // Read by the job requirement match ("US citizens only", "No visa sponsorship"; requirements.ts).
+  if (workAuthorization !== profile.workAuthorization || !profile.workAuthConfirmedAt) {
+    captureServerEvent(profile.id, 'requirement_profile_answered', { field: 'work_authorization', surface: 'screening', value: workAuthorization })
+  }
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/market-reality')

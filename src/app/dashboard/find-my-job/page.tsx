@@ -34,6 +34,13 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
+import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { RequirementFilters } from '@/components/dashboard/RequirementFilters'
+import { parseFunctionParam } from '@/lib/jobs/job-functions'
+import { hiddenFromShown, parseSectorsParam, shownFromHidden } from '@/lib/jobs/employer-sector'
+import { holdsClearance } from '@/lib/jobs/requirements'
+import { combineKeeps, requirementKeeps, surfacedPassesBoardFilters, type BoardRequirementFilters } from '@/lib/jobs/board-filters'
 import { employerSignalsFor, greatFilterPredicate, parseGreatParam, GREAT_FILTER_LABEL, type GreatFilter } from '@/lib/jobs/great-employers'
 import { loadGreatSets, loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
@@ -399,6 +406,7 @@ async function JobRecommendationsSection({
   workTypes,
   parallelPaths,
   greatFilters,
+  boardFilters,
   pivotFilter,
   myJobs,
   expertNetworks,
@@ -417,6 +425,7 @@ async function JobRecommendationsSection({
   workTypes: WorkType[]
   parallelPaths: string[] | null
   greatFilters: GreatFilter[]
+  boardFilters: BoardRequirementFilters
   pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
   expertNetworks: ExpertNetworkCard[]
@@ -498,7 +507,11 @@ async function JobRecommendationsSection({
       workTypes.some((t) => t === memberWorkType(j)) &&
       (!keepGreat || keepGreat(j)) &&
       (!pivotFilter || pivotFilter.matchesTitle(j.title)) &&
-      (!search?.matcher || search.matcher.matchesPlain(j) !== null)
+      (!search?.matcher || search.matcher.matchesPlain(j) !== null) &&
+      // Partner-search jobs carry no function, sector or requirement data: with one
+      // of those filters on they can't be shown as matching it. With no sector
+      // known they read as private.
+      surfacedPassesBoardFilters(boardFilters)
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
@@ -833,11 +846,15 @@ export default async function JobFitPage({
     loc?: string
     remote?: string
     sort?: string
+    fn?: string
+    sectors?: string
+    blockers?: string
+    cleared?: string
   }>
 }) {
   const profile = await getDashboardData()
   const allParams = await searchParams
-  const { seniority, view, types, tab: tabParam, great, pivot } = allParams
+  const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
   // Other board filters that are on (search analytics, and the no-results suggestions).
   const filtersActive = [
@@ -846,11 +863,24 @@ export default async function JobFitPage({
     great && 'great',
     pivot && 'pivot',
     types && 'types',
+    fn && 'fn',
+    sectors && 'sectors',
+    blockers && 'blockers',
+    cleared && 'cleared',
   ].filter((f): f is string => !!f)
   const urlParams = Object.fromEntries(
     Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string')
   )
   const greatFilters = parseGreatParam(great)
+  // Function, employer sector and hard-requirement filters (job-functions.ts,
+  // employer-sector.ts, requirements.ts). Sectors: the URL wins (a shared link or a
+  // toggle just clicked), else the member's saved choice.
+  const boardFilters: BoardRequirementFilters = {
+    functionKey: parseFunctionParam(fn),
+    sectorsShown: parseSectorsParam(sectors) ?? shownFromHidden(profile.hiddenEmployerSectors),
+    hideBlockers: blockers === 'hide',
+    clearedOnly: cleared === '1' && holdsClearance(profile),
+  }
   // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
   const pivotFilter = pivotBoardFilter(pivot)
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
@@ -892,6 +922,7 @@ export default async function JobFitPage({
           boardSearch={boardSearch}
           filtersActive={filtersActive}
           urlParams={urlParams}
+          boardFilters={boardFilters}
         />
       </Suspense>
     </div>
@@ -925,6 +956,7 @@ async function FindMyJobBody({
   boardSearch,
   filtersActive,
   urlParams,
+  boardFilters,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -937,6 +969,7 @@ async function FindMyJobBody({
   boardSearch: BoardSearchParams
   filtersActive: string[]
   urlParams: Record<string, string>
+  boardFilters: BoardRequirementFilters
 }) {
   const onBoard = tab === 'board'
   // Early-career members (src/lib/early-career/audience.ts) skip the
@@ -1119,7 +1152,12 @@ async function FindMyJobBody({
       includeMidLevel: true,
       includeEarlyCareer: true,
       workTypes,
-      keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
+      keep: combineKeeps([
+        keepGreat,
+        pivotFilter ? (p) => pivotFilter.matchesTitle(p.title) : null,
+        ...requirementKeeps(boardFilters, profile),
+      ]),
+      hiddenSectors: hiddenFromShown(boardFilters.sectorsShown),
       relevance: searchMatcher?.relevance,
       sort: onBoard && boardSearch.sort !== 'best' ? boardSearch.sort : undefined,
       // company:Name shows that company's jobs, not just its first five.
@@ -1357,7 +1395,17 @@ async function FindMyJobBody({
               <BoardViewToggle surface="find_my_job" />
               <GreatEmployerFilter surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />
+              <FunctionFilter surface="find_my_job" />
             </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
+            <RequirementFilters
+              surface="find_my_job"
+              hideBlockers={boardFilters.hideBlockers}
+              clearedOnly={boardFilters.clearedOnly}
+              holdsClearance={holdsClearance(profile)}
+            />
           </div>
           {pivotFilter ? (
             <PivotBoardBanner
@@ -1384,6 +1432,7 @@ async function FindMyJobBody({
                 workTypes={workTypes}
                 parallelPaths={parallelPaths}
                 greatFilters={greatFilters}
+                boardFilters={boardFilters}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
                 search={searchView}

@@ -44,7 +44,10 @@ Match by dimension:
 ${dims}
 
 Gaps already identified:
-${input.match.gaps.map((g) => `- ${g}`).join('\n') || '- none'}`
+${input.match.gaps.map((g) => `- ${g}`).join('\n') || '- none'}
+
+Hard requirements the posting states (a "red flag" is one the job seeker told us they don't meet — say so plainly first, and don't suggest working around a legal requirement):
+${(input.match.requirements ?? []).map((r) => `- ${r.status === 'blocker' ? 'RED FLAG: ' : r.status === 'unknown' ? 'Not answered yet: ' : ''}${r.message}`).join('\n') || '- none'}`
 }
 
 export async function explainGaps(

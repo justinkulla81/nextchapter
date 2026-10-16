@@ -138,3 +138,23 @@ export function importSpecFields(
   if (has('repostFirstSeenAt')) out.repostFirstSeenAt = importDate(job.repostFirstSeenAt)
   return out
 }
+
+// Crawler industry keys the app knows (job-match.ts, hiring-index-data.ts). Older
+// exports carried a few stray labels; they fold into the canonical key here so the
+// board never holds both "finance" and "financial_services".
+const INDUSTRY_ALIASES: Record<string, string> = {
+  finance: 'financial_services',
+  manufacturing: 'industrial',
+  higher_education: 'education',
+  association: 'nonprofit',
+  hospitality: 'consumer',
+  defense: 'aerospace_defense',
+}
+
+/** The sender's industry key, trimmed and folded into the canonical list; null when blank. */
+export function canonicalIndustry(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.trim().toLowerCase()
+  if (!t) return null
+  return INDUSTRY_ALIASES[t] ?? t
+}

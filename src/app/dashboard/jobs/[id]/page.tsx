@@ -16,6 +16,8 @@ import { NativeApply } from '@/components/jobs/NativeApply'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { cn } from '@/lib/utils'
+import { checkRequirements, parseRequirementFlags, requirementMemberOf } from '@/lib/jobs/requirements'
+import { JobRequirementDetails, JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 
 // A board job's own page — what a saved link, a My jobs row or an email opens. It
 // opens for past jobs too (read-only): a banner says when and why it closed, there
@@ -36,6 +38,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         id: true, title: true, companyName: true, location: true, url: true, status: true, distribution: true, disclosure: true,
         institutionScopeId: true, audienceTier: true, source: true, level: true, salaryMin: true, salaryMax: true, payPeriod: true,
         description: true, submittedByEmployerId: true, submittedByRecruiterId: true, company: { select: { canonicalNameNormalized: true } },
+        requirementFlags: true, locationState: true, targetFunction: true, employerSector: true,
       },
     }),
     prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: id }, select: { id: true } }),
@@ -61,6 +64,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const sentence = lifecycleSentence(life)
   // Posted directly on NextChapter by an employer or recruiter: apply here, to their inbox.
   const native = !!nativePosterOf(posting)
+  // Hard requirements the posting states, against what the member told us (requirements.ts).
+  const requirements = checkRequirements(parseRequirementFlags(posting.requirementFlags), requirementMemberOf(profile), {
+    locationState: posting.locationState,
+  })
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -93,7 +100,13 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           {[posting.location, seniorityLabel(posting.level), pay].filter(Boolean).map((x) => ` · ${x}`)}
         </p>
         <p className="text-sm text-muted-foreground">{postedLine(life)}</p>
+        <JobRequirementLabels jobId={posting.id} checks={requirements} surface="job_page" />
       </div>
+      {requirements.length > 0 && (
+        <div className="rounded-lg border border-border p-4">
+          <JobRequirementDetails jobId={posting.id} checks={requirements} surface="job_page" />
+        </div>
+      )}
 
       {life.isPast ? (
         <div role="status" className="space-y-2 rounded-lg border border-border bg-muted p-4">

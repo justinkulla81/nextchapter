@@ -23,6 +23,7 @@ import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
+import { JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type JobWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
@@ -401,6 +402,7 @@ export function DiscoverJobCard({
         </span>
         {/* Full width under the title row, so the chips never squeeze the title. */}
         {match && <JobMatchLine match={match} />}
+        {match && <JobRequirementLabels jobId={posting.id} checks={match.requirements} surface="board_card" />}
       </summary>
       <div className="space-y-3 px-4 pb-4">
         <p className="text-sm text-muted-foreground">

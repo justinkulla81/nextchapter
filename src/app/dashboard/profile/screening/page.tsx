@@ -21,7 +21,9 @@ const RED_FLAGS_POINTS = estimateActionEffort({ actionType: 'RED_FLAGS_CONFIRMED
 // data) in the middle, flanked by the two less-invasive sections.
 export default async function ScreeningPage() {
   const profile = await getDashboardProfile()
-  const redFlagsAnswered = !!profile.redFlagsBonusAt
+  // Reopens for members who answered before clearance and licenses were added here,
+  // with their earlier answers filled in (the one-time bonus is never paid twice).
+  const redFlagsAnswered = !!profile.redFlagsBonusAt && profile.clearanceLevel !== null && profile.licensesAnsweredAt !== null
 
   return (
     <div className="space-y-8">
@@ -43,7 +45,7 @@ export default async function ScreeningPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Screening questions
             </CardTitle>
-            {!redFlagsAnswered && (
+            {!profile.redFlagsBonusAt && (
               <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
                 +{RED_FLAGS_POINTS} pts
               </span>
@@ -52,7 +54,22 @@ export default async function ScreeningPage() {
         </CardHeader>
         <CardContent>
           <AnsweredConfirmSection answered={redFlagsAnswered}>
-            <RedFlagsQuestionsForm currentJobStatus={profile.currentJobStatus} />
+            <RedFlagsQuestionsForm
+              currentJobStatus={profile.currentJobStatus}
+              initial={{
+                firedForCause: profile.firedForCause,
+                hasRestrictiveCovenant: profile.hasRestrictiveCovenant,
+                restrictiveCovenantDetails: profile.restrictiveCovenantDetails,
+                willingToTakeBackgroundCheck: profile.willingToTakeBackgroundCheck,
+                willingToTakeDrugTest: profile.willingToTakeDrugTest,
+                wantsAnimalFriendlyWorkplace: profile.wantsAnimalFriendlyWorkplace,
+                clearanceLevel: profile.clearanceLevel,
+                clearanceActive: profile.clearanceActive,
+                clearancePolygraph: profile.clearancePolygraph,
+                licensesHeld: profile.licensesHeld,
+                licensesAnsweredAt: profile.licensesAnsweredAt,
+              }}
+            />
           </AnsweredConfirmSection>
         </CardContent>
       </Card>
