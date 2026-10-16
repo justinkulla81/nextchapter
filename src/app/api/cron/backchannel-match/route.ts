@@ -5,6 +5,7 @@ import { orgNamesMatchStrict } from '@/lib/text/org-name-match'
 import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
 import { rankBackchannelContacts } from '@/lib/email/backchannel-note'
 import { withCronRun } from '@/lib/cron/run'
+import { isCircularEmailMatch } from '@/lib/network/backchannel-circular'
 
 // Fires daily — for each candidate, finds the first still-unnotified applied
 // job whose company matches someone already in their network, sends one
@@ -37,7 +38,7 @@ export const GET = withCronRun('backchannel-match', async () => {
       notificationTier: true,
       jobPostings: {
         where: { appliedAt: { not: null }, companyName: { not: null } },
-        select: { id: true, title: true, companyName: true, appliedAt: true, backchannelEmailSentAt: true },
+        select: { id: true, source: true, title: true, companyName: true, appliedAt: true, backchannelEmailSentAt: true },
       },
     },
   })
@@ -59,6 +60,7 @@ export const GET = withCronRun('backchannel-match', async () => {
           employmentStatusAtCompany: true,
           company: true,
           inferredCompany: true,
+          source: true,
         },
       })
       if (contacts.length === 0) continue
@@ -67,29 +69,23 @@ export const GET = withCronRun('backchannel-match', async () => {
       // this candidate's full backchannel picture, independent of whether
       // they've already been emailed about a given one. Used to tell them
       // how many OTHER companies they have this same leverage at.
+      const contactsAt = (job: (typeof candidate.jobPostings)[number]) =>
+        contacts.filter((c) => {
+          if (c.company && orgNamesMatchStrict(c.company, job.companyName!)) return true
+          if (!c.inferredCompany || !orgNamesMatchStrict(c.inferredCompany, job.companyName!)) return false
+          // Skip a pair that matches only because both are guesses from the
+          // same email domain (see backchannel-circular.ts).
+          return !isCircularEmailMatch({ jobSource: job.source, contactSource: c.source, matchedOnlyByInference: true })
+        })
       const matchedCompanyNames = new Set(
-        candidate.jobPostings
-          .filter((job) =>
-            contacts.some(
-              (c) =>
-                (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
-                (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
-            )
-          )
-          .map((job) => job.companyName!.toLowerCase().trim())
+        candidate.jobPostings.filter((job) => contactsAt(job).length > 0).map((job) => job.companyName!.toLowerCase().trim())
       )
 
       for (const job of candidate.jobPostings) {
         if (!job.companyName || job.backchannelEmailSentAt) continue
         // Ranked best-first, and anyone confirmed to have left is dropped —
         // the email leads with the first one and drafts a note to them.
-        const matchedContacts = rankBackchannelContacts(
-          contacts.filter(
-            (c) =>
-              (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
-              (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
-          )
-        )
+        const matchedContacts = rankBackchannelContacts(contactsAt(job))
         if (matchedContacts.length === 0) continue
 
         const otherCompanyCount = Math.max(0, matchedCompanyNames.size - 1)

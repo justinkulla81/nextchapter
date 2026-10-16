@@ -267,6 +267,10 @@ async function processMessage(
   // senders the candidate marked non-job) and for anything with a
   // List-Unsubscribe header, which is bulk marketing, not a one-to-one scam.
   // A failure here must never block the sync.
+  // A flagged email is kept as a tracked row but must not seed the candidate's
+  // network contacts or application list: its company name is only a guess
+  // from the scammer's own domain.
+  let flaggedAsScam = false
   if (direction === 'INBOUND' && !isFromAtsOrJobBoard && !isFromNextChapterItself && !isSelfAddressed && !isNotJobRelated && !listUnsubscribe) {
     try {
       const assessment = assessRecruiterEmail({
@@ -278,6 +282,7 @@ async function processMessage(
         authResults: getHeader(message.payload?.headers, 'Authentication-Results'),
       })
       if (assessment.level !== 'none') {
+        flaggedAsScam = true
         await raiseScamAlert({
           candidateId: connection.candidateId,
           connectionId: connection.id,
@@ -299,7 +304,7 @@ async function processMessage(
   // just visible as a tracked email row — same "don't guess" bar as the
   // points below: only high-confidence classifications, so a NEEDS_REVIEW
   // guess never creates a noise contact.
-  if (classification.confidence === 'high') {
+  if (classification.confidence === 'high' && !flaggedAsScam) {
     const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
     const autoTags: RelationshipTag[] = []
     if (isRecruiterContact) autoTags.push('RECRUITER')
@@ -373,7 +378,7 @@ async function processMessage(
   // Mirrors application confirmations/interview invites/rejections into the
   // candidate's My Applications list — see sync-job-postings.ts. Only for
   // high-confidence inbound mail, same bar as point-awarding below.
-  if (direction === 'INBOUND' && classification.confidence === 'high') {
+  if (direction === 'INBOUND' && classification.confidence === 'high' && !flaggedAsScam) {
     await syncJobPostingFromEmail(
       connection.candidateId,
       classification.activityType,
