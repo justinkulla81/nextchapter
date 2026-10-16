@@ -48,9 +48,11 @@ export default async function InstitutionPortalLayout({
   if (!access) notFound()
 
   const { institution } = access
-  const tagline = await getTagline(institution.id)
   // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
-  const orgBrand = await organizationBrandFor('HIGHER_ED', institution.id).catch(() => null)
+  const [tagline, orgBrand] = await Promise.all([
+    getTagline(institution.id),
+    organizationBrandFor('HIGHER_ED', institution.id).catch(() => null),
+  ])
   const accent = orgBrand?.accent ?? institution.accentColor ?? '#2e7d5b'
   const logoUrl = orgBrand?.logoUrl ?? institution.logoUrl
   const programName = orgBrand?.name ?? institution.programBrandName

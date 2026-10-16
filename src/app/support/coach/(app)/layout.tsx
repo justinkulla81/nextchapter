@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function CoachAppLayout({ children }: { children: React.ReactNode }) {
   const coach = await getCurrentCoach()
 
-  const [messagesUnreadCount, caseload, college] = await Promise.all([
+  const [messagesUnreadCount, caseload, college, brand] = await Promise.all([
     getCoachUnreadCount(coach.id),
     getCoachCaseload(coach.id),
     // A college's own coach: say which college, so it's clear whose members
@@ -24,6 +24,7 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
     prisma.coach
       .findUnique({ where: { id: coach.id }, select: { institution: { select: { name: true, programBrandName: true } } } })
       .then((c) => c?.institution ?? null),
+    coachBrand(coach),
   ])
   // Nav badge counts every client needing attention — an avoidance pattern
   // OR a real risk trigger (§A5.2) — deduped so one client flagged both ways
@@ -31,8 +32,6 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
   const attentionNeededCount = caseload.filter(
     (c) => c.isStalled || c.triggers.some((t) => t.type === 'RISK')
   ).length
-
-  const brand = await coachBrand(coach)
 
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>

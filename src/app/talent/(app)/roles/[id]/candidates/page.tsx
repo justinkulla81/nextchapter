@@ -11,48 +11,49 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const employer = await getTalentDashboardData()
 
-  const role = await prisma.roleProfile.findFirst({
-    where: { id, employerId: employer.id },
-    include: { employer: { select: { companySize: true } } },
-  })
-  if (!role) notFound()
-  const employerCompanySizeBand = mapEmployerCompanySizeStringToBand(role.employer.companySize)
-
   // Opting in is necessary but not sufficient for full detail — a candidate
   // whose Dossier isn't unlocked yet (real references, evidence, and effort
   // on file) still appears, as an anonymized teaser (see CandidateCard's
   // `locked` prop), not filtered out entirely. This list is already scoped
   // to opted-in candidates first, so a live isDossierUnlocked() call per row
   // in that small result set is fine — no stored snapshot to read instead.
-  const candidatesRaw = await prisma.candidateProfile.findMany({
-    where: {
-      recruiterDatabaseOptIn: true,
-      // Confidential search is a hard rule: nothing about these members, including
-      // their Candidate+ status, is visible to anyone outside NextChapter.
-      confidentialSearchMode: false,
-      privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
-      assessmentComplete: true,
-    },
-    select: {
-      id: true,
-      privacyTier: true,
-      firstName: true,
-      lastName: true,
-      highestLevelReached: true,
-      primaryFunction: true,
-      currentCity: true,
-      remotePreference: true,
-      openToRelocation: true,
-      targetCompMin: true,
-      compFlexible: true,
-      levelRankScore: true,
-      priorityMaxComp: true,
-      priorityWorkLife: true,
-      _count: { select: { learningBadges: true, outreachLogs: true } },
-      jobPostings: { select: { appliedAt: true } },
-    },
-    take: 200,
-  })
+  const [role, candidatesRaw] = await Promise.all([
+    prisma.roleProfile.findFirst({
+      where: { id, employerId: employer.id },
+      include: { employer: { select: { companySize: true } } },
+    }),
+    prisma.candidateProfile.findMany({
+      where: {
+        recruiterDatabaseOptIn: true,
+        // Confidential search is a hard rule: nothing about these members, including
+        // their Candidate+ status, is visible to anyone outside NextChapter.
+        confidentialSearchMode: false,
+        privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
+        assessmentComplete: true,
+      },
+      select: {
+        id: true,
+        privacyTier: true,
+        firstName: true,
+        lastName: true,
+        highestLevelReached: true,
+        primaryFunction: true,
+        currentCity: true,
+        remotePreference: true,
+        openToRelocation: true,
+        targetCompMin: true,
+        compFlexible: true,
+        levelRankScore: true,
+        priorityMaxComp: true,
+        priorityWorkLife: true,
+        _count: { select: { learningBadges: true, outreachLogs: true } },
+        jobPostings: { select: { appliedAt: true } },
+      },
+      take: 200,
+    }),
+  ])
+  if (!role) notFound()
+  const employerCompanySizeBand = mapEmployerCompanySizeStringToBand(role.employer.companySize)
 
   const unlockStatuses = await Promise.all(candidatesRaw.map((c) => isDossierUnlocked(c.id)))
   const unlockedCandidates = candidatesRaw.filter((_, i) => unlockStatuses[i].unlocked).slice(0, 100)
