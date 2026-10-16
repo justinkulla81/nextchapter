@@ -22,16 +22,13 @@ import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
-import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
-import { FRESH_HOURS } from '@/lib/jobs/competition'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
+import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
 import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
 import { menuMode } from '@/lib/journey/menu'
-import { boardBreadthFor } from '@/lib/jobs/search-breadth'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -71,7 +68,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getNeedsFollowUpList(profileId),
     isGmailConnected(profileId),
     getHelpRepliesWaiting(profileId),
-    getFreshJobsCountForBadge(profileId),
+    getFreshJobsCountForBadge(),
     countOpenRequestsForCandidate(profileId),
     getDashboardProfile(),
   ])
@@ -100,26 +97,11 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   )
 }
 
-// New jobs that fit the member, posted in the last 72 hours: the same count the
-// Home Jobs module's prompt shows, answered from the board's shared in-memory
-// copy. The badge is decoration: any error reads as "nothing new".
-async function getFreshJobsCountForBadge(profileId: string): Promise<number> {
-  try {
-    const [profile, dossier] = await Promise.all([getDashboardProfile(), isDossierUnlocked(profileId)])
-    const board = await loadBoardShortlist({
-      candidate: profile,
-      isCandidatePlus: dossier.unlocked,
-      postedWithinHours: FRESH_HOURS,
-      view: 'fresh',
-      size: 1,
-      // Same breadth as the board, so the badge counts the jobs the board shows.
-      breadth: boardBreadthFor(profile),
-    })
-    return board.freshOpenTotal
-  } catch (error) {
-    console.error('Failed to count fresh jobs for nav badge:', error)
-    return 0
-  }
+// New jobs in the member's field from the last 72 hours: one small query (fresh-jobs-peek.ts),
+// never the whole board. The badge is decoration: any error reads as "nothing new".
+async function getFreshJobsCountForBadge(): Promise<number> {
+  const profile = await getDashboardProfile()
+  return (await getFreshJobsPeek(profile.primaryFunction, profile.secondaryFunction)).count
 }
 
 // getSupportNetworkUnreadCount needs a profile field beyond just the id
