@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 
@@ -53,6 +54,26 @@ async function thisWeekSprintTargetCount(): Promise<number> {
   })
 }
 
+// The three counts over the ~320k-row ExclusiveJobPosting table (one a sequential scan) took
+// 15-60s each in production. They are admin-only global numbers, so they are cached across
+// serverless instances with unstable_cache (5 minutes, tag 'admin-job-counts') instead of
+// only per instance. Meaning of each count is unchanged.
+export const ADMIN_JOB_COUNTS_TAG = 'admin-job-counts'
+
+const loadJobPostingCounts = unstable_cache(
+  async () => {
+    const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
+    const [pendingJobBoardListings, newJobBoardListings, liveJobBoardListings] = await Promise.all([
+      prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
+      prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
+      prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
+    ])
+    return { pendingJobBoardListings, newJobBoardListings, liveJobBoardListings }
+  },
+  ['admin-job-posting-counts-v1'],
+  { revalidate: 300, tags: [ADMIN_JOB_COUNTS_TAG] },
+)
+
 // Runs ~17 counts, two of them scans of the job table, and the admin layout calls it on every
 // navigation (and again from the admin home page). cache() dedupes it within a request; the
 // 60s memo means a click-through across admin pages pays for it once. Badge counts can be up
@@ -75,7 +96,7 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
 
   const [
-    pendingJobBoardListings,
+    jobCounts,
     pendingBountyClaims,
     unresolvedReferenceDisputes,
     pendingIntroRequests,
@@ -83,17 +104,15 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     pendingIdentityMatches,
     pendingEqOverIqApplications,
     newCandidateSignups,
-    newJobBoardListings,
     newRecruiterOptIns,
     totalCandidates,
     registeredCandidates,
     totalCoaches,
     totalRecruiters,
     totalEmployers,
-    liveJobBoardListings,
     sprintTargetCount,
   ] = await Promise.all([
-    prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
+    loadJobPostingCounts(),
     prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
     prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
     prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
@@ -101,17 +120,16 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.candidateIdentityMatch.count({ where: { status: 'PENDING' } }),
     prisma.eqOverIqContributorProfile.count({ where: { submittedAt: { not: null }, status: 'PENDING' } }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
-    prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
     prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
     prisma.candidateProfile.count({ where: EXCLUDE_SYSTEM_ACCOUNT }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),
     prisma.coach.count(),
     prisma.recruiter.count(),
     prisma.employerProfile.count(), // Talent portal employers
-    prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
     thisWeekSprintTargetCount(),
   ])
 
+  const { pendingJobBoardListings, newJobBoardListings, liveJobBoardListings } = jobCounts
   return {
     approvalsNeeded: {
       pendingJobBoardListings,
