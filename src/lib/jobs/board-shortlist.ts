@@ -12,7 +12,7 @@ import { classifyLocation } from '@/lib/jobs/us-location'
 import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
-import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
+import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageOfRung, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
@@ -24,7 +24,10 @@ import {
   marketTierFor,
   MARKET_TIERS,
   NARROW_SHOW,
-  RELAX_ORDER,
+  RINGS,
+  ringKind,
+  ringNotes,
+  ringOf,
   WIDE_EXTRAS_WHEN_FULL,
   WIDE_TOTAL_WHEN_SHORT,
   WIDE_SHORT_MAX_FIT_RANK,
@@ -490,7 +493,7 @@ export interface BoardShortlist {
     /** Narrow was short of the band, so it widened with bridge jobs (shown after the strong matches). */
     autoWidened: boolean
     /** Jobs shown that need a bridge, and the criterion each relaxes. */
-    bridges: ReadonlyMap<string, Relaxed>
+    bridges: ReadonlyMap<string, BridgeInfo>
     classifier: BreadthClassifier | null
   }
   /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
@@ -563,6 +566,11 @@ export async function loadBoardShortlist(opts: {
   breadthKeepUnmatched?: boolean
   /** A short Narrow auto-widens with bridge jobs up to this many (relevance.ts AUTO_WIDEN_FILL by default). */
   autoWidenTo?: number
+  /**
+   * Load one level beyond the member's window for the seniority ring. Default: on when the
+   * window is the member's own (stageWindow omitted); the board passes its own choice.
+   */
+  seniorityRing?: boolean
 }): Promise<BoardShortlist> {
   const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
@@ -571,11 +579,15 @@ export async function loadBoardShortlist(opts: {
   // totals below are computed over what is kept, so they match what is shown.
   // The level window is part of the filter (and so of the light-row cache key).
   const window = opts.stageWindow ?? (opts.candidate ? memberStageWindow(opts.candidate) : ALL_STAGES_WINDOW)
-  const levelWhere = boardLevelWindowWhere(opts.where, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
+  const breadth = opts.breadth ?? (opts.candidate ? emailBreadthFor(opts.candidate) : 'off')
+  // The seniority ring (relevance.ts): with breadth on and the member's own window, load one
+  // level beyond it each side; jobs out there only show as that ring's bridge jobs.
+  const seniorityRing = breadth !== 'off' && !!opts.candidate && (opts.seniorityRing ?? opts.stageWindow === undefined)
+  const rowsWindow = seniorityRing ? { lo: Math.max(0, window.lo - 1), hi: Math.min(CAREER_STAGES.length - 1, window.hi + 1) } : window
+  const levelWhere = boardLevelWindowWhere(opts.where, { window: rowsWindow, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
   const hidden = opts.hiddenSectors ?? (opts.candidate as { hiddenEmployerSectors?: string[] | null } | null)?.hiddenEmployerSectors ?? []
   const inSector = sectorKeep(hidden)
   const keep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
-  const breadth = opts.breadth ?? (opts.candidate ? emailBreadthFor(opts.candidate) : 'off')
   // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
   const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
   const [light, classifier, dismissRules] = await Promise.all([
@@ -604,6 +616,7 @@ export async function loadBoardShortlist(opts: {
     breadth: breadth === 'off' ? undefined : breadth,
     dismiss: dismissRules ?? undefined,
     marketSize,
+    levelWindow: seniorityRing ? window : undefined,
   })
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
@@ -655,9 +668,16 @@ export function countRelevant(rows: BoardRankRow[], place: (p: BoardRankRow) => 
   let n = 0
   for (const p of rows) {
     const placed = place(p)
-    if (placed && placed.relaxed === null && placed.crit.industry) n++
+    if (placed && ringOf(placed.crit, { strongFit: false, stage: 0 }) === 0) n++
   }
   return n
+}
+
+/** A bridge job: the ring it came from (relevance.ts RINGS), its kind, and what brought it in. */
+export interface BridgeInfo {
+  ring: number
+  kind: Relaxed
+  notes: string[]
 }
 
 /** Rank of a job a search kept that neither breadth would show (after every breadth kind). */
@@ -695,6 +715,8 @@ export function rankBoardRows(
     marketSize?: number
     /** What the member's dismissals taught the board (job-dismiss.ts): jobs to leave out, and a rank penalty. */
     dismiss?: DismissRules
+    /** The member's own level window: jobs one level beyond it are the seniority ring. Omitted: every row is in. */
+    levelWindow?: StageWindow
   }
 ) {
   const defaultSize = opts.size ?? 300
@@ -729,6 +751,10 @@ export function rankBoardRows(
     low: boolean
     workType: WorkType | null
     placed: BreadthPlacement | null | undefined
+    /** Relevance ring (relevance.ts RINGS): 0 = relevant on every criterion; null = none reaches it. */
+    ring: number | null
+    /** What brought a ring job in ("45 mi away", "one level up"). */
+    notes: string[]
   }
   const now = opts.now ?? new Date()
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
@@ -752,9 +778,30 @@ export function rankBoardRows(
 
   // Pass 2: fit and the rest of the ranking facts, for those jobs only.
   const entries: Entry[] = []
+  // Level relative to the member's own window: inside, one level beyond (the seniority ring), or farther.
+  const levelWindow = opts.levelWindow
+  const stageOf = (level: string | null): { stage: 0 | 1 | 2; direction: 'up' | 'down' | null } => {
+    if (!levelWindow) return { stage: 0, direction: null }
+    const st = stageOfRung(level)
+    if (!st) return { stage: 0, direction: null }
+    const i = CAREER_STAGES.indexOf(st)
+    if (i >= levelWindow.lo && i <= levelWindow.hi) return { stage: 0, direction: null }
+    if (i === levelWindow.hi + 1) return { stage: 1, direction: 'up' }
+    if (i === levelWindow.lo - 1) return { stage: 1, direction: 'down' }
+    return { stage: 2, direction: null }
+  }
   for (const { p, placed } of candidates) {
     const rel = opts.relevance ? opts.relevance(p) : 0
     if (rel === null) continue
+    const fitRank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
+    let ring: number | null = null
+    let notes: string[] = []
+    if (placed) {
+      const lvl = stageOf(p.level)
+      ring = ringOf(placed.crit, { strongFit: fitRank === 0, stage: lvl.stage })
+      if (ring !== null && ring > 0) notes = ringNotes(placed.crit, { strongFit: fitRank === 0, stageDirection: lvl.direction })
+    }
+    if (selecting && ring === null) continue
     const workType = typeFilter ? workTypeOf(p) : null
     const facts = rowFacts(p)
     const company = facts.company
@@ -763,7 +810,7 @@ export function rankBoardRows(
       id: p.id,
       company,
       title: facts.titleKey,
-      rank: FIT_BUCKET_SORT_RANK[fitBucket(p)],
+      rank: fitRank,
       crowd: COMPETITION_SORT_RANK[competition],
       offFunction: functions.has(facts.titleFunction) ? 0 : 1,
       gap: calibratedLevelDistance(candidateLevel, facts.levelRank),
@@ -771,13 +818,15 @@ export function rankBoardRows(
       rel,
       posted: (p.postedAt ?? p.createdAt).getTime(),
       pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
-      cls: placed === undefined ? 0 : placed === null || placed.relaxed === 'out' ? MATCH_RANK_UNMATCHED : placed.relaxed === null ? placed.rank : 4 + RELAX_ORDER.indexOf(placed.relaxed),
+      cls: placed === undefined ? 0 : placed === null || ring === null ? MATCH_RANK_UNMATCHED : ring === 0 ? placed.rank : 4 + ring,
       pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
       canOpen: true, // every member sees every job (owner's rule, 2026-10-16): `locked` is always empty
       fresh: isFresh(p, now),
       low: competition === 'low',
       workType,
       placed,
+      ring,
+      notes,
     })
   }
 
@@ -794,16 +843,16 @@ export function rankBoardRows(
   let marketTierKey: MarketTier['key'] | null = null
   let extrasTotal = 0
   let autoWidened = false
-  const bridges = new Map<string, Relaxed>()
+  const bridges = new Map<string, BridgeInfo>()
   const capByType = new Map<WorkType, number>()
   if (selecting) {
-    const isRelevant = (e: Entry) => e.placed!.relaxed === null && (e.placed!.crit.industry || e.rank === 0)
-    const relevantAll = entries.filter(isRelevant)
+    const relevantAll = entries.filter((e) => e.ring === 0)
     for (const e of relevantAll) if (e.workType && e.canOpen) capByType.set(e.workType, (capByType.get(e.workType) ?? 0) + 1)
     const relevant = relevantAll.filter(typeOk)
     relevantTotal = relevant.length
     let tierIdx = MARKET_TIERS.indexOf(marketTierFor(opts.marketSize ?? relevant.length))
-    const passes = (e: Entry, t: MarketTier) => e.rank <= t.maxFitRank && (!t.requireIndustryAndStage || (e.placed!.crit.industry && e.placed!.sameStage))
+    const passes = (e: Entry, t: MarketTier) =>
+      e.rank <= t.maxFitRank && (!t.requireIndustryAndStage || (e.placed!.crit.industry === 'own' && e.placed!.sameStage))
     let good = relevant.filter((e) => passes(e, MARKET_TIERS[tierIdx]))
     // The bar never leaves Narrow under its minimum while easier tiers would fill it.
     while (good.length < NARROW_SHOW.min && tierIdx > 0) {
@@ -815,20 +864,24 @@ export function rankBoardRows(
     const narrowSel = good.slice(0, NARROW_SHOW.max)
     goodMoreIds = good.slice(NARROW_SHOW.max, NARROW_SHOW.max + GOOD_MORE_MAX).filter((e) => e.canOpen).map((e) => e.id)
     const full = good.length >= NARROW_SHOW.min
-    const relevantSet = new Set(relevantAll)
-    // A small strict market widens on its own (owner's rule): Narrow becomes Wide with bridges,
-    // filled up to the band, so neither the board nor an email is ever near-empty.
+    // A small strict market widens on its own (owner's rule), ring by ring in a fixed order —
+    // geography, similar industries, similar functions, one level beyond — until the band fills.
+    // Wide goes the same rings up to its cap; when Narrow is already full it adds only strong fits.
     autoWidened = opts.breadth === 'narrow' && !full
-    const fillTo = autoWidened ? Math.max(NARROW_SHOW.min, opts.autoWidenTo ?? AUTO_WIDEN_FILL) : WIDE_TOTAL_WHEN_SHORT
-    const extras = entries
-      .filter((e) => typeOk(e) && RELAX_ORDER.includes(e.placed!.relaxed as Relaxed) && !relevantSet.has(e) && (full ? e.rank === 0 : e.rank <= WIDE_SHORT_MAX_FIT_RANK))
-      // Good fits first, then the relax order (industry, function, skills), then fit.
-      .sort((a, b) => Number(a.rank > 1) - Number(b.rank > 1) || a.cls - b.cls || byFit(a, b))
-      .slice(0, full ? WIDE_EXTRAS_WHEN_FULL : Math.max(0, fillTo - narrowSel.length))
+    const cap = full
+      ? WIDE_EXTRAS_WHEN_FULL
+      : Math.max(0, (autoWidened ? Math.max(NARROW_SHOW.min, opts.autoWidenTo ?? AUTO_WIDEN_FILL) : WIDE_TOTAL_WHEN_SHORT) - narrowSel.length)
+    const pool = entries.filter((e) => typeOk(e) && (e.ring ?? 0) > 0 && (full ? e.rank === 0 : e.rank <= WIDE_SHORT_MAX_FIT_RANK))
+    const extras: Entry[] = []
+    for (let r = 1; r < RINGS.length && extras.length < cap; r++) {
+      const ring = pool.filter((e) => e.ring === r).sort((a, b) => Number(a.rank > 1) - Number(b.rank > 1) || byFit(a, b))
+      extras.push(...ring.slice(0, cap - extras.length))
+      if (autoWidened && narrowSel.length + extras.length >= NARROW_SHOW.min) break
+    }
     extrasTotal = extras.length
     narrowTotal = narrowSel.length
     wideTotal = narrowSel.length + extras.length
-    for (const e of extras) bridges.set(e.id, e.placed!.relaxed as Relaxed)
+    for (const e of extras) bridges.set(e.id, { ring: e.ring!, kind: ringKind(e.ring!), notes: e.notes })
     selected = opts.breadth === 'narrow' && !autoWidened ? narrowSel : [...narrowSel, ...extras]
   } else {
     selected = entries.filter(typeOk)

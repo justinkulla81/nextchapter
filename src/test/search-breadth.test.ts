@@ -24,7 +24,6 @@ import {
 import { buildSimilarityRows, type OnetFileOccupation } from '@/lib/careers/occupation-similarity'
 import { rankBoardRows, type BoardRankRow } from '@/lib/jobs/board-shortlist'
 import type { BreadthPlacement } from '@/lib/jobs/search-breadth-server'
-import { relaxedCriterion } from '@/lib/jobs/relevance'
 
 describe('breadth defaults', () => {
   it('senior members (Manager and up, or ~8+ years) default to Narrow', () => {
@@ -269,45 +268,44 @@ describe('occupation similarity', () => {
 
 describe('board ranking with relevance', () => {
   const now = new Date('2026-10-16T12:00:00Z')
-  const row = (id: string, title: string): BoardRankRow =>
+  const row = (id: string, title: string, level = 'DIRECTOR'): BoardRankRow =>
     ({
       id, title, companyName: `Co ${id}`, audienceTier: 'OPEN', source: 'ncrawl', targetFunction: null, targetLevel: null, targetRemotePolicy: null,
-      targetLocation: null, location: 'Remote', level: 'DIRECTOR', sourceCategory: null, postedAt: now, sourceCount: 1, salaryMin: null,
+      targetLocation: null, location: 'Remote', level, sourceCategory: null, postedAt: now, sourceCount: 1, salaryMin: null,
       salaryMax: null, createdAt: now, employmentType: null,
     }) as BoardRankRow
-  const crit = (over: Partial<BreadthPlacement['crit']> = {}): BreadthPlacement['crit'] => ({ fn: 'own', geo: true, skills: 'strong', industry: true, ...over })
+  const crit = (over: Partial<BreadthPlacement['crit']> = {}): BreadthPlacement['crit'] => ({ fn: 'own', geo: 0, geoNote: null, skills: 'strong', industry: 'own', industryName: null, ...over })
   const place = (c: BreadthPlacement['crit'], kind: 'field' | 'pivot' = 'field'): BreadthPlacement => ({
-    rank: kind === 'field' ? 0 : 2, cls: kind === 'field' ? { kind: 'field' } : { kind: 'pivot', pivot: 'x' }, crit: c, relaxed: relaxedCriterion(c), sameStage: true,
+    rank: kind === 'field' ? 0 : 2, cls: kind === 'field' ? { kind: 'field' } : { kind: 'pivot', pivot: 'x' }, crit: c, sameStage: true,
   })
-  const rows = [row('a', 'HR Director'), row('b', 'Director of Sales'), row('c', 'HR Director, Retail'), row('d', 'Director of Nursing'), row('e', 'HR Director (far away)')]
+  const rows = [row('a', 'HR Director'), row('b', 'Director of Sales'), row('c', 'HR Director, Retail'), row('d', 'Director of Nursing'), row('e', 'HR Director (far away)'), row('f', 'HR Director, Fresno')]
   const placement: Record<string, BreadthPlacement | null> = {
     a: place(crit()),
     b: place(crit({ fn: 'adjacent' }), 'pivot'),
-    c: place(crit({ industry: false })),
+    c: place(crit({ industry: 'similar', industryName: 'Retail & E-commerce' })),
     d: null,
-    e: place(crit({ geo: false })),
+    e: place(crit({ geo: null })),
+    f: place(crit({ geo: 1, geoNote: '62 mi away' })),
   }
   const candidate = { highestLevelReached: 'Director', primaryFunction: 'Human Resources' } as Parameters<typeof rankBoardRows>[1]['candidate']
   const base = { candidate, isCandidatePlus: true, now, place: (p: BoardRankRow) => placement[p.id] }
 
-  it('a short Narrow widens on its own with bridge jobs; geography is never relaxed', () => {
+  it('a short Narrow widens ring by ring — geography first — with each job saying which ring', () => {
     const r = rankBoardRows(rows, { ...base, breadth: 'narrow' })
     expect(r.openIds[0]).toBe('a')
-    expect(r.relevantTotal).toBe(1)
     expect(r.autoWidened).toBe(true)
-    expect(r.openIds).toContain('c')
     expect(r.openIds).not.toContain('e')
-    expect(r.bridges.get('c')).toBe('industry')
+    expect(r.bridges.get('f')).toEqual({ ring: 1, kind: 'place', notes: ['62 mi away'] })
+    // A similar-industry job is its own ring — unless it fits strongly, which counts as their industry.
+    if (r.bridges.has('c')) expect(r.bridges.get('c')?.notes).toEqual(['similar industry: Retail & E-commerce'])
     expect(r.bridges.has('a')).toBe(false)
   })
 
-  it('Wide adds jobs missing exactly one relaxable criterion, in relax order', () => {
-    const r = rankBoardRows(rows, { ...base, breadth: 'wide' })
-    expect(r.openIds[0]).toBe('a')
-    expect(r.openIds).toContain('c')
-    expect(r.openIds).not.toContain('e')
-    expect(r.openIds).not.toContain('d')
-    expect(r.extrasTotal).toBeGreaterThanOrEqual(1)
+  it('the seniority ring: one level beyond their window, labelled', () => {
+    const lvl = [row('a', 'HR Director'), row('g', 'VP, People', 'VP')]
+    const places: Record<string, BreadthPlacement> = { a: place(crit()), g: place(crit()) }
+    const r = rankBoardRows(lvl, { ...base, place: (p) => places[p.id], breadth: 'narrow', levelWindow: { lo: 4, hi: 5 } })
+    expect(r.bridges.get('g')).toEqual({ ring: 6, kind: 'level', notes: ['one level up'] })
   })
 
   it('a search keeps unmatched jobs, ranked last', () => {
@@ -321,6 +319,6 @@ describe('board ranking with relevance', () => {
   })
 
   it('no breadth: the board as before', () => {
-    expect(rankBoardRows(rows, { candidate, isCandidatePlus: true, now }).openTotal).toBe(5)
+    expect(rankBoardRows(rows, { candidate, isCandidatePlus: true, now }).openTotal).toBe(6)
   })
 })

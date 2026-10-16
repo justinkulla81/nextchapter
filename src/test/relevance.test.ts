@@ -1,36 +1,55 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildBridge,
-  geoMatch,
+  geoRing,
+  industryRelation,
   marketTierFor,
   memberGeo,
-  relaxedCriterion,
+  RING_INDEX,
+  ringNotes,
+  ringOf,
   relevanceLine,
-  relevantBeforeFit,
   relocationStates,
   skillsMatch,
   type JobCriteria,
 } from '@/lib/jobs/relevance'
 
-const c = (over: Partial<JobCriteria> = {}): JobCriteria => ({ fn: 'own', geo: true, skills: 'strong', industry: true, ...over })
+const c = (over: Partial<JobCriteria> = {}): JobCriteria => ({ fn: 'own', geo: 0, geoNote: null, skills: 'strong', industry: 'own', industryName: null, ...over })
+const at = { strongFit: false, stage: 0 as const }
 
-describe('relevant = every criterion', () => {
-  it('needs own function, place and skills', () => {
-    expect(relevantBeforeFit(c())).toBe(true)
-    expect(relevantBeforeFit(c({ fn: 'adjacent' }))).toBe(false)
-    expect(relevantBeforeFit(c({ geo: false }))).toBe(false)
-    expect(relevantBeforeFit(c({ skills: 'weak' }))).toBe(false)
-    expect(relevantBeforeFit(c({ skills: 'unknown' }))).toBe(true)
+describe('relevant = every criterion; widening = concentric rings', () => {
+  it('ring 0 needs own function, home, skills, own industry and their level', () => {
+    expect(ringOf(c(), at)).toBe(0)
+    expect(ringOf(c({ skills: 'unknown' }), at)).toBe(0)
+    expect(ringOf(c({ skills: 'weak' }), at)).toBeNull()
+    expect(ringOf(c({ fn: 'none' }), at)).toBeNull()
+    expect(ringOf(c({ geo: null }), at)).toBeNull()
   })
-  it('Wide relaxes exactly one of industry, function, skills — never geography, never two', () => {
-    expect(relaxedCriterion(c())).toBeNull()
-    expect(relaxedCriterion(c({ industry: false }))).toBe('industry')
-    expect(relaxedCriterion(c({ fn: 'adjacent' }))).toBe('function')
-    expect(relaxedCriterion(c({ skills: 'weak' }))).toBe('skills')
-    expect(relaxedCriterion(c({ geo: false }))).toBe('out')
-    expect(relaxedCriterion(c({ industry: false, skills: 'weak' }))).toBe('out')
-    expect(relaxedCriterion(c({ fn: 'none' }))).toBe('out')
-    expect(relaxedCriterion(c({ skills: 'none' }))).toBe('out')
+  it('each criterion maps to its ring, in order geography → industry → function → level', () => {
+    expect(ringOf(c({ geo: 1 }), at)).toBe(RING_INDEX.within_75)
+    expect(ringOf(c({ geo: 3 }), at)).toBe(RING_INDEX.next_states)
+    expect(ringOf(c({ industry: 'similar' }), at)).toBe(RING_INDEX.similar_industry)
+    expect(ringOf(c({ industry: 'other' }), at)).toBeNull()
+    expect(ringOf(c({ industry: 'other' }), { strongFit: true, stage: 0 })).toBe(0)
+    expect(ringOf(c({ fn: 'adjacent' }), at)).toBe(RING_INDEX.similar_function)
+    expect(ringOf(c(), { strongFit: false, stage: 1 })).toBe(RING_INDEX.level)
+    expect(ringOf(c(), { strongFit: false, stage: 2 })).toBeNull()
+  })
+  it('rings are concentric: a job takes its outermost one', () => {
+    expect(ringOf(c({ geo: 2, industry: 'similar' }), at)).toBe(RING_INDEX.similar_industry)
+  })
+  it('labels say which ring, briefly', () => {
+    expect(ringNotes(c({ geo: 1, geoNote: '45 mi away', industry: 'similar', industryName: 'Healthcare' }), { strongFit: false, stageDirection: 'up' })).toEqual([
+      'one level up',
+      'similar industry: Healthcare',
+      '45 mi away',
+    ])
+  })
+  it('similar industries are hand-listed both ways', () => {
+    expect(industryRelation(new Set(['Education & EdTech']), 'Nonprofit & Social Impact')).toBe('similar')
+    expect(industryRelation(new Set(['Nonprofit & Social Impact']), 'Education & EdTech')).toBe('similar')
+    expect(industryRelation(new Set(['Education & EdTech']), 'Insurance')).toBe('other')
+    expect(industryRelation(new Set(), 'Insurance')).toBe('own')
   })
 })
 
@@ -57,22 +76,34 @@ describe('skills criterion', () => {
   })
 })
 
-describe('geography criterion', () => {
-  const job = (over: Partial<{ remote: boolean; placeKeys: string[]; states: string[] }> = {}) => ({ remote: false, placeKeys: [], states: [], ...over })
-  it('commute area, remote when accepted, or a place they would move to', () => {
-    const g = memberGeo({ homeArea: new Set(['CA|sunnyvale', 'CA|san jose']), currentState: 'CA', remotePreference: 'remote' })
-    expect(geoMatch(g, job({ placeKeys: ['CA|san jose'], states: ['CA'] }))).toBe(true)
-    expect(geoMatch(g, job({ placeKeys: ['CA|los angeles'], states: ['CA'] }))).toBe(false)
-    expect(geoMatch(g, job({ remote: true }))).toBe(true)
-    const onsite = memberGeo({ homeArea: null, currentState: 'TX', remotePreference: 'onsite' })
-    expect(geoMatch(onsite, job({ remote: true }))).toBe(false)
-    expect(geoMatch(onsite, job({ states: ['TX'] }))).toBe(true)
+describe('geography rings', () => {
+  const sunnyvale = { lat: 37.3688, lon: -122.0363 }
+  const sanJose = { lat: 37.3382, lon: -121.8863 }
+  const sacramento = { lat: 38.5816, lon: -121.4944 }
+  const losAngeles = { lat: 34.0522, lon: -118.2437 }
+  const job = (over: Partial<{ remote: boolean; coords: { lat: number; lon: number }[]; states: string[] }> = {}) => ({ remote: false, coords: [], states: [], ...over })
+  const g = memberGeo({ anchor: sunnyvale, currentState: 'CA', remotePreference: 'remote' })
+  it('home within 40 mi or remote; 75 mi; elsewhere in the state; next-door states', () => {
+    expect(geoRing(g, job({ coords: [sanJose], states: ['CA'] }))).toEqual({ ring: 0, note: null })
+    expect(geoRing(g, job({ remote: true }))).toEqual({ ring: 0, note: null })
+    expect(geoRing(g, job({ coords: [sacramento], states: ['CA'] }))?.ring).toBe(2)
+    expect(geoRing(g, job({ coords: [losAngeles], states: ['CA'] }))).toEqual({ ring: 2, note: 'elsewhere in CA' })
+    expect(geoRing(g, job({ states: ['NV'] }))).toEqual({ ring: 3, note: 'in NV, next to CA' })
+    expect(geoRing(g, job({ states: ['NY'] }))).toBeNull()
   })
-  it('reads regions in relocation notes', () => {
+  it('the 75 mi ring says how far', () => {
+    const ring = geoRing(memberGeo({ anchor: sunnyvale, currentState: 'CA' }), job({ coords: [{ lat: 37.9577, lon: -121.2908 }], states: ['CA'] }))
+    expect(ring?.ring).toBe(1)
+    expect(ring?.note).toMatch(/^\d+ mi away$/)
+  })
+  it('onsite only: no remote; no city: the state is home; relocation regions are the outer ring', () => {
+    const onsite = memberGeo({ anchor: null, currentState: 'TX', remotePreference: 'onsite' })
+    expect(geoRing(onsite, job({ remote: true }))).toBeNull()
+    expect(geoRing(onsite, job({ states: ['TX'] }))?.ring).toBe(0)
     expect(relocationStates('Pacific Northwest only')).toEqual(expect.arrayContaining(['WA', 'OR']))
-    const g = memberGeo({ homeArea: null, remotePreference: 'flexible', openToRelocation: true, relocationNotes: 'Pacific Northwest only' })
-    expect(geoMatch(g, job({ states: ['WA'] }))).toBe(true)
-    expect(geoMatch(g, job({ states: ['NY'] }))).toBe(false)
+    const mover = memberGeo({ anchor: null, remotePreference: 'flexible', openToRelocation: true, relocationNotes: 'Pacific Northwest only' })
+    expect(geoRing(mover, job({ states: ['WA'] }))).toEqual({ ring: 3, note: "in WA, where you'd move" })
+    expect(geoRing(mover, job({ states: ['NY'] }))).toBeNull()
   })
 })
 

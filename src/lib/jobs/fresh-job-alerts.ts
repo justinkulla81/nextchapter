@@ -16,7 +16,6 @@ import FreshJobAlertEmail from '@/emails/fresh-job-alert'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-job-alert-cap'
 import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
-import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -116,7 +115,7 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
         location: p.location,
         postedAgo: postedAgo(p),
         // A small strict market widens with bridge jobs (still very strong fits); they say so.
-        bridgeNote: board.breadth.bridges.has(p.id) ? bridgeEmailNote(board.breadth.bridges.get(p.id)!, jobIndustryBucket(p.industry)) : null,
+        bridgeNote: board.breadth.bridges.has(p.id) ? bridgeEmailNote(board.breadth.bridges.get(p.id)!) : null,
       })),
       boardUrl: `${appUrl}/dashboard/find-my-job?view=fresh&src=fresh_job_alert#job-recommendations`,
       unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'freshJobAlerts'),

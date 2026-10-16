@@ -40,6 +40,7 @@ import { subFunctionLabel } from '@/lib/jobs/sub-functions'
 import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
 import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
+import { ToolsNudge } from '@/components/dashboard/ToolsNudge'
 import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
@@ -624,6 +625,11 @@ async function JobRecommendationsSection({
   const reasons: Map<string, MatchReason> = board.breadth.classifier
     ? breadthReasonsFor(board.breadth.classifier, visibleBoardPostings, memberKeywords)
     : new Map()
+  // A ring job says which ring brought it in, briefly: "Your field · 45 mi away", "Pivot: … · one level up".
+  for (const [id, info] of board.breadth.bridges) {
+    const r = reasons.get(id)
+    if (r) reasons.set(id, { ...r, label: [info.kind === 'function' ? r.label : 'Your field', ...info.notes].join(' · ') })
+  }
   // Field, then pivots (a new industry counts as one), then skills matches, then everything a search kept.
   const reasonRank = (id: string) => {
     if (!board.breadth.classifier) return 0
@@ -633,13 +639,15 @@ async function JobRecommendationsSection({
   // Wide's one-relaxed jobs carry a bridge (relevance.ts): what transfers, what's missing, how to close it.
   const bridgeFor = (p: (typeof visibleBoardPostings)[number]): Bridge | undefined => {
     const c = board.breadth.classifier
-    const placed = c?.place(p)
-    if (!c || !placed || placed.relaxed === null || placed.relaxed === 'out') return undefined
+    const info = board.breadth.bridges.get(p.id)
+    if (!c || !info) return undefined
     const gap = skillGapFor(p)
     const company = p.companyId ? companyById.get(p.companyId) : undefined
     const soc = c.occupations.socs.get(p.id)
     return buildBridge({
-      relaxed: placed.relaxed,
+      relaxed: info.kind,
+      placeNote: info.notes.find((n) => / mi away|elsewhere in|where you'd move|next to /.test(n)) ?? null,
+      levelNote: info.notes.find((n) => n.startsWith('one level')) ?? null,
       fieldLabel: subFunctionLabel(c.member.subFunction) ?? c.member.functionLabel ?? 'your field',
       have: gap.have,
       // The posting's own gaps first; with none listed, what its occupation uses that they don't show (O*NET).
@@ -976,9 +984,8 @@ function placePhrase(profile: { currentCity: string | null }, m: MemberBreadthVe
   const g = m.geo
   if (!g || g.unknown) return null
   const parts: string[] = []
-  if (g.homeArea && profile.currentCity) parts.push(`near ${profile.currentCity}`)
+  if (g.anchor && profile.currentCity) parts.push(`near ${profile.currentCity}`)
   else if (g.homeState) parts.push(`in ${g.homeState}`)
-  if (g.relocation.size > 0) parts.push(`in ${[...g.relocation].join(', ')}`)
   if (g.acceptsRemote) parts.push('remote')
   return parts.length > 0 ? parts.join(' or ') : null
 }
@@ -1206,6 +1213,8 @@ async function FindMyJobBody({
       // The member's stage, one up and one down (career-stage.ts; a pivot path adds
       // one more down); a seniority-filter choice shows exactly that group instead.
       stageWindow: seniorityGroup ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
+      // One level beyond their own window is the last widening ring (relevance.ts) — not with an explicit seniority choice.
+      seniorityRing: !seniorityGroup,
       includeMidLevel: true,
       includeEarlyCareer: true,
       workTypes,
@@ -1502,7 +1511,8 @@ async function FindMyJobBody({
               </a>
             </p>
           )}
-          {board.breadth.classifier && breadthMode !== 'off' && !board.breadth.classifier.member.geo?.homeArea && (
+          {board.breadth.classifier && !profile.toolsConfirmedAt && <ToolsNudge />}
+          {board.breadth.classifier && breadthMode !== 'off' && !board.breadth.classifier.member.geo?.anchor && (
             <div className="mt-2">
               <AddCityPrompt
                 surface="find_my_job"

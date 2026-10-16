@@ -3,7 +3,6 @@ import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
-import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
@@ -212,7 +211,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     key: `job:${p.id}`,
     title: p.title,
     detail: [
-      shortlist.breadth.bridges.has(p.id) ? bridgeEmailNote(shortlist.breadth.bridges.get(p.id)!, jobIndustryBucket(p.industry)) : null,
+      shortlist.breadth.bridges.has(p.id) ? bridgeEmailNote(shortlist.breadth.bridges.get(p.id)!) : null,
       p.companyName,
       p.location,
       isFresh(p, now) ? postedAgo(p, now) : null,

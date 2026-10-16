@@ -91,7 +91,7 @@ export function memberMarketTarget(m: MarketMember): MarketTarget | null {
   const stages = stagesInWindow(memberStageWindow(m))
   const read = memberIndustryBuckets(m)
   const industries = read.length > 0 ? read : null
-  const geo = memberGeo({ homeArea: null, currentState: m.currentState, remotePreference: m.remotePreference, openToRelocation: m.openToRelocation, relocationNotes: m.relocationNotes })
+  const geo = memberGeo({ anchor: null, currentState: m.currentState, remotePreference: m.remotePreference, openToRelocation: m.openToRelocation, relocationNotes: m.relocationNotes })
   const geoList = [...(geo.homeState ? [geo.homeState] : []), ...geo.relocation, ...(geo.acceptsRemote ? ['remote'] : [])]
   const geos = geo.unknown || geoList.length === 0 ? null : [...new Set(geoList)]
   const what = subFunctionLabel(subFunction) ?? fn

@@ -1066,6 +1066,9 @@ model CandidateProfile {
   // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
   industryBuckets                 String[]  @default([])
   industryBucketsConfirmedAt      DateTime?
+  // When they last confirmed their tools ("Tools you use", skills page); the tools go into
+  // confirmedSkillsHave. Null = never: the board nudges once. prisma/manual/2026-10-16-tools-confirmed.sql.
+  toolsConfirmedAt                DateTime?
   // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
   // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
   // when the board loads. Null = function not split, or nothing on the allowlists

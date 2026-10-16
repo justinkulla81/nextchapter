@@ -8,11 +8,15 @@ import { WorkStylePrompt } from '@/components/dashboard/WorkStylePrompt'
 import { LikesCard } from '@/components/dashboard/LikesCard'
 import { readLikes } from '@/lib/profile/work-profile'
 import { buildSkillMatrix, readSkillLevels } from '@/lib/profile/skill-matrix'
+import { ToolsChecklist } from '@/components/dashboard/ToolsChecklist'
+import { suggestTools } from '@/lib/profile/tools-checklist'
 
 export const metadata: Metadata = { title: 'Skills Inventory' }
 
 export default async function SkillsAssessmentPage() {
   const profile = await getDashboardProfile()
+  // "Tools you use": their occupation's tools, the ones they already name pre-checked (tools-checklist.ts).
+  const tools = (await suggestTools(profile).catch(() => [])).map((t) => ({ name: t.name, checked: t.checked }))
 
   return (
     <div className="space-y-6">
@@ -36,7 +40,12 @@ export default async function SkillsAssessmentPage() {
           <CardTitle className="text-sm font-medium text-muted-foreground">Your skills matrix</CardTitle>
           <p className="text-sm text-muted-foreground">
             Everything we know you can do: from your resume, skills you added and your certifications. Set how strong each one is. Your job matches, pivot paths and
-            skill gaps all use this list.
+            skill gaps all use this list.{' '}
+            {!profile.toolsConfirmedAt && (
+              <a href="#tools" className="text-primary underline underline-offset-4">
+                Confirm the tools you use
+              </a>
+            )}
           </p>
         </CardHeader>
         <CardContent>
@@ -44,6 +53,9 @@ export default async function SkillsAssessmentPage() {
             rows={buildSkillMatrix(profile)}
             removed={Object.entries(readSkillLevels(profile.skillLevels)).filter(([, v]) => v.removed).map(([k]) => k)}
           />
+          <div className="mt-6 border-t border-border pt-4">
+            <ToolsChecklist options={tools} confirmedAt={profile.toolsConfirmedAt?.toISOString() ?? null} />
+          </div>
         </CardContent>
       </Card>
 
