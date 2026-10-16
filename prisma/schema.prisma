@@ -15617,3 +15617,25 @@ model InternalRoleInterest {
   @@unique([postingId, candidateId])
   @@index([candidateId])
 }
+
+// Native one-click apply (src/lib/jobs/native-apply.ts): a member's application to
+// a job posted directly on NextChapter, delivered to the poster's inbox as a
+// message. `shared` is the exact snapshot the member reviewed and sent; the
+// application itself is the JobPosting row My jobs already reads (jobPostingId).
+// Added by hand: prisma/manual/2026-10-16-native-apply.sql.
+model NativeJobApplication {
+  id                    String   @id @default(cuid())
+  candidateId           String
+  postingId             String // ExclusiveJobPosting.id
+  jobPostingId          String? // JobPosting.id (My jobs / Application Tracker)
+  partnerType           String // 'employer' | 'recruiter'
+  partnerId             String
+  threadId              String // MessageThread.id the application was delivered to
+  resumeId              String?
+  shared                Json
+  confidentialConfirmed Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([postingId])
+}

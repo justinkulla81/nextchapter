@@ -16,6 +16,9 @@ import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
+import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { NativeApply } from '@/components/jobs/NativeApply'
+import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
@@ -436,7 +439,11 @@ export function DiscoverJobCard({
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
         {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} insiders={confidential ? undefined : insiders} />}
-        <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+        <div data-who-to-contact={posting.id}>
+          <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+        </div>
+        <ApplyKit postingId={posting.id} surface="job_card" />
+        {nativePosterOf(posting) && <NativeApply postingId={posting.id} size="sm" />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (
