@@ -16,7 +16,7 @@ export default async function OrganizationsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Organizations</h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">
-            Every customer in one place. An organization owns one or many portals (higher ed, outplacement, coach, hiring, recruiter), one brand, and can be a demo with sample data.
+            Every customer in one place. An organization owns one or many portals (higher education, outplacement, coach, hiring, recruiter), one brand, and can be a demo with sample data.
           </p>
         </div>
         <Link href="/support/admin/organizations/new" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">

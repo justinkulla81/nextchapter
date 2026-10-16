@@ -39,7 +39,7 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
       name: str(formData, 'name'),
       domain: str(formData, 'domain') || null,
       portals,
-      brand: { name: str(formData, 'brandName') || null, logoUrl, accent: str(formData, 'accent') || null },
+      brand: { name: str(formData, 'brandName') || null, logoUrl, accent: str(formData, 'accent') || null, secondary: str(formData, 'secondary') || null, background: str(formData, 'background') || null },
       mode: str(formData, 'mode') === 'demo' ? 'demo' : 'live',
       contactName: str(formData, 'contactName') || null,
       contactEmail: str(formData, 'contactEmail') || null,
@@ -64,7 +64,7 @@ export async function updateBrandAction(organizationId: string, _prev: BrandStat
     if (typeof up === 'string') logoUrl = up
   }
   if (str(formData, 'removeLogo') === 'on') logoUrl = null
-  const r = await updateOrganizationBrand(organizationId, { name: str(formData, 'brandName') || null, logoUrl, accent: str(formData, 'accent') || null }, admin.email ?? null)
+  const r = await updateOrganizationBrand(organizationId, { name: str(formData, 'brandName') || null, logoUrl, accent: str(formData, 'accent') || null, secondary: str(formData, 'secondary') || null, background: str(formData, 'background') || null }, admin.email ?? null)
   if (r.error) return { error: r.error }
   await auditOrganization(organizationId, admin.email ?? null, 'brand.updated')
   revalidatePath(`/support/admin/organizations/${organizationId}`)

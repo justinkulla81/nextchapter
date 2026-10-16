@@ -5,7 +5,10 @@ import { useState, useTransition } from 'react'
 import { usePostHog } from '@/lib/posthog/client'
 import { PORTALS, type PortalType } from '@/lib/organizations/portals'
 import { stagedSummary } from '@/lib/forms/staged'
-import { accentReadableOnWhite, normalizeHex } from '@/lib/partners/brand'
+import { normalizeHex } from '@/lib/partners/brand'
+import { ColorField } from '@/components/partners/ColorField'
+import { BrandPreview } from '@/components/partners/BrandPreview'
+import { BRAND_SWATCHES } from '@/lib/partners/swatches'
 import { createOrganizationAction } from '@/app/support/admin/(portal)/organizations/actions'
 
 const STEPS = [
@@ -14,7 +17,6 @@ const STEPS = [
   { label: 'Brand', minutes: 1 },
   { label: 'Live or demo', minutes: 1 },
 ]
-const SWATCHES = ['#1d6fb8', '#7a1f2b', '#0f6b4d', '#5b3a8c', '#b4531a', '#1f2937']
 const SCENARIOS = ['Light', 'Realistic', 'Large']
 
 type Result = Awaited<ReturnType<typeof createOrganizationAction>>
@@ -29,6 +31,8 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
   const [portals, setPortals] = useState<PortalType[]>([])
   const [brandName, setBrandName] = useState('')
   const [accent, setAccent] = useState('')
+  const [secondary, setSecondary] = useState('')
+  const [background, setBackground] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [logo, setLogo] = useState<File | null>(null)
   const [mode, setMode] = useState<'demo' | 'live'>('demo')
@@ -37,14 +41,14 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
   const [result, setResult] = useState<Result | null>(null)
   const [pending, start] = useTransition()
 
-  const accentOk = !accent || !!normalizeHex(accent)
+  const colorsOk = [accent, secondary, background].every((c) => !c || !!normalizeHex(c))
   const needsContact = mode === 'live' && portals.some((p) => p !== 'HIGHER_ED')
 
   function next() {
     setError(null)
     if (step === 0 && !name.trim()) return setError('Enter the organization’s name to continue.')
     if (step === 1 && portals.length === 0) return setError('Choose at least one portal to continue.')
-    if (step === 2 && !accentOk) return setError('Brand color must look like #1d6fb8.')
+    if (step === 2 && !colorsOk) return setError('Brand colors must look like #1d6fb8. Fix or clear the highlighted color to continue.')
     setStep((s) => Math.min(STEPS.length - 1, s + 1))
   }
 
@@ -59,6 +63,8 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
     portals.forEach((p) => fd.append('portal', p))
     fd.set('brandName', brandName)
     fd.set('accent', accent)
+    fd.set('secondary', secondary)
+    fd.set('background', background)
     fd.set('logoUrl', logoUrl)
     if (logo) fd.set('logo', logo)
     fd.set('mode', mode)
@@ -150,7 +156,7 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
               />
               <span>
                 <span className="font-medium">{p.label}</span>
-                <span className="block text-muted-foreground">{p.available ? p.blurb : 'Being built separately. It will reuse the higher-ed engine and be addable here when ready.'}</span>
+                <span className="block text-muted-foreground">{p.available ? p.blurb : 'Being built separately. It will reuse the higher education engine and be addable here when ready.'}</span>
               </span>
             </label>
           ))}
@@ -164,18 +170,10 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
             Brand name (shown in the portal’s top bar)
             <input id="o-bn" className={input} value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder={name} autoComplete="off" />
           </label>
-          <label className="space-y-1.5 text-sm font-medium" htmlFor="o-ac">
-            Brand color
-            <input id="o-ac" className={input} value={accent} onChange={(e) => setAccent(e.target.value)} placeholder="#1d6fb8" maxLength={7} autoComplete="off" aria-invalid={!accentOk} />
-            {accent && accentOk && !accentReadableOnWhite(normalizeHex(accent) as string) && (
-              <span className="block text-xs font-normal text-muted-foreground">Very light against white, so links and charts in it may be hard to see. The top-bar rule still looks fine.</span>
-            )}
-          </label>
-          <div className="flex flex-wrap gap-2 sm:col-span-2" role="group" aria-label="Quick colors">
-            {SWATCHES.map((c) => (
-              <button key={c} type="button" onClick={() => setAccent(c)} aria-label={`Use ${c}`} aria-pressed={accent.toLowerCase() === c} className={`size-8 rounded-md border-2 ${accent.toLowerCase() === c ? 'border-foreground' : 'border-transparent'}`} style={{ backgroundColor: c }} />
-            ))}
-          </div>
+          <ColorField label="Primary color" hint="Buttons, links and focus. Pick any color or type an exact hex code." name="accentPicker" value={accent} onChange={setAccent} swatches={BRAND_SWATCHES} />
+          <ColorField label="Secondary color" hint="Secondary buttons, chips and highlights." name="secondaryPicker" value={secondary} onChange={setSecondary} fallback="#c8963e" />
+          <ColorField label="Background color" hint="The page behind everything. Text and cards adjust so they stay readable." name="backgroundPicker" value={background} onChange={setBackground} fallback="#f7f9fa" />
+          <BrandPreview name={brandName || name} primary={accent} secondary={secondary} background={background} logoUrl={logoUrl || null} />
           <label className="space-y-1.5 text-sm font-medium" htmlFor="o-logo">
             Logo (png or jpg, up to 3 MB)
             <input id="o-logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} className="block text-sm font-normal" />

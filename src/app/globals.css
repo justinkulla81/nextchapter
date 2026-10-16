@@ -221,5 +221,9 @@
      into partner surfaces. */
   .theme-partner {
     --font-heading: var(--font-sans);
+    /* A partner's chosen background retones the whole portal; with none chosen
+       these resolve to the same page colors as before. */
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }

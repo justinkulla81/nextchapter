@@ -11,6 +11,7 @@ import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { signOut } from '@/app/dashboard/actions'
 import { readableTextOn } from '@/lib/higher-ed/branding'
+import { brandStyle } from '@/lib/partners/brand'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { organizationBrandFor } from '@/lib/organizations/service'
@@ -52,7 +53,9 @@ export default async function InstitutionPortalLayout({
   const accent = orgBrand?.accent ?? institution.accentColor ?? '#2e7d5b'
   const logoUrl = orgBrand?.logoUrl ?? institution.logoUrl
   const programName = orgBrand?.name ?? institution.programBrandName
+  // Primary comes from the organization or the college; secondary and background only from the organization.
   const theme = {
+    ...(brandStyle({ name: null, logoUrl: null, accent: null, secondary: orgBrand?.secondary, background: orgBrand?.background }) ?? {}),
     '--primary': accent,
     '--primary-foreground': readableTextOn(accent),
     '--ring': accent,

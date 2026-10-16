@@ -110,7 +110,7 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
       <section className="space-y-3" aria-labelledby="brand">
         <h2 id="brand" className="text-lg font-semibold">Brand</h2>
         <p className="text-sm text-muted-foreground">One logo, name and color for every portal this organization owns. It replaces the brand each portal stored for itself.</p>
-        <OrganizationBrandForm organizationId={org.id} brandName={org.brandName} accent={org.accentColor} logoUrl={org.logoUrl} />
+        <OrganizationBrandForm organizationId={org.id} brandName={org.brandName} accent={org.accentColor} secondary={org.secondaryColor} background={org.backgroundColor} logoUrl={org.logoUrl} />
       </section>
 
       <section className="space-y-3" aria-labelledby="conn">

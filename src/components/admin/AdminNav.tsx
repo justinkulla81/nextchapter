@@ -99,7 +99,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/company-links', label: 'Company links' },
-        { href: '/support/admin/school-links', label: 'Higher ed links' },
+        { href: '/support/admin/school-links', label: 'Higher education links' },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },
@@ -121,7 +121,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
-        { href: '/support/admin/crm/colleges', label: 'Higher ed' },
+        { href: '/support/admin/crm/colleges', label: 'Higher education' },
         { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
         { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
         { href: '/support/admin/crm/mandates', label: 'Mandates' },
@@ -305,8 +305,8 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         { href: `${A}/organizations`, label: 'Organizations (all portals)' },
-        { href: `${A}/institutions`, label: 'Higher ed' },
-        { href: `${A}/college-systems`, label: 'Higher ed systems (multi-campus)' },
+        { href: `${A}/institutions`, label: 'Higher education' },
+        { href: `${A}/college-systems`, label: 'Higher education systems (multi-campus)' },
         { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
       ],
     },

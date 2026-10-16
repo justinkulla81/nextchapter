@@ -17,9 +17,9 @@ export interface PortalMeta {
 }
 
 export const PORTALS: PortalMeta[] = [
-  { type: 'HIGHER_ED', label: 'Higher ed', blurb: 'Alumni and student career services, mentoring, giving and outcomes.', available: true, peopleLabel: 'Alumni', signInPath: '/auth/login' },
+  { type: 'HIGHER_ED', label: 'Higher education', blurb: 'Alumni and student career services, mentoring, giving and outcomes.', available: true, peopleLabel: 'Alumni', signInPath: '/auth/login' },
   { type: 'OUTPLACEMENT', label: 'Outplacement', blurb: 'Seats for laid-off employees, a roster, a scorecard and invoices.', available: true, peopleLabel: 'Participants', signInPath: '/employer/login' },
-  { type: 'WORKFORCE', label: 'Workforce board', blurb: 'Participants, providers and WIOA reporting. Built on the higher-ed engine.', available: false, peopleLabel: 'Participants', signInPath: '/auth/login' },
+  { type: 'WORKFORCE', label: 'Workforce board', blurb: 'Participants, providers and WIOA reporting. Built on the higher education engine.', available: false, peopleLabel: 'Participants', signInPath: '/auth/login' },
   { type: 'COACH', label: 'Coach or coaching firm', blurb: 'Clients, sessions, booking and impact reports.', available: true, peopleLabel: 'Clients', signInPath: '/support/coach/login' },
   { type: 'HIRING', label: 'Hiring team', blurb: 'Roles, a candidate inbox, scorecards and hiring analytics.', available: true, peopleLabel: 'Candidates', signInPath: '/talent/login' },
   { type: 'RECRUITER', label: 'Recruiter firm', blurb: 'Searches, consented introductions, submissions and placements.', available: true, peopleLabel: 'Candidates', signInPath: '/recruiters/login' },
@@ -51,7 +51,7 @@ export const INTEGRATIONS: IntegrationMeta[] = [
   {
     key: 'coachesServeMembers',
     label: 'Coaches serve this organization’s people',
-    does: 'Members of the higher-ed or outplacement program can book the organization’s coaches, and sessions count toward the program.',
+    does: 'Members of the higher education or outplacement program can book the organization’s coaches, and sessions count toward the program.',
     needs: ['COACH', ['HIGHER_ED', 'OUTPLACEMENT']],
   },
   {
