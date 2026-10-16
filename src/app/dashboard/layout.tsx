@@ -6,7 +6,6 @@ import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { ProgramBar } from '@/components/dashboard/ProgramBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
-import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
@@ -125,26 +124,16 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
 }
 
-// Companies that newly became a strong fit since the member last opened the
-// directory. A badge is decoration: any error reads as "nothing new".
-async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<number> {
-  try {
-    return await countNewStrongCompanies(profileId)
-  } catch (error) {
-    console.error('Failed to count new strong companies for tab badge:', error)
-    return 0
-  }
-}
-
 // The place tab row needs the connection flags to show the right locks and a
-// few live counts for tab badges; its own boundary keeps those queries off the
-// page's critical path.
+// live count for the documents badge; its own boundary keeps those queries off the
+// page's critical path. No Companies badge here: counting "new strong companies" ranked
+// the whole directory and every live posting (a second copy of the board) on every
+// page view, and ran instances out of memory.
 async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
-  const [profile, gmailConnected, access, newCompanies, documentRequests] = await Promise.all([
+  const [profile, gmailConnected, access, documentRequests] = await Promise.all([
     getDashboardProfile(),
     isGmailConnected(profileId),
     accessFor(profileId),
-    getNewStrongCompaniesCountForBadge(profileId),
     countOpenRequestsForCandidate(profileId),
   ])
   return (
@@ -153,7 +142,7 @@ async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
       earlyCareer={earlyCareerAudience(profile) !== null}
       locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
       paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
-      tabBadges={{ '/dashboard/companies': newCompanies, '/dashboard/documents': documentRequests }}
+      tabBadges={{ '/dashboard/documents': documentRequests }}
     />
   )
 }
