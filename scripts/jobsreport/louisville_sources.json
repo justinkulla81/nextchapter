@@ -104,5 +104,49 @@
     "tenant": "cigna",
     "wd": "wd5",
     "site": "cignacareers"
+  },
+  {
+    "name": "wd-ge-appliances",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "GE Appliances",
+    "tenant": "haier",
+    "wd": "wd3",
+    "site": "GE_Appliances"
+  },
+  {
+    "name": "wd-university-of-louisville",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "University of Louisville",
+    "tenant": "uofl",
+    "wd": "wd1",
+    "site": "UofLCareerSite",
+    "all_local": true,
+    "search": ""
+  },
+  {
+    "name": "jibe-norton-healthcare",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "Norton Healthcare",
+    "tenant": "nortonhealthcare"
+  },
+  {
+    "name": "applitrack-jcps",
+    "adapter": "applitrack",
+    "type": "public_sector",
+    "employer": "Jefferson County Public Schools",
+    "district": "jefferson",
+    "location": "Louisville, KY"
+  },
+  {
+    "name": "csod-kentucky-state",
+    "adapter": "csod",
+    "type": "public_sector",
+    "employer": "Commonwealth of Kentucky",
+    "host": "kypersonnelcabinet.csod.com",
+    "site_id": 49,
+    "corp": "kypersonnelcabinet"
   }
 ]

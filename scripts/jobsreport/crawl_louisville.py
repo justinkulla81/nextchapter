@@ -58,7 +58,7 @@ def in_metro(location):
         return False
     return county_for(location) in METRO_COUNTIES
 
-MONEY = re.compile(r"\$\s?([\d,]+(?:\.\d+)?)\s*(k)?(?:\s*(?:-|–|to)\s*\$?\s?([\d,]+(?:\.\d+)?)\s*(k)?)?", re.I)
+MONEY = re.compile(r"\$\s?([\d,]+(?:\.\d+)?)\s*(k)?(?:\s*/\s*(?:hour|hr|year|yr))?(?:\s*(?:-|–|to)\s*\$?\s?([\d,]+(?:\.\d+)?)\s*(k)?)?", re.I)
 
 def parse_pay(text):
     """Pay range stated in the text. Returns (min, max, period) or (None, None, None)."""
@@ -180,7 +180,7 @@ def crawl_workday(src, log):
             if not posts: break
             for p in posts:
                 loc = p.get("locationsText", "")
-                if loc and not in_metro(loc) and "locations" not in loc.lower():
+                if not src.get("all_local") and loc and not in_metro(loc) and "locations" not in loc.lower():
                     continue
                 path = p.get("externalPath", "")
                 try:
@@ -190,7 +190,9 @@ def crawl_workday(src, log):
                     info = {}
                 loc_full = info.get("location") or loc
                 addl = info.get("additionalLocations") or []
-                if not (in_metro(loc_full) or any(in_metro(a) for a in addl)):
+                if src.get("all_local"):
+                    loc_full = f"{loc_full}, Louisville, KY" if loc_full else "Louisville, KY"
+                elif not (in_metro(loc_full) or any(in_metro(a) for a in addl)):
                     continue
                 yield mk(src, src.get("employer", tenant), info.get("jobReqId") or path.rsplit("_", 1)[-1],
                          title=info.get("title") or p.get("title", ""), req_id=info.get("jobReqId"),
@@ -301,7 +303,89 @@ def crawl_neogov(src, log):
         page += 1
         if page > 60: break
 
-ADAPTERS = {"neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "lever": crawl_lever, "usajobs": crawl_usajobs}
+def crawl_jibe(src, log):
+    """Jibe (iCIMS) public jobs API: https://<tenant>.jibeapply.com/api/jobs. src: tenant, employer."""
+    base = f"https://{src['tenant']}.jibeapply.com/api/jobs"
+    page, got, total = 1, 0, None
+    while total is None or got < total:
+        d = json.loads(http(f"{base}?page={page}&limit=100", headers={"Accept": "application/json"}))
+        total = d.get("totalCount", 0)
+        jobs = d.get("jobs", [])
+        if not jobs: break
+        for j in jobs:
+            got += 1
+            x = j.get("data", {})
+            loc = x.get("full_location") or ", ".join(v for v in (x.get("city"), x.get("state")) if v)
+            if not in_metro(loc) and not in_metro(f"{x.get('city','')}, {x.get('state','')}"):
+                continue
+            desc = strip_html(" ".join(filter(None, [x.get("description"), x.get("responsibilities"), x.get("qualifications")])))
+            lo, hi = x.get("salary_min_value"), x.get("salary_max_value")
+            lo = float(lo) if lo and float(lo) > 0 else None
+            hi = float(hi) if hi and float(hi) > 0 else lo
+            cats = x.get("categories")
+            yield mk(src, x.get("hiring_organization") or src.get("employer", src["tenant"]), x.get("req_id") or x.get("slug"),
+                     title=x.get("title", ""), req_id=x.get("req_id"), url=x.get("apply_url"), description=desc,
+                     location_raw=loc, city=x.get("city"), state=x.get("state"), locations=[loc],
+                     employment_type=x.get("employment_type"), pay_min=lo, pay_max=hi, pay_period="year" if lo else None,
+                     pay_stated=lo is not None, posted_at=x.get("posted_date"), posted_precision="timestamp",
+                     source_updated_at=x.get("update_date"))
+        page += 1
+        time.sleep(0.3)
+
+def crawl_applitrack(src, log):
+    """Frontline / AppliTrack school-district postings. src: district (slug), employer, location."""
+    root = f"https://www.applitrack.com/{src['district']}/onlineapp"
+    raw = http(f"{root}/jobpostings/Output.asp?all=1", headers={"Accept": "text/html"}, timeout=90)
+    raw = raw.replace("\\'", "'").replace('\\"', '"')  # the listing is a document.write() script with escaped quotes
+    jobs = re.findall(r"id='wrapword'[^>]*>(.*?)</td>.*?JobID:\s*(\d+).*?applyFor\('\d+','([^']*)'", raw, re.S)
+    seen = set()
+    for title, jid, category in jobs:
+        if jid in seen: continue
+        seen.add(jid)
+        title = strip_html(title.split("');")[0])
+        try:
+            detail = http(f"{root}/jobpostings/Output.asp?AppliTrackJobId={jid}&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1", headers={"Accept": "text/html"})
+            detail = detail.replace("\\'", "'").replace('\\"', '"')
+            body = strip_html(re.sub(r"(?is)<script.*?</script>|<style.*?</style>", " ", detail))
+            k = body.find("JobID:")
+            body = body[k:] if k >= 0 else body
+            body = body.replace("&nbsp;", " ").replace("&nbsp", " ")
+        except Exception:
+            body = ""
+        posted = re.search(r"Date Posted:\s*([0-9/]+)", body)
+        yield mk(src, src.get("employer", src["district"]), jid, title=title,
+                 url=f"{root}/default.aspx?AppliTrackJobId={jid}&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1",
+                 description=body[:8000], location_raw=src.get("location", "Louisville, KY"), employer_domain=category,
+                 posted_at=posted.group(1) if posted else None, posted_precision="date")
+        time.sleep(0.2)
+
+def crawl_csod(src, log):
+    """Cornerstone career site search API (state government). src: site_id, host, employer. Statewide; keeps Louisville metro."""
+    home = http(f"https://{src['host']}/ux/ats/careersite/{src['site_id']}/home?c={src['corp']}", headers={"Accept": "text/html"})
+    tok = re.search(r'"token"\s*:\s*"([^"]+)"', home)
+    if not tok: log(f"  {src['name']}: no API token on the career site page"); return
+    H = {"Authorization": "Bearer " + tok.group(1), "Accept": "application/json"}
+    page, total, got = 1, None, 0
+    while total is None or got < total:
+        body = {"careerSiteId": src["site_id"], "careerSitePageId": src["site_id"], "pageNumber": page, "pageSize": 25, "cultureId": 1,
+                "searchText": "", "cultureName": "en-US", "states": [], "countryCodes": [], "cities": [], "placeID": "", "radius": None,
+                "unit": None, "postingsWithinDays": None, "customFieldCheckboxKeys": [], "customFieldDropdowns": [], "customFieldRadios": []}
+        d = json.loads(http("https://us.api.csod.com/rec-job-search/external/jobs", body, headers=H))["data"]
+        total = d.get("totalCount", 0)
+        reqs = d.get("requisitions", [])
+        if not reqs: break
+        for q in reqs:
+            got += 1
+            locs = [f"{l.get('city','')}, {l.get('state','')}" for l in q.get("locations", [])]
+            if not any(in_metro(l) for l in locs): continue
+            yield mk(src, src.get("employer", "Commonwealth of Kentucky"), q["requisitionId"], title=q.get("displayJobTitle", ""),
+                     url=f"https://{src['host']}/ux/ats/careersite/{src['site_id']}/home/requisition/{q['requisitionId']}?c={src['corp']}",
+                     description=strip_html(q.get("externalDescription", "")), location_raw=locs[0], locations=locs,
+                     posted_at=q.get("postingEffectiveDate"), posted_precision="date")
+        page += 1
+        time.sleep(0.3)
+
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 
