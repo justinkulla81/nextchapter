@@ -31,8 +31,7 @@ function Section({ id, title, intro, children }: { id: string; title: string; in
 }
 
 export default async function EarlyCareerPage({ searchParams }: { searchParams: Promise<{ major?: string }> }) {
-  const profile = await getDashboardProfile()
-  const { major: majorParam } = await searchParams
+  const [profile, { major: majorParam }] = await Promise.all([getDashboardProfile(), searchParams])
   const audience = earlyCareerAudience(profile)
 
   if (!audience) {

@@ -47,23 +47,11 @@ function detailText(details: unknown, key: string): string {
 
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
-  const affiliations = await loadAffiliations(profile.id)
-  const params = await searchParams
-  const [emailConn, calendarConn] = await Promise.all([
+  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections] = await Promise.all([
+    loadAffiliations(profile.id),
+    searchParams,
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
     prisma.calendarConnection.findUnique({ where: { candidateId: profile.id }, select: { connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
-  ])
-  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
-    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
-      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
-  // One Google sign-in creates both connections, so the calendar belongs to
-  // the same account as Gmail when they were connected together.
-  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
-    ? emailConn.connectedEmail : null
-  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
-  const calendarState = stateOf(calendarConn, calendarAccount)
-  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
-  const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
@@ -76,6 +64,16 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       orderBy: { createdAt: 'desc' },
     }),
   ])
+  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
+    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
+      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
+  // One Google sign-in creates both connections, so the calendar belongs to
+  // the same account as Gmail when they were connected together.
+  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
+    ? emailConn.connectedEmail : null
+  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
+  const calendarState = stateOf(calendarConn, calendarAccount)
+  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
   return (

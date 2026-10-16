@@ -18,8 +18,7 @@ const FEEDBACK_PILL: Record<string, string> = {
 }
 
 export default async function HelpAndFeedbackPage({ searchParams }: { searchParams: Promise<{ request?: string; kind?: string }> }) {
-  const profile = await getDashboardProfile()
-  const { request: openId, kind } = await searchParams
+  const [profile, { request: openId, kind }] = await Promise.all([getDashboardProfile(), searchParams])
   const initialKind = HELP_FORM_KINDS.some((k) => k.value === kind) ? (kind as HelpFormKind) : 'help'
 
   const [requests, feedback] = await Promise.all([

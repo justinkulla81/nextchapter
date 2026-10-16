@@ -98,6 +98,11 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     leaderboardPersonalBests,
     leaderboardBadgeHistory,
     ,
+    dossierCompleteness,
+    dossierStatus,
+    ladderTier,
+    moduleGates,
+    traitSignals,
   ] = await Promise.all([
     computeWeeklyEngines(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
     getWhereYouStand(profile.id),
@@ -134,6 +139,13 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     // going to show up in that already-in-flight read either way, whether
     // this ran before, after, or alongside it.
     profile.leaderboardOptIn ? computeAndRecordLeaderboardBadges(profile.id) : Promise.resolve(undefined),
+    // Unlock-ladder inputs: independent read-only lookups, so they run in the
+    // same batch instead of a second serial round trip.
+    computeDossierCompleteness(profile.id),
+    isDossierUnlocked(profile.id),
+    getDossierLadderTier(profile.id),
+    getModuleGateStatus(profile.id),
+    loadTraitSignals(profile.id),
   ])
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
@@ -173,13 +185,6 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
-  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates, traitSignals] = await Promise.all([
-    computeDossierCompleteness(profile.id),
-    isDossierUnlocked(profile.id),
-    getDossierLadderTier(profile.id),
-    getModuleGateStatus(profile.id),
-    loadTraitSignals(profile.id),
-  ])
   const evidenceTraits = buildEvidenceTraits(traitSignals)
   const unlockLadder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
 

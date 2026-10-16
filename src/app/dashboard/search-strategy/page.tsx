@@ -74,18 +74,23 @@ async function SearchStrategyGuidanceCard({
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
-  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+  // The guidance draft can take a while (it may call the model); the rejection
+  // lookup is independent, so run them together.
+  const strategyGuidancePromise = goalsComplete ? getOrDraftSearchStrategyGuidance(profile.id) : Promise.resolve(null)
 
   // Independent of Search Goals completion — a candidate can have logged
   // rejections before finishing their profile. Read-only from the same
   // report-generation-time computation as the Market Reality page's
   // Rejection Patterns section (computeRejectionTrends), never a second
   // live computation.
-  const latestReportForRejections = await prisma.marketRealityReport.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'desc' },
-    select: { jobSearchPattern: true },
-  })
+  const [strategyGuidance, latestReportForRejections] = await Promise.all([
+    strategyGuidancePromise,
+    prisma.marketRealityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { jobSearchPattern: true },
+    }),
+  ])
   const rejectionTrends =
     (latestReportForRejections?.jobSearchPattern as unknown as { rejectionTrends: RejectionTrendsData | null } | null)
       ?.rejectionTrends ?? null
@@ -227,7 +232,14 @@ async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidatePr
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
-  const culturePreferences = await getCulturePreferences(profile.id)
+  const culturePreferencesPromise = getCulturePreferences(profile.id)
+  // Pre-fill the independent-work question from what email and logged work
+  // already show, so the candidate confirms instead of answering from scratch.
+  const platformRowsPromise = prisma.candidatePlatformActivity.findMany({
+    where: { candidateId: profile.id, kind: 'WORK' },
+    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
+  })
+  const [culturePreferences, platformRows] = await Promise.all([culturePreferencesPromise, platformRowsPromise])
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -251,12 +263,6 @@ export default async function SearchStrategyPage() {
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
-  // Pre-fill the independent-work question from what email and logged work
-  // already show, so the candidate confirms instead of answering from scratch.
-  const platformRows = await prisma.candidatePlatformActivity.findMany({
-    where: { candidateId: profile.id, kind: 'WORK' },
-    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
-  })
   const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
   const independentWorkSuggestions = suggestIndependentWork(
     platformRows.flatMap((r) => {
