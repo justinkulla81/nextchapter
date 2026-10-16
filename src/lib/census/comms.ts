@@ -36,7 +36,7 @@ export async function runOutplacementComms(now = new Date()) {
     if (settings.comms.joinReminders) {
       const seats = await prisma.outplacementSeat.findMany({
         where: { contract: { orgId: org.id, status: 'ACTIVE' }, status: 'INVITED', isSampleData: false, reminderCount: { lt: REMINDER_DAYS.length }, enrolledAt: { lte: new Date(now.getTime() - REMINDER_DAYS[0] * DAY) } },
-        select: { id: true, invitedEmail: true, inviteToken: true, enrolledAt: true, reminderCount: true, lastReminderAt: true, packageKey: true },
+        select: { id: true, invitedEmail: true, inviteToken: true, enrolledAt: true, reminderCount: true, lastReminderAt: true, packageKey: true, contract: { select: { programType: true } } },
         take: BATCH,
       })
       for (const s of seats) {
@@ -44,7 +44,7 @@ export async function runOutplacementComms(now = new Date()) {
         if (s.lastReminderAt && now.getTime() - s.lastReminderAt.getTime() < 5 * DAY) continue
         const { actionLink } = await createPreConfirmedInviteUser(s.invitedEmail, `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=outplacement-seat&inviteToken=${s.inviteToken}`, { isFirstSend: false })
         if (!actionLink) continue
-        const r = await sendOutplacementSeatInviteEmail(s.invitedEmail, org.name, actionLink, { welcome: settings.welcome, services: [] }, { reminder: true })
+        const r = await sendOutplacementSeatInviteEmail(s.invitedEmail, org.name, actionLink, { welcome: settings.welcome, services: [] }, { reminder: true, programType: s.contract.programType })
         if (!r.sent) continue
         await prisma.outplacementSeat.update({ where: { id: s.id }, data: { reminderCount: { increment: 1 }, lastReminderAt: now } })
         reminders++

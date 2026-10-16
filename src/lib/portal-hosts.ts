@@ -1,8 +1,8 @@
 // Partner portals on their own subdomains, like admin. and workforce.:
 //   recruiter.<site>      the recruiter portal       (served from /recruiters)
 //   coach.<site>          the coach portal           (/support/coach)
-//   organization.<site>   hiring (/talent) and outplacement (/employer);
-//                         retention and L&D join it as they're built
+//   organization.<site>   hiring (/talent), and outplacement, growth and
+//                         learning (/employer, one employer account)
 //   candidate.<site>      the job seeker's app       (/dashboard, /onboarding, ...)
 // Cookies there are host-only, so each portal's session never shares a
 // cookie jar with the main site. Each is switched on by name in
@@ -52,6 +52,9 @@ export const HOSTS: Record<PortalHost, HostConfig> = {
   organization: {
     mounts: [
       { at: '/hiring', path: '/talent', cookie: 'talent', index: '/talent/dashboard' },
+      // Before /outplacement: publicPathFor takes the first mount that fits.
+      { at: '/growth', path: '/employer/growth', cookie: 'employer' },
+      { at: '/learning', path: '/employer/learning', cookie: 'employer' },
       { at: '/outplacement', path: '/employer', cookie: 'employer' },
     ],
     home: '/organization-home',

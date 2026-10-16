@@ -1,8 +1,11 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import type { OutplacementProgramType } from '@prisma/client'
+import { PROGRAM_TYPE_BENEFIT } from '@/lib/employer/program-type'
 
 interface OutplacementSeatLinkedEmailProps {
   orgName: string
+  programType?: OutplacementProgramType
 }
 
 const container: React.CSSProperties = {
@@ -29,13 +32,13 @@ const footer: React.CSSProperties = {
 // account — the seat links immediately (no invite/activation step needed),
 // so this is a notice, not a call to action. No login link, since the
 // recipient already knows how to log in.
-export default function OutplacementSeatLinkedEmail({ orgName }: OutplacementSeatLinkedEmailProps) {
+export default function OutplacementSeatLinkedEmail({ orgName, programType = 'OUTPLACEMENT' }: OutplacementSeatLinkedEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
-        {orgName} has set up a NextChapter outplacement benefit for your account. Your plan now includes
+        {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for your account. Your plan now includes
         everything in that benefit — nothing about your existing activity, history, or settings changed.
         {orgName} never sees your individual activity on NextChapter, only anonymous, aggregate participation
         numbers across everyone enrolled.

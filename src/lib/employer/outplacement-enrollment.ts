@@ -9,7 +9,7 @@ import { sendOutplacementSeatInviteEmail, sendOutplacementSeatLinkedEmail } from
 import { orgProgram } from './program-server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
-import type { OutplacementEnrollmentMethod } from '@prisma/client'
+import type { OutplacementEnrollmentMethod, OutplacementProgramType } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { grantSeatAccess } from '@/lib/access/grants'
 import { applyOutplacementCensus } from '@/lib/census/outplacement'
@@ -88,6 +88,7 @@ export async function enrollOneSeat(
   packageKey: string | null = null,
   extra: SeatExtra = {}
 ): Promise<EnrollOneResult> {
+  const programType = await contractProgramType(contractId)
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
     const linked = await prisma.outplacementSeat.create({
@@ -104,8 +105,8 @@ export async function enrollOneSeat(
       },
     })
     await grantSeatAccess(linked.id).catch(() => null)
-    await startOutplacementJourney(existing.id)
-    await sendOutplacementSeatLinkedEmail(email, orgName)
+    await startProgramJourney(existing.id, programType)
+    await sendOutplacementSeatLinkedEmail(email, orgName, programType)
     return { email, outcome: 'linked' }
   }
 
@@ -125,7 +126,9 @@ export async function enrollOneSeat(
 
   const contract = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { orgId: true } })
   const program = contract ? await orgProgram(contract.orgId) : null
-  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.forPackage(packageKey).map((f) => f.label) } : undefined)
+  // The services list is the outplacement menu; Growth and Learning describe themselves.
+  const services = program && programType === 'OUTPLACEMENT' ? program.forPackage(packageKey).map((f) => f.label) : []
+  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services } : undefined, { programType })
   return { email, outcome: 'invited' }
 }
 
@@ -242,7 +245,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
     await grantSeatAccess(seat.id).catch(() => null)
-    await startOutplacementJourney(nowRegistered.id)
+    await startProgramJourney(nowRegistered.id, await contractProgramType(seat.contractId))
     return {}
   }
 
@@ -253,14 +256,29 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
   })
   await grantSeatAccess(seat.id).catch(() => null)
 
-  captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id })
-  await startOutplacementJourney(profile.id)
+  const programType = await contractProgramType(seat.contractId)
+  captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id, programType })
+  await startProgramJourney(profile.id, programType)
 
   return {}
 }
 
+async function contractProgramType(contractId: string): Promise<OutplacementProgramType> {
+  const c = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { programType: true } })
+  return c?.programType ?? 'OUTPLACEMENT'
+}
+
 // An outplacement seat means the job ended: the member starts (or switches
 // to) the Laid off journey, actively applying (src/lib/journey).
-async function startOutplacementJourney(candidateId: string): Promise<void> {
-  await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
+// A Growth or Learning seat means they're staying: Growing, managing their
+// career. Only when they haven't picked a journey themselves: an employee
+// quietly exploring a move keeps that, and their employer never knows.
+async function startProgramJourney(candidateId: string, programType: OutplacementProgramType): Promise<void> {
+  if (programType === 'OUTPLACEMENT') {
+    await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
+    return
+  }
+  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true } })
+  if (p?.journey) return
+  await applyJourneyChange(candidateId, { journey: 'GROWING', stage: 'STAYING', source: 'ONBOARDING', note: `${programType === 'GROWTH' ? 'Growth' : 'Learning'} seat` })
 }

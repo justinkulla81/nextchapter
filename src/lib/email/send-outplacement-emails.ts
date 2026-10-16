@@ -5,13 +5,15 @@ import OutplacementSeatInviteEmail from '@/emails/outplacement-seat-invite'
 import OutplacementSeatLinkedEmail from '@/emails/outplacement-seat-linked'
 import OutplacementOrgInviteEmail from '@/emails/outplacement-org-invite'
 import OutplacementAccessEndingEmail from '@/emails/outplacement-access-ending'
+import type { OutplacementProgramType } from '@prisma/client'
+import { PROGRAM_TYPE_BENEFIT } from '@/lib/employer/program-type'
 
 function resendClient(): Resend | null {
   if (!process.env.RESEND_API_KEY) return null
   return createResend(process.env.RESEND_API_KEY)
 }
 
-export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }, opts: { reminder?: boolean } = {}) {
+export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }, opts: { reminder?: boolean; programType?: OutplacementProgramType } = {}) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat invite email.')
@@ -21,8 +23,8 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
-      subject: opts.reminder ? `Reminder: ${orgName} set up a NextChapter benefit for you` : `${orgName} set up a NextChapter benefit for you`,
-      react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null }),
+      subject: opts.reminder ? `Reminder: ${orgName} set up a NextChapter benefit for you` : `${orgName} set up a NextChapter ${PROGRAM_TYPE_BENEFIT[opts.programType ?? 'OUTPLACEMENT']} benefit for you`,
+      react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null, programType: opts.programType }),
     })
     if (error) {
       console.error('Failed to send outplacement seat invite email:', error)
@@ -35,7 +37,7 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
   }
 }
 
-export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgName: string) {
+export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgName: string, programType: OutplacementProgramType = 'OUTPLACEMENT') {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat linked email.')
@@ -45,8 +47,8 @@ export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgN
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
-      subject: `${orgName} set up a NextChapter benefit for you`,
-      react: OutplacementSeatLinkedEmail({ orgName }),
+      subject: `${orgName} set up a NextChapter ${PROGRAM_TYPE_BENEFIT[programType]} benefit for you`,
+      react: OutplacementSeatLinkedEmail({ orgName, programType }),
     })
     if (error) {
       console.error('Failed to send outplacement seat linked email:', error)

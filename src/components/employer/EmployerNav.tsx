@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
 import type { PartnerBrand } from '@/lib/partners/brand'
-import type { OutplacementRole } from '@prisma/client'
+import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -36,8 +36,13 @@ interface NavLink {
 // items), the real enforcement is requireOutplacementRole at each page/
 // action (see src/lib/employer/outplacement-auth.ts's own comment on why
 // both exist).
-function buildLinks(role: OutplacementRole): NavLink[] {
+// Growth and Learning show only for an org with that program.
+function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[]): NavLink[] {
   const links: NavLink[] = [{ href: '/employer', label: 'Overview' }]
+  if (role === 'ADMIN' || role === 'VIEWER') {
+    if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Growth' })
+    if (programs.includes('LEARNING')) links.push({ href: '/employer/learning', label: 'Learning' })
+  }
   if (role === 'ADMIN') {
     links.push(
       { href: '/employer/enroll', label: 'Enroll' },
@@ -86,10 +91,10 @@ function NavContent({ pathname, links, onNavigate }: { pathname: string; links: 
   )
 }
 
-export function EmployerNav({ role, brand }: { role: OutplacementRole; brand?: PartnerBrand }) {
+export function EmployerNav({ role, brand, programs = [] }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[] }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const links = buildLinks(role)
+  const links = buildLinks(role, programs)
   const current = links.find((link) => (link.href === '/employer' ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`)))
 
   return (

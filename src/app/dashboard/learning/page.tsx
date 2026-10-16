@@ -27,6 +27,7 @@ import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardr
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -112,6 +113,7 @@ export default async function LearningPage() {
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
+        <CompanyCoursesCallout candidateId={profile.id} />
         {assessmentLocked && <SkillsInventoryGateCard candidateId={profile.id} />}
         <PageHeaderBoxes
           pageKey="learning"

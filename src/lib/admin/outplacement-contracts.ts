@@ -4,7 +4,7 @@ import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm
 import { sendOutplacementOrgInviteEmail } from '@/lib/email/send-outplacement-emails'
 import { ORG_ROLE_LABEL } from '@/lib/employer/outplacement-org-role-labels'
 import { captureServerEvent } from '@/lib/posthog/server'
-import type { OutplacementTier } from '@prisma/client'
+import type { OutplacementProgramType, OutplacementTier } from '@prisma/client'
 import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Admin-side "Employer contracts" (§A9) — the provisioning side of the
@@ -28,6 +28,7 @@ export interface OrgWithContracts {
     id: string
     cohortLabel: string | null
     tier: OutplacementTier
+    programType: OutplacementProgramType
     seatCount: number
     usedSeats: number
     termStartAt: Date
@@ -56,6 +57,7 @@ export async function listOutplacementOrgs(): Promise<OrgWithContracts[]> {
       id: c.id,
       cohortLabel: c.cohortLabel,
       tier: c.tier,
+      programType: c.programType,
       seatCount: c.seatCount,
       usedSeats: c._count.seats,
       termStartAt: c.termStartAt,
@@ -82,6 +84,7 @@ export async function createOutplacementContract(
     orgId: string
     cohortLabel: string | null
     tier: OutplacementTier
+    programType: OutplacementProgramType
     seatCount: number
     termStartAt: Date
     termEndAt: Date
@@ -97,6 +100,7 @@ export async function createOutplacementContract(
     orgId: input.orgId,
     contractId: contract.id,
     tier: input.tier,
+    programType: input.programType,
     seatCount: input.seatCount,
   })
   return { id: contract.id }

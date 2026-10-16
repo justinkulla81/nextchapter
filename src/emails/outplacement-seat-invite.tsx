@@ -1,5 +1,7 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import type { OutplacementProgramType } from '@prisma/client'
+import { PROGRAM_TYPE_BENEFIT, PROGRAM_TYPE_PITCH } from '@/lib/employer/program-type'
 
 interface OutplacementSeatInviteEmailProps {
   orgName: string
@@ -8,6 +10,7 @@ interface OutplacementSeatInviteEmailProps {
   // offer. Null = the generic description.
   welcome?: string | null
   services?: string[] | null
+  programType?: OutplacementProgramType
 }
 
 const container: React.CSSProperties = {
@@ -48,14 +51,14 @@ const footer: React.CSSProperties = {
 // HR department told them this benefit was coming) and does not put
 // anything about the org's internal contract/tier details in the email
 // body, which would have no reason to leave the org side.
-export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services }: OutplacementSeatInviteEmailProps) {
+export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services, programType = 'OUTPLACEMENT' }: OutplacementSeatInviteEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
-        {orgName} has set up a NextChapter outplacement benefit for you. NextChapter is a job-search platform
-        {services?.length ? `. Your program includes: ${services.join(', ')}.` : ' with resume tools, coaching, a market-difficulty report, and a recruiter network.'} Everything you do there is
+        {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for you.{' '}
+        {services?.length ? `Your program includes: ${services.join(', ')}.` : `NextChapter is ${PROGRAM_TYPE_PITCH[programType]}.`} Everything you do there is
         private to you. {orgName} never sees your individual activity, only anonymous, aggregate participation
         numbers across everyone enrolled.
       </p>

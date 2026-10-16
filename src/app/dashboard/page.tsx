@@ -1,5 +1,6 @@
 import type { MarketRealityReport } from '@prisma/client'
 import { OutplacementProgramCard } from '@/components/dashboard/OutplacementProgramCard'
+import { StaffProgramCard } from '@/components/dashboard/StaffProgramCard'
 import { effectiveJourney, effectiveStage, getJourney, getStage } from '@/lib/journey/journey'
 import { Suspense } from 'react'
 import { FreshJobsPrompt } from '@/components/dashboard/FreshJobsPrompt'
@@ -414,6 +415,7 @@ export default async function DashboardPage() {
       </div>
 
       <OutplacementProgramCard candidateId={profile.id} />
+      <StaffProgramCard candidateId={profile.id} />
 
       {/* Today's note: the daily message, always in the same place. */}
       <PageHeaderBoxes

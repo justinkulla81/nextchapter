@@ -4922,6 +4922,10 @@ model ExclusiveJobPosting {
   // Higher Ed: an employer post visible only to this institution's members.
   // Null for every ordinary job-board posting.
   institutionScopeId String?
+  // An organization's internal role (Growth): only its own employees on a
+  // Growth seat see it, never the open board.
+  orgScopeId         String?
+  orgScope           OutplacementEmployerOrg? @relation("OrgInternalRoles", fields: [orgScopeId], references: [id], onDelete: Cascade)
   // From the crawler (ncrawl) import: the date the source says the job was
   // posted (createdAt is only when we imported it), how many of our sources
   // list it (1 = seen in few places — a low-competition signal), and the
@@ -4933,7 +4937,7 @@ model ExclusiveJobPosting {
   // YC tags…): technology, healthcare, financial_services, … — see
   // ncrawl/industry_map.py. Null for jobs posted directly on NextChapter.
   industry           String?
-  institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
+  institutionScope   Institution?             @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
 
   // The directory company this posting is for. Set when the posting is added (see
   // linkPostingToCompany) and backfilled for older rows; null only when the
@@ -4987,28 +4991,28 @@ model ExclusiveJobPosting {
   // geo coverage and local counts. externalJobId / requisitionId are the
   // source's own ids; repostKey groups re-posts of the same role and descHash
   // identical texts. prisma/manual/2026-10-15-import-fields.sql.
-  locationCity    String?
-  locationState   String?
-  locationCountry String?
-  locationStates  String[] @default([])
-  externalJobId   String?
-  requisitionId   String?
-  repostKey       String?
-  descHash        String?
+  locationCity      String?
+  locationState     String?
+  locationCountry   String?
+  locationStates    String[]  @default([])
+  externalJobId     String?
+  requisitionId     String?
+  repostKey         String?
+  descHash          String?
   // Years-of-experience requirement read at import from the FULL posting text
   // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
   // requirements often sit past it. Null = not read (older rows: parse the excerpt).
-  yearsRequired   Json?
+  yearsRequired     Json?
   // O*NET-SOC occupation the crawler matched the title to (ncrawl scripts/onet_tag_jobs.py:
   // O*NET alternate titles, local, no API call per job), e.g. "13-2051.00" / "Financial and
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
-  socCode         String?
-  socTitle        String?
+  socCode           String?
+  socTitle          String?
   // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
   // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
   // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
-  closeReason     String?
-  reopenCount     Int?
+  closeReason       String?
+  reopenCount       Int?
   // The same role seen before / listed twice (crawler repost_groups.py): times it
   // came back, its original first-seen date, and on the copy shown, how many other
   // listings of it were collapsed into this one (those are archived 'duplicate').
@@ -5025,6 +5029,7 @@ model ExclusiveJobPosting {
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
+  @@index([orgScopeId])
   @@index([companyId])
   @@index([postedAt])
   @@index([industry])
@@ -5239,7 +5244,7 @@ model Coach {
 
   // Weekly Market Digest opt-out — same convention as CandidateProfile's
   // marketDigestOptedOut, no other digest exists for coaches yet.
-  marketDigestOptedOut Boolean @default(false)
+  marketDigestOptedOut   Boolean   @default(false)
   /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
   marketDigestLastSentAt DateTime?
 
@@ -7839,8 +7844,10 @@ model OutplacementEmployerOrg {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  contracts OutplacementContract[]
-  orgUsers  OutplacementOrgUser[]
+  contracts     OutplacementContract[]
+  orgUsers      OutplacementOrgUser[]
+  courses       OrgCourse[]
+  internalRoles ExclusiveJobPosting[]  @relation("OrgInternalRoles")
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
@@ -7856,10 +7863,22 @@ model OutplacementEmployerOrg {
 // A single purchase — seats, tier, term, PO/invoice reference. Admin-
 // managed per spec §A9 ("Employer contracts — seats, term, tier, discount,
 // PO, renewal date, utilization, renewal risk").
+// What a contract buys. OUTPLACEMENT: people leaving. GROWTH: current
+// employees' career tools and internal moves (retention). LEARNING: current
+// employees' learning plans and company-covered courses. Seats work the same
+// way for all three; the employer only ever sees counts.
+enum OutplacementProgramType {
+  OUTPLACEMENT
+  GROWTH
+  LEARNING
+}
+
 model OutplacementContract {
   id    String                  @id @default(cuid())
   orgId String
   org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  programType OutplacementProgramType @default(OUTPLACEMENT)
 
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
   tier             OutplacementTier
@@ -9959,24 +9978,24 @@ model CrmOrganization {
   // "Owl Ventures, LP" with "Owl Ventures", during the Phase 2 dry run.
   canonicalNameNormalized String @unique
 
-  orgTypes CrmOrgType[] @default([])
+  orgTypes       CrmOrgType[] @default([])
   /// This company is a client we hire for or place candidates with. Distinct
   /// from the EMPLOYER org type, which only says it employs people. Set by hand
   /// (or backfilled from real employer accounts); never inferred from postings.
-  hiringClient   Boolean   @default(false)
+  hiringClient   Boolean      @default(false)
   hiringClientAt DateTime?
-  goals    CrmGoal[]    @default([])
-  website  String?
-  hqCity   String?
-  hqRegion String?
+  goals          CrmGoal[]    @default([])
+  website        String?
+  hqCity         String?
+  hqRegion       String?
   /// Two-letter state, or NATIONAL / GLOBAL. Derived from hqRegion, which is
   /// free text like "New York, NY" or "National / global" and therefore
   /// useless as a filter. State matters here because a real share of the
   /// funding list is state programmes you can only win with a presence there.
-  usState  String?
-  industry String?
-  focus    String?      @db.Text // what they invest in / care about, in their words
-  notes    String?      @db.Text
+  usState        String?
+  industry       String?
+  focus          String?      @db.Text // what they invest in / care about, in their words
+  notes          String?      @db.Text
 
   // Denormalised so the "All leads" view can sort organizations and people in
   // one list without a join through opportunities. Opportunities carry their
@@ -10332,11 +10351,11 @@ enum CrmMandateStatus {
 /// `scope` is free text ("VP and above, finance") because mandates are narrow
 /// and rarely repeat; closing keeps the history, deleting does not.
 model CrmMandate {
-  id          String            @id @default(cuid())
+  id          String          @id @default(cuid())
   recruiterId String
-  recruiter   CrmPerson         @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  recruiter   CrmPerson       @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
   orgId       String
-  org         CrmOrganization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  org         CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   scope     String?
   status    CrmMandateStatus @default(ACTIVE)
@@ -13345,17 +13364,17 @@ model LocalPartnerOrg {
 // somewhere to place alumni, or to build a relationship with. Private to that
 // institution — never shown to members, candidates, or other institutions.
 model InstitutionTargetCompany {
-  id            String      @id @default(cuid())
-  institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  companyId     String
-  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  note          String?     @db.Text
-  createdBy     String? // Supabase auth.users id of the staff member who flagged it
-  createdAt     DateTime    @default(now())
+  id                    String      @id @default(cuid())
+  institutionId         String
+  institution           Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId             String
+  company               Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  note                  String?     @db.Text
+  createdBy             String? // Supabase auth.users id of the staff member who flagged it
+  createdAt             DateTime    @default(now())
   /// A company that recruits this college's students every year (as opposed to one
   /// the team merely wants to approach). Private to the institution.
-  coreRecruiter         Boolean @default(false)
+  coreRecruiter         Boolean     @default(false)
   recruiterContactName  String?
   recruiterContactEmail String?
 
@@ -15447,10 +15466,10 @@ model Organization {
   accentColor String?
 
   // Demo: sample data only, never counted in real metrics, expires.
-  isDemo         Boolean   @default(false)
-  demoScenario   String?
-  demoExpiresAt  DateTime?
-  isSampleData   Boolean   @default(false)
+  isDemo        Boolean   @default(false)
+  demoScenario  String?
+  demoExpiresAt DateTime?
+  isSampleData  Boolean   @default(false)
 
   // Which cross-portal connections are turned on for this organization.
   features Json @default("{}")
@@ -15465,20 +15484,20 @@ model Organization {
 }
 
 model OrgWorkspace {
-  id     String           @id @default(cuid())
-  orgId  String
-  org    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  type   OrgWorkspaceType
+  id          String           @id @default(cuid())
+  orgId       String
+  org         Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  type        OrgWorkspaceType
   // The portal's own record: Institution, OutplacementEmployerOrg, Coach,
   // EmployerProfile or RecruiterFirm id. Null until it exists (a hiring team
   // exists only once its first person signs up through the invite).
-  refId  String?
+  refId       String?
   // ACTIVE | PENDING (waiting on the first sign-up) | SUSPENDED
-  status String           @default("ACTIVE")
+  status      String           @default("ACTIVE")
   // For workspaces whose first admin signs up themselves.
   inviteEmail String?
-  inviteToken String?      @unique
-  createdAt   DateTime     @default(now())
+  inviteToken String?          @unique
+  createdAt   DateTime         @default(now())
 
   @@unique([orgId, type])
   @@index([type, refId])
@@ -15543,4 +15562,55 @@ model PartnerAuditEvent {
 
   @@index([portal, refId, createdAt])
   @@index([actorUserId, createdAt])
+}
+
+// A course an organization covers for its people (Learning).
+model OrgCourse {
+  id           String                  @id @default(cuid())
+  orgId        String
+  org          OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title        String
+  provider     String?
+  url          String?
+  skills       String[]                @default([])
+  // What the company pays, in its words: "Fully covered", "Up to $500".
+  covered      String?
+  note         String?
+  isActive     Boolean                 @default(true)
+  isSampleData Boolean                 @default(false)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  progress OrgCourseProgress[]
+
+  @@index([orgId, isActive])
+}
+
+// An employee's own progress on a covered course. The employer sees counts only.
+model OrgCourseProgress {
+  id           String    @id @default(cuid())
+  courseId     String
+  course       OrgCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  candidateId  String
+  status       String // 'STARTED' | 'COMPLETED'
+  isSampleData Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([courseId, candidateId])
+  @@index([candidateId])
+}
+
+// An employee asking to be considered for an internal role. They choose to
+// share their name with the company for that one role; nothing else.
+model InternalRoleInterest {
+  id           String   @id @default(cuid())
+  postingId    String
+  candidateId  String
+  note         String?
+  isSampleData Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([postingId, candidateId])
+  @@index([candidateId])
 }

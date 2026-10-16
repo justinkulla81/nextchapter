@@ -1,6 +1,9 @@
 'use client'
 
-import { useActionState, useRef, useEffect } from 'react'
+import { useActionState, useRef, useEffect, useState } from 'react'
+import type { OutplacementProgramType } from '@prisma/client'
+import { PROGRAM_TYPES, PROGRAM_TYPE_LABEL, PROGRAM_TYPE_BLURB } from '@/lib/employer/program-type'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -87,6 +90,7 @@ export function CreateContractForm({ orgs }: { orgs: { id: string; name: string 
             </SelectContent>
           </Select>
         </div>
+        <ProgramTypePicker />
         <div className="space-y-2">
           <Label htmlFor="contract-cohort">Cohort label (optional)</Label>
           <Input id="contract-cohort" name="cohortLabel" placeholder="RIF — Q1 2026 Engineering" />
@@ -175,5 +179,36 @@ export function InviteFirstAdminForm({ orgs }: { orgs: { id: string; name: strin
       <SubmitButton pendingLabel="Sending…">Send invite</SubmitButton>
       <ActionMessage state={state} />
     </form>
+  )
+}
+
+// Three programs: adjacent buttons, Outplacement (the original product) by default.
+function ProgramTypePicker() {
+  const [value, setValue] = useState<OutplacementProgramType>('OUTPLACEMENT')
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <span id="contract-program-label" className="text-sm font-medium">
+        Program
+      </span>
+      <input type="hidden" name="programType" value={value} />
+      <div role="radiogroup" aria-labelledby="contract-program-label" className="flex flex-wrap gap-2">
+        {PROGRAM_TYPES.map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="radio"
+            aria-checked={value === t}
+            onClick={() => setValue(t)}
+            className={cn(
+              'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+              value === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'
+            )}
+          >
+            {PROGRAM_TYPE_LABEL[t]}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{PROGRAM_TYPE_BLURB[value]}</p>
+    </div>
   )
 }

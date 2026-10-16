@@ -6,6 +6,7 @@ import { getCurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { brandStyle } from '@/lib/partners/brand'
 import { outplacementBrand } from '@/lib/partners/resolve-brand'
+import { orgProgramTypes } from '@/lib/employer/staff-programs'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -23,12 +24,12 @@ const ORG_ROLE_TO_GRANT_ROLE: Record<string, RoleGrantRole> = {
 
 export default async function EmployerAppLayout({ children }: { children: React.ReactNode }) {
   const orgUser = await getCurrentOutplacementOrgUser()
-  const brand = await outplacementBrand(orgUser.orgId)
+  const [brand, programs] = await Promise.all([outplacementBrand(orgUser.orgId), orgProgramTypes(orgUser.orgId)])
 
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="EMPLOYER" />
-      <EmployerNav role={orgUser.role} brand={brand} />
+      <EmployerNav role={orgUser.role} brand={brand} programs={[...programs]} />
       {/* pt-14 clears the fixed top bar — see RecruiterAppLayout's identical comment. */}
       <div className="pt-14">
         <RoleContextBanner
