@@ -3,15 +3,94 @@
     "label": "Louisville / Jefferson County, KY",
     "include": "louisville,?\\s*(ky|kentucky)|louisville metro|^louisville$|ky.louisville|ky-louisville|louisville.ky|jeffersontown|shively|st\\.? matthews",
     "exclude": "louisville,?\\s*(co|colorado|ne|nebraska|oh|ohio|ms|mississippi|tn|ga)\\M",
-    "countyFips": ["21111"],
-    "peers": ["indianapolis", "nashville", "cincinnati", "columbus-oh", "memphis", "charlotte"]
+    "countyFips": [
+      "21111"
+    ],
+    "peers": [
+      "indianapolis",
+      "nashville",
+      "cincinnati",
+      "columbus-oh",
+      "memphis",
+      "charlotte"
+    ],
+    "stateFips": "21",
+    "cbsa": "31140"
   },
-  "indianapolis": { "label": "Indianapolis, IN", "include": "indianapolis", "exclude": "^$", "countyFips": ["18097"] },
-  "nashville": { "label": "Nashville, TN", "include": "nashville", "exclude": "^$", "countyFips": ["47037"] },
-  "cincinnati": { "label": "Cincinnati, OH", "include": "cincinnati", "exclude": "^$", "countyFips": ["39061"] },
-  "columbus-oh": { "label": "Columbus, OH", "include": "columbus,?\\s*(oh|ohio)", "exclude": "^$", "countyFips": ["39049"] },
-  "memphis": { "label": "Memphis, TN", "include": "memphis", "exclude": "^$", "countyFips": ["47157"] },
-  "charlotte": { "label": "Charlotte, NC", "include": "charlotte,?\\s*(nc|north carolina)", "exclude": "^$", "countyFips": ["37119"] },
-  "lexington-ky": { "label": "Lexington, KY", "include": "lexington,?\\s*(ky|kentucky)", "exclude": "^$", "countyFips": ["21067"] },
-  "kentucky": { "label": "Kentucky (state)", "include": "(,|\\s|-|^)(ky|kentucky)\\M", "exclude": "^$", "countyFips": [] }
+  "indianapolis": {
+    "label": "Indianapolis, IN",
+    "include": "indianapolis",
+    "exclude": "^$",
+    "countyFips": [
+      "18097"
+    ],
+    "stateFips": "18",
+    "cbsa": "26900"
+  },
+  "nashville": {
+    "label": "Nashville, TN",
+    "include": "nashville",
+    "exclude": "^$",
+    "countyFips": [
+      "47037"
+    ],
+    "stateFips": "47",
+    "cbsa": "34980"
+  },
+  "cincinnati": {
+    "label": "Cincinnati, OH",
+    "include": "cincinnati",
+    "exclude": "^$",
+    "countyFips": [
+      "39061"
+    ],
+    "stateFips": "39",
+    "cbsa": "17140"
+  },
+  "columbus-oh": {
+    "label": "Columbus, OH",
+    "include": "columbus,?\\s*(oh|ohio)",
+    "exclude": "^$",
+    "countyFips": [
+      "39049"
+    ],
+    "stateFips": "39",
+    "cbsa": "18140"
+  },
+  "memphis": {
+    "label": "Memphis, TN",
+    "include": "memphis",
+    "exclude": "^$",
+    "countyFips": [
+      "47157"
+    ],
+    "stateFips": "47",
+    "cbsa": "32820"
+  },
+  "charlotte": {
+    "label": "Charlotte, NC",
+    "include": "charlotte,?\\s*(nc|north carolina)",
+    "exclude": "^$",
+    "countyFips": [
+      "37119"
+    ],
+    "stateFips": "37",
+    "cbsa": "16740"
+  },
+  "lexington-ky": {
+    "label": "Lexington, KY",
+    "include": "lexington,?\\s*(ky|kentucky)",
+    "exclude": "^$",
+    "countyFips": [
+      "21067"
+    ],
+    "stateFips": "21",
+    "cbsa": "30460"
+  },
+  "kentucky": {
+    "label": "Kentucky (state)",
+    "include": "(,|\\s|-|^)(ky|kentucky)\\M",
+    "exclude": "^$",
+    "countyFips": []
+  }
 }

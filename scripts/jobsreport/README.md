@@ -17,3 +17,5 @@ To add an employer: add a line to `louisville_sources.json`. Workday sites are d
 Covers: overview and source mix, levels, functions, AI versus non-AI pay and skills, remote/hybrid/on-site, benefits and culture language, W-2 versus contract/1099 language, employer concentration, functions gaining and losing (needs two months of `jobsreport_posting` history), and peer comparison within source type (aggregator versus direct). To add a place, add an entry to `geos.json`.
 
 Status: the SQL was tested against the database through the Supabase tool (levels, AI pay, engagement, skills by AI, source mix). `local-report.ts` has not been run: this environment has no `node_modules`.
+
+`peer_bls.py` pulls unemployment rate, labor force and total nonfarm employment for a place and its peers from the BLS public API, for the latest month all have in common, on one basis (not seasonally adjusted). Metro codes (state FIPS, CBSA) are in `geos.json`. Not yet run: api.bls.gov is blocked in the authoring environment, and the series ID formats should be confirmed on first run.
