@@ -411,7 +411,9 @@ export interface BreadthClassifier {
 
 // Placements per member (by what the classifier reads), kept across requests: a member's
 // next board view only re-classifies rows that changed. Bounded; dropped with the job-occupation map.
-const PLACEMENT_MEMO_MAX = 200
+// Each memo can hold a placement for every job in the member's market (the nav badge and the
+// market-size count classify the whole level window), so keep few: 200 ran instances out of memory.
+const PLACEMENT_MEMO_MAX = 10
 const placementMemos = new Map<string, { occupations: JobOccupations; memo: WeakMap<object, BreadthPlacement | null> }>()
 function placementMemo(m: MemberBreadthVector, occupations: JobOccupations): WeakMap<object, BreadthPlacement | null> {
   const key = JSON.stringify([
