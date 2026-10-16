@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, lockedWorkspacesFor, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -66,7 +66,16 @@ export default async function InstitutionPortalLayout({
 
   return (
     <div className="theme-partner flex min-h-screen flex-col bg-background" style={theme}>
-      {institution.isDemo && <DemoBar slug={slug} isNcAdmin={access.isNcAdmin} persona={access.demoPersona} />}
+      {institution.isDemo && (
+        <DemoBar
+          slug={slug}
+          isNcAdmin={access.isNcAdmin}
+          guest={access.mode === 'demo-guest'}
+          persona={access.demoPersona}
+          canReset={orgKindOf(institution.orgType) === 'college'}
+          personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier)}
+        />
+      )}
       {access.mode === 'view-as' && (
         <div role="status" className="border-b border-sky-300 bg-sky-50 px-4 py-2 text-sm text-sky-950">
           You&apos;re viewing {institution.name} as a NextChapter admin. This session was logged with your reason and ends after an hour.
@@ -83,12 +92,20 @@ export default async function InstitutionPortalLayout({
             </p>
           </div>
           <div className="ml-auto flex items-center gap-4 text-sm">
-            <span className="hidden text-muted-foreground sm:inline">{access.email}</span>
-            <form action={signOut}>
-              <button type="submit" className="font-medium text-muted-foreground hover:text-foreground">
-                Sign out
-              </button>
-            </form>
+            {access.mode === 'demo-guest' ? (
+              <a href="/demo/workforce" className="font-medium text-muted-foreground hover:text-foreground">
+                Make another demo
+              </a>
+            ) : (
+              <>
+                <span className="hidden text-muted-foreground sm:inline">{access.email}</span>
+                <form action={signOut}>
+                  <button type="submit" className="font-medium text-muted-foreground hover:text-foreground">
+                    Sign out
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </header>

@@ -109,7 +109,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        {region.name}. Public figures with their sources; nothing here is about an individual alum.
+        {region.name}. Public figures with their sources; nothing here is about any one person.
       </p>
 
       {region.unemployment?.length ? (
@@ -239,7 +239,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
           ) : (
             <p className="text-sm text-muted-foreground">
               None on file. NextChapter&apos;s WARN sync doesn&apos;t cover {areas.map((a) => a.state).join(' or ')} filings yet; once it does, notices for these counties appear
-              here and match against your alumni automatically.
+              here automatically.
             </p>
           )}
         </Panel>

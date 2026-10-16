@@ -38,6 +38,8 @@ export type WorkspaceTab = {
   // Hidden from alumni when the college switches every one of these portal
   // features off (modules.ts). Staff tabs are never hidden; they say it's off.
   modules?: import('./modules').ModuleKey[]
+  // Only for this kind of customer (omitted = both).
+  orgKind?: OrgKind
 }
 
 export type WorkspaceConfig = {
@@ -89,11 +91,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'candidate',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
-      { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'] },
-      { key: 'network', label: 'People', comingIn: null },
-      { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'] },
+      { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'], orgKind: 'college' },
+      { key: 'network', label: 'People', comingIn: null, orgKind: 'college' },
+      { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'], orgKind: 'college' },
       { key: 'programs', label: 'Learn', comingIn: null, modules: ['programs', 'courseAuditing'] },
-      { key: 'giveback', label: 'Give back', comingIn: null, modules: ['volunteer', 'giveBack', 'askAlumni'] },
+      { key: 'giveback', label: 'Give back', comingIn: null, modules: ['volunteer', 'giveBack', 'askAlumni'], orgKind: 'college' },
       { key: 'coaching', label: 'Coaching', comingIn: null },
       { key: 'privacy', label: 'Privacy', comingIn: null },
     ],
@@ -306,10 +308,12 @@ export function isReadOnlyIn(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey
 
 // `modules` (the college's portal features) hides a tab whose features are
 // all switched off; omitted = don't filter on features.
-export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey, modules?: Partial<Record<import('./modules').ModuleKey, boolean>>): WorkspaceTab[] {
+export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey, modules?: Partial<Record<import('./modules').ModuleKey, boolean>>, kind: OrgKind = 'college'): WorkspaceTab[] {
   const ws = getWorkspace(key)
   if (!ws) return []
-  return ws.tabs.filter((t) => (!t.requiredRoles || holdsAny(tokens, t.requiredRoles)) && (!modules || !t.modules || t.modules.some((m) => modules[m] !== false)))
+  return ws.tabs.filter(
+    (t) => (!t.orgKind || t.orgKind === kind) && (!t.requiredRoles || holdsAny(tokens, t.requiredRoles)) && (!modules || !t.modules || t.modules.some((m) => modules[m] !== false)),
+  )
 }
 
 // Every token, for an nc_admin on a demo tenant (or in "View as").
@@ -346,6 +350,16 @@ export const DEMO_PERSONAS = [
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']
+
+// The personas that open at least one workspace for this kind of org, with
+// workforce wording (a member there is a participant, not an alum).
+export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string }[] {
+  return DEMO_PERSONAS.filter((p) => workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
+    key: p.key,
+    label:
+      ({ all: 'Everything', ...(kind === 'workforce' ? { MEMBER: 'Participant (job seeker)', WORKFORCE_PARTNER: 'Program staff', EMPLOYER: 'Hiring member company' } : {}) } as Record<string, string>)[p.key] ?? p.label,
+  }))
+}
 
 export function demoPersonaTokens(key: string | undefined): ReadonlySet<AccessToken> {
   const persona = DEMO_PERSONAS.find((p) => p.key === key) ?? DEMO_PERSONAS[0]

@@ -9,7 +9,8 @@ import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { isReadOnlyIn, type WorkspaceKey } from './workspaces'
-import { DEMO_PREVIEW_COOKIE, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
+import { DEMO_PREVIEW_COOKIE, resolveDemoGuestAccess, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
+import { DEMO_GUEST_COOKIE, guestSlugs } from './demo-guest'
 
 export * from './resolve'
 
@@ -17,8 +18,15 @@ export * from './resolve'
 // resolution. Null when signed out or the slug is unknown.
 export const getInstitutionAccess = cache(async (slug: string): Promise<InstitutionAccess | null | 'signed-out'> => {
   const user = await getCurrentUser()
-  if (!user) return 'signed-out'
   const cookieStore = await cookies()
+  if (!user) {
+    // A prospect's guest pass to a demo they generated.
+    if (guestSlugs(cookieStore.get(DEMO_GUEST_COOKIE)?.value).includes(slug)) {
+      const guest = await resolveDemoGuestAccess({ slug, demoPersona: cookieStore.get(DEMO_PREVIEW_COOKIE)?.value ?? null })
+      if (guest) return guest
+    }
+    return 'signed-out'
+  }
   return resolveInstitutionAccess({
     slug,
     userId: user.id,
@@ -46,7 +54,7 @@ export async function requireWorkspace(
   if (!access) notFound()
   if (!access.workspaces.includes(workspace)) redirect(`/i/${slug}?denied=${workspace}`)
 
-  const readOnly = isReadOnlyIn(access.tokens, workspace)
+  const readOnly = access.mode === 'demo-guest' || isReadOnlyIn(access.tokens, workspace)
   if (opts.write && readOnly) {
     throw new WorkspaceAccessError(`Read-only access to ${workspace} at ${slug}`)
   }

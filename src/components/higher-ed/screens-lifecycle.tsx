@@ -69,7 +69,7 @@ export async function StagePanel({ ctx }: { ctx: WorkspaceContext }) {
     programRecommendations(id, m?.candidateId ?? null),
   ])
   const journey = m?.candidate ? effectiveJourney(m.candidate) : null
-  const items = stageHelp(stage, ctx.institution.slug, { hasPrograms: programs > 0, hasOfficeHours: slots > 0, hasEvents: events > 0, hasJobs: jobs > 0, journey })
+  const items = stageHelp(stage, ctx.institution.slug, { hasPrograms: programs > 0, hasOfficeHours: slots > 0, hasEvents: events > 0, hasJobs: jobs > 0, journey, workforce: ctx.institution.orgType !== 'COLLEGE' })
   if (!items.length && !recs.length) return null
   return (
     <section aria-labelledby="stage-help" className="space-y-3 rounded-lg border border-border bg-card p-4">

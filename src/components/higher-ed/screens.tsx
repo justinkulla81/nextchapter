@@ -8,7 +8,7 @@ import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
-import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants } from './screens-hub'
+import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
 import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
@@ -24,7 +24,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, tierIncludes } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, orgKindOf, tierIncludes } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -187,7 +187,8 @@ async function CandidateHome({ ctx }: ScreenProps) {
   const openFlag = ctx.memberId
     ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
     : null
-  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null)
+  const kind = orgKindOf(ctx.institution.orgType)
+  const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null, kind)
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their
@@ -207,11 +208,20 @@ async function CandidateHome({ ctx }: ScreenProps) {
       <div>
         <h2 className="text-lg font-semibold">{member?.firstName ? `Welcome back, ${member.firstName}` : `Welcome to ${brand}`}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {ctx.institution.name} has your back: a clear read on your job market, a plan for this week, coaching and alumni who&apos;ll take
-          your call. Your search stays yours; the college sees only what you choose to share.
+          {kind === 'workforce' ? (
+            <>
+              {ctx.institution.name} is covering your search: a clear read on your job market, a plan for this week, coaching, and local employers first. Your
+              search stays yours; {ctx.institution.name} sees only what you choose to share.
+            </>
+          ) : (
+            <>
+              {ctx.institution.name} has your back: a clear read on your job market, a plan for this week, coaching and alumni who&apos;ll take your call. Your
+              search stays yours; the college sees only what you choose to share.
+            </>
+          )}
         </p>
         {!ctx.memberId && ctx.isNcAdmin && (
-          <p className="mt-2 text-sm text-amber-900">You&apos;re previewing as an alum. There&apos;s no member record behind this preview.</p>
+          <p className="mt-2 text-sm text-amber-900">You&apos;re previewing as {kind === 'workforce' ? 'a participant' : 'an alum'}. There&apos;s no member record behind this preview.</p>
         )}
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
@@ -848,6 +858,7 @@ const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
+  const workforce = orgKindOf(ctx.institution.orgType) === 'workforce'
   const [members, joined, invitable, runs, outbox, keys, inst] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
@@ -875,7 +886,7 @@ async function AdminRoster({ ctx }: ScreenProps) {
   -H "Authorization: Bearer nck_…" \\
   -H "Content-Type: application/json" \\
   -d '{ "people": [ { "external_id": "100234", "email": "pat@example.edu", "first_name": "Pat", "last_name": "Lee",
-                     "affiliation": "ALUM", "class_year": 2012 } ] }'
+                     "affiliation": "${workforce ? 'PARTICIPANT' : 'ALUM'}", "class_year": 2012 } ] }'
 
 The same columns as the roster file. Matched on external_id, then email. To put learners in a program cohort:
   -d '{ "cohortId": "<cohort id>", "learners": [ { "email": "…", "first_name": "…", "last_name": "…", "payer": "WIOA_VOUCHER" } ] }'
@@ -889,13 +900,13 @@ GET the same address to read your roster back (join status only).`
       </div>
       <section aria-labelledby="invite" className="space-y-2">
         <h2 id="invite" className="text-base font-semibold">
-          Invite alumni
+          {workforce ? 'Invite participants' : 'Invite alumni'}
         </h2>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Each alum gets a short email from {ctx.institution.name} with a one-click link: no password, two privacy choices, then their job market.
-          Do-not-contact alumni are never emailed.
+          {workforce ? 'Each person' : 'Each alum'} gets a short email from {ctx.institution.name} with a one-click link: no password, two privacy choices, then their job
+          market. Do-not-contact {workforce ? 'people are' : 'alumni are'} never emailed.
         </p>
-        <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} />
+        <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} people={workforce ? 'participants' : 'alumni'} />
         {ctx.institution.isDemo && outbox.length > 0 && (
           <details className="rounded-lg border border-border bg-card p-3 text-sm">
             <summary className="cursor-pointer font-medium">Demo outbox: {outbox.length} most recent invitations (not emailed)</summary>
@@ -925,7 +936,7 @@ GET the same address to read your roster back (join status only).`
           Or send the file to NextChapter and we&apos;ll load it.
         </p>
         <div className="grid gap-3 lg:grid-cols-2">
-          <CrmUploadForm id="roster" title="Alumni roster" columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
+          <CrmUploadForm id="roster" title={workforce ? 'Participant roster (affiliation PARTICIPANT)' : 'Alumni roster'} columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
           <CrmUploadForm id="gifts" title="Gifts" columns={GIFT_COLUMNS} action={uploadCrmFile.bind(null, slug, 'gifts')} />
         </div>
       </section>
@@ -1065,6 +1076,7 @@ async function AdminBranding({ ctx }: ScreenProps) {
 const MONTHS = Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, i, 1))))
 
 async function SettingsServices({ ctx }: ScreenProps) {
+  const kind = orgKindOf(ctx.institution.orgType)
   const { enabledFeatures } = await loadInstitutionData(ctx.institution.id)
   const canEdit = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly
   const annualMonth = checkInMonthFrom(enabledFeatures)
@@ -1073,8 +1085,9 @@ async function SettingsServices({ ctx }: ScreenProps) {
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
         Choose what {ctx.institution.name} offers. Switch a service on and its card appears on the Candidate home for the audiences you pick;
-        each card shows how many members opened it.
+        each card shows how many {kind === 'workforce' ? 'people' : 'members'} opened it.
       </p>
+      {kind === 'college' && (
       <form action={setAnnualCheckInMonth.bind(null, ctx.institution.slug)} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
           <Label htmlFor="annual-month">Annual career check-in goes out in</Label>
@@ -1103,12 +1116,14 @@ async function SettingsServices({ ctx }: ScreenProps) {
           New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known).
         </p>
       </form>
-      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures)} usage={usage} canEdit={canEdit} />
+      )}
+      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures, kind)} usage={usage} canEdit={canEdit} kind={kind} />
     </div>
   )
 }
 
-async function SettingsOverview({ ctx }: ScreenProps) {
+async function SettingsOverview({ ctx, ...rest }: ScreenProps) {
+  if (orgKindOf(ctx.institution.orgType) === 'workforce') return <WorkforceOverview ctx={ctx} searchParams={rest.searchParams} base={rest.base} />
   const i = await prisma.institution.findUnique({
     where: { id: ctx.institution.id },
     select: {
@@ -1346,6 +1361,7 @@ async function AlumniMentorsAll(props: ScreenProps) {
   )
 }
 async function AdminServicesAll(props: ScreenProps) {
+  if (orgKindOf(props.ctx.institution.orgType) === 'workforce') return <SettingsServices {...props} />
   return (
     <div className="space-y-10">
       <FeaturesPanel ctx={props.ctx} />

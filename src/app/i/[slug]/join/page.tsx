@@ -65,7 +65,7 @@ export default async function JoinPage({ params, searchParams }: { params: Promi
         ) : (
           <div className="space-y-2 rounded-lg border border-border p-4 text-sm">
             <p>Sign in with the email {inst.name} has on file for you{workforce ? ' (the one you signed up with)' : ''}, and we&apos;ll find you on {workforce ? 'the list' : 'the alumni list'}.</p>
-            <CollegeSignIn slug={slug} google={providers.google} microsoft={providers.microsoft} college={inst.name} />
+            <CollegeSignIn slug={slug} google={providers.google} microsoft={providers.microsoft} college={inst.name} workforce={workforce} />
             <Link href={`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome`)}`} className="font-medium text-primary hover:underline">
               Sign in to join
             </Link>
