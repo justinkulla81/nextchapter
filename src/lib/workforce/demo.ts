@@ -34,6 +34,14 @@ const COMPANIES: { name: string; industry: string }[] = [
 ]
 const JOURNEYS: JourneyType[] = ['LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'READY_TO_MOVE', 'CAREER_CHANGE', 'LAID_OFF']
 const STAGES: JourneyStage[] = ['EXPLORING', 'PREPARING', 'APPLYING', 'APPLYING', 'INTERVIEWING', 'INTERVIEWING', 'OFFER']
+const DOSSIER_LINES = [
+  'Operations manager who ran a 200-person distribution center; strongest at cutting cost without cutting service.',
+  'Customer experience director who rebuilt a contact center around one number: first-call resolution.',
+  'Financial analyst moving into FP&A; turns messy data into a budget people trust.',
+  'Logistics supervisor who cut late shipments by a third; ready for a site lead role.',
+  'HR business partner who led two reorganizations without losing a top performer.',
+  'Software engineer with eight years in claims systems; wants a local product team.',
+]
 const ELSEWHERE = [
   ['Nashville', 'TN'],
   ['Chicago', 'IL'],
@@ -85,22 +93,7 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
   const area = await localArea(local)
 
   // The region: the anchor's county (Census) and the workforce board that serves it.
-  const nearby = await prisma.geoPlace.findMany({
-    where: {
-      lat: { gte: anchor.lat - radiusMiles / 69, lte: anchor.lat + radiusMiles / 69 },
-      lon: { gte: anchor.lon - radiusMiles / 50, lte: anchor.lon + radiusMiles / 50 },
-      AND: [{ name: { not: { endsWith: 'CCD' } } }, { name: { not: { endsWith: 'township' } } }, { name: { not: { endsWith: 'precinct' } } }, { name: { not: { endsWith: 'CDP' } } }],
-    },
-    orderBy: { population: 'desc' },
-    take: 40,
-    select: { state: true, name: true, nameKey: true, lat: true, lon: true, county: true },
-  })
-  const towns = nearby
-    .filter((p) => area?.keys.has(`${p.state}|${p.nameKey}`))
-    .map((p) => ({ city: p.name.replace(/\/.*$/, '').replace(/\s+(city|town|village|borough|municipality)$/i, '').trim(), state: p.state }))
-    .filter((t, i, all) => all.findIndex((x) => x.city === t.city && x.state === t.state) === i)
-    .slice(0, 8)
-  const localTowns = [{ city: anchorCity, state: anchorState }, ...towns.filter((t) => !(t.city.toLowerCase() === anchorCity.toLowerCase() && t.state === anchorState))]
+  const { nearby, localTowns } = await townsNear(anchor, area, anchorCity, anchorState, radiusMiles)
   const anchorCounty = nearby.find((p) => p.state === anchorState && p.nameKey === anchorCity.toLowerCase())?.county ?? null
   const boards = await prisma.workforceBoard.findMany({ where: { state: anchorState }, select: { name: true, website: true, counties: true, placeCounties: true } })
   const board = anchorCounty ? boards.find((b) => [...b.counties, ...b.placeCounties].includes(countyKey(anchorCounty))) : null
@@ -184,6 +177,14 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     }),
   )
 
+  // The hiring companies have connected logins (sample employer accounts).
+  for (const [k, c] of companies.entries()) {
+    if (k % 3 !== 1) continue
+    const ep = await prisma.employerProfile.create({ data: { userId: `${demoUserPrefix(slug)}employer-${k}`, companyName: c.name, companyIndustry: COMPANIES[k].industry, contactName: 'Talent team', isSampleData: true }, select: { id: true } })
+    await prisma.institutionEmployer.create({ data: { institutionId, employerProfileId: ep.id, status: 'APPROVED', approvedBy: 'member-invite', approvedAt: now, isSampleData: true } })
+    await prisma.memberCompany.update({ where: { id: c.id }, data: { employerProfileId: ep.id, connectedAt: now, invitedEmail: `talent@${c.name.toLowerCase().replace(/[^a-z]+/g, '')}.example.com` } })
+  }
+
   // Three layoffs with seats; the newest still open.
   const layoffSpecs = [
     { company: 0, seats: 80, daysAgo: 70, open: false },
@@ -226,6 +227,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
   // Joined: a sample candidate each, at a stage of their search; the oldest
   // layoff has the most people landed.
   const joined = people.filter((p) => p.joined)
+  const sharesDossier = (i: number) => !landedOf.has(i) && rand(seed, i, 21) < 0.35
   const landedOf = new Set(
     joined
       .filter((p) => (p.l === 0 ? rand(seed, p.i, 7) < 0.55 : p.l === 1 ? rand(seed, p.i, 7) < 0.25 : rand(seed, p.i, 7) < 0.05))
@@ -248,6 +250,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
         currentCity: town(p.i, 9).city,
         currentState: town(p.i, 9).state,
         metroArea: localTowns[0].city,
+        positioningStatementText: sharesDossier(p.i) ? pick(DOSSIER_LINES, seed, p.i, 22) : null,
         isSampleData: true,
       } satisfies Prisma.CandidateProfileCreateManyInput
     }),
@@ -281,6 +284,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     data: joined.flatMap((p) => [
       { memberId: memberId(p.i), scope: 'SHARE_OUTCOME' as const, granted: rand(seed, p.i, 10) < 0.88, source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
       { memberId: memberId(p.i), scope: 'SHARE_SEARCH_DETAIL_WITH_CAREER' as const, granted: rand(seed, p.i, 11) < 0.35, source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
+      { memberId: memberId(p.i), scope: 'SHARE_DOSSIER_WITH_EMPLOYERS' as const, granted: sharesDossier(p.i), source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
     ]),
   })
 
@@ -341,11 +345,34 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
   })
 }
 
+
+// Real towns inside the radius (Census places), the main city first.
+async function townsNear(anchor: { lat: number; lon: number }, area: Awaited<ReturnType<typeof localArea>>, anchorCity: string, anchorState: string, radiusMiles: number) {
+  const nearby = await prisma.geoPlace.findMany({
+    where: {
+      lat: { gte: anchor.lat - radiusMiles / 69, lte: anchor.lat + radiusMiles / 69 },
+      lon: { gte: anchor.lon - radiusMiles / 50, lte: anchor.lon + radiusMiles / 50 },
+      AND: [{ name: { not: { endsWith: 'CCD' } } }, { name: { not: { endsWith: 'township' } } }, { name: { not: { endsWith: 'precinct' } } }, { name: { not: { endsWith: 'CDP' } } }],
+    },
+    orderBy: { population: 'desc' },
+    take: 40,
+    select: { state: true, name: true, nameKey: true, lat: true, lon: true, county: true },
+  })
+  const towns = nearby
+    .filter((p) => area?.keys.has(`${p.state}|${p.nameKey}`))
+    .map((p) => ({ city: p.name.replace(/\/.*$/, '').replace(/\s+(city|town|village|borough|municipality)$/i, '').trim(), state: p.state }))
+    .filter((t, i, all) => all.findIndex((x) => x.city === t.city && x.state === t.state) === i)
+    .slice(0, 8)
+  const localTowns = [{ city: anchorCity, state: anchorState }, ...towns.filter((t) => !(t.city.toLowerCase() === anchorCity.toLowerCase() && t.state === anchorState))]
+  return { nearby, localTowns }
+}
+
 // Removes a demo org and its sample candidates. Only ever touches a demo.
 export async function deleteWorkforceDemo(slug: string) {
   const inst = await prisma.institution.findFirst({ where: { slug, isDemo: true, isSampleData: true }, select: { id: true } })
   if (inst) await prisma.institution.delete({ where: { id: inst.id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
+  await prisma.employerProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
 }
 
 // Nightly: public demos past their 30 days.
@@ -362,3 +389,26 @@ export async function cleanupExpiredDemos(now = new Date()) {
   return { removed }
 }
 
+
+// Fresh sample data for an existing workforce demo, keeping its address
+// (a demo already sent to a prospect keeps working). Region data is kept.
+export async function reseedWorkforceDemo(slug: string, now = new Date()) {
+  const inst = await prisma.institution.findFirst({ where: { slug, isDemo: true, isSampleData: true, orgType: { not: 'COLLEGE' } }, select: { id: true, name: true, enabledFeatures: true } })
+  if (!inst) return { error: 'Not a workforce demo.' }
+  const local = (inst.enabledFeatures as { local?: LocalSettings } | null)?.local
+  if (!local) return { error: 'This demo has no region.' }
+  const anchor = await placeAt(local.anchorCity, local.anchorState)
+  if (!anchor) return { error: 'The demo’s city is no longer in the place list.' }
+  const area = await localArea(local)
+  const { localTowns } = await townsNear(anchor, area, local.anchorCity, local.anchorState, local.radiusMiles)
+  const id = inst.id
+  await prisma.institutionEmployer.deleteMany({ where: { institutionId: id } })
+  await prisma.institutionMember.deleteMany({ where: { institutionId: id } })
+  await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
+  await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
+  await prisma.program.deleteMany({ where: { institutionId: id } })
+  await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
+  await prisma.employerProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
+  await seedWorkforceDemo({ institutionId: id, slug, seed: `${slug}:${now.toISOString().slice(0, 10)}`, now, localTowns, name: inst.name })
+  return { ok: true }
+}

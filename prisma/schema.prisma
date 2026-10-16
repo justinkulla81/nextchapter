@@ -2783,6 +2783,7 @@ model EmployerProfile {
   companyId            String?
   company              Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
   dossierIntroRequests DossierIntroRequest[]
+  memberCompany        MemberCompany?
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
@@ -14410,21 +14411,29 @@ model RapidResponse {
 // A company a workforce org (chamber, EDO, board) serves: when it has a
 // layoff, its people get NextChapter seats from the org's pool.
 model MemberCompany {
-  id             String      @id @default(cuid())
-  institutionId  String
-  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  name           String
-  industry       String?
-  city           String?
-  state          String?
-  contactName    String?
-  contactEmail   String?
+  id                String           @id @default(cuid())
+  institutionId     String
+  institution       Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name              String
+  industry          String?
+  city              String?
+  state             String?
+  contactName       String?
+  contactEmail      String?
   // Seats set aside for this company from the org's pool (Institution.includedSeats).
-  seatsAllocated Int         @default(0)
-  hiring         Boolean     @default(false) // sees opt-in Dossiers of the org's participants
-  isSampleData   Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  seatsAllocated    Int              @default(0)
+  hiring            Boolean          @default(false) // sees opt-in Dossiers of the org's participants
+  // The company's hiring login (a NextChapter Talent employer account),
+  // connected through a one-time invite link the org sends its contact.
+  employerProfileId String?          @unique
+  employerProfile   EmployerProfile? @relation(fields: [employerProfileId], references: [id], onDelete: SetNull)
+  inviteToken       String?          @unique
+  invitedEmail      String?
+  invitedAt         DateTime?
+  connectedAt       DateTime?
+  isSampleData      Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   layoffs RapidResponse[]
   people  InstitutionMember[]

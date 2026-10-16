@@ -438,6 +438,7 @@ function workforceStageHelp(stage: JourneyStage | null, slug: string, hasProgram
     INTERVIEWING: ['practice', 'coaching'],
     OFFER: ['worth', 'coaching'],
     LANDED: ['landed', 'firstReview'],
+    STAYING: ['pivots', 'programs'],
     PAUSED: [],
   }
   return (stage ? by[stage] : by.EXPLORING).filter((k) => k !== 'programs' || hasPrograms).map((k) => items[k])
