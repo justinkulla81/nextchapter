@@ -44,6 +44,7 @@ import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
+import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
@@ -1406,6 +1407,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'employer:home': EmployerDossiersWithIntros,
   'employer:page': EmployerPage,
   'candidate:jobs': CandidateWork,
+  'candidate:internships': InternshipsScreen,
+  'career:internships': InternshipsScreen,
   'career:employers': CareerEmployers,
   'career:students': CareerStudents,
   'alumni:region': Region,

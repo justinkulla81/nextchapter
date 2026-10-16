@@ -92,6 +92,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'], orgKind: 'college' },
+      // Internships live only in the college portal, never on the member job board.
+      { key: 'internships', label: 'Internships', comingIn: null, modules: ['internships'], orgKind: 'college' },
       { key: 'network', label: 'People', comingIn: null, orgKind: 'college' },
       { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'], orgKind: 'college' },
       { key: 'programs', label: 'Learn', comingIn: null, modules: ['programs', 'courseAuditing'] },
@@ -157,6 +159,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'checkins', label: 'Check-ins', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'students', label: 'Student tools', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'internships', label: 'Internships', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'circles', label: 'Circles & career fairs', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'employers', label: 'Employers', comingIn: null },

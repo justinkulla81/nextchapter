@@ -15176,3 +15176,44 @@ model CoachAccessCode {
 
   @@index([coachId])
 }
+
+// Internships (owner rule: internships only appear in Higher Ed portals). Their
+// own table, never ExclusiveJobPosting, so no member board, email, alert, pivot
+// or company count can read one by accident. Written by the ncrawl internship
+// stream (/api/admin/internships/import), read only by the Higher Ed portal's
+// Internships tab (src/lib/internships/data.ts). institutionId NULL = shown to
+// every partner college's students and alumni; set = that college only.
+// Applied by hand: prisma/manual/2026-10-15-internship-postings.sql.
+model InternshipPosting {
+  id              String    @id @default(cuid())
+  url             String    @unique
+  title           String
+  companyName     String
+  companyId       String?
+  location        String?
+  locationState   String? // US 2-letter
+  remote          Boolean   @default(false)
+  // Field of study it suits (src/lib/internships/fields.ts): business, engineering, software, data, finance, ...
+  field           String?
+  // summer | fall | spring | winter | co_op | year_round (null = not stated)
+  term            String?
+  termYear        Int?
+  deadline        DateTime?
+  description     String? // excerpt
+  salaryMin       Int?
+  salaryMax       Int?
+  payPeriod       String? // hour | week | month | year
+  sourceName      String?
+  addedBy         String    @default("ncrawl")
+  institutionId   String?
+  postedAt        DateTime?
+  lastConfirmedAt DateTime?
+  expiresAt       DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([archivedAt, field])
+  @@index([institutionId])
+  @@index([addedBy, lastConfirmedAt])
+}
