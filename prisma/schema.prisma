@@ -681,6 +681,12 @@ model CandidateProfile {
   confidentialSearchMode          Boolean                     @default(false)
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
+  // ('requirements' | 'streak'). candidatePlusRevokedAt is set only by an admin and turns
+  // it off until cleared. prisma/manual/2026-10-16-candidate-plus-permanent.sql.
+  candidatePlusUnlockedAt         DateTime?
+  candidatePlusUnlockSource       String?
+  candidatePlusRevokedAt          DateTime?
   effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]

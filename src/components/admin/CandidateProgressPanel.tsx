@@ -37,9 +37,12 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
 export function CandidateProgressPanel({
   progress,
   setEffortTarget,
+  setCandidatePlusRevoked,
 }: {
   progress: CandidateProgress
   setEffortTarget?: (formData: FormData) => Promise<void>
+  /** Admin-only: remove Candidate+ (it otherwise stays on once earned) or restore it. */
+  setCandidatePlusRevoked?: (formData: FormData) => Promise<void>
 }) {
   const { likelihood, dossier, connections, searchStrategy, assessments, activity, badges, moduleGates, interviewAnswers } =
     progress
@@ -112,6 +115,43 @@ export function CandidateProgressPanel({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm">{dossier.unlock.reason}</p>
+          {dossier.unlock.unlockedAt && (
+            <p className="text-xs text-muted-foreground">
+              Candidate+ first earned {when(dossier.unlock.unlockedAt)}
+              {dossier.unlock.unlockSource === 'streak' ? ' with a 6-week weekly-goal streak' : ' by meeting the requirements'}; it stays on
+              unless removed here.
+            </p>
+          )}
+
+          {setCandidatePlusRevoked &&
+            (dossier.unlock.revoked ? (
+              <form action={setCandidatePlusRevoked} className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/40 p-3">
+                <p className="text-sm">Candidate+ is removed for this member.</p>
+                <input type="hidden" name="action" value="restore" />
+                <button type="submit" className="h-9 rounded-md border border-border px-4 text-sm font-medium hover:bg-muted">
+                  Restore Candidate+
+                </button>
+              </form>
+            ) : (
+              dossier.unlock.unlocked && (
+                <details className="rounded-md border border-border p-3 text-sm">
+                  <summary className="cursor-pointer font-medium">Remove Candidate+…</summary>
+                  <form action={setCandidatePlusRevoked} className="mt-2 space-y-2">
+                    <p className="text-muted-foreground">
+                      Turns Candidate+ off for this member until you restore it, whatever they do: the job extras close and
+                      recruiters and employers stop seeing them.
+                    </p>
+                    <input type="hidden" name="action" value="revoke" />
+                    <button
+                      type="submit"
+                      className="h-9 rounded-md border border-destructive px-4 text-sm font-medium text-destructive hover:bg-destructive/10"
+                    >
+                      Remove Candidate+
+                    </button>
+                  </form>
+                </details>
+              )
+            ))}
 
           {setEffortTarget && (
             <form action={setEffortTarget} className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3">

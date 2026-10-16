@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildUnlockLadder, nextRung } from './ladder'
+import { buildUnlockLadder, candidatePlusSteps, nextRung } from './ladder'
 import type { DossierCompleteness, DossierUnlockStatus } from '@/lib/scoring/dossier-unlock'
 
 const completeness: DossierCompleteness = { requirements: [], metCount: 0, totalCount: 7, isComplete: false }
@@ -16,6 +16,9 @@ const status = (over: Partial<DossierUnlockStatus> = {}): DossierUnlockStatus =>
   outreachCount: 2,
   applicationCount: 3,
   reason: '',
+  unlockedAt: null,
+  unlockSource: null,
+  revoked: false,
   ...over,
 })
 const gates = (a: boolean, b: boolean) => [
@@ -36,5 +39,16 @@ describe('buildUnlockLadder', () => {
   it('opens Candidate+ when the gate says unlocked', () => {
     const l = buildUnlockLadder({ gates: gates(true, true), tier: 'COMPLETE', completeness, status: status({ unlocked: true }) })
     expect(l[2].state).toBe('open')
+  })
+})
+
+describe('candidatePlusSteps', () => {
+  it('lists exactly what is left for Candidate+, in ladder order, each with a place to do it', () => {
+    const steps = candidatePlusSteps(status())
+    expect(steps.map((s) => s.key)).toEqual(['minutes', 'references', 'outreach', 'applications'])
+    expect(steps[0]).toMatchObject({ need: '150 more minutes of search effort', href: '/dashboard/sprint' })
+  })
+  it('is empty once Candidate+ is on', () => {
+    expect(candidatePlusSteps(status({ unlocked: true }))).toEqual([])
   })
 })

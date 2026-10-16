@@ -37,6 +37,31 @@ function plural(n: number, one: string, many: string) {
   return `${n} more ${n === 1 ? one : many}`
 }
 
+export type CandidatePlusStepKey = 'minutes' | 'references' | 'assessment' | 'outreach' | 'applications'
+
+/**
+ * What is still missing for Candidate+, one step per gate, in the ladder's order, with
+ * where to do it. The ladder's Candidate+ "needs" are these steps' `need` text.
+ */
+export function candidatePlusSteps(status: DossierUnlockStatus): { key: CandidatePlusStepKey; need: string; href: string; action: string }[] {
+  if (status.unlocked) return []
+  const steps: { key: CandidatePlusStepKey; need: string; href: string; action: string }[] = []
+  if (!status.minutesMet) {
+    steps.push({ key: 'minutes', need: `${plural(Math.max(0, status.effortTarget - status.effortMinutes), 'minute', 'minutes')} of search effort`, href: '/dashboard/sprint', action: "Open this week's plan" })
+  }
+  if (!status.referencesMet) {
+    steps.push({ key: 'references', need: plural(Math.max(0, DOSSIER_UNLOCK_REFERENCE_TARGET - status.completedReferenceCount), 'reference', 'references'), href: '/dashboard/references', action: 'Request a reference' })
+  }
+  if (!status.evidenceMet) steps.push({ key: 'assessment', need: 'one assessment', href: '/dashboard/skills-assessments', action: 'Take an assessment' })
+  if (!status.effortMet) {
+    const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
+    const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
+    if (m) steps.push({ key: 'outreach', need: plural(m, 'message', 'messages'), href: '/dashboard/network', action: 'Send an outreach message' })
+    if (a) steps.push({ key: 'applications', need: plural(a, 'application', 'applications'), href: '/dashboard/find-my-job', action: 'Find a job to apply to' })
+  }
+  return steps
+}
+
 export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
 
@@ -46,16 +71,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
   const introsOpen = atLeast(tier, 'RECRUITER_INTROS')
   const unpostedOpen = tier === 'UNPOSTED_ROLES'
 
-  const plusNeeds: string[] = []
-  if (!status.minutesMet) plusNeeds.push(`${plural(Math.max(0, status.effortTarget - status.effortMinutes), 'minute', 'minutes')} of search effort`)
-  if (!status.referencesMet) plusNeeds.push(plural(Math.max(0, DOSSIER_UNLOCK_REFERENCE_TARGET - status.completedReferenceCount), 'reference', 'references'))
-  if (!status.evidenceMet) plusNeeds.push('one assessment')
-  if (!status.effortMet) {
-    const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
-    const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
-    if (m) plusNeeds.push(plural(m, 'message', 'messages'))
-    if (a) plusNeeds.push(plural(a, 'application', 'applications'))
-  }
+  const plusNeeds = candidatePlusSteps(status).map((s) => s.need)
 
   const introNeeds = completeness.requirements.filter((r) => !r.met).map((r) => {
     if (r.key === 'profile') return `${r.target - r.current} more profile sections`

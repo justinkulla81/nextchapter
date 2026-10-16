@@ -158,3 +158,18 @@ export async function setEffortMinutesTarget(candidateId: string, formData: Form
   captureServerEvent(candidateId, 'effort_target_overridden', { minutes: value, setByEmail: admin.email })
   revalidatePath(`/support/admin/candidates/${candidateId}`)
 }
+
+// Candidate+ stays on once earned (dossier-unlock.ts); only an admin can remove it.
+// 'revoke' turns it off whatever the member has done; 'restore' undoes that, and the
+// recorded unlock (if any) applies again.
+export async function setCandidatePlusRevoked(candidateId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const action = String(formData.get('action') ?? '')
+  if (action !== 'revoke' && action !== 'restore') return
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { candidatePlusRevokedAt: action === 'revoke' ? new Date() : null },
+  })
+  captureServerEvent(candidateId, action === 'revoke' ? 'candidate_plus_revoked' : 'candidate_plus_restored', { setByEmail: admin.email })
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+}

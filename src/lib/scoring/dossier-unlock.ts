@@ -347,10 +347,35 @@ export interface DossierUnlockStatus {
   outreachCount: number
   applicationCount: number
   reason: string // plain-language — states what's still missing, or confirms unlock
+  /** When Candidate+ was first earned (kept from then on), and how; null when never earned. */
+  unlockedAt: Date | null
+  unlockSource: CandidatePlusSource | null
+  /** An admin removed Candidate+ (only an admin can). */
+  revoked: boolean
 }
 
-// Pure per-candidate read (no writes): layout, page body, ranking data and
-// several widgets each ask within one request; cache() makes repeats free.
+export type CandidatePlusSource = 'requirements' | 'streak'
+
+/**
+ * Candidate+ is permanent once earned (owner's rule, 2026-10-16). The main path counts
+ * lifetime work, so it never lapses; the streak path reads the latest weeks, so on its
+ * own it switched off every Monday until that week's goal was met. Recording the first
+ * unlock keeps both on for good. Only an admin revoke turns it off.
+ */
+export function resolveCandidatePlus(input: {
+  requirementsMet: boolean
+  streakMet: boolean
+  unlockedAt: Date | null
+  revokedAt: Date | null
+}): { unlocked: boolean; record: CandidatePlusSource | null } {
+  if (input.revokedAt) return { unlocked: false, record: null }
+  const live: CandidatePlusSource | null = input.requirementsMet ? 'requirements' : input.streakMet ? 'streak' : null
+  return { unlocked: !!input.unlockedAt || live !== null, record: input.unlockedAt ? null : live }
+}
+
+// Per-candidate read; the only write is recording the first unlock (once, ever).
+// Layout, page body, ranking data and several widgets each ask within one request;
+// cache() makes repeats free.
 export const isDossierUnlocked = cache(isDossierUnlockedUncached)
 
 async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUnlockStatus> {
@@ -359,7 +384,11 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
       prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true, effortMinutesTargetOverride: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: {
+          skillsAssessmentCompletedAt: true, effortMinutesTargetOverride: true,
+          candidatePlusUnlockedAt: true, candidatePlusUnlockSource: true, candidatePlusRevokedAt: true,
+        },
+      }),
       prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
       prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
       hasAlternateUnlockPath(candidateId),
@@ -371,7 +400,27 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
   const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
   const minutesMet = effortMinutes >= effortTarget
-  const unlocked = (referencesMet && evidenceMet && effortMet && minutesMet) || alternatePath.met
+  const requirementsMet = referencesMet && evidenceMet && effortMet && minutesMet
+  const plus = resolveCandidatePlus({
+    requirementsMet,
+    streakMet: alternatePath.met,
+    unlockedAt: profile.candidatePlusUnlockedAt,
+    revokedAt: profile.candidatePlusRevokedAt,
+  })
+  const unlocked = plus.unlocked
+  let unlockedAt = profile.candidatePlusUnlockedAt
+  let unlockSource = (profile.candidatePlusUnlockSource as CandidatePlusSource | null) ?? null
+  if (plus.record) {
+    // First time earned: record it so it stays on. Guarded so two requests can't both write.
+    unlockedAt = new Date()
+    unlockSource = plus.record
+    await prisma.candidateProfile
+      .updateMany({
+        where: { id: candidateId, candidatePlusUnlockedAt: null, candidatePlusRevokedAt: null },
+        data: { candidatePlusUnlockedAt: unlockedAt, candidatePlusUnlockSource: unlockSource },
+      })
+      .catch((error) => console.error('Failed to record Candidate+ unlock:', error))
+  }
 
   const missing: string[] = []
   if (!referencesMet) {
@@ -391,11 +440,15 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     if (missingApplications > 0) missing.push(`${missingApplications} more application${missingApplications === 1 ? '' : 's'}`)
   }
 
-  const reason = unlocked
-    ? alternatePath.met && !(referencesMet && evidenceMet && effortMet && minutesMet)
-      ? alternatePath.reason
-      : 'Unlocked — you have real references, evidence, and effort on file.'
-    : `Need: ${missing.join(', ')}. (Or: a ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week streak of meeting your weekly goal.)`
+  const reason = profile.candidatePlusRevokedAt
+    ? 'Candidate+ was removed by NextChapter. Write to support@launchyournextchapter.com if you think this is a mistake.'
+    : unlocked
+      ? requirementsMet
+        ? 'Unlocked — you have real references, evidence, and effort on file.'
+        : alternatePath.met
+          ? alternatePath.reason
+          : `Unlocked${unlockSource === 'streak' ? ' with a weekly-goal streak' : ''}${unlockedAt ? ` on ${unlockedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''} — Candidate+ stays on once earned.`
+      : `Need: ${missing.join(', ')}. (Or: a ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week streak of meeting your weekly goal.)`
 
   return {
     unlocked,
@@ -410,6 +463,9 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     outreachCount,
     applicationCount,
     reason,
+    unlockedAt,
+    unlockSource,
+    revoked: !!profile.candidatePlusRevokedAt,
   }
 }
 

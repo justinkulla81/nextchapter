@@ -443,7 +443,7 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
     prisma.performanceAssessmentResponse.groupBy({ by: ['candidateId'], where, _count: { _all: true } }),
     prisma.candidateProfile.findMany({
       where: { id: { in: candidateIds } },
-      select: { id: true, skillsAssessmentCompletedAt: true },
+      select: { id: true, skillsAssessmentCompletedAt: true, candidatePlusUnlockedAt: true, candidatePlusRevokedAt: true },
     }),
     prisma.outreachLog.groupBy({ by: ['candidateId'], where, _count: { _all: true } }),
     prisma.jobPosting.groupBy({ by: ['candidateId'], where: { ...where, appliedAt: { not: null } }, _count: { _all: true } }),
@@ -460,6 +460,7 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
   const operatingSet = new Set(operating.map((r) => r.candidateId))
   const personalitySet = new Set(personality.map((r) => r.candidateId))
   const skillsAt = new Map(profiles.map((p) => [p.id, p.skillsAssessmentCompletedAt]))
+  const plusOf = new Map(profiles.map((p) => [p.id, p]))
   const outreachCount = countOf(outreach)
   const applicationCount = countOf(applications)
   const gradeOf = new Map(grades.map((g) => [g.candidateId, g.probabilityGrade]))
@@ -484,7 +485,8 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
       met: GATE_TOTAL - missing.length,
       total: GATE_TOTAL,
       missing,
-      unlocked: missing.length === 0 || gradeAlternate,
+      // A recorded Candidate+ unlock (streak included) stays on; an admin revoke turns it off.
+      unlocked: !plusOf.get(id)?.candidatePlusRevokedAt && (!!plusOf.get(id)?.candidatePlusUnlockedAt || missing.length === 0 || gradeAlternate),
     })
   }
   return summaries
