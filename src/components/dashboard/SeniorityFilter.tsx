@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
 import { cn } from '@/lib/utils'
+import { boardHref } from '@/lib/jobs/board-url'
 
 /**
  * Narrows a job list to one seniority group (job-seniority.ts) through the
@@ -22,15 +23,12 @@ export function SeniorityFilter({ surface }: { surface: string }) {
   const current = searchParams.get('seniority') ?? ''
 
   function onChange(value: string) {
-    const next = new URLSearchParams(searchParams.toString())
-    if (value) next.set('seniority', value)
-    else next.delete('seniority')
     posthog.capture('job_seniority_filter_changed', {
       surface,
       seniority: value || 'ALL',
       earlyCareer: value === 'ENTRY_LEVEL' || value === 'EARLY_CAREER',
     })
-    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }))
+    startTransition(() => router.replace(boardHref(searchParams, { seniority: value || null }, { pathname }), { scroll: false }))
   }
 
   return (

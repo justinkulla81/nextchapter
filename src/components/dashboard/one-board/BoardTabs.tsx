@@ -4,6 +4,7 @@ import { useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { boardHref } from '@/lib/jobs/board-url'
 
 export type BoardTab = 'board' | 'my_jobs'
 
@@ -16,11 +17,8 @@ export function BoardTabs({ current, myJobsCount }: { current: BoardTab; myJobsC
 
   function select(tab: BoardTab) {
     if (tab === current) return
-    const next = new URLSearchParams(searchParams.toString())
-    if (tab === 'board') next.delete('tab')
-    else next.set('tab', tab)
     posthog.capture('job_board_tab_changed', { tab })
-    startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }))
+    startTransition(() => router.push(boardHref(searchParams, { tab }, { pathname }), { scroll: false }))
   }
 
   const tabs: { key: BoardTab; label: string }[] = [

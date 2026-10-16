@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { GREAT_FILTERS, GREAT_FILTER_LABEL, greatParam, parseGreatParam, type GreatFilter } from '@/lib/jobs/great-employer-display'
+import { boardHref } from '@/lib/jobs/board-url'
 
 const HINT: Record<GreatFilter, string> = {
   pay: 'Employers whose posted pay runs above market, jobs that post above-market pay, and employers known for pay',
@@ -26,11 +27,8 @@ export function GreatEmployerFilter({ surface }: { surface: string }) {
   function toggle(filter: GreatFilter) {
     const on = !current.includes(filter)
     const next = on ? [...current, filter] : current.filter((f) => f !== filter)
-    const params = new URLSearchParams(searchParams.toString())
-    if (next.length === 0) params.delete('great')
-    else params.set('great', greatParam(next))
     posthog.capture('board_great_filter_toggled', { surface, filter, on, filters: next })
-    startTransition(() => router.replace(`${pathname}?${params.toString()}`, { scroll: false }))
+    startTransition(() => router.replace(boardHref(searchParams, { great: next.length === 0 ? null : greatParam(next) }, { pathname }), { scroll: false }))
   }
 
   return (

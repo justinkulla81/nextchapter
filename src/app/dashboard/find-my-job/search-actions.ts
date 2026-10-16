@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { loadSearchIndex, suggestFrom, type SearchSuggestion } from '@/lib/jobs/board-search-index'
+import { peekSearchIndex, suggestFrom, type SearchSuggestion } from '@/lib/jobs/board-search-index'
 
 /** Typeahead for the board search: locations (remote, metros, states, cities on the board) or companies on the board. */
 export async function suggestBoardSearch(kind: 'location' | 'company', typed: string): Promise<SearchSuggestion[]> {
@@ -13,6 +13,7 @@ export async function suggestBoardSearch(kind: 'location' | 'company', typed: st
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return []
-  const index = await loadSearchIndex().catch(() => null)
-  return suggestFrom(index, kind, text)
+  // Never waits on a cold index: remote, metros and states need none, and the
+  // board's cities and companies join in once it is in (the board page warms it).
+  return suggestFrom(peekSearchIndex(), kind, text)
 }

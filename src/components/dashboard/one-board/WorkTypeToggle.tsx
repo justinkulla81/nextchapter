@@ -6,6 +6,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { WORK_TYPES, WORK_TYPE_LABEL, workTypesParam, type WorkType } from '@/lib/jobs/work-type'
 import { saveBoardWorkTypes } from '@/app/dashboard/find-my-job/my-jobs-actions'
+import { boardHref } from '@/lib/jobs/board-url'
 
 /**
  * The four kinds of work on the one board, as multi-select adjacent buttons. The
@@ -28,13 +29,12 @@ export function WorkTypeToggle({ selected, counts }: { selected: WorkType[]; cou
     }
     setNote(null)
     setCurrent(next)
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('types', workTypesParam(next))
+    const href = boardHref(searchParams, { types: workTypesParam(next) }, { pathname })
     posthog.capture('board_work_type_toggled', { types: next, toggled: type, on: next.includes(type) })
     startTransition(async () => {
       const saved = await saveBoardWorkTypes(next)
       if (!saved.ok) setNote(saved.error)
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+      router.replace(href, { scroll: false })
     })
   }
 

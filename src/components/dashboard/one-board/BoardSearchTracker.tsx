@@ -17,8 +17,10 @@ export function BoardSearchTracker(props: {
   sort: string
   resultCount: number
   filtersActive: string[]
+  /** False when the search took the fast path (the instance's search index was still loading). */
+  fullIndex: boolean
 }) {
-  const { q, loc, remote, sort, resultCount, filtersActive } = props
+  const { q, loc, remote, sort, resultCount, filtersActive, fullIndex } = props
   const filters = filtersActive.join(',')
   useEffect(() => {
     const key = JSON.stringify([q, loc, remote, sort, filters])
@@ -28,8 +30,8 @@ export function BoardSearchTracker(props: {
     } catch {
       // No session storage (private mode): track every render instead.
     }
-    posthog.capture('job_search_submitted', { q, loc, remote, sort, resultCount, filtersActive: filters ? filters.split(',') : [] })
-    if (resultCount === 0) posthog.capture('job_search_no_results', { q, loc, remote, sort, filtersActive: filters ? filters.split(',') : [] })
-  }, [q, loc, remote, sort, resultCount, filters])
+    posthog.capture('job_search_submitted', { q, loc, remote, sort, resultCount, fullIndex, filtersActive: filters ? filters.split(',') : [] })
+    if (resultCount === 0) posthog.capture('job_search_no_results', { q, loc, remote, sort, fullIndex, filtersActive: filters ? filters.split(',') : [] })
+  }, [q, loc, remote, sort, resultCount, filters, fullIndex])
   return null
 }
