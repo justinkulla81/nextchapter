@@ -3,7 +3,6 @@ import { notInternshipWhere } from '@/lib/internships/exclude'
 import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
 import { buildLayoffTimeline, type LayoffTimeline } from '@/lib/companies/layoff-timeline'
 import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
@@ -40,7 +39,7 @@ async function boardTrackingStart(): Promise<Date | null> {
 
 const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
 
-export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus: boolean): Promise<CompanyIntelPanels> {
+export async function loadCompanyIntelPanels(companyId: string): Promise<CompanyIntelPanels> {
   const company = await prisma.company.findUnique({ where: { id: companyId }, select: { name: true } })
   const companyName = company?.name ?? ''
   const [postings, notices, trackingStart, wageRows, filingMap, federalRow] = await Promise.all([
@@ -49,7 +48,7 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
       // employmentType: internship rows stay out (internships are Higher Ed portal only); intern titles are dropped below.
       select: {
         title: true, url: true, createdAt: true, archivedAt: true, badges: true, postingType: true, sourceCategory: true,
-        salaryMin: true, salaryMax: true, salaryCurrency: true, audienceTier: true, source: true,
+        salaryMin: true, salaryMax: true, salaryCurrency: true,
       },
     }).then((rows) => rows.filter((r) => !isInternshipJob(r))),
     prisma.warnNotice.findMany({
@@ -66,7 +65,8 @@ export async function loadCompanyIntelPanels(companyId: string, isCandidatePlus:
     prisma.federalContractSummary.findUnique({ where: { companyId } }).catch(() => null),
   ])
 
-  const openable = postings.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
+  // Every member sees every job (owner's rule, 2026-10-16).
+  const openable = postings
   const live = openable.filter((p) => p.archivedAt === null)
 
   const pay = summarizePay(live)

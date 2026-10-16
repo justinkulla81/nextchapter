@@ -88,7 +88,7 @@ export interface JobSearchDailyContent {
   networking: DailyItem[] // replies owed, starred people due a note, a contact at a hiring company, a few stale contacts
   networkingMoreCount: number // stale contacts beyond the few shown
   // `fresh`: posted in the last 72 hours — the email leads with these.
-  jobs: { items: DailyItem[]; fresh: DailyItem[]; lockedCount: number }
+  jobs: { items: DailyItem[]; fresh: DailyItem[] }
   companyMoves: DailyItem[]
   // SEC-filing signals of a senior role about to open (not posted yet).
   likelyOpenings: DailyItem[]
@@ -198,13 +198,14 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
   })
-  const postings = emailSafeJobs([...shortlist.open, ...shortlist.locked])
+  const postings = emailSafeJobs(shortlist.open)
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
     const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
     return bucket === 'strong' || bucket === 'good'
   })
-  const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)
+  // Every member gets every job that fits (owner's rule, 2026-10-16).
+  const openable = fitting
   // Jobs posted in the last 72 hours lead (applying early matters most);
   // the rest fill the remaining slots.
   const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
@@ -226,7 +227,6 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .filter((p) => !isFresh(p, now))
     .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
     .map(toJobItem)
-  const lockedCount = fitting.length - openable.length
 
   // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their
@@ -607,7 +607,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     staleApplicationCount,
     networking: networkingListed,
     networkingMoreCount,
-    jobs: { items: jobItems, fresh: freshJobItems, lockedCount },
+    jobs: { items: jobItems, fresh: freshJobItems },
     likelyOpenings,
     companyMoves,
     reconnect,

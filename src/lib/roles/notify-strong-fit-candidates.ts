@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { candidateWantsRole } from '@/lib/talent/candidate-discovery'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { formatRoleComp } from '@/lib/matching/format-comp'
 import { sendRoleMatchEmail } from '@/lib/email/send-role-match-email'
 import { STRONG_FIT_THRESHOLD } from '@/lib/jobs/job-fit-bucket'
@@ -77,7 +76,6 @@ export async function triggerRoleMatchNotifications(roleId: string): Promise<voi
 
   await Promise.allSettled(
     strongFits.map(async ({ candidate }) => {
-      const dossierStatus = await isDossierUnlocked(candidate.id)
       await sendRoleMatchEmail(
         candidate,
         {
@@ -87,8 +85,7 @@ export async function triggerRoleMatchNotifications(roleId: string): Promise<voi
           companyName: role.employer.companyName,
           description: role.description,
           compLabel,
-        },
-        dossierStatus.unlocked
+        }
       )
     })
   )

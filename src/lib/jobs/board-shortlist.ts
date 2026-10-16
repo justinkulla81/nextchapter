@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { boardListingFitBucketScorerFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
@@ -440,7 +439,7 @@ export function postedWithinWhere(hours: number): Prisma.ExclusiveJobPostingWher
 export interface BoardShortlist {
   /** Full rows of the best-fitting jobs the candidate can open, best first. */
   open: ExclusiveJobPosting[]
-  /** Full rows of the best-fitting Candidate+-only jobs they can't open yet, best first. */
+  /** Always empty now: every member sees every job (owner's rule, 2026-10-16). Kept so callers need no change. */
   locked: ExclusiveJobPosting[]
   openTotal: number
   lockedTotal: number
@@ -754,7 +753,7 @@ export function rankBoardRows(
       pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
       cls: placed === undefined ? 0 : placed === null || placed.relaxed === 'out' ? MATCH_RANK_UNMATCHED : placed.relaxed === null ? placed.rank : 4 + RELAX_ORDER.indexOf(placed.relaxed),
       pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
-      canOpen: !isBoardPostingLockedForViewer(p, opts.isCandidatePlus),
+      canOpen: true, // every member sees every job (owner's rule, 2026-10-16): `locked` is always empty
       fresh: isFresh(p, now),
       low: competition === 'low',
       workType,

@@ -159,7 +159,6 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       networkingFollowUpCount: content.networking.length,
       jobCount: content.jobs.items.length + content.jobs.fresh.length,
       freshJobCount: content.jobs.fresh.length,
-      lockedJobCount: content.jobs.lockedCount,
       companyMoveCount: content.companyMoves.length,
       hasReconnect: !!content.reconnect,
       hasArticle: !!content.article,

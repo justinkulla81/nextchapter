@@ -297,15 +297,6 @@ export default function JobSearchDailyEmail({
         <Section
           title="New for you"
           items={newForYou}
-          footerNote={
-            jobs.lockedCount > 0 && (
-              <p style={more}>
-                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
-                  More roles on the A-list board
-                </a>
-              </p>
-            )
-          }
         />
 
         {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}

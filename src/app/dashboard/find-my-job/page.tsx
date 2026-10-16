@@ -29,7 +29,7 @@ import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFal
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
-import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
+import { DiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
@@ -63,7 +63,6 @@ import { getParallelPaths } from '@/lib/job-reviews/data'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { ALL_STAGES_WINDOW, memberStageWindow } from '@/lib/jobs/career-stage'
-import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
@@ -104,7 +103,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { getMatchedRolesForCandidate } from '@/lib/matching/candidate-role-matches'
 import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
-import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import {
@@ -411,7 +409,7 @@ function JobRecommendationsSkeleton() {
 // Tracking, Application Tracker, Company Tracker) never blocks on them.
 async function JobRecommendationsSection({
   profile,
-  dossierReason,
+  candidatePlus,
   board,
   contacts,
   seniorityGroup,
@@ -427,7 +425,8 @@ async function JobRecommendationsSection({
   urlParams,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
-  dossierReason: string
+  /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
+  candidatePlus: boolean
   board: BoardShortlist
   /** The board search (null with none): results keep the shortlist's order (relevance / sort). */
   search: BoardSearchView | null
@@ -534,14 +533,11 @@ async function JobRecommendationsSection({
   ])
   const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
 
-  // Everyone sees every surfaced (search-partner) job; only employer / recruiter
-  // exclusives stay Candidate+-only, and that rule lives in board-shortlist.ts.
+  // Every member sees every job (owner's rule, 2026-10-16).
   const visibleSurfacedJobs = surfacedJobs
-  const lockedSurfacedCount = 0
   // The board's best-fitting jobs (see board-shortlist.ts) — the full
   // board is tens of thousands of rows; totals still count all of them.
   const openBoardPostings = board.open
-  const lockedBoardPostings = board.locked
 
   // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
   // (called inline in the JSX below), but resolveCompanySizeBand isn't —
@@ -626,7 +622,7 @@ async function JobRecommendationsSection({
   })
   // Why each job is on the board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …".
   const reasons: Map<string, MatchReason> = board.breadth.classifier
-    ? breadthReasonsFor(board.breadth.classifier, [...visibleBoardPostings, ...lockedBoardPostings], memberKeywords)
+    ? breadthReasonsFor(board.breadth.classifier, visibleBoardPostings, memberKeywords)
     : new Map()
   // Field, then pivots (a new industry counts as one), then skills matches, then everything a search kept.
   const reasonRank = (id: string) => {
@@ -664,31 +660,6 @@ async function JobRecommendationsSection({
   const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>
     scoreCompetition(p, board.countByCompany.get(normalizeOrgName(p.companyName)) ?? 0)
 
-  // Locked (Candidate+-only) postings used to render in raw createdAt-desc
-  // order with no fit awareness at all — for a candidate without Candidate+
-  // unlocked, this is the vast majority of the board (thousands of rows),
-  // so "newest first" meant paging past screens of completely unrelated
-  // roles (a Staff Software Engineer posting shown to a Finance/M&A
-  // candidate) before anything relevant ever appeared. computeBoardListingFitBucket
-  // already exists and is used above for the unlocked list — this reuses it
-  // here too, sorting locked postings the same way (FIT_BUCKET_SORT_RANK)
-  // so a genuinely good match is what a candidate sees first, with an
-  // honest fit badge, even before they've unlocked enough to click through.
-  // Deliberately no companySizeBand lookup here (that's an async, per-company
-  // resolveCompanySizeBand call, cheap for the small unlocked set above but
-  // not worth paying for thousands of locked rows) — computeBoardListingFitBucket
-  // treats a missing band as neutral, so function/level/title matching (the
-  // actual complaint) still works fully without it.
-  const rankedLockedBoardPostings = lockedBoardPostings
-    .map((posting) => ({ posting, fitBucket: computeBoardListingFitBucket(profile, posting) }))
-    .sort((a, b) =>
-      // A search keeps the shortlist's order (it is already relevance, then fit, or the chosen sort).
-      search
-        ? 0
-        : reasonRank(a.posting.id) - reasonRank(b.posting.id) ||
-          FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
-          Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
-    )
   const shortlistOrder = new Map(openBoardPostings.map((p, i) => [p.id, i]))
   // Bridge jobs (a short market widened, or Wide's extras) get their own section after the strong matches.
   const bridgeIds = board.breadth.bridges
@@ -716,6 +687,7 @@ async function JobRecommendationsSection({
           match={matchFor(posting)}
           insiders={insidersFor(posting)}
           explainGapsEnabled={isExplainGapsEnabled()}
+          candidatePlus={candidatePlus}
           track={myJobs.cardStates.get(trackKey('job_board', posting.id))}
           watched={watchedFor(posting.companyName)}
           fitBucket={fitBucket}
@@ -729,12 +701,12 @@ async function JobRecommendationsSection({
       ),
     }
   }
-  const searchResultCount = board.openTotal + board.lockedTotal + surfacedJobs.length
+  const searchResultCount = board.openTotal + surfacedJobs.length
 
   return (
     <div className="space-y-4">
       {workTypes.includes('contract') && <ExpertNetworkRow networks={expertNetworks} />}
-      {emptyTypes.length > 0 && (visibleBoardPostings.length > 0 || lockedBoardPostings.length > 0 || surfacedJobs.length > 0) && (
+      {emptyTypes.length > 0 && (visibleBoardPostings.length > 0 || surfacedJobs.length > 0) && (
         <ul className="space-y-1">
           {emptyTypes.map((t) => (
             <li key={t} className="text-sm text-muted-foreground">
@@ -778,12 +750,11 @@ async function JobRecommendationsSection({
             {searchResultCount.toLocaleString()} {search.arrangement}job{searchResultCount === 1 ? '' : 's'}
           </span>{' '}
           {search.summary}
-          {board.lockedTotal > 0 && <> · {board.lockedTotal.toLocaleString()} of them Candidate+ only</>}
         </p>
       )}
-      {search && search.active && visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+      {search && search.active && visibleBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <BoardSearchEmpty search={search} />
-      ) : visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+      ) : visibleBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
           {greatFilters.length > 0 ? (
             <p>
@@ -865,13 +836,6 @@ async function JobRecommendationsSection({
                 ]
                   .sort((a, b) => a.rank - b.rank)
                   .map((entry) => entry.node),
-                // Locked Candidate+-only postings paginate right after the real,
-                // unlocked ones in this same list — once you've paged past
-                // what's actually visible to you, the remaining pages are
-                // just the locked rows, not a separately boxed callout.
-                ...rankedLockedBoardPostings.map(({ posting, fitBucket }) => (
-                  <LockedDiscoverJobCard key={posting.id} posting={posting} fitBucket={fitBucket} />
-                )),
               ]}
             </ShowMoreList>
           </div>
@@ -893,13 +857,6 @@ async function JobRecommendationsSection({
           )}
 
           {board.breadth.goodMoreIds.length > 0 && <GoodMatchesMore ids={board.breadth.goodMoreIds} surface="find_my_job" />}
-
-          {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-            <UnlockCandidatePlusCallout
-              reason={dossierReason}
-              lockedCount={board.lockedTotal + lockedSurfacedCount + board.openTotal + board.lockedTotal}
-            />
-          )}
         </div>
       )}
 
@@ -1219,8 +1176,7 @@ async function FindMyJobBody({
       ?.applicationTrends ?? null
 
   const isCandidatePlus = dossierStatus.unlocked
-  // These three need isCandidatePlus (which A_LIST_ONLY postings this
-  // candidate can open) but not each other.
+  // Every member sees every job; isCandidatePlus only turns on the extras on each job.
   // Employer-posted roles for the selected kinds of work (board and consulting
   // roles used to sit on the separate Interim Work page).
   const matchedRoleTypes = [
@@ -1267,8 +1223,8 @@ async function FindMyJobBody({
       breadth: breadthMode,
       breadthKeepUnmatched: !!searchView?.active,
     }),
-    isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
-    getWatchlistView(profile.id, isCandidatePlus),
+    matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
+    getWatchlistView(profile.id),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
     onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
     // Board jobs they passed on, for "Review" (job-dismiss.ts).
@@ -1595,7 +1551,7 @@ async function FindMyJobBody({
               <JobRecommendationsSection
                 profile={boardProfile}
                 pivotFilter={pivotFilter}
-                dossierReason={dossierStatus.reason}
+                candidatePlus={isCandidatePlus}
                 board={board}
                 contacts={contacts}
                 seniorityGroup={seniorityGroup}
@@ -1640,18 +1596,10 @@ async function FindMyJobBody({
             {workTypes.map((t) => WORK_TYPE_LABEL[t].toLowerCase()).join(', ')}.
           </p>
         </div>
-        {!isCandidatePlus ? (
-          <LockedFeatureNotice
-            title="Employer-matched roles"
-            requirement="Unlock your Dossier to see employer-posted roles, board seats and consulting work matched to your background."
-            status={dossierStatus.reason}
-          />
-        ) : (
-          <MatchedRoleList
-            roles={matchedRoles.filter((r) => workTypes.includes(roleProfileWorkType(r.type)))}
-            emptyMessage="No employer-posted roles match your background yet — check back soon."
-          />
-        )}
+        <MatchedRoleList
+          roles={matchedRoles.filter((r) => workTypes.includes(roleProfileWorkType(r.type)))}
+          emptyMessage="No employer-posted roles match your background yet — check back soon."
+        />
       </div>
       )}
 

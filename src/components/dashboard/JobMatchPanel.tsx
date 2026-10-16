@@ -14,6 +14,7 @@ import {
   type OverallMatch,
 } from '@/lib/jobs/job-match-types'
 import { explainJobGaps } from '@/app/dashboard/find-my-job/actions'
+import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { JobRequirementDetails } from '@/components/dashboard/JobRequirementLabels'
 
 // The per-job match and gaps (src/lib/jobs/job-match.ts) on a board card: a compact
@@ -63,11 +64,14 @@ export function JobMatchDetails({
   jobId,
   match,
   explainEnabled,
+  candidatePlus = false,
   insiders,
 }: {
   jobId: string
   match: JobMatch
   explainEnabled?: boolean
+  /** Explain my gaps is a Candidate+ extra; others see one line saying what it does. */
+  candidatePlus?: boolean
   /** Members who worked at this company that the viewer can ask (count only). */
   insiders?: { count: number; href: string }
 }) {
@@ -152,7 +156,8 @@ export function JobMatchDetails({
         <p className="text-xs text-muted-foreground">
           Based on your profile and what this posting says. Pay marked as an estimate is ours, not the employer&apos;s.
         </p>
-        {explainEnabled && <ExplainGaps jobId={jobId} />}
+        {explainEnabled &&
+          (candidatePlus ? <ExplainGaps jobId={jobId} /> : <CandidatePlusExtraLine extra="explain_gaps" jobId={jobId} surface="job_match" />)}
       </div>
     </details>
   )

@@ -35,7 +35,7 @@ export async function submitEmployerJobBoardPosting(
     salaryMin: formData.get('salaryMin') ? Number(formData.get('salaryMin')) : null,
     salaryMax: formData.get('salaryMax') ? Number(formData.get('salaryMax')) : null,
     salaryCurrency: (formData.get('salaryCurrency') as string | null)?.trim() || null,
-    audienceTier: (formData.get('audienceTier') as string | null) || 'A_LIST_ONLY',
+    audienceTier: 'ALL_CANDIDATES', // every member sees every job (owner's rule, 2026-10-16)
     distribution: (formData.get('distribution') as string | null) || 'OPEN',
     disclosure: 'OPEN', // Hiring Managers never post confidentially — their own company.
     targetFunction: (formData.get('targetFunction') as string | null)?.trim() || null,

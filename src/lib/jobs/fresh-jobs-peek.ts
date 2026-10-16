@@ -22,7 +22,6 @@ export const getFreshJobsPeek = cache(
     const where = liveBoardWhere({
       createdAt: { gte: new Date(Date.now() - FRESH_HOURS * 3_600_000) },
       targetFunction: { in: functions },
-      audienceTier: 'ALL_CANDIDATES',
     })
     try {
       const [count, top] = await Promise.all([

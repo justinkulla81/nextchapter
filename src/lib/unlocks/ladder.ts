@@ -87,7 +87,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
       key: 'candidatePlus',
       label: 'Candidate+',
       open: plusOpen,
-      opens: ['your dossier marked complete', 'exclusive jobs', 'a Candidate+ mark that recruiters and hiring managers can see', 'unlimited access to the recruiter network'],
+      opens: ['your dossier marked complete', 'who to contact, the apply kit and explain-my-gaps on every job', 'a Candidate+ mark that recruiters and hiring managers can see', 'unlimited access to the recruiter network'],
       needs: plusNeeds,
     },
     {

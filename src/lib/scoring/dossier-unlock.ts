@@ -291,8 +291,8 @@ export async function computeDossierCompletenessMany(candidateIds: string[]): Pr
 // completeness above. "Complete" (computeDossierCompleteness) is the
 // aspirational, all-7-requirements checklist shown on the Portfolio page.
 // "Unlocked" is the actual bar for every feature gate that used to check
-// the old six-category letter grade (bounty claims, Exclusive Jobs,
-// Candidate+ postings, recruiter visibility, etc.) — real evidence and real
+// the old six-category letter grade (bounty claims, the job extras —
+// who to contact, apply kit, explain-my-gaps —, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
 export { DOSSIER_UNLOCK_REFERENCE_TARGET, DOSSIER_UNLOCK_OUTREACH_TARGET, DOSSIER_UNLOCK_APPLICATION_TARGET }
 

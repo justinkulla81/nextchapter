@@ -6,11 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
 import { getLocalEconomy, type LocalEconomy } from '@/lib/companies/local-economy'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { classifyContactForMember } from '@/lib/jobs/contact-role'
 import { isLinkableCompanyName } from '@/lib/companies/posting-company'
 import { getCandidateContactCountsByCompany, loadOwnContactRows } from '@/lib/companies/candidate-contacts-at-company'
@@ -70,8 +68,6 @@ function fetchBulk() {
         companyName: true,
         location: true,
         targetRemotePolicy: true,
-        audienceTier: true,
-        source: true,
         distribution: true,
         disclosure: true,
         postingType: true,
@@ -114,7 +110,6 @@ function loadBulk() {
 type RankingData = {
   candidate: RankingCandidate
   companies: RankingCompany[]
-  isCandidatePlus: boolean
   localEconomy: LocalEconomy | null
 }
 
@@ -141,7 +136,7 @@ export async function loadBulkCompanyRows() {
 async function loadCompanyRankingDataUncached(candidateId: string, includeContacts: boolean): Promise<RankingData> {
   const now = Date.now()
 
-  const [profile, plusStatus, [companyRows, postings, warnRows, allMemberRows], watchlist] = await Promise.all([
+  const [profile, [companyRows, postings, warnRows, allMemberRows], watchlist] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -160,12 +155,10 @@ async function loadCompanyRankingDataUncached(candidateId: string, includeContac
         targetCompanySize: true,
       },
     }),
-    isDossierUnlocked(candidateId),
     loadBulk(),
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, select: { companyNameNormalized: true } }),
   ])
 
-  const isCandidatePlus = plusStatus.unlocked
   const metroArea = profile.metroArea ?? normalizeMetroArea(profile.currentCity)
   const [industryTrends, localEconomy] = await Promise.all([
     getIndustryTrends(),
@@ -183,13 +176,12 @@ async function loadCompanyRankingDataUncached(candidateId: string, includeContac
   for (const p of postings) {
     const key = normalizeOrgName(p.companyName)
     if (!key) continue
-    // A listing is nameable to THIS viewer only if the company is disclosed,
-    // it is in the open browse feed, and (if Candidate+-only) they are
-    // Candidate+. Anything else — confidential, private-pipeline (EXCLUDED),
-    // targeted-to-someone-else, or locked — contributes to the anonymous
-    // hidden count and never surfaces as a title, badge, or reason.
-    const nameable =
-      p.disclosure === 'OPEN' && p.distribution === 'OPEN' && !isBoardPostingLockedForViewer(p, isCandidatePlus)
+    // A listing is nameable only if the company is disclosed and it is in the
+    // open browse feed (every member sees every job — owner's rule, 2026-10-16).
+    // Anything else — confidential, private-pipeline (EXCLUDED), or
+    // targeted-to-someone-else — contributes to the anonymous hidden count and
+    // never surfaces as a title, badge, or reason.
+    const nameable = p.disclosure === 'OPEN' && p.distribution === 'OPEN'
     if (!nameable) {
       hidden.set(key, (hidden.get(key) ?? 0) + 1)
       continue
@@ -332,5 +324,5 @@ async function loadCompanyRankingDataUncached(candidateId: string, includeContac
     localStress: localEconomy?.stress ?? 0,
   }
 
-  return { candidate, companies, isCandidatePlus, localEconomy }
+  return { candidate, companies, localEconomy }
 }

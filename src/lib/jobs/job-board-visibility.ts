@@ -3,14 +3,13 @@
 // admin has its own ExclusiveJobPostingForm) so the three pickers read
 // identically everywhere a posting gets created.
 
-// 'A_LIST_ONLY' is the persisted value (ExclusiveJobPosting.audienceTier) —
-// left as-is rather than renamed, since it's never shown to a user and
-// renaming a value already written to real rows is a migration, not a copy
-// fix. Only the display label needs to say "Candidate+" now.
-export const AUDIENCE_TIER_OPTIONS = [
-  { value: 'ALL_CANDIDATES' as const, label: 'All candidates' },
-  { value: 'A_LIST_ONLY' as const, label: 'Candidate+ only' },
-]
+// ExclusiveJobPosting.audienceTier is no longer a visibility gate: every member
+// sees every job (owner's rule, 2026-10-16). New postings are written as
+// 'ALL_CANDIDATES' and nothing reads the column to hide a job. Who sees a
+// listing is decided only by privacy settings: distribution (TARGETED /
+// EXCLUDED), disclosure (CONFIDENTIAL hides the company), and an
+// institution scope. Candidate+ now gates the extras on a job instead (who to
+// contact, the apply kit, explain-my-gaps) — see candidate-plus-extras.ts.
 
 export const DISTRIBUTION_OPTIONS = [
   { value: 'OPEN' as const, label: 'Open to everyone eligible' },
@@ -34,22 +33,3 @@ export const TARGET_REMOTE_POLICY_OPTIONS = [
   { value: 'remote' as const, label: 'Remote' },
   { value: 'hybrid' as const, label: 'Hybrid' },
 ]
-
-// Who can open a board listing. Everyone sees every listing EXCEPT exclusives:
-// a listing a hiring manager (source 'employer') or a recruiter mandate
-// (source 'recruiter') posted straight to NextChapter, which stays
-// Candidate+-only unless the poster explicitly opened it to all candidates
-// (audienceTier 'ALL_CANDIDATES'). Crawled, partner-feed and admin-added
-// listings carry no such exclusivity, so they are open to every member
-// whatever their stored audienceTier (existing rows were all backfilled to
-// 'A_LIST_ONLY' before this rule existed).
-const EXCLUSIVE_POSTING_SOURCES = new Set(['employer', 'recruiter'])
-
-export function isBoardPostingLockedForViewer(
-  posting: { audienceTier: string; source: string },
-  isCandidatePlus: boolean
-): boolean {
-  if (isCandidatePlus) return false
-  if (posting.audienceTier === 'ALL_CANDIDATES') return false
-  return EXCLUSIVE_POSTING_SOURCES.has(posting.source)
-}

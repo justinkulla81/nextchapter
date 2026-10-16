@@ -18,6 +18,7 @@ const PAGE = 20
 export function GoodMatchesMore({ ids, surface }: { ids: string[]; surface: string }) {
   const [postings, setPostings] = useState<ExclusiveJobPosting[]>([])
   const [fitBuckets, setFitBuckets] = useState<Record<string, FitBucket>>({})
+  const [candidatePlus, setCandidatePlus] = useState(false)
   const [next, setNext] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -35,6 +36,7 @@ export function GoodMatchesMore({ ids, surface }: { ids: string[]; surface: stri
       posthog.capture('good_matches_more_loaded', { surface, page: next / PAGE + 1, shown: postings.length + r.postings.length, available: ids.length })
       setPostings((p) => [...p, ...r.postings])
       setFitBuckets((f) => ({ ...f, ...r.fitBuckets }))
+      setCandidatePlus(r.candidatePlus)
       setNext(next + page.length)
     })
   }
@@ -44,7 +46,7 @@ export function GoodMatchesMore({ ids, surface }: { ids: string[]; surface: stri
       {postings.length > 0 && (
         <div className="divide-y divide-border rounded-md border border-border">
           {postings.map((p) => (
-            <DiscoverJobCard key={p.id} posting={p} fitBucket={fitBuckets[p.id] ?? 'good'} />
+            <DiscoverJobCard key={p.id} posting={p} fitBucket={fitBuckets[p.id] ?? 'good'} candidatePlus={candidatePlus} />
           ))}
         </div>
       )}

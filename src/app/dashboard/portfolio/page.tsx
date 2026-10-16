@@ -192,7 +192,8 @@ export default async function PortfolioPage() {
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Candidate+ is earned, not purchased — complete the steps below and you unlock your Executive
-              Dossier, the Executive Recruiter Network, and Exclusive Jobs, free on any plan.
+              Dossier, the Executive Recruiter Network, and who to contact, the apply kit and explain-my-gaps on
+              every job, free on any plan. Every member sees every job either way.
             </p>
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground tabular-nums">
