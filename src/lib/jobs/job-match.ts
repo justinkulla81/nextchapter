@@ -8,6 +8,7 @@ import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-jo
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
+import { assessYearsFit, formatYearsRange, quickYearsRange } from '@/lib/jobs/years-fit'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { statesFromLocation, formatUsdK } from '@/lib/pay/market-pay'
@@ -176,20 +177,15 @@ const usd = (n: number) => formatUsdK(n)
 
 // ── 1. Skills ────────────────────────────────────────────────────────────────
 
-function parseMinYears(text: string): number | null {
-  const m = text.match(/\b(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?(?:years?|yrs?)\b(?:\s+of)?(?:\s+\w+){0,4}\s+experience/i)
-  if (!m) return null
-  const n = parseInt(m[1], 10)
-  return n >= 1 && n <= 30 ? n : null
-}
-
 export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & { missing: string[]; yearsShort: number | null } {
   const keywords = skillTerms(c)
   const text = jobText(job)
   const credential = detectRequiredCredential(text)
   const credentialOk = candidateMeetsCredentialGate(c, credential)
-  const required = parseMinYears(text)
-  const yearsShort = required !== null && c.yearsExperience !== null && c.yearsExperience < required ? required - c.yearsExperience : null
+  const required = quickYearsRange(text)
+  // Shared lenient rule (years-fit.ts): only a stretch or far-off gap counts as short.
+  const years = assessYearsFit(c.yearsExperience, required)
+  const yearsShort = years.band === 'stretch' || years.band === 'far' ? years.short : null
 
   const gap = jobSkillGap({ title: job.title, description: job.description, skills: job.skills, memberKeywords: keywords })
   const evidence: string[] = []
@@ -223,12 +219,11 @@ export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & 
     if (gap.have.length > 0) evidence.push(`Matches: ${gap.have.slice(0, 4).join(', ')}`)
   }
   if (required !== null && c.yearsExperience !== null) {
-    if (yearsShort) {
-      score -= yearsShort > 3 ? 25 : 10
-      evidence.push(`Asks for ${required}+ years; you have ${c.yearsExperience}`)
-    } else {
-      evidence.push(`Asks for ${required}+ years; you have ${c.yearsExperience}`)
-    }
+    // In line: no penalty. Stretch (short, but at least half the minimum): mild.
+    // Far off (under half the minimum): the real penalty.
+    if (years.band === 'far') score -= 25
+    else if (years.band === 'stretch') score -= 10
+    evidence.push(`Asks for ${formatYearsRange(required)}; you have ${c.yearsExperience}`)
   }
   if (!credentialOk) score = 0
   score = clamp(score)

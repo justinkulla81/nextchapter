@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getApplicationFitOverview, type FitWindowDays } from '@/lib/admin/application-fit-data'
-import { MIN_MEMBER_SAMPLE, SENIORITY_LABEL, YEARS_THRESHOLDS, shareOf } from '@/lib/admin/application-fit'
+import { MIN_MEMBER_SAMPLE, SENIORITY_LABEL, shareOf } from '@/lib/admin/application-fit'
+import { YEARS_FIT_RULE } from '@/lib/jobs/years-fit'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ApplicationFitFilters } from '@/components/admin/ApplicationFitFilters'
@@ -138,13 +139,13 @@ export default async function AdminApplicationFitPage({ searchParams }: { search
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Years gap ({agg.yearsKnown} with stated years)</CardTitle>
+                <CardTitle>Years fit ({agg.yearsKnown} with stated years)</CardTitle>
               </CardHeader>
               <CardContent>
                 {agg.yearsKnown === 0 ? (
                   <p className="text-sm text-muted-foreground">None of these jobs state a years requirement we could read.</p>
                 ) : (
-                  <Histogram label="Applications by years gap" rows={agg.yearsGap.map((g) => ({ label: g.bin, count: g.count }))} />
+                  <Histogram label="Applications by years fit" rows={agg.yearsGap.map((g) => ({ label: g.bin, count: g.count }))} />
                 )}
               </CardContent>
             </Card>
@@ -181,9 +182,12 @@ export default async function AdminApplicationFitPage({ searchParams }: { search
                 Up 2+ levels is reaching; up 1 is a healthy stretch; down 2+ is underselling. A pivoting member’s step down doesn’t count.
               </p>
               <p>
-                <span className="text-foreground">Years</span> — under the stated minimum by {YEARS_THRESHOLDS.reach}+ years is a reach ({YEARS_THRESHOLDS.bigReach}+ a big reach);
-                over the top of a range by {YEARS_THRESHOLDS.overRangeTop}+, or over a bare minimum by {YEARS_THRESHOLDS.overMinimum}+, is overqualified.
-                “Preferred” and “or equivalent” requirements get one more year of slack. More years than asked only counts as underselling when the level is also below theirs or unknown.
+                <span className="text-foreground">Years</span> — lenient, the same rule board fit scoring uses. Short of the stated minimum by up to{' '}
+                {YEARS_FIT_RULE.minTolerance} years (or {Math.round(YEARS_FIT_RULE.toleranceShare * 100)}% of the minimum, if more) is in line, so 6 against
+                “8–15” is fine. Shorter but at least half the minimum is a stretch, still on target. Under half the minimum (2 against “8–15”) is far short, and only
+                that counts as reaching. Overqualified needs at least {YEARS_FIT_RULE.overMinYears} years over the minimum and more than twice the top of the range
+                (twice the minimum when there’s no top), so 15 against “10+” is not. “Preferred” and “or equivalent” requirements get one more year of slack.
+                Overqualified only counts as underselling when the level is also below theirs or unknown.
               </p>
               <p>How each job was found:</p>
               <ul className="space-y-1">

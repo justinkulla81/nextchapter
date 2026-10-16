@@ -6,11 +6,14 @@
 // Two independent reads per application, then one verdict:
 //
 //   Years      member's years vs the posting's stated requirement
-//              (parseYearsRequired). Under by 2+ = reach, 5+ = big reach;
-//              over by 5+ past the top of a stated range, or 8+ past the
-//              minimum when there is no top = overqualified. A "preferred" or
-//              "or equivalent" requirement is softer: the under thresholds
-//              move out by one year. No stated years = unknown.
+//              (parseYearsRequired), on the shared lenient rule in
+//              src/lib/jobs/years-fit.ts — the same one fit scoring and job
+//              match use. In line (short by at most max(2, 25% of the
+//              minimum)) = within; short but at least half the minimum =
+//              stretch ("under", still on target); under half the minimum =
+//              far short ("big_under", the only years reach); min + 8 and
+//              more than twice the max (twice the min when no max) =
+//              overqualified. No stated years = unknown.
 //   Seniority  the job's rung vs the member's level, on fit scoring v2's
 //              scale (levelStep in job-fit-bucket.ts — same member window and
 //              rung points the board uses). Up 2+ = reach, up 1 = stretch
@@ -31,19 +34,7 @@
 
 import { levelStep, type LevelStep } from '@/lib/jobs/job-fit-bucket'
 import type { YearsRequirement } from '@/lib/jobs/years-required'
-
-export const YEARS_THRESHOLDS = {
-  /** Under the minimum by this many years or more = reach. */
-  reach: 2,
-  /** …this many or more = big reach. */
-  bigReach: 5,
-  /** Over the top of a stated range by this many or more = overqualified. */
-  overRangeTop: 5,
-  /** Over the minimum (no stated top) by this many or more = overqualified. */
-  overMinimum: 8,
-  /** Extra slack on the under thresholds for preferred / "or equivalent". */
-  softSlack: 1,
-} as const
+import { assessYearsFit, yearsRangeOf, type YearsFitBand } from '@/lib/jobs/years-fit'
 
 /** Members need at least this many classified applications to appear in the member list. */
 export const MIN_MEMBER_SAMPLE = 3
@@ -69,9 +60,9 @@ export const SENIORITY_LABEL: Record<SeniorityFit, string> = {
 }
 
 export const YEARS_FIT_LABEL: Record<YearsFit, string> = {
-  big_under: 'Big reach',
-  under: 'Reach',
-  within: 'Within range',
+  big_under: 'Far short',
+  under: 'Stretch',
+  within: 'In line',
   over: 'Overqualified',
   unknown: 'Not stated',
 }
@@ -94,7 +85,7 @@ export interface ApplyFitJob {
 
 export interface YearsRead {
   fit: YearsFit
-  /** Negative = under the minimum by N; positive = over the top (or the minimum when no top) by N; 0 within. Null when unknown. */
+  /** Negative = under the minimum by N; positive = over the top (or the minimum when no top) by N; 0 inside the range. Null when unknown. */
   gap: number | null
 }
 
@@ -108,21 +99,18 @@ export interface ApplyFitResult {
   reason: string
 }
 
+const FIT_OF_BAND: Record<YearsFitBand, YearsFit> = {
+  far: 'big_under',
+  stretch: 'under',
+  in_line: 'within',
+  overqualified: 'over',
+  unknown: 'unknown',
+}
+
 export function classifyYears(memberYears: number | null, req: YearsRequirement | null): YearsRead {
-  if (memberYears === null || !req) return { fit: 'unknown', gap: null }
-  const slack = req.strength === 'preferred' || req.orEquivalent ? YEARS_THRESHOLDS.softSlack : 0
-  if (memberYears < req.min) {
-    const under = req.min - memberYears
-    if (under >= YEARS_THRESHOLDS.bigReach + slack) return { fit: 'big_under', gap: -under }
-    if (under >= YEARS_THRESHOLDS.reach + slack) return { fit: 'under', gap: -under }
-    return { fit: 'within', gap: -under }
-  }
-  if (req.max !== null) {
-    const over = Math.max(0, memberYears - req.max)
-    return { fit: over >= YEARS_THRESHOLDS.overRangeTop ? 'over' : 'within', gap: over }
-  }
-  const over = memberYears - req.min
-  return { fit: over >= YEARS_THRESHOLDS.overMinimum ? 'over' : 'within', gap: over }
+  const read = assessYearsFit(memberYears, yearsRangeOf(req))
+  if (read.band === 'unknown' || read.short === null || read.over === null) return { fit: 'unknown', gap: null }
+  return { fit: FIT_OF_BAND[read.band], gap: read.short > 0 ? -read.short : read.over }
 }
 
 export function classifySeniority(member: ApplyFitMember, job: ApplyFitJob): SeniorityFit {
@@ -141,7 +129,8 @@ export function classifyApplication(member: ApplyFitMember, job: ApplyFitJob): A
   const senReach = seniority === 'big_up'
   const senUndersell = seniority === 'big_down' && !pivotExplained
   const senMildDown = seniority === 'down' && !pivotExplained
-  const yrsReach = years.fit === 'under' || years.fit === 'big_under'
+  // Only far short is a real years mismatch; a stretch is fine.
+  const yrsReach = years.fit === 'big_under'
   // A pivot resets the ladder — more years than a new-field role asks is expected.
   const yrsOver = years.fit === 'over' && !member.isPivoting
 
@@ -190,16 +179,17 @@ export function shareOf(c: VerdictCounts, v: Exclude<ApplyFitVerdict, 'unknown'>
   return known === 0 ? 0 : c[v] / known
 }
 
-export const YEARS_GAP_BINS = ['Under 5+', 'Under 2–4', 'Within ±1', 'Over 2–4', 'Over 5–7', 'Over 8+'] as const
+// The years histogram groups applications by the shared rule's bands, so it
+// reads the same way the verdicts do.
+export const YEARS_GAP_BINS = ['Far short', 'Stretch', 'In line', 'Overqualified'] as const
 export type YearsGapBin = (typeof YEARS_GAP_BINS)[number]
 
-export function yearsGapBin(gap: number): YearsGapBin {
-  if (gap <= -5) return 'Under 5+'
-  if (gap <= -2) return 'Under 2–4'
-  if (gap <= 1) return 'Within ±1'
-  if (gap <= 4) return 'Over 2–4'
-  if (gap <= 7) return 'Over 5–7'
-  return 'Over 8+'
+export function yearsGapBin(fit: YearsFit): YearsGapBin | null {
+  if (fit === 'big_under') return 'Far short'
+  if (fit === 'under') return 'Stretch'
+  if (fit === 'within') return 'In line'
+  if (fit === 'over') return 'Overqualified'
+  return null
 }
 
 export const SENIORITY_ORDER: SeniorityFit[] = ['big_down', 'down', 'same', 'up', 'big_up', 'unknown']
@@ -251,9 +241,9 @@ export function aggregateApplicationFit(
   const binCounts = new Map<YearsGapBin, number>(YEARS_GAP_BINS.map((b) => [b, 0]))
   let yearsKnown = 0
   for (const r of rows) {
-    if (r.result.years.gap === null) continue
+    const bin = yearsGapBin(r.result.years.fit)
+    if (bin === null) continue
     yearsKnown++
-    const bin = yearsGapBin(r.result.years.gap)
     binCounts.set(bin, binCounts.get(bin)! + 1)
   }
   const senCounts = new Map<SeniorityFit, number>(SENIORITY_ORDER.map((s) => [s, 0]))
@@ -299,7 +289,7 @@ export function coachingSuggestion(results: ApplyFitResult[], isPivoting: boolea
   const k = known.length
   const bigUp = known.filter((r) => r.seniority === 'big_up').length
   const reaching = known.filter((r) => r.verdict === 'reaching').length
-  const yearsReach = known.filter((r) => r.years.fit === 'under' || r.years.fit === 'big_under').length
+  const yearsReach = known.filter((r) => r.years.fit === 'big_under').length
   const underselling = known.filter((r) => r.verdict === 'underselling').length
   const below = known.filter((r) => r.seniority === 'down' || r.seniority === 'big_down').length
 
@@ -307,7 +297,7 @@ export function coachingSuggestion(results: ApplyFitResult[], isPivoting: boolea
     if (bigUp >= yearsReach) {
       return `${bigUp} of ${k} applications are 2+ levels up — suggest adding stretch-appropriate roles (one level up).`
     }
-    return `${yearsReach} of ${k} applications ask for more years than they have — lead with scope and results, and add roles nearer their tenure.`
+    return `${yearsReach} of ${k} applications ask for more than twice their years — lead with scope and results, and add roles nearer their tenure.`
   }
   if (underselling / k >= 0.5) {
     return `Applying mostly below level (${underselling} of ${k}) — confidence/positioning conversation.`

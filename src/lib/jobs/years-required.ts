@@ -17,9 +17,9 @@
 // minimum — the sub-requirements are narrower slices of the same career. Only
 // when nothing is required does a preferred number stand in.
 //
-// The two older inline parsers (job-match.ts parseMinYears, job-fit-bucket.ts
-// parseMinYearsRequired) read only the first digit pair and accept any
-// "N years"; they are left as they are so this change doesn't move fit scores.
+// How a member's years compare with this requirement is decided in one place,
+// years-fit.ts. The board scorers use its cheap quickYearsRange (one regex)
+// instead of this parser, which is too slow to run over every posting.
 
 export interface YearsRequirement {
   min: number
