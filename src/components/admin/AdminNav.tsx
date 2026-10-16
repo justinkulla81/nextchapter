@@ -136,6 +136,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/research', label: 'Research' },
+        { href: '/support/admin/crm/duplicates', label: 'Duplicates' },
         { href: '/support/admin/crm/removed', label: 'Removed', badge: countFor('removedTotal'), badgeTone: 'count' },
       ],
     },

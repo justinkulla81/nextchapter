@@ -7219,6 +7219,7 @@ model Company {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+  aliases          CompanyAlias[]
   // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
   warnNotices      WarnNotice[]
 
@@ -7268,6 +7269,22 @@ model Company {
 // other open sources). Keyed by the listing URL, same as ExclusiveJobPosting.
 // Employer/recruiter exclusives, confidential searches and institution-scoped jobs
 // are never written here, so every row is safe to show any member.
+/// A name that means a company ("AWS" for Amazon Web Services), decided by an admin.
+/// CONFIRMED aliases resolve new resume and posting names to the company; REJECTED
+/// ones record "these are not the same" so the pair is never suggested again.
+model CompanyAlias {
+  id             String   @id @default(cuid())
+  aliasKey       String // normalizeOrgName() of the abbreviation
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status         String   @default("CONFIRMED") // CONFIRMED | REJECTED
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([aliasKey, companyId])
+  @@index([aliasKey])
+}
+
 model CompanyJobOpening {
   id             String    @id @default(cuid())
   companyId      String
