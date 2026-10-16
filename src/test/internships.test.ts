@@ -12,9 +12,12 @@ vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () 
 vi.mock('@/lib/jobs/board-light-rows', async (orig) => ({
   ...(await orig<typeof import('@/lib/jobs/board-light-rows')>()),
   // The core board (level notIn early rungs) and the early-career board (level in them).
-  findLightRows: async (where: unknown) => {
+  findLightRowsPage: async (where: unknown, afterId: string | null, take: number) => {
     const early = JSON.stringify(where).includes('"level":{"in"')
-    return lightRowsStore.rows.filter((r) => (r.level === 'ENTRY_IC' || r.level === 'EARLY_IC') === early)
+    return lightRowsStore.rows
+      .filter((r) => (r.level === 'ENTRY_IC' || r.level === 'EARLY_IC') === early && (afterId === null || (r.id as string) > afterId))
+      .sort((a, b) => ((a.id as string) < (b.id as string) ? -1 : 1))
+      .slice(0, take)
   },
 }))
 vi.mock('@/lib/prisma', () => ({

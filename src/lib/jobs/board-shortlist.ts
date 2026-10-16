@@ -16,7 +16,7 @@ import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/leve
 import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
-import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
 import { loadBreadthClassifier, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
@@ -125,8 +125,7 @@ const REPEATED_COLUMNS = [
   'companyName', 'audienceTier', 'source', 'targetFunction', 'targetLevel', 'targetRemotePolicy',
   'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType', 'employerSector', 'requirementTags',
 ] as const satisfies readonly (keyof LightRow)[]
-function internRepeated(rows: LightRow[]): void {
-  const pool = new Map<string, string>()
+function internRepeated(rows: LightRow[], pool: Map<string, string>): void {
   for (const r of rows) {
     const row = r as Record<(typeof REPEATED_COLUMNS)[number], string | null>
     for (const k of REPEATED_COLUMNS) {
@@ -139,16 +138,36 @@ function internRepeated(rows: LightRow[]): void {
   }
 }
 
-function reuseUnchanged(rows: LightRow[], previous: Map<string, LightRow>): { rows: LightRow[]; byId: Map<string, LightRow> } {
-  internRepeated(rows)
+// The board is read a page at a time (findLightRowsPage), and each page is interned,
+// filtered and folded into the rows the board keeps before the next is read. Reading
+// the whole table into one array, then filtering and sorting copies of it, held the
+// board's rows two or three times over at every reload — the peak that ran instances
+// out of memory once the board grew past ~350k live jobs.
+const PAGE_ROWS = 20_000
+async function readSharedRows(
+  where: Prisma.ExclusiveJobPostingWhereInput,
+  closedCounts: Map<string, number>,
+  previous: Map<string, LightRow>
+): Promise<{ rows: LightRow[]; byId: Map<string, LightRow> }> {
+  const pool = new Map<string, string>()
+  const rows: LightRow[] = []
   const kept = new Map<string, LightRow>()
-  const out = rows.map((r) => {
-    const before = previous.get(r.id)
-    const keep = before && sameRow(before, r) ? before : r
-    kept.set(keep.id, keep)
-    return keep
-  })
-  return { rows: out, byId: kept }
+  let afterId: string | null = null
+  for (;;) {
+    const page = await findLightRowsPage(where, afterId, PAGE_ROWS)
+    if (page.length === 0) break
+    afterId = page[page.length - 1].id
+    internRepeated(page, pool)
+    for (const r of keepRelevant(page, closedCounts)) {
+      const before = previous.get(r.id)
+      const keep = before && sameRow(before, r) ? before : r
+      kept.set(keep.id, keep)
+      rows.push(keep)
+    }
+    if (page.length < PAGE_ROWS) break
+  }
+  // Already id-ordered by the pages; sorted anyway so ranking ties never depend on the database's collation.
+  return { rows: rows.sort(byId), byId: kept }
 }
 
 // Two shared boards: the core one (everything but the early-career rungs) that
@@ -165,8 +184,9 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string):
     if (!loading) {
       const started = now
       const next = (async () => {
-        const out = reuseUnchanged(keepRelevant(await findLightRows(liveBoardWhere(extra)), closedCounts).sort(byId), previousById)
+        const out = await readSharedRows(liveBoardWhere(extra), closedCounts, previousById)
         previousById = out.byId
+        logBoardMemory(`shared board (${name})`, { rows: out.rows.length })
         return out.rows
       })()
       loading = next
