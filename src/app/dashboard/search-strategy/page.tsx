@@ -41,6 +41,9 @@ import type { PlatformStageKey } from '@/lib/platforms/stages'
 import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
 import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { IndustryReadingConfirm } from '@/components/dashboard/IndustryReadingConfirm'
+import { readMemberIndustries } from '@/lib/profile/industry-reading'
+import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -563,6 +566,14 @@ export default async function SearchStrategyPage() {
       <Suspense fallback={null}>
         <PivotPathsTeaser profile={profile} />
       </Suspense>
+
+      {/* Their industry text read as several industries (or none we know): one-click confirm (industry-reading.ts). */}
+      {(() => {
+        const text = [profile.industryContext, profile.secondaryIndustryContext].filter(Boolean).join(' / ')
+        const reading = readMemberIndustries(profile.industryContext, profile.secondaryIndustryContext)
+        if (!text || profile.industryBuckets.length > 0 || !reading.uncertain) return null
+        return <IndustryReadingConfirm text={text} suggested={reading.buckets} options={INDUSTRY_BUCKET_NAMES.filter((n) => n !== 'Other')} />
+      })()}
 
       {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
       <Suspense fallback={null}>

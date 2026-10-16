@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isInternshipJob } from '@/lib/jobs/work-type'
-import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { subFunctionFor } from '@/lib/jobs/sub-functions'
 import { aggregateStats, PRIOR_DAYS, RECENT_DAYS, type StatInput } from '@/lib/market/market-size'
 
@@ -53,7 +53,7 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
       if (isInternshipJob(r)) continue
       const fn = r.targetFunction ?? inferFunctionFromTitle(r.title)
       let bucket = r.industry ? buckets.get(r.industry) : null
-      if (r.industry && bucket === undefined) buckets.set(r.industry, (bucket = normalizeIndustryBucket(r.industry)))
+      if (r.industry && bucket === undefined) buckets.set(r.industry, (bucket = jobIndustryBucket(r.industry)))
       inputs.push({
         title: r.title,
         fn,

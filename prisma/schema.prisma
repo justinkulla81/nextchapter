@@ -1055,6 +1055,11 @@ model CandidateProfile {
   // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
   boardBreadth                    String?
   jobDismissPreferences           JobDismissPreference[]
+  // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
+  // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
+  // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
+  industryBuckets                 String[]  @default([])
+  industryBucketsConfirmedAt      DateTime?
   // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
   // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
   // when the board loads. Null = function not split, or nothing on the allowlists
@@ -5211,6 +5216,9 @@ model JobPostingFlag {
   kind        String
   note        String?
   reviewedAt  DateTime?
+  // An admin's call (/support/admin/job-flags): 'confirmed_ghost' hides the job for everyone, 'dismissed' keeps it.
+  adminDecision String?
+  decidedAt     DateTime?
   createdAt   DateTime  @default(now())
 
   @@unique([postingId, candidateId, kind])

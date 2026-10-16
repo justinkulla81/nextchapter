@@ -1,16 +1,17 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { LIKELY_MEMBER_FLAGS } from '@/lib/jobs/ghost-risk'
-import { markJobFlagsReviewed } from './actions'
+import { REVIEW_MEMBER_FLAGS } from '@/lib/jobs/ghost-risk'
+import { decideJobFlags, markJobFlagsReviewed } from './actions'
 
 export const maxDuration = 30
 
 const KIND_LABEL: Record<string, string> = { ghost: 'Ghost job', too_good: 'Too good to be true', red_flags: 'Red flags' }
 
 // Board jobs members passed on as a ghost job, too good to be true, or with red flags
-// (the X on a job card, src/lib/jobs/job-dismiss.ts). Ghost / too-good flags also feed
-// ghost risk: LIKELY_MEMBER_FLAGS of them keep a job off every board.
+// (the X on a job card, src/lib/jobs/job-dismiss.ts). A flag hides the job for the member
+// who flagged it; REVIEW_MEMBER_FLAGS of them queue it here, first. "Confirm ghost" hides it
+// for everyone (ghost-risk.ts); "Dismiss" keeps it.
 export default async function JobFlagsAdminPage() {
   await requireAdmin()
   const flags = await prisma.jobPostingFlag.findMany({ where: { reviewedAt: null }, orderBy: { createdAt: 'desc' }, take: 500 })
@@ -29,7 +30,8 @@ export default async function JobFlagsAdminPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Job flags</h1>
         <p className="mt-1 text-muted-foreground">
           Jobs members passed on as a ghost job, too good to be true, or with red flags — {grouped.length} job
-          {grouped.length === 1 ? '' : 's'} waiting for review. {LIKELY_MEMBER_FLAGS}+ ghost or too-good flags already keep a job off every member&apos;s board.
+          {grouped.length === 1 ? '' : 's'} waiting for review. A flag hides the job only for the member who flagged it; jobs with {REVIEW_MEMBER_FLAGS}+ flags are
+          queued first. Confirm ghost to hide a job for everyone.
         </p>
       </div>
       {grouped.length === 0 ? (
@@ -49,12 +51,31 @@ export default async function JobFlagsAdminPage() {
                   )}
                   {g.posting?.archivedAt && <span className="text-muted-foreground"> · closed</span>}
                 </p>
-                <form action={markJobFlagsReviewed}>
-                  <input type="hidden" name="postingId" value={g.id} />
-                  <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
-                    Mark reviewed
-                  </SubmitButton>
-                </form>
+                <div className="flex flex-wrap gap-2">
+                  {g.flags.length >= REVIEW_MEMBER_FLAGS && (
+                    <span className="rounded-full bg-orange/15 px-2 py-0.5 text-xs font-medium text-foreground">Queued · {g.flags.length} flags</span>
+                  )}
+                  <form action={decideJobFlags}>
+                    <input type="hidden" name="postingId" value={g.id} />
+                    <input type="hidden" name="decision" value="confirmed_ghost" />
+                    <SubmitButton size="sm" pendingLabel="Saving…">
+                      Confirm ghost
+                    </SubmitButton>
+                  </form>
+                  <form action={decideJobFlags}>
+                    <input type="hidden" name="postingId" value={g.id} />
+                    <input type="hidden" name="decision" value="dismissed" />
+                    <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                      Dismiss
+                    </SubmitButton>
+                  </form>
+                  <form action={markJobFlagsReviewed}>
+                    <input type="hidden" name="postingId" value={g.id} />
+                    <SubmitButton variant="ghost" size="sm" pendingLabel="Saving…">
+                      Red flags reviewed
+                    </SubmitButton>
+                  </form>
+                </div>
               </div>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 {g.flags.map((f) => (

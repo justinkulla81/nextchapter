@@ -20,6 +20,7 @@
 // on each job, and the precomputed similarity table.
 
 import { CAREER_STAGES, memberCareerStage, type CareerStage, type StageMember } from '@/lib/jobs/career-stage'
+import type { MemberGeo } from '@/lib/jobs/relevance'
 import { adjacentSubFunctions, hasSubFunctions, SUB_FUNCTION_BY_KEY, subFunctionLabel } from '@/lib/jobs/sub-functions'
 
 export const BREADTHS = ['narrow', 'wide'] as const
@@ -130,8 +131,16 @@ export interface MemberBreadthVector {
   subFunction: string | null
   /** Their occupation was read from their own title (not a stand-in for their function). */
   socFromTitle: boolean
-  /** Their career stage (career-stage.ts), for Narrow's closest-level tier; null = unknown. */
+  /** Their career stage (career-stage.ts), for the strictest market tier; null = unknown. */
   stage?: CareerStage | null
+  /** Where jobs count for them (relevance.ts). Absent: the criterion isn't applied. */
+  geo?: MemberGeo
+  /** Skill-vocabulary terms (skills-extraction.ts) their skills matrix shows, lowercase. */
+  vocab?: ReadonlySet<string>
+  /** Their skills fit to an occupation (careers/skills-fit.ts band), memoised; null when unknown. */
+  occupationBand?: (soc: string) => 'close' | 'good' | 'partial' | 'few' | null
+  /** What an occupation uses that they don't show (O*NET tools, then knowledge), for bridges. */
+  occupationGaps?: (soc: string) => string[]
 }
 
 /** Functions too broad to say what kind of work it is. */
@@ -295,100 +304,4 @@ export function matchReasonSentence(r: MatchReason): string {
         ? `Shown because it uses skills you have: ${r.sharedSkills.map((s) => s.toLowerCase()).join(', ')}.`
         : 'Shown because this kind of work uses most of the same skills as yours.'
   }
-}
-
-// ── Adaptive Narrow ────────────────────────────────────────────────────────────
-//
-// Owner's rule (2026-10-16): Narrow is "as narrow as returns enough possible jobs". Each
-// job carries flags for the filters it passes. The board starts from NARROW (field,
-// pivots, close skills matches) and, while more than NARROW_BAND.max jobs would show, adds
-// the tightening steps in order — near matches only, own field only, own industry, own
-// career stage, closest occupation — skipping any step that would drop below
-// NARROW_BAND.min. It loosens (related fields, then everything Wide shows) only when
-// NARROW itself falls short of the band.
-
-/** How many jobs Narrow aims to show for the current window. Tune here. */
-export const NARROW_BAND = { min: 40, max: 150 } as const
-
-export const NARROW_FLAG = {
-  /** On Wide at all. */
-  WIDE: 1,
-  /** Narrow plus related fields. */
-  RELATED: 2,
-  /** Field, pivots, close skills matches. */
-  NARROW: 4,
-  /** Field, the function they want to move into, near-identical skills matches. */
-  CLOSE: 8,
-  /** Their own field (sub-function / occupation). */
-  FIELD: 16,
-  /** In one of their industries (always set when they have none on file). */
-  INDUSTRY: 32,
-  /** At their own career stage. */
-  LEVEL: 64,
-  /** The same O*NET occupation as theirs, or a near-identical one. */
-  OCCUPATION: 128,
-} as const
-
-/** Tightening steps, in the owner's order. */
-export const TIGHTEN_STEPS = [NARROW_FLAG.CLOSE, NARROW_FLAG.FIELD, NARROW_FLAG.INDUSTRY, NARROW_FLAG.LEVEL, NARROW_FLAG.OCCUPATION] as const
-
-/** A skills match this close counts as "close" and as the same occupation. */
-export const NEAR_TWIN_SCORE = 0.92
-
-export function narrowFlagsOf(cls: JobClass, ctx: { industryOk: boolean; sameStage: boolean; closeOccupation: boolean }): number {
-  const F = NARROW_FLAG
-  const extra = (ctx.industryOk ? F.INDUSTRY : 0) | (ctx.sameStage ? F.LEVEL : 0) | (ctx.closeOccupation ? F.OCCUPATION : 0)
-  switch (cls.kind) {
-    case 'related_field':
-      return F.WIDE | F.RELATED
-    case 'skills': {
-      if (!passesSkillsThreshold({ score: cls.score ?? 0, related: cls.related }, 'narrow')) return F.WIDE
-      const near = (cls.score ?? 0) >= NEAR_TWIN_SCORE
-      return F.WIDE | F.RELATED | F.NARROW | (near ? F.CLOSE | F.OCCUPATION : 0) | extra
-    }
-    case 'pivot':
-      return F.WIDE | F.RELATED | F.NARROW | (cls.pivot?.startsWith('fn:') ? F.CLOSE : 0) | extra
-    case 'field':
-      return F.WIDE | F.RELATED | F.NARROW | F.CLOSE | F.FIELD | extra
-  }
-}
-
-/** Jobs whose flags include every bit of `required`, from a count per flag set. */
-export function jobsWith(hist: ReadonlyMap<number, number>, required: number): number {
-  let n = 0
-  for (const [flags, c] of hist) if ((flags & required) === required) n += c
-  return n
-}
-
-/** The filter Narrow uses for this member and window: tighten while above the band, loosen only when short. */
-export function chooseNarrowFilter(hist: ReadonlyMap<number, number>, band: { min: number; max: number } = NARROW_BAND): number {
-  let req: number = NARROW_FLAG.NARROW
-  if (jobsWith(hist, req) < band.min) return jobsWith(hist, NARROW_FLAG.RELATED) >= band.min ? NARROW_FLAG.RELATED : NARROW_FLAG.WIDE
-  for (const step of TIGHTEN_STEPS) {
-    if (jobsWith(hist, req) <= band.max) break
-    if (jobsWith(hist, req | step) >= band.min) req |= step
-  }
-  return req
-}
-
-/**
- * The plain line under the toggle saying what Narrow did: "We narrowed to FP&A and corporate
- * finance roles in Healthcare at your level — 84 jobs."
- */
-export function narrowExplanation(
-  required: number,
-  count: number,
-  m: Pick<MemberBreadthVector, 'subFunction' | 'functionLabel' | 'industries'>
-): string {
-  const F = NARROW_FLAG
-  const jobs = `${count.toLocaleString()} job${count === 1 ? '' : 's'}`
-  if (!(required & F.NARROW)) {
-    return required & F.RELATED ? `Few jobs fit tightly, so we added related fields — ${jobs}.` : `Few jobs fit tightly, so we added everything with shared skills — ${jobs}.`
-  }
-  const field = required & F.FIELD ? `${subFunctionLabel(m.subFunction) ?? m.functionLabel ?? 'your field'} roles` : required & F.CLOSE ? 'your field and its closest matches' : 'your field, pivots and close skills matches'
-  const industry = required & F.INDUSTRY && m.industries.size > 0 ? ` in ${[...m.industries][0]}` : ''
-  const level = required & F.LEVEL ? ' at your level' : ''
-  const occupation = required & F.OCCUPATION ? ', closest to the work you do now' : ''
-  const narrowed = required !== F.NARROW
-  return `${narrowed ? 'We narrowed to ' : ''}${narrowed ? field : field.charAt(0).toUpperCase() + field.slice(1)}${industry}${level}${occupation} — ${jobs}.`
 }

@@ -9,21 +9,21 @@ import { buildDismissRules, type ActivePreference, type DismissRules, type Prefe
 // reads), plus the board-wide member ghost flags (cached a few minutes).
 
 const FLAG_TTL_MS = 5 * 60_000
-let flagCache: { at: number; counts: Promise<Map<string, number>> } | null = null
+let confirmedCache: { at: number; ids: Promise<Set<string>> } | null = null
 
-/** Members who flagged each posting as a ghost job or too good to be true. */
-export function getMemberGhostFlagCounts(): Promise<Map<string, number>> {
-  if (!flagCache || Date.now() - flagCache.at > FLAG_TTL_MS) {
-    const counts = prisma.jobPostingFlag
-      .groupBy({ by: ['postingId'], where: { kind: { in: ['ghost', 'too_good'] } }, _count: { _all: true } })
-      .then((rows) => new Map(rows.map((r) => [r.postingId, r._count._all])))
+/** Postings an admin confirmed as ghost jobs (/support/admin/job-flags): hidden for everyone. */
+export function getConfirmedGhostIds(): Promise<Set<string>> {
+  if (!confirmedCache || Date.now() - confirmedCache.at > FLAG_TTL_MS) {
+    const ids = prisma.jobPostingFlag
+      .findMany({ where: { adminDecision: 'confirmed_ghost' }, select: { postingId: true }, distinct: ['postingId'] })
+      .then((rows) => new Set(rows.map((r) => r.postingId)))
       .catch((error) => {
-        console.error('Member ghost flags unavailable:', error)
-        return new Map<string, number>()
+        console.error('Confirmed ghost flags unavailable:', error)
+        return new Set<string>()
       })
-    flagCache = { at: Date.now(), counts }
+    confirmedCache = { at: Date.now(), ids }
   }
-  return flagCache.counts
+  return confirmedCache.ids
 }
 
 export async function loadActivePreferences(candidateId: string): Promise<ActivePreference[]> {
@@ -45,17 +45,18 @@ export async function loadActivePreferences(candidateId: string): Promise<Active
 /** The member's dismiss rules, or null without a member. Board and every job email apply them. */
 export async function loadDismissRules(candidateId: string | null): Promise<DismissRules | null> {
   if (!candidateId) return null
-  const [preferences, dismissed, occupations, flags] = await Promise.all([
+  const [preferences, dismissed, occupations, confirmed] = await Promise.all([
     loadActivePreferences(candidateId),
     prisma.trackedJob.findMany({ where: { candidateId, source: 'job_board', dismissedAt: { not: null } }, select: { sourceId: true } }),
     loadJobSocs(),
-    getMemberGhostFlagCounts(),
+    getConfirmedGhostIds(),
   ])
   return buildDismissRules({
     preferences,
     dismissedIds: dismissed.map((d) => d.sourceId),
     industryOf: (id) => occupations.industries.get(id),
-    // Member flags feed ghost risk: enough of them and the job is a likely ghost for everyone.
-    flaggedGhost: flags.size === 0 ? undefined : (id) => ghostRisk({ priorClosedCount: 0, ageDays: 0, memberFlags: flags.get(id) ?? 0 }).level === 'likely',
+    // A member's own ghost flag hides the job for them (it is a dismissal); for everyone else
+    // only once an admin confirms it (ghost-risk.ts).
+    flaggedGhost: confirmed.size === 0 ? undefined : (id) => ghostRisk({ priorClosedCount: 0, ageDays: 0, adminConfirmed: confirmed.has(id) }).level === 'likely',
   })
 }

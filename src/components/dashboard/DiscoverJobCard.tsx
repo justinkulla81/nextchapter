@@ -40,6 +40,8 @@ import {
 import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
+import type { Bridge } from '@/lib/jobs/relevance'
+import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
 import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
 
@@ -280,6 +282,30 @@ function SkillsFitLine({ fit }: { fit: SkillsFit }) {
   )
 }
 
+function BridgeDetails({ jobId, bridge }: { jobId: string; bridge: Bridge }) {
+  const props = (step: string) => ({ jobId, step, relaxed: bridge.relaxed })
+  return (
+    <div className="space-y-1 rounded-md border border-border bg-muted/30 p-3 text-sm">
+      <p>
+        <span className="font-medium text-foreground">What transfers:</span> <span className="text-muted-foreground">{bridge.transfers}</span>
+      </p>
+      <p>
+        <span className="font-medium text-foreground">What&apos;s missing:</span> <span className="text-muted-foreground">{bridge.missing}</span>
+      </p>
+      <p>
+        <span className="font-medium text-foreground">How to close it:</span>{' '}
+        <TrackedLink href={bridge.learn.href} event="bridge_step_clicked" properties={props('learn')} className="text-primary underline underline-offset-4">
+          {bridge.learn.label}
+        </TrackedLink>
+        {' · '}
+        <TrackedLink href={bridge.network.href} event="bridge_step_clicked" properties={props('network')} className="text-primary underline underline-offset-4">
+          {bridge.network.label}
+        </TrackedLink>
+      </p>
+    </div>
+  )
+}
+
 export function DiscoverJobCard({
   posting,
   fitBucket,
@@ -297,8 +323,11 @@ export function DiscoverJobCard({
   benefits,
   searchResult,
   matchReason,
+  bridge,
   dismissible = true,
 }: {
+  /** Wide's one-relaxed jobs (relevance.ts): what transfers, what's missing, how to close it. */
+  bridge?: Bridge
   /** Show the X (pass on it with reasons). On by default for board cards. */
   dismissible?: boolean
   posting: ExclusiveJobPosting
@@ -418,6 +447,11 @@ export function DiscoverJobCard({
                 <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
               </span>
             )}
+            {bridge && (
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">What transfers:</span> {bridge.transfers}
+              </span>
+            )}
           </span>
           <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
@@ -487,6 +521,7 @@ export function DiscoverJobCard({
         <p className="text-sm text-foreground">
           <span className="font-medium">Your edge:</span> {edgeTip(posting)}
         </p>
+        {bridge && <BridgeDetails jobId={posting.id} bridge={bridge} />}
         {skillsFit && <SkillsFitLine fit={skillsFit} />}
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}

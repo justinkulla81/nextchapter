@@ -63,9 +63,10 @@ describe('dismiss rules on the board', () => {
     expect(becauseLine([pref({ kind: 'company', label: 'Acme Corp', action: 'hide' }), pref({})])).toBe('Because you passed on some jobs, we hid Acme Corp, moved Retail jobs down.')
     expect(becauseLine([])).toBeNull()
   })
-  it('member ghost flags feed ghost risk', () => {
-    expect(ghostRisk({ priorClosedCount: 0, ageDays: 1, memberFlags: 2 }).level).toBe('likely')
+  it('member ghost flags raise watch only; an admin confirmation makes it likely for everyone', () => {
+    expect(ghostRisk({ priorClosedCount: 0, ageDays: 1, memberFlags: 2 }).level).toBe('watch')
     expect(ghostRisk({ priorClosedCount: 0, ageDays: 1, memberFlags: 1 }).level).toBe('watch')
+    expect(ghostRisk({ priorClosedCount: 0, ageDays: 1, adminConfirmed: true }).level).toBe('likely')
     expect(ghostRisk({ priorClosedCount: 0, ageDays: 1 }).level).toBe('none')
   })
 })

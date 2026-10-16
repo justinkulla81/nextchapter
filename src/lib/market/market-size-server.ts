@@ -1,7 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { memberStageWindow, stagesInWindow, type CareerStage, type StageMember } from '@/lib/jobs/career-stage'
-import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+import { memberIndustryBuckets } from '@/lib/profile/industry-reading'
+import { memberGeo } from '@/lib/jobs/relevance'
 import { SUB_FUNCTIONS, subFunctionFor, subFunctionLabel } from '@/lib/jobs/sub-functions'
 import {
   bestAreas,
@@ -39,15 +40,21 @@ export type MarketMember = StageMember & {
   resumeLatestJobTitle?: string | null
   subFunction?: string | null
   industryContext?: string | null
+  secondaryIndustryContext?: string | null
+  targetIndustries?: string[] | null
+  industryBuckets?: string[] | null
   currentState?: string | null
   remotePreference?: string | null
+  openToRelocation?: boolean | null
+  relocationNotes?: string | null
 }
 
 export interface MarketTarget {
   fn: string
   subFunction: string | null
   stages: CareerStage[]
-  industry: string | null
+  /** Their industries (industry-reading.ts); null = any. */
+  industries: string[] | null
   /** null = anywhere. */
   geos: string[] | null
   label: string
@@ -62,6 +69,8 @@ export interface MarketSizeView {
   areas: MarketArea[]
   /** For too many: the biggest industries inside the target. */
   slices: { label: string; openNow: number }[]
+  /** Jobs relevant to them on every criterion (relevance.ts), and the market tier that applied. */
+  relevant: { count: number; tier: string | null } | null
 }
 
 const STAGE_WORDS: Record<CareerStage, string> = {
@@ -80,25 +89,25 @@ export function memberMarketTarget(m: MarketMember): MarketTarget | null {
   if (!fn || /^(general|other)$/i.test(fn)) return null
   const subFunction = m.subFunction ?? subFunctionFor({ title: m.resumeLatestJobTitle, fn })
   const stages = stagesInWindow(memberStageWindow(m))
-  const bucket = normalizeIndustryBucket(m.industryContext ?? null)
-  const industry = bucket && bucket !== 'Other' ? bucket : null
-  const state = m.currentState?.trim().toUpperCase()
-  const pref = (m.remotePreference ?? '').toLowerCase()
-  const geos = pref === 'remote' ? ['remote'] : state && /^[A-Z]{2}$/.test(state) ? (pref === 'onsite' ? [state] : [state, 'remote']) : null
+  const read = memberIndustryBuckets(m)
+  const industries = read.length > 0 ? read : null
+  const geo = memberGeo({ homeArea: null, currentState: m.currentState, remotePreference: m.remotePreference, openToRelocation: m.openToRelocation, relocationNotes: m.relocationNotes })
+  const geoList = [...(geo.homeState ? [geo.homeState] : []), ...geo.relocation, ...(geo.acceptsRemote ? ['remote'] : [])]
+  const geos = geo.unknown || geoList.length === 0 ? null : [...new Set(geoList)]
   const what = subFunctionLabel(subFunction) ?? fn
   const level = stages.length > 0 ? `${STAGE_WORDS[stages[0]]}–${STAGE_WORDS[stages[stages.length - 1]]}` : null
   const where = geos ? geos.map((g) => (g === 'remote' ? 'remote' : g)).join(' or ') : null
-  const label = [what, level && `${level} level`, industry && `in ${industry}`, where && `· ${where}`].filter(Boolean).join(' ')
-  return { fn, subFunction, stages, industry, geos, label }
+  const label = [what, level && `${level} level`, industries && `in ${industries.join(' or ')}`, where && `· ${where}`].filter(Boolean).join(' ')
+  return { fn, subFunction, stages, industries, geos, label }
 }
 
-type Filter = { subFunction?: string | null; industry?: string | null; geos?: string[] | null; stages: CareerStage[] }
+type Filter = { subFunction?: string | null; industries?: string[] | null; geos?: string[] | null; stages: CareerStage[] }
 function sum(rows: StatRow[], f: Filter): Counts {
   return sumCounts(
     rows.filter(
       (r) =>
         (f.subFunction == null || r.subFunction === f.subFunction) &&
-        (f.industry == null || r.industry === f.industry) &&
+        (f.industries == null || f.industries.includes(r.industry)) &&
         (f.geos == null || f.geos.includes(r.geo)) &&
         (f.stages.length === 0 || f.stages.includes(r.band as CareerStage))
     )
@@ -108,13 +117,13 @@ function sum(rows: StatRow[], f: Filter): Counts {
 const boardHref = (q?: string) => `/dashboard/find-my-job?breadth=wide${q ? `&q=${encodeURIComponent(q)}` : ''}#job-recommendations`
 
 /** The market for the member's target, with the prompt to show and the nearby areas. Null without a function or stats. */
-export async function loadMarketSize(m: MarketMember): Promise<MarketSizeView | null> {
+export async function loadMarketSize(m: MarketMember, relevant?: { count: number; tier: string | null }): Promise<MarketSizeView | null> {
   const target = memberMarketTarget(m)
   if (!target) return null
   const [rows, totals] = await Promise.all([rowsFor(target.fn), rowsFor('*')])
   if (rows.length === 0 || totals.length === 0) return null
   const board = sumCounts(totals)
-  const base: Filter = { subFunction: target.subFunction, industry: target.industry, geos: target.geos, stages: target.stages }
+  const base: Filter = { subFunction: target.subFunction, industries: target.industries, geos: target.geos, stages: target.stages }
   const counts = sum(rows, base)
   const growth = relativeGrowth(counts, board)
   const what = subFunctionLabel(target.subFunction) ?? target.fn
@@ -125,16 +134,15 @@ export async function loadMarketSize(m: MarketMember): Promise<MarketSizeView | 
     areas.push({ kind, label, openNow: c.openNow, growth: relativeGrowth(c, board), href: boardHref(q) })
   }
   // Same work, other industries (orthogonal moves), in the same place.
-  const industries = [...new Set(rows.map((r) => r.industry).filter((i) => i && i !== target.industry))]
-  for (const industry of industries) add('industry', `${what} in ${industry}`, { ...base, industry }, industry)
-  // The same work with one limit lifted: any industry; anywhere in the US or remote; both.
-  if (target.industry) add('industry', `${what}, any industry`, { ...base, industry: null })
-  if (target.geos) add('place', `${what}${target.industry ? ` in ${target.industry}` : ''}, anywhere in the US or remote`, { ...base, geos: null })
-  if (target.industry && target.geos) add('place', `${what}, any industry, anywhere`, { ...base, industry: null, geos: null })
+  const industries = [...new Set(rows.map((r) => r.industry).filter((i) => i && !(target.industries ?? []).includes(i)))]
+  for (const industry of industries) add('industry', `${what} in ${industry}`, { ...base, industries: [industry] }, industry)
+  // The same work with one limit lifted at a time: any industry, or anywhere in the US or remote.
+  if (target.industries) add('industry', `${what}, any industry`, { ...base, industries: null })
+  if (target.geos) add('place', `${what}${target.industries ? ` in ${target.industries.join(' or ')}` : ''}, anywhere in the US or remote`, { ...base, geos: null })
   // Related work in the same function: the sub-function's hand-listed neighbours (all of them when it has none), any industry.
   const own = SUB_FUNCTIONS.find((s) => s.key === target.subFunction)
   const neighbours = own ? own.adjacent : SUB_FUNCTIONS.filter((s) => s.fn.toLowerCase() === target.fn.toLowerCase()).map((s) => s.key)
-  for (const sub of neighbours) add('sub_function', subFunctionLabel(sub) ?? sub, { ...base, subFunction: sub, industry: null })
+  for (const sub of neighbours) add('sub_function', subFunctionLabel(sub) ?? sub, { ...base, subFunction: sub })
   // For "too many": the biggest slices inside the target — by industry, or (industry set) by kind of work.
   const sliceBy = (values: (string | null)[], f: (v: string) => Filter, label: (v: string) => string) =>
     [...new Set(values.filter((v): v is string => !!v))]
@@ -142,10 +150,12 @@ export async function loadMarketSize(m: MarketMember): Promise<MarketSizeView | 
       .filter((x) => x.openNow > 0)
       .sort((x, y) => y.openNow - x.openNow)
       .slice(0, 3)
-  const slices = !target.industry
-    ? sliceBy(industries, (industry) => ({ ...base, industry }), (v) => v)
+  const slices = !target.industries
+    ? sliceBy(industries, (industry) => ({ ...base, industries: [industry] }), (v) => v)
     : !target.subFunction
       ? sliceBy(rows.map((r) => r.subFunction), (subFunction) => ({ ...base, subFunction }), (v) => subFunctionLabel(v) ?? v)
       : []
-  return { target, counts, growth, prompt: marketPrompt(counts.openNow, growth), areas: bestAreas(areas, 3), slices }
+  // The member's own count is the strict relevant one (relevance.ts) when the caller has it.
+  const prompt = marketPrompt(relevant?.count ?? counts.openNow, growth)
+  return { target, counts, growth, prompt, areas: bestAreas(areas, 3), slices, relevant: relevant ?? null }
 }

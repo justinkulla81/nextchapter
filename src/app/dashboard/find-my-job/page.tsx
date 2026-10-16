@@ -34,7 +34,11 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
-import { boardBreadthFor, MATCH_KIND_RANK, narrowExplanation, type Breadth, type MatchReason } from '@/lib/jobs/search-breadth'
+import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason, type MemberBreadthVector } from '@/lib/jobs/search-breadth'
+import { buildBridge, relevanceLine, type Bridge } from '@/lib/jobs/relevance'
+import { subFunctionLabel } from '@/lib/jobs/sub-functions'
+import { jobIndustryBucket } from '@/lib/profile/industry-reading'
+import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
@@ -628,6 +632,26 @@ async function JobRecommendationsSection({
     const r = reasons.get(id)
     return r ? (r.kind === 'industry_pivot' ? MATCH_KIND_RANK.pivot : MATCH_KIND_RANK[r.kind]) : 9
   }
+  // Wide's one-relaxed jobs carry a bridge (relevance.ts): what transfers, what's missing, how to close it.
+  const bridgeFor = (p: (typeof visibleBoardPostings)[number]): Bridge | undefined => {
+    const c = board.breadth.classifier
+    const placed = c?.place(p)
+    if (!c || !placed || placed.relaxed === null || placed.relaxed === 'out') return undefined
+    const gap = skillGapFor(p)
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    const soc = c.occupations.socs.get(p.id)
+    return buildBridge({
+      relaxed: placed.relaxed,
+      fieldLabel: subFunctionLabel(c.member.subFunction) ?? c.member.functionLabel ?? 'your field',
+      have: gap.have,
+      // The posting's own gaps first; with none listed, what its occupation uses that they don't show (O*NET).
+      missing: gap.missing.length > 0 ? gap.missing : soc && c.member.occupationGaps ? c.member.occupationGaps(soc) : [],
+      occupationShared: soc ? c.member.similar.get(soc)?.shared : undefined,
+      jobIndustry: jobIndustryBucket(p.industry),
+      companyName: p.disclosure === 'CONFIDENTIAL' ? null : p.companyName,
+      companyHref: company && p.disclosure !== 'CONFIDENTIAL' ? `/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}#insiders` : null,
+    })
+  }
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
       title: p.title,
@@ -803,6 +827,7 @@ async function JobRecommendationsSection({
                           benefits={benefitsByPosting.get(posting.id)}
                           searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
                           matchReason={reasons.get(posting.id)}
+                          bridge={bridgeFor(posting)}
                         />
                       ),
                     }
@@ -840,6 +865,8 @@ async function JobRecommendationsSection({
               ]}
             </ShowMoreList>
           </div>
+
+          {board.breadth.goodMoreIds.length > 0 && <GoodMatchesMore ids={board.breadth.goodMoreIds} surface="find_my_job" />}
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockCandidatePlusCallout
@@ -959,6 +986,18 @@ export default async function JobFitPage({
       </Suspense>
     </div>
   )
+}
+
+/** "near Sunnyvale or remote", "in WA, OR, ID or remote": where their jobs count (relevance.ts). */
+function placePhrase(profile: { currentCity: string | null }, m: MemberBreadthVector): string | null {
+  const g = m.geo
+  if (!g || g.unknown) return null
+  const parts: string[] = []
+  if (g.homeArea && profile.currentCity) parts.push(`near ${profile.currentCity}`)
+  else if (g.homeState) parts.push(`in ${g.homeState}`)
+  if (g.relocation.size > 0) parts.push(`in ${[...g.relocation].join(', ')}`)
+  if (g.acceptsRemote) parts.push('remote')
+  return parts.length > 0 ? parts.join(' or ') : null
 }
 
 const DISMISS_REASON_LABEL = new Map<string, string>(DISMISS_REASONS.map((r) => [r.key, r.label.toLowerCase()]))
@@ -1464,9 +1503,14 @@ async function FindMyJobBody({
           </div>
           {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
             <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
-              {breadthMode === 'narrow'
-                ? narrowExplanation(board.breadth.narrowFilter, board.breadth.narrowTotal, board.breadth.classifier.member)
-                : `Your field, related fields, pivots and shared skills — ${board.breadth.wideTotal.toLocaleString()} jobs.`}{' '}
+              {relevanceLine({
+                breadth: breadthMode,
+                relevant: board.breadth.relevantTotal,
+                shown: breadthMode === 'narrow' ? board.breadth.narrowTotal : board.breadth.wideTotal,
+                extras: board.breadth.extrasTotal,
+                field: `${subFunctionLabel(board.breadth.classifier.member.subFunction) ?? board.breadth.classifier.member.functionLabel ?? 'matching'}`,
+                place: placePhrase(profile, board.breadth.classifier.member),
+              })}{' '}
               <a
                 href={boardHref(urlParams, { breadth: breadthMode === 'narrow' ? 'wide' : 'narrow' }, { hash: 'job-recommendations' })}
                 className="text-primary underline underline-offset-4"

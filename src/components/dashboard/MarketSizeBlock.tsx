@@ -29,7 +29,8 @@ export function MarketSizeBlock({
 }) {
   const prompt: MarketPrompt =
     searchCount === undefined ? view.prompt : searchCount >= SEARCH_TOO_MANY ? 'too_many' : searchCount < SEARCH_TOO_FEW ? 'too_few' : view.prompt
-  const open = view.counts.openNow
+  // The member's own number is the strict relevant count (relevance.ts): level, field, place and skills.
+  const open = view.relevant?.count ?? view.counts.openNow
   const growth = growthPhrase(view.growth)
   const track = (step: string, area?: string) => ({ surface, prompt, step, area, target: view.target.label, openNow: open })
 
@@ -39,12 +40,12 @@ export function MarketSizeBlock({
       : searchCount !== undefined && prompt === 'too_few'
         ? `Your search found ${searchCount.toLocaleString()} job${searchCount === 1 ? '' : 's'}.`
         : prompt === 'too_many'
-          ? `${open.toLocaleString()} open jobs fit your target — more than anyone can work through.`
+          ? `${open.toLocaleString()} open jobs fit you on level, field, place and skills — more than anyone can work through.`
           : prompt === 'too_few'
-            ? `Only ${open.toLocaleString()} open job${open === 1 ? '' : 's'} fit your target exactly.`
+            ? `Only ${open.toLocaleString()} open job${open === 1 ? '' : 's'} fit you on level, field, place and skills.`
             : prompt === 'shrinking'
-              ? `${open.toLocaleString()} open jobs fit your target, but this market is ${growth ?? 'shrinking'}.`
-              : `${open.toLocaleString()} open jobs fit your target${growth ? ` — ${growth}` : ''}.`
+              ? `${open.toLocaleString()} open jobs fit you on level, field, place and skills, but this market is ${growth ?? 'shrinking'}.`
+              : `${open.toLocaleString()} open jobs fit you on level, field, place and skills${growth ? ` — the market is ${growth}` : ''}.`
 
   return (
     <section aria-label="Your market" className="space-y-3 rounded-lg border border-border bg-card p-4 text-sm">
@@ -53,14 +54,14 @@ export function MarketSizeBlock({
         <p className="mt-1 font-medium text-foreground">{headline}</p>
         <p className="text-xs text-muted-foreground">
           Target: {view.target.label}
-          {searchQuery ? ` · search “${searchQuery}”` : ''}. Open jobs on the board now; the trend compares the last 2 weeks with the 4 before.
+          {searchQuery ? ` · search “${searchQuery}”` : ''}. {view.counts.openNow.toLocaleString()} open in this wider market; the trend compares its last 2 weeks with the 4 before.
         </p>
       </div>
 
       {prompt === 'too_many' && view.slices.length > 0 && (
         <div>
           <p className="font-medium text-foreground">
-            {view.target.industry ? 'Narrow by the kind of work' : 'Narrow by industry'} — the biggest slices of your market
+            {view.target.industries ? 'Narrow by the kind of work' : 'Narrow by industry'} — the biggest slices of your market
           </p>
           <ul className="mt-1 space-y-0.5">
             {view.slices.map((s) => (
