@@ -59,5 +59,50 @@
     "type": "public_sector",
     "employer": "Louisville Metro Government",
     "agency": "louisvilleky"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-waystar",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Waystar",
+    "tenant": "waystar",
+    "wd": "wd1",
+    "site": "Waystar"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
   }
 ]
