@@ -56,6 +56,23 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 - Real company-email-domain verification for employers/recruiters. Today, anywhere an employer or recruiter self-submits something (NC Job Board postings, Employer Reference & Referral submissions), there's no check that the submitter's email domain actually belongs to the company they claim — see the shared trust-gate comment in `src/lib/employer-references/submission.ts` and `src/lib/jobs/job-board-submission.ts`. A named, real-looking contact (required name/company/work-email fields) is the trust gate instead of a real domain check. A real version would need something like a DNS/MX lookup or a paid company-verification API (Clearbit, Kickbox) — flagged rather than building a second, parallel verification system ad hoc.
 - Live Attio CRM sync. The layoff-context branch of the Employer Reference flow (`src/app/for-managers/give-a-reference/submit/actions.ts`) stamps `attioSyncRequestedAt` on `EmployerReferenceSubmission` rows instead of actually calling Attio's API — there's no Attio client and no credentials configured anywhere in the app. The timestamp exists so a real sync job can sweep up every unsynced record once credentials are available, without losing any submissions in the meantime. Needs: an Attio API key, a client wrapper, and a cron or on-demand sync job that reads `attioSyncRequestedAt IS NOT NULL AND attioSyncedAt IS NULL` and calls the real API.
 
+## Tools & accounts to add (not set up)
+
+Each one costs money or needs Justin's own account or key, so none is set up unprompted. Raise the matching one when related work comes up.
+
+- **Chrome Web Store developer account** ($5 one-time). Unblocks the member autofill extension ("Fill with NextChapter", see Job Search Tools below), which can only reach members, and keep itself updated, once it's published on the Web Store. Justin creates the account; we write the listing, privacy text and "How it works" page.
+- **Resend plan upgrade.** All NextChapter email goes through Resend: Job Search Daily, digests, Monthly Update, alerts. The free plan's daily cap starts to bind at about 45 active members (audit of 2026-10-13). Upgrade to Pro before then.
+- **Hunter.io paid plan.** Connected 2026-10-09, but the free credits are nearly used up. It would verify guessed CRM emails and add Hunter-verified contacts to the "Who to contact" panel on jobs (the free version shipped 2026-10-16 with a placeholder for it). Before building, confirm Hunter's terms allow showing its contacts to members, and set a monthly lookup cap. Each lookup costs credits.
+- **Licensed job-data feeds** (TheirStack, Coresignal, Fantastic.jobs and similar). Roughly $50–600 a month; verify pricing. Only worth it if the free crawler still leaves coverage gaps. Justin's position (2026-10-15): "will consider licensed later, but we want more free."
+- **NLx Research Hub (NASWA).** Free state job-bank data. Request submitted 2026-10-14, awaiting approval.
+- **SAM.gov API key.** Free, but tied to Justin's account. It is the last missing piece for the funding-opportunities cron.
+- **Supabase custom auth domain** (paid add-on). Google sign-in currently shows the raw supabase.co domain; deferred on purpose.
+- **Google OAuth verification.** Free, but needs Justin in Google Cloud. Without it members' Gmail connections drop weekly, which loses application-tracking signal.
+- **Twilio.** SMS reminders and alerts. Deferred.
+- **Granola.** AI meeting notes into CRM activity on the right person or organization. Confirm the intended use first.
+- **Gamma.** AI decks and docs for pitch, partner or college-pilot decks. Confirm the intended use first.
+- **pg_trgm Postgres extension.** Free; it speeds up the "Include past jobs" search once closed jobs pass about 100k. Adding a database extension needs a go-ahead.
+
 ## Monetization
 
 - Stripe payments — env vars (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) are configured in `.env.local` but there is no Stripe code anywhere in `src/` — nothing charges anyone today. Everything on the platform is free. When this gets built: Stripe Checkout for one-off paid coaching sessions, Stripe Subscriptions for a recurring coaching package, a webhook handler for subscription lifecycle events, and (later) employer-side subscription tiers for the Talent/Hiring Manager portal. Deferred until real paid-coaching demand is validated — don't build billing before there's a first paying customer.
