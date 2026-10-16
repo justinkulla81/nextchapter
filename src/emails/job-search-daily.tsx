@@ -1,4 +1,5 @@
 import type { JobSearchDailyContent, DailyItem, ScoreStatus } from '@/lib/job-search-daily/build'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface JobSearchDailyEmailProps {
   content: JobSearchDailyContent
@@ -325,6 +326,7 @@ export default function JobSearchDailyEmail({
           Turn off this email
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

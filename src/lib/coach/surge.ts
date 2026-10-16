@@ -39,7 +39,7 @@ async function sendSurgeOutreachEmail(coachEmail: string, fullName: string, note
     return false
   }
   try {
-    const resend = createResend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY, 'coach')
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: coachEmail,

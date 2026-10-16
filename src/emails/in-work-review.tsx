@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { ReviewEmailContent } from '@/lib/in-work/outreach'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface InWorkReviewEmailProps {
   firstName: string | null
@@ -57,6 +58,7 @@ export default function InWorkReviewEmail({ firstName, content, appUrl, unsubscr
         </a>
         .
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

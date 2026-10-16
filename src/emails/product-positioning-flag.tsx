@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ProductPositioningFlagEmailProps {
   title: string | null
@@ -58,6 +59,7 @@ export default function ProductPositioningFlagEmail({
         Read the source →
       </a>
       <p style={footer}>Flagged from Market Pulse — relevant to Victoria/Dossier copy.</p>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

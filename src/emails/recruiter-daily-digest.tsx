@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface DigestCandidate {
   primaryFunction: string
@@ -88,6 +89,7 @@ export default function RecruiterDailyDigestEmail({
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from these alerts</a>
       </p>
+      <AudienceTag audience="recruiter" />
     </div>
   )
 }

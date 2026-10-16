@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 export interface CoachDigestJob {
   title: string
@@ -252,6 +253,7 @@ export default function MarketDigestCoachEmail({
       <p style={{ marginTop: '32px', ...emailStyles.muted }}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
       </p>
+      <AudienceTag audience="coach" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface PostInterestNotificationEmailProps {
   postTitle: string
@@ -44,6 +45,7 @@ export default function PostInterestNotificationEmail({
         Your email is never shown publicly on the board — this is the only way someone can reach
         you about a post.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

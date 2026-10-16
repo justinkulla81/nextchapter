@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ReferenceDeclinedEmailProps {
   candidateName: string
@@ -41,6 +42,7 @@ export default function ReferenceDeclinedEmail({ candidateName, refereeName }: R
       </p>
       <p>Worth reaching out to them directly if you want the full story, or asking someone else instead.</p>
       <p style={footer}>You can see the status of all your references any time on your References page.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

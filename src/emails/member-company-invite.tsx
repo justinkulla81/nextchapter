@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface Props {
   orgName: string
@@ -35,6 +36,7 @@ export default function MemberCompanyInviteEmail({ orgName, companyName, acceptU
         </a>
       </p>
       <p style={footer}>This link signs you in once. If you weren&apos;t expecting it, you can ignore this email.</p>
+      <AudienceTag audience="employer" />
     </div>
   )
 }

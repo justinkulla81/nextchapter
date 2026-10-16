@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface PortfolioAccessRequestEmailProps {
   firstName: string | null
@@ -56,6 +57,7 @@ export default function PortfolioAccessRequestEmail({
         Review on your dashboard →
       </a>
       <p style={footer}>You control this. Approving lets them view your work samples and narrative.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

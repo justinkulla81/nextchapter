@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface OutplacementSeatLinkedEmailProps {
   orgName: string
@@ -40,6 +41,7 @@ export default function OutplacementSeatLinkedEmail({ orgName }: OutplacementSea
         numbers across everyone enrolled.
       </p>
       <p style={footer}>If you weren&apos;t expecting this, contact support.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

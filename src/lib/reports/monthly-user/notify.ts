@@ -53,7 +53,7 @@ export async function sendMonthlyReportEmail(report: MonthlyUserReportData): Pro
   }
   const to = process.env.MONTHLY_REPORT_TO || ADMIN_NOTIFICATION_EMAIL
   try {
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({ from: FROM, to, ...monthlyReportEmail(report) })
+    const { error } = await createResend(process.env.RESEND_API_KEY, 'candidate').emails.send({ from: FROM, to, ...monthlyReportEmail(report) })
     if (error) { console.error('Monthly report email failed:', error); return false }
     return true
   } catch (e) {

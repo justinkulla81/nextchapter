@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { RoleMatchEmailRole } from '@/lib/email/send-role-match-email'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface RoleMatchEmailProps {
   firstName: string | null
@@ -74,6 +75,7 @@ export default function RoleMatchEmail({ firstName, dossierUnlocked, role, actio
           </a>
         </>
       )}
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

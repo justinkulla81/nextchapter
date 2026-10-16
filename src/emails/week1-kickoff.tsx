@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface Week1KickoffEmailProps {
   firstName: string | null
@@ -88,6 +89,7 @@ export default function Week1KickoffEmail({
         </a>
         .
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

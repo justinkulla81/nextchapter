@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface BackchannelMatchEmailProps {
   firstName: string | null
@@ -86,6 +87,7 @@ export default function BackchannelMatchEmail({
           Turn off these emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

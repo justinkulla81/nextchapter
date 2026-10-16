@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface NewMessageNotificationEmailProps {
   recipientFirstName: string | null
@@ -56,6 +57,7 @@ export default function NewMessageNotificationEmail({
         View message
       </a>
       <p style={footer}>You&apos;re receiving this because you have an active conversation on NextChapter.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -12,7 +12,7 @@ import { orgCallbackOrigin } from '@/lib/org-hosts'
 import { orgHostKindOf } from '@/lib/higher-ed/workspaces'
 
 function resendClient(): Resend | null {
-  return process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
+  return process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY, 'organization') : null
 }
 
 function appUrl(): string {

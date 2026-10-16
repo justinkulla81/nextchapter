@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface Props {
   orgName: string
@@ -32,6 +33,7 @@ export default function OutplacementAccessEndingEmail({ orgName, endsOn, dashboa
         <a href={dashboardUrl}>Open NextChapter</a>
       </p>
       <p style={footer}>{orgName} never sees your activity on NextChapter. Questions? Reply to this email.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }
