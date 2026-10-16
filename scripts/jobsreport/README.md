@@ -19,3 +19,9 @@ Covers: overview and source mix, levels, functions, AI versus non-AI pay and ski
 Status: the SQL was tested against the database through the Supabase tool (levels, AI pay, engagement, skills by AI, source mix). `local-report.ts` has not been run: this environment has no `node_modules`.
 
 `peer_bls.py` pulls unemployment rate, labor force and total nonfarm employment for a place and its peers from the BLS public API, for the latest month all have in common, on one basis (not seasonally adjusted). Metro codes (state FIPS, CBSA) are in `geos.json`. Not yet run: api.bls.gov is blocked in the authoring environment, and the series ID formats should be confirmed on first run.
+
+## Tagging
+
+`classify.sql` tags every `jobsreport_posting` with `level` (ENTRY, MID_IC, SENIOR_IC, MANAGER, DIRECTOR, VP_PLUS), `function`, `occupation_group` and `white_collar` (Census major groups 1 and 2, as in the Employment Report), from the job title, by ordered rules. Run it after each load (it updates every row and stores `tag_rule_version`). Spot-check results by sampling titles in each bucket after changing a rule. Known limits: title-only, so new-graduate roles are not marked ENTRY unless titled so; some healthcare technician titles are judgment calls (the rules follow the Census: radiologic, surgical and pharmacy technologists, EMTs and teaching assistants are professional; medical assistants, nursing assistants and patient care techs are not).
+
+Pay parsing takes the first dollar range in the text, so values over $1,000,000 are nulled after loading (revenue and investment figures); report medians, not means.
