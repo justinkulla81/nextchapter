@@ -58,6 +58,16 @@ describe('readLayoffHeadline: wider shapes', () => {
     expect(readLayoffHeadline('Kroger will reduce corporate workforce by 3,000 as AI use grows')).toMatchObject({ company: 'Kroger', employees: 3000 })
   })
 
+  it('reads percent-led and described-company headlines (Miro)', () => {
+    expect(name('Miro layoffs: 18% of workforce affected')).toBe('Miro')
+    expect(name('Miro 18% layoffs')).toBe('Miro')
+    expect(name('Miro Layoffs Hit 18% of Staff')).toBe('Miro')
+    expect(name('Miro CEO Andrey Khusid announces 18% workforce reduction')).toBe('Miro')
+    expect(name('Online whiteboard company Miro cuts 275 jobs')).toBe('Miro')
+    expect(name('Collaboration platform Miro lays off 18% of staff')).toBe('Miro')
+    expect(readLayoffHeadline('Miro lets go of 275 employees')).toMatchObject({ company: 'Miro', employees: 275 })
+  })
+
   it('still skips headlines that are not a layoff', () => {
     expect(readLayoffHeadline('Fed announces rate cuts as inflation eases')).toBeNull()
     expect(readLayoffHeadline('Oracle cuts hundreds of millions of dollars in costs')).toBeNull()

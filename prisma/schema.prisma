@@ -7242,6 +7242,8 @@ model Company {
   recruiterFirms     RecruiterFirm[]
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
+  recruitingDates    InstitutionRecruitingDate[]
+  earlyCareerRoles   InstitutionEarlyCareerRole[]
 
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
@@ -12069,6 +12071,8 @@ model Institution {
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies      InstitutionTargetCompany[]
+  recruitingDates      InstitutionRecruitingDate[]
+  earlyCareerRoles     InstitutionEarlyCareerRole[]
   dossierIntroRequests DossierIntroRequest[]
   programs             Program[]
   corporateClients     CorporateClient[]
@@ -13296,8 +13300,59 @@ model InstitutionTargetCompany {
   note          String?     @db.Text
   createdBy     String? // Supabase auth.users id of the staff member who flagged it
   createdAt     DateTime    @default(now())
+  /// A company that recruits this college's students every year (as opposed to one
+  /// the team merely wants to approach). Private to the institution.
+  coreRecruiter         Boolean @default(false)
+  recruiterContactName  String?
+  recruiterContactEmail String?
 
   @@unique([institutionId, companyId])
+  @@index([companyId])
+}
+
+/// A date a company is on, or recruiting at, this college: a career fair, an info
+/// session, on-campus interviews, an application deadline. kind is one of
+/// RECRUITING_DATE_KINDS (src/lib/higher-ed/recruiting.ts). Private to the institution.
+model InstitutionRecruitingDate {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  startsAt      DateTime
+  location      String?
+  url           String?
+  note          String?     @db.Text
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+
+  @@index([institutionId, startsAt])
+  @@index([companyId])
+}
+
+/// An internship, co-op or entry-level role a company has for this college's
+/// students and new graduates. kind is one of EARLY_CAREER_KINDS. Private to the institution.
+model InstitutionEarlyCareerRole {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  location      String?
+  applyUrl      String?
+  deadline      DateTime?
+  /// Graduating classes it is open to, free text ("2027, 2028").
+  classYears    String?
+  note          String?     @db.Text
+  archivedAt    DateTime?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+
+  @@index([institutionId, archivedAt])
   @@index([companyId])
 }
 

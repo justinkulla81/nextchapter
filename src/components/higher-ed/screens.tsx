@@ -42,6 +42,9 @@ import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
+import { CoreRecruiterForm, RecruitingDateForm, EarlyCareerRoleForm } from '@/components/institution/RecruitingForms'
+import { listRecruitingDates, listEarlyCareerRoles } from '@/lib/higher-ed/recruiting'
+import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePassed, safeHttpUrl } from '@/lib/higher-ed/recruiting-rules'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { InternshipsScreen } from './screens-internships'
@@ -88,7 +91,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
 import { ActionButton } from './CommunityForms'
-import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
+import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
 export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
@@ -614,34 +617,141 @@ async function AlumniJobs({ ctx }: ScreenProps) {
 async function TargetCompanies({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
   const canManage = canAny(ctx.tokens, 'manage_target_companies') && !ctx.readOnly
-  const targets = await listTargetCompanies(ctx.institution.id)
+  const [targets, dates, roles] = await Promise.all([
+    listTargetCompanies(ctx.institution.id),
+    listRecruitingDates(ctx.institution.id),
+    listEarlyCareerRoles(ctx.institution.id),
+  ])
+  const upcoming = splitUpcoming(dates).upcoming
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        Employers you want to place alumni with or build a relationship with. Only your team sees this list.
+        Employers you want to place students and alumni with. Mark the ones that recruit here every year as core recruiters. Only your team sees this list.
       </p>
       {canManage && <TargetCompanyForm addAction={addTargetCompany.bind(null, slug)} />}
       {targets.length === 0 ? (
-        <EmptyState icon={Users} title="No target companies yet" description="Add the employers you want alumni at." />
+        <EmptyState icon={Users} title="No target companies yet" description="Add the employers you want students and alumni at." />
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-          {targets.map((t) => (
-            <li key={t.companyId} className="flex items-center justify-between gap-4 px-4 py-3">
-              <div>
-                <p className="font-medium">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{[t.industry, t.note].filter(Boolean).join(' · ')}</p>
-              </div>
-              {canManage && (
-                <form action={removeTargetCompany.bind(null, slug, t.companyId)}>
-                  <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">
-                    Remove company
-                  </SubmitButton>
-                </form>
-              )}
-            </li>
-          ))}
+          {targets.map((t) => {
+            const nextDate = upcoming.find((d) => d.companyId === t.companyId)
+            const openRoles = roles.filter((r) => r.companyId === t.companyId).length
+            return (
+              <li key={t.companyId} className="px-4 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">
+                      {t.name}
+                      {t.coreRecruiter && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal">Core recruiter</span>}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{[t.industry, t.note].filter(Boolean).join(' · ')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[
+                        t.recruiterContactName || t.recruiterContactEmail ? `Recruiter: ${[t.recruiterContactName, t.recruiterContactEmail].filter(Boolean).join(', ')}` : null,
+                        nextDate ? `Next: ${nextDate.title}, ${fmtDate(nextDate.startsAt)}` : null,
+                        openRoles ? `${openRoles} open ${openRoles === 1 ? 'role' : 'roles'} for students` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <form action={removeTargetCompany.bind(null, slug, t.companyId)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">
+                        Remove company
+                      </SubmitButton>
+                    </form>
+                  )}
+                </div>
+                {canManage && (
+                  <CoreRecruiterForm
+                    saveAction={saveCoreRecruiter.bind(null, slug, t.companyId)}
+                    core={t.coreRecruiter}
+                    contactName={t.recruiterContactName}
+                    contactEmail={t.recruiterContactEmail}
+                  />
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
+    </div>
+  )
+}
+
+const dateTimeFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
+
+async function RecruitingScreen({ ctx }: ScreenProps) {
+  const slug = ctx.institution.slug
+  const canManage = canAny(ctx.tokens, 'manage_target_companies') && !ctx.readOnly
+  const [dates, roles] = await Promise.all([listRecruitingDates(ctx.institution.id), listEarlyCareerRoles(ctx.institution.id)])
+  const { upcoming, past } = splitUpcoming(dates)
+  return (
+    <div className="space-y-10">
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Recruiting calendar</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">When employers are on campus or hiring from your students: career fairs, info sessions, interviews and application deadlines.</p>
+        </div>
+        {canManage && <RecruitingDateForm addAction={addRecruitingDateAction.bind(null, slug)} />}
+        {dates.length === 0 ? (
+          <EmptyState icon={Users} title="No recruiting dates yet" description="Add a career fair, info session or deadline to start the calendar." />
+        ) : (
+          <>
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {upcoming.length === 0 && <li className="px-4 py-3 text-sm text-muted-foreground">Nothing coming up. Add the next date above.</li>}
+              {[...upcoming, ...past].map((d, i) => (
+                <li key={d.id} className={`flex items-center justify-between gap-4 px-4 py-3 ${i >= upcoming.length ? 'opacity-60' : ''}`}>
+                  <div>
+                    <p className="font-medium">{d.company}: {d.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[RECRUITING_DATE_LABELS[d.kind] ?? d.kind, dateTimeFmt.format(d.startsAt), d.location, d.note].filter(Boolean).join(' · ')}
+                      {safeHttpUrl(d.url) && <> · <a href={safeHttpUrl(d.url)!} target="_blank" rel="noreferrer" className="underline">Details</a></>}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <form action={removeRecruitingDateAction.bind(null, slug, d.id)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">Remove date</SubmitButton>
+                    </form>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Internships and graduate jobs</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">Roles employers have for your students and new graduates. Only your team enters and edits this list.</p>
+        </div>
+        {canManage && <EarlyCareerRoleForm addAction={addEarlyCareerRoleAction.bind(null, slug)} />}
+        {roles.length === 0 ? (
+          <EmptyState icon={Users} title="No internships or graduate jobs yet" description="Add the roles employers have shared with you." />
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {roles.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">{r.title} <span className="font-normal text-muted-foreground">at {r.company}</span></p>
+                  <p className="text-sm text-muted-foreground">
+                    {[
+                      EARLY_CAREER_LABELS[r.kind] ?? r.kind, r.location, r.classYears ? `Class of ${r.classYears}` : null,
+                      r.deadline ? `${deadlinePassed(r.deadline) ? 'Closed' : 'Apply by'} ${fmtDate(r.deadline)}` : null, r.note,
+                    ].filter(Boolean).join(' · ')}
+                    {safeHttpUrl(r.applyUrl) && <> · <a href={safeHttpUrl(r.applyUrl)!} target="_blank" rel="noreferrer" className="underline">Apply link</a></>}
+                  </p>
+                </div>
+                {canManage && (
+                  <form action={archiveEarlyCareerRoleAction.bind(null, slug, r.id)}>
+                    <SubmitButton size="sm" variant="outline" pendingLabel="Archiving…" savedLabel="Archived">Archive role</SubmitButton>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
@@ -1416,6 +1526,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:jobs': AlumniJobs,
   'career:jobs': AlumniJobs,
   'career:companies': TargetCompanies,
+  'career:recruiting': RecruitingScreen,
   'candidate:coaching': CandidateCoaching,
   'career:coaching': CareerCoaching,
   'teaching:home': TeachingCourses,
