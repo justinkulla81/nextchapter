@@ -53,7 +53,9 @@ export const GET = withCronRun('market-digest-coaches', async () => {
         })
       )
 
+      const builtAt = Date.now()
       const digest = await buildCoachWeeklyDigest(coach.id, coach.accessToken)
+      console.log(`Coach digest: built for ${coach.id.slice(0, 8)} in ${Date.now() - builtAt}ms (${digest.clients.length} shared, ${digest.unavailableNames.length} unavailable)`)
       if (digest.clients.length === 0 && roleLines.length === 0 && !nugget) continue
 
       const result = await sendMarketDigestCoachEmail(coach, digest, roleLines, nugget)

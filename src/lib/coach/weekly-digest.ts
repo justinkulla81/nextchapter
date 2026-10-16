@@ -12,6 +12,19 @@ import { postedAgo } from '@/lib/jobs/competition'
 import type { Grade } from '@/lib/scoring/grade'
 import type { Trend } from '@/lib/coach/client-summary'
 
+// Hard budgets so one slow query degrades a client's card instead of
+// running the whole cron into its 300s function limit (which sends nothing).
+const CASELOAD_BUDGET_MS = 60_000
+const CLIENT_BUDGET_MS = 40_000
+
+function withBudget<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} exceeded ${ms}ms`)), ms)
+  })
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer))
+}
+
 const WINDOW_DAYS = 7
 const MAX_JOBS_PER_CLIENT = 3
 const SHORTLIST_SIZE = 30
@@ -109,7 +122,7 @@ async function findNewStrongFitJobs(
 
 export async function buildCoachWeeklyDigest(coachId: string, accessToken: string): Promise<CoachWeeklyDigest> {
   const [caseload, profiles] = await Promise.all([
-    getCoachCaseload(coachId),
+    withBudget(getCoachCaseload(coachId), CASELOAD_BUDGET_MS, 'caseload'),
     prisma.candidateProfile.findMany({ where: { coachId } }),
   ])
   const profileById = new Map(profiles.map((p) => [p.id, p]))
@@ -130,13 +143,26 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
       // One client's failed query must not drop the whole digest for the coach.
       let outcomes: Awaited<ReturnType<typeof getWeeklyOutcomes>>
       let newJobs: DigestJob[]
+      const t0 = Date.now()
       try {
-        ;[outcomes, newJobs] = await Promise.all([
-          getWeeklyOutcomes(entry.id, since),
-          findNewStrongFitJobs(entry.id, profile),
-        ])
+        const timed = async <T,>(label: string, work: Promise<T>): Promise<T> => {
+          const started = Date.now()
+          try {
+            return await work
+          } finally {
+            console.log(`Coach digest: ${label} for ${entry.id.slice(0, 8)} took ${Date.now() - started}ms`)
+          }
+        }
+        ;[outcomes, newJobs] = await withBudget(
+          Promise.all([
+            timed('weekly outcomes', getWeeklyOutcomes(entry.id, since)),
+            timed('new roles', findNewStrongFitJobs(entry.id, profile)),
+          ]),
+          CLIENT_BUDGET_MS,
+          'client detail'
+        )
       } catch (error) {
-        console.error('Coach digest: client detail failed', entry.id, error)
+        console.error(`Coach digest: client detail failed for ${entry.id.slice(0, 8)} after ${Date.now() - t0}ms`, error)
         unavailableNames.push(entry.name)
         return
       }
