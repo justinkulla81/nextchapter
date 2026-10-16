@@ -18,7 +18,7 @@ import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
-import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type WorkType } from '@/lib/jobs/work-type'
+import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type JobWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
 import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
@@ -207,7 +207,7 @@ function EmployerSignalsLine({
 // Market pay for the role (function x seniority x state, from posted salaries). When
 // the job posts pay it is compared; when it doesn't, the market range is shown and
 // labelled as our estimate — never as the employer's pay.
-function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; workType: WorkType }) {
+function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; workType: JobWorkType }) {
   if (!posting.marketPayLow || !posting.marketPayHigh) return null
   // Benchmarks are full-time salaries: contract, part-time, advisory and unpaid
   // roles aren't compared with them; hourly full-time pay is compared hourly.
@@ -286,10 +286,13 @@ export function DiscoverJobCard({
   watched,
   employer,
   benefits,
+  searchResult,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
   idealMatch?: boolean
+  /** Shown as a board search result: its 1-based rank and the query, for job_search_result_clicked. */
+  searchResult?: { rank: number; q: string; loc: string }
   /** The employer's pay level and curated "known for" (great-employers.ts); none for a confidential search. */
   employer?: EmployerSignals
   /** The posting's structured benefits, when the import sent them. */
@@ -320,6 +323,7 @@ export function DiscoverJobCard({
   const sources = employer?.topEmployer?.sources ?? ''
 
   function handleClick() {
+    if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
     void recordJobClick({
       source: 'job_board',
       sourceId: posting.id,

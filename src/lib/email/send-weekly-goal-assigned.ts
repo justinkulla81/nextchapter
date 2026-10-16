@@ -2,6 +2,8 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGoalAssignedEmail from '@/emails/weekly-goal-assigned'
+import { getEngagementLead } from '@/lib/journey/engagement-data'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
@@ -49,6 +51,7 @@ export async function sendWeeklyGoalAssignedEmail(
   const { data: userData } = await admin.auth.admin.getUserById(candidate.userId)
   const email = userData.user?.email
   if (!email) return { sent: false as const }
+  const engagement = await getEngagementLead(candidate.id).catch(() => null)
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
@@ -78,6 +81,8 @@ export async function sendWeeklyGoalAssignedEmail(
     react: WeeklyGoalAssignedEmail({
       firstName: candidate.firstName,
       introCopy: introCopy ?? null,
+      engagement,
+      appUrl,
       lastWeekPoints,
       lastWeekTarget,
       hitLastWeekTarget,
@@ -99,6 +104,14 @@ export async function sendWeeklyGoalAssignedEmail(
   }
 
   await recordCandidateEmailSent(candidate.id, 'MORNING_MOTIVATION')
+  if (engagement) {
+    captureServerEvent(candidate.id, 'engagement_lead_emailed', {
+      email: 'MORNING_MOTIVATION',
+      level: engagement.level,
+      steps: engagement.steps.map((x) => x.key),
+      gate: engagement.gate?.headline ?? null,
+    })
+  }
 
   return { sent: true as const }
 }

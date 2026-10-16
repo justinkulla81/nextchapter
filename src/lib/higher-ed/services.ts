@@ -6,9 +6,9 @@
 //
 // Data, not code paths: adding a service is an entry here.
 
-import type { WorkspaceKey } from './workspaces'
+import type { OrgKind, WorkspaceKey } from './workspaces'
 
-export type Audience = 'alumni' | 'students' | 'recent_grads' | 'parents' | 'in_transition'
+export type Audience = 'alumni' | 'students' | 'recent_grads' | 'parents' | 'in_transition' | 'job_seekers'
 export type Pricing = 'free' | 'paid' | 'donor'
 export type ServiceGroup = 'core' | 'more' | 'campaigns'
 
@@ -38,12 +38,14 @@ export const AUDIENCE_LABELS: Record<Audience, string> = {
   parents: 'Parents',
   // Alumni who told the college they've lost a job or are looking.
   in_transition: 'In transition',
+  // A workforce customer's participants.
+  job_seekers: 'Job seekers',
 }
 export const PRICING_LABELS: Record<Pricing, string> = { free: 'Free', paid: 'Paid', donor: 'Donor-funded' }
 export const OFFICES = ['Career Services', 'Alumni Relations', 'Development', 'Exec Ed', 'Library', 'Employer Relations', 'Admissions'] as const
 
 export const SERVICE_GROUPS: { key: ServiceGroup; label: string; blurb: string }[] = [
-  { key: 'core', label: 'Core services', blurb: 'What most colleges switch on first.' },
+  { key: 'core', label: 'Core services', blurb: 'What most organizations switch on first.' },
   { key: 'more', label: 'More you could offer', blurb: 'Add any of these when an office is ready to own it.' },
   { key: 'campaigns', label: 'Campaigns', blurb: 'Outreach your staff send on a schedule or a trigger. No member card.' },
 ]
@@ -92,6 +94,32 @@ export const SERVICES: Service[] = [
   { key: 'layoff_outreach', group: 'campaigns', name: 'Layoff outreach', pitch: '"If you’re affected, we have your back," when a WARN notice hits an alum’s employer.', defaultOwner: 'Alumni Relations', defaultAudience: ['alumni'], defaultPricing: 'free', builtIn: null, workspace: 'alumni', memberCard: false, defaultOn: true },
 ]
 
+// A workforce customer's menu (board, economic development org, chamber):
+// what it can switch on for the job seekers it serves.
+const SEEKERS: Audience[] = ['job_seekers']
+export const WORKFORCE_SERVICES: Service[] = [
+  { key: 'coaching', group: 'core', name: 'Coaching', pitch: 'One-to-one coaching from NextChapter’s coaches and your local career center’s.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/coaching-match' }, workspace: 'hub', memberCard: true, defaultOn: true },
+  { key: 'local_jobs', group: 'core', name: 'Local jobs first', pitch: 'Jobs near you ranked first, matched to your skills, with who to ask.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/find-my-job' }, workspace: 'hub', memberCard: true, defaultOn: true },
+  { key: 'training', group: 'core', name: 'Training and AI courses', pitch: 'Short courses and certificates, often free with WIOA funding.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/i/{slug}/candidate/programs' }, workspace: 'execed', memberCard: true, defaultOn: true },
+  { key: 'reviews', group: 'core', name: 'Résumé, LinkedIn and mock interviews', pitch: 'An AI first pass, then a person.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/interview-prep' }, memberCard: true, defaultOn: true },
+  { key: 'financial_wellness', group: 'core', name: 'Money help in a job change', pitch: 'Unemployment, COBRA, severance and a budget to bridge the gap.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/benefits' }, memberCard: true, defaultOn: true },
+  { key: 'career_center', group: 'core', name: 'Your local career center', pitch: 'In-person help, workshops and training funding at your American Job Center.', defaultOwner: 'Career center', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: null, memberCard: true, defaultOn: false },
+  { key: 'career_pivots', group: 'more', name: 'Career pivot paths', pitch: 'Where people with your background moved next, and the skills each move takes.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/pivot-paths' }, memberCard: true, defaultOn: false },
+  { key: 'learning_communities', group: 'more', name: 'Job-search groups', pitch: 'Small groups that job-search or learn a skill together, week by week.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/community' }, memberCard: true, defaultOn: false },
+  { key: 'events', group: 'more', name: 'Hiring events and webinars', pitch: 'Employer nights, job fairs and layoff-response sessions.', defaultOwner: 'Business services', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/webinars' }, memberCard: true, defaultOn: false },
+  { key: 'wellbeing', group: 'more', name: 'Counseling and wellbeing', pitch: 'Support for the stress of a job loss or a hard search.', defaultOwner: 'Program team', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: { path: '/dashboard/support' }, memberCard: true, defaultOn: false },
+  { key: 'fractional', group: 'more', name: 'Project and fractional work', pitch: 'Paid short projects with local small businesses while you search.', defaultOwner: 'Business services', defaultAudience: SEEKERS, defaultPricing: 'free', builtIn: null, memberCard: true, defaultOn: false },
+  { key: 'layoff_seats', group: 'campaigns', name: 'Layoff seats', pitch: 'When a member company has a layoff, its people get seats and a sign-up page.', defaultOwner: 'Business services', defaultAudience: [], defaultPricing: 'free', builtIn: null, workspace: 'hub', memberCard: false, defaultOn: true },
+]
+
+export function servicesFor(kind: OrgKind = 'college'): Service[] {
+  return kind === 'workforce' ? WORKFORCE_SERVICES : SERVICES
+}
+
+export function officesFor(kind: OrgKind = 'college'): readonly string[] {
+  return kind === 'workforce' ? ['Program team', 'Business services', 'Career center', 'Partner'] : OFFICES
+}
+
 // Who delivers it: the college's own (its link, its staff), NextChapter's
 // built-in screen, or both (the college's link first, NextChapter's too).
 export type Provider = 'college' | 'nextchapter' | 'both'
@@ -107,8 +135,8 @@ export type ServiceSetting = {
   linkUrl: string | null
 }
 
-export function getService(key: string): Service | undefined {
-  return SERVICES.find((s) => s.key === key)
+export function getService(key: string, kind: OrgKind = 'college'): Service | undefined {
+  return servicesFor(kind).find((s) => s.key === key)
 }
 
 export function defaultSetting(s: Service): ServiceSetting {
@@ -116,13 +144,13 @@ export function defaultSetting(s: Service): ServiceSetting {
 }
 
 // Stored choices merged over each service's defaults; unknown keys dropped.
-export function serviceSettingsFrom(enabledFeatures: unknown): Record<string, ServiceSetting> {
+export function serviceSettingsFrom(enabledFeatures: unknown, kind: OrgKind = 'college'): Record<string, ServiceSetting> {
   const stored = ((enabledFeatures as { services?: Record<string, Partial<ServiceSetting>> } | null)?.services ?? {}) as Record<
     string,
     Partial<ServiceSetting>
   >
   return Object.fromEntries(
-    SERVICES.map((s) => {
+    servicesFor(kind).map((s) => {
       const merged = { ...defaultSetting(s), ...(stored[s.key] ?? {}) }
       // Saved before providers existed: a link meant the college's own.
       if (!stored[s.key]?.provider && merged.linkUrl) merged.provider = s.builtIn ? 'both' : 'college'
@@ -149,6 +177,7 @@ export function serviceTarget(s: Service, setting: ServiceSetting): string | nul
 // years (Career Services' window in the product design).
 export function memberAudiences(m: { affiliation: string; classYear: number | null }, now = new Date(), inTransition = false): Audience[] {
   if (m.affiliation === 'PARENT') return ['parents']
+  if (m.affiliation === 'PARTICIPANT' || m.affiliation === 'LEARNER') return ['job_seekers', ...(inTransition ? (['in_transition'] as Audience[]) : [])]
   if (m.affiliation === 'STUDENT') return ['students']
   const recent = m.classYear !== null && m.classYear >= now.getUTCFullYear() - 5
   return [...(recent ? (['alumni', 'recent_grads'] as Audience[]) : (['alumni'] as Audience[])), ...(inTransition ? (['in_transition'] as Audience[]) : [])]
@@ -156,8 +185,8 @@ export function memberAudiences(m: { affiliation: string; classYear: number | nu
 
 // The cards a member sees: on, has a member card, has somewhere to go, and is
 // for one of their audiences. A preview with no member record sees all.
-export function memberCards(settings: Record<string, ServiceSetting>, audiences: Audience[] | null): Service[] {
-  return SERVICES.filter((s) => {
+export function memberCards(settings: Record<string, ServiceSetting>, audiences: Audience[] | null, kind: OrgKind = 'college'): Service[] {
+  return servicesFor(kind).filter((s) => {
     const st = settings[s.key]
     if (!st?.on || !s.memberCard || !serviceTarget(s, st)) return false
     return audiences === null || st.audience.some((a) => audiences.includes(a))

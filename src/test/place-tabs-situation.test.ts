@@ -1,0 +1,24 @@
+import { describe, expect, it } from 'vitest'
+import { PLACES, lockReasonFor, statusLockedTabs, tabSituation, visibleTabs } from '@/lib/nav/places'
+
+const jobs = PLACES.find((p) => p.key === 'jobs')!
+const tab = (label: string) => jobs.tabs.find((t) => t.label === label)!
+const open = { hasEmailConnection: true, skillsAssessmentCompleted: true }
+
+describe('place tabs follow the member situation', () => {
+  it('shows everything when the situation is unknown', () => {
+    expect(visibleTabs(jobs, { employed: true, earlyCareer: true }).length).toBe(jobs.tabs.length)
+  })
+  it('locks job search while managing a career, with a reason that points to the status box', () => {
+    expect(tabSituation(tab('Find a job'), 'STAYING')).toBe('locked')
+    expect(lockReasonFor('/dashboard/find-my-job', { ...open, mode: 'STAYING' }, tab('Find a job'))).toMatch(/Turn on more tools/)
+    expect(statusLockedTabs(jobs, { employed: true, mode: 'STAYING' })).toContain('Find a job')
+  })
+  it('shows the career-case tab only while managing a career', () => {
+    expect(tabSituation(tab('Build your case'), 'STAYING')).toBe('show')
+    expect(tabSituation(tab('Build your case'), 'ACTIVE')).toBe('hide')
+  })
+  it('a tab with no rule always shows', () => {
+    expect(tabSituation(tab('Know your worth'), 'LANDED')).toBe('show')
+  })
+})

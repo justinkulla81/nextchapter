@@ -5,6 +5,7 @@
 
 export type ModuleKey =
   | 'alumniJobs'
+  | 'internships'
   | 'projects'
   | 'directory'
   | 'groups'
@@ -25,6 +26,7 @@ export type ModuleKey =
 
 export const MODULES: { key: ModuleKey; label: string; what: string; area: 'Work' | 'People' | 'Mentoring' | 'Learning' | 'College' }[] = [
   { key: 'alumniJobs', label: 'Alumni-only jobs', what: 'Roles employers post just for your alumni.', area: 'Work' },
+  { key: 'internships', label: 'Internships', what: 'Paid, professional internships at US employers, for your students and recent grads.', area: 'Work' },
   { key: 'projects', label: 'Projects and boards', what: 'Alumni post short projects, fractional roles and board seats to fellow alumni.', area: 'Work' },
   { key: 'directory', label: 'Alumni directory', what: 'An opt-in directory: only alumni who choose to be listed appear.', area: 'People' },
   { key: 'groups', label: 'Groups and chapters', what: 'Class, major and city groups; affinity groups and regional chapters.', area: 'People' },

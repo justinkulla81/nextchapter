@@ -8,7 +8,7 @@ import { createClientLazy } from '@/lib/supabase/client-lazy'
 // Sign in with the college's Google Workspace or Microsoft 365 account (or a
 // personal one) and land on the college's welcome step, which joins anyone
 // whose sign-in email is on the alumni roster.
-export function CollegeSignIn({ slug, google, microsoft, college }: { slug: string; google: boolean; microsoft: boolean; college: string }) {
+export function CollegeSignIn({ slug, google, microsoft, college, workforce = false }: { slug: string; google: boolean; microsoft: boolean; college: string; workforce?: boolean }) {
   const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const go = async (provider: 'google' | 'azure') => {
@@ -39,7 +39,7 @@ export function CollegeSignIn({ slug, google, microsoft, college }: { slug: stri
           </Button>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">Use the account whose email {college} has on file for you, such as your college or work email.</p>
+      <p className="text-xs text-muted-foreground">Use the account whose email {college} has on file for you, {workforce ? 'the one you signed up with.' : 'such as your college or work email.'}</p>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}

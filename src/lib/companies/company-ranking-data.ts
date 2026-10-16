@@ -1,4 +1,6 @@
 import 'server-only'
+import { notInternshipWhere } from '@/lib/internships/exclude'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -61,6 +63,7 @@ function fetchBulk() {
         archivedAt: null,
         institutionScopeId: null,
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        AND: [notInternshipWhere()],
       },
       select: {
         title: true,
@@ -75,7 +78,7 @@ function fetchBulk() {
         submittedByRecruiterId: true,
         createdAt: true,
       },
-    }),
+    }).then((rows) => rows.filter((r) => !isInternshipJob(r))),
     prisma.warnNotice.findMany({
       where: {
         companyId: { not: null },

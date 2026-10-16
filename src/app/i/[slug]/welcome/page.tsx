@@ -18,7 +18,7 @@ export default async function WelcomePage({ params, searchParams }: { params: Pr
   if (!user?.email) redirect(`/auth/login?next=${encodeURIComponent(`/i/${slug}/welcome${t ? `?t=${t}` : ''}`)}`)
   const inst = await prisma.institution.findUnique({
     where: { slug },
-    select: { id: true, name: true, programBrandName: true, logoUrl: true, accentColor: true },
+    select: { id: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, orgType: true },
   })
   if (!inst) notFound()
   const byToken = t ? await findMemberByToken(slug, t) : null
@@ -37,16 +37,16 @@ export default async function WelcomePage({ params, searchParams }: { params: Pr
           <>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Welcome{member.firstName ? `, ${member.firstName}` : ''}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Two choices about what {inst.name} sees. You can change them any time.</p>
+              <p className="mt-1 text-sm text-muted-foreground">{inst.orgType === 'COLLEGE' ? 'Two choices' : 'A few choices'} about what {inst.name} sees. You can change them any time.</p>
             </div>
-            <WelcomeForm action={completeWelcome.bind(null, slug, t ?? null)} collegeName={inst.name} />
+            <WelcomeForm action={completeWelcome.bind(null, slug, t ?? null)} collegeName={inst.name} workforce={inst.orgType !== 'COLLEGE'} />
           </>
         ) : (
           <div className="space-y-2">
             <h1 className="text-xl font-semibold">We couldn&apos;t find you on {inst.name}&apos;s list</h1>
             <p className="text-sm text-muted-foreground">
-              You&apos;re signed in as {user.email}. If {inst.name} has a different email for you, sign in with that one, or ask the alumni office to
-              add this address.
+              You&apos;re signed in as {user.email}. If {inst.name} has a different email for you, sign in with that one, or ask{' '}
+              {inst.orgType === 'COLLEGE' ? 'the alumni office' : inst.name} to add this address.
             </p>
           </div>
         )}

@@ -3,6 +3,7 @@ import type { AdminNudgeType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import type { Grade } from '@/lib/scoring/grade'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
@@ -38,7 +39,7 @@ async function buildWeeklyTargetDraft(candidateId: string, firstName: string): P
     getCandidateWeekNumber(candidateId, weekStart),
     getCurrentWeekSprint(candidateId),
   ])
-  const pointsTarget = pointsNeededForA(weekNumber)
+  const pointsTarget = pointsNeededForA(weekNumber, await getPace(candidateId))
   const committed =
     (sprint?.committedActions as unknown as { completed: boolean; points: number; completionCount?: number }[]) ?? []
   const pointsEarned = committed.reduce((sum, a) => sum + getEarnedPoints(a), 0)

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
@@ -23,7 +23,7 @@ export default async function WorkspacePage({
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
-  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id))
+  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), orgKindOf(ctx.institution.orgType))
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()

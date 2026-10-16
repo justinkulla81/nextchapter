@@ -136,6 +136,20 @@ export function HireOutcomeForm() {
           <Label htmlFor="hiredAt">Start date</Label>
           <Input id="hiredAt" name="hiredAt" type="date" required />
         </div>
+        <fieldset className="space-y-1.5 sm:col-span-2">
+          <legend className="text-sm font-medium">Where is the job? (optional)</legend>
+          <div className="flex flex-wrap items-center gap-2">
+            <Label htmlFor="workCity" className="sr-only">City</Label>
+            <Input id="workCity" name="workCity" placeholder="City" maxLength={80} className="w-44" />
+            <Label htmlFor="workState" className="sr-only">State</Label>
+            <Input id="workState" name="workState" placeholder="State, like KY" maxLength={2} className="w-32 uppercase" />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="workRemote" />
+              Fully remote
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground">If you came through a local program, this helps it show how many people found work close to home. Only counts are shared.</p>
+        </fieldset>
         <div className="space-y-1.5">
           <Label htmlFor="priorBasePayUsd">Previous yearly base pay (optional)</Label>
           <Input id="priorBasePayUsd" name="priorBasePayUsd" inputMode="numeric" placeholder="For example 180000" />

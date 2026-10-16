@@ -113,6 +113,9 @@ export interface MatchCandidate {
   openToRelocation: boolean
   travelWillingness: boolean
   interimConsultingInterest: boolean
+  // A workforce program's region, when the member is in one: jobs inside it
+  // rank first ("Stay local").
+  local?: { label: string; isLocal: (location: string | null) => boolean } | null
 }
 
 export interface MatchJob {
@@ -737,6 +740,11 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
   }
 
   const remoteJob = arr?.arrangement === 'remote' || where.isRemote
+  if (c.local && !remoteJob && c.local.isLocal(job.location)) {
+    signals++
+    score += 15
+    evidence.push(`In ${c.local.label}`)
+  }
   if (!remoteJob && where.states.length > 0 && myStates.length > 0) {
     signals++
     if (where.states.some((s) => myStates.includes(s))) {

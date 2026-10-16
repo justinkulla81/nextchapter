@@ -8,7 +8,7 @@ export const maxDuration = 30
 
 const ANSWER_LABELS: Record<SearchCheckInAnswer, string> = {
   STILL_SEARCHING: 'Still searching',
-  TAKING_A_BREAK: 'Taking a break',
+  TAKING_A_BREAK: 'Managing my career',
   GOT_AN_OFFER: 'Got an offer',
 }
 
@@ -237,7 +237,7 @@ export default async function SearchCheckInsPage({
             value: sp.answer ?? '',
             options: [
               { value: 'STILL_SEARCHING', label: 'Still searching' },
-              { value: 'TAKING_A_BREAK', label: 'Taking a break' },
+              { value: 'TAKING_A_BREAK', label: 'Managing my career' },
               { value: 'GOT_AN_OFFER', label: 'Got an offer' },
               { value: 'NO_RESPONSE', label: 'No response' },
             ],

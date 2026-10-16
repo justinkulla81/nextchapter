@@ -181,7 +181,7 @@ begin
     'AlumniOpportunity', 'OpportunityInterest', 'AlumniGroup', 'AlumniGroupMember', 'AuditCourse', 'AuditRequest',
     'MentoringCohort', 'MentoringSignup', 'MentoringPair', 'AlumniQuestion', 'AlumniAnswer', 'VolunteerRole', 'VolunteerSignup',
     'CollegeNewsPost', 'DataRequest', 'InstitutionSystem', 'InstitutionSystemUser',
-    'ClassNote', 'JobSearchCircle', 'JobSearchCircleMember', 'FairBooth', 'FairBoothVisit'
+    'ClassNote', 'JobSearchCircle', 'JobSearchCircleMember', 'FairBooth', 'FairBoothVisit', 'MemberCompany'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     -- Supabase anonymous sign-ins also get the `authenticated` role. This

@@ -1,4 +1,5 @@
 import 'server-only'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { topSkills } from '@/lib/profile/skill-matrix'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -97,6 +98,8 @@ export async function surfaceNewJobs(candidateId: string, limit: number = SURFAC
   )
   const seenInThisBatch = new Set<string>()
   const newListings = listings.filter((l) => {
+    // Internships are Higher Ed portal only; never surfaced to a member.
+    if (isInternshipJob({ title: l.title })) return false
     if (existingUrls.has(l.url) || seenInThisBatch.has(l.url)) return false
     seenInThisBatch.add(l.url)
     return true

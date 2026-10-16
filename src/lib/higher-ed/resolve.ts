@@ -3,10 +3,10 @@
 // ./access.ts, which calls this on every request.
 
 import 'server-only'
-import type { InstitutionTier, InstitutionUserRole, Prisma, PrismaClient } from '@prisma/client'
+import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, PrismaClient } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
-import { ALL_TOKENS, demoPersonaTokens, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
+import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -24,6 +24,7 @@ export type InstitutionBranding = {
   accentColor: string | null
   isDemo: boolean
   tier: InstitutionTier
+  orgType: InstitutionOrgType
 }
 
 export type InstitutionAccess = {
@@ -38,8 +39,9 @@ export type InstitutionAccess = {
   workspaces: WorkspaceKey[]
   isNcAdmin: boolean
   // 'own' = the person's own roles; 'demo-admin' = nc_admin on a demo
-  // tenant; 'view-as' = nc_admin with a logged View-as on a real tenant.
-  mode: 'own' | 'demo-admin' | 'view-as'
+  // tenant; 'view-as' = nc_admin with a logged View-as on a real tenant;
+  // 'demo-guest' = a prospect's guest pass to a demo they generated (read-only).
+  mode: 'own' | 'demo-admin' | 'view-as' | 'demo-guest'
   demoPersona: string | null
   staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null }[]
   memberId: string | null
@@ -74,7 +76,7 @@ export async function resolveInstitutionAccess(
 ): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, enabledFeatures: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true },
   })
   if (!row) return null
   // enabledFeatures decides which feature-gated workspaces exist here; it
@@ -149,7 +151,7 @@ export async function resolveInstitutionAccess(
     email: args.email,
     ownTokens: own,
     tokens,
-    workspaces: workspacesFor(tokens, institution.tier, features),
+    workspaces: workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
     isNcAdmin: ncAdmin,
     mode,
     demoPersona,
@@ -165,4 +167,31 @@ export class WorkspaceAccessError extends Error {}
 // For the reader functions: does this context hold any of these roles?
 export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken[]): boolean {
   return roles.some((r) => ctx.tokens.has(r))
+}
+
+// A guest pass to a demo: every workspace the demo has, read-only, no user.
+export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
+  const row = await db.institution.findUnique({
+    where: { slug: args.slug },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true, isSampleData: true },
+  })
+  if (!row || !row.isDemo || !row.isSampleData) return null
+  const { enabledFeatures, isSampleData: _s, ...institution } = row
+  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+  const demoPersona = args.demoPersona ?? 'all'
+  const tokens = demoPersonaTokens(demoPersona)
+  return {
+    institution,
+    userId: `demo-guest:${institution.slug}`,
+    email: null,
+    ownTokens: new Set<AccessToken>(),
+    tokens,
+    workspaces: workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
+    isNcAdmin: false,
+    mode: 'demo-guest',
+    demoPersona,
+    staffUsers: [],
+    memberId: tokens.has('MEMBER') ? await demoFeaturedMember(db, institution) : null,
+    employerProfileIds: [],
+  }
 }

@@ -4,17 +4,21 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { activeTab, lockReasonFor, placeForPath, resolveTabHref, visibleTabs, type NavLocks, type PaidAccess } from '@/lib/nav/places'
+import { StatusUnlockBox } from '@/components/dashboard/StatusUnlockBox'
+import { activeTab, lockReasonFor, placeForPath, resolveTabHref, statusLockedTabs, visibleTabs, type NavLocks, type PaidAccess } from '@/lib/nav/places'
 
 // The tab row every page in a place shows, so moving around inside a place
 // never needs the main menu. Renders nothing outside the six places.
 export function PlaceTabs({
   employed,
+  earlyCareer = false,
   locks,
   paidAccess,
   tabBadges = {},
 }: {
   employed: boolean
+  /** Student, new grad or up to 5 years in: shows the Early career plan tab. */
+  earlyCareer?: boolean
   locks: NavLocks
   paidAccess: PaidAccess
   /** Live counts by tab href: something new for the member on that tab. */
@@ -23,15 +27,17 @@ export function PlaceTabs({
   const pathname = usePathname()
   const place = placeForPath(pathname)
   if (!place) return null
-  const tabs = visibleTabs(place, { employed })
+  const tabs = visibleTabs(place, { employed, earlyCareer, mode: locks.mode })
+  const statusLocked = locks.mode ? statusLockedTabs(place, { employed, earlyCareer, mode: locks.mode }) : []
   if (tabs.length < 2) return null
   const current = activeTab(place, pathname)
 
   return (
-    <nav aria-label={`${place.label} sections`} className="mb-6 -mx-1 overflow-x-auto border-b border-border">
+    <div className="mb-6">
+    <nav aria-label={`${place.label} sections`} className="-mx-1 overflow-x-auto border-b border-border">
       <ul className="flex min-w-max gap-5 px-1">
         {tabs.map((tab) => {
-          const reason = lockReasonFor(tab.href, locks)
+          const reason = lockReasonFor(tab.href, locks, tab)
           const active = current?.href === tab.href
           if (reason) {
             return (
@@ -74,5 +80,11 @@ export function PlaceTabs({
         })}
       </ul>
     </nav>
+    {locks.mode && statusLocked.length > 0 && (
+      <div className="mt-3">
+        <StatusUnlockBox mode={locks.mode} lockedTools={statusLocked} />
+      </div>
+    )}
+    </div>
   )
 }

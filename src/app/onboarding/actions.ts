@@ -10,15 +10,18 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { ensureUser } from '@/lib/auth/ensure-user'
 import { Prisma, type GapDurationBucket, type NetworkComfortLevel } from '@prisma/client'
 import {
+  COACHING_STYLE_OPTIONS,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   GAP_DURATION_LABELS,
   SITUATION_TO_JOB_STATUS,
   SITUATION_TO_JOURNEY,
   type SituationKey,
 } from '@/lib/constants/onboarding'
+import { INTENSITY_OPTIONS, intensityFromTiming } from '@/lib/journey/intensity'
 import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import { applyJourneyChange } from '@/lib/journey/apply'
-import { APPLY_TIMING, effectiveJourney, getJourney, stageForTiming, type ApplyTiming } from '@/lib/journey/journey'
+import { APPLY_TIMING, LAID_OFF_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForLaidOffTiming, stageForTiming, type ApplyTiming, type JourneyStage, type LaidOffTiming, type MoveDriver } from '@/lib/journey/journey'
+import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -28,6 +31,9 @@ import { computeWorkStyleVectors, translateWorkStyleVectors } from '@/lib/scorin
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { autoPopulateFirstSprint } from '@/lib/weekly/sprint'
+import { CAREER_STAGE_CHOICES, earlyCareerAudience, yearsForChoice, type CareerStageChoice } from '@/lib/early-career/audience'
+import { parseEducationForm } from '@/lib/early-career/education-form'
+import { saveMemberEducation } from '@/lib/early-career/data'
 import {
   getCoachTemplate,
   hasSubmittedCoachingOnboardingForm,
@@ -116,6 +122,7 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   }
 
   captureServerEvent(candidateId, 'onboarding_started', { journey, situation })
+  if (journey === 'STUDENT_NEW_GRAD') captureServerEvent(candidateId, 'early_career_journey_selected', { audience: 'NEW_GRAD', journey, situation, source: 'situation_step' })
 
   revalidatePath('/onboarding', 'layout')
   // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
@@ -147,16 +154,21 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
   // Optional: blank keeps what the resume gave. It places an individual
   // contributor on the career ladder (entry level, early career, mid-level).
   const yearsRaw = String(formData.get('yearsExperience') ?? '').trim()
-  const yearsExperience = yearsRaw === '' ? undefined : Number(yearsRaw)
+  const typedYears = yearsRaw === '' ? undefined : Number(yearsRaw)
+  // "Where are you in your career?" fills in the years when none were typed,
+  // so a new grad lands on entry-level jobs without having to type a 0.
+  const stageRaw = String(formData.get('careerStage') ?? '')
+  const careerStage = CAREER_STAGE_CHOICES.some((c) => c.key === stageRaw) ? (stageRaw as CareerStageChoice) : null
+  const yearsExperience = yearsForChoice(careerStage, typedYears)
 
   if (!highestLevelReached || !primaryFunction) {
     return { error: 'Please confirm your level and function before continuing.' }
   }
-  if (yearsExperience !== undefined && (!Number.isInteger(yearsExperience) || yearsExperience < 0 || yearsExperience > 60)) {
+  if (typedYears !== undefined && (!Number.isInteger(typedYears) || typedYears < 0 || typedYears > 60)) {
     return { error: 'Enter your years of experience as a whole number from 0 to 60, or leave it blank.' }
   }
 
-  await prisma.candidateProfile.update({
+  const updated = await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
       highestLevelReached,
@@ -167,7 +179,28 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
       ...(yearsExperience !== undefined ? { yearsExperience } : {}),
       onboardingResumeConfirmedAt: new Date(),
     },
+    select: { journey: true, journeyStage: true, currentJobStatus: true, highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true },
   })
+
+  // Students and early-career members: their school, if they gave one. Never
+  // blocks onboarding; they can add it later on the early-career plan.
+  const early = careerStage === 'new_grad' || careerStage === 'early'
+  let educationSaved = false
+  if (early && String(formData.get('schoolName') ?? '').trim()) {
+    const parsed = parseEducationForm(formData)
+    if (parsed.value) {
+      await saveMemberEducation(candidateId, parsed.value)
+        .then(() => (educationSaved = true))
+        .catch((error) => console.error('Failed to save onboarding education:', error))
+    }
+  }
+  const audience = earlyCareerAudience(updated)
+  if (careerStage) {
+    captureServerEvent(candidateId, 'career_stage_selected', { choice: careerStage, audience, yearsExperience: yearsExperience ?? null, typedYears: typedYears !== undefined })
+  }
+  if (audience) {
+    captureServerEvent(candidateId, 'early_career_journey_selected', { audience, journey: updated.journey, choice: careerStage, educationSaved, source: 'onboarding' })
+  }
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/location')
@@ -222,6 +255,30 @@ export async function updateLocationAndSearchStatus(
   const travelWillingness = formData.get('travelWillingness') === 'on'
   const aiDisplacementReason = (formData.get('aiDisplacementReason') as string | null) || null
 
+  const intensityRaw = formData.get('searchIntensity') as string | null
+  const searchIntensityPicked = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
+  const workingNow = formData.get('workingNow') === 'on'
+  const coachingStyleRaw = formData.get('coachingStylePreference') as string | null
+  const coachingStylePreference = COACHING_STYLE_OPTIONS.find((o) => o.value === coachingStyleRaw)?.value ?? null
+  const moveDriverRaw = formData.get('moveDriver') as string | null
+  const moveDriver = (MOVE_DRIVERS.find((d) => d.key === moveDriverRaw)?.key ?? null) as MoveDriver | null
+
+  // Situation details for the journeys that have them (src/lib/personalization/spine.ts).
+  const laidOffTimingRaw = formData.get('startTiming') as string | null
+  const laidOffTiming = (LAID_OFF_TIMING.find((t) => t.key === laidOffTimingRaw)?.key ?? null) as LaidOffTiming | null
+  const returnDateRaw = String(formData.get('returnDate') ?? '').trim()
+  const offeringRaw = String(formData.get('offering') ?? '').trim().slice(0, 200)
+  const openDaysRaw = String(formData.get('openDays') ?? '').trim()
+  const engagementEndsRaw = String(formData.get('engagementEnds') ?? '').trim()
+  const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime())
+  // Company culture and working environment: only kept if it matters to them.
+  const culture = cleanCultureFit({
+    importance: formData.get('cultureImportance') as string | null,
+    answers: Object.fromEntries(DIMENSIONS.map((d) => [d.key, formData.get(`culture_${d.key}`) as string | null])),
+    mustHave: formData.get('cultureMustHave') as string | null,
+    dealBreaker: formData.get('cultureDealBreaker') as string | null,
+  })
+
   const justStartedSearch = formData.get('justStartedSearch') === 'on'
   const gapDuration = formData.get('gapDuration') as string | null
   const jobsAppliedCountRaw = formData.get('jobsAppliedCount')
@@ -239,15 +296,21 @@ export async function updateLocationAndSearchStatus(
   })
   const journey = effectiveJourney(profileJourney)
   const employed = journey ? getJourney(journey).employed : false
+  // Someone growing where they are isn't searching: no timing, no search history.
+  const searching = journey ? getJourney(journey).searching : true
   const applyTiming = formData.get('applyTiming') as ApplyTiming | null
-  if (employed) {
+  if (!searching) {
+    // nothing to ask
+  } else if (employed) {
     if (!applyTiming || !APPLY_TIMING.some((t) => t.key === applyTiming)) {
       return { error: 'Please tell us when you want to start applying.' }
     }
   } else if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
     return { error: 'Please tell us how long you have been searching before continuing.' }
+  } else if (!searchIntensityPicked) {
+    return { error: 'Please tell us how actively you are looking before continuing.' }
   }
-  if (!justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
+  if (searching && !justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
     return { error: 'Please answer both search-status questions, or check "I just started" above.' }
   }
   if (!networkComfortLevel || !NETWORK_COMFORT_LEVELS.includes(networkComfortLevel as NetworkComfortLevel)) {
@@ -266,19 +329,50 @@ export async function updateLocationAndSearchStatus(
       travelWillingness,
       aiDisplacementReason,
       onboardingLocationConfirmedAt: now,
-      justStartedSearch,
-      gapDuration: employed ? null : (gapDuration as GapDurationBucket),
-      jobsAppliedBucket: deriveJobsAppliedBucket(jobsAppliedCount as number),
-      interviewsReceivedCount: interviewsCount,
+      justStartedSearch: searching ? justStartedSearch : true,
+      gapDuration: employed || !searching ? null : (gapDuration as GapDurationBucket),
+      jobsAppliedBucket: deriveJobsAppliedBucket(searching ? (jobsAppliedCount as number) : 0),
+      interviewsReceivedCount: searching ? interviewsCount : 0,
       onboardingSearchStatusConfirmedAt: now,
       networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
+      ...(coachingStylePreference ? { coachingStylePreference } : {}),
+      // Employed members: how soon they want to apply is how hard they are looking.
+      // Everyone else tells us directly (active, or casual and open to the right thing).
+      ...(employed && searching && applyTiming
+        ? { searchIntensity: intensityFromTiming(applyTiming) }
+        : searchIntensityPicked
+          ? { searchIntensity: searchIntensityPicked }
+          : {}),
+      ...(culture && searching ? { cultureFit: culture as unknown as Prisma.InputJsonValue } : {}),
       networkComfortBonusAt: now,
       onboardingComfortConfirmedAt: now,
     },
   })
 
-  if (employed && journey && applyTiming) {
-    await applyJourneyChange(candidateId, { stage: stageForTiming(journey, applyTiming), details: { applyTiming }, source: 'ONBOARDING' })
+  // What this journey tells us about their situation, kept in journeyDetails, and the stage it implies.
+  const details: Record<string, unknown> = {}
+  let stage: JourneyStage | undefined
+  if (employed && searching && journey && applyTiming) {
+    stage = stageForTiming(journey, applyTiming)
+    details.applyTiming = applyTiming
+    if (journey === 'EXPLORING_MOVE' && moveDriver) details.moveDriver = moveDriver
+  } else if (searching && !employed) {
+    if (workingNow) details.workingNow = true
+    // Lost a job but taking some time first: a modified Laid off, not a different journey.
+    if (journey === 'LAID_OFF' && laidOffTiming) {
+      stage = stageForLaidOffTiming(laidOffTiming)
+      details.startTiming = laidOffTiming
+    }
+  }
+  if (journey === 'TIME_OFF' && validDate(returnDateRaw)) details.returnDate = returnDateRaw
+  if (journey === 'FRACTIONAL') {
+    if (offeringRaw) details.offering = offeringRaw
+    const days = Number(openDaysRaw)
+    if (openDaysRaw && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
+    if (validDate(engagementEndsRaw)) details.engagementEnds = engagementEndsRaw
+  }
+  if (stage || Object.keys(details).length > 0) {
+    await applyJourneyChange(candidateId, { stage, details, source: 'ONBOARDING' })
   }
 
   revalidatePath('/onboarding', 'layout')
