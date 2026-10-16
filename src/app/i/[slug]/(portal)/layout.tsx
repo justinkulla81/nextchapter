@@ -72,7 +72,7 @@ export default async function InstitutionPortalLayout({
           isNcAdmin={access.isNcAdmin}
           guest={access.mode === 'demo-guest'}
           persona={access.demoPersona}
-          canReset={orgKindOf(institution.orgType) === 'college'}
+          canReset
           personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier)}
         />
       )}

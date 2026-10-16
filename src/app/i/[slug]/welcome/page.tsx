@@ -37,7 +37,7 @@ export default async function WelcomePage({ params, searchParams }: { params: Pr
           <>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Welcome{member.firstName ? `, ${member.firstName}` : ''}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Two choices about what {inst.name} sees. You can change them any time.</p>
+              <p className="mt-1 text-sm text-muted-foreground">{inst.orgType === 'COLLEGE' ? 'Two choices' : 'A few choices'} about what {inst.name} sees. You can change them any time.</p>
             </div>
             <WelcomeForm action={completeWelcome.bind(null, slug, t ?? null)} collegeName={inst.name} workforce={inst.orgType !== 'COLLEGE'} />
           </>

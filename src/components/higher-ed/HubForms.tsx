@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addMemberCompany, addParticipant, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addMemberCompany, addParticipant, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
 const area = 'min-h-20 w-full rounded-md border border-input bg-background p-2 text-sm'
@@ -250,5 +250,66 @@ export function LocalAreaForm({ slug, value }: { slug: string; value: { anchorCi
         <Msg r={state} />
       </div>
     </form>
+  )
+}
+
+// A hiring member company's login: invite its contact, or show it's connected.
+export function MemberAccess({
+  slug,
+  companyId,
+  contactEmail,
+  invitedAt,
+  connected,
+}: {
+  slug: string
+  companyId: string
+  contactEmail: string | null
+  invitedAt: string | null
+  connected: boolean
+}) {
+  const [email, setEmail] = useState(contactEmail ?? '')
+  const [open, setOpen] = useState(false)
+  const [msg, setMsg] = useState<{ error?: string; message?: string; path?: string } | null>(null)
+  const [pending, start] = useTransition()
+  if (connected) return <span className="text-xs text-emerald-800">Connected</span>
+  if (!open)
+    return (
+      <span className="flex flex-col items-start gap-1">
+        {invitedAt && <span className="text-xs text-muted-foreground">Invited {new Date(invitedAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>}
+        <Button type="button" size="xs" variant="outline" onClick={() => setOpen(true)}>
+          {invitedAt ? 'Resend invite' : 'Give hiring access'}
+        </Button>
+      </span>
+    )
+  return (
+    <span className={cn('flex w-64 flex-col gap-1', pending && 'cursor-wait')}>
+      <label htmlFor={`ma-${companyId}`} className="text-xs font-medium">
+        Contact&apos;s work email
+      </label>
+      <span className="flex gap-1">
+        <Input id={`ma-${companyId}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-7" />
+        <Button
+          type="button"
+          size="xs"
+          disabled={pending || !email.trim()}
+          onClick={() =>
+            start(async () => {
+              const r = await inviteMemberContact(slug, companyId, email)
+              setMsg(r)
+            })
+          }
+        >
+          {pending ? 'Sending…' : 'Send'}
+        </Button>
+      </span>
+      {!email.trim() && <span className="text-xs text-muted-foreground">Add an email to send the invite.</span>}
+      {msg?.error && <span className="text-xs text-destructive">{msg.error}</span>}
+      {msg?.message && <span className="text-xs text-muted-foreground">{msg.message}</span>}
+      {msg?.path && !msg.error && (
+        <a href={msg.path} target="_blank" className="text-xs break-all text-primary hover:underline">
+          {msg.path}
+        </a>
+      )}
+    </span>
   )
 }

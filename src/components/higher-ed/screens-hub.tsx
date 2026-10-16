@@ -10,7 +10,7 @@ import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberCompanyForm, ParticipantForm } from './HubForms'
+import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm } from './HubForms'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -76,6 +76,7 @@ export async function HubCompanies({ ctx }: Props) {
                 <Th>Joined</Th>
                 <Th>Layoffs</Th>
                 <Th>Hiring</Th>
+                <Th>Hiring access</Th>
               </tr>
             </thead>
             <tbody>
@@ -97,6 +98,15 @@ export async function HubCompanies({ ctx }: Props) {
                     )}
                   </td>
                   <td className="px-3 py-2">{ctx.readOnly ? (c.hiring ? 'Hiring' : '—') : <HiringToggle slug={slug} companyId={c.id} hiring={c.hiring} />}</td>
+                  <td className="px-3 py-2">
+                    {c.employerProfileId ? (
+                      <span className="text-xs text-emerald-800">{c.hiring ? 'Connected' : 'Connected, paused'}</span>
+                    ) : ctx.readOnly ? (
+                      <span className="text-xs text-muted-foreground">{c.invitedAt ? 'Invited' : '—'}</span>
+                    ) : (
+                      <MemberAccess slug={slug} companyId={c.id} contactEmail={c.contactEmail} invitedAt={c.invitedAt?.toISOString() ?? null} connected={false} />
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

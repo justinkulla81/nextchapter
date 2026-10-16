@@ -78,7 +78,7 @@ export async function joinLinkForToken(slug: string, token: string): Promise<{ u
   return { url: data.properties.action_link }
 }
 
-export type JoinChoices = { shareOutcome: boolean; shareSearchDetail: boolean; takeCalls: boolean }
+export type JoinChoices = { shareOutcome: boolean; shareSearchDetail: boolean; takeCalls: boolean; shareDossier?: boolean }
 
 export async function completeJoin(args: { member: JoinableMember; userId: string; choices: JoinChoices }): Promise<{ candidateId: string }> {
   const { member, userId, choices } = args
@@ -91,6 +91,8 @@ export async function completeJoin(args: { member: JoinableMember; userId: strin
   const consents: [InstitutionConsentScope, boolean][] = [
     ['SHARE_OUTCOME', choices.shareOutcome],
     ['SHARE_SEARCH_DETAIL_WITH_CAREER', choices.shareSearchDetail],
+    // Asked only of a workforce org's participants (hiring member companies).
+    ...(choices.shareDossier !== undefined ? ([['SHARE_DOSSIER_WITH_EMPLOYERS', choices.shareDossier]] as [InstitutionConsentScope, boolean][]) : []),
   ]
   await prisma.institutionConsent.createMany({
     data: consents.map(([scope, granted]) => ({ memberId: member.id, scope, granted, source: 'CLAIM', changedAt: now })),

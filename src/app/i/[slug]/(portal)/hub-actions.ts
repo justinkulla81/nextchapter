@@ -9,6 +9,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { placeAt } from '@/lib/workforce/local'
 import { STATE_NAMES } from '@/lib/workforce/places'
+import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -62,6 +63,7 @@ export async function setCompanyHiring(slug: string, companyId: string, hiring: 
   const ctx = await hub(slug)
   const r = await prisma.memberCompany.updateMany({ where: { id: companyId, institutionId: ctx.institution.id }, data: { hiring } })
   if (!r.count) return { error: 'That company is gone. Reload the page.' }
+  await syncMemberAccess(ctx.institution.id, companyId)
   captureServerEvent(ctx.userId, 'hub_member_company_hiring_set', { institutionId: ctx.institution.id, companyId, hiring })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
@@ -134,4 +136,14 @@ export async function saveLocalArea(slug: string, _prev: HubResult, f: FormData)
   captureServerEvent(ctx.userId, 'hub_local_area_saved', { institutionId: ctx.institution.id, anchorState, radiusMiles })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: `Saved. Jobs within ${radiusMiles} miles of ${anchorCity} now rank first for your participants.` }
+}
+
+// Give a hiring member company a login to see participants who share their Dossier.
+export async function inviteMemberContact(slug: string, companyId: string, email: string): Promise<Result & { path?: string; sent?: boolean }> {
+  const ctx = await hub(slug)
+  const r = await inviteMemberCompany({ institutionId: ctx.institution.id, companyId, email })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'hub_member_company_invited', { institutionId: ctx.institution.id, companyId, emailed: r.sent })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, sent: r.sent, path: r.path, message: r.sent ? `Invite sent to ${email.trim().toLowerCase()}.` : 'Demo: nothing is emailed. Share this link instead.' }
 }

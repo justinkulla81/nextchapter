@@ -16,6 +16,7 @@ import { DEMO_PERSONAS, orgKindOf } from '@/lib/higher-ed/workspaces'
 import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { seedDemoContent } from '@/lib/institution/admin'
+import { reseedWorkforceDemo } from '@/lib/workforce/demo'
 import { logViewAs } from '@/lib/higher-ed/audit'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -41,6 +42,13 @@ export async function setDemoPersona(slug: string, formData: FormData) {
 
 export async function resetDemoData(slug: string): Promise<{ error?: string; members?: number }> {
   const access = await requireDemoAdmin(slug)
+  if (access.institution.orgType !== 'COLLEGE') {
+    const r = await reseedWorkforceDemo(slug)
+    if ('error' in r) return { error: r.error }
+    captureServerEvent(access.userId, 'he_demo_reset', { institutionId: access.institution.id, slug, workforce: true })
+    revalidatePath(`/i/${slug}`, 'layout')
+    return { members: 150 }
+  }
   const tenant = DEMO_TENANTS[slug]
   if (!tenant) return { error: `No demo fixture for "${slug}", so there's nothing to reset it to.` }
   const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), tenant), { timeout: 120_000, maxWait: 20_000 })
