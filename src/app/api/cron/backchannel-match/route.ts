@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { orgNamesMatchStrict } from '@/lib/text/org-name-match'
 import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
+import { rankBackchannelContacts } from '@/lib/email/backchannel-note'
 import { withCronRun } from '@/lib/cron/run'
 
 // Fires daily — for each candidate, finds the first still-unnotified applied
@@ -36,7 +37,7 @@ export const GET = withCronRun('backchannel-match', async () => {
       notificationTier: true,
       jobPostings: {
         where: { appliedAt: { not: null }, companyName: { not: null } },
-        select: { id: true, companyName: true, backchannelEmailSentAt: true },
+        select: { id: true, title: true, companyName: true, appliedAt: true, backchannelEmailSentAt: true },
       },
     },
   })
@@ -49,7 +50,16 @@ export const GET = withCronRun('backchannel-match', async () => {
 
       const contacts = await prisma.supportNetworkContact.findMany({
         where: { candidateId: candidate.id, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
-        select: { name: true, company: true, inferredCompany: true },
+        select: {
+          id: true,
+          name: true,
+          title: true,
+          email: true,
+          warmth: true,
+          employmentStatusAtCompany: true,
+          company: true,
+          inferredCompany: true,
+        },
       })
       if (contacts.length === 0) continue
 
@@ -71,18 +81,22 @@ export const GET = withCronRun('backchannel-match', async () => {
 
       for (const job of candidate.jobPostings) {
         if (!job.companyName || job.backchannelEmailSentAt) continue
-        const matchedContacts = contacts.filter(
-          (c) =>
-            (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
-            (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
+        // Ranked best-first, and anyone confirmed to have left is dropped —
+        // the email leads with the first one and drafts a note to them.
+        const matchedContacts = rankBackchannelContacts(
+          contacts.filter(
+            (c) =>
+              (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
+              (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
+          )
         )
         if (matchedContacts.length === 0) continue
 
         const otherCompanyCount = Math.max(0, matchedCompanyNames.size - 1)
         const result = await sendBackchannelMatchEmail(
           candidate,
-          job.companyName,
-          matchedContacts.map((c) => c.name),
+          { id: job.id, companyName: job.companyName, role: job.title, appliedAt: job.appliedAt },
+          matchedContacts,
           otherCompanyCount
         )
         await prisma.jobPosting.update({ where: { id: job.id }, data: { backchannelEmailSentAt: new Date() } })
