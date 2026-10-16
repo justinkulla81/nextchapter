@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createElement } from 'react'
 import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 
@@ -10,7 +11,8 @@ vi.mock('resend', () => ({
 }))
 
 import { createResend } from '@/lib/email/resend-client'
-import { hasAudienceTag, withAudienceHtml, withAudienceText, audienceLabel } from '@/lib/email/audience-tag'
+import { hasAudienceTag, withAudienceHtml, withAudienceText, audienceLabel, audienceFromContent, AudienceTag } from '@/lib/email/audience-tag'
+import { IntakeEmailLayout } from '@/emails/intake-email-layout'
 
 describe('audience tag helpers', () => {
   it('appends a small labelled line to html, before </body> when present', () => {
@@ -54,7 +56,8 @@ describe('createResend with an audience', () => {
     send.mockClear()
     const payload = { from: 'a@b.com', to: 'real@gmail.com', subject: 's', react: null }
     await createResend('k', 'coach').emails.send(payload as never)
-    expect(send.mock.calls[0][0]).toEqual(payload)
+    // The body is untouched; only the audience header is added.
+    expect(send.mock.calls[0][0]).toEqual({ ...payload, headers: { 'X-NextChapter-Audience': 'coach' } })
   })
 
   it('warns on an untagged string email so a new sender cannot ship unmarked', async () => {
@@ -62,6 +65,51 @@ describe('createResend with an audience', () => {
     await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 'Untagged one', html: '<p>x</p>' })
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('Untagged one'))
     warn.mockRestore()
+  })
+})
+
+describe('X-NextChapter-Audience header', () => {
+  const headerOf = () => (send.mock.calls.at(-1)![0] as { headers?: Record<string, string> }).headers?.['X-NextChapter-Audience']
+
+  it('comes from the audience argument for string emails', async () => {
+    await createResend('k', 'admin').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 's', html: '<p>x</p>' })
+    expect(headerOf()).toBe('admin')
+  })
+
+  it("comes from a React template's own AudienceTag, nested anywhere in it", async () => {
+    const react = createElement('div', null, createElement('p', null, 'hi'), [createElement(AudienceTag, { audience: 'recruiter' })])
+    await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 's', react })
+    expect(headerOf()).toBe('recruiter')
+  })
+
+  it('reads the intake layout, defaulting to candidate', async () => {
+    const mk = (audience?: 'recruiter') => createElement(IntakeEmailLayout, { heading: 'h', footerNote: 'f', audience, children: 'body' })
+    await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 's', react: mk() })
+    expect(headerOf()).toBe('candidate')
+    await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 's', react: mk('recruiter') })
+    expect(headerOf()).toBe('recruiter')
+  })
+
+  it('reads a tag already inside a string body, and keeps other headers', async () => {
+    await createResend('k').emails.send({
+      from: 'a@b.com', to: 'real@gmail.com', subject: 's', html: withAudienceHtml('general', '<p>x</p>'), headers: { 'List-Unsubscribe': '<x>' },
+    })
+    const h = (send.mock.calls.at(-1)![0] as { headers: Record<string, string> }).headers
+    expect(h['X-NextChapter-Audience']).toBe('general')
+    expect(h['List-Unsubscribe']).toBe('<x>')
+  })
+
+  it('warns when a React template renders no tag, and sets no header', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await createResend('k').emails.send({ from: 'a@b.com', to: 'real@gmail.com', subject: 'No tag here', react: createElement('div', null, 'x') })
+    expect(headerOf()).toBeUndefined()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('No tag here'))
+    warn.mockRestore()
+  })
+
+  it('parses the audience back out of content', () => {
+    expect(audienceFromContent(withAudienceText('supporter', 'x'))).toBe('supporter')
+    expect(audienceFromContent('nothing')).toBeNull()
   })
 })
 

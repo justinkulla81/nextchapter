@@ -60,6 +60,14 @@ export function hasAudienceTag(content: string): boolean {
   return MARKER.test(content)
 }
 
+const KEY_BY_LABEL = Object.fromEntries(Object.entries(LABEL).map(([k, v]) => [v.toLowerCase(), k])) as Record<string, EmailAudience>
+
+/** The audience a string email was tagged with, or null when it has no tag. */
+export function audienceFromContent(content: string): EmailAudience | null {
+  const m = MARKER.exec(content)
+  return m ? (KEY_BY_LABEL[m[1].toLowerCase()] ?? null) : null
+}
+
 const HTML_STYLE = 'margin:24px 0 0;font-size:11px;line-height:1.4;letter-spacing:0.04em;text-transform:uppercase;color:#6b7280'
 
 /** For emails built as HTML strings: appends the same line, before </body> when there is one. */
