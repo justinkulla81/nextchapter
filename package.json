@@ -82,7 +82,8 @@
     "verify:community": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-community.ts",
     "check:he-screens": "node scripts/higher-ed/render/run.mjs",
     "docs:stages": "tsx scripts/docs/stage-guide.ts",
-    "docs:spine": "tsx scripts/docs/spine.ts"
+    "docs:spine": "tsx scripts/docs/spine.ts",
+    "docs:menu": "tsx scripts/docs/menu.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
