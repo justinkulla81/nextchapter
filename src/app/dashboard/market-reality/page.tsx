@@ -306,20 +306,22 @@ export default async function MarketRealityReportPage({
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
-  const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
-  const suggestedActions = await getSuggestedActions(profile.id, weekNumber)
 
   // MRG §11 — the rebuilt report's 7 mandated sections (Report Structure
   // Spec §3), read live rather than frozen into the report row so a
   // resolved reviewer question or a freshly-recomputed component score is
   // never stale (see market-reality-sections.ts's own header comment).
-  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness, rubric] = await Promise.all([
+  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness, rubric, suggestedActions] = await Promise.all([
     getWhereYouStand(profile.id),
     getResumeFixes(profile.id, report?.resumeRewrites ?? null),
     getRecruiterReadItems(profile.id),
     getAtsMatrix(profile.id),
     computeDossierCompleteness(profile.id),
     getMarketRealityRubric(profile.id),
+    // Needs the week number first, but is independent of the reads above.
+    getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date())).then((weekNumber) =>
+      getSuggestedActions(profile.id, weekNumber)
+    ),
   ])
 
   // Personalization checklist — the same profile-confirmation fields
