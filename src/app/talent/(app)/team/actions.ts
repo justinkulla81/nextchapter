@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { recordPartnerAudit } from '@/lib/partners/audit'
 import { sendEmployerSeatInviteEmail } from '@/lib/email/send-employer-seat-invite'
 
 export type SeatInviteState = { error?: string } | undefined
@@ -45,6 +46,7 @@ export async function inviteSeat(_prevState: SeatInviteState, formData: FormData
     `${appUrl}/talent/seats/accept/${seat.inviteToken}`
   )
 
+  await recordPartnerAudit({ portal: 'HIRING', refId: employer.id, actorUserId: employer.userId, actorLabel: employer.contactName, action: 'team.invited' })
   captureServerEvent(employer.id, 'employer_seat_invited', { employerId: employer.id, seatId: seat.id })
   revalidatePath('/talent/team')
 }
@@ -57,6 +59,7 @@ export async function revokeSeat(seatId: string) {
   if (!seat || seat.employerId !== employer.id) return
 
   await prisma.employerSeat.delete({ where: { id: seatId } })
+  await recordPartnerAudit({ portal: 'HIRING', refId: employer.id, actorUserId: employer.userId, actorLabel: employer.contactName, action: 'team.removed', targetType: 'EmployerSeat', targetId: seatId })
   captureServerEvent(employer.id, 'employer_seat_revoked', { employerId: employer.id, seatId })
   revalidatePath('/talent/team')
 }

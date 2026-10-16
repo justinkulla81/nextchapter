@@ -6,6 +6,7 @@ import { INTEGRATIONS, integrationApplies, portalMeta, resolveIntegrations, type
 import { DeleteDemoButton, DemoControls, IntegrationToggles, OrganizationBrandForm } from '@/components/admin/OrganizationControls'
 import { demoTargets } from '@/lib/demo/access'
 import { prisma } from '@/lib/prisma'
+import { organizationOverview } from '@/lib/organizations/overview'
 import { describeAuditAction } from '@/lib/partners/audit-labels'
 
 export const metadata = { title: 'Organization' }
@@ -23,6 +24,7 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   const owned = ownedTypes(org)
   const on = resolveIntegrations(org.features, owned)
   const refs = org.workspaces.filter((w) => w.refId).map((w) => ({ portal: w.type, refId: w.refId as string }))
+  const overview = await organizationOverview(org.workspaces)
   const activity = refs.length
     ? await prisma.partnerAuditEvent.findMany({ where: { OR: refs }, orderBy: { createdAt: 'desc' }, take: 15 })
     : []
@@ -64,6 +66,28 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
           })}
         </ul>
       </section>
+
+      {overview.length > 0 && (
+        <section className="space-y-3" aria-labelledby="glance">
+          <h2 id="glance" className="text-lg font-semibold">At a glance</h2>
+          <p className="text-sm text-muted-foreground">Counts across every portal this organization owns{org.isDemo ? ', including the sample data' : ''}.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {overview.map((o) => (
+              <div key={o.type} className="rounded-md border border-border p-3">
+                <p className="text-sm font-medium">{portalMeta(o.type as PortalType).label}</p>
+                <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  {o.stats.map((st) => (
+                    <div key={st.label}>
+                      <dt className="text-muted-foreground">{st.label}</dt>
+                      <dd className="text-lg font-semibold tabular-nums">{st.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-3" aria-labelledby="recent">
         <h2 id="recent" className="text-lg font-semibold">Recent activity across portals</h2>
