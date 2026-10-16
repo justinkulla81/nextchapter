@@ -79,6 +79,7 @@ export const GET = withCronRun('backchannel-match', async (request) => {
           email: true,
           warmth: true,
           employmentStatusAtCompany: true,
+          relationshipTags: true,
           company: true,
           inferredCompany: true,
           source: true,
@@ -104,9 +105,9 @@ export const GET = withCronRun('backchannel-match', async (request) => {
 
       for (const job of candidate.jobPostings) {
         if (!job.companyName || (job.backchannelEmailSentAt && !force)) continue
-        // Ranked best-first, and anyone confirmed to have left is dropped —
-        // the email leads with the first one and drafts a note to them.
-        const matchedContacts = rankBackchannelContacts(contactsAt(job))
+        // Ranked best-first (has an email, then warmest, then most relevant to
+        // this role), and anyone confirmed to have left is dropped.
+        const matchedContacts = rankBackchannelContacts(contactsAt(job), job.title)
         if (matchedContacts.length === 0) continue
 
         if (dryRun) {
@@ -119,7 +120,9 @@ export const GET = withCronRun('backchannel-match', async (request) => {
           candidate,
           { id: job.id, companyName: job.companyName, role: job.title, appliedAt: job.appliedAt },
           matchedContacts,
-          otherCompanyCount
+          otherCompanyCount,
+          // How many of these emails they've had already — rotates the stat shown.
+          candidate.jobPostings.filter((j) => j.backchannelEmailSentAt).length
         )
         await prisma.jobPosting.update({ where: { id: job.id }, data: { backchannelEmailSentAt: new Date() } })
         if (result.sent) sentCount += 1

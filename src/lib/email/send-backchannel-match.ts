@@ -6,6 +6,7 @@ import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { draftBackchannelNote, type BackchannelContact } from '@/lib/email/backchannel-note'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { pickBackchannelStat } from '@/lib/email/backchannel-stats'
 import { readStoredLinks } from '@/lib/jobs/application-posting-link'
 
 // `contacts` must already be ranked best-first (see rankBackchannelContacts) —
@@ -14,7 +15,8 @@ export async function sendBackchannelMatchEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   job: { id: string; companyName: string; role: string | null; appliedAt: Date | null },
   contacts: (BackchannelContact & { id: string })[],
-  otherCompanyCount: number
+  otherCompanyCount: number,
+  sentBefore: number
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping backchannel match email.')
@@ -79,6 +81,7 @@ export async function sendBackchannelMatchEmail(
       moreCount: Math.max(0, contacts.length - MAX_LISTED),
       moreUrl: `${appUrl}/dashboard/network/contacts`,
       note,
+      why: pickBackchannelStat(sentBefore),
       otherCompanyCount,
       otherCompaniesUrl,
       unsubscribeUrl,
