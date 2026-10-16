@@ -137,3 +137,21 @@ export async function addManualAlias(aliasName: string, companyName: string): Pr
   revalidatePath(PAGE)
   return { ok: true, message: `“${aliasName.trim()}” will now resolve to ${target.name}. No company existed under that name yet.` }
 }
+
+/** "These are not duplicates": hides the group from the Duplicates page for good. */
+export async function dismissDuplicateGroup(kind: 'ORGANIZATION' | 'COMPANY', groupKey: string): Promise<DuplicateResult> {
+  const admin = await requireAdmin()
+  if (!groupKey) return { ok: false, error: 'This group is missing its key. Reload the page.' }
+  try {
+    await prisma.duplicateDismissal.upsert({
+      where: { kind_groupKey: { kind, groupKey } },
+      create: { kind, groupKey, createdByEmail: admin.email ?? null },
+      update: {},
+    })
+  } catch {
+    return { ok: false, error: 'This can’t be saved yet. The dismissals table hasn’t been created in the database.' }
+  }
+  captureServerEvent(admin.email ?? 'admin', 'duplicate_group_dismissed', { kind, groupKey })
+  revalidatePath(PAGE)
+  return { ok: true, message: 'Dismissed. These won’t be listed as duplicates again.' }
+}

@@ -7,6 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { LICENSE_KEYS } from '@/lib/jobs/requirements'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import {
   hasAnyIndependentWork,
@@ -109,6 +110,30 @@ function parseYesNo(raw: FormDataEntryValue | null): boolean | null {
   return raw === 'yes' ? true : raw === 'no' ? false : null
 }
 
+const CLEARANCE_VALUES = new Set(['none', 'public_trust', 'secret', 'top_secret', 'ts_sci'])
+const POLYGRAPH_VALUES = new Set(['none', 'ci', 'full_scope'])
+
+/** Clearance held, or null when the question was left blank. "None" clears status and polygraph. */
+function parseClearanceAnswers(formData: FormData) {
+  const level = (formData.get('clearanceLevel') as string | null) || ''
+  if (!CLEARANCE_VALUES.has(level)) return null
+  if (level === 'none') return { clearanceLevel: 'none', clearanceActive: null, clearancePolygraph: null }
+  const status = formData.get('clearanceStatus')
+  const poly = (formData.get('clearancePolygraph') as string | null) || ''
+  return {
+    clearanceLevel: level,
+    clearanceActive: status === 'active' ? true : status === 'lapsed' ? false : null,
+    clearancePolygraph: POLYGRAPH_VALUES.has(poly) ? poly : null,
+  }
+}
+
+/** Licenses held (known keys only, sorted), or null when the question was left blank. */
+function parseLicenseAnswers(formData: FormData): string[] | null {
+  if (formData.get('licensesAnswered') !== '1') return null
+  const held = new Set(formData.getAll('licensesHeld').map(String))
+  return LICENSE_KEYS.filter((k) => held.has(k)).sort()
+}
+
 // Real screening/deal-breaker questions recruiters/hiring managers ask
 // before an offer — drug test, background check, restrictive covenant (the
 // third already had schema fields from Coaching Notes' Red Lines but no UI
@@ -143,6 +168,11 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
     ? (formData.get('restrictiveCovenantDetails') as string) || null
     : null
 
+  // Optional clearance and licenses (matched against job requirements, requirements.ts).
+  // Left blank, they stay as they were — never cleared by a save of the other questions.
+  const clearance = parseClearanceAnswers(formData)
+  const licenses = parseLicenseAnswers(formData)
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -152,8 +182,16 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
       restrictiveCovenantDetails,
       wantsAnimalFriendlyWorkplace,
       ...(askFiredForCause && { firedForCause }),
+      ...(clearance ?? {}),
+      ...(licenses ? { licensesHeld: licenses, licensesAnsweredAt: new Date() } : {}),
     },
   })
+  if (clearance && (clearance.clearanceLevel !== profile.clearanceLevel || clearance.clearanceActive !== profile.clearanceActive || clearance.clearancePolygraph !== profile.clearancePolygraph)) {
+    captureServerEvent(profile.id, 'requirement_profile_answered', { field: 'clearance', surface: 'screening', level: clearance.clearanceLevel })
+  }
+  if (licenses && (profile.licensesAnsweredAt === null || licenses.join() !== [...profile.licensesHeld].sort().join())) {
+    captureServerEvent(profile.id, 'requirement_profile_answered', { field: 'licenses', surface: 'screening', count: licenses.length })
+  }
 
   captureServerEvent(profile.id, 'red_flags_answered', {
     willingToTakeDrugTest,

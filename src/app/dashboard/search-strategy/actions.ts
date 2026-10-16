@@ -90,7 +90,10 @@ export async function updateSearchStrategy(
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
-  const travelWillingness = formData.get('travelWillingness') === 'on'
+  // Max travel (0 / 25 / 50 / 75); blank = not answered, so leave what's stored.
+  // travelWillingness stays in step for the readers that still use the yes/no.
+  const maxTravelRaw = Number(formData.get('maxTravelPct') ?? '')
+  const maxTravelPct = formData.get('maxTravelPct') && [0, 25, 50, 75].includes(maxTravelRaw) ? maxTravelRaw : null
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
   const equityImportant = formData.get('equityImportant') === 'on'
@@ -121,7 +124,7 @@ export async function updateSearchStrategy(
       isPivoting,
       openToRelocation,
       relocationNotes,
-      travelWillingness,
+      ...(maxTravelPct !== null && { maxTravelPct, travelWillingness: maxTravelPct > 0 }),
       interimConsultingInterest,
       // Only overwrite when a value was actually entered here — this field
       // is also editable from Search Goals (BenefitsPrioritiesForm), and an
@@ -141,6 +144,12 @@ export async function updateSearchStrategy(
   })
 
   captureServerEvent(profile.id, 'search_strategy_updated', {})
+  // Answers the job requirement match reads (requirements.ts): one event per field that changed.
+  const answered: string[] = []
+  if (maxTravelPct !== null && maxTravelPct !== profile.maxTravelPct) answered.push('max_travel')
+  if (openToRelocation !== profile.openToRelocation || !profile.searchStrategyConfirmedAt) answered.push('relocation')
+  if (remotePreference !== profile.remotePreference) answered.push('remote_preference')
+  for (const field of answered) captureServerEvent(profile.id, 'requirement_profile_answered', { field, surface: 'search_strategy' })
 
   // highestLevelReached feeds levelRankScore (job-fit matching sitewide) —
   // same recompute FunctionConfirmForm's confirm action triggers.

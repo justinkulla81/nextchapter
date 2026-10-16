@@ -3,6 +3,7 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS, postedAgo } from '@/lib/jobs/competition'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { boardBreadthFor } from '@/lib/jobs/search-breadth'
 
 /**
  * Dashboard prompt: jobs that fit the member and were posted in the last 72
@@ -20,6 +21,8 @@ export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }
     postedWithinHours: FRESH_HOURS,
     view: 'fresh',
     size: 3,
+    // Same breadth as the board (search-breadth.ts).
+    breadth: boardBreadthFor(profile),
   })
   if (board.freshOpenTotal === 0) return null
   const top = board.open.slice(0, 3)

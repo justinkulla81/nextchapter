@@ -105,7 +105,7 @@ export async function setJobSaved(rawRef: TrackRef, saved: boolean): Promise<Res
 export async function setJobStatus(
   rawRef: TrackRef,
   to: ApplicationStatus,
-  source: 'card' | 'my_jobs' | 'prompt' = 'card'
+  source: 'card' | 'my_jobs' | 'prompt' | 'apply_kit' | 'native' = 'card'
 ): Promise<Result> {
   const profile = await getProfile()
   if (!profile) return NOT_SIGNED_IN
@@ -114,7 +114,12 @@ export async function setJobStatus(
   return changeStatus(profile.id, ref, to, source)
 }
 
-async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationStatus, source: 'card' | 'my_jobs' | 'prompt' | 'email'): Promise<Result> {
+async function changeStatus(
+  candidateId: string,
+  ref: TrackRef,
+  to: ApplicationStatus,
+  source: 'card' | 'my_jobs' | 'prompt' | 'email' | 'apply_kit' | 'native'
+): Promise<Result> {
   const tracked = await upsertTracked(candidateId, ref)
   const now = new Date()
   let app = tracked.jobPosting
@@ -151,7 +156,7 @@ async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationS
     where: { id: tracked.id },
     data: {
       jobPostingId: app.id,
-      appliedVia: tracked.appliedVia ?? (source === 'prompt' ? 'prompt' : source === 'email' ? 'email' : 'manual'),
+      appliedVia: tracked.appliedVia ?? (source === 'prompt' || source === 'email' || source === 'native' ? source : 'manual'),
       dismissedAt: null,
     },
   })

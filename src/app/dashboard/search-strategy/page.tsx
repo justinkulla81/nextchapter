@@ -19,6 +19,8 @@ import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { shownFromHidden } from '@/lib/jobs/employer-sector'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetworkingForm'
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
@@ -38,6 +40,10 @@ import { getPlatform } from '@/lib/platforms/directory'
 import type { PlatformStageKey } from '@/lib/platforms/stages'
 import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
 import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { IndustryReadingConfirm } from '@/components/dashboard/IndustryReadingConfirm'
+import { readMemberIndustries } from '@/lib/profile/industry-reading'
+import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -401,6 +407,13 @@ export default async function SearchStrategyPage() {
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
         />
+        <div id="employer-sectors" className="scroll-mt-4 space-y-2 border-t border-border pt-4">
+          <p className="text-sm font-medium text-foreground">Which employers do you want jobs from?</p>
+          <p className="text-xs text-muted-foreground">
+            Turn a sector off and its jobs leave your board and your job emails. You can change this any time, here or on the board.
+          </p>
+          <EmployerSectorFilter surface="search_strategy" shown={shownFromHidden(profile.hiddenEmployerSectors)} updateUrl={false} />
+        </div>
       </CardContent>
     </Card>,
 
@@ -552,6 +565,19 @@ export default async function SearchStrategyPage() {
       {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
       <Suspense fallback={null}>
         <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
+      {/* Their industry text read as several industries (or none we know): one-click confirm (industry-reading.ts). */}
+      {(() => {
+        const text = [profile.industryContext, profile.secondaryIndustryContext].filter(Boolean).join(' / ')
+        const reading = readMemberIndustries(profile.industryContext, profile.secondaryIndustryContext)
+        if (!text || profile.industryBuckets.length > 0 || !reading.uncertain) return null
+        return <IndustryReadingConfirm text={text} suggested={reading.buckets} options={INDUSTRY_BUCKET_NAMES.filter((n) => n !== 'Other')} />
+      })()}
+
+      {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
+      <Suspense fallback={null}>
+        <MarketSizeSection member={profile} surface="search_strategy" />
       </Suspense>
 
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>

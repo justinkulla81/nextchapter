@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
-import { CANDIDATE_ORG_PAGES, HOSTS, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
+import { CANDIDATE_ORG_PAGES, HOSTS, LEGACY_EMPLOYER_HOST_PREFIX, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
 import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations/front-door'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
@@ -51,12 +51,19 @@ export async function proxy(request: NextRequest) {
     if (orgRoute) return orgRoute
   }
 
+  if (host.startsWith(LEGACY_EMPLOYER_HOST_PREFIX) && portalHostOn('employer')) {
+    return NextResponse.redirect(`${portalOrigin('employer')}${pathname}${request.nextUrl.search}`, 308)
+  }
   const portalHost = portalHostFor(host)
   if (portalHost && portalHostOn(portalHost)) return routePortalHost(request, portalHost, pathname)
   if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
     // Main site: a portal that has its own host now lives there.
     const moved = hostForAppPath(pathname)
     if (moved) return NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307)
+    // The employer portal's own addresses typed on the main site (no page there).
+    if (portalHostOn('employer') && /^\/(hiring|growth|learning)(\/|$)/.test(pathname)) {
+      return NextResponse.redirect(`${portalOrigin('employer')}${pathname}${request.nextUrl.search}`, 307)
+    }
   }
 
   return updateSession(request)

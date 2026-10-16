@@ -16,10 +16,14 @@ import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
+import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { NativeApply } from '@/components/jobs/NativeApply'
+import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
+import { JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type JobWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
@@ -35,6 +39,11 @@ import {
 } from '@/lib/jobs/great-employer-display'
 import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
+import type { Bridge } from '@/lib/jobs/relevance'
+import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
+import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -273,6 +282,30 @@ function SkillsFitLine({ fit }: { fit: SkillsFit }) {
   )
 }
 
+function BridgeDetails({ jobId, bridge }: { jobId: string; bridge: Bridge }) {
+  const props = (step: string) => ({ jobId, step, relaxed: bridge.relaxed })
+  return (
+    <div className="space-y-1 rounded-md border border-border bg-muted/30 p-3 text-sm">
+      <p>
+        <span className="font-medium text-foreground">What transfers:</span> <span className="text-muted-foreground">{bridge.transfers}</span>
+      </p>
+      <p>
+        <span className="font-medium text-foreground">What&apos;s missing:</span> <span className="text-muted-foreground">{bridge.missing}</span>
+      </p>
+      <p>
+        <span className="font-medium text-foreground">How to close it:</span>{' '}
+        <TrackedLink href={bridge.learn.href} event="bridge_step_clicked" properties={props('learn')} className="text-primary underline underline-offset-4">
+          {bridge.learn.label}
+        </TrackedLink>
+        {' · '}
+        <TrackedLink href={bridge.network.href} event="bridge_step_clicked" properties={props('network')} className="text-primary underline underline-offset-4">
+          {bridge.network.label}
+        </TrackedLink>
+      </p>
+    </div>
+  )
+}
+
 export function DiscoverJobCard({
   posting,
   fitBucket,
@@ -289,8 +322,17 @@ export function DiscoverJobCard({
   employer,
   benefits,
   searchResult,
+  matchReason,
+  bridge,
+  dismissible = true,
 }: {
+  /** Wide's one-relaxed jobs (relevance.ts): what transfers, what's missing, how to close it. */
+  bridge?: Bridge
+  /** Show the X (pass on it with reasons). On by default for board cards. */
+  dismissible?: boolean
   posting: ExclusiveJobPosting
+  /** Why the job is on the member's board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …". */
+  matchReason?: MatchReason
   fitBucket: FitBucket
   idealMatch?: boolean
   /** Shown as a board search result: its 1-based rank and the query, for job_search_result_clicked. */
@@ -315,6 +357,8 @@ export function DiscoverJobCard({
   watched?: boolean
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
+  const [dismissed, setDismissed] = useState<DismissResult | null>(null)
+  const [undoing, startUndo] = useTransition()
   const confidential = posting.disclosure === 'CONFIDENTIAL'
   const workType = classifyWorkType(posting)
   const payLabel = payBasisLabel({ ...posting, workType })
@@ -326,6 +370,7 @@ export function DiscoverJobCard({
 
   function handleClick() {
     if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
+    if (matchReason?.kind === 'skills') posthog.capture('skills_adjacent_job_clicked', { jobId: posting.id, sharedSkills: matchReason.sharedSkills ?? [], label: matchReason.label })
     void recordJobClick({
       source: 'job_board',
       sourceId: posting.id,
@@ -338,11 +383,41 @@ export function DiscoverJobCard({
     })
   }
 
+  if (dismissed) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm text-muted-foreground" role="status">
+        <span>
+          Passed on {posting.title}
+          {dismissed.applied.length > 0 && ` — we ${dismissed.applied.map((a) => `hid ${a.label}`).join(' and ')}`}.
+        </span>
+        <button
+          type="button"
+          disabled={undoing}
+          aria-busy={undoing}
+          onClick={() =>
+            startUndo(async () => {
+              const r = await undoDismissBoardJob(posting.id).catch(() => null)
+              if (r?.ok) {
+                posthog.capture('dismiss_undone', { jobId: posting.id, scope: 'job' })
+                setDismissed(null)
+              }
+            })
+          }
+          className={cn('text-primary underline underline-offset-4', undoing && 'cursor-wait')}
+        >
+          Undo
+        </button>
+      </div>
+    )
+  }
+
   return (
     <details
       className="group"
       onToggle={(e) => {
         if (!(e.currentTarget as HTMLDetailsElement).open) return
+        // Opening the card is when the member reads why it is there.
+        if (matchReason) posthog.capture('job_match_reason_viewed', { jobId: posting.id, reason: matchReason.kind, label: matchReason.label })
         if (payBadge || benefitsBadge) {
           posthog.capture('job_employer_badges_viewed', { postingId: posting.id, companyName: posting.companyName, payBadge, benefitsBadge, fitBucket })
         }
@@ -367,6 +442,16 @@ export function DiscoverJobCard({
             </span>
             {/* The edge, visible without opening the card. */}
             <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
+            {matchReason && (
+              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReasonSentence(matchReason)}>
+                <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
+              </span>
+            )}
+            {bridge && (
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">What transfers:</span> {bridge.transfers}
+              </span>
+            )}
           </span>
           <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
@@ -393,11 +478,15 @@ export function DiscoverJobCard({
             <SeniorityBadge level={posting.level} />
             {idealMatch && <IdealMatchBadge />}
             <FitBadge bucket={fitBucket} />
+            {dismissible && (
+              <DismissJobButton jobId={posting.id} title={posting.title} companyName={confidential ? null : posting.companyName} onDismissed={(r) => setDismissed(r)} />
+            )}
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </span>
         </span>
         {/* Full width under the title row, so the chips never squeeze the title. */}
         {match && <JobMatchLine match={match} />}
+        {match && <JobRequirementLabels jobId={posting.id} checks={match.requirements} surface="board_card" />}
       </summary>
       <div className="space-y-3 px-4 pb-4">
         <p className="text-sm text-muted-foreground">
@@ -432,11 +521,16 @@ export function DiscoverJobCard({
         <p className="text-sm text-foreground">
           <span className="font-medium">Your edge:</span> {edgeTip(posting)}
         </p>
+        {bridge && <BridgeDetails jobId={posting.id} bridge={bridge} />}
         {skillsFit && <SkillsFitLine fit={skillsFit} />}
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
         {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} insiders={confidential ? undefined : insiders} />}
-        <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+        <div data-who-to-contact={posting.id}>
+          <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+        </div>
+        <ApplyKit postingId={posting.id} surface="job_card" />
+        {nativePosterOf(posting) && <NativeApply postingId={posting.id} size="sm" />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (

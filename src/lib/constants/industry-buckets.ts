@@ -11,7 +11,10 @@
 // catch-all bucket.
 
 const INDUSTRY_BUCKETS: { bucket: string; keywords: string[] }[] = [
-  { bucket: 'Financial Services & Banking', keywords: ['fintech', 'financial services', 'banking', 'bank', 'wealth management', 'asset management', 'capital markets', 'private equity', 'venture capital', 'hedge fund'] },
+  // Investors are their own bucket (2026-10-16): a talent partner at a VC firm works with startups,
+  // not banks. Listed before Financial Services so "venture capital" lands here.
+  { bucket: 'Venture Capital & Private Equity', keywords: ['venture capital', 'private equity', 'growth equity', 'vc firm', 'venture firm', 'buyout'] },
+  { bucket: 'Financial Services & Banking', keywords: ['fintech', 'financial services', 'banking', 'bank', 'wealth management', 'asset management', 'capital markets', 'hedge fund'] },
   { bucket: 'Insurance', keywords: ['insurance', 'insurtech', 'reinsurance', 'actuarial'] },
   { bucket: 'Accounting & Audit', keywords: ['accounting', 'audit', 'tax advisory', 'cpa firm'] },
   { bucket: 'Legal Services', keywords: ['legal services', 'law firm', 'legal', 'litigation'] },

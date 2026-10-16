@@ -113,6 +113,10 @@
       "schedule": "20 8 * * *"
     },
     {
+      "path": "/api/cron/market-size",
+      "schedule": "50 8 * * *"
+    },
+    {
       "path": "/api/cron/funding-opportunities",
       "schedule": "15 10 * * *"
     },

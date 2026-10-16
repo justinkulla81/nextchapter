@@ -33,7 +33,25 @@ import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/D
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
+import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
+import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason, type MemberBreadthVector } from '@/lib/jobs/search-breadth'
+import { buildBridge, relevanceLine, type Bridge } from '@/lib/jobs/relevance'
+import { subFunctionLabel } from '@/lib/jobs/sub-functions'
+import { jobIndustryBucket } from '@/lib/profile/industry-reading'
+import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
+import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
+import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
+import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
+import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { RequirementFilters } from '@/components/dashboard/RequirementFilters'
+import { parseFunctionParam } from '@/lib/jobs/job-functions'
+import { hiddenFromShown, parseSectorsParam, shownFromHidden } from '@/lib/jobs/employer-sector'
+import { holdsClearance } from '@/lib/jobs/requirements'
+import { combineKeeps, requirementKeeps, surfacedPassesBoardFilters, type BoardRequirementFilters } from '@/lib/jobs/board-filters'
 import { employerSignalsFor, greatFilterPredicate, parseGreatParam, GREAT_FILTER_LABEL, type GreatFilter } from '@/lib/jobs/great-employers'
 import { loadGreatSets, loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
 import { LikelyOpeningsSection } from '@/components/dashboard/LikelyOpeningsSection'
@@ -399,6 +417,7 @@ async function JobRecommendationsSection({
   workTypes,
   parallelPaths,
   greatFilters,
+  boardFilters,
   pivotFilter,
   myJobs,
   expertNetworks,
@@ -417,6 +436,7 @@ async function JobRecommendationsSection({
   workTypes: WorkType[]
   parallelPaths: string[] | null
   greatFilters: GreatFilter[]
+  boardFilters: BoardRequirementFilters
   pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
   expertNetworks: ExpertNetworkCard[]
@@ -498,7 +518,11 @@ async function JobRecommendationsSection({
       workTypes.some((t) => t === memberWorkType(j)) &&
       (!keepGreat || keepGreat(j)) &&
       (!pivotFilter || pivotFilter.matchesTitle(j.title)) &&
-      (!search?.matcher || search.matcher.matchesPlain(j) !== null)
+      (!search?.matcher || search.matcher.matchesPlain(j) !== null) &&
+      // Partner-search jobs carry no function, sector or requirement data: with one
+      // of those filters on they can't be shown as matching it. With no sector
+      // known they read as private.
+      surfacedPassesBoardFilters(boardFilters)
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
@@ -598,6 +622,36 @@ async function JobRecommendationsSection({
     console.error('Skills fit unavailable:', error)
     return null
   })
+  // Why each job is on the board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …".
+  const reasons: Map<string, MatchReason> = board.breadth.classifier
+    ? breadthReasonsFor(board.breadth.classifier, [...visibleBoardPostings, ...lockedBoardPostings], memberKeywords)
+    : new Map()
+  // Field, then pivots (a new industry counts as one), then skills matches, then everything a search kept.
+  const reasonRank = (id: string) => {
+    if (!board.breadth.classifier) return 0
+    const r = reasons.get(id)
+    return r ? (r.kind === 'industry_pivot' ? MATCH_KIND_RANK.pivot : MATCH_KIND_RANK[r.kind]) : 9
+  }
+  // Wide's one-relaxed jobs carry a bridge (relevance.ts): what transfers, what's missing, how to close it.
+  const bridgeFor = (p: (typeof visibleBoardPostings)[number]): Bridge | undefined => {
+    const c = board.breadth.classifier
+    const placed = c?.place(p)
+    if (!c || !placed || placed.relaxed === null || placed.relaxed === 'out') return undefined
+    const gap = skillGapFor(p)
+    const company = p.companyId ? companyById.get(p.companyId) : undefined
+    const soc = c.occupations.socs.get(p.id)
+    return buildBridge({
+      relaxed: placed.relaxed,
+      fieldLabel: subFunctionLabel(c.member.subFunction) ?? c.member.functionLabel ?? 'your field',
+      have: gap.have,
+      // The posting's own gaps first; with none listed, what its occupation uses that they don't show (O*NET).
+      missing: gap.missing.length > 0 ? gap.missing : soc && c.member.occupationGaps ? c.member.occupationGaps(soc) : [],
+      occupationShared: soc ? c.member.similar.get(soc)?.shared : undefined,
+      jobIndustry: jobIndustryBucket(p.industry),
+      companyName: p.disclosure === 'CONFIDENTIAL' ? null : p.companyName,
+      companyHref: company && p.disclosure !== 'CONFIDENTIAL' ? `/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}#insiders` : null,
+    })
+  }
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
       title: p.title,
@@ -629,7 +683,8 @@ async function JobRecommendationsSection({
       // A search keeps the shortlist's order (it is already relevance, then fit, or the chosen sort).
       search
         ? 0
-        : FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
+        : reasonRank(a.posting.id) - reasonRank(b.posting.id) ||
+          FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
           Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
     )
   const shortlistOrder = new Map(openBoardPostings.map((p, i) => [p.id, i]))
@@ -670,6 +725,11 @@ async function JobRecommendationsSection({
             Search again with skills and industries
           </TrackedLink>
         </p>
+      )}
+      {search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW) && (
+        <Suspense fallback={null}>
+          <MarketSizeSection member={profile} surface="board_search" searchCount={searchResultCount} searchQuery={search.params.q} />
+        </Suspense>
       )}
       {search && search.active && searchResultCount > 0 && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -745,7 +805,8 @@ async function JobRecommendationsSection({
                       rank:
                         searchRank !== null
                           ? searchRank
-                          : boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+                          : reasonRank(posting.id) * 1000 +
+                            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
                             (local?.isLocal(posting.location) ? 0.5 : 0),
                       node: (
                         <DiscoverJobCard
@@ -765,6 +826,8 @@ async function JobRecommendationsSection({
                           employer={employerSignalsOf(posting)}
                           benefits={benefitsByPosting.get(posting.id)}
                           searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
+                          matchReason={reasons.get(posting.id)}
+                          bridge={bridgeFor(posting)}
                         />
                       ),
                     }
@@ -803,6 +866,8 @@ async function JobRecommendationsSection({
             </ShowMoreList>
           </div>
 
+          {board.breadth.goodMoreIds.length > 0 && <GoodMatchesMore ids={board.breadth.goodMoreIds} surface="find_my_job" />}
+
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockCandidatePlusCallout
               reason={dossierReason}
@@ -833,11 +898,16 @@ export default async function JobFitPage({
     loc?: string
     remote?: string
     sort?: string
+    fn?: string
+    sectors?: string
+    blockers?: string
+    cleared?: string
+    breadth?: string
   }>
 }) {
   const profile = await getDashboardData()
   const allParams = await searchParams
-  const { seniority, view, types, tab: tabParam, great, pivot } = allParams
+  const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
   // Other board filters that are on (search analytics, and the no-results suggestions).
   const filtersActive = [
@@ -846,13 +916,31 @@ export default async function JobFitPage({
     great && 'great',
     pivot && 'pivot',
     types && 'types',
+    fn && 'fn',
+    sectors && 'sectors',
+    blockers && 'blockers',
+    cleared && 'cleared',
   ].filter((f): f is string => !!f)
   const urlParams = Object.fromEntries(
     Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string')
   )
   const greatFilters = parseGreatParam(great)
+  // Function, employer sector and hard-requirement filters (job-functions.ts,
+  // employer-sector.ts, requirements.ts). Sectors: the URL wins (a shared link or a
+  // toggle just clicked), else the member's saved choice.
+  const boardFilters: BoardRequirementFilters = {
+    functionKey: parseFunctionParam(fn),
+    sectorsShown: parseSectorsParam(sectors) ?? shownFromHidden(profile.hiddenEmployerSectors),
+    hideBlockers: blockers === 'hide',
+    clearedOnly: cleared === '1' && holdsClearance(profile),
+  }
   // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
   const pivotFilter = pivotBoardFilter(pivot)
+  // Search breadth (search-breadth.ts): the URL, else the member's saved choice, else
+  // Narrow for senior members and Wide for junior ones. A pivot path or an explicit
+  // function filter already says which jobs to show, so breadth is off then.
+  const breadth = boardBreadthFor(profile, allParams.breadth)
+  const breadthMode: Breadth | 'off' = pivotFilter || urlParams.fn ? 'off' : breadth
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
@@ -892,11 +980,27 @@ export default async function JobFitPage({
           boardSearch={boardSearch}
           filtersActive={filtersActive}
           urlParams={urlParams}
+          boardFilters={boardFilters}
+          breadthMode={breadthMode}
         />
       </Suspense>
     </div>
   )
 }
+
+/** "near Sunnyvale or remote", "in WA, OR, ID or remote": where their jobs count (relevance.ts). */
+function placePhrase(profile: { currentCity: string | null }, m: MemberBreadthVector): string | null {
+  const g = m.geo
+  if (!g || g.unknown) return null
+  const parts: string[] = []
+  if (g.homeArea && profile.currentCity) parts.push(`near ${profile.currentCity}`)
+  else if (g.homeState) parts.push(`in ${g.homeState}`)
+  if (g.relocation.size > 0) parts.push(`in ${[...g.relocation].join(', ')}`)
+  if (g.acceptsRemote) parts.push('remote')
+  return parts.length > 0 ? parts.join(' or ') : null
+}
+
+const DISMISS_REASON_LABEL = new Map<string, string>(DISMISS_REASONS.map((r) => [r.key, r.label.toLowerCase()]))
 
 function FindMyJobBodySkeleton() {
   return (
@@ -925,6 +1029,8 @@ async function FindMyJobBody({
   boardSearch,
   filtersActive,
   urlParams,
+  boardFilters,
+  breadthMode,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -937,6 +1043,8 @@ async function FindMyJobBody({
   boardSearch: BoardSearchParams
   filtersActive: string[]
   urlParams: Record<string, string>
+  boardFilters: BoardRequirementFilters
+  breadthMode: Breadth | 'off'
 }) {
   const onBoard = tab === 'board'
   // Early-career members (src/lib/early-career/audience.ts) skip the
@@ -1107,7 +1215,7 @@ async function FindMyJobBody({
           urlParams,
         }
       : null
-  const [board, matchedRoles, watchlistView, myJobs, expertNetworks] = await Promise.all([
+  const [board, matchedRoles, watchlistView, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
     loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
@@ -1119,16 +1227,33 @@ async function FindMyJobBody({
       includeMidLevel: true,
       includeEarlyCareer: true,
       workTypes,
-      keep: keepGreat || pivotFilter ? (p) => (!keepGreat || keepGreat(p)) && (!pivotFilter || pivotFilter.matchesTitle(p.title)) : undefined,
+      keep: combineKeeps([
+        keepGreat,
+        pivotFilter ? (p) => pivotFilter.matchesTitle(p.title) : null,
+        ...requirementKeeps(boardFilters, profile),
+      ]),
+      hiddenSectors: hiddenFromShown(boardFilters.sectorsShown),
       relevance: searchMatcher?.relevance,
       sort: onBoard && boardSearch.sort !== 'best' ? boardSearch.sort : undefined,
       // company:Name shows that company's jobs, not just its first five.
       perCompany: searchMatcher && searchMatcher.parsed.companies.length > 0 ? 300 : undefined,
+      // Narrow / Wide. A search keeps every match (the member asked for them), ranked and labelled by breadth.
+      breadth: breadthMode,
+      breadthKeepUnmatched: !!searchView?.active,
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
     onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    // Board jobs they passed on, for "Review" (job-dismiss.ts).
+    onBoard
+      ? prisma.trackedJob.findMany({
+          where: { candidateId: profile.id, source: 'job_board', dismissedAt: { not: null } },
+          orderBy: { dismissedAt: 'desc' },
+          take: 20,
+          select: { sourceId: true, title: true, companyName: true, dismissReasons: true, dismissedAt: true },
+        })
+      : Promise.resolve([]),
   ])
   // The board is in: load this instance's search index in the background (a no-op
   // while it is fresh), so the member's first search finds it ready instead of
@@ -1354,11 +1479,69 @@ async function FindMyJobBody({
               +{applicationPoints} pts
             </span>
             <div className="ml-auto flex flex-wrap items-center gap-3">
+              {board.breadth.classifier && breadthMode !== 'off' && (
+                <BreadthToggle
+                  surface="find_my_job"
+                  current={breadthMode}
+                  counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }}
+                />
+              )}
               <BoardViewToggle surface="find_my_job" />
               <GreatEmployerFilter surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />
+              <FunctionFilter surface="find_my_job" />
             </div>
           </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
+            <RequirementFilters
+              surface="find_my_job"
+              hideBlockers={boardFilters.hideBlockers}
+              clearedOnly={boardFilters.clearedOnly}
+              holdsClearance={holdsClearance(profile)}
+            />
+          </div>
+          {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
+            <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
+              {relevanceLine({
+                breadth: breadthMode,
+                relevant: board.breadth.relevantTotal,
+                shown: breadthMode === 'narrow' ? board.breadth.narrowTotal : board.breadth.wideTotal,
+                extras: board.breadth.extrasTotal,
+                field: `${subFunctionLabel(board.breadth.classifier.member.subFunction) ?? board.breadth.classifier.member.functionLabel ?? 'matching'}`,
+                place: placePhrase(profile, board.breadth.classifier.member),
+              })}{' '}
+              <a
+                href={boardHref(urlParams, { breadth: breadthMode === 'narrow' ? 'wide' : 'narrow' }, { hash: 'job-recommendations' })}
+                className="text-primary underline underline-offset-4"
+              >
+                {breadthMode === 'narrow' ? 'Widen' : 'Narrow it'}
+              </a>
+            </p>
+          )}
+          {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
+            <div className="mt-2">
+              <PassedOnPanel
+                because={becauseLine(board.dismiss.rules.preferences)}
+                hiddenCount={board.dismiss.hidden}
+                preferences={board.dismiss.rules.preferences.map((p) => ({
+                  id: p.id,
+                  kind: p.kind,
+                  label: p.label,
+                  count: p.count,
+                  action: p.action,
+                  ask: shouldAskToHide(p),
+                }))}
+                jobs={passedOnJobs.map((j) => ({
+                  jobId: j.sourceId,
+                  title: j.title,
+                  companyName: j.companyName,
+                  reasons: j.dismissReasons.map((r) => DISMISS_REASON_LABEL.get(r) ?? r),
+                  dismissedOn: j.dismissedAt!.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                }))}
+              />
+            </div>
+          )}
           {pivotFilter ? (
             <PivotBoardBanner
               target={pivotFilter.target}
@@ -1384,6 +1567,7 @@ async function FindMyJobBody({
                 workTypes={workTypes}
                 parallelPaths={parallelPaths}
                 greatFilters={greatFilters}
+                boardFilters={boardFilters}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
                 search={searchView}

@@ -36,6 +36,10 @@ export const LIGHT_SELECT = {
   salaryMax: true,
   createdAt: true,
   employmentType: true,
+  // Sector filter / member sector preference (employer-sector.ts) and the
+  // requirement filters (hide hard blockers, cleared jobs — requirements.ts).
+  employerSector: true,
+  requirementTags: true,
 } satisfies Prisma.ExclusiveJobPostingSelect & Prisma.BoardLightRowSelect
 
 export type LightRow = Prisma.ExclusiveJobPostingGetPayload<{ select: typeof LIGHT_SELECT }>

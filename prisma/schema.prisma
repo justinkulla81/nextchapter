@@ -982,22 +982,29 @@ model CandidateProfile {
   negotiationComfort Int?
 
   // Part 4: Goals
-  remotePreference     String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
-  targetRoleType       String?
-  targetIndustries     String[]
-  targetFunction       String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
-  targetCompanySize    String?
-  targetCompanyStage   String?
-  targetCompMin        Int?
-  compFlexible         Boolean  @default(false)
-  willingToStartLower  Boolean  @default(false)
-  startLowerRationale  String?
-  openToRelocation     Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
-  relocationNotes      String?
-  travelWillingness    Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
-  aiDisplacementReason String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
-  equityImportant      Boolean  @default(false)
-  dealBreakers         String?
+  remotePreference      String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
+  targetRoleType        String?
+  targetIndustries      String[]
+  targetFunction        String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
+  targetCompanySize     String?
+  targetCompanyStage    String?
+  targetCompMin         Int?
+  compFlexible          Boolean  @default(false)
+  willingToStartLower   Boolean  @default(false)
+  startLowerRationale   String?
+  openToRelocation      Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
+  relocationNotes       String?
+  travelWillingness     Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Kept in step with maxTravelPct below (true when maxTravelPct > 0) for older readers.
+  // The most travel the member will take on, in percent: 0 | 25 | 50 | 75 (75 = 75%+).
+  // Null = not asked yet (rows with travelWillingness=true were moved to 50). Read by
+  // the job requirement match (src/lib/jobs/requirements.ts) against a posting's travel %.
+  maxTravelPct          Int?
+  // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
+  // 'private'): the board and every job email leave those jobs out. Empty = all on.
+  hiddenEmployerSectors String[] @default([])
+  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  equityImportant       Boolean  @default(false)
+  dealBreakers          String?
 
   // Personal Context: Blockers + Motivations (Prompt 47 rework, consolidated
   // onto Search Strategy as its own required "Blockers and Motivations"
@@ -1042,6 +1049,22 @@ model CandidateProfile {
   // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
   boardAdvisoryWillingness        Boolean?
   isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  // Job board breadth the member chose: 'narrow' (their field, pivots, close skills
+  // matches) or 'wide' (more adjacent work). Null = not chosen: the board defaults by
+  // career stage (senior Narrow, junior Wide) and job emails use Narrow
+  // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
+  boardBreadth                    String?
+  jobDismissPreferences           JobDismissPreference[]
+  // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
+  // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
+  // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
+  industryBuckets                 String[]  @default([])
+  industryBucketsConfirmedAt      DateTime?
+  // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
+  // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
+  // when the board loads. Null = function not split, or nothing on the allowlists
+  // matched. prisma/manual/2026-10-16-sub-functions.sql.
+  subFunction                     String?
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
@@ -1108,6 +1131,17 @@ model CandidateProfile {
   willingToTakeDrugTest           Boolean?
   willingToTakeBackgroundCheck    Boolean?
   wantsAnimalFriendlyWorkplace    Boolean?
+  // Security clearance and licenses held — matched against job requirement flags
+  // (src/lib/jobs/requirements.ts). Same nullable posture: null = not asked yet.
+  // clearanceLevel: 'none' | 'public_trust' | 'secret' | 'top_secret' | 'ts_sci';
+  // clearanceActive: true = active/current, false = lapsed; clearancePolygraph:
+  // 'none' | 'ci' | 'full_scope'. licensesHeld uses the requirement license keys
+  // (cpa, pe, bar, rn, pmp, series_7, …); licensesAnsweredAt tells "none" from "not asked".
+  clearanceLevel                  String?
+  clearanceActive                 Boolean?
+  clearancePolygraph              String?
+  licensesHeld                    String[]  @default([])
+  licensesAnsweredAt              DateTime?
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
@@ -5008,6 +5042,10 @@ model ExclusiveJobPosting {
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
   socCode           String?
   socTitle          String?
+  // Sub-function (src/lib/jobs/sub-functions.ts, e.g. 'ops_facilities'): allowlisted title
+  // patterns and O*NET codes within the job's function, set at import and backfilled
+  // (scripts/careers/backfill-sub-functions.ts). Null = not split / not on the lists.
+  subFunction       String?
   // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
   // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
   // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
@@ -5023,9 +5061,25 @@ model ExclusiveJobPosting {
   // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
   // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
   recruiterName     String?
+  // Employer sector for the board's sector filter and the member's sector
+  // preference (src/lib/jobs/employer-sector.ts): 'private' | 'government' |
+  // 'nonprofit' | 'academia', from the crawler's ncrawl/sector.py (USAJOBS and
+  // state/local sources, IRS NTEE / 990 filers, IPEDS institutions). Null = not
+  // sent (read as private). prisma/manual/2026-10-16-board-function-requirements.sql.
+  employerSector    String?
+  // Hard requirements the crawler read from the full posting text with phrase
+  // patterns (ncrawl/requirements.py): clearance (level, active vs obtain,
+  // polygraph), US citizens only, no visa sponsorship, required licenses, travel %,
+  // relocation, onsite. requirementFlags is the list with labels and evidence;
+  // requirementTags the same as a compact comma list the board filters on in
+  // memory (src/lib/jobs/requirements.ts). Null = none found / not sent.
+  requirementFlags  Json?
+  requirementTags   String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
+  // Covers the admin "new listings, not rejected, last 7 days" count as an index-only scan.
+  @@index([createdAt, status])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
@@ -5071,6 +5125,8 @@ model BoardLightRow {
   institutionScopeId String?
   distribution       String
   expiresAt          DateTime?
+  employerSector     String?
+  requirementTags    String?
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -5129,6 +5185,68 @@ model JobClickEvent {
 // Tracker, Gmail sync (interview / rejection emails) and every application stat
 // already read — so status lives there and is never kept twice. Gmail-detected
 // applications are linked here by company + title (src/lib/jobs/my-jobs.ts).
+// What the board learned from a member's dismissals (src/lib/jobs/job-dismiss.ts): kind
+// 'company' | 'industry' | 'title' | 'level' | 'location' | 'pay_floor', its value (a
+// normalised key; the floor in USD a year), how many dismissals said so, and what is done
+// with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
+// askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
+// prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+model JobDismissPreference {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  value       String
+  label       String
+  count       Int              @default(0)
+  action      String           @default("downweight")
+  askedAt     DateTime?
+  undoneAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  @@unique([candidateId, kind, value])
+}
+
+// A member said a board job looks like a ghost job ('ghost'), is too good to be true
+// ('too_good') or has red flags ('red_flags'). Feeds ghost risk (ghost-risk.ts) and the
+// admin review list (/support/admin/job-flags). No FK on postingId: a flag outlives the posting.
+model JobPostingFlag {
+  id          String    @id @default(cuid())
+  postingId   String
+  candidateId String
+  kind        String
+  note        String?
+  reviewedAt  DateTime?
+  // An admin's call (/support/admin/job-flags): 'confirmed_ghost' hides the job for everyone, 'dismissed' keeps it.
+  adminDecision String?
+  decidedAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([postingId, candidateId, kind])
+  @@index([kind, createdAt])
+}
+
+// Market size per function x sub-function x level band x industry bucket x geography
+// (a state code, 'remote', or ''), rebuilt nightly from the board (src/lib/market/
+// market-size-stats.ts). Recent = last 14 days, prior = the 28 before. '' = unknown / none;
+// fn '*' holds the whole board's totals.
+model MarketTargetStat {
+  fn           String
+  subFunction  String
+  band         String
+  industry     String
+  geo          String
+  openNow      Int      @default(0)
+  newRecent    Int      @default(0)
+  newPrior     Int      @default(0)
+  closedRecent Int      @default(0)
+  closedPrior  Int      @default(0)
+  computedAt   DateTime @default(now())
+
+  @@id([fn, subFunction, band, industry, geo])
+}
+
 model TrackedJob {
   id          String           @id @default(cuid())
   candidateId String
@@ -5153,6 +5271,11 @@ model TrackedJob {
   promptAnswer     String? // 'applied' | 'not_yet' | 'not_interested'
   promptAnsweredAt DateTime?
   dismissedAt      DateTime? // "Not interested" — hidden from My jobs
+  // Why they passed on it (board X, src/lib/jobs/job-dismiss.ts): 'company' | 'industry' |
+  // 'skills' | 'title' | 'level' | 'pay' | 'location' | 'ghost' | 'too_good' | 'red_flags' |
+  // 'applied_elsewhere' | 'other', and an optional note. prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+  dismissReasons   String[]  @default([])
+  dismissNote      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -7321,6 +7444,18 @@ model CompanyAlias {
 
   @@unique([aliasKey, companyId])
   @@index([aliasKey])
+}
+
+/// "These are not duplicates": a group of same-letter names an admin has dismissed
+/// from the Duplicates page. groupKey is the name with spacing, punctuation and "&" removed.
+model DuplicateDismissal {
+  id             String   @id @default(cuid())
+  kind           String // ORGANIZATION | COMPANY
+  groupKey       String
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([kind, groupKey])
 }
 
 model CompanyJobOpening {
@@ -15050,6 +15185,26 @@ model OccupationRelated {
 // Which occupation a candidate's most recent job maps to. A cache of a
 // deterministic title match or of the candidate choosing from a short list.
 // There is no metered AI path: an ambiguous title is never guessed at.
+// Occupation-to-occupation similarity over every O*NET occupation (not only the
+// white-collar scope above), built offline from the O*NET file by
+// scripts/careers/build-occupation-similarity.ts; the board's skills-adjacent
+// matches read it (src/lib/jobs/search-breadth.ts). Each occupation keeps its
+// closest ~40 at score >= 0.55. prisma/manual/2026-10-16-search-breadth.sql.
+model OccupationSimilarity {
+  socCode        String
+  similarSocCode String
+  // 0-1: centred skill + knowledge profile cosine, lifted when O*NET relates the pair.
+  score          Float
+  related        Boolean  @default(false)
+  // What the two share, plain words, most specific first (tools, knowledge, skills).
+  sharedSkills   String[] @default([])
+  // O*NET titles, so a lookup needs no join to Occupation (which holds only the white-collar scope).
+  title          String
+  similarTitle   String
+
+  @@id([socCode, similarSocCode])
+}
+
 model CandidateOccupation {
   candidateId String           @id
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
@@ -15616,4 +15771,26 @@ model InternalRoleInterest {
 
   @@unique([postingId, candidateId])
   @@index([candidateId])
+}
+
+// Native one-click apply (src/lib/jobs/native-apply.ts): a member's application to
+// a job posted directly on NextChapter, delivered to the poster's inbox as a
+// message. `shared` is the exact snapshot the member reviewed and sent; the
+// application itself is the JobPosting row My jobs already reads (jobPostingId).
+// Added by hand: prisma/manual/2026-10-16-native-apply.sql.
+model NativeJobApplication {
+  id                    String   @id @default(cuid())
+  candidateId           String
+  postingId             String // ExclusiveJobPosting.id
+  jobPostingId          String? // JobPosting.id (My jobs / Application Tracker)
+  partnerType           String // 'employer' | 'recruiter'
+  partnerId             String
+  threadId              String // MessageThread.id the application was delivered to
+  resumeId              String?
+  shared                Json
+  confidentialConfirmed Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([postingId])
 }

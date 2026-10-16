@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { isCircularEmailMatch } from './backchannel-circular'
 
 export interface BackchannelMatch {
   job: { id: string; title: string | null; companyName: string; appliedAt: Date }
@@ -18,7 +19,7 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
   const [jobs, contacts] = await Promise.all([
     prisma.jobPosting.findMany({
       where: { candidateId, appliedAt: { not: null }, companyName: { not: null } },
-      select: { id: true, title: true, companyName: true, appliedAt: true },
+      select: { id: true, source: true, title: true, companyName: true, appliedAt: true },
     }),
     prisma.supportNetworkContact.findMany({
       where: { candidateId, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
@@ -29,6 +30,7 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
         company: true,
         inferredCompany: true,
         createdAt: true,
+        source: true,
         email: true,
         linkedinUrl: true,
       },
@@ -70,7 +72,9 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
       .filter(
         (c) =>
           (c.company !== null && normalizedMatch(c.company, jobNorm)) ||
-          (c.inferredCompany !== null && normalizedMatch(c.inferredCompany, jobNorm))
+          (c.inferredCompany !== null &&
+            normalizedMatch(c.inferredCompany, jobNorm) &&
+            !isCircularEmailMatch({ jobSource: job.source, contactSource: c.contact.source, matchedOnlyByInference: true }))
       )
       .map((c) => c.contact)
     if (matchedContacts.length === 0) continue

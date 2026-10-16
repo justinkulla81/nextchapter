@@ -84,11 +84,14 @@ describe('early-career rungs', () => {
     expect(refineLevelByYears('Financial Analyst', mid, null).rung).toBe('EARLY_IC')
     // A level marker in the title wins over the text.
     expect(refineLevelByYears('Software Engineer II', classifyTitleRung('Software Engineer II'), '0-2 years of experience').rung).toBe('EARLY_IC')
-    // A second-grade "Senior" title asking 3 years or fewer is mid-level (2026-10-16); engineering
-    // "Senior" titles and senior titles asking more keep SENIOR_IC.
+    // A "Senior" title asking 5 years or fewer is mid-level (2026-10-16); asking more keeps SENIOR_IC.
     expect(refineLevelByYears('Senior Financial Analyst', classifyTitleRung('Senior Financial Analyst'), '1+ years of experience').rung).toBe('MID_IC')
     expect(refineLevelByYears('Senior Financial Analyst', classifyTitleRung('Senior Financial Analyst'), '6+ years of experience').rung).toBe('SENIOR_IC')
-    expect(refineLevelByYears('Senior Software Engineer', classifyTitleRung('Senior Software Engineer'), '2+ years of experience').rung).toBe('SENIOR_IC')
+    // "Senior <professional noun>" asking 5 years or fewer is mid-level (owner, 2026-10-16); 6+ or no years keeps it.
+    expect(refineLevelByYears('Senior Software Engineer', classifyTitleRung('Senior Software Engineer'), '5+ years of experience').rung).toBe('MID_IC')
+    expect(refineLevelByYears('Senior Software Engineer', classifyTitleRung('Senior Software Engineer'), '6+ years of experience').rung).toBe('SENIOR_IC')
+    expect(refineLevelByYears('Senior Software Engineer', classifyTitleRung('Senior Software Engineer'), 'A great team.').rung).toBe('SENIOR_IC')
+    expect(refineLevelByYears('Staff Software Engineer', classifyTitleRung('Staff Software Engineer'), '3+ years of experience').rung).not.toBe('MID_IC')
     // A 4-year minimum is mid-level.
     expect(refineLevelByYears('Financial Analyst', mid, '4+ years of experience').rung).toBe('MID_IC')
     expect(yearsStage('a 2-year contract')).toBeNull()

@@ -932,7 +932,7 @@
 [
 "Senior Accountant",
 "Requires 5+ years of accounting experience.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Senior Financial Analyst",
@@ -942,7 +942,7 @@
 [
 "Senior Software Engineer",
 "2+ years of experience.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Senior Consultant",
@@ -983,5 +983,80 @@
 "Program Analyst (GS-7/9/11)",
 "Bachelor's degree with superior academic achievement.",
 "ENTRY_IC"
+],
+[
+"Senior Analyst",
+"3-5 years of experience in analytics.",
+"MID_IC"
+],
+[
+"Senior Analyst",
+"7+ years of experience.",
+"SENIOR_IC"
+],
+[
+"Senior Software Engineer",
+"5+ years of professional software experience.",
+"MID_IC"
+],
+[
+"Senior Software Engineer",
+"Minimum of six years of experience.",
+"SENIOR_IC"
+],
+[
+"Senior Product Manager",
+"4+ years of product management experience.",
+"MID_IC"
+],
+[
+"Senior Designer",
+"5 or more years designing products.",
+"SENIOR_IC"
+],
+[
+"Senior Data Scientist, Growth",
+"5+ years of experience; PhD preferred.",
+"MID_IC"
+],
+[
+"Senior Recruiter",
+"3+ years of full-cycle recruiting.",
+"SENIOR_IC"
+],
+[
+"Senior Specialist, Compliance",
+"8+ years of experience.",
+"SENIOR_IC"
+],
+[
+"Senior Solutions Architect",
+"3+ years of experience.",
+"SENIOR_IC"
+],
+[
+"Lead Software Engineer",
+"3+ years of experience.",
+"SENIOR_IC"
+],
+[
+"Senior Engineer II",
+"5+ years of experience.",
+"MID_IC"
+],
+[
+"Senior Counsel",
+"4+ years of practice.",
+"SENIOR_IC"
+],
+[
+"Senior Accountant",
+"No experience required, we will train.",
+"MID_IC"
+],
+[
+"Senior Forward Deployed Engineer",
+"5+ years of experience.",
+"SENIOR_IC"
 ]
 ]

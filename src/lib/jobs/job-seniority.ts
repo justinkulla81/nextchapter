@@ -293,25 +293,36 @@ export function yearsStage(description: string | null | undefined): 'ENTRY' | 'E
   return 'MID'
 }
 
+/** Minimum years a posting states (0 for "0-2 years" forms), or null (ncrawl years.py years_min). */
+export function yearsMin(description: string | null | undefined): number | null {
+  if (!description) return null
+  const text = description.replace(/\u00a0/g, ' ')
+  if (YEARS_ZERO_RANGE.test(text)) return 0
+  return parseYearsRequired(text)?.min ?? null
+}
+
+/** "Senior" titles asking this many years or fewer are mid-level. */
+const SENIOR_YEARS_MAX = 5
+
 const STAGE_RUNG = { ENTRY, EARLY, MID: { rung: 'MID_IC' as RungName, rank: MID_IC_RANK } }
 
 /**
  * An early or mid-level professional title without its own level marker takes
  * its stage from the posting's years requirement ("Financial Analyst" asking
  * 0-2 years is entry, 2-3 early, 4+ mid). Never moves a job above MID_IC or
- * touches anything ranked above it, except a second-grade "Senior" title asking
- * 3 years or fewer, which comes down to MID_IC. Mirrors ncrawl refine_level_by_years.
+ * touches anything ranked above it, except a "Senior <professional noun>" title asking
+ * 5 years or fewer, which comes down to MID_IC. Mirrors ncrawl refine_level_by_years.
  */
 export function refineLevelByYears(
   title: string,
   level: { rung: RungName; rank: number },
   description: string | null | undefined
 ): { rung: RungName; rank: number } {
-  // A second-grade "Senior" title (Senior Accountant, Senior Financial Analyst, Big Four
-  // Senior Consultant) asking 3 years or fewer is mid-level (never lower).
+  // A "Senior <professional noun>" title (Senior Analyst, Senior Software Engineer, Senior
+  // Product Manager) whose posting states a minimum of 5 years or fewer is mid-level (never lower).
   if (level.rung === 'SENIOR_IC' && description && SENIOR_SECOND_GRADE.test(title)) {
-    const s = yearsStage(description)
-    return s === 'ENTRY' || s === 'EARLY' ? STAGE_RUNG.MID : level
+    const m = yearsMin(description)
+    return m !== null && m <= SENIOR_YEARS_MAX ? STAGE_RUNG.MID : level
   }
   if (!['ENTRY_IC', 'EARLY_IC', 'MID_IC'].includes(level.rung) || !description) return level
   if (EXPLICIT_LEVEL.test(title) || ENTRY_EXPLICIT.test(title)) return level

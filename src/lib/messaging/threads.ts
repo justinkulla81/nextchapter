@@ -201,6 +201,31 @@ export async function sendMessage(
   return message
 }
 
+// Native one-click apply (src/lib/jobs/native-apply.ts). The candidate applying to
+// a job this recruiter/employer posted on NextChapter IS the consent for this one
+// pair — they chose to send their application to exactly this poster — so the
+// introduction/reveal gates in assertThreadAllowed don't apply here. Only the
+// candidate can start this path (the caller checks the posting and the session).
+export async function deliverApplicationToPoster(
+  candidateId: string,
+  partnerType: 'RECRUITER' | 'EMPLOYER',
+  partnerId: string,
+  body: string,
+  attachedResumeId: string | null
+) {
+  const where = partnerWhere(partnerType, partnerId)
+  const thread =
+    (await prisma.messageThread.findFirst({ where: { candidateId, ...where } })) ??
+    (await prisma.messageThread.create({ data: { candidateId, partnerType, ...where } }))
+  const now = new Date()
+  await prisma.$transaction([
+    prisma.message.create({ data: { threadId: thread.id, senderRole: 'CANDIDATE', body: body.trim(), attachedResumeId } }),
+    prisma.messageThread.update({ where: { id: thread.id }, data: { lastMessageAt: now, candidateLastReadAt: now } }),
+  ])
+  await notifyNewMessage(thread.id, 'CANDIDATE')
+  return thread
+}
+
 export async function markThreadRead(threadId: string, side: 'candidate' | 'partner') {
   await prisma.messageThread.update({
     where: { id: threadId },
@@ -367,7 +392,8 @@ export async function getThreadWithMessages(threadId: string) {
   const thread = await prisma.messageThread.findUnique({
     where: { id: threadId },
     include: {
-      messages: { orderBy: { createdAt: 'asc' } },
+      // attachedResume: only ever set by the candidate (peer DMs, native apply), so it is theirs to share.
+      messages: { orderBy: { createdAt: 'asc' }, include: { attachedResume: { select: { id: true, label: true, fileName: true, filePath: true } } } },
       candidate: { select: CANDIDATE_DISPLAY_SELECT },
       coach: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },
       recruiter: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },

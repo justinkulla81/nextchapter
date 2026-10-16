@@ -11,7 +11,13 @@ import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { formatUsdK } from '@/lib/pay/market-pay'
 import { ClosedJobAlternatives } from '@/components/jobs/ClosedJobAlternatives'
 import { ApplyOnEmployerSite, ClosedJobViewed } from '@/components/jobs/JobPageActions'
+import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { NativeApply } from '@/components/jobs/NativeApply'
+import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
+import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { cn } from '@/lib/utils'
+import { checkRequirements, parseRequirementFlags, requirementMemberOf } from '@/lib/jobs/requirements'
+import { JobRequirementDetails, JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 
 // A board job's own page — what a saved link, a My jobs row or an email opens. It
 // opens for past jobs too (read-only): a banner says when and why it closed, there
@@ -31,7 +37,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       select: {
         id: true, title: true, companyName: true, location: true, url: true, status: true, distribution: true, disclosure: true,
         institutionScopeId: true, audienceTier: true, source: true, level: true, salaryMin: true, salaryMax: true, payPeriod: true,
-        description: true, company: { select: { canonicalNameNormalized: true } },
+        description: true, submittedByEmployerId: true, submittedByRecruiterId: true, company: { select: { canonicalNameNormalized: true } },
+        requirementFlags: true, locationState: true, targetFunction: true, employerSector: true,
       },
     }),
     prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: id }, select: { id: true } }),
@@ -55,6 +62,12 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const yearly = !posting.payPeriod || posting.payPeriod === 'year'
   const pay = yearly && posting.salaryMin && posting.salaryMax ? `${formatUsdK(posting.salaryMin)}–${formatUsdK(posting.salaryMax)} posted` : null
   const sentence = lifecycleSentence(life)
+  // Posted directly on NextChapter by an employer or recruiter: apply here, to their inbox.
+  const native = !!nativePosterOf(posting)
+  // Hard requirements the posting states, against what the member told us (requirements.ts).
+  const requirements = checkRequirements(parseRequirementFlags(posting.requirementFlags), requirementMemberOf(profile), {
+    locationState: posting.locationState,
+  })
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -87,7 +100,13 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           {[posting.location, seniorityLabel(posting.level), pay].filter(Boolean).map((x) => ` · ${x}`)}
         </p>
         <p className="text-sm text-muted-foreground">{postedLine(life)}</p>
+        <JobRequirementLabels jobId={posting.id} checks={requirements} surface="job_page" />
       </div>
+      {requirements.length > 0 && (
+        <div className="rounded-lg border border-border p-4">
+          <JobRequirementDetails jobId={posting.id} checks={requirements} surface="job_page" />
+        </div>
+      )}
 
       {life.isPast ? (
         <div role="status" className="space-y-2 rounded-lg border border-border bg-muted p-4">
@@ -97,10 +116,23 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-3">
-          <ApplyOnEmployerSite job={{ id: posting.id, title: posting.title, companyName: posting.companyName, location: posting.location, url: posting.url }} />
+          {native ? (
+            <NativeApply postingId={posting.id} />
+          ) : (
+            <ApplyOnEmployerSite job={{ id: posting.id, title: posting.title, companyName: posting.companyName, location: posting.location, url: posting.url }} />
+          )}
           {life.repostCount > 0 && (
             <p className="text-xs text-muted-foreground">Reposted before — worth asking someone there whether it is actively being filled.</p>
           )}
+        </div>
+      )}
+
+      {!life.isPast && (
+        <div className="space-y-3">
+          <ApplyKit postingId={posting.id} surface="job_page" />
+          <div data-who-to-contact={posting.id}>
+            <WhoToContactPanel postingId={posting.id} confidential={confidential} />
+          </div>
         </div>
       )}
 

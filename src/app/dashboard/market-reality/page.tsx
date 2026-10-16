@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -785,6 +786,13 @@ export default async function MarketRealityReportPage({
           <Suspense fallback={null}>
             <SearchDiagnosisSection candidateId={profile.id} />
           </Suspense>
+
+          {/* Market size for the member's target: open jobs, trend, next steps (market-size.ts). */}
+          <div className="mt-10">
+            <Suspense fallback={null}>
+              <MarketSizeSection member={profile} surface="market_reality" />
+            </Suspense>
+          </div>
 
           {/* Adzuna labor-market data for the member's target role: advertised
               salary distribution, 6-month trend, demand by state, top hirers. */}

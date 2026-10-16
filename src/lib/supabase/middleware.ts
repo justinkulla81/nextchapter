@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith, type PortalKey } from '@/lib/supabase/portal'
+import { portalHostFor, portalHostOn, publicPathFor } from '@/lib/portal-hosts'
 
 // Whether ANY Supabase session cookie is present for the relevant portal —
 // checked with startsWith (not equality) because @supabase/ssr chunks a
@@ -168,8 +169,12 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
       '/employer': '/employer/login',
       '/support/admin': '/support/admin/login',
     }).find(([prefix]) => pathStartsWith(appPath, prefix))?.[1]
-    redirectUrl.pathname = portalLoginPath ?? '/auth/login'
-    redirectUrl.searchParams.set('next', appPath)
+    // On a portal's own host, send them to its public addresses
+    // (/hiring/login?next=/hiring/roles), not the app paths behind them.
+    const h = portalHostFor(request.headers.get('host'))
+    const pub = (p: string) => (h && portalHostOn(h) ? publicPathFor(h, p) : p)
+    redirectUrl.pathname = pub(portalLoginPath ?? '/auth/login')
+    redirectUrl.searchParams.set('next', pub(appPath))
     return NextResponse.redirect(redirectUrl)
   }
 

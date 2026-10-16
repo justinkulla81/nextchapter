@@ -1,8 +1,9 @@
 // Partner portals on their own subdomains, like admin. and workforce.:
 //   recruiter.<site>      the recruiter portal       (served from /recruiters)
 //   coach.<site>          the coach portal           (/support/coach)
-//   organization.<site>   hiring (/talent), and outplacement, growth and
-//                         learning (/employer, one employer account)
+//   employer.<site>       hiring (/talent), and outplacement, growth and
+//                         learning (/employer, one employer account).
+//                         Was organization.<site>, which now forwards here.
 //   candidate.<site>      the job seeker's app       (/dashboard, /onboarding, ...)
 // Cookies there are host-only, so each portal's session never shares a
 // cookie jar with the main site. Each is switched on by name in
@@ -13,9 +14,16 @@
 
 import type { PortalKey } from '@/lib/supabase/portal'
 
-export type PortalHost = 'recruiter' | 'coach' | 'organization' | 'candidate'
+export type PortalHost = 'recruiter' | 'coach' | 'employer' | 'candidate'
 
-const ON = new Set((process.env.NEXT_PUBLIC_PORTAL_SUBDOMAINS || '').split(',').map((s) => s.trim()).filter(Boolean))
+const ON = new Set(
+  (process.env.NEXT_PUBLIC_PORTAL_SUBDOMAINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    // 'organization' is the employer host's old name.
+    .map((s) => (s === 'organization' ? 'employer' : s))
+    .filter(Boolean)
+)
 export const portalHostOn = (h: PortalHost) => ON.has(h)
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -24,9 +32,12 @@ export function portalOrigin(h: PortalHost): string {
   return `${u.protocol}//${h}.${u.host}`
 }
 
+// The employer portal's first name; its links forward to employer.<site>.
+export const LEGACY_EMPLOYER_HOST_PREFIX = 'organization.'
+
 export function portalHostFor(host: string | null | undefined): PortalHost | null {
   if (!host) return null
-  for (const h of ['recruiter', 'coach', 'organization', 'candidate'] as const) if (host.startsWith(`${h}.`)) return h
+  for (const h of ['recruiter', 'coach', 'employer', 'candidate'] as const) if (host.startsWith(`${h}.`)) return h
   return null
 }
 
@@ -49,7 +60,7 @@ export const CANDIDATE_PATHS = ['/dashboard', '/onboarding', '/membership', '/au
 export const HOSTS: Record<PortalHost, HostConfig> = {
   recruiter: { mounts: [{ at: '', path: '/recruiters', cookie: 'recruiter' }], home: '/recruiters/dashboard', mainExact: ['/recruiters'] },
   coach: { mounts: [{ at: '', path: '/support/coach', cookie: 'coach' }], home: '/support/coach', mainExact: [] },
-  organization: {
+  employer: {
     mounts: [
       { at: '/hiring', path: '/talent', cookie: 'talent', index: '/talent/dashboard' },
       // Before /outplacement: publicPathFor takes the first mount that fits.
@@ -57,7 +68,7 @@ export const HOSTS: Record<PortalHost, HostConfig> = {
       { at: '/learning', path: '/employer/learning', cookie: 'employer' },
       { at: '/outplacement', path: '/employer', cookie: 'employer' },
     ],
-    home: '/organization-home',
+    home: '/employer-home',
     mainExact: ['/talent'],
   },
   candidate: { mounts: CANDIDATE_PATHS.map((p) => ({ at: p, path: p })), home: '/dashboard', mainExact: [] },

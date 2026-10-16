@@ -202,6 +202,8 @@ const lightRows = (): BoardRankRow[] =>
     salaryMax: p.salaryMax,
     createdAt: new Date(p.createdAt),
     employmentType: null,
+    employerSector: null,
+    requirementTags: null,
   }))
 
 describe('board ranking with a search', () => {
