@@ -56,3 +56,12 @@ Employer headcounts in the CSV are only filled where a source was found. Most ar
 - Confirm headcounts and Louisville presence for employers marked "verify".
 - Correct one WARN notice dated 2026-12-08 (a future date) in the `WarnNotice` table before any layoff figure is used.
 - Indiana WARN notices (218 rows) need filtering to the Southern Indiana counties in the metro.
+
+## Update 2026-10-16: direct crawl results
+
+Fifteen employers read from their own career sites, 2,380 openings (2,091 tagged to Jefferson County), loaded into `jobsreport_posting` with full text:
+Norton Healthcare 622 (Jibe/iCIMS API), Baptist Health 542, UofL Health 453, Jefferson County Public Schools 240 (Frontline/AppliTrack), University of Louisville 136, GE Appliances 90, Papa John's 76, Humana 53, PNC 43, Louisville Metro Government 38 (of 52 listed; NEOGOV paging repeats), Elevance Health 27, Commonwealth of Kentucky 23 (Cornerstone, Louisville only), Brown-Forman 18, Waystar 10, Fifth Third 9.
+
+Not readable from the cloud environment: UPS (jobs.ups.com) and Kroger (careers.kroger.com) fail upstream (proxy 502). Ford, Amazon, Walmart, Texas Roadhouse, the sewer district and water company are not yet added. Run these from the Mac, or find their ATS endpoints.
+
+Open items: tag white-collar status and ENTRY level on every row (the crawler does not classify level yet); NEOGOV paging; Humana's board lists mostly remote roles outside Louisville, so its Louisville subset may be understated.
