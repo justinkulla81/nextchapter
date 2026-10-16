@@ -7828,6 +7828,10 @@ model OutplacementContract {
   org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
+  // The journey a seat starts (src/lib/journey/sponsored.ts). Null means
+  // outplacement: Laid off, applying. Career growth contracts set Managing my career,
+  // Promotion or Changing careers. No DDL rewrite of existing rows needed.
+  journey          JourneyType?
   tier             OutplacementTier
   seatCount        Int
   termStartAt      DateTime

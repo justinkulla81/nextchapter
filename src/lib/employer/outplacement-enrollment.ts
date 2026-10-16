@@ -1,5 +1,7 @@
 import 'server-only'
 import { applyJourneyChange } from '@/lib/journey/apply'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { shouldApplySponsoredStart, sponsoredStart } from '@/lib/journey/sponsored'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
@@ -104,7 +106,7 @@ export async function enrollOneSeat(
       },
     })
     await grantSeatAccess(linked.id).catch(() => null)
-    await startOutplacementJourney(existing.id)
+    await startOutplacementJourney(existing.id, contractId)
     await sendOutplacementSeatLinkedEmail(email, orgName)
     return { email, outcome: 'linked' }
   }
@@ -242,7 +244,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
     await grantSeatAccess(seat.id).catch(() => null)
-    await startOutplacementJourney(nowRegistered.id)
+    await startOutplacementJourney(nowRegistered.id, seat.contractId)
     return {}
   }
 
@@ -254,13 +256,26 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
   await grantSeatAccess(seat.id).catch(() => null)
 
   captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id })
-  await startOutplacementJourney(profile.id)
+  await startOutplacementJourney(profile.id, seat.contractId)
 
   return {}
 }
 
-// An outplacement seat means the job ended: the member starts (or switches
-// to) the Laid off journey, actively applying (src/lib/journey).
-async function startOutplacementJourney(candidateId: string): Promise<void> {
-  await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
+// A seat starts the journey its contract names (src/lib/journey/sponsored.ts).
+// Outplacement: the job ended, so Laid off, applying. Career growth: Managing
+// my career, Promotion or Changing careers, and never over someone who is
+// already in a search. The employer is not told about later journey changes.
+async function startOutplacementJourney(candidateId: string, contractId: string): Promise<void> {
+  const [contract, profile] = await Promise.all([
+    prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { journey: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+  ])
+  const start = sponsoredStart(contract?.journey)
+  if (profile && !shouldApplySponsoredStart(start, effectiveJourney(profile), effectiveStage(profile))) return
+  await applyJourneyChange(candidateId, {
+    journey: start.journey,
+    stage: start.stage,
+    source: 'ONBOARDING',
+    note: start.onlyIfNotSearching ? 'Career growth seat' : 'Outplacement seat',
+  })
 }

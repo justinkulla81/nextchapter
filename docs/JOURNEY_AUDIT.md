@@ -80,9 +80,13 @@ List prices are the seeded values in `scripts/seed-commercial-config.ts`. Anythi
 | Workforce boards | Laid off, Changing careers, Returning | Monthly board brief drafts; funding matches | Grants/contracts (no product) | No board portal |
 | Members | All | Membership (coach, recruiter), premium plans | Direct subscription | Free-to-paid trigger per journey not defined |
 
-## 5. Proposal: a "career growth" employer product (L&D and retention)
+## 5. Career growth employer product (L&D and retention)
 
-For companies that want to keep and grow people. Nothing here exists yet.
+For companies that want to keep and grow people.
+
+**Built (2026-10-16, step 1):** `OutplacementContract.journey` (nullable; null = outplacement), an admin "What are the seats for?" choice on the contract form, a "For" column on the contracts list, and enrollment that starts the contract's journey (`src/lib/journey/sponsored.ts`, tested). A career growth seat never overrides a member already in a search. **Before deploy:** apply `prisma/manual/2026-10-16-contract-journey.sql` by hand.
+
+**Not built yet:** a career growth plan category and price (pricing is not set), employer-side reporting and wording for current employees (the portal still says outplacement), manager tools. The list below is what remains.
 
 **What it is:** employer-sponsored seats for current employees on **Managing my career** or **Promotion** (and optionally
 Changing careers for internal mobility). Same member-owned dashboard; the employer pays for access, not for visibility into a person.
@@ -93,7 +97,7 @@ on enrollment instead of hard-coded Laid off.
 
 **Build list (in order):**
 1. `PlanCatalogCategory` value for career growth, and a seat type. Journey chosen per cohort at enrollment (Managing my career default; Promotion for a cohort; Changing careers for mobility).
-2. Enrollment sets journey and stage from the contract, not always Laid off (`outplacement-enrollment.ts:265`).
+2. ~~Enrollment sets journey and stage from the contract~~ (done).
 3. Employer reporting that is aggregate only, minimum cell 10, same rules as the scorecard: activation, review-prep completed, skills gaps closed (named skills, not people), pay-benchmark reads, internal-move interest as a count. Never an individual, never mood check-ins, never confidential-mode members' detail (`docs/AFFILIATIONS.md`).
 4. Manager-facing tools in `/for-managers`: give a reference, a growth-conversation prompt. Opt-in per member.
 5. Company-branded program bar already exists for outplacement; reuse it.
@@ -104,9 +108,11 @@ on enrollment instead of hard-coded Laid off.
 - A sponsored member who later starts a search keeps their privacy: the journey change from check-in must not notify the employer. Today `applyJourneyChange` tells only colleges; keep it that way for employers.
 - Confidential Search Mode default is **on** for these journeys; a sponsor must not be able to turn it off.
 
-## 6. Proposal: higher ed by journey
+## 6. Higher ed by journey
 
-Today only Promotion and Thinking about a move change what a college shows (`stageHelp` in `src/lib/higher-ed/lifecycle.ts`).
+**Built (2026-10-16):** `journeyHelp` in `src/lib/higher-ed/lifecycle.ts` gives every journey its own cards on the college home, each linking to a screen that exists (programs, mentors, intros, pivot paths, alumni projects and boards). Tested in `college-journey-help.test.ts`. **Not built:** the `builtIn: null` services (`encore`, `board_matching`, `entrepreneur_support`) still have no screen of their own; the cards above point at the alumni projects board instead.
+
+The table shows the intended college offer per journey.
 
 | Journey | Add to the college home | Revenue/outcome for the college |
 |---|---|---|
@@ -138,8 +144,6 @@ Things a member of each journey would expect that the code does not show.
 
 ## 8. Suggested order
 
-1. Decide whether the career growth product (section 5) is wanted; it is the largest new revenue line and reuses the outplacement stack.
-2. Parameterize enrollment by journey (small, enables 1).
-3. Build the college screens that are `builtIn: null` for Next act, Fractional and Building something.
-4. Add journey-aware branches to `stageHelp` for the six journeys that get nothing.
-5. Fill the per-journey engagement gaps in section 7, starting with Managing my career and Promotion since they feed the employer and college products.
+1. Career growth: employer wording and reporting for current employees, then a priced plan category.
+2. Build real screens for the `builtIn: null` college services.
+3. Fill the per-journey engagement gaps in section 7, starting with Managing my career and Promotion since they feed the employer and college products.

@@ -1,3 +1,4 @@
+import { getJourney } from '@/lib/journey/journey'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { listOutplacementOrgs } from '@/lib/admin/outplacement-contracts'
@@ -61,6 +62,7 @@ export default async function AdminOutplacementContractsPage() {
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
                       <th className="px-2 py-1 font-medium">Cohort</th>
+                      <th className="px-2 py-1 font-medium">For</th>
                       <th className="px-2 py-1 font-medium">Tier</th>
                       <th className="px-2 py-1 font-medium">Seats used</th>
                       <th className="px-2 py-1 font-medium">Term</th>
@@ -71,6 +73,7 @@ export default async function AdminOutplacementContractsPage() {
                     {org.contracts.map((c) => (
                       <tr key={c.id} className="border-t border-border">
                         <td className="px-2 py-1">{c.cohortLabel ?? '—'}</td>
+                        <td className="px-2 py-1">{c.journey ? getJourney(c.journey).label : 'Outplacement'}</td>
                         <td className="px-2 py-1">{TIER_LABEL[c.tier]}</td>
                         <td className="px-2 py-1 tabular-nums">
                           {c.usedSeats} / {c.seatCount}
