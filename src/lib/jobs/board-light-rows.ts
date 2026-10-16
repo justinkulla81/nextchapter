@@ -118,6 +118,30 @@ export async function findLightRows(where: Prisma.ExclusiveJobPostingWhereInput)
   return prisma.exclusiveJobPosting.findMany({ where, select: LIGHT_SELECT })
 }
 
+/** One log line of the instance's memory after a big in-memory load, so Vercel's logs show what the board costs. */
+export function logBoardMemory(label: string, detail: Record<string, number>): void {
+  const m = process.memoryUsage()
+  const mb = (n: number) => Math.round(n / 1_048_576)
+  console.log(`[board-memory] ${label}`, JSON.stringify({ ...detail, rssMB: mb(m.rss), heapUsedMB: mb(m.heapUsed), externalMB: mb(m.external) }))
+}
+
+/**
+ * One id-ordered page of findLightRows: rows with an id after `afterId`, at most `take`.
+ * Loading the board a page at a time keeps one page (not the whole table, its filtered
+ * copy and its sorted copy) in memory beside the rows the board keeps.
+ */
+export async function findLightRowsPage(where: Prisma.ExclusiveJobPostingWhereInput, afterId: string | null, take: number): Promise<LightRow[]> {
+  const paged: Prisma.ExclusiveJobPostingWhereInput = afterId === null ? where : { AND: [where, { id: { gt: afterId } }] }
+  if (mirrorCanAnswer(paged) && (await boardLightRowsReady())) {
+    try {
+      return await prisma.boardLightRow.findMany({ where: paged as Prisma.BoardLightRowWhereInput, select: LIGHT_SELECT, orderBy: { id: 'asc' }, take })
+    } catch (error) {
+      console.error('Board light rows: page read failed, reading the wide table', error)
+    }
+  }
+  return prisma.exclusiveJobPosting.findMany({ where: paged, select: LIGHT_SELECT, orderBy: { id: 'asc' }, take })
+}
+
 /**
  * Closed (archived) postings per company + title + location, the input to
  * ghost risk. Ordered, so callers that fold groups differing only in case or
