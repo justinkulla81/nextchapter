@@ -57,6 +57,7 @@ import { buildUnlockLadder } from '@/lib/unlocks/ladder'
 import { firstWeekStep } from '@/lib/onboarding/first-week'
 import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
+import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
@@ -118,6 +119,136 @@ async function getHomeJobCounts(candidateId: string) {
   return { saved, applied, interviews }
 }
 
+type HomeProfile = Awaited<ReturnType<typeof getDashboardData>>
+
+// The Home page's slow cards each load their own data inside their own Suspense
+// boundary, so the page's shell (title, daily note, banners) paints at once and each
+// card fills in as its data arrives, instead of every card waiting on the slowest one.
+
+async function HomeJobsSection({ profile }: { profile: HomeProfile }) {
+  const jobCounts = await getHomeJobCounts(profile.id)
+  return (
+    <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>
+      <Suspense fallback={null}>
+        <FreshJobsPrompt profile={profile} />
+      </Suspense>
+    </JobsModule>
+  )
+}
+
+async function HomeNetworkSection({ candidateId }: { candidateId: string }) {
+  const [needsFollowUp, priorityContacts] = await Promise.all([getNeedsFollowUpList(candidateId), getEmailReminders(candidateId)])
+  return (
+    <HomeModule
+      title="Network"
+      action={
+        <Link href="/dashboard/network" className="text-sm font-medium text-brand underline underline-offset-4">
+          Open Network
+        </Link>
+      }
+    >
+      <DashboardNetworkCard followUps={needsFollowUp} priorityContact={priorityContacts[0] ?? null} />
+    </HomeModule>
+  )
+}
+
+async function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
+  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates] = await Promise.all([
+    // Build Your Dossier summary (condensed here, full checklist + "what
+    // moves the needle" lives on /dashboard/portfolio) and the Executive
+    // Dossier lock/unlock status shown alongside it.
+    computeDossierCompleteness(profile.id),
+    isDossierUnlocked(profile.id),
+    getDossierLadderTier(profile.id),
+    getModuleGateStatus(profile.id),
+  ])
+  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
+  const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
+  return (
+    <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
+  )
+}
+
+async function HomeWeeklyPlan({
+  profile,
+  weekNumber,
+  weekStartDate,
+  bothConnectedUnlocked,
+  hasEmailConnection,
+  hasCalendarConnection,
+  linkedInConnected,
+  searchStrategyChecklist,
+  completedReferencesCount,
+  latestResumeIssueCount,
+  journeyNow,
+}: {
+  profile: HomeProfile
+  weekNumber: number
+  weekStartDate: Date
+  bothConnectedUnlocked: boolean
+  hasEmailConnection: boolean
+  hasCalendarConnection: boolean
+  linkedInConnected: boolean
+  searchStrategyChecklist: ReturnType<typeof computeSearchStrategyChecklist>
+  completedReferencesCount: number
+  latestResumeIssueCount: number
+  journeyNow: ReturnType<typeof effectiveJourney>
+}) {
+  const [weeklyProgress, marketRealityGrade, currentSprint, suggestedActions, profileChecklistItems, resumeFixes] = await Promise.all([
+    computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
+    // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
+    // is the single orchestrator (scoring/market-reality/probability.ts);
+    // never call computeMarketRealityCompositeGrade directly here, that
+    // would be a second, parallel computation of the starting-band input.
+    computeProbabilityGrade(profile.id),
+    getCurrentWeekSprintForRender(profile.id),
+    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
+    getProfileChecklistItems(profile.id),
+    // Improve Your Market Reality — reuses the same real, point-ranked
+    // resume-fix items the Market Reality Report itself shows (see
+    // getResumeFixes), not a separate invented list.
+    getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
+  ])
+  // Pacing is measured against the weekly points target (the ramp), never against
+  // whatever the candidate personally committed to — those are different numbers and
+  // only points_target should decide pacing.
+  const daysElapsedThisWeek = Math.min(
+    7,
+    Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  )
+  const onTrack = weeklyProgress.weeklyPoints > (weeklyProgress.weeklyPointsTarget * daysElapsedThisWeek) / 7
+
+  return (
+    <>
+      <Suspense fallback={<WeeklyFocusSkeleton />}>
+        <WeeklyFocusCard
+          candidateId={profile.id}
+          locked={!bothConnectedUnlocked}
+          weeklyPoints={weeklyProgress.weeklyPoints}
+          weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+        />
+      </Suspense>
+      <SuccessSprintCard
+        actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+        suggestedActions={suggestedActions}
+        weeklyPoints={weeklyProgress.weeklyPoints}
+        weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+        onTrack={onTrack}
+        hasEmailConnection={hasEmailConnection}
+        hasCalendarConnection={hasCalendarConnection}
+        linkedInConnected={linkedInConnected}
+        profileChecklistItems={profileChecklistItems}
+        searchStrategyChecklist={searchStrategyChecklist}
+        completedReferencesCount={completedReferencesCount}
+        weekStartDate={weekStartDate}
+        marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
+        hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
+        title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
+      />
+    </>
+  )
+}
+
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   // Journey and stage (src/lib/journey): the header's goal, the plan line, and
@@ -148,37 +279,16 @@ export default async function DashboardPage() {
   // batch, which is where most of this page's load time was going.
   const [
     user,
-    weeklyProgress,
-    marketRealityGrade,
-    currentSprint,
-    suggestedActions,
     existingBountyClaimCount,
     hasCoachingFormResponse,
-    profileChecklistItems,
     emailConnection,
     calendarConnection,
-    needsFollowUp,
-    priorityContacts,
     passiveToActivePrompt,
     stalledSearchPrompt,
-    dossierCompleteness,
-    dossierStatus,
-    resumeFixes,
     searchPlaybook,
-    ladderTier,
-    moduleGates,
-    jobCounts,
     newCheer,
   ] = await Promise.all([
     getVerifiedSessionUser(),
-    computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
-    // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
-    // is the single orchestrator (scoring/market-reality/probability.ts);
-    // never call computeMarketRealityCompositeGrade directly here, that
-    // would be a second, parallel computation of the starting-band input.
-    computeProbabilityGrade(profile.id),
-    getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing
@@ -187,33 +297,17 @@ export default async function DashboardPage() {
     profile.coachId && profile.coachDossierConsentedAt
       ? hasSubmittedCoachingOnboardingForm(profile.id)
       : Promise.resolve(true),
-    getProfileChecklistItems(profile.id),
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    getNeedsFollowUpList(profile.id),
-    getEmailReminders(profile.id),
     // §10-12 — read-only trigger check; PassiveToActivePromptCard records
     // "shown" itself once it actually renders (see that component).
     evaluatePassiveToActivePrompt(profile.id),
     // Same read-only, records-on-render contract, for the "hitting your
     // goals but no interviews" nudge — see stalled-search-prompt.ts.
     evaluateStalledSearchPrompt(profile.id),
-    // Build Your Dossier summary (condensed here, full checklist + "what
-    // moves the needle" lives on /dashboard/portfolio — this card links
-    // through rather than duplicating it) and the Executive Dossier
-    // lock/unlock status shown alongside it.
-    computeDossierCompleteness(profile.id),
-    isDossierUnlocked(profile.id),
-    // Improve Your Market Reality — reuses the same real, point-ranked
-    // resume-fix items the Market Reality Report itself shows (see
-    // getResumeFixes), not a separate invented list.
-    getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
     // Journey-aware search plan: what to change at this point in the search.
     // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
     loadSearchPlaybook(profile),
-    getDossierLadderTier(profile.id),
-    getModuleGateStatus(profile.id),
-    getHomeJobCounts(profile.id),
     prisma.supporterCheer.findFirst({
       where: { seenAt: null, supporter: { candidateId: profile.id } },
       orderBy: { createdAt: 'desc' },
@@ -258,16 +352,6 @@ export default async function DashboardPage() {
   const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
   const searchStrategyChecklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
-  // Prompt 45 §8: on_track is measured against the system's points_target
-  // (the ramp), never against whatever the candidate personally committed
-  // to — those are different numbers and only points_target should decide
-  // pacing.
-  const daysElapsedThisWeek = Math.min(
-    7,
-    Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
-  )
-  const onTrack = weeklyProgress.weeklyPoints > (weeklyProgress.weeklyPointsTarget * daysElapsedThisWeek) / 7
-
   // #931/#932 Search Plan — only shown once the candidate has cleared the
   // dashboard-wide hard gate (see access-gate.ts), which now checks only
   // Search Strategy completion.
@@ -306,8 +390,6 @@ export default async function DashboardPage() {
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber, audience }))
 
   const firstWeek = firstWeekStep(profile.registrationCompletedAt)
-  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
-  const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
 
   return (
     <div className="space-y-8">
@@ -397,49 +479,32 @@ export default async function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6 lg:col-span-2">
           <Suspense fallback={<WeeklyFocusSkeleton />}>
-            <WeeklyFocusCard
-              candidateId={profile.id}
-              locked={!bothConnectedUnlocked}
-              weeklyPoints={weeklyProgress.weeklyPoints}
-              weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+            <HomeWeeklyPlan
+              profile={profile}
+              weekNumber={weekNumber}
+              weekStartDate={weekStartDate}
+              bothConnectedUnlocked={bothConnectedUnlocked}
+              hasEmailConnection={!!emailConnection}
+              hasCalendarConnection={!!calendarConnection}
+              linkedInConnected={linkedInConnected}
+              searchStrategyChecklist={searchStrategyChecklist}
+              completedReferencesCount={completedReferencesCount}
+              latestResumeIssueCount={latestResumeIssueCount}
+              journeyNow={journeyNow}
             />
           </Suspense>
-          <SuccessSprintCard
-            actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
-            suggestedActions={suggestedActions}
-            weeklyPoints={weeklyProgress.weeklyPoints}
-            weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
-            onTrack={onTrack}
-            hasEmailConnection={!!emailConnection}
-            hasCalendarConnection={!!calendarConnection}
-            linkedInConnected={linkedInConnected}
-            profileChecklistItems={profileChecklistItems}
-            searchStrategyChecklist={searchStrategyChecklist}
-            completedReferencesCount={completedReferencesCount}
-            weekStartDate={weekStartDate}
-            marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
-            hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
-            title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
-          />
         </div>
-        <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>
-          <Suspense fallback={null}>
-            <FreshJobsPrompt profile={profile} />
-          </Suspense>
-        </JobsModule>
-        <HomeModule
-          title="Network"
-          action={
-            <Link href="/dashboard/network" className="text-sm font-medium text-brand underline underline-offset-4">
-              Open Network
-            </Link>
-          }
-        >
-          <DashboardNetworkCard followUps={needsFollowUp} priorityContact={priorityContacts[0] ?? null} />
-        </HomeModule>
+        <Suspense fallback={<HomeModuleSkeleton title="Jobs" rows={3} />}>
+          <HomeJobsSection profile={profile} />
+        </Suspense>
+        <Suspense fallback={<HomeModuleSkeleton title="Network" />}>
+          <HomeNetworkSection candidateId={profile.id} />
+        </Suspense>
         {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
           <div className="lg:col-span-2">
-            <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
+            <Suspense fallback={<HomeModuleSkeleton title="Unlocks" rows={3} />}>
+              <HomeUnlocksSection profile={profile} />
+            </Suspense>
           </div>
         )}
       </div>
