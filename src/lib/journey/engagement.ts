@@ -28,6 +28,8 @@ export type EngagementSignals = {
   // for cause, drug test, background check). Used only to sharpen this
   // member's own plan; never shown to anyone else (see affiliations/visibility.ts).
   redFlags: RedFlags
+  // Said AI had a part in losing or putting at risk their last role ("yes" or "partly"). Optional, so older callers need not set it.
+  aiDisplaced?: boolean
   // Company culture and working environment, only if it matters to them.
   culture: CultureFit | null
   // From journeyDetails: a return date (taking a break), and a fractional member's offer, open days and when the current engagement ends.
@@ -335,6 +337,15 @@ export function redFlagGuidance(s: EngagementSignals): { text: string; actionTyp
   return out
 }
 
+// Someone whose role was hit by AI gets a step aimed at it: which roles hold up
+// and which skills they ask for. Only while planning or in a search.
+export function aiOutlookItems(s: EngagementSignals): { text: string; actionType?: string }[] {
+  if (!s.aiDisplaced) return []
+  const planning = s.stage === 'EXPLORING' || s.stage === 'PREPARING' || s.stage === 'APPLYING' || s.stage === 'INTERVIEWING'
+  if (!planning) return []
+  return [{ text: 'See which roles hold up against AI, and add one skill they ask for', actionType: 'LEARNING_MODULE' }]
+}
+
 const DAY_MS = 86_400_000
 
 // Steps that come from what the member told us about their situation: how close
@@ -371,6 +382,7 @@ export function engagementPlanItems(s: EngagementSignals): { text: string; actio
   if (gate) items.push(...gate.items)
   for (const step of unlockSteps(s).slice(0, 2)) items.push({ text: step.key.startsWith('spine-') ? `Answer one question that sharpens your plan: ${step.label}` : step.label })
   items.push(...redFlagGuidance(s))
+  items.push(...aiOutlookItems(s))
   items.push(...culturePlanItems(s.culture, s.stage))
   items.push(...journeyDetailItems(s))
   const convo = conversationPlanItem(s.conversations)

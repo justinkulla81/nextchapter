@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -57,5 +58,16 @@ export default async function InWorkPage({
     fromEmail: first(sp.src) === 'inwork_email',
   })
 
-  return <InWorkWorkspace data={data} initialTab={initialTab} />
+  return (
+    <>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Going into a specific review, raise, promotion or offer conversation?{' '}
+        <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
+          Build your case for it
+        </Link>
+        .
+      </p>
+      <InWorkWorkspace data={data} initialTab={initialTab} />
+    </>
+  )
 }

@@ -146,6 +146,17 @@ export const PERSONAS: Persona[] = [
       'Track your engagements and end dates, see what your work is worth, and get introductions that fit the days you have open.',
     ],
   },
+  {
+    slug: 'building-something',
+    label: 'Building something on the side',
+    hook: 'Keeping your job while you start something. Stay on track.',
+    headline: 'Start something without losing your footing.',
+    situation: 'building_something',
+    body: [
+      "You're staying in the workforce and starting something of your own. We don't push you into a job search. We keep a light check-in so the idea keeps moving and your day job stays solid.",
+      'Tell us what you are building and where it stands. We check in on it, keep your profile current, and help if your plans change. Private by default.',
+    ],
+  },
 ]
 
 export function getPersona(slug: string): Persona | undefined {
