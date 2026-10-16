@@ -292,6 +292,10 @@ export const LEARNING_PATHS: Record<JourneyType, { title: string; steps: string[
   CAREER_CHANGE: { title: 'Into a new field', steps: ['See what alumni in that field do', 'Audit a course, then a certificate in the new field', 'A capstone or project for proof', 'Three informational calls with alumni'] },
   STUDENT_NEW_GRAD: { title: 'Your first job', steps: ['Ask alumni in your target field', 'A short skills certificate employers ask for', 'Alumni-only jobs and internships'] },
   RETURNING: { title: 'Back after a break', steps: ['Refresh what changed in your field', 'A short program to update your skills', 'A mentor call, then applications'] },
+  GROWING: { title: 'A career that holds up', steps: ['Know your worth against the market', 'Close one skill gap with a short program', 'Ask a mentor how they got to the next level'] },
+  TIME_OFF: { title: 'Stay connected while away', steps: ['Keep one alumni coffee chat a quarter', 'Audit a course that interests you', 'Plan your return with a mentor call'] },
+  FRACTIONAL: { title: 'Fill your open days', steps: ['Tell alumni what you offer and your open days', 'Ask for introductions to companies needing fractional help', 'Mentor alumni earlier in their careers'] },
+  ENTREPRENEUR: { title: 'Build on the side', steps: ['Find alumni who started something', 'A short program in the skill you are missing', 'Customers and advisors from the alumni network'] },
   NEXT_ACT: { title: 'Your next act', steps: ['A board-readiness or nonprofit governance program', 'Board seats and fractional roles from alumni', 'Mentor alumni earlier in their careers'] },
 }
 

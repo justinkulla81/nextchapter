@@ -1,3 +1,4 @@
+import { notLookingNow } from '@/lib/journey/journey'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
@@ -26,8 +27,11 @@ export const GET = withCronRun('job-search-daily', async () => {
     select: {
       id: true,
       notificationTier: true,
+      journey: true,
+      journeyStage: true,
+      currentJobStatus: true,
       // Saturday's "still searching?" answer — someone who said they're
-      // taking a break or got an offer shouldn't get a daily search email.
+      // managing their career or got an offer shouldn't get a daily search email.
       searchCheckIns: {
         where: { respondedAt: { gte: breakCutoff } },
         orderBy: { respondedAt: 'desc' },
@@ -42,6 +46,7 @@ export const GET = withCronRun('job-search-daily', async () => {
   let failed = 0
   for (const candidate of eligible) {
     if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+    if (notLookingNow(candidate)) continue
     const lastAnswer = candidate.searchCheckIns[0]?.answer
     if (lastAnswer && lastAnswer !== 'STILL_SEARCHING') continue
     try {

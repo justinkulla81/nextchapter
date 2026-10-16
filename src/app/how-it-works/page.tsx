@@ -1,3 +1,4 @@
+import { STAGE_GUIDE, STAGE_ORDER, stageName } from '@/lib/journey/stage-guide'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -9,7 +10,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 export const metadata: Metadata = {
   title: 'How It Works',
   description:
-    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, on NextChapter's free job transition platform.",
+    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, promoted, or ready for what's next, on NextChapter's free job transition platform.",
   alternates: { canonical: '/how-it-works' },
 }
 
@@ -31,16 +32,16 @@ const STEPS: Step[] = [
   {
     icon: ClipboardList,
     eyebrow: 'Step 2',
-    title: 'Search Strategy → your Search Sprint',
+    title: 'Your journey → your weekly plan',
     description:
-      "You tell us your target role, industries, and how you're approaching the search, and complete a skills and personality assessment for better job matches — then we turn all of it into a personalized weekly Search Sprint instead of showing you the same generic list everyone else gets.",
+      "You tell us your situation (out of work, thinking about a move, managing your career, changing careers and more), how you like to be coached, and your goals, and complete a skills and personality assessment for better matches. We turn all of it into a personalized weekly plan instead of the same generic list everyone else gets. And when a search stalls, the plan changes: new things to try, not the same advice again.",
   },
   {
     icon: ListChecks,
     eyebrow: 'Step 3',
     title: 'Real actions, real points',
     description:
-      'Every Search Sprint is built from specific, fixed-point Search Actions — not vague advice. Connect Gmail and Calendar and your networking and job application CRM logs many of them automatically. A few examples:',
+      'Every weekly plan is built from specific, fixed-point actions — not vague advice. Connect Gmail and Calendar and your networking and job application CRM logs many of them automatically. A few examples:',
   },
   {
     icon: ShieldCheck,
@@ -114,6 +115,31 @@ export default function HowItWorksPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mx-auto mt-20 max-w-4xl">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-navy">Help for wherever you are</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+            Your plan, your menu and your emails follow your situation, so you only see what helps right now. Looking casually while you do
+            fractional work? Same tools, a lighter pace.
+          </p>
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2">
+            {STAGE_ORDER.map((stage) => {
+              const g = STAGE_GUIDE[stage]
+              return (
+                <li key={stage} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold tracking-widest text-brand uppercase">{stageName(stage)}</p>
+                  <h3 className="mt-1 font-semibold text-navy">{g.marketing.headline}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{g.marketing.body}</p>
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foreground">
+                    {g.activities.slice(0, 3).map((a) => (
+                      <li key={a.activity}>{a.activity}</li>
+                    ))}
+                  </ul>
+                </li>
+              )
+            })}
+          </ol>
         </div>
 
         <div className="mx-auto mt-16 max-w-2xl text-center">

@@ -162,18 +162,22 @@ enum SearchIntensity {
 }
 
 // Journeys (Product Design doc, Journeys tab): why someone is moving. One of
-// eight paths, each with its own onboarding follow-ups, to-dos and check-in
+// nine paths, each with its own onboarding follow-ups, to-dos and check-in
 // pace. Replaces CurrentJobStatus as the thing the product branches on;
 // CurrentJobStatus is still written alongside it (mapped) for older readers.
 enum JourneyType {
   LAID_OFF // laid off, let go, or resigned without the next job
-  READY_TO_MOVE // employed, wants a new job now
-  EXPLORING_MOVE // employed and thinking about it (includes "worried I'll be let go")
+  READY_TO_MOVE // legacy: merged into EXPLORING_MOVE (read through normalizeJourney)
+  EXPLORING_MOVE // employed and thinking about a move: curious, unhappy, ready, or worried about a layoff (journeyDetails.moveDriver)
+  GROWING // employed and staying: reviews, raises, promotion, new skills, recession-proofing
   PROMOTION // the next level, inside or outside
   CAREER_CHANGE // new function or industry
   STUDENT_NEW_GRAD // internship or first job, up to five years out
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
+  ENTREPRENEUR // employed and starting something of their own: we track and check in
+  FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
+  TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }
 
 // How close someone is to applying. Shared by every journey; sets the plan
@@ -185,7 +189,8 @@ enum JourneyStage {
   INTERVIEWING
   OFFER
   LANDED
-  PAUSED
+  STAYING // managing your career: active in-job plan, menu and emails, no application targets
+  PAUSED // legacy: read as STAYING (normalizeStage); nothing writes it any more
 }
 
 // What changed a member's journey or stage (JourneyEvent.source).
@@ -196,6 +201,7 @@ enum JourneyChangeSource {
   SETTINGS // "Your situation" on Privacy & sharing
   GOT_HIRED // the Offer Bonus claim
   COLLEGE // a college portal action (I'm in transition / I got a job)
+  AUTOMATIC // the platform moved them on (for example, 90 days after landing)
 }
 
 enum CurrentJobStatus {
@@ -815,6 +821,10 @@ model CandidateProfile {
   journeyChangedAt      DateTime?
   journeyStageChangedAt DateTime?
   journeyCheckedAt      DateTime? // last answered "Has anything changed?"
+  // Company culture and working environment: how much it matters, and, only if it
+  // does, what they want. { importance: 'NOT_IMPORTANT' | 'SOMEWHAT' | 'VERY', answers: {...}, mustHave, dealBreaker }.
+  // See src/lib/culture/culture-fit.ts.
+  cultureFit            Json?
   journeyDetails        Json?
   journeyEvents         JourneyEvent[]
   gapDuration           GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
@@ -1496,6 +1506,8 @@ model CandidateProfile {
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
+  careerConversations            CareerConversation[]
+  workforceBoardConnections      WorkforceBoardConnection[]
   // Outplacement portal (Phase 5, §A7) — the one legitimate link between a
   // purchased seat and a real candidate. NEVER read directly by employer-
   // facing code; see src/lib/employer/candidate-identity-guard.ts and
@@ -5757,6 +5769,7 @@ enum CandidateEmailKey {
   SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
+  WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
@@ -11480,6 +11493,8 @@ model WorkforceBoard {
   fitBreakdown Json?
   fitScoredAt  DateTime?
 
+  connections WorkforceBoardConnection[]
+
   @@index([state])
 }
 
@@ -13830,6 +13845,70 @@ model JourneyEvent {
   createdAt   DateTime            @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+// A review, raise, promotion or offer conversation the member is preparing for:
+// their ask, their reasons and their walk-away, and how it went. Private to the
+// member (src/lib/review-prep/conversation.ts, /dashboard/review-prep).
+enum CareerConversationKind {
+  REVIEW
+  RAISE
+  PROMOTION
+  OFFER
+}
+
+enum CareerConversationOutcome {
+  PENDING
+  GOT_IT
+  PARTIAL
+  NOT_NOW
+}
+
+model CareerConversation {
+  id           String                    @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind         CareerConversationKind
+  scheduledFor DateTime?
+  /// Dollars a year, when the ask is a number.
+  askAmount    Int?
+  /// A title or level, when the ask is a step up.
+  askLevel     String?
+  /// Up to three reasons, each a result they can point to.
+  reasons      String[]                  @default([])
+  walkAway     String?                   @db.Text
+  outcome      CareerConversationOutcome @default(PENDING)
+  outcomeNote  String?                   @db.Text
+  decidedAt    DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@index([candidateId, createdAt])
+}
+
+// A member who says they are working with a workforce board (a local American
+// Job Center board). Member-initiated. By default the board sees nothing about
+// them; with shareOutcome on, the board's anonymous counts include that they
+// found work (never a name, never below the minimum group size).
+enum WorkforceBoardConnectionStatus {
+  ACTIVE
+  ENDED
+}
+
+model WorkforceBoardConnection {
+  id           String                         @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  boardId      String
+  board        WorkforceBoard                 @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  status       WorkforceBoardConnectionStatus @default(ACTIVE)
+  connectedAt  DateTime                       @default(now())
+  endedAt      DateTime?
+  shareOutcome Boolean                        @default(false)
+  updatedAt    DateTime                       @updatedAt
+
+  @@unique([candidateId, boardId])
+  @@index([boardId, status])
 }
 
 // One row per allowed request on a rate-limited public endpoint (email-sending

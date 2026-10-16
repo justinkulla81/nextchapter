@@ -32,7 +32,7 @@ import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-jo
  * Rules: at most one alert per member per day; only very strong fits
  * posted in the last 24 hours; at most 2 jobs; never a job already sent in an alert or
  * already shown in Job Search Daily; members who opted out of these alerts,
- * Job Search Daily, or are on a break don't get them.
+ * Job Search Daily, or who are managing their career rather than looking don't get them.
  */
 
 const MAX_JOBS = 2

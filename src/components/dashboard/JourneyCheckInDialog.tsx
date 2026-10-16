@@ -18,7 +18,7 @@ const MAIN: Array<{ key: CheckInAnswer; label: string }> = [
   { key: 'nothing', label: 'Yes, still searching' },
   { key: 'interviewing', label: 'I have an interview' },
   { key: 'offer', label: 'I got an offer' },
-  { key: 'break', label: 'I am taking a break' },
+  { key: 'managing', label: 'I am not looking right now' },
 ]
 const MORE: Array<{ key: CheckInAnswer; label: string }> = [
   { key: 'ready', label: 'I am ready to start applying' },

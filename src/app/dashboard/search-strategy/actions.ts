@@ -17,6 +17,8 @@ import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
+import { Prisma } from '@prisma/client'
+import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
 import type {
   ContentVenue,
   GapDurationBucket,
@@ -412,4 +414,36 @@ export async function updateOtherSearchStrengtheners(_prevState: FormState, form
   const boardAdvisory = await updateBoardAdvisoryWillingness(undefined, formData)
   if (boardAdvisory?.error) return boardAdvisory
   return answerOptionalQuestions(undefined, formData)
+}
+
+// Company culture and working environment: how much it matters, and, only if
+// it does, what they want (src/lib/culture/culture-fit.ts). "Not important"
+// clears the details so nothing about culture is added to their plan.
+export async function saveCultureFit(_prev: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Your session ended. Sign in again, and your answers will still be here.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const importance = formData.get('cultureImportance') as string | null
+  if (!importance) return { error: 'Choose how much culture and working environment matter to you.' }
+  const fit = cleanCultureFit({
+    importance,
+    answers: Object.fromEntries(DIMENSIONS.map((d) => [d.key, formData.get(`culture_${d.key}`) as string | null])),
+    mustHave: formData.get('cultureMustHave') as string | null,
+    dealBreaker: formData.get('cultureDealBreaker') as string | null,
+  })
+  if (!fit) return { error: 'Choose one of the three options.' }
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { cultureFit: fit as unknown as Prisma.InputJsonValue } })
+  captureServerEvent(profile.id, 'culture_fit_saved', {
+    importance: fit.importance,
+    dimensionsAnswered: Object.keys(fit.answers).length,
+    hasMustHave: fit.mustHave !== null,
+    hasDealBreaker: fit.dealBreaker !== null,
+  })
+  revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard')
 }

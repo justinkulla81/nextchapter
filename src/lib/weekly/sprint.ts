@@ -3,7 +3,10 @@ import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { getPace } from '@/lib/weekly/pace'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -258,9 +261,22 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 export async function getSuggestedActions(candidateId: string, weekNumber = 1, opts: { withNudges?: boolean } = {}): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true, highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true } }),
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true,
+        highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true,
+      },
+    }),
   ])
-  const planned = p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p)) : general
+  if (!p) return general
+  // What this member's connections and results call for comes first. When a
+  // search is stalled the engagement gate picks the new things to try from the
+  // real pattern, so the time-only gates are skipped (weeksInStage 0).
+  const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
+  const since = p.journeyStageChangedAt ?? p.createdAt
+  const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
   // On screens only (never auto-committed by the cron or first sprint): two
   // nudges from their profile (strengths, what to leave behind, how they
   // like to work), text only.
@@ -529,7 +545,7 @@ export async function commitWeeklySprint(
 export async function autoPopulateFirstSprint(candidateId: string) {
   if (await hasStartedSprint(candidateId)) return null
 
-  const target = pointsNeededForA(1)
+  const target = pointsNeededForA(1, await getPace(candidateId))
   const remainingBudget = Math.max(0, target - INTRO_WELCOME_BONUS_POINTS)
 
   const suggestions = await getSuggestedActions(candidateId, 1)

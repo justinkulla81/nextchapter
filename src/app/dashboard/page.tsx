@@ -14,6 +14,7 @@ import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-re
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
+import { EngagementCard } from '@/components/dashboard/EngagementCard'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
@@ -386,6 +387,13 @@ export default async function DashboardPage() {
       <PortfolioAccessRequestSection candidateId={profile.id} />
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
 
+      {/* What would make this plan work harder for them: connections and, when a
+          search has stalled, new things to try. Its own boundary, so it never
+          holds up the page. */}
+      <Suspense fallback={null}>
+        <EngagementCard candidateId={profile.id} />
+      </Suspense>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6 lg:col-span-2">
           <Suspense fallback={<WeeklyFocusSkeleton />}>
@@ -411,6 +419,7 @@ export default async function DashboardPage() {
             weekStartDate={weekStartDate}
             marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
             hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
+            title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
           />
         </div>
         <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>

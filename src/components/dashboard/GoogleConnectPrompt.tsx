@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
+import { connectReason } from '@/lib/journey/engagement'
+import { effectiveJourney } from '@/lib/journey/journey'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
 // where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
@@ -26,10 +28,13 @@ export async function GoogleConnectPrompt({
 }) {
   if (!email) return null
 
-  const [emailConnection, calendarConnection] = await Promise.all([
+  const [emailConnection, calendarConnection, who] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, currentJobStatus: true } }),
   ])
+  // Why it matters, in terms of what this person is doing (src/lib/journey/engagement.ts).
+  const reason = connectReason(who ? effectiveJourney(who) : null, 'gmail')
   if (emailConnection && calendarConnection) return null
 
   if (emailConnection || calendarConnection) {
@@ -69,9 +74,9 @@ export async function GoogleConnectPrompt({
         </span>
       </div>
       <p className="text-sm text-muted-foreground">
-        We can automatically track your outreach and application cadence, flag when something
-        looks like a fit issue, keep you aligned with your Search Strategy, and count real
-        achievements toward your Certified Executive Dossier — no manual logging. Read-only: we
+        {reason} We also flag when something looks like a fit issue, keep you aligned with your
+        Search Strategy, and count real achievements toward your Certified Executive Dossier —
+        no manual logging. Read-only: we
         can never send, edit, or delete anything in your mailbox.{' '}
         <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
           Learn more

@@ -9,9 +9,9 @@ const MESSAGES: Record<string, { title: string; body: React.ReactNode }> = {
     title: 'Good luck this week.',
     body: 'Thanks for letting us know — keep going. Your dashboard has your latest action plan whenever you’re ready.',
   },
-  taking_a_break: {
-    title: "Got it — take the time you need.",
-    body: "We'll ease off for now and check back in later. Your account and progress stay exactly as they are.",
+  managing_my_career: {
+    title: "Got it. Let's keep your career strong.",
+    body: 'Your plan now focuses on your next review, your pay, new skills and a career that holds up. Your dashboard has this week’s steps, and one click moves you back to job searching if that changes.',
   },
   got_an_offer: {
     title: 'Congratulations! 🎉',
@@ -38,7 +38,7 @@ export default async function CheckInThanksPage({
 }) {
   const { answer, status } = await searchParams
   const key = status === 'invalid' ? 'invalid' : (answer ?? 'invalid')
-  const message = MESSAGES[key] ?? MESSAGES.invalid
+  const message = MESSAGES[key === 'taking_a_break' ? 'managing_my_career' : key] ?? MESSAGES.invalid
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">

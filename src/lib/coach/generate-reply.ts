@@ -1,3 +1,4 @@
+import { cultureContext } from '@/lib/culture/culture-fit'
 import 'server-only'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
@@ -48,13 +49,14 @@ export async function generateCoachReply(
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
-    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity),
+    candidate.coachingStylePreference
   )
 
   const contextBlock = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : 'not specified'}
-Primary function: ${candidate.primaryFunction ?? 'not specified'}
+Primary function: ${candidate.primaryFunction ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}

@@ -1,3 +1,4 @@
+import { cultureContext } from '@/lib/culture/culture-fit'
 import 'server-only'
 import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
 import { z } from 'zod'
@@ -63,7 +64,7 @@ Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyN
 Skills (with level): ${buildSkillMatrix(candidate).map((r) => `${r.label} (${r.level})`).join(', ') || 'not specified'}
 Certifications: ${candidate.certifications.join(', ') || 'none listed'}
 Location: ${[candidate.currentCity, candidate.currentState].filter(Boolean).join(', ') || 'not specified'}${candidate.openToRelocation ? ' (open to relocation)' : ''}
-Remote-work preference: ${candidate.remotePreference ?? 'not specified'}
+Remote-work preference: ${candidate.remotePreference ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 Target minimum compensation: ${candidate.targetCompMin ? `$${candidate.targetCompMin.toLocaleString()}` : 'not specified'}${candidate.compFlexible ? ' (flexible on comp)' : ''}
 
 Real work-history achievement bullets (rewrite up to 5 of these, verbatim as the "original" — never invent new ones):

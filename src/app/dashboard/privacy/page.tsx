@@ -12,7 +12,9 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { loadAffiliations } from '@/lib/affiliations/load'
+import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -38,8 +40,14 @@ const CONNECT_ERROR: Record<string, string> = {
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
+function detailText(details: unknown, key: string): string {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
+}
+
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
+  const affiliations = await loadAffiliations(profile.id)
   const params = await searchParams
   const [emailConn, calendarConn] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
@@ -98,12 +106,21 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
+            Why you&apos;re moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity}
+          details={{
+            returnDate: detailText(profile.journeyDetails, 'returnDate'),
+            offering: detailText(profile.journeyDetails, 'offering'),
+            openDays: detailText(profile.journeyDetails, 'openDays'),
+            engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+          }}
+        />
       </div>
+
+      <AffiliationVisibilityCard affiliations={affiliations} />
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

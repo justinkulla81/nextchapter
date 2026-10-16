@@ -406,10 +406,11 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
     INTERVIEWING: ['interview', 'officeHours', 'mentors'],
     OFFER: ['offer', 'mentors'],
     LANDED: ['share', 'giveBack', 'groups'],
+    STAYING: ['mentors', 'groups', 'programs'],
     PAUSED: [],
   }
   let keys = stage ? by[stage] : by.EXPLORING
-  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'LANDED') keys = ['promotion', ...keys]
+  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'STAYING' && stage !== 'LANDED') keys = ['promotion', ...keys]
   if (opts.journey === 'EXPLORING_MOVE' && stage === 'EXPLORING') keys = ['worth', ...keys]
   if (stage === 'LANDED') keys = ['firstReview', ...keys]
   return keys.slice(0, 4)
