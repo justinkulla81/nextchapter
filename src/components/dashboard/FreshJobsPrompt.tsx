@@ -11,20 +11,29 @@ import { boardBreadthFor } from '@/lib/jobs/search-breadth'
  * the board's shared in-memory copy (postedWithinHours), so it stays cheap.
  */
 export async function FreshJobsPrompt({ profile }: { profile: CandidateProfile }) {
-  const dossier = await isDossierUnlocked(profile.id)
-  const board = await loadBoardShortlist({
-    candidate: profile,
-    isCandidatePlus: dossier.unlocked,
-    // The member's stage window decides (career-stage.ts); on-site, not an email.
-    includeMidLevel: true,
-    includeEarlyCareer: true,
-    postedWithinHours: FRESH_HOURS,
-    view: 'fresh',
-    size: 3,
-    // Same breadth as the board (search-breadth.ts).
-    breadth: boardBreadthFor(profile),
-  })
-  if (board.freshOpenTotal === 0) return null
+  // A decoration: if the board can't load, Home still renders without it (an error
+  // thrown inside a streamed section would otherwise replace the whole page).
+  const board = await (async () => {
+    try {
+      const dossier = await isDossierUnlocked(profile.id)
+      return await loadBoardShortlist({
+        candidate: profile,
+        isCandidatePlus: dossier.unlocked,
+        // The member's stage window decides (career-stage.ts); on-site, not an email.
+        includeMidLevel: true,
+        includeEarlyCareer: true,
+        postedWithinHours: FRESH_HOURS,
+        view: 'fresh',
+        size: 3,
+        // Same breadth as the board (search-breadth.ts).
+        breadth: boardBreadthFor(profile),
+      })
+    } catch (error) {
+      console.error('Failed to load fresh jobs prompt:', error)
+      return null
+    }
+  })()
+  if (!board || board.freshOpenTotal === 0) return null
   const top = board.open.slice(0, 3)
 
   return (
