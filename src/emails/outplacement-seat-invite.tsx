@@ -8,6 +8,8 @@ interface OutplacementSeatInviteEmailProps {
   // offer. Null = the generic description.
   welcome?: string | null
   services?: string[] | null
+  // A career growth seat (people staying and growing), not outplacement.
+  growth?: boolean
 }
 
 const container: React.CSSProperties = {
@@ -48,14 +50,16 @@ const footer: React.CSSProperties = {
 // HR department told them this benefit was coming) and does not put
 // anything about the org's internal contract/tier details in the email
 // body, which would have no reason to leave the org side.
-export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services }: OutplacementSeatInviteEmailProps) {
+export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services, growth }: OutplacementSeatInviteEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
-        {orgName} has set up a NextChapter outplacement benefit for you. NextChapter is a job-search platform
-        {services?.length ? `. Your program includes: ${services.join(', ')}.` : ' with resume tools, coaching, a market-difficulty report, and a recruiter network.'} Everything you do there is
+        {growth
+          ? `${orgName} has set up a NextChapter career growth benefit for you: your pay against the market, a case for your next review or promotion, skills to build, and a coach.${services?.length ? ` Your program includes: ${services.join(', ')}.` : ''}`
+          : `${orgName} has set up a NextChapter outplacement benefit for you. NextChapter is a job-search platform`}
+        {growth ? '' : services?.length ? `. Your program includes: ${services.join(', ')}.` : ' with resume tools, coaching, a market-difficulty report, and a recruiter network.'} {' '}Everything you do there is
         private to you. {orgName} never sees your individual activity, only anonymous, aggregate participation
         numbers across everyone enrolled.
       </p>

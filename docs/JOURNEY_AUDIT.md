@@ -86,7 +86,9 @@ For companies that want to keep and grow people.
 
 **Built (2026-10-16, step 1):** `OutplacementContract.journey` (nullable; null = outplacement), an admin "What are the seats for?" choice on the contract form, a "For" column on the contracts list, and enrollment that starts the contract's journey (`src/lib/journey/sponsored.ts`, tested). A career growth seat never overrides a member already in a search. **Before deploy:** apply `prisma/manual/2026-10-16-contract-journey.sql` by hand.
 
-**Not built yet:** a career growth plan category and price (pricing is not set), employer-side reporting and wording for current employees (the portal still says outplacement), manager tools. The list below is what remains.
+**Built (step 2):** reporting for career growth cohorts (`career-growth-reporting.ts`, `career-growth-metrics.ts`): counts of people who signed in, took the skills assessment, wrote a track record, logged a work win, prepared for a review, started a promotion plan or earned a learning badge. Minimum cell 10, rounded to 5 under 50, quarterly under 20 seats, like every employer number. Placement, mood and boomerang cards are hidden for these cohorts, and no measure may relate to a job search (a test enforces it). Seat invite and linked emails say "career growth benefit" instead of outplacement.
+
+**Not built yet:** a career growth plan category and price (pricing is not set), manager tools, and the remaining employer portal wording (overview, program page, nav still say outplacement in places). The list below is what remains.
 
 **What it is:** employer-sponsored seats for current employees on **Managing my career** or **Promotion** (and optionally
 Changing careers for internal mobility). Same member-owned dashboard; the employer pays for access, not for visibility into a person.
@@ -98,7 +100,7 @@ on enrollment instead of hard-coded Laid off.
 **Build list (in order):**
 1. `PlanCatalogCategory` value for career growth, and a seat type. Journey chosen per cohort at enrollment (Managing my career default; Promotion for a cohort; Changing careers for mobility).
 2. ~~Enrollment sets journey and stage from the contract~~ (done).
-3. Employer reporting that is aggregate only, minimum cell 10, same rules as the scorecard: activation, review-prep completed, skills gaps closed (named skills, not people), pay-benchmark reads, internal-move interest as a count. Never an individual, never mood check-ins, never confidential-mode members' detail (`docs/AFFILIATIONS.md`).
+3. ~~Employer reporting~~ (done): aggregate only, minimum cell 10, same rules as the scorecard: activation, review-prep completed, skills gaps closed (named skills, not people), pay-benchmark reads, internal-move interest as a count. Never an individual, never mood check-ins, never confidential-mode members' detail (`docs/AFFILIATIONS.md`).
 4. Manager-facing tools in `/for-managers`: give a reference, a growth-conversation prompt. Opt-in per member.
 5. Company-branded program bar already exists for outplacement; reuse it.
 6. Pricing: **not set**. Decide per-seat per-year vs per-cohort before building billing.

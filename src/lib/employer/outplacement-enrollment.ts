@@ -90,6 +90,7 @@ export async function enrollOneSeat(
   packageKey: string | null = null,
   extra: SeatExtra = {}
 ): Promise<EnrollOneResult> {
+  const growth = !!(await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { journey: true } }))?.journey
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
     const linked = await prisma.outplacementSeat.create({
@@ -107,7 +108,7 @@ export async function enrollOneSeat(
     })
     await grantSeatAccess(linked.id).catch(() => null)
     await startOutplacementJourney(existing.id, contractId)
-    await sendOutplacementSeatLinkedEmail(email, orgName)
+    await sendOutplacementSeatLinkedEmail(email, orgName, { growth })
     return { email, outcome: 'linked' }
   }
 
@@ -127,7 +128,7 @@ export async function enrollOneSeat(
 
   const contract = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { orgId: true } })
   const program = contract ? await orgProgram(contract.orgId) : null
-  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.forPackage(packageKey).map((f) => f.label) } : undefined)
+  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.forPackage(packageKey).map((f) => f.label) } : undefined, { growth })
   return { email, outcome: 'invited' }
 }
 

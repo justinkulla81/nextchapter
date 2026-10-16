@@ -11,7 +11,7 @@ function resendClient(): Resend | null {
   return createResend(process.env.RESEND_API_KEY)
 }
 
-export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }, opts: { reminder?: boolean } = {}) {
+export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgName: string, acceptUrl: string, program?: { welcome: string | null; services: string[] }, opts: { reminder?: boolean; growth?: boolean } = {}) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat invite email.')
@@ -22,7 +22,7 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
       subject: opts.reminder ? `Reminder: ${orgName} set up a NextChapter benefit for you` : `${orgName} set up a NextChapter benefit for you`,
-      react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null }),
+      react: OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome: program?.welcome ?? null, services: program?.services ?? null, growth: opts.growth }),
     })
     if (error) {
       console.error('Failed to send outplacement seat invite email:', error)
@@ -35,7 +35,7 @@ export async function sendOutplacementSeatInviteEmail(invitedEmail: string, orgN
   }
 }
 
-export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgName: string) {
+export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgName: string, opts: { growth?: boolean } = {}) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement seat linked email.')
@@ -46,7 +46,7 @@ export async function sendOutplacementSeatLinkedEmail(invitedEmail: string, orgN
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: invitedEmail,
       subject: `${orgName} set up a NextChapter benefit for you`,
-      react: OutplacementSeatLinkedEmail({ orgName }),
+      react: OutplacementSeatLinkedEmail({ orgName, growth: opts.growth }),
     })
     if (error) {
       console.error('Failed to send outplacement seat linked email:', error)

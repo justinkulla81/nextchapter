@@ -39,7 +39,7 @@ export interface CohortScope {
   asOf: Date // the point in time this snapshot reflects — "now" for monthly cohorts, the last complete quarter's end for quarterly ones
 }
 
-async function resolveScope(orgUser: CurrentOutplacementOrgUser, contractId: string): Promise<CohortScope | null> {
+export async function resolveScope(orgUser: CurrentOutplacementOrgUser, contractId: string): Promise<CohortScope | null> {
   const contract = await prisma.outplacementContract.findFirst({
     where: { id: contractId, orgId: orgUser.orgId },
     select: { id: true, cohortLabel: true, tier: true, seatCount: true },
@@ -104,7 +104,7 @@ export interface EngagementAggregates {
 // employerCandidateAggregates — the Phase 1 primitive that only exposes
 // count/aggregate/groupBy against CandidateProfile (never findMany). The
 // list itself never leaves this function.
-async function orgCandidateIds(contractId: string, asOf: Date): Promise<string[]> {
+export async function orgCandidateIds(contractId: string, asOf: Date): Promise<string[]> {
   const seats = await prisma.outplacementSeat.findMany({
     where: { contractId, status: 'ACTIVATED', activatedAt: { lte: asOf }, candidateId: { not: null } },
     select: { candidateId: true },

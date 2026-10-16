@@ -13,7 +13,7 @@ export default async function EmployerEnrollPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Enroll</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add someone to an outplacement contract, one at a time or by CSV upload. They get an email with your welcome and the services in their package.
+          Add someone to a contract, one at a time or by CSV upload. They get an email with your welcome and the services in their package.
         </p>
       </div>
       <EnrollForms contracts={contracts} packages={packages} />
