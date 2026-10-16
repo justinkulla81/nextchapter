@@ -290,7 +290,9 @@ export async function computeDossierCompletenessMany(candidateIds: string[]): Pr
 // The real access gate — deliberately lighter than full Dossier
 // completeness above. "Complete" (computeDossierCompleteness) is the
 // aspirational, all-7-requirements checklist shown on the Portfolio page.
-// "Unlocked" is the actual bar for every feature gate that used to check
+// "Unlocked" (Candidate+: outreach, applications, search-effort minutes and one
+// assessment; references count toward Candidate+ Verified instead) is the actual
+// bar for every feature gate that used to check
 // the old six-category letter grade (bounty claims, the job extras —
 // who to contact, apply kit, explain-my-gaps —, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
@@ -336,6 +338,7 @@ export async function hasAlternateUnlockPath(candidateId: string): Promise<Alter
 
 export interface DossierUnlockStatus {
   unlocked: boolean
+  /** Shown for context only: references are no longer a Candidate+ requirement (owner, 2026-10-16); they count toward Candidate+ Verified. */
   referencesMet: boolean
   evidenceMet: boolean // at least one of: Operating Profile, Personality Profile, Skills Assessment
   effortMet: boolean // outreach AND applications both at/above target
@@ -355,6 +358,15 @@ export interface DossierUnlockStatus {
 }
 
 export type CandidatePlusSource = 'requirements' | 'streak'
+
+/**
+ * The Candidate+ main path (owner, 2026-10-16): outreach + applications (effortMet),
+ * search-effort minutes and one assessment. References are deliberately not here;
+ * they count toward Candidate+ Verified.
+ */
+export function meetsCandidatePlusRequirements(g: { evidenceMet: boolean; effortMet: boolean; minutesMet: boolean }): boolean {
+  return g.evidenceMet && g.effortMet && g.minutesMet
+}
 
 /**
  * Candidate+ is permanent once earned (owner's rule, 2026-10-16). The main path counts
@@ -400,7 +412,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
   const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
   const minutesMet = effortMinutes >= effortTarget
-  const requirementsMet = referencesMet && evidenceMet && effortMet && minutesMet
+  const requirementsMet = meetsCandidatePlusRequirements({ evidenceMet, effortMet, minutesMet })
   const plus = resolveCandidatePlus({
     requirementsMet,
     streakMet: alternatePath.met,
@@ -423,20 +435,12 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
   }
 
   const missing: string[] = []
-  if (!referencesMet) {
-    const remaining = DOSSIER_UNLOCK_REFERENCE_TARGET - completedReferenceCount
-    // [label](/dashboard/references) — every render site (LockedFeatureNotice,
-    // RecruiterDatabaseOptIn, the dashboard and Portfolio pages) renders this
-    // string through renderMarkdownLinks, so the missing piece links straight
-    // to where a candidate actually requests/tracks references.
-    missing.push(`[${remaining} more completed reference${remaining === 1 ? '' : 's'}](/dashboard/references)`)
-  }
   if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
   if (!minutesMet) missing.push(`${effortTarget - effortMinutes} more minutes of search effort`)
   if (!effortMet) {
     const missingOutreach = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - outreachCount)
     const missingApplications = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - applicationCount)
-    if (missingOutreach > 0) missing.push(`${missingOutreach} more outreach message${missingOutreach === 1 ? '' : 's'}`)
+    if (missingOutreach > 0) missing.push(`${missingOutreach} more outreach or networking message${missingOutreach === 1 ? '' : 's'}`)
     if (missingApplications > 0) missing.push(`${missingApplications} more application${missingApplications === 1 ? '' : 's'}`)
   }
 
@@ -444,7 +448,7 @@ async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUn
     ? 'Candidate+ was removed by NextChapter. Write to support@launchyournextchapter.com if you think this is a mistake.'
     : unlocked
       ? requirementsMet
-        ? 'Unlocked — you have real references, evidence, and effort on file.'
+        ? 'Unlocked — you have real outreach, applications, search effort and an assessment on file.'
         : alternatePath.met
           ? alternatePath.reason
           : `Unlocked${unlockSource === 'streak' ? ' with a weekly-goal streak' : ''}${unlockedAt ? ` on ${unlockedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''} — Candidate+ stays on once earned.`

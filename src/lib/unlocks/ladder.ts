@@ -6,7 +6,6 @@
 import {
   DOSSIER_UNLOCK_APPLICATION_TARGET,
   DOSSIER_UNLOCK_OUTREACH_TARGET,
-  DOSSIER_UNLOCK_REFERENCE_TARGET,
 } from '@/lib/scoring/dossier-targets'
 import type { DossierCompleteness, DossierLadderTier, DossierUnlockStatus, ModuleGateStatus } from '@/lib/scoring/dossier-unlock'
 
@@ -37,29 +36,30 @@ function plural(n: number, one: string, many: string) {
   return `${n} more ${n === 1 ? one : many}`
 }
 
-export type CandidatePlusStepKey = 'minutes' | 'references' | 'assessment' | 'outreach' | 'applications'
+export type CandidatePlusStepKey = 'minutes' | 'assessment' | 'outreach' | 'applications'
+export type CandidatePlusRequirement = { key: CandidatePlusStepKey; label: string; met: boolean; need: string; href: string; action: string }
 
 /**
- * What is still missing for Candidate+, one step per gate, in the ladder's order, with
- * where to do it. The ladder's Candidate+ "needs" are these steps' `need` text.
+ * The four Candidate+ requirements (owner, 2026-10-16): outreach or networking messages,
+ * applications, minutes of search effort and one assessment. References are not one of
+ * them (they count toward Candidate+ Verified). `need` is what is still missing.
  */
-export function candidatePlusSteps(status: DossierUnlockStatus): { key: CandidatePlusStepKey; need: string; href: string; action: string }[] {
+export function candidatePlusRequirements(status: DossierUnlockStatus): CandidatePlusRequirement[] {
+  const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
+  const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
+  const minutesLeft = Math.max(0, status.effortTarget - status.effortMinutes)
+  return [
+    { key: 'minutes', label: `${status.effortTarget} minutes of search effort`, met: status.minutesMet, need: `${plural(minutesLeft, 'minute', 'minutes')} of search effort`, href: '/dashboard/sprint', action: "Open this week's plan" },
+    { key: 'assessment', label: 'One assessment (Operating Profile, Personality Profile or Skills)', met: status.evidenceMet, need: 'one assessment', href: '/dashboard/skills-assessments', action: 'Take an assessment' },
+    { key: 'outreach', label: `${DOSSIER_UNLOCK_OUTREACH_TARGET} outreach or networking messages`, met: m === 0, need: plural(m, 'outreach or networking message', 'outreach or networking messages'), href: '/dashboard/network', action: 'Send an outreach message' },
+    { key: 'applications', label: `${DOSSIER_UNLOCK_APPLICATION_TARGET} applications`, met: a === 0, need: plural(a, 'application', 'applications'), href: '/dashboard/find-my-job', action: 'Find a job to apply to' },
+  ]
+}
+
+/** What is still missing for Candidate+, in order, each with where to do it. Empty once on. */
+export function candidatePlusSteps(status: DossierUnlockStatus): CandidatePlusRequirement[] {
   if (status.unlocked) return []
-  const steps: { key: CandidatePlusStepKey; need: string; href: string; action: string }[] = []
-  if (!status.minutesMet) {
-    steps.push({ key: 'minutes', need: `${plural(Math.max(0, status.effortTarget - status.effortMinutes), 'minute', 'minutes')} of search effort`, href: '/dashboard/sprint', action: "Open this week's plan" })
-  }
-  if (!status.referencesMet) {
-    steps.push({ key: 'references', need: plural(Math.max(0, DOSSIER_UNLOCK_REFERENCE_TARGET - status.completedReferenceCount), 'reference', 'references'), href: '/dashboard/references', action: 'Request a reference' })
-  }
-  if (!status.evidenceMet) steps.push({ key: 'assessment', need: 'one assessment', href: '/dashboard/skills-assessments', action: 'Take an assessment' })
-  if (!status.effortMet) {
-    const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
-    const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
-    if (m) steps.push({ key: 'outreach', need: plural(m, 'message', 'messages'), href: '/dashboard/network', action: 'Send an outreach message' })
-    if (a) steps.push({ key: 'applications', need: plural(a, 'application', 'applications'), href: '/dashboard/find-my-job', action: 'Find a job to apply to' })
-  }
-  return steps
+  return candidatePlusRequirements(status).filter((r) => !r.met)
 }
 
 export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {

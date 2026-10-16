@@ -26,8 +26,8 @@ import {
 //
 // "Strong" is two facts, both required (rules in warm-doors-rules.ts):
 //   background — calibrated seniority at Director or above, or a pedigree signal;
-//   work done  — the Dossier unlock (references, evidence, real outreach and
-//                applications, or an alternate path). Never a grade: the unlock
+//   work done  — Candidate+ (an assessment, real outreach and applications,
+//                search-effort minutes, or an alternate path). Never a grade: the unlock
 //                schema's governing principle is to gate on work done.
 
 const MAX_CANDIDATES_CHECKED = 150

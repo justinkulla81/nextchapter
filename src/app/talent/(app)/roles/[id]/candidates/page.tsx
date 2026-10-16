@@ -94,7 +94,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       {scored.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No matching Candidate+ members yet. Members appear here once they have opted in to be found and earned Candidate+ (real
-          references, an assessment and search effort on file). Check back as more members qualify.
+          outreach, applications, search effort and an assessment on file). Check back as more members qualify.
         </p>
       ) : (
         <div className="space-y-3">

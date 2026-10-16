@@ -46,7 +46,7 @@ export function CandidateCard({
             {candidateDisplayName(candidate, false)}
             <span
               className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white"
-              title="Candidate+: real references, assessments and search effort on file"
+              title="Candidate+: real outreach, applications, search effort and an assessment on file"
             >
               Candidate+
             </span>

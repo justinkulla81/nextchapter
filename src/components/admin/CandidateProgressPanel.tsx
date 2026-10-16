@@ -180,11 +180,11 @@ export function CandidateProgressPanel({
 
           {dossier.unlock.unlocked && !dossier.completeness.isComplete && (
             // The two are measured differently and can disagree: the checklist
-            // is the aspirational six, the unlock is three gates plus an
+            // is the aspirational six, the unlock is outreach + applications, minutes and one assessment, plus an
             // alternate path. Saying so stops the panel reading as a bug.
             <p className="rounded-md border border-border bg-muted/40 p-3 text-sm">
               Unlocked without finishing the checklist below — the checklist is the full aspirational set, while the
-              unlock needs three gates or the alternate path.
+              unlock needs outreach, applications, search-effort minutes and one assessment (no references), or the alternate path.
             </p>
           )}
 

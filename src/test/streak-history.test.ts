@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { firstStreakReachedAt } from '@/lib/scoring/streak-history'
-import { resolveCandidatePlus } from '@/lib/scoring/dossier-unlock'
+import { meetsCandidatePlusRequirements, resolveCandidatePlus } from '@/lib/scoring/dossier-unlock'
 
 const week = (i: number, done: number, of = 3) => ({
   weekStartDate: new Date(Date.UTC(2026, 6, 6) + i * 7 * 86_400_000),
@@ -29,5 +29,14 @@ describe('resolveCandidatePlus', () => {
   })
   it('only an admin revoke turns it off', () => {
     expect(resolveCandidatePlus({ ...base, requirementsMet: true, unlockedAt: new Date(), revokedAt: new Date() })).toEqual({ unlocked: false, record: null })
+  })
+})
+
+describe('meetsCandidatePlusRequirements', () => {
+  it('needs outreach + applications, minutes and an assessment — no references', () => {
+    expect(meetsCandidatePlusRequirements({ evidenceMet: true, effortMet: true, minutesMet: true })).toBe(true)
+    expect(meetsCandidatePlusRequirements({ evidenceMet: false, effortMet: true, minutesMet: true })).toBe(false)
+    expect(meetsCandidatePlusRequirements({ evidenceMet: true, effortMet: false, minutesMet: true })).toBe(false)
+    expect(meetsCandidatePlusRequirements({ evidenceMet: true, effortMet: true, minutesMet: false })).toBe(false)
   })
 })

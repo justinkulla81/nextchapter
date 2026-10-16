@@ -60,14 +60,14 @@ export const UNLOCK_NUDGES: UnlockNudge[] = [
   {
     id: 'references',
     title: 'Request a reference to raise your Market Reality Grade',
-    detail: 'Even one or two real references raise your Market Reality Grade and help unlock your Executive Dossier.',
+    detail: 'Even one or two real references raise your Market Reality Grade and earn you Candidate+ Verified.',
     path: '/dashboard/references',
     done: (c) => c.referencesMet,
   },
   {
     id: 'dossier',
-    title: 'Unlock your Executive Dossier to open the A-list job board',
-    detail: 'It opens the A-list job board and gives recruiters a verified picture of you.',
+    title: 'Earn Candidate+ so recruiters and employers can see you',
+    detail: '5 outreach or networking messages, 5 applications, your search-effort minutes and one assessment. It also adds who to contact and the apply kit on every job.',
     path: '/dashboard/recruiter-report',
     done: (c) => c.dossierUnlocked,
   },
@@ -82,7 +82,7 @@ export const UNLOCK_NUDGES: UnlockNudge[] = [
   {
     id: 'recruiter-db',
     title: 'Opt in so search firms can find you',
-    detail: 'Opt into the recruiter database. Once you hold an A, search firms can find you.',
+    detail: 'Opt into the recruiter database. Once you are Candidate+, search firms can find you.',
     path: '/dashboard/privacy',
     done: (c) => c.recruiterDatabaseOptIn,
   },
