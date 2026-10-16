@@ -2,6 +2,7 @@ import 'server-only'
 import type { Company } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { aliasCompanyId } from '@/lib/companies/company-alias'
 import { squashKey, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { resolveCompanyIndustry } from '@/lib/market/company-industry'
@@ -23,6 +24,14 @@ import { resolveCompanyDescription } from '@/lib/market/company-description'
 export async function getOrCreateCompany(rawName: string): Promise<Company> {
   const name = fixAllCapsCompanyName(rawName.trim())
   const canonicalNameNormalized = normalizeOrgName(name)
+
+  // An abbreviation an admin has confirmed ("AWS") is the company it stands for,
+  // even if a separate row for the abbreviation already exists.
+  const aliased = await aliasCompanyId(canonicalNameNormalized)
+  if (aliased) {
+    const target = await prisma.company.findUnique({ where: { id: aliased } })
+    if (target) return target
+  }
 
   const existing = await prisma.company.findUnique({ where: { canonicalNameNormalized } })
   if (existing) return existing

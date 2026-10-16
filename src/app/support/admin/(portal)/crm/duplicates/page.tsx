@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { ttlCached } from '@/lib/admin/ttl-cache'
 import { findAbbreviationSuggestions } from '@/lib/companies/company-duplicates'
+import { decidedAliasPairs } from '@/lib/companies/company-alias'
+import { MergeGroupActions, AbbreviationActions } from '@/components/admin/CrmDuplicateActions'
 
 export const maxDuration = 60
 
@@ -21,13 +23,14 @@ const SHORT_NAME = 6
 
 /**
  * Organizations whose names are the same letters once spacing, punctuation and
- * "&" are ignored ("JP Morgan Chase" / "JPMorgan Chase"). Read-only: nothing
- * here merges anything. Abbreviations ("AWS" / "Amazon Web Services") aren't
+ * "&" are ignored ("JP Morgan Chase" / "JPMorgan Chase"). Merging asks for
+ * confirmation. Abbreviations ("AWS" / "Amazon Web Services") aren't
  * found by this list; those are suggested for review when a company is added.
  */
 export default async function DuplicateOrganizationsPage() {
   const admin = await requireAdmin()
-  const abbreviations = await getAbbreviationSuggestions()
+  const [allSuggestions, decided] = await Promise.all([getAbbreviationSuggestions(), decidedAliasPairs()])
+  const abbreviations = allSuggestions.filter((a) => !decided.has(`${a.abbreviation.canonicalNameNormalized}|${a.fullName.id}`))
 
   const groups = await prisma.$queryRaw<{ squashed: string; ids: string[] }[]>`
     SELECT regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') AS squashed, array_agg(id) AS ids
@@ -63,7 +66,7 @@ export default async function DuplicateOrganizationsPage() {
         <h1 className="text-2xl font-semibold">Duplicate organizations</h1>
         <p className="max-w-prose text-sm text-muted-foreground">
           Organizations whose names differ only by spacing, punctuation or &quot;&amp;&quot;. Groups with people or deals
-          attached are first. This list only shows them; nothing is merged here.
+          attached are first. Pick the record to keep and the others merge into it.
         </p>
         <p className="text-sm text-muted-foreground">
           {rows.length.toLocaleString()} groups · {rows.filter((r) => r.short).length.toLocaleString()} with very short names, which may be different companies
@@ -87,6 +90,7 @@ export default async function DuplicateOrganizationsPage() {
                   </span>
                 </p>
               ))}
+              <MergeGroupActions members={g.members.map((o) => ({ id: o.id, name: o.name }))} />
             </li>
           ))}
         </ul>
@@ -94,8 +98,8 @@ export default async function DuplicateOrganizationsPage() {
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Possible abbreviations ({abbreviations.length.toLocaleString()})</h2>
         <p className="max-w-prose text-sm text-muted-foreground">
-          A company whose whole name is the initials of another (&quot;AWS&quot; and &quot;Amazon Web Services&quot;). These are suggestions
-          only, because an acronym can belong to more than one company.
+          A company whose whole name is the initials of another (&quot;AWS&quot; and &quot;Amazon Web Services&quot;). Nothing happens until
+          you confirm, because an acronym can belong to more than one company.
         </p>
         {abbreviations.length === 0 ? (
           <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No abbreviation matches found.</p>
@@ -106,6 +110,12 @@ export default async function DuplicateOrganizationsPage() {
                 <span className="font-medium">{a.abbreviation.name}</span>
                 <span className="text-muted-foreground"> may be </span>
                 <span className="font-medium">{a.fullName.name}</span>
+                <div className="mt-1">
+                  <AbbreviationActions
+                    abbreviation={{ id: a.abbreviation.id, name: a.abbreviation.name }}
+                    full={{ id: a.fullName.id, name: a.fullName.name }}
+                  />
+                </div>
               </li>
             ))}
           </ul>

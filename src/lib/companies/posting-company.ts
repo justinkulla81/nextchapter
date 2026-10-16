@@ -1,6 +1,7 @@
 import 'server-only'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { prisma } from '@/lib/prisma'
+import { aliasCompanyIds } from '@/lib/companies/company-alias'
 import { squashKey, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { displayCompanyName, fixAllCapsCompanyName, normalizeOrgName } from '@/lib/text/org-name-match'
 
@@ -87,6 +88,9 @@ export async function linkCompaniesBulk(rawNames: (string | null | undefined)[])
       if (id) idByKey.set(k, id)
     }
   }
+  // Confirmed abbreviations ("AWS") point at their company, even where the
+  // abbreviation already has a row of its own.
+  for (const [k, id] of await aliasCompanyIds(keys)) idByKey.set(k, id)
   const missing = keys.filter((k) => !idByKey.has(k))
   if (missing.length > 0) {
     await prisma.company.createMany({
