@@ -2,6 +2,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
 import type { Grade } from '@/lib/scoring/grade'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WeeklyGoalAssignedEmailProps {
   engagement?: EngagementLead | null
@@ -197,6 +198,7 @@ export default function WeeklyGoalAssignedEmail({
           Turn off these weekly emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

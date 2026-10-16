@@ -21,11 +21,12 @@ export async function orgProgram(orgId: string) {
   }
 }
 
-// For an employee's dashboard: the program behind their activated seat, if
-// any, with the services their package includes.
+// For an employee's dashboard: the outplacement program behind their
+// activated seat, if any, with the services their package includes.
+// Growth and Learning seats: staffProgramsForCandidate (staff-programs.ts).
 export async function programForCandidate(candidateId: string) {
   const seat = await prisma.outplacementSeat.findFirst({
-    where: { candidateId, status: 'ACTIVATED', contract: { status: 'ACTIVE' } },
+    where: { candidateId, status: 'ACTIVATED', contract: { status: 'ACTIVE', programType: 'OUTPLACEMENT' } },
     orderBy: { activatedAt: 'desc' },
     select: { packageKey: true, contract: { select: { orgId: true, termEndAt: true } } },
   })

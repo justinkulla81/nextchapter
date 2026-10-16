@@ -20,14 +20,14 @@ describe('earlyCareerAudience', () => {
     expect(earlyCareerAudience({ currentJobStatus: 'NEW_GRADUATE_FIRST_JOB' })).toBe('NEW_GRAD')
   })
   it('places other journeys on the career ladder by years', () => {
-    expect(earlyCareerAudience({ journey: 'READY_TO_MOVE', highestLevelReached: 'IC', yearsExperience: 1 })).toBe('NEW_GRAD')
+    expect(earlyCareerAudience({ journey: 'EXPLORING_MOVE', highestLevelReached: 'IC', yearsExperience: 1 })).toBe('NEW_GRAD')
     expect(earlyCareerAudience({ journey: 'PROMOTION', highestLevelReached: 'IC', yearsExperience: 3 })).toBe('EARLY_CAREER')
     expect(earlyCareerAudience({ journey: 'LAID_OFF', yearsExperience: 4 })).toBe('EARLY_CAREER')
   })
   it('leaves mid-career, senior and unknown members alone', () => {
-    expect(earlyCareerAudience({ journey: 'READY_TO_MOVE', highestLevelReached: 'IC', yearsExperience: 6 })).toBeNull()
+    expect(earlyCareerAudience({ journey: 'EXPLORING_MOVE', highestLevelReached: 'IC', yearsExperience: 6 })).toBeNull()
     expect(earlyCareerAudience({ journey: 'NEXT_ACT', highestLevelReached: 'VP', yearsExperience: 25 })).toBeNull()
-    expect(earlyCareerAudience({ journey: 'READY_TO_MOVE', highestLevelReached: 'Director', yearsExperience: 3 })).toBeNull()
+    expect(earlyCareerAudience({ journey: 'EXPLORING_MOVE', highestLevelReached: 'Director', yearsExperience: 3 })).toBeNull()
     expect(earlyCareerAudience({})).toBeNull()
   })
 })
@@ -146,7 +146,7 @@ describe('starting pay', () => {
 
 describe('weekly plan by career stage', () => {
   it('adds the early-career steps to any journey', () => {
-    const texts = journeyPlanItems('READY_TO_MOVE', 'PREPARING', 1, 'EARLY_CAREER').map((i) => i.text)
+    const texts = journeyPlanItems('EXPLORING_MOVE', 'PREPARING', 1, 'EARLY_CAREER').map((i) => i.text)
     expect(texts).toContain('Write down three wins with numbers')
     expect(texts).toContain('Find a mentor or sponsor two levels up')
   })
@@ -177,7 +177,7 @@ describe('weekly plan by career stage', () => {
 describe('job board and nav personalization', () => {
   it('gives students full-time (entry-level) jobs by default: internships are Higher Ed portal only', () => {
     expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD' })).toEqual(['full_time'])
-    expect(defaultWorkTypes({ journey: 'READY_TO_MOVE' })).toEqual(['full_time'])
+    expect(defaultWorkTypes({ journey: 'EXPLORING_MOVE' })).toEqual(['full_time'])
     expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD', jobBoardWorkTypes: ['full_time'] })).toEqual(['full_time'])
   })
   it('shows the Early career plan tab only to early-career members', () => {

@@ -62,7 +62,6 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
 // The card to pre-select for a member re-visiting the picker.
 export const JOURNEY_TO_SITUATION: Record<JourneyType, SituationKey> = {
   LAID_OFF: 'just_laid_off',
-  READY_TO_MOVE: 'worried_let_go', // legacy; same card as Thinking about a move
   EXPLORING_MOVE: 'worried_let_go',
   GROWING: 'growing_in_job',
   PROMOTION: 'looking_for_promotion',

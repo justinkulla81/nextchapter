@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface UnlockRecruiterNetworkNudgeEmailProps {
   firstName: string | null
@@ -61,6 +62,7 @@ export default function UnlockRecruiterNetworkNudgeEmail({
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from these nudges</a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

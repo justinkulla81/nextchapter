@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface InterimRoleCheckInEmailProps {
   firstName: string | null
@@ -75,6 +76,7 @@ export default function InterimRoleCheckInEmail({
           No, it&apos;s ended
         </a>
       </div>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

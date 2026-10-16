@@ -13,7 +13,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateEmployerProfile } from '@/lib/profile'
 import { sendMemberCompanyInviteEmail } from '@/lib/email/send-member-company-invite'
 
-const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+import { orgCallbackOrigin } from '@/lib/org-hosts'
 export const memberInvitePath = (slug: string, token: string) => `/i/${slug}/member/${token}`
 
 // Sends (or, on a demo, only returns) the invite. Re-inviting replaces the token.
@@ -36,7 +36,8 @@ export async function inviteMemberCompany(args: { institutionId: string; company
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email,
-    options: { redirectTo: `${appUrl()}/auth/callback?next=institution-join&joinTo=${encodeURIComponent(path)}` },
+    // The workforce portal's own host, so the session lands in its cookie jar.
+    options: { redirectTo: `${orgCallbackOrigin('workforce')}/auth/callback?next=institution-join&joinTo=${encodeURIComponent(path)}` },
   })
   if (error || !data.properties?.action_link) return { error: 'We couldn’t create the sign-in link. Try again in a minute.' }
   const r = await sendMemberCompanyInviteEmail(email, company.institution.programBrandName ?? company.institution.name, company.name, data.properties.action_link)

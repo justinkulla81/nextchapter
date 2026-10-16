@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { getAiToolsForFunction } from '@/lib/constants/ai-tools-by-function'
 import { PLACES, lockReasonFor, statusLockedTabs, tabSituation, visibleTabs } from '@/lib/nav/places'
 
 const jobs = PLACES.find((p) => p.key === 'jobs')!
@@ -20,5 +21,19 @@ describe('place tabs follow the member situation', () => {
   })
   it('a tab with no rule always shows', () => {
     expect(tabSituation(tab('Know your worth'), 'LANDED')).toBe('show')
+  })
+})
+
+describe('Learn is open before the skills assessment', () => {
+  const learn = PLACES.find((p) => p.key === 'learn')!
+  const unassessed = { hasEmailConnection: true, skillsAssessmentCompleted: false }
+  it('does not lock any Learn tab on the assessment', () => {
+    for (const t of learn.tabs) expect(lockReasonFor(t.href, unassessed, t)).toBeNull()
+  })
+  it('still locks Gmail-gated pages without a connection', () => {
+    expect(lockReasonFor('/dashboard/network', { hasEmailConnection: false, skillsAssessmentCompleted: false })).toMatch(/Gmail/)
+  })
+  it('has default tools to preview when no function is known', () => {
+    expect(getAiToolsForFunction(null).length).toBeGreaterThan(0)
   })
 })

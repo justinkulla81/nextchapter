@@ -5,6 +5,7 @@ import { getSeatUtilization } from '@/lib/employer/outplacement-reporting'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 
@@ -65,7 +66,7 @@ export default async function EmployerOverviewPage() {
                     <CardHeader>
                       <CardTitle className="text-base">{c.cohortLabel ?? TIER_LABEL[c.tier]}</CardTitle>
                       <CardDescription>
-                        {TIER_LABEL[c.tier]} · {c.seatCount} seats
+                        {PROGRAM_TYPE_LABEL[c.programType]} · {TIER_LABEL[c.tier]} · {c.seatCount} seats
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -76,6 +77,11 @@ export default async function EmployerOverviewPage() {
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground">Too few seats to report without risking re-identification.</p>
+                      )}
+                      {c.programType !== 'OUTPLACEMENT' && (
+                        <Link href={PROGRAM_TYPE_HOME[c.programType]} className="mt-2 inline-block text-sm underline underline-offset-4">
+                          Open {PROGRAM_TYPE_LABEL[c.programType]} →
+                        </Link>
                       )}
                       {util && util.scope.granularity === 'quarterly' && (
                         <p className="mt-1 text-xs text-muted-foreground">Reports quarterly — under 20 seats.</p>

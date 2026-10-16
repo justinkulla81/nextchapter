@@ -159,12 +159,10 @@ export const JOURNEYS: JourneyConfig[] = [
 
 // "Ready for a new job" was folded into "Thinking about a move": how soon
 // someone will apply is the stage, and what's driving the move is
-// MOVE_DRIVERS below. The enum value stays so existing rows keep reading;
-// every reader goes through normalizeJourney.
-const LEGACY_JOURNEY: Partial<Record<JourneyType, JourneyType>> = { READY_TO_MOVE: 'EXPLORING_MOVE' }
-
+// MOVE_DRIVERS below. The old value is gone from the database; readers still
+// go through this so a journey could be folded into another again.
 export function normalizeJourney(key: JourneyType): JourneyType {
-  return LEGACY_JOURNEY[key] ?? key
+  return key
 }
 
 export function getJourney(key: JourneyType): JourneyConfig {
@@ -349,7 +347,6 @@ const QUIET_SEARCH_FRAMING =
 
 export const REPORT_FRAMING: Record<JourneyType, string> = {
   LAID_OFF: 'Out of work after a layoff or leaving a job. Optimize for the right role, fast; be direct about what is slowing the search.',
-  READY_TO_MOVE: QUIET_SEARCH_FRAMING, // legacy value; reportFraming normalizes it
   EXPLORING_MOVE: EXPLORING_FRAMING,
   GROWING:
     'Employed and staying, growing where they are. Frame the read around the next performance review, a raise or promotion case, how their pay compares with the market, the skills that keep them valuable, and how recession-proof their role and profile are. Do not push applications or assume they want to leave.',

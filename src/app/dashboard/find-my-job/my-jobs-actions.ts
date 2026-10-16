@@ -1,10 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { addCompanyToWatchlist } from '@/lib/company-tracker/watchlist'
@@ -153,6 +155,9 @@ async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationS
       dismissedAt: null,
     },
   })
+
+  // Store the board link (the card itself) for admin application fit.
+  if (!from) after(() => linkApplicationToBoard(app.id))
 
   // Applying is a real, verified Search Action — same credit as Mark applied in the tracker.
   if (!from) {

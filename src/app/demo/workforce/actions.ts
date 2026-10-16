@@ -8,6 +8,7 @@ import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { DEMO_GUEST_COOKIE, DEMO_GUEST_DAYS, guestCookieValue, guestSlugs } from '@/lib/higher-ed/demo-guest'
 import { generateWorkforceDemo } from '@/lib/workforce/demo'
+import { orgAppPath } from '@/lib/org-hosts'
 import { allowByIp, allowByTarget, DAY_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -56,5 +57,5 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
     const mine = guestSlugs(store.get(DEMO_GUEST_COOKIE)?.value)
     store.set(DEMO_GUEST_COOKIE, guestCookieValue([...mine, r.slug]), { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: DEMO_GUEST_DAYS * 86_400 })
   }
-  redirect(`/workforce/${r.slug}/hub`)
+  redirect(orgAppPath(r.slug, 'workforce', '/hub'))
 }

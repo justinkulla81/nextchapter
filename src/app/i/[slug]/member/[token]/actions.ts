@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { acceptMemberInvite } from '@/lib/workforce/member-access'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { orgAppPath } from '@/lib/org-hosts'
 
 export async function acceptInvite(slug: string, token: string): Promise<{ error?: string }> {
   const user = await getOrgUser()
@@ -11,5 +12,5 @@ export async function acceptInvite(slug: string, token: string): Promise<{ error
   const r = await acceptMemberInvite({ slug, token, userId: user.id, email: user.email ?? null })
   if ('error' in r) return { error: r.error }
   captureServerEvent(user.id, 'hub_member_company_connected', { institutionId: r.institutionId, companyId: r.companyId })
-  redirect(`/workforce/${slug}/employer`)
+  redirect(orgAppPath(slug, 'workforce', '/employer'))
 }

@@ -21,7 +21,7 @@ export async function sendCrmBroadcastEmail({
     return { sent: false, error: 'RESEND_API_KEY is not set' }
   }
   try {
-    const resend = createResend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY, 'organization')
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: replyTo ?? 'support@launchyournextchapter.com',

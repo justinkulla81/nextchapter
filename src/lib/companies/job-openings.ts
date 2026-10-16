@@ -163,6 +163,8 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
       "firstSeenAt" = LEAST(EXCLUDED."firstSeenAt", "CompanyJobOpening"."firstSeenAt"),
       "lastSeenAt" = GREATEST(EXCLUDED."lastSeenAt", "CompanyJobOpening"."lastSeenAt"),
       "closedAt" = CASE WHEN EXCLUDED."lastSeenAt" >= "CompanyJobOpening"."lastSeenAt" THEN EXCLUDED."closedAt" ELSE "CompanyJobOpening"."closedAt" END,
+      -- A listing seen open again (reopened) drops its old close reason.
+      "closeReason" = CASE WHEN EXCLUDED."lastSeenAt" >= "CompanyJobOpening"."lastSeenAt" AND EXCLUDED."closedAt" IS NULL THEN NULL ELSE "CompanyJobOpening"."closeReason" END,
       "sourceName" = COALESCE(EXCLUDED."sourceName", "CompanyJobOpening"."sourceName"),
       "updatedAt" = now()
     `,
@@ -170,11 +172,11 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
   )
 }
 
-/** Openings whose board listing has been archived are closed on the archive date. */
+/** Openings whose board listing has been archived are closed on the archive date, with its reason (job-status.ts). */
 export async function closeArchivedOpenings(): Promise<number> {
   return prisma.$executeRawUnsafe(`
     UPDATE "CompanyJobOpening" o
-    SET "closedAt" = p."archivedAt", "updatedAt" = now()
+    SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
     FROM "ExclusiveJobPosting" p
     WHERE p.url = o.url AND p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL
       AND o."lastSeenAt" <= p."archivedAt"

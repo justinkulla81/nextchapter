@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ScamAlertEmailProps {
   firstName: string | null
@@ -111,6 +112,7 @@ export default function ScamAlertEmail({
         If this one is actually legitimate, open the link above and tell me so. That&apos;s how I get better.
         You can also report scams at reportfraud.ftc.gov. <a href={settingsUrl}>Manage your Gmail connection</a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

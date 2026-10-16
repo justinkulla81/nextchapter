@@ -32,7 +32,7 @@ const COMPANIES: { name: string; industry: string }[] = [
   { name: 'Lanterra Software', industry: 'Technology' },
   { name: 'Copperleaf Financial', industry: 'Financial services' },
 ]
-const JOURNEYS: JourneyType[] = ['LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'READY_TO_MOVE', 'CAREER_CHANGE', 'LAID_OFF']
+const JOURNEYS: JourneyType[] = ['LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'EXPLORING_MOVE', 'CAREER_CHANGE', 'LAID_OFF']
 const STAGES: JourneyStage[] = ['EXPLORING', 'PREPARING', 'APPLYING', 'APPLYING', 'INTERVIEWING', 'INTERVIEWING', 'OFFER']
 const DOSSIER_LINES = [
   'Operations manager who ran a 200-person distribution center; strongest at cutting cost without cutting service.',

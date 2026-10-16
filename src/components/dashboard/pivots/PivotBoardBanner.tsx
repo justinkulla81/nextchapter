@@ -4,7 +4,18 @@ import { loadPivotPaths, type PivotProfile } from '@/lib/pivots/load'
 import { shouldOfferPivotPaths } from '@/lib/pivots/scoring'
 
 /** Shown on the board while it is narrowed to one pivot path. */
-export function PivotBoardBanner({ target, label, openTotal }: { target: string; label: string; openTotal: number }) {
+export function PivotBoardBanner({
+  target,
+  label,
+  openTotal,
+  clearHref = '/dashboard/find-my-job#job-recommendations',
+}: {
+  target: string
+  label: string
+  openTotal: number
+  /** "Show all jobs": the board without the pivot filter, every other parameter (search, filters) kept. */
+  clearHref?: string
+}) {
   return (
     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md bg-brand/5 px-3 py-2 text-sm" role="status">
       <span className="text-foreground">
@@ -15,7 +26,7 @@ export function PivotBoardBanner({ target, label, openTotal }: { target: string;
           Back to pivot paths
         </TrackedLink>
         <TrackedLink
-          href="/dashboard/find-my-job#job-recommendations"
+          href={clearHref}
           event="pivot_board_filter_cleared"
           properties={{ target }}
           className="inline-flex items-center gap-1 text-primary underline underline-offset-4"

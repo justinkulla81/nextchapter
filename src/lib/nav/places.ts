@@ -192,10 +192,11 @@ export interface NavLocks {
 
 export const GMAIL_LOCK_REASON =
   'Unlocks once you connect Gmail — we can then track your outreach and application cadence automatically. Connect on your Profile page.'
-export const SKILLS_LOCK_REASON = 'Unlocks once you complete the Skills Assessment'
 
 const GMAIL_LOCKED = ['/dashboard/find-my-job', '/dashboard/network', '/dashboard/network/contacts']
-const SKILLS_LOCKED = ['/dashboard/learning', '/dashboard/webinars']
+// Learn is deliberately not locked on the Skills Assessment: the page opens so
+// members can see what they're missing, and the personalized sections show a
+// locked preview with a prompt to take the assessment (see LockedPreview).
 
 // Same gates the old sidebar applied, now per tab: a locked tab explains
 // itself and never blocks the rest of its place.
@@ -205,7 +206,6 @@ export function lockReasonFor(href: string, locks: NavLocks, tab?: PlaceTab): st
     return unlock ? `${unlock.why} Use "Turn on more tools" to update your status.` : 'Turns on when your situation changes.'
   }
   if (!locks.hasEmailConnection && GMAIL_LOCKED.includes(href)) return GMAIL_LOCK_REASON
-  if (!locks.skillsAssessmentCompleted && SKILLS_LOCKED.includes(href)) return SKILLS_LOCK_REASON
   return null
 }
 

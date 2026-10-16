@@ -10,7 +10,7 @@ async function send(to: string, subject: string, html: string): Promise<boolean>
     return false
   }
   try {
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({ from: FROM, to, subject, html })
+    const { error } = await createResend(process.env.RESEND_API_KEY, 'supporter').emails.send({ from: FROM, to, subject, html })
     if (error) console.error('Failed to send supporter email:', error)
     return !error
   } catch (error) {

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { listOutplacementOrgs } from '@/lib/admin/outplacement-contracts'
+import { PROGRAM_TYPE_LABEL } from '@/lib/employer/program-type'
 import { CreateOrgForm, CreateContractForm, InviteFirstAdminForm } from '@/components/admin/OutplacementContractForms'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
@@ -22,7 +23,7 @@ export default async function AdminOutplacementContractsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Employer contracts</h1>
         <p className="mt-1 text-muted-foreground">
           Outplacement: set up a company for the /employer portal. Create the buying organization,
-          set up a contract (tier, seats, term), then invite that company&apos;s first admin.
+          set up a contract (program, tier, seats, term), then invite that company&apos;s first admin.
           Enrollment of individual employees happens from inside the employer portal itself, not here.
         </p>
       </div>
@@ -61,6 +62,7 @@ export default async function AdminOutplacementContractsPage() {
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
                       <th className="px-2 py-1 font-medium">Cohort</th>
+                      <th className="px-2 py-1 font-medium">Program</th>
                       <th className="px-2 py-1 font-medium">Tier</th>
                       <th className="px-2 py-1 font-medium">Seats used</th>
                       <th className="px-2 py-1 font-medium">Term</th>
@@ -71,6 +73,7 @@ export default async function AdminOutplacementContractsPage() {
                     {org.contracts.map((c) => (
                       <tr key={c.id} className="border-t border-border">
                         <td className="px-2 py-1">{c.cohortLabel ?? '—'}</td>
+                        <td className="px-2 py-1">{PROGRAM_TYPE_LABEL[c.programType]}</td>
                         <td className="px-2 py-1">{TIER_LABEL[c.tier]}</td>
                         <td className="px-2 py-1 tabular-nums">
                           {c.usedSeats} / {c.seatCount}

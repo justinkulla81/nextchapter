@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ReferenceRequestEmailProps {
   candidateName: string
@@ -76,6 +77,7 @@ export default function ReferenceRequestEmail({
         only shared with {candidateName} in summary form — employers only ever see a short
         written summary, never your raw ratings.
       </p>
+      <AudienceTag audience="employer" />
     </div>
   )
 }

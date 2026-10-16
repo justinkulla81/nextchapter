@@ -25,7 +25,6 @@ const JOURNEY_PLAN: Record<JourneyType, { firstWeek: PlanItem[]; ongoing: PlanIt
     ],
     ongoing: [T('Tell 5 more people what you’re looking for', 'OUTREACH_MESSAGE')],
   },
-  READY_TO_MOVE: { firstWeek: [], ongoing: [] }, // legacy value; normalized to EXPLORING_MOVE
   // Thinking about a move: this is the plan while exploring. Once someone is
   // preparing or applying they get QUIET_SEARCH_PLAN instead (see journeyPlanItems).
   EXPLORING_MOVE: {

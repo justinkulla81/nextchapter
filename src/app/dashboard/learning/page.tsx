@@ -19,6 +19,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { badgeCountToTier } from '@/lib/learning/badge-count-tier'
 import { computeBadgeTypeMix } from '@/lib/learning/badge-type-mix'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
+import { LockedPreview } from '@/components/dashboard/learning/LockedPreview'
 import { SkillsInventoryGateCard } from '@/components/dashboard/learning/SkillsInventoryGateCard'
 import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
@@ -26,6 +27,7 @@ import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardr
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -91,6 +93,7 @@ export default async function LearningPage() {
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
   ])
   const hasTakenAssessment = assessmentResponseCount > 0
+  const assessmentLocked = !profile.skillsAssessmentCompletedAt
   const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
 
   const completedTitles = new Set(badges.map((b) => b.title))
@@ -110,7 +113,8 @@ export default async function LearningPage() {
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
-        {!profile.skillsAssessmentCompletedAt && <SkillsInventoryGateCard />}
+        <CompanyCoursesCallout candidateId={profile.id} />
+        {assessmentLocked && <SkillsInventoryGateCard candidateId={profile.id} />}
         <PageHeaderBoxes
           pageKey="learning"
           candidateId={profile.id}
@@ -171,19 +175,23 @@ export default async function LearningPage() {
 
       <GradDegreeGuardrailCard />
 
-      <LearningSection title="Tools">
-        <ToolsForRoleSection
-          role={plan.contentFunction}
-          tools={plan.aiTools}
-          functionTraining={plan.functionTraining}
-          completedTitles={completedTitles}
-          enrolledTitles={enrolledTitles}
-        />
-      </LearningSection>
+      <LockedPreview locked={assessmentLocked}>
+        <div className="space-y-8">
+          <LearningSection title="Tools">
+            <ToolsForRoleSection
+              role={plan.contentFunction}
+              tools={plan.aiTools}
+              functionTraining={plan.functionTraining}
+              completedTitles={completedTitles}
+              enrolledTitles={enrolledTitles}
+            />
+          </LearningSection>
 
-      {plan.sections
-        .filter((s) => s.id !== 'speaking-leadership')
-        .map((s) => renderSection(s, completedTitles, enrolledTitles))}
+          {plan.sections
+            .filter((s) => s.id !== 'speaking-leadership')
+            .map((s) => renderSection(s, completedTitles, enrolledTitles))}
+        </div>
+      </LockedPreview>
 
       <LearningSection title="Interview Skills">
         <InterviewSkillsSection data={plan.interviewSkills} />

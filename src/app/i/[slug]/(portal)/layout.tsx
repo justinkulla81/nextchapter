@@ -6,6 +6,7 @@ import { getInstitutionAccess } from '@/lib/higher-ed/access'
 import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { signOutOrg } from './session-actions'
 import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
+import { orgKindForHost } from '@/lib/org-hosts'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
@@ -41,7 +42,8 @@ export default async function InstitutionPortalLayout({
     // x-pathname is set by the proxy (src/lib/supabase/middleware.ts), so a
     // deep link comes back to the same page after login.
     const path = (await headers()).get('x-pathname') ?? `/i/${slug}`
-    const login = path.startsWith('/workforce/') ? '/workforce/login' : path.startsWith('/highered/') ? '/highered/login' : '/i/login'
+    const h = await headers()
+    const login = orgKindForHost(h.get('host')) ? '/login' : path.startsWith('/workforce/') ? '/workforce/login' : path.startsWith('/highered/') ? '/highered/login' : '/i/login'
     redirect(`${login}?next=${encodeURIComponent(path)}`)
   }
   if (!access) notFound()

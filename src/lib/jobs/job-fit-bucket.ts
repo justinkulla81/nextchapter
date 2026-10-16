@@ -17,6 +17,7 @@ import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
 import { interestBonus } from '@/lib/work-interests/job-interest-fit'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
+import { assessYearsFit, quickYearsRange, type YearsRange } from '@/lib/jobs/years-fit'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
 // call, computed for every candidate x listing pair. Deliberately a bucket,
@@ -436,18 +437,21 @@ function keywordBonus(m: FitCandidateContext, postingTextLower: string): number 
   return Math.min(8, hits * 2)
 }
 
-// "5+ years", "3-5 years of experience" — null when nothing matches.
-function parseMinYearsRequired(text: string): number | null {
-  const match = text.match(/(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?\s*years?/i)
-  if (!match) return null
-  const years = parseInt(match[1], 10)
-  return Number.isNaN(years) ? null : years
-}
-
-function yearsBonus(candidateYears: number | null, required: number | null): number {
-  if (required === null || candidateYears === null) return 2
-  if (candidateYears >= required) return 5
-  return candidateYears >= required - 2 ? 2 : 0
+// Shared lenient years rule (years-fit.ts): roughly in line gets full credit,
+// a stretch (short, but at least half the minimum) the neutral 2, only far off
+// (under half the minimum) gets nothing. Unknown stays neutral.
+function yearsBonus(candidateYears: number | null | undefined, range: YearsRange | null): number {
+  switch (assessYearsFit(candidateYears, range).band) {
+    case 'in_line':
+    case 'overqualified':
+      return 5
+    case 'stretch':
+      return 2
+    case 'far':
+      return 0
+    default:
+      return 2
+  }
 }
 
 function payPoints(c: FitCandidate, posting: Pick<FitPostingLike, 'salaryMax'>): number {
@@ -551,7 +555,7 @@ interface FitPostingContext {
   titleWords?: Set<string>
   titleFamilies?: number[]
   credential: ReturnType<typeof detectRequiredCredential>
-  minYears: number | null
+  years: YearsRange | null
 }
 
 // Location -> US states it names. Locations repeat across jobs (~30k distinct over
@@ -591,7 +595,7 @@ function postingContext(posting: FitPostingInput): FitPostingContext {
     placeLocation,
     jobStates: jobStatesOf(placeLocation),
     credential: detectRequiredCredential(postingText),
-    minYears: parseMinYearsRequired(postingText),
+    years: quickYearsRange(postingText),
   }
 }
 
@@ -635,7 +639,7 @@ function assessFit(
     roleCredit +
     (industryMatch ? Math.round(10 * priorityMultiplier(c.priorityMission)) : 0) +
     keywordBonus(m, j.postingTextLower) +
-    yearsBonus(c.yearsExperience, j.minYears) +
+    yearsBonus(c.yearsExperience, j.years) +
     payPoints(c, posting) +
     companySizeMatchBonus(c, posting.companySizeBand) +
     interestBonus(c.interestAreas ?? [], j.jobFns)

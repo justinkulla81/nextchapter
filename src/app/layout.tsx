@@ -4,6 +4,7 @@ import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
+import { PortalCanonicalUrl } from '@/components/PortalCanonicalUrl'
 
 // Self-hosted (fontsource) rather than next/font/google: a Google Fonts
 // hiccup at build time was failing production deploys.
@@ -82,6 +83,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
+        <PortalCanonicalUrl />
         <GoogleAnalytics />
         <HomepageVisitTracker />
         <PostHogProvider>{children}</PostHogProvider>

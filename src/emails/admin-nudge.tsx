@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface AdminNudgeEmailProps {
   bodyText: string
@@ -48,6 +49,7 @@ export default function AdminNudgeEmail({ bodyText, ctaLabel, ctaUrl }: AdminNud
       <a href={ctaUrl} style={button}>
         {ctaLabel} →
       </a>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

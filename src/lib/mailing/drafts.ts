@@ -109,7 +109,7 @@ export async function requestApprovals(): Promise<number> {
       `Subject: ${escapeHtml(e.subject || '(none yet)')}<br>${e.lists.length ? `To: ${listNames} · ${c.total} ${c.total === 1 ? 'person' : 'people'}` : 'No readership yet: choose who it goes to on the edition page'}</li>`,
     )
   }
-  const resend = createResend(process.env.RESEND_API_KEY)
+  const resend = createResend(process.env.RESEND_API_KEY, 'admin')
   const { error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     to: settings.testEmail,

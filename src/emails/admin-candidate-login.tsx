@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface AdminCandidateLoginEmailProps {
   candidateName: string
@@ -57,6 +58,7 @@ export default function AdminCandidateLoginEmail({
       <a href={adminUrl} style={button}>
         View candidate →
       </a>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

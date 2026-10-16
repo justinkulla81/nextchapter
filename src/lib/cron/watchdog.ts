@@ -126,7 +126,7 @@ export async function runJobWatchdog(now = new Date()) {
       const rows = toAlert
         .map((s) => `<li><strong>${esc(s.job)}</strong> — ${esc(s.health.replace('_', ' '))}. ${esc(s.detail)}</li>`)
         .join('')
-      const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+      const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
         from: 'NextChapter <support@launchyournextchapter.com>',
         to: ALERT_TO,
         subject: alertSubject(toAlert.length),

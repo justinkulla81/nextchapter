@@ -1,6 +1,7 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface SearchCheckInEmailProps {
   engagement?: EngagementLead | null
@@ -96,6 +97,7 @@ export default function SearchCheckInEmail({
       {/* Best-effort open signal — many mail clients block remote images by
           default, so this undercounts opens rather than overcounting. */}
       <img src={pixelUrl} width={1} height={1} alt="" style={{ display: 'none' }} />
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

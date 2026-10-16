@@ -26,7 +26,6 @@ export function nextWinBackStep(lastActivity: Date, sentSinceActivity: number, n
 const ONE_THING: Partial<Record<JourneyType, string>> = {
   LAID_OFF: 'Log one application or one conversation. That is enough to restart your week.',
   EXPLORING_MOVE: 'Pick one role you would actually take a call about and save it.',
-  READY_TO_MOVE: 'Pick one role you would actually take a call about and save it.',
   GROWING: 'Write down one win from the last month. It is the start of your case at review time.',
   PROMOTION: 'Write down one win from the last month. It is the start of your case for the next level.',
   CAREER_CHANGE: 'Name one person in the field you want to enter, and send them a short note.',

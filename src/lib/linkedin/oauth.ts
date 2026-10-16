@@ -1,4 +1,5 @@
 import 'server-only'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // My Marketing Plan redesign — optional direct "Post to LinkedIn" button.
 // No LinkedIn OAuth app has been created for this codebase yet — confirmed
@@ -25,7 +26,8 @@ export function isLinkedInPostingConfigured(): boolean {
 }
 
 function getRedirectUri(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // The candidate app's host (candidate.<site> once it's switched on), where the session cookie is.
+  const appUrl = callbackOriginForAppPath('/dashboard')
   return `${appUrl}/api/auth/linkedin/callback`
 }
 

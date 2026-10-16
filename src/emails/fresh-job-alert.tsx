@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 export interface FreshJobAlertJob {
   title: string
@@ -67,6 +68,7 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
           Stop new-job alerts
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

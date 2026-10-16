@@ -25,10 +25,14 @@ import {
 // The shared board's light rows (board-light-rows.ts) carry title, company and
 // location, but not industry, O*NET occupation, skills, work arrangement or the
 // import's parsed city / states. Those come from one narrow read of the wide table
-// (a few seconds on a cold instance), made only when somebody actually searches,
-// held per server instance and refreshed in the background (stale-while-revalidate)
-// — so the board with no search, and every email path, never pay for it. Jobs newer
-// than the held copy are still searchable on their light fields.
+// (a few seconds on a cold instance), held per server instance and refreshed in
+// the background (stale-while-revalidate). The board page starts that read in the
+// background once its shortlist has loaded (warmSearchIndex), so by the time a
+// member types a search the index is usually in; email paths never load it. A
+// search never waits for it: until it is in, the search matches the light fields
+// only (title, company, function, location text — boardSearchWith with no index)
+// and the page says so. Jobs newer than the held copy are still searchable on
+// their light fields.
 //
 // Memory: no object per job. The index is one id → position map plus small typed
 // arrays pointing into tables of distinct, already-normalized values (22 industries,
@@ -73,8 +77,10 @@ export interface SearchIndex {
 
 const FRESH_MS = 10 * 60_000
 const STALE_MS = 60 * 60_000
-let held: { at: number; index: Promise<SearchIndex> } | null = null
+let held: { at: number; index: Promise<SearchIndex>; value: SearchIndex } | null = null
 let loading: Promise<SearchIndex> | null = null
+/** How long a search waits for an index already loading before it takes the fast path. */
+const SEARCH_WAIT_MS = 300
 
 interface FactsRow {
   id: string
@@ -205,17 +211,19 @@ async function readIndex(): Promise<SearchIndex> {
   return buildSearchIndex(rows, Date.now() - started)
 }
 
+let read: () => Promise<SearchIndex> = readIndex
+
 /** The held index; a cold instance waits for the first load, later callers never do. */
 export function loadSearchIndex(): Promise<SearchIndex> {
   const now = Date.now()
   if (held && now - held.at < FRESH_MS) return held.index
   if (!loading) {
     const started = now
-    const next = readIndex()
+    const next = read()
     loading = next
     next.then(
-      () => {
-        held = { at: started, index: next }
+      (value) => {
+        held = { at: started, index: next, value }
         loading = null
       },
       (error) => {
@@ -226,6 +234,48 @@ export function loadSearchIndex(): Promise<SearchIndex> {
   }
   if (held && now - held.at < STALE_MS) return held.index
   return loading
+}
+
+/** Starts (or refreshes) the index load in the background; resolves once it is in, never rejects. */
+export function warmSearchIndex(): Promise<void> {
+  return loadSearchIndex().then(
+    () => undefined,
+    () => undefined
+  )
+}
+
+/**
+ * The index this instance holds (any age; past FRESH_MS a reload starts in the
+ * background), else null. Never waits. With nothing held, `startCold` starts the
+ * first load; a board render leaves that to its own warm-up after the board's read,
+ * since on a cold instance the two big reads at once compete for the connection
+ * pool and both get slower.
+ */
+export function peekSearchIndex({ startCold = true }: { startCold?: boolean } = {}): SearchIndex | null {
+  if (held ? Date.now() - held.at >= FRESH_MS : startCold) void warmSearchIndex()
+  return held?.value ?? null
+}
+
+/** The index now, or within `waitMs` while one is loading; else null (the caller takes the fast path). */
+export async function searchIndexWithin(waitMs: number, opts?: { startCold?: boolean }): Promise<SearchIndex | null> {
+  const now = peekSearchIndex(opts)
+  if (now || waitMs <= 0 || !loading) return now
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const late = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), waitMs)
+  })
+  try {
+    return await Promise.race([loading.catch(() => null), late])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Tests only: swap the database read and forget the held index. */
+export function resetSearchIndexForTests(reader?: () => Promise<SearchIndex>): void {
+  read = reader ?? readIndex
+  held = null
+  loading = null
 }
 
 // ── Matching a row ──────────────────────────────────────────────────────────
@@ -259,16 +309,19 @@ export interface BoardSearch {
   relevance: (row: DocRow) => number | null
   /** Same matcher for jobs that aren't board rows (partner-search jobs): title, company, location only. */
   matchesPlain: (job: { title: string; companyName: string | null; location: string | null }) => number | null
+  /** False while this instance's index is still loading: matched on title, company, function and location text only. */
+  indexReady: boolean
 }
 
-/** The search for rankBoardRows' relevance option; null when no search is entered. */
-export async function buildBoardSearch(params: BoardSearchParams): Promise<BoardSearch | null> {
+/**
+ * The search for rankBoardRows' relevance option; null when no search is entered.
+ * Never waits on a cold index (beyond a moment when one is already loading): it
+ * matches the light fields instead while the load carries on in the background.
+ */
+export async function buildBoardSearch(params: BoardSearchParams, waitMs = SEARCH_WAIT_MS): Promise<BoardSearch | null> {
   if (!isSearchActive(params)) return null
-  const index = await loadSearchIndex().catch((error) => {
-    console.error('Board search index unavailable, searching light fields only', error)
-    return null
-  })
-  return boardSearchWith(params, index)
+  // A cold instance's first load is started by the board page once its shortlist is in (warmSearchIndex).
+  return boardSearchWith(params, await searchIndexWithin(waitMs, { startCold: false }))
 }
 
 /** buildBoardSearch with the index given — exported for tests and the perf script. */
@@ -351,6 +404,7 @@ export function boardSearchWith(params: BoardSearchParams, index: SearchIndex | 
     relevance,
     matchesPlain: (job) =>
       relevance({ id: '', title: job.title, companyName: job.companyName ?? '', location: job.location, targetFunction: null, targetRemotePolicy: null }),
+    indexReady: index !== null,
   }
 }
 

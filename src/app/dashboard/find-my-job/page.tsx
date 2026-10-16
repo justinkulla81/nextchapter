@@ -5,6 +5,7 @@ import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
 import { after } from 'next/server'
+import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import Link from 'next/link'
 import { FileText, Sparkles, ChevronDown, Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -123,8 +124,11 @@ import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
 import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
+import { PastJobsToggle } from '@/components/jobs/PastJobsToggle'
+import { PastJobsSection } from '@/components/jobs/PastJobsSection'
 import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearchTracker'
-import { buildBoardSearch, type BoardSearch } from '@/lib/jobs/board-search-index'
+import { buildBoardSearch, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
+import { boardHref, boardHrefWithout, BOARD_SEARCH_URL_PARAMS } from '@/lib/jobs/board-url'
 import {
   isSearchActive,
   metroLabel,
@@ -332,22 +336,18 @@ function boardSearchSummary(p: BoardSearchParams): string {
 
 // No results: say what was searched and offer the ways to broaden it, each a link.
 function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
-  const href = (change: (sp: URLSearchParams) => void) => {
-    const sp = new URLSearchParams(search.urlParams)
-    change(sp)
-    return `?${sp.toString()}#apply-new-jobs`
-  }
+  const at = { hash: 'apply-new-jobs' }
   const p = search.params
   const broaden: { label: string; href: string }[] = []
-  if (p.loc) broaden.push({ label: 'Search every location', href: href((sp) => sp.delete('loc')) })
-  if (p.remote) broaden.push({ label: 'Show every work arrangement', href: href((sp) => sp.delete('remote')) })
+  if (p.loc) broaden.push({ label: 'Search every location', href: boardHrefWithout(search.urlParams, ['loc'], at) })
+  if (p.remote) broaden.push({ label: 'Show every work arrangement', href: boardHrefWithout(search.urlParams, ['remote'], at) })
   if (search.filtersActive.length > 0) {
     broaden.push({
       label: 'Turn off the other filters',
-      href: href((sp) => ['seniority', 'view', 'great', 'pivot', 'types'].forEach((k) => sp.delete(k))),
+      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types'], at),
     })
   }
-  if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: href((sp) => (sp.delete('loc'), sp.delete('remote'))) })
+  if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: boardHrefWithout(search.urlParams, ['loc', 'remote'], at) })
   return (
     <div className="space-y-2 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
       <p className="font-medium text-foreground">
@@ -366,7 +366,7 @@ function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
           </li>
         ))}
         <li>
-          <a href={href((sp) => ['q', 'loc', 'remote', 'sort'].forEach((k) => sp.delete(k)))} className="text-primary underline underline-offset-4">
+          <a href={boardHrefWithout(search.urlParams, BOARD_SEARCH_URL_PARAMS, at)} className="text-primary underline underline-offset-4">
             Clear the search
           </a>
         </li>
@@ -403,12 +403,15 @@ async function JobRecommendationsSection({
   myJobs,
   expertNetworks,
   search,
+  urlParams,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   dossierReason: string
   board: BoardShortlist
   /** The board search (null with none): results keep the shortlist's order (relevance / sort). */
   search: BoardSearchView | null
+  /** Every current URL parameter: in-board links change one and keep the rest (board-url.ts). */
+  urlParams: Record<string, string>
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
@@ -652,7 +655,21 @@ async function JobRecommendationsSection({
           sort={search.params.sort}
           resultCount={searchResultCount}
           filtersActive={search.filtersActive}
+          fullIndex={search.matcher?.indexReady ?? true}
         />
+      )}
+      {search && search.active && search.matcher && !search.matcher.indexReady && (
+        <p className="text-xs text-muted-foreground" role="status">
+          Matched on job titles, companies and locations for now — skills and industries are still loading.{' '}
+          <TrackedLink
+            href={boardHref(urlParams, {}, { hash: 'apply-new-jobs' })}
+            event="job_search_full_index_retried"
+            properties={{ q: search.params.q, loc: search.params.loc, remote: search.params.remote, resultCount: searchResultCount }}
+            className="text-primary underline underline-offset-4"
+          >
+            Search again with skills and industries
+          </TrackedLink>
+        </p>
       )}
       {search && search.active && searchResultCount > 0 && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -689,7 +706,7 @@ async function JobRecommendationsSection({
                 {board.freshOpenTotal === 1 ? 'was' : 'were'} posted in the last 72 hours.
               </span>{' '}
               Early applicants get most of the interviews — apply to these first.{' '}
-              <a href="?view=fresh#job-recommendations" className="text-primary underline underline-offset-4">
+              <a href={boardHref(urlParams, { view: 'fresh' }, { hash: 'job-recommendations' })} className="text-primary underline underline-offset-4">
                 Show them
               </a>
             </p>
@@ -1110,6 +1127,14 @@ async function FindMyJobBody({
     loadMyJobs(profile.id, memberSkillKeywords(profile)),
     onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
   ])
+  // The board is in: load this instance's search index in the background (a no-op
+  // while it is fresh), so the member's first search finds it ready instead of
+  // taking the light-fields fast path. Started now, after the board's own read so
+  // it never competes with it; after() keeps the instance alive until it is in.
+  if (onBoard) {
+    void warmSearchIndex()
+    after(warmSearchIndex)
+  }
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
   )
@@ -1301,6 +1326,7 @@ async function FindMyJobBody({
           </p>
         </div>
         <BoardSearchBar />
+        <PastJobsToggle />
         <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
 
         <ApplyPrompts
@@ -1331,7 +1357,12 @@ async function FindMyJobBody({
             </div>
           </div>
           {pivotFilter ? (
-            <PivotBoardBanner target={pivotFilter.target} label={pivotFilter.label} openTotal={board.openTotal} />
+            <PivotBoardBanner
+              target={pivotFilter.target}
+              label={pivotFilter.label}
+              openTotal={board.openTotal}
+              clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
+            />
           ) : (
             <Suspense fallback={null}>
               <PivotBoardPrompt profile={profile} />
@@ -1353,11 +1384,19 @@ async function FindMyJobBody({
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
                 search={searchView}
+                urlParams={urlParams}
               />
             </Suspense>
           </div>
         </div>
       </div>
+      )}
+
+      {/* Past jobs: a separate, labelled section, only with "Include past jobs" on (job-status.ts). */}
+      {onBoard && urlParams.past === '1' && (
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading past jobs…</p>}>
+          <PastJobsSection search={boardSearch} />
+        </Suspense>
       )}
 
       {/* SEC filings and news before a senior search: full-time searches. */}

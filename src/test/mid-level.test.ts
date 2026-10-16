@@ -10,11 +10,14 @@ import { screenImportedJob } from '@/lib/jobs/import-screen'
 import { SENIORITY_GROUPS, levelsInGroup, seniorityGroupOf, screenJobTitle } from '@/lib/jobs/job-seniority'
 
 describe('mid-level tier', () => {
-  it('imports mid-level professional roles; level I is entry-level, coordinators stay out', () => {
-    expect(screenImportedJob('Financial Analyst', 'Louisville, KY')).toMatchObject({ keep: true, level: 'MID_IC' })
-    expect(screenImportedJob('Software Engineer', 'Remote')).toMatchObject({ keep: true, level: 'MID_IC' })
+  it('imports mid-level professional roles; level I is entry-level, clinical coordinators stay out', () => {
+    expect(screenImportedJob('Data Scientist', 'Louisville, KY')).toMatchObject({ keep: true, level: 'MID_IC' })
+    // Unmarked analyst/engineer titles read 2-5 years (2026-10-15).
+    expect(screenImportedJob('Financial Analyst', 'Louisville, KY')).toMatchObject({ keep: true, level: 'EARLY_IC' })
+    expect(screenImportedJob('Software Engineer', 'Remote')).toMatchObject({ keep: true, level: 'EARLY_IC' })
     expect(screenImportedJob('Software Engineer I', 'Remote')).toMatchObject({ keep: true, level: 'ENTRY_IC' })
-    expect(screenImportedJob('Marketing Coordinator', 'Remote').keep).toBe(false)
+    expect(screenImportedJob('Marketing Coordinator', 'Remote')).toMatchObject({ keep: true, level: 'ENTRY_IC' })
+    expect(screenImportedJob('Patient Coordinator', 'Remote').keep).toBe(false)
     // Other feeds keep the manager floor unless they ask for less.
     expect(screenJobTitle('Financial Analyst').keep).toBe(false)
   })

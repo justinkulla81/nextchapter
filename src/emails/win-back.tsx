@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { WinBackContent } from '@/lib/winback/sequence'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WinBackEmailProps {
   content: WinBackContent
@@ -47,6 +48,7 @@ export default function WinBackEmail({ content, ctaUrl, unsubscribeUrl }: WinBac
           Turn off these emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

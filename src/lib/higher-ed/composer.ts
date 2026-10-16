@@ -137,7 +137,7 @@ export async function sendTestToSelf(args: { institutionId: string; campaignId: 
   const text = withFooter(merge(c.body, values), inst.name, `${appUrl()}/i/${inst.slug}/unsubscribe?t=example`)
   if (inst.isDemo || !process.env.RESEND_API_KEY) return { demo: true, subject, text }
   const sender = emailSettingsFrom(inst.enabledFeatures, inst)
-  const r = await createResend(process.env.RESEND_API_KEY).emails.send({
+  const r = await createResend(process.env.RESEND_API_KEY, 'candidate').emails.send({
     from: `${sender.fromName.replace(/["<>\r\n]/g, '')} <support@launchyournextchapter.com>`,
     to: args.to,
     ...(sender.replyTo ? { replyTo: sender.replyTo } : {}),

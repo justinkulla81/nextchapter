@@ -1,6 +1,7 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WeeklyGapNudgeEmailProps {
   engagement?: EngagementLead | null
@@ -82,6 +83,7 @@ export default function WeeklyGapNudgeEmail({
           Turn off these weekly nudges
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface MarketRealityReportEmailProps {
   candidateName: string
@@ -54,6 +55,7 @@ export default function MarketRealityReportEmail({
         See your grade
       </a>
       <p style={footer}>This report is only visible to you — never shared with employers.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ScholarshipDecisionEmailProps {
   firstName: string | null
@@ -67,6 +68,7 @@ export default function ScholarshipDecisionEmail({ firstName, approved }: Schola
       <p style={footer}>
         If you have questions, just reply to this email — a real person reads every response.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }
