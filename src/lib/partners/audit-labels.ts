@@ -4,6 +4,7 @@ const LABELS: Record<string, string> = {
   'export.reporting': 'Downloaded the reporting summary',
   'export.clients': 'Downloaded the client list',
   'export.candidates': 'Downloaded the candidate list',
+  'export.review': 'Opened the quarterly review',
   'export.placements': 'Downloaded placements and submissions',
   'brand.updated': 'Changed the brand (logo, name or color)',
   'team.invited': 'Invited a teammate',

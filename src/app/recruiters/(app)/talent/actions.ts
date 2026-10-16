@@ -12,6 +12,7 @@ import { INTAKE_LEVELS } from '@/lib/recruiter/intake/constants'
 import { slugify, validateSlug } from '@/lib/recruiter/intake/slug'
 import { draftReply } from '@/lib/recruiter/intake/pipeline'
 import { sendApprovedReply } from '@/lib/recruiter/intake/replies'
+import { recordPartnerAudit } from '@/lib/partners/audit'
 
 export type TalentFormState = { error?: string; success?: string } | undefined
 
@@ -151,6 +152,7 @@ export async function inviteRecruiterToFirm(_prev: TalentFormState, formData: Fo
     token: invite.token,
     ...(existingRecruiter ? { existingAccount: true } : {}),
   })
+  await recordPartnerAudit({ portal: 'RECRUITER', refId: ctx.firm.id, actorUserId: ctx.recruiter.userId, actorLabel: ctx.recruiter.workEmail, action: 'team.invited', detail: { role } })
   captureServerEvent(ctx.recruiter.id, 'talent_recruiter_invited', { firmId: ctx.firm.id, role, existingAccount: !!existingRecruiter, emailSent: sent.sent })
   revalidatePath('/recruiters/talent/setup')
   return { success: existingRecruiter ? `Invite sent to ${email}. They join when they accept it.` : `Invite sent to ${email}.` }

@@ -5,6 +5,7 @@ import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-au
 import { inviteOrgUser, removeOrgUser } from '@/lib/employer/outplacement-org-users'
 import { prisma } from '@/lib/prisma'
 import type { OutplacementRole } from '@prisma/client'
+import { recordPartnerAudit } from '@/lib/partners/audit'
 
 export type InviteOrgUserState = { error?: string; sent?: boolean } | undefined
 
@@ -22,6 +23,7 @@ export async function inviteOrgUserAction(
 
   const result = await inviteOrgUser(orgUser, email, role, fullName)
   if (result.error) return result
+  await recordPartnerAudit({ portal: 'OUTPLACEMENT', refId: orgUser.orgId, actorUserId: orgUser.userId, actorLabel: orgUser.email, action: 'team.invited', detail: { role } })
 
   revalidatePath('/employer/team')
   return { sent: true }
@@ -32,6 +34,7 @@ export async function removeOrgUserAction(id: string): Promise<{ error?: string;
   if (!orgUser) return { error: 'You need Admin access on this account to remove teammates.' }
   const r = await removeOrgUser(orgUser, id)
   if (r.error) return r
+  await recordPartnerAudit({ portal: 'OUTPLACEMENT', refId: orgUser.orgId, actorUserId: orgUser.userId, actorLabel: orgUser.email, action: 'team.removed', targetType: 'OutplacementOrgUser', targetId: id })
   revalidatePath('/employer/team')
   return { message: 'Removed. They lose access right away.' }
 }

@@ -2,31 +2,32 @@
 
 import { useActionState, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { accentReadableOnWhite, normalizeHex } from '@/lib/partners/brand'
+import { ColorField } from '@/components/partners/ColorField'
+import { BrandPreview } from '@/components/partners/BrandPreview'
+import { BRAND_SWATCHES } from '@/lib/partners/swatches'
 import type { IntegrationKey } from '@/lib/organizations/portals'
 import { deleteDemoOrganizationAction, demoAccessLinkAction, extendDemoAction, resetDemoAction, toggleIntegrationAction, updateBrandAction } from '@/app/support/admin/(portal)/organizations/actions'
 
 const input = 'h-9 w-full rounded-md border border-input bg-background px-3 text-sm'
 
-export function OrganizationBrandForm({ organizationId, brandName, accent, logoUrl }: { organizationId: string; brandName: string | null; accent: string | null; logoUrl: string | null }) {
+export function OrganizationBrandForm({ organizationId, brandName, accent, secondary, background, logoUrl }: { organizationId: string; brandName: string | null; accent: string | null; secondary: string | null; background: string | null; logoUrl: string | null }) {
   const [state, action, pending] = useActionState(updateBrandAction.bind(null, organizationId), null)
-  const [color, setColor] = useState(accent ?? '')
-  const norm = color ? normalizeHex(color) : null
+  const [name, setName] = useState(brandName ?? '')
+  const [primary, setPrimary] = useState(accent ?? '')
+  const [second, setSecond] = useState(secondary ?? '')
+  const [bg, setBg] = useState(background ?? '')
   return (
-    <form action={action} className={`space-y-4 ${pending ? 'cursor-wait' : ''}`}>
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form action={action} className={`space-y-6 ${pending ? 'cursor-wait' : ''}`}>
+      <div className="grid gap-6 sm:grid-cols-2">
         <label className="space-y-1.5 text-sm font-medium" htmlFor="b-name">
           Brand name
-          <input id="b-name" name="brandName" defaultValue={brandName ?? ''} className={input} autoComplete="off" />
+          <input id="b-name" name="brandName" value={name} onChange={(e) => setName(e.target.value)} className={input} autoComplete="off" />
         </label>
-        <label className="space-y-1.5 text-sm font-medium" htmlFor="b-accent">
-          Brand color
-          <span className="flex items-center gap-2">
-            <input id="b-accent" name="accent" value={color} onChange={(e) => setColor(e.target.value)} placeholder="#1d6fb8" maxLength={7} className={input} autoComplete="off" aria-invalid={!!color && !norm} />
-            {norm && <span aria-hidden="true" className="size-9 shrink-0 rounded-md border border-border" style={{ backgroundColor: norm }} />}
-          </span>
-          {norm && !accentReadableOnWhite(norm) && <span className="block text-xs font-normal text-muted-foreground">Very light against white; links and charts in it may be hard to read.</span>}
-        </label>
+        <div />
+        <ColorField label="Primary color" hint="Buttons, links and focus. Pick any color or type an exact hex code." name="accent" value={primary} onChange={setPrimary} swatches={BRAND_SWATCHES} />
+        <ColorField label="Secondary color" hint="Secondary buttons, chips and highlights." name="secondary" value={second} onChange={setSecond} fallback="#c8963e" />
+        <ColorField label="Background color" hint="The page behind everything. Text and cards adjust so they stay readable." name="background" value={bg} onChange={setBg} fallback="#f7f9fa" />
+        <BrandPreview name={name} primary={primary} secondary={second} background={bg} logoUrl={logoUrl} />
         <label className="space-y-1.5 text-sm font-medium" htmlFor="b-logo">
           Upload a logo (png or jpg)
           <input id="b-logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="block text-sm font-normal" />

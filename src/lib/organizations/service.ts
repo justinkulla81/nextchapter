@@ -21,7 +21,7 @@ export interface CreateOrganizationInput {
   name: string
   domain?: string | null
   portals: PortalType[]
-  brand?: { name?: string | null; logoUrl?: string | null; accent?: string | null }
+  brand?: { name?: string | null; logoUrl?: string | null; accent?: string | null; secondary?: string | null; background?: string | null }
   mode: 'live' | 'demo'
   contactName?: string | null
   contactEmail?: string | null
@@ -43,7 +43,9 @@ export function validateCreateInput(input: CreateOrganizationInput): string | nu
     if (!isPortalType(t)) return 'One of the chosen portals is not recognized.'
     if (!portalMeta(t).available) return `${portalMeta(t).label} is not available to create yet.`
   }
-  if (input.brand?.accent && !normalizeHex(input.brand.accent)) return 'Brand color must look like #1d6fb8.'
+  for (const c of [input.brand?.accent, input.brand?.secondary, input.brand?.background]) {
+    if (c && !normalizeHex(c)) return 'Brand colors must look like #1d6fb8.'
+  }
   if (input.mode === 'live') {
     const needsContact = input.portals.some((t) => t !== 'HIGHER_ED')
     if (needsContact && !(input.contactEmail && EMAIL.test(input.contactEmail.trim()))) return 'Enter the first admin’s email so they can be invited.'
@@ -62,6 +64,8 @@ export async function createOrganization(input: CreateOrganizationInput, adminEm
   const name = input.name.trim()
   const demo = input.mode === 'demo'
   const accent = normalizeHex(input.brand?.accent ?? null)
+  const secondary = normalizeHex(input.brand?.secondary ?? null)
+  const background = normalizeHex(input.brand?.background ?? null)
   const brandName = input.brand?.name?.trim() || null
   const logoUrl = input.brand?.logoUrl?.trim() || null
   const domain = input.domain?.trim().toLowerCase() || null
@@ -84,6 +88,8 @@ export async function createOrganization(input: CreateOrganizationInput, adminEm
       brandName,
       logoUrl,
       accentColor: accent,
+      secondaryColor: secondary,
+      backgroundColor: background,
       isDemo: demo,
       isSampleData: demo,
       demoScenario: demo ? input.demoScenario ?? 'Realistic' : null,
@@ -235,13 +241,15 @@ export function ownedTypes(org: { workspaces: Array<{ type: PortalType | string 
   return org.workspaces.map((w) => w.type as PortalType)
 }
 
-export async function updateOrganizationBrand(id: string, brand: { name?: string | null; logoUrl?: string | null; accent?: string | null }, adminEmail: string | null): Promise<{ error?: string }> {
+export async function updateOrganizationBrand(id: string, brand: { name?: string | null; logoUrl?: string | null; accent?: string | null; secondary?: string | null; background?: string | null }, adminEmail: string | null): Promise<{ error?: string }> {
   const accent = brand.accent ? normalizeHex(brand.accent) : null
-  if (brand.accent && !accent) return { error: 'Brand color must look like #1d6fb8.' }
-  const merged = mergeBrand({ name: brand.name, logoUrl: brand.logoUrl, accent })
+  const secondary = brand.secondary ? normalizeHex(brand.secondary) : null
+  const background = brand.background ? normalizeHex(brand.background) : null
+  if ((brand.accent && !accent) || (brand.secondary && !secondary) || (brand.background && !background)) return { error: 'Brand colors must look like #1d6fb8.' }
+  const merged = mergeBrand({ name: brand.name, logoUrl: brand.logoUrl, accent, secondary, background })
   if (brand.logoUrl && !merged.logoUrl) return { error: 'The logo must be an https link or an uploaded image.' }
-  await prisma.organization.update({ where: { id }, data: { brandName: merged.name, logoUrl: merged.logoUrl, accentColor: merged.accent } })
-  captureServerEvent(adminEmail ?? 'admin', 'organization_brand_updated', { organizationId: id, hasLogo: Boolean(merged.logoUrl), hasColor: Boolean(merged.accent) })
+  await prisma.organization.update({ where: { id }, data: { brandName: merged.name, logoUrl: merged.logoUrl, accentColor: merged.accent, secondaryColor: merged.secondary ?? null, backgroundColor: merged.background ?? null } })
+  captureServerEvent(adminEmail ?? 'admin', 'organization_brand_updated', { organizationId: id, hasLogo: Boolean(merged.logoUrl), hasColor: Boolean(merged.accent), hasSecondary: Boolean(merged.secondary), hasBackground: Boolean(merged.background) })
   return {}
 }
 
@@ -277,11 +285,11 @@ export async function claimHiringWorkspace(employerProfileId: string, email: str
 export async function organizationBrandFor(type: PortalType, refId: string): Promise<PartnerBrand | null> {
   const ws = await prisma.orgWorkspace.findFirst({
     where: { type, refId },
-    select: { org: { select: { brandName: true, logoUrl: true, accentColor: true } } },
+    select: { org: { select: { brandName: true, logoUrl: true, accentColor: true, secondaryColor: true, backgroundColor: true } } },
   })
   if (!ws) return null
-  const b = mergeBrand({ name: ws.org.brandName, logoUrl: ws.org.logoUrl, accent: ws.org.accentColor })
-  return b.name || b.logoUrl || b.accent ? b : null
+  const b = mergeBrand({ name: ws.org.brandName, logoUrl: ws.org.logoUrl, accent: ws.org.accentColor, secondary: ws.org.secondaryColor, background: ws.org.backgroundColor })
+  return b.name || b.logoUrl || b.accent || b.secondary || b.background ? b : null
 }
 
 /** Which connections are on for the organization that owns this portal record. */

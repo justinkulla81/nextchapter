@@ -15464,6 +15464,9 @@ model Organization {
   brandName   String?
   logoUrl     String?
   accentColor String?
+  // Secondary (buttons, chips, highlights) and page background; any #rrggbb.
+  secondaryColor  String?
+  backgroundColor String?
 
   // Demo: sample data only, never counted in real metrics, expires.
   isDemo        Boolean   @default(false)

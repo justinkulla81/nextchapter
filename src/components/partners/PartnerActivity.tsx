@@ -4,6 +4,8 @@ export interface DownloadItem {
   label: string
   href: string
   note: string
+  /** Link text; defaults to "Download CSV". */
+  action?: string
 }
 
 export interface ActivityRow {
@@ -37,7 +39,7 @@ export function PartnerActivity({ downloads, events }: { downloads: DownloadItem
                 </span>
                 {/* A plain link: the route sends the file, so the browser downloads it. */}
                 <a href={d.href} className="rounded-full border border-border px-4 py-1.5 font-semibold hover:bg-muted">
-                  Download CSV
+                  {d.action ?? 'Download CSV'}
                 </a>
               </li>
             ))}
