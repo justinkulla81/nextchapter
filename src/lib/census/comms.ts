@@ -12,10 +12,10 @@ import { readProgramSettings } from '@/lib/employer/program-settings'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
 import { sendOutplacementAccessEndingEmail, sendOutplacementSeatInviteEmail } from '@/lib/email/send-outplacement-emails'
 import { sendCampaign } from '@/lib/higher-ed/outreach'
+import { callbackOriginForAppPath, urlForAppPath } from '@/lib/portal-hosts'
 
 const DAY = 86_400_000
 const BATCH = 200
-const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 // Which reminder (0 or 1) is due for someone first invited at `invitedAt`
 // who has had `sent` reminders, or null.
@@ -42,7 +42,7 @@ export async function runOutplacementComms(now = new Date()) {
       for (const s of seats) {
         if (reminderDue(s.enrolledAt, s.reminderCount, now) === null) continue
         if (s.lastReminderAt && now.getTime() - s.lastReminderAt.getTime() < 5 * DAY) continue
-        const { actionLink } = await createPreConfirmedInviteUser(s.invitedEmail, `${appUrl()}/auth/callback?next=outplacement-seat&inviteToken=${s.inviteToken}`, { isFirstSend: false })
+        const { actionLink } = await createPreConfirmedInviteUser(s.invitedEmail, `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=outplacement-seat&inviteToken=${s.inviteToken}`, { isFirstSend: false })
         if (!actionLink) continue
         const r = await sendOutplacementSeatInviteEmail(s.invitedEmail, org.name, actionLink, { welcome: settings.welcome, services: [] }, { reminder: true })
         if (!r.sent) continue
@@ -67,7 +67,7 @@ export async function runOutplacementComms(now = new Date()) {
       for (const s of seats) {
         const ends = s.accessEndsAt ?? s.contract.termEndAt
         if (!ends) continue
-        const r = await sendOutplacementAccessEndingEmail(s.invitedEmail, org.name, fmt.format(ends), `${appUrl()}/dashboard`)
+        const r = await sendOutplacementAccessEndingEmail(s.invitedEmail, org.name, fmt.format(ends), urlForAppPath('/dashboard'))
         if (!r.sent) continue
         await prisma.outplacementSeat.update({ where: { id: s.id }, data: { accessNoticeAt: now } })
         notices++

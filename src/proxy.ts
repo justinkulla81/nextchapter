@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
+import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
+import { CANDIDATE_ORG_PAGES, HOSTS, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
 export const ADMIN_HOST = 'admin.launchyournextchapter.com'
@@ -36,6 +38,14 @@ export async function proxy(request: NextRequest) {
   if (ORG_SUBDOMAINS_ON) {
     const orgRoute = routeOrgHosts(request, host, pathname)
     if (orgRoute) return orgRoute
+  }
+
+  const portalHost = portalHostFor(host)
+  if (portalHost && portalHostOn(portalHost)) return routePortalHost(request, portalHost, pathname)
+  if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
+    // Main site: a portal that has its own host now lives there.
+    const moved = hostForAppPath(pathname)
+    if (moved) return NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307)
   }
 
   return updateSession(request)
@@ -81,4 +91,33 @@ export const config = {
     // guide PDFs, fonts). None of them sit behind auth.
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|xml|txt|json|woff2)$).*)',
   ],
+}
+
+// Recruiter, coach, organization and candidate portals on their own hosts
+// (src/lib/portal-hosts.ts).
+function routePortalHost(request: NextRequest, h: PortalHost, pathname: string) {
+  const search = request.nextUrl.search
+  const toMain = () => NextResponse.redirect(`${mainOrigin()}${pathname}${search}`, 307)
+  const rewrite = (to: string, portal: ReturnType<typeof cookieForAppPath>) => {
+    const url = request.nextUrl.clone()
+    url.pathname = to
+    return updateSession(request, { portal, rewriteTo: url })
+  }
+  const cfg = HOSTS[h]
+  // Shared plumbing, and app paths already in their own form (in-app links).
+  if (/^\/(_next|api|ingest)(\/|$)/.test(pathname) || /\.[a-z0-9]+$/i.test(pathname) || pathname.startsWith('/auth/callback')) {
+    return updateSession(request, { portal: cfg.mounts[0]?.cookie })
+  }
+  if (h === 'candidate' && CANDIDATE_ORG_PAGES.test(pathname)) return updateSession(request)
+  const asApp = cookieForAppPath(h, pathname)
+  if (asApp !== undefined || cfg.mounts.some((m) => m.path === pathname || pathname.startsWith(`${m.path}/`))) return updateSession(request, { portal: asApp })
+  if (pathname === '/') return rewrite(cfg.home, cfg.mounts[0]?.cookie)
+  const top = pathname.split('/')[1] ?? ''
+  const rootMounted = cfg.mounts.some((m) => m.at === '')
+  // A main-site page opened here (a link to /pricing from a portal).
+  if (rootMounted && !PORTAL_ROOT_PAGES[cfg.mounts[0].path]?.has(top) && APP_TOP_LEVEL.has(top)) return toMain()
+  const app = appPathFor(h, pathname)
+  if (!app) return toMain()
+  if (app.path === pathname) return updateSession(request, { portal: app.cookie })
+  return rewrite(app.path, app.cookie)
 }

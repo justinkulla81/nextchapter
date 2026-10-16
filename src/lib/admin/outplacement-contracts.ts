@@ -5,6 +5,7 @@ import { sendOutplacementOrgInviteEmail } from '@/lib/email/send-outplacement-em
 import { ORG_ROLE_LABEL } from '@/lib/employer/outplacement-org-role-labels'
 import { captureServerEvent } from '@/lib/posthog/server'
 import type { OutplacementTier } from '@prisma/client'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Admin-side "Employer contracts" (§A9) — the provisioning side of the
 // employer portal (§A7). Outplacement is a contract-sold product (no
@@ -16,9 +17,6 @@ import type { OutplacementTier } from '@prisma/client'
 // analytics are noted as a thinner/later pass in this phase's report, not
 // fabricated here.
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 export interface OrgWithContracts {
   id: string
@@ -133,7 +131,7 @@ export async function inviteFirstOrgAdmin(
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     cleanEmail,
-    `${appUrl()}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
+    `${callbackOriginForAppPath('/employer')}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
     { isFirstSend: !existing }
   )
   if (error || !actionLink) {

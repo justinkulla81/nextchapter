@@ -117,6 +117,8 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
   // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
   // See PROTECTED_APP_PATH_PREFIXES's own comment in portal.ts — single
   // source of truth, also read by HomepageVisitTracker's public-page gate.
+  // The page actually served (a portal host serves /recruiters/... at /...).
+  const appPath = opts.rewriteTo?.pathname ?? request.nextUrl.pathname
   const protectedPaths = PROTECTED_APP_PATH_PREFIXES
   const publicExceptions = [
     '/talent/signup',
@@ -151,9 +153,9 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
   // even though it is the recruiter landing page listed in the sitemap.
   const publicExactPaths = ['/recruiters']
   const isProtected =
-    protectedPaths.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
-    !publicExceptions.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
-    !publicExactPaths.includes(request.nextUrl.pathname)
+    protectedPaths.some((path) => pathStartsWith(appPath, path)) &&
+    !publicExceptions.some((path) => pathStartsWith(appPath, path)) &&
+    !publicExactPaths.includes(appPath)
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
@@ -165,9 +167,9 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
       '/support/coach': '/support/coach/login',
       '/employer': '/employer/login',
       '/support/admin': '/support/admin/login',
-    }).find(([prefix]) => pathStartsWith(request.nextUrl.pathname, prefix))?.[1]
+    }).find(([prefix]) => pathStartsWith(appPath, prefix))?.[1]
     redirectUrl.pathname = portalLoginPath ?? '/auth/login'
-    redirectUrl.searchParams.set('next', request.nextUrl.pathname)
+    redirectUrl.searchParams.set('next', appPath)
     return NextResponse.redirect(redirectUrl)
   }
 
