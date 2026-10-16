@@ -7,7 +7,7 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
-import { importOptionalFields, importSpecFields } from '@/lib/jobs/import-optional-fields'
+import { importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
 import { parseYearsRequired } from '@/lib/jobs/years-required'
 import { Prisma } from '@prisma/client'
@@ -100,6 +100,9 @@ interface ImportJobInput {
   repostFirstSeenAt?: string | null
   duplicateCount?: number | null
   duplicateOf?: string | null
+  // The person the source names as the job's contact or poster (ncrawl jobs.recruiter_name).
+  // Optional like the fields above: left out, the stored value is untouched.
+  recruiterName?: string | null
 }
 
 interface ImportRequestBody {
@@ -170,6 +173,7 @@ function rowData({ job, level }: Screened) {
     ...importOptionalFields(job),
     ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
     ...yearsRequiredOf(job.description),
+    ...('recruiterName' in job && job.recruiterName !== undefined ? { recruiterName: importText(job.recruiterName, 120) } : {}),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
@@ -349,7 +353,7 @@ export async function POST(request: NextRequest) {
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
-      repostCount: true, repostFirstSeenAt: true, duplicateCount: true,
+      repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

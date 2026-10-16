@@ -5015,6 +5015,10 @@ model ExclusiveJobPosting {
   repostCount       Int?
   repostFirstSeenAt DateTime?
   duplicateCount    Int?
+  // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
+  // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
+  // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
+  recruiterName     String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -5077,6 +5081,9 @@ model JobBoardIntroRequest {
   posting      ExclusiveJobPosting @relation(fields: [postingId], references: [id], onDelete: Cascade)
   contactEmail String?
   status       String              @default("pending") // 'pending' | 'contacted' | 'closed'
+  // 'listing' — intro on a confidential listing; 'known_contact' — NextChapter knows someone
+  // at the employer and the member asked for an intro (Who to contact panel).
+  kind         String              @default("listing")
   createdAt    DateTime            @default(now())
 
   @@index([candidateId, createdAt])
