@@ -21,6 +21,8 @@ interface BackchannelMatchEmailProps {
   moreUrl: string
   // One example of the draft each Email button opens.
   note: { subject: string; body: string }
+  // Why a note from inside is worth sending: one sourced stat, rotated per email.
+  why: { text: string; source: string; url: string }
   otherCompanyCount: number
   otherCompaniesUrl: string
   unsubscribeUrl: string
@@ -82,6 +84,7 @@ export default function BackchannelMatchEmail({
   moreCount,
   moreUrl,
   note,
+  why,
   otherCompanyCount,
   otherCompaniesUrl,
   unsubscribeUrl,
@@ -98,9 +101,15 @@ export default function BackchannelMatchEmail({
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
         you applied for {roleNode} at {companyName}
-        {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} in your network
-        work{people.length + moreCount === 1 ? 's' : ''} there. A heads-up from someone inside gets your name in front of
-        a real person, not just a queue.
+        {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} you know
+        {people.length + moreCount === 1 ? ' works' : ' work'} there, and a word from inside gets your name in front of a
+        real person.
+      </p>
+      <p style={{ ...emailStyles.muted, margin: 0 }}>
+        {why.text}{' '}
+        <a href={why.url} style={{ color: '#4a5568' }}>
+          {why.source}
+        </a>
       </p>
       <div>
         {people.map((person) => (
@@ -129,11 +138,8 @@ export default function BackchannelMatchEmail({
           </p>
         )}
       </div>
-      <p style={{ marginBottom: 0 }}>
-        <strong>Each Email button opens a Gmail draft like this one, addressed to that person:</strong>
-      </p>
+      <p style={{ ...emailStyles.muted, margin: '24px 0 0' }}>The draft each button opens. Edit it, then send.</p>
       <p style={noteBox}>{note.body}</p>
-      <p style={emailStyles.muted}>Edit it, then send. If someone has moved on, skip them.</p>
       {otherCompanyCount > 0 && (
         <p style={emailStyles.muted}>
           You also know people at {otherCompanyCount} other{' '}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { draftBackchannelNote, rankBackchannelContacts, type BackchannelContact } from '@/lib/email/backchannel-note'
+import { draftBackchannelNote, rankBackchannelContacts, titleApplicability, type BackchannelContact } from '@/lib/email/backchannel-note'
 
 const contact = (over: Partial<BackchannelContact> & { name: string }): BackchannelContact => ({
   title: null,
@@ -15,14 +15,14 @@ describe('rankBackchannelContacts', () => {
     expect(ranked.map((c) => c.name)).toEqual(['Here'])
   })
 
-  it('prefers confirmed-current, then reachable, then warmest', () => {
+  it('puts email first, then warmest, then confirmed-current', () => {
     const ranked = rankBackchannelContacts([
       contact({ name: 'Cold', warmth: 'COLD', email: 'c@x.com' }),
       contact({ name: 'NoEmail', warmth: 'HOT' }),
       contact({ name: 'Hot', warmth: 'HOT', email: 'h@x.com' }),
-      contact({ name: 'Confirmed', employmentStatusAtCompany: 'CURRENT' }),
+      contact({ name: 'Confirmed', email: 'w@x.com', employmentStatusAtCompany: 'CURRENT' }),
     ])
-    expect(ranked.map((c) => c.name)).toEqual(['Confirmed', 'Hot', 'Cold', 'NoEmail'])
+    expect(ranked.map((c) => c.name)).toEqual(['Hot', 'Confirmed', 'Cold', 'NoEmail'])
   })
 })
 
@@ -40,5 +40,42 @@ describe('draftBackchannelNote', () => {
     const { subject, body } = draftBackchannelNote({ contactName: 'Dana', role: null, companyName: 'Acme', senderFirstName: null })
     expect(subject).toBe('Quick favor: Acme')
     expect(body).toContain('applied for a role at Acme')
+  })
+})
+
+describe('ranking order: email, then warmth, then role fit', () => {
+  const c = (over: Partial<BackchannelContact> & { name: string }): BackchannelContact => ({
+    title: null,
+    email: null,
+    warmth: 'WARM',
+    employmentStatusAtCompany: null,
+    ...over,
+  })
+
+  it('puts people with an email ahead of warmer people without one', () => {
+    const ranked = rankBackchannelContacts([c({ name: 'HotNoEmail', warmth: 'HOT' }), c({ name: 'ColdEmail', warmth: 'COLD', email: 'a@x.com' })])
+    expect(ranked.map((x) => x.name)).toEqual(['ColdEmail', 'HotNoEmail'])
+  })
+
+  it('orders by warmth among people with email', () => {
+    const ranked = rankBackchannelContacts([c({ name: 'Cold', warmth: 'COLD', email: 'a@x.com' }), c({ name: 'Hot', warmth: 'HOT', email: 'b@x.com' })])
+    expect(ranked.map((x) => x.name)).toEqual(['Hot', 'Cold'])
+  })
+
+  it('breaks ties by fit with the role', () => {
+    const ranked = rankBackchannelContacts(
+      [
+        c({ name: 'Sales', title: 'Sales director', email: 'a@x.com' }),
+        c({ name: 'Product', title: 'Director of Product', email: 'b@x.com' }),
+        c({ name: 'Recruiter', title: 'Technical recruiter', email: 'c@x.com' }),
+      ],
+      'Senior product manager'
+    )
+    expect(ranked.map((x) => x.name)).toEqual(['Recruiter', 'Product', 'Sales'])
+  })
+
+  it('scores a hiring-manager tag highest', () => {
+    expect(titleApplicability({ title: null, relationshipTags: ['HIRING_MANAGER'] }, null)).toBe(3)
+    expect(titleApplicability({ title: null, relationshipTags: [] }, 'Product manager')).toBe(0)
   })
 })
