@@ -37,19 +37,22 @@ export default async function CoachClientsPage({
     )
   }
 
-  const [clients, caseload] = await Promise.all([getCoachClientSummaries(coach.id), getCoachCaseload(coach.id)])
+  const [clients, caseload, clientProfiles] = await Promise.all([
+    getCoachClientSummaries(coach.id),
+    getCoachCaseload(coach.id),
+    prisma.candidateProfile.findMany({
+      where: { coachId: coach.id },
+      select: {
+        id: true,
+        targetRoleType: true,
+        primaryFunction: true,
+        highestLevelReached: true,
+        targetIndustries: true,
+      },
+    }),
+  ])
   const glance = new Map(caseload.map((c) => [c.id, c]))
   const stalled = caseload.filter((c) => c.isStalled)
-  const clientProfiles = await prisma.candidateProfile.findMany({
-    where: { coachId: coach.id },
-    select: {
-      id: true,
-      targetRoleType: true,
-      primaryFunction: true,
-      highestLevelReached: true,
-      targetIndustries: true,
-    },
-  })
   const profileById = new Map(clientProfiles.map((p) => [p.id, p]))
   const pathsById = await getParallelPathsFor(clientProfiles.map((p) => p.id))
 
