@@ -13,6 +13,7 @@
     "careers:import-onet": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-onet.ts",
     "careers:import-bls": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-bls.ts",
     "careers:build-aliases": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-skill-aliases.ts",
+    "careers:build-similarity": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-occupation-similarity.ts",
     "careers:tag-courses": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/tag-courses.ts",
     "careers:import-training": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-training-programs.ts",
     "crm:fix-headcounts": "tsx --env-file=.env.local scripts/crm/fix-headcounts.ts",

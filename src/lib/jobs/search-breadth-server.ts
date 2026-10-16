@@ -1,0 +1,277 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
+import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { edgesFor } from '@/lib/pivots/onet'
+import { onetSocForRole } from '@/lib/pivots/onet-soc'
+import { detectSourceRole, ROLES, titleVariants } from '@/lib/pivots/pivot-map'
+import {
+  classifyJob,
+  hasBreadthBasis,
+  memberFunctions,
+  pivotTargetIndex,
+  passesSkillsThreshold,
+  MATCH_KIND_RANK,
+  type Breadth,
+  type JobBreadthFacts,
+  type JobClass,
+  type MemberBreadthVector,
+  type SimilarOccupation,
+  matchReason,
+  type MatchReason,
+} from '@/lib/jobs/search-breadth'
+import { memberHasSkill } from '@/lib/jobs/job-skill-gap'
+
+// The data behind search-breadth.ts, held in memory per server instance:
+//
+// - OccupationSimilarity (~30k rows), whole, for an hour: it changes only when the
+//   builder script is re-run.
+// - Each live job's O*NET occupation (the crawler's socCode), by id. Not a
+//   BoardLightRow column (that copy is rebuilt by triggers another change owns), so
+//   it is its own narrow read: ~230k ids, ~0.4 s in Postgres. Refreshed every ten
+//   minutes; after that the held copy is served while a fresh one loads, and only a
+//   cold instance waits — in parallel with the board's own load, never after it.
+//   A job imported since the last refresh is classified by its title alone until then.
+
+const SIMILARITY_TTL_MS = 60 * 60_000
+const JOB_SOC_TTL_MS = 10 * 60_000
+const JOB_SOC_STALE_MS = 60 * 60_000
+
+type SimilarityIndex = Map<string, Map<string, SimilarOccupation>>
+let similarityMemo: { at: number; value: Promise<SimilarityIndex> } | null = null
+
+export function loadSimilarityIndex(): Promise<SimilarityIndex> {
+  const now = Date.now()
+  if (!similarityMemo || now - similarityMemo.at > SIMILARITY_TTL_MS) {
+    const value = prisma.occupationSimilarity
+      .findMany({ select: { socCode: true, similarSocCode: true, score: true, related: true, sharedSkills: true, similarTitle: true } })
+      .then((rows) => {
+        const index: SimilarityIndex = new Map()
+        for (const r of rows) {
+          let m = index.get(r.socCode)
+          if (!m) index.set(r.socCode, (m = new Map()))
+          m.set(r.similarSocCode, { score: r.score, related: r.related, title: r.similarTitle, shared: r.sharedSkills })
+        }
+        return index
+      })
+      .catch((error) => {
+        // Table missing (SQL not applied yet) or unreadable: no skills matches, nothing else breaks.
+        console.error('Occupation similarity unavailable:', error)
+        similarityMemo = null
+        return new Map() as SimilarityIndex
+      })
+    similarityMemo = { at: now, value }
+  }
+  return similarityMemo.value
+}
+
+let jobSocs: { at: number; value: Promise<Map<string, string>> } | null = null
+let jobSocsLoading: Promise<Map<string, string>> | null = null
+
+async function readJobSocs(): Promise<Map<string, string>> {
+  const rows = await prisma.$queryRaw<{ id: string; socCode: string }[]>`
+    SELECT "id", "socCode" FROM "ExclusiveJobPosting" WHERE "archivedAt" IS NULL AND "socCode" IS NOT NULL`
+  const pool = new Map<string, string>()
+  const out = new Map<string, string>()
+  for (const r of rows) {
+    let soc = pool.get(r.socCode)
+    if (soc === undefined) pool.set(r.socCode, (soc = r.socCode))
+    out.set(r.id, soc)
+  }
+  return out
+}
+
+/** Live job id → O*NET occupation. */
+export function loadJobSocs(): Promise<Map<string, string>> {
+  const now = Date.now()
+  if (jobSocs && now - jobSocs.at < JOB_SOC_TTL_MS) return jobSocs.value
+  if (!jobSocsLoading) {
+    const started = now
+    const next = readJobSocs()
+    jobSocsLoading = next
+    next.then(
+      () => {
+        jobSocs = { at: started, value: next }
+        jobSocsLoading = null
+      },
+      (error) => {
+        console.error('Job occupations: load failed', error)
+        jobSocsLoading = null
+      }
+    )
+  }
+  if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
+  return jobSocsLoading!.catch(() => new Map<string, string>())
+}
+
+// ── Member vector ──────────────────────────────────────────────────────────────
+
+export type BreadthCandidate = {
+  id?: string | null
+  primaryFunction?: string | null
+  secondaryFunction?: string | null
+  targetFunction?: string | null
+  resumeLatestJobTitle?: string | null
+  industryContext?: string | null
+  secondaryIndustryContext?: string | null
+  targetIndustries?: string[] | null
+}
+
+const memberSocMemo = new Map<string, { at: number; soc: string | null }>()
+const MEMBER_SOC_TTL_MS = 10 * 60_000
+
+async function memberSoc(candidate: BreadthCandidate, sourceRole: string | null): Promise<string | null> {
+  const fallback = sourceRole ? onetSocForRole(sourceRole) : null
+  if (!candidate.id) return fallback
+  const key = `${candidate.id}|${candidate.resumeLatestJobTitle ?? ''}|${candidate.primaryFunction ?? ''}`
+  const hit = memberSocMemo.get(key)
+  if (hit && Date.now() - hit.at < MEMBER_SOC_TTL_MS) return hit.soc
+  const resolved = await resolveCandidateOccupation(candidate.id).catch(() => null)
+  // A clear title match (or their own choice) beats the pivot role's stand-in; the function
+  // proxy doesn't — the role read from their title is more specific than "their function".
+  const soc = resolved?.status === 'resolved' && resolved.source !== 'FUNCTION_PROXY' ? resolved.socCode : (fallback ?? (resolved?.status === 'resolved' ? resolved.socCode : null))
+  if (memberSocMemo.size > 5000) memberSocMemo.clear()
+  memberSocMemo.set(key, { at: Date.now(), soc })
+  return soc
+}
+
+/** Everything the classifier needs about one member. No model call; at most two small reads (their occupation), memoised. */
+export async function memberBreadthVector(candidate: BreadthCandidate): Promise<MemberBreadthVector> {
+  const functions = memberFunctions([candidate.primaryFunction, candidate.secondaryFunction])
+  const target = (candidate.targetFunction ?? '').trim()
+  const targetFunction = target && !functions.has(target.toLowerCase()) && !/^(general|other)$/i.test(target) ? target.toLowerCase() : null
+  const sourceRole = detectSourceRole({ title: candidate.resumeLatestJobTitle, primaryFunction: candidate.primaryFunction })
+  const pivotTargets = new Map<string, string>()
+  for (const e of edgesFor(sourceRole)) {
+    const role = ROLES.get(e.to)
+    if (role) pivotTargets.set(role.key, role.label)
+  }
+  const [soc, similarity] = await Promise.all([memberSoc(candidate, sourceRole), loadSimilarityIndex()])
+  const industries = new Set(
+    [candidate.industryContext, candidate.secondaryIndustryContext, ...(candidate.targetIndustries ?? [])]
+      .map((s) => normalizeIndustryBucket(s ?? null))
+      .filter((b): b is string => !!b && b !== 'Other')
+  )
+  return {
+    functions,
+    targetFunction,
+    targetFunctionLabel: targetFunction ? target : null,
+    sourceRole,
+    sourceLabel: sourceRole ? (ROLES.get(sourceRole)?.label ?? null) : null,
+    pivotTargets,
+    pivotTargetsByFunction: pivotTargetIndex([...pivotTargets.keys()].map((k) => [k, ROLES.get(k)?.fn ?? null])),
+    soc,
+    similar: (soc && similarity.get(soc)) || new Map(),
+    functionLabel: candidate.primaryFunction && functions.has(candidate.primaryFunction.trim().toLowerCase()) ? candidate.primaryFunction.trim() : null,
+    industries,
+  }
+}
+
+// ── Job facts ──────────────────────────────────────────────────────────────────
+
+type BreadthRow = { id: string; title: string; targetFunction: string | null }
+
+// Per row (rows are shared by every request until the board reloads, and unchanged rows
+// survive a reload): the title's function and its readings for the role patterns.
+const factsByRow = new WeakMap<BreadthRow, { titleFunction: string; variants: string[] | null }>()
+
+/** A job's side of the classifier. Nothing here depends on the member, so it is worked out once per row. */
+export function jobBreadthFacts(row: BreadthRow, socs: Map<string, string>): JobBreadthFacts {
+  let f = factsByRow.get(row)
+  if (!f) factsByRow.set(row, (f = { titleFunction: (inferFunctionFromTitle(row.title) ?? '').toLowerCase(), variants: null }))
+  const facts = f
+  return {
+    titleFunction: facts.titleFunction,
+    targetFunction: row.targetFunction,
+    soc: socs.get(row.id) ?? null,
+    pivotRole: (roles) => {
+      facts.variants ??= titleVariants(row.title)
+      for (const key of roles) {
+        const re = ROLES.get(key)?.titles
+        if (re && facts.variants.some((v) => re.test(v))) return key
+      }
+      return null
+    },
+  }
+}
+
+// ── The board's classifier ─────────────────────────────────────────────────────
+
+/** A job's place on the member's board: rank (field 0, pivot 1, skills 2) and whether Narrow keeps it too. */
+export interface BreadthPlacement {
+  rank: number
+  inNarrow: boolean
+  cls: JobClass
+}
+
+export interface BreadthClassifier {
+  member: MemberBreadthVector
+  socs: Map<string, string>
+  /** Classified at Wide; null = not on either board. */
+  place: (row: BreadthRow) => BreadthPlacement | null
+}
+
+// Placements per member (by what the classifier reads), kept across requests: a member's
+// next board view only re-classifies rows that changed. Bounded; dropped with the job-occupation map.
+const PLACEMENT_MEMO_MAX = 200
+const placementMemos = new Map<string, { socs: Map<string, string>; memo: WeakMap<object, BreadthPlacement | null> }>()
+function placementMemo(m: MemberBreadthVector, socs: Map<string, string>): WeakMap<object, BreadthPlacement | null> {
+  const key = JSON.stringify([[...m.functions], m.targetFunction, m.soc, [...m.pivotTargets.keys()], m.similar.size])
+  const hit = placementMemos.get(key)
+  if (hit && hit.socs === socs) return hit.memo
+  if (placementMemos.size >= PLACEMENT_MEMO_MAX) placementMemos.delete(placementMemos.keys().next().value as string)
+  const memo = new WeakMap<object, BreadthPlacement | null>()
+  placementMemos.set(key, { socs, memo })
+  return memo
+}
+
+/**
+ * The classifier for one member, or null when there's nothing to narrow by (no
+ * function, occupation or pivot role) — then the board stays as it was, every job in
+ * the level window. Per-job placements are memoised on the row for this member.
+ */
+export async function loadBreadthClassifier(candidate: BreadthCandidate | null | undefined): Promise<BreadthClassifier | null> {
+  if (!candidate) return null
+  const [member, socs] = await Promise.all([memberBreadthVector(candidate), loadJobSocs()])
+  if (!hasBreadthBasis(member)) return null
+  const memo = placementMemo(member, socs)
+  return {
+    member,
+    socs,
+    place: (row) => {
+      const hit = memo.get(row)
+      if (hit !== undefined) return hit
+      const cls = classifyJob(member, jobBreadthFacts(row, socs), 'wide')
+      const placed = cls
+        ? { cls, rank: MATCH_KIND_RANK[cls.kind], inNarrow: cls.kind !== 'skills' || passesSkillsThreshold({ score: cls.score ?? 0, related: cls.related }, 'narrow') }
+        : null
+      memo.set(row, placed)
+      return placed
+    },
+  }
+}
+
+/**
+ * Why each shown job is on the board ("Your field", "Pivot: …", "Skills match: …"), for
+ * the full rows the board loaded. Skills matches name the posting's own skills the
+ * member shows (skills matrix) before O*NET's shared skills. Jobs neither breadth keeps
+ * (a search) get no label.
+ */
+export function breadthReasonsFor(
+  classifier: BreadthClassifier,
+  postings: { id: string; title: string; targetFunction: string | null; skills: string[]; industry: string | null }[],
+  memberKeywords: string[]
+): Map<string, MatchReason> {
+  const out = new Map<string, MatchReason>()
+  const has = (skill: string) => memberHasSkill(skill, memberKeywords)
+  for (const p of postings) {
+    const cls = classifyJob(classifier.member, jobBreadthFacts(p, classifier.socs), 'wide')
+    if (!cls) continue
+    const soc = classifier.socs.get(p.id) ?? null
+    out.set(p.id, matchReason(classifier.member, cls, { soc, industryBucket: normalizeIndustryBucket(p.industry) }, has, p.skills))
+  }
+  return out
+}
+
+export type { Breadth }

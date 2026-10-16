@@ -1049,6 +1049,11 @@ model CandidateProfile {
   // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
   boardAdvisoryWillingness        Boolean?
   isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  // Job board breadth the member chose: 'narrow' (their field, pivots, close skills
+  // matches) or 'wide' (more adjacent work). Null = not chosen: the board defaults by
+  // career stage (senior Narrow, junior Wide) and job emails use Narrow
+  // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
+  boardBreadth                    String?
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
@@ -15084,6 +15089,26 @@ model OccupationRelated {
 // Which occupation a candidate's most recent job maps to. A cache of a
 // deterministic title match or of the candidate choosing from a short list.
 // There is no metered AI path: an ambiguous title is never guessed at.
+// Occupation-to-occupation similarity over every O*NET occupation (not only the
+// white-collar scope above), built offline from the O*NET file by
+// scripts/careers/build-occupation-similarity.ts; the board's skills-adjacent
+// matches read it (src/lib/jobs/search-breadth.ts). Each occupation keeps its
+// closest ~40 at score >= 0.55. prisma/manual/2026-10-16-search-breadth.sql.
+model OccupationSimilarity {
+  socCode        String
+  similarSocCode String
+  // 0-1: centred skill + knowledge profile cosine, lifted when O*NET relates the pair.
+  score          Float
+  related        Boolean  @default(false)
+  // What the two share, plain words, most specific first (tools, knowledge, skills).
+  sharedSkills   String[] @default([])
+  // O*NET titles, so a lookup needs no join to Occupation (which holds only the white-collar scope).
+  title          String
+  similarTitle   String
+
+  @@id([socCode, similarSocCode])
+}
+
 model CandidateOccupation {
   candidateId String           @id
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)

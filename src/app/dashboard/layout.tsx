@@ -31,6 +31,7 @@ import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
 import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
 import { menuMode } from '@/lib/journey/menu'
+import { boardBreadthFor } from '@/lib/jobs/search-breadth'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -111,6 +112,8 @@ async function getFreshJobsCountForBadge(profileId: string): Promise<number> {
       postedWithinHours: FRESH_HOURS,
       view: 'fresh',
       size: 1,
+      // Same breadth as the board, so the badge counts the jobs the board shows.
+      breadth: boardBreadthFor(profile),
     })
     return board.freshOpenTotal
   } catch (error) {

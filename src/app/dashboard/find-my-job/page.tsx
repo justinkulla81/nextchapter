@@ -33,6 +33,9 @@ import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/D
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
+import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
+import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason } from '@/lib/jobs/search-breadth'
+import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
 import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
@@ -611,6 +614,16 @@ async function JobRecommendationsSection({
     console.error('Skills fit unavailable:', error)
     return null
   })
+  // Why each job is on the board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …".
+  const reasons: Map<string, MatchReason> = board.breadth.classifier
+    ? breadthReasonsFor(board.breadth.classifier, [...visibleBoardPostings, ...lockedBoardPostings], memberKeywords)
+    : new Map()
+  // Field, then pivots (a new industry counts as one), then skills matches, then everything a search kept.
+  const reasonRank = (id: string) => {
+    if (!board.breadth.classifier) return 0
+    const r = reasons.get(id)
+    return r ? (r.kind === 'industry_pivot' ? MATCH_KIND_RANK.pivot : MATCH_KIND_RANK[r.kind]) : 3
+  }
   const skillGapFor = (p: (typeof visibleBoardPostings)[number]) =>
     jobSkillGap({
       title: p.title,
@@ -642,7 +655,8 @@ async function JobRecommendationsSection({
       // A search keeps the shortlist's order (it is already relevance, then fit, or the chosen sort).
       search
         ? 0
-        : FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
+        : reasonRank(a.posting.id) - reasonRank(b.posting.id) ||
+          FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket] ||
           Number(!!local?.isLocal(b.posting.location)) - Number(!!local?.isLocal(a.posting.location))
     )
   const shortlistOrder = new Map(openBoardPostings.map((p, i) => [p.id, i]))
@@ -758,7 +772,8 @@ async function JobRecommendationsSection({
                       rank:
                         searchRank !== null
                           ? searchRank
-                          : boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+                          : reasonRank(posting.id) * 1000 +
+                            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
                             (local?.isLocal(posting.location) ? 0.5 : 0),
                       node: (
                         <DiscoverJobCard
@@ -778,6 +793,7 @@ async function JobRecommendationsSection({
                           employer={employerSignalsOf(posting)}
                           benefits={benefitsByPosting.get(posting.id)}
                           searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
+                          matchReason={reasons.get(posting.id)}
                         />
                       ),
                     }
@@ -850,6 +866,7 @@ export default async function JobFitPage({
     sectors?: string
     blockers?: string
     cleared?: string
+    breadth?: string
   }>
 }) {
   const profile = await getDashboardData()
@@ -883,6 +900,11 @@ export default async function JobFitPage({
   }
   // Pivot paths' "Show me these jobs": the board narrowed to one pivot target's titles.
   const pivotFilter = pivotBoardFilter(pivot)
+  // Search breadth (search-breadth.ts): the URL, else the member's saved choice, else
+  // Narrow for senior members and Wide for junior ones. A pivot path or an explicit
+  // function filter already says which jobs to show, so breadth is off then.
+  const breadth = boardBreadthFor(profile, allParams.breadth)
+  const breadthMode: Breadth | 'off' = pivotFilter || urlParams.fn ? 'off' : breadth
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
@@ -923,6 +945,7 @@ export default async function JobFitPage({
           filtersActive={filtersActive}
           urlParams={urlParams}
           boardFilters={boardFilters}
+          breadthMode={breadthMode}
         />
       </Suspense>
     </div>
@@ -957,6 +980,7 @@ async function FindMyJobBody({
   filtersActive,
   urlParams,
   boardFilters,
+  breadthMode,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -970,6 +994,7 @@ async function FindMyJobBody({
   filtersActive: string[]
   urlParams: Record<string, string>
   boardFilters: BoardRequirementFilters
+  breadthMode: Breadth | 'off'
 }) {
   const onBoard = tab === 'board'
   // Early-career members (src/lib/early-career/audience.ts) skip the
@@ -1162,6 +1187,9 @@ async function FindMyJobBody({
       sort: onBoard && boardSearch.sort !== 'best' ? boardSearch.sort : undefined,
       // company:Name shows that company's jobs, not just its first five.
       perCompany: searchMatcher && searchMatcher.parsed.companies.length > 0 ? 300 : undefined,
+      // Narrow / Wide. A search keeps every match (the member asked for them), ranked and labelled by breadth.
+      breadth: breadthMode,
+      breadthKeepUnmatched: !!searchView?.active,
     }),
     isCandidatePlus && matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id, isCandidatePlus),
@@ -1392,6 +1420,13 @@ async function FindMyJobBody({
               +{applicationPoints} pts
             </span>
             <div className="ml-auto flex flex-wrap items-center gap-3">
+              {board.breadth.classifier && breadthMode !== 'off' && (
+                <BreadthToggle
+                  surface="find_my_job"
+                  current={breadthMode}
+                  counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }}
+                />
+              )}
               <BoardViewToggle surface="find_my_job" />
               <GreatEmployerFilter surface="find_my_job" />
               <SeniorityFilter surface="find_my_job" />

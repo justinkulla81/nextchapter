@@ -39,6 +39,7 @@ import {
 } from '@/lib/jobs/great-employer-display'
 import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
@@ -293,8 +294,11 @@ export function DiscoverJobCard({
   employer,
   benefits,
   searchResult,
+  matchReason,
 }: {
   posting: ExclusiveJobPosting
+  /** Why the job is on the member's board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …". */
+  matchReason?: MatchReason
   fitBucket: FitBucket
   idealMatch?: boolean
   /** Shown as a board search result: its 1-based rank and the query, for job_search_result_clicked. */
@@ -330,6 +334,7 @@ export function DiscoverJobCard({
 
   function handleClick() {
     if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
+    if (matchReason?.kind === 'skills') posthog.capture('skills_adjacent_job_clicked', { jobId: posting.id, sharedSkills: matchReason.sharedSkills ?? [], label: matchReason.label })
     void recordJobClick({
       source: 'job_board',
       sourceId: posting.id,
@@ -347,6 +352,8 @@ export function DiscoverJobCard({
       className="group"
       onToggle={(e) => {
         if (!(e.currentTarget as HTMLDetailsElement).open) return
+        // Opening the card is when the member reads why it is there.
+        if (matchReason) posthog.capture('job_match_reason_viewed', { jobId: posting.id, reason: matchReason.kind, label: matchReason.label })
         if (payBadge || benefitsBadge) {
           posthog.capture('job_employer_badges_viewed', { postingId: posting.id, companyName: posting.companyName, payBadge, benefitsBadge, fitBucket })
         }
@@ -371,6 +378,11 @@ export function DiscoverJobCard({
             </span>
             {/* The edge, visible without opening the card. */}
             <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
+            {matchReason && (
+              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReasonSentence(matchReason)}>
+                <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
+              </span>
+            )}
           </span>
           <span className="flex flex-wrap items-center gap-2">
             {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
