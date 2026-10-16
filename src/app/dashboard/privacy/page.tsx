@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
-import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
@@ -212,7 +211,6 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           regardless of this setting.
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
-        <ActionWindowSelector current={profile.actionWindow} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

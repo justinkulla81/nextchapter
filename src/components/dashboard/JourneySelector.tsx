@@ -143,7 +143,7 @@ export function JourneySelector({
               {f.kind === 'choice' ? (
                 <ChoiceButtons name={f.key} options={(f.options ?? []).map((o) => ({ value: o.value, label: o.label }))} value={sit[f.key] ?? null} onChange={(v) => setSit((cur) => ({ ...cur, [f.key]: v }))} columns={3} responsive />
               ) : (
-                <Input id={`sit-${f.key}`} name={f.key} type={f.kind === 'date' ? 'date' : 'number'} min={f.min} max={f.max} defaultValue={details.situation[f.key] ?? ''} />
+                <Input id={`sit-${f.key}`} name={f.key} type={f.kind === 'date' ? 'date' : f.kind === 'text' ? 'text' : 'number'} min={f.min} max={f.max} maxLength={f.kind === 'text' ? 120 : undefined} defaultValue={details.situation[f.key] ?? ''} />
               )}
             </div>
           ))}
@@ -163,6 +163,7 @@ export function JourneySelector({
         </div>
       )}
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.message && !state.error && <p role="status" className="text-sm text-brand">{state.message}</p>}
     </form>
   )
 }

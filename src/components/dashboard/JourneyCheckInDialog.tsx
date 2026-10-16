@@ -34,7 +34,7 @@ export function JourneyCheckInDialog({ stageLabel }: { stageLabel: string }) {
   const posthog = usePostHog()
   const [open, setOpen] = useState(false)
   const [more, setMore] = useState(false)
-  const [done, setDone] = useState<{ next?: { href: string; label: string } } | null>(null)
+  const [done, setDone] = useState<{ message?: string; next?: { href: string; label: string } } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const ref = useRef<HTMLDivElement>(null)
@@ -99,7 +99,7 @@ export function JourneyCheckInDialog({ stageLabel }: { stageLabel: string }) {
       </div>
       {done ? (
         <div role="status" className="space-y-2 text-sm">
-          <p className="font-medium">Thanks, your plan now fits.</p>
+          <p className="font-medium">{done.message ?? 'Thanks, your plan now fits.'}</p>
           {done.next && (
             <Link href={done.next.href} className="font-medium text-brand underline underline-offset-4">
               {done.next.label}

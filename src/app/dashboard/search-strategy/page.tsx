@@ -1,3 +1,4 @@
+import { IndustryRealityCheck } from '@/components/dashboard/pathway/IndustryRealityCheck'
 import { parseRelocation } from '@/lib/journey/relocation'
 import { pivotOf } from '@/lib/journey/pivot'
 import { careerOf, isCareerAnswered } from '@/lib/journey/career'
@@ -593,6 +594,12 @@ export default async function SearchStrategyPage() {
 
       {/* What the member wants in a culture — compared on each job's match with what
           members who worked at that company said (src/lib/jobs/job-match.ts). */}
+      {searchingJourney && (
+        <Suspense fallback={null}>
+          <IndustryRealityCheck candidateId={profile.id} currentIndustry={profile.industryContext} targetIndustries={profile.targetIndustries} fn={profile.targetFunction ?? profile.primaryFunction} />
+        </Suspense>
+      )}
+
       {searchingJourney && (
       <Card id="culture-preferences" className="scroll-mt-4">
         <CardHeader>

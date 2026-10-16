@@ -1,3 +1,5 @@
+import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
@@ -73,6 +75,7 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 export default async function LearningPage() {
   const profile = await getDashboardProfile()
   const weekStart = getMondayOfWeek(new Date())
+  const learningPaths = await getLearningPaths(profile.id)
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
@@ -132,6 +135,8 @@ export default async function LearningPage() {
           </p>
         )}
       </div>
+
+      <LearningPathsCard paths={learningPaths.paths} progress={learningPaths.progress} />
 
       {badges.length > 0 && (
         <TierSummaryCard

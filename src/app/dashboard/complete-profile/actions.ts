@@ -124,14 +124,13 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
   const willingToTakeDrugTest = parseYesNo(formData.get('willingToTakeDrugTest'))
   const willingToTakeBackgroundCheck = parseYesNo(formData.get('willingToTakeBackgroundCheck'))
   const hasRestrictiveCovenant = parseYesNo(formData.get('hasRestrictiveCovenant'))
-  const wantsAnimalFriendlyWorkplace = parseYesNo(formData.get('wantsAnimalFriendlyWorkplace'))
   // Only asked (and only required) when currentJobStatus is LAID_OFF — see
   // RedFlagsQuestionsForm's askFiredForCause gate.
   const askFiredForCause = profile.currentJobStatus === 'LAID_OFF'
   const firedForCause = askFiredForCause ? parseYesNo(formData.get('firedForCause')) : null
 
   if (
-    [willingToTakeDrugTest, willingToTakeBackgroundCheck, hasRestrictiveCovenant, wantsAnimalFriendlyWorkplace].some(
+    [willingToTakeDrugTest, willingToTakeBackgroundCheck, hasRestrictiveCovenant].some(
       (f) => f === null
     ) ||
     (askFiredForCause && firedForCause === null)
@@ -150,7 +149,6 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
       willingToTakeBackgroundCheck,
       hasRestrictiveCovenant,
       restrictiveCovenantDetails,
-      wantsAnimalFriendlyWorkplace,
       ...(askFiredForCause && { firedForCause }),
     },
   })
@@ -159,7 +157,6 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
     willingToTakeDrugTest,
     willingToTakeBackgroundCheck,
     hasRestrictiveCovenant,
-    wantsAnimalFriendlyWorkplace,
     firedForCause,
   })
 

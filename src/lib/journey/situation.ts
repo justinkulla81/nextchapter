@@ -6,17 +6,33 @@
 
 import type { JourneyType } from '@prisma/client'
 
+const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR']
+
 export type SituationField = {
   key: string
   journeys: readonly JourneyType[]
   label: string
-  kind: 'date' | 'number' | 'choice'
+  kind: 'date' | 'number' | 'choice' | 'text'
   min?: number
   max?: number
   options?: readonly { value: string; label: string }[]
 }
 
 export const SITUATION_FIELDS: readonly SituationField[] = [
+  { key: 'hoursAvailable', journeys: ALL_JOURNEYS, label: 'About how many hours a week can you give this?', kind: 'number', min: 1, max: 60 },
+  {
+    key: 'boardExperience',
+    journeys: ['NEXT_ACT'],
+    label: 'Your board experience',
+    kind: 'choice',
+    options: [
+      { value: 'NONE', label: 'None yet' },
+      { value: 'ADVISORY', label: 'Advisory roles' },
+      { value: 'BOARD', label: 'Served on a board' },
+    ],
+  },
+  { key: 'boardSectors', journeys: ['NEXT_ACT'], label: 'Sectors you would serve (for example health, education, finance)', kind: 'text' },
+  { key: 'clientCount', journeys: ['FRACTIONAL'], label: 'How many clients do you have now?', kind: 'number', min: 0, max: 50 },
   { key: 'severanceEnds', journeys: ['LAID_OFF'], label: 'When does your severance pay end?', kind: 'date' },
   { key: 'benefitsEnd', journeys: ['LAID_OFF'], label: 'When does your health coverage end?', kind: 'date' },
   { key: 'monthlyNeed', journeys: ['LAID_OFF'], label: 'About how much do you need each month, in dollars?', kind: 'number', min: 500, max: 100000 },
@@ -47,6 +63,7 @@ export function parseSituationValue(f: SituationField, raw: string): string | nu
   const v = raw.trim()
   if (!v) return null
   if (f.kind === 'date') return DATE.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime()) ? v : null
+  if (f.kind === 'text') return v.slice(0, 120)
   if (f.kind === 'number') {
     const n = Number(v)
     return Number.isFinite(n) && Number.isInteger(n) && n >= (f.min ?? 0) && n <= (f.max ?? Number.MAX_SAFE_INTEGER) ? n : null
@@ -70,6 +87,19 @@ export function situationPlanItems(journey: JourneyType | null, details: unknown
   const daysTo = (key: string) => (typeof d[key] === 'string' && DATE.test(d[key] as string) ? Math.ceil((new Date(`${d[key]}T12:00:00Z`).getTime() - now.getTime()) / DAY) : null)
   const num = (key: string) => (typeof d[key] === 'number' ? (d[key] as number) : null)
   const out: SituationPlanItem[] = []
+  const hours = num('hoursAvailable')
+  if (hours !== null && hours <= 3) out.push({ text: `You have about ${hours} hours a week: do only the first two steps this week and leave the rest` })
+  if (journey === 'NEXT_ACT') {
+    if (d.boardExperience === 'NONE') out.push({ text: 'Join one nonprofit committee or advisory group to build board experience' })
+    if (d.boardExperience === 'ADVISORY') out.push({ text: 'Ask an organization you advised to introduce you to its board' })
+    if (d.boardExperience === 'BOARD') out.push({ text: 'Ask a board chair you served with for a reference you can use with new boards', actionType: 'REFERENCE_REQUESTED' })
+    if (typeof d.boardSectors === 'string' && d.boardSectors.trim()) out.push({ text: `List 10 boards in ${d.boardSectors.trim()} that you would serve`, actionType: 'WATCHLIST_ADD' })
+  }
+  if (journey === 'FRACTIONAL') {
+    const clients = num('clientCount')
+    if (clients === 0) out.push({ text: 'Land your first client: offer a scoped first engagement to your warmest contact', actionType: 'OUTREACH_CALL' })
+    else if (clients !== null && clients <= 2) out.push({ text: `You rely on ${clients} client${clients === 1 ? '' : 's'}: start one new conversation to spread the risk`, actionType: 'OUTREACH_CALL' })
+  }
   if (journey === 'LAID_OFF') {
     const sev = daysTo('severanceEnds')
     if (sev !== null && sev >= 0 && sev <= 70) out.push({ text: `Your severance ends in ${weeksText(sev)}: work out what you will live on after that date` })

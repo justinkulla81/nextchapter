@@ -28,11 +28,15 @@ describe('two people on the same journey get different plans', () => {
   it('casual searchers get none of the volume steps', () => {
     expect(texts({ ...base, casual: true, targets })).toBe('')
   })
-  it('a committed change becomes a weekly learning block, for any searching journey', () => {
+  it('a committed change becomes a learning path whose next step is in the plan, for any searching journey', () => {
     const t = buildTarget('Finance', 'Design', { route: 'FORMAL', hoursPerWeek: 5, commit: true }, now)
-    const out = texts({ ...base, journey: 'LAID_OFF', pivot: { targets: [t], updatedAt: now.toISOString() } })
-    expect(out).toMatch(/Your Design plan, week 1: 5 hours/)
-    expect(out).toMatch(/Compare two Design programs/)
+    const out = texts({ ...base, journey: 'LAID_OFF', from: 'Finance', pivot: { targets: [t], updatedAt: now.toISOString() } })
+    expect(out).toMatch(/Your Design plan, next step: Compare two programs/)
+  })
+  it('the plan moves on to the next step once one is done', () => {
+    const t = buildTarget('Finance', 'Design', { route: 'FORMAL', hoursPerWeek: 5, commit: true }, now)
+    const out = texts({ ...base, journey: 'LAID_OFF', from: 'Finance', pivot: { targets: [t], updatedAt: now.toISOString() }, rawDetails: { pathProgress: { 'pivot-design': ['pivot-design:1'] } } })
+    expect(out).toMatch(/Your Design plan, next step: Apply and enroll/)
   })
   it('people not searching get no pivot or volume steps', () => {
     const t = buildTarget('Finance', 'Design', { route: 'FORMAL', hoursPerWeek: 5, commit: true }, now)
@@ -62,10 +66,13 @@ describe('what people want from their career', () => {
 
 describe('situation facts', () => {
   it('every fact belongs to a journey and is read by a plan step', () => {
+    const sample: Record<string, string | number> = {
+      hoursAvailable: 2, boardExperience: 'NONE', boardSectors: 'health', clientCount: 0, returnHours: 'PART', monthlyNeed: 6000,
+      runwayMonths: 3, noticeWeeks: 6, breakMonths: 18, dayRate: 1500, hoursPerWeek: 20,
+    }
     const detailsFor = (k: string) => {
       const f = SITUATION_FIELDS.find((x) => x.key === k)!
-      const val = f.kind === 'date' ? '2026-11-20' : f.kind === 'choice' ? 'PART' : f.key === 'monthlyNeed' ? 6000 : f.key === 'runwayMonths' ? 3 : f.key === 'noticeWeeks' ? 6 : f.key === 'breakMonths' ? 18 : f.key === 'dayRate' ? 1500 : 20
-      return { journey: f.journeys[0], details: { [k]: val } }
+      return { journey: f.journeys[0], details: { [k]: f.kind === 'date' ? '2026-11-20' : sample[k] } }
     }
     for (const f of SITUATION_FIELDS) {
       const { journey, details } = detailsFor(f.key)
@@ -86,7 +93,7 @@ describe('situation facts', () => {
   })
   it('asks laid-off people about severance and coverage, not fractional people', () => {
     expect(situationFieldsFor('LAID_OFF').map((f) => f.key)).toEqual(expect.arrayContaining(['severanceEnds', 'benefitsEnd', 'monthlyNeed']))
-    expect(situationFieldsFor('FRACTIONAL').map((f) => f.key)).toEqual(['dayRate'])
+    expect(situationFieldsFor('FRACTIONAL').map((f) => f.key).sort()).toEqual(['clientCount', 'dayRate', 'hoursAvailable'])
     expect(situationFieldsFor(null)).toEqual([])
   })
   it('a deadline that has passed or is far away is not a step', () => {

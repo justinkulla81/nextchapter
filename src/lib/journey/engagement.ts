@@ -19,6 +19,7 @@ import { pivotPlanItems, type PivotDetails } from './pivot'
 import { careerPlanItems, type CareerDetails } from './career'
 import type { Relocation } from './relocation'
 import { situationPlanItems } from './situation'
+import { deriveLearningPaths, pathPlanItems, pathProgressOf } from './learning-paths'
 
 export type EngagementSignals = {
   journey: JourneyType | null
@@ -37,6 +38,10 @@ export type EngagementSignals = {
   venture?: string | null
   graduation?: Date | null
   priorActivity?: boolean
+  from?: string | null
+  ownedFunctions?: string[]
+  boardInterest?: boolean
+  seniorLevel?: boolean
   // journeyDetails as stored: situation facts the plan reads (src/lib/journey/situation.ts).
   rawDetails?: unknown
   // Their own answers to the Screening Questions (restrictive covenant, fired
@@ -71,7 +76,7 @@ export type EngagementSignals = {
   offers: number
 }
 
-export type RedFlags = { restrictiveCovenant: boolean; firedForCause: boolean; noDrugTest: boolean; noBackgroundCheck: boolean }
+export type RedFlags = { covenantDetails?: string | null; restrictiveCovenant: boolean; firedForCause: boolean; noDrugTest: boolean; noBackgroundCheck: boolean }
 
 export const NO_RED_FLAGS: RedFlags = { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }
 
@@ -339,7 +344,8 @@ export function redFlagGuidance(s: EngagementSignals): { text: string; actionTyp
   if (!looking) return []
   const out: { text: string; actionType?: string }[] = []
   if (s.redFlags.restrictiveCovenant) {
-    out.push({ text: 'Read your non-compete or non-solicit before you apply or accept an offer, and have an employment lawyer check what it covers if you are unsure' })
+    const what = s.redFlags.covenantDetails?.trim()
+    out.push({ text: `Read your non-compete or non-solicit${what ? ` (${what.slice(0, 120)})` : ''} before you apply or accept an offer, and have an employment lawyer check what it covers if you are unsure` })
   }
   if (s.redFlags.firedForCause) {
     out.push({ text: 'Prepare a short, honest answer about why you left your last role, and practice saying it calmly', actionType: 'INTERVIEW_PREP' })
@@ -401,6 +407,22 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
   const searching = !!s.journey && getJourney(s.journey).searching && s.stage !== 'STAYING' && s.stage !== 'LANDED'
   // Other fields they are open to, and the learning they committed to.
   if (searching) out.push(...pivotPlanItems(s.pivot ?? null, now))
+  // Learning paths, each tied to a goal they told us about or one we can infer from it.
+  out.push(
+    ...pathPlanItems(
+      deriveLearningPaths({
+        from: s.from ?? null,
+        pivot: searching ? (s.pivot ?? null) : null,
+        career: s.journey === 'GROWING' || s.journey === 'PROMOTION' ? (s.career ?? null) : null,
+        skillsToBuild: s.skillsToBuild ?? [],
+        aiDisplaced: !!s.aiDisplaced,
+        boardInterest: !!s.boardInterest,
+        seniorLevel: s.seniorLevel,
+        ownedFunctions: s.ownedFunctions,
+      }),
+      pathProgressOf(s.rawDetails),
+    ),
+  )
   // Review, next level, pay and skills for people managing their career or going for a promotion.
   if (s.journey === 'GROWING' || s.journey === 'PROMOTION') out.push(...careerPlanItems(s.career ?? null, s.skillsToBuild ?? [], now))
   const t = s.targets

@@ -12,6 +12,7 @@ import { isNotSearching, workingNowOf } from './intensity'
 import { pivotOf } from './pivot'
 import { careerOf } from './career'
 import { parseRelocation } from './relocation'
+import { ownedFunctionsFrom } from './pathway'
 import { engagementLead, engagementPlanItems, type EngagementSignals } from './engagement'
 
 const WEEK = 7 * 86_400_000
@@ -43,7 +44,8 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
   const journey = effectiveJourney(p)
   const stage = effectiveStage(p)
   const since = p.journeyStageChangedAt ?? p.createdAt
-  const [education, currentEngagement, conversations, gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+  const [trackRecord, education, currentEngagement, conversations, gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+    prisma.trackRecordResponse.findUnique({ where: { candidateId }, select: { functionsOwnedOutsideCore: true } }),
     // Graduation date, for students and new grads.
     prisma.educationEntry.findFirst({ where: { candidateId, graduationDate: { not: null } }, orderBy: { graduationDate: 'desc' }, select: { graduationDate: true } }),
     // A current fractional or interim engagement with an expected end date, from work history.
@@ -82,6 +84,10 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     },
     venture: detailString(p.journeyDetails, 'venture'),
     rawDetails: p.journeyDetails,
+    from: p.primaryFunction,
+    ownedFunctions: ownedFunctionsFrom(trackRecord?.functionsOwnedOutsideCore),
+    boardInterest: p.boardAdvisoryWillingness === true,
+    seniorLevel: (p.levelRankScore ?? 0) >= 60,
     graduation: education?.graduationDate ?? null,
     // What they told us they did before joining: if it is a lot, "your search has not started" is wrong.
     priorActivity: (p.jobsAppliedBucket !== null && p.jobsAppliedBucket !== '0-20') || (p.interviewsReceivedCount ?? 0) > 0,
@@ -96,6 +102,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     },
     spineGaps: spineGaps(journey, stage, p as unknown as ProfileLike),
     redFlags: {
+      covenantDetails: p.restrictiveCovenantDetails,
       restrictiveCovenant: p.hasRestrictiveCovenant === true,
       firedForCause: p.firedForCause === true,
       noDrugTest: p.willingToTakeDrugTest === false,

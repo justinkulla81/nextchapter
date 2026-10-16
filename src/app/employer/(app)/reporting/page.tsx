@@ -5,7 +5,6 @@ import {
   getSeatUtilization,
   getEngagementAggregates,
   getTimeToPlacementBenchmarks,
-  getAlumniSentiment,
   getBoomerangSignal,
 } from '@/lib/employer/outplacement-reporting'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -15,13 +14,6 @@ import { getCareerGrowthActivity } from '@/lib/employer/career-growth-reporting'
 import { cn } from '@/lib/utils'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
-const MOOD_LABEL: Record<string, string> = {
-  STUCK: 'Stuck',
-  GETTING_THERE: 'Getting there',
-  MOVING: 'Moving',
-  FIRED_UP: 'Fired up',
-}
-
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div>
@@ -59,11 +51,10 @@ export default async function EmployerReportingPage({
   // Career growth cohorts (people staying and growing) are reported on growth
   // activity only: no placement, mood or boomerang numbers, which are about leaving.
   const isGrowth = !!activeContract.journey
-  const [utilization, engagement, benchmarks, sentiment, boomerang, outcomeScorecard, growth] = await Promise.all([
+  const [utilization, engagement, benchmarks, boomerang, outcomeScorecard, growth] = await Promise.all([
     getSeatUtilization(orgUser, activeContract.id),
     getEngagementAggregates(orgUser, activeContract.id),
     isGrowth ? null : getTimeToPlacementBenchmarks(orgUser),
-    isGrowth ? null : getAlumniSentiment(orgUser),
     isGrowth ? null : getBoomerangSignal(orgUser),
     isGrowth ? null : getEmployerOutcomeScorecard(orgUser, activeContract.id),
     isGrowth ? getCareerGrowthActivity(orgUser, activeContract.id) : null,
@@ -204,29 +195,8 @@ export default async function EmployerReportingPage({
       </Card>
       )}
 
-      {sentiment && boomerang && (
+      {boomerang && (
       <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Alumni sentiment</CardTitle>
-            <CardDescription>Last 90 days of mood check-ins, across all cohorts.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!sentiment.hasEnoughData ? (
-              <p className="text-sm text-muted-foreground">Fewer than 10 people enrolled — suppressed.</p>
-            ) : (
-              <ul className="space-y-1 text-sm">
-                {sentiment.distribution.map((d) => (
-                  <li key={d.mood} className="flex justify-between">
-                    <span>{MOOD_LABEL[d.mood] ?? d.mood}</span>
-                    <span className="tabular-nums">{d.count ?? '—'}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Boomerang signal</CardTitle>

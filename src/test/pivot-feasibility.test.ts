@@ -61,9 +61,8 @@ describe('commitment decides what we search for', () => {
     while (Math.floor(on.getTime() / week) % 4 !== 0) on = new Date(on.getTime() + week)
     const off = new Date(on.getTime() + week)
     const text = pivotPlanItems(p, off).map((i) => i.text).join(' | ')
-    expect(text).toMatch(/Your Design plan, week \d+: 5 hours/)
-    expect(text).toMatch(/Decide in writing the level and pay/)
-    expect(text).toMatch(/one conversation with someone in Operations/)
+    // A committed change and a natural move are carried by their learning paths, not by the pivot nudges.
+    expect(text).not.toMatch(/Design|Operations/)
     // A change they have not committed to is not planned for, only questioned, and only now and then.
     expect(text).not.toMatch(/Engineering plan/)
     expect(pivotPlanItems(p, on).map((i) => i.text).join('|')).toMatch(/open to Engineering/)

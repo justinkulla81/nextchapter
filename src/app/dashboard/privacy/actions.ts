@@ -1,6 +1,7 @@
 'use server'
 
 import { parseSituationValue, situationFieldsFor } from '@/lib/journey/situation'
+import { changeMessage } from '@/lib/journey/change-message'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { ACTIVE_SEARCH_STAGES, JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
@@ -18,7 +19,7 @@ import type { PrivacyTier, NotificationTier } from '@prisma/client'
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
 const VALID_NOTIFICATION_TIERS: NotificationTier[] = ['FULL', 'ESSENTIALS', 'MINIMAL']
 
-export type FormState = { error?: string } | undefined
+export type FormState = { error?: string; message?: string } | undefined
 
 export async function updatePrivacyTier(
   _prevState: FormState,
@@ -394,7 +395,7 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
     const v = parseSituationValue(f, text(f.key))
     if (v !== null) details[f.key] = v
   }
-  await applyJourneyChange(profile.id, {
+  const result = await applyJourneyChange(profile.id, {
     journey,
     stage,
     details,
@@ -404,4 +405,5 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
 
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
+  return { message: changeMessage(result) ?? 'Saved.' }
 }

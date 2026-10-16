@@ -87,19 +87,10 @@ export function pivotPlanItems(p: PivotDetails | null, now = new Date()): PivotP
   const out: PivotPlanItem[] = []
   for (const t of p.targets) {
     if (t.tier === 'SAME' || t.tier === 'LEVEL_GATED') continue
-    if (t.tier === 'ADJACENT') {
-      out.push({ text: `Have one conversation with someone in ${t.function} about how your experience maps`, actionType: 'OUTREACH_CALL' })
-      continue
-    }
-    if (isCommitted(t)) {
-      const a = assessPivot(null, t.function)
-      const step = (t.route === 'FORMAL' ? a.education?.FORMAL[0] : a.education?.INFORMAL[0]) ?? 'Work on your learning plan'
-      const weeks = Math.max(0, Math.floor((now.getTime() - new Date(t.committedAt!).getTime()) / (7 * 86_400_000)))
-      out.push({ text: `Your ${t.function} plan, week ${weeks + 1}: ${t.hoursPerWeek} hours. ${step}`, actionType: 'LEARNING_MODULE' })
-      if (t.route === 'FORMAL' && weeks < 2) out.push({ text: `Compare two ${t.function} programs: cost, length, and whether target employers ask for them` })
-      if (t.tier === 'REBUILD' || t.tier === 'LICENSED') out.push({ text: `Decide in writing the level and pay you would accept to start in ${t.function}` })
-      out.push({ text: `Have an informational call with someone doing ${t.function} work`, actionType: 'OUTREACH_CALL' })
-    } else if (nudgeWeek) {
+    // A natural move and a committed change are carried by their learning paths (src/lib/journey/learning-paths.ts), one step at a time.
+    if (t.tier === 'ADJACENT') continue
+    if (isCommitted(t)) continue
+    if (nudgeWeek) {
       out.push({ text: `You said you are open to ${t.function}. It takes real training: pick a route and commit, or take it off your list` })
     }
   }

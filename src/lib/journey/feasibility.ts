@@ -98,9 +98,11 @@ const DEFAULT_EDUCATION = {
 }
 
 // `stepDown` grows with seniority: a VP moving across functions starts lower.
-export function assessPivot(from: string | null, to: string, opts: { seniorLevel?: boolean } = {}): PivotFeasibility {
+export function assessPivot(from: string | null, to: string, opts: { seniorLevel?: boolean; ownedFunctions?: string[] } = {}): PivotFeasibility {
   const f = from ?? ''
-  const tier = pivotTier(f, to)
+  let tier = pivotTier(f, to)
+  // They have already run this function (Track Record: functions owned outside their core): a head start.
+  if (opts.ownedFunctions?.includes(to) && (tier === 'BRIDGE' || tier === 'REBUILD')) tier = tier === 'BRIDGE' ? 'ADJACENT' : 'BRIDGE'
   const edu = EDUCATION[to] ?? DEFAULT_EDUCATION
   switch (tier) {
     case 'SAME':

@@ -4,6 +4,13 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { buildTarget, pivotOf } from '@/lib/journey/pivot'
+import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { markStepDone } from '@/lib/journey/learning-paths'
+import { FUNCTION_PROFILES, PIVOT_REASONS } from '@/lib/journey/pathway'
+import { redirect } from 'next/navigation'
+import type { Prisma } from '@prisma/client'
 import { ROLES } from '@/lib/pivots/pivot-map'
 import { isPeopleEnergy, type PeopleEnergy } from '@/lib/pivots/scoring'
 
@@ -64,4 +71,57 @@ export async function setPivotPathHidden(target: string, hidden: boolean): Promi
   }
   revalidate()
   return { ok: true }
+}
+
+// ── What would it take? ─────────────────────────────────────────────────────
+
+
+/** "Save to my list": the function goes on their list as exploring. Committing is done on Search Strategy. */
+export async function saveExploredTarget(formData: FormData): Promise<void> {
+  const candidateId = await getProfileId()
+  const fn = String(formData.get('target') ?? '')
+  if (!candidateId || !FUNCTION_PROFILES[fn]) return
+  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journeyDetails: true, primaryFunction: true, levelRankScore: true } })
+  if (!p) return
+  const previous = pivotOf(p.journeyDetails)
+  if (previous?.targets.some((t) => t.function === fn)) return
+  const now = new Date()
+  const targets = [...(previous?.targets ?? []), buildTarget(p.primaryFunction, fn, {}, now, (p.levelRankScore ?? 0) >= 60)]
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { journeyDetails: { ...((p.journeyDetails as Record<string, unknown> | null) ?? {}), pivot: { targets, updatedAt: now.toISOString() } } as Prisma.InputJsonValue },
+  })
+  captureServerEvent(candidateId, 'pivot_target_saved', { from: p.primaryFunction, to: fn, why: String(formData.get('why') ?? '') || null })
+  revalidate()
+}
+
+/** Marks one step of a learning path done. Progress is stored with the member's situation and survives journey changes. */
+export async function completePathStep(formData: FormData): Promise<void> {
+  const candidateId = await getProfileId()
+  if (!candidateId) return
+  const pathId = String(formData.get('pathId') ?? '')
+  const stepId = String(formData.get('stepId') ?? '')
+  const { paths, progress } = await getLearningPaths(candidateId)
+  const next = markStepDone(progress, paths, pathId, stepId)
+  if (!next) return
+  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journeyDetails: true } })
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { journeyDetails: { ...((p?.journeyDetails as Record<string, unknown> | null) ?? {}), pathProgress: next } as Prisma.InputJsonValue },
+  })
+  const path = paths.find((x) => x.id === pathId)
+  captureServerEvent(candidateId, 'learning_path_step_done', { pathId, goalKind: path?.goalKind, source: path?.source, stepsDone: next[pathId]?.length ?? 0, stepsTotal: path?.steps.length ?? 0 })
+  revalidate()
+  revalidatePath('/dashboard/learning')
+  revalidatePath('/dashboard')
+}
+
+/** "Show what it would take": keeps the choice in the address so the page can be shared and reloaded. */
+export async function exploreTarget(formData: FormData): Promise<void> {
+  const fn = String(formData.get('target') ?? '')
+  const why = String(formData.get('why') ?? '')
+  const q = new URLSearchParams()
+  if (FUNCTION_PROFILES[fn]) q.set('target', fn)
+  if (PIVOT_REASONS.some((r) => r.key === why)) q.set('why', why)
+  redirect(`/dashboard/pivot-paths?${q.toString()}#what-it-takes`)
 }

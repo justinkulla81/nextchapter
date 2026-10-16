@@ -434,6 +434,9 @@ export async function submitContract(_prevState: FormState, formData: FormData):
     data: {
       contractAccepted: intent === 'accept',
       contractAcceptedAt: new Date(),
+      // "Not right now" continues at a lower assumed intensity (the comment above), but never overrides
+      // an intensity they already chose.
+      ...(intent === 'decline' && (await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { searchIntensity: true } }))?.searchIntensity == null && { searchIntensity: 'CASUALLY_LOOKING' as const }),
     },
   })
 
