@@ -19,7 +19,6 @@ export interface CoachDigestClient {
   interviews: number
   offers: number
   outreach: number
-  followUpsOwed: number
   pointsThisWeek: number
   pointsLastWeek: number
   daysSinceActive: number | null
@@ -153,7 +152,6 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       <p style={{ ...emailStyles.muted, margin: '2px 0 0' }}>
         {c.pointsThisWeek} points this week
         {c.pointsLastWeek > 0 || c.pointsThisWeek > 0 ? ` (${delta >= 0 ? '+' : ''}${delta} vs last week)` : ''}
-        {c.followUpsOwed > 0 ? ` · ${c.followUpsOwed} follow-up${c.followUpsOwed === 1 ? '' : 's'} owed` : ''}
       </p>
 
       <p style={label}>New roles that fit {c.firstName}</p>

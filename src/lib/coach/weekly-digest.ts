@@ -1,7 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getCoachCaseload } from '@/lib/coach/caseload'
-import { getWeeklyOutcomes } from '@/lib/weekly/outcomes'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
@@ -50,7 +49,6 @@ export interface DigestClient {
   interviews: number
   offers: number
   outreach: number
-  followUpsOwed: number
   pointsThisWeek: number
   pointsLastWeek: number
   daysSinceActive: number | null
@@ -69,6 +67,19 @@ export interface CoachWeeklyDigest {
   notSharedNames: string[]
   /** Shared clients whose detail failed to load this run — named so the coach knows, never silently dropped. */
   unavailableNames: string[]
+}
+
+// Four cheap counts over the window. Deliberately not getWeeklyOutcomes: that
+// also runs getNeedsFollowUpList, which loads a candidate's whole email
+// history and ran the production instance out of memory (2026-10-15).
+async function getRecentActivityCounts(candidateId: string, since: Date) {
+  const [outreach, applications, interviews, offers] = await Promise.all([
+    prisma.outreachLog.count({ where: { candidateId, loggedAt: { gte: since } } }),
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: { gte: since } } }),
+    prisma.jobPosting.count({ where: { candidateId, interviewLandedAt: { gte: since } } }),
+    prisma.jobPosting.count({ where: { candidateId, offerReceivedAt: { gte: since } } }),
+  ])
+  return { outreach, applications, interviews, offers }
 }
 
 function normalizeUrl(url: string | null | undefined): string | null {
@@ -141,7 +152,7 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         return
       }
       // One client's failed query must not drop the whole digest for the coach.
-      let outcomes: Awaited<ReturnType<typeof getWeeklyOutcomes>>
+      let outcomes: Awaited<ReturnType<typeof getRecentActivityCounts>>
       let newJobs: DigestJob[]
       const t0 = Date.now()
       try {
@@ -155,7 +166,7 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         }
         ;[outcomes, newJobs] = await withBudget(
           Promise.all([
-            timed('weekly outcomes', getWeeklyOutcomes(entry.id, since)),
+            timed('activity counts', getRecentActivityCounts(entry.id, since)),
             timed('new roles', findNewStrongFitJobs(entry.id, profile)),
           ]),
           CLIENT_BUDGET_MS,
@@ -177,11 +188,10 @@ export async function buildCoachWeeklyDigest(coachId: string, accessToken: strin
         trend: entry.trend,
         mood: entry.sentimentLabel,
         moodTrend: entry.sentimentTrend,
-        applications: outcomes.applicationsCount,
-        interviews: outcomes.interviewsLandedCount,
-        offers: outcomes.offersReceivedCount,
-        outreach: outcomes.outreachCount,
-        followUpsOwed: outcomes.followUpsPendingCount,
+        applications: outcomes.applications,
+        interviews: outcomes.interviews,
+        offers: outcomes.offers,
+        outreach: outcomes.outreach,
         pointsThisWeek: entry.activityThisWeekPoints,
         pointsLastWeek: entry.activityLastWeekPoints,
         daysSinceActive: entry.lastActiveAt
