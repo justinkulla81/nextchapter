@@ -17,7 +17,7 @@ const MIN_DETECTED_NETWORKING = 3
 // "Not much".
 const NETWORKING_LEVEL_NOT_MUCH = 1
 
-const NETWORKING_EMAIL_TYPES = new Set(['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'INTRO_REQUEST'])
+const NETWORKING_EMAIL_TYPES = ['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'INTRO_REQUEST'] as const
 
 export interface ActivityReconciliation {
   detectedInterviewCount: number
@@ -29,7 +29,7 @@ export interface ActivityReconciliation {
 }
 
 export async function getActivityReconciliation(candidateId: string): Promise<ActivityReconciliation> {
-  const [profile, calendarEvents, emailActivities] = await Promise.all([
+  const [profile, calendarEvents, networkingEmailCount] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: { interviewsReceivedCount: true, networkingLevel: true },
@@ -38,16 +38,17 @@ export async function getActivityReconciliation(candidateId: string): Promise<Ac
       where: { candidateId, dismissedAt: null },
       select: { eventType: true },
     }),
-    prisma.trackedEmailActivity.findMany({
-      where: { candidateId, dismissedAt: null },
-      select: { activityType: true },
+    // A count, not the rows: an account with years of synced mail has tens of thousands of
+    // them, and only the networking-shaped ones matter here.
+    prisma.trackedEmailActivity.count({
+      where: { candidateId, dismissedAt: null, activityType: { in: [...NETWORKING_EMAIL_TYPES] } },
     }),
   ])
 
   const detectedInterviewCount = calendarEvents.filter((e) => e.eventType === 'INTERVIEW').length
   const detectedNetworkingCount =
     calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL').length +
-    emailActivities.filter((a) => NETWORKING_EMAIL_TYPES.has(a.activityType)).length
+    networkingEmailCount
 
   const interviewGap =
     detectedInterviewCount >= MIN_DETECTED_INTERVIEWS && !profile.interviewsReceivedCount

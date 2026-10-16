@@ -49,6 +49,7 @@ export async function getSuggestedContactsToAdd(candidateId: string): Promise<Su
         dismissedAt: null,
       },
       orderBy: { detectedAt: 'desc' },
+      select: { id: true, fromAddress: true, detectedAt: true },
     }),
     prisma.supportNetworkContact.findMany({
       where: { candidateId, email: { not: null } },
