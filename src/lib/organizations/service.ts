@@ -10,6 +10,7 @@ import { sizesFor } from '@/lib/demo/scenarios'
 import { normalizeHex, mergeBrand, type PartnerBrand } from '@/lib/partners/brand'
 import { INTEGRATIONS, PORTALS, isPortalType, portalMeta, resolveIntegrations, type IntegrationKey, type PortalType } from './portals'
 import { slugify, uniqueSlug } from './slug'
+import { isReservedSlug } from './front-door'
 
 // Creating and managing an Organization: one customer, one or many portals.
 // A workspace points at the portal's own record, so existing portals keep
@@ -73,7 +74,7 @@ export async function createOrganization(input: CreateOrganizationInput, adminEm
   const contactEmail = input.contactEmail?.trim().toLowerCase() || null
 
   const taken = new Set((await prisma.organization.findMany({ select: { slug: true } })).map((o) => o.slug))
-  const slug = uniqueSlug(name, (s) => taken.has(s))
+  const slug = uniqueSlug(name, (s) => taken.has(s) || isReservedSlug(s))
 
   if (input.sourceDealId) {
     const linked = await prisma.organization.findUnique({ where: { crmOrganizationId: input.sourceDealId }, select: { id: true } })

@@ -8,6 +8,7 @@ import { stagedSummary } from '@/lib/forms/staged'
 import { normalizeHex } from '@/lib/partners/brand'
 import { ColorField } from '@/components/partners/ColorField'
 import { BrandPreview } from '@/components/partners/BrandPreview'
+import { frontDoorUrl } from '@/lib/organizations/front-door'
 import { BRAND_SWATCHES } from '@/lib/partners/swatches'
 import { createOrganizationAction } from '@/app/support/admin/(portal)/organizations/actions'
 
@@ -84,7 +85,7 @@ export function OrganizationWizard({ crm }: { crm?: { id: string; name: string; 
         <h2 className="text-lg font-semibold">Created {name}</h2>
         <p className="text-sm text-muted-foreground">
           {mode === 'demo' ? 'A demo organization, marked as sample data and set to expire in 30 days.' : 'A live organization.'} Address:{' '}
-          <code className="rounded bg-muted px-1.5 py-0.5">/p/{result.slug}</code>
+          <a href={frontDoorUrl(result.slug)} className="underline underline-offset-4">{frontDoorUrl(result.slug)}</a>
         </p>
         <ul className="space-y-2">
           {result.links.map((l) => (

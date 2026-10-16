@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { listOrganizations } from '@/lib/organizations/service'
 import { portalMeta, type PortalType } from '@/lib/organizations/portals'
+import { frontDoorUrl } from '@/lib/organizations/front-door'
 
 export const metadata = { title: 'Organizations' }
 
@@ -43,7 +44,7 @@ export default async function OrganizationsPage() {
                     <Link href={`/support/admin/organizations/${o.id}`} className="font-medium text-primary underline underline-offset-4">
                       {o.name}
                     </Link>
-                    <span className="block text-xs text-muted-foreground">/p/{o.slug}</span>
+                    <span className="block text-xs text-muted-foreground">{frontDoorUrl(o.slug)}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span className="flex flex-wrap gap-1">
