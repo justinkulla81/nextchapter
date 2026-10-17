@@ -5,6 +5,7 @@
 // client-safe.
 
 import type { JourneyType } from '@prisma/client'
+import { RETIREMENT_INCOME, RETIREMENT_PATHS, retirementPlanItems } from './retirement'
 
 const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR']
 
@@ -32,6 +33,15 @@ export const SITUATION_FIELDS: readonly SituationField[] = [
     ],
   },
   { key: 'boardSectors', journeys: ['NEXT_ACT'], label: 'Sectors you would serve (for example health, education, finance)', kind: 'text' },
+  {
+    key: 'retirementPath',
+    journeys: ['NEXT_ACT', 'GROWING'],
+    label: 'If you step back from full-time work, which feels closest?',
+    kind: 'choice',
+    options: RETIREMENT_PATHS,
+  },
+  { key: 'retirementBy', journeys: ['NEXT_ACT', 'GROWING'], label: 'About when? (optional)', kind: 'date' },
+  { key: 'retirementIncome', journeys: ['NEXT_ACT', 'GROWING'], label: 'How much income do you still want?', kind: 'choice', options: RETIREMENT_INCOME },
   { key: 'clientCount', journeys: ['FRACTIONAL'], label: 'How many clients do you have now?', kind: 'number', min: 0, max: 50 },
   { key: 'severanceEnds', journeys: ['LAID_OFF'], label: 'When does your severance pay end?', kind: 'date' },
   { key: 'benefitsEnd', journeys: ['LAID_OFF'], label: 'When does your health coverage end?', kind: 'date' },
@@ -95,6 +105,7 @@ export function situationPlanItems(journey: JourneyType | null, details: unknown
     if (d.boardExperience === 'BOARD') out.push({ text: 'Ask a board chair you served with for a reference you can use with new boards', actionType: 'REFERENCE_REQUESTED' })
     if (typeof d.boardSectors === 'string' && d.boardSectors.trim()) out.push({ text: `List 10 boards in ${d.boardSectors.trim()} that you would serve`, actionType: 'WATCHLIST_ADD' })
   }
+  if (journey === 'NEXT_ACT' || journey === 'GROWING') out.push(...retirementPlanItems(d, now))
   if (journey === 'FRACTIONAL') {
     const clients = num('clientCount')
     if (clients === 0) out.push({ text: 'Land your first client: offer a scoped first engagement to your warmest contact', actionType: 'OUTREACH_CALL' })

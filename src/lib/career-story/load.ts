@@ -4,6 +4,7 @@ import { careerOf } from '@/lib/journey/career'
 import { parseRelocation } from '@/lib/journey/relocation'
 import { ownedFunctionsFrom } from '@/lib/journey/pathway'
 import { activeTargets, pivotInterestsOf, pivotOf } from '@/lib/journey/pivot'
+import { retirementOf } from '@/lib/journey/retirement'
 import { buildDoors, type Door } from './doors'
 import { deriveStory, iso, type MemberRow, type StoryEvent } from './events'
 import { peerView, type PeerView } from './peers'
@@ -98,6 +99,7 @@ export async function loadCareerStory(profile: Profile, now = new Date()): Promi
     radar: activeTargets(pivot),
     career: careerOf(profile.journeyDetails),
     relocation: parseRelocation(profile.journeyDetails, profile.openToRelocation),
+    retirement: retirementOf(profile.journeyDetails),
   })
   return {
     now: iso(now),

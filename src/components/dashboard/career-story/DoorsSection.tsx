@@ -95,7 +95,7 @@ export function DoorsSection({ main, more, onTryPause }: { main: Door[]; more: D
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {main.map((d) => (
-          <DoorCard key={d.id} door={d} />
+          <DoorCard key={d.id} door={d} onTryPause={onTryPause} />
         ))}
       </div>
       <details className="rounded-2xl border border-border bg-card p-4">

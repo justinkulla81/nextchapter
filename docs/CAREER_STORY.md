@@ -19,3 +19,9 @@ A private, visual timeline of school, work, ventures, pauses and learning, with 
 
 ## Code
 `src/lib/career-story/{events,layout,summary,pause,doors,peers,validate,load}.ts`, `src/components/dashboard/career-story/*`, tests in `src/test/career-story*.test.ts`.
+
+## Stepping back from full-time work
+Four paths, asked with the other situation questions for Next act and Managing my career (`src/lib/journey/retirement.ts`, fields `retirementPath`, `retirementBy`, `retirementIncome` in `journeyDetails`): an encore, cut back gradually, stop working, not sure yet. Each gives plan steps, and a "step back" door beside growing where you are. No age is asked or used. It is an overlay on existing journeys, not a new journey type, so no database enum change was needed.
+
+## When an employer seat ends
+`src/lib/employer/seat-continuity.ts`, `SeatEndingBanner` on the dashboard home (last 30 days), and the access-ending email (career growth wording for growth seats). What stays: account, profile, career story, plan, pay research, learning paths. What ends: coaching sessions and the recruiter network the employer provided. A seat never changes the journey back.

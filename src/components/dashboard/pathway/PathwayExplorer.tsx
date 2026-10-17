@@ -122,6 +122,8 @@ export function PathwayExplorer({
             </div>
           </dl>
 
+          {pathway.overlap && <p className="text-sm text-muted-foreground">{pathway.overlap.text}</p>}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <List title="What you already have" items={pathway.have} empty="Add skills to your résumé so we can show what carries over." />
             <List title="What you would need" items={pathway.need} />

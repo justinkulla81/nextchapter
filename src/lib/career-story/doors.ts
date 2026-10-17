@@ -12,6 +12,7 @@ import { stanceOf, type PivotTarget } from '@/lib/journey/pivot'
 import type { CareerDetails } from '@/lib/journey/career'
 import type { Relocation } from '@/lib/journey/relocation'
 import { describeRelocation } from '@/lib/journey/relocation'
+import type { Retirement, RetirementPath } from '@/lib/journey/retirement'
 
 export const DOOR_SCALE_MONTHS = 36
 
@@ -86,6 +87,42 @@ export type DoorsInput = IdeasInput & {
   radar: PivotTarget[]
   career: CareerDetails | null
   relocation: Relocation
+  retirement?: Retirement | null
+}
+
+const STEP_BACK: Record<RetirementPath, Omit<Door, 'id' | 'kind' | 'radarFunction' | 'onRadar'>> = {
+  ENCORE: {
+    tag: 'Your encore', tagTone: 'warm', title: 'A new kind of work',
+    why: 'Boards, advisory, teaching, a cause or a venture: more of what you want, using what you know.',
+    firstStep: 'Write down what you want more of, then talk to one person who built an encore.',
+    cost: 'Little to start. Some paths, like a board seat, take a few conversations.',
+    phases: [phase('Decide what you want more of', 0, 1.5, 3), phase('Try two things', 2, 6, 9), phase('Make it regular', 6, 12, 18)],
+    opens: ['Board or advisory seats', 'Teaching or mentoring', 'A venture or a cause'],
+  },
+  PHASED: {
+    tag: 'Cut back gradually', tagTone: 'blue', title: 'Taper your hours',
+    why: 'Many people step down over time: reduced hours, a consulting arrangement, or handing over a piece at a time.',
+    firstStep: 'Find out how your employer handles reduced hours or a phased exit.',
+    cost: 'No cost to start. Worth a conversation about benefits and pay.',
+    phases: [phase('Learn your options', 0, 2, 4), phase('Hand over what you want to', 3, 9, 15), phase('A new rhythm', 9, 15, 24)],
+    opens: ['Reduced hours', 'Consulting with your employer', 'Time for what matters'],
+  },
+  STOP: {
+    tag: 'Step back', tagTone: 'neutral', title: 'Stop working',
+    why: 'A clean break, planned so that income and health coverage are settled before the last day.',
+    firstStep: 'List what each month needs to cover, and where it comes from.',
+    cost: null,
+    phases: [phase('Line up income and coverage', 0, 3, 6), phase('Wrap up and hand over', 3, 6, 12), phase('Start the next chapter', 9, 12, 18)],
+    opens: ['Time', 'Health and family', 'Things you have put off'],
+  },
+  UNSURE: {
+    tag: 'Try it on', tagTone: 'neutral', title: 'Try stepping back on paper',
+    why: 'You are not sure yet, and that is fine. Try a few months and see how it lines up.',
+    firstStep: 'Use the pause tool below to see how a few months would line up.',
+    cost: null,
+    phases: [phase('Try it on paper', 0, 1, 2), phase('Talk with someone close', 1, 3, 6), phase('Decide, or wait', 3, 6, 12)],
+    opens: ['A pause', 'A phased exit', 'An encore'],
+  },
 }
 
 export function buildDoors(input: DoorsInput): { main: Door[]; more: Door[] } {
@@ -172,5 +209,8 @@ export function buildDoors(input: DoorsInput): { main: Door[]; more: Door[] } {
       opens: ['Rest', 'Time for what matters', 'A fresh start'], radarFunction: null, onRadar: false,
     },
   ]
-  return { main: [grow, ...fnDoors].slice(0, 3), more }
+  // Someone who told us how they would like to step back sees that door next to growing where they are.
+  const step: Door | null = input.retirement ? { id: 'stepback', kind: 'PAUSE', radarFunction: null, onRadar: false, ...STEP_BACK[input.retirement.path] } : null
+  const main = step ? [grow, step, ...fnDoors].slice(0, 3) : [grow, ...fnDoors].slice(0, 3)
+  return { main, more }
 }

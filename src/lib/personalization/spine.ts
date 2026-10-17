@@ -532,7 +532,7 @@ export const SIGNALS: readonly Signal[] = [
     field: 'journeyDetails',
     token: 'situationPlanItems',
     where: PRIVACY,
-    needs: { journeys: ['LAID_OFF', 'EXPLORING_MOVE', 'RETURNING', 'NEXT_ACT', 'FRACTIONAL', 'ENTREPRENEUR', 'TIME_OFF'], stages: 'all' },
+    needs: { journeys: ['LAID_OFF', 'EXPLORING_MOVE', 'RETURNING', 'NEXT_ACT', 'GROWING', 'FRACTIONAL', 'ENTREPRENEUR', 'TIME_OFF'], stages: 'all' },
     drives: { plan: 'Deadlines, rates and runway become dated steps in your plan.' },
     opportunity: 'The right step before a deadline, not after it.',
     readBy: ['src/lib/journey/situation.ts', 'src/lib/journey/engagement.ts'],

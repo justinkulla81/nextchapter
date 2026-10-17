@@ -1,6 +1,7 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { getEnrollableContracts } from '@/lib/employer/outplacement-enrollment'
 import { EnrollForms } from '@/components/employer/EnrollForms'
+import { enrollIntro, programKindOf } from '@/lib/employer/program-wording'
 import { orgProgram } from '@/lib/employer/program-server'
 
 export default async function EmployerEnrollPage() {
@@ -13,7 +14,7 @@ export default async function EmployerEnrollPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Enroll</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add someone to a contract, one at a time or by CSV upload. They get an email with your welcome and the services in their package.
+          {enrollIntro([...new Set(contracts.map((c) => programKindOf(c.journey)))])}
         </p>
       </div>
       <EnrollForms contracts={contracts} packages={packages} />

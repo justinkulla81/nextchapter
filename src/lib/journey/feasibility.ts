@@ -133,7 +133,7 @@ export function assessPivot(from: string | null, to: string, opts: { seniorLevel
         from: f, to, tier,
         headline: 'Needs a license or degree',
         detail: 'Attorney roles require a law degree and bar admission. Compliance, contracts and policy roles inside your own function are the realistic first step.',
-        months: [24, 48], needsCommitment: true, stepDown: true, education: edu,
+        months: [36, 54], needsCommitment: true, stepDown: true, education: edu,
       }
     case 'LEVEL_GATED':
       return {

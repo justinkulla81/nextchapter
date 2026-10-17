@@ -7,6 +7,7 @@
 // Costs are typical ranges to plan with, not quotes. We say so wherever they show.
 // We inform and never block: "worth knowing" notes are honest, and the member decides.
 
+import { overlapNote, type OverlapNote } from '@/lib/journey/onet-overlap'
 import { assessPivot, pivotTier, type PivotFeasibility, type PivotTier } from './feasibility'
 
 export type FunctionProfile = {
@@ -152,6 +153,8 @@ export type Pathway = {
   payNote: string
   // When they already hold the skills or have run this function before.
   headStart: string | null
+  // What O*NET says the two functions share, where it covers both. A check, never a verdict.
+  overlap: OverlapNote | null
 }
 
 const lower = (s: string) => s.toLowerCase()
@@ -198,6 +201,7 @@ export function buildPathway(
       FORMAL: { low: profile.cost.formal[0], high: profile.cost.formal[1], what: profile.cost.formalWhat },
     },
     payNote,
+    overlap: overlapNote(from, to),
     headStart: owned ? `You told us you have already owned ${to} work. That counts: say so in your pitch and start from that.` : null,
   }
 }

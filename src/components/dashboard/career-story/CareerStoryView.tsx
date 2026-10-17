@@ -101,17 +101,20 @@ export function CareerStoryView({ story, from }: { story: CareerStory; from: str
               <EventDetail key={selected.id} event={selected} now={now} hideYears={hideYears} onClose={() => setSelectedId(null)} />
             </div>
           )}
-          {adding ? (
-            <div className="rounded-xl border border-border bg-background p-4">
-              <EventEditor event={null} onDone={() => setAdding(false)} />
-            </div>
-          ) : (
-            <Button type="button" variant="outline" onClick={() => (setSelectedId(null), setAdding(true))}>
-              <Plus aria-hidden="true" /> Add a chapter
-            </Button>
-          )}
         </section>
       )}
+
+      <div className="space-y-4">
+        {adding ? (
+          <div className="rounded-xl border border-border bg-background p-4">
+            <EventEditor event={null} onDone={() => setAdding(false)} />
+          </div>
+        ) : (
+          <Button type="button" variant="outline" onClick={() => (setSelectedId(null), setAdding(true))}>
+            <Plus aria-hidden="true" /> Add a chapter
+          </Button>
+        )}
+      </div>
 
       <DoorsSection main={story.main} more={story.more} onTryPause={() => tryPause(6)} />
       <PauseTool cushionMonths={story.cushionMonths} months={pauseMonths} onMonths={setPauseMonths} />

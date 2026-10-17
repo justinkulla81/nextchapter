@@ -88,7 +88,7 @@ export async function sendOutplacementOrgInviteEmail(
   }
 }
 
-export async function sendOutplacementAccessEndingEmail(to: string, orgName: string, endsOn: string, dashboardUrl: string) {
+export async function sendOutplacementAccessEndingEmail(to: string, orgName: string, endsOn: string, dashboardUrl: string, opts: { growth?: boolean } = {}) {
   const resend = resendClient()
   if (!resend) {
     console.warn('RESEND_API_KEY is not set — skipping outplacement access-ending email.')
@@ -99,7 +99,7 @@ export async function sendOutplacementAccessEndingEmail(to: string, orgName: str
       from: 'NextChapter <support@launchyournextchapter.com>',
       to,
       subject: `Your ${orgName} NextChapter benefit ends ${endsOn}`,
-      react: OutplacementAccessEndingEmail({ orgName, endsOn, dashboardUrl }),
+      react: OutplacementAccessEndingEmail({ orgName, endsOn, dashboardUrl, growth: opts.growth }),
     })
     if (error) {
       console.error('Failed to send outplacement access-ending email:', error)

@@ -42,6 +42,7 @@ import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { CoachingFormReminderCard } from '@/components/dashboard/CoachingFormReminderCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEmployerReferenceBanner'
+import { SeatEndingBanner } from '@/components/dashboard/SeatEndingBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 import { PortfolioAccessRequestSection } from '@/components/dashboard/PortfolioAccessRequestSection'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
@@ -315,6 +316,9 @@ export default async function DashboardPage() {
         <EmailConfirmationBanner email={user.email} />
       )}
       <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
+      <Suspense fallback={null}>
+        <SeatEndingBanner candidateId={profile.id} />
+      </Suspense>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">

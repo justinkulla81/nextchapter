@@ -77,3 +77,30 @@ describe('career events stay private to the member', () => {
     expect(readers).toEqual(['src/app/dashboard/my-career/actions.ts', 'src/lib/career-story/load.ts'])
   })
 })
+
+import { buildDoors } from '@/lib/career-story/doors'
+import { retirementOf, retirementPlanItems } from '@/lib/journey/retirement'
+import { parseRelocation } from '@/lib/journey/relocation'
+
+describe('stepping back from full-time work', () => {
+  const base = { from: 'Finance', keywords: [], ownedFunctions: [], seniorLevel: true, currentIndustry: null, sectorHistory: [], onRadar: [], industriesOnRadar: [], skillsToBuild: [], radar: [], career: null, relocation: parseRelocation({}, false) }
+  it('reads only the four paths and ignores anything else', () => {
+    expect(retirementOf({ retirementPath: 'PHASED', retirementBy: '2028-06-01', retirementIncome: 'SOME' })).toEqual({ path: 'PHASED', by: '2028-06-01', income: 'SOME' })
+    expect(retirementOf({ retirementPath: 'NOPE' })).toBeNull()
+    expect(retirementOf(null)).toBeNull()
+  })
+  it('gives each path its own steps, with the date only if they gave one', () => {
+    const now = new Date('2026-10-17T12:00:00Z')
+    const phased = retirementPlanItems({ retirementPath: 'PHASED', retirementBy: '2027-10-17' }, now).map((i) => i.text).join(' ')
+    expect(phased).toMatch(/taper/)
+    expect(phased).toMatch(/12 months from now/)
+    expect(retirementPlanItems({ retirementPath: 'STOP' }, now).map((i) => i.text).join(' ')).toMatch(/health coverage/)
+    expect(retirementPlanItems({ retirementPath: 'ENCORE', retirementIncome: 'FULL' }, now).length).toBe(3)
+  })
+  it('shows a step-back door beside growing where you are, and never mentions age', () => {
+    const { main } = buildDoors({ ...base, retirement: { path: 'ENCORE', by: null, income: null } })
+    expect(main[1].id).toBe('stepback')
+    expect(JSON.stringify(main[1]).toLowerCase()).not.toMatch(/\bage\b|older|elderly|senior citizen/)
+    expect(buildDoors({ ...base, retirement: null }).main.some((d) => d.id === 'stepback')).toBe(false)
+  })
+})

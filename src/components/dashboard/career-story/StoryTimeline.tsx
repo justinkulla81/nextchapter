@@ -103,7 +103,7 @@ export function StoryTimeline({
                       )}
                       style={{ ...look.style, left: `${bar.leftPct}%`, width: `${bar.widthPct}%` }}
                     >
-                      {bar.widthPct > 4 ? e.label : ''}
+                      {bar.widthPct > 8 ? e.label : ''}
                     </button>
                   )
                 })}

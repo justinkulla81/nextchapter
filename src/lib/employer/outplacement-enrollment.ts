@@ -11,7 +11,7 @@ import { sendOutplacementSeatInviteEmail, sendOutplacementSeatLinkedEmail } from
 import { orgProgram } from './program-server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
-import type { OutplacementEnrollmentMethod } from '@prisma/client'
+import type { JourneyType, OutplacementEnrollmentMethod } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { grantSeatAccess } from '@/lib/access/grants'
 import { applyOutplacementCensus } from '@/lib/census/outplacement'
@@ -37,6 +37,7 @@ export interface EnrollableContract {
   tier: string
   seatCount: number
   usedSeats: number
+  journey?: JourneyType | null
 }
 
 // Contracts this org can still enroll into — ACTIVE status and at least
@@ -50,6 +51,7 @@ export async function getEnrollableContracts(orgId: string): Promise<EnrollableC
       cohortLabel: true,
       tier: true,
       seatCount: true,
+      journey: true,
       _count: { select: { seats: { where: { status: { not: 'DEACTIVATED' } } } } },
     },
     orderBy: { createdAt: 'desc' },
@@ -60,6 +62,7 @@ export async function getEnrollableContracts(orgId: string): Promise<EnrollableC
     tier: c.tier,
     seatCount: c.seatCount,
     usedSeats: c._count.seats,
+    journey: c.journey,
   }))
 }
 
