@@ -5,7 +5,7 @@ export function HomeNote({ title, why, startLabel, startHref, whyDetail }: { tit
     <section aria-labelledby="note" className="space-y-4 rounded-2xl border border-border bg-white p-7">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">Cue</span>
-        <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Today&apos;s note from Victoria</span>
+        <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Today&apos;s note</span>
       </div>
       <h2 id="note" className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance">
         {title}
