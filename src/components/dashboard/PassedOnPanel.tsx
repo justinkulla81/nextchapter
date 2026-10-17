@@ -6,6 +6,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { decideDismissPreference, undoDismissBoardJob } from '@/app/dashboard/find-my-job/dismiss-actions'
+import { startRetune } from '@/components/dashboard/RetuneMoment'
 
 export interface PassedOnPreference {
   id: string
@@ -53,7 +54,8 @@ export function PassedOnPanel({
       if (decision === 'hide') posthog.capture('dismiss_preference_applied', { kind: p.kind, action: 'hide', source: 'ask' })
       if (decision === 'undo') posthog.capture('dismiss_undone', { kind: p.kind, scope: 'preference' })
       setGone((g) => new Set(g).add(p.id))
-      router.refresh()
+      if (decision === 'keep') router.refresh()
+      else startRetune('dismiss') // refreshes the board once it has the new numbers
     })
   }
 

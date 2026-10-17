@@ -27,6 +27,7 @@ import type {
   PublicDisclosureComfort,
   ReferralRecency,
 } from '@prisma/client'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export type FormState = { error?: string } | undefined
 
@@ -53,6 +54,7 @@ export async function updateSearchStrategy(
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  await captureMatchBaseline(profile)
 
   const rankedOrder = formData.getAll('tradeoffOrder').map(String) as Array<
     (typeof TRADEOFF_PRIORITIES)[number]['key']
@@ -140,6 +142,8 @@ export async function updateSearchStrategy(
       // the explicit Regenerate action below.
       searchStrategyGuidance: null,
       searchStrategyGuidanceGeneratedAt: null,
+      // They set their function here: it is theirs now, not a résumé guess (resume-prefill.ts).
+      resumePrefilledFields: profile.resumePrefilledFields.filter((f) => f !== 'primaryFunction'),
     },
   })
 

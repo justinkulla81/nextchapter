@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
+import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { loadPostingLifecycle } from '@/lib/jobs/past-jobs-data'
 import { lifecycleBadge, lifecycleSentence, postedLine } from '@/lib/jobs/job-status'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
@@ -36,7 +36,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       where: { id },
       select: {
         id: true, title: true, companyName: true, location: true, url: true, status: true, distribution: true, disclosure: true,
-        institutionScopeId: true, audienceTier: true, source: true, level: true, salaryMin: true, salaryMax: true, payPeriod: true,
+        institutionScopeId: true, source: true, level: true, salaryMin: true, salaryMax: true, payPeriod: true,
         description: true, submittedByEmployerId: true, submittedByRecruiterId: true, company: { select: { canonicalNameNormalized: true } },
         requirementFlags: true, locationState: true, targetFunction: true, employerSector: true,
       },
@@ -44,14 +44,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: id }, select: { id: true } }),
     isDossierUnlocked(profile.id),
   ])
-  // Only what the board would ever show this member — or a job they saved themselves.
+  // Only what the board would ever show a member (every member sees every board job;
+  // privacy settings still hide one) — or a job they saved themselves.
   const visible =
     posting &&
-    (tracked ||
-      (posting.status === 'approved' &&
-        !posting.institutionScopeId &&
-        posting.distribution !== 'EXCLUDED' &&
-        !isBoardPostingLockedForViewer(posting, dossier.unlocked)))
+    (tracked || (posting.status === 'approved' && !posting.institutionScopeId && posting.distribution !== 'EXCLUDED'))
   if (!posting || !visible) notFound()
 
   const life = await loadPostingLifecycle(posting.id)
@@ -127,14 +124,21 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
       )}
 
-      {!life.isPast && (
-        <div className="space-y-3">
-          <ApplyKit postingId={posting.id} surface="job_page" />
-          <div data-who-to-contact={posting.id}>
-            <WhoToContactPanel postingId={posting.id} confidential={confidential} />
+      {!life.isPast &&
+        (dossier.unlocked ? (
+          <div className="space-y-3">
+            <ApplyKit postingId={posting.id} surface="job_page" />
+            <div data-who-to-contact={posting.id}>
+              <WhoToContactPanel postingId={posting.id} confidential={confidential} />
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          // Candidate+ extras: one line each for members who haven't unlocked it (candidate-plus-extras.ts).
+          <div className="space-y-2">
+            <CandidatePlusExtraLine extra="apply_kit" jobId={posting.id} surface="job_page" />
+            <CandidatePlusExtraLine extra={confidential ? 'request_intro' : 'who_to_contact'} jobId={posting.id} surface="job_page" />
+          </div>
+        ))}
 
       {posting.description && (
         <section aria-labelledby="job-description" className="space-y-2">

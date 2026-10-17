@@ -122,9 +122,9 @@ export default async function SkillsAssessmentsPage() {
       sharedWith:
         'Who sees it: always shared — the references you invite see and answer these questions about you, and, once your Executive Dossier is unlocked, hiring managers see the comparison to your own answers.',
       completedAt: completedReferenceCount > 0 ? new Date(0) : null,
-      // 3 matches DOSSIER_UNLOCK_REFERENCE_TARGET (dossier-unlock.ts) — the
-      // real Dossier-unlock gate — shown as a target here so candidates know
-      // how many more to request.
+      // 3 is the reference target (DOSSIER_UNLOCK_REFERENCE_TARGET) shown so
+      // candidates know how many to request. Not a Candidate+ gate since
+      // 2026-10-16; references count toward Candidate+ Verified.
       statusLabel:
         completedReferenceCount > 0 ? `${completedReferenceCount} / 3 references` : 'Not completed yet',
       points: estimateActionEffort({ actionType: 'REFERENCE_ADDED' }).points,

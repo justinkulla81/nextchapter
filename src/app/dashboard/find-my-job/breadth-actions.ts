@@ -6,7 +6,6 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { parseBreadth } from '@/lib/jobs/search-breadth'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { liveBoardWhere } from '@/lib/jobs/board-shortlist'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
@@ -37,8 +36,8 @@ const MORE_PAGE_MAX = 25
  * when it rendered; this loads the rows in that order with each one's fit level. Only live
  * jobs the member can open come back — the ids arrive from the browser.
  */
-export async function loadMoreGoodMatches(ids: string[]): Promise<{ postings: ExclusiveJobPosting[]; fitBuckets: Record<string, FitBucket> } | null> {
-  if (!Array.isArray(ids) || ids.length === 0) return { postings: [], fitBuckets: {} }
+export async function loadMoreGoodMatches(ids: string[]): Promise<{ postings: ExclusiveJobPosting[]; fitBuckets: Record<string, FitBucket>; candidatePlus: boolean } | null> {
+  if (!Array.isArray(ids) || ids.length === 0) return { postings: [], fitBuckets: {}, candidatePlus: false }
   const wanted = ids.filter((id) => typeof id === 'string' && id.length <= 40).slice(0, MORE_PAGE_MAX)
   const supabase = await createClient()
   const {
@@ -50,7 +49,12 @@ export async function loadMoreGoodMatches(ids: string[]): Promise<{ postings: Ex
     prisma.exclusiveJobPosting.findMany({ where: { AND: [liveBoardWhere(), { id: { in: wanted } }] } }),
     isDossierUnlocked(profile.id),
   ])
-  const byId = new Map(rows.filter((p) => !isBoardPostingLockedForViewer(p, unlock.unlocked)).map((p) => [p.id, p]))
+  const byId = new Map(rows.map((p) => [p.id, p]))
   const postings = wanted.map((id) => byId.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
-  return { postings, fitBuckets: Object.fromEntries(postings.map((p) => [p.id, computeBoardListingFitBucket(profile, p)])) }
+  return {
+    postings,
+    fitBuckets: Object.fromEntries(postings.map((p) => [p.id, computeBoardListingFitBucket(profile, p)])),
+    // Candidate+ shows the extras on each card (candidate-plus-extras.ts); the jobs are everyone's.
+    candidatePlus: unlock.unlocked,
+  }
 }

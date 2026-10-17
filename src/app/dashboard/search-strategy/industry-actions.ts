@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 /** Saves the industries the member confirmed (industry-reading.ts): the board, emails and market size use them. */
 export async function confirmIndustryBuckets(buckets: string[]): Promise<{ ok: boolean }> {
@@ -16,6 +17,7 @@ export async function confirmIndustryBuckets(buckets: string[]): Promise<{ ok: b
   } = await supabase.auth.getUser()
   if (!user) return { ok: false }
   const profile = await getOrCreateCandidateProfile(user.id)
+  await captureMatchBaseline(profile)
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { industryBuckets: valid, industryBucketsConfirmedAt: new Date() } })
   revalidatePath('/dashboard/search-strategy')
   return { ok: true }

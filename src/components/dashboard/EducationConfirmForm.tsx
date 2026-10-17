@@ -8,13 +8,17 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DEGREE_OPTIONS, legacyLevelToOption, impliedLevels } from '@/lib/constants/education'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 
 export function EducationConfirmForm({
   highestEducationLevel,
   hasJD,
   hasMD,
   hasMBA,
+  prefilled = [],
 }: {
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
   highestEducationLevel: HighestEducationLevel | null
   hasJD: boolean
   hasMD: boolean
@@ -48,6 +52,7 @@ export function EducationConfirmForm({
     <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <div className="space-y-2">
         <Label>Education</Label>
+        <FromResumeTag show={prefilled.includes('highestEducationLevel')} section="education" fields={['highestEducationLevel']} />
         {DEGREE_OPTIONS.map((opt) => (
           <div key={opt.value} className="flex items-center gap-2">
             <Checkbox

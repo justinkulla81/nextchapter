@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
+import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { contactTargets, displayPersonName, isPersonName, linkedinPeopleSearchUrl, memberHeadline, outreachTemplate, type WhoToContactPanel } from '@/lib/jobs/who-to-contact'
 import { loadMemberOrgSignal } from '@/lib/jobs/who-to-contact-crm'
@@ -24,25 +24,24 @@ async function authedProfile() {
   return user ? getOrCreateCandidateProfile(user.id) : null
 }
 
-/** The posting, only when this member can open it on the board. */
-async function viewablePosting(postingId: string, candidateId: string) {
+/** The posting, only when it is on the board (every member sees every board job). */
+async function viewablePosting(postingId: string) {
   const posting = await prisma.exclusiveJobPosting.findFirst({
     where: { id: postingId, status: 'approved', archivedAt: null, distribution: { not: 'EXCLUDED' }, institutionScopeId: null },
     select: {
       id: true, title: true, companyName: true, companyId: true, level: true, disclosure: true,
-      audienceTier: true, source: true, recruiterName: true,
+      recruiterName: true,
     },
   })
-  if (!posting) return null
-  // Candidate+-only listings: only a member who has unlocked them (the board's own rule).
-  if (isBoardPostingLockedForViewer(posting, false) && !(await isDossierUnlocked(candidateId)).unlocked) return null
   return posting
 }
 
 export async function loadWhoToContact(postingId: string): Promise<WhoToContactResult> {
   const profile = await authedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to see who to contact.' }
-  const posting = await viewablePosting(postingId, profile.id)
+  // Who to contact is a Candidate+ extra; the job itself is open to everyone.
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('who_to_contact') }
+  const posting = await viewablePosting(postingId)
   if (!posting) return { ok: false, error: 'This job is no longer on the board.' }
   // A confidential search names no employer: there is no one to look up.
   if (posting.disclosure === 'CONFIDENTIAL') {
@@ -101,7 +100,8 @@ export type IntroRequestResult = { ok: true; already: boolean } | { ok: false; e
 export async function requestKnownContactIntro(postingId: string): Promise<IntroRequestResult> {
   const profile = await authedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to request an intro.' }
-  const posting = await viewablePosting(postingId, profile.id)
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('who_to_contact') }
+  const posting = await viewablePosting(postingId)
   if (!posting || posting.disclosure === 'CONFIDENTIAL') return { ok: false, error: 'This job is no longer on the board.' }
 
   const existing = await prisma.jobBoardIntroRequest.findFirst({

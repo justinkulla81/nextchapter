@@ -2,7 +2,9 @@ import 'server-only'
 import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import { whatChangedLines } from '@/lib/personalization/smarter'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { isFresh, postedAgo } from '@/lib/jobs/competition'
@@ -86,7 +88,7 @@ export interface JobSearchDailyContent {
   networking: DailyItem[] // replies owed, starred people due a note, a contact at a hiring company, a few stale contacts
   networkingMoreCount: number // stale contacts beyond the few shown
   // `fresh`: posted in the last 72 hours — the email leads with these.
-  jobs: { items: DailyItem[]; fresh: DailyItem[]; lockedCount: number }
+  jobs: { items: DailyItem[]; fresh: DailyItem[] }
   companyMoves: DailyItem[]
   // SEC-filing signals of a senior role about to open (not posted yet).
   likelyOpenings: DailyItem[]
@@ -98,6 +100,10 @@ export interface JobSearchDailyContent {
   action: { label: string; href: string }
   quote: Quote | null
   freshCount: number // new items (jobs, company moves, contact, article) — 0 means nothing new today
+  // "What changed for you" (personalization/smarter.ts whatChangedLines): at most three lines; empty = left out.
+  whatChanged: string[]
+  // The member's strict match count today (board-shortlist.ts marketSize), kept after a send for next week's trend.
+  matchCount: number | null
 }
 
 type Candidate = CandidateProfile
@@ -189,24 +195,34 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     where: { createdAt: { gte: jobsSince } },
     size: 200,
     fitScoring,
+    // A small strict market fills with bridge jobs (labelled "Worth a look") instead of a near-empty email.
+    autoWidenTo: 60,
     // Mid-level and early-career jobs stay out of emails until the owner turns on
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
   })
-  const postings = emailSafeJobs([...shortlist.open, ...shortlist.locked])
+  const postings = emailSafeJobs(shortlist.open)
+  const whatChanged = await loadWhatChanged(candidate.id, shortlist.breadth.marketSize, lastSend?.sentAt ?? new Date(now.getTime() - DAY_MS), now)
   const fitting = postings.filter((p) => {
     if (shownKeys.has(`job:${p.id}`)) return false
     const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
     return bucket === 'strong' || bucket === 'good'
   })
-  const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)
+  // Every member gets every job that fits (owner's rule, 2026-10-16).
+  const openable = fitting
   // Jobs posted in the last 72 hours lead (applying early matters most);
   // the rest fill the remaining slots.
   const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
     key: `job:${p.id}`,
     title: p.title,
-    detail: [p.companyName, p.location, isFresh(p, now) ? postedAgo(p, now) : null, knowLine(p.companyName)]
+    detail: [
+      shortlist.breadth.bridges.has(p.id) ? bridgeEmailNote(shortlist.breadth.bridges.get(p.id)!) : null,
+      p.companyName,
+      p.location,
+      isFresh(p, now) ? postedAgo(p, now) : null,
+      knowLine(p.companyName),
+    ]
       .filter(Boolean)
       .join(' · '),
     href: jobsUrl,
@@ -216,7 +232,6 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     .filter((p) => !isFresh(p, now))
     .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
     .map(toJobItem)
-  const lockedCount = fitting.length - openable.length
 
   // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their
@@ -597,7 +612,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     staleApplicationCount,
     networking: networkingListed,
     networkingMoreCount,
-    jobs: { items: jobItems, fresh: freshJobItems, lockedCount },
+    jobs: { items: jobItems, fresh: freshJobItems },
     likelyOpenings,
     companyMoves,
     reconnect,
@@ -607,6 +622,49 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     action,
     quote,
     freshCount,
+    whatChanged,
+    matchCount: shortlist.breadth.marketSize,
+  }
+}
+
+const CLOSED_REASONS = ['removed', 'expired', 'aged_out']
+
+/** The inputs to "What changed for you": last week's count, retunes since the last email, saved jobs that closed unapplied. Never throws. */
+async function loadWhatChanged(candidateId: string, matchesNow: number | null, since: Date, now: Date): Promise<string[]> {
+  try {
+    const [weekAgo, learned, saved] = await Promise.all([
+      prisma.memberMatchSnapshot.findFirst({
+        where: { candidateId, kind: 'daily', createdAt: { gte: new Date(now.getTime() - 9 * DAY_MS), lte: new Date(now.getTime() - 5 * DAY_MS) } },
+        orderBy: { createdAt: 'asc' },
+        select: { relevant: true },
+      }),
+      prisma.memberMatchSnapshot.findMany({
+        where: { candidateId, kind: 'retune', createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { trigger: true, relevant: true, detail: true },
+      }),
+      prisma.trackedJob.findMany({
+        where: { candidateId, source: 'job_board', savedAt: { not: null }, dismissedAt: null, OR: [{ jobPostingId: null }, { jobPosting: { appliedAt: null } }] },
+        select: { sourceId: true },
+        take: 500,
+      }),
+    ])
+    const closedBeforeApplied =
+      saved.length === 0
+        ? 0
+        : await prisma.exclusiveJobPosting.count({
+            where: { id: { in: saved.map((t) => t.sourceId) }, archivedAt: { gte: since }, closeReason: { in: CLOSED_REASONS } },
+          })
+    return whatChangedLines({
+      matchesNow,
+      matchesWeekAgo: weekAgo?.relevant ?? null,
+      learned: learned.map((r) => ({ trigger: r.trigger, after: r.relevant, before: (r.detail as { before?: { matches?: number } | null } | null)?.before?.matches ?? null })),
+      closedBeforeApplied,
+    })
+  } catch (error) {
+    console.error('Job Search Daily: what changed unavailable:', error)
+    return []
   }
 }
 

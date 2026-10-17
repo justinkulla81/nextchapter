@@ -6,6 +6,8 @@ export interface FreshJobAlertJob {
   company: string
   location: string | null
   postedAgo: string
+  /** A bridge job (src/lib/jobs/relevance.ts): "Worth a look: …", shown under the job. */
+  bridgeNote?: string | null
 }
 
 interface FreshJobAlertEmailProps {
@@ -56,6 +58,12 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
             <span style={muted}>
               {[j.company, j.location, j.postedAgo].filter(Boolean).join(' · ')}
             </span>
+            {j.bridgeNote && (
+              <>
+                <br />
+                <span style={muted}>{j.bridgeNote}</span>
+              </>
+            )}
           </li>
         ))}
       </ul>

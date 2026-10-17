@@ -681,6 +681,14 @@ model CandidateProfile {
   confidentialSearchMode          Boolean                     @default(false)
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
+  // ('requirements' | 'streak'). candidatePlusRevokedAt is set only by an admin and turns
+  // it off until cleared. prisma/manual/2026-10-16-candidate-plus-permanent.sql.
+  candidatePlusUnlockedAt         DateTime?
+  candidatePlusUnlockSource       String?
+  candidatePlusRevokedAt          DateTime?
+  // The one-time Candidate+ unlock screen was shown (prisma/manual/2026-10-16-match-snapshots.sql).
+  candidatePlusUnlockSeenAt       DateTime?
   effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
@@ -1055,11 +1063,15 @@ model CandidateProfile {
   // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
   boardBreadth                    String?
   jobDismissPreferences           JobDismissPreference[]
+  matchSnapshots                  MemberMatchSnapshot[]
   // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
   // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
   // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
   industryBuckets                 String[]  @default([])
   industryBucketsConfirmedAt      DateTime?
+  // When they last confirmed their tools ("Tools you use", skills page); the tools go into
+  // confirmedSkillsHave. Null = never: the board nudges once. prisma/manual/2026-10-16-tools-confirmed.sql.
+  toolsConfirmedAt                DateTime?
   // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
   // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
   // when the board loads. Null = function not split, or nothing on the allowlists
@@ -1142,6 +1154,11 @@ model CandidateProfile {
   clearancePolygraph              String?
   licensesHeld                    String[]  @default([])
   licensesAnsweredAt              DateTime?
+  // Fields last filled from the résumé and not yet confirmed by the member
+  // (src/lib/resume/resume-prefill.ts): shown as "From your résumé — confirm",
+  // and the only non-blank fields a later résumé may replace.
+  // prisma/manual/2026-10-16-resume-prefill.sql.
+  resumePrefilledFields           String[]  @default([])
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
@@ -1530,6 +1547,8 @@ model CandidateProfile {
   jobClickEvents                 JobClickEvent[]
   trackedJobs                    TrackedJob[]
   workSamples                    WorkSample[]
+  externalReviewStats            ExternalReviewStat[]
+  clientReviews                  ClientReview[]
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
@@ -2428,6 +2447,56 @@ model WorkSample {
   createdAt        DateTime @default(now())
 
   @@index([candidateId])
+}
+
+/// Review stats a member brings from another fractional or freelance
+/// platform (Upwork, Toptal, ...). Counts as evidence for Candidate+ Verified.
+/// status: SELF_REPORTED (link given, not yet checked), LINK_CHECKED (one
+/// polite fetch of the public profile confirmed name and numbers),
+/// NEEDS_REVIEW (couldn't check: on the admin review list), CONFIRMED (an
+/// admin confirmed it), REJECTED (an admin could not; no credit).
+model ExternalReviewStat {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  platform      String // upwork | toptal | catalant | contra | ateam | fiverr_pro | malt | linkedin_services | other
+  platformLabel String? // what they typed when platform is "other"
+  profileUrl    String
+  rating        Float // 0-5
+  reviewCount   Int
+  jobsCompleted Int?
+  screenshotUrl String?
+  status        String           @default("SELF_REPORTED")
+  checkNote     String? // plain-language result of the link check or the admin decision
+  checkedAt     DateTime?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId])
+  @@index([status])
+}
+
+/// A review from a NextChapter client after real work together (later: the
+/// fractional marketplace). Weighted highest in the evidence score. No UI yet;
+/// only PUBLISHED rows count.
+model ClientReview {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId      String?
+  reviewerName    String
+  reviewerEmail   String?
+  reviewerCompany String?
+  rating          Float // 1-5
+  body            String?          @db.Text
+  engagementTitle String?
+  status          String           @default("PENDING") // PENDING | PUBLISHED | HIDDEN
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([candidateId, status])
 }
 
 model InterviewResponse {
@@ -4984,6 +5053,9 @@ model ExclusiveJobPosting {
   // of which only a short excerpt is stored: ~15 MB for the whole board instead of
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
   skills String[] @default([])
+  // O*NET skills and tools (Skill.id, via SkillAlias) the title, description and skills name —
+  // the board's skills criterion (src/lib/jobs/relevance.ts). prisma/manual/2026-10-16-job-skill-ids.sql.
+  skillIds String[] @default([])
 
   // Market pay for this role (src/lib/pay/market-pay.ts), copied from its
   // CompanyJobOpening row nightly and at import. A benchmark for the role's
@@ -5191,6 +5263,27 @@ model JobClickEvent {
 // with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
 // askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
 // prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+// What a member's matching read and what it gave them (src/lib/personalization/match-snapshot.ts):
+// 'baseline' (inputs just before a save that changes matching), 'retune' (the recompute after
+// it, with counts and reasons), 'daily' (Job Search Daily's count, for the weekly trend).
+// prisma/manual/2026-10-16-match-snapshots.sql.
+model MemberMatchSnapshot {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  trigger     String?
+  inputs      Json
+  checked     Int?
+  relevant    Int?
+  strong      Int?
+  detail      Json?
+  ms          Int?
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
 model JobDismissPreference {
   id          String           @id @default(cuid())
   candidateId String

@@ -37,22 +37,16 @@ const SOURCE_LABEL: Record<string, string> = {
   candidate_referral: 'Candidate network lead',
 }
 
-const AUDIENCE_TIER_LABEL: Record<string, string> = {
-  ALL_CANDIDATES: 'All candidates',
-  A_LIST_ONLY: 'Candidate+ only',
-}
-
 const DISTRIBUTION_LABEL: Record<string, string> = {
   OPEN: 'Open',
   TARGETED: 'Targeted',
   EXCLUDED: 'Excluded from board',
 }
 
-function visibilitySummary(posting: { audienceTier: string; distribution: string; disclosure: string }) {
-  const parts = [
-    AUDIENCE_TIER_LABEL[posting.audienceTier] ?? posting.audienceTier,
-    DISTRIBUTION_LABEL[posting.distribution] ?? posting.distribution,
-  ]
+// Every member sees every listing (owner's rule, 2026-10-16), so the stored
+// audienceTier is no longer shown: only distribution and disclosure gate who sees it.
+function visibilitySummary(posting: { distribution: string; disclosure: string }) {
+  const parts = [DISTRIBUTION_LABEL[posting.distribution] ?? posting.distribution]
   if (posting.disclosure === 'CONFIDENTIAL') parts.push('Confidential — company hidden from candidates')
   return parts.join(' · ')
 }
@@ -92,7 +86,6 @@ const PENDING_SELECT = {
   salaryMax: true,
   salaryCurrency: true,
   disclosure: true,
-  audienceTier: true,
   distribution: true,
   description: true,
   targetFunction: true,

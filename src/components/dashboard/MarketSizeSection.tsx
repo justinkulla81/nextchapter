@@ -1,5 +1,7 @@
-import { loadMarketSize, type MarketMember } from '@/lib/market/market-size-server'
-import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
+import type { CandidateProfile } from '@prisma/client'
+import { loadMarketSize } from '@/lib/market/market-size-server'
+import { marketTierFor } from '@/lib/jobs/relevance'
+import { computeMatchState } from '@/lib/personalization/match-compute'
 import { MarketSizeBlock } from '@/components/dashboard/MarketSizeBlock'
 
 /** Loads the member's market size and shows the block; nothing when there's no target or no stats yet. Wrap in Suspense. */
@@ -9,14 +11,15 @@ export async function MarketSizeSection({
   searchCount,
   searchQuery,
 }: {
-  member: MarketMember & Parameters<typeof loadBoardShortlist>[0]['candidate']
+  member: CandidateProfile
   surface: 'board_search' | 'search_strategy' | 'market_reality'
   searchCount?: number
   searchQuery?: string
 }) {
-  // Their own count is the strict relevant one (relevance.ts), from the same board the job list uses.
-  const board = await loadBoardShortlist({ candidate: member, isCandidatePlus: true, size: 1, includeMidLevel: true, includeEarlyCareer: true, breadth: 'narrow' }).catch(() => null)
-  const relevant = board?.breadth.classifier ? { count: board.breadth.relevantTotal, tier: board.breadth.marketTier } : undefined
+  // Their own numbers are the strict relevant count (relevance.ts) and the strong fits among it,
+  // from the same run the board's "What we know about you" and the retune use — so they move as the profile sharpens.
+  const state = await computeMatchState(member, { live: true }).catch(() => null)
+  const relevant = state ? { count: state.counts.matches, strong: state.counts.strong, tier: marketTierFor(state.counts.matches).key } : undefined
   const view = await loadMarketSize(member, relevant).catch((error) => {
     console.error('Market size unavailable:', error)
     return null

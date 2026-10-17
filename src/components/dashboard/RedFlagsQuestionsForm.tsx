@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import type { CurrentJobStatus } from '@prisma/client'
 import { cn } from '@/lib/utils'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 import { CLEARANCE_HELD_OPTIONS, LICENSE_KEYS, LICENSE_LABEL, POLYGRAPH_HELD_OPTIONS } from '@/lib/jobs/requirements'
 
 const YES_NO_OPTIONS = [
@@ -42,7 +44,16 @@ const CLEARANCE_STATUS_OPTIONS = [
   { value: 'lapsed', label: 'Lapsed' },
 ] as const
 
-export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJobStatus: CurrentJobStatus | null; initial?: RedFlagsInitial }) {
+export function RedFlagsQuestionsForm({
+  currentJobStatus,
+  initial,
+  prefilled = [],
+}: {
+  currentJobStatus: CurrentJobStatus | null
+  initial?: RedFlagsInitial
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
+}) {
   const [state, formAction, pending] = useActionState<RedFlagsState, FormData>(answerRedFlags, undefined)
   const [firedForCause, setFiredForCause] = useState(yesNo(initial?.firedForCause))
   const [restrictiveCovenant, setRestrictiveCovenant] = useState(yesNo(initial?.hasRestrictiveCovenant))
@@ -60,9 +71,11 @@ export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJo
   const holdsClearance = clearance !== '' && clearance !== 'none'
 
   const askFiredForCause = currentJobStatus === 'LAID_OFF'
+  // A change to clearance or licenses re-runs the member's matches and shows what it changed.
+  const retune = useRetuneAfterSave('clearance', pending, !!state?.error, JSON.stringify([clearance, clearanceStatus, polygraph, [...licenses].sort(), noLicenses]))
 
   return (
-    <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
+    <form action={formAction} onSubmit={retune.onSubmit} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
       {askFiredForCause && (
         <div className="space-y-2">
           <Label>Were you let go for cause, rather than a no-fault layoff?</Label>
@@ -136,6 +149,7 @@ export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJo
         <p className="text-xs text-muted-foreground">
           Some jobs require an active clearance. We use this to flag them for you and to show cleared roles.
         </p>
+        <FromResumeTag show={prefilled.includes('clearanceLevel')} section="clearance" fields={['clearanceLevel']} submits={false} />
         <ChoiceButtons name="clearanceLevel" options={CLEARANCE_HELD_OPTIONS} value={clearance || null} onChange={setClearance} columns={5} responsive compact />
         {holdsClearance && (
           <>
@@ -155,6 +169,7 @@ export function RedFlagsQuestionsForm({ currentJobStatus, initial }: { currentJo
         <Label>
           Which of these licenses do you hold? <span className="font-normal text-muted-foreground">(optional)</span>
         </Label>
+        <FromResumeTag show={prefilled.includes('licensesHeld')} section="licenses" fields={['licensesHeld']} submits={false} />
         <div role="group" aria-label="Licenses held" className="flex flex-wrap gap-2">
           {LICENSE_KEYS.map((k) => {
             const on = licenses.includes(k)

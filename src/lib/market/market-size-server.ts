@@ -69,8 +69,8 @@ export interface MarketSizeView {
   areas: MarketArea[]
   /** For too many: the biggest industries inside the target. */
   slices: { label: string; openNow: number }[]
-  /** Jobs relevant to them on every criterion (relevance.ts), and the market tier that applied. */
-  relevant: { count: number; tier: string | null } | null
+  /** Jobs relevant to them on every criterion (relevance.ts), the strong fits among them, and the market tier that applied. */
+  relevant: { count: number; strong?: number; tier: string | null } | null
 }
 
 const STAGE_WORDS: Record<CareerStage, string> = {
@@ -91,7 +91,7 @@ export function memberMarketTarget(m: MarketMember): MarketTarget | null {
   const stages = stagesInWindow(memberStageWindow(m))
   const read = memberIndustryBuckets(m)
   const industries = read.length > 0 ? read : null
-  const geo = memberGeo({ homeArea: null, currentState: m.currentState, remotePreference: m.remotePreference, openToRelocation: m.openToRelocation, relocationNotes: m.relocationNotes })
+  const geo = memberGeo({ anchor: null, currentState: m.currentState, remotePreference: m.remotePreference, openToRelocation: m.openToRelocation, relocationNotes: m.relocationNotes })
   const geoList = [...(geo.homeState ? [geo.homeState] : []), ...geo.relocation, ...(geo.acceptsRemote ? ['remote'] : [])]
   const geos = geo.unknown || geoList.length === 0 ? null : [...new Set(geoList)]
   const what = subFunctionLabel(subFunction) ?? fn
@@ -117,7 +117,7 @@ function sum(rows: StatRow[], f: Filter): Counts {
 const boardHref = (q?: string) => `/dashboard/find-my-job?breadth=wide${q ? `&q=${encodeURIComponent(q)}` : ''}#job-recommendations`
 
 /** The market for the member's target, with the prompt to show and the nearby areas. Null without a function or stats. */
-export async function loadMarketSize(m: MarketMember, relevant?: { count: number; tier: string | null }): Promise<MarketSizeView | null> {
+export async function loadMarketSize(m: MarketMember, relevant?: { count: number; strong?: number; tier: string | null }): Promise<MarketSizeView | null> {
   const target = memberMarketTarget(m)
   if (!target) return null
   const [rows, totals] = await Promise.all([rowsFor(target.fn), rowsFor('*')])

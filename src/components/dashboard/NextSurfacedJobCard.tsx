@@ -55,7 +55,7 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 // One-at-a-time surfaced job — Interested/Not Interested only (no "Unsure").
 // Reacting removes it from the unreacted queue server-side, and the next
 // render naturally shows whatever's next — no client-side "advance" state.
-// Same collapsed <details> shape as DiscoverJobCard/LockedDiscoverJobCard so
+// Same collapsed <details> shape as DiscoverJobCard so
 // all three sit in one shared list without a formatting seam between them.
 export function NextSurfacedJobCard({
   job,

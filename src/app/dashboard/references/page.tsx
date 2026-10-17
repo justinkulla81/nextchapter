@@ -23,7 +23,8 @@ export const metadata: Metadata = { title: 'My References' }
 // 3 solid references reads as a strong pattern, not a one-off, so that's
 // the lifetime target shown next to "Add a reference" in the Action Plan
 // box (see SprintActionCompletion's lifetimeProgress prop). Matches
-// DOSSIER_UNLOCK_REFERENCE_TARGET in dossier-unlock.ts, the actual gate.
+// DOSSIER_UNLOCK_REFERENCE_TARGET. Not a Candidate+ gate since 2026-10-16:
+// references count toward Candidate+ Verified (evidence score).
 const REFERENCE_TARGET_COUNT = 3
 
 const STATUS_STYLES: Record<ReferenceStatus, string> = {

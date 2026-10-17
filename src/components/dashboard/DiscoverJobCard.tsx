@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useTransition } from 'react'
-import { Lock, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -17,6 +17,7 @@ import { posthog } from '@/lib/posthog/client'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { NativeApply } from '@/components/jobs/NativeApply'
 import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
@@ -41,6 +42,7 @@ import { benefitsHighlights, type JobBenefits } from '@/lib/jobs/benefits'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { matchReasonSentence, type MatchReason } from '@/lib/jobs/search-breadth'
 import type { Bridge } from '@/lib/jobs/relevance'
+import type { WhyThisJob } from '@/lib/personalization/why-this-job'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
 import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
@@ -112,40 +114,6 @@ function NewBadge() {
 // this list is filtered to (see isIdealMatch in job-fit-bucket.ts).
 function IdealMatchBadge() {
   return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
-}
-
-// Candidate+-only listing a candidate without it can't see yet — shown
-// masked rather than omitted, so the board itself is a visible reason to
-// unlock Candidate+ instead of a wall these candidates never even know
-// exists. Real title and location are shown (never the company name, which
-// is the actual Candidate+-only reveal) — a flush row in the same list as
-// the unlocked cards above it, styled like Application Tracker rows rather
-// than a separately boxed/tinted callout, so the list reads as one
-// continuous list.
-export function LockedDiscoverJobCard({
-  posting,
-  fitBucket,
-}: {
-  posting: Pick<ExclusiveJobPosting, 'title' | 'location' | 'level' | 'employmentType'>
-  // Optional — omitted for the (now rare) locked posting a fit bucket
-  // couldn't be computed for. Same FitBadge as the unlocked cards, so
-  // "why does this one deserve unlocking" reads the same way in both states.
-  fitBucket?: FitBucket
-}) {
-  return (
-    <div className="flex items-start gap-2 px-4 py-3">
-      <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
-          <SeniorityBadge level={posting.level} />
-          <WorkTypePayChips workType={classifyWorkType(posting)} pay={null} />
-          {fitBucket && <FitBadge bucket={fitBucket} />}
-        </div>
-        {posting.location && <p className="truncate text-sm text-muted-foreground">{posting.location}</p>}
-      </div>
-    </div>
-  )
 }
 
 // Employer pay and benefits badges: filled for the employer's or the posting's
@@ -324,10 +292,16 @@ export function DiscoverJobCard({
   searchResult,
   matchReason,
   bridge,
+  why,
   dismissible = true,
+  candidatePlus = false,
 }: {
+  /** Candidate+ (isDossierUnlocked): shows who to contact, the apply kit and explain-my-gaps; others see one line each. */
+  candidatePlus?: boolean
   /** Wide's one-relaxed jobs (relevance.ts): what transfers, what's missing, how to close it. */
   bridge?: Bridge
+  /** "Why this job" (personalization/why-this-job.ts): up to three fits and one gap, one line. Replaces the reason and bridge lines. */
+  why?: WhyThisJob
   /** Show the X (pass on it with reasons). On by default for board cards. */
   dismissible?: boolean
   posting: ExclusiveJobPosting
@@ -442,12 +416,26 @@ export function DiscoverJobCard({
             </span>
             {/* The edge, visible without opening the card. */}
             <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
-            {matchReason && (
+            {why && (why.fits.length > 0 || why.gap) ? (
+              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReason ? matchReasonSentence(matchReason) : undefined}>
+                {why.fits.length > 0 && (
+                  <>
+                    <span className="font-medium text-foreground">Why:</span> {why.fits.join(' · ')}
+                  </>
+                )}
+                {why.gap && (
+                  <>
+                    {why.fits.length > 0 && ' — '}
+                    <span className="font-medium text-foreground">Gap:</span> {why.gap}
+                  </>
+                )}
+              </span>
+            ) : matchReason && (
               <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReasonSentence(matchReason)}>
                 <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
               </span>
             )}
-            {bridge && (
+            {bridge && !why && (
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">What transfers:</span> {bridge.transfers}
               </span>
@@ -525,16 +513,33 @@ export function DiscoverJobCard({
         {skillsFit && <SkillsFitLine fit={skillsFit} />}
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
         {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
-        {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} insiders={confidential ? undefined : insiders} />}
-        <div data-who-to-contact={posting.id}>
-          <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
-        </div>
-        <ApplyKit postingId={posting.id} surface="job_card" />
+        {match && (
+          <JobMatchDetails
+            jobId={posting.id}
+            match={match}
+            explainEnabled={explainGapsEnabled}
+            candidatePlus={candidatePlus}
+            insiders={confidential ? undefined : insiders}
+          />
+        )}
+        {candidatePlus ? (
+          <>
+            <div data-who-to-contact={posting.id}>
+              <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+            </div>
+            <ApplyKit postingId={posting.id} surface="job_card" />
+          </>
+        ) : (
+          <>
+            <CandidatePlusExtraLine extra={confidential ? 'request_intro' : 'who_to_contact'} jobId={posting.id} surface="job_card" />
+            <CandidatePlusExtraLine extra="apply_kit" jobId={posting.id} surface="job_card" />
+          </>
+        )}
         {nativePosterOf(posting) && <NativeApply postingId={posting.id} size="sm" />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (
-            <RequestIntroButton postingId={posting.id} />
+            candidatePlus && <RequestIntroButton postingId={posting.id} />
           ) : (
             <Button
               nativeButton={false}

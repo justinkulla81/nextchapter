@@ -36,7 +36,7 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget, setCandidatePlusRevoked } from './actions'
 import { LEAD_SOURCES, LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
@@ -539,7 +539,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6 space-y-6">
-          <CandidateProgressPanel progress={progress} setEffortTarget={setEffortMinutesTarget.bind(null, id)} />
+          <CandidateProgressPanel
+            progress={progress}
+            setEffortTarget={setEffortMinutesTarget.bind(null, id)}
+            setCandidatePlusRevoked={setCandidatePlusRevoked.bind(null, id)}
+          />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6 space-y-6">

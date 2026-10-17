@@ -54,13 +54,14 @@ import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard
 import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrategyDailyMessage'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { buildUnlockLadder } from '@/lib/unlocks/ladder'
+import { buildUnlockLadder, candidatePlusSteps } from '@/lib/unlocks/ladder'
 import { firstWeekStep } from '@/lib/onboarding/first-week'
 import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
+import { RecruiterVisibilityGoalCard, type RecruiterGoalStep } from '@/components/dashboard/home/RecruiterVisibilityGoalCard'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { EarlyCareerHomeModule } from '@/components/dashboard/early-career/EarlyCareerHomeModule'
@@ -168,6 +169,29 @@ async function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
   return (
     <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
   )
+}
+
+// "Get seen by recruiters": only for members without Candidate+. Their exact remaining
+// steps from the unlock ladder, with the recruiter opt-in first when it's missing.
+async function HomeRecruiterGoalSection({ profile }: { profile: HomeProfile }) {
+  const status = await isDossierUnlocked(profile.id)
+  if (status.unlocked || status.revoked) return null
+  const steps: RecruiterGoalStep[] = [
+    ...(profile.recruiterDatabaseOptIn
+      ? []
+      : [
+          profile.confidentialSearchMode
+            ? {
+                key: 'opt_in',
+                need: 'Turn off Confidential Search Mode, then let recruiters find you',
+                href: '/dashboard/privacy#recruiter-matching',
+                action: 'Open privacy settings',
+              }
+            : { key: 'opt_in', need: 'Let recruiters and employers find you', href: '/dashboard/privacy#recruiter-matching', action: 'Let recruiters find you' },
+        ]),
+    ...candidatePlusSteps(status),
+  ]
+  return <RecruiterVisibilityGoalCard steps={steps} />
 }
 
 async function HomeWeeklyPlan({
@@ -476,6 +500,10 @@ export default async function DashboardPage() {
           holds up the page. */}
       <Suspense fallback={null}>
         <EngagementCard candidateId={profile.id} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <HomeRecruiterGoalSection profile={profile} />
       </Suspense>
 
       <div className="grid gap-6 lg:grid-cols-2">

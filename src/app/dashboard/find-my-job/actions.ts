@@ -30,6 +30,8 @@ import {
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { classifyWorkType, isWorkType } from '@/lib/jobs/work-type'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 
 export type FormState = { error?: string } | undefined
 
@@ -889,6 +891,8 @@ export async function promoteJobBoardListing(postingId: string, _prevState: Prom
 export async function requestJobBoardIntro(postingId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
+  // Request intro is part of Who to contact, a Candidate+ extra (candidate-plus-extras.ts).
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return
 
   const posting = await prisma.exclusiveJobPosting.findFirst({
     where: { id: postingId, status: 'approved', archivedAt: null },
@@ -973,6 +977,7 @@ export async function explainJobGaps(postingId: string): Promise<ExplainGapsResu
   if (!isExplainGapsEnabled()) return { ok: false, error: 'This feature is not available yet.' }
   const profile = await getAuthedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to see this explanation.' }
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('explain_gaps') }
   const posting = await prisma.exclusiveJobPosting.findUnique({
     where: { id: postingId },
     include: { company: { select: { sizeBand: true, ownershipType: true } } },

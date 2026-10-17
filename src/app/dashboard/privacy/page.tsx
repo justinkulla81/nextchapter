@@ -132,7 +132,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
 
-      <div className="space-y-3 border-t border-border pt-8">
+      <div id="recruiter-matching" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
           <p className="mt-1 text-sm text-muted-foreground">

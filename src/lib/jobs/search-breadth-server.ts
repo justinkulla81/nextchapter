@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { logBoardMemory } from '@/lib/jobs/board-light-rows'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { jobIndustryBucket, memberIndustryBuckets } from '@/lib/profile/industry-reading'
 import { skillTerms, type SkillMatrixInput } from '@/lib/profile/skill-matrix'
@@ -7,19 +8,19 @@ import { SKILL_TERMS } from '@/lib/companies/skills-extraction'
 import { getTaxonomy } from '@/lib/careers/taxonomy'
 import { skillIdsFromKeywords } from '@/lib/careers/alias-server'
 import { computeSkillsFit, type SkillsFit } from '@/lib/careers/skills-fit'
-import { cityState, localArea } from '@/lib/workforce/local'
+import { textSkillIds } from '@/lib/careers/text-skill-ids'
+import { placeAt } from '@/lib/workforce/local'
 import { placeKeys } from '@/lib/workforce/places'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import {
-  COMMUTE_MILES,
-  geoMatch,
+  FUNCTION_RELAX_MIN_SIMILARITY,
+  geoRing,
+  industryRelation,
   memberGeo,
-  relaxedCriterion,
   skillsMatch,
   type FunctionMatch,
   type JobCriteria,
   type JobPlace,
-  type Relaxed,
 } from '@/lib/jobs/relevance'
 import { SUB_FUNCTION_BY_KEY, subFunctionFor } from '@/lib/jobs/sub-functions'
 import { memberCareerStage, stageOfRung, type StageMember } from '@/lib/jobs/career-stage'
@@ -94,15 +95,19 @@ export interface JobOccupations {
   industries: Map<string, string>
   /** Live job id → the skills its posting asks for (lowercase), when it lists any. */
   skills: Map<string, readonly string[]>
+  /** Live job id → O*NET skill / tool ids its title and description name (text-skill-ids.ts). */
+  skillIds: Map<string, readonly string[]>
 }
 
 let jobSocs: { at: number; value: Promise<JobOccupations> } | null = null
 let jobSocsLoading: Promise<JobOccupations> | null = null
 
+// Read a page at a time (keyset on the primary key) and folded into the maps as it goes:
+// the whole result — every live job's skill arrays — never sits in memory beside the maps.
+const JOB_SOC_PAGE = 20_000
+type JobSocRow = { id: string; socCode: string | null; subFunction: string | null; industry: string | null; skills: string[]; skillIds: string[] }
+
 async function readJobSocs(): Promise<JobOccupations> {
-  const rows = await prisma.$queryRaw<{ id: string; socCode: string | null; subFunction: string | null; industry: string | null; skills: string[] }[]>`
-    SELECT "id", "socCode", "subFunction", "industry", "skills" FROM "ExclusiveJobPosting"
-    WHERE "archivedAt" IS NULL AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0)`
   const pool = new Map<string, string>()
   const intern = (v: string) => {
     let hit = pool.get(v)
@@ -113,18 +118,31 @@ async function readJobSocs(): Promise<JobOccupations> {
   const subs = new Map<string, string>()
   const industries = new Map<string, string>()
   const skills = new Map<string, readonly string[]>()
+  const skillIds = new Map<string, readonly string[]>()
   const bucketOf = new Map<string, string | null>()
-  for (const r of rows) {
-    if (r.socCode) socs.set(r.id, intern(r.socCode))
-    if (r.subFunction) subs.set(r.id, intern(r.subFunction))
-    if (r.industry) {
-      let b = bucketOf.get(r.industry)
-      if (b === undefined) bucketOf.set(r.industry, (b = jobIndustryBucket(r.industry)))
-      if (b) industries.set(r.id, b)
+  let afterId = ''
+  for (;;) {
+    const rows = await prisma.$queryRaw<JobSocRow[]>`
+      SELECT "id", "socCode", "subFunction", "industry", "skills", "skillIds" FROM "ExclusiveJobPosting"
+      WHERE "archivedAt" IS NULL AND "id" > ${afterId}
+        AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0 OR cardinality("skillIds") > 0)
+      ORDER BY "id" LIMIT ${JOB_SOC_PAGE}`
+    for (const r of rows) {
+      if (r.socCode) socs.set(r.id, intern(r.socCode))
+      if (r.subFunction) subs.set(r.id, intern(r.subFunction))
+      if (r.industry) {
+        let b = bucketOf.get(r.industry)
+        if (b === undefined) bucketOf.set(r.industry, (b = jobIndustryBucket(r.industry)))
+        if (b) industries.set(r.id, b)
+      }
+      if (r.skills && r.skills.length > 0) skills.set(r.id, r.skills.map((x) => intern(x.toLowerCase())))
+      if (r.skillIds && r.skillIds.length > 0) skillIds.set(r.id, r.skillIds.map(intern))
     }
-    if (r.skills && r.skills.length > 0) skills.set(r.id, r.skills.map((x) => intern(x.toLowerCase())))
+    if (rows.length < JOB_SOC_PAGE) break
+    afterId = rows[rows.length - 1].id
   }
-  return { socs, subs, industries, skills }
+  logBoardMemory('job occupations', { socs: socs.size, skills: skills.size, skillIds: skillIds.size })
+  return { socs, subs, industries, skills, skillIds }
 }
 
 /** Live job id → O*NET occupation and stored sub-function. */
@@ -147,7 +165,13 @@ export function loadJobSocs(): Promise<JobOccupations> {
     )
   }
   if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
-  return jobSocsLoading!.catch(() => ({ socs: new Map<string, string>(), subs: new Map<string, string>(), industries: new Map<string, string>(), skills: new Map<string, readonly string[]>() }))
+  return jobSocsLoading!.catch(() => ({
+    socs: new Map<string, string>(),
+    subs: new Map<string, string>(),
+    industries: new Map<string, string>(),
+    skills: new Map<string, readonly string[]>(),
+    skillIds: new Map<string, readonly string[]>(),
+  }))
 }
 
 // ── Member vector ──────────────────────────────────────────────────────────────
@@ -169,6 +193,8 @@ export type BreadthCandidate = StageMember & {
   remotePreference?: string | null
   openToRelocation?: boolean | null
   relocationNotes?: string | null
+  /** Use this occupation instead of resolving one (a past profile: personalization/match-compute.ts). */
+  socOverride?: string | null
 } & SkillMatrixInput
 
 const memberSocMemo = new Map<string, { at: number; soc: string | null }>()
@@ -200,10 +226,10 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     const role = ROLES.get(e.to)
     if (role) pivotTargets.set(role.key, role.label)
   }
-  const [soc, similarity, homeArea, skills] = await Promise.all([
-    memberSoc(candidate, sourceRole),
+  const [soc, similarity, anchor, skills] = await Promise.all([
+    candidate.socOverride !== undefined ? Promise.resolve(candidate.socOverride) : memberSoc(candidate, sourceRole),
     loadSimilarityIndex(),
-    homeCommuteArea(candidate),
+    homeAnchor(candidate),
     memberSkills(candidate),
   ])
   // Their current and target industries, read carefully (industry-reading.ts) or as they confirmed.
@@ -234,30 +260,69 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     similar: (soc && similarity.get(soc)) || new Map(),
     functionLabel: candidate.primaryFunction && functions.has(candidate.primaryFunction.trim().toLowerCase()) ? candidate.primaryFunction.trim() : null,
     industries,
-    geo: memberGeo({ homeArea, currentState: candidate.currentState, remotePreference: candidate.remotePreference, openToRelocation: candidate.openToRelocation, relocationNotes: candidate.relocationNotes }),
+    geo: memberGeo({ anchor, currentState: candidate.currentState, remotePreference: candidate.remotePreference, openToRelocation: candidate.openToRelocation, relocationNotes: candidate.relocationNotes }),
     vocab: skills.vocab,
+    skillIds: skills.ids,
     ...(await occupationBander(soc && hasTitle ? soc : null, skills.keywords)),
   }
 }
 
-/** Home's commute area (relevance.ts COMMUTE_MILES) from their city and state, via Census places; null when unknown. */
-async function homeCommuteArea(c: BreadthCandidate): Promise<ReadonlySet<string> | null> {
+/** Home's coordinates from their city and state (Census places); null when unknown. */
+async function homeAnchor(c: BreadthCandidate): Promise<{ lat: number; lon: number } | null> {
   const city = c.currentCity?.trim()
   const state = c.currentState?.trim().toUpperCase()
   if (!city || !state || !/^[A-Z]{2}$/.test(state)) return null
-  const area = await localArea({ anchorCity: city, anchorState: state, radiusMiles: COMMUTE_MILES, label: city }).catch(() => null)
-  return area?.keys ?? null
+  const corrected = placeKeys(city).map((k) => PLACE_CORRECTIONS[`${state}|${k}`]).find(Boolean)
+  const at = corrected ?? (await placeAt(city, state).catch(() => null))
+  if (at) await loadPlaceCoords() // jobs are placed against it; load once per instance
+  return at
 }
 
-const vocabMemo = new Map<string, { keywords: string[]; vocab: ReadonlySet<string> }>()
-/** Their skills matrix as keywords, and the skill-vocabulary terms it shows (the words postings' skills use). */
-async function memberSkills(c: BreadthCandidate): Promise<{ keywords: string[]; vocab: ReadonlySet<string> }> {
+// Census place coordinates (GeoPlace, ~69k rows), held per instance for six hours: the
+// geography rings measure each job's city against home.
+const PLACES_TTL_MS = 6 * 60 * 60_000
+const PLACE_CORRECTIONS: Record<string, { lat: number; lon: number }> = {
+  'CA|san francisco': { lat: 37.7749, lon: -122.4194 },
+}
+let placeCoords: { at: number; value: Promise<Map<string, { lat: number; lon: number }>> } | null = null
+let placeCoordsReady: Map<string, { lat: number; lon: number }> | null = null
+export function loadPlaceCoords(): Promise<Map<string, { lat: number; lon: number }>> {
+  if (!placeCoords || Date.now() - placeCoords.at > PLACES_TTL_MS) {
+    const value = prisma.geoPlace
+      .findMany({ select: { state: true, nameKey: true, lat: true, lon: true, population: true }, orderBy: { population: 'asc' } })
+      .then((rows) => {
+        const m = new Map<string, { lat: number; lon: number }>()
+        // Ascending population: the biggest place of a name wins.
+        for (const r of rows) m.set(`${r.state}|${r.nameKey}`, { lat: r.lat, lon: r.lon })
+        // Census centroids that sit far from where people work (San Francisco's includes the Farallon Islands).
+        for (const [k, v] of Object.entries(PLACE_CORRECTIONS)) m.set(k, v)
+        placeCoordsReady = m
+        return m
+      })
+      .catch((error) => {
+        console.error('Place coordinates unavailable:', error)
+        placeCoords = null
+        return new Map<string, { lat: number; lon: number }>()
+      })
+    placeCoords = { at: Date.now(), value }
+  }
+  return placeCoords.value
+}
+
+const vocabMemo = new Map<string, { keywords: string[]; vocab: ReadonlySet<string>; ids: ReadonlySet<string> }>()
+/**
+ * Their skills matrix as keywords; the posting-vocabulary terms it shows (skills-extraction.ts);
+ * and the O*NET skills / tools it maps to through the alias layer (careers/skill-aliases.ts).
+ */
+async function memberSkills(c: BreadthCandidate): Promise<{ keywords: string[]; vocab: ReadonlySet<string>; ids: ReadonlySet<string> }> {
   const keywords = skillTerms(c)
   const key = keywords.join('|')
   const hit = vocabMemo.get(key)
   if (hit) return hit
   const vocab = new Set(SKILL_TERMS.filter((t) => memberHasSkill(t, keywords)).map((t) => t.toLowerCase()))
-  const out = { keywords, vocab }
+  // Through the text-safe aliases only (a bare "CRM" on a résumé is not Sugar CRM), the same ones postings are read with.
+  const ids = textSkillIds(...keywords)
+  const out = { keywords, vocab, ids }
   if (vocabMemo.size > 2000) vocabMemo.clear()
   vocabMemo.set(key, out)
   return out
@@ -333,14 +398,13 @@ export function jobBreadthFacts(row: BreadthRow, occupations: JobOccupations): J
 
 /**
  * A job's place on the member's board: its label kind and rank (field, related field,
- * pivot, skills), the relevance criteria it meets (relevance.ts), and — when it misses
- * exactly one Wide may relax — which one ('out' = on neither board).
+ * pivot, skills) and the relevance criteria (relevance.ts); the board works out its ring.
+ * Null placement = no ring reaches it.
  */
 export interface BreadthPlacement {
   rank: number
   cls: JobClass
   crit: JobCriteria
-  relaxed: Relaxed | null | 'out'
   /** At the member's own career stage (the strictest market tier). */
   sameStage: boolean
 }
@@ -364,7 +428,8 @@ function functionMatch(m: MemberBreadthVector, cls: JobClass | null, soc: string
   // The title says another function: never theirs, whatever the occupation tag says (the
   // crawler's tag can be wrong: "VP, Product Marketing" tagged as an HR occupation).
   const titleFn = facts.titleFunction || (facts.targetFunction ?? '').trim().toLowerCase()
-  if (titleFn && !m.functions.has(titleFn)) return cls ? 'adjacent' : 'none'
+  const similarEnough = (c: JobClass) => c.kind !== 'skills' || (m.socFromTitle && (c.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY)
+  if (titleFn && !m.functions.has(titleFn)) return cls && similarEnough(cls) ? 'adjacent' : 'none'
   const close = closeOccupation(m, soc)
   if (m.subFunction) {
     const sub = SUB_FUNCTION_BY_KEY.get(m.subFunction)
@@ -372,26 +437,49 @@ function functionMatch(m: MemberBreadthVector, cls: JobClass | null, soc: string
     if (jobSub === m.subFunction) return 'own'
     // Another sub-function of their function (HR business partner for a recruiter): related, not theirs.
     if (jobSub) return 'adjacent'
-    return close ? 'own' : cls ? 'adjacent' : 'none'
+    if (close) return 'own'
+    if (cls?.kind === 'skills') return m.socFromTitle && (cls.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY ? 'adjacent' : 'none'
+    return cls ? 'adjacent' : 'none'
   }
   if (close) return 'own'
   if (!cls) return 'none'
+  // A job related only through O*NET skill similarity needs a high bar, and a real occupation
+  // of theirs to compare (a stand-in for "Operations" matched accountants).
+  if (cls.kind === 'skills') return m.socFromTitle && (cls.score ?? 0) >= FUNCTION_RELAX_MIN_SIMILARITY ? 'adjacent' : 'none'
   if (cls.kind !== 'field') return 'adjacent'
   if (m.soc && m.socFromTitle) return 'adjacent' // same function, but not their occupation
   return 'own' // no sub-function or title occupation on file: their function is all we know
 }
 
+/**
+ * The coordinates of a job's city: each part of the location ("Hybrid, San Francisco",
+ * "319 Bernardo Avenue, Mountain View CA 94043") tried as a city in the job's states.
+ */
+function cityCoords(location: string | null | undefined, states: string[], coords: Map<string, { lat: number; lon: number }>): { lat: number; lon: number }[] {
+  if (!location || states.length === 0) return []
+  const parts = location.split(/[,;|()/]/).map((p) => p.replace(/\b[A-Z]{2}\b\s*\d{5}(-\d{4})?$|\b\d{5}(-\d{4})?\b|\b[A-Z]{2}$/g, '').trim()).filter((p) => p.length >= 3 && !/\d/.test(p))
+  for (const part of parts) {
+    for (const st of states) {
+      for (const k of placeKeys(part)) {
+        const hit = coords.get(`${st}|${k}`)
+        if (hit) return [hit]
+      }
+    }
+  }
+  return []
+}
+
 // A job's place on the map, per location text (locations repeat across the board).
 const placeMemo = new Map<string, JobPlace>()
 function jobPlace(location: string | null | undefined, remotePolicy: string | null | undefined): JobPlace {
-  const key = `${location ?? ''}|${remotePolicy ?? ''}`
+  const key = `${location ?? ''}|${remotePolicy ?? ''}|${placeCoordsReady ? 1 : 0}`
   let hit = placeMemo.get(key)
   if (!hit) {
     const { states, isRemote } = statesFromLocation(location)
-    const cs = cityState(location)
+    const coords = placeCoordsReady ? cityCoords(location, states, placeCoordsReady) : []
     hit = {
       remote: isRemote || (remotePolicy ?? '').toLowerCase() === 'remote',
-      placeKeys: cs ? placeKeys(cs.city).map((k) => `${cs.state}|${k}`) : [],
+      coords: coords.slice(0, 1),
       states,
     }
     if (placeMemo.size > 200_000) placeMemo.clear()
@@ -418,7 +506,7 @@ const placementMemos = new Map<string, { occupations: JobOccupations; memo: Weak
 function placementMemo(m: MemberBreadthVector, occupations: JobOccupations): WeakMap<object, BreadthPlacement | null> {
   const key = JSON.stringify([
     [...m.functions], m.targetFunction, m.soc, m.subFunction, [...m.pivotTargets.keys()], m.similar.size, [...m.industries], m.stage,
-    m.geo ? [m.geo.homeArea?.size ?? 0, m.geo.homeState, m.geo.acceptsRemote, [...m.geo.relocation], m.geo.unknown] : null,
+    m.geo ? [m.geo.anchor, m.geo.homeState, m.geo.acceptsRemote, [...m.geo.relocation], m.geo.unknown] : null,
     [...(m.vocab ?? [])],
   ])
   const hit = placementMemos.get(key)
@@ -443,17 +531,23 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
     const facts = jobBreadthFacts(row, occupations)
     const cls = classifyJob(member, facts, 'wide')
     const soc = occupations.socs.get(row.id)
+    const geo = member.geo ? geoRing(member.geo, jobPlace(row.location, row.targetRemotePolicy)) : { ring: 0 as const, note: null }
+    const industryName = occupations.industries.get(row.id) ?? null
     return {
       cls,
       crit: {
         fn: functionMatch(member, cls, soc, facts),
-        geo: member.geo ? geoMatch(member.geo, jobPlace(row.location, row.targetRemotePolicy)) : true,
+        geo: geo ? geo.ring : null,
+        geoNote: geo?.note ?? null,
         skills: skillsMatch({
           jobSkills: occupations.skills.get(row.id) ?? [],
           memberVocab: member.vocab ?? new Set(),
           occupationBand: soc && member.occupationBand ? member.occupationBand(soc) : null,
+          jobSkillIds: occupations.skillIds.get(row.id),
+          memberSkillIds: member.skillIds,
         }),
-        industry: member.industries.size === 0 || member.industries.has(occupations.industries.get(row.id) ?? ''),
+        industry: industryRelation(member.industries, industryName),
+        industryName,
       },
     }
   }
@@ -467,12 +561,10 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
       const { cls, crit } = criteria(row)
       const fn = crit.fn
       let placed: BreadthPlacement | null = null
-      if (fn !== 'none') {
-        const relaxed = relaxedCriterion(crit)
-        if (relaxed !== 'out') {
-          const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
-          placed = { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, relaxed, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
-        }
+      // In some ring at all (the board settles the ring once fit and level are known).
+      if (fn !== 'none' && crit.geo !== null && (crit.skills === 'strong' || crit.skills === 'unknown')) {
+        const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
+        placed = { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
       }
       memo.set(row, placed)
       return placed
@@ -499,10 +591,6 @@ export function breadthReasonsFor(
     if (!cls) continue
     const soc = classifier.occupations.socs.get(p.id) ?? null
     const industryBucket = jobIndustryBucket(p.industry)
-    if (placed?.relaxed === 'skills') {
-      out.set(p.id, { kind: 'field', label: 'Skills stretch: your field, fewer of the skills it lists' })
-      continue
-    }
     out.set(p.id, matchReason(classifier.member, cls, { soc, industryBucket }, has, p.skills))
   }
   return out

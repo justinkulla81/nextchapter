@@ -47,10 +47,19 @@ export function MarketSizeBlock({
               ? `${open.toLocaleString()} open jobs fit you on level, field, place and skills, but this market is ${growth ?? 'shrinking'}.`
               : `${open.toLocaleString()} open jobs fit you on level, field, place and skills${growth ? ` — the market is ${growth}` : ''}.`
 
+  // "Your market: 64 strong fits · trend +12%. Nearby: … (+18%)" — the member's own strict count and the market's trend.
+  const pct = (g: number | null) => (g === null ? null : `${g >= 0 ? '+' : '−'}${Math.round(Math.abs(g) * 100)}%`)
+  const nearby = view.areas.find((a) => a.growth !== null && a.openNow > 0)
+  const sized =
+    view.relevant?.strong !== undefined
+      ? `${view.relevant.strong.toLocaleString()} strong fit${view.relevant.strong === 1 ? '' : 's'}${pct(view.growth) ? ` · trend ${pct(view.growth)}` : ''}.${nearby ? ` Nearby: ${nearby.label} (${pct(nearby.growth)})` : ''}`
+      : null
+
   return (
     <section aria-label="Your market" className="space-y-3 rounded-lg border border-border bg-card p-4 text-sm">
       <div>
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Your market</p>
+        {sized && <p className="mt-1 text-base font-semibold text-foreground">{sized}</p>}
         <p className="mt-1 font-medium text-foreground">{headline}</p>
         <p className="text-xs text-muted-foreground">
           Target: {view.target.label}

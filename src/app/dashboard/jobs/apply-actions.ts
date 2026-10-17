@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
+import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 import { classifyWorkType } from '@/lib/jobs/work-type'
 import { buildApplyKit, pickResume, profileSummary, resumeName, workAuthAnswer, type ApplyKitAnswer } from '@/lib/jobs/apply-kit'
 import { applicationMessage, cleanShortAnswers, nativePosterOf, type ApplicationSnapshot } from '@/lib/jobs/native-apply'
@@ -30,18 +30,18 @@ async function getSession() {
   return { user, profile: await getOrCreateCandidateProfile(user.id) }
 }
 
-// Same visibility rule as the job's own page (/dashboard/jobs/[id]).
-async function loadVisiblePosting(postingId: string, candidateId: string) {
+// Same visibility rule as the job's own page (/dashboard/jobs/[id]): every member
+// sees every board job; only privacy settings (archived, institution-scoped, excluded) hide one.
+async function loadVisiblePosting(postingId: string) {
   const posting = await prisma.exclusiveJobPosting.findUnique({
     where: { id: postingId },
     select: {
       id: true, title: true, companyName: true, location: true, url: true, status: true, archivedAt: true, distribution: true,
-      disclosure: true, institutionScopeId: true, audienceTier: true, source: true, description: true, employmentType: true,
+      disclosure: true, institutionScopeId: true, source: true, description: true, employmentType: true,
       submittedByEmployerId: true, submittedByRecruiterId: true,
     },
   })
   if (!posting || posting.status !== 'approved' || posting.archivedAt || posting.institutionScopeId || posting.distribution === 'EXCLUDED') return null
-  if (isBoardPostingLockedForViewer(posting, (await isDossierUnlocked(candidateId)).unlocked)) return null
   return posting
 }
 
@@ -89,7 +89,9 @@ export async function loadApplyKit(postingId: string): Promise<ApplyKitResult> {
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
   const { profile } = session
-  const posting = await loadVisiblePosting(postingId, profile.id)
+  // The apply kit is a Candidate+ extra (candidate-plus-extras.ts).
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('apply_kit') }
+  const posting = await loadVisiblePosting(postingId)
   if (!posting) return { ok: false, error: NOT_FOUND }
   const [resumes, tracked] = await Promise.all([
     loadResumes(profile.id),
@@ -129,7 +131,7 @@ function trackRef(posting: { id: string; title: string; companyName: string; url
 export async function markAppliedFromKit(postingId: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
-  const posting = await loadVisiblePosting(postingId, session.profile.id)
+  const posting = await loadVisiblePosting(postingId)
   if (!posting) return { ok: false, error: NOT_FOUND }
   const result = await setJobStatus(trackRef(posting), 'applied', 'apply_kit')
   if (result.ok) {
@@ -188,7 +190,7 @@ export async function loadNativeApplyPreview(postingId: string): Promise<NativeA
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
   const { profile, user } = session
-  const posting = await loadVisiblePosting(postingId, profile.id)
+  const posting = await loadVisiblePosting(postingId)
   const poster = posting && nativePosterOf(posting)
   if (!posting || !poster) return { ok: false, error: NOT_FOUND }
   const [resumes, existing] = await Promise.all([
@@ -218,7 +220,7 @@ export async function submitNativeApplication(input: {
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
   const { profile, user } = session
-  const posting = await loadVisiblePosting(input.postingId, profile.id)
+  const posting = await loadVisiblePosting(input.postingId)
   const poster = posting && nativePosterOf(posting)
   if (!posting || !poster) return { ok: false, error: NOT_FOUND }
 

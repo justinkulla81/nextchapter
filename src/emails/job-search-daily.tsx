@@ -244,6 +244,19 @@ export default function JobSearchDailyEmail({
           </>
         )}
 
+        {content.whatChanged.length > 0 && (
+          <>
+            <p style={label}>What changed for you</p>
+            <ul style={list}>
+              {content.whatChanged.map((line) => (
+                <li key={line} style={li}>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {todos.length > 0 && (
           <>
             <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>
@@ -297,15 +310,6 @@ export default function JobSearchDailyEmail({
         <Section
           title="New for you"
           items={newForYou}
-          footerNote={
-            jobs.lockedCount > 0 && (
-              <p style={more}>
-                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
-                  More roles on the A-list board
-                </a>
-              </p>
-            )
-          }
         />
 
         {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}

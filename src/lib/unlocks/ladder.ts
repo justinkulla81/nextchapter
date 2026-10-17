@@ -6,7 +6,6 @@
 import {
   DOSSIER_UNLOCK_APPLICATION_TARGET,
   DOSSIER_UNLOCK_OUTREACH_TARGET,
-  DOSSIER_UNLOCK_REFERENCE_TARGET,
 } from '@/lib/scoring/dossier-targets'
 import type { DossierCompleteness, DossierLadderTier, DossierUnlockStatus, ModuleGateStatus } from '@/lib/scoring/dossier-unlock'
 
@@ -37,6 +36,32 @@ function plural(n: number, one: string, many: string) {
   return `${n} more ${n === 1 ? one : many}`
 }
 
+export type CandidatePlusStepKey = 'minutes' | 'assessment' | 'outreach' | 'applications'
+export type CandidatePlusRequirement = { key: CandidatePlusStepKey; label: string; met: boolean; need: string; href: string; action: string }
+
+/**
+ * The four Candidate+ requirements (owner, 2026-10-16): outreach or networking messages,
+ * applications, minutes of search effort and one assessment. References are not one of
+ * them (they count toward Candidate+ Verified). `need` is what is still missing.
+ */
+export function candidatePlusRequirements(status: DossierUnlockStatus): CandidatePlusRequirement[] {
+  const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
+  const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
+  const minutesLeft = Math.max(0, status.effortTarget - status.effortMinutes)
+  return [
+    { key: 'minutes', label: `${status.effortTarget} minutes of search effort`, met: status.minutesMet, need: `${plural(minutesLeft, 'minute', 'minutes')} of search effort`, href: '/dashboard/sprint', action: "Open this week's plan" },
+    { key: 'assessment', label: 'One assessment (Operating Profile, Personality Profile or Skills)', met: status.evidenceMet, need: 'one assessment', href: '/dashboard/skills-assessments', action: 'Take an assessment' },
+    { key: 'outreach', label: `${DOSSIER_UNLOCK_OUTREACH_TARGET} outreach or networking messages`, met: m === 0, need: plural(m, 'outreach or networking message', 'outreach or networking messages'), href: '/dashboard/network', action: 'Send an outreach message' },
+    { key: 'applications', label: `${DOSSIER_UNLOCK_APPLICATION_TARGET} applications`, met: a === 0, need: plural(a, 'application', 'applications'), href: '/dashboard/find-my-job', action: 'Find a job to apply to' },
+  ]
+}
+
+/** What is still missing for Candidate+, in order, each with where to do it. Empty once on. */
+export function candidatePlusSteps(status: DossierUnlockStatus): CandidatePlusRequirement[] {
+  if (status.unlocked) return []
+  return candidatePlusRequirements(status).filter((r) => !r.met)
+}
+
 export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
 
@@ -46,16 +71,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
   const introsOpen = atLeast(tier, 'RECRUITER_INTROS')
   const unpostedOpen = tier === 'UNPOSTED_ROLES'
 
-  const plusNeeds: string[] = []
-  if (!status.minutesMet) plusNeeds.push(`${plural(Math.max(0, status.effortTarget - status.effortMinutes), 'minute', 'minutes')} of search effort`)
-  if (!status.referencesMet) plusNeeds.push(plural(Math.max(0, DOSSIER_UNLOCK_REFERENCE_TARGET - status.completedReferenceCount), 'reference', 'references'))
-  if (!status.evidenceMet) plusNeeds.push('one assessment')
-  if (!status.effortMet) {
-    const m = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - status.outreachCount)
-    const a = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - status.applicationCount)
-    if (m) plusNeeds.push(plural(m, 'message', 'messages'))
-    if (a) plusNeeds.push(plural(a, 'application', 'applications'))
-  }
+  const plusNeeds = candidatePlusSteps(status).map((s) => s.need)
 
   const introNeeds = completeness.requirements.filter((r) => !r.met).map((r) => {
     if (r.key === 'profile') return `${r.target - r.current} more profile sections`
@@ -87,7 +103,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
       key: 'candidatePlus',
       label: 'Candidate+',
       open: plusOpen,
-      opens: ['your dossier marked complete', 'exclusive jobs', 'a Candidate+ mark that recruiters and hiring managers can see', 'unlimited access to the recruiter network'],
+      opens: ['your dossier marked complete', 'who to contact, the apply kit and explain-my-gaps on every job', 'a Candidate+ mark that recruiters and hiring managers can see', 'unlimited access to the recruiter network'],
       needs: plusNeeds,
     },
     {

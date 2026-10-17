@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { posthog } from '@/lib/posthog/client'
 import { addManualAlias, decideAbbreviation, dismissDuplicateGroup, mergeCompanyGroup, mergeOrganizationGroup, type DuplicateResult } from '@/app/support/admin/(portal)/crm/duplicates/actions'
 
 function useAction() {
@@ -36,7 +37,7 @@ export interface DuplicateMember {
  * Not duplicates dismisses the group for good.
  */
 export function DuplicateGroup({
-  kind, groupKey, members, suggestedId, reason, note,
+  kind, groupKey, members, suggestedId, reason, note, keepId, onKeepChange, doneMessage, locked,
 }: {
   kind: 'organization' | 'company'
   groupKey: string
@@ -44,12 +45,20 @@ export function DuplicateGroup({
   suggestedId: string
   reason: string
   note?: string
+  keepId: string
+  onKeepChange: (id: string) => void
+  /** Set once the group was merged by the bulk action. */
+  doneMessage?: string
+  /** True while a bulk merge is running, so single actions can't collide with it. */
+  locked?: boolean
 }) {
-  const { pending, result, run } = useAction()
-  const [keepId, setKeepId] = useState(suggestedId)
+  const { pending: ownPending, result, run } = useAction()
+  const pending = ownPending || Boolean(locked)
   const [confirming, setConfirming] = useState(false)
   const keep = members.find((m) => m.id === keepId) ?? members[0]
   const others = members.filter((m) => m.id !== keep.id)
+  const setKeepId = onKeepChange
+  if (doneMessage) return <p role="status" className="text-xs text-muted-foreground">{doneMessage}</p>
   if (result?.ok) return <Result result={result} />
   return (
     <div className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
@@ -105,6 +114,128 @@ export function DuplicateGroup({
         </div>
       )}
       <Result result={result} />
+    </div>
+  )
+}
+
+export interface DuplicateGroupData {
+  groupKey: string
+  members: DuplicateMember[]
+  suggestedId: string
+  reason: string
+  note?: string
+}
+
+/**
+ * A list of duplicate groups with a checkbox on each, a select-all, and one button that
+ * merges every selected group into its chosen record. Groups with a note (very short
+ * names) are skipped by select-all, since they may be different companies, but can still
+ * be ticked by hand.
+ */
+export function DuplicateGroupList({ kind, groups }: { kind: 'organization' | 'company'; groups: DuplicateGroupData[] }) {
+  const [keepIds, setKeepIds] = useState<Record<string, string>>({})
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [done, setDone] = useState<Record<string, string>>({})
+  const [confirming, setConfirming] = useState(false)
+  const [progress, setProgress] = useState<{ at: number; total: number } | null>(null)
+  const [summary, setSummary] = useState<{ ok: boolean; text: string } | null>(null)
+  const running = progress !== null
+
+  const keepOf = (g: DuplicateGroupData) => keepIds[g.groupKey] ?? g.suggestedId
+  const open = groups.filter((g) => !done[g.groupKey])
+  const safe = open.filter((g) => !g.note)
+  const selectedOpen = open.filter((g) => selected.has(g.groupKey))
+  const allSafeSelected = safe.length > 0 && safe.every((g) => selected.has(g.groupKey))
+  const skipped = open.length - safe.length
+
+  const toggle = (key: string, on: boolean) => {
+    setConfirming(false)
+    setSelected((s) => { const n = new Set(s); if (on) n.add(key); else n.delete(key); return n })
+  }
+  const toggleAll = (on: boolean) => {
+    setConfirming(false)
+    posthog.capture('duplicate_groups_select_all_clicked', { kind, selected: on, groups: safe.length })
+    setSelected(on ? new Set(safe.map((g) => g.groupKey)) : new Set())
+  }
+
+  const mergeSelected = async () => {
+    const batch = selectedOpen
+    setConfirming(false)
+    setSummary(null)
+    posthog.capture('duplicate_groups_bulk_merge_clicked', { kind, groups: batch.length })
+    const merge = kind === 'company' ? mergeCompanyGroup : mergeOrganizationGroup
+    const failures: string[] = []
+    let merged = 0
+    for (let i = 0; i < batch.length; i++) {
+      setProgress({ at: i + 1, total: batch.length })
+      const g = batch[i]
+      let r: DuplicateResult
+      try { r = await merge(keepOf(g), g.members.map((m) => m.id)) } catch { r = { ok: false, error: 'Something went wrong and nothing was changed.' } }
+      if (r.ok) {
+        merged++
+        setDone((d) => ({ ...d, [g.groupKey]: r.ok ? r.message : '' }))
+        setSelected((s) => { const n = new Set(s); n.delete(g.groupKey); return n })
+      } else {
+        failures.push(`${g.members.find((m) => m.id === keepOf(g))?.name ?? g.groupKey}: ${r.error}`)
+      }
+    }
+    setProgress(null)
+    posthog.capture('duplicate_groups_bulk_merge_finished', { kind, requested: batch.length, merged, failed: failures.length })
+    setSummary(failures.length === 0
+      ? { ok: true, text: `Merged ${merged} ${merged === 1 ? 'group' : 'groups'}.` }
+      : { ok: false, text: `Merged ${merged} of ${batch.length} groups. ${failures.length} could not be merged and stay selected: ${failures.join(' ')}` })
+  }
+
+  return (
+    <div className={`space-y-2 ${running ? 'cursor-wait' : ''}`}>
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm">
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox" disabled={running || safe.length === 0} checked={allSafeSelected}
+            onChange={(e) => toggleAll(e.target.checked)}
+          />
+          <span>Select all{skipped > 0 ? ` (${safe.length}, skips ${skipped} with very short names)` : ` (${safe.length})`}</span>
+        </label>
+        {selectedOpen.length > 0 && (confirming ? (
+          <span className="flex flex-wrap items-center gap-2 text-xs">
+            <span>
+              Merge {selectedOpen.length} {selectedOpen.length === 1 ? 'group' : 'groups'}, each into the record selected in it? This can’t be undone.
+            </span>
+            <button type="button" autoFocus className={quiet} onClick={() => setConfirming(false)}>Cancel</button>
+            <button type="button" className={danger} onClick={mergeSelected}>Merge {selectedOpen.length} {selectedOpen.length === 1 ? 'group' : 'groups'}</button>
+          </span>
+        ) : (
+          <button
+            type="button" disabled={running} onClick={() => setConfirming(true)}
+            className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground disabled:opacity-60"
+          >
+            {running ? `Merging ${progress.at} of ${progress.total}…` : `Merge ${selectedOpen.length} selected`}
+          </button>
+        ))}
+        {running && selectedOpen.length === 0 && <span className="text-xs text-muted-foreground">Merging {progress.at} of {progress.total}…</span>}
+      </div>
+      {summary && (summary.ok
+        ? <p role="status" className="px-1 text-xs text-muted-foreground">{summary.text}</p>
+        : <p role="alert" className="px-1 text-xs text-red-700">{summary.text}</p>)}
+      <ul className="divide-y divide-border rounded-lg border border-border">
+        {groups.map((g) => (
+          <li key={g.groupKey} className="flex gap-3 p-3 text-sm">
+            {!done[g.groupKey] && (
+              <input
+                type="checkbox" className="mt-2 self-start" aria-label={`Select ${g.members[0].name} for merging`}
+                disabled={running} checked={selected.has(g.groupKey)} onChange={(e) => toggle(g.groupKey, e.target.checked)}
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <DuplicateGroup
+                kind={kind} groupKey={g.groupKey} members={g.members} suggestedId={g.suggestedId} reason={g.reason} note={g.note}
+                keepId={keepOf(g)} onKeepChange={(id) => setKeepIds((k) => ({ ...k, [g.groupKey]: id }))}
+                doneMessage={done[g.groupKey]} locked={running}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

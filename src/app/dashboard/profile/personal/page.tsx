@@ -76,6 +76,7 @@ export default async function PersonalInformationPage() {
               currentCity={profile.currentCity}
               currentState={profile.currentState}
               confirmedAt={profile.profileConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </CardContent>
         </Card>
@@ -148,6 +149,7 @@ export default async function PersonalInformationPage() {
               hasJD={profile.hasJD}
               hasMD={profile.hasMD}
               hasMBA={profile.hasMBA}
+              prefilled={profile.resumePrefilledFields}
             />
           </CardContent>
         </Card>
@@ -160,6 +162,7 @@ export default async function PersonalInformationPage() {
             <IndustryConfirmForm
               industryContext={profile.industryContext}
               confirmedAt={profile.industryConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </CardContent>
         </Card>
@@ -176,6 +179,7 @@ export default async function PersonalInformationPage() {
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
               yearsExperience={profile.yearsExperience}
               confirmedAt={profile.functionConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </CardContent>
         </Card>
@@ -200,7 +204,7 @@ export default async function PersonalInformationPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
+            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} prefilled={profile.resumePrefilledFields} />
           </CardContent>
         </Card>
 

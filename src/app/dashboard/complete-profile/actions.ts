@@ -14,6 +14,7 @@ import {
   isIndependentWorkAnswered,
   parseIndependentWorkExperience,
 } from '@/lib/independent-work/experience'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export type OptionalQuestionsState = { error?: string } | undefined
 
@@ -172,6 +173,7 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
   // Left blank, they stay as they were — never cleared by a save of the other questions.
   const clearance = parseClearanceAnswers(formData)
   const licenses = parseLicenseAnswers(formData)
+  if (clearance || licenses) await captureMatchBaseline(profile)
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
@@ -184,6 +186,12 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
       ...(askFiredForCause && { firedForCause }),
       ...(clearance ?? {}),
       ...(licenses ? { licensesHeld: licenses, licensesAnsweredAt: new Date() } : {}),
+      // Answering clears the "From your résumé — confirm" mark (resume-prefill.ts).
+      ...((clearance || licenses) && {
+        resumePrefilledFields: profile.resumePrefilledFields.filter(
+          (f) => !(clearance && f === 'clearanceLevel') && !(licenses && f === 'licensesHeld')
+        ),
+      }),
     },
   })
   if (clearance && (clearance.clearanceLevel !== profile.clearanceLevel || clearance.clearanceActive !== profile.clearanceActive || clearance.clearancePolygraph !== profile.clearancePolygraph)) {

@@ -17,8 +17,8 @@ import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 // reason, so it can neither win nor lose on a fact we don't have.
 //
 // Privacy contract for the recruiter signal: postings whose source can't be
-// shown to this candidate (confidential disclosure, EXCLUDED distribution, or
-// Candidate+-only when the viewer isn't Candidate+) arrive as an anonymous
+// shown to this candidate (confidential disclosure, EXCLUDED or TARGETED
+// distribution) arrive as an anonymous
 // COUNT (hiddenPostings). They add a small capped boost to the
 // hiring component and nothing else — no reason text, no badge, no title, no
 // recruiter name — so a ranking can never reveal which company a
@@ -79,8 +79,7 @@ export interface RankingCompany {
   // Open-role count from the company's fresh weekly CompanySignal, or null
   // when there is none. The signal counts every live posting (including ones
   // this viewer can't see by name), and the directory has always shown that
-  // count to every member, so using it adds no new exposure — and it keeps a
-  // non-Candidate+ member's ranking from collapsing to a tie.
+  // count to every member, so using it adds no new exposure.
   signalOpenRoles: number | null
   // ms timestamp of the newest posting this viewer can see by name; drives "new".
   latestPostingAt: number | null

@@ -72,7 +72,7 @@ export default async function TalentHomePage() {
             job-title search.
           </p>
           <div className="mt-3 space-y-3">
-            {candidatesLookingForRoles.map(({ candidate, match, roleId, roleTitle, effortSummary, locked }) => (
+            {candidatesLookingForRoles.map(({ candidate, match, roleId, roleTitle, effortSummary, evidence }) => (
               <CandidateCard
                 key={candidate.id}
                 candidate={candidate}
@@ -80,7 +80,7 @@ export default async function TalentHomePage() {
                 roleId={roleId}
                 effortSummary={effortSummary}
                 roleLabel={`Matches: ${roleTitle}`}
-                locked={locked}
+                evidence={evidence}
               />
             ))}
           </div>

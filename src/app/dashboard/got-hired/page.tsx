@@ -111,7 +111,7 @@ export default async function GotHiredPage() {
           ) : (
             <LockedFeatureNotice
               title="Offer Bonus"
-              requirement="Requires an unlocked Dossier to submit — real references, evidence, and effort on file. This is checked at the moment you submit, not sustained over time."
+              requirement="Requires an unlocked Dossier to submit — real outreach, applications, search effort and an assessment on file. This is checked at the moment you submit, not sustained over time."
               status={dossierStatus.reason}
             />
           )}

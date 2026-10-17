@@ -314,7 +314,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         <CompanyHiringIndex companyId={id} viewer="candidate" />
       </Suspense>
 
-      <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
+      <CompanyIntelPanels companyId={id} />
 
       {/* ── Insider culture: combined answers of members who worked here ── */}
       <Card>
@@ -614,9 +614,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           every other company link in this codebase), so this section
           simply doesn't render for a company with zero matched recruiters,
           rather than showing an empty "0 recruiters here" card on every
-          ordinary employer's page. Both sections gate on the exact same
-          isDossierUnlocked() bar as the rest of the Executive Recruiter
-          Network. */}
+          ordinary employer's page. The jobs are open to every member (owner's
+          rule, 2026-10-16); the recruiter names stay on the isDossierUnlocked()
+          bar, like the rest of the Executive Recruiter Network. */}
       {recruitingFirmData.recruiters.length > 0 && (
         <>
           <Card>
@@ -629,7 +629,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             <CardContent>
               {recruitingFirmData.jobs.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No open postings from this firm right now.</p>
-              ) : dossierStatus.unlocked ? (
+              ) : (
                 <ShowMoreList pageSize={5}>
                   {recruitingFirmData.jobs.map((job) => (
                     <div key={job.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
@@ -637,20 +637,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                         <p className="text-sm font-medium text-foreground">{job.title}</p>
                         {job.location && <p className="text-xs text-muted-foreground">{job.location}</p>}
                       </div>
-                      {job.audienceTier === 'A_LIST_ONLY' && (
-                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                          Exclusive
-                        </span>
-                      )}
                     </div>
                   ))}
                 </ShowMoreList>
-              ) : (
-                <LockedFeatureNotice
-                  title="Jobs this firm is hiring for"
-                  requirement={`${recruitingFirmData.jobs.length} posting${recruitingFirmData.jobs.length === 1 ? '' : 's'} ready to view once your Dossier unlocks.`}
-                  status={dossierStatus.reason}
-                />
               )}
             </CardContent>
           </Card>
