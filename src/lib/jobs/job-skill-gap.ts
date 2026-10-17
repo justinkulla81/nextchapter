@@ -123,3 +123,73 @@ export function aggregateSkillGaps(
       .slice(0, limit)
   return { jobsConsidered: jobs.length, jobsWithSkillData: withData, missing: rank(missing), have: rank(have) }
 }
+
+// ── by skill, AI and other apart (the Learning page's skills section) ──
+
+/** A skill row needs this many employers asking, when enough rows do. */
+const MIN_EMPLOYERS_FOR_ROW = 2
+
+export interface SkillGapRow {
+  term: string
+  /** Employers (best-fit jobs, one vote each) whose jobs ask for it. */
+  employers: number
+  /** The member shows it. */
+  have: boolean
+  /** One of the 24 AI skill items (ai-skills.ts). */
+  ai: boolean
+}
+
+export interface SkillGapByKind {
+  jobsConsidered: number
+  /** Employers with any skill data. */
+  employersWithSkillData: number
+  /** Employers with at least one job that asks for a specific AI skill. */
+  employersAskingAi: number
+  /** Gaps first, then skills they show; per kind (AI / other) at most `missingPerKind` gaps and `havePerKind` shown skills. */
+  rows: SkillGapRow[]
+}
+
+/**
+ * Per skill, how many of the member's best-fit employers ask for it, whether the member
+ * shows it, and whether it is an AI skill — so the AI skills / Other skills / All choice
+ * (ai-view.ts) can split one list. Each employer counts once per skill, as in
+ * aggregateSkillGaps. Skills only one employer asks for are left out when at least
+ * MIN_EMPLOYERS_FOR_ROW others clear the bar.
+ */
+export function skillGapByKind(
+  jobs: { companyKey: string; gap: JobSkillGap }[],
+  isAi: (term: string) => boolean,
+  opts: { missingPerKind?: number; havePerKind?: number } = {}
+): SkillGapByKind {
+  const missingPerKind = opts.missingPerKind ?? 6
+  const havePerKind = opts.havePerKind ?? 3
+  const asked = new Map<string, { employers: Set<string>; have: boolean }>()
+  const withData = new Set<string>()
+  const withAi = new Set<string>()
+  for (const { companyKey, gap } of jobs) {
+    if (gap.basis === 'none') continue
+    withData.add(companyKey)
+    if ((gap.ai?.asked.length ?? 0) > 0) withAi.add(companyKey)
+    for (const t of gap.requested) {
+      const e = asked.get(t) ?? asked.set(t, { employers: new Set(), have: gap.have.includes(t) }).get(t)!
+      e.employers.add(companyKey)
+    }
+  }
+  const all = [...asked.entries()]
+    .map(([term, e]) => ({ term, employers: e.employers.size, have: e.have, ai: isAi(term) }))
+    .sort((a, b) => b.employers - a.employers || a.term.localeCompare(b.term))
+  const pick = (ai: boolean, have: boolean, n: number) => {
+    const list = all.filter((r) => r.ai === ai && r.have === have)
+    const repeated = list.filter((r) => r.employers >= MIN_EMPLOYERS_FOR_ROW)
+    return (repeated.length >= MIN_EMPLOYERS_FOR_ROW ? repeated : list).slice(0, n)
+  }
+  const missing = [...pick(true, false, missingPerKind), ...pick(false, false, missingPerKind)]
+  const have = [...pick(true, true, havePerKind), ...pick(false, true, havePerKind)]
+  const byCount = (a: SkillGapRow, b: SkillGapRow) => b.employers - a.employers || a.term.localeCompare(b.term)
+  return {
+    jobsConsidered: jobs.length,
+    employersWithSkillData: withData.size,
+    employersAskingAi: withAi.size,
+    rows: [...missing.sort(byCount), ...have.sort(byCount)],
+  }
+}

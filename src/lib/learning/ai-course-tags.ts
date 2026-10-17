@@ -7,7 +7,8 @@
 // (findings.md section 4): a governance path and tool-specific paths by function, each
 // linking to the vendor's own official learning page. Every URL was checked with one fetch
 // on 2026-10-17. No prices: `free` is true only where the vendor's learning page is free.
-// ServiceNow Now Assist (IT) was left out: ServiceNow University's pages need a sign-in, so
+// The last ten paths are the catalog additions of the retired 16-skill draft (2026-10-16),
+// merged in here so there is one AI course list. ServiceNow Now Assist (IT) was left out: ServiceNow University's pages need a sign-in, so
 // no public page could be checked.
 
 import { aiSkillIdForLabel, aiSkillItem } from '@/lib/skills/ai-skills'
@@ -71,6 +72,20 @@ export const AI_COURSE_TAGS: Record<string, { title: string; items: string[] }> 
     items: ['a_enterprise_ai', 'a_agentic_automation'],
   },
   'https://trailhead.salesforce.com/credentials/agentforcespecialist': { title: 'Salesforce Certified Agentforce Specialist', items: ['a_enterprise_ai'] },
+  // Merged from the retired 16-skill draft's catalog additions (2026-10-16; AI_LEARNING_PATHS below).
+  'https://anthropic.skilljar.com/claude-101': { title: 'Claude 101', items: ['a_assistants', 'a_prompt'] },
+  'https://anthropic.skilljar.com/ai-fluency-framework-foundations': { title: 'AI Fluency: Framework & Foundations', items: ['a_tool_use', 'l_responsible'] },
+  'https://www.deeplearning.ai/courses/chatgpt-prompt-engineering-for-developers': {
+    title: 'ChatGPT Prompt Engineering for Developers',
+    items: ['a_prompt', 'b_llm_eng'],
+  },
+  'https://www.deeplearning.ai/courses/langchain': { title: 'LangChain for LLM Application Development', items: ['b_llm_eng'] },
+  'https://www.deeplearning.ai/courses/ai-agents-in-langgraph': { title: 'AI Agents in LangGraph', items: ['b_llm_eng'] },
+  'https://www.deeplearning.ai/courses/multi-ai-agent-systems-with-crewai': { title: 'Multi AI Agent Systems with crewAI', items: ['b_llm_eng'] },
+  'https://www.deeplearning.ai/courses/mcp-build-rich-context-ai-apps-with-anthropic': { title: 'MCP: Build Rich-Context AI Apps with Anthropic', items: ['b_llm_eng'] },
+  'https://www.deeplearning.ai/courses/vector-databases-embeddings-applications': { title: 'Vector Databases: from Embeddings to Applications', items: ['b_rag'] },
+  'https://www.deeplearning.ai/courses/evaluating-ai-agents': { title: 'Evaluating AI Agents', items: ['b_eval'] },
+  'https://www.deeplearning.ai/courses/red-teaming-llm-applications': { title: 'Red Teaming LLM Applications', items: ['b_eval'] },
 }
 
 export interface AiLearningPath {
@@ -165,6 +180,108 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     category: 'CERTIFICATION',
     skillLevel: 'INTERMEDIATE',
     targetFunctions: ['Sales', 'Customer Success'],
+  },
+  // From the retired 16-skill draft (2026-10-16): URLs checked then; they fill the builder gaps
+  // (LLM apps, RAG, evaluation) and two assistant basics. Already in the live catalog.
+  {
+    title: 'Claude 101',
+    sponsor: 'Anthropic',
+    description: 'Everyday use of Claude as an AI assistant for writing, research and analysis, with the prompt writing habits that make it reliable.',
+    url: 'https://anthropic.skilljar.com/claude-101',
+    provider: 'Anthropic Academy',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'BEGINNER',
+  },
+  {
+    title: 'AI Fluency: Framework & Foundations',
+    sponsor: 'Anthropic',
+    description: 'A framework for working with AI assistants effectively, ethically and safely, built around responsible AI practice you can apply in any role.',
+    url: 'https://anthropic.skilljar.com/ai-fluency-framework-foundations',
+    provider: 'Anthropic Academy',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+  },
+  {
+    title: 'ChatGPT Prompt Engineering for Developers',
+    sponsor: 'DeepLearning.AI',
+    description: 'Prompt engineering patterns, then using LLM APIs to summarise, classify, transform and expand text inside your own applications.',
+    url: 'https://www.deeplearning.ai/courses/chatgpt-prompt-engineering-for-developers',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+  },
+  {
+    title: 'LangChain for LLM Application Development',
+    sponsor: 'DeepLearning.AI',
+    description: 'Build LLM applications with LangChain: models, prompts, memory and chains, then AI agents that call tools, on top of an LLM API.',
+    url: 'https://www.deeplearning.ai/courses/langchain',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'AI Agents in LangGraph',
+    sponsor: 'DeepLearning.AI',
+    description: 'Design AI agents and agentic workflows in LangGraph: tool calling, persistence and human-in-the-loop control.',
+    url: 'https://www.deeplearning.ai/courses/ai-agents-in-langgraph',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'Multi AI Agent Systems with crewAI',
+    sponsor: 'DeepLearning.AI',
+    description: 'Build multi-agent systems with crewAI where AI agents divide a task, use tools and hand work to each other.',
+    url: 'https://www.deeplearning.ai/courses/multi-ai-agent-systems-with-crewai',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'MCP: Build Rich-Context AI Apps with Anthropic',
+    sponsor: 'DeepLearning.AI',
+    description: 'Build AI applications that reach tools and data through the Model Context Protocol, including MCP servers and AI agents that use them.',
+    url: 'https://www.deeplearning.ai/courses/mcp-build-rich-context-ai-apps-with-anthropic',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'Vector Databases: from Embeddings to Applications',
+    sponsor: 'DeepLearning.AI',
+    description: 'How embeddings and vector databases power semantic search and retrieval-augmented applications, with hands-on builds.',
+    url: 'https://www.deeplearning.ai/courses/vector-databases-embeddings-applications',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'Evaluating AI Agents',
+    sponsor: 'DeepLearning.AI',
+    description: 'Test whether AI agents do the right thing: AI evaluation methods, spotting hallucinations and measuring output quality.',
+    url: 'https://www.deeplearning.ai/courses/evaluating-ai-agents',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
+  },
+  {
+    title: 'Red Teaming LLM Applications',
+    sponsor: 'DeepLearning.AI',
+    description: 'Red team an LLM application to find safety and security failures, then use model evaluation to measure and fix them.',
+    url: 'https://www.deeplearning.ai/courses/red-teaming-llm-applications',
+    provider: 'DeepLearning.AI',
+    free: true,
+    category: 'AI_TRAINING',
+    skillLevel: 'ADVANCED',
   },
 ]
 

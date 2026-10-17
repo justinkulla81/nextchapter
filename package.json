@@ -34,8 +34,6 @@
     "seed:outcome-benchmarks": "tsx --env-file=.env.local scripts/seed-outcome-benchmarks.ts",
     "seed:interim-listings": "tsx --env-file=.env.local scripts/seed-interim-listings.ts",
     "seed:ai-training-courses": "tsx --env-file=.env.local scripts/seed-ai-training-courses.ts",
-    "seed:ai-skill-courses": "tsx --env-file=.env.local scripts/seed-ai-skill-courses.ts",
-    "ai-skills:analyze": "node --env-file=.env.local --conditions=react-server --import tsx scripts/ai-skills/analyze-postings.ts",
     "seed:remaining-learning-courses": "tsx --env-file=.env.local scripts/seed-remaining-learning-courses.ts",
     "seed:email-cadence": "tsx --env-file=.env.local scripts/seed-email-cadence.ts",
     "seed:commercial-config": "tsx --env-file=.env.local scripts/seed-commercial-config.ts",

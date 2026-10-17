@@ -125,8 +125,19 @@ describe('skills gap insight', () => {
       { id: '3', gap: gap(['sql', 'python'], ['sql']) },
       { id: '4', gap: gap([], []) },
     ])
-    expect(insight).toEqual({ jobsWithData: 3, top: [{ skill: 'sql', jobs: 3 }] })
+    expect(insight).toEqual({ jobsWithData: 3, top: [{ skill: 'sql', jobs: 3, ai: false }] })
     expect(skillsGapSentence(insight!)).toBe('3 of your 3 saved and applied jobs ask for sql.')
+  })
+  it('marks AI skills and keeps a list for AI and for other skills', () => {
+    const insight = skillsGapInsight([
+      { id: '1', gap: gap(['sql', 'Prompt design'], ['sql', 'Prompt design']) },
+      { id: '2', gap: gap(['sql', 'Prompt design'], ['sql', 'Prompt design']) },
+      { id: '3', gap: gap(['sql', 'excel'], ['sql']) },
+    ], 1)
+    expect(insight!.top).toEqual([
+      { skill: 'sql', jobs: 3, ai: false },
+      { skill: 'Prompt design', jobs: 2, ai: true },
+    ])
   })
   it('says nothing without a pattern', () => {
     expect(skillsGapInsight([{ id: '1', gap: gap(['sql', 'excel'], ['sql']) }])).toBeNull()

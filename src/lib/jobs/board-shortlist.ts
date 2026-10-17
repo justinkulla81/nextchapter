@@ -656,6 +656,8 @@ export interface BoardShortlist {
   }
   /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
   dismiss: { hidden: number; rules: DismissRules | null }
+  /** For each of opts.views: the jobs the board would show with that view (openTotal). */
+  keptCounts: Record<string, number>
 }
 
 /**
@@ -729,6 +731,12 @@ export async function loadBoardShortlist(opts: {
    * window is the member's own (stageWindow omitted); the board passes its own choice.
    */
   seniorityRing?: boolean
+  /**
+   * A choice of views on top of `keep` (the board's AI / Non-AI / All buttons): the board shows
+   * `current`, and keptCounts says how many jobs each view would show (null keep = every job).
+   * Each other view is one more ranking pass over the rows already in memory, no database read.
+   */
+  views?: { current: string; keeps: Record<string, ((p: BoardRankRow) => boolean) | null> }
 }): Promise<BoardShortlist> {
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
@@ -744,7 +752,10 @@ export async function loadBoardShortlist(opts: {
   const levelWhere = boardLevelWindowWhere(opts.where, { window: rowsWindow, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
   const hidden = opts.hiddenSectors ?? (opts.candidate as { hiddenEmployerSectors?: string[] | null } | null)?.hiddenEmployerSectors ?? []
   const inSector = sectorKeep(hidden)
-  const keep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const baseKeep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const withView = (view: ((p: BoardRankRow) => boolean) | null | undefined) =>
+    view && baseKeep ? (p: BoardRankRow) => baseKeep(p) && view(p) : (view ?? baseKeep)
+  const keep = withView(opts.views?.keeps[opts.views.current])
   // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
   const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
   const t0 = Date.now()
@@ -770,16 +781,24 @@ export async function loadBoardShortlist(opts: {
       ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })), classifier.placeFresh)
       : undefined
   lap.inputs = Date.now() - t0
-  const ranked = rankBoardRows(light, {
-    ...opts,
-    keep,
-    place: classifier?.place,
-    breadth: breadth === 'off' ? undefined : breadth,
-    dismiss: dismissRules ?? undefined,
-    marketSize,
-    levelWindow: seniorityRing ? window : undefined,
-  })
+  const rankWith = (keepRow: typeof keep) =>
+    rankBoardRows(light, {
+      ...opts,
+      keep: keepRow,
+      place: classifier?.place,
+      breadth: breadth === 'off' ? undefined : breadth,
+      dismiss: dismissRules ?? undefined,
+      marketSize,
+      levelWindow: seniorityRing ? window : undefined,
+    })
+  const ranked = rankWith(keep)
   lap.ranked = Date.now() - t0
+  // The other views' counts (the board's AI / Non-AI / All buttons): same rows, no read.
+  const keptCounts: Record<string, number> = {}
+  for (const [name, view] of Object.entries(opts.views?.keeps ?? {})) {
+    keptCounts[name] = name === opts.views!.current ? ranked.openTotal : rankWith(withView(view)).openTotal
+  }
+  if (opts.views) lap.viewCounts = Date.now() - t0
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
   )
@@ -811,6 +830,7 @@ export async function loadBoardShortlist(opts: {
       classifier,
     },
     dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
+    keptCounts,
   }
 }
 

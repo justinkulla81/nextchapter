@@ -1,76 +1,87 @@
-import { loadAiSkillGap } from '@/lib/ai-skills/load'
-import { AI_LEVELS, AI_ROLE_TIERS } from '@/lib/ai-skills/taxonomy'
-import { toLearningResource } from '@/lib/learning/courses'
+import Link from 'next/link'
+import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
+import { getActiveCourses, toLearningResource } from '@/lib/learning/courses'
+import { courseForAiSkill } from '@/lib/learning/ai-course-tags'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
+import { SkillGapViews } from '@/components/dashboard/learning/SkillGapViews'
 import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
 
-const levelLabel = (k: string | null) => AI_LEVELS.find((l) => l.key === k)?.label ?? 'None yet'
-
-const STATUS_TEXT = {
-  missing: { chip: 'Not yet', cls: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
-  build: { chip: 'Build up', cls: 'bg-sky-500/10 text-sky-700 dark:text-sky-400' },
-  covered: { chip: 'You have this', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' },
-} as const
-
-// The AI skills the person's best-fit jobs ask for, how they compare, and a course for each gap.
-// Counts come from the postings themselves (fixed vocabulary, no AI call); levels are our reading
-// of the posting's wording and of the person's evidence, so the copy says "usually" and "we see".
+/**
+ * The skills the member's best-fit jobs ask for, AI skills marked apart (the 24 items of
+ * src/lib/skills/ai-skills.ts, read by the crawler from each posting's full text), with
+ * AI skills / Other skills / All buttons. Each AI gap links to the catalog course tagged
+ * for it (ai-course-tags.ts). Rules only, no model call: job-skill-gap.ts skillGapByKind.
+ */
 export async function AiSkillGapSection({ candidateId, completedTitles, enrolledTitles }: { candidateId: string; completedTitles: Set<string>; enrolledTitles: Set<string> }) {
-  const data = await loadAiSkillGap(candidateId)
-  if (!data) return null
-  const { gap, courses } = data
+  const [data, catalog] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses()])
+  if (!data || data.rows.length === 0) return null
+
+  const rows = data.rows.map((r) => ({ ...r, course: r.ai && !r.have ? courseForAiSkill(r.term, catalog) : null }))
   captureServerEvent(candidateId, 'ai_skill_gap_viewed', {
-    jobsRead: gap.jobsRead,
-    jobsWithAi: gap.jobsWithAi,
-    gapSkills: gap.rows.filter((r) => r.status !== 'covered').map((r) => r.key),
-    coveredSkills: gap.rows.filter((r) => r.status === 'covered').map((r) => r.key),
+    employers: data.employersWithSkillData,
+    employersAskingAi: data.employersAskingAi,
+    aiGaps: rows.filter((r) => r.ai && !r.have).map((r) => r.term),
+    otherGaps: rows.filter((r) => !r.ai && !r.have).map((r) => r.term),
+    aiHave: rows.filter((r) => r.ai && r.have).map((r) => r.term),
+    coursesLinked: rows.filter((r) => r.course).length,
   })
 
-  if (gap.jobsWithAi === 0 || gap.rows.length === 0) {
-    return (
-      <LearningSection title="AI skills for your search" description="What AI the jobs that fit you ask for.">
-        <p className="text-sm text-muted-foreground">
-          None of your {gap.jobsRead} best-fit jobs spell out AI skills right now, so AI isn’t what’s holding this search back. The courses below are still useful for staying ahead.
+  const n = data.employersWithSkillData
+  const items = rows.map((r) => ({
+    key: r.term,
+    ai: r.ai,
+    node: (
+      <div className="space-y-2 rounded-lg border border-border p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-sm font-semibold">{r.term}</h3>
+          {r.ai && <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">AI skill</span>}
+          <span
+            className={
+              r.have
+                ? 'rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400'
+                : 'rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400'
+            }
+          >
+            {r.have ? 'On your profile' : 'Not on your profile'}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {r.employers} of {n} employer{n === 1 ? '' : 's'} with jobs that fit you ask for it.
+          {!r.have && (
+            <>
+              {' '}
+              If you have it,{' '}
+              <Link href="/dashboard/skills-assessments" className="text-primary underline underline-offset-4">
+                add it to your skills
+              </Link>{' '}
+              so matches count it.
+            </>
+          )}
         </p>
-      </LearningSection>
-    )
-  }
+        {r.course && (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            <LearningResourceCard
+              item={{ ...toLearningResource(r.course), rationale: `Covers ${r.term.toLowerCase()}.`, completionCount: 0, alreadyHeld: false } satisfies LearningPlanItem}
+              section="ai-skill-gap"
+              completed={completedTitles.has(r.course.title)}
+              enrolled={enrolledTitles.has(r.course.title)}
+              carousel
+            />
+          </div>
+        )}
+      </div>
+    ),
+  }))
 
-  const share = Math.round((gap.jobsWithAi / gap.jobsRead) * 100)
-  const mainTier = AI_ROLE_TIERS.find((t) => t.key === (Object.entries(gap.tiers).sort((a, b) => b[1] - a[1])[0][0]))
   return (
     <LearningSection
       id="ai-skills-for-your-search"
-      title="AI skills for your search"
-      description={`${gap.jobsWithAi} of your ${gap.jobsRead} best-fit jobs (${share}%) name AI skills${mainTier ? `, mostly roles that ${mainTier.label.toLowerCase()}` : ''}. Here is what they ask for and where you stand.`}
+      title="Skills your best-fit jobs ask for"
+      description={`${data.employersAskingAi} of the ${n} employer${n === 1 ? '' : 's'} with jobs that fit you ask for a specific AI skill. Gaps first, each AI gap with a course that covers it.`}
     >
-      <div className="space-y-4">
-        {gap.rows.map((r) => {
-          const picks = courses[r.key] ?? []
-          return (
-            <div key={r.key} className="space-y-2 rounded-lg border border-border p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-semibold">{r.label}</h3>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TEXT[r.status].cls}`}>{STATUS_TEXT[r.status].chip}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{r.summary}</p>
-              <p className="text-xs text-muted-foreground">
-                {r.askedBy} of {gap.jobsWithAi} AI-related jobs ask for it, usually at {levelLabel(r.requiredLevel)} level. We see you at: {levelLabel(r.haveLevel)}.
-              </p>
-              {picks.length > 0 && (
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {picks.map((c) => {
-                    const item: LearningPlanItem = { ...toLearningResource(c), rationale: `Moves you toward ${levelLabel(r.requiredLevel)} in ${r.label.toLowerCase()}.`, completionCount: 0, alreadyHeld: false }
-                    return <LearningResourceCard key={c.id} item={item} section="ai-skill-gap" completed={completedTitles.has(c.title)} enrolled={enrolledTitles.has(c.title)} carousel />
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      <SkillGapViews items={items} />
     </LearningSection>
   )
 }
