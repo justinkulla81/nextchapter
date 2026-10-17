@@ -14,6 +14,7 @@ import { ApplyOnEmployerSite, ClosedJobViewed } from '@/components/jobs/JobPageA
 import { ApplyKit } from '@/components/jobs/ApplyKit'
 import { NativeApply } from '@/components/jobs/NativeApply'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
+import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { cn } from '@/lib/utils'
 import { checkRequirements, parseRequirementFlags, requirementMemberOf } from '@/lib/jobs/requirements'
@@ -130,6 +131,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <ApplyKit postingId={posting.id} surface="job_page" />
             <div data-who-to-contact={posting.id}>
               <WhoToContactPanel postingId={posting.id} confidential={confidential} />
+              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
             </div>
           </div>
         ) : (

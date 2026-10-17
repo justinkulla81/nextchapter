@@ -59,6 +59,7 @@ export async function getUnifiedFollowUps(
     prisma.jobPosting.findMany({
       where: {
         candidateId,
+        selfReportKey: null, // weekly check-in counts have no company to follow up with
         appliedAt: {
           not: null,
           lte: unansweredCutoff,

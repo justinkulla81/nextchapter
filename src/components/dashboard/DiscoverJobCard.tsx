@@ -7,31 +7,30 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick, draftJobCoverNote } from '@/app/dashboard/find-my-job/actions'
 import { SKILLS_FIT_LABEL, type SkillsFit } from '@/lib/careers/skills-fit'
-import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
-import { seniorityLabel } from '@/lib/jobs/job-seniority'
-import { edgeHeadline, edgeTip, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
+import { edgeTip, fewerApplicantsHint, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
+import { cardMetaParts, cardVerdict } from '@/lib/jobs/job-card'
+import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardParts'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { NativeApply } from '@/components/jobs/NativeApply'
 import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { formatUsdK, marketBasisLabel, type PayVsMarket } from '@/lib/pay/market-pay'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
-import { JobMatchDetails, JobMatchLine } from '@/components/dashboard/JobMatchPanel'
+import { JobMatchBreakdown, JobMatchDetails } from '@/components/dashboard/JobMatchPanel'
 import { JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 import { classifyWorkType, compensationKind, hourlyMarketRange, payBasisLabel, payComparison, payPeriodOf, type JobWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
-import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
 import {
-  BENEFITS_BADGE_LABEL,
-  PAY_BADGE_LABEL,
   benefitsBadgeFor,
   payBadgeFor,
   type BenefitsBadge,
@@ -52,31 +51,6 @@ const POSTING_TYPE_LABEL: Record<string, string> = {
   recruiter_search: 'Recruiter-Led Search',
 }
 
-const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
-  strong: 'bg-success/10 text-success',
-  good: 'bg-brand/10 text-brand',
-  stretch: 'bg-muted text-muted-foreground',
-  below_level: 'bg-muted text-muted-foreground',
-  overqualified: 'bg-muted text-muted-foreground',
-}
-
-function FitBadge({ bucket }: { bucket: FitBucket }) {
-  return (
-    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[bucket])}>
-      {FIT_BUCKET_LABEL[bucket]}
-    </span>
-  )
-}
-
-// Seniority of the role, from its title (job-seniority.ts) — e.g.
-// "Director", "Senior individual". Absent for postings with no level
-// (employer and recruiter submissions aren't levelled).
-function SeniorityBadge({ level }: { level: string | null }) {
-  const label = seniorityLabel(level)
-  if (!label) return null
-  return <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">{label}</span>
-}
-
 // Jobs found through an aggregator (Himalayas, The Muse, Remote OK…) carry
 // a "Listed on X" badge from the import; their terms ask us to name them,
 // and "View posting" links to their listing.
@@ -84,53 +58,8 @@ function attributionOf(posting: Pick<ExclusiveJobPosting, 'badges'>): string | n
   return posting.badges.find((b) => b.startsWith('Listed on ')) ?? null
 }
 
-// The first 72 hours after posting are when an application stands out.
-function FreshBadge({ posting }: { posting: Pick<ExclusiveJobPosting, 'postedAt' | 'createdAt'> }) {
-  if (!isFresh(posting)) return null
-  return (
-    <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">
-      {postedAgo(posting)} · apply first
-    </span>
-  )
-}
-
-function LowCompetitionBadge({ competition }: { competition?: CompetitionScore }) {
-  if (competition?.level !== 'low') return null
-  return (
-    <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success" title={competition.reasons.join(' · ')}>
-      Low competition
-    </span>
-  )
-}
-
-const COMPETITION_LABEL = { low: 'Low', medium: 'Medium', high: 'High' } as const
-
-function NewBadge() {
-  return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
-}
-
-// Marks a job that matches title, target industry, AND location/remote —
-// the "ideal" tier from the title-only "broader" match everything else in
-// this list is filtered to (see isIdealMatch in job-fit-bucket.ts).
-function IdealMatchBadge() {
-  return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
-}
-
-// Employer pay and benefits badges: filled for the employer's or the posting's
-// own data, outlined for "known for" from the curated list only.
-function SignalBadge({ label, solid, title }: { label: string; solid: boolean; title: string }) {
-  return (
-    <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap',
-        solid ? 'bg-success/10 text-success' : 'border border-success/40 text-success'
-      )}
-      title={title || undefined}
-    >
-      {label}
-    </span>
-  )
-}
+// The open card's honest read of the rules estimate (competition.ts) — never an applicant count.
+const COMPETITION_LABEL = { low: 'likely fewer applicants', medium: 'a typical number of applicants', high: 'likely many applicants' } as const
 
 // Why the card shows its pay / benefits badges, in the open card: the posting's
 // own benefits, the employer's posted pay, and the curated list's sources.
@@ -277,7 +206,6 @@ function BridgeDetails({ jobId, bridge }: { jobId: string; bridge: Bridge }) {
 export function DiscoverJobCard({
   posting,
   fitBucket,
-  idealMatch,
   competition,
   contacts,
   skillGap,
@@ -305,10 +233,9 @@ export function DiscoverJobCard({
   /** Show the X (pass on it with reasons). On by default for board cards. */
   dismissible?: boolean
   posting: ExclusiveJobPosting
-  /** Why the job is on the member's board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …". */
+  /** Why the job is on the member's board (search-breadth.ts); the why line's fallback when there is no `why`. */
   matchReason?: MatchReason
   fitBucket: FitBucket
-  idealMatch?: boolean
   /** Shown as a board search result: its 1-based rank and the query, for job_search_result_clicked. */
   searchResult?: { rank: number; q: string; loc: string }
   /** The employer's pay level and curated "known for" (great-employers.ts); none for a confidential search. */
@@ -340,7 +267,11 @@ export function DiscoverJobCard({
   const payBadge = payBadgeFor({ jobVerdictShown: comparePay && !!posting.payVsMarket, signals: employer })
   const benefitsBadge = benefitsBadgeFor({ strongBenefits: !!benefits?.strong, signals: employer })
   const highlights = benefitsHighlights(benefits?.benefits)
-  const sources = employer?.topEmployer?.sources ?? ''
+  const verdict = cardVerdict(fitBucket, { bridge: !!bridge })
+  const remote = /\bremote\b/i.test(posting.location ?? '') || (posting.targetRemotePolicy ?? '').toLowerCase() === 'remote'
+  const meta = cardMetaParts({ posted: postedAgo(posting), location: posting.location, remote, pay: payLabel, workType, title: posting.title })
+  // Say less rather than something generic: a field match without `why` adds nothing.
+  const fallbackWhy = !why && matchReason && matchReason.kind !== 'field' ? { fits: [matchReason.label], gap: null } : null
 
   function handleClick() {
     if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
@@ -391,7 +322,7 @@ export function DiscoverJobCard({
       onToggle={(e) => {
         if (!(e.currentTarget as HTMLDetailsElement).open) return
         // Opening the card is when the member reads why it is there.
-        if (matchReason) posthog.capture('job_match_reason_viewed', { jobId: posting.id, reason: matchReason.kind, label: matchReason.label })
+        if (matchReason) posthog.capture('job_match_reason_viewed', { jobId: posting.id, reason: matchReason.kind, label: matchReason.label, verdict })
         if (payBadge || benefitsBadge) {
           posthog.capture('job_employer_badges_viewed', { postingId: posting.id, companyName: posting.companyName, payBadge, benefitsBadge, fitBucket })
         }
@@ -406,82 +337,52 @@ export function DiscoverJobCard({
       }}
     >
       <summary className="block cursor-pointer list-none px-4 py-3">
-        <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="flex items-start justify-between gap-3">
           <span className="min-w-0">
             <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
-              <span className="truncate text-sm text-muted-foreground">
-                {confidential ? 'Confidential search' : `at ${posting.companyName}`}
-              </span>
+              <span className="text-sm font-medium text-foreground">{posting.title}</span>
+              <span className="text-sm text-muted-foreground">{confidential ? 'Confidential search' : `at ${posting.companyName}`}</span>
             </span>
-            {/* The edge, visible without opening the card. */}
-            <span className="mt-0.5 block text-xs text-muted-foreground">{edgeHeadline(posting, competition)}</span>
-            {why && (why.fits.length > 0 || why.gap) ? (
-              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReason ? matchReasonSentence(matchReason) : undefined}>
-                {why.fits.length > 0 && (
-                  <>
-                    <span className="font-medium text-foreground">Why:</span> {why.fits.join(' · ')}
-                  </>
-                )}
-                {why.gap && (
-                  <>
-                    {why.fits.length > 0 && ' — '}
-                    <span className="font-medium text-foreground">Gap:</span> {why.gap}
-                  </>
-                )}
-              </span>
-            ) : matchReason && (
-              <span className="mt-0.5 block text-xs text-muted-foreground" title={matchReasonSentence(matchReason)}>
-                <span className="font-medium text-foreground">Why it&apos;s here:</span> {matchReason.label}
-              </span>
+            {/* On a phone the verdict sits under the title, so the title keeps the width. */}
+            <JobVerdict verdict={verdict} className="mt-1 inline-block sm:hidden" />
+            {/* One why line: up to three member-specific reasons and at most one gap. */}
+            {(why ?? fallbackWhy) && (
+              <JobWhyLine
+                fits={(why ?? fallbackWhy)!.fits}
+                gap={(why ?? fallbackWhy)!.gap}
+                title={matchReason ? matchReasonSentence(matchReason) : undefined}
+              />
             )}
-            {bridge && !why && (
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">What transfers:</span> {bridge.transfers}
-              </span>
-            )}
+            {/* One quiet meta line, with the competition hint only when the estimate is low. */}
+            <JobMetaLine parts={meta} hint={fewerApplicantsHint(competition)} jobId={posting.id} />
           </span>
-          <span className="flex flex-wrap items-center gap-2">
-            {isFresh(posting) ? <FreshBadge posting={posting} /> : isRecentlyListed(posting.createdAt) && <NewBadge />}
-            <LowCompetitionBadge competition={competition} />
-            <RepostNote posting={posting} />
-            <WorkTypePayChips workType={workType} pay={payLabel} />
-            {comparePay && posting.payVsMarket && (
-              <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
-            )}
-            {payBadge && (
-              <SignalBadge
-                label={PAY_BADGE_LABEL[payBadge]}
-                solid={payBadge === 'employer_above_market'}
-                title={payBadge === 'employer_above_market' ? 'Posted pay across this employer’s jobs runs above market' : sources}
-              />
-            )}
-            {benefitsBadge && (
-              <SignalBadge
-                label={BENEFITS_BADGE_LABEL[benefitsBadge]}
-                solid={benefitsBadge === 'strong_benefits'}
-                title={benefitsBadge === 'strong_benefits' ? highlights.join(' · ') : sources}
-              />
-            )}
-            <SeniorityBadge level={posting.level} />
-            {idealMatch && <IdealMatchBadge />}
-            <FitBadge bucket={fitBucket} />
+          <span className="flex shrink-0 items-center gap-2">
+            <JobVerdict verdict={verdict} className="hidden sm:inline-block" />
             {dismissible && (
               <DismissJobButton jobId={posting.id} title={posting.title} companyName={confidential ? null : posting.companyName} onDismissed={(r) => setDismissed(r)} />
             )}
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </span>
         </span>
-        {/* Full width under the title row, so the chips never squeeze the title. */}
-        {match && <JobMatchLine match={match} />}
-        {match && <JobRequirementLabels jobId={posting.id} checks={match.requirements} surface="board_card" />}
       </summary>
       <div className="space-y-3 px-4 pb-4">
+        {/* The breakdown behind the verdict: the five dimensions, then the job's stated requirements. */}
+        {match && (
+          <div className="space-y-1">
+            <JobMatchBreakdown match={match} />
+            <JobRequirementLabels jobId={posting.id} checks={match.requirements} surface="board_card" />
+          </div>
+        )}
         <p className="text-sm text-muted-foreground">
-          {attributionOf(posting) ?? (posting.postingType && POSTING_TYPE_LABEL[posting.postingType])}
-          {posting.location && ` · ${posting.location}`}
-          {payLabel && ` · ${payLabel}`}
+          {[attributionOf(posting) ?? (posting.postingType && POSTING_TYPE_LABEL[posting.postingType]), posting.location, payLabel].filter(Boolean).join(' · ')}
+          {comparePay && posting.payVsMarket && (
+            <>
+              {' '}
+              <PayVsMarketBadge verdict={posting.payVsMarket as PayVsMarket} marketLow={posting.marketPayLow} marketHigh={posting.marketPayHigh} />
+            </>
+          )}
         </p>
+        <RepostNote posting={posting} />
 
         <MarketPayLine posting={posting} workType={workType} />
         {!confidential && (
@@ -502,13 +403,10 @@ export function DiscoverJobCard({
 
         {competition && (
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Competition: {COMPETITION_LABEL[competition.level]}</span>
-            {competition.reasons.length > 0 && ` — ${competition.reasons.join(' · ')}`}
+            <span className="font-medium text-foreground">Applicants, our estimate: {COMPETITION_LABEL[competition.level]}</span>
+            {competition.reasons.length > 0 && ` — ${competition.reasons.join(' · ')}`}. Not an applicant count.
           </p>
         )}
-        <p className="text-sm text-foreground">
-          <span className="font-medium">Your edge:</span> {edgeTip(posting)}
-        </p>
         {bridge && <BridgeDetails jobId={posting.id} bridge={bridge} />}
         {skillsFit && <SkillsFitLine fit={skillsFit} />}
         {/* The match panel's skills row covers the skills gap; the line stays for cards without one. */}
@@ -526,6 +424,7 @@ export function DiscoverJobCard({
           <>
             <div data-who-to-contact={posting.id}>
               <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
             </div>
             <ApplyKit postingId={posting.id} surface="job_card" />
           </>
@@ -537,7 +436,9 @@ export function DiscoverJobCard({
         )}
         {nativePosterOf(posting) && <NativeApply postingId={posting.id} size="sm" />}
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+        <div className="space-y-2 border-t border-border pt-3">
+        <p className="text-sm text-foreground">{edgeTip(posting)}</p>
+        <div className="flex flex-wrap items-center gap-2">
           {confidential ? (
             candidatePlus && <RequestIntroButton postingId={posting.id} />
           ) : (
@@ -559,6 +460,7 @@ export function DiscoverJobCard({
               </SubmitButton>
             </form>
           )}
+        </div>
         </div>
         {!confidential && (
           <JobTrackControls

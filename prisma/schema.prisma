@@ -428,6 +428,9 @@ enum OutreachChannel {
   // Auto-logged from a detected calendar networking-call/interview with
   // this contact — see addAttendeesToNetwork in sync-google-calendar.ts.
   MEETING
+  // A message the member said they sent (the "Did you send it?" prompt or the weekly
+  // check-in), channel not asked.
+  OTHER
 }
 
 // "What's your biggest concern about reaching out?" — asked once, shapes
@@ -3620,6 +3623,13 @@ model JobPosting {
   boardMatchConfidence Float?    @ignore
   boardMatchedAt       DateTime? @ignore
 
+  // Set only on self-reported applications from Job Search Daily's weekly check-in:
+  // 'weekly_checkin:<week>:applications:<n>'. Unique per candidate, so a second tap never
+  // double-logs; non-null = self-reported (admin shows it so). prisma/manual/2026-10-17-log-prompts.sql.
+  selfReportKey String?
+
+  @@unique([candidateId, selfReportKey])
+
   @@index([candidateId, createdAt])
 }
 
@@ -4845,6 +4855,18 @@ model OutreachLog {
   channel     OutreachChannel
   loggedAt    DateTime               @default(now())
 
+  // Where the entry came from (prisma/manual/2026-10-17-log-prompts.sql). null = the
+  // older paths (network log, Gmail/Calendar detection). 'who_to_contact' |
+  // 'outreach_template' | 'outreach_coach' — the "Did you send it?" prompt after a copy;
+  // 'weekly_checkin' — a self-reported count from Job Search Daily's weekly check-in.
+  logSource     String?
+  companyName   String?
+  contactKind   String? // 'posting_contact' | 'recruiter_or_manager' | 'contact' | the template type
+  jobId         String? // ExclusiveJobPosting.id when the note was for a board job
+  noteKey       String? // hash of the copied note, so one note counts once per 24h (activity-log/outreach.ts)
+  selfReportKey String? // 'weekly_checkin:<week>:outreach:<n>' — unique per candidate, so a second tap never double-logs
+
+  @@unique([candidateId, selfReportKey])
   @@index([candidateId, loggedAt])
 }
 

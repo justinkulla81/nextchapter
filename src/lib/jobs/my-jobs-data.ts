@@ -9,6 +9,7 @@ import {
   matchClickToApplication,
   myJobsFunnel,
   shouldAskDidYouApply,
+  PROMPT_UNTIL_DAYS,
   skillsGapInsight,
   type ApplicationStatus,
   type JobStatus,
@@ -152,6 +153,37 @@ async function linkEmailApplications(candidateId: string, tracked: (TrackedJob &
   }
 }
 
+/** At most this many opened jobs in the one batched "Did you apply?" prompt. */
+export const MAX_APPLY_PROMPTS = 5
+
+/**
+ * The "Did you apply?" prompt for Home: only the jobs opened in the last 7 days with no
+ * application yet. Links Gmail-detected applications first (the same matcher My jobs runs),
+ * so a job Gmail already logged is never asked about.
+ */
+export async function loadApplyPrompts(candidateId: string, now: Date = new Date()): Promise<ApplyPrompt[]> {
+  const since = new Date(now.getTime() - PROMPT_UNTIL_DAYS * 86_400_000)
+  const tracked = await prisma.trackedJob.findMany({
+    where: { candidateId, lastClickedAt: { gte: since }, jobPostingId: null, dismissedAt: null },
+    include: { jobPosting: true },
+    orderBy: { lastClickedAt: 'desc' },
+    take: 50,
+  })
+  if (tracked.length === 0) return []
+  try {
+    const emailApps = await prisma.jobPosting.findMany({
+      where: { candidateId, source: 'EMAIL_DETECTED', appliedAt: { gte: new Date(since.getTime() - 86_400_000) }, trackedJob: null },
+    })
+    if (emailApps.length > 0) await linkEmailApplications(candidateId, tracked, emailApps)
+  } catch (error) {
+    console.error('Apply prompts: linking email applications failed', error)
+  }
+  return tracked
+    .filter((t) => shouldAskDidYouApply({ ...t, applied: !!applicationStatus(t.jobPosting) }, now))
+    .slice(0, MAX_APPLY_PROMPTS)
+    .map((t) => ({ trackedJobId: t.id, title: t.title, companyName: t.companyName, clickedAt: t.lastClickedAt! }))
+}
+
 export async function loadMyJobs(
   candidateId: string,
   memberKeywords: string[],
@@ -163,7 +195,8 @@ export async function loadMyJobs(
       where: { candidateId, reaction: 'INTERESTED' },
       select: { id: true, title: true, companyName: true, url: true, description: true, reactedAt: true, surfacedAt: true },
     }),
-    prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { not: null } }, orderBy: { appliedAt: 'desc' }, take: 500 }),
+    // Weekly check-in counts are numbers, not jobs: they count toward Candidate+ but aren't listed.
+    prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { not: null }, selfReportKey: null }, orderBy: { appliedAt: 'desc' }, take: 500 }),
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, select: { companyNameNormalized: true } }),
   ])
 
@@ -271,7 +304,7 @@ export async function loadMyJobs(
 
   return {
     items,
-    prompts: prompts.sort((a, b) => b.clickedAt.getTime() - a.clickedAt.getTime()).slice(0, 3),
+    prompts: prompts.sort((a, b) => b.clickedAt.getTime() - a.clickedAt.getTime()).slice(0, MAX_APPLY_PROMPTS),
     funnel,
     insight,
     cardStates,

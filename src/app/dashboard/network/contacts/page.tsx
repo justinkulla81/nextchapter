@@ -321,22 +321,26 @@ export default async function ContactDirectoryPage({
                     description="Pick one person from your list above and send this."
                     template={fillHelpScriptTemplate(profile)}
                     templateType="ask_for_help"
+                    outreach
                     onCopy={markAskedForHelp}
                   />
                   <CopyableTemplateCard
                     title="Asking for an intro"
                     template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="intro_request"
+                    outreach
                   />
                   <CopyableTemplateCard
                     title="Putting in a good word"
                     template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="good_word"
+                    outreach
                   />
                   <CopyableTemplateCard
                     title="Checking in about interim work"
                     template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="checking_in"
+                    outreach
                   />
                 </div>
               </div>

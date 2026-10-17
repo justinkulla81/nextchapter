@@ -86,7 +86,7 @@ const jsonLd = {
         url: `${SITE_URL}/reports/replication`,
       },
       distribution: [
-        { '@type': 'DataDownload', name: 'Full report (55 pages)', encodingFormat: 'application/pdf', contentUrl: `${SITE_URL}${PDF_HREF}` },
+        { '@type': 'DataDownload', name: 'Full report (56 pages)', encodingFormat: 'application/pdf', contentUrl: `${SITE_URL}${PDF_HREF}` },
         { '@type': 'DataDownload', name: 'Brief (12 pages)', encodingFormat: 'application/pdf', contentUrl: `${SITE_URL}${BRIEF_HREF}` },
         { '@type': 'DataDownload', name: 'Report figures', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/white-collar-employment-report-2026-09-data.csv` },
         { '@type': 'DataDownload', name: 'SEC Item 2.05 AI coding', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/reports/sec-item205-ai-coding-2026.csv` },

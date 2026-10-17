@@ -76,10 +76,11 @@ describe('apply click → Gmail application', () => {
 
 describe('did you apply? prompt timing', () => {
   const base = { lastClickedAt: d('2026-10-10'), applied: false, promptAnswer: null, promptAnsweredAt: null, dismissedAt: null }
-  it('waits two days after the click, and stops after three weeks', () => {
-    expect(shouldAskDidYouApply(base, d('2026-10-11'))).toBe(false)
-    expect(shouldAskDidYouApply(base, d('2026-10-12'))).toBe(true)
-    expect(shouldAskDidYouApply(base, d('2026-11-05'))).toBe(false)
+  it('asks from the next visit (10+ minutes after the click), and stops after 7 days', () => {
+    expect(shouldAskDidYouApply(base, new Date(d('2026-10-10').getTime() + 2 * 60 * 1000))).toBe(false)
+    expect(shouldAskDidYouApply(base, new Date(d('2026-10-10').getTime() + 30 * 60 * 1000))).toBe(true)
+    expect(shouldAskDidYouApply(base, d('2026-10-16'))).toBe(true)
+    expect(shouldAskDidYouApply(base, d('2026-10-18'))).toBe(false)
   })
   it('never asks once applied, dismissed or answered', () => {
     const now = d('2026-10-13')
@@ -89,11 +90,11 @@ describe('did you apply? prompt timing', () => {
     expect(shouldAskDidYouApply({ ...base, promptAnswer: 'applied', promptAnsweredAt: now }, now)).toBe(false)
     expect(shouldAskDidYouApply({ ...base, lastClickedAt: null }, now)).toBe(false)
   })
-  it('asks again five days after "not yet", or after a new click', () => {
+  it('asks again two days after "not yet", or after a new click', () => {
     const answered = { ...base, promptAnswer: 'not_yet', promptAnsweredAt: d('2026-10-12') }
-    expect(shouldAskDidYouApply(answered, d('2026-10-15'))).toBe(false)
-    expect(shouldAskDidYouApply(answered, d('2026-10-17'))).toBe(true)
-    expect(shouldAskDidYouApply({ ...answered, lastClickedAt: d('2026-10-13') }, d('2026-10-15'))).toBe(true)
+    expect(shouldAskDidYouApply(answered, d('2026-10-13'))).toBe(false)
+    expect(shouldAskDidYouApply(answered, d('2026-10-14'))).toBe(true)
+    expect(shouldAskDidYouApply({ ...answered, lastClickedAt: d('2026-10-13') }, new Date('2026-10-13T13:00:00Z'))).toBe(true)
   })
 })
 

@@ -6,39 +6,13 @@ import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
-import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
-import { cn } from '@/lib/utils'
+import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { cardMetaParts, cardVerdict } from '@/lib/jobs/job-card'
+import { postedAgo } from '@/lib/jobs/competition'
+import { JobMetaLine, JobVerdict } from '@/components/jobs/JobCardParts'
 import { classifyWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
-import { WorkTypePayChips } from '@/components/dashboard/one-board/WorkTypePayChips'
-
-const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
-  strong: 'bg-success/10 text-success',
-  good: 'bg-brand/10 text-brand',
-  stretch: 'bg-muted text-muted-foreground',
-  below_level: 'bg-muted text-muted-foreground',
-  overqualified: 'bg-muted text-muted-foreground',
-}
-
-function FitBadge({ bucket }: { bucket: FitBucket }) {
-  return (
-    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[bucket])}>
-      {FIT_BUCKET_LABEL[bucket]}
-    </span>
-  )
-}
-
-function NewBadge() {
-  return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
-}
-
-// Marks a job that matches title, target industry, AND location/remote —
-// the "ideal" tier from the title-only "broader" match everything else in
-// this list is filtered to (see isIdealMatch in job-fit-bucket.ts).
-function IdealMatchBadge() {
-  return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
-}
 
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
   { value: 'WRONG_FUNCTION', label: 'Wrong function' },
@@ -60,7 +34,6 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 export function NextSurfacedJobCard({
   job,
   fitBucket,
-  idealMatch,
   worksHereContacts,
   worksHereTotalCount,
   track,
@@ -68,7 +41,6 @@ export function NextSurfacedJobCard({
 }: {
   job: SurfacedJob
   fitBucket?: FitBucket
-  idealMatch?: boolean
   // Read-only company-name match against the candidate's own contact list —
   // unlike WhoCanHelpSection (used on applied jobs), there's no JobPosting
   // row here to link a contact to, so this is informational only: a warm
@@ -82,6 +54,9 @@ export function NextSurfacedJobCard({
   watched?: boolean
 }) {
   const workType = classifyWorkType(job)
+  // A partner-search job has no posting date, only when we found it.
+  const found = postedAgo({ postedAt: null, createdAt: job.surfacedAt }).replace(/^Posted/, 'Found')
+  const meta = cardMetaParts({ posted: found, location: job.location, pay: null, workType, title: job.title })
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
 
@@ -100,22 +75,23 @@ export function NextSurfacedJobCard({
 
   return (
     <details className="group">
-      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3">
-        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="truncate text-sm font-medium text-foreground">{job.title}</span>
-          {job.companyName && <span className="truncate text-sm text-muted-foreground">at {job.companyName}</span>}
-        </span>
-        <span className="flex flex-wrap items-center gap-2">
-          {isRecentlyListed(job.surfacedAt) && <NewBadge />}
-          <WorkTypePayChips workType={workType} pay={null} />
-          {idealMatch && <IdealMatchBadge />}
-          {fitBucket && <FitBadge bucket={fitBucket} />}
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+      <summary className="block cursor-pointer list-none px-4 py-3">
+        <span className="flex items-start justify-between gap-3">
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className="text-sm font-medium text-foreground">{job.title}</span>
+              {job.companyName && <span className="text-sm text-muted-foreground">at {job.companyName}</span>}
+            </span>
+            {fitBucket && <JobVerdict verdict={cardVerdict(fitBucket)} className="mt-1 inline-block sm:hidden" />}
+            <JobMetaLine parts={meta} jobId={job.id} />
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            {fitBucket && <JobVerdict verdict={cardVerdict(fitBucket)} className="hidden sm:inline-block" />}
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+          </span>
         </span>
       </summary>
       <div className="space-y-3 px-4 pb-4">
-        {job.location && <p className="text-sm text-muted-foreground">{job.location}</p>}
-
         {job.description && <p className="line-clamp-2 text-sm text-muted-foreground">{job.description}</p>}
 
         {worksHereContacts && worksHereContacts.length > 0 && (

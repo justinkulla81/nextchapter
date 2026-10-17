@@ -35,10 +35,12 @@ function cityOf(location: string | null): string | null {
 // The non-personal half of the load (every company, every live posting, every
 // layoff notice, every insider-eligible employment row) is identical for all
 // viewers, and it is the slow part (~1.5s). The dashboard nav badge needs it
-// on every page, so it is memoised in-process for a few minutes. Per-viewer
+// on every page, so it was memoised in-process for ten minutes; the badge is gone and this is
+// ~363k postings plus every company, so it is held only briefly (a few requests of one
+// visit) and then freed. Per-viewer
 // visibility (what is nameable to THIS member) is applied afterwards, never
 // baked into the cache. Best-effort only: a cold instance just recomputes.
-const BULK_TTL_MS = 10 * 60 * 1000
+const BULK_TTL_MS = 2 * 60 * 1000
 let bulkCache: { at: number; data: ReturnType<typeof fetchBulk> } | null = null
 
 function fetchBulk() {

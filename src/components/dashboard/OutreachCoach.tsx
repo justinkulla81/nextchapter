@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
 import { personalizeOutreachDraft } from '@/app/dashboard/network/actions'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
+import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 import {
   ASK_SIZES,
   HOOKS,
@@ -66,6 +67,7 @@ export function OutreachCoach({
   // not silently overwrite their words.
   const [editedBody, setEditedBody] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copySignal, setCopySignal] = useState(0)
   const [aiError, setAiError] = useState<string | null>(null)
   const [aiPending, startAi] = useTransition()
 
@@ -109,6 +111,7 @@ export function OutreachCoach({
   function copyDraft() {
     navigator.clipboard.writeText(`Subject: ${playbook.subject}\n\n${body}`)
     setCopied(true)
+    setCopySignal((n) => n + 1)
     setTimeout(() => setCopied(false), 1500)
     posthog.capture('outreach_draft_copied', eventProps)
   }
@@ -250,7 +253,10 @@ export function OutreachCoach({
                 href={gmailComposeHref(contactEmail, playbook.subject, body)}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => posthog.capture('outreach_draft_opened_in_gmail', eventProps)}
+                onClick={() => {
+                  setCopySignal((n) => n + 1)
+                  posthog.capture('outreach_draft_opened_in_gmail', eventProps)
+                }}
                 className="inline-flex h-8 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
                 Open draft in Gmail
@@ -272,6 +278,12 @@ export function OutreachCoach({
               </Button>
             )}
           </div>
+          <SentItPrompt
+            context={{ source: 'outreach_coach', subjectKey: `contact:${contactId}`, contactId }}
+            note={`${playbook.subject}\n\n${body}`}
+            copySignal={copySignal}
+            reaskOnMount
+          />
         </div>
 
         <div className="grid gap-4 border-t border-border pt-4 text-sm sm:grid-cols-2">
