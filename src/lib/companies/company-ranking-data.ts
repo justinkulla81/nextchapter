@@ -43,6 +43,80 @@ function cityOf(location: string | null): string | null {
 const BULK_TTL_MS = 2 * 60 * 1000
 let bulkCache: { at: number; data: ReturnType<typeof fetchBulk> } | null = null
 
+type PostingFold = {
+  named: Map<string, NamedPosting[]>
+  latestNamedAt: Map<string, number>
+  hidden: Map<string, number>
+}
+
+const POSTING_CHUNK = 20_000
+
+// Reads the live postings in id-ordered chunks and folds each into the compact
+// per-company maps as it arrives. The table is ~363k rows; holding the raw rows
+// (plus a filtered copy, plus the cached result) ran the function out of memory.
+// Nothing here depends on the viewer: a listing is nameable only if the company
+// is disclosed and it is in the open browse feed (every member sees every job —
+// owner's rule, 2026-10-16). Anything else — confidential, private-pipeline
+// (EXCLUDED), or targeted-to-someone-else — contributes to the anonymous hidden
+// count and never surfaces as a title, badge, or reason.
+async function foldPostings(): Promise<PostingFold> {
+  const named = new Map<string, NamedPosting[]>()
+  const latestNamedAt = new Map<string, number>()
+  const hidden = new Map<string, number>()
+  let cursor: string | undefined
+  for (;;) {
+    const rows = await prisma.exclusiveJobPosting.findMany({
+      where: {
+        status: 'approved',
+        archivedAt: null,
+        institutionScopeId: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        AND: [notInternshipWhere()],
+      },
+      orderBy: { id: 'asc' },
+      take: POSTING_CHUNK,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        title: true,
+        companyName: true,
+        location: true,
+        targetRemotePolicy: true,
+        distribution: true,
+        disclosure: true,
+        postingType: true,
+        submittedByRecruiterId: true,
+        createdAt: true,
+      },
+    })
+    for (const p of rows) {
+      if (isInternshipJob(p)) continue
+      const key = normalizeOrgName(p.companyName)
+      if (!key) continue
+      if (!(p.disclosure === 'OPEN' && p.distribution === 'OPEN')) {
+        hidden.set(key, (hidden.get(key) ?? 0) + 1)
+        continue
+      }
+      // Newest NAMEABLE posting only — what drives "new" markers, so a hidden
+      // (confidential / exclusive) listing can never make a row light up.
+      latestNamedAt.set(key, Math.max(latestNamedAt.get(key) ?? 0, p.createdAt.getTime()))
+      const list = named.get(key) ?? []
+      list.push({
+        title: p.title,
+        function: inferFunctionFromTitle(p.title),
+        level: inferLevelFromTitle(p.title),
+        metro: normalizeMetroArea(cityOf(p.location)),
+        isRemote: /remote/i.test(p.location ?? '') || p.targetRemotePolicy === 'remote',
+        isRecruiterMandate: p.submittedByRecruiterId !== null || p.postingType === 'recruiter_search',
+      })
+      named.set(key, list)
+    }
+    if (rows.length < POSTING_CHUNK) break
+    cursor = rows[rows.length - 1].id
+  }
+  return { named, latestNamedAt, hidden }
+}
+
 function fetchBulk() {
   const now = Date.now()
   return Promise.all([
@@ -57,26 +131,7 @@ function fetchBulk() {
         signals: { orderBy: { weekStartDate: 'desc' }, take: 1, select: { trajectory: true, weekStartDate: true, openRolesTotal: true, rolesDelta12wk: true } },
       },
     }),
-    prisma.exclusiveJobPosting.findMany({
-      where: {
-        status: 'approved',
-        archivedAt: null,
-        institutionScopeId: null,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-        AND: [notInternshipWhere()],
-      },
-      select: {
-        title: true,
-        companyName: true,
-        location: true,
-        targetRemotePolicy: true,
-        distribution: true,
-        disclosure: true,
-        postingType: true,
-        submittedByRecruiterId: true,
-        createdAt: true,
-      },
-    }).then((rows) => rows.filter((r) => !isInternshipJob(r))),
+    foldPostings(),
     prisma.warnNotice.findMany({
       where: {
         companyId: { not: null },
@@ -138,7 +193,7 @@ export async function loadBulkCompanyRows() {
 async function loadCompanyRankingDataUncached(candidateId: string, includeContacts: boolean): Promise<RankingData> {
   const now = Date.now()
 
-  const [profile, [companyRows, postings, warnRows, allMemberRows], watchlist] = await Promise.all([
+  const [profile, [companyRows, postingFold, warnRows, allMemberRows], watchlist] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -171,37 +226,8 @@ async function loadCompanyRankingDataUncached(candidateId: string, includeContac
   ])
   const memberRows = allMemberRows.filter((m) => m.candidateId !== candidateId)
 
-  // ── postings → per-company named list + anonymous hidden count ──────────
-  const named = new Map<string, NamedPosting[]>()
-  const latestNamedAt = new Map<string, number>()
-  const hidden = new Map<string, number>()
-  for (const p of postings) {
-    const key = normalizeOrgName(p.companyName)
-    if (!key) continue
-    // A listing is nameable only if the company is disclosed and it is in the
-    // open browse feed (every member sees every job — owner's rule, 2026-10-16).
-    // Anything else — confidential, private-pipeline (EXCLUDED), or
-    // targeted-to-someone-else — contributes to the anonymous hidden count and
-    // never surfaces as a title, badge, or reason.
-    const nameable = p.disclosure === 'OPEN' && p.distribution === 'OPEN'
-    if (!nameable) {
-      hidden.set(key, (hidden.get(key) ?? 0) + 1)
-      continue
-    }
-    // Newest NAMEABLE posting only — what drives "new" markers, so a hidden
-    // (confidential / exclusive) listing can never make a row light up.
-    latestNamedAt.set(key, Math.max(latestNamedAt.get(key) ?? 0, p.createdAt.getTime()))
-    const list = named.get(key) ?? []
-    list.push({
-      title: p.title,
-      function: inferFunctionFromTitle(p.title),
-      level: inferLevelFromTitle(p.title),
-      metro: normalizeMetroArea(cityOf(p.location)),
-      isRemote: /remote/i.test(p.location ?? '') || p.targetRemotePolicy === 'remote',
-      isRecruiterMandate: p.submittedByRecruiterId !== null || p.postingType === 'recruiter_search',
-    })
-    named.set(key, list)
-  }
+  // ── postings → per-company named list + anonymous hidden count (folded in fetchBulk) ──
+  const { named, latestNamedAt, hidden } = postingFold
 
   // ── WARN → per-company ──────────────────────────────────────────────────
   const warnByCompany = new Map<string, { filings12mo: number; employeesAffected: number; daysSinceMostRecent: number }>()
