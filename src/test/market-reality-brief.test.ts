@@ -1,0 +1,274 @@
+import { describe, it, expect } from 'vitest'
+import { analyzeExperience, levelIndexOf, type ExperienceInput } from '@/lib/reports/market-reality-brief/experience'
+import { buildEffortPlan, competitivenessFor, INTERVIEWS_PER_OFFER, PLAN_WEEKS } from '@/lib/reports/market-reality-brief/effort-plan'
+import { buildPriorities, MAX_PRIORITIES, type PrioritySignals } from '@/lib/reports/market-reality-brief/priorities'
+
+const asOf = new Date('2026-10-17T12:00:00Z')
+const d = (y: number, m: number) => new Date(Date.UTC(y, m - 1, 1))
+
+type Role = ExperienceInput['workHistory'][number]
+const role = (title: string, start: Date, end: Date | null, extra: Partial<Role> = {}): Role => ({
+  companyName: `Co ${title} ${start.getUTCFullYear()}`,
+  roleTitle: title,
+  startDate: start,
+  endDate: end,
+  isCurrent: end === null,
+  departureReason: null,
+  engagementType: 'FULL_TIME',
+  teamSize: null,
+  ...extra,
+})
+const run = (workHistory: Role[], over: Partial<ExperienceInput> = {}) =>
+  analyzeExperience({ workHistory, education: [], targetRole: null, highestLevelReached: null, asOf, ...over })
+const finding = (a: ReturnType<typeof run>, key: string) => a.findings.find((f) => f.key === key)
+
+describe('analyzeExperience', () => {
+  it('does not assess a history with fewer than two roles', () => {
+    const a = run([role('Director of Finance', d(2020, 1), null)])
+    expect(a.assessable).toBe(false)
+    expect(a.findings).toEqual([])
+  })
+
+  it('reads a long, steady history as a strength on tenure and gaps', () => {
+    const a = run([
+      role('Analyst', d(2010, 1), d(2014, 1)),
+      role('Manager of Finance', d(2014, 2), d(2019, 6)),
+      role('Director of Finance', d(2019, 7), null),
+    ])
+    expect(finding(a, 'tenure')?.assessment).toBe('strength')
+    expect(finding(a, 'gaps')?.assessment).toBe('strength')
+    expect(finding(a, 'progression')?.assessment).toBe('strength')
+    expect(a.developmentCount).toBe(0)
+  })
+
+  it('flags a pattern of short unexplained stints', () => {
+    const a = run([
+      role('Director of Sales', d(2019, 1), d(2019, 8)),
+      role('Director of Sales', d(2019, 9), d(2020, 5)),
+      role('Director of Sales', d(2020, 6), d(2021, 2)),
+      role('Director of Sales', d(2021, 3), null),
+    ])
+    expect(finding(a, 'tenure')?.assessment).toBe('development')
+    expect(a.openQuestions).toBeGreaterThan(0)
+  })
+
+  it('does not count a short stint that ended in a layoff as unexplained', () => {
+    const a = run([
+      role('Director of Sales', d(2015, 1), d(2020, 1)),
+      role('Director of Sales', d(2020, 2), d(2020, 9), { departureReason: 'COMPANY_WIDE_LAYOFF' }),
+      role('Director of Sales', d(2020, 10), null),
+    ])
+    expect(finding(a, 'tenure')?.assessment).not.toBe('development')
+    expect(finding(a, 'tenure')?.measure).toMatch(/reason on file/)
+  })
+
+  it('does not count interim or fractional work as a short stint, and lets it cover a gap', () => {
+    const a = run([
+      role('CFO', d(2015, 1), d(2022, 1)),
+      role('Interim CFO', d(2022, 2), d(2022, 8), { engagementType: 'INTERIM' }),
+      role('CFO', d(2022, 9), null),
+    ])
+    expect(finding(a, 'tenure')?.assessment).toBe('strength')
+    expect(finding(a, 'gaps')?.assessment).toBe('strength')
+  })
+
+  it('flags an unexplained gap of six months or more', () => {
+    const a = run([role('Manager', d(2016, 1), d(2022, 1)), role('Director', d(2022, 10), null)])
+    const gaps = finding(a, 'gaps')
+    expect(gaps?.assessment).toBe('development')
+    expect(gaps?.measure).toMatch(/9 months/)
+  })
+
+  it('treats a gap covered by a leave on file as explained', () => {
+    const a = run([
+      role('Manager', d(2016, 1), d(2022, 1), { departureReason: 'CAREGIVER_LEAVE' }),
+      role('Director', d(2022, 10), null),
+    ])
+    expect(finding(a, 'gaps')?.assessment).toBe('adequate')
+  })
+
+  it('does not invent a gap where roles overlap', () => {
+    const a = run([
+      role('Director', d(2016, 1), d(2024, 1)),
+      role('Advisor', d(2018, 1), d(2019, 1)),
+      role('Director', d(2024, 2), null),
+    ])
+    expect(finding(a, 'gaps')?.assessment).toBe('strength')
+  })
+
+  it('flags being out of work for six months or more now', () => {
+    const a = run([role('Manager', d(2015, 1), d(2020, 1)), role('Director', d(2020, 2), d(2026, 1))])
+    const gaps = finding(a, 'gaps')
+    expect(gaps?.assessment).toBe('development')
+    expect(gaps?.measure).toMatch(/not currently in a role/)
+  })
+
+  it('asks for scope numbers when titles climb fast and nothing backs them', () => {
+    const a = run([role('Analyst', d(2019, 1), d(2020, 6)), role('Director of Finance', d(2020, 7), null)])
+    const p = finding(a, 'progression')
+    expect(p?.assessment).toBe('development')
+    expect(p?.action).toMatch(/team size|budget/)
+  })
+
+  it('reads fast progression as adequate when the scope is on the page', () => {
+    const a = run([role('Analyst', d(2019, 1), d(2020, 6), { teamSize: 1 }), role('Director of Finance', d(2020, 7), null, { teamSize: 25 })])
+    expect(finding(a, 'progression')?.assessment).toBe('adequate')
+  })
+
+  it('flags a step down inside five years', () => {
+    const a = run([role('VP of Sales', d(2014, 1), d(2023, 1)), role('Manager of Sales', d(2023, 2), null)])
+    expect(finding(a, 'progression')?.measure).toMatch(/down in level/)
+  })
+
+  it('flags a decade at one level when the target is higher', () => {
+    const a = run(
+      [role('Manager of Ops', d(2008, 1), d(2014, 1)), role('Senior Manager of Ops', d(2014, 2), d(2019, 1)), role('Manager of Ops', d(2019, 2), null)],
+      { targetRole: 'Director of Operations' }
+    )
+    expect(finding(a, 'plateau')?.assessment).toBe('development')
+  })
+
+  it('compares the target level with the highest level held', () => {
+    const history = [role('Manager of Ops', d(2012, 1), d(2018, 1)), role('Manager of Ops', d(2018, 2), null)]
+    expect(finding(run(history, { targetRole: 'VP of Operations' }), 'level_fit')?.assessment).toBe('development')
+    expect(finding(run(history, { targetRole: 'Manager of Operations' }), 'level_fit')?.assessment).toBe('strength')
+    expect(finding(run(history, { targetRole: 'Analyst' }), 'level_fit')?.assessment).toBe('adequate')
+  })
+
+  it('reads industry breadth only when most roles carry an industry', () => {
+    const roles = [
+      role('Director', d(2018, 1), d(2020, 1), { companyIndustry: 'Healthcare' }),
+      role('Director', d(2020, 2), d(2022, 1), { companyIndustry: 'Banking' }),
+      role('Director', d(2022, 2), d(2024, 1), { companyIndustry: 'Retail' }),
+      role('Director', d(2024, 2), null, { companyIndustry: 'Energy' }),
+    ]
+    expect(finding(run(roles), 'industry')?.assessment).toBe('development')
+    expect(finding(run(roles.map((r) => ({ ...r, companyIndustry: null }))), 'industry')).toBeUndefined()
+  })
+
+  it('leaves internships out of every count', () => {
+    const a = run([role('Marketing Intern', d(2010, 1), d(2010, 6)), role('Director', d(2012, 1), null), role('Manager', d(2008, 1), d(2011, 12))])
+    expect(a.roleCount).toBe(2)
+  })
+
+  it('lists the most recent roles first', () => {
+    const a = run([role('Analyst', d(2010, 1), d(2014, 1)), role('Director', d(2014, 2), null)])
+    expect(a.timeline[0].title).toBe('Director')
+    expect(a.timeline[0].period).toMatch(/Present$/)
+  })
+})
+
+describe('levelIndexOf', () => {
+  it('reads level words and titles', () => {
+    expect(levelIndexOf('Director')).toBe(2)
+    expect(levelIndexOf('VP of Sales')).toBe(3)
+    expect(levelIndexOf(null)).toBe(-1)
+  })
+})
+
+describe('buildEffortPlan', () => {
+  const plan = buildEffortPlan({ perAttemptProbability: 0.02, networkingWeight: 4, applicationsPerWeek: 4, conversationsPerWeek: 1 })
+
+  it('turns the per-attempt estimate into applications and conversations per interview', () => {
+    expect(plan.applicationsPerInterview).toBe(50)
+    expect(plan.conversationsPerInterview).toBe(13)
+  })
+
+  it('sizes each route to the interviews needed over the plan window', () => {
+    const apps = plan.routes.find((r) => r.key === 'applications')!
+    expect(apps.applications).toBe(INTERVIEWS_PER_OFFER * 50)
+    expect(apps.applicationsPerWeek).toBe(Math.ceil((INTERVIEWS_PER_OFFER * 50) / PLAN_WEEKS))
+    const net = plan.routes.find((r) => r.key === 'networking')!
+    expect(net.applications).toBe(0)
+    expect(net.conversations).toBe(INTERVIEWS_PER_OFFER * 13)
+    const mixed = plan.routes.find((r) => r.key === 'balanced')!
+    expect(mixed.applications).toBe(Math.ceil(2.5 * 50))
+    expect(mixed.conversations).toBe(Math.ceil(2.5 * 13))
+  })
+
+  it('projects interviews at the current pace, weighting conversations', () => {
+    // 12 weeks x (4 x 0.02 + 1 x 0.02 x 4) = 1.92
+    expect(plan.pace.expectedInterviews).toBe(1.9)
+    expect(plan.pace.coverage).toBeCloseTo(1.92 / INTERVIEWS_PER_OFFER, 5)
+    expect(plan.pace.activityObserved).toBe(true)
+  })
+
+  it('reports no activity when nothing was done', () => {
+    const idle = buildEffortPlan({ perAttemptProbability: 0.05, networkingWeight: 4, applicationsPerWeek: 0, conversationsPerWeek: 0 })
+    expect(idle.pace.activityObserved).toBe(false)
+    expect(idle.pace.coverage).toBe(0)
+  })
+
+  it('never asks for fewer than one application per interview', () => {
+    expect(buildEffortPlan({ perAttemptProbability: 1, networkingWeight: 4, applicationsPerWeek: 0, conversationsPerWeek: 0 }).conversationsPerInterview).toBe(1)
+  })
+})
+
+describe('competitivenessFor', () => {
+  it('bands applications per interview', () => {
+    expect(competitivenessFor(8).key).toBe('favorable')
+    expect(competitivenessFor(20).key).toBe('moderate')
+    expect(competitivenessFor(60).key).toBe('competitive')
+    expect(competitivenessFor(300).key).toBe('highly_competitive')
+  })
+})
+
+describe('buildPriorities', () => {
+  const quiet: PrioritySignals = {
+    resume: null,
+    experience: null,
+    unansweredReviewerQuestions: 0,
+    effort: null,
+    market: null,
+    skills: null,
+    unconfirmedProfileItems: 0,
+    searchStrategyIncomplete: false,
+    pivotsRecommended: false,
+  }
+
+  it('returns nothing when nothing is flagged', () => {
+    expect(buildPriorities(quiet)).toEqual([])
+  })
+
+  it('puts a search that has not started first', () => {
+    const out = buildPriorities({
+      ...quiet,
+      resume: { topFix: { dimension: 'Quantification', fix: 'Add numbers.', gain: 10 }, fixCount: 3 },
+      effort: { coverage: 0, activityObserved: false, conversationsPerWeek: 0, balancedConversationsPerWeek: 3, balancedApplicationsPerWeek: 8 },
+    })
+    expect(out[0].key).toBe('start_activity')
+    expect(out[0].title).toMatch(/3 conversations and 8 applications/)
+    expect(out.map((p) => p.key)).toContain('fix_resume')
+  })
+
+  it('recommends widening a thin market and narrowing a crowded one', () => {
+    const thin = buildPriorities({ ...quiet, market: { prompt: 'too_few', openRoles: 12, widest: { label: 'Finance, any industry', openRoles: 400 } } })
+    expect(thin[0].key).toBe('widen_market')
+    expect(thin[0].title).toMatch(/400/)
+    const wide = buildPriorities({ ...quiet, market: { prompt: 'too_many', openRoles: 2000, widest: null } })
+    expect(wide[0].key).toBe('narrow_market')
+    expect(buildPriorities({ ...quiet, market: { prompt: 'healthy', openRoles: 200, widest: null } })).toEqual([])
+  })
+
+  it('keeps pivots out unless recommended', () => {
+    expect(buildPriorities({ ...quiet, pivotsRecommended: false }).some((p) => p.key === 'consider_pivots')).toBe(false)
+    expect(buildPriorities({ ...quiet, pivotsRecommended: true }).some((p) => p.key === 'consider_pivots')).toBe(true)
+  })
+
+  it('caps the list and orders it by weight', () => {
+    const out = buildPriorities({
+      resume: { topFix: { dimension: 'Narrative & Positioning', fix: 'Add a target line.', gain: 20 }, fixCount: 5 },
+      experience: { openQuestions: 2 },
+      unansweredReviewerQuestions: 2,
+      effort: { coverage: 0.2, activityObserved: true, conversationsPerWeek: 0, balancedConversationsPerWeek: 3, balancedApplicationsPerWeek: 8 },
+      market: { prompt: 'shrinking', openRoles: 90, widest: null },
+      skills: { topAiGap: { term: 'Prompt design', employers: 8, of: 12 } },
+      unconfirmedProfileItems: 3,
+      searchStrategyIncomplete: true,
+      pivotsRecommended: true,
+    })
+    expect(out[0].key).toBe('complete_search_strategy')
+    expect(out.length).toBe(MAX_PRIORITIES)
+    expect(out.map((p) => p.weight)).toEqual([...out.map((p) => p.weight)].sort((a, b) => b - a))
+  })
+})
