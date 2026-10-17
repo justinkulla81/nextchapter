@@ -215,6 +215,75 @@ def crawl_greenhouse(src, log):
                  posted_at=j.get("first_published") or j.get("updated_at"), posted_precision="timestamp",
                  source_updated_at=j.get("updated_at"))
 
+def crawl_mcloud(src, log):
+    """Radancy/TMP "CWS" career sites (e.g. UPMC) on the m-cloud Google search API. src: company (companies/<uuid>), employer, api.
+    The API returns 10 jobs a page; pages are read 8 at a time and filtered to the metro."""
+    from concurrent.futures import ThreadPoolExecutor
+    api = src.get("api", "https://jobsapi-google.m-cloud.io/api/job/search")
+    def page(off):
+        q = urllib.parse.urlencode({"CompanyName": src["company"], "Limit": 10, "offset": off})
+        for _ in range(3):
+            try: return json.loads(http(f"{api}?{q}", timeout=60))
+            except Exception: time.sleep(2)
+        return {"searchResults": []}
+    first = page(1)
+    total = first.get("totalHits", 0)
+    log(f"  {src['name']}: {total} postings on the site")
+    pages = [first] + list(ThreadPoolExecutor(max_workers=8).map(page, range(11, total + 1, 10)))
+    seen = set()
+    for pg in pages:
+        for r in pg.get("searchResults", []):
+            j = r["job"]
+            loc = ", ".join(x for x in (j.get("primary_city"), j.get("primary_state")) if x)
+            if j["id"] in seen or not in_metro(loc): continue
+            seen.add(j["id"])
+            body = strip_html(j.get("description", ""))
+            yield mk(src, src.get("employer", "UPMC"), j["id"], title=j.get("title", ""), url=j.get("url"),
+                     description=(body + (" Salary: " + j["salary"] if j.get("salary") else "")).strip(), req_id=str(j.get("ref") or ""),
+                     location_raw=loc, locations=[loc], employment_type=j.get("employment_type"),
+                     arrangement=(j.get("location_type") or "").lower() or None, posted_at=j.get("open_date"), posted_precision="timestamp",
+                     source_updated_at=j.get("open_date"))
+
+def crawl_taleo(src, log):
+    """Oracle Taleo career sections (e.g. University of Pittsburgh). src: host, sections [{name, portal}], employer.
+    The list comes from the careersection REST search; each posting's detail page carries the text and location."""
+    from concurrent.futures import ThreadPoolExecutor
+    host = src["host"]
+    def unesc(p): return urllib.parse.unquote(p.encode().decode("unicode_escape", "ignore"))
+    def detail(args):
+        sec, jid = args
+        try: h = http(f"https://{host}/careersection/{sec['name']}/jobdetail.ftl?job={jid}&lang=en", timeout=40)
+        except Exception: return None
+        m = re.search(r"api\.fillList\(\s*['\"]requisitionDescriptionInterface['\"]\s*,\s*['\"]descRequisition['\"]\s*,\s*\[(.*?)\]\s*\)", h, re.S)
+        if not m: return None
+        return [unesc(p) for p in re.findall(r"'((?:[^'\\]|\\.)*)'", m.group(1))]
+    body = lambda n: ({"multilineEnabled": False, "sortingSelection": {"sortBySelectionParam": "3", "ascendingSortingOrder": "false"},
+        "fieldData": {"fields": {"KEYWORD": "", "LOCATION": ""}, "valid": True},
+        "filterSelectionParam": {"searchFilterSelections": [{"id": i, "selectedValues": []} for i in ("POSTING_DATE", "LOCATION", "JOB_FIELD", "JOB_TYPE", "JOB_SCHEDULE")]},
+        "advancedSearchFiltersSelectionParam": {"searchFilterSelections": [{"id": i, "selectedValues": []} for i in ("ORGANIZATION", "LOCATION", "JOB_FIELD", "JOB_NUMBER", "URGENT_JOB", "EMPLOYEE_STATUS", "STUDY_LEVEL", "WILL_TRAVEL", "JOB_SHIFT")]},
+        "pageNo": n})
+    for sec in src["sections"]:
+        ids, n = [], 1
+        while n < 200:
+            hdr = {"Content-Type": "application/json", "tz": "GMT-05:00", "X-Requested-With": "XMLHttpRequest",
+                   "Referer": f"https://{host}/careersection/{sec['name']}/jobsearch.ftl"}
+            try: pg = json.loads(http(f"https://{host}/careersection/rest/jobboard/searchjobs?lang=en&portal={sec['portal']}", data=body(n), headers=hdr, timeout=40))
+            except Exception as e:
+                log(f"  {src['name']}/{sec['name']}: list page {n} failed: {e}"); break
+            rows = pg.get("requisitionList", [])
+            new = [r["jobId"] for r in rows if r["jobId"] not in ids]
+            if not new: break
+            ids += new; n += 1
+        log(f"  {src['name']}/{sec['name']}: {len(ids)} postings listed")
+        for d in ThreadPoolExecutor(max_workers=6).map(detail, [(sec, i) for i in ids]):
+            if not d or len(d) < 24: continue
+            st, _, city = (d[11] or "").partition("-")
+            loc = f"{city}, {'PA' if st.strip() == 'Pennsylvania' else st}" if city else ""
+            if not in_metro(loc): continue
+            text = strip_html(" ".join(x[3:] for x in d[13:23] if x.startswith("!*!")))
+            yield mk(src, src.get("employer", src["name"]), d[0] + "-" + sec["name"], title=d[9], url=f"https://{host}/careersection/{sec['name']}/jobdetail.ftl?job={d[0]}",
+                     description=text, req_id=d[12], location_raw=loc, locations=[loc], employment_type=d[23])
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -387,7 +456,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

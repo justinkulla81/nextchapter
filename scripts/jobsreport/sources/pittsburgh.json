@@ -104,5 +104,54 @@
     "tenant": "zoll",
     "wd": "wd5",
     "site": "ZOLLMedicalCorp"
+  },
+  {
+    "name": "mcloud-upmc",
+    "adapter": "mcloud",
+    "type": "direct_ats",
+    "employer": "UPMC",
+    "company": "companies/4c0b87d3-a9b3-4243-b9c7-2ad12c533ab3"
+  },
+  {
+    "name": "wd-carnegie-mellon",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "CMU"
+  },
+  {
+    "name": "wd-cmu-sei",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University (SEI)",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "SEI"
+  },
+  {
+    "name": "gr-eqt",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "EQT",
+    "token": "eqtcorporation"
+  },
+  {
+    "name": "taleo-pitt",
+    "adapter": "taleo",
+    "type": "direct_ats",
+    "employer": "University of Pittsburgh",
+    "host": "cfopitt.taleo.net",
+    "sections": [
+      {
+        "name": "pitt_internal",
+        "portal": "10100023232"
+      },
+      {
+        "name": "pitt_student_int",
+        "portal": "18200023232"
+      }
+    ]
   }
 ]
