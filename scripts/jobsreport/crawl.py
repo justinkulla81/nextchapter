@@ -29,6 +29,8 @@ UA = "NextChapterResearch/1.0 (+https://launchyournextchapter.com/reports)"
 GEO = {"key": "louisville-metro", "cities": {}, "states": [], "search": "", "default": ""}
 US_STATES = set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split())
 
+STATE_ABBR = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD', 'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'}
+
 def county_for(location):
     loc = location or ""
     low = loc.lower()
@@ -321,6 +323,74 @@ def crawl_oracle(src, log):
                  employment_type=r.get("JobSchedule") or r.get("ContractType"), arrangement=(r.get("WorkplaceType") or "").lower() or None,
                  posted_at=r.get("PostedDate"), posted_precision="date")
 
+def crawl_phenom(src, log):
+    """Phenom People career sites (e.g. Giant Eagle, ATI). src: host, path (e.g. "us/en"), employer, optional keywords.
+    Searches each keyword (default: the place name) through the site's /widgets search, then reads each posting's page."""
+    from concurrent.futures import ThreadPoolExecutor
+    host, path = src["host"], src.get("path", "us/en")
+    country, lang = path.split("/")
+    base = f"https://{host}"
+    def widgets(kw, frm, size=50):
+        body = {"lang": f"{lang}_{country}", "deviceType": "desktop", "country": country, "pageName": "search-results", "ddoKey": "refineSearch",
+                "sortBy": "", "subsearch": "", "from": frm, "jobs": True, "counts": True, "all_fields": ["category", "type", "country", "state", "city"],
+                "pageType": "landingPage", "size": size, "clearAll": False, "jdsource": "facets", "isSliderEnable": False, "pageId": "page11",
+                "siteType": "external", "keywords": kw, "global": True, "selected_fields": {}, "locationData": {}}
+        return json.loads(http(f"{base}/widgets", data=body, timeout=60))["refineSearch"]
+    found = {}
+    for kw in src.get("keywords") or [GEO["search"]]:
+        frm, total = 0, None
+        while total is None or frm < total:
+            try: rs = widgets(kw, frm)
+            except Exception as e:
+                log(f"  {src['name']}: search failed at {frm}: {e}"); break
+            total = rs.get("totalHits", 0)
+            jobs = rs.get("data", {}).get("jobs", [])
+            if not jobs: break
+            for j in jobs: found[j["jobSeqNo"]] = j
+            frm += len(jobs)
+    log(f"  {src['name']}: {len(found)} postings match the place name")
+    def detail(j):
+        try: h = http(f"{base}/{path}/job/{j['jobSeqNo']}", headers={"Accept": "text/html"}, timeout=40)
+        except Exception: return j, ""
+        m = re.search(r"phApp\.ddo\s*=\s*(\{.*?\});\s*phApp\.", h, re.S)
+        try: return j, strip_html(json.loads(m.group(1))["jobDetail"]["data"]["job"].get("description", ""))
+        except Exception: return j, ""
+    for j, text in ThreadPoolExecutor(max_workers=6).map(detail, list(found.values())):
+        loc = ", ".join(x for x in (j.get("city"), STATE_ABBR.get(j.get("state"), j.get("state"))) if x)
+        if not in_metro(loc): continue
+        yield mk(src, src.get("employer", host), j["jobSeqNo"], title=j.get("title", ""), req_id=str(j.get("reqId") or ""),
+                 url=f"{base}/{path}/job/{j['jobSeqNo']}", description=text or j.get("descriptionTeaser") or "",
+                 location_raw=loc, city=j.get("city"), state=STATE_ABBR.get(j.get("state")), locations=[loc],
+                 employment_type=j.get("type"), posted_at=j.get("postedDate") or j.get("dateCreated"), posted_precision="date",
+                 source_updated_at=j.get("dateCreated"))
+
+def crawl_smartrecruiters(src, log):
+    """SmartRecruiters public posting API. src: company (identifier), employer. Searches the place name, then reads each posting."""
+    from concurrent.futures import ThreadPoolExecutor
+    api = f"https://api.smartrecruiters.com/v1/companies/{src['company']}/postings"
+    items, off, total = [], 0, None
+    while total is None or off < total:
+        d = json.loads(http(f"{api}?q={urllib.parse.quote(GEO['search'])}&limit=100&offset={off}", timeout=40))
+        total = d.get("totalFound", 0)
+        got = d.get("content", [])
+        if not got: break
+        items += got; off += len(got)
+    log(f"  {src['name']}: {len(items)} postings match the place name")
+    def detail(p):
+        try: return p, json.loads(http(f"{api}/{p['id']}", timeout=40))
+        except Exception: return p, {}
+    for p, d in ThreadPoolExecutor(max_workers=6).map(detail, items):
+        l = p.get("location") or {}
+        loc = ", ".join(x for x in (l.get("city"), (l.get("region") or "").upper() if len(l.get("region") or "") == 2 else STATE_ABBR.get(l.get("region") or "", l.get("region"))) if x)
+        if not in_metro(loc): continue
+        secs = ((d.get("jobAd") or {}).get("sections") or {})
+        text = strip_html(" ".join((secs.get(k) or {}).get("text", "") for k in ("companyDescription", "jobDescription", "qualifications", "additionalInformation")))
+        yield mk(src, src.get("employer", src["company"]), p["id"], title=p.get("name", ""), req_id=p.get("refNumber"),
+                 url=d.get("postingUrl") or f"https://jobs.smartrecruiters.com/{src['company']}/{p['id']}", description=text,
+                 location_raw=loc, city=l.get("city"), locations=[loc], employment_type=(p.get("typeOfEmployment") or {}).get("label"),
+                 arrangement="remote" if l.get("remote") else ("hybrid" if l.get("hybrid") else None),
+                 posted_at=p.get("releasedDate"), posted_precision="timestamp")
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -493,7 +563,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

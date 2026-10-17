@@ -170,5 +170,21 @@
     "type": "direct_ats",
     "employer": "LG&E and KU (PPL)",
     "host": "careers.pplweb.com"
+  },
+  {
+    "name": "oracle-kroger",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "Kroger",
+    "host": "eluq.fa.us2.oraclecloud.com",
+    "site": "CX_2001"
+  },
+  {
+    "name": "phenom-texas-roadhouse",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "Texas Roadhouse",
+    "host": "careers.becomearoadie.com",
+    "path": "us/en"
   }
 ]

@@ -211,5 +211,27 @@
     "type": "direct_ats",
     "employer": "MSA Safety",
     "host": "careers.msasafety.com"
+  },
+  {
+    "name": "phenom-ati",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "ATI",
+    "host": "careers.atimaterials.com",
+    "path": "us/en"
+  },
+  {
+    "name": "sr-wabtec",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Wabtec",
+    "company": "Wabtec"
+  },
+  {
+    "name": "sr-bosch",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Bosch",
+    "company": "BoschGroup"
   }
 ]
