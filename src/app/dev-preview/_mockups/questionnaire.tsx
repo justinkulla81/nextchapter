@@ -112,7 +112,7 @@ export function ReceiptHome() {
       headline="Lighter, and in your tone."
       rows={[
         { label: 'This week', before: '9 actions, 150 minutes', after: '5 actions, 90 minutes' },
-        { label: 'A note from Victoria', before: '“Send 5 applications today.”', after: '“One good application today is plenty. Pick the one you like most.”' },
+        { label: 'Today’s note', before: '“Send 5 applications today.”', after: '“One good application today is plenty. Pick the one you like most.”' },
       ]}
       chips={['Your week', 'Notes', 'Email']}
       next="One more: what gets in the way, 20 seconds"

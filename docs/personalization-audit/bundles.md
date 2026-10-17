@@ -2,6 +2,14 @@
 
 Built from `questions.md` (row numbers in brackets) after the owner's decisions of 2026-10-17: questions that change nothing the member can see are dropped, and every kept question is asked in a bundle of **at most three**, under one strip, with a named payoff shown the moment it is answered.
 
+## Decisions (owner, 2026-10-17)
+
+- Victoria's chat replies are out of scope for now. Where a payoff said "Victoria's reply", it now means the one note on Home. What to do with Victoria comes later.
+- Build H2 (what gets in the way) and H3 (what drives you) so they change the week and the one note.
+- The unread instruments: connect Track Record and What I Need to the dossier, drop the benefits priorities and red-flag extras that nothing reads (red-flag yes/no answers that drive plan steps stay, in J7).
+- Drop the 21 unclear questions unless a bundle names them.
+- The Home strip is called "Build your plan". The landing is "Your week".
+
 ## The rules
 
 1. **At most three questions per bundle.** Each takes under a minute. A bundle is one screen or two.
@@ -33,13 +41,13 @@ A receipt has four parts: a before and after (a number, or a sample for tone), c
 
 Removed from onboarding: contract [40, dropped], "I just started" and the two counts [25 to 27, dropped], lead source [52, one optional line on first Home visit], network comfort [38 moves to N2], culture [34 to 37 move to J3], coach consent [41, asked when a coach is assigned].
 
-## Home strip: "Fit your week to you"
+## Home strip: "Build your plan"
 
 | # | Bundle | Questions (rows) | Payoff shown | Receipt kind |
 |---|---|---|---|---|
 | H1 | Pace and push | Push style and pace if skipped or changed [39, 121] | Sample note, weekly target | B |
-| H2 | What gets in the way | What gets in the way, one list [114, 115]; how the search is going [113] | **Needs a build:** the first plan step should answer the top blocker. Today nothing in the plan reads blockers. | B once built |
-| H3 | What drives you | Motivations, one question [118] | **Needs a build:** Victoria's replies do not read motivations today. Wire it or drop it. | B once built |
+| H2 | What gets in the way | What gets in the way, one list [114, 115]; how the search is going [113] | **To build:** the first step of the week answers the top blocker. Today nothing in the plan reads blockers. | B once built |
+| H3 | What drives you | Motivations, one question [118] | **To build:** the one note on Home uses what drives you (for example, "You said family is why. One application today moves that closer."). | B once built |
 | H4 | Your time | Hours a week you can give, days you can work (new; replaces the contract [40]) | Weekly target resizes | B |
 | H5 | The check-in | One weekly check-in: mood [231], still searching [228, 229, 230], stalled [233], daily action [232] merged into one | A low answer lightens the week and says so | B |
 
