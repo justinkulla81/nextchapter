@@ -415,6 +415,80 @@ def crawl_amazon(src, log):
                  description=text, location_raw=loc, city=j.get("city"), state=j.get("state"), locations=[loc],
                  employment_type=j.get("job_schedule_type"), posted_at=j.get("posted_date"), posted_precision="date")
 
+def crawl_aspnet_grid(src, log):
+    """ASP.NET GridView job portals that page through postbacks (e.g. Allegheny County's HR portal).
+    src: url (list page), grid (GridView control id), employer, location (every posting is in one place), detail path read per row."""
+    import html as _html
+    from concurrent.futures import ThreadPoolExecutor
+    url, grid = src["url"], src.get("grid", "ctl00$MainContent$GVHRTicker")
+    def fields(h):
+        return {k: _html.unescape(v) for k, v in re.findall(r'<input type="hidden" name="(__[A-Z]+)"[^>]*?value="([^"]*)"', h)}
+    def post(f, target, arg):
+        data = urllib.parse.urlencode({**f, "__EVENTTARGET": target, "__EVENTARGUMENT": arg}).encode()
+        req = urllib.request.Request(url, data=data, headers={"User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded"})
+        return urllib.request.urlopen(req, timeout=60).read().decode("utf-8", "replace")
+    rows, seen_ids, h, page = [], set(), http(url, headers={"Accept": "text/html"}), 1
+    while page < 60:
+        new = 0
+        for tr in re.findall(r"<tr>\s*<td><a href='(details\.aspx\?id=\d+)'>(.*?)</a></td>(.*?)</tr>", h, re.S):
+            href, title, rest = tr
+            if href in seen_ids: continue
+            seen_ids.add(href); new += 1
+            cells = [_html.unescape(re.sub(r"<[^>]+>", " ", c)).strip() for c in re.findall(r"<td>(.*?)</td>", rest, re.S)]
+            rows.append((href, _html.unescape(title).strip(), cells))
+        page += 1
+        if not new or f"Page${page}" not in h: break
+        try: h = post(fields(h), grid, f"Page${page}")
+        except Exception as e:
+            log(f"  {src['name']}: page {page} failed: {e}"); break
+    log(f"  {src['name']}: {len(rows)} postings listed")
+    base = url.rsplit("/", 1)[0] + "/"
+    def detail(r):
+        try: return r, strip_html(http(base + r[0], headers={"Accept": "text/html"}, timeout=40))
+        except Exception: return r, ""
+    for (href, title, cells), text in ThreadPoolExecutor(max_workers=6).map(detail, rows):
+        pay = cells[0] if cells else ""
+        yield mk(src, src["employer"], href.split("=")[-1], title=title, req_id=href.split("=")[-1], url=base + href,
+                 description=(text or title) + (" Salary: " + pay if pay else ""),
+                 location_raw=src["location"], locations=[src["location"]],
+                 posted_at=(cells[3] if len(cells) > 3 else None) and datetime.strptime(cells[3], "%m/%d/%Y").strftime("%Y-%m-%d") if len(cells) > 3 and re.match(r"\d+/\d+/\d{4}$", cells[3]) else None,
+                 posted_precision="date")
+
+def crawl_tyler_ess(src, log):
+    """Tyler Technologies Employee Self Service job boards (common for school districts and local governments), which need a
+    real browser (JavaScript and cookies). Needs `pip install playwright` and a Chromium (CHROMIUM_PATH or /opt/pw-browsers).
+    src: host (e.g. selfservice.pghschools.org), employer, location (every posting is in one place)."""
+    import asyncio, glob
+    from urllib.parse import urlparse, parse_qs
+    from playwright.async_api import async_playwright
+    base = f"https://{src['host']}/ess/EmploymentOpportunities"
+    exe = os.environ.get("CHROMIUM_PATH") or next(iter(sorted(glob.glob("/opt/pw-browsers/chromium-*/chrome-linux*/chrome"))), None)
+    async def run():
+        out = []
+        async with async_playwright() as p:
+            b = await p.chromium.launch(executable_path=exe, args=["--no-sandbox"])
+            pg = await b.new_page()
+            await pg.goto(f"{base}/default.aspx", wait_until="networkidle", timeout=90000)
+            links = await pg.evaluate("""() => Array.from(document.querySelectorAll('a')).filter(a => /JobDetail\\.aspx\\?req=/.test(a.href))
+                .map(a => [a.href, a.innerText.trim()])""")
+            seen = {}
+            for href, text in links:
+                req = parse_qs(urlparse(href).query).get("req", [""])[0]
+                if req and text and not text.lower().startswith("click") and "APPLICANT PROFILE" not in text.upper() and req not in seen:
+                    seen[req] = (href, text)
+            log(f"  {src['name']}: {len(seen)} postings listed")
+            for req, (href, title) in seen.items():
+                try:
+                    await pg.goto(href, wait_until="networkidle", timeout=60000)
+                    out.append((req, href, title, await pg.inner_text("body")))
+                except Exception as e:
+                    out.append((req, href, title, ""))
+            await b.close()
+        return out
+    for req, href, title, text in asyncio.run(run()):
+        yield mk(src, src["employer"], req, title=title, req_id=req, url=href, description=text or title,
+                 location_raw=src["location"], locations=[src["location"]])
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -587,7 +661,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

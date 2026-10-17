@@ -245,5 +245,28 @@
       "Canonsburg, Pennsylvania, USA",
       "Cranberry Township, Pennsylvania, USA"
     ]
+  },
+  {
+    "name": "neogov-pittsburgh",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "City of Pittsburgh",
+    "agency": "pittsburgh"
+  },
+  {
+    "name": "allegheny-county",
+    "adapter": "aspnet_grid",
+    "type": "public_sector",
+    "employer": "Allegheny County",
+    "url": "https://apps.alleghenycounty.us/hrjobportal/",
+    "location": "Pittsburgh, PA"
+  },
+  {
+    "name": "ess-pittsburgh-public-schools",
+    "adapter": "tyler_ess",
+    "type": "public_sector",
+    "employer": "Pittsburgh Public Schools",
+    "host": "selfservice.pghschools.org",
+    "location": "Pittsburgh, PA"
   }
 ]
