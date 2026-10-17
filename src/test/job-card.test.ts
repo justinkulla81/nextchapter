@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CARD_VERDICT_LABEL, cardMetaParts, cardVerdict, levelPhrase, whyLineText } from '@/lib/jobs/job-card'
+import { CARD_VERDICT_LABEL, cardMetaParts, cardVerdict, levelPhrase, metaLineText, whyLineText } from '@/lib/jobs/job-card'
 
 describe('job card: one verdict', () => {
   it('maps fit scoring v2 to three plain labels', () => {
@@ -43,5 +43,14 @@ describe('job card: meta line', () => {
     expect(cardMetaParts({ ...base, location: 'United States', remote: true, workType: 'full_time' })).toContain('Remote')
     // Not twice when the location already says it.
     expect(cardMetaParts({ ...base, location: 'Remote - US', remote: true, workType: 'full_time' }).filter((p) => /remote/i.test(p))).toHaveLength(1)
+  })
+})
+
+describe('job card: plain text for emails', () => {
+  it('ends the meta line with the applicants estimate, without a hover hint', () => {
+    expect(metaLineText({ meta: ['Posted 3 hours ago', 'Louisville, KY'], fewerApplicants: 'Likely fewer applicants (search-firm listing, on-site)' })).toBe(
+      'Posted 3 hours ago · Louisville, KY · Likely fewer applicants (search-firm listing, on-site)'
+    )
+    expect(metaLineText({ meta: ['Posted 3 hours ago'], fewerApplicants: null })).toBe('Posted 3 hours ago')
   })
 })

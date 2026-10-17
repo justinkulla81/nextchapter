@@ -1,4 +1,5 @@
 import 'server-only'
+import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCoachCaseload } from '@/lib/coach/caseload'
 import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
@@ -6,9 +7,10 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
-import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
+import { boardListingFitBucketFor, emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
-import { postedAgo } from '@/lib/jobs/competition'
+import { boardJobCardTexts } from '@/lib/jobs/job-card-server'
+import { metaLineText } from '@/lib/jobs/job-card'
 import type { Grade } from '@/lib/scoring/grade'
 import type { Trend } from '@/lib/coach/client-summary'
 
@@ -36,9 +38,11 @@ const SHORTLIST_SIZE = 30
 export interface DigestJob {
   title: string
   company: string
-  location: string | null
-  postedAgo: string
   url: string
+  /** The client's board card verdict, meta line and why line (job-card.ts). */
+  verdict: string
+  meta: string
+  why: string | null
 }
 
 export interface DigestClient {
@@ -103,7 +107,7 @@ function normalizeUrl(url: string | null | undefined): string | null {
 // the client sees — nothing looser.
 async function findNewStrongFitJobs(
   candidateId: string,
-  candidate: Parameters<typeof loadBoardShortlist>[0]['candidate']
+  candidate: CandidateProfile
 ): Promise<DigestJob[]> {
   const t0 = Date.now()
   const [dossier, tracked] = await Promise.all([
@@ -125,17 +129,23 @@ async function findNewStrongFitJobs(
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
   })
-  return emailSafeJobs(board.open)
+  const jobs = emailSafeJobs(board.open)
     .filter((p) => !trackedUrls.has(normalizeUrl(p.url) ?? ''))
     .filter((p) => isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS_PER_CLIENT)
-    .map((p) => ({
+  // Each role reads as it does on the client's own board card (job-card.ts).
+  const cards = boardJobCardTexts({ candidate, shortlist: board, postings: jobs, fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p) })
+  return jobs.map((p) => {
+    const card = cards.get(p.id)!
+    return {
       title: p.title,
       company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : (p.companyName ?? 'Company not listed'),
-      location: p.location,
-      postedAgo: postedAgo(p),
       url: p.url,
-    }))
+      verdict: card.verdictLabel,
+      meta: metaLineText(card),
+      why: card.whyLine || null,
+    }
+  })
 }
 
 export async function buildCoachWeeklyDigest(coachId: string, accessToken: string): Promise<CoachWeeklyDigest> {

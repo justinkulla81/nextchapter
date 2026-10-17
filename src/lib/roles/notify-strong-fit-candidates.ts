@@ -6,6 +6,7 @@ import { candidateWantsRole } from '@/lib/talent/candidate-discovery'
 import { formatRoleComp } from '@/lib/matching/format-comp'
 import { sendRoleMatchEmail } from '@/lib/email/send-role-match-email'
 import { STRONG_FIT_THRESHOLD } from '@/lib/jobs/job-fit-bucket'
+import { CARD_VERDICT_LABEL, cardVerdict } from '@/lib/jobs/job-card'
 
 // Bounds email volume for a single posting — same "small, bounded fan-out"
 // convention as the 8/20-style limits elsewhere in this matching family.
@@ -85,6 +86,8 @@ export async function triggerRoleMatchNotifications(roleId: string): Promise<voi
           companyName: role.employer.companyName,
           description: role.description,
           compLabel,
+          // Only scores at or above STRONG_FIT_THRESHOLD get here: the board's "Strong fit".
+          verdict: CARD_VERDICT_LABEL[cardVerdict('strong')],
         }
       )
     })

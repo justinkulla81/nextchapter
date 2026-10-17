@@ -1,13 +1,16 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
 
+/** One job, as the board card says it (job-card.ts): verdict, meta line, why line. */
 export interface FreshJobAlertJob {
   title: string
   company: string
-  location: string | null
-  postedAgo: string
-  /** A bridge job (src/lib/jobs/relevance.ts): "Worth a look: …", shown under the job. */
-  bridgeNote?: string | null
+  /** "Strong fit" / "Good fit" / "Worth a look". */
+  verdict: string
+  /** "Posted 3 hours ago · Louisville, KY · $180k–$220k · Likely fewer applicants (on-site)". */
+  meta: string
+  /** "Fits you: your level · finance — Gap: asks for SQL"; null when nothing specific is known. */
+  why: string | null
 }
 
 interface FreshJobAlertEmailProps {
@@ -53,15 +56,14 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
       <ul style={{ paddingLeft: '18px' }}>
         {jobs.map((j, i) => (
           <li key={i} style={{ marginBottom: '8px' }}>
+            <span style={{ fontWeight: 600, color: '#0b2545' }}>{j.verdict}: </span>
             <strong>{j.title}</strong>
             <br />
-            <span style={muted}>
-              {[j.company, j.location, j.postedAgo].filter(Boolean).join(' · ')}
-            </span>
-            {j.bridgeNote && (
+            <span style={muted}>{[j.company, j.meta].filter(Boolean).join(' · ')}</span>
+            {j.why && (
               <>
                 <br />
-                <span style={muted}>{j.bridgeNote}</span>
+                <span style={muted}>{j.why}</span>
               </>
             )}
           </li>
@@ -71,7 +73,7 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
         See them and apply →
       </a>
       <p style={{ ...muted, marginTop: '32px', fontSize: '12px' }}>
-        You only get this when a very strong match is posted — at most once a day.{' '}
+        You only get this when a role that&apos;s a strong fit for you is posted — at most once a day.{' '}
         <a href={unsubscribeUrl} style={muted}>
           Stop new-job alerts
         </a>

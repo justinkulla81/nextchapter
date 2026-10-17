@@ -11,6 +11,8 @@ export interface RoleMatchEmailRole {
   companyName: string
   description: string | null
   compLabel: string
+  /** The job card's verdict (job-card.ts): "Strong fit" / "Good fit" / "Worth a look". */
+  verdict: string
 }
 
 // No opt-out check, no unsubscribe link — same precedent as

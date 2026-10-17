@@ -2,12 +2,13 @@ import 'server-only'
 import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
+import { boardJobCardTexts } from '@/lib/jobs/job-card-server'
+import { metaLineText } from '@/lib/jobs/job-card'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { whatChangedLines } from '@/lib/personalization/smarter'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
-import { isFresh, postedAgo } from '@/lib/jobs/competition'
+import { isFresh } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import {
@@ -65,6 +66,9 @@ export interface DailyItem {
   title: string
   detail: string | null
   href: string | null
+  /** Job items only: the board card's verdict ("Strong fit") and why line ("Fits you: … — Gap: …"), job-card.ts. */
+  verdict?: string
+  why?: string | null
 }
 
 // One line in "Top 3 today": the clock first (why now), then the action.
@@ -222,25 +226,29 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const openable = fitting
   // Jobs posted in the last 72 hours lead (applying early matters most);
   // the rest fill the remaining slots.
-  const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
-    key: `job:${p.id}`,
-    title: p.title,
-    detail: [
-      shortlist.breadth.bridges.has(p.id) ? bridgeEmailNote(shortlist.breadth.bridges.get(p.id)!) : null,
-      p.companyName,
-      p.location,
-      isFresh(p, now) ? postedAgo(p, now) : null,
-      knowLine(p.companyName),
-    ]
-      .filter(Boolean)
-      .join(' · '),
-    href: jobsUrl,
+  const freshJobs = openable.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS)
+  const olderJobs = openable.filter((p) => !isFresh(p, now)).slice(0, Math.max(0, MAX_JOBS - freshJobs.length))
+  // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
+  const cards = boardJobCardTexts({
+    candidate,
+    shortlist,
+    postings: [...freshJobs, ...olderJobs],
+    fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p),
+    now,
   })
-  const freshJobItems = openable.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS).map(toJobItem)
-  const jobItems: DailyItem[] = openable
-    .filter((p) => !isFresh(p, now))
-    .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
-    .map(toJobItem)
+  const toJobItem = (p: (typeof openable)[number]): DailyItem => {
+    const card = cards.get(p.id)!
+    return {
+      key: `job:${p.id}`,
+      title: p.title,
+      detail: [p.companyName, metaLineText(card), knowLine(p.companyName)].filter(Boolean).join(' · '),
+      href: jobsUrl,
+      verdict: card.verdictLabel,
+      why: card.whyLine || null,
+    }
+  }
+  const freshJobItems = freshJobs.map(toJobItem)
+  const jobItems: DailyItem[] = olderJobs.map(toJobItem)
 
   // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their

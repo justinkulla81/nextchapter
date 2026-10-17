@@ -84,3 +84,31 @@ export function cardMetaParts(input: {
   else if (INTERIM.test(input.title)) parts.push('Interim')
   return parts
 }
+
+// ── Plain text, for emails and coach views ─────────────────────────────────────
+
+/**
+ * One job card as text (job-card-server.ts builds it from the same helpers as the board):
+ * emails and other no-hover surfaces render the verdict, the why line and the meta line
+ * from this, so every surface says the same thing about a job.
+ */
+export interface JobCardText {
+  verdict: CardVerdict
+  /** "Strong fit" / "Good fit" / "Worth a look". */
+  verdictLabel: string
+  fits: string[]
+  gap: string | null
+  /** "Fits you: your level · finance — Gap: asks for SQL"; '' when nothing specific is known. */
+  whyLine: string
+  /** Posted · place · pay · non-default work type (cardMetaParts). */
+  meta: string[]
+  /** The board's tappable "Likely fewer applicants" hint, for app surfaces. */
+  fewerApplicantsHint: { label: string; because: string } | null
+  /** "Likely fewer applicants (search-firm listing, on-site)", for emails; null unless the estimate is low. */
+  fewerApplicants: string | null
+}
+
+/** The meta line as one string, with the plain-text applicants estimate at the end: "Posted 3h ago · Louisville, KY · Likely fewer applicants (on-site)". */
+export function metaLineText(card: Pick<JobCardText, 'meta' | 'fewerApplicants'>): string {
+  return [...card.meta, card.fewerApplicants].filter(Boolean).join(' · ')
+}
