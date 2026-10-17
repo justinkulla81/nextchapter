@@ -59,6 +59,7 @@ import { firstWeekStep } from '@/lib/onboarding/first-week'
 import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
+import { timed } from '@/lib/perf/timed'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
@@ -130,7 +131,7 @@ type HomeProfile = Awaited<ReturnType<typeof getDashboardData>>
 // card fills in as its data arrives, instead of every card waiting on the slowest one.
 
 async function HomeJobsSection({ profile }: { profile: HomeProfile }) {
-  const jobCounts = await getHomeJobCounts(profile.id)
+  const jobCounts = await timed('home', 'jobCounts', profile.id, getHomeJobCounts(profile.id))
   return (
     <JobsModule saved={jobCounts.saved} applied={jobCounts.applied} interviews={jobCounts.interviews}>
       <Suspense fallback={null}>
@@ -141,7 +142,10 @@ async function HomeJobsSection({ profile }: { profile: HomeProfile }) {
 }
 
 async function HomeNetworkSection({ candidateId }: { candidateId: string }) {
-  const [needsFollowUp, priorityContacts] = await Promise.all([getNeedsFollowUpList(candidateId), getEmailReminders(candidateId)])
+  const [needsFollowUp, priorityContacts] = await Promise.all([
+    timed('home', 'needsFollowUp', candidateId, getNeedsFollowUpList(candidateId)),
+    timed('home', 'emailReminders', candidateId, getEmailReminders(candidateId)),
+  ])
   return (
     <HomeModule
       title="Network"
@@ -177,10 +181,10 @@ async function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
     // Build Your Dossier summary (condensed here, full checklist + "what
     // moves the needle" lives on /dashboard/portfolio) and the Executive
     // Dossier lock/unlock status shown alongside it.
-    computeDossierCompleteness(profile.id),
-    isDossierUnlocked(profile.id),
-    getDossierLadderTier(profile.id),
-    getModuleGateStatus(profile.id),
+    timed('home', 'dossierCompleteness', profile.id, computeDossierCompleteness(profile.id)),
+    timed('home', 'dossierUnlocked', profile.id, isDossierUnlocked(profile.id)),
+    timed('home', 'ladderTier', profile.id, getDossierLadderTier(profile.id)),
+    timed('home', 'moduleGates', profile.id, getModuleGateStatus(profile.id)),
   ])
   const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
   const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
@@ -238,19 +242,19 @@ async function HomeWeeklyPlan({
   journeyNow: ReturnType<typeof effectiveJourney>
 }) {
   const [weeklyProgress, marketRealityGrade, currentSprint, suggestedActions, profileChecklistItems, resumeFixes] = await Promise.all([
-    computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
+    timed('home', 'weeklyProgress', profile.id, computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode)),
     // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
     // is the single orchestrator (scoring/market-reality/probability.ts);
     // never call computeMarketRealityCompositeGrade directly here, that
     // would be a second, parallel computation of the starting-band input.
-    computeProbabilityGrade(profile.id),
-    getCurrentWeekSprintForRender(profile.id),
-    getSuggestedActions(profile.id, weekNumber, { withNudges: true }),
-    getProfileChecklistItems(profile.id),
+    timed('home', 'probabilityGrade', profile.id, computeProbabilityGrade(profile.id)),
+    timed('home', 'currentSprint', profile.id, getCurrentWeekSprintForRender(profile.id)),
+    timed('home', 'suggestedActions', profile.id, getSuggestedActions(profile.id, weekNumber, { withNudges: true })),
+    timed('home', 'profileChecklist', profile.id, getProfileChecklistItems(profile.id)),
     // Improve Your Market Reality — reuses the same real, point-ranked
     // resume-fix items the Market Reality Report itself shows (see
     // getResumeFixes), not a separate invented list.
-    getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
+    timed('home', 'resumeFixes', profile.id, getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null)),
   ])
   // Pacing is measured against the weekly points target (the ramp), never against
   // whatever the candidate personally committed to — those are different numbers and
@@ -331,26 +335,26 @@ export default async function DashboardPage() {
     searchPlaybook,
     newCheer,
   ] = await Promise.all([
-    getVerifiedSessionUser(),
-    prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
+    timed('home', 'sessionUser', profile.id, getVerifiedSessionUser()),
+    timed('home', 'bountyClaims', profile.id, prisma.bountyClaim.count({ where: { candidateId: profile.id } })),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing
     // the form); the explicit redirects at consent-grant time are the
     // primary path, this just catches anyone who slips past them.
     profile.coachId && profile.coachDossierConsentedAt
-      ? hasSubmittedCoachingOnboardingForm(profile.id)
+      ? timed('home', 'coachingForm', profile.id, hasSubmittedCoachingOnboardingForm(profile.id))
       : Promise.resolve(true),
-    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    timed('home', 'emailConnection', profile.id, prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } })),
+    timed('home', 'calendarConnection', profile.id, prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } })),
     // §10-12 — read-only trigger check; PassiveToActivePromptCard records
     // "shown" itself once it actually renders (see that component).
-    evaluatePassiveToActivePrompt(profile.id),
+    timed('home', 'passiveToActivePrompt', profile.id, evaluatePassiveToActivePrompt(profile.id)),
     // Same read-only, records-on-render contract, for the "hitting your
     // goals but no interviews" nudge — see stalled-search-prompt.ts.
-    evaluateStalledSearchPrompt(profile.id),
+    timed('home', 'stalledSearchPrompt', profile.id, evaluateStalledSearchPrompt(profile.id)),
     // Journey-aware search plan: what to change at this point in the search.
     // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
-    loadSearchPlaybook(profile),
+    timed('home', 'searchPlaybook', profile.id, loadSearchPlaybook(profile)),
     prisma.supporterCheer.findFirst({
       where: { seenAt: null, supporter: { candidateId: profile.id } },
       orderBy: { createdAt: 'desc' },

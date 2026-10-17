@@ -26,6 +26,7 @@ import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectR
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
+import { timed } from '@/lib/perf/timed'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
 import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
@@ -63,14 +64,14 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     documentRequestCount,
     profile,
   ] = await Promise.all([
-    getSupportNetworkUnreadCountForBadge(profileId),
-    getCandidateUnreadCount(profileId),
-    getPeerUnreadCount(profileId),
-    getNeedsFollowUpList(profileId),
-    isGmailConnected(profileId),
-    getHelpRepliesWaiting(profileId),
-    getFreshJobsCountForBadge(),
-    countOpenRequestsForCandidate(profileId),
+    timed('layout', 'supportNetworkUnread', profileId, getSupportNetworkUnreadCountForBadge(profileId)),
+    timed('layout', 'candidateUnread', profileId, getCandidateUnreadCount(profileId)),
+    timed('layout', 'peerUnread', profileId, getPeerUnreadCount(profileId)),
+    timed('layout', 'needsFollowUp', profileId, getNeedsFollowUpList(profileId)),
+    timed('layout', 'gmailConnected', profileId, isGmailConnected(profileId)),
+    timed('layout', 'helpReplies', profileId, getHelpRepliesWaiting(profileId)),
+    timed('layout', 'freshJobs', profileId, getFreshJobsCountForBadge()),
+    timed('layout', 'documentRequests', profileId, countOpenRequestsForCandidate(profileId)),
     getDashboardProfile(),
   ])
   // One badge per place. Network adds up its three live signals: people to
