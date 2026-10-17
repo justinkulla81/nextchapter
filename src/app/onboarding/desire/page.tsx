@@ -5,9 +5,16 @@ import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { SituationForm } from '@/components/onboarding/SituationForm'
 import { JOURNEY_TO_SITUATION } from '@/lib/constants/onboarding'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { isOnboardingV2Enabled } from '@/lib/onboarding/v2-flag'
 
-export default async function SituationPickerPage() {
+export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<{ classic?: string }> }) {
   const user = await getCurrentUser()
+
+  // Onboarding v2: a brand-new visitor starts with Google sign-up instead.
+  // ?classic=1 (the "continue with email" link) keeps the original path.
+  if (!user && isOnboardingV2Enabled() && !(await searchParams).classic) {
+    redirect('/onboarding/join')
+  }
 
   // An admin, hiring manager, recruiter, or coach landing here (e.g. a
   // password-reset fallback redirect) should never silently get a stray

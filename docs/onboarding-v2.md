@@ -125,6 +125,20 @@ Onboarding feeds this: the Your goal answers decide which recruiters count as "f
   `boardAdvisoryWillingness`. Verify before cutting.
 - The 8-12 hrs/week contract moves from onboarding to the first Search Sprint.
 
+## Not built yet / not verified
+
+- Not run against real Google and Supabase: the callback's account creation, session cookies on
+  the redirect, and the first sync kick-off were exercised only through unit tests with fake
+  clients, a local dev server (page, redirects, forged-callback rejection, the Google URL and
+  scopes), and a production compile. The redirect URI above must be registered first.
+- The five personalization cards. The reveal's button goes to the existing welcome page for now.
+- The resume as an optional step across the dashboard (grade and report empty states).
+- The Market Reality "resume first, then sign up" door. A visitor who already has an anonymous
+  classic session is signed into the Google account instead and the anonymous profile is left
+  behind.
+- Family and friends prescreening on the reveal counts.
+- Moving the contract and the welcome page's points wording (the welcome page is unchanged).
+
 ## Open decisions
 
 1. **Exclusive jobs: decided, keep the redesign.** They stay a Candidate+ unlock. Onboarding
@@ -158,6 +172,23 @@ them to the spine is part of building Your strengths, Your dealbreakers and Your
 - `src/lib/google/grant.ts` (+ `src/test/google-grant.test.ts`, 11 tests): reads which scopes
   Google actually granted and enforces personal-Gmail-only (Workspace accounts rejected by the
   `hd` claim). The personal-only rule is off for existing Connect buttons and on for sign-up.
+- **Sign-up page and scan reveal, behind `ONBOARDING_V2` / `ONBOARDING_V2_CONNECT`** (see
+  `docs/SETUP.md`):
+  - `/onboarding/join`: one screen, one "Continue with Google" button, "Continue with email
+    instead" for everyone else. The same button signs a returning member in.
+  - `/api/auth/join/start` and `/callback`: one Google consent for sign-in (and, with the
+    second flag, Gmail + Calendar read-only). The callback rejects a forged callback
+    (nonce cookie), checks the granted scopes and the personal-Gmail rule, creates or signs in
+    the account for the email Google verified (`src/lib/auth/verified-email-session.ts`;
+    refuses an existing account whose email was never confirmed), stamps registration, and
+    starts the first inbox read in the background.
+  - `/onboarding/reveal`: the live read ("Reading the last 3 months of your search", then
+    counts: applications and interviews as numbers, networking as "about"), with the situation
+    question asked while it runs. One button then goes on to the existing welcome page.
+  - Classic entry points redirect new visitors to `/join` when the flag is on;
+    `/onboarding/desire?classic=1` keeps the original path.
+  - The situation write is now one shared function (`apply-situation.ts`) used by both flows.
+  - No Search Action points are awarded for connecting: setup is not effort.
 - The existing combined Gmail + Calendar callback now checks the granted scopes before saving
   either connection. Before this, unticking one box still created both. New error codes have
   plain-language copy in `connect-error-copy.ts`. This is a behavior change on a live path.

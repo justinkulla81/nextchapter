@@ -27,6 +27,8 @@ export interface IdTokenClaims {
   // consumer Gmail. More reliable than guessing from the email domain.
   hd?: string
   name?: string
+  given_name?: string
+  family_name?: string
 }
 
 const PERSONAL_GMAIL_DOMAINS = new Set(['gmail.com', 'googlemail.com'])
@@ -57,10 +59,15 @@ export function decodeIdTokenClaims(idToken: string | null | undefined): IdToken
 // requirePersonal turns on the personal-Gmail-only rule used by the sign-up
 // flow. It stays off for the existing Connect Gmail buttons so a member who
 // connected another kind of account before keeps working.
+//
+// requires says which permissions must have been granted: 'connect' (default)
+// is Gmail and Calendar, 'identity' is sign-in only, used while the app's
+// Gmail access is not yet open to everyone.
 export function checkGoogleGrant(input: {
   scope: string | null | undefined
   idToken?: string | null
   requirePersonal?: boolean
+  requires?: 'connect' | 'identity'
 }): GrantCheck {
   const granted = parseGrantedScopes(input.scope)
   const hasGmail = granted.has(GMAIL_READ_SCOPE)
@@ -75,6 +82,7 @@ export function checkGoogleGrant(input: {
     if (!PERSONAL_GMAIL_DOMAINS.has(domain)) return { ok: false, problem: 'not_gmail' }
   }
 
+  if (input.requires === 'identity') return { ok: true }
   if (!hasGmail && !hasCalendar) return { ok: false, problem: 'missing_both' }
   if (!hasGmail) return { ok: false, problem: 'missing_gmail' }
   if (!hasCalendar) return { ok: false, problem: 'missing_calendar' }

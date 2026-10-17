@@ -48,6 +48,18 @@ describe('checkGoogleGrant — scopes', () => {
     expect(checkGoogleGrant({ scope: undefined })).toEqual({ ok: false, problem: 'missing_both' })
   })
 
+  it('asks for no Gmail or Calendar scopes when only sign-in is required', () => {
+    expect(checkGoogleGrant({ scope: 'openid email profile', requires: 'identity' })).toEqual({ ok: true })
+    expect(checkGoogleGrant({ scope: 'openid email profile' })).toEqual({ ok: false, problem: 'missing_both' })
+  })
+
+  it('still checks the account in sign-in-only mode', () => {
+    const workspace = idToken({ email: 'sam@acme.com', hd: 'acme.com' })
+    expect(
+      checkGoogleGrant({ scope: 'openid email', idToken: workspace, requirePersonal: true, requires: 'identity' }),
+    ).toEqual({ ok: false, problem: 'work_account' })
+  })
+
   it('does not look at the account when requirePersonal is off', () => {
     const work = idToken({ email: 'a@acme.com', email_verified: true, hd: 'acme.com' })
     expect(checkGoogleGrant({ scope: BOTH, idToken: work })).toEqual({ ok: true })

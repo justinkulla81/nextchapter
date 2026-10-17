@@ -75,6 +75,11 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 **Images**
 - `GEMINI_API_KEY`
 
+**Onboarding v2 (optional, off by default — see `docs/onboarding-v2.md`)**
+- `ONBOARDING_V2=1` — turns on the Google sign-up page (`/onboarding/join`), the scan reveal (`/onboarding/reveal`), and sends new visitors there instead of the classic first step. `/onboarding/desire?classic=1` always reaches the classic flow. Uses `SUPABASE_SERVICE_ROLE_KEY` to create the account for the email Google verified.
+- `ONBOARDING_V2_CONNECT=1` — also asks for Gmail and Calendar (read-only) on that sign-up. Leave unset until Google has approved the app for general use; unset means sign-up asks for sign-in only. While Gmail is still allow-listed (`isGmailTrackingTester`), accounts not on the list are created without tracking and the admin is notified.
+- Add `<NEXT_PUBLIC_APP_URL>/api/auth/join/callback` to the candidate OAuth client's authorized redirect URIs in Google Cloud Console (same client as `CANDIDATE_GOOGLE_OAUTH_CLIENT_ID`).
+
 **Google OAuth (Market Pulse Gmail ingestion only — not candidate auth)**
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`

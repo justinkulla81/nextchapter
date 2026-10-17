@@ -9,8 +9,20 @@ import { cn } from '@/lib/utils'
 
 const SITUATIONS = JOURNEY_CARDS
 
-export function SituationForm({ initialSituation = null }: { initialSituation?: SituationKey | null }) {
-  const [state, formAction, pending] = useActionState(updateSituation, undefined)
+type SituationAction = (prevState: { error?: string } | undefined, formData: FormData) => Promise<{ error?: string } | undefined>
+
+// The classic onboarding step saves the answer and moves on to the résumé; the
+// v2 reveal passes its own action (and button label) and stays on the page.
+export function SituationForm({
+  initialSituation = null,
+  action = updateSituation,
+  submitLabel = 'Continue',
+}: {
+  initialSituation?: SituationKey | null
+  action?: SituationAction
+  submitLabel?: string
+}) {
+  const [state, formAction, pending] = useActionState(action, undefined)
   const [selected, setSelected] = useState<SituationKey | null>(initialSituation)
   const [checking, setChecking] = useState(true)
   const [, startTransition] = useTransition()
@@ -81,7 +93,7 @@ export function SituationForm({ initialSituation = null }: { initialSituation?: 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending || !selected} className={pending ? 'cursor-progress' : ''}>
-        {pending ? 'Saving…' : 'Continue'}
+        {pending ? 'Saving…' : submitLabel}
       </Button>
     </form>
   )
