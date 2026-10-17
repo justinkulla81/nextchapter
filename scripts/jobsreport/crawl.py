@@ -39,6 +39,9 @@ def county_for(location):
     tokens = set(re.findall(r"\b([A-Z]{2})\b", loc)) & US_STATES
     if tokens and not (tokens & set(GEO["states"])):
         return None  # names a state outside this metro's states
+    m = re.search(r"([a-z.' ]+?)\s+county\b", low)
+    if m and GEO.get("counties"):  # "Dauphin County, PA": a county names its place exactly; never guess from other words
+        return GEO["counties"].get(m.group(1).strip().split(",")[-1].strip())
     for city, fips in GEO["cities"].items():
         if re.search(r"\b" + re.escape(city) + r"\b", low):
             return fips
@@ -391,6 +394,27 @@ def crawl_smartrecruiters(src, log):
                  arrangement="remote" if l.get("remote") else ("hybrid" if l.get("hybrid") else None),
                  posted_at=p.get("releasedDate"), posted_precision="timestamp")
 
+def crawl_amazon(src, log):
+    """Amazon.jobs public search JSON. src: employer. Searches each metro city name; keeps postings located in the metro."""
+    seen = {}
+    for q in src.get("queries") or [GEO["default"]]:
+        off, total = 0, None
+        while total is None or off < min(total, 1000):
+            d = json.loads(http("https://www.amazon.jobs/en/search.json?" + urllib.parse.urlencode(
+                {"normalized_location[]": q, "result_limit": 100, "offset": off, "sort": "recent"}), timeout=60))
+            total = d.get("hits", 0)
+            if not d.get("jobs"): break
+            for j in d["jobs"]: seen[j["id_icims"] or j["id"]] = j
+            off += len(d["jobs"])
+    log(f"  {src['name']}: {len(seen)} postings near the place")
+    for k, j in seen.items():
+        loc = ", ".join(x for x in (j.get("city"), j.get("state")) if x)
+        if not in_metro(loc): continue
+        text = strip_html(" ".join(filter(None, [j.get("description"), j.get("basic_qualifications"), j.get("preferred_qualifications")])))
+        yield mk(src, src.get("employer", "Amazon"), k, title=j.get("title", ""), req_id=str(k), url="https://www.amazon.jobs" + (j.get("job_path") or ""),
+                 description=text, location_raw=loc, city=j.get("city"), state=j.get("state"), locations=[loc],
+                 employment_type=j.get("job_schedule_type"), posted_at=j.get("posted_date"), posted_precision="date")
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -563,7 +587,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 
@@ -616,7 +640,7 @@ def main():
     a = ap.parse_args()
     log = lambda s: print(s, file=sys.stderr, flush=True)
     g = json.load(open(os.path.join(HERE, "geos.json")))[a.geo]
-    GEO.update({"key": a.geo, "cities": g["cities"], "states": g["states"], "search": g["search"], "default": g["defaultLocation"]})
+    GEO.update({"key": a.geo, "counties": g.get("counties", {}), "cities": g["cities"], "states": g["states"], "search": g["search"], "default": g["defaultLocation"]})
     if not a.sources:
         legacy = os.path.join(HERE, "louisville_sources.json")
         a.sources = legacy if a.geo == "louisville-metro" else os.path.join(HERE, "sources", f"{a.geo}.json")

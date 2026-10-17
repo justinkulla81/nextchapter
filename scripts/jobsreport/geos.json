@@ -46,7 +46,17 @@
       "IN"
     ],
     "search": "Louisville",
-    "defaultLocation": "Louisville, KY"
+    "defaultLocation": "Louisville, KY",
+    "counties": {
+      "jefferson": "21111",
+      "oldham": "21185",
+      "bullitt": "21029",
+      "shelby": "21211",
+      "spencer": "21215",
+      "clark": "18019",
+      "floyd": "18043",
+      "harrison": "18061"
+    }
   },
   "indianapolis": {
     "label": "Indianapolis, IN",
@@ -320,7 +330,13 @@
       "PA"
     ],
     "search": "Pittsburgh",
-    "defaultLocation": "Pittsburgh, PA"
+    "defaultLocation": "Pittsburgh, PA",
+    "counties": {
+      "allegheny": "42003",
+      "butler": "42019",
+      "washington": "42125",
+      "beaver": "42007"
+    }
   },
   "cleveland": {
     "label": "Cleveland, OH",

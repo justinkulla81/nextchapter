@@ -233,5 +233,17 @@
     "type": "direct_ats",
     "employer": "Bosch",
     "company": "BoschGroup"
+  },
+  {
+    "name": "amazon",
+    "adapter": "amazon",
+    "type": "direct_ats",
+    "employer": "Amazon",
+    "queries": [
+      "Pittsburgh, Pennsylvania, USA",
+      "Coraopolis, Pennsylvania, USA",
+      "Canonsburg, Pennsylvania, USA",
+      "Cranberry Township, Pennsylvania, USA"
+    ]
   }
 ]

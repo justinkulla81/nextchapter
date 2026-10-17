@@ -186,5 +186,25 @@
     "employer": "Texas Roadhouse",
     "host": "careers.becomearoadie.com",
     "path": "us/en"
+  },
+  {
+    "name": "phenom-ups",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "UPS",
+    "host": "www.jobs-ups.com",
+    "path": "us/en"
+  },
+  {
+    "name": "amazon",
+    "adapter": "amazon",
+    "type": "direct_ats",
+    "employer": "Amazon",
+    "queries": [
+      "Louisville, Kentucky, USA",
+      "Jeffersonville, Indiana, USA",
+      "Shepherdsville, Kentucky, USA",
+      "New Albany, Indiana, USA"
+    ]
   }
 ]
