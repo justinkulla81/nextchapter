@@ -55,6 +55,11 @@ export default async function PivotPathsPage({ searchParams }: { searchParams: P
         <p className="text-muted-foreground">
           Where your skills carry over, ranked by how well you fit, how many of these jobs are open near you and nationally, and what they pay.
         </p>
+        <p className="text-sm text-muted-foreground">
+          <Link href="/dashboard/my-career" className="text-primary underline underline-offset-4">
+            See these on your career timeline
+          </Link>
+        </p>
       </div>
       <WhatItTakes profile={profile} target={first(params.target)} why={first(params.why)} />
       <Suspense

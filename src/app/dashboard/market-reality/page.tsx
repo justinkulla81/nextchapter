@@ -36,7 +36,24 @@ import type { Verdict } from '@/lib/reports/search-diagnosis'
 import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 
+import { loadCareerStory } from '@/lib/career-story/load'
+import { ReportStory } from '@/components/dashboard/career-story/ReportStory'
+
 export const metadata: Metadata = { title: 'Market Reality Report' }
+
+// A compact, private view of the member's career story. Nothing here is shared with anyone else.
+async function CareerStorySection({ profile }: { profile: Parameters<typeof loadCareerStory>[0] }) {
+  const story = await loadCareerStory(profile).catch((error) => {
+    console.error('Market reality: career story unavailable', error)
+    return null
+  })
+  if (!story?.hasAnyHistory) return null
+  return (
+    <div className="mt-10">
+      <ReportStory story={story} />
+    </div>
+  )
+}
 
 // Same self-caching guidance shown on /dashboard/search-strategy — reading
 // it here is just a cache hit in the common case (see
@@ -782,6 +799,10 @@ export default async function MarketRealityReportPage({
 
           <Suspense fallback={null}>
             <SearchDiagnosisSection candidateId={profile.id} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <CareerStorySection profile={profile} />
           </Suspense>
 
           {/* Adzuna labor-market data for the member's target role: advertised

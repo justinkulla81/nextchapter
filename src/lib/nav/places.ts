@@ -110,6 +110,7 @@ export const PLACES: Place[] = [
       { label: 'My story', href: '/dashboard/strengths', alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] },
       { label: 'My profile', href: '/dashboard/profile', alsoMatches: ['/dashboard/resume', '/dashboard/linkedin', '/dashboard/portfolio'] },
       { menuKeys: ['assessments'], label: 'My work profile', href: '/dashboard/skills-assessments', alsoMatches: ['/dashboard/work-profile', '/dashboard/skills-assessment', '/dashboard/retake-assessment'] },
+      { label: 'Career timeline', href: '/dashboard/my-career' },
       { menuKeys: ['strategy'], label: 'My search', href: '/dashboard/search-strategy', alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan', '/dashboard/platforms'] },
       { label: 'For recruiters', href: '/dashboard/recruiter-report', alsoMatches: ['/dashboard/privacy'] },
       { label: 'Documents', href: '/dashboard/documents' },
