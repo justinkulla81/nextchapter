@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { posthog } from '@/lib/posthog/client'
 import type { SkillsGapInsight } from '@/lib/jobs/my-jobs'
 import { cn } from '@/lib/utils'
+import { defaultCourseForAiSkill } from '@/lib/learning/ai-course-tags'
 
 /**
  * The skills the member's saved and applied jobs keep asking for that their
@@ -13,6 +14,8 @@ import { cn } from '@/lib/utils'
  */
 export function SkillsGapInsightCard({ insight, surface, compact = false }: { insight: SkillsGapInsight; surface: 'board' | 'my_jobs'; compact?: boolean }) {
   const top = insight.top[0]
+  // An AI skill gap links straight to the course that covers it (ai-course-tags.ts).
+  const course = defaultCourseForAiSkill(top.skill)
   useEffect(() => {
     posthog.capture('skills_gap_insight_viewed', { topSkill: top.skill, count: top.jobs, jobsWithData: insight.jobsWithData, surface })
   }, [top.skill, top.jobs, insight.jobsWithData, surface])
@@ -27,10 +30,28 @@ export function SkillsGapInsightCard({ insight, surface, compact = false }: { in
         skills
       </Link>{' '}
       so matches count it. If not,{' '}
-      <Link href="/dashboard/learning" className="text-primary underline underline-offset-4" onClick={() => posthog.capture('skills_gap_insight_clicked', { action: 'learn', topSkill: top.skill, surface })}>
-        here&apos;s how to close it
-      </Link>
-      .
+      {course ? (
+        <>
+          start with{' '}
+          <a
+            href={course.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-4"
+            onClick={() => posthog.capture('skills_gap_insight_clicked', { action: 'ai_course', topSkill: top.skill, aiSkill: course.id, courseUrl: course.url, surface })}
+          >
+            {course.title}
+          </a>
+          .
+        </>
+      ) : (
+        <>
+          <Link href="/dashboard/learning" className="text-primary underline underline-offset-4" onClick={() => posthog.capture('skills_gap_insight_clicked', { action: 'learn', topSkill: top.skill, surface })}>
+            here&apos;s how to close it
+          </Link>
+          .
+        </>
+      )}
     </>
   )
   if (compact) {

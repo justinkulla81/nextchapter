@@ -97,6 +97,7 @@ export function LearningResourceCard({
 
       {item.rationale && <p className="text-xs italic text-foreground">{item.rationale}</p>}
       <p className="text-sm text-muted-foreground">{item.description}</p>
+      {item.aiSkills && item.aiSkills.length > 0 && <p className="text-xs text-muted-foreground">AI skills it covers: {item.aiSkills.join(' · ')}</p>}
       {provider.designationNote && <p className="text-xs text-muted-foreground italic">{provider.designationNote}</p>}
       {item.completionCount > 0 && (
         <p className="text-xs text-muted-foreground">

@@ -14,6 +14,7 @@ import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
 import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
+import { importAiSkillFields } from '@/lib/skills/ai-skills'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
 import { parseYearsRequired } from '@/lib/jobs/years-required'
 import { Prisma } from '@prisma/client'
@@ -117,6 +118,12 @@ interface ImportJobInput {
   // Hard requirements read from the full posting (ncrawl/requirements.py): a list of
   // { flag, …, evidence }. Optional; an empty list clears what the row held.
   requirementFlags?: unknown
+  // AI skills read from the full posting (ncrawl/ai_skills.py): taxonomy item ids, their groups,
+  // and the AI tools / certifications the text names. Optional; left out, the stored values stay.
+  aiSkillGroups?: unknown
+  aiSkillItems?: unknown
+  aiToolsNamed?: unknown
+  aiCertsNamed?: unknown
 }
 
 interface ImportRequestBody {
@@ -218,6 +225,8 @@ function rowData({ job, level }: Screened) {
       ? { employerSector: isEmployerSector(job.employerSector) ? job.employerSector : null }
       : {}),
     ...requirementFieldsOf(job),
+    // AI skills (ai-skills.ts): known ids only; groups follow from the items.
+    ...importAiSkillFields(job),
   }
 }
 
@@ -395,6 +404,7 @@ export async function POST(request: NextRequest) {
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))

@@ -664,6 +664,7 @@ async function JobRecommendationsSection({
       title: p.title,
       description: p.description,
       skills: p.skills,
+      aiSkillItems: p.aiSkillItems,
       memberKeywords,
     })
   const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>

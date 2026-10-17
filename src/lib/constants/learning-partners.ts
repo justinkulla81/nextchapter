@@ -40,6 +40,16 @@ export const LEARNING_PROVIDERS: Record<string, LearningProvider> = {
     designation: 'INCLUDED_FOR_QUALITY',
     designationNote: 'No revenue relationship with this certifying body.',
   },
+  microsoftLearn: {
+    name: 'Microsoft Learn',
+    designation: 'INCLUDED_FOR_QUALITY',
+    designationNote: 'Free vendor training, no revenue relationship.',
+  },
+  trailhead: {
+    name: 'Trailhead',
+    designation: 'INCLUDED_FOR_QUALITY',
+    designationNote: 'Free vendor training, no revenue relationship.',
+  },
   hubspotAcademy: {
     name: 'HubSpot Academy',
     designation: 'INCLUDED_FOR_QUALITY',
@@ -68,6 +78,9 @@ export interface LearningResource {
   // Admin-uploaded course logo (Course.logoUrl) — undefined for every
   // static-constants resource, which never had one.
   logoUrl?: string | null
+  // AI skills this course covers (src/lib/learning/ai-course-tags.ts), shown on the card so an
+  // AI gap reads straight across to the course that closes it. Empty for every other course.
+  aiSkills?: string[]
 }
 
 // Point mapping — all reusing the existing action-effort.ts point scale, no

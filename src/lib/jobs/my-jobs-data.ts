@@ -343,17 +343,17 @@ async function loadInsight(
   const live = items.filter((i) => i.status !== 'closed')
   const boardIds = live.filter((i) => i.ref?.source === 'job_board').map((i) => i.ref!.sourceId)
   const postings = boardIds.length
-    ? await prisma.exclusiveJobPosting.findMany({ where: { id: { in: boardIds } }, select: { id: true, title: true, description: true, skills: true } })
+    ? await prisma.exclusiveJobPosting.findMany({ where: { id: { in: boardIds } }, select: { id: true, title: true, description: true, skills: true, aiSkillItems: true } })
     : []
   const byId = new Map(postings.map((p) => [p.id, p]))
   const surfacedById = new Map(surfaced.map((s) => [s.id, s]))
   const appById = new Map(apps.map((a) => [a.id, a]))
   const gaps: { id: string; gap: JobSkillGap }[] = []
   for (const i of live) {
-    let input: { title: string; description: string | null; skills?: string[] } | null = null
+    let input: { title: string; description: string | null; skills?: string[]; aiSkillItems?: string[] } | null = null
     if (i.ref?.source === 'job_board') {
       const p = byId.get(i.ref.sourceId)
-      if (p) input = { title: p.title, description: p.description, skills: p.skills }
+      if (p) input = { title: p.title, description: p.description, skills: p.skills, aiSkillItems: p.aiSkillItems }
     } else if (i.ref?.source === 'surfaced') {
       const s = surfacedById.get(i.ref.sourceId)
       if (s) input = { title: s.title, description: s.description }

@@ -157,15 +157,18 @@ export interface MatchJob {
   requirementFlags?: unknown
   /** Primary US state, for "relocation required" against where the member lives. */
   locationState?: string | null
+  /** AI skill item ids the crawler read from the full posting (ai-skills.ts); absent = not read. */
+  aiSkillItems?: string[] | null
 }
 
 /** Board row -> match input. Drops the description of a confidential search. */
 export function toMatchJob(
-  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership' | 'insiderCulture' | 'requirementFlags' | 'locationState'> & {
+  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership' | 'insiderCulture' | 'requirementFlags' | 'locationState' | 'aiSkillItems'> & {
     description: string | null
     disclosure: string
     requirementFlags?: unknown
     locationState?: string | null
+    aiSkillItems?: string[] | null
   },
   company?: { sizeBand?: CompanySizeBand | null; ownershipType?: CompanyOwnershipType | null; insiderCulture?: CultureProfile | null } | null
 ): MatchJob {
@@ -190,6 +193,7 @@ export function toMatchJob(
     insiderCulture: company?.insiderCulture ?? null,
     requirementFlags: p.requirementFlags ?? null,
     locationState: p.locationState ?? null,
+    aiSkillItems: p.aiSkillItems ?? null,
   }
 }
 
@@ -211,7 +215,7 @@ export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & 
   const years = assessYearsFit(c.yearsExperience, required)
   const yearsShort = years.band === 'stretch' || years.band === 'far' ? years.short : null
 
-  const gap = jobSkillGap({ title: job.title, description: job.description, skills: job.skills, memberKeywords: keywords })
+  const gap = jobSkillGap({ title: job.title, description: job.description, skills: job.skills, aiSkillItems: job.aiSkillItems, memberKeywords: keywords })
   const evidence: string[] = []
   if (!credentialOk) evidence.push(credential === 'JD' ? 'Requires a law license (JD)' : 'Requires a medical license (MD/DO)')
 

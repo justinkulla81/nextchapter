@@ -41,6 +41,7 @@ export async function loadMemberSkillGap(candidateId: string): Promise<Aggregate
           title: p.title,
           description: p.description,
           skills: p.skills,
+          aiSkillItems: p.aiSkillItems,
           memberKeywords: keywords,
         }),
       }

@@ -13,10 +13,12 @@ import { validateUpload } from '@/lib/uploads/validate-upload'
 import { after } from 'next/server'
 import { parseReviewForm } from '@/lib/evidence/external-reviews'
 import { checkExternalReview } from '@/lib/evidence/check-external-review'
+import { aiSampleChecks, isAiSampleType, readAiDetails } from '@/lib/evidence/ai-work-samples'
+import { Prisma } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
-const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other', 'ai_workflow']
+const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other', 'ai_workflow', 'ai_policy', 'ai_rag_eval']
 const PORTFOLIO_TYPES = ['writing', 'code', 'design', 'other', 'none']
 
 export async function submitWorkSampleType(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -110,6 +112,10 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
     fileUrl = admin.storage.from('work-samples').getPublicUrl(path).data.publicUrl
   }
 
+  // The guided AI types (ai-work-samples.ts): their template answers go in aiDetails.
+  const isAi = isAiSampleType(sampleType)
+  const aiDetails = isAi ? readAiDetails(sampleType, (k) => formData.get(k)) : null
+
   const sample = await prisma.workSample.create({
     data: {
       candidateId: profile.id,
@@ -122,12 +128,23 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
       aiToolsUsed: sampleType === 'ai_workflow' ? ((formData.get('aiToolsUsed') as string | null)?.trim() || null) : null,
       beforeMetric: sampleType === 'ai_workflow' ? ((formData.get('beforeMetric') as string | null)?.trim() || null) : null,
       afterMetric: sampleType === 'ai_workflow' ? ((formData.get('afterMetric') as string | null)?.trim() || null) : null,
+      aiDetails: aiDetails && Object.keys(aiDetails).length > 0 ? aiDetails : Prisma.DbNull,
       fileUrl,
       externalUrl,
     },
   })
 
   captureServerEvent(profile.id, 'work_sample_added', { sampleId: sample.id, sampleType })
+  if (isAi) {
+    const checks = aiSampleChecks(sample)
+    captureServerEvent(profile.id, 'ai_work_sample_saved', {
+      sampleId: sample.id,
+      type: sampleType,
+      hasMetric: checks?.hasMetric ?? false,
+      checksPassed: checks?.passed.map((c) => c.key) ?? [],
+      checksMissing: checks?.missing.map((c) => c.key) ?? [],
+    })
+  }
   if (sampleType === 'ai_workflow') {
     captureServerEvent(profile.id, 'portfolio_ai_artifact_created', {
       sampleId: sample.id,

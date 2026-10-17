@@ -1,6 +1,9 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useRef, useState } from 'react'
+import { posthog } from '@/lib/posthog/client'
+import { AiSampleGuide } from '@/components/dashboard/AiSampleGuide'
+import { isAiSampleType } from '@/lib/evidence/ai-work-samples'
 import { addWorkSample } from '@/app/dashboard/work-samples/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,13 +24,25 @@ const SAMPLE_TYPE_OPTIONS = [
   { value: 'code', label: 'Code' },
   { value: 'design', label: 'Design' },
   { value: 'presentation', label: 'Presentation' },
-  { value: 'ai_workflow', label: 'AI workflow in my own work' },
+  { value: 'ai_workflow', label: 'AI automation with a before and after' },
+  { value: 'ai_policy', label: 'AI policy or use-case portfolio' },
+  { value: 'ai_rag_eval', label: 'RAG or agent project with an eval' },
   { value: 'other', label: 'Other' },
 ]
 
 export function WorkSampleForm() {
   const [state, formAction, pending] = useActionState(addWorkSample, undefined)
   const [sampleType, setSampleType] = useState('case_study')
+  const [externalUrl, setExternalUrl] = useState('')
+  const started = useRef(new Set<string>())
+  const chooseType = (v: string) => {
+    setSampleType(v)
+    // Once per type per visit: the member opened a guided AI template.
+    if (isAiSampleType(v) && !started.current.has(v)) {
+      started.current.add(v)
+      posthog.capture('ai_work_sample_started', { type: v })
+    }
+  }
 
   return (
     <form
@@ -44,7 +59,7 @@ export function WorkSampleForm() {
 
       <div className="space-y-2">
         <Label htmlFor="sampleType">Type</Label>
-        <Select name="sampleType" value={sampleType} onValueChange={(v) => setSampleType(v ?? 'case_study')}>
+        <Select name="sampleType" value={sampleType} onValueChange={(v) => chooseType(v ?? 'case_study')}>
           <SelectTrigger id="sampleType" className="w-full">
             <SelectValue placeholder="Select one">
               {(value: string | null) =>
@@ -62,28 +77,7 @@ export function WorkSampleForm() {
         </Select>
       </div>
 
-      {sampleType === 'ai_workflow' && (
-        <div className="space-y-4 rounded-md bg-muted/40 p-3">
-          <p className="text-xs text-muted-foreground">
-            Show one real task in your own function where you used AI, and what changed. Employers look for hands-on use with a result,
-            not a list of tools.
-          </p>
-          <div className="space-y-2">
-            <Label htmlFor="aiToolsUsed">Tools you used</Label>
-            <Input id="aiToolsUsed" name="aiToolsUsed" placeholder="For example Claude, Copilot, a spreadsheet script" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="beforeMetric">Before</Label>
-              <Input id="beforeMetric" name="beforeMetric" placeholder="For example 6 hours a week" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="afterMetric">After</Label>
-              <Input id="afterMetric" name="afterMetric" placeholder="For example 1 hour a week" />
-            </div>
-          </div>
-        </div>
-      )}
+      {isAiSampleType(sampleType) && <AiSampleGuide key={sampleType} type={sampleType} externalUrl={externalUrl} />}
 
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
@@ -107,8 +101,8 @@ export function WorkSampleForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="externalUrl">Link to your work (optional if uploading a file)</Label>
-        <Input id="externalUrl" name="externalUrl" type="url" placeholder="https://" />
+        <Label htmlFor="externalUrl">{sampleType === 'ai_rag_eval' ? 'Repo link (GitHub or similar)' : 'Link to your work (optional if uploading a file)'}</Label>
+        <Input id="externalUrl" name="externalUrl" type="url" placeholder="https://" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
       </div>
 
       <div className="space-y-2">
