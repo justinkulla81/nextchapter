@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { RESUME_TEMPLATE_META } from '@/lib/resume/export/template-meta'
 import { cn } from '@/lib/utils'
+import { downloadResumeExport } from '@/lib/resume/download-export'
 
 type Format = 'docx' | 'pdf'
 
@@ -26,30 +27,7 @@ export function ResumeExportForm() {
     setPending(true)
     setError(null)
     try {
-      const response = await fetch('/api/resume/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId, format }),
-      })
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null)
-        throw new Error(payload?.error ?? 'Something went wrong generating your resume. Please try again.')
-      }
-
-      const blob = await response.blob()
-      const disposition = response.headers.get('Content-Disposition') ?? ''
-      const match = disposition.match(/filename="([^"]+)"/)
-      const filename = match?.[1] ?? `resume.${format}`
-
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      await downloadResumeExport({ templateId, format })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong generating your resume. Please try again.')
     } finally {

@@ -15,6 +15,7 @@ import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmPersonOrg } from '@/components/admin/CrmPersonOrg'
+import { CrmMandates } from '@/components/admin/CrmMandates'
 import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
@@ -40,6 +41,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       affiliations: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
+      mandates: { include: { org: { select: { id: true, name: true } } }, orderBy: { createdAt: 'desc' } },
       backgrounds: { include: { org: { select: { id: true, name: true } } }, orderBy: [{ kind: 'asc' }, { createdAt: 'asc' }] },
       // Only what happened since the CRM began — see CRM_ACTIVITY_CUTOFF.
       // Pre-cutoff rows stay in the table (nothing is deleted) but a decade
@@ -320,6 +322,16 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           title={primaryAff?.title ?? null}
           othersCount={othersAtOrg}
         />
+      {(person.roles.includes('RECRUITER_PROSPECT') || person.mandates.length > 0) && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Mandates</h2>
+          <CrmMandates
+            recruiterId={person.id}
+            mandates={person.mandates.map((m) => ({ id: m.id, orgId: m.orgId, orgName: m.org.name, scope: m.scope, status: m.status }))}
+          />
+        </section>
+      )}
+
       {person.affiliations.length > 1 && (
         <section>
           <h2 className="mb-2 text-base font-semibold">Affiliations</h2>

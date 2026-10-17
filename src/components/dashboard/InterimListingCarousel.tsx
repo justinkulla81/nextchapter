@@ -47,6 +47,7 @@ export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckb
               <div className="flex flex-wrap items-center gap-1.5">
                 <OutboundPartnerLink
                   href={listing.url}
+                  listingId={listing.id}
                   partnerName={listing.name}
                   section="interim_work"
                   className="text-sm font-medium text-primary underline underline-offset-4"

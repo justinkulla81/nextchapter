@@ -1,3 +1,7 @@
+> **Out of date in places.** This is the original candidate reference. The onboarding steps, the "I commit" sprint flow and the
+> job-status model it describes have since been replaced by journeys, stages and the situation-based menu. For the current product see
+> `docs/CANDIDATE_JOURNEYS_AND_FEATURES.md`, `docs/CANDIDATE_STAGES.md`, `docs/CANDIDATE_MENU.md` and `docs/AFFILIATIONS.md`.
+
 # NextChapter — Candidate Side: Product & Systems Reference
 
 Zero-context handoff doc for everything a *candidate* (job seeker) can see and do in NextChapter — onboarding, the grading/points/badges game mechanics, every dashboard feature page, Victoria (the AI coach persona), and every candidate-facing email. Companion doc (not covered here) handles admin/coach/recruiter/employer portals.

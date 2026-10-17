@@ -22,6 +22,10 @@ export interface GhostInput {
   priorClosedCount: number
   /** Days since this posting was first seen. */
   ageDays: number
+  /** Members who passed on it as a ghost job or too good to be true (JobPostingFlag). Raises 'watch' only. */
+  memberFlags?: number
+  /** An admin confirmed member ghost flags on /support/admin/job-flags. */
+  adminConfirmed?: boolean
 }
 
 export interface GhostVerdict {
@@ -33,7 +37,16 @@ export const LIKELY_PRIOR_CLOSURES = 2
 export const WATCH_AGE_DAYS = 60
 export const LIKELY_AGE_DAYS = 90
 
-export function ghostRisk({ priorClosedCount, ageDays }: GhostInput): GhostVerdict {
+/**
+ * This many member flags queue a posting for admin review (owner's rule, 2026-10-16). Member
+ * flags alone never hide a job for anyone else — the flagger's own dismissal hides it for
+ * them; everyone else stops seeing it only when an admin confirms, or when our own signals
+ * below already say 'likely'.
+ */
+export const REVIEW_MEMBER_FLAGS = 2
+
+export function ghostRisk({ priorClosedCount, ageDays, memberFlags = 0, adminConfirmed = false }: GhostInput): GhostVerdict {
+  if (adminConfirmed) return { level: 'likely', reason: 'Confirmed as a ghost job after members flagged it' }
   if (priorClosedCount >= LIKELY_PRIOR_CLOSURES) {
     return { level: 'likely', reason: `Posted and closed ${priorClosedCount} times before — looks like an evergreen listing` }
   }
@@ -46,6 +59,9 @@ export function ghostRisk({ priorClosedCount, ageDays }: GhostInput): GhostVerdi
   }
   if (ageDays > WATCH_AGE_DAYS) {
     return { level: 'watch', reason: `Open for ${Math.floor(ageDays)} days` }
+  }
+  if (memberFlags >= 1) {
+    return { level: 'watch', reason: `${memberFlags === 1 ? 'A member' : `${memberFlags} members`} flagged it as a ghost job or too good to be true` }
   }
   return { level: 'none', reason: null }
 }

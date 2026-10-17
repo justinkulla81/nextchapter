@@ -1,4 +1,6 @@
+import { cultureContext } from '@/lib/culture/culture-fit'
 import 'server-only'
+import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
@@ -59,10 +61,10 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}${candidate.sec
 Industry background: ${candidate.industryContext ?? 'not specified'}${candidate.secondaryIndustryContext ? ` (also recently: ${candidate.secondaryIndustryContext})` : ''}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}`).join('; ') || 'not specified'}
-Resume skills/keywords: ${candidate.resumeKeywords.join(', ') || 'not specified'}
+Skills (with level): ${buildSkillMatrix(candidate).map((r) => `${r.label} (${r.level})`).join(', ') || 'not specified'}
 Certifications: ${candidate.certifications.join(', ') || 'none listed'}
 Location: ${[candidate.currentCity, candidate.currentState].filter(Boolean).join(', ') || 'not specified'}${candidate.openToRelocation ? ' (open to relocation)' : ''}
-Remote-work preference: ${candidate.remotePreference ?? 'not specified'}
+Remote-work preference: ${candidate.remotePreference ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 Target minimum compensation: ${candidate.targetCompMin ? `$${candidate.targetCompMin.toLocaleString()}` : 'not specified'}${candidate.compFlexible ? ' (flexible on comp)' : ''}
 
 Real work-history achievement bullets (rewrite up to 5 of these, verbatim as the "original" — never invent new ones):

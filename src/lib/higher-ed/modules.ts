@@ -5,6 +5,7 @@
 
 export type ModuleKey =
   | 'alumniJobs'
+  | 'internships'
   | 'projects'
   | 'directory'
   | 'groups'
@@ -19,9 +20,13 @@ export type ModuleKey =
   | 'volunteer'
   | 'news'
   | 'giveBack'
+  | 'classNotes'
+  | 'circles'
+  | 'careerFair'
 
 export const MODULES: { key: ModuleKey; label: string; what: string; area: 'Work' | 'People' | 'Mentoring' | 'Learning' | 'College' }[] = [
   { key: 'alumniJobs', label: 'Alumni-only jobs', what: 'Roles employers post just for your alumni.', area: 'Work' },
+  { key: 'internships', label: 'Internships', what: 'Paid, professional internships at US employers, for your students and recent grads.', area: 'Work' },
   { key: 'projects', label: 'Projects and boards', what: 'Alumni post short projects, fractional roles and board seats to fellow alumni.', area: 'Work' },
   { key: 'directory', label: 'Alumni directory', what: 'An opt-in directory: only alumni who choose to be listed appear.', area: 'People' },
   { key: 'groups', label: 'Groups and chapters', what: 'Class, major and city groups; affinity groups and regional chapters.', area: 'People' },
@@ -35,6 +40,9 @@ export const MODULES: { key: ModuleKey; label: string; what: string; area: 'Work
   { key: 'courseAuditing', label: 'Course auditing', what: 'Faculty open regular courses to alumni auditors.', area: 'Learning' },
   { key: 'volunteer', label: 'Ways to give time', what: 'Admissions interviews, guest lectures, class agents and more.', area: 'College' },
   { key: 'news', label: 'College news', what: 'News from the college on the alum’s home page.', area: 'College' },
+  { key: 'classNotes', label: 'Class notes', what: 'Alumni share news with their class; it shows in the alumni news.', area: 'People' },
+  { key: 'circles', label: 'Job-search circles', what: 'About six alumni and a facilitator meet weekly for six weeks.', area: 'Mentoring' },
+  { key: 'careerFair', label: 'Virtual career fair', what: 'Employer booths alumni can visit and leave a note at.', area: 'Work' },
   { key: 'giveBack', label: 'Give back', what: 'A giving link and Resilience Fund on the alum’s home.', area: 'College' },
 ]
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { audienceOf, agencyFromSamPath, isLive, isRelevant, meaningfulDeadline, parseUsDate, titleScore, toLead, type FundingNotice } from '@/lib/funding-opportunities/relevance'
+import { audienceOf, agencyFromSamPath, decodeEntities, isLive, isRelevant, meaningfulDeadline, parseUsDate, titleScore, toLead, type FundingNotice } from '@/lib/funding-opportunities/relevance'
 import { noticesFromHits } from '@/lib/funding-opportunities/grants-gov'
 import { noticesFromSam } from '@/lib/funding-opportunities/sam-gov'
 
@@ -25,6 +25,14 @@ describe('titleScore', () => {
 })
 
 describe('isRelevant', () => {
+  it('files every notice from a watched agency, whatever its title', () => {
+    expect(isRelevant({ title: 'Innovation Hub Capacity Building', agencyCode: 'SBA' })).toBe(true)
+    expect(isRelevant({ title: 'Regional Technology Planning', agencyCode: 'DOC-EDA' })).toBe(true)
+    expect(isRelevant({ title: 'Digital Equity Competitive Grant', agencyCode: 'DOC-NTIA' })).toBe(true)
+  })
+  it('does not watch the rest of Commerce', () => {
+    expect(isRelevant({ title: 'Fisheries habitat restoration', agencyCode: 'DOC-NOAA' })).toBe(false)
+  })
   it('accepts a Labor Department issuer or a subject title', () => {
     expect(isRelevant({ title: 'Annual guidance', agencyCode: 'DOL-ETA' })).toBe(true)
     expect(isRelevant({ title: 'Reemployment services pilot', agencyCode: 'HHS-NIH' })).toBe(true)
@@ -154,5 +162,20 @@ describe('eligibility on the CRM note', () => {
     const lead = toLead(notice({ eligibility: 'VIA_PARTNER', eligibilityNote: 'Only state agencies can apply.' }), NOW)
     expect(lead.trigger.headline).toMatch(/^\[For customers to win · via partner\]/)
     expect(lead.trigger.summary).toMatch(/Only state agencies can apply/)
+  })
+})
+
+describe('decodeEntities', () => {
+  it('decodes the entities Grants.gov leaves in titles', () => {
+    expect(decodeEntities('CHIPS Incentives Program &ndash; Facilities for Semiconductor Materials')).toBe('CHIPS Incentives Program - Facilities for Semiconductor Materials')
+    expect(decodeEntities('Health &amp; Human Services &#8211; Workforce')).toBe('Health & Human Services - Workforce')
+    expect(decodeEntities('Women&rsquo;s Bureau &nbsp; grant')).toBe("Women's Bureau grant")
+  })
+  it('decodes once and leaves unknown entities alone', () => {
+    expect(decodeEntities('A &amp;ndash; B')).toBe('A &ndash; B')
+    expect(decodeEntities('A &bogus; B')).toBe('A &bogus; B')
+  })
+  it('leaves plain titles unchanged', () => {
+    expect(decodeEntities('  Rapid Response  Services ')).toBe('Rapid Response Services')
   })
 })

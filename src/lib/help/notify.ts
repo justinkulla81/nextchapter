@@ -25,7 +25,7 @@ async function send(args: { to: string; subject: string; html: string; text: str
     return false
   }
   try {
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({ from: FROM, ...args })
+    const { error } = await createResend(process.env.RESEND_API_KEY, args.to === ADMIN_TO ? 'admin' : 'candidate').emails.send({ from: FROM, ...args })
     if (error) { console.error('Help email failed:', error); return false }
     return true
   } catch (e) {

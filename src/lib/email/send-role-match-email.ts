@@ -18,8 +18,7 @@ export interface RoleMatchEmailRole {
 // you" transactional email.
 export async function sendRoleMatchEmail(
   candidate: { userId: string; firstName: string | null },
-  role: RoleMatchEmailRole,
-  dossierUnlocked: boolean
+  role: RoleMatchEmailRole
 ): Promise<{ sent: boolean }> {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping role match email.')
@@ -36,19 +35,17 @@ export async function sendRoleMatchEmail(
     role.type === 'FULL_TIME'
       ? '/dashboard/find-my-job#employer-matched-roles'
       : '/dashboard/interim-work#board-advisory-work'
-  const unlockUrl = `${appUrl}/dossier`
 
   try {
     const resend = createResend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,
-      subject: dossierUnlocked ? 'A new opportunity matches your background' : 'A strong-fit opportunity is waiting for you',
+      subject: 'A new opportunity matches your background',
       react: RoleMatchEmail({
         firstName: candidate.firstName,
-        dossierUnlocked,
         role,
-        actionUrl: dossierUnlocked ? `${appUrl}${destinationPath}` : unlockUrl,
+        actionUrl: `${appUrl}${destinationPath}`,
       }),
     })
 

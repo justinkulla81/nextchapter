@@ -12,7 +12,9 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { loadAffiliations } from '@/lib/affiliations/load'
+import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -38,24 +40,18 @@ const CONNECT_ERROR: Record<string, string> = {
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
+function detailText(details: unknown, key: string): string {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
+}
+
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
-  const params = await searchParams
-  const [emailConn, calendarConn] = await Promise.all([
+  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections] = await Promise.all([
+    loadAffiliations(profile.id),
+    searchParams,
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
     prisma.calendarConnection.findUnique({ where: { candidateId: profile.id }, select: { connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
-  ])
-  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
-    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
-      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
-  // One Google sign-in creates both connections, so the calendar belongs to
-  // the same account as Gmail when they were connected together.
-  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
-    ? emailConn.connectedEmail : null
-  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
-  const calendarState = stateOf(calendarConn, calendarAccount)
-  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
-  const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
@@ -68,6 +64,16 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       orderBy: { createdAt: 'desc' },
     }),
   ])
+  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
+    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
+      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
+  // One Google sign-in creates both connections, so the calendar belongs to
+  // the same account as Gmail when they were connected together.
+  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
+    ? emailConn.connectedEmail : null
+  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
+  const calendarState = stateOf(calendarConn, calendarAccount)
+  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
   return (
@@ -98,12 +104,21 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
+            Why you&apos;re moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity}
+          details={{
+            returnDate: detailText(profile.journeyDetails, 'returnDate'),
+            offering: detailText(profile.journeyDetails, 'offering'),
+            openDays: detailText(profile.journeyDetails, 'openDays'),
+            engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+          }}
+        />
       </div>
+
+      <AffiliationVisibilityCard affiliations={affiliations} />
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>
@@ -117,7 +132,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
 
-      <div className="space-y-3 border-t border-border pt-8">
+      <div id="recruiter-matching" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
           <p className="mt-1 text-sm text-muted-foreground">

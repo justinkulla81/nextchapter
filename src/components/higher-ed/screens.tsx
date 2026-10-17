@@ -3,9 +3,16 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
+import { listOrgKeys } from '@/lib/census/api-keys'
+import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
+import { CompanyOverview, CompanySupport } from './screens-company'
+import { readComms } from '@/lib/census/comms-settings'
+import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
+import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
 import type { ComponentType } from 'react'
 import { ArrowRight, Lock, Users } from 'lucide-react'
 import type { InstitutionMemberStatus, InstitutionUserRole } from '@prisma/client'
@@ -18,7 +25,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, tierIncludes } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, orgKindOf, tierIncludes } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,8 +43,12 @@ import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AlumniJobForm } from '@/components/institution/AlumniJobForm'
 import { TargetCompanyForm } from '@/components/institution/TargetCompanyForm'
+import { CoreRecruiterForm, RecruitingDateForm, EarlyCareerRoleForm } from '@/components/institution/RecruitingForms'
+import { listRecruitingDates, listEarlyCareerRoles } from '@/lib/higher-ed/recruiting'
+import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePassed, safeHttpUrl } from '@/lib/higher-ed/recruiting-rules'
 import { StaffInviteForm } from './StaffInviteForm'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
+import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
@@ -81,9 +92,9 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
 import { ActionButton } from './CommunityForms'
-import { archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
+import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string } & CommunityParams
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -181,7 +192,8 @@ async function CandidateHome({ ctx }: ScreenProps) {
   const openFlag = ctx.memberId
     ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
     : null
-  const services = memberCards(serviceSettingsFrom(enabledFeatures), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null)
+  const kind = orgKindOf(ctx.institution.orgType)
+  const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null, kind)
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their
@@ -201,11 +213,20 @@ async function CandidateHome({ ctx }: ScreenProps) {
       <div>
         <h2 className="text-lg font-semibold">{member?.firstName ? `Welcome back, ${member.firstName}` : `Welcome to ${brand}`}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {ctx.institution.name} has your back: a clear read on your job market, a plan for this week, coaching and alumni who&apos;ll take
-          your call. Your search stays yours; the college sees only what you choose to share.
+          {kind === 'workforce' ? (
+            <>
+              {ctx.institution.name} is covering your search: a clear read on your job market, a plan for this week, coaching, and local employers first. Your
+              search stays yours; {ctx.institution.name} sees only what you choose to share.
+            </>
+          ) : (
+            <>
+              {ctx.institution.name} has your back: a clear read on your job market, a plan for this week, coaching and alumni who&apos;ll take your call. Your
+              search stays yours; the college sees only what you choose to share.
+            </>
+          )}
         </p>
         {!ctx.memberId && ctx.isNcAdmin && (
-          <p className="mt-2 text-sm text-amber-900">You&apos;re previewing as an alum. There&apos;s no member record behind this preview.</p>
+          <p className="mt-2 text-sm text-amber-900">You&apos;re previewing as {kind === 'workforce' ? 'a participant' : 'an alum'}. There&apos;s no member record behind this preview.</p>
         )}
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
@@ -597,34 +618,141 @@ async function AlumniJobs({ ctx }: ScreenProps) {
 async function TargetCompanies({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
   const canManage = canAny(ctx.tokens, 'manage_target_companies') && !ctx.readOnly
-  const targets = await listTargetCompanies(ctx.institution.id)
+  const [targets, dates, roles] = await Promise.all([
+    listTargetCompanies(ctx.institution.id),
+    listRecruitingDates(ctx.institution.id),
+    listEarlyCareerRoles(ctx.institution.id),
+  ])
+  const upcoming = splitUpcoming(dates).upcoming
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        Employers you want to place alumni with or build a relationship with. Only your team sees this list.
+        Employers you want to place students and alumni with. Mark the ones that recruit here every year as core recruiters. Only your team sees this list.
       </p>
       {canManage && <TargetCompanyForm addAction={addTargetCompany.bind(null, slug)} />}
       {targets.length === 0 ? (
-        <EmptyState icon={Users} title="No target companies yet" description="Add the employers you want alumni at." />
+        <EmptyState icon={Users} title="No target companies yet" description="Add the employers you want students and alumni at." />
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-          {targets.map((t) => (
-            <li key={t.companyId} className="flex items-center justify-between gap-4 px-4 py-3">
-              <div>
-                <p className="font-medium">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{[t.industry, t.note].filter(Boolean).join(' · ')}</p>
-              </div>
-              {canManage && (
-                <form action={removeTargetCompany.bind(null, slug, t.companyId)}>
-                  <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">
-                    Remove company
-                  </SubmitButton>
-                </form>
-              )}
-            </li>
-          ))}
+          {targets.map((t) => {
+            const nextDate = upcoming.find((d) => d.companyId === t.companyId)
+            const openRoles = roles.filter((r) => r.companyId === t.companyId).length
+            return (
+              <li key={t.companyId} className="px-4 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">
+                      {t.name}
+                      {t.coreRecruiter && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal">Core recruiter</span>}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{[t.industry, t.note].filter(Boolean).join(' · ')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[
+                        t.recruiterContactName || t.recruiterContactEmail ? `Recruiter: ${[t.recruiterContactName, t.recruiterContactEmail].filter(Boolean).join(', ')}` : null,
+                        nextDate ? `Next: ${nextDate.title}, ${fmtDate(nextDate.startsAt)}` : null,
+                        openRoles ? `${openRoles} open ${openRoles === 1 ? 'role' : 'roles'} for students` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <form action={removeTargetCompany.bind(null, slug, t.companyId)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">
+                        Remove company
+                      </SubmitButton>
+                    </form>
+                  )}
+                </div>
+                {canManage && (
+                  <CoreRecruiterForm
+                    saveAction={saveCoreRecruiter.bind(null, slug, t.companyId)}
+                    core={t.coreRecruiter}
+                    contactName={t.recruiterContactName}
+                    contactEmail={t.recruiterContactEmail}
+                  />
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
+    </div>
+  )
+}
+
+const dateTimeFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
+
+async function RecruitingScreen({ ctx }: ScreenProps) {
+  const slug = ctx.institution.slug
+  const canManage = canAny(ctx.tokens, 'manage_target_companies') && !ctx.readOnly
+  const [dates, roles] = await Promise.all([listRecruitingDates(ctx.institution.id), listEarlyCareerRoles(ctx.institution.id)])
+  const { upcoming, past } = splitUpcoming(dates)
+  return (
+    <div className="space-y-10">
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Recruiting calendar</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">When employers are on campus or hiring from your students: career fairs, info sessions, interviews and application deadlines.</p>
+        </div>
+        {canManage && <RecruitingDateForm addAction={addRecruitingDateAction.bind(null, slug)} />}
+        {dates.length === 0 ? (
+          <EmptyState icon={Users} title="No recruiting dates yet" description="Add a career fair, info session or deadline to start the calendar." />
+        ) : (
+          <>
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {upcoming.length === 0 && <li className="px-4 py-3 text-sm text-muted-foreground">Nothing coming up. Add the next date above.</li>}
+              {[...upcoming, ...past].map((d, i) => (
+                <li key={d.id} className={`flex items-center justify-between gap-4 px-4 py-3 ${i >= upcoming.length ? 'opacity-60' : ''}`}>
+                  <div>
+                    <p className="font-medium">{d.company}: {d.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[RECRUITING_DATE_LABELS[d.kind] ?? d.kind, dateTimeFmt.format(d.startsAt), d.location, d.note].filter(Boolean).join(' · ')}
+                      {safeHttpUrl(d.url) && <> · <a href={safeHttpUrl(d.url)!} target="_blank" rel="noreferrer" className="underline">Details</a></>}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <form action={removeRecruitingDateAction.bind(null, slug, d.id)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Removing…" savedLabel="Removed">Remove date</SubmitButton>
+                    </form>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Internships and graduate jobs</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">Roles employers have for your students and new graduates. Only your team enters and edits this list.</p>
+        </div>
+        {canManage && <EarlyCareerRoleForm addAction={addEarlyCareerRoleAction.bind(null, slug)} />}
+        {roles.length === 0 ? (
+          <EmptyState icon={Users} title="No internships or graduate jobs yet" description="Add the roles employers have shared with you." />
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {roles.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">{r.title} <span className="font-normal text-muted-foreground">at {r.company}</span></p>
+                  <p className="text-sm text-muted-foreground">
+                    {[
+                      EARLY_CAREER_LABELS[r.kind] ?? r.kind, r.location, r.classYears ? `Class of ${r.classYears}` : null,
+                      r.deadline ? `${deadlinePassed(r.deadline) ? 'Closed' : 'Apply by'} ${fmtDate(r.deadline)}` : null, r.note,
+                    ].filter(Boolean).join(' · ')}
+                    {safeHttpUrl(r.applyUrl) && <> · <a href={safeHttpUrl(r.applyUrl)!} target="_blank" rel="noreferrer" className="underline">Apply link</a></>}
+                  </p>
+                </div>
+                {canManage && (
+                  <form action={archiveEarlyCareerRoleAction.bind(null, slug, r.id)}>
+                    <SubmitButton size="sm" variant="outline" pendingLabel="Archiving…" savedLabel="Archived">Archive role</SubmitButton>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
@@ -842,7 +970,8 @@ const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {
   const slug = ctx.institution.slug
-  const [members, joined, invitable, runs, outbox] = await Promise.all([
+  const workforce = orgKindOf(ctx.institution.orgType) === 'workforce'
+  const [members, joined, invitable, runs, outbox, keys, inst] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id } }),
     prisma.institutionMember.count({ where: { institutionId: ctx.institution.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     countInvitable(ctx.institution.id),
@@ -861,7 +990,19 @@ async function AdminRoster({ ctx }: ScreenProps) {
           select: { id: true, email: true, claimToken: true, claimedAt: true },
         })
       : Promise.resolve([]),
+    listOrgKeys('institution', ctx.institution.id),
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }),
   ])
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://launchyournextchapter.com'
+  const example = `curl -X POST ${base}/api/v1/census \\
+  -H "Authorization: Bearer nck_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "people": [ { "external_id": "100234", "email": "pat@example.edu", "first_name": "Pat", "last_name": "Lee",
+                     "affiliation": "${workforce ? 'PARTICIPANT' : 'ALUM'}", "class_year": 2012 } ] }'
+
+The same columns as the roster file. Matched on external_id, then email. To put learners in a program cohort:
+  -d '{ "cohortId": "<cohort id>", "learners": [ { "email": "…", "first_name": "…", "last_name": "…", "payer": "WIOA_VOUCHER" } ] }'
+GET the same address to read your roster back (join status only).`
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-3">
@@ -871,13 +1012,13 @@ async function AdminRoster({ ctx }: ScreenProps) {
       </div>
       <section aria-labelledby="invite" className="space-y-2">
         <h2 id="invite" className="text-base font-semibold">
-          Invite alumni
+          {workforce ? 'Invite participants' : 'Invite alumni'}
         </h2>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Each alum gets a short email from {ctx.institution.name} with a one-click link: no password, two privacy choices, then their job market.
-          Do-not-contact alumni are never emailed.
+          {workforce ? 'Each person' : 'Each alum'} gets a short email from {ctx.institution.name} with a one-click link: no password, two privacy choices, then their job
+          market. Do-not-contact {workforce ? 'people are' : 'alumni are'} never emailed.
         </p>
-        <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} />
+        <InviteAlumniButton slug={slug} count={invitable} isDemo={ctx.institution.isDemo} collegeName={ctx.institution.name} people={workforce ? 'participants' : 'alumni'} />
         {ctx.institution.isDemo && outbox.length > 0 && (
           <details className="rounded-lg border border-border bg-card p-3 text-sm">
             <summary className="cursor-pointer font-medium">Demo outbox: {outbox.length} most recent invitations (not emailed)</summary>
@@ -907,9 +1048,27 @@ async function AdminRoster({ ctx }: ScreenProps) {
           Or send the file to NextChapter and we&apos;ll load it.
         </p>
         <div className="grid gap-3 lg:grid-cols-2">
-          <CrmUploadForm id="roster" title="Alumni roster" columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
+          <CrmUploadForm id="roster" title={workforce ? 'Participant roster (affiliation PARTICIPANT)' : 'Alumni roster'} columns={ROSTER_COLUMNS} action={uploadCrmFile.bind(null, slug, 'roster')} />
           <CrmUploadForm id="gifts" title="Gifts" columns={GIFT_COLUMNS} action={uploadCrmFile.bind(null, slug, 'gifts')} />
         </div>
+      </section>
+      <section aria-labelledby="connect" className="space-y-3">
+        <h2 id="connect" className="text-base font-semibold">
+          Connect your CRM
+        </h2>
+        <p className="max-w-2xl text-sm text-muted-foreground">Send roster changes automatically instead of uploading files. Each call shows up in the upload history below.</p>
+        <OrgKeysPanel
+          keys={keys.map((k) => ({ ...k, createdAt: k.createdAt.toISOString(), lastUsedAt: k.lastUsedAt?.toISOString() ?? null, revokedAt: k.revokedAt?.toISOString() ?? null }))}
+          makeKey={makeCollegeKey.bind(null, slug)}
+          turnOff={turnOffCollegeKey.bind(null, slug)}
+          example={example}
+        />
+      </section>
+      <section aria-labelledby="reminders" className="space-y-2">
+        <h2 id="reminders" className="text-base font-semibold">
+          Invitation reminders
+        </h2>
+        <CommsToggles value={readComms(inst.enabledFeatures)} save={saveCollegeComms.bind(null, slug)} showAccessNotice={false} />
       </section>
       {runs.length > 0 && (
         <Table caption="Upload history" head={['When', 'File', 'Rows', 'Problems', 'Result']}>
@@ -1029,6 +1188,7 @@ async function AdminBranding({ ctx }: ScreenProps) {
 const MONTHS = Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, i, 1))))
 
 async function SettingsServices({ ctx }: ScreenProps) {
+  const kind = orgKindOf(ctx.institution.orgType)
   const { enabledFeatures } = await loadInstitutionData(ctx.institution.id)
   const canEdit = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly
   const annualMonth = checkInMonthFrom(enabledFeatures)
@@ -1037,8 +1197,9 @@ async function SettingsServices({ ctx }: ScreenProps) {
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
         Choose what {ctx.institution.name} offers. Switch a service on and its card appears on the Candidate home for the audiences you pick;
-        each card shows how many members opened it.
+        each card shows how many {kind === 'workforce' ? 'people' : 'members'} opened it.
       </p>
+      {kind === 'college' && (
       <form action={setAnnualCheckInMonth.bind(null, ctx.institution.slug)} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
           <Label htmlFor="annual-month">Annual career check-in goes out in</Label>
@@ -1067,12 +1228,14 @@ async function SettingsServices({ ctx }: ScreenProps) {
           New-grad check-ins go out 6, 18 and 24 months after graduation (May, unless a member&apos;s date is known).
         </p>
       </form>
-      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures)} usage={usage} canEdit={canEdit} />
+      )}
+      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures, kind)} usage={usage} canEdit={canEdit} kind={kind} />
     </div>
   )
 }
 
-async function SettingsOverview({ ctx }: ScreenProps) {
+async function SettingsOverview({ ctx, ...rest }: ScreenProps) {
+  if (orgKindOf(ctx.institution.orgType) === 'workforce') return <WorkforceOverview ctx={ctx} searchParams={rest.searchParams} base={rest.base} />
   const i = await prisma.institution.findUnique({
     where: { id: ctx.institution.id },
     select: {
@@ -1270,6 +1433,7 @@ async function CandidatePeople(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <PeopleSections {...props} />
+      <ConnectSections ctx={props.ctx} />
       <CandidateNetwork {...props} />
     </div>
   )
@@ -1309,12 +1473,26 @@ async function AlumniMentorsAll(props: ScreenProps) {
   )
 }
 async function AdminServicesAll(props: ScreenProps) {
+  if (orgKindOf(props.ctx.institution.orgType) === 'workforce') return <SettingsServices {...props} />
   return (
     <div className="space-y-10">
       <FeaturesPanel ctx={props.ctx} />
+      <MonthlyEmailPanel ctx={props.ctx} />
       <SettingsServices {...props} />
     </div>
   )
+}
+
+async function AdminPrivacyAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AdminPrivacy {...props} />
+      <ConsentHistory ctx={props.ctx} />
+    </div>
+  )
+}
+async function StaffConnectScreen(props: ScreenProps) {
+  return <StaffConnect ctx={props.ctx} />
 }
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
@@ -1325,7 +1503,9 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:community': AlumniCommunity,
   'alumni:volunteers': AlumniVolunteers,
   'teaching:auditors': TeachingAuditors,
-  'admin:privacy': AdminPrivacy,
+  'admin:privacy': AdminPrivacyAll,
+  'alumni:connect': StaffConnectScreen,
+  'career:circles': StaffConnectScreen,
   'candidate:giveback': CandidateGiveBack,
   'alumni:members': AlumniMembers,
   'development:home': DevelopmentRoi,
@@ -1338,6 +1518,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'employer:home': EmployerDossiersWithIntros,
   'employer:page': EmployerPage,
   'candidate:jobs': CandidateWork,
+  'candidate:internships': InternshipsScreen,
+  'career:internships': InternshipsScreen,
   'career:employers': CareerEmployers,
   'career:students': CareerStudents,
   'alumni:region': Region,
@@ -1345,6 +1527,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:jobs': AlumniJobs,
   'career:jobs': AlumniJobs,
   'career:companies': TargetCompanies,
+  'career:recruiting': RecruitingScreen,
   'candidate:coaching': CandidateCoaching,
   'career:coaching': CareerCoaching,
   'teaching:home': TeachingCourses,
@@ -1370,4 +1553,12 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:outreach': AlumniOutreach,
   'alumni:engagement': AlumniEngagement,
   'career:checkins': CareerCheckIns,
+  'hub:home': HubHome,
+  'hub:companies': HubCompanies,
+  'hub:layoffs': HubLayoffs,
+  'hub:participants': HubParticipants,
+  'hub:local': HubLocal,
+  'hub:region': Region,
+  'employer:overview': CompanyOverview,
+  'employer:support': CompanySupport,
 }

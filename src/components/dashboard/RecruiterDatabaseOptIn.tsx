@@ -37,19 +37,20 @@ export function RecruiterDatabaseOptIn({
       <p className="font-medium text-foreground">Recruiter database</p>
       <p className="mt-1 text-sm text-muted-foreground">
         {optedIn
-          ? "You're opted in. Employers using NextChapter's hiring tools can find and match against your profile for roles you fit."
-          : "Not listed by default. Employers using NextChapter's hiring tools can only match you against open roles if you opt in here — this is separate from your privacy tier above."}
+          ? "You're opted in. Recruiters and employers using NextChapter can find and match against your profile for roles you fit once you're Candidate+."
+          : "Not listed by default. Recruiters and employers using NextChapter can only find you if you opt in here and you're Candidate+. This is separate from your privacy tier above."}
       </p>
       {optedIn && (
         <p className="mt-1 text-sm text-muted-foreground">
           {dossierUnlocked ? (
             <span className="font-medium text-success">
-              You&apos;re currently surfaced to recruiters — your Dossier is unlocked.
+              You&apos;re visible to recruiters and employers: you&apos;re Candidate+. Members with references, work samples or
+              reviews on file (Candidate+ Verified) are listed first.
             </span>
           ) : (
             <>
-              You&apos;re opted in but not currently surfaced — being matched to roles also requires an
-              unlocked Dossier. {renderMarkdownLinks(dossierReason)}
+              You&apos;re opted in but not visible yet: recruiters and employers only see Candidate+ members.{' '}
+              {renderMarkdownLinks(dossierReason)}
             </>
           )}
         </p>

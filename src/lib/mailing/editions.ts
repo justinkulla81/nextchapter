@@ -9,6 +9,7 @@ import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { makeUnsubscribeToken } from './unsubscribe-token'
 import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
+import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
 
 export const MAILING_BUCKET = 'mailing-files'
 export const ATTACH_WARN_BYTES = 5 * 1024 * 1024
@@ -150,6 +151,17 @@ export function reportLinkFor(edition: { key: string; reportUrl: string | null; 
   return edition.reportUrl?.trim() || (edition.attachmentPath ? fileUrlFor(edition.key) : null)
 }
 
+// Who an edition is for, from the lists it goes to. Mixed or unmapped lists
+// (investors, friends and family, the monthly update) read as a general update.
+function audienceForEdition(edition: EditionForSend): EmailAudience {
+  const keys = new Set(edition.lists.map((l) => l.list.key))
+  if (keys.size !== 1) return 'general'
+  const [key] = [...keys]
+  if (key === 'candidates') return 'candidate'
+  if (key === 'customers' || key === 'leads') return 'organization'
+  return 'general'
+}
+
 async function sendOne(
   resend: Resend,
   edition: EditionForSend,
@@ -160,7 +172,7 @@ async function sendOne(
 ) {
   const token = makeUnsubscribeToken(to.email, edition.id)
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${token}`
-  const { html, text } = renderEmail({
+  const rendered = renderEmail({
     bodyHtml: edition.bodyHtml,
     previewText: edition.previewText,
     reportUrl: reportLinkFor(edition),
@@ -169,6 +181,9 @@ async function sendOne(
     postalAddress: settings.postalAddress || '[postal address not set]',
     unsubscribeUrl,
   })
+  const audience = audienceForEdition(edition)
+  const html = withAudienceHtml(audience, rendered.html)
+  const text = withAudienceText(audience, rendered.text)
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
     from: `${fromName} <${settings.fromEmail}>`,

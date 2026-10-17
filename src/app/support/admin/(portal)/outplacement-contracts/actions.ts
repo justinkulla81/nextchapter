@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createOutplacementOrg, createOutplacementContract, inviteFirstOrgAdmin } from '@/lib/admin/outplacement-contracts'
-import type { OutplacementTier } from '@prisma/client'
+import type { OutplacementProgramType, OutplacementTier } from '@prisma/client'
+import { PROGRAM_TYPES } from '@/lib/employer/program-type'
 
 export type ActionState = { error?: string; success?: string } | undefined
 
@@ -36,6 +37,8 @@ export async function createContractAction(_prevState: ActionState, formData: Fo
   const poReference = (formData.get('poReference') as string | null)?.trim() || null
   const invoiceReference = (formData.get('invoiceReference') as string | null)?.trim() || null
   const isSampleData = formData.get('isSampleData') === 'on'
+  const programRaw = formData.get('programType') as string | null
+  const programType: OutplacementProgramType = PROGRAM_TYPES.includes(programRaw as OutplacementProgramType) ? (programRaw as OutplacementProgramType) : 'OUTPLACEMENT'
 
   if (!orgId) return { error: 'Choose an organization.' }
   if (!tier) return { error: 'Choose a tier.' }
@@ -46,6 +49,7 @@ export async function createContractAction(_prevState: ActionState, formData: Fo
     orgId,
     cohortLabel,
     tier,
+    programType,
     seatCount,
     termStartAt: new Date(termStartAt),
     termEndAt: new Date(termEndAt),

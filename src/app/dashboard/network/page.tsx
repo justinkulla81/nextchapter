@@ -23,6 +23,7 @@ import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialMo
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
+import { RecruitersForYouCard } from '@/components/dashboard/RecruitersForYouCard'
 import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
@@ -96,6 +97,7 @@ const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
   PHONE: 'Phone',
   TEXT: 'Text',
   MEETING: 'Meeting',
+  OTHER: 'Message',
 }
 
 // A contact counts as job-relevant two ways: manually flagged as able to
@@ -186,8 +188,31 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
   const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
       ? prisma.trackedEmailActivity.findMany({
-          where: { candidateId: profile.id, dismissedAt: null },
+          // Only the rows the tiles below read, and only the columns they read: an account
+          // with years of synced mail has tens of thousands of rows, almost all of them
+          // job-alert and notification mail none of these filters match.
+          where: {
+            candidateId: profile.id,
+            dismissedAt: null,
+            OR: [
+              { direction: 'OUTBOUND', activityType: { in: NETWORKING_EMAIL_TYPES } },
+              { direction: 'OUTBOUND', hasResumeAttachment: true },
+              { activityType: { in: ['FOLLOW_UP', 'CHECK_IN', 'THANK_YOU', 'INTRO_REQUEST'] } },
+              { activityType: 'NETWORKING_OUTREACH', confidence: 'high' },
+            ],
+          },
           orderBy: { detectedAt: 'desc' },
+          select: {
+            id: true,
+            subject: true,
+            companyName: true,
+            detectedAt: true,
+            direction: true,
+            activityType: true,
+            confidence: true,
+            hasResumeAttachment: true,
+            fromAddress: true,
+          },
         })
       : Promise.resolve([]),
     calendarConnection
@@ -705,6 +730,10 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <AlumniNetworkCarousel groups={alumniGroups} />
+
+      <Suspense fallback={null}>
+        <RecruitersForYouCard candidateId={profile.id} />
+      </Suspense>
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
       {/* §4.6 hard block leaves no EmailConnection row behind, so

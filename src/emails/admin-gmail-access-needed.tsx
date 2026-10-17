@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface AdminGmailAccessNeededEmailProps {
   candidateName: string
@@ -74,6 +75,7 @@ export default function AdminGmailAccessNeededEmail({
       <p>
         <a href={adminUrl}>View candidate →</a>
       </p>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

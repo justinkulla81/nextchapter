@@ -62,7 +62,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     })
     if (sibling > 0) return false
 
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+    const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: ALERT_TO,
       subject: alertSubject(input),

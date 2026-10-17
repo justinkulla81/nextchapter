@@ -107,6 +107,13 @@ export async function rebuildPayBenchmarks(): Promise<{ benchmarks: number; area
             FROM "CompanyJobOpening"
             WHERE "payAnnualMid" IS NOT NULL AND "seniorityGroup" IS NOT NULL
               AND COALESCE("postedAt", "firstSeenAt") >= now() - interval '${BENCHMARK_WINDOW_DAYS} days'
+              -- Full-time salaries only: part-time, contract and hourly gig pay annualised
+              -- at 2,080 hours would skew the market (see work-type.ts payComparison).
+              AND title !~* '\\m(part[- ]time|fractional|contractor|freelance|1099|per diem|temporary)\\M|\\(\\s*contract|fixed[- ]term'
+              AND NOT EXISTS (
+                SELECT 1 FROM "ExclusiveJobPosting" x
+                WHERE x.url = "CompanyJobOpening".url AND x."employmentType" IS NOT NULL AND x."employmentType" <> 'full_time'
+              )
           ) d
         ) c WHERE rk <= ${MAX_COMPANY_SHARE}
       `)

@@ -27,7 +27,7 @@ export default async function SchoolLinksPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">School links</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Higher ed links</h1>
         <p className="text-muted-foreground">
           Resume schools that look like a known institution but don&apos;t match exactly. Merge the ones that are the same
           school; keep the rest separate and they won&apos;t be suggested again.

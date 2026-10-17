@@ -8,15 +8,15 @@ import {
   MATCH_DIMENSION_LABEL,
   MATCH_DIMENSION_ORDER,
   MATCH_STATUS_LABEL,
-  OVERALL_MATCH_LABEL,
   type JobMatch,
   type MatchStatus,
-  type OverallMatch,
 } from '@/lib/jobs/job-match-types'
 import { explainJobGaps } from '@/app/dashboard/find-my-job/actions'
+import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
+import { JobRequirementDetails } from '@/components/dashboard/JobRequirementLabels'
 
 // The per-job match and gaps (src/lib/jobs/job-match.ts) on a board card: a compact
-// line in the card header, and a "Your match and gaps" section inside the card.
+// breakdown under the verdict in the open card, and a "Your match and gaps" section.
 // Labels only — never the underlying numbers.
 
 const STATUS_STYLE: Record<MatchStatus, string> = {
@@ -26,34 +26,30 @@ const STATUS_STYLE: Record<MatchStatus, string> = {
   unknown: 'border border-dashed border-border text-muted-foreground',
 }
 
-const OVERALL_STYLE: Record<OverallMatch, string> = {
-  strong: 'text-success',
-  good: 'text-foreground',
-  mixed: 'text-foreground',
-  weak: 'text-orange',
-  unknown: 'text-muted-foreground',
+const BREAKDOWN_STATUS: Record<MatchStatus, string> = {
+  strong: 'strong',
+  partial: 'partial',
+  gap: 'a gap',
+  unknown: 'not known yet',
 }
 
-/** One line under the job title: overall + five small chips. */
-export function JobMatchLine({ match }: { match: JobMatch }) {
+/**
+ * Inside the open card, under the fit verdict: how the five dimensions line up, in words
+ * and neutral colour ("Skills strong · Salary partial · Culture not known yet"). The
+ * collapsed card carries only the verdict; this is the breakdown behind it.
+ */
+export function JobMatchBreakdown({ match }: { match: JobMatch }) {
   return (
-    <span className="mt-1 flex flex-wrap items-center gap-1 text-xs">
-      <span className={cn('mr-1 whitespace-nowrap font-medium', OVERALL_STYLE[match.overall])}>{OVERALL_MATCH_LABEL[match.overall]}</span>
+    <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground" aria-label="How this job lines up with you">
       {MATCH_DIMENSION_ORDER.map((key) => {
         const d = match.dimensions[key]
         return (
-          <span
-            key={key}
-            className={cn('whitespace-nowrap rounded-full px-1.5 py-px', STATUS_STYLE[d.status])}
-            title={`${MATCH_DIMENSION_LABEL[key]}: ${MATCH_STATUS_LABEL[d.status]}${d.evidence[0] ? ` — ${d.evidence[0]}` : ''}`}
-          >
-            {MATCH_DIMENSION_LABEL[key]}
-            <span className="sr-only">: {MATCH_STATUS_LABEL[d.status]}</span>
-            {d.status === 'unknown' && <span aria-hidden> ?</span>}
-          </span>
+          <li key={key} title={d.evidence[0] ?? undefined}>
+            <span className="text-foreground">{MATCH_DIMENSION_LABEL[key]}</span> {BREAKDOWN_STATUS[d.status]}
+          </li>
         )
       })}
-    </span>
+    </ul>
   )
 }
 
@@ -62,11 +58,14 @@ export function JobMatchDetails({
   jobId,
   match,
   explainEnabled,
+  candidatePlus = false,
   insiders,
 }: {
   jobId: string
   match: JobMatch
   explainEnabled?: boolean
+  /** Explain my gaps is a Candidate+ extra; others see one line saying what it does. */
+  candidatePlus?: boolean
   /** Members who worked at this company that the viewer can ask (count only). */
   insiders?: { count: number; href: string }
 }) {
@@ -86,9 +85,9 @@ export function JobMatchDetails({
     >
       <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-foreground">
         Your match and gaps
-        <span className="font-normal text-muted-foreground"> — {OVERALL_MATCH_LABEL[match.overall].toLowerCase()}</span>
       </summary>
       <div className="space-y-3 px-3 pb-3">
+        <JobRequirementDetails jobId={jobId} checks={match.requirements} surface="board_card" />
         {match.gaps.length > 0 ? (
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">What to address in your application</p>
@@ -150,7 +149,8 @@ export function JobMatchDetails({
         <p className="text-xs text-muted-foreground">
           Based on your profile and what this posting says. Pay marked as an estimate is ours, not the employer&apos;s.
         </p>
-        {explainEnabled && <ExplainGaps jobId={jobId} />}
+        {explainEnabled &&
+          (candidatePlus ? <ExplainGaps jobId={jobId} /> : <CandidatePlusExtraLine extra="explain_gaps" jobId={jobId} surface="job_match" />)}
       </div>
     </details>
   )

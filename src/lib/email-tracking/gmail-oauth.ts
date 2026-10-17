@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { sendAdminGmailAccessNeededEmail } from '@/lib/email/send-admin-gmail-access-needed'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Prompt 76 — candidate-facing Gmail connection. Deliberately separate
 // credentials and env vars from src/lib/google/oauth.ts, which is the
@@ -31,7 +32,8 @@ const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly openid email'
 const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 function getRedirectUri(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // The candidate app's host (candidate.<site> once it's switched on), where the session cookie is.
+  const appUrl = callbackOriginForAppPath('/dashboard')
   return `${appUrl}/api/auth/gmail/callback`
 }
 
@@ -39,7 +41,8 @@ function getRedirectUri(): string {
 // it authorized with — Google's token endpoint 400s (redirect_uri_mismatch)
 // if the exchange doesn't repeat the same value used to obtain the code.
 export function getCombinedRedirectUri(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // The candidate app's host (candidate.<site> once it's switched on), where the session cookie is.
+  const appUrl = callbackOriginForAppPath('/dashboard')
   return `${appUrl}/api/auth/google-connect/callback`
 }
 

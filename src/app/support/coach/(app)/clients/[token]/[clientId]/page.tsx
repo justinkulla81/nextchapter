@@ -1,9 +1,15 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
+import { CoachProfileContextCard } from '@/components/coach/CoachProfileContext'
+import { CoachParallelPathsCard } from '@/components/coach/CoachParallelPathsCard'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { notFound } from 'next/navigation'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
+import { NoteSummaryCard } from '@/components/coach/NoteSummaryCard'
+import { DAILY_SUMMARIES_PER_COACH, getNoteSummaryView } from '@/lib/coach/note-summary-service'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { PlatformStagePill } from '@/components/dashboard/platforms/PlatformStagePill'
@@ -33,10 +39,12 @@ export default async function PreSessionBriefPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const [brief, platformActivity] = await Promise.all([
+  const [brief, platformActivity, noteSummary, parallelPaths] = await Promise.all([
     getPreSessionBrief(candidate.id),
     // Same consent as the rest of this brief (getCoachClient above).
     getPlatformActivity(candidate.id).then((rows) => rows.filter((r) => !r.dismissed)),
+    getNoteSummaryView(coach.id, candidate.id),
+    getParallelPaths(candidate.id),
   ])
 
   return (
@@ -55,6 +63,21 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <Suspense fallback={null}>
+          <CoachProfileContextCard candidateId={candidate.id} />
+        </Suspense>
+
+        <CoachParallelPathsCard paths={parallelPaths} />
+
+        <NoteSummaryCard token={token} clientId={clientId} view={noteSummary.view} sessionsWithNotes={noteSummary.sessionsWithNotes} dailyLimit={DAILY_SUMMARIES_PER_COACH} />
+
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-muted-foreground">Documents</p>
+          <p className="mt-1 text-sm text-foreground">Ask {brief.candidateName} for a document, like an offer letter or a signed form, and review it here.</p>
+          <Link href={`/support/coach/clients/${token}/${clientId}/documents`} className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Open documents
+          </Link>
+        </div>
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground">Market Reality Assessment</p>
           <p className="mt-1 text-lg font-semibold text-foreground">

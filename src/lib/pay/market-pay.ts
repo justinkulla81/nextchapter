@@ -114,6 +114,8 @@ const STATE_NAMES: Record<string, string> = {
   wisconsin: 'WI', wyoming: 'WY', 'district of columbia': 'DC', 'puerto rico': 'PR',
 }
 const STATE_CODES = new Set(Object.values(STATE_NAMES))
+/** Every US state code statesFromLocation can return. */
+export const US_STATE_CODES: ReadonlySet<string> = STATE_CODES
 
 // Big US cities that often appear with no state. "Washington" alone is the state;
 // "Washington, DC" / "Washington DC" is handled by its code.

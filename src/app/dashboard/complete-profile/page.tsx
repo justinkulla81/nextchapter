@@ -102,13 +102,14 @@ export default async function CompleteProfilePage() {
               currentCity={profile.currentCity}
               currentState={profile.currentState}
               confirmedAt={profile.profileConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </div>
         )}
 
         {isIncomplete('INDUSTRY_CONFIRM') && (
           <div className="rounded-lg border border-border p-4">
-            <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} />
+            <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} prefilled={profile.resumePrefilledFields} />
           </div>
         )}
 
@@ -119,6 +120,7 @@ export default async function CompleteProfilePage() {
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
               yearsExperience={profile.yearsExperience}
               confirmedAt={profile.functionConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </div>
         )}

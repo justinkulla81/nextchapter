@@ -18,8 +18,8 @@ const RECOVERY_COPY: Record<RecoveryStatus, string | null> = {
 
 // What a company pays, its layoff history, and how to approach applying — three plain
 // cards, each an honest "nothing yet" when there is nothing to say.
-export async function CompanyIntelPanels({ companyId, isCandidatePlus }: { companyId: string; isCandidatePlus: boolean }) {
-  const d = await loadCompanyIntelPanels(companyId, isCandidatePlus)
+export async function CompanyIntelPanels({ companyId }: { companyId: string }) {
+  const d = await loadCompanyIntelPanels(companyId)
 
   return (
     <>

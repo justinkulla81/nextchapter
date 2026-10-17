@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface AdminNewCandidateAccountEmailProps {
   candidateName: string
@@ -88,6 +89,7 @@ export default function AdminNewCandidateAccountEmail({
       <a href={GOOGLE_CONSOLE_TEST_USERS_URL} style={secondaryButton}>
         Add as Google test user →
       </a>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

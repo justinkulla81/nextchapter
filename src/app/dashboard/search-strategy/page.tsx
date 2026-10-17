@@ -19,11 +19,16 @@ import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { shownFromHidden } from '@/lib/jobs/employer-sector'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetworkingForm'
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
 import { OtherSearchStrengthenersForm } from '@/components/dashboard/OtherSearchStrengthenersForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { CultureFitForm } from '@/components/dashboard/CultureFitForm'
+import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -31,6 +36,16 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
 import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
+import { getPlatform } from '@/lib/platforms/directory'
+import type { PlatformStageKey } from '@/lib/platforms/stages'
+import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
+import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { IndustryReadingConfirm } from '@/components/dashboard/IndustryReadingConfirm'
+import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
+import { US_STATE_CODES } from '@/lib/pay/market-pay'
+import { readMemberIndustries } from '@/lib/profile/industry-reading'
+import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -67,18 +82,23 @@ async function SearchStrategyGuidanceCard({
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
-  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+  // The guidance draft can take a while (it may call the model); the rejection
+  // lookup is independent, so run them together.
+  const strategyGuidancePromise = goalsComplete ? getOrDraftSearchStrategyGuidance(profile.id) : Promise.resolve(null)
 
   // Independent of Search Goals completion — a candidate can have logged
   // rejections before finishing their profile. Read-only from the same
   // report-generation-time computation as the Market Reality page's
   // Rejection Patterns section (computeRejectionTrends), never a second
   // live computation.
-  const latestReportForRejections = await prisma.marketRealityReport.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'desc' },
-    select: { jobSearchPattern: true },
-  })
+  const [strategyGuidance, latestReportForRejections] = await Promise.all([
+    strategyGuidancePromise,
+    prisma.marketRealityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { jobSearchPattern: true },
+    }),
+  ])
   const rejectionTrends =
     (latestReportForRejections?.jobSearchPattern as unknown as { rejectionTrends: RejectionTrendsData | null } | null)
       ?.rejectionTrends ?? null
@@ -220,7 +240,14 @@ async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidatePr
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
-  const culturePreferences = await getCulturePreferences(profile.id)
+  const culturePreferencesPromise = getCulturePreferences(profile.id)
+  // Pre-fill the independent-work question from what email and logged work
+  // already show, so the candidate confirms instead of answering from scratch.
+  const platformRowsPromise = prisma.candidatePlatformActivity.findMany({
+    where: { candidateId: profile.id, kind: 'WORK' },
+    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
+  })
+  const [culturePreferences, platformRows] = await Promise.all([culturePreferencesPromise, platformRowsPromise])
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -244,6 +271,17 @@ export default async function SearchStrategyPage() {
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
+  const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
+  const independentWorkSuggestions = suggestIndependentWork(
+    platformRows.flatMap((r) => {
+      const platform = getPlatform(r.platformKey)
+      return platform
+        ? [{ name: platform.name, category: platform.category, stage: r.stage as PlatformStageKey, lastProgressAt: r.lastProgressAt, dismissed: !!r.dismissedAt }]
+        : []
+    }),
+    profile.workHistory
+  )
+
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // 5 pages, one at a time, like the Market Reality Assessment wizard — no
@@ -257,6 +295,10 @@ export default async function SearchStrategyPage() {
   // Motivations come first — those are the two Victoria needs before she'll
   // review the strategy at all, so they shouldn't be buried behind an
   // optional page.
+  // Culture is part of a search; it is not asked of people who are not looking.
+  const stageJourney = effectiveJourney(profile)
+  const showCulture = !!stageJourney && getJourney(stageJourney).searching
+  const cultureAnswered = parseCultureFit(profile.cultureFit) !== null
   const wizardPages: WizardPage[] = [
     { key: 'target-role', label: 'Target Role & Company', items: [{ key: 'target-role', complete: targetRoleComplete }] },
     {
@@ -264,6 +306,9 @@ export default async function SearchStrategyPage() {
       label: "What's Getting in the Way",
       items: [{ key: 'blockers-motivations', complete: blockersMotivationsComplete }],
     },
+    ...(showCulture
+      ? [{ key: 'culture', label: 'Culture & Working Environment', items: [{ key: 'culture', complete: cultureAnswered }] }]
+      : []),
     {
       key: 'marketing-networking',
       label: 'Your Marketing & Networking Plan',
@@ -325,7 +370,7 @@ export default async function SearchStrategyPage() {
             introText: 'Answering Board Advisory Work just unlocked:',
             items: [
               {
-                href: '/dashboard/interim-work#board-advisory-work',
+                href: '/dashboard/find-my-job?types=advisory#employer-matched-roles',
                 icon: 'users',
                 label: 'Board Advisory Work',
                 description: 'Board and consulting opportunities matched to your background.',
@@ -364,6 +409,13 @@ export default async function SearchStrategyPage() {
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
         />
+        <div id="employer-sectors" className="scroll-mt-4 space-y-2 border-t border-border pt-4">
+          <p className="text-sm font-medium text-foreground">Which employers do you want jobs from?</p>
+          <p className="text-xs text-muted-foreground">
+            Turn a sector off and its jobs leave your board and your job emails. You can change this any time, here or on the board.
+          </p>
+          <EmployerSectorFilter surface="search_strategy" shown={shownFromHidden(profile.hiddenEmployerSectors)} updateUrl={false} />
+        </div>
       </CardContent>
     </Card>,
 
@@ -388,6 +440,22 @@ export default async function SearchStrategyPage() {
       </CardContent>
     </Card>,
 
+    ...(showCulture
+      ? [
+          <Card key="culture">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                If it matters to you, we turn it into questions to ask in interviews, checks on an offer and people to ask what a company is really like. If it
+                does not matter, we leave it out.
+              </p>
+              <CultureFitForm fit={parseCultureFit(profile.cultureFit)} />
+            </CardContent>
+          </Card>,
+        ]
+      : []),
     <Card key="marketing-networking">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</CardTitle>
@@ -425,10 +493,11 @@ export default async function SearchStrategyPage() {
       <CardContent>
         <OtherSearchStrengthenersForm
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
+          independentWorkInitial={independentWorkInitial}
+          independentWorkSuggestions={independentWorkSuggestions}
           optionalQuestionsInitial={{
             networkingLevel: profile.networkingLevel,
             learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
             triedExecutiveCoaching: profile.triedExecutiveCoaching,
             connectedWithRecruiters: profile.connectedWithRecruiters,
             recruiterConnectionCount: profile.recruiterConnectionCount,
@@ -494,6 +563,29 @@ export default async function SearchStrategyPage() {
       </div>
 
       {actionPlanCard}
+
+      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
+      <Suspense fallback={null}>
+        <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
+      {/* Their industry text read as several industries (or none we know): one-click confirm (industry-reading.ts). */}
+      {(() => {
+        const text = [profile.industryContext, profile.secondaryIndustryContext].filter(Boolean).join(' / ')
+        const reading = readMemberIndustries(profile.industryContext, profile.secondaryIndustryContext)
+        if (!text || profile.industryBuckets.length > 0 || !reading.uncertain) return null
+        return <IndustryReadingConfirm text={text} suggested={reading.buckets} options={INDUSTRY_BUCKET_NAMES.filter((n) => n !== 'Other')} />
+      })()}
+
+      {/* No home city: local jobs can't count (relevance.ts geography). One click to add it. */}
+      {(!profile.currentCity?.trim() || !profile.currentState?.trim()) && (
+        <AddCityPrompt surface="search_strategy" states={[...US_STATE_CODES].sort()} fallback="remote jobs and places you said you'd move to" />
+      )}
+
+      {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
+      <Suspense fallback={null}>
+        <MarketSizeSection member={profile} surface="search_strategy" />
+      </Suspense>
 
       <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
         {wizardPageContent}

@@ -1,9 +1,9 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { RoleMatchEmailRole } from '@/lib/email/send-role-match-email'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface RoleMatchEmailProps {
   firstName: string | null
-  dossierUnlocked: boolean
   role: RoleMatchEmailRole
   actionUrl: string
 }
@@ -42,13 +42,13 @@ const ROLE_TYPE_LABEL: Record<RoleMatchEmailRole['type'], string> = {
   CONSULTING_UNPAID: 'consulting opportunity',
 }
 
-export default function RoleMatchEmail({ firstName, dossierUnlocked, role, actionUrl }: RoleMatchEmailProps) {
+export default function RoleMatchEmail({ firstName, role, actionUrl }: RoleMatchEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
-      {dossierUnlocked ? (
-        <>
+      {/* Every member sees every job (owner's rule, 2026-10-16), so the role is always named. */}
+      <>
           <p>
             A {ROLE_TYPE_LABEL[role.type]} at <strong>{role.companyName}</strong> is a strong match for your
             background: <strong>{role.roleTitle}</strong>.
@@ -58,22 +58,8 @@ export default function RoleMatchEmail({ firstName, dossierUnlocked, role, actio
           <a href={actionUrl} style={button}>
             See the opportunity →
           </a>
-        </>
-      ) : (
-        <>
-          {/* Deliberately no title, company, or comp here — a locked
-              candidate never sees a real opportunity's details by email,
-              only that one exists and how to unlock it. */}
-          <p>A strong-fit {ROLE_TYPE_LABEL[role.type]} just opened up that matches your background well.</p>
-          <p>
-            It&apos;s one of the exclusive opportunities only visible once your Dossier is unlocked — unlock it
-            to see this one and everything else that matches you.
-          </p>
-          <a href={actionUrl} style={button}>
-            Unlock your Dossier →
-          </a>
-        </>
-      )}
+      </>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

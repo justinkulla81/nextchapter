@@ -5,10 +5,11 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateEmployerProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { claimHiringWorkspace } from '@/lib/organizations/service'
 
 export type CompleteEmployerSignupState = { error?: string } | undefined
 
-async function finishEmployerSignup(userId: string, contactName: string, companyName: string) {
+async function finishEmployerSignup(userId: string, email: string | null | undefined, contactName: string, companyName: string) {
   const profile = await getOrCreateEmployerProfile(userId, companyName)
 
   await prisma.employerProfile.update({
@@ -21,7 +22,9 @@ async function finishEmployerSignup(userId: string, contactName: string, company
     },
   })
 
-  captureServerEvent(profile.id, 'talent_signup_completed', { employerId: profile.id })
+  // Joins the organization that invited this email, if any.
+  const joined = await claimHiringWorkspace(profile.id, email).catch(() => false)
+  captureServerEvent(profile.id, 'talent_signup_completed', { employerId: profile.id, joinedOrganization: joined })
 }
 
 export async function completeEmployerSignup(
@@ -48,7 +51,7 @@ export async function completeEmployerSignup(
     return { error: 'Something went wrong starting your session. Please try again.' }
   }
 
-  await finishEmployerSignup(user.id, contactName, companyName)
+  await finishEmployerSignup(user.id, user.email, contactName, companyName)
 
   redirect('/talent/roles/new')
 }
@@ -72,6 +75,6 @@ export async function completeEmployerSignupFromSession(): Promise<{ error?: str
     return { error: 'Missing signup details — please try creating your account again.' }
   }
 
-  await finishEmployerSignup(user.id, contactName, companyName)
+  await finishEmployerSignup(user.id, user.email, contactName, companyName)
   return {}
 }

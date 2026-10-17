@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -306,20 +307,22 @@ export default async function MarketRealityReportPage({
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
-  const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
-  const suggestedActions = await getSuggestedActions(profile.id, weekNumber)
 
   // MRG §11 — the rebuilt report's 7 mandated sections (Report Structure
   // Spec §3), read live rather than frozen into the report row so a
   // resolved reviewer question or a freshly-recomputed component score is
   // never stale (see market-reality-sections.ts's own header comment).
-  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness, rubric] = await Promise.all([
+  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness, rubric, suggestedActions] = await Promise.all([
     getWhereYouStand(profile.id),
     getResumeFixes(profile.id, report?.resumeRewrites ?? null),
     getRecruiterReadItems(profile.id),
     getAtsMatrix(profile.id),
     computeDossierCompleteness(profile.id),
     getMarketRealityRubric(profile.id),
+    // Needs the week number first, but is independent of the reads above.
+    getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date())).then((weekNumber) =>
+      getSuggestedActions(profile.id, weekNumber)
+    ),
   ])
 
   // Personalization checklist — the same profile-confirmation fields
@@ -783,6 +786,13 @@ export default async function MarketRealityReportPage({
           <Suspense fallback={null}>
             <SearchDiagnosisSection candidateId={profile.id} />
           </Suspense>
+
+          {/* Market size for the member's target: open jobs, trend, next steps (market-size.ts). */}
+          <div className="mt-10">
+            <Suspense fallback={null}>
+              <MarketSizeSection member={profile} surface="market_reality" />
+            </Suspense>
+          </div>
 
           {/* Adzuna labor-market data for the member's target role: advertised
               salary distribution, 6-month trend, demand by state, top hirers. */}

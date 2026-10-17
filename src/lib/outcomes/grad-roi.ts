@@ -1,6 +1,6 @@
 // Facts shown on the master's / MBA guardrail. Each carries its source so the
-// card never states a number it cannot back. From the NextChapter Displacement
-// Report (Sept 2026), which cites the underlying publishers. Verify against the
+// card never states a number it cannot back. From the NextChapter White Collar
+// Employment Report (Sept 2026), which cites the underlying publishers. Verify against the
 // originals before adding a figure.
 
 export interface GradRoiFact {

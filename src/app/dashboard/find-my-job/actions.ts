@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import type { ApplicationChannel, DeclineParty, JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
@@ -16,6 +17,7 @@ import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
 import { explainGaps, isExplainGapsEnabled, type ExplainGapsResult } from '@/lib/jobs/explain-gaps'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
@@ -27,6 +29,9 @@ import {
 } from '@/lib/scoring/rewrite-actions'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { classifyWorkType, isWorkType } from '@/lib/jobs/work-type'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 
 export type FormState = { error?: string } | undefined
 
@@ -74,7 +79,7 @@ export async function submitJobUrl(_prevState: FormState, formData: FormData): P
   const profile = await getOrCreateCandidateProfile(user.id)
 
   const existingCount = await prisma.jobPosting.count({
-    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null, source: { not: 'BOARD' } },
   })
   if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
     return { error: 'You can track up to 5 active job postings at a time — remove one to add another.' }
@@ -144,7 +149,7 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
   const profile = await getOrCreateCandidateProfile(user.id)
 
   const existingCount = await prisma.jobPosting.count({
-    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null, source: { not: 'BOARD' } },
   })
   if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
     return { error: 'You can track up to 5 active job postings at a time — remove one to add another.' }
@@ -200,6 +205,8 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
   await generateInterviewPrep(jobPosting.id, profile.id)
 
   captureServerEvent(profile.id, 'interview_landed', { jobId: jobPosting.id, source: 'interview_tracking_quick_add' })
+  // Link to the board posting for admin application fit (title / company come from analyzeJobFit above).
+  after(() => linkApplicationToBoard(jobPosting.id))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -297,6 +304,7 @@ export async function markApplied(
     data: { appliedAt: new Date(), channel: channel ?? null },
   })
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
+  after(() => linkApplicationToBoard(jobPostingId))
 
   // Real, verified signal — a specific tracked posting just moved to
   // Applied — so this earns the Search Action directly rather than relying
@@ -612,6 +620,8 @@ export async function updateApplicationDetails(jobPostingId: string, formData: F
   }
 
   await prisma.jobPosting.update({ where: { id: jobPostingId }, data: { title, url } })
+  // A corrected title or link can change which board posting this was.
+  if (jobPosting.appliedAt) after(() => linkApplicationToBoard(jobPostingId))
   revalidatePath('/dashboard/find-my-job')
 }
 
@@ -658,17 +668,24 @@ export async function refreshSurfacedJobs() {
 // into JobClickEvent (not just the PostHog event) so admin can group by
 // company/title with a real Prisma groupBy — see the schema comment.
 export async function recordJobClick(input: {
-  source: 'surfaced' | 'job_board'
+  // 'surfaced' | 'job_board' | 'matched_role' are jobs (tracked in My jobs);
+  // 'platform' (an expert network / marketplace Join link) and 'likely_opening'
+  // (a filing or news link) are logged as clicks only.
+  source: 'surfaced' | 'job_board' | 'matched_role' | 'platform' | 'likely_opening'
   sourceId: string
   jobTitle: string
   companyName: string | null
   location: string | null
   url: string
   fitBucket: string | null
+  /** One-board work type (work-type.ts); defaults to reading the title. */
+  workType?: string | null
 }) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
+  const now = new Date()
+  const workType = isWorkType(input.workType) ? input.workType : classifyWorkType({ title: input.jobTitle })
   await prisma.jobClickEvent.create({
     data: {
       candidateId: profile.id,
@@ -681,9 +698,39 @@ export async function recordJobClick(input: {
       fitBucket: input.fitBucket,
     },
   })
+  // My jobs: the click is what lets a later Gmail confirmation (or the "did you
+  // apply?" prompt) turn into an application for this exact job.
+  if (input.source === 'job_board' || input.source === 'surfaced' || input.source === 'matched_role') {
+    await prisma.trackedJob.upsert({
+      where: { candidateId_source_sourceId: { candidateId: profile.id, source: input.source, sourceId: input.sourceId } },
+      create: {
+        candidateId: profile.id,
+        source: input.source,
+        sourceId: input.sourceId,
+        title: input.jobTitle,
+        companyName: input.companyName,
+        url: input.url,
+        workType,
+        firstClickedAt: now,
+        lastClickedAt: now,
+      },
+      update: { lastClickedAt: now },
+    })
+    // Fill firstClickedAt on a job saved before it was ever opened.
+    await prisma.trackedJob.updateMany({
+      where: { candidateId: profile.id, source: input.source, sourceId: input.sourceId, firstClickedAt: null },
+      data: { firstClickedAt: now },
+    })
+  }
   captureServerEvent(profile.id, 'job_link_clicked', {
     source: input.source,
     sourceId: input.sourceId,
+    companyName: input.companyName,
+  })
+  captureServerEvent(profile.id, 'job_apply_clicked', {
+    jobId: input.sourceId,
+    type: workType,
+    source: input.source,
     companyName: input.companyName,
   })
 }
@@ -735,7 +782,7 @@ export async function createCoverLetterFromSurfacedJob(
   if (!surfacedJob) return { error: 'Could not find that job.' }
 
   const existingCount = await prisma.jobPosting.count({
-    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null, source: { not: 'BOARD' } },
   })
   if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
     return { error: 'You can track up to 5 active job postings at a time — remove one on Job Fit to add another.' }
@@ -800,7 +847,7 @@ export async function promoteJobBoardListing(postingId: string, _prevState: Prom
   }
 
   const existingCount = await prisma.jobPosting.count({
-    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null, source: { not: 'BOARD' } },
   })
   if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
     return { error: 'You can track up to 5 active job postings at a time — remove one to add another.' }
@@ -844,6 +891,8 @@ export async function promoteJobBoardListing(postingId: string, _prevState: Prom
 export async function requestJobBoardIntro(postingId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
+  // Request intro is part of Who to contact, a Candidate+ extra (candidate-plus-extras.ts).
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return
 
   const posting = await prisma.exclusiveJobPosting.findFirst({
     where: { id: postingId, status: 'approved', archivedAt: null },
@@ -928,6 +977,7 @@ export async function explainJobGaps(postingId: string): Promise<ExplainGapsResu
   if (!isExplainGapsEnabled()) return { ok: false, error: 'This feature is not available yet.' }
   const profile = await getAuthedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to see this explanation.' }
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('explain_gaps') }
   const posting = await prisma.exclusiveJobPosting.findUnique({
     where: { id: postingId },
     include: { company: { select: { sizeBand: true, ownershipType: true } } },

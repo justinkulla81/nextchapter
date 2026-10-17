@@ -15,6 +15,9 @@
 // job-fit-bucket.ts for the direction check.
 export type FitBucket = 'strong' | 'good' | 'stretch' | 'below_level' | 'overqualified'
 
+/** The job's level against the member's (fit scoring v2, job-fit-bucket.ts). */
+export type LevelStep = 'same' | 'up' | 'big_up' | 'down' | 'big_down' | 'unknown'
+
 // Labels frame the seniority relationship between the candidate and the
 // role rather than a generic "quality of match" — 'strong' and 'good' both
 // clear the "real recommendation" bar (see isWeakFit below) but differ in

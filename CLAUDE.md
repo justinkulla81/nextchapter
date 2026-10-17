@@ -22,3 +22,9 @@ Name events `snake_case`, past-tense-ish and specific (`job_rated`, not
 `posthog.capture()` client-side for user-initiated actions; use
 `posthog-node` server-side for events that only happen in a Server Action
 (add the package when the first such event is needed).
+
+## Links in replies
+
+Whenever you mention a page, route or path of this app to the user, give the
+full URL (`https://launchyournextchapter.com/...`), never a bare path like
+`/support/admin/organizations`. This is a strict rule from the owner.

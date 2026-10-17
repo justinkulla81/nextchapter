@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface NewsletterWeeklyEmailProps {
   introCopy: string | null
@@ -63,6 +64,7 @@ export default function NewsletterWeeklyEmail({
       <p style={footer}>
         You signed up for this email at launchyournextchapter.com. <a href={unsubscribeUrl}>Unsubscribe</a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

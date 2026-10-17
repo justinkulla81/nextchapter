@@ -30,8 +30,8 @@ export function unsubscribeUrls(slug: string, claimToken: string) {
   return { page: `${appUrl()}/i/${slug}/unsubscribe?t=${t}`, oneClick: `${appUrl()}/api/higher-ed/unsubscribe/${t}` }
 }
 
-export function withFooter(text: string, college: string, unsubscribe: string): string {
-  return `${text}\n\n—\nYou're getting this as a ${college} alum. Stop these emails: ${unsubscribe}`
+export function withFooter(text: string, college: string, unsubscribe: string, workforce = false): string {
+  return `${text}\n\n—\nYou're getting this ${workforce ? `because you're in ${college}'s program` : `as a ${college} alum`}. Stop these emails: ${unsubscribe}`
 }
 
 export type Recipient = { memberId: string; extra?: Record<string, string> }
@@ -55,7 +55,7 @@ export async function sendCampaign(args: {
 }): Promise<{ campaignId: string; sent: number; skipped: number; sendIds: Map<string, string>; demo: boolean }> {
   const inst = await prisma.institution.findUniqueOrThrow({
     where: { id: args.institutionId },
-    select: { slug: true, name: true, programBrandName: true, isDemo: true, enabledFeatures: true },
+    select: { slug: true, name: true, programBrandName: true, isDemo: true, enabledFeatures: true, orgType: true },
   })
   const members = await prisma.institutionMember.findMany({
     where: { id: { in: args.recipients.map((r) => r.memberId) }, institutionId: args.institutionId },
@@ -67,7 +67,7 @@ export async function sendCampaign(args: {
         data: { institutionId: args.institutionId, type: args.type, subject: args.subject, body: args.body, createdBy: args.createdBy, sentAt: new Date() },
         select: { id: true },
       })
-  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
+  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY, 'candidate') : null
   const brand = inst.programBrandName ?? inst.name
   const sender = emailSettingsFrom(inst.enabledFeatures, inst)
   const sendIds = new Map<string, string>()
@@ -96,7 +96,7 @@ export async function sendCampaign(args: {
         to: m.email,
         ...(sender.replyTo ? { replyTo: sender.replyTo } : {}),
         subject: merge(args.subject, values),
-        text: withFooter(merge(args.body, values), inst.name, unsub.page),
+        text: withFooter(merge(args.body, values), inst.name, unsub.page, inst.orgType !== 'COLLEGE'),
         headers: { 'List-Unsubscribe': `<${unsub.oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
       })
       if (result.error) {

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface FriendReferralEmailProps {
   referrerEmail: string
@@ -53,6 +54,7 @@ export default function FriendReferralEmail({ referrerEmail }: FriendReferralEma
         If you weren&apos;t expecting this, you can safely ignore it — no account was created and
         nothing else will be sent.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

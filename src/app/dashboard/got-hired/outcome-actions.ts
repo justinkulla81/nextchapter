@@ -71,6 +71,11 @@ export async function recordHireOutcome(_prev: OutcomeFormState, formData: FormD
   const levelRaw = formData.get('levelRetained') as string | null
   const levelRetained = levelRaw === 'yes' ? true : levelRaw === 'no' ? false : null
 
+  const workCity = String(formData.get('workCity') ?? '').trim().slice(0, 80) || null
+  const workState = String(formData.get('workState') ?? '').trim().toUpperCase() || null
+  if (workState && !/^[A-Z]{2}$/.test(workState)) return { error: 'Use the two-letter state, like KY, or leave it blank.' }
+  const workRemote = formData.get('workRemote') === 'on' ? true : workCity ? false : null
+
   const weeks = weeksUnemployed(profile.lastJobEndedAt, hiredAt)
   const bucket = durationBucketForWeeks(weeks)
 
@@ -85,6 +90,9 @@ export async function recordHireOutcome(_prev: OutcomeFormState, formData: FormD
       priorBasePayUsd: prior,
       newBasePayUsd: next,
       levelRetained,
+      workCity,
+      workState,
+      workRemote,
     },
   })
 
@@ -97,6 +105,8 @@ export async function recordHireOutcome(_prev: OutcomeFormState, formData: FormD
     hasPay: retention !== null,
     tookPayCut: retention?.tookCut ?? null,
     levelRetained,
+    hasWorkPlace: !!(workCity || workRemote),
+    workRemote,
   })
 
   revalidatePath('/dashboard/got-hired')

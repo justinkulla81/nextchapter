@@ -103,6 +103,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // confirm.
   TRACK_RECORD_COMPLETED: { minutes: 15, points: 20 },
   WHAT_I_NEED_COMPLETED: { minutes: 15, points: 20 },
+  WORK_INTERESTS_COMPLETED: { minutes: 10, points: 20 },
 
   // Prompt 68 — Interim Work page. Signing up for a fractional/talent
   // marketplace is a real, if small, step; deliberately smaller than
@@ -329,6 +330,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PERFORMANCE_ASSESSMENT_COMPLETED: 'effort',
   TRACK_RECORD_COMPLETED: 'effort',
   WHAT_I_NEED_COMPLETED: 'effort',
+  WORK_INTERESTS_COMPLETED: 'effort',
   REFERENCE_ADDED: 'effort',
   REFERENCE_REQUESTED: 'effort',
   REFERENCE_FOLLOW_UP: 'effort',
@@ -410,6 +412,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   PERFORMANCE_ASSESSMENT_COMPLETED: 'Personalize',
   TRACK_RECORD_COMPLETED: 'Personalize',
   WHAT_I_NEED_COMPLETED: 'Personalize',
+  WORK_INTERESTS_COMPLETED: 'Personalize',
   PROFILE_CONFIRM: 'Personalize',
   INDUSTRY_CONFIRM: 'Personalize',
   FUNCTION_CONFIRM: 'Personalize',
@@ -641,6 +644,7 @@ export const VERIFIED_ACTION_TYPES = new Set<string>([
   'PERFORMANCE_ASSESSMENT_COMPLETED',
   'TRACK_RECORD_COMPLETED',
   'WHAT_I_NEED_COMPLETED',
+  'WORK_INTERESTS_COMPLETED',
   'ANSWER_OPTIONAL_QUESTIONS',
   'COMFORT_CHECK_CONFIRM',
 ])
@@ -747,12 +751,13 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   PERFORMANCE_ASSESSMENT_COMPLETED: { href: '/dashboard/how-i-perform', label: 'How I Perform' },
   TRACK_RECORD_COMPLETED: { href: '/dashboard/track-record', label: 'Track Record' },
   WHAT_I_NEED_COMPLETED: { href: '/dashboard/what-i-need', label: 'What I Need' },
+  WORK_INTERESTS_COMPLETED: { href: '/dashboard/work-interests', label: 'Work Interests' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-  INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
+  INTERIM_PROFILE_CREATED: { href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
   JOB_BOARD_USAGE_CONFIRMED: { href: '/dashboard/find-my-job#job-recommendations', label: 'Find My Job' },
   MARKETING_PLAN_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
-  GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work#gig-directory-unlock', label: 'Interim Work' },
+  GIG_DIRECTORY_UNLOCK: { href: '/dashboard/find-my-job?types=part_time,contract,advisory#gig-directory-unlock', label: 'Interim Work' },
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Network with My Contacts' },
@@ -847,9 +852,20 @@ export function formatMinutes(minutes: number): string {
 // first Weekly Search Sprint).
 const WEEKLY_POINTS_RAMP = [60, 75, 90, 105, 120]
 
-export function pointsNeededForA(weekNumber: number): number {
+// Someone looking casually (open to the right opportunity, maybe already doing
+// fractional or interim work) works to half the target. The grade's own
+// thresholds are unchanged: the weekly effort is a bounded nudge on top of
+// proof (references, results, Dossier), and that proof is what earns an A.
+export const CASUAL_PACE = 0.5
+
+export function paceFor(casual: boolean): number {
+  return casual ? CASUAL_PACE : 1
+}
+
+export function pointsNeededForA(weekNumber: number, pace = 1): number {
   const index = Math.min(Math.max(weekNumber, 1), WEEKLY_POINTS_RAMP.length) - 1
-  return WEEKLY_POINTS_RAMP[index]
+  const base = WEEKLY_POINTS_RAMP[index]
+  return pace === 1 ? base : Math.max(5, Math.round((base * pace) / 5) * 5)
 }
 
 // Grade bands below A are a NextChapter judgment call — the vision doc only
@@ -960,6 +976,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'PERFORMANCE_ASSESSMENT_COMPLETED',
     'TRACK_RECORD_COMPLETED',
     'WHAT_I_NEED_COMPLETED',
+    'WORK_INTERESTS_COMPLETED',
   ],
   'search-strategy': ['SEARCH_STRATEGY_COMPLETE'],
   stats: [],

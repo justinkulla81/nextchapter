@@ -49,7 +49,7 @@ export const METRO_AREA_CODES: Record<string, string> = {
   'kansas city, mo': '2814000',
 }
 
-const STATE_FIPS: Record<string, string> = {
+export const STATE_FIPS: Record<string, string> = {
   al: '01', ak: '02', az: '04', ar: '05', ca: '06', co: '08', ct: '09', de: '10',
   fl: '12', ga: '13', hi: '15', id: '16', il: '17', in: '18', ia: '19', ks: '20',
   ky: '21', la: '22', me: '23', md: '24', ma: '25', mi: '26', mn: '27', ms: '28',

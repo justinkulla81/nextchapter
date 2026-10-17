@@ -1,4 +1,5 @@
 import 'server-only'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
 
 // Jobs an employer posted for one college's alumni only (ExclusiveJobPosting.institutionScopeId).
@@ -22,7 +23,8 @@ export async function listAlumniJobs(candidateId: string) {
     },
     orderBy: { createdAt: 'desc' },
     take: 100,
-    select: { id: true, title: true, companyName: true, location: true, url: true, institutionScopeId: true, createdAt: true },
+    select: { id: true, title: true, companyName: true, location: true, url: true, institutionScopeId: true, createdAt: true, employmentType: true },
   })
-  return postings.map((p) => ({ ...p, institutionName: names.get(p.institutionScopeId as string) ?? '' }))
+  // Internships are shown only in the college's Higher Ed portal, never on the member dashboard.
+  return postings.filter((p) => !isInternshipJob(p)).map((p) => ({ ...p, institutionName: names.get(p.institutionScopeId as string) ?? '' }))
 }

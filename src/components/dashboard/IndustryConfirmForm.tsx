@@ -8,19 +8,25 @@ import { Label } from '@/components/ui/label'
 import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
 
 const POINTS = estimateActionEffort({ actionType: 'INDUSTRY_CONFIRM' }).points
 
 export function IndustryConfirmForm({
   industryContext,
   confirmedAt,
+  prefilled = [],
 }: {
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
   industryContext: string | null
   confirmedAt: Date | null
 }) {
   const [state, formAction, pending] = useActionState(confirmIndustry, undefined)
   const [value, setValue] = useState(industryContext ?? '')
 
+  const retune = useRetuneAfterSave('industry', pending, !!state?.error, value.trim())
   const isConfirmed = !!confirmedAt
   const isDirty = value !== (industryContext ?? '')
   const canConfirm = !isConfirmed || isDirty
@@ -28,9 +34,11 @@ export function IndustryConfirmForm({
   return (
     <form
       action={formAction}
+      onSubmit={retune.onSubmit}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <ConfirmHint show={!isConfirmed} />
+      <FromResumeTag show={prefilled.includes('industryContext')} section="industry" fields={['industryContext']} />
       <Input name="industryContext" placeholder="Industry" value={value} onChange={(e) => setValue(e.target.value)} />
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex items-center gap-2">

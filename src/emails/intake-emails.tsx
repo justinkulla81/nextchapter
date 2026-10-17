@@ -158,6 +158,7 @@ export function IntakeApprovalDigestEmail({
   return (
     <IntakeEmailLayout
       heading="NextChapter Talent"
+      audience="recruiter"
       subheading={`${items.length} ${items.length === 1 ? 'reply' : 'replies'} waiting for your OK`}
       footerNote="Replies are never sent without your approval. You get this email only on days when replies are waiting."
     >
@@ -196,7 +197,7 @@ export function RecruiterFirmInviteEmail({
   signupUrl: string
 }) {
   return (
-    <IntakeEmailLayout heading="NextChapter Talent" footerNote={`${inviterName} invited you to ${firmName} on NextChapter.`}>
+    <IntakeEmailLayout heading="NextChapter Talent" audience="recruiter" footerNote={`${inviterName} invited you to ${firmName} on NextChapter.`}>
       <p>Hi,</p>
       <p>
         {inviterName} invited you to join {firmName} on NextChapter Talent. You get a personal page and forwarding

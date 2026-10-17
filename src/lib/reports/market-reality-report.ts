@@ -7,7 +7,8 @@
 // hides raw scores/jargon). This one shows everything to the candidate about
 // themselves — no hiding.
 
-import { effectiveJourney, effectiveStage, getJourney, getStage, REPORT_FRAMING } from '@/lib/journey/journey'
+import { cultureContext } from '@/lib/culture/culture-fit'
+import { effectiveJourney, effectiveStage, getJourney, getStage, moveDriverOf, reportFraming } from '@/lib/journey/journey'
 import 'server-only'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
@@ -142,7 +143,7 @@ You are writing this Market Reality Report as Victoria, directly for the candida
 
 HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, hillToClimb, gapAnalysis, marketConditions, or the executive summary. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
 
-HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
+HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Room to grow/Biggest opportunity) — never a number.
 
 HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," build your network, or any other ongoing-effort/Dossier-building framing as one of the 7 action-plan day items — this report's action plan is scoped to job goals, resume, and personalization only. Those other actions live in the Dossier instead (see the Portfolio page), not here.
 
@@ -386,7 +387,8 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
 
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
-    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity),
+    candidate.coachingStylePreference
   )
 
   // Skills the member's best-fit open roles ask for that their resume doesn't show.
@@ -438,11 +440,11 @@ Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.c
 Journey: ${(() => {
     const j = effectiveJourney(candidate)
     const st = effectiveStage(candidate)
-    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${REPORT_FRAMING[j]}` : 'not specified'
+    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${reportFraming(j, st, moveDriverOf(candidate.journeyDetails))}` : 'not specified'
   })()}
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
-Deal breakers: ${candidate.dealBreakers ?? 'not specified'}
+Deal breakers: ${candidate.dealBreakers ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 How difficult their job search has been so far (1=taking their time, 4=getting desperate): ${candidate.jobSearchDifficultyLevel ?? 'not specified'}
 Biggest barriers they believe they face: ${
     candidate.biggestBarriers.length > 0

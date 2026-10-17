@@ -5,11 +5,11 @@ import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib
 import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
+import { boardBreadthFor } from '@/lib/jobs/search-breadth'
 
 export interface CoachJobsSnapshot {
   isCandidatePlus: boolean
   openPostings: (ExclusiveJobPosting & { fitBucket: FitBucket })[]
-  lockedCount: number
   surfacedJobs: (SurfacedJob & { fitBucket: FitBucket })[]
 }
 
@@ -33,9 +33,8 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
 
   const isCandidatePlus = dossierStatus.unlocked
   // Best-fitting jobs only — the board is tens of thousands of rows (see board-shortlist.ts).
-  const board = await loadBoardShortlist({ candidate, isCandidatePlus })
+  const board = await loadBoardShortlist({ candidate, isCandidatePlus, includeMidLevel: true, includeEarlyCareer: true, breadth: boardBreadthFor(candidate) })
   const eligible = board.open
-  const lockedCount = board.lockedTotal
 
   const openPostings = eligible
     .map((p) => ({ ...p, fitBucket: computeBoardListingFitBucket(candidate, p) }))
@@ -46,5 +45,5 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
     fitBucket: computeSurfacedJobFitBucket(candidate, job),
   }))
 
-  return { isCandidatePlus, openPostings, lockedCount, surfacedJobs }
+  return { isCandidatePlus, openPostings, surfacedJobs }
 }

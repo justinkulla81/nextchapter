@@ -273,7 +273,7 @@ export default async function OutplacementPage() {
                 <Link href="/dossier" className="text-primary underline underline-offset-4">
                   /dossier
                 </Link>
-                . Your organization&apos;s reporting access ends per the contract term.
+                . Your company&apos;s reporting access ends per the contract term.
               </p>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default async function OutplacementPage() {
 
         <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
           <Link href="/for-organizations" className="underline underline-offset-4">
-            ← All organization types
+            ← Everyone we work with
           </Link>
           {' · '}
           <Link href="/pricing" className="underline underline-offset-4">

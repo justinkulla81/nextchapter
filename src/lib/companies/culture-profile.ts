@@ -1,4 +1,5 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { aggregateCulture, type CultureProfile } from '@/lib/companies/culture-aggregate'
 import { CULTURE_KEYS, type CultureAnswers, type CultureDimensionKey } from '@/lib/companies/culture-survey'
@@ -104,6 +105,11 @@ export async function getCultureSurveyCompanies(candidateId: string): Promise<Cu
     .sort((a, b) => Number(a.isCurrent) - Number(b.isCurrent) || (b.tenureEndedAt?.getTime() ?? 0) - (a.tenureEndedAt?.getTime() ?? 0))
 }
 
+/** How many companies this member has described (their own rows only; nothing about anyone else). */
+export async function countOwnCultureResponses(candidateId: string): Promise<number> {
+  return prisma.companyCultureResponse.count({ where: { candidateId } })
+}
+
 /** Save (create or update) one member's answers for one company they worked at. */
 export async function saveCultureResponse(
   candidateId: string,
@@ -128,4 +134,15 @@ export async function getCulturePreferences(candidateId: string): Promise<Cultur
   if (!row) return null
   const { pace, structure, workLife, decisions, managerSupport, mission, growth } = row
   return { pace, structure, workLife, decisions, managerSupport, mission, growth }
+}
+
+/**
+ * When two companies are merged, the culture answers follow the survivor. A member who
+ * already answered for the survivor keeps that answer and the source's is dropped, since
+ * a member has one answer per company. Re-points rows only; nothing is returned or shown.
+ */
+export async function moveCultureResponses(tx: Prisma.TransactionClient, survivorId: string, sourceId: string): Promise<void> {
+  const answered = await tx.companyCultureResponse.findMany({ where: { companyId: survivorId }, select: { candidateId: true } })
+  for (const r of answered) await tx.companyCultureResponse.deleteMany({ where: { companyId: sourceId, candidateId: r.candidateId } })
+  await tx.companyCultureResponse.updateMany({ where: { companyId: sourceId }, data: { companyId: survivorId } })
 }

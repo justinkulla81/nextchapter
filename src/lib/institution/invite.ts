@@ -8,9 +8,11 @@ import { createResend } from '@/lib/email/resend-client'
 import type { InstitutionUserRole } from '@prisma/client'
 import { ROLE_LABEL } from '@/lib/institution/permissions'
 import { linkCollegeCoach } from '@/lib/higher-ed/coaching'
+import { orgCallbackOrigin } from '@/lib/org-hosts'
+import { orgHostKindOf } from '@/lib/higher-ed/workspaces'
 
 function resendClient(): Resend | null {
-  return process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
+  return process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY, 'organization') : null
 }
 
 function appUrl(): string {
@@ -33,7 +35,7 @@ export async function inviteInstitutionUser(input: {
 
   const institution = await prisma.institution.findUnique({
     where: { slug: input.institutionSlug },
-    select: { id: true, name: true },
+    select: { id: true, name: true, orgType: true },
   })
   if (!institution) return { error: `No college with the slug "${input.institutionSlug}".` }
 
@@ -60,7 +62,8 @@ export async function inviteInstitutionUser(input: {
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     email,
-    `${appUrl()}/auth/callback?next=institution-invite&inviteToken=${row.inviteToken}`,
+    // Back to the portal's own host, so the session lands in its cookie jar.
+    `${orgCallbackOrigin(orgHostKindOf(institution.orgType))}/auth/callback?next=institution-invite&inviteToken=${row.inviteToken}`,
     { isFirstSend: !existing }
   )
   if (error || !actionLink) {
@@ -85,7 +88,7 @@ export async function inviteInstitutionUser(input: {
 // lets one person be both college staff and an alum, and /i/[slug] resolves
 // both from the same login. Returns the slug so the caller can land them there.
 export async function finishAcceptingInstitutionInvite(inviteToken: string): Promise<{ error?: string; slug?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('org')
   const {
     data: { user },
   } = await supabase.auth.getUser()

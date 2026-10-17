@@ -1,4 +1,5 @@
 import 'server-only'
+import { topSkills } from '@/lib/profile/skill-matrix'
 import { prisma } from '@/lib/prisma'
 
 // Shared, renderer-agnostic source of truth for resume export (Master
@@ -103,7 +104,7 @@ export async function buildResumeDocumentData(candidateId: string): Promise<Resu
     summary: profile.positioningStatementText,
     workHistory,
     education,
-    skills: profile.resumeKeywords,
+    skills: topSkills(profile, 15),
     certifications: profile.certifications,
   }
 }

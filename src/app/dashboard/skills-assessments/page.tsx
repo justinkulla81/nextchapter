@@ -11,19 +11,6 @@ import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
 
-// Work Interests (spec module 5, O*NET RIASEC) isn't built yet — blocked on
-// an O*NET Web Services account only the account owner can register.
-// Track Record and What I Need (modules 4 and 6) are real now, listed in
-// the main roster below.
-const UPCOMING_MODULES = [
-  {
-    key: 'work-interests',
-    title: 'Work Interests',
-    description: 'What kind of work actually energizes you, based on the Holland RIASEC framework used across career counseling.',
-    feeds: 'Feeds: Job Recommendations · Learning recommendations',
-  },
-] as const
-
 export default async function SkillsAssessmentsPage() {
   const profile = await getDashboardProfile()
 
@@ -43,6 +30,7 @@ export default async function SkillsAssessmentsPage() {
 
   const trackRecordCompletedAt = profile.trackRecordCompletedAt
   const whatINeedCompletedAt = profile.whatINeedCompletedAt
+  const workInterestsCompletedAt = profile.workInterestsCompletedAt
 
   const assessments = [
     {
@@ -114,6 +102,18 @@ export default async function SkillsAssessmentsPage() {
       ctaLabel: whatINeedCompletedAt ? 'Retake' : 'Take the assessment',
     },
     {
+      key: 'work-interests',
+      title: 'Work Interests',
+      description:
+        'What kind of work actually energizes you, based on the Holland RIASEC framework used across career counseling (O*NET Interest Profiler).',
+      feeds: 'Feeds: Job Recommendations · Learning recommendations',
+      sharedWith: 'Who sees it: no one — personalization only, used to match jobs and courses to you.',
+      completedAt: workInterestsCompletedAt,
+      points: estimateActionEffort({ actionType: 'WORK_INTERESTS_COMPLETED' }).points,
+      href: '/dashboard/work-interests',
+      ctaLabel: workInterestsCompletedAt ? 'Retake' : 'Take the assessment',
+    },
+    {
       key: 'reference-check',
       title: 'Reference Check',
       description:
@@ -122,9 +122,9 @@ export default async function SkillsAssessmentsPage() {
       sharedWith:
         'Who sees it: always shared — the references you invite see and answer these questions about you, and, once your Executive Dossier is unlocked, hiring managers see the comparison to your own answers.',
       completedAt: completedReferenceCount > 0 ? new Date(0) : null,
-      // 3 matches DOSSIER_UNLOCK_REFERENCE_TARGET (dossier-unlock.ts) — the
-      // real Dossier-unlock gate — shown as a target here so candidates know
-      // how many more to request.
+      // 3 is the reference target (DOSSIER_UNLOCK_REFERENCE_TARGET) shown so
+      // candidates know how many to request. Not a Candidate+ gate since
+      // 2026-10-16; references count toward Candidate+ Verified.
       statusLabel:
         completedReferenceCount > 0 ? `${completedReferenceCount} / 3 references` : 'Not completed yet',
       points: estimateActionEffort({ actionType: 'REFERENCE_ADDED' }).points,
@@ -240,30 +240,6 @@ export default async function SkillsAssessmentsPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">Coming soon</h2>
-        <p className="text-sm text-muted-foreground">
-          The rest of the assessment roster — not built yet, listed here so the full picture is
-          honest about what&apos;s ahead.
-        </p>
-        <div className="space-y-4">
-          {UPCOMING_MODULES.map((module) => (
-            <Card key={module.key} className="opacity-70">
-              <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-                <CardTitle className="text-base font-medium text-foreground">{module.title}</CardTitle>
-                <span className="shrink-0 rounded-full bg-light-gray px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  Coming soon
-                </span>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{module.description}</p>
-                <p className="text-xs font-medium text-muted-foreground">{module.feeds}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

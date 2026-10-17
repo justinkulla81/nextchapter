@@ -30,7 +30,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { StatTile } from './StatTile'
 import { ApplyToCohort, CapstoneControls, CapstoneForm, ClientForm, CohortForm, EnrollmentControls, ProgramForm } from './ProgramForms'
-import { CohortRulesForm, LearnerForm, ProgressControls } from './LifecycleForms'
+import { CohortRulesForm, LearnerForm, LearnerUploadForm, ProgressControls } from './LifecycleForms'
 import { completionBlocker } from '@/lib/higher-ed/programs'
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { status?: string } }
@@ -65,7 +65,7 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
   return (
     <div className="space-y-6">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Programs run in cohorts. Alumni apply from their Programs tab; you enroll them and record who pays (self-pay, an employer, the Resilience Fund
+        Programs run in cohorts. People apply from their Learn tab; you enroll them and record who pays (self-pay, an employer, the Resilience Fund
         {showWioa ? ', a WIOA voucher' : ''} or Pell), and completers earn the program&apos;s credential. Taught by your{' '}
         <Link href={`/i/${ctx.institution.slug}/teaching/faculty`} className="text-primary hover:underline">
           faculty
@@ -210,6 +210,14 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
           </div>
         </details>
       )}
+      {edit && cohortOptions.length > 0 && (
+        <details className="rounded-lg border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">Upload a spreadsheet of learners</summary>
+          <div className="pt-3">
+            <LearnerUploadForm slug={ctx.institution.slug} cohorts={cohortOptions} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
+          </div>
+        </details>
+      )}
       {rows.length ? (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {rows.map((e) => (
@@ -250,7 +258,7 @@ export async function ExecEdEnrollments({ ctx, base, searchParams }: Props) {
           ))}
         </ul>
       ) : (
-        <EmptyState icon={GraduationCap} title="No one here yet" description="Alumni apply from their Programs tab once a program has a cohort." />
+        <EmptyState icon={GraduationCap} title="No one here yet" description="People apply from their Learn tab once a program has a cohort." />
       )}
     </div>
   )

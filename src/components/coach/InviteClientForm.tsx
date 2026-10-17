@@ -26,6 +26,17 @@ export function InviteClientForm() {
           <Input id="name" name="name" placeholder="Jane Doe" />
         </div>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="sessions">Sessions they&apos;ve paid for (optional)</Label>
+          <Input id="sessions" name="sessions" type="number" min={1} max={100} placeholder="e.g. 4" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="validDays">Good for (days, optional)</Label>
+          <Input id="validDays" name="validDays" type="number" min={1} max={730} placeholder="No end" />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">You bill them yourself. The sessions start when they accept, and each one you log counts down.</p>
       <SubmitButton pendingLabel="Sending invite…">Send invite</SubmitButton>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.sent && <p className="text-sm text-brand">Invite sent.</p>}

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface BenefitsNetworkVerifyEmailProps {
   alumName: string
@@ -65,6 +66,7 @@ export default function BenefitsNetworkVerifyEmail({
         If you weren&apos;t expecting this or don&apos;t recognize {alumName}, you can safely ignore this email — the
         listing will simply never go live.
       </p>
+      <AudienceTag audience="organization" />
     </div>
   )
 }

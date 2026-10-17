@@ -162,18 +162,21 @@ enum SearchIntensity {
 }
 
 // Journeys (Product Design doc, Journeys tab): why someone is moving. One of
-// eight paths, each with its own onboarding follow-ups, to-dos and check-in
+// nine paths, each with its own onboarding follow-ups, to-dos and check-in
 // pace. Replaces CurrentJobStatus as the thing the product branches on;
 // CurrentJobStatus is still written alongside it (mapped) for older readers.
 enum JourneyType {
   LAID_OFF // laid off, let go, or resigned without the next job
-  READY_TO_MOVE // employed, wants a new job now
-  EXPLORING_MOVE // employed and thinking about it (includes "worried I'll be let go")
+  EXPLORING_MOVE // employed and thinking about a move: curious, unhappy, ready, or worried about a layoff (journeyDetails.moveDriver)
+  GROWING // employed and staying: reviews, raises, promotion, new skills, recession-proofing
   PROMOTION // the next level, inside or outside
   CAREER_CHANGE // new function or industry
   STUDENT_NEW_GRAD // internship or first job, up to five years out
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
+  ENTREPRENEUR // employed and starting something of their own: we track and check in
+  FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
+  TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }
 
 // How close someone is to applying. Shared by every journey; sets the plan
@@ -185,7 +188,8 @@ enum JourneyStage {
   INTERVIEWING
   OFFER
   LANDED
-  PAUSED
+  STAYING // managing your career: active in-job plan, menu and emails, no application targets
+  PAUSED // legacy: read as STAYING (normalizeStage); nothing writes it any more
 }
 
 // What changed a member's journey or stage (JourneyEvent.source).
@@ -196,6 +200,7 @@ enum JourneyChangeSource {
   SETTINGS // "Your situation" on Privacy & sharing
   GOT_HIRED // the Offer Bonus claim
   COLLEGE // a college portal action (I'm in transition / I got a job)
+  AUTOMATIC // the platform moved them on (for example, 90 days after landing)
 }
 
 enum CurrentJobStatus {
@@ -423,6 +428,9 @@ enum OutreachChannel {
   // Auto-logged from a detected calendar networking-call/interview with
   // this contact — see addAttendeesToNetwork in sync-google-calendar.ts.
   MEETING
+  // A message the member said they sent (the "Did you send it?" prompt or the weekly
+  // check-in), channel not asked.
+  OTHER
 }
 
 // "What's your biggest concern about reaching out?" — asked once, shapes
@@ -674,6 +682,17 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Candidate+ search-effort target in minutes for THIS member. Null uses the
+  // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
+  // ('requirements' | 'streak'). candidatePlusRevokedAt is set only by an admin and turns
+  // it off until cleared. prisma/manual/2026-10-16-candidate-plus-permanent.sql.
+  candidatePlusUnlockedAt         DateTime?
+  candidatePlusUnlockSource       String?
+  candidatePlusRevokedAt          DateTime?
+  // The one-time Candidate+ unlock screen was shown (prisma/manual/2026-10-16-match-snapshots.sql).
+  candidatePlusUnlockSeenAt       DateTime?
+  effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
 
@@ -812,6 +831,10 @@ model CandidateProfile {
   journeyChangedAt      DateTime?
   journeyStageChangedAt DateTime?
   journeyCheckedAt      DateTime? // last answered "Has anything changed?"
+  // Company culture and working environment: how much it matters, and, only if it
+  // does, what they want. { importance: 'NOT_IMPORTANT' | 'SOMEWHAT' | 'VERY', answers: {...}, mustHave, dealBreaker }.
+  // See src/lib/culture/culture-fit.ts.
+  cultureFit            Json?
   journeyDetails        Json?
   journeyEvents         JourneyEvent[]
   gapDuration           GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
@@ -847,6 +870,10 @@ model CandidateProfile {
   networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
   learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
   triedPartTimeOrConsulting Boolean?
+  // Per-type answer ({ consulting, expert_network, fractional, part_time } →
+  // now | past | never), pre-filled from email and work history and confirmed
+  // by the candidate. triedPartTimeOrConsulting is derived from it on save.
+  independentWorkExperience Json?
   triedExecutiveCoaching    Boolean?
   connectedWithRecruiters   Boolean?
   recruiterConnectionCount  Int?
@@ -966,22 +993,29 @@ model CandidateProfile {
   negotiationComfort Int?
 
   // Part 4: Goals
-  remotePreference     String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
-  targetRoleType       String?
-  targetIndustries     String[]
-  targetFunction       String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
-  targetCompanySize    String?
-  targetCompanyStage   String?
-  targetCompMin        Int?
-  compFlexible         Boolean  @default(false)
-  willingToStartLower  Boolean  @default(false)
-  startLowerRationale  String?
-  openToRelocation     Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
-  relocationNotes      String?
-  travelWillingness    Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
-  aiDisplacementReason String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Stored now, not yet wired into search-strategy guidance — see AI_DISPLACEMENT_OPTIONS's comment.
-  equityImportant      Boolean  @default(false)
-  dealBreakers         String?
+  remotePreference      String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
+  targetRoleType        String?
+  targetIndustries      String[]
+  targetFunction        String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
+  targetCompanySize     String?
+  targetCompanyStage    String?
+  targetCompMin         Int?
+  compFlexible          Boolean  @default(false)
+  willingToStartLower   Boolean  @default(false)
+  startLowerRationale   String?
+  openToRelocation      Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
+  relocationNotes       String?
+  travelWillingness     Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Kept in step with maxTravelPct below (true when maxTravelPct > 0) for older readers.
+  // The most travel the member will take on, in percent: 0 | 25 | 50 | 75 (75 = 75%+).
+  // Null = not asked yet (rows with travelWillingness=true were moved to 50). Read by
+  // the job requirement match (src/lib/jobs/requirements.ts) against a posting's travel %.
+  maxTravelPct          Int?
+  // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
+  // 'private'): the board and every job email leave those jobs out. Empty = all on.
+  hiddenEmployerSectors String[] @default([])
+  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  equityImportant       Boolean  @default(false)
+  dealBreakers          String?
 
   // Personal Context: Blockers + Motivations (Prompt 47 rework, consolidated
   // onto Search Strategy as its own required "Blockers and Motivations"
@@ -1026,6 +1060,26 @@ model CandidateProfile {
   // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
   boardAdvisoryWillingness        Boolean?
   isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  // Job board breadth the member chose: 'narrow' (their field, pivots, close skills
+  // matches) or 'wide' (more adjacent work). Null = not chosen: the board defaults by
+  // career stage (senior Narrow, junior Wide) and job emails use Narrow
+  // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
+  boardBreadth                    String?
+  jobDismissPreferences           JobDismissPreference[]
+  matchSnapshots                  MemberMatchSnapshot[]
+  // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
+  // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
+  // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
+  industryBuckets                 String[]  @default([])
+  industryBucketsConfirmedAt      DateTime?
+  // When they last confirmed their tools ("Tools you use", skills page); the tools go into
+  // confirmedSkillsHave. Null = never: the board nudges once. prisma/manual/2026-10-16-tools-confirmed.sql.
+  toolsConfirmedAt                DateTime?
+  // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
+  // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
+  // when the board loads. Null = function not split, or nothing on the allowlists
+  // matched. prisma/manual/2026-10-16-sub-functions.sql.
+  subFunction                     String?
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
@@ -1047,6 +1101,23 @@ model CandidateProfile {
   // confirmed yet" — falls back to displaying resumeKeywords directly.
   confirmedSkillsHave             String[]  @default([])
   skillsHaveConfirmedAt           DateTime?
+  // The skills matrix (src/lib/profile/skill-matrix.ts): the person's own
+  // level per skill and skills they removed, keyed by lowercase skill.
+  // Everything else in the matrix is derived from resumeKeywords,
+  // confirmedSkillsHave and certifications on read.
+  skillLevels                     Json      @default("{}")
+  // Work profile (src/lib/profile/work-profile.ts): the person's own answers
+  // on the ten "this or that" dimensions, -2..+2, with when they answered.
+  workStyleAnswers                Json      @default("{}")
+  // Strengths (src/lib/profile/strengths.ts): the last computed peaks and the
+  // AI-written "why hire me", keyed by an input fingerprint so it is only
+  // rewritten when the inputs change.
+  strengthCache                   Json?
+  strengthCacheKey                String?
+  // Search expansions the person opted into from the addressable-market
+  // check (src/lib/profile/addressable-market.ts): extra roles, industries,
+  // states and remote, added to their job search.
+  searchExpansion                 Json      @default("{}")
   // Candidate-authored, edited on My Profile — "what could you help another
   // NextChapter member with" (interview prep for a function, a specific
   // tool, negotiating, breaking into an industry, ...), shown on their
@@ -1075,6 +1146,22 @@ model CandidateProfile {
   willingToTakeDrugTest           Boolean?
   willingToTakeBackgroundCheck    Boolean?
   wantsAnimalFriendlyWorkplace    Boolean?
+  // Security clearance and licenses held — matched against job requirement flags
+  // (src/lib/jobs/requirements.ts). Same nullable posture: null = not asked yet.
+  // clearanceLevel: 'none' | 'public_trust' | 'secret' | 'top_secret' | 'ts_sci';
+  // clearanceActive: true = active/current, false = lapsed; clearancePolygraph:
+  // 'none' | 'ci' | 'full_scope'. licensesHeld uses the requirement license keys
+  // (cpa, pe, bar, rn, pmp, series_7, …); licensesAnsweredAt tells "none" from "not asked".
+  clearanceLevel                  String?
+  clearanceActive                 Boolean?
+  clearancePolygraph              String?
+  licensesHeld                    String[]  @default([])
+  licensesAnsweredAt              DateTime?
+  // Fields last filled from the résumé and not yet confirmed by the member
+  // (src/lib/resume/resume-prefill.ts): shown as "From your résumé — confirm",
+  // and the only non-blank fields a later résumé may replace.
+  // prisma/manual/2026-10-16-resume-prefill.sql.
+  resumePrefilledFields           String[]  @default([])
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
@@ -1188,6 +1275,8 @@ model CandidateProfile {
   // What I Need) — both forms are retakeable any time.
   trackRecordCompletedAt      DateTime?
   whatINeedCompletedAt        DateTime?
+  // Work Interests (O*NET Interest Profiler) — same one-time bonus pattern.
+  workInterestsCompletedAt    DateTime?
 
   // LinkedIn & job-search behaviors
   linkedInUrl                   String?
@@ -1213,11 +1302,19 @@ model CandidateProfile {
   // Which action-plan item ids the candidate has checked off — plain
   // completion tracking, not a Search Action, so no points/effort fields.
   benefitsActionPlanCompletedItems String[]       @default([])
+  // Early-career checklist item ids the member checked off (src/lib/early-career/checklist.ts).
+  // Plain completion tracking like the benefits plan above; items the profile
+  // already proves (school, résumé) are detected, never stored here.
+  earlyCareerChecklistDone         String[]       @default([])
   gigDirectoryUnlockAnswer         String? // target rate/openness question — gates the Gig Directory
   // One-time points award for answering the Gig Directory unlock question — mirrors privacyOpenedUpBonusAt
   gigDirectoryUnlockBonusAt        DateTime?
   interimOfferDefinition           String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
   interimOutreachStartedAt         DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)
+  // Work types the member chose on the one job board ('full_time' | 'part_time' |
+  // 'contract' | 'advisory'). Empty = never chosen: the board then derives them from
+  // onboarding answers (defaultWorkTypes in src/lib/jobs/work-type.ts).
+  jobBoardWorkTypes                String[]       @default([])
   // Interim Work Section 4 only — "also show board-matching platforms that
   // focus specifically on women/underrepresented leaders?" Independent of
   // (and never merged with) eeocGenderIdentity: a direct, transparent,
@@ -1451,7 +1548,10 @@ model CandidateProfile {
   competencyScores               CompetencyScore[]
   claimedEmployerReferences      EmployerReferenceSubmission[]
   jobClickEvents                 JobClickEvent[]
+  trackedJobs                    TrackedJob[]
   workSamples                    WorkSample[]
+  externalReviewStats            ExternalReviewStat[]
+  clientReviews                  ClientReview[]
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
@@ -1461,6 +1561,8 @@ model CandidateProfile {
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
+  careerConversations            CareerConversation[]
+  workforceBoardConnections      WorkforceBoardConnection[]
   // Outplacement portal (Phase 5, §A7) — the one legitimate link between a
   // purchased seat and a real candidate. NEVER read directly by employer-
   // facing code; see src/lib/employer/candidate-identity-guard.ts and
@@ -1481,6 +1583,7 @@ model CandidateProfile {
   performanceAssessmentResponses PerformanceAssessmentResponse[]
   trackRecordResponse            TrackRecordResponse?
   whatINeedResponse              WhatINeedResponse?
+  workInterestsResponse          WorkInterestsResponse?
   resumeWalkthroughSession       ResumeWalkthroughSession?
   resumes                        Resume[]
   jobPostings                    JobPosting[]
@@ -1515,6 +1618,7 @@ model CandidateProfile {
   jobBoardIntroRequests          JobBoardIntroRequest[]
   candidateJobBoardSubmissions   ExclusiveJobPosting[]
   pivotIdeas                     PivotIdea[]
+  pivotPreference                PivotPreference?
   marketResponseLogs             MarketResponseLog[]
   profileShares                  ProfileShare[]
   interimMarketplaceSignups      InterimMarketplaceSignup[]
@@ -1522,6 +1626,7 @@ model CandidateProfile {
   companyWatchlist               CompanyWatchlistEntry[]
   emailConnection                EmailConnection?
   trackedEmailActivities         TrackedEmailActivity[]
+  scamAlerts                     ScamAlert[]
   adminEmailLogs                 AdminEmailLog[]
   calendarConnection             CalendarConnection?
   trackedCalendarEvents          TrackedCalendarEvent[]
@@ -1698,6 +1803,11 @@ model CandidateProfile {
   // see BenefitsNetworkCompletion's own comment for the hard rule that this
   // must never be read by computeDossierCompetencies/computeCategoryGrades.
   benefitsNetworkCompletions  BenefitsNetworkCompletion[]
+  occupation                  CandidateOccupation?
+  resumeDrafts                ResumeDraft[]
+  documentRequests            DocumentRequest[]
+  coachBookings               CoachBooking[]
+  coachNoteSummaries          CoachNoteSummary[]
   // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
   // standing." A plain incrementing counter, same convention as other simple
   // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
@@ -1723,6 +1833,8 @@ model CandidateProfile {
   // preferences for the per-job match. Prisma-virtual back-relations; add no columns.
   cultureResponses  CompanyCultureResponse[]
   culturePreference CandidateCulturePreference?
+  jobReviews        JobExperienceReview[]
+  parallelPath      ParallelPath?
 
   // In-work track (Prisma-virtual back-relations; add no columns here).
   inWorkProfile       InWorkProfile?
@@ -1732,6 +1844,8 @@ model CandidateProfile {
   inWorkFeedback      InWorkFeedback[]
   inWorkOutcomes      InWorkOutcome[]
   inWorkEmailSends    InWorkEmailSend[]
+  searchSupporters    SearchSupporter[]
+  accessGrants        AccessGrant[]
 
   @@index([privacyTier])
   @@index([currentJobStatus])
@@ -1928,6 +2042,7 @@ model WorkHistoryEntry {
   resumeDerived         Boolean @default(false)
 
   references Reference[]
+  review     JobExperienceReview?
 
   // The directory company this job was at. companyName stays what the resume said.
   // This link is internal (grouping, alumni networks, feedback requests): a job here
@@ -2337,6 +2452,56 @@ model WorkSample {
   @@index([candidateId])
 }
 
+/// Review stats a member brings from another fractional or freelance
+/// platform (Upwork, Toptal, ...). Counts as evidence for Candidate+ Verified.
+/// status: SELF_REPORTED (link given, not yet checked), LINK_CHECKED (one
+/// polite fetch of the public profile confirmed name and numbers),
+/// NEEDS_REVIEW (couldn't check: on the admin review list), CONFIRMED (an
+/// admin confirmed it), REJECTED (an admin could not; no credit).
+model ExternalReviewStat {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  platform      String // upwork | toptal | catalant | contra | ateam | fiverr_pro | malt | linkedin_services | other
+  platformLabel String? // what they typed when platform is "other"
+  profileUrl    String
+  rating        Float // 0-5
+  reviewCount   Int
+  jobsCompleted Int?
+  screenshotUrl String?
+  status        String           @default("SELF_REPORTED")
+  checkNote     String? // plain-language result of the link check or the admin decision
+  checkedAt     DateTime?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId])
+  @@index([status])
+}
+
+/// A review from a NextChapter client after real work together (later: the
+/// fractional marketplace). Weighted highest in the evidence score. No UI yet;
+/// only PUBLISHED rows count.
+model ClientReview {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId      String?
+  reviewerName    String
+  reviewerEmail   String?
+  reviewerCompany String?
+  rating          Float // 1-5
+  body            String?          @db.Text
+  engagementTitle String?
+  status          String           @default("PENDING") // PENDING | PUBLISHED | HIDDEN
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([candidateId, status])
+}
+
 model InterviewResponse {
   id          String           @id @default(cuid())
   candidateId String
@@ -2605,6 +2770,28 @@ model WhatINeedResponse {
   updatedAt   DateTime  @updatedAt
 }
 
+// Work Interests (spec module 5) — O*NET Interest Profiler short form:
+// 60 likes/dislikes answered 1-5, scored into the six Holland RIASEC areas.
+// One row per candidate.
+model WorkInterestsResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // [{index: 1-60, answer: 1-5}] — index is the O*NET question number.
+  answers Json
+
+  // {REALISTIC: n, ...} — sum of the 10 answers per area (10-50).
+  scores Json
+
+  // Top three RIASEC areas, highest score first — the "Holland code".
+  topAreas String[]
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
 model BARSAnchor {
   id         String  @id @default(cuid())
   dimension  String
@@ -2701,6 +2888,7 @@ model EmployerProfile {
   companyId            String?
   company              Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
   dossierIntroRequests DossierIntroRequest[]
+  memberCompany        MemberCompany?
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
@@ -3359,6 +3547,7 @@ model MilestoneBadge {
 enum JobPostingSource {
   MANUAL // candidate pasted a URL/text — the only source that gets fit-checked
   EMAIL_DETECTED // auto-created from a Gmail APPLICATION_CONFIRMATION — no URL, no fit score
+  BOARD // marked Applied on a job board card (TrackedJob) — has the job's URL, never fit-checked, uses no fit-check slot
 }
 
 model JobPosting {
@@ -3418,6 +3607,28 @@ model JobPosting {
   // specific application — e.g. someone to backchannel to, distinct from
   // the automatic company-name match in src/lib/network/backchannel.ts.
   helpfulContacts SupportNetworkContact[] @relation("JobPostingHelpfulContacts")
+
+  // The board job this application came from, when it came from one (My jobs).
+  trackedJob TrackedJob?
+
+  // The board posting (ExclusiveJobPosting.id) this application was for, found by
+  // src/lib/jobs/application-posting-match.ts at tracking time and by backfill:
+  // method 'board_card' | 'url' | 'ats_id' | 'company_title' | 'ambiguous' | 'none',
+  // confidence 0–1, boardMatchedAt = when it was last matched (null = never).
+  // Plain id, no relation. @ignore: added by hand (prisma/manual/2026-10-16-application-board-link.sql),
+  // so a full-row read never selects them; read and written with raw SQL once they
+  // exist (src/lib/jobs/application-posting-link.ts).
+  boardJobId           String?   @ignore
+  boardMatchMethod     String?   @ignore
+  boardMatchConfidence Float?    @ignore
+  boardMatchedAt       DateTime? @ignore
+
+  // Set only on self-reported applications from Job Search Daily's weekly check-in:
+  // 'weekly_checkin:<week>:applications:<n>'. Unique per candidate, so a second tap never
+  // double-logs; non-null = self-reported (admin shows it so). prisma/manual/2026-10-17-log-prompts.sql.
+  selfReportKey String?
+
+  @@unique([candidateId, selfReportKey])
 
   @@index([candidateId, createdAt])
 }
@@ -4302,7 +4513,51 @@ model EmailConnection {
   // created/updated — a blocked attempt writes nothing here).
   connectedEmail   String?
 
+  // Gmail push notifications (see src/lib/email-tracking/gmail-push.ts): when
+  // Google's watch on this mailbox expires. A watch lasts at most 7 days, so
+  // the scam-watch cron renews anything expiring within a day. Null = no watch.
+  pushWatchExpiresAt DateTime?
+
   activities TrackedEmailActivity[]
+}
+
+// A fake-recruiter / fake-job email caught in a candidate's connected inbox
+// (see src/lib/scam-shield/). Only mail the detector flagged is stored here —
+// never the body — so the candidate's dashboard can say what was caught and
+// why. The rapid-response email from Vic is sent once per alert
+// (alertEmailSentAt); "this one is legit" feedback is how a false positive
+// gets corrected instead of silently ignored.
+enum ScamAlertLevel {
+  SUSPICIOUS
+  LIKELY_FAKE
+}
+
+model ScamAlert {
+  id                String           @id @default(cuid())
+  candidateId       String
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId      String?
+  externalMessageId String // Gmail message id — dedupe key alongside candidateId
+  threadId          String?
+  level             ScamAlertLevel
+  score             Int
+  claimedCompany    String?
+  fromAddress       String?
+  subject           String?
+  flaggedDomains    String[]
+  // [{ code, weight, detail }] — the plain-language reasons, as shown to the candidate.
+  signals           Json
+  emailDate         DateTime
+  detectedAt        DateTime         @default(now())
+  alertEmailSentAt  DateTime?
+  // The candidate told us this was a real recruiter — excluded from the
+  // active list; kept so the rule that misfired can be found and fixed.
+  markedLegitAt     DateTime?
+  // The candidate acknowledged it (read it, dealt with it).
+  acknowledgedAt    DateTime?
+
+  @@unique([candidateId, externalMessageId])
+  @@index([candidateId, detectedAt])
 }
 
 enum EmailDirection {
@@ -4600,6 +4855,18 @@ model OutreachLog {
   channel     OutreachChannel
   loggedAt    DateTime               @default(now())
 
+  // Where the entry came from (prisma/manual/2026-10-17-log-prompts.sql). null = the
+  // older paths (network log, Gmail/Calendar detection). 'who_to_contact' |
+  // 'outreach_template' | 'outreach_coach' — the "Did you send it?" prompt after a copy;
+  // 'weekly_checkin' — a self-reported count from Job Search Daily's weekly check-in.
+  logSource     String?
+  companyName   String?
+  contactKind   String? // 'posting_contact' | 'recruiter_or_manager' | 'contact' | the template type
+  jobId         String? // ExclusiveJobPosting.id when the note was for a board job
+  noteKey       String? // hash of the copied note, so one note counts once per 24h (activity-log/outreach.ts)
+  selfReportKey String? // 'weekly_checkin:<week>:outreach:<n>' — unique per candidate, so a second tap never double-logs
+
+  @@unique([candidateId, selfReportKey])
   @@index([candidateId, loggedAt])
 }
 
@@ -4780,6 +5047,10 @@ model ExclusiveJobPosting {
   // Higher Ed: an employer post visible only to this institution's members.
   // Null for every ordinary job-board posting.
   institutionScopeId String?
+  // An organization's internal role (Growth): only its own employees on a
+  // Growth seat see it, never the open board.
+  orgScopeId         String?
+  orgScope           OutplacementEmployerOrg? @relation("OrgInternalRoles", fields: [orgScopeId], references: [id], onDelete: Cascade)
   // From the crawler (ncrawl) import: the date the source says the job was
   // posted (createdAt is only when we imported it), how many of our sources
   // list it (1 = seen in few places — a low-competition signal), and the
@@ -4791,7 +5062,7 @@ model ExclusiveJobPosting {
   // YC tags…): technology, healthcare, financial_services, … — see
   // ncrawl/industry_map.py. Null for jobs posted directly on NextChapter.
   industry           String?
-  institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
+  institutionScope   Institution?             @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
 
   // The directory company this posting is for. Set when the posting is added (see
   // linkPostingToCompany) and backfilled for older rows; null only when the
@@ -4804,6 +5075,9 @@ model ExclusiveJobPosting {
   // of which only a short excerpt is stored: ~15 MB for the whole board instead of
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
   skills String[] @default([])
+  // O*NET skills and tools (Skill.id, via SkillAlias) the title, description and skills name —
+  // the board's skills criterion (src/lib/jobs/relevance.ts). prisma/manual/2026-10-16-job-skill-ids.sql.
+  skillIds String[] @default([])
 
   // Market pay for this role (src/lib/pay/market-pay.ts), copied from its
   // CompanyJobOpening row nightly and at import. A benchmark for the role's
@@ -4816,14 +5090,137 @@ model ExclusiveJobPosting {
   marketPaySample Int?
   payVsMarket     String?
 
+  // Engagement and pay basis, sent by the ncrawl import (derive.py) when it knows
+  // them; null otherwise, and the board falls back to reading the title/description
+  // (src/lib/jobs/work-type.ts). Free text, like level, since ncrawl's taxonomy
+  // evolves on its own.
+  employmentType   String? // full_time | part_time | fractional | interim | contract | temporary | internship | per_diem | advisory | board
+  payPeriod        String? // year | month | week | day | hour | one_time — what salaryMin/salaryMax are per
+  paySource        String? // posted (a structured pay field) | text (mined from the description)
+  workArrangement  String? // remote | hybrid | onsite
+  compensationType String? // paid | equity_only | unpaid
+
+  // Structured benefits the ncrawl import read from the posting (benefits_json:
+  // only the keys it found — health, k401_match_pct, parental_leave_weeks, …, plus
+  // its own score/strong). benefitsStrong is our rule over it
+  // (src/lib/jobs/benefits.ts). Null = never sent. Two partial indexes (not
+  // expressible here) serve the board's "Great pay" / "Great benefits" filters:
+  // prisma/manual/2026-10-14-job-benefits.sql.
+  // @ignore: kept out of the generated client, so a full-row read never selects
+  // them (the app reads and writes them with raw SQL that first checks they
+  // exist — src/lib/jobs/great-employers-data.ts), while the schema still knows
+  // them and a db push won't drop them.
+  benefits       Json?    @ignore
+  benefitsStrong Boolean? @ignore
+
+  // Where and which posting, from the ncrawl import (derive.py) — null when the
+  // sender didn't know. locationState is the primary US state (2-letter code);
+  // locationStates every US state the posting lists (multi-location jobs), for
+  // geo coverage and local counts. externalJobId / requisitionId are the
+  // source's own ids; repostKey groups re-posts of the same role and descHash
+  // identical texts. prisma/manual/2026-10-15-import-fields.sql.
+  locationCity      String?
+  locationState     String?
+  locationCountry   String?
+  locationStates    String[]  @default([])
+  externalJobId     String?
+  requisitionId     String?
+  repostKey         String?
+  descHash          String?
+  // Years-of-experience requirement read at import from the FULL posting text
+  // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
+  // requirements often sit past it. Null = not read (older rows: parse the excerpt).
+  yearsRequired     Json?
+  // O*NET-SOC occupation the crawler matched the title to (ncrawl scripts/onet_tag_jobs.py:
+  // O*NET alternate titles, local, no API call per job), e.g. "13-2051.00" / "Financial and
+  // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
+  socCode           String?
+  socTitle          String?
+  // Sub-function (src/lib/jobs/sub-functions.ts, e.g. 'ops_facilities'): allowlisted title
+  // patterns and O*NET codes within the job's function, set at import and backfilled
+  // (scripts/careers/backfill-sub-functions.ts). Null = not split / not on the lists.
+  subFunction       String?
+  // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
+  // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
+  // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
+  closeReason       String?
+  reopenCount       Int?
+  // The same role seen before / listed twice (crawler repost_groups.py): times it
+  // came back, its original first-seen date, and on the copy shown, how many other
+  // listings of it were collapsed into this one (those are archived 'duplicate').
+  repostCount       Int?
+  repostFirstSeenAt DateTime?
+  duplicateCount    Int?
+  // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
+  // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
+  // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
+  recruiterName     String?
+  // Employer sector for the board's sector filter and the member's sector
+  // preference (src/lib/jobs/employer-sector.ts): 'private' | 'government' |
+  // 'nonprofit' | 'academia', from the crawler's ncrawl/sector.py (USAJOBS and
+  // state/local sources, IRS NTEE / 990 filers, IPEDS institutions). Null = not
+  // sent (read as private). prisma/manual/2026-10-16-board-function-requirements.sql.
+  employerSector    String?
+  // Hard requirements the crawler read from the full posting text with phrase
+  // patterns (ncrawl/requirements.py): clearance (level, active vs obtain,
+  // polygraph), US citizens only, no visa sponsorship, required licenses, travel %,
+  // relocation, onsite. requirementFlags is the list with labels and evidence;
+  // requirementTags the same as a compact comma list the board filters on in
+  // memory (src/lib/jobs/requirements.ts). Null = none found / not sent.
+  requirementFlags  Json?
+  requirementTags   String?
+
   @@index([archivedAt, createdAt])
   @@index([createdAt])
+  // Covers the admin "new listings, not rejected, last 7 days" count as an index-only scan.
+  @@index([createdAt, status])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
+  @@index([orgScopeId])
   @@index([companyId])
   @@index([postedAt])
   @@index([industry])
+  @@index([locationState])
+  @@index([socCode])
+  // Application → posting matching looks ATS / requisition ids up (prisma/manual/2026-10-16-application-board-link.sql).
+  @@index([externalJobId])
+  @@index([requisitionId])
+  // Deleting a candidate sets this to null; without the index that scans the whole board.
+  @@index([submittedByCandidateId])
+}
+
+// A narrow copy of ExclusiveJobPosting's light columns (what the board ranks
+// on, no description) plus the columns the board filters on. Maintained by
+// statement-level triggers on ExclusiveJobPosting and repaired nightly by
+// board_light_row_reconcile() — see prisma/manual/2026-10-14-board-light-row.sql
+// and src/lib/jobs/board-light-rows.ts. Read-only from the app.
+model BoardLightRow {
+  id                 String    @id
+  title              String
+  companyName        String
+  audienceTier       String
+  source             String
+  targetFunction     String?
+  targetLevel        String?
+  targetRemotePolicy String?
+  targetLocation     String?
+  location           String?
+  level              String?
+  sourceCategory     String?
+  postedAt           DateTime?
+  sourceCount        Int?
+  salaryMin          Int?
+  salaryMax          Int?
+  createdAt          DateTime
+  employmentType     String?
+  status             String
+  archivedAt         DateTime?
+  institutionScopeId String?
+  distribution       String
+  expiresAt          DateTime?
+  employerSector     String?
+  requirementTags    String?
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -4839,6 +5236,9 @@ model JobBoardIntroRequest {
   posting      ExclusiveJobPosting @relation(fields: [postingId], references: [id], onDelete: Cascade)
   contactEmail String?
   status       String              @default("pending") // 'pending' | 'contacted' | 'closed'
+  // 'listing' — intro on a confidential listing; 'known_contact' — NextChapter knows someone
+  // at the employer and the member asked for an intro (Who to contact panel).
+  kind         String              @default("listing")
   createdAt    DateTime            @default(now())
 
   @@index([candidateId, createdAt])
@@ -4871,6 +5271,132 @@ model JobClickEvent {
   @@index([candidateId, createdAt])
   @@index([companyName])
   @@index([jobTitle])
+}
+
+// My jobs (the one job board): a job a member saved, opened the application for,
+// or applied to from a board card. One row per (member, job). Once applied, the
+// application itself is a JobPosting (jobPostingId) — the same row the Application
+// Tracker, Gmail sync (interview / rejection emails) and every application stat
+// already read — so status lives there and is never kept twice. Gmail-detected
+// applications are linked here by company + title (src/lib/jobs/my-jobs.ts).
+// What the board learned from a member's dismissals (src/lib/jobs/job-dismiss.ts): kind
+// 'company' | 'industry' | 'title' | 'level' | 'location' | 'pay_floor', its value (a
+// normalised key; the floor in USD a year), how many dismissals said so, and what is done
+// with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
+// askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
+// prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+// What a member's matching read and what it gave them (src/lib/personalization/match-snapshot.ts):
+// 'baseline' (inputs just before a save that changes matching), 'retune' (the recompute after
+// it, with counts and reasons), 'daily' (Job Search Daily's count, for the weekly trend).
+// prisma/manual/2026-10-16-match-snapshots.sql.
+model MemberMatchSnapshot {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  trigger     String?
+  inputs      Json
+  checked     Int?
+  relevant    Int?
+  strong      Int?
+  detail      Json?
+  ms          Int?
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+model JobDismissPreference {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  value       String
+  label       String
+  count       Int              @default(0)
+  action      String           @default("downweight")
+  askedAt     DateTime?
+  undoneAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  @@unique([candidateId, kind, value])
+}
+
+// A member said a board job looks like a ghost job ('ghost'), is too good to be true
+// ('too_good') or has red flags ('red_flags'). Feeds ghost risk (ghost-risk.ts) and the
+// admin review list (/support/admin/job-flags). No FK on postingId: a flag outlives the posting.
+model JobPostingFlag {
+  id          String    @id @default(cuid())
+  postingId   String
+  candidateId String
+  kind        String
+  note        String?
+  reviewedAt  DateTime?
+  // An admin's call (/support/admin/job-flags): 'confirmed_ghost' hides the job for everyone, 'dismissed' keeps it.
+  adminDecision String?
+  decidedAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([postingId, candidateId, kind])
+  @@index([kind, createdAt])
+}
+
+// Market size per function x sub-function x level band x industry bucket x geography
+// (a state code, 'remote', or ''), rebuilt nightly from the board (src/lib/market/
+// market-size-stats.ts). Recent = last 14 days, prior = the 28 before. '' = unknown / none;
+// fn '*' holds the whole board's totals.
+model MarketTargetStat {
+  fn           String
+  subFunction  String
+  band         String
+  industry     String
+  geo          String
+  openNow      Int      @default(0)
+  newRecent    Int      @default(0)
+  newPrior     Int      @default(0)
+  closedRecent Int      @default(0)
+  closedPrior  Int      @default(0)
+  computedAt   DateTime @default(now())
+
+  @@id([fn, subFunction, band, industry, geo])
+}
+
+model TrackedJob {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  source      String // 'job_board' | 'surfaced' | 'matched_role' — same values as JobClickEvent.source
+  sourceId    String // ExclusiveJobPosting.id, SurfacedJob.id or RoleProfile.id
+  title       String
+  companyName String?
+  url         String?
+  workType    String? // 'full_time' | 'part_time' | 'contract' | 'advisory' when saved
+
+  savedAt        DateTime? // "Save" (interested); null = not saved
+  firstClickedAt DateTime? // opened the employer's application page from the board
+  lastClickedAt  DateTime?
+
+  jobPostingId String?     @unique
+  jobPosting   JobPosting? @relation(fields: [jobPostingId], references: [id], onDelete: SetNull)
+  appliedVia   String? // 'manual' | 'email' | 'prompt' — how we learned they applied
+
+  // "You opened the application for X — did you apply?" (asked 2+ days after a click with no application found)
+  promptAnswer     String? // 'applied' | 'not_yet' | 'not_interested'
+  promptAnsweredAt DateTime?
+  dismissedAt      DateTime? // "Not interested" — hidden from My jobs
+  // Why they passed on it (board X, src/lib/jobs/job-dismiss.ts): 'company' | 'industry' |
+  // 'skills' | 'title' | 'level' | 'pay' | 'location' | 'ghost' | 'too_good' | 'red_flags' |
+  // 'applied_elsewhere' | 'other', and an optional note. prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+  dismissReasons   String[]  @default([])
+  dismissNote      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([candidateId, source, sourceId])
+  @@index([candidateId, updatedAt])
 }
 
 // Postgres mirror of every captureServerEvent() call, written from inside
@@ -4956,7 +5482,9 @@ model Coach {
 
   // Weekly Market Digest opt-out — same convention as CandidateProfile's
   // marketDigestOptedOut, no other digest exists for coaches yet.
-  marketDigestOptedOut Boolean @default(false)
+  marketDigestOptedOut   Boolean   @default(false)
+  /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
+  marketDigestLastSentAt DateTime?
 
   // Coach-Candidate Matching System, Phase 1 — structured self-description
   // used only for shortlist ranking (src/lib/coach/matching.ts), framed as
@@ -4971,6 +5499,10 @@ model Coach {
   gender             String?
   languages          String[]
   timezone           String?
+  bookingSettings    CoachBookingSettings?
+  availability       CoachAvailabilityWindow[]
+  bookings           CoachBooking[]
+  noteSummaries      CoachNoteSummary[]
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -5003,12 +5535,15 @@ model Coach {
   // What this coach is strongest at, beyond the older industries / seniorityFit fields.
   // functions: PRIMARY_FUNCTION_OPTIONS values this coach works in (matching used to compare
   // a member's function against `industries`, which only worked if a coach typed one in).
-  functions      String[] @default([])
+  functions      String[]          @default([])
   // Free-form skills this coach is strong in (e.g. "negotiation", "executive presence").
-  skills         String[] @default([])
+  skills         String[]          @default([])
   // The styles this coach actually delivers: a subset of COACHING_STYLES
   // (PUSH, SUPPORT, ACCOUNTABILITY, STRATEGY, PRACTICAL, SPACE) in src/lib/coach/coaching-style.ts.
-  coachingStyles String[] @default([])
+  coachingStyles String[]          @default([])
+  // Where clients book sessions (Calendly, cal.com, Google booking page).
+  schedulingUrl  String?
+  accessCodes    CoachAccessCode[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -5027,6 +5562,10 @@ model CoachClientInvite {
   invitedAt    DateTime  @default(now())
   acceptedAt   DateTime?
   candidateId  String?   @unique
+  // Sessions the client has paid the coach for (billed outside NextChapter),
+  // granted when they accept; validDays from acceptance, null = no end.
+  sessions     Int?
+  validDays    Int?
 
   @@unique([coachId, invitedEmail])
   @@index([invitedEmail])
@@ -5508,6 +6047,7 @@ enum CandidateEmailKey {
   SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
+  WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
@@ -5853,6 +6393,9 @@ model Course {
   // your industry" section. Empty by default; starts empty until an admin
   // tags content, which is expected, not a bug.
   industries               String[] @default([])
+
+  // Taxonomy skills this course teaches (CourseSkill; see docs/CAREER_TAXONOMY.md).
+  skills CourseSkill[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -6792,6 +7335,22 @@ model PopulationSnapshot {
   @@unique([weekStartDate, segmentType, segmentValue])
 }
 
+// One row per calendar month — the internal monthly member report, built on
+// the last day of each month by the monthly-user-report cron. `data` is the
+// finished report (MonthlyUserReportData, src/lib/reports/monthly-user/
+// types.ts) with every group under 5 members already suppressed, so the
+// page, the CSV and the email read it back without recomputing anything and
+// without a path to a small cell. Regenerating a month overwrites its row.
+model MonthlyUserReport {
+  id          String    @id @default(cuid())
+  monthKey    String    @unique // "2026-10"
+  data        Json
+  memberCount Int
+  trigger     String    @default("schedule") // "schedule" | "manual"
+  generatedAt DateTime  @default(now())
+  emailedAt   DateTime?
+}
+
 // Every individual-record view by an admin — Part B Prompt 8: "Log every
 // individual-record view... with a required reason field. Not optional,
 // not a text box that accepts empty." The empty-reason rejection is
@@ -6936,6 +7495,7 @@ model Company {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+  aliases          CompanyAlias[]
   // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
   warnNotices      WarnNotice[]
 
@@ -6960,6 +7520,8 @@ model Company {
   recruiterFirms     RecruiterFirm[]
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
+  recruitingDates    InstitutionRecruitingDate[]
+  earlyCareerRoles   InstitutionEarlyCareerRole[]
 
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
@@ -6983,6 +7545,34 @@ model Company {
 // other open sources). Keyed by the listing URL, same as ExclusiveJobPosting.
 // Employer/recruiter exclusives, confidential searches and institution-scoped jobs
 // are never written here, so every row is safe to show any member.
+/// A name that means a company ("AWS" for Amazon Web Services), decided by an admin.
+/// CONFIRMED aliases resolve new resume and posting names to the company; REJECTED
+/// ones record "these are not the same" so the pair is never suggested again.
+model CompanyAlias {
+  id             String   @id @default(cuid())
+  aliasKey       String // normalizeOrgName() of the abbreviation
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status         String   @default("CONFIRMED") // CONFIRMED | REJECTED
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([aliasKey, companyId])
+  @@index([aliasKey])
+}
+
+/// "These are not duplicates": a group of same-letter names an admin has dismissed
+/// from the Duplicates page. groupKey is the name with spacing, punctuation and "&" removed.
+model DuplicateDismissal {
+  id             String   @id @default(cuid())
+  kind           String // ORGANIZATION | COMPANY
+  groupKey       String
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([kind, groupKey])
+}
+
 model CompanyJobOpening {
   id             String    @id @default(cuid())
   companyId      String
@@ -7009,6 +7599,7 @@ model CompanyJobOpening {
   firstSeenAt    DateTime
   lastSeenAt     DateTime
   closedAt       DateTime? // null = still open
+  closeReason    String? // why it closed (job-status.ts); null = open, or closed before reasons were kept
   sourceName     String?
   source         String // 'import' | 'crawler_history' | 'board'
 
@@ -7480,6 +8071,7 @@ enum OutplacementSeatStatus {
 enum OutplacementEnrollmentMethod {
   SINGLE
   BULK_CSV
+  API
 }
 
 // The buying company. One org can run multiple contracts over time — a
@@ -7502,8 +8094,10 @@ model OutplacementEmployerOrg {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  contracts OutplacementContract[]
-  orgUsers  OutplacementOrgUser[]
+  contracts     OutplacementContract[]
+  orgUsers      OutplacementOrgUser[]
+  courses       OrgCourse[]
+  internalRoles ExclusiveJobPosting[]  @relation("OrgInternalRoles")
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
@@ -7519,10 +8113,22 @@ model OutplacementEmployerOrg {
 // A single purchase — seats, tier, term, PO/invoice reference. Admin-
 // managed per spec §A9 ("Employer contracts — seats, term, tier, discount,
 // PO, renewal date, utilization, renewal risk").
+// What a contract buys. OUTPLACEMENT: people leaving. GROWTH: current
+// employees' career tools and internal moves (retention). LEARNING: current
+// employees' learning plans and company-covered courses. Seats work the same
+// way for all three; the employer only ever sees counts.
+enum OutplacementProgramType {
+  OUTPLACEMENT
+  GROWTH
+  LEARNING
+}
+
 model OutplacementContract {
   id    String                  @id @default(cuid())
   orgId String
   org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  programType OutplacementProgramType @default(OUTPLACEMENT)
 
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
   tier             OutplacementTier
@@ -7600,7 +8206,18 @@ model OutplacementSeat {
   // docs/EMPLOYER_SCORECARD_PRIVACY_REVIEW.md.
   // Which package of services this person gets (programSettings.packages);
   // null = everything the program offers.
+  // When this person's access ends, if not the contract's end (census window).
+  accessEndsAt             DateTime?
   packageKey               String?
+  // The employer's own HR id for this person (census upsert key) and the
+  // group they were enrolled with ("March RIF, Austin").
+  externalId               String?
+  cohort                   String?
+  // Census communications (opt-in per org): join reminders and the notice
+  // that access is about to end.
+  lastReminderAt           DateTime?
+  reminderCount            Int       @default(0)
+  accessNoticeAt           DateTime?
   shareOutcomeWithEmployer Boolean   @default(false)
   shareOutcomeChangedAt    DateTime?
 
@@ -7611,6 +8228,7 @@ model OutplacementSeat {
   @@index([contractId])
   @@index([candidateId])
   @@index([contractId, status])
+  @@index([contractId, externalId])
 }
 
 // The four-role RBAC for an employer-portal login. Distinct from the
@@ -7732,7 +8350,7 @@ model RecruiterCandidateIntroductionEvent {
   @@index([introductionId, createdAt])
 }
 
-// =============================================================================
+// ======================================================================
 // Phase 3 -- Admin: commercial management. Partners Master Build Script
 // section A9 ("Nothing else can be operated without it"): plan catalog,
 // coaching settings, recruiter settings. CoachRateCard (section A2.5) lives
@@ -9610,19 +10228,24 @@ model CrmOrganization {
   // "Owl Ventures, LP" with "Owl Ventures", during the Phase 2 dry run.
   canonicalNameNormalized String @unique
 
-  orgTypes CrmOrgType[] @default([])
-  goals    CrmGoal[]    @default([])
-  website  String?
-  hqCity   String?
-  hqRegion String?
+  orgTypes       CrmOrgType[] @default([])
+  /// This company is a client we hire for or place candidates with. Distinct
+  /// from the EMPLOYER org type, which only says it employs people. Set by hand
+  /// (or backfilled from real employer accounts); never inferred from postings.
+  hiringClient   Boolean      @default(false)
+  hiringClientAt DateTime?
+  goals          CrmGoal[]    @default([])
+  website        String?
+  hqCity         String?
+  hqRegion       String?
   /// Two-letter state, or NATIONAL / GLOBAL. Derived from hqRegion, which is
   /// free text like "New York, NY" or "National / global" and therefore
   /// useless as a filter. State matters here because a real share of the
   /// funding list is state programmes you can only win with a presence there.
-  usState  String?
-  industry String?
-  focus    String?      @db.Text // what they invest in / care about, in their words
-  notes    String?      @db.Text
+  usState        String?
+  industry       String?
+  focus          String?      @db.Text // what they invest in / care about, in their words
+  notes          String?      @db.Text
 
   // Denormalised so the "All leads" view can sort organizations and people in
   // one list without a join through opportunities. Opportunities carry their
@@ -9664,6 +10287,7 @@ model CrmOrganization {
   updatedAt DateTime @updatedAt
 
   affiliations        CrmAffiliation[]
+  mandates            CrmMandate[]
   backgrounds         CrmBackground[]
   opportunities       CrmOpportunity[]
   activities          CrmActivity[]
@@ -9684,6 +10308,7 @@ model CrmOrganization {
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
   institution      Institution?
+  organization     Organization?
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
@@ -9693,6 +10318,8 @@ model CrmOrganization {
 
 model CrmPerson {
   id                 String              @id @default(cuid())
+  /// Searches this person (a recruiter) is retained or engaged on, one row per company.
+  mandates           CrmMandate[]
   referredCandidates CandidateReferral[]
   referralLinks      ReferralLink[]
   firstName          String?
@@ -9961,6 +10588,37 @@ model CrmAffiliation {
   @@unique([personId, orgId, title])
   @@index([orgId])
   @@index([personId])
+}
+
+enum CrmMandateStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED
+}
+
+/// A recruiter's mandate at a company: the company has engaged them to fill
+/// roles. A recruiter can hold many, and a company can have several recruiters.
+/// `scope` is free text ("VP and above, finance") because mandates are narrow
+/// and rarely repeat; closing keeps the history, deleting does not.
+model CrmMandate {
+  id          String          @id @default(cuid())
+  recruiterId String
+  recruiter   CrmPerson       @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  orgId       String
+  org         CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  scope     String?
+  status    CrmMandateStatus @default(ACTIVE)
+  startedAt DateTime?
+  endedAt   DateTime?
+  notes     String?          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([orgId])
+  @@index([status])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -10602,6 +11260,24 @@ model CrmBroadcastRecipient {
 /// you visit, including hostile ones; a bearer token it holds can do exactly
 /// what the capture endpoint allows and nothing else, can be revoked on its
 /// own, and never grants access to the admin portal.
+/// A customer org's census API key: an outplacement firm or a college pushes
+/// its people to POST /api/v1/census with it. Stored hashed; shown once.
+model OrgApiKey {
+  id         String    @id @default(cuid())
+  orgKind    String // 'outplacement' | 'institution'
+  orgId      String
+  label      String
+  prefix     String // first characters, to tell keys apart
+  tokenHash  String    @unique
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  useCount   Int       @default(0)
+  revokedAt  DateTime?
+
+  @@index([orgKind, orgId])
+}
+
 model CrmCaptureToken {
   id             String    @id @default(cuid())
   /// SHA-256 of the token. The plaintext is shown once at creation and never
@@ -11181,6 +11857,8 @@ model WorkforceBoard {
   fitBreakdown Json?
   fitScoredAt  DateTime?
 
+  connections WorkforceBoardConnection[]
+
   @@index([state])
 }
 
@@ -11466,6 +12144,19 @@ enum InstitutionAffiliation {
   PARENT
   STAFF_ALUM
   LEARNER // not an alum: a corporate client's employee or a community member in a program
+  PARTICIPANT // a workforce org's job seeker: laid off at a member company, or signed up from the region
+}
+
+// What kind of customer an Institution account is. A college gets the alumni
+// workspaces; every other kind is a workforce customer (a board, an economic
+// development org, a chamber, a community org) and gets the Program
+// workspace: member companies, participants, layoffs and the local market.
+enum InstitutionOrgType {
+  COLLEGE
+  WORKFORCE_BOARD
+  ECONOMIC_DEVELOPMENT
+  CHAMBER
+  COMMUNITY_ORG
 }
 
 enum InstitutionMemberMatchMethod {
@@ -11676,6 +12367,7 @@ model Institution {
   // InstitutionProfile in src/lib/higher-ed/profile.ts. Never member data.
   profile           Json?
   isDemo            Boolean            @default(false)
+  orgType           InstitutionOrgType @default(COLLEGE)
   // A campus in a multi-campus system (one license, a system dashboard).
   systemId          String?
   system            InstitutionSystem? @relation(fields: [systemId], references: [id], onDelete: SetNull)
@@ -11701,6 +12393,8 @@ model Institution {
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies      InstitutionTargetCompany[]
+  recruitingDates      InstitutionRecruitingDate[]
+  earlyCareerRoles     InstitutionEarlyCareerRole[]
   dossierIntroRequests DossierIntroRequest[]
   programs             Program[]
   corporateClients     CorporateClient[]
@@ -11710,6 +12404,7 @@ model Institution {
   collegeEvents        CollegeEvent[]
   segments             Segment[]
   rapidResponses       RapidResponse[]
+  memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
   auditCourses         AuditCourse[]
@@ -11718,6 +12413,8 @@ model Institution {
   volunteerRoles       VolunteerRole[]
   newsPosts            CollegeNewsPost[]
   dataRequests         DataRequest[]
+  classNotes           ClassNote[]
+  jobSearchCircles     JobSearchCircle[]
 }
 
 // Same shape as OutplacementOrgUser, but one row per (person, role): a
@@ -11788,9 +12485,15 @@ model InstitutionMember {
   isActiveSeat    Boolean   @default(false)
   seatActivatedAt DateTime?
 
-  isSampleData Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isSampleData    Boolean        @default(false)
+  // Workforce orgs: the member company they were laid off from and the
+  // layoff (rapid response) that gave them a seat.
+  memberCompanyId String?
+  memberCompany   MemberCompany? @relation(fields: [memberCompanyId], references: [id], onDelete: SetNull)
+  rapidResponseId String?
+  rapidResponse   RapidResponse? @relation("RapidResponseParticipants", fields: [rapidResponseId], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   consents             InstitutionConsent[]
   transitionFlags      TransitionFlag[]
@@ -11808,8 +12511,8 @@ model InstitutionMember {
   purchases            InstitutionPurchase[]
   dossierIntroRequests DossierIntroRequest[]
   enrollments          Enrollment[]
-  introsRequested      AlumniIntroRequest[]  @relation("IntroRequester")
-  introsReceived       AlumniIntroRequest[]  @relation("IntroTarget")
+  introsRequested      AlumniIntroRequest[]    @relation("IntroRequester")
+  introsReceived       AlumniIntroRequest[]    @relation("IntroTarget")
   officeHoursBooked    OfficeHourSlot[]
   eventRsvps           EventRsvp[]
   opportunitiesPosted  AlumniOpportunity[]
@@ -11817,11 +12520,14 @@ model InstitutionMember {
   groupMemberships     AlumniGroupMember[]
   auditRequests        AuditRequest[]
   mentoringSignups     MentoringSignup[]
-  pairsAsMentor        MentoringPair[]       @relation("PairMentor")
-  pairsAsMentee        MentoringPair[]       @relation("PairMentee")
+  pairsAsMentor        MentoringPair[]         @relation("PairMentor")
+  pairsAsMentee        MentoringPair[]         @relation("PairMentee")
   questions            AlumniQuestion[]
   answers              AlumniAnswer[]
   volunteerSignups     VolunteerSignup[]
+  classNotes           ClassNote[]
+  circleMemberships    JobSearchCircleMember[]
+  fairVisits           FairBoothVisit[]
 
   @@unique([institutionId, externalId])
   @@unique([institutionId, email])
@@ -11830,6 +12536,7 @@ model InstitutionMember {
   @@index([institutionId, classYear])
   @@index([institutionId, lastName, firstName])
   @@index([institutionId, lastKnownEmployerNormalized])
+  @@index([memberCompanyId])
 }
 
 // Append-only history: a toggle writes a new row, never updates an old one.
@@ -12907,16 +13614,67 @@ model LocalPartnerOrg {
 // somewhere to place alumni, or to build a relationship with. Private to that
 // institution — never shown to members, candidates, or other institutions.
 model InstitutionTargetCompany {
+  id                    String      @id @default(cuid())
+  institutionId         String
+  institution           Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId             String
+  company               Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  note                  String?     @db.Text
+  createdBy             String? // Supabase auth.users id of the staff member who flagged it
+  createdAt             DateTime    @default(now())
+  /// A company that recruits this college's students every year (as opposed to one
+  /// the team merely wants to approach). Private to the institution.
+  coreRecruiter         Boolean     @default(false)
+  recruiterContactName  String?
+  recruiterContactEmail String?
+
+  @@unique([institutionId, companyId])
+  @@index([companyId])
+}
+
+/// A date a company is on, or recruiting at, this college: a career fair, an info
+/// session, on-campus interviews, an application deadline. kind is one of
+/// RECRUITING_DATE_KINDS (src/lib/higher-ed/recruiting.ts). Private to the institution.
+model InstitutionRecruitingDate {
   id            String      @id @default(cuid())
   institutionId String
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   companyId     String
   company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  startsAt      DateTime
+  location      String?
+  url           String?
   note          String?     @db.Text
-  createdBy     String? // Supabase auth.users id of the staff member who flagged it
+  createdBy     String?
   createdAt     DateTime    @default(now())
 
-  @@unique([institutionId, companyId])
+  @@index([institutionId, startsAt])
+  @@index([companyId])
+}
+
+/// An internship, co-op or entry-level role a company has for this college's
+/// students and new graduates. kind is one of EARLY_CAREER_KINDS. Private to the institution.
+model InstitutionEarlyCareerRole {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  location      String?
+  applyUrl      String?
+  deadline      DateTime?
+  /// Graduating classes it is open to, free text ("2027, 2028").
+  classYears    String?
+  note          String?     @db.Text
+  archivedAt    DateTime?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+
+  @@index([institutionId, archivedAt])
   @@index([companyId])
 }
 
@@ -13359,6 +14117,48 @@ model DurationBenchmark {
   @@index([bucket, group])
 }
 
+// Market-based pivot paths (src/lib/pivots). One row per member, created the
+// first time they answer the people-contact question or hide a path. Kept off
+// CandidateProfile so the feature can ship (and be rolled back) on its own.
+model PivotPreference {
+  candidateId      String           @id
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  // Self-reported only, never inferred from demographics: 'HIGH' (energized by
+  // lots of people contact) | 'SOME' | 'LOW' (prefers focused solo work).
+  peopleEnergy     String?
+  peopleEnergyAt   DateTime?
+  // Pivot target keys (src/lib/pivots/pivot-map.ts) the member hid with "Not for me".
+  dismissedTargets String[]         @default([])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+// Nightly market aggregates for pivot paths (src/lib/pivots/market-stats.ts),
+// from the live board (BoardLightRow): per pivot role (title patterns in
+// pivot-map.ts, '*' = every job) x geography ('US', 'REMOTE' or a state code) x
+// level band ('IC' | 'MANAGER' | 'DIRECTOR' | 'EXEC'). Rebuilt whole each night.
+model PivotMarketStat {
+  id                 String   @id @default(cuid())
+  roleKey            String
+  geo                String
+  band               String
+  openNow            Int
+  lowCompetitionOpen Int      @default(0)
+  // New postings by posted date (imported date when none): last 30 days, the
+  // 30 before that, last 90 and the 90 before that.
+  new30              Int      @default(0)
+  prior30            Int      @default(0)
+  new90              Int      @default(0)
+  prior90            Int      @default(0)
+  // Median posted pay (annualised USD) on open jobs, when enough are posted.
+  payP50             Int?
+  paySample          Int      @default(0)
+  computedAt         DateTime @default(now())
+
+  @@unique([roleKey, geo, band])
+  @@index([geo, band])
+}
+
 // Public pay-change benchmark for a pivot path. Ranges, never point estimates.
 model PayChangeBenchmark {
   id           String            @id @default(cuid())
@@ -13400,6 +14200,11 @@ model HireOutcome {
   levelRetained         Boolean? // same level or higher than the prior role
   retained6Months       Boolean?
   retained6MonthsAt     DateTime?
+
+  // Where the new job is, so a region can count who stayed local.
+  workCity   String?
+  workState  String?
+  workRemote Boolean?
 
   bountyClaimId String? // link to the existing got-hired claim when there is one
   isSampleData  Boolean  @default(false)
@@ -13457,6 +14262,70 @@ model JourneyEvent {
   createdAt   DateTime            @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+// A review, raise, promotion or offer conversation the member is preparing for:
+// their ask, their reasons and their walk-away, and how it went. Private to the
+// member (src/lib/review-prep/conversation.ts, /dashboard/review-prep).
+enum CareerConversationKind {
+  REVIEW
+  RAISE
+  PROMOTION
+  OFFER
+}
+
+enum CareerConversationOutcome {
+  PENDING
+  GOT_IT
+  PARTIAL
+  NOT_NOW
+}
+
+model CareerConversation {
+  id           String                    @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind         CareerConversationKind
+  scheduledFor DateTime?
+  /// Dollars a year, when the ask is a number.
+  askAmount    Int?
+  /// A title or level, when the ask is a step up.
+  askLevel     String?
+  /// Up to three reasons, each a result they can point to.
+  reasons      String[]                  @default([])
+  walkAway     String?                   @db.Text
+  outcome      CareerConversationOutcome @default(PENDING)
+  outcomeNote  String?                   @db.Text
+  decidedAt    DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@index([candidateId, createdAt])
+}
+
+// A member who says they are working with a workforce board (a local American
+// Job Center board). Member-initiated. By default the board sees nothing about
+// them; with shareOutcome on, the board's anonymous counts include that they
+// found work (never a name, never below the minimum group size).
+enum WorkforceBoardConnectionStatus {
+  ACTIVE
+  ENDED
+}
+
+model WorkforceBoardConnection {
+  id           String                         @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  boardId      String
+  board        WorkforceBoard                 @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  status       WorkforceBoardConnectionStatus @default(ACTIVE)
+  connectedAt  DateTime                       @default(now())
+  endedAt      DateTime?
+  shareOutcome Boolean                        @default(false)
+  updatedAt    DateTime                       @updatedAt
+
+  @@unique([candidateId, boardId])
+  @@index([boardId, status])
 }
 
 // One row per allowed request on a rate-limited public endpoint (email-sending
@@ -13787,9 +14656,13 @@ model AlumniIntroRequest {
   targetMemberId    String
   target            InstitutionMember  @relation("IntroTarget", fields: [targetMemberId], references: [id], onDelete: Cascade)
   companyName       String
-  purpose           String // 'exploring' | 'applying' | 'interviewing' | 'offer'
+  purpose           String // 'exploring' | 'applying' | 'interviewing' | 'offer' | 'referral'
   note              String?            @db.Text
   status            DossierIntroStatus @default(REQUESTED)
+  // A referral: the posting they want to be referred for, and when the alum
+  // says they referred them.
+  referralJobUrl    String?
+  referredAt        DateTime?
   requestedAt       DateTime           @default(now())
   respondedAt       DateTime?
   isSampleData      Boolean            @default(false)
@@ -13845,7 +14718,8 @@ model CollegeEvent {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  rsvps EventRsvp[]
+  rsvps  EventRsvp[]
+  booths FairBooth[]
 
   @@index([institutionId, startsAt])
 }
@@ -13884,24 +14758,69 @@ model Segment {
 // A joint college and workforce-board offer to workers hit by a layoff,
 // alumni or not, with a public sign-up page.
 model RapidResponse {
-  id            String      @id @default(cuid())
-  institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  warnNoticeId  String?
-  warnNotice    WarnNotice? @relation(fields: [warnNoticeId], references: [id], onDelete: SetNull)
-  employerName  String
-  title         String
-  message       String      @db.Text
-  programIds    String[]    @default([])
-  isActive      Boolean     @default(true)
-  createdBy     String
-  isSampleData  Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String              @id @default(cuid())
+  institutionId   String
+  institution     Institution         @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  // A workforce org's member company that had the layoff, and the seats it
+  // gives its people from the org's pool.
+  memberCompanyId String?
+  memberCompany   MemberCompany?      @relation(fields: [memberCompanyId], references: [id], onDelete: SetNull)
+  seats           Int?
+  // A member company asking its workforce org for seats: REQUESTED until
+  // the org approves (seats given, sign-up page opens) or declines.
+  requestStatus   String?
+  requestNote     String?
+  requestedAt     DateTime?
+  participants    InstitutionMember[] @relation("RapidResponseParticipants")
+  warnNoticeId    String?
+  warnNotice      WarnNotice?         @relation(fields: [warnNoticeId], references: [id], onDelete: SetNull)
+  employerName    String
+  title           String
+  message         String              @db.Text
+  programIds      String[]            @default([])
+  isActive        Boolean             @default(true)
+  createdBy       String
+  isSampleData    Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   enrollments Enrollment[]
 
   @@index([institutionId, isActive])
+  @@index([memberCompanyId])
+}
+
+// A company a workforce org (chamber, EDO, board) serves: when it has a
+// layoff, its people get NextChapter seats from the org's pool.
+model MemberCompany {
+  id                String           @id @default(cuid())
+  institutionId     String
+  institution       Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name              String
+  industry          String?
+  city              String?
+  state             String?
+  contactName       String?
+  contactEmail      String?
+  // Seats set aside for this company from the org's pool (Institution.includedSeats).
+  seatsAllocated    Int              @default(0)
+  hiring            Boolean          @default(false) // sees opt-in Dossiers of the org's participants
+  // The company's hiring login (a NextChapter Talent employer account),
+  // connected through a one-time invite link the org sends its contact.
+  employerProfileId String?          @unique
+  employerProfile   EmployerProfile? @relation(fields: [employerProfileId], references: [id], onDelete: SetNull)
+  inviteToken       String?          @unique
+  invitedEmail      String?
+  invitedAt         DateTime?
+  connectedAt       DateTime?
+  isSampleData      Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  layoffs RapidResponse[]
+  people  InstitutionMember[]
+
+  @@unique([institutionId, name])
 }
 
 // ── Working, networking, learning, giving time, news, data rights, systems ──
@@ -14219,4 +15138,774 @@ model InstitutionSystemUser {
   updatedAt DateTime          @updatedAt
 
   @@unique([systemId, email])
+}
+
+// A person the member chose to keep them accountable: a friend, family member
+// or coach with no NextChapter login. They get a weekly summary of effort only
+// (minutes, days active, counts; never names, jobs or messages) and can send a
+// short cheer. Never available in Confidential Search Mode.
+model SearchSupporter {
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name         String
+  email        String
+  token        String           @unique @default(cuid())
+  createdAt    DateTime         @default(now())
+  revokedAt    DateTime?
+  lastDigestAt DateTime?
+  cheers       SupporterCheer[]
+
+  @@unique([candidateId, email])
+  @@index([candidateId])
+}
+
+model SupporterCheer {
+  id          String          @id @default(cuid())
+  supporterId String
+  supporter   SearchSupporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+  message     String
+  createdAt   DateTime        @default(now())
+  seenAt      DateTime?
+
+  @@index([supporterId, createdAt])
+}
+
+// A member's own account of one past job: how they got it, how they were
+// engaged, how the employer was, what they liked and didn't. One row per work
+// history entry, editable. Structured answers only (no free text, so nothing
+// needs moderation and nothing can name a person). Private to the member and
+// platform staff; the only public effect is the helpfulness credit in the
+// Dossier (src/lib/reports/community-tier.ts) and, later, aggregates behind the
+// privacy floor. Text columns validated in src/lib/job-reviews/constants.ts so a
+// new option needs no DDL. SQL: prisma/manual/2026-10-15-job-reviews.sql
+model JobExperienceReview {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  workHistoryId  String           @unique
+  workHistory    WorkHistoryEntry @relation(fields: [workHistoryId], references: [id], onDelete: Cascade)
+  companyId      String? // copied from the entry at save time, for aggregates
+  hiredVia       String? // JOB_BOARD | REFERRAL | RECRUITER | DIRECT_APPLY | INTERNAL_MOVE | NETWORK_OUTREACH | OTHER
+  workerType     String? // W2 | CONTRACT_1099 | OTHER
+  employerRating Int?             @db.SmallInt // 1..5
+  wouldRecommend String? // YES | DEPENDS | NO
+  liked          String[]         @default([])
+  disliked       String[]         @default([])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId])
+  @@index([companyId])
+}
+
+// What a member is doing alongside the search right now (contract, fractional,
+// a business, a part-time job, training). One row per member; no row = not
+// answered. Private: shown to the member and their coach, never in the Dossier
+// or to employers.
+model ParallelPath {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  paths       String[]         @default([]) // see PARALLEL_PATHS; empty array = "nothing alongside the search"
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+// ── CAREER TAXONOMY (O*NET + BLS) ────────────────────────────────────────────
+// Public, government-maintained occupation and skills data — O*NET (US Dept.
+// of Labor, CC BY 4.0) for what each occupation requires, BLS OEWS and
+// Employment Projections for pay and growth. Loaded by scripts/careers/*,
+// never written by the app. Keyed by O*NET-SOC code ("13-2011.00"); the first
+// seven characters are the 2018 SOC code every government system uses.
+// Setup and sources: docs/CAREER_TAXONOMY.md. Table DDL: prisma/manual/2026-10-14-career-taxonomy.sql.
+model Occupation {
+  socCode          String   @id
+  title            String
+  description      String   @db.Text
+  // O*NET Job Zone 1-5: how much preparation the work needs. Used to keep a
+  // senior candidate's pivots at a comparable level.
+  jobZone          Int?
+  // BLS OEWS national estimates. Null where BLS suppresses or top-codes.
+  medianWage       Int? // annual USD
+  employment       Int?
+  wageYear         Int?
+  // BLS Employment Projections.
+  growthPct        Float? // projected % change over the projection period
+  annualOpenings   Int?
+  projectionPeriod String? // "2024-34"
+  typicalEducation String?
+  onetVersion      String?
+  updatedAt        DateTime @updatedAt
+
+  skills      OccupationSkill[]
+  altTitles   OccupationAltTitle[]
+  relatedFrom OccupationRelated[]   @relation("OccupationRelatedFrom")
+  relatedTo   OccupationRelated[]   @relation("OccupationRelatedTo")
+  candidates  CandidateOccupation[]
+  tasks       OccupationTask[]
+
+  @@index([title])
+}
+
+// One row per O*NET skill, knowledge area or technology/tool.
+model Skill {
+  id          String            @id // "skill:2.A.1.a", "knowledge:2.C.1.a", "tech:salesforce"
+  name        String
+  kind        String // SKILL | KNOWLEDGE | TECHNOLOGY
+  occupations OccupationSkill[]
+  courses     CourseSkill[]
+  aliases     SkillAlias[]
+
+  @@index([kind])
+}
+
+model OccupationSkill {
+  socCode    String
+  skillId    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  // O*NET ratings rescaled to 0-100. Technology rows have no level.
+  importance Float
+  level      Float?
+  hotTech    Boolean    @default(false)
+
+  @@id([socCode, skillId])
+  @@index([skillId])
+}
+
+model OccupationAltTitle {
+  id              String     @id @default(cuid())
+  socCode         String
+  occupation      Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  title           String
+  titleNormalized String
+
+  @@unique([socCode, titleNormalized])
+  @@index([titleNormalized])
+}
+
+// O*NET's own curated "related occupations" list.
+model OccupationRelated {
+  socCode        String
+  relatedSocCode String
+  occupation     Occupation @relation("OccupationRelatedFrom", fields: [socCode], references: [socCode], onDelete: Cascade)
+  related        Occupation @relation("OccupationRelatedTo", fields: [relatedSocCode], references: [socCode], onDelete: Cascade)
+  tier           String // O*NET relatedness tier
+  rank           Int
+
+  @@id([socCode, relatedSocCode])
+}
+
+// Which occupation a candidate's most recent job maps to. A cache of a
+// deterministic title match or of the candidate choosing from a short list.
+// There is no metered AI path: an ambiguous title is never guessed at.
+// Occupation-to-occupation similarity over every O*NET occupation (not only the
+// white-collar scope above), built offline from the O*NET file by
+// scripts/careers/build-occupation-similarity.ts; the board's skills-adjacent
+// matches read it (src/lib/jobs/search-breadth.ts). Each occupation keeps its
+// closest ~40 at score >= 0.55. prisma/manual/2026-10-16-search-breadth.sql.
+model OccupationSimilarity {
+  socCode        String
+  similarSocCode String
+  // 0-1: centred skill + knowledge profile cosine, lifted when O*NET relates the pair.
+  score          Float
+  related        Boolean  @default(false)
+  // What the two share, plain words, most specific first (tools, knowledge, skills).
+  sharedSkills   String[] @default([])
+  // O*NET titles, so a lookup needs no join to Occupation (which holds only the white-collar scope).
+  title          String
+  similarTitle   String
+
+  @@id([socCode, similarSocCode])
+}
+
+model CandidateOccupation {
+  candidateId String           @id
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  socCode     String
+  occupation  Occupation       @relation(fields: [socCode], references: [socCode])
+  source      String // TITLE_EXACT | TITLE_FUZZY | FUNCTION_PROXY | CANDIDATE_CONFIRMED
+  confidence  Float
+  matchedFrom String // the title text that was matched
+  matchedAt   DateTime         @default(now())
+
+  @@index([socCode])
+}
+
+// Which taxonomy skills a catalog course teaches, so a skill gap can point at a
+// course. AUTO rows come from scripts/careers/tag-courses.ts (whole-phrase match on
+// the course text) and are rebuilt on each run; ADMIN rows are kept.
+model CourseSkill {
+  courseId String
+  skillId  String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill    Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source   String // AUTO | ADMIN
+
+  @@id([courseId, skillId])
+  @@index([skillId])
+}
+
+// Training a state has approved for public funding (WIOA Eligible Training Provider
+// Lists), loaded per state from a CSV by scripts/careers/import-training-programs.ts.
+// Formats and availability vary by state, so coverage is whatever has been imported.
+model TrainingProgram {
+  id            String   @id @default(cuid())
+  state         String // 2-letter US state code
+  providerName  String
+  programName   String
+  url           String?
+  // 6-digit SOC codes ("13-2011") the program prepares for, when the list says.
+  socCodes      String[] @default([])
+  credential    String?
+  deliveryMode  String? // IN_PERSON | ONLINE | HYBRID
+  costUsd       Int?
+  durationWeeks Int?
+  fundingSource String   @default("WIOA_ETPL")
+  sourceName    String // e.g. "Massachusetts ETPL, September 2026"
+  importedAt    DateTime @default(now())
+
+  @@unique([state, providerName, programName])
+  @@index([state])
+}
+
+// ── RESUME STUDIO ────────────────────────────────────────────────────────────
+// A candidate-edited resume, kept as the same structured document the export
+// templates already render (ResumeDocumentData, src/lib/resume/export/document-data.ts),
+// so what they edit is exactly what the PDF and Word downloads contain. Many drafts
+// per candidate (for example one tailored per target role). Saving overwrites the
+// draft; "Duplicate" is how a candidate keeps a version.
+model ResumeDraft {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name           String
+  templateId     String           @default("classic")
+  document       Json
+  // The posting text last pasted in for the keyword check, so it is there next visit.
+  jobDescription String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([candidateId, updatedAt])
+}
+
+// ── REQUESTED DOCUMENTS ──────────────────────────────────────────────────────
+// Someone with a reason to ask (today a coach, for their client) requests a
+// document; the candidate uploads it; the requester accepts it or asks for
+// changes. One model for the whole flow so new requesters (an institution's
+// career office, an outplacement employer) reuse it instead of adding another
+// upload table. Files live in the private 'requested-documents' storage bucket
+// under {candidateId}/{requestId}/..., reached only through short-lived signed
+// URLs after an ownership check. Existing one-off uploads (resume, work samples,
+// offer letters) are not migrated into this.
+model DocumentRequest {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Who asked. requesterId is a bare id (no FK) because the requester lives in
+  // different tables per type, like other cross-portal ids in this schema.
+  requesterType  String // COACH | INSTITUTION | EMPLOYER | ADMIN
+  requesterId    String
+  // Name shown to the candidate, captured when the request was made.
+  requesterLabel String
+
+  title        String
+  instructions String?   @db.Text
+  dueAt        DateTime?
+
+  // REQUESTED | UPLOADED | ACCEPTED | NEEDS_CHANGES | CANCELLED
+  status String @default("REQUESTED")
+
+  filePath    String?
+  fileName    String?
+  contentType String?
+  sizeBytes   Int?
+  uploadedAt  DateTime?
+
+  reviewedAt DateTime?
+  reviewNote String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId, status])
+  @@index([requesterType, requesterId, status])
+}
+
+// ── COACH SESSION BOOKING ────────────────────────────────────────────────────
+// A coach sets weekly hours; their clients book open slots; a Google Calendar event
+// with a Meet link is created on NextChapter's connected calendar (the same connection
+// webinars use) with coach and client invited. We do NOT read the coach's own
+// calendar, so personal appointments are not seen: the coach keeps their hours
+// current, and cancels a booking here if something comes up.
+model CoachBookingSettings {
+  coachId            String   @id
+  coach              Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  enabled            Boolean  @default(false)
+  // IANA zone the weekly hours are written in, e.g. "America/New_York".
+  timezone           String   @default("America/New_York")
+  slotMinutes        Int      @default(45)
+  bufferMinutes      Int      @default(15)
+  minNoticeHours     Int      @default(24)
+  maxDaysAhead       Int      @default(21)
+  // Shown when no calendar event (and so no Meet link) could be made.
+  fallbackMeetingUrl String?
+  updatedAt          DateTime @updatedAt
+}
+
+// One window per weekday per row (weekday 0 = Sunday); minutes from local midnight.
+model CoachAvailabilityWindow {
+  id          String @id @default(cuid())
+  coachId     String
+  coach       Coach  @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+
+  @@index([coachId])
+}
+
+model CoachBooking {
+  id            String           @id @default(cuid())
+  coachId       String
+  coach         Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startsAt      DateTime
+  endsAt        DateTime
+  // CONFIRMED | CANCELLED
+  status        String           @default("CONFIRMED")
+  cancelledBy   String? // COACH | CANDIDATE
+  meetUrl       String?
+  googleEventId String?
+  createdAt     DateTime         @default(now())
+
+  @@index([coachId, startsAt])
+  @@index([candidateId, startsAt])
+}
+
+// ── COACH NOTE SUMMARIES ─────────────────────────────────────────────────────
+// An AI-written summary of one coach's own private session notes on one client,
+// generated only when the coach asks, and cached until a new session is logged. Each
+// call to the model is metered (see CoachNoteSummaryRun and the per-coach daily cap in
+// src/lib/coach/note-summary-service.ts). Coach-only: never shown to the client, and
+// built only from sessions this coach logged, not another coach's.
+model CoachNoteSummary {
+  coachId      String
+  candidateId  String
+  coach        Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  summary      Json // { whereThingsStand, themes[], openCommitments[], watchouts[] }
+  sessionCount Int
+  // Changes whenever the notes it was built from change; a mismatch means the summary is stale.
+  fingerprint  String
+  truncated    Boolean          @default(false)
+  generatedAt  DateTime         @default(now())
+
+  @@id([coachId, candidateId])
+}
+
+// One row per model call, for the daily cap and for cost reporting.
+model CoachNoteSummaryRun {
+  id          String   @id @default(cuid())
+  coachId     String
+  candidateId String
+  inputChars  Int
+  ok          Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([coachId, createdAt])
+}
+
+// ── CAREER TAXONOMY, PART 2: LOCAL PAY, TASKS, SKILL ALIASES ────────────────
+// BLS OEWS wage percentiles and employment by nation, state and metro area, keyed by the
+// 6-digit SOC code BLS publishes at ("13-2011"; every O*NET-SOC code that starts with it
+// shares the row). Loaded by scripts/careers/import-bls.ts. A percentile BLS does not
+// publish stays null; ceilingHit means at least one was withheld because it was at or
+// above BLS's published wage ceiling (about $239,200 a year), which is common above the
+// median for executives. Area codes: "US", the 2-digit state FIPS, or the 5-digit CBSA.
+model OccupationWage {
+  soc6       String
+  areaType   String // NATIONAL | STATE | METRO
+  areaCode   String
+  areaName   String
+  year       Int?
+  employment Int?
+  wageP10    Int?
+  wageP25    Int?
+  wageMedian Int?
+  wageP75    Int?
+  wageP90    Int?
+  ceilingHit Boolean @default(false)
+
+  @@id([soc6, areaType, areaCode])
+  @@index([areaType, areaCode])
+}
+
+// What a job does day to day: O*NET task statements, Core tasks first.
+model OccupationTask {
+  id         String     @id @default(cuid())
+  socCode    String
+  occupation Occupation @relation(fields: [socCode], references: [socCode], onDelete: Cascade)
+  taskId     Int
+  text       String     @db.Text
+  taskType   String // CORE | SUPPLEMENTAL
+
+  @@unique([socCode, taskId])
+}
+
+// Other ways people write a tool or skill ("SFDC" for Salesforce) mapped to the O*NET skill
+// they mean. Built offline (scripts/careers/build-skill-aliases.ts), looked up at runtime, so
+// matching never calls a model.
+model SkillAlias {
+  alias   String @id // normalized
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  source  String // BUILTIN | NAME | LLM | ADMIN
+
+  @@index([skillId])
+}
+
+// Class notes: a short update an alum shares with their class (a new job, a
+// move, a book, a wedding). Shown in the alumni news by class; staff can hide.
+model ClassNote {
+  id            String            @id @default(cuid())
+  institutionId String
+  institution   Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  kind          String // 'career' | 'life' | 'achievement' | 'other'
+  body          String            @db.Text
+  hiddenAt      DateTime?
+  isSampleData  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([institutionId, createdAt])
+}
+
+// Job-search circles: about six alumni and a facilitator (staff or a coach)
+// meeting weekly for a set number of weeks.
+model JobSearchCircle {
+  id            String                  @id @default(cuid())
+  institutionId String
+  institution   Institution             @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  focus         String?
+  facilitator   String // name shown to members
+  startsAt      DateTime
+  weeks         Int                     @default(6)
+  meetingTime   String? // "Tuesdays 6:00 pm"
+  meetingUrl    String?
+  capacity      Int                     @default(6)
+  createdBy     String
+  isSampleData  Boolean                 @default(false)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  members       JobSearchCircleMember[]
+
+  @@index([institutionId, startsAt])
+}
+
+model JobSearchCircleMember {
+  id           String            @id @default(cuid())
+  circleId     String
+  circle       JobSearchCircle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  goal         String?
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@unique([circleId, memberId])
+}
+
+// Virtual career fair: booths (approved employers) inside a CollegeEvent of
+// kind 'career_fair'. A visit is an alum saying "I'm interested", with an
+// optional note; the employer sees the alum's name and note, and their
+// Dossier only when the alum chose to share it.
+model FairBooth {
+  id                    String           @id @default(cuid())
+  eventId               String
+  event                 CollegeEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  institutionEmployerId String?
+  employerName          String
+  pitch                 String?          @db.Text
+  roles                 String?          @db.Text
+  meetingUrl            String?
+  isSampleData          Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  visits                FairBoothVisit[]
+
+  @@index([eventId])
+}
+
+model FairBoothVisit {
+  id           String            @id @default(cuid())
+  boothId      String
+  booth        FairBooth         @relation(fields: [boothId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  note         String?           @db.Text
+  shareDossier Boolean           @default(false)
+  isSampleData Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  @@unique([boothId, memberId])
+}
+
+// Access a person has beyond their own membership: coaching and the recruiter
+// network unlocked by an outplacement seat, a coach's code, a coach directly,
+// or a NextChapter admin. Checked on read (startsAt/endsAt/revokedAt), so an
+// expired contract needs no job to switch it off. Sessions count down as the
+// coach logs them (src/lib/access/grants.ts).
+model AccessGrant {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  feature       String // 'coaching' | 'recruiters'
+  source        String // 'outplacement_seat' | 'coach_code' | 'coach' | 'admin'
+  sourceId      String?
+  coachId       String?
+  sessionsTotal Int?
+  sessionsUsed  Int              @default(0)
+  startsAt      DateTime         @default(now())
+  endsAt        DateTime?
+  revokedAt     DateTime?
+  revokedBy     String?
+  note          String?
+  createdBy     String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId, feature])
+  @@index([source, sourceId])
+}
+
+// A code a coach gives their own client (paid outside NextChapter): redeeming
+// it links the client to the coach and grants that many sessions.
+model CoachAccessCode {
+  id        String    @id @default(cuid())
+  coachId   String
+  coach     Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  code      String    @unique
+  sessions  Int
+  validDays Int?
+  maxUses   Int       @default(1)
+  uses      Int       @default(0)
+  note      String?
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([coachId])
+}
+
+// ── ORGANIZATIONS (the customer behind one or many partner portals) ─────────
+// A customer is one Organization. It owns one workspace per portal type it
+// bought (higher ed, outplacement, workforce, coach, hiring, recruiter). The
+// existing per-portal tables (Institution, OutplacementEmployerOrg, Coach,
+// EmployerProfile, RecruiterFirm) stay as they are; a workspace points at one
+// of them by refId, so nothing is migrated. Brand set here overrides the brand
+// each portal stores for itself. Demo organizations carry sample data only.
+enum OrgWorkspaceType {
+  HIGHER_ED
+  OUTPLACEMENT
+  WORKFORCE
+  COACH
+  HIRING
+  RECRUITER
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Brand shown in every portal this organization owns.
+  brandName   String?
+  logoUrl     String?
+  accentColor String?
+  // Secondary (buttons, chips, highlights) and page background; any #rrggbb.
+  secondaryColor  String?
+  backgroundColor String?
+
+  // Demo: sample data only, never counted in real metrics, expires.
+  isDemo        Boolean   @default(false)
+  demoScenario  String?
+  demoExpiresAt DateTime?
+  isSampleData  Boolean   @default(false)
+
+  // Which cross-portal connections are turned on for this organization.
+  features Json @default("{}")
+
+  crmOrganizationId String?          @unique
+  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
+
+  createdBy  String?
+  workspaces OrgWorkspace[]
+
+  @@index([isDemo, demoExpiresAt])
+}
+
+model OrgWorkspace {
+  id          String           @id @default(cuid())
+  orgId       String
+  org         Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  type        OrgWorkspaceType
+  // The portal's own record: Institution, OutplacementEmployerOrg, Coach,
+  // EmployerProfile or RecruiterFirm id. Null until it exists (a hiring team
+  // exists only once its first person signs up through the invite).
+  refId       String?
+  // ACTIVE | PENDING (waiting on the first sign-up) | SUSPENDED
+  status      String           @default("ACTIVE")
+  // For workspaces whose first admin signs up themselves.
+  inviteEmail String?
+  inviteToken String?          @unique
+  createdAt   DateTime         @default(now())
+
+  @@unique([orgId, type])
+  @@index([type, refId])
+}
+
+// Internships (owner rule: internships only appear in Higher Ed portals). Their
+// own table, never ExclusiveJobPosting, so no member board, email, alert, pivot
+// or company count can read one by accident. Written by the ncrawl internship
+// stream (/api/admin/internships/import), read only by the Higher Ed portal's
+// Internships tab (src/lib/internships/data.ts). institutionId NULL = shown to
+// every partner college's students and alumni; set = that college only.
+// Applied by hand: prisma/manual/2026-10-15-internship-postings.sql.
+model InternshipPosting {
+  id              String    @id @default(cuid())
+  url             String    @unique
+  title           String
+  companyName     String
+  companyId       String?
+  location        String?
+  locationState   String? // US 2-letter
+  remote          Boolean   @default(false)
+  // Field of study it suits (src/lib/internships/fields.ts): business, engineering, software, data, finance, ...
+  field           String?
+  // summer | fall | spring | winter | co_op | year_round (null = not stated)
+  term            String?
+  termYear        Int?
+  deadline        DateTime?
+  description     String? // excerpt
+  salaryMin       Int?
+  salaryMax       Int?
+  payPeriod       String? // hour | week | month | year
+  sourceName      String?
+  addedBy         String    @default("ncrawl")
+  institutionId   String?
+  postedAt        DateTime?
+  lastConfirmedAt DateTime?
+  expiresAt       DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([archivedAt, field])
+  @@index([institutionId])
+  @@index([addedBy, lastConfirmedAt])
+}
+
+// Who did what in a partner portal: exports, brand and team changes, demo access.
+// One table for every portal type; portal + refId says whose it is (the portal's
+// own record id), so each partner sees only their own activity. Written best-effort
+// and never used to gate anything.
+model PartnerAuditEvent {
+  id          String           @id @default(cuid())
+  portal      OrgWorkspaceType
+  refId       String
+  actorUserId String?
+  actorLabel  String?
+  action      String
+  targetType  String?
+  targetId    String?
+  detail      Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([portal, refId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+// A course an organization covers for its people (Learning).
+model OrgCourse {
+  id           String                  @id @default(cuid())
+  orgId        String
+  org          OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title        String
+  provider     String?
+  url          String?
+  skills       String[]                @default([])
+  // What the company pays, in its words: "Fully covered", "Up to $500".
+  covered      String?
+  note         String?
+  isActive     Boolean                 @default(true)
+  isSampleData Boolean                 @default(false)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  progress OrgCourseProgress[]
+
+  @@index([orgId, isActive])
+}
+
+// An employee's own progress on a covered course. The employer sees counts only.
+model OrgCourseProgress {
+  id           String    @id @default(cuid())
+  courseId     String
+  course       OrgCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  candidateId  String
+  status       String // 'STARTED' | 'COMPLETED'
+  isSampleData Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([courseId, candidateId])
+  @@index([candidateId])
+}
+
+// An employee asking to be considered for an internal role. They choose to
+// share their name with the company for that one role; nothing else.
+model InternalRoleInterest {
+  id           String   @id @default(cuid())
+  postingId    String
+  candidateId  String
+  note         String?
+  isSampleData Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([postingId, candidateId])
+  @@index([candidateId])
+}
+
+// Native one-click apply (src/lib/jobs/native-apply.ts): a member's application to
+// a job posted directly on NextChapter, delivered to the poster's inbox as a
+// message. `shared` is the exact snapshot the member reviewed and sent; the
+// application itself is the JobPosting row My jobs already reads (jobPostingId).
+// Added by hand: prisma/manual/2026-10-16-native-apply.sql.
+model NativeJobApplication {
+  id                    String   @id @default(cuid())
+  candidateId           String
+  postingId             String // ExclusiveJobPosting.id
+  jobPostingId          String? // JobPosting.id (My jobs / Application Tracker)
+  partnerType           String // 'employer' | 'recruiter'
+  partnerId             String
+  threadId              String // MessageThread.id the application was delivered to
+  resumeId              String?
+  shared                Json
+  confidentialConfirmed Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([postingId])
 }

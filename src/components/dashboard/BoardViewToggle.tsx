@@ -4,11 +4,12 @@ import { useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { boardHref } from '@/lib/jobs/board-url'
 
 const VIEWS = [
   { key: 'all', label: 'All jobs' },
   { key: 'fresh', label: 'Last 72 hours' },
-  { key: 'low_competition', label: 'Low competition' },
+  { key: 'low_competition', label: 'Likely fewer applicants' },
 ] as const
 
 /** Switches the job board between all jobs, fresh ones and low-competition ones (the `view` URL parameter). */
@@ -21,11 +22,9 @@ export function BoardViewToggle({ surface }: { surface: string }) {
 
   function select(view: string) {
     if (view === current) return
-    const next = new URLSearchParams(searchParams.toString())
-    if (view === 'all') next.delete('view')
-    else next.set('view', view)
     posthog.capture('job_board_view_changed', { surface, view })
-    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }))
+    // Keeps the search (q, loc, remote, sort) and every other filter on.
+    startTransition(() => router.replace(boardHref(searchParams, { view }, { pathname }), { scroll: false }))
   }
 
   return (

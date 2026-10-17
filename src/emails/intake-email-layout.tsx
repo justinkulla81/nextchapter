@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag, type EmailAudience } from '@/lib/email/audience-tag'
 
 // Shared shell for NextChapter Talent emails. The footer carries what
 // CAN-SPAM needs on anything sent on a recruiter's behalf: who sent it and
@@ -33,12 +34,15 @@ export function IntakeEmailLayout({
   children,
   footerNote,
   unsubscribeUrl,
+  audience = 'candidate',
 }: {
   heading: string
   subheading?: string
   children: React.ReactNode
   footerNote: string
   unsubscribeUrl?: string
+  /** Most intake emails go to the candidate; the approval digest and firm invite go to recruiters. */
+  audience?: EmailAudience
 }) {
   const postal = process.env.INTAKE_POSTAL_ADDRESS
   return (
@@ -55,6 +59,7 @@ export function IntakeEmailLayout({
         )}
         {postal && <p style={{ margin: 0 }}>NextChapter · {postal}</p>}
       </div>
+      <AudienceTag audience={audience} />
     </div>
   )
 }

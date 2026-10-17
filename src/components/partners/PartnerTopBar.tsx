@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { PartnerWordmark, type PartnerSurface } from '@/components/partners/PartnerWordmark'
+import { PartnerBrandMark } from '@/components/partners/PartnerBrandMark'
+import type { PartnerBrand } from '@/lib/partners/brand'
 
 // Partners Master Build Script §B3.1 — "chrome inversion," the primary
 // orientation cue: a persistent navy, white-text top bar on every partner
@@ -8,13 +10,30 @@ import { PartnerWordmark, type PartnerSurface } from '@/components/partners/Part
 // it gets this one, with the nav-drawer trigger passed in as `children`
 // by the caller (each *Nav component still owns the drawer's open state).
 //
+// A partner with a brand (logo, name, color) gets its mark after the wordmark
+// and its color as a rule under the bar. The rule is an inset shadow, so the
+// bar keeps its exact height.
+//
 // Callers must offset both the fixed sidebar (`top-14`) and the page
 // content (`pt-[6.5rem]` = this bar's h-14 + the original pt-12) to clear
 // this bar's fixed height.
-export function PartnerTopBar({ surface, children }: { surface: PartnerSurface; children?: ReactNode }) {
+export function PartnerTopBar({ surface, brand, children }: { surface: PartnerSurface; brand?: PartnerBrand; children?: ReactNode }) {
+  const hasBrand = !!brand && (brand.name || brand.logoUrl)
   return (
-    <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between bg-navy px-4 lg:px-6">
-      <PartnerWordmark surface={surface} className="text-base lg:text-lg" />
+    <header
+      className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-3 bg-navy px-4 lg:px-6"
+      style={brand?.accent ? { boxShadow: `inset 0 -3px 0 ${brand.accent}` } : undefined}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <PartnerWordmark surface={surface} className="shrink-0 text-base lg:text-lg" />
+        {hasBrand && brand && (
+          <>
+            <span aria-hidden="true" className="h-5 w-px shrink-0 bg-white/25" />
+            <PartnerBrandMark brand={brand} />
+            {brand.name && <span className="hidden min-w-0 truncate text-sm font-medium text-white sm:block">{brand.name}</span>}
+          </>
+        )}
+      </div>
       {children}
     </header>
   )

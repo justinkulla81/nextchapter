@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 export interface CoachDigestJob {
   title: string
@@ -19,7 +20,6 @@ export interface CoachDigestClient {
   interviews: number
   offers: number
   outreach: number
-  followUpsOwed: number
   pointsThisWeek: number
   pointsLastWeek: number
   daysSinceActive: number | null
@@ -38,6 +38,7 @@ interface MarketDigestCoachEmailProps {
   fullName: string
   clients: CoachDigestClient[]
   notSharedNames: string[]
+  unavailableNames?: string[]
   roleLines: RoleMarketLine[]
   nuggetTitle: string | null
   nuggetUrl: string | null
@@ -152,7 +153,6 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       <p style={{ ...emailStyles.muted, margin: '2px 0 0' }}>
         {c.pointsThisWeek} points this week
         {c.pointsLastWeek > 0 || c.pointsThisWeek > 0 ? ` (${delta >= 0 ? '+' : ''}${delta} vs last week)` : ''}
-        {c.followUpsOwed > 0 ? ` · ${c.followUpsOwed} follow-up${c.followUpsOwed === 1 ? '' : 's'} owed` : ''}
       </p>
 
       <p style={label}>New roles that fit {c.firstName}</p>
@@ -179,6 +179,7 @@ export default function MarketDigestCoachEmail({
   fullName,
   clients,
   notSharedNames,
+  unavailableNames = [],
   roleLines,
   nuggetTitle,
   nuggetUrl,
@@ -219,6 +220,12 @@ export default function MarketDigestCoachEmail({
         </p>
       )}
 
+      {unavailableNames.length > 0 && (
+        <p style={{ ...emailStyles.muted, marginTop: '16px' }}>
+          Couldn&apos;t load this week&apos;s detail for: {unavailableNames.join(', ')}. It will be back next week.
+        </p>
+      )}
+
       {roleLines.length > 0 && (
         <>
           <p style={{ ...label, marginTop: '28px' }}>Market, across your clients&apos; target roles</p>
@@ -246,6 +253,7 @@ export default function MarketDigestCoachEmail({
       <p style={{ marginTop: '32px', ...emailStyles.muted }}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
       </p>
+      <AudienceTag audience="coach" />
     </div>
   )
 }

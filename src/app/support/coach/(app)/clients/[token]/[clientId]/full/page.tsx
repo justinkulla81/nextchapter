@@ -29,11 +29,13 @@ export default async function FullClientViewPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const view = await getFullClientView(candidate.id)
   const hasConsent = candidate.coachDossierConsentedAt !== null
-  const [dossier, coachingNotes, jobsSnapshot] = hasConsent
-    ? await Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id), getCoachJobsSnapshot(candidate.id)])
-    : [null, null, null]
+  const [view, [dossier, coachingNotes, jobsSnapshot]] = await Promise.all([
+    getFullClientView(candidate.id),
+    hasConsent
+      ? Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id), getCoachJobsSnapshot(candidate.id)])
+      : Promise.resolve([null, null, null] as const),
+  ])
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -240,12 +242,6 @@ export default async function FullClientViewPage({
                           </div>
                         ))}
                       </>
-                    )}
-                    {jobsSnapshot.lockedCount > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{jobsSnapshot.lockedCount} Candidate+-exclusive listing{jobsSnapshot.lockedCount === 1 ? '' : 's'} locked
-                        until {view.candidateName} unlocks Candidate+.
-                      </p>
                     )}
                   </div>
                 )}

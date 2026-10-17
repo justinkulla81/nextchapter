@@ -4,6 +4,7 @@ import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/Intervi
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
+import { CultureQuestionsCard } from '@/components/dashboard/interview-prep/CultureQuestionsCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
@@ -27,6 +28,8 @@ export default async function InterviewPrepPage() {
       </div>
 
       <JobDescriptionCard initialValue={profile.activeJobDescription} />
+
+      <CultureQuestionsCard cultureFit={profile.cultureFit} />
 
       <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
         <p>

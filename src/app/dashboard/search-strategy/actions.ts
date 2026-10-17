@@ -1,6 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import {
+  normalizeCompanySizeValue,
+  normalizeCompanyStageValue,
+  normalizeFunctionValue,
+  normalizeLevelValue,
+  normalizeRemotePreferenceValue,
+} from '@/lib/constants/candidate-profile-normalize'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -10,6 +17,8 @@ import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
+import { Prisma } from '@prisma/client'
+import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
 import type {
   ContentVenue,
   GapDurationBucket,
@@ -18,6 +27,7 @@ import type {
   PublicDisclosureComfort,
   ReferralRecency,
 } from '@prisma/client'
+import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 
 export type FormState = { error?: string } | undefined
 
@@ -44,6 +54,7 @@ export async function updateSearchStrategy(
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  await captureMatchBaseline(profile)
 
   const rankedOrder = formData.getAll('tradeoffOrder').map(String) as Array<
     (typeof TRADEOFF_PRIORITIES)[number]['key']
@@ -61,17 +72,18 @@ export async function updateSearchStrategy(
 
   const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
   const targetIndustries = formData.getAll('targetIndustries') as string[]
-  const primaryFunction = (formData.get('primaryFunction') as string | null) || null
-  const targetFunction = (formData.get('targetFunction') as string | null) || null
+  // Option-list values are normalised on write ('DIRECTOR' -> 'Director') — see candidate-profile-normalize.ts.
+  const primaryFunction = normalizeFunctionValue(formData.get('primaryFunction') as string | null)
+  const targetFunction = normalizeFunctionValue(formData.get('targetFunction') as string | null)
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
-  const secondaryFunction = secondaryFunctionRaw === 'none' ? null : secondaryFunctionRaw
+  const secondaryFunction = secondaryFunctionRaw === 'none' ? null : normalizeFunctionValue(secondaryFunctionRaw)
   const gapDurationRaw = (formData.get('gapDuration') as string | null) || null
   const gapDuration = gapDurationRaw === 'none' ? null : (gapDurationRaw as GapDurationBucket | null)
   const highestLevelReachedRaw = (formData.get('highestLevelReached') as string | null) || null
-  const highestLevelReached = highestLevelReachedRaw === 'none' ? null : highestLevelReachedRaw
-  const targetCompanySize = (formData.get('targetCompanySize') as string | null) || null
-  const targetCompanyStage = (formData.get('targetCompanyStage') as string | null) || null
-  const remotePreference = (formData.get('remotePreference') as string | null) || null
+  const highestLevelReached = highestLevelReachedRaw === 'none' ? null : normalizeLevelValue(highestLevelReachedRaw)
+  const targetCompanySize = normalizeCompanySizeValue(formData.get('targetCompanySize') as string | null)
+  const targetCompanyStage = normalizeCompanyStageValue(formData.get('targetCompanyStage') as string | null)
+  const remotePreference = normalizeRemotePreferenceValue(formData.get('remotePreference') as string | null)
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
   const applicationVolumeGoal = applicationVolumeGoalRaw ? Number(applicationVolumeGoalRaw) : null
   const willingToFollowUpOnApplications = formData.get('willingToFollowUpOnApplications') === 'on'
@@ -80,7 +92,10 @@ export async function updateSearchStrategy(
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
-  const travelWillingness = formData.get('travelWillingness') === 'on'
+  // Max travel (0 / 25 / 50 / 75); blank = not answered, so leave what's stored.
+  // travelWillingness stays in step for the readers that still use the yes/no.
+  const maxTravelRaw = Number(formData.get('maxTravelPct') ?? '')
+  const maxTravelPct = formData.get('maxTravelPct') && [0, 25, 50, 75].includes(maxTravelRaw) ? maxTravelRaw : null
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
   const equityImportant = formData.get('equityImportant') === 'on'
@@ -111,7 +126,7 @@ export async function updateSearchStrategy(
       isPivoting,
       openToRelocation,
       relocationNotes,
-      travelWillingness,
+      ...(maxTravelPct !== null && { maxTravelPct, travelWillingness: maxTravelPct > 0 }),
       interimConsultingInterest,
       // Only overwrite when a value was actually entered here — this field
       // is also editable from Search Goals (BenefitsPrioritiesForm), and an
@@ -127,10 +142,18 @@ export async function updateSearchStrategy(
       // the explicit Regenerate action below.
       searchStrategyGuidance: null,
       searchStrategyGuidanceGeneratedAt: null,
+      // They set their function here: it is theirs now, not a résumé guess (resume-prefill.ts).
+      resumePrefilledFields: profile.resumePrefilledFields.filter((f) => f !== 'primaryFunction'),
     },
   })
 
   captureServerEvent(profile.id, 'search_strategy_updated', {})
+  // Answers the job requirement match reads (requirements.ts): one event per field that changed.
+  const answered: string[] = []
+  if (maxTravelPct !== null && maxTravelPct !== profile.maxTravelPct) answered.push('max_travel')
+  if (openToRelocation !== profile.openToRelocation || !profile.searchStrategyConfirmedAt) answered.push('relocation')
+  if (remotePreference !== profile.remotePreference) answered.push('remote_preference')
+  for (const field of answered) captureServerEvent(profile.id, 'requirement_profile_answered', { field, surface: 'search_strategy' })
 
   // highestLevelReached feeds levelRankScore (job-fit matching sitewide) —
   // same recompute FunctionConfirmForm's confirm action triggers.
@@ -404,4 +427,36 @@ export async function updateOtherSearchStrengtheners(_prevState: FormState, form
   const boardAdvisory = await updateBoardAdvisoryWillingness(undefined, formData)
   if (boardAdvisory?.error) return boardAdvisory
   return answerOptionalQuestions(undefined, formData)
+}
+
+// Company culture and working environment: how much it matters, and, only if
+// it does, what they want (src/lib/culture/culture-fit.ts). "Not important"
+// clears the details so nothing about culture is added to their plan.
+export async function saveCultureFit(_prev: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Your session ended. Sign in again, and your answers will still be here.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const importance = formData.get('cultureImportance') as string | null
+  if (!importance) return { error: 'Choose how much culture and working environment matter to you.' }
+  const fit = cleanCultureFit({
+    importance,
+    answers: Object.fromEntries(DIMENSIONS.map((d) => [d.key, formData.get(`culture_${d.key}`) as string | null])),
+    mustHave: formData.get('cultureMustHave') as string | null,
+    dealBreaker: formData.get('cultureDealBreaker') as string | null,
+  })
+  if (!fit) return { error: 'Choose one of the three options.' }
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { cultureFit: fit as unknown as Prisma.InputJsonValue } })
+  captureServerEvent(profile.id, 'culture_fit_saved', {
+    importance: fit.importance,
+    dimensionsAnswered: Object.keys(fit.answers).length,
+    hasMustHave: fit.mustHave !== null,
+    hasDealBreaker: fit.dealBreaker !== null,
+  })
+  revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard')
 }

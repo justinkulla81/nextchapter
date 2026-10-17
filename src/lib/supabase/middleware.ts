@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith } from '@/lib/supabase/portal'
+import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith, type PortalKey } from '@/lib/supabase/portal'
+import { portalHostFor, portalHostOn, publicPathFor } from '@/lib/portal-hosts'
 
 // Whether ANY Supabase session cookie is present for the relevant portal —
 // checked with startsWith (not equality) because @supabase/ssr chunks a
@@ -16,7 +17,10 @@ function hasSupabaseSessionCookie(request: NextRequest, cookieBaseName?: string)
     .some((c) => (cookieBaseName ? c.name.startsWith(cookieBaseName) : c.name.startsWith('sb-') && c.name.includes('auth-token')))
 }
 
-export async function updateSession(request: NextRequest) {
+// `portal` overrides the path-based choice (an org portal's own subdomain);
+// `rewriteTo` serves another path at the same address (its /i app).
+export async function updateSession(request: NextRequest, opts: { portal?: PortalKey; rewriteTo?: URL } = {}) {
+  const respond = () => (opts.rewriteTo ? NextResponse.rewrite(opts.rewriteTo, { request }) : NextResponse.next({ request }))
   // Forward the pathname as a REQUEST header (not a response header) so
   // headers().get('x-pathname') in Server Component layouts (e.g.
   // src/app/dashboard/layout.tsx) can actually see it — setting a header on
@@ -24,8 +28,9 @@ export async function updateSession(request: NextRequest) {
   // processing. request.headers is mutated in place, so this survives the
   // supabaseResponse reassignment in the setAll cookie-refresh branch below.
   request.headers.set('x-pathname', request.nextUrl.pathname)
+  request.headers.set('x-search', request.nextUrl.search)
 
-  let supabaseResponse = NextResponse.next({ request })
+  let supabaseResponse = respond()
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     console.warn('Supabase env vars are not set — skipping session refresh.')
@@ -38,7 +43,7 @@ export async function updateSession(request: NextRequest) {
   // token gets silently refreshed, so a portal whose cookie never gets
   // refreshed here would hard-expire on its Supabase access-token TTL with
   // no recovery path.
-  const portal = portalForPath(request.nextUrl.pathname)
+  const portal = opts.portal ?? portalForPath(request.nextUrl.pathname)
   const portalCookieName = portal ? PORTAL_COOKIE_NAMES[portal] : undefined
 
   // supabase.auth.getUser() is a real network round-trip to Supabase's auth
@@ -64,7 +69,7 @@ export async function updateSession(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({ request })
+            supabaseResponse = respond()
             cookiesToSet.forEach(({ name, value, options }) =>
               supabaseResponse.cookies.set(name, value, options)
             )
@@ -113,6 +118,8 @@ export async function updateSession(request: NextRequest) {
   // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
   // See PROTECTED_APP_PATH_PREFIXES's own comment in portal.ts — single
   // source of truth, also read by HomepageVisitTracker's public-page gate.
+  // The page actually served (a portal host serves /recruiters/... at /...).
+  const appPath = opts.rewriteTo?.pathname ?? request.nextUrl.pathname
   const protectedPaths = PROTECTED_APP_PATH_PREFIXES
   const publicExceptions = [
     '/talent/signup',
@@ -147,9 +154,9 @@ export async function updateSession(request: NextRequest) {
   // even though it is the recruiter landing page listed in the sitemap.
   const publicExactPaths = ['/recruiters']
   const isProtected =
-    protectedPaths.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
-    !publicExceptions.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
-    !publicExactPaths.includes(request.nextUrl.pathname)
+    protectedPaths.some((path) => pathStartsWith(appPath, path)) &&
+    !publicExceptions.some((path) => pathStartsWith(appPath, path)) &&
+    !publicExactPaths.includes(appPath)
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
@@ -161,9 +168,13 @@ export async function updateSession(request: NextRequest) {
       '/support/coach': '/support/coach/login',
       '/employer': '/employer/login',
       '/support/admin': '/support/admin/login',
-    }).find(([prefix]) => pathStartsWith(request.nextUrl.pathname, prefix))?.[1]
-    redirectUrl.pathname = portalLoginPath ?? '/auth/login'
-    redirectUrl.searchParams.set('next', request.nextUrl.pathname)
+    }).find(([prefix]) => pathStartsWith(appPath, prefix))?.[1]
+    // On a portal's own host, send them to its public addresses
+    // (/hiring/login?next=/hiring/roles), not the app paths behind them.
+    const h = portalHostFor(request.headers.get('host'))
+    const pub = (p: string) => (h && portalHostOn(h) ? publicPathFor(h, p) : p)
+    redirectUrl.pathname = pub(portalLoginPath ?? '/auth/login')
+    redirectUrl.searchParams.set('next', pub(appPath))
     return NextResponse.redirect(redirectUrl)
   }
 

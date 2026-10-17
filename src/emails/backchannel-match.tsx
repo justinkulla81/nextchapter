@@ -1,11 +1,30 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
+
+export interface BackchannelPerson {
+  name: string
+  title: string | null
+  email: string | null
+  // Prefilled Gmail draft when we have their email, else their contact page.
+  actionUrl: string
+}
 
 interface BackchannelMatchEmailProps {
   firstName: string | null
   companyName: string
-  contactNames: string[]
+  role: string | null
+  // NC's own page for the listing, when we have it; the role isn't a link otherwise.
+  roleUrl: string | null
+  appliedOn: string | null
+  people: BackchannelPerson[]
+  moreCount: number
+  moreUrl: string
+  // One example of the draft each Email button opens.
+  note: { subject: string; body: string }
+  // Why a note from inside is worth sending: one sourced stat, rotated per email.
+  why: { text: string; source: string; url: string }
   otherCompanyCount: number
-  applicationTrackerUrl: string
+  otherCompaniesUrl: string
   unsubscribeUrl: string
 }
 
@@ -25,15 +44,29 @@ const logo: React.CSSProperties = {
   color: '#0b2545',
 }
 
+const noteBox: React.CSSProperties = {
+  backgroundColor: '#f4f6f8',
+  borderRadius: '8px',
+  padding: '16px',
+  margin: '8px 0 0',
+  whiteSpace: 'pre-wrap',
+  fontSize: '14px',
+  lineHeight: '1.6',
+}
+
 const button: React.CSSProperties = {
   display: 'inline-block',
   backgroundColor: '#2e7d5b',
   color: '#ffffff',
   textDecoration: 'none',
-  padding: '12px 20px',
+  padding: '8px 16px',
   borderRadius: '8px',
-  marginTop: '16px',
   ...emailStyles.cta,
+  fontSize: '14px',
+}
+
+const personRow: React.CSSProperties = {
+  padding: '16px 0 0',
 }
 
 const footer: React.CSSProperties = {
@@ -44,48 +77,84 @@ const footer: React.CSSProperties = {
 export default function BackchannelMatchEmail({
   firstName,
   companyName,
-  contactNames,
+  role,
+  roleUrl,
+  appliedOn,
+  people,
+  moreCount,
+  moreUrl,
+  note,
+  why,
   otherCompanyCount,
-  applicationTrackerUrl,
+  otherCompaniesUrl,
   unsubscribeUrl,
 }: BackchannelMatchEmailProps) {
-  const namesText = contactNames.join(', ')
+  const roleLabel = role ? <strong>{role}</strong> : 'a role'
+  const roleNode = role && roleUrl ? <a href={roleUrl} style={{ color: '#0b2545' }}>{roleLabel}</a> : roleLabel
 
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        You know someone at {companyName}.
+        You may have a way in at {companyName}.
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        you applied to {companyName}, and {namesText} {contactNames.length === 1 ? 'is' : 'are'}{' '}
-        already in your networking list.
+        you applied for {roleNode} at {companyName}
+        {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} you know
+        {people.length + moreCount === 1 ? ' works' : ' work'} there, and a word from inside gets your name in front of a
+        real person.
       </p>
+      <p style={{ ...emailStyles.muted, margin: 0 }}>
+        {why.text}{' '}
+        <a href={why.url} style={{ color: '#4a5568' }}>
+          {why.source}
+        </a>
+      </p>
+      <div>
+        {people.map((person) => (
+          <div key={person.actionUrl} style={personRow}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{person.name}</p>
+            {person.title && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.title}</p>}
+            {person.email && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.email}</p>}
+            <p style={{ margin: '8px 0 0' }}>
+              {person.email ? (
+                <a href={person.actionUrl} style={button}>
+                  Email {person.name.split(/\s+/)[0]}
+                </a>
+              ) : (
+                <a href={person.actionUrl} style={{ color: '#0b2545' }}>
+                  No email yet. Add one on their contact page
+                </a>
+              )}
+            </p>
+          </div>
+        ))}
+        {moreCount > 0 && (
+          <p style={{ ...personRow, margin: 0 }}>
+            <a href={moreUrl} style={{ color: '#0b2545' }}>
+              And {moreCount} more at {companyName}
+            </a>
+          </p>
+        )}
+      </div>
+      <p style={{ ...emailStyles.muted, margin: '24px 0 0' }}>The draft each button opens. Edit it, then send.</p>
+      <p style={noteBox}>{note.body}</p>
       {otherCompanyCount > 0 && (
-        <p>
-          That&apos;s not the only one — you have connections at{' '}
-          <strong>
-            {otherCompanyCount} other {otherCompanyCount === 1 ? 'company' : 'companies'}
-          </strong>{' '}
-          you&apos;ve applied to as well.
+        <p style={emailStyles.muted}>
+          You also know people at {otherCompanyCount} other{' '}
+          {otherCompanyCount === 1 ? 'company' : 'companies'} you’ve applied to.{' '}
+          <a href={otherCompaniesUrl} style={{ color: '#4a5568' }}>
+            See who
+          </a>
         </p>
       )}
-      <p>
-        A referral or a quick heads-up from someone inside a company puts your application in
-        front of a real person instead of sitting in a queue with hundreds of others —
-        it&apos;s one of the highest-leverage things you can do for an application you&apos;ve
-        already sent. A short message like &quot;I just applied for the [role] — would you mind
-        mentioning it to the hiring manager?&quot; is usually all it takes.
-      </p>
-      <a href={applicationTrackerUrl} style={button}>
-        See who you know →
-      </a>
       <p style={footer}>
         <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
           Turn off these emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

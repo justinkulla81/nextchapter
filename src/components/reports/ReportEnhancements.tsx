@@ -70,7 +70,7 @@ export function ReportEnhancements({
   return (
     <>
       {targets.wordmark && createPortal(<Logo />, targets.wordmark)}
-      {targets.slot && createPortal(<NewsletterSignup variant="inline" source="displacement-report" />, targets.slot)}
+      {targets.slot && createPortal(<NewsletterSignup variant="inline" source="employment-report" />, targets.slot)}
       <ReportPdfGateDialog open={pdfOpen} onOpenChange={setPdfOpen} pdfHref={pdfHref} filename={pdfFilename} />
       <ReportNewsletterPopup placement={popupPlacement} />
     </>

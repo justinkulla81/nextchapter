@@ -37,7 +37,6 @@ export interface WatchlistEntry {
   companyName: string
   newPostingCount: number
   visiblePostings: WatchlistPosting[]
-  lockedCount: number
   likelyOpenings?: WatchlistLikelyOpening[]
   topHirer?: { rank: number; openCount: number; role: string; place: string } | null
 }
@@ -112,8 +111,6 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
                   {openCount > 0
                     ? `${openCount} job${openCount === 1 ? '' : 's'} from ${entry.companyName} recommended for you`
                     : `0 new jobs from ${entry.companyName} recommended for you at this time`}
-                  {entry.lockedCount > 0 &&
-                    ` (+${entry.lockedCount} Candidate+ only)`}
                 </span>
                 {entry.newPostingCount > 0 && (
                   <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">

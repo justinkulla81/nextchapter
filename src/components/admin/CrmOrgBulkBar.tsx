@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { bulkUpdateOrganizations, bulkDeleteOrganizations } from '@/app/support/admin/(portal)/crm/actions'
 import { ORG_TYPES, ORG_TYPE_LABELS } from '@/lib/crm/labels'
+import { bulkSetHiringClient } from '@/app/support/admin/(portal)/crm/hiring-client-actions'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 
 export function CrmOrgBulkBar({ children, count }: { children: React.ReactNode; count: number }) {
@@ -50,6 +51,29 @@ export function CrmOrgBulkBar({ children, count }: { children: React.ReactNode; 
             Apply to selected
           </SubmitButton>
           {selected === 0 && <span className="text-xs text-muted-foreground">Tick at least one row to enable this.</span>}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
+          <span className="text-xs font-medium">Hiring client</span>
+          {(['Mark as hiring clients', 'Clear hiring client flag'] as const).map((label, i) => {
+            const value = i === 0
+            return (
+              <SubmitButton
+                key={label} variant="outline" size="sm" disabled={selected === 0} pendingLabel="Applying…" savedLabel={label}
+                formAction={async (fd: FormData) => {
+                  const r = await bulkSetHiringClient(fd, value)
+                  setResult(
+                    r.unchanged > 0
+                      ? `${r.changed} updated. ${r.unchanged} already ${value ? 'flagged' : 'unflagged'}.`
+                      : `${r.changed} updated.`
+                  )
+                }}
+              >
+                {label}
+              </SubmitButton>
+            )
+          })}
+          {selected === 0 && <span className="text-xs text-muted-foreground">Tick at least one row to enable these.</span>}
         </div>
 
         {selected > 0 && (

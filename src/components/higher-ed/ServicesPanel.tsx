@@ -7,11 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import {
   AUDIENCE_LABELS,
-  OFFICES,
   PRICING_LABELS,
   PROVIDER_LABELS,
   SERVICE_GROUPS,
-  SERVICES,
+  servicesFor,
+  officesFor,
   serviceTarget,
   type Audience,
   type Pricing,
@@ -19,6 +19,7 @@ import {
   type Service,
   type ServiceSetting,
 } from '@/lib/higher-ed/services'
+import type { OrgKind } from '@/lib/higher-ed/workspaces'
 import { saveService } from '@/app/i/[slug]/(portal)/actions'
 
 // Admin › Services (product design, "Admin screen"): one row per service with
@@ -30,12 +31,17 @@ export function ServicesPanel({
   initial,
   usage,
   canEdit,
+  kind = 'college',
 }: {
   slug: string
   initial: Record<string, ServiceSetting>
   usage: Record<string, number>
   canEdit: boolean
+  kind?: OrgKind
 }) {
+  const catalog = servicesFor(kind)
+  const offices = officesFor(kind)
+  const ours = kind === 'workforce' ? 'Your organization' : 'Your college'
   const [settings, setSettings] = useState(initial)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<{ key: string; message: string } | null>(null)
@@ -54,12 +60,12 @@ export function ServicesPanel({
     })
   }
 
-  const onCount = SERVICES.filter((s) => settings[s.key].on).length
+  const onCount = catalog.filter((s) => settings[s.key]?.on).length
 
   return (
     <div className={cn('space-y-8', pending && 'cursor-wait')}>
       <p className="text-sm text-muted-foreground">
-        {onCount} of {SERVICES.length} on. {canEdit ? 'Switching one on adds its card to the Candidate home for the audiences you pick.' : 'Only an institution admin can change these.'}
+        {onCount} of {catalog.length} on. {canEdit ? 'Switching one on adds its card to the Candidate home for the audiences you pick.' : 'Only an institution admin can change these.'}
       </p>
       {SERVICE_GROUPS.map((g) => (
         <section key={g.key} aria-labelledby={`group-${g.key}`} className="space-y-3">
@@ -70,7 +76,7 @@ export function ServicesPanel({
             <p className="text-sm text-muted-foreground">{g.blurb}</p>
           </div>
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-            {SERVICES.filter((s) => s.group === g.key).map((s) => (
+            {catalog.filter((s) => s.group === g.key).map((s) => (
               <ServiceRow
                 key={s.key}
                 service={s}
@@ -82,6 +88,9 @@ export function ServicesPanel({
                 onToggleExpanded={() => setOpen(open === s.key ? null : s.key)}
                 onSave={(patch) => save(s.key, patch)}
                 error={error?.key === s.key ? error.message : null}
+                ours={ours}
+                offices={offices}
+                audiences={kind === 'workforce' ? ['job_seekers', 'in_transition'] : (Object.keys(AUDIENCE_LABELS) as Audience[]).filter((a) => a !== 'job_seekers')}
               />
             ))}
           </ul>
@@ -101,6 +110,9 @@ function ServiceRow({
   onToggleExpanded,
   onSave,
   error,
+  ours,
+  offices,
+  audiences,
 }: {
   service: Service
   setting: ServiceSetting
@@ -111,12 +123,15 @@ function ServiceRow({
   onToggleExpanded: () => void
   onSave: (patch: Partial<ServiceSetting>) => void
   error: string | null
+  ours: string
+  offices: readonly string[]
+  audiences: Audience[]
 }) {
   const id = `svc-${s.key}`
   const needsLink = setting.on && s.memberCard && !serviceTarget(s, setting)
   const summary = [
     setting.audience.length ? setting.audience.map((a) => AUDIENCE_LABELS[a]).join(', ') : s.memberCard ? 'No audience' : null,
-    s.memberCard ? `By ${PROVIDER_LABELS[setting.provider].replace('Your college', 'your college')}` : null,
+    s.memberCard ? `By ${(setting.provider === 'college' ? ours : PROVIDER_LABELS[setting.provider]).replace(/^Your /, 'your ')}` : null,
     setting.ownerName ? `${setting.ownerOffice} (${setting.ownerName})` : setting.ownerOffice,
     PRICING_LABELS[setting.pricing],
     s.memberCard && setting.on ? `${opens} ${opens === 1 ? 'open' : 'opens'} in 30 days` : null,
@@ -166,7 +181,7 @@ function ServiceRow({
           {error}
         </p>
       )}
-      {expanded && setting.on && canEdit && <ServiceSettingsForm id={id} service={s} setting={setting} onSave={onSave} pending={pending} />}
+      {expanded && setting.on && canEdit && <ServiceSettingsForm id={id} service={s} setting={setting} onSave={onSave} pending={pending} ours={ours} offices={offices} audiences={audiences} />}
     </li>
   )
 }
@@ -177,12 +192,18 @@ function ServiceSettingsForm({
   setting,
   onSave,
   pending,
+  ours,
+  offices,
+  audiences,
 }: {
   id: string
   service: Service
   setting: ServiceSetting
   onSave: (patch: Partial<ServiceSetting>) => void
   pending: boolean
+  ours: string
+  offices: readonly string[]
+  audiences: Audience[]
 }) {
   const [audience, setAudience] = useState<Audience[]>(setting.audience)
   const [ownerOffice, setOwnerOffice] = useState(setting.ownerOffice)
@@ -213,12 +234,12 @@ function ServiceSettingsForm({
                   onClick={() => setProvider(p)}
                   className={cn('rounded-md border px-3 py-1.5 text-sm', provider === p ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted')}
                 >
-                  {PROVIDER_LABELS[p]}
+                  {p === 'college' ? ours : PROVIDER_LABELS[p]}
                 </button>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Your college. NextChapter doesn’t offer this one, so add your link below.</p>
+            <p className="text-sm text-muted-foreground">{ours}. NextChapter doesn’t offer this one, so add your link below.</p>
           )}
           <p className="text-xs text-muted-foreground">
             {provider === 'college' ? 'Your own office delivers it; the card opens your link.' : provider === 'nextchapter' ? 'NextChapter delivers it inside the portal at no extra work for your staff.' : 'Members get yours first, and NextChapter’s too.'}
@@ -229,7 +250,7 @@ function ServiceSettingsForm({
         <fieldset className="space-y-1.5 sm:col-span-2">
           <legend className="text-sm font-medium">Who sees the card</legend>
           <div className="flex flex-wrap gap-2">
-            {(Object.keys(AUDIENCE_LABELS) as Audience[]).map((a) => {
+            {audiences.map((a) => {
               const on = audience.includes(a)
               return (
                 <button
@@ -254,7 +275,7 @@ function ServiceSettingsForm({
           onChange={(e) => setOwnerOffice(e.target.value)}
           className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
         >
-          {[...new Set([ownerOffice, ...OFFICES])].map((o) => (
+          {[...new Set([ownerOffice, ...offices])].map((o) => (
             <option key={o} value={o}>
               {o}
             </option>

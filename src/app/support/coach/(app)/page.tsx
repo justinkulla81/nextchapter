@@ -129,15 +129,8 @@ export default async function CoachHomePage() {
             href={`/support/coach/clients/${coach.accessToken}`}
             className="rounded-lg border border-border p-4 hover:border-primary"
           >
-            <p className="font-medium text-foreground">Your clients</p>
-            <p className="mt-1 text-sm text-muted-foreground">Pre-session briefs and full client views.</p>
-          </Link>
-          <Link
-            href={`/support/coach/caseload/${coach.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Caseload</p>
-            <p className="mt-1 text-sm text-muted-foreground">Roster-level grade trends and who&apos;s stalled.</p>
+            <p className="font-medium text-foreground">Clients</p>
+            <p className="mt-1 text-sm text-muted-foreground">Who&apos;s stalled, grades and activity at a glance, and pre-session briefs.</p>
           </Link>
           <Link href="/support/coach/invite-client" className="rounded-lg border border-border p-4 hover:border-primary">
             <p className="font-medium text-foreground">Invite a client by email</p>

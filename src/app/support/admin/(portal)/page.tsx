@@ -32,7 +32,8 @@ export default async function AdminHomePage() {
     approvalsNeeded.pendingJobBoardListings +
     approvalsNeeded.pendingBountyClaims +
     approvalsNeeded.unresolvedReferenceDisputes +
-    approvalsNeeded.pendingIntroRequests
+    approvalsNeeded.pendingIntroRequests +
+    approvalsNeeded.pendingImportedReviews
 
   return (
     <div className="space-y-10">
@@ -66,6 +67,11 @@ export default async function AdminHomePage() {
               href="/support/admin/requests"
               label="Job Board intro requests pending"
               count={approvalsNeeded.pendingIntroRequests}
+            />
+            <ApprovalRow
+              href="/support/admin/requests?type=imported_reviews"
+              label="Imported reviews to confirm"
+              count={approvalsNeeded.pendingImportedReviews}
             />
           </div>
         )}

@@ -8,6 +8,7 @@ import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendEmployerInterestEmail } from '@/lib/email/send-employer-interest'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 
 // Statuses that represent progress already made — never downgrade past
 // these back to a lighter-touch status like SAVED.
@@ -57,6 +58,12 @@ export async function expressInterest(candidateId: string, roleId: string) {
     where: { employerId_candidateId: { employerId: employer.id, candidateId } },
   })
   if (existing && isFurtherAlong(existing.status, 'INTEREST_EXPRESSED')) {
+    return
+  }
+  // A first contact needs the same gate as the lists: opted in, not in
+  // Confidential Search Mode, and Candidate+. Someone already in this
+  // employer's pipeline stays reachable.
+  if (!existing && (!candidate.recruiterDatabaseOptIn || candidate.confidentialSearchMode || !(await isDossierUnlocked(candidateId)).unlocked)) {
     return
   }
 

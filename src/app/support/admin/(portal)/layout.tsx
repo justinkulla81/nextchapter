@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 import { prisma } from '@/lib/prisma'
@@ -11,8 +12,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAdmin()
+// Nav badge counts live in their own Suspense boundary so the shell and {children} paint
+// without waiting on them; the nav renders badge-less first and fills in a beat later.
+// requireAdmin() has already run in the layout before this component is rendered.
+async function AdminNavWithBadges() {
   const now = new Date()
   const [
     { approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue,
@@ -105,13 +108,22 @@ export default async function AdminPortalLayout({ children }: { children: React.
     requests:
       approvalsNeeded.pendingBountyClaims +
       approvalsNeeded.unresolvedReferenceDisputes +
-      approvalsNeeded.pendingIntroRequests,
+      approvalsNeeded.pendingIntroRequests +
+      approvalsNeeded.pendingImportedReviews,
     needsCompletion,
   }
 
+  return <AdminNav badges={badges} />
+}
+
+export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
+  const user = await requireAdmin()
+
   return (
     <div className="theme-partner min-h-screen">
-      <AdminNav badges={badges} />
+      <Suspense fallback={<AdminNav />}>
+        <AdminNavWithBadges />
+      </Suspense>
       {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
       <div className="pt-14">
         <RoleContextBanner

@@ -41,6 +41,10 @@ import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/culture-profile'
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
+import { ReviewSummaryPanel } from '@/components/companies/ReviewSummaryPanel'
+import { getCompanyReviewSummary } from '@/lib/job-reviews/data'
+import { SectionSkeleton } from '@/components/ui/section-skeleton'
+import { findTopEmployer, knownForLabel, topEmployerSourceLine } from '@/lib/companies/top-employers'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -49,6 +53,51 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     select: { name: true },
   })
   return { title: company ? company.name : 'Company' }
+}
+
+// The culture aggregate and review summary are the slowest reads on this page
+// and nothing else depends on them, so they stream in behind the card.
+async function CompanyCultureSection({
+  companyId: id,
+  companyName,
+  slug,
+  candidateId,
+}: {
+  companyId: string
+  companyName: string
+  slug: string
+  candidateId: string
+}) {
+  const [cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
+    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
+    getCultureProfile(id, candidateId),
+    getCultureSurveyCompanies(candidateId),
+    getCompanyReviewSummary(id, candidateId),
+  ])
+  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
+  return (
+    <>
+      <CultureProfileBars profile={cultureProfile} />
+      {ownCulture && (
+        <CultureSurveyOwnEntry
+          companyId={id}
+          companyName={companyName}
+          companySlug={slug}
+          initial={ownCulture.answers}
+          isCurrent={ownCulture.isCurrent}
+        />
+      )}
+      <div className="space-y-2 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
+        <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
+      </div>
+      {cultureProfile.shown && (
+        <p className="text-xs text-muted-foreground">
+          Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
+        </p>
+      )}
+    </>
+  )
 }
 
 const TENURE_LABEL: Record<string, string> = {
@@ -101,13 +150,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // (see autoTagAllWorkHistory's own comment). Awaited before the
   // hasTaggedEmployment check below so a first-ever visit already reads
   // as tagged, not "add where you've worked to unlock this."
-  await autoTagAllWorkHistory(profile.id)
+  // The tagging step only gates the hasTaggedEmployment read, so it is chained
+  // to that read inside the Promise.all below and the other, independent
+  // queries run alongside it instead of waiting behind it.
 
   const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, secondDegreeContacts, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
-      hasTaggedEmployment(profile.id),
+      autoTagAllWorkHistory(profile.id).then(() => hasTaggedEmployment(profile.id)),
       getPublishedIntelForCompany(id),
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
@@ -143,7 +194,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies] = await Promise.all([
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -151,16 +202,19 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       where: { candidateId: profile.id, companyId: id, isCurrent: true },
       select: { visibleAsInsider: true },
     }),
-    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
-    getCultureProfile(id, profile.id),
-    getCultureSurveyCompanies(profile.id),
   ])
-  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
 
   const askerRequestsHere = askerRequests.filter((r) => r.companyId === id)
   const pendingToAnswerHere = pendingToAnswer.filter((r) => r.companyId === id)
 
-  captureServerEvent(profile.id, 'company_page_viewed', { companyId: id, companyName: company.name })
+  // On the curated list of employers known for pay / benefits (names only, no rank).
+  const topEmployer = findTopEmployer(company.canonicalNameNormalized) ?? findTopEmployer(company.name)
+
+  captureServerEvent(profile.id, 'company_page_viewed', {
+    companyId: id,
+    companyName: company.name,
+    knownFor: topEmployer ? topEmployer.reasons : null,
+  })
 
   const outcomeCells = latestOutcome
     ? suppressSmallCells([latestOutcome], (r) => r.applications, () => 'How members have fared')
@@ -191,6 +245,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <Suspense fallback={<CompanyMetaLineSkeleton />}>
             <CompanyMetaLine companyRow={companyRow} />
           </Suspense>
+          {topEmployer && (
+            <div className="mt-2 space-y-0.5">
+              <p className="text-sm text-foreground">
+                <span className="font-medium">Known for:</span> {knownForLabel(topEmployer)}
+              </p>
+              <p className="text-xs text-muted-foreground">{topEmployerSourceLine(topEmployer)}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -252,7 +314,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         <CompanyHiringIndex companyId={id} viewer="candidate" />
       </Suspense>
 
-      <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
+      <CompanyIntelPanels companyId={id} />
 
       {/* ── Insider culture: combined answers of members who worked here ── */}
       <Card>
@@ -263,21 +325,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <CultureProfileBars profile={cultureProfile} />
-          {ownCulture && (
-            <CultureSurveyOwnEntry
-              companyId={id}
-              companyName={company.name}
-              companySlug={slug}
-              initial={ownCulture.answers}
-              isCurrent={ownCulture.isCurrent}
-            />
-          )}
-          {cultureProfile.shown && (
-            <p className="text-xs text-muted-foreground">
-              Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
-            </p>
-          )}
+          <Suspense fallback={<SectionSkeleton label="Loading what people say…" />}>
+            <CompanyCultureSection companyId={id} companyName={company.name} slug={slug} candidateId={profile.id} />
+          </Suspense>
         </CardContent>
       </Card>
 
@@ -564,9 +614,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           every other company link in this codebase), so this section
           simply doesn't render for a company with zero matched recruiters,
           rather than showing an empty "0 recruiters here" card on every
-          ordinary employer's page. Both sections gate on the exact same
-          isDossierUnlocked() bar as the rest of the Executive Recruiter
-          Network. */}
+          ordinary employer's page. The jobs are open to every member (owner's
+          rule, 2026-10-16); the recruiter names stay on the isDossierUnlocked()
+          bar, like the rest of the Executive Recruiter Network. */}
       {recruitingFirmData.recruiters.length > 0 && (
         <>
           <Card>
@@ -579,7 +629,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             <CardContent>
               {recruitingFirmData.jobs.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No open postings from this firm right now.</p>
-              ) : dossierStatus.unlocked ? (
+              ) : (
                 <ShowMoreList pageSize={5}>
                   {recruitingFirmData.jobs.map((job) => (
                     <div key={job.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
@@ -587,20 +637,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                         <p className="text-sm font-medium text-foreground">{job.title}</p>
                         {job.location && <p className="text-xs text-muted-foreground">{job.location}</p>}
                       </div>
-                      {job.audienceTier === 'A_LIST_ONLY' && (
-                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                          Exclusive
-                        </span>
-                      )}
                     </div>
                   ))}
                 </ShowMoreList>
-              ) : (
-                <LockedFeatureNotice
-                  title="Jobs this firm is hiring for"
-                  requirement={`${recruitingFirmData.jobs.length} posting${recruitingFirmData.jobs.length === 1 ? '' : 's'} ready to view once your Dossier unlocks.`}
-                  status={dossierStatus.reason}
-                />
               )}
             </CardContent>
           </Card>

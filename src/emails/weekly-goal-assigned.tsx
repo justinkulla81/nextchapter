@@ -1,7 +1,12 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import EngagementBlock from '@/emails/engagement-block'
+import type { EngagementLead } from '@/lib/journey/engagement'
 import type { Grade } from '@/lib/scoring/grade'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WeeklyGoalAssignedEmailProps {
+  engagement?: EngagementLead | null
+  appUrl?: string
   firstName: string | null
   introCopy?: string | null
   lastWeekPoints: number
@@ -83,13 +88,15 @@ const footer: React.CSSProperties = {
 }
 
 const A_GRADE_BENEFITS = [
-  'Exclusive, Candidate+-only job postings on the NC Job Board',
+  'Who to contact, the apply kit and explain-my-gaps on every NC Job Board job',
   'Eligible to submit an Offer Bonus claim if you land a role',
   'Your Executive Dossier becomes shareable with recruiters and hiring managers',
   "You're surfaced to recruiters browsing the candidate database",
 ]
 
 export default function WeeklyGoalAssignedEmail({
+  engagement = null,
+  appUrl = '',
   firstName,
   introCopy,
   lastWeekPoints,
@@ -121,6 +128,8 @@ export default function WeeklyGoalAssignedEmail({
 
       {introCopy && <p style={{ marginTop: '12px' }}>{introCopy}</p>}
 
+      <EngagementBlock lead={engagement} appUrl={appUrl} />
+
       {completedLastWeek.length > 0 && (
         <div style={winsBox}>
           <p style={{ margin: 0, fontWeight: 600 }}>Look what you got done last week</p>
@@ -142,7 +151,7 @@ export default function WeeklyGoalAssignedEmail({
         </p>
       </div>
 
-      <p style={{ marginTop: '20px', fontWeight: 600 }}>Your Search Plan this week:</p>
+      <p style={{ marginTop: '20px', fontWeight: 600 }}>Your plan this week:</p>
       {thisWeekPlan.length > 0 ? (
         <ul style={planList}>
           {thisWeekPlan.map((item) => (
@@ -189,6 +198,7 @@ export default function WeeklyGoalAssignedEmail({
           Turn off these weekly emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

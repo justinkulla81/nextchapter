@@ -5,7 +5,6 @@ import {
   getDossierLadderTier,
   isDossierUnlocked,
   getModuleGateStatus,
-  DOSSIER_UNLOCK_REFERENCE_TARGET,
   DOSSIER_UNLOCK_OUTREACH_TARGET,
   DOSSIER_UNLOCK_APPLICATION_TARGET,
   type DossierCompleteness,
@@ -65,6 +64,8 @@ export interface ActivityCount {
   label: string
   count: number
   lastAt: Date | null
+  /** How much of the count the member reported themselves (weekly check-in, "I sent it", "Did you apply?"). */
+  note?: string | null
 }
 
 export interface EarnedBadge {
@@ -211,12 +212,20 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     getLeaderboardBadgeHistory(candidateId).catch((): LeaderboardBadgeHistoryEntry[] => []),
   ])
 
-  const [outreachCount, applicationCount, courseCount, walkthroughCount] = await Promise.all([
+  const [outreachCount, applicationCount, courseCount, walkthroughCount, outreachCheckIn, outreachSentPrompt, applicationCheckIn, applicationPrompt] = await Promise.all([
     prisma.outreachLog.count({ where: { candidateId } }),
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }),
     prisma.candidateCourseActivity.count({ where: { candidateId } }),
     prisma.resumeWalkthroughSession.count({ where: { candidateId } }),
+    prisma.outreachLog.count({ where: { candidateId, logSource: 'weekly_checkin' } }),
+    prisma.outreachLog.count({ where: { candidateId, logSource: { in: ['who_to_contact', 'outreach_template', 'outreach_coach'] } } }),
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null }, selfReportKey: { not: null } } }),
+    prisma.trackedJob.count({ where: { candidateId, appliedVia: 'prompt', jobPosting: { appliedAt: { not: null } } } }),
   ])
+  const selfReportedNote = (parts: [number, string][]) => {
+    const shown = parts.filter(([n]) => n > 0).map(([n, what]) => `${n} ${what}`)
+    return shown.length ? `Self-reported: ${shown.join(', ')}` : null
+  }
 
   // Nothing in the app writes an InterviewResponse today — /dashboard/
   // interview-prep has no save path — so this is always empty in practice.
@@ -295,8 +304,20 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
   )
 
   const activity: ActivityCount[] = [
-    { key: 'outreach', label: 'Outreach messages sent', count: outreachCount, lastAt: outreach[0]?.loggedAt ?? null },
-    { key: 'applications', label: 'Applications submitted', count: applicationCount, lastAt: applications[0]?.appliedAt ?? null },
+    {
+      key: 'outreach',
+      label: 'Outreach messages sent',
+      count: outreachCount,
+      lastAt: outreach[0]?.loggedAt ?? null,
+      note: selfReportedNote([[outreachCheckIn, 'from the weekly check-in'], [outreachSentPrompt, 'from “I sent it”']]),
+    },
+    {
+      key: 'applications',
+      label: 'Applications submitted',
+      count: applicationCount,
+      lastAt: applications[0]?.appliedAt ?? null,
+      note: selfReportedNote([[applicationCheckIn, 'from the weekly check-in'], [applicationPrompt, 'from “Did you apply?”']]),
+    },
     {
       key: 'references-requested',
       label: 'References requested',
@@ -417,7 +438,7 @@ export interface DossierGateSummary {
   unlocked: boolean
 }
 
-const GATE_TOTAL = 3
+const GATE_TOTAL = 2 // assessment; outreach + applications (references are no longer a Candidate+ gate)
 
 /**
  * The Dossier unlock gates for many candidates at once.
@@ -425,7 +446,8 @@ const GATE_TOTAL = 3
  * The per-candidate version runs six queries and is fine on one profile and
  * ruinous on a hundred-row list, so this answers the same question with six
  * grouped queries regardless of how many candidates are asked about. It reads
- * the same three gates and the same constants as isDossierUnlocked, so the
+ * the same gates and constants as isDossierUnlocked (minus the minutes gate, which needs
+ * a per-candidate sprint walk; a recorded unlock covers members who met it), so the
  * list and the detail page cannot disagree.
  *
  * It does not evaluate the sprint-streak alternate path, which needs a
@@ -437,13 +459,12 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
   if (candidateIds.length === 0) return summaries
 
   const where = { candidateId: { in: candidateIds } }
-  const [references, operating, personality, profiles, outreach, applications, grades] = await Promise.all([
-    prisma.reference.groupBy({ by: ['candidateId'], where: { ...where, status: 'COMPLETED' }, _count: { _all: true } }),
+  const [operating, personality, profiles, outreach, applications, grades] = await Promise.all([
     prisma.candidateAssessmentResponse.groupBy({ by: ['candidateId'], where, _count: { _all: true } }),
     prisma.performanceAssessmentResponse.groupBy({ by: ['candidateId'], where, _count: { _all: true } }),
     prisma.candidateProfile.findMany({
       where: { id: { in: candidateIds } },
-      select: { id: true, skillsAssessmentCompletedAt: true },
+      select: { id: true, skillsAssessmentCompletedAt: true, candidatePlusUnlockedAt: true, candidatePlusRevokedAt: true },
     }),
     prisma.outreachLog.groupBy({ by: ['candidateId'], where, _count: { _all: true } }),
     prisma.jobPosting.groupBy({ by: ['candidateId'], where: { ...where, appliedAt: { not: null } }, _count: { _all: true } }),
@@ -456,16 +477,15 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
   const countOf = (rows: { candidateId: string; _count: { _all: number } }[]) =>
     new Map(rows.map((r) => [r.candidateId, r._count._all]))
 
-  const referenceCount = countOf(references)
   const operatingSet = new Set(operating.map((r) => r.candidateId))
   const personalitySet = new Set(personality.map((r) => r.candidateId))
   const skillsAt = new Map(profiles.map((p) => [p.id, p.skillsAssessmentCompletedAt]))
+  const plusOf = new Map(profiles.map((p) => [p.id, p]))
   const outreachCount = countOf(outreach)
   const applicationCount = countOf(applications)
   const gradeOf = new Map(grades.map((g) => [g.candidateId, g.probabilityGrade]))
 
   for (const id of candidateIds) {
-    const referencesMet = (referenceCount.get(id) ?? 0) >= DOSSIER_UNLOCK_REFERENCE_TARGET
     const evidenceMet = operatingSet.has(id) || personalitySet.has(id) || skillsAt.get(id) != null
     const effortMet =
       (outreachCount.get(id) ?? 0) >= DOSSIER_UNLOCK_OUTREACH_TARGET &&
@@ -475,7 +495,6 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
     const gradeAlternate = grade === 'A' || grade === 'B'
 
     const missing = [
-      referencesMet ? null : 'references',
       evidenceMet ? null : 'assessment',
       effortMet ? null : 'effort',
     ].filter((v): v is string => v !== null)
@@ -484,7 +503,8 @@ export async function getDossierGateSummaries(candidateIds: string[]): Promise<M
       met: GATE_TOTAL - missing.length,
       total: GATE_TOTAL,
       missing,
-      unlocked: missing.length === 0 || gradeAlternate,
+      // A recorded Candidate+ unlock (streak included) stays on; an admin revoke turns it off.
+      unlocked: !plusOf.get(id)?.candidatePlusRevokedAt && (!!plusOf.get(id)?.candidatePlusUnlockedAt || missing.length === 0 || gradeAlternate),
     })
   }
   return summaries

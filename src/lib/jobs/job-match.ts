@@ -1,9 +1,14 @@
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
+import { likesFit, readLikes, workFit, type WorkProfile } from '@/lib/profile/work-profile'
+import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
+import { roleForPosting } from '@/lib/pivots/pivot-map'
+import { skillTerms } from '@/lib/profile/skill-matrix'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
+import { assessYearsFit, formatYearsRange, quickYearsRange } from '@/lib/jobs/years-fit'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { statesFromLocation, formatUsdK } from '@/lib/pay/market-pay'
@@ -14,6 +19,9 @@ import {
   type CultureAnswers,
   type CultureDimensionKey,
 } from '@/lib/companies/culture-survey'
+import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
+import { checkRequirements, parseRequirementFlags, requirementMemberOf, type RequirementCheck } from '@/lib/jobs/requirements'
+import { memberVocabularyFunction } from '@/lib/jobs/job-functions'
 
 // Per-job, per-member match with gaps: skills, culture fit, salary, goals and working
 // style, each judged only from what the member told us and what the job itself says.
@@ -62,6 +70,14 @@ export interface MatchCandidate {
   resumeKeywords: string[]
   confirmedSkillsHave: string[]
   certifications: string[]
+  // The person's own levels and removals in the skills matrix.
+  skillLevels?: unknown
+  // The ten-dimension work profile, when the caller loaded it.
+  workProfile?: WorkProfile | null
+  // Standout strengths and weak spots, when the caller loaded them.
+  strengthKeys?: StrengthKeys | null
+  // Their this-or-that answers, incl. what they want less / more of.
+  workStyleAnswers?: unknown
   yearsExperience: number | null
   hasJD: boolean
   hasMD: boolean
@@ -100,6 +116,20 @@ export interface MatchCandidate {
   openToRelocation: boolean
   travelWillingness: boolean
   interimConsultingInterest: boolean
+  // Requirement answers (clearance, licenses, work authorization, max travel; requirements.ts).
+  // Optional: a caller that didn't load them gets each job requirement shown as unanswered.
+  maxTravelPct?: number | null
+  clearanceLevel?: string | null
+  clearanceActive?: boolean | null
+  clearancePolygraph?: string | null
+  licensesHeld?: string[]
+  licensesAnsweredAt?: Date | null
+  workAuthorization?: string | null
+  searchStrategyConfirmedAt?: Date | null
+  onboardingLocationConfirmedAt?: Date | null
+  // A workforce program's region, when the member is in one: jobs inside it
+  // rank first ("Stay local").
+  local?: { label: string; isLocal: (location: string | null) => boolean } | null
 }
 
 export interface MatchJob {
@@ -123,11 +153,20 @@ export interface MatchJob {
   companyOwnership?: CompanyOwnershipType | null
   /** Aggregate from members who worked at the company (culture-profile.ts); used only when shown. */
   insiderCulture?: CultureProfile | null
+  /** Hard requirements the crawler read from the full posting (requirements.ts); null/absent = none known. */
+  requirementFlags?: unknown
+  /** Primary US state, for "relocation required" against where the member lives. */
+  locationState?: string | null
 }
 
 /** Board row -> match input. Drops the description of a confidential search. */
 export function toMatchJob(
-  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership' | 'insiderCulture'> & { description: string | null; disclosure: string },
+  p: Omit<MatchJob, 'description' | 'companySizeBand' | 'companyOwnership' | 'insiderCulture' | 'requirementFlags' | 'locationState'> & {
+    description: string | null
+    disclosure: string
+    requirementFlags?: unknown
+    locationState?: string | null
+  },
   company?: { sizeBand?: CompanySizeBand | null; ownershipType?: CompanyOwnershipType | null; insiderCulture?: CultureProfile | null } | null
 ): MatchJob {
   return {
@@ -149,6 +188,8 @@ export function toMatchJob(
     companySizeBand: company?.sizeBand ?? null,
     companyOwnership: company?.ownershipType ?? null,
     insiderCulture: company?.insiderCulture ?? null,
+    requirementFlags: p.requirementFlags ?? null,
+    locationState: p.locationState ?? null,
   }
 }
 
@@ -160,20 +201,15 @@ const usd = (n: number) => formatUsdK(n)
 
 // ── 1. Skills ────────────────────────────────────────────────────────────────
 
-function parseMinYears(text: string): number | null {
-  const m = text.match(/\b(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?(?:years?|yrs?)\b(?:\s+of)?(?:\s+\w+){0,4}\s+experience/i)
-  if (!m) return null
-  const n = parseInt(m[1], 10)
-  return n >= 1 && n <= 30 ? n : null
-}
-
 export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & { missing: string[]; yearsShort: number | null } {
-  const keywords = [...new Set([...c.resumeKeywords, ...c.confirmedSkillsHave, ...c.certifications].map((k) => k.trim()).filter(Boolean))]
+  const keywords = skillTerms(c)
   const text = jobText(job)
   const credential = detectRequiredCredential(text)
   const credentialOk = candidateMeetsCredentialGate(c, credential)
-  const required = parseMinYears(text)
-  const yearsShort = required !== null && c.yearsExperience !== null && c.yearsExperience < required ? required - c.yearsExperience : null
+  const required = quickYearsRange(text)
+  // Shared lenient rule (years-fit.ts): only a stretch or far-off gap counts as short.
+  const years = assessYearsFit(c.yearsExperience, required)
+  const yearsShort = years.band === 'stretch' || years.band === 'far' ? years.short : null
 
   const gap = jobSkillGap({ title: job.title, description: job.description, skills: job.skills, memberKeywords: keywords })
   const evidence: string[] = []
@@ -207,12 +243,11 @@ export function scoreSkills(c: MatchCandidate, job: MatchJob): MatchDimension & 
     if (gap.have.length > 0) evidence.push(`Matches: ${gap.have.slice(0, 4).join(', ')}`)
   }
   if (required !== null && c.yearsExperience !== null) {
-    if (yearsShort) {
-      score -= yearsShort > 3 ? 25 : 10
-      evidence.push(`Asks for ${required}+ years; you have ${c.yearsExperience}`)
-    } else {
-      evidence.push(`Asks for ${required}+ years; you have ${c.yearsExperience}`)
-    }
+    // In line: no penalty. Stretch (short, but at least half the minimum): mild.
+    // Far off (under half the minimum): the real penalty.
+    if (years.band === 'far') score -= 25
+    else if (years.band === 'stretch') score -= 10
+    evidence.push(`Asks for ${formatYearsRange(required)}; you have ${c.yearsExperience}`)
   }
   if (!credentialOk) score = 0
   score = clamp(score)
@@ -258,7 +293,9 @@ function scorePostingCulture(c: MatchCandidate, job: MatchJob): MatchDimension &
   const prefs = c.culturePrefs ?? {}
   const wantsCalm = prefs.pace === 1 || prefs.workLife === 1
   const wantsMission = prefs.mission === 1
-  const wantsStage = has(c.targetCompanyStage) && c.targetCompanyStage !== 'any' ? (c.targetCompanyStage as Stage) : null
+  // Only a stage we can name: an unrecognised stored value ('GROWTH' before
+  // normalisation) used to crash the card on STAGE_LABEL[wantsStage].
+  const wantsStage = has(c.targetCompanyStage) && c.targetCompanyStage in STAGE_LABEL ? (c.targetCompanyStage as Stage) : null
   const wantsSize = has(c.targetCompanySize) && c.targetCompanySize !== 'Any' ? c.targetCompanySize : null
   const priorities = [c.priorityMission, c.priorityWorkLife, c.priorityJobSecurity, c.priorityBrandName].some((p) => p !== null)
   const hasPrefs = Object.values(prefs).some((v) => v !== null && v !== undefined)
@@ -534,8 +571,16 @@ const INDUSTRY_WORDS: Record<string, string[]> = {
   real_estate: ['real estate', 'property', 'proptech'],
   media: ['media', 'entertainment', 'publishing', 'advertising'],
   agriculture: ['agri', 'farm', 'food'],
+  aerospace_defense: ['aerospace', 'defense', 'defence', 'aviation', 'military', 'national security'],
+  telecom: ['telecom', 'wireless', 'broadband'],
+}
+// Crawler keys whose words don't read well from the key itself.
+const INDUSTRY_LABELS: Record<string, string> = {
+  aerospace_defense: 'Aerospace & defense',
+  telecom: 'Telecommunications',
 }
 const INDUSTRY_LABEL = (k: string) => {
+  if (INDUSTRY_LABELS[k]) return INDUSTRY_LABELS[k]
   const t = k.replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
@@ -560,7 +605,8 @@ function titleMatchesTarget(target: string | null, title: string): boolean | nul
 }
 
 export function scoreGoals(c: MatchCandidate, job: MatchJob): MatchDimension & { notes: string[] } {
-  const jobFunction = job.targetFunction ?? inferFunctionFromTitle(job.title)
+  // The crawler's function when it is one of the member's own options; otherwise the title's.
+  const jobFunction = memberVocabularyFunction(job.targetFunction) ?? inferFunctionFromTitle(job.title)
   const targetFn = c.targetFunction ?? (c.isPivoting ? null : c.primaryFunction)
   const ownFns = [c.primaryFunction, c.secondaryFunction].filter(has)
   const candidateLevel = c.levelRankScore ?? calibratedLevelRank(c.highestLevelReached, null)
@@ -714,6 +760,11 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
   }
 
   const remoteJob = arr?.arrangement === 'remote' || where.isRemote
+  if (c.local && !remoteJob && c.local.isLocal(job.location)) {
+    signals++
+    score += 15
+    evidence.push(`In ${c.local.label}`)
+  }
   if (!remoteJob && where.states.length > 0 && myStates.length > 0) {
     signals++
     if (where.states.some((s) => myStates.includes(s))) {
@@ -738,7 +789,9 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
   if (heavyTravel) {
     signals++
     const what = travel ? `${travel[1]}% travel` : 'frequent travel'
-    if (c.travelWillingness) evidence.push(`Asks for ${what}; you're open to travel`)
+    const maxTravel = c.maxTravelPct ?? null
+    const travelOk = maxTravel !== null ? maxTravel >= 75 || (!!travel && parseInt(travel[1], 10) <= maxTravel) || (!travel && maxTravel >= 50) : c.travelWillingness
+    if (travelOk) evidence.push(`Asks for ${what}; you're open to travel`)
     else {
       score -= 15
       evidence.push(`Asks for ${what}`)
@@ -772,6 +825,43 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
     }
   }
 
+  // How the kind of role suits how they like to work (work profile vs the role's usual shape).
+  const likes = readLikes(c.workStyleAnswers)
+  const roleKey = c.workProfile || c.strengthKeys || likes.less.length ? roleForPosting(job.title, job.description, inferFunctionFromTitle(job.title)) : null
+  if (roleKey && likes.less.length) {
+    const still = likesFit({ less: likes.less, more: [] }, null, roleKey).still
+    if (still) {
+      signals++
+      score -= 10
+      evidence.push(still)
+      notes.push(`${still} Ask how much of the week that really is.`)
+    }
+  }
+  if (roleKey && c.strengthKeys) {
+    const sn = strengthNotes(c.strengthKeys, roleKey)
+    if (sn.plays || sn.exposes) {
+      signals++
+      score += Math.round(100 * sn.delta)
+      if (sn.plays) evidence.push(sn.plays)
+      if (sn.exposes) {
+        evidence.push(sn.exposes)
+        notes.push(sn.exposes)
+      }
+    }
+  }
+  if (c.workProfile && roleKey) {
+    const wf = workFit(c.workProfile, roleKey)
+    if (wf.fits.length || wf.clashes.length) {
+      signals++
+      score += Math.round(15 * wf.score)
+      if (wf.fits.length) evidence.push(`Suits how you work: ${wf.fits.slice(0, 2).map((f) => f.toLowerCase()).join('; ')}`)
+      if (wf.clashes.length) {
+        evidence.push(wf.clashes[0].line)
+        notes.push(`${wf.clashes[0].line} Ask what a typical week looks like before you apply.`)
+      }
+    }
+  }
+
   if (signals === 0) {
     return { key: 'workStyle', score: null, status: 'unknown', evidence: ["The posting doesn't say where or how the work happens — ask before you apply"], notes: [] }
   }
@@ -782,6 +872,8 @@ export function scoreWorkStyle(c: MatchCandidate, job: MatchJob): MatchDimension
 // ── Overall + gaps ───────────────────────────────────────────────────────────
 
 export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch {
+  // Option-list fields stored as codes ('DIRECTOR', 'REMOTE') read as their canonical value.
+  c = normalizeCandidateProfileFields(c)
   const skills = scoreSkills(c, job)
   const culture = scoreCulture(c, job)
   const salary = scoreSalary(c, job)
@@ -802,6 +894,9 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
     workStyle: strip(workStyle),
   }
 
+  const requirements = requirementChecksFor(c, job)
+  const blockers = requirements.filter((r) => r.status === 'blocker')
+
   const known = MATCH_DIMENSION_ORDER.filter((k) => dimensions[k].score !== null)
   let overallScore: number | null = null
   let overall: OverallMatch = 'unknown'
@@ -812,6 +907,8 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
     // A hard gap (a required license, or a location the member has ruled out) caps the overall.
     const hardGap = known.some((k) => dimensions[k].score! < 25)
     if (hardGap) overallScore = Math.min(overallScore, 54)
+    // A requirement the member told us they don't meet (an active clearance, citizenship, …): a red flag.
+    if (blockers.length > 0) overallScore = Math.min(overallScore, 44)
     overall = overallScore >= 78 ? 'strong' : overallScore >= 62 ? 'good' : overallScore >= 45 ? 'mixed' : 'weak'
   }
 
@@ -821,6 +918,7 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
   const push = (s: string | null | undefined) => {
     if (s && !gaps.includes(s) && gaps.length < 4) gaps.push(s)
   }
+  for (const b of blockers) push(`${b.message}. Skip unless that has changed`)
   if (skills.score === 0 && skills.evidence[0]?.startsWith('Requires')) push(`${skills.evidence[0]} — not one you've listed. Skip unless you hold it`)
   if (workStyle.score !== null && workStyle.score < 60) push(workStyle.notes[0])
   if (salary.status === 'gap' || salary.status === 'partial') push(salary.note)
@@ -839,16 +937,42 @@ export function matchJobToCandidate(c: MatchCandidate, job: MatchJob): JobMatch 
     if (unknown.length > 0) push(`We can't judge ${unknown.map((k) => MATCH_DIMENSION_LABEL[k].toLowerCase()).join(', ')} yet — fill in your profile to see those gaps`)
   }
 
-  return { overallScore, overall, dimensions, gaps }
+  // With a blocker and too little else known, the overall still reads as a weak fit.
+  if (blockers.length > 0 && overall === 'unknown') overall = 'weak'
+  return { overallScore, overall, dimensions, gaps, requirements }
+}
+
+/** The job's requirement flags against the member's answers (requirements.ts). */
+export function requirementChecksFor(c: MatchCandidate, job: MatchJob): RequirementCheck[] {
+  const flags = parseRequirementFlags(job.requirementFlags)
+  if (flags.length === 0) return []
+  const member = requirementMemberOf({
+    clearanceLevel: c.clearanceLevel ?? null,
+    clearanceActive: c.clearanceActive ?? null,
+    clearancePolygraph: c.clearancePolygraph ?? null,
+    licensesHeld: c.licensesHeld ?? [],
+    licensesAnsweredAt: c.licensesAnsweredAt ?? null,
+    workAuthorization: c.workAuthorization ?? null,
+    maxTravelPct: c.maxTravelPct ?? null,
+    travelWillingness: c.travelWillingness,
+    openToRelocation: c.openToRelocation,
+    searchStrategyConfirmedAt: c.searchStrategyConfirmedAt ?? null,
+    onboardingLocationConfirmedAt: c.onboardingLocationConfirmedAt ?? null,
+    remotePreference: c.remotePreference,
+    currentState: c.currentState,
+  })
+  return checkRequirements(flags, member, { locationState: job.locationState ?? null })
 }
 
 /** Fields of CandidateProfile the match reads — for a Prisma select. */
 export const MATCH_CANDIDATE_FIELDS = [
-  'resumeKeywords', 'confirmedSkillsHave', 'certifications', 'yearsExperience', 'hasJD', 'hasMD', 'hasDO',
+  'resumeKeywords', 'confirmedSkillsHave', 'certifications', 'skillLevels', 'yearsExperience', 'hasJD', 'hasMD', 'hasDO',
   'isPeopleManager', 'teamSizeManaged', 'targetCompanySize', 'targetCompanyStage', 'priorityMission',
   'priorityWorkLife', 'priorityJobSecurity', 'priorityBrandName', 'equityImportant', 'targetCompMin',
   'compFlexible', 'lastSalary', 'targetRoleType', 'targetFunction', 'primaryFunction', 'secondaryFunction',
   'targetIndustries', 'industryContext', 'isPivoting', 'highestLevelReached', 'levelRankScore',
   'willingToStartLower', 'remotePreference', 'currentCity', 'currentState', 'openToRelocation',
-  'travelWillingness', 'interimConsultingInterest',
+  'travelWillingness', 'interimConsultingInterest', 'maxTravelPct', 'clearanceLevel', 'clearanceActive',
+  'clearancePolygraph', 'licensesHeld', 'licensesAnsweredAt', 'workAuthorization', 'searchStrategyConfirmedAt',
+  'onboardingLocationConfirmedAt',
 ] as const satisfies readonly (keyof MatchCandidate)[]

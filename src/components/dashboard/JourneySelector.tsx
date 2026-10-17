@@ -3,17 +3,36 @@
 import { useActionState, useState } from 'react'
 import { updateJourney } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { JOURNEYS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
+import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType, type MoveDriver } from '@/lib/journey/journey'
 
 // "Your situation" on Privacy: why you're moving and how close you are to
 // applying. Your plan and check-ins follow both.
-export function JourneySelector({ journey, stage }: { journey: JourneyType | null; stage: JourneyStage | null }) {
+export function JourneySelector({
+  journey,
+  stage,
+  moveDriver,
+  intensity,
+  details,
+}: {
+  journey: JourneyType | null
+  stage: JourneyStage | null
+  moveDriver: MoveDriver | null
+  intensity: string | null
+  details: { returnDate: string; offering: string; openDays: string; engagementEnds: string }
+}) {
   const [state, formAction, pending] = useActionState(updateJourney, undefined)
   const [j, setJ] = useState<JourneyType>(journey ?? 'EXPLORING_MOVE')
   const [s, setS] = useState<JourneyStage>(stage ?? getJourney(journey ?? 'EXPLORING_MOVE').defaultStage)
-  const unchanged = j === journey && s === stage
+  const [d, setD] = useState<MoveDriver | null>(moveDriver)
+  const [i, setI] = useState<string | null>(intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null)
+  const initialI = intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null
+  const hasDetails = j === 'TIME_OFF' || j === 'FRACTIONAL'
+  const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver) && i === initialI && !hasDetails
 
   return (
     <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
@@ -54,6 +73,54 @@ export function JourneySelector({ journey, stage }: { journey: JourneyType | nul
           Save situation
         </SubmitButton>
       </div>
+      {j === 'EXPLORING_MOVE' && (
+        <div className="space-y-1.5">
+          <Label>What&apos;s behind the move?</Label>
+          <ChoiceButtons
+            name="moveDriver"
+            options={MOVE_DRIVERS.map((x) => ({ value: x.key, label: x.label }))}
+            value={d}
+            onChange={setD}
+            columns={3}
+            responsive
+          />
+        </div>
+      )}
+      {j === 'TIME_OFF' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="returnDate">When do you expect to be back?</Label>
+          <Input id="returnDate" name="returnDate" type="date" defaultValue={details.returnDate} />
+        </div>
+      )}
+      {j === 'FRACTIONAL' && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1.5 sm:col-span-3">
+            <Label htmlFor="offering">Your one-line offer: who you help and the result</Label>
+            <Input id="offering" name="offering" maxLength={200} defaultValue={details.offering} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="openDays">Days a week open for new work</Label>
+            <Input id="openDays" name="openDays" type="number" min={0} max={5} defaultValue={details.openDays} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="engagementEnds">Current engagement ends</Label>
+            <Input id="engagementEnds" name="engagementEnds" type="date" defaultValue={details.engagementEnds} />
+          </div>
+        </div>
+      )}
+      {getJourney(j).searching && s !== 'STAYING' && s !== 'LANDED' && (
+        <div className="space-y-1.5">
+          <Label>How actively are you looking?</Label>
+          <ChoiceButtons
+            name="searchIntensity"
+            options={INTENSITY_OPTIONS.map((x) => ({ value: x.key, label: `${x.label}: ${x.hint}` }))}
+            value={i as (typeof INTENSITY_OPTIONS)[number]['key'] | null}
+            onChange={setI}
+            columns={2}
+            responsive
+          />
+        </div>
+      )}
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
     </form>
   )

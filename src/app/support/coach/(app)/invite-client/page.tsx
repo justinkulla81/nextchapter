@@ -71,6 +71,12 @@ export default async function InviteClientByEmailPage() {
                 <div>
                   <p className="font-medium text-foreground">{invite.invitedName || invite.invitedEmail}</p>
                   {invite.invitedName && <p className="text-sm text-muted-foreground">{invite.invitedEmail}</p>}
+                  {invite.sessions && (
+                    <p className="text-xs text-muted-foreground">
+                      {invite.sessions} session{invite.sessions === 1 ? '' : 's'}
+                      {invite.validDays ? `, good for ${invite.validDays} days` : ''}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">{STATUS_LABEL[status]}</span>

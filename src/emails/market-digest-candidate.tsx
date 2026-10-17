@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface MarketDigestCandidateEmailProps {
   firstName: string | null
@@ -93,6 +94,7 @@ export default function MarketDigestCandidateEmail({
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -5,12 +5,30 @@ import { FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { DEMO_PERSONAS } from '@/lib/higher-ed/workspaces'
 import { resetDemoData, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
 
 // "Demo mode" banner (spec §4). Everyone on a demo tenant sees the banner;
 // only an nc_admin gets the Preview-as and Reset controls.
-export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin: boolean; persona: string | null }) {
+export function DemoBar({
+  slug,
+  isNcAdmin,
+  persona,
+  guest = false,
+  canReset = true,
+  canSkip = true,
+  personas,
+}: {
+  slug: string
+  isNcAdmin: boolean
+  persona: string | null
+  // A prospect on a guest pass: read-only, can switch who they look as.
+  guest?: boolean
+  // Reset and skip-ahead need a college fixture; generated demos have none.
+  canReset?: boolean
+  // "Skip ahead 60 days" moves a college's quiet periods; workforce demos have none.
+  canSkip?: boolean
+  personas: { key: string; label: string }[]
+}) {
   const [confirming, setConfirming] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -36,9 +54,11 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
           <FlaskConical className="size-4" aria-hidden="true" />
           Demo mode
         </span>
-        <span className="text-amber-900">Fictional people and data. Nothing here emails anyone.</span>
+        <span className="text-amber-900">
+          {guest ? 'Sample people and companies, real regional data. Read-only. Nothing here emails anyone.' : 'Fictional people and data. Nothing here emails anyone.'}
+        </span>
 
-        {isNcAdmin && (
+        {(isNcAdmin || guest) && (
           <div className="ml-auto flex flex-wrap items-center gap-3">
             <form action={setDemoPersona.bind(null, slug)} className="flex items-center gap-2">
               <label htmlFor="demo-persona" className="font-medium">
@@ -50,7 +70,7 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
                 defaultValue={persona ?? 'all'}
                 className="h-8 rounded-md border border-amber-300 bg-white px-2 text-sm"
               >
-                {DEMO_PERSONAS.map((p) => (
+                {personas.map((p) => (
                   <option key={p.key} value={p.key}>
                     {p.label}
                   </option>
@@ -61,6 +81,9 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
               </SubmitButton>
             </form>
 
+            {isNcAdmin && canReset && (
+            <>
+            {canSkip && (
             <Button
               size="sm"
               variant="outline"
@@ -75,6 +98,7 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
             >
               Skip ahead 60 days
             </Button>
+            )}
             {confirming ? (
               <span className="flex items-center gap-2">
                 <span>Delete and reseed all of this demo&apos;s data?</span>
@@ -89,6 +113,8 @@ export function DemoBar({ slug, isNcAdmin, persona }: { slug: string; isNcAdmin:
               <Button size="sm" variant="outline" onClick={() => setConfirming(true)}>
                 Reset demo data
               </Button>
+            )}
+            </>
             )}
           </div>
         )}

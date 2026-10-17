@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface MembershipNoticeEmailProps {
   heading: string
@@ -61,6 +62,7 @@ export default function MembershipNoticeEmail({ heading: headingText, bodyLines,
         {ctaLabel} →
       </a>
       <p style={footer}>You&apos;re receiving this because you&apos;re a NextChapter Member.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

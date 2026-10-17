@@ -11,6 +11,8 @@ export default defineConfig({
     environment: 'node',
     alias: {
       'server-only': path.resolve(__dirname, 'src/test/server-only-stub.ts'),
+      // Passthrough unstable_cache etc. — see src/test/next-cache-stub.ts.
+      'next/cache': path.resolve(__dirname, 'src/test/next-cache-stub.ts'),
       '@': path.resolve(__dirname, 'src'),
     },
   },

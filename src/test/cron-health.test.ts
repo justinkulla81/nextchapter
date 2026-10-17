@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { assessJob } from '@/lib/cron/health'
 import { intervalMinutes, maxGapMinutes, cronSchedules, RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 
@@ -13,6 +13,7 @@ describe('intervalMinutes', () => {
     expect(intervalMinutes('0 12 * * *')).toBe(1440)
     expect(intervalMinutes('0 9 * * 1')).toBe(7 * 1440)
     expect(intervalMinutes('30 11 */2 * *')).toBe(2 * 1440)
+    expect(intervalMinutes('20 */3 * * *')).toBe(180)
   })
   it('covers every configured job, including the watchdog', () => {
     const jobs = cronSchedules()
@@ -51,5 +52,18 @@ describe('RERUN_SAFE_JOBS', () => {
     for (const j of ['job-search-daily', 'candidate-email-dispatch', 'mailing-send', 'market-reality-snapshot', 'interim-role-reverify']) {
       expect(RERUN_SAFE_JOBS.has(j)).toBe(false)
     }
+  })
+})
+
+describe('alertSubject', () => {
+  it('agrees with the count', async () => {
+    vi.doMock('server-only', () => ({}))
+    vi.doMock('@/lib/prisma', () => ({ prisma: {} }))
+    vi.doMock('@/lib/email/resend-client', () => ({ createResend: vi.fn() }))
+    vi.doMock('@/lib/posthog/server', () => ({ captureServerEvent: vi.fn() }))
+    vi.doMock('@/lib/cron/invoke', () => ({ invokeCron: vi.fn() }))
+    const { alertSubject } = await import('@/lib/cron/watchdog')
+    expect(alertSubject(1)).toBe('1 background job needs attention')
+    expect(alertSubject(2)).toBe('2 background jobs need attention')
   })
 })

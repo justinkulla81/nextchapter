@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { EmployerPayLevel, PayVsMarket } from '@/lib/pay/market-pay'
+import { duplicateLine, jobLifecycle, lifecycleBadge, postingRepostLine } from '@/lib/jobs/job-status'
+import { loadCompanyLifecycleStats, type CompanyLifecycleStats } from '@/lib/jobs/past-jobs-data'
 
 // Read side of the company hiring index for the company pages (candidate, admin
 // company, CRM organisation). Reads only Company-spine public facts —
@@ -25,6 +27,10 @@ export interface OpeningView {
   marketBasis: string | null
   marketSample: number | null
   payVsMarket: PayVsMarket | null
+  /** Past openings: "Closed" or "No longer listed" (job-status.ts); null while open. */
+  closedLabel: string | null
+  /** "Reposted · first seen …, N times" and "Also listed in N other places", when known. */
+  repostLine: string | null
 }
 
 export interface HiringProfileView {
@@ -59,6 +65,8 @@ export interface CompanyHiringIndex {
   past: OpeningView[]
   openTotal: number
   pastTotal: number
+  /** Counts by status, median days open, reposts; null when the read failed. */
+  lifecycle: CompanyLifecycleStats | null
 }
 
 // Crawler industry keys, shown when the company has no directory industry yet.
@@ -67,7 +75,7 @@ const INDUSTRY_LABEL: Record<string, string> = {
   industrial: 'Industrial', life_sciences: 'Life sciences', consumer: 'Consumer', nonprofit: 'Nonprofit',
   government: 'Government', energy: 'Energy', professional_services: 'Professional services', logistics: 'Logistics',
   real_estate: 'Real estate', media: 'Media', higher_education: 'Higher education', agriculture: 'Agriculture',
-  association: 'Association',
+  association: 'Association', aerospace_defense: 'Aerospace & defense', telecom: 'Telecommunications',
 }
 
 export function industryLabel(raw: string | null): string | null {
@@ -81,6 +89,7 @@ const openingSelect = {
   id: true, title: true, location: true, url: true, postedAt: true, firstSeenAt: true, closedAt: true,
   seniorityGroup: true, function: true, payAnnualMin: true, payAnnualMax: true, marketPayLow: true,
   marketPayMid: true, marketPayHigh: true, marketPayBasis: true, marketPaySample: true, payVsMarket: true,
+  closeReason: true, level: true,
 } as const
 
 type OpeningRow = {
@@ -88,10 +97,35 @@ type OpeningRow = {
   closedAt: Date | null; seniorityGroup: string | null; function: string | null; payAnnualMin: number | null
   payAnnualMax: number | null; marketPayLow: number | null; marketPayMid: number | null; marketPayHigh: number | null
   marketPayBasis: string | null; marketPaySample: number | null; payVsMarket: string | null
+  closeReason: string | null; level: string | null
 }
 
-function toView(o: OpeningRow): OpeningView {
+type RepostInfo = { repostCount: number | null; reopenCount: number | null; repostFirstSeenAt: Date | null; postedAt: Date | null; createdAt: Date; duplicateCount: number | null }
+
+// The board posting behind each opening (same url) carries its repost / duplicate counts.
+async function repostInfoByUrl(urls: string[]): Promise<Map<string, RepostInfo>> {
+  if (urls.length === 0) return new Map()
+  try {
+    const rows = await prisma.exclusiveJobPosting.findMany({
+      where: { url: { in: urls } },
+      select: { url: true, repostCount: true, reopenCount: true, repostFirstSeenAt: true, postedAt: true, createdAt: true, duplicateCount: true },
+    })
+    return new Map(rows.map((r) => [r.url, r]))
+  } catch (error) {
+    console.error('hiring index: could not read repost counts', error)
+    return new Map()
+  }
+}
+
+function toView(o: OpeningRow, reposts: Map<string, RepostInfo>): OpeningView {
+  const r = reposts.get(o.url)
+  const closed = o.closedAt
+    ? lifecycleBadge(jobLifecycle({ archivedAt: o.closedAt, closeReason: o.closeReason, postedAt: o.postedAt, createdAt: o.firstSeenAt, level: o.level ?? o.seniorityGroup }))
+    : null
+  const repostLine = r ? [postingRepostLine(r), o.closedAt ? null : duplicateLine(r.duplicateCount)].filter(Boolean).join(' · ') || null : null
   return {
+    closedLabel: closed,
+    repostLine,
     id: o.id,
     title: o.title,
     location: o.location,
@@ -112,7 +146,7 @@ function toView(o: OpeningRow): OpeningView {
 }
 
 export async function loadCompanyHiringIndex(companyId: string): Promise<CompanyHiringIndex> {
-  const [profile, open, past, openTotal, pastTotal] = await Promise.all([
+  const [profile, open, past, openTotal, pastTotal, lifecycle] = await Promise.all([
     prisma.companyHiringProfile.findUnique({ where: { companyId } }),
     prisma.companyJobOpening.findMany({
       where: { companyId, closedAt: null },
@@ -121,14 +155,20 @@ export async function loadCompanyHiringIndex(companyId: string): Promise<Company
       select: openingSelect,
     }),
     prisma.companyJobOpening.findMany({
-      where: { companyId, closedAt: { not: null } },
+      // A collapsed duplicate (job-status.ts) is a current job shown through its primary copy.
+      where: { companyId, closedAt: { not: null }, OR: [{ closeReason: null }, { closeReason: { not: 'duplicate' } }] },
       orderBy: { closedAt: 'desc' },
       take: LIST_LIMIT,
       select: openingSelect,
     }),
     prisma.companyJobOpening.count({ where: { companyId, closedAt: null } }),
-    prisma.companyJobOpening.count({ where: { companyId, closedAt: { not: null } } }),
+    prisma.companyJobOpening.count({ where: { companyId, closedAt: { not: null }, OR: [{ closeReason: null }, { closeReason: { not: 'duplicate' } }] } }),
+    loadCompanyLifecycleStats(companyId).catch((error) => {
+      console.error('hiring index: lifecycle stats failed', companyId, error)
+      return null
+    }),
   ])
+  const reposts = await repostInfoByUrl([...open, ...past].map((o) => o.url))
   return {
     profile: profile
       ? {
@@ -157,9 +197,10 @@ export async function loadCompanyHiringIndex(companyId: string): Promise<Company
           computedAt: profile.computedAt.toISOString(),
         }
       : null,
-    open: open.map(toView),
-    past: past.map(toView),
+    open: open.map((o) => toView(o, reposts)),
+    past: past.map((o) => toView(o, reposts)),
     openTotal,
     pastTotal,
+    lifecycle,
   }
 }

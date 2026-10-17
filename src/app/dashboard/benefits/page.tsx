@@ -94,7 +94,7 @@ const TOPICS: Topic[] = [
     links: [
       { name: 'Find a nonprofit credit counselor (NFCC)', url: 'https://www.nfcc.org/' },
     ],
-    relatedLink: { label: 'Bridging income between roles? See Interim Work →', href: '/dashboard/interim-work' },
+    relatedLink: { label: 'Bridging income between roles? See Interim Work →', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' },
   },
   {
     title: 'Tapping retirement savings or home equity',

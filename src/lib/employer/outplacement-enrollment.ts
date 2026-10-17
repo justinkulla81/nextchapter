@@ -9,8 +9,11 @@ import { sendOutplacementSeatInviteEmail, sendOutplacementSeatLinkedEmail } from
 import { orgProgram } from './program-server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
-import type { OutplacementEnrollmentMethod } from '@prisma/client'
+import type { OutplacementEnrollmentMethod, OutplacementProgramType } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
+import { grantSeatAccess } from '@/lib/access/grants'
+import { applyOutplacementCensus } from '@/lib/census/outplacement'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Partners Master Build Script §A7 — "single, bulk CSV, and [documented-
 // but-not-built] API enrollment." Real third-party API auth/integration is
@@ -25,9 +28,6 @@ import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-aut
 // the reporting/roster split (see outplacement-reporting.ts vs.
 // outplacement-roster.ts) that enforces the actual privacy boundary.
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 export interface EnrollableContract {
   id: string
@@ -77,18 +77,21 @@ export interface EnrollOneResult {
 //     needed — just a notice email. This is the "linking an existing one"
 //     path the spec calls out as a valid enrollment mechanism distinct from
 //     inviting a brand-new account.
-async function enrollOneSeat(
+export type SeatExtra = { externalId?: string | null; cohort?: string | null; accessEndsAt?: Date | null }
+
+export async function enrollOneSeat(
   contractId: string,
   orgName: string,
   email: string,
   name: string | null,
-  method: OutplacementEnrollmentMethod
-,
-  packageKey: string | null = null
+  method: OutplacementEnrollmentMethod,
+  packageKey: string | null = null,
+  extra: SeatExtra = {}
 ): Promise<EnrollOneResult> {
+  const programType = await contractProgramType(contractId)
   const existing = await findExistingRegisteredAccount(email, '')
   if (existing) {
-    await prisma.outplacementSeat.create({
+    const linked = await prisma.outplacementSeat.create({
       data: {
         contractId,
         invitedEmail: email,
@@ -98,20 +101,22 @@ async function enrollOneSeat(
         candidateId: existing.id,
         activatedAt: new Date(),
         packageKey,
+        ...extra,
       },
     })
-    await startOutplacementJourney(existing.id)
-    await sendOutplacementSeatLinkedEmail(email, orgName)
+    await grantSeatAccess(linked.id).catch(() => null)
+    await startProgramJourney(existing.id, programType)
+    await sendOutplacementSeatLinkedEmail(email, orgName, programType)
     return { email, outcome: 'linked' }
   }
 
   const seat = await prisma.outplacementSeat.create({
-    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method, packageKey },
+    data: { contractId, invitedEmail: email, invitedName: name, enrollmentMethod: method, packageKey, ...extra },
   })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     email,
-    `${appUrl()}/auth/callback?next=outplacement-seat&inviteToken=${seat.inviteToken}`,
+    `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=outplacement-seat&inviteToken=${seat.inviteToken}`,
     { isFirstSend: true }
   )
   if (error || !actionLink) {
@@ -121,7 +126,9 @@ async function enrollOneSeat(
 
   const contract = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { orgId: true } })
   const program = contract ? await orgProgram(contract.orgId) : null
-  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services: program.forPackage(packageKey).map((f) => f.label) } : undefined)
+  // The services list is the outplacement menu; Growth and Learning describe themselves.
+  const services = program && programType === 'OUTPLACEMENT' ? program.forPackage(packageKey).map((f) => f.label) : []
+  await sendOutplacementSeatInviteEmail(email, orgName, actionLink, program ? { welcome: program.settings.welcome, services } : undefined, { programType })
   return { email, outcome: 'invited' }
 }
 
@@ -174,6 +181,8 @@ export interface EnrollBulkResult {
   error?: string
   invited: number
   linked: number
+  updated?: number
+  removed?: number
   failed: number
   rowErrors: string[]
 }
@@ -184,66 +193,28 @@ export async function enrollBulkCsv(
   csvText: string,
   packageKey: string | null = null
 ): Promise<EnrollBulkResult> {
-  const contract = await prisma.outplacementContract.findFirst({
-    where: { id: contractId, orgId: orgUser.orgId, status: 'ACTIVE' },
-    include: {
-      org: { select: { name: true } },
-      _count: { select: { seats: { where: { status: { not: 'DEACTIVATED' } } } } },
-    },
-  })
-  if (!contract) return { error: 'That contract is not available for enrollment.', invited: 0, linked: 0, failed: 0, rowErrors: [] }
-
   const { rows, errors: parseErrors } = parseEnrollmentCsv(csvText)
   if (rows.length === 0) {
     return { error: parseErrors[0] ?? 'No valid rows found in this file.', invited: 0, linked: 0, failed: 0, rowErrors: parseErrors }
   }
-
-  const remainingCapacity = contract.seatCount - contract._count.seats
-  if (rows.length > remainingCapacity) {
-    return {
-      error: `This file has ${rows.length} people but this contract only has ${remainingCapacity} seat${remainingCapacity === 1 ? '' : 's'} left.`,
-      invited: 0,
-      linked: 0,
-      failed: 0,
-      rowErrors: parseErrors,
-    }
-  }
-
-  let invited = 0
-  let linked = 0
-  let failed = 0
-  const rowErrors = [...parseErrors]
-
-  for (const row of rows) {
-    const dup = await prisma.outplacementSeat.findFirst({
-      where: { contractId, invitedEmail: row.email, status: { not: 'DEACTIVATED' } },
-    })
-    if (dup) {
-      failed++
-      rowErrors.push(`Row ${row.line}: ${row.email} already has a seat on this contract — skipped.`)
-      continue
-    }
-    const result = await enrollOneSeat(contractId, contract.org.name, row.email, row.name, 'BULK_CSV', packageKey)
-    if (result.outcome === 'error') {
-      failed++
-      rowErrors.push(`Row ${row.line}: ${result.error}`)
-    } else if (result.outcome === 'invited') {
-      invited++
-    } else {
-      linked++
-    }
-  }
-
-  captureServerEvent(orgUser.userId, 'outplacement_seats_bulk_enrolled', {
+  // Census semantics: people already on the roster are updated, not refused.
+  const r = await applyOutplacementCensus({
     orgId: orgUser.orgId,
+    actor: orgUser.userId,
+    method: 'BULK_CSV',
     contractId,
-    rowCount: rows.length,
-    invited,
-    linked,
-    failed,
+    defaultPackage: packageKey,
+    people: rows.map((row) => ({ row: row.line, email: row.email, name: row.name, externalId: row.externalId, cohort: row.cohort, package: row.package, accessEnds: row.accessEnds, remove: row.remove })),
   })
-
-  return { invited, linked, failed, rowErrors }
+  if (r.fileError) return { error: r.fileError, invited: 0, linked: 0, failed: 0, rowErrors: parseErrors }
+  return {
+    invited: r.invited,
+    linked: r.linked,
+    updated: r.updated,
+    removed: r.removed,
+    failed: r.failed,
+    rowErrors: [...parseErrors, ...r.errors.map((e) => `Row ${e.row}: ${e.email ? `${e.email}: ` : ''}${e.message}`)],
+  }
 }
 
 // Called from CallbackHandler once an admin-generated magic link (fresh
@@ -273,7 +244,8 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       where: { id: seat.id },
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
-    await startOutplacementJourney(nowRegistered.id)
+    await grantSeatAccess(seat.id).catch(() => null)
+    await startProgramJourney(nowRegistered.id, await contractProgramType(seat.contractId))
     return {}
   }
 
@@ -282,15 +254,31 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
     where: { id: seat.id },
     data: { status: 'ACTIVATED', candidateId: profile.id, activatedAt: new Date() },
   })
+  await grantSeatAccess(seat.id).catch(() => null)
 
-  captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id })
-  await startOutplacementJourney(profile.id)
+  const programType = await contractProgramType(seat.contractId)
+  captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id, programType })
+  await startProgramJourney(profile.id, programType)
 
   return {}
 }
 
+async function contractProgramType(contractId: string): Promise<OutplacementProgramType> {
+  const c = await prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { programType: true } })
+  return c?.programType ?? 'OUTPLACEMENT'
+}
+
 // An outplacement seat means the job ended: the member starts (or switches
 // to) the Laid off journey, actively applying (src/lib/journey).
-async function startOutplacementJourney(candidateId: string): Promise<void> {
-  await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
+// A Growth or Learning seat means they're staying: Growing, managing their
+// career. Only when they haven't picked a journey themselves: an employee
+// quietly exploring a move keeps that, and their employer never knows.
+async function startProgramJourney(candidateId: string, programType: OutplacementProgramType): Promise<void> {
+  if (programType === 'OUTPLACEMENT') {
+    await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
+    return
+  }
+  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true } })
+  if (p?.journey) return
+  await applyJourneyChange(candidateId, { journey: 'GROWING', stage: 'STAYING', source: 'ONBOARDING', note: `${programType === 'GROWTH' ? 'Growth' : 'Learning'} seat` })
 }

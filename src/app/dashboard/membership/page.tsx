@@ -5,7 +5,8 @@ import { getDashboardProfile, getVerifiedSessionUser } from '@/lib/dashboard/get
 import { hasRoleGrant } from '@/lib/auth/role-grants'
 import { getMembershipSubscription } from '@/lib/membership/subscription'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
-import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { candidatePlusRequirements, candidatePlusSteps } from '@/lib/unlocks/ladder'
 import { prisma } from '@/lib/prisma'
 import { setPriorityCoachBookingPreference } from './actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -90,17 +91,19 @@ const TIER_ORDER = ['dtc_free', 'dtc_resume', 'dtc_coaching_plus', 'dtc_coaching
 export default async function MembershipPage() {
   const [profile, user] = await Promise.all([getDashboardProfile(), getVerifiedSessionUser()])
 
-  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, dossierCompleteness, ...dtcPlans] =
+  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, plusStatus, ...dtcPlans] =
     await Promise.all([
       hasRoleGrant(profile.userId, 'alum'),
       getMembershipSubscription(profile.id),
       getCurrentPlan('membership_monthly'),
       getCurrentPlan('membership_annual'),
       prisma.membershipMarketCheck.findFirst({ where: { candidateId: profile.id }, orderBy: { checkedAt: 'desc' } }),
-      computeDossierCompleteness(profile.id),
+      isDossierUnlocked(profile.id),
       ...TIER_ORDER.map((key) => getCurrentPlan(key)),
     ])
-  const dossierActionsRemaining = dossierCompleteness.totalCount - dossierCompleteness.metCount
+  // The four Candidate+ requirements (unlock ladder); none left once Candidate+ is on.
+  const plusRequirements = candidatePlusRequirements(plusStatus)
+  const dossierActionsRemaining = candidatePlusSteps(plusStatus).length
 
   const plans = TIER_ORDER.map((key, i) => ({ key, plan: dtcPlans[i] }))
 
@@ -124,13 +127,19 @@ export default async function MembershipPage() {
           Choose how much support you want in your search
         </h1>
         <p className="mt-2 text-sm text-foreground">
-          <span className="font-semibold">
-            {dossierActionsRemaining} of {dossierCompleteness.totalCount}
-          </span>{' '}
-          actions left to unlock Candidate+ —{' '}
-          <Link href="/dashboard/portfolio" className="text-primary underline underline-offset-4">
-            see what&apos;s left
-          </Link>
+          {plusStatus.unlocked ? (
+            <>You&apos;re Candidate+.</>
+          ) : (
+            <>
+              <span className="font-semibold">
+                {dossierActionsRemaining} of {plusRequirements.length}
+              </span>{' '}
+              actions left to unlock Candidate+ —{' '}
+              <Link href="/dashboard/portfolio" className="text-primary underline underline-offset-4">
+                see what&apos;s left
+              </Link>
+            </>
+          )}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">NextChapter Higher Education is free for life once you land.</p>
       </div>
@@ -344,7 +353,7 @@ export default async function MembershipPage() {
 
           <p className="text-sm text-muted-foreground">
             Board and advisory listings are unlocked on{' '}
-            <Link href="/dashboard/interim-work#launch-phase-4" className="text-primary underline underline-offset-4">
+            <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="text-primary underline underline-offset-4">
               Find Interim Work
             </Link>{' '}
             while your Membership is active. Benefits Network offers are redeemable from the{' '}

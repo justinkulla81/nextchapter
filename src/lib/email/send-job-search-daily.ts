@@ -16,6 +16,8 @@ import {
 import JobSearchDailyEmail from '@/emails/job-search-daily'
 import { buildClickUrl, wrapHrefs } from '@/lib/job-search-daily/click-link'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
+import { recordMatchSnapshot } from '@/lib/personalization/match-snapshot'
+import { matchInputsOf } from '@/lib/personalization/match-inputs'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
 
@@ -137,6 +139,15 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
         .create({ data: { id: sendId, candidateId, resendEmailId: sendData.id } })
         .catch((e) => console.error('Failed to record Job Search Daily send:', e))
     }
+    // Today's strict match count, for next week's "What changed for you" trend.
+    if (content.matchCount !== null) {
+      await recordMatchSnapshot({
+        candidateId,
+        kind: 'daily',
+        inputs: matchInputsOf(candidate as unknown as Record<string, unknown>),
+        state: { counts: { checked: null, matches: content.matchCount, strong: null }, ms: null },
+      })
+    }
     const keys = shownItemKeys(content)
     await prisma.jobSearchDailyItem.createMany({
       data: keys.map((itemKey) => ({ candidateId, itemKey })),
@@ -159,7 +170,6 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       networkingFollowUpCount: content.networking.length,
       jobCount: content.jobs.items.length + content.jobs.fresh.length,
       freshJobCount: content.jobs.fresh.length,
-      lockedJobCount: content.jobs.lockedCount,
       companyMoveCount: content.companyMoves.length,
       hasReconnect: !!content.reconnect,
       hasArticle: !!content.article,

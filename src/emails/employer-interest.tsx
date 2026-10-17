@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface EmployerInterestEmailProps {
   firstName: string | null
@@ -50,6 +51,7 @@ export default function EmployerInterestEmail({ firstName, companyName }: Employ
         Review on your dashboard →
       </a>
       <p style={footer}>You control this. Approving lets them see your name and full work history.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }
