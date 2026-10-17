@@ -6,6 +6,7 @@ import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, Compan
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, CareerStory, HowIWork, MySearch, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpMoney, HelpScams, HelpQuestions } from './learn-help'
 import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
+import { TuneQuestion, TuneDone, DeepDiveIntro } from './questionnaire'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -18,9 +19,9 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
-  { path: 'home/today', place: 'Home', title: 'Today', replaces: '/dashboard', Component: HomeToday },
-  { path: 'home/progress/built', place: 'Home', title: 'Progress: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
-  { path: 'home/progress/timeline', place: 'Home', title: 'Progress: your search timeline', replaces: 'new', Component: ProgressTimeline },
+  { path: 'home/today', place: 'Home', title: 'Your plan', replaces: '/dashboard', Component: HomeToday },
+  { path: 'home/progress/built', place: 'Home', title: 'Momentum: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
+  { path: 'home/progress/timeline', place: 'Home', title: 'Momentum: your search timeline', replaces: 'new', Component: ProgressTimeline },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },
   { path: 'network/circles/close', place: 'Network', title: 'Close circle', replaces: '/dashboard/supporters, /dashboard/my-coaching', Component: CloseCircle },
   { path: 'jobs/find/jobs', place: 'Jobs', title: 'Find a job: list and detail', replaces: '/dashboard/find-my-job, /dashboard/jobs/ID', Component: FindJobs },
@@ -57,13 +58,16 @@ export const MOCKUPS: Mockup[] = [
   { path: 'help/money', place: 'Help', title: 'Money and benefits', replaces: '/dashboard/benefits, benefits-network', Component: HelpMoney },
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
-  { path: 'home/tailored', place: 'Home', title: 'Tailored for you', replaces: 'new: every personalization in one place', Component: TailoredForYou },
+  { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },
   { path: 'home/checkin', place: 'Home', title: 'The check-in in three tones', replaces: 'mood pop-up and Still searching dialog, merged', Component: CheckIn },
   { path: 'home/journey/entrepreneur', place: 'Home', title: 'Today: building something of my own', replaces: '/dashboard for ENTREPRENEUR', Component: HomeEntrepreneur },
   { path: 'home/journey/time-off', place: 'Home', title: 'Today: taking time off', replaces: '/dashboard for TIME_OFF', Component: HomeTimeOff },
   { path: 'home/journey/career-change', place: 'Home', title: 'Today: changing careers', replaces: '/dashboard for CAREER_CHANGE', Component: HomeCareerChange },
   { path: 'home/journey/fractional', place: 'Home', title: 'Today: fractional and independent work', replaces: '/dashboard for FRACTIONAL', Component: HomeFractional },
+  { path: 'flows/tune-question', place: 'Flows', title: 'A question, with the payoff shown', replaces: 'every one-off question on profile, search strategy, and onboarding', Component: TuneQuestion },
+  { path: 'flows/tune-done', place: 'Flows', title: 'The finish: what you just gained', replaces: 'new', Component: TuneDone },
+  { path: 'flows/deep-dive', place: 'Flows', title: 'A long assessment as short rounds', replaces: 'How I Work Best (57 items), What I Need (24), Track Record (19)', Component: DeepDiveIntro },
 ]
 
 export const mockupFor = (path: string) => MOCKUPS.find((m) => m.path === path)

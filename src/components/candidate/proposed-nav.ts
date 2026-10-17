@@ -16,7 +16,7 @@ export interface NavPlace {
 }
 
 export const PROPOSED_NAV: NavPlace[] = [
-  { id: 'home', label: 'Home', entries: [{ key: 'today', label: 'Today' }, { key: 'tailored', label: 'Tailored for you' }, { key: 'progress', label: 'Progress', parts: [{ key: 'built', label: 'What you’ve built' }, { key: 'timeline', label: 'Your search timeline' }] }] },
+  { id: 'home', label: 'Home', entries: [{ key: 'today', label: 'Your plan' }, { key: 'tailored', label: 'Improve your search' }, { key: 'progress', label: 'Momentum', parts: [{ key: 'built', label: 'What you’ve built' }, { key: 'timeline', label: 'Your search timeline' }] }] },
   {
     id: 'jobs',
     label: 'Jobs',

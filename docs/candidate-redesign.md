@@ -39,6 +39,13 @@ screen should feel like progress toward a job.
 - **Colors**: the NextChapter palette, not too blue. One action color. Serif for
   display headings, Inter for everything else. Two typefaces at most.
 
+## Added 2026-10-17
+
+- **Dark navy is for the one unlock or "next level" moment on a page** (Unlocks, Candidate+ progress, a finished-tuning reveal). One per page, so it draws the eye. Never for ordinary cards.
+- **The menu shrinks to icons.** A small control at the top of the menu collapses it so the page gets the width. The choice is remembered.
+- **Names say the benefit.** Home entries: Your plan, Improve your search, Momentum. Strips: Build your plan (Home), Better jobs for you (Jobs), Warmer introductions (Network), Closer to hired (Learn). The Personalize place is replaced by these strips and the Improve your search page. Settings: Account and privacy.
+- **Every question flow**: two or three questions at a time, "why we ask" first, the payoff updating as you answer, a finish screen that shows what you gained, and one optional next question. Long assessments become short rounds with a reveal at the end.
+
 ## Page contract
 
 1. One headline. One primary action, the most visible thing on the page.

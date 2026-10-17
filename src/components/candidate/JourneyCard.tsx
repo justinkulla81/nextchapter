@@ -3,7 +3,7 @@ import { Chip } from './ui'
 // The first card on Home. It names the member's journey, shows the few facts that shape their plan,
 // and says plainly what that changes. Each fact has exactly one place it is edited, so this card links
 // there and never asks the same question again.
-export function JourneyCard({ journey, since, facts, changes, switchLabel }: { journey: string; since: string; facts: { label: string; value: string }[]; changes: string[]; switchLabel?: string }) {
+export function JourneyCard({ journey, since, facts, changes, switchLabel, tune }: { journey: string; since: string; facts: { label: string; value: string }[]; changes: string[]; switchLabel?: string; tune?: { text: string; action: string } }) {
   return (
     <section aria-label="Your journey" className="space-y-4 rounded-2xl border border-border bg-white p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -28,6 +28,12 @@ export function JourneyCard({ journey, since, facts, changes, switchLabel }: { j
           {changes.map((c) => <li key={c} className="flex gap-2"><Chip tone="good">On</Chip><span>{c}</span></li>)}
         </ul>
       </div>
+      {tune && (
+        <p className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3 text-sm text-ink">
+          <span><span className="font-semibold">Build your plan.</span> {tune.text}</span>
+          <a href="#" className="inline-flex h-9 items-center rounded-full bg-ink px-4 text-sm font-semibold text-white hover:opacity-90">{tune.action}</a>
+        </p>
+      )}
       {switchLabel && <a href="#" className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">{switchLabel}</a>}
     </section>
   )

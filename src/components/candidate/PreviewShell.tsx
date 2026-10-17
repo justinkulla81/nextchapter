@@ -1,5 +1,8 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Briefcase, Home, LifeBuoy, User, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, User, Users, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROPOSED_NAV, type PlaceId } from './proposed-nav'
 
@@ -9,13 +12,29 @@ const ICONS: Record<PlaceId, LucideIcon> = { home: Home, jobs: Briefcase, networ
 // the proposed menu around it: the active place opens to show its entries, and an entry with parts shows
 // small switches at the top of the page, with a "where you are" line above.
 export function PreviewShell({ place, entry, part, wide = false, children }: { place: PlaceId; entry: string; part?: string; wide?: boolean; children: React.ReactNode }) {
+  // The menu can shrink to icons so the page gets the width. The choice is remembered per browser.
+  const [collapsed, setCollapsed] = useState(false)
+  useEffect(() => {
+    try { setCollapsed(window.localStorage.getItem('nc-menu-collapsed') === '1') } catch {}
+  }, [])
+  const toggle = () => {
+    setCollapsed((c) => {
+      try { window.localStorage.setItem('nc-menu-collapsed', c ? '0' : '1') } catch {}
+      return !c
+    })
+  }
   const p = PROPOSED_NAV.find((x) => x.id === place)!
   const e = p.entries.find((x) => x.key === entry)!
   const href = (pl: string, en: string, pa?: string) => `/dev-preview/${pl}/${en}${pa ? `/${pa}` : ''}`
   return (
     <div className="theme-candidate min-h-screen bg-white">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 overflow-y-auto border-r border-border bg-white px-4 py-6 lg:block">
-        <p className="px-2 pb-4 text-xl font-bold text-ink">NextChapter</p>
+      <aside className={cn('fixed inset-y-0 left-0 z-30 hidden overflow-y-auto border-r border-border bg-white py-6 transition-[width] lg:block', collapsed ? 'w-16 px-2' : 'w-72 px-4')}>
+        <div className={cn('flex items-center pb-4', collapsed ? 'justify-center' : 'justify-between px-2')}>
+          {!collapsed && <p className="text-xl font-bold text-ink">NextChapter</p>}
+          <button type="button" onClick={toggle} aria-label={collapsed ? 'Expand the menu' : 'Shrink the menu to icons'} aria-expanded={!collapsed} className="inline-flex size-8 items-center justify-center rounded-md text-ink/70 hover:bg-muted hover:text-ink">
+            {collapsed ? <ChevronsRight className="size-4" aria-hidden /> : <ChevronsLeft className="size-4" aria-hidden />}
+          </button>
+        </div>
         <nav aria-label="Main" className="space-y-1">
           {PROPOSED_NAV.filter((x) => x.id !== 'help').map((pl) => {
             const Icon = ICONS[pl.id]
@@ -25,12 +44,13 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
                 <Link
                   href={href(pl.id, pl.entries[0].key, pl.entries[0].parts?.[0]?.key)}
                   aria-current={active ? 'page' : undefined}
-                  className={cn('flex items-center gap-2.5 rounded-md border-l-[3px] px-2 py-2 text-sm font-semibold', active ? 'border-ink bg-muted text-ink' : 'border-transparent text-ink/80 hover:bg-muted')}
+                  title={collapsed ? pl.label : undefined}
+                  className={cn('flex items-center gap-2.5 rounded-md border-l-[3px] px-2 py-2 text-sm font-semibold', collapsed && 'justify-center', active ? 'border-ink bg-muted text-ink' : 'border-transparent text-ink/80 hover:bg-muted')}
                 >
                   <Icon className="size-4" aria-hidden />
-                  {pl.label}
+                  <span className={collapsed ? 'sr-only' : undefined}>{pl.label}</span>
                 </Link>
-                {active && pl.entries.length > 1 && (
+                {active && !collapsed && pl.entries.length > 1 && (
                   <ul className="mt-1 mb-2 ml-[1.15rem] space-y-0.5 border-l border-border pl-3">
                     {pl.entries.map((en) => (
                       <li key={en.key}>
@@ -49,9 +69,9 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
             )
           })}
         </nav>
-        <div className="absolute inset-x-4 bottom-6 space-y-2 px-2 text-sm">
-          <p className="flex items-center gap-2.5 font-medium text-ink/80"><LifeBuoy className="size-4" aria-hidden />Help</p>
-          <p className="text-muted-foreground">Sign out</p>
+        <div className={cn('absolute inset-x-4 bottom-6 space-y-2 px-2 text-sm', collapsed && 'inset-x-0 flex flex-col items-center px-0')}>
+          <p title={collapsed ? 'Help' : undefined} className="flex items-center gap-2.5 font-medium text-ink/80"><LifeBuoy className="size-4" aria-hidden /><span className={collapsed ? 'sr-only' : undefined}>Help</span></p>
+          {!collapsed && <p className="text-muted-foreground">Sign out</p>}
         </div>
       </aside>
 
@@ -60,8 +80,8 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
         <span className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-ink">Menu</span>
       </header>
 
-      <main className="px-5 pt-10 pb-28 lg:pb-12 lg:pl-[calc(18rem+2.5rem)]">
-        <div className={cn('mx-auto space-y-8', wide ? 'max-w-6xl' : 'max-w-4xl')}>
+      <main className={cn('px-5 pt-10 pb-28 lg:pb-12', collapsed ? 'lg:pl-[calc(4rem+2.5rem)]' : 'lg:pl-[calc(18rem+2.5rem)]')}>
+        <div className={cn('mx-auto space-y-8', wide || collapsed ? 'max-w-6xl' : 'max-w-4xl')}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               {p.label}

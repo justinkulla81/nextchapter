@@ -166,13 +166,10 @@ export function TailoredForYou() {
       ['Skills: 14 confirmed.', 'Decides which courses we suggest.', 'Review'],
       ['Direction: same field.', 'Say if you want to explore other roles.', 'Explore'],
     ] },
-    { group: 'Your proof', items: [
-      ['Dossier: 7 of 9 traits shown.', 'What a résumé cannot show. Recruiters see it with Candidate+.', 'See it'],
-    ] },
   ]
   return (
     <PreviewShell place="home" entry="tailored">
-      <PageHeader title="Tailored for you" intro="Everything we use to shape this site around you, what each thing changes, and what would help most." action={<PrimaryButton>Add your tools (+150 jobs)</PrimaryButton>} />
+      <PageHeader title="Improve your search" intro="Everything we use to tailor your suggestions, what each thing changes, and what would help most." action={<PrimaryButton>Add your tools (+150 jobs)</PrimaryButton>} />
       <div className="space-y-6">
         {rows.map((g) => (
           <section key={g.group} aria-label={g.group} className="space-y-2">
@@ -185,6 +182,11 @@ export function TailoredForYou() {
           </section>
         ))}
       </div>
+      <Module title="Your proof" tone="dark">
+        <p className="text-base">Your dossier shows 7 of 9 traits. It is what a résumé cannot show, and recruiters see it with Candidate+.</p>
+        <div className="space-y-2"><div className="flex items-baseline justify-between text-sm"><span className="font-semibold">Next: Candidate+</span><span className="text-white/80">168 minutes to go</span></div><div className="h-2 overflow-hidden rounded-full bg-white/20" role="meter" aria-valuenow={65} aria-valuemin={0} aria-valuemax={100} aria-label="Toward Candidate+"><div className="h-full rounded-full bg-action" style={{ width: '65%' }} /></div></div>
+        <a href="#" className="text-sm font-medium text-white underline underline-offset-4">See your dossier</a>
+      </Module>
       <p className="text-sm text-muted-foreground">Account and privacy settings are in <TextLink>Account and privacy</TextLink>.</p>
     </PreviewShell>
   )

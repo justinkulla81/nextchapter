@@ -19,6 +19,7 @@ export function HomeToday() {
         since="Week 3 of your search"
         facts={[{ label: 'Days active this month', value: '12' }, { label: 'Applications', value: '9' }, { label: 'Interviews', value: '1' }]}
         changes={['Your plan and weekly target follow your week in the search', 'Notes come in your coaching tone: supported']}
+        tune={{ text: 'Two answers tune your week: how many hours you have, and how hard to push.', action: 'Answer two questions' }}
       />
       <HomeNote
         title="Tell 5 more people what you’re looking for."
