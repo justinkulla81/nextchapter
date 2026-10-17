@@ -24,3 +24,29 @@ export function ClosedJobAlternatives({ jobId, companyName, title, surface }: { 
     </p>
   )
 }
+
+// "This job just closed" (the click-time liveness check): up to three live jobs like it —
+// same function and level, nearby first (similar-live-jobs.ts).
+export function SimilarLiveJobs({ jobId, jobs }: { jobId: string; jobs: { id: string; title: string; companyName: string; location: string | null; confidential: boolean }[] }) {
+  if (jobs.length === 0) return null
+  return (
+    <ul className="space-y-1 text-sm">
+      {jobs.map((j, i) => (
+        <li key={j.id}>
+          <Link
+            href={`/dashboard/jobs/${j.id}?src=board`}
+            onClick={() => posthog.capture('closed_job_similar_clicked', { jobId, similarJobId: j.id, rank: i + 1 })}
+            className="font-medium text-primary underline underline-offset-4"
+          >
+            {j.title}
+          </Link>
+          <span className="text-muted-foreground">
+            {' '}
+            · {j.confidential ? 'Confidential search' : j.companyName}
+            {j.location ? ` · ${j.location}` : ''}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}

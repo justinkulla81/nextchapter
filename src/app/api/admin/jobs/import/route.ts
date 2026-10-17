@@ -24,6 +24,7 @@ import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 import { isInternshipJob } from '@/lib/jobs/work-type'
 import { FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
 import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
+import { stampVerified } from '@/lib/jobs/liveness-store'
 
 const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
@@ -124,6 +125,9 @@ interface ImportJobInput {
   aiSkillItems?: unknown
   aiToolsNamed?: unknown
   aiCertsNamed?: unknown
+  // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
+  // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
+  lastVerifiedAt?: string | null
 }
 
 interface ImportRequestBody {
@@ -306,6 +310,14 @@ async function collapseDuplicates(urls: string[], now: Date): Promise<number> {
   return result.count
 }
 
+// The crawler's "last seen up" time for a job, never in the future.
+function verifiedAtOf(k: Screened): Date | null {
+  const v = k.job.lastVerifiedAt
+  if (typeof v !== 'string' || !v) return null
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 60_000 ? null : d
+}
+
 async function closeOpeningsSafely() {
   try {
     await closeArchivedOpenings()
@@ -405,11 +417,20 @@ export async function POST(request: NextRequest) {
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
       aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true,
+      archivedAt: true, closeReason: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
   const toCreate = kept.filter((k) => !existingByUrl.has(k.job.url))
-  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url))
+  // A posting our liveness check found dead (closeReason 'expired_checked': the crawler's
+  // check, or a member's click) stays closed unless the crawler has seen it up since.
+  const staysClosed = (k: Screened) => {
+    const e = existingByUrl.get(k.job.url)
+    if (!e?.archivedAt || e.closeReason !== 'expired_checked') return false
+    const seen = verifiedAtOf(k)
+    return !seen || seen <= e.archivedAt
+  }
+  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url) && !staysClosed(k))
 
   if (body.dryRun) {
     return NextResponse.json({
@@ -445,6 +466,7 @@ export async function POST(request: NextRequest) {
         contactName: null,
         expiresAt,
         lastConfirmedAt: now,
+        lastVerifiedAt: verifiedAtOf(k),
       })),
       skipDuplicates: true,
     })
@@ -477,8 +499,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // lastVerifiedAt only ever moves forward (stampVerified keeps the later of the two).
+  await stampVerified(toUpdate.flatMap((k) => {
+    const at = verifiedAtOf(k)
+    return at ? [{ url: k.job.url, at }] : []
+  }))
   const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
-  await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
   await recordBenefits(kept)
 
   let archived = 0

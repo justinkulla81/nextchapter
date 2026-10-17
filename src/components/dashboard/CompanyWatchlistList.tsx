@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { postingOpenHref } from '@/lib/jobs/posting-open-href'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { removeWatchlistCompany, viewWatchlistPosting } from '@/app/dashboard/company-tracker/actions'
 import { goToCompanyPage } from '@/app/dashboard/companies/actions'
@@ -162,7 +163,7 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
                   >
                     <div>
                       <a
-                        href={posting.url}
+                        href={postingOpenHref(posting.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => void viewWatchlistPosting(posting.id, posting.companyName)}

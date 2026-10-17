@@ -101,6 +101,8 @@ export function boardJobCardTexts(opts: {
         pay: payBasisLabel({ ...p, workType }),
         workType,
         title: p.title,
+        verifiedAt: p.lastVerifiedAt,
+        now,
       }),
       fewerApplicantsHint: fewerApplicantsHint(competition),
       fewerApplicants: fewerApplicantsText(competition),
