@@ -5,6 +5,7 @@ import { FindJobs } from './jobs-find'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, CareerStory, HowIWork, MySearch, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpMoney, HelpScams, HelpQuestions } from './learn-help'
+import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -56,6 +57,13 @@ export const MOCKUPS: Mockup[] = [
   { path: 'help/money', place: 'Help', title: 'Money and benefits', replaces: '/dashboard/benefits, benefits-network', Component: HelpMoney },
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
+  { path: 'home/tailored', place: 'Home', title: 'Tailored for you', replaces: 'new: every personalization in one place', Component: TailoredForYou },
+  { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },
+  { path: 'home/checkin', place: 'Home', title: 'The check-in in three tones', replaces: 'mood pop-up and Still searching dialog, merged', Component: CheckIn },
+  { path: 'home/journey/entrepreneur', place: 'Home', title: 'Today: building something of my own', replaces: '/dashboard for ENTREPRENEUR', Component: HomeEntrepreneur },
+  { path: 'home/journey/time-off', place: 'Home', title: 'Today: taking time off', replaces: '/dashboard for TIME_OFF', Component: HomeTimeOff },
+  { path: 'home/journey/career-change', place: 'Home', title: 'Today: changing careers', replaces: '/dashboard for CAREER_CHANGE', Component: HomeCareerChange },
+  { path: 'home/journey/fractional', place: 'Home', title: 'Today: fractional and independent work', replaces: '/dashboard for FRACTIONAL', Component: HomeFractional },
 ]
 
 export const mockupFor = (path: string) => MOCKUPS.find((m) => m.path === path)

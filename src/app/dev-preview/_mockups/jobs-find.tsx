@@ -1,4 +1,5 @@
 import { Bookmark, Check, Minus, CircleDashed } from 'lucide-react'
+import { TuneStrip } from '@/components/candidate/TuneStrip'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Avatar, Chip, DarkButton, Meter, PrimaryButton, SecondaryButton, TextLink, Section } from '@/components/candidate/ui'
@@ -120,13 +121,16 @@ export function FindJobs() {
         <PrimaryButton>Search jobs</PrimaryButton>
       </form>
 
-      <section aria-label="How your search is tuned" className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 rounded-2xl bg-muted/60 px-5 py-4">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">Matching on <span className="font-medium text-ink">Executive operations · New York or remote · Full-time</span> <TextLink>Edit</TextLink></p>
-          <div className="flex items-center gap-3"><div className="w-32"><Meter pct={70} label="Search tuned" /></div><p className="text-sm text-ink"><span className="font-semibold">70% tuned.</span> Add your tools to sharpen it (+10%).</p></div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3"><SecondaryButton>Add your tools</SecondaryButton><SecondaryButton>Widen: 150 more jobs</SecondaryButton></div>
-      </section>
+      <TuneStrip
+        title="Better jobs for you: tune your search"
+        pct={70}
+        because="Matching on Executive operations, New York or remote, full-time. Two answers would sharpen it."
+        asks={[
+          { ask: 'Add your tools.', gain: 'About 150 more jobs match.' },
+          { ask: 'Say if you would relocate.', gain: 'Opens Pittsburgh and Louisville.' },
+        ]}
+        actionLabel="Answer two questions"
+      />
 
       <div className="grid items-start gap-6 lg:grid-cols-[26rem_1fr]">
         <div className="space-y-3">

@@ -1,3 +1,4 @@
+import { TuneStrip } from '@/components/candidate/TuneStrip'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Chip, Meter, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
@@ -5,6 +6,16 @@ import { Chip, Meter, PrimaryButton, SecondaryButton, Section, TextLink } from '
 export function LearnSkills() {
   return (
     <PreviewShell place="learn" entry="learn" part="skills">
+      <TuneStrip
+        title="Closer to hired: your path"
+        pct={60}
+        because="We pick skills from the jobs that fit you. Tell us where you want to go and we pick better."
+        asks={[
+          { ask: 'Confirm your skills.', gain: 'No courses on things you know.' },
+          { ask: 'Say how many hours a week you have.', gain: 'Courses that fit your time.' },
+        ]}
+        actionLabel="Answer two questions"
+      />
       <PageHeader title="Skills and courses" intro="The few skills that would open the most jobs for you. Each one says how many." />
       <section className="space-y-4 rounded-2xl border border-border p-7">
         <Chip tone="warm">Biggest gap</Chip>

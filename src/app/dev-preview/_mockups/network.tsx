@@ -1,3 +1,4 @@
+import { TuneStrip } from '@/components/candidate/TuneStrip'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { NetworkOverview, type CircleData } from '@/components/network/NetworkOverview'
 import { YourPeople } from '@/components/supporters/YourPeople'
@@ -14,6 +15,16 @@ const CIRCLES: CircleData[] = [
 export function NetworkOverviewMock() {
   return (
     <PreviewShell place="network" entry="circles" part="overview">
+      <TuneStrip
+        title="Warmer introductions: who you want to reach"
+        pct={50}
+        because="We suggest people to contact from what you tell us. Right now we only know your past employers."
+        asks={[
+          { ask: 'Name 3 companies you want.', gain: 'We find who you know there.' },
+          { ask: 'Say how you like to reach out.', gain: 'Drafts match your style.' },
+        ]}
+        actionLabel="Answer two questions"
+      />
       <NetworkOverview
         headline="Build it one conversation at a time. Support comes from the circles closest to you, and each step you take opens something new."
         circles={CIRCLES}

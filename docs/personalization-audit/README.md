@@ -68,3 +68,38 @@ Not-searching journeys need their own plan, points, emails and Candidate+ rule. 
 2. Is a "You" menu for settings acceptable, giving five places?
 3. Which journeys get a dedicated plan first? (Recommended: the four weakest.)
 4. Should "widen the search" change the saved search automatically, or only after a tap? (Recommended: after a tap.)
+
+## Decisions made (owner, 2026-10-17)
+
+1. Drop questions that change nothing the member can see. Confirmed.
+2. Do not call the settings menu "You". Name every strip and menu by its benefit. Strips: "Better jobs for you: tune your search" (Jobs), "Warmer introductions: who you want to reach" (Network), "Closer to hired: your path" (Learn), "Your journey" (Home). The all-together page is "Tailored for you" (a Home entry). Account settings are "Account and privacy".
+3. The four weakest journeys (entrepreneur, time off, career change, fractional) get their own plan first. Confirmed.
+4. Widening the search changes the saved search only after a tap (default, not yet confirmed).
+
+## Questions dropped, and which were meant for a later feature
+
+Source: `docs/OPEN_ITEMS.md` and schema comments, read 2026-10-17. "Later feature" means the code or docs promised a consumer that was never built.
+
+| Question or instrument | Promised for | Verdict |
+|---|---|---|
+| When are you most ready to take action (`actionWindow`) | Timing of the daily email. The copy promises it. | Cheap to build. Keep only if built in the same change. |
+| Weekly outreach target (`networkingOutreachTargetPerWeek`) | A target on the Network page | Drop. Real outreach is logged. |
+| Track Record, 19 items | Competency grid, dossier, coaching notes, Market Reality | Not read anywhere. Decide: feed the dossier traits, or drop. |
+| What I Need, 24 items | A report headline and tie-breaker | Not read anywhere. Decide: feed matching and culture, or drop. |
+| Red flags (covenant, fired for cause, drug test, background check) | "Red lines for recruiters" | Not shown to recruiters. Decide: show in the recruiter view, or drop. |
+| Benefits priorities (9 fields) | Job scoring and reports | Not read. Decide: weight in matching, or drop. |
+| Interim day rate (`gigDirectoryUnlockAnswer`), independent work grid | Independent-work launch plan | Should feed the fractional plan, which is one of the weak journeys. Keep and wire. |
+| Contract: commit to 8 to 12 hours (`contractAccepted`) | A lower bar for an A grade | Drop, or build the promised rule. |
+| Motivations free text | Coach panel only | Drop. |
+| "I just started", follow up on applications, pet-friendly, street address, covenant details, LinkedIn openness, networking level | Nothing found | Drop. |
+
+## Fields to add per journey
+
+Verified gaps (nothing is stored today, from `journeys.md`):
+
+- **Entrepreneur:** what the venture is, its stage, days a week on it, whether open to a job if it stalls.
+- **Time off:** reason, planned return date (exists), whether the leave is funded.
+- **Returning:** reason for the break and its length.
+- **Career change:** target field (and set the existing `isPivoting` and `targetFunction` when this journey is chosen), step-down tolerance.
+
+Suggestions to confirm (my inference, not found in the audit): laid off last day worked and benefits end date moved into onboarding (the field exists but is asked late); fractional day rate and open days (partly exist); 55+ board interest and income need; growing next review date.

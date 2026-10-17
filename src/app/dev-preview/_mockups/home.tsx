@@ -2,6 +2,7 @@ import { Check, Circle } from 'lucide-react'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Module } from '@/components/candidate/Module'
+import { JourneyCard } from '@/components/candidate/JourneyCard'
 import { HomeNote } from '@/components/candidate/HomeNote'
 
 const chip = 'rounded-full px-2.5 py-0.5 text-xs font-medium'
@@ -13,6 +14,12 @@ export function HomeToday() {
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya</p>
         <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-ink text-balance">The right role, fast.</h1>
       </header>
+      <JourneyCard
+        journey="Laid off, looking"
+        since="Week 3 of your search"
+        facts={[{ label: 'Days active this month', value: '12' }, { label: 'Applications', value: '9' }, { label: 'Interviews', value: '1' }]}
+        changes={['Your plan and weekly target follow your week in the search', 'Notes come in your coaching tone: supported']}
+      />
       <HomeNote
         title="Tell 5 more people what you’re looking for."
         why="Most roles are filled through a person, not a posting."
