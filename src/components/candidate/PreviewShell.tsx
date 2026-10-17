@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, UserCog, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, UserCog, Users, Wallet, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROPOSED_NAV, type PlaceId } from './proposed-nav'
 
-const ICONS: Record<PlaceId, LucideIcon> = { home: Home, jobs: Briefcase, network: Users, learn: BookOpen, account: UserCog, help: LifeBuoy }
+const ICONS: Record<PlaceId, LucideIcon> = { home: Home, jobs: Briefcase, network: Users, learn: BookOpen, account: UserCog, money: Wallet, help: LifeBuoy }
 
 // Where a mockup page lives. Each page names its place, entry and (optionally) part, and the shell draws
 // the proposed menu around it: the active place opens to show its entries, and an entry with parts shows

@@ -4,10 +4,11 @@ import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
-import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, CareerStory, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpMoney, HelpScams, HelpQuestions } from './learn-help'
+import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, CareerStory, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
 import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
 import { TuneQuestion, TuneDone, DeepDiveIntro, ReceiptHome, ReceiptNetwork } from './questionnaire'
 import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, EmptyJobs, EmptyNetwork, EmptyEffort } from './moments'
+import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -54,9 +55,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/visibility', place: 'Account', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
   { path: 'account/membership', place: 'Account', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
-  { path: 'help/talk', place: 'Help', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
-  { path: 'help/money', place: 'Help', title: 'Money and benefits', replaces: '/dashboard/benefits, benefits-network', Component: HelpMoney },
-  { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
+  { path: 'money/wellbeing', place: 'Money and wellbeing', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
+  { path: 'money/safe', place: 'Money and wellbeing', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
   { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },
@@ -77,6 +77,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'moments/empty-jobs', place: 'Moments', title: 'Empty: no jobs yet', replaces: 'Find a job before it can match', Component: EmptyJobs },
   { path: 'moments/empty-network', place: 'Moments', title: 'Empty: no contacts yet', replaces: 'People you know with no contacts', Component: EmptyNetwork },
   { path: 'moments/empty-effort', place: 'Moments', title: 'Empty: first day', replaces: 'Effort and results on day one', Component: EmptyEffort },
+  { path: 'money/runway', place: 'Money and wellbeing', title: 'Your runway (laid off)', replaces: '/dashboard/benefits (financial bridge)', Component: MoneyRunway },
+  { path: 'money/deadlines', place: 'Money and wellbeing', title: 'Benefits and deadlines (laid off)', replaces: '/dashboard/benefits action plan, benefits-network', Component: MoneyDeadlines },
+  { path: 'money/runway-entrepreneur', place: 'Money and wellbeing', title: 'Your runway (building something of my own)', replaces: 'new', Component: MoneyEntrepreneur },
 ]
 
 export const mockupFor = (path: string) => MOCKUPS.find((m) => m.path === path)

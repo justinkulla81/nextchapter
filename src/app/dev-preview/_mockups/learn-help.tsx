@@ -169,25 +169,16 @@ export function MembershipMock() {
 
 export function HelpTalk() {
   return (
-    <PreviewShell place="help" entry="talk">
+    <PreviewShell place="money" entry="wellbeing">
       <PageHeader title="Talk to someone" intro="A hard week is normal. You do not have to carry it alone." />
       <section className="space-y-3 rounded-2xl border border-border p-7"><h2 className="font-display text-2xl font-semibold text-ink">Feeling stuck or low?</h2><p className="max-w-xl text-base text-ink">Free, private, and open any time. A person, not a bot.</p><div className="flex flex-wrap gap-3"><PrimaryButton>Talk to a counselor</PrimaryButton><SecondaryButton>Book my coach</SecondaryButton></div><p className="text-sm text-muted-foreground">In crisis? Call or text 988 any time, free.</p></section>
     </PreviewShell>
   )
 }
 
-export function HelpMoney() {
-  return (
-    <PreviewShell place="help" entry="money">
-      <PageHeader title="Money and benefits" intro="Help bridging the gap while you search." />
-      <div className="grid gap-4 sm:grid-cols-3">{[['Unemployment benefits', 'You may qualify in New York. Takes 10 minutes.', 'Check eligibility'], ['Health coverage', 'Options when your plan ends, with costs.', 'Compare options'], ['Your runway', 'About 7 months at your current spending.', 'Open the calculator']].map(([t, d, c]) => <div key={t} className="flex flex-col justify-between gap-4 rounded-2xl border border-border p-5"><div className="space-y-1.5"><h3 className="text-base font-semibold text-ink">{t}</h3><p className="text-sm text-muted-foreground">{d}</p></div><TextLink>{c}</TextLink></div>)}</div>
-    </PreviewShell>
-  )
-}
-
 export function HelpScams() {
   return (
-    <PreviewShell place="help" entry="scams">
+    <PreviewShell place="money" entry="safe">
       <PageHeader title="Scam watch" intro="Fake jobs target people who are searching. Here is how to spot them." />
       <section className="space-y-2 rounded-2xl border border-border p-6"><h2 className="font-display text-xl font-semibold text-ink">Check a message</h2><p className="text-sm text-muted-foreground">Paste an email or message. We tell you what looks wrong, and why.</p><textarea rows={4} aria-label="Message to check" className="w-full rounded-xl border border-border p-3.5 text-base" /><PrimaryButton>Check this message</PrimaryButton></section>
       <Section id="signs" title="Three signs to know">

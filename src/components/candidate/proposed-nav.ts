@@ -1,6 +1,6 @@
 // The proposed candidate menu, for the mockups. Six places, each with at most six entries. An entry
 // with parts shows them as small switches at the top of its page.
-export type PlaceId = 'home' | 'jobs' | 'network' | 'learn' | 'account' | 'help'
+export type PlaceId = 'home' | 'jobs' | 'network' | 'learn' | 'account' | 'money' | 'help'
 
 export interface NavEntry {
   key: string
@@ -49,9 +49,14 @@ export const PROPOSED_NAV: NavPlace[] = [
     ],
   },
   {
+    id: 'money',
+    label: 'Money and wellbeing',
+    entries: [{ key: 'runway', label: 'Your runway' }, { key: 'deadlines', label: 'Benefits and deadlines' }, { key: 'wellbeing', label: 'Wellbeing' }, { key: 'safe', label: 'Scam watch' }],
+  },
+  {
     id: 'account',
     label: 'Account and privacy',
     entries: [{ key: 'profile', label: 'Profile' }, { key: 'visibility', label: 'Who can find you' }, { key: 'documents', label: 'Documents' }, { key: 'membership', label: 'Membership' }],
   },
-  { id: 'help', label: 'Help', entries: [{ key: 'talk', label: 'Talk to someone' }, { key: 'money', label: 'Money and benefits' }, { key: 'scams', label: 'Scam watch' }, { key: 'questions', label: 'Questions and feedback' }] },
+  { id: 'help', label: 'Help', entries: [{ key: 'questions', label: 'Questions and feedback' }] },
 ]
