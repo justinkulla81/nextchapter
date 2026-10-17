@@ -40,12 +40,12 @@ The list below replaces my earlier summaries.
 | 16 | A demo site per customer, with prepopulated data | Built, never checked | Needs the same first run. No demo exists. |
 | 17 | Portals connected to each other where it makes sense, turned on | Not done | The four connection switches are saved but no portal reads them. Three of them share candidate data and need your consent design first. |
 | 18 | Workforce board: do not overwrite the other session, look for gaps | Not done | I have not read it. Most of it is in the code from the other session. |
-| 19 | "Where can I invite and connect to my partner?" | See below | |
+| 19 | "Where can I invite and connect to my partner?" (your spouse or girlfriend, as a supporter) | Partly | Supporters is built: https://launchyournextchapter.com/dashboard/supporters (menu: Network, My supporters). You enter a name and email, up to 3 people. They get an invite email and a private page at `https://launchyournextchapter.com/supporter/<their-token>` where they can send you a cheer (280 characters). They never see names, companies or messages. It is blocked while confidential mode is on. **The weekly note about your effort is switched off** (it needs `SUPPORTER_DIGEST_ENABLED=true`), so today a supporter gets the invite and can cheer, but gets no weekly update. Not built: a partner who is also a NextChapter member and is linked to you, shared goals, or any two-way connection. I earlier answered this as if "partner" meant a business customer. That was wrong. |
 | 20 | Each customer gets its own address; separate demo link; demos public but marked | Partly | Front door at `/p/<slug>` is built and merged. Subdomains (`cmu.launchyournextchapter.com`) are switched off until DNS is set. Customer portals under their own host, and custom domains, are not built. Never opened in a browser. |
 | 21 | "Higher education" instead of "Higher ed" | Partly | Changed in the organization screens, admin menu and CRM colleges page. Other pages still say "Higher ed". |
 | 22 | Always give full URLs | Done | In `CLAUDE.md`. |
 
-### Where you invite and connect a partner
+### Where you invite a business customer (a college, employer, coach, recruiter firm)
 
 1. Open https://admin.launchyournextchapter.com/support/admin/organizations/new
 2. Step 1: the organization's name. Step 2: choose which portals it gets (one or several). Step 3: logo and colors. Step 4: live customer or demo.
