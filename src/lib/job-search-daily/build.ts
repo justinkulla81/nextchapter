@@ -22,6 +22,8 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { boardListingFitBucketFor, emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
+import { CHECKIN_BUCKETS, CHECKIN_BUCKET_LABEL, checkInUrl, checkInWeekKey } from '@/lib/activity-log/weekly-checkin'
+import type { LogKind } from '@/lib/activity-log/progress'
 import {
   UNLOCK_NUDGES,
   UNLOCK_REPEAT_DAYS,
@@ -104,6 +106,13 @@ export interface JobSearchDailyContent {
   whatChanged: string[]
   // The member's strict match count today (board-shortlist.ts marketSize), kept after a send for next week's trend.
   matchCount: number | null
+  // The weekly check-in (activity-log/weekly-checkin.ts): in the first send each week only.
+  checkIn: WeeklyCheckIn | null
+}
+
+export interface WeeklyCheckIn {
+  key: string // JobSearchDailyItem.itemKey: 'checkin:<monday>'
+  rows: { kind: LogKind; label: string; taps: { label: string; href: string }[] }[]
 }
 
 type Candidate = CandidateProfile
@@ -598,6 +607,22 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const nudge = (await profileNudges(candidate.id, { market: true }).catch(() => [])).find((n) => !shownKeys.has(`profile:${n.key}:${week}`))
   const fromProfile: DailyItem | null = nudge ? { key: `profile:${nudge.key}:${week}`, title: nudge.lead, detail: nudge.text, href: `${appUrl}${nudge.href}?src=job_search_daily` } : null
 
+  // Once a week, in the first send that week: "Applied or reached out anywhere this week?"
+  const weekKey = checkInWeekKey(getMondayOfWeek(now))
+  const checkIn: WeeklyCheckIn | null = shownKeys.has(`checkin:${weekKey}`)
+    ? null
+    : {
+        key: `checkin:${weekKey}`,
+        rows: (['applications', 'outreach'] as const).map((kind) => ({
+          kind,
+          label: kind === 'applications' ? 'Applications' : 'Outreach',
+          taps: CHECKIN_BUCKETS.map((bucket) => ({
+            label: CHECKIN_BUCKET_LABEL[bucket],
+            href: checkInUrl(appUrl, { candidateId: candidate.id, kind, bucket, weekKey, issuedAt: now.getTime() }),
+          })),
+        })),
+      }
+
   const freshCount = jobItems.length + freshJobItems.length + likelyOpenings.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
@@ -624,6 +649,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     freshCount,
     whatChanged,
     matchCount: shortlist.breadth.marketSize,
+    checkIn,
   }
 }
 
@@ -679,6 +705,7 @@ export function shownItemKeys(content: JobSearchDailyContent): string[] {
     ...content.likelyOpenings.map((i) => i.key),
     ...[content.reconnect, content.article, content.unlock, content.fromProfile].filter((i): i is DailyItem => !!i).map((i) => i.key),
     ...(content.quote ? [`quote:${content.quote.id}`] : []),
+    ...(content.checkIn ? [content.checkIn.key] : []),
   ]
 }
 

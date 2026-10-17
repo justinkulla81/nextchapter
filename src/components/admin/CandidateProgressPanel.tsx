@@ -308,7 +308,10 @@ export function CandidateProgressPanel({
               {activity.map((a) => (
                 <li key={a.key} className="flex items-baseline gap-3 text-sm">
                   <span className="w-10 shrink-0 text-right font-semibold tabular-nums">{a.count}</span>
-                  <span>{a.label}</span>
+                  <span>
+                    {a.label}
+                    {a.note && <span className="block text-xs text-muted-foreground">{a.note}</span>}
+                  </span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {a.lastAt ? `last ${when(a.lastAt)}` : ''}
                   </span>

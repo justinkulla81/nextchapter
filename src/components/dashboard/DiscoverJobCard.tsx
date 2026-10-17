@@ -17,6 +17,7 @@ import { posthog } from '@/lib/posthog/client'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
+import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { NativeApply } from '@/components/jobs/NativeApply'
 import { nativePosterOf } from '@/lib/jobs/native-apply'
@@ -526,6 +527,7 @@ export function DiscoverJobCard({
           <>
             <div data-who-to-contact={posting.id}>
               <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
             </div>
             <ApplyKit postingId={posting.id} surface="job_card" />
           </>

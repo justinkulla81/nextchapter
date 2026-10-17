@@ -64,6 +64,8 @@ export interface ActivityCount {
   label: string
   count: number
   lastAt: Date | null
+  /** How much of the count the member reported themselves (weekly check-in, "I sent it", "Did you apply?"). */
+  note?: string | null
 }
 
 export interface EarnedBadge {
@@ -210,12 +212,20 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
     getLeaderboardBadgeHistory(candidateId).catch((): LeaderboardBadgeHistoryEntry[] => []),
   ])
 
-  const [outreachCount, applicationCount, courseCount, walkthroughCount] = await Promise.all([
+  const [outreachCount, applicationCount, courseCount, walkthroughCount, outreachCheckIn, outreachSentPrompt, applicationCheckIn, applicationPrompt] = await Promise.all([
     prisma.outreachLog.count({ where: { candidateId } }),
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }),
     prisma.candidateCourseActivity.count({ where: { candidateId } }),
     prisma.resumeWalkthroughSession.count({ where: { candidateId } }),
+    prisma.outreachLog.count({ where: { candidateId, logSource: 'weekly_checkin' } }),
+    prisma.outreachLog.count({ where: { candidateId, logSource: { in: ['who_to_contact', 'outreach_template', 'outreach_coach'] } } }),
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null }, selfReportKey: { not: null } } }),
+    prisma.trackedJob.count({ where: { candidateId, appliedVia: 'prompt', jobPosting: { appliedAt: { not: null } } } }),
   ])
+  const selfReportedNote = (parts: [number, string][]) => {
+    const shown = parts.filter(([n]) => n > 0).map(([n, what]) => `${n} ${what}`)
+    return shown.length ? `Self-reported: ${shown.join(', ')}` : null
+  }
 
   // Nothing in the app writes an InterviewResponse today — /dashboard/
   // interview-prep has no save path — so this is always empty in practice.
@@ -294,8 +304,20 @@ export async function getCandidateProgress(candidateId: string): Promise<Candida
   )
 
   const activity: ActivityCount[] = [
-    { key: 'outreach', label: 'Outreach messages sent', count: outreachCount, lastAt: outreach[0]?.loggedAt ?? null },
-    { key: 'applications', label: 'Applications submitted', count: applicationCount, lastAt: applications[0]?.appliedAt ?? null },
+    {
+      key: 'outreach',
+      label: 'Outreach messages sent',
+      count: outreachCount,
+      lastAt: outreach[0]?.loggedAt ?? null,
+      note: selfReportedNote([[outreachCheckIn, 'from the weekly check-in'], [outreachSentPrompt, 'from “I sent it”']]),
+    },
+    {
+      key: 'applications',
+      label: 'Applications submitted',
+      count: applicationCount,
+      lastAt: applications[0]?.appliedAt ?? null,
+      note: selfReportedNote([[applicationCheckIn, 'from the weekly check-in'], [applicationPrompt, 'from “Did you apply?”']]),
+    },
     {
       key: 'references-requested',
       label: 'References requested',

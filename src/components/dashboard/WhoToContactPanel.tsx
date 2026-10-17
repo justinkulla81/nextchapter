@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { ContactTarget, WhoToContactPanel as Panel } from '@/lib/jobs/who-to-contact'
 import { loadWhoToContact, requestKnownContactIntro } from '@/app/dashboard/find-my-job/who-to-contact-actions'
+import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 
 const linkClass = 'text-primary underline underline-offset-4'
 
@@ -240,6 +241,7 @@ function OutreachNote({ jobId, template }: { jobId: string; template: string }) 
   const [note, setNote] = useState(template)
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
+  const [copySignal, setCopySignal] = useState(0)
   const id = `outreach-${jobId}`
 
   async function copy() {
@@ -247,6 +249,7 @@ function OutreachNote({ jobId, template }: { jobId: string; template: string }) 
       await navigator.clipboard.writeText(note)
       setCopied(true)
       setCopyError(false)
+      setCopySignal((n) => n + 1)
       posthog.capture('outreach_template_copied', { jobId })
     } catch {
       setCopyError(true)
@@ -274,6 +277,7 @@ function OutreachNote({ jobId, template }: { jobId: string; template: string }) 
         </Button>
         {copyError && <p className="text-destructive">Couldn’t copy — select the text and copy it yourself.</p>}
       </div>
+      <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${jobId}`, jobId }} note={note} copySignal={copySignal} />
       <p className="text-xs text-muted-foreground">NextChapter never sends this for you.</p>
     </div>
   )

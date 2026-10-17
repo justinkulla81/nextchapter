@@ -257,6 +257,27 @@ export default function JobSearchDailyEmail({
           </>
         )}
 
+        {content.checkIn && (
+          <>
+            <p style={label}>Weekly check-in</p>
+            <p style={li}>Applied or reached out anywhere this week? Tap:</p>
+            {content.checkIn.rows.map((row) => (
+              <p key={row.kind} style={li}>
+                <strong>{row.label}:</strong>{' '}
+                {row.taps.map((t, i) => (
+                  <span key={t.label}>
+                    {i > 0 && <span style={tail}> · </span>}
+                    <a href={t.href} style={itemLink}>
+                      {t.label}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            ))}
+            <p style={more}>Counts toward Candidate+. Tapping again won&apos;t count twice.</p>
+          </>
+        )}
+
         {todos.length > 0 && (
           <>
             <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>

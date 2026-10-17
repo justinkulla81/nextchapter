@@ -97,6 +97,7 @@ const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
   PHONE: 'Phone',
   TEXT: 'Text',
   MEETING: 'Meeting',
+  OTHER: 'Message',
 }
 
 // A contact counts as job-relevant two ways: manually flagged as able to

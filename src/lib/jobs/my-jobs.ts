@@ -123,12 +123,16 @@ export function matchClickToApplication(click: ClickRef, apps: EmailApplication[
 
 // ── "did you apply?" ─────────────────────────────────────────────────────
 
-/** Ask this long after the click when no confirmation email has arrived. */
-export const PROMPT_AFTER_DAYS = 2
+/**
+ * Ask on the member's next visit to the board or Home after they open an employer's
+ * application — at least this long after the click, so it isn't asked while they're
+ * still on the employer's site.
+ */
+export const PROMPT_AFTER_MS = 10 * 60 * 1000
 /** Stop asking about clicks older than this. */
-export const PROMPT_UNTIL_DAYS = 21
+export const PROMPT_UNTIL_DAYS = 7
 /** "Not yet" asks again after this long (once the click is still recent enough). */
-export const PROMPT_SNOOZE_DAYS = 5
+export const PROMPT_SNOOZE_DAYS = 2
 
 export type PromptAnswer = 'applied' | 'not_yet' | 'not_interested'
 
@@ -143,8 +147,8 @@ export function shouldAskDidYouApply(
   now: Date
 ): boolean {
   if (!item.lastClickedAt || item.applied || item.dismissedAt) return false
-  const age = (now.getTime() - item.lastClickedAt.getTime()) / DAY_MS
-  if (age < PROMPT_AFTER_DAYS || age > PROMPT_UNTIL_DAYS) return false
+  const ageMs = now.getTime() - item.lastClickedAt.getTime()
+  if (ageMs < PROMPT_AFTER_MS || ageMs > PROMPT_UNTIL_DAYS * DAY_MS) return false
   if (item.promptAnswer === 'applied' || item.promptAnswer === 'not_interested') return false
   if (item.promptAnswer === 'not_yet' && item.promptAnsweredAt) {
     // A new click after "not yet" starts over; otherwise wait out the snooze.

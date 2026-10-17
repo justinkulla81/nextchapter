@@ -61,6 +61,8 @@ import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
+import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
+import { loadApplyPrompts } from '@/lib/jobs/my-jobs-data'
 import { RecruiterVisibilityGoalCard, type RecruiterGoalStep } from '@/components/dashboard/home/RecruiterVisibilityGoalCard'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
@@ -151,6 +153,22 @@ async function HomeNetworkSection({ candidateId }: { candidateId: string }) {
     >
       <DashboardNetworkCard followUps={needsFollowUp} priorityContact={priorityContacts[0] ?? null} />
     </HomeModule>
+  )
+}
+
+// "Did you apply?" for employer applications opened from the board in the last 7 days.
+async function HomeApplyPrompts({ candidateId }: { candidateId: string }) {
+  const prompts = await loadApplyPrompts(candidateId).catch(() => [])
+  if (prompts.length === 0) return null
+  return (
+    <ApplyPrompts
+      prompts={prompts.map((p) => ({
+        trackedJobId: p.trackedJobId,
+        title: p.title,
+        companyName: p.companyName,
+        clickedOn: p.clickedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      }))}
+    />
   )
 }
 
@@ -460,6 +478,10 @@ export default async function DashboardPage() {
           ) : undefined
         }
       />
+
+      <Suspense fallback={null}>
+        <HomeApplyPrompts candidateId={profile.id} />
+      </Suspense>
 
       {newCheer && (
         <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
