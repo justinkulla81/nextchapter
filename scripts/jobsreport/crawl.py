@@ -238,7 +238,12 @@ def crawl_mcloud(src, log):
             if j["id"] in seen or not in_metro(loc): continue
             seen.add(j["id"])
             body = strip_html(j.get("description", ""))
-            yield mk(src, src.get("employer", "UPMC"), j["id"], title=j.get("title", ""), url=j.get("url"),
+            pay = {}
+            m = re.search(r"([\d.,]+)\s*-\s*([\d.,]+)", j.get("salary") or "")
+            if m:
+                lo, hi = (float(x.replace(",", "")) for x in m.groups())
+                if hi > 0: pay = {"pay_min": lo, "pay_max": hi, "pay_period": "hour" if hi < 1000 else "year", "pay_stated": True}
+            yield mk(src, src.get("employer", "UPMC"), j["id"], title=j.get("title", ""), url=j.get("url"), **pay,
                      description=(body + (" Salary: " + j["salary"] if j.get("salary") else "")).strip(), req_id=str(j.get("ref") or ""),
                      location_raw=loc, locations=[loc], employment_type=j.get("employment_type"),
                      arrangement=(j.get("location_type") or "").lower() or None, posted_at=j.get("open_date"), posted_precision="timestamp",
