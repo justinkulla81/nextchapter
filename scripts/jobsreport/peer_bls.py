@@ -78,6 +78,8 @@ def main():
         data.update(read_series(cached("sm.data.54.TotalNonFarm.All", FILES["sm"], a.refresh), sm_ids))
     missing = [s for s, v in data.items() if not v]
     if missing: print("no data for series:", ", ".join(missing), file=sys.stderr)
+    for k in [k for k in metros if not data.get(ids[k]["unemployment_rate"])]:
+        print(f"dropping {k}: no unemployment series in the BLS file", file=sys.stderr); del metros[k]
     common = None
     for k in metros:
         months = set(data.get(ids[k]["unemployment_rate"], {}))

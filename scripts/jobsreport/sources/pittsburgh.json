@@ -1,0 +1,108 @@
+[
+  {
+    "name": "wd-highmark-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Highmark Health",
+    "tenant": "highmarkhealth",
+    "wd": "wd1",
+    "site": "highmark"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-ppg-industries",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PPG Industries",
+    "tenant": "ppg",
+    "wd": "wd5",
+    "site": "ppg_careers"
+  },
+  {
+    "name": "wd-alcoa",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Alcoa",
+    "tenant": "alcoa",
+    "wd": "wd5",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-dick-s-sporting-goods",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Dick's Sporting Goods",
+    "tenant": "dickssportinggoods",
+    "wd": "wd1",
+    "site": "DSG"
+  },
+  {
+    "name": "wd-viatris",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Viatris",
+    "tenant": "viatris",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "gr-duolingo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Duolingo",
+    "token": "duolingo"
+  },
+  {
+    "name": "wd-koppers",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Koppers",
+    "tenant": "koppers",
+    "wd": "wd5",
+    "site": "Koppers"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "wd-thermo-fisher",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Thermo Fisher",
+    "tenant": "thermofisher",
+    "wd": "wd5",
+    "site": "ThermofisherCareers"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-zoll",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Zoll",
+    "tenant": "zoll",
+    "wd": "wd5",
+    "site": "ZOLLMedicalCorp"
+  }
+]

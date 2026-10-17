@@ -25,3 +25,10 @@ Status: the SQL was tested against the database through the Supabase tool (level
 `classify.sql` tags every `jobsreport_posting` with `level` (ENTRY, MID_IC, SENIOR_IC, MANAGER, DIRECTOR, VP_PLUS), `function`, `occupation_group` and `white_collar` (Census major groups 1 and 2, as in the Employment Report), from the job title, by ordered rules. Run it after each load (it updates every row and stores `tag_rule_version`). Spot-check results by sampling titles in each bucket after changing a rule. Known limits: title-only, so new-graduate roles are not marked ENTRY unless titled so; some healthcare technician titles are judgment calls (the rules follow the Census: radiologic, surgical and pharmacy technologists, EMTs and teaching assistants are professional; medical assistants, nursing assistants and patient care techs are not).
 
 Pay parsing takes the first dollar range in the text, so values over $1,000,000 are nulled after loading (revenue and investment figures); report medians, not means.
+
+## One-command geo report
+
+`python3 scripts/jobsreport/geo_report.py --geo pittsburgh` calls the read-only edge function `jobsreport-stats`
+(source in `edge/jobsreport-stats.ts`; aggregates only, gated by a token in `out/.stats-token` or
+`JOBSREPORT_STATS_TOKEN`) and writes `out/<geo>/report.md` and `report-data.json`, including same-method peer
+metros and the BLS peer table. Deploy the function with a fresh random token in place of the placeholder.
