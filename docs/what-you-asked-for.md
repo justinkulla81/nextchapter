@@ -26,8 +26,8 @@ The list below replaces my earlier summaries.
 | 8 | Candidate+ comes from effort (minutes), recruiters and hiring managers see the mark, confidential mode hides it | Built, never checked | I could not find the 480-minute setting when I searched today. It needs checking, including that it is editable per candidate and overridable as you asked. |
 | 9 | Consistent terminology (Personalize, not Prepare) | Partly | The menu says Personalize. No full sweep of every page was done. |
 | 10 | Supporters (people who cheer you on) | Built, never checked | Page exists: https://launchyournextchapter.com/dashboard/supporters. The weekly supporter email is off. |
-| 11 | Timeline | Not done | There is no timeline page. The data it needs (journey and stage changes) exists in the database but is empty, and nothing lists it. See `docs/candidate-feature-map.md`. |
-| 12 | "Career explorer" | Found | This is "Explore other roles" (Pivot paths), built by a different session in PR #27: https://launchyournextchapter.com/dashboard/pivot-paths. Its occupation data and 5,814 funded training programs are loaded in production. Courses are not tagged to skills (0 rows), so course matches in it are empty. I could not find a timeline in it. If you remember one, tell me what it showed. |
+| 11 | Timeline | Built by another session, not live | "Your career story": a visual timeline of school, work, ventures, pauses and learning, with "doors you could open", a pause what-if and "people like you". It lives at https://launchyournextchapter.com/dashboard/my-career (tab "Career timeline" under Personalize) on the branch `claude/compassionate-edison-fkfdu5`, **not merged**, and needs `prisma/manual/2026-10-17-career-events.sql` applied first. It is a career history. A search-activity timeline (applications, contacts, coaching sessions, stage changes in order) still does not exist. |
+| 12 | "Career explorer" | Partly live, partly in progress | The live part is "Explore other roles" (Pivot paths): https://launchyournextchapter.com/dashboard/pivot-paths. Its occupation data and 5,814 funded training programs are loaded; courses are not matched to skills (0 rows), so its course suggestions are empty. The same other branch (`claude/compassionate-edison-fkfdu5`) adds "What would it take" (a pathway map with cost, time and alternatives) and "Thinking about a pivot". Those are not live. |
 | 27 | No badges. Everything the member does builds the dossier and moves them toward Candidate+ and a job | Not done | The whole badge system is still live: weekly badges ("Weekly Sprint Target", "Weekly Networking" and others) and milestone badges, the "You just earned new badges" email, the badge shelf on the Progress page, the top strip, learning badges, and an admin page for weekly recognition. Code is in `src/lib/badges/` and `src/components/dashboard/BadgeShelf.tsx`. To do: replace the email with a weekly progress note, replace the shelf with what the member has built toward the dossier, and remove badge language everywhere. |
 
 ## B. The partner portals (higher education, outplacement, coach, hiring, recruiter; workforce is another session's)
@@ -64,7 +64,20 @@ None of this has been run. The first real test is to create one demo organizatio
 
 | # | What you asked for | Status | What is true |
 |---|---|---|---|
-| 23 | Find a job: as professional as LinkedIn, Indeed and Ladders; use our extra data; show where personalizing improves results and where to expand the search; contacts first on likely openings; one-line O*NET credit; stop the one-long-page problem | In progress | A rebuilt job list exists as a preview with sample data only. Real data is not wired. The live page is unchanged. |
+| 23 | Find a job: as professional as LinkedIn, Indeed and Ladders; use our extra data; show where personalizing improves results and how to widen the search; contacts first on likely openings; one-line O*NET credit; stop the one-long-page problem | Partly | Another session already shipped, on the live page: one fit verdict with one reason and one quiet facts line per job, "Likely fewer applicants" as an estimate with its reasons, and "What we know about you: your search is N% tuned" with a next step (that is where personalizing improves results). Still open: the overall layout and polish, contacts first on likely openings, the O*NET credit, and the long page. My own job-row preview is dropped because it duplicated that work. |
 | 24 | Navigation: clearly navigation, fewer than 12 tabs | In progress | New menu grouping is written in code but not finished or checked. The live site is unchanged. |
 | 25 | A full redo of the whole candidate site, then all other portals | Started | The rules are in `docs/candidate-redesign.md`. Nothing else is rebuilt yet. |
 | 26 | A map of where everything is | Done | `docs/candidate-feature-map.md` |
+
+## D. What other sessions are building (checked 2026-10-17)
+
+You have several sessions working at once. This is what each one's branch contains, so nothing is
+built twice.
+
+| Branch | What it is | Live? |
+|---|---|---|
+| `claude/friendly-cerf-p3639f` | Job board: fit verdicts, "why this job", "What we know about you" precision meter, retuning your search, one-tap logging, Candidate+ changes | Merged into `main` |
+| `claude/compassionate-edison-fkfdu5` | Personalization alignment, journeys, "What would it take" pathway map, "Thinking about a pivot", **Your career story (timeline)**, career growth seats | **Not merged**. The timeline needs a database change first |
+| `claude/exciting-johnson-lcf7h8` | Jobs report: crawlers and employer sources by city (Louisville, Pittsburgh) | Not merged |
+| `claude/gallant-babbage-e85kp1` | Speed: timing the dashboard's data reads, Company spelling index | Not merged |
+| `claude/candidate-dashboard-redesign-djr3g2` (this session) | Partner portals, customer front door, the redesign rules and documents, menu grouping (not yet wired) | Partner portals and front door merged; the rest is documentation |

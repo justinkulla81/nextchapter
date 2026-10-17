@@ -7,7 +7,7 @@ only way in is a link inside another page.
 
 ## The honest summary
 
-- **There is no timeline page.** Nothing on the site lists a member's search history in order.
+- **The live site has no timeline page.** One is built on another branch (see the end of this document). Nothing on the live site lists a member's search history in order.
   The Progress page (https://launchyournextchapter.com/dashboard/stats) holds weekly market
   grades, mood over time, effort, badges and leaderboards, but not applications, contacts,
   coaching sessions or stage changes. The database table for stage changes exists and is empty.
@@ -119,3 +119,12 @@ messages (the "Inbox" tab), email-activity, calendar-activity.
 - Benefits and Benefits Network. Support and Help. Membership and Premium.
 - Groups, Universities, Past jobs and From my groups.
 - Résumé, Résumé studio and Walkthrough.
+
+## Built on other branches, not live yet
+
+- **Your career story** (timeline of school, work, ventures, pauses and learning, doors you could open,
+  a pause what-if, people like you): https://launchyournextchapter.com/dashboard/my-career, tab
+  "Career timeline" under Personalize. Branch `claude/compassionate-edison-fkfdu5`. Needs
+  `prisma/manual/2026-10-17-career-events.sql` applied before it works fully.
+- **What would it take** (a pathway map with cost, time, challenges and alternatives) and **Thinking about
+  a pivot**: same branch.
