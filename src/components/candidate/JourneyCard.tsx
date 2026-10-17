@@ -30,7 +30,7 @@ export function JourneyCard({ journey, since, facts, changes, switchLabel, tune 
       </div>
       {tune && (
         <p className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3 text-sm text-ink">
-          <span><span className="font-semibold">Build your plan.</span> {tune.text}</span>
+          <span><span className="font-semibold">Fit your week to you.</span> {tune.text}</span>
           <a href="#" className="inline-flex h-9 items-center rounded-full bg-ink px-4 text-sm font-semibold text-white hover:opacity-90">{tune.action}</a>
         </p>
       )}

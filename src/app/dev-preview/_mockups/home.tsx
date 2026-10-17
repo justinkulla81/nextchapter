@@ -118,7 +118,19 @@ export function ProgressBuilt() {
   const weeks = [40, 55, 70, 90, 75, 110, 120, 105, 130, 140, 105]
   return (
     <PreviewShell place="home" entry="progress" part="built">
-      <PageHeader title="What you’ve built" intro="11 weeks of real work. This is the evidence it has added up to, and the single step that comes next." />
+      <PageHeader title="Effort and results" intro="What you have put in, and what has come back. Effort is yours to control. Results follow, but not on a schedule." />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <section aria-label="Your effort" className="space-y-3 rounded-2xl border border-border p-6">
+          <h2 className="font-display text-xl font-semibold text-ink">Your effort</h2>
+          <dl className="grid grid-cols-3 gap-3 text-center">{[['1,240', 'minutes in 11 weeks'], ['38', 'applications'], ['52', 'conversations']].map(([v, l]) => <div key={l} className="rounded-xl bg-muted/60 px-2 py-3"><dd className="text-2xl font-semibold text-ink tabular-nums">{v}</dd><dt className="text-xs text-muted-foreground">{l}</dt></div>)}</dl>
+        </section>
+        <section aria-label="What came back" className="space-y-3 rounded-2xl border border-border p-6">
+          <h2 className="font-display text-xl font-semibold text-ink">What came back</h2>
+          <dl className="grid grid-cols-3 gap-3 text-center">{[['9', 'replies'], ['3', 'interviews'], ['0', 'offers yet']].map(([v, l]) => <div key={l} className="rounded-xl bg-muted/60 px-2 py-3"><dd className="text-2xl font-semibold text-ink tabular-nums">{v}</dd><dt className="text-xs text-muted-foreground">{l}</dt></div>)}</dl>
+          <p className="text-sm text-muted-foreground">Two of your three interviews came in weeks 9 and 10, your busiest weeks.</p>
+        </section>
+      </div>
+      <p className="text-sm font-semibold text-ink">What you have built, as proof</p>
 
       <section aria-labelledby="plus" className="space-y-4 rounded-2xl bg-ink p-6 text-white">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

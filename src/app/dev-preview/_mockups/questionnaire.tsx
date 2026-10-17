@@ -83,3 +83,54 @@ export function DeepDiveIntro() {
     </div>
   )
 }
+
+// The same receipt for bundles whose payoff is not a jobs count. Each one says what changed, where, and by how much.
+function Receipt({ eyebrow, headline, rows, chips, next }: { eyebrow: string; headline: string; rows: { label: string; before: string; after: string }[]; chips: string[]; next: string }) {
+  return (
+    <div className="theme-candidate min-h-screen bg-white px-5 py-8">
+      <div className="mx-auto max-w-xl space-y-8">
+        <section className="space-y-5 rounded-2xl bg-ink p-8 text-white">
+          <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">{eyebrow}</p>
+          <h1 className="font-display text-4xl leading-tight font-semibold">{headline}</h1>
+          <ul className="space-y-3">
+            {rows.map((r) => (
+              <li key={r.label} className="space-y-0.5 text-base"><p className="text-sm text-white/70">{r.label}</p><p><span className="text-white/60 line-through">{r.before}</span> <span className="font-semibold">{r.after}</span></p></li>
+            ))}
+          </ul>
+          <p className="flex flex-wrap gap-2 text-xs">{chips.map((c) => <span key={c} className="rounded-full bg-white/15 px-2.5 py-1">Changed in {c}</span>)}</p>
+        </section>
+        <div className="flex flex-wrap items-center gap-4"><PrimaryButton>Back to my week</PrimaryButton><SecondaryButton>{next}</SecondaryButton></div>
+      </div>
+    </div>
+  )
+}
+
+export function ReceiptHome() {
+  return (
+    <Receipt
+      eyebrow="Your week now fits you"
+      headline="Lighter, and in your tone."
+      rows={[
+        { label: 'This week', before: '9 actions, 150 minutes', after: '5 actions, 90 minutes' },
+        { label: 'A note from Victoria', before: '“Send 5 applications today.”', after: '“One good application today is plenty. Pick the one you like most.”' },
+      ]}
+      chips={['Your week', 'Notes', 'Email']}
+      next="One more: what gets in the way, 20 seconds"
+    />
+  )
+}
+
+export function ReceiptNetwork() {
+  return (
+    <Receipt
+      eyebrow="Warmer introductions"
+      headline="6 people you know work at your target companies."
+      rows={[
+        { label: 'People suggested for you', before: '4 from past employers', after: '10, including 6 at Northwind, Harbor Health and Lattice Labs' },
+        { label: 'Your first draft', before: 'A generic hello', after: 'A note that mentions where you both worked' },
+      ]}
+      chips={['Network', 'Jobs', 'Your week']}
+      next="One more: how you like to reach out, 20 seconds"
+    />
+  )
+}
