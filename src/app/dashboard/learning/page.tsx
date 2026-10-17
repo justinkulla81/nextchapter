@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
@@ -12,6 +13,7 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LearningBadgeList, BADGE_TYPE_LABEL } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
+import { AiSkillGapSection } from '@/components/dashboard/learning/AiSkillGapSection'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
 import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
@@ -154,6 +156,10 @@ export default async function LearningPage() {
       )}
 
       <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
+
+      <Suspense fallback={null}>
+        <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} />
+      </Suspense>
 
       <LearningSection
         title="AI Training"
