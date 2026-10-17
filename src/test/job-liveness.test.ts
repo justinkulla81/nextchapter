@@ -19,6 +19,14 @@ describe('job liveness: page verdicts', () => {
     expect(classifyPage({ url, finalUrl: url, status: 200, body: '<p>We are no longer accepting applications</p>' }).status).toBe('dead')
     expect(classifyPage({ url, finalUrl: url, status: 200, body: '<script>var t="This job is no longer available"</script><h1>VP Finance</h1>' }).status).toBe('live')
   })
+  it('JobPosting data wins over error strings shipped with every page', () => {
+    const live = '<script type="application/ld+json">{"@type":"JobPosting","title":"Service Manager"}</script><div data-i18n=\'{"NO_JOBS_404":"this job may be no longer available"}\'></div><h1>Service Manager</h1>'
+    expect(classifyPage({ url, finalUrl: url, status: 200, body: live }).status).toBe('live')
+    const leaked = '<h1>Service Manager</h1><div>{"ERROR":{"NO_JOBS_404":"this job may be no longer available or does not exist"}}</div>'
+    expect(classifyPage({ url, finalUrl: url, status: 200, body: leaked }).status).toBe('live')
+    const expired = '<script type="application/ld+json">{"@type":"JobPosting","validThrough":"2026-10-01T00:00:00Z"}</script>'
+    expect(classifyPage({ url, finalUrl: url, status: 200, body: expired, now: new Date('2026-10-17T00:00:00Z') }).status).toBe('dead')
+  })
   it("Jooble's closedJob redirect is dead", () => {
     const j = 'https://jooble.org/jdp/4013584634546647203'
     expect(classifyPage({ url: j, finalUrl: 'https://jooble.org/SearchResult?closedJob=True&p=1', status: 200, body: '' }).status).toBe('dead')

@@ -84,16 +84,36 @@ export function atsApiUrl(url: string): { api: string; kind: 'greenhouse' | 'lev
   return null
 }
 
+// Text nodes only — no scripts, styles, templates or attributes, and no JSON blobs that
+// leak into text: ATS pages (Jibe, Phenom…) ship their "this job is no longer available"
+// error strings in i18n data on every live page.
 function visibleText(html: string): string {
   return html
-    .slice(0, 400_000)
-    .replace(/<(script|style|noscript|template)\b[\s\S]*?<\/\1>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
+    .slice(0, 600_000)
+    .replace(/<(script|style|noscript|template|head|svg)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<(?:"[^"]*"|'[^']*'|[^'">])*>/g, ' ')
+    .replace(/\{"[^{}]{0,4000}\}/g, ' ')
     .replace(/\s+/g, ' ')
 }
 
+const JSONLD = /<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi
+const GETRO_DEAD = /"status"\s*:\s*"(?:deactivated|closed|expired|archived)"/
+
+/** The posting's own JobPosting JSON-LD, when the page has one (it wins over page text). */
+function jobPostingVerdict(html: string, status: number, now: Date): LivenessResult | null {
+  const blocks = [...html.slice(0, 1_500_000).matchAll(JSONLD)].map((m) => m[1]).filter((b) => b.includes('"JobPosting"'))
+  if (blocks.length === 0) return null
+  const vt = /"validThrough"\s*:\s*"([^"]+)"/.exec(blocks[0])?.[1]
+  if (vt) {
+    const d = new Date(vt)
+    if (!Number.isNaN(d.getTime()) && d.getTime() < now.getTime() - 24 * 60 * 60 * 1000) return { status: 'dead', note: `JobPosting validThrough ${vt.slice(0, 10)}` }
+  }
+  if (html.includes('getro.com') && GETRO_DEAD.test(html)) return { status: 'dead', note: 'job board says deactivated' }
+  return { status: 'live', note: `HTTP ${status}, JobPosting data` }
+}
+
 /** The verdict for one fetched page (pure; shared rules with ncrawl/liveness.py). */
-export function classifyPage(input: { url: string; finalUrl: string; status: number; body: string }): LivenessResult {
+export function classifyPage(input: { url: string; finalUrl: string; status: number; body: string; now?: Date }): LivenessResult {
   const { url, status } = input
   const finalUrl = input.finalUrl || url
   if (status === 404 || status === 410) return { status: 'dead', note: `HTTP ${status}` }
@@ -111,6 +131,8 @@ export function classifyPage(input: { url: string; finalUrl: string; status: num
     const ids = (orig.pathname + '?' + orig.search).match(ID_TOKEN) ?? []
     if (ids.length > 0 && !ids.some((id) => finalUrl.includes(id))) return { status: 'dead', note: 'redirected away from the job' }
   }
+  const ld = jobPostingVerdict(input.body, status, input.now ?? new Date())
+  if (ld) return ld
   const m = DEAD_TEXT.exec(visibleText(input.body))
   if (m) return { status: 'dead', note: `page says: ${m[0].slice(0, 80)}` }
   return { status: 'live', note: `HTTP ${status}` }
