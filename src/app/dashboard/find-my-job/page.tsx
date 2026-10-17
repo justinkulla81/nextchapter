@@ -47,6 +47,9 @@ import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
 import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
+import { parseAiView, type AiView } from '@/lib/jobs/ai-view'
+import { aiViewKeep, loadAiPostingIds } from '@/lib/jobs/ai-view-server'
+import { AiViewToggle } from '@/components/dashboard/AiViewToggle'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
 import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
@@ -364,7 +367,7 @@ function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
   if (search.filtersActive.length > 0) {
     broaden.push({
       label: 'Turn off the other filters',
-      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types'], at),
+      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types', 'ai'], at),
     })
   }
   if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: boardHrefWithout(search.urlParams, ['loc', 'remote'], at) })
@@ -425,8 +428,11 @@ async function JobRecommendationsSection({
   expertNetworks,
   search,
   urlParams,
+  aiView,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
+  aiView: AiView
   /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
   candidatePlus: boolean
   board: BoardShortlist
@@ -525,7 +531,8 @@ async function JobRecommendationsSection({
       // Partner-search jobs carry no function, sector or requirement data: with one
       // of those filters on they can't be shown as matching it. With no sector
       // known they read as private.
-      surfacedPassesBoardFilters(boardFilters)
+      surfacedPassesBoardFilters(boardFilters) &&
+      aiView === 'all'
   )
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
@@ -664,6 +671,7 @@ async function JobRecommendationsSection({
       title: p.title,
       description: p.description,
       skills: p.skills,
+      aiSkillItems: p.aiSkillItems,
       memberKeywords,
     })
   const competitionFor = (p: (typeof visibleBoardPostings)[number]) =>
@@ -795,7 +803,12 @@ async function JobRecommendationsSection({
         <BoardSearchEmpty search={search} />
       ) : visibleBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-          {greatFilters.length > 0 ? (
+          {aiView !== 'all' ? (
+            <p>
+              No {aiView === 'ai' ? 'jobs that ask for a specific AI skill' : 'jobs without an AI skill ask'} fit you with these filters yet.
+              Choose All to see every job.
+            </p>
+          ) : greatFilters.length > 0 ? (
             <p>
               No jobs that fit you are marked {greatFilters.map((f) => GREAT_FILTER_LABEL[f].toLowerCase()).join(' and ')} with these
               filters yet. Turn one off to see more.
@@ -924,6 +937,7 @@ export default async function JobFitPage({
     blockers?: string
     cleared?: string
     breadth?: string
+    ai?: string
   }>
 }) {
   const profile = await getDashboardData()
@@ -941,6 +955,7 @@ export default async function JobFitPage({
     sectors && 'sectors',
     blockers && 'blockers',
     cleared && 'cleared',
+    allParams.ai && parseAiView(allParams.ai) !== 'all' && 'ai',
   ].filter((f): f is string => !!f)
   const urlParams = Object.fromEntries(
     Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string')
@@ -1003,6 +1018,7 @@ export default async function JobFitPage({
           urlParams={urlParams}
           boardFilters={boardFilters}
           breadthMode={breadthMode}
+          aiView={parseAiView(allParams.ai)}
         />
       </Suspense>
     </div>
@@ -1051,6 +1067,7 @@ async function FindMyJobBody({
   urlParams,
   boardFilters,
   breadthMode,
+  aiView,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   seniorityGroup: SeniorityGroup | null
@@ -1065,6 +1082,8 @@ async function FindMyJobBody({
   urlParams: Record<string, string>
   boardFilters: BoardRequirementFilters
   breadthMode: Breadth | 'off'
+  /** AI / Non-AI / All (ai-view.ts, the `ai` URL parameter). */
+  aiView: AiView
 }) {
   const onBoard = tab === 'board'
   // Early-career members (src/lib/early-career/audience.ts) skip the
@@ -1159,6 +1178,7 @@ async function FindMyJobBody({
     searchEfficiency,
     greatSets,
     searchMatcher,
+    aiIds,
   ] = await Promise.all([
     emailConnectionPromise,
     // §4.8 — only fetched (and only ever true) for Confidential Search Mode
@@ -1192,7 +1212,14 @@ async function FindMyJobBody({
     greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
     // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
     onBoard ? buildBoardSearch(boardSearch) : Promise.resolve(null),
+    // AI / Non-AI: the ids of jobs that ask for an AI skill (cached; ~80 ms cold). Board tab only.
+    onBoard ? loadAiPostingIds().catch((error) => {
+      console.error('AI job ids unavailable, AI / Non-AI buttons hidden:', error)
+      return null
+    }) : Promise.resolve(null),
   ])
+  // With no AI ids the choice can't be applied: show every job rather than none.
+  const appliedAiView: AiView = aiIds ? aiView : 'all'
   if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
     captureServerEvent(profile.id, 'search_efficiency_viewed', {
       state: searchEfficiency.state,
@@ -1261,6 +1288,10 @@ async function FindMyJobBody({
       // Narrow / Wide. A search keeps every match (the member asked for them), ranked and labelled by breadth.
       breadth: breadthMode,
       breadthKeepUnmatched: !!searchView?.active,
+      // AI / Non-AI / All, with each button's count (one more ranking pass each, in memory).
+      views: aiIds
+        ? { current: appliedAiView, keeps: { ai: aiViewKeep('ai', aiIds), other: aiViewKeep('other', aiIds), all: null } }
+        : undefined,
     }),
     matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id),
@@ -1486,7 +1517,7 @@ async function FindMyJobBody({
             clickedOn: p.clickedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           }))}
         />
-        {myJobs.insight && <SkillsGapInsightCard insight={myJobs.insight} surface="board" compact />}
+        {myJobs.insight && <SkillsGapInsightCard insight={myJobs.insight} surface="board" compact aiView={appliedAiView} />}
 
         <div id="job-recommendations" className="scroll-mt-4 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2.5">
@@ -1505,6 +1536,14 @@ async function FindMyJobBody({
                   surface="find_my_job"
                   current={breadthMode}
                   counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }}
+                />
+              )}
+              {aiIds && (
+                <AiViewToggle
+                  surface="find_my_job"
+                  kind="jobs"
+                  current={appliedAiView}
+                  counts={{ ai: board.keptCounts.ai ?? 0, other: board.keptCounts.other ?? 0, all: board.keptCounts.all ?? 0 }}
                 />
               )}
               <BoardViewToggle surface="find_my_job" />
@@ -1600,6 +1639,7 @@ async function FindMyJobBody({
                 expertNetworks={expertNetworks}
                 search={searchView}
                 urlParams={urlParams}
+                aiView={appliedAiView}
               />
             </Suspense>
           </div>

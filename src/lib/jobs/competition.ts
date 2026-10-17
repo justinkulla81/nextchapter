@@ -74,6 +74,17 @@ export function fewerApplicantsHint(competition: CompetitionScore | undefined): 
   return { label: 'Likely fewer applicants', because: because.charAt(0).toUpperCase() + because.slice(1) }
 }
 
+/**
+ * The same hint for an email or any plain-text surface (no hover, no tap):
+ * "Likely fewer applicants (search-firm listing, on-site)". Null when the estimate isn't low.
+ * Leaves out "posted 2d ago": the meta line it ends already says when the job was posted.
+ */
+export function fewerApplicantsText(competition: CompetitionScore | undefined): string | null {
+  if (competition?.level !== 'low') return null
+  const parts = (competition.fewer ?? []).filter((s) => !/^posted\b/i.test(s)).slice(0, 3).map((s) => (/^[A-Z][A-Z]/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1)))
+  return parts.length > 0 ? `Likely fewer applicants (${parts.join(', ')})` : 'Likely fewer applicants'
+}
+
 export const FEWER_APPLICANTS_NOTE = 'Our estimate from where and when it was posted — not an applicant count.'
 
 /** `companyJobCount`: live board jobs at the same employer (size proxy). */

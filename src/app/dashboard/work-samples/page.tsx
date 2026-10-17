@@ -10,6 +10,7 @@ import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { AI_SAMPLE_SPECS, aiSampleChecks } from '@/lib/evidence/ai-work-samples'
 
 export const metadata: Metadata = { title: 'Work Samples' }
 
@@ -83,7 +84,7 @@ export default async function WorkSamplesPage() {
     )
   }
 
-  const aiWorkflowCount = profile.workSamples.filter((w) => w.sampleType === 'ai_workflow').length
+  const aiWorkflowCount = profile.workSamples.filter((w) => aiSampleChecks(w)?.hasMetric).length
 
   return (
     <div className="space-y-8">
@@ -91,8 +92,8 @@ export default async function WorkSamplesPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
         <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         <p className="text-sm text-muted-foreground">
-          AI workflows shipped: {aiWorkflowCount} of 3. Employers look for hands-on AI use in your own function, shown with a before and
-          after result.
+          AI work samples with a measured result: {aiWorkflowCount} of 3. Employers look for hands-on AI use in your own function, shown with a
+          measured result — an automation with a before and after, an AI policy or use-case portfolio, or a RAG or agent project with an eval.
         </p>
       </div>
 
@@ -117,6 +118,17 @@ export default async function WorkSamplesPage() {
                       {sample.aiToolsUsed ? ` Tools: ${sample.aiToolsUsed}.` : ''}
                     </p>
                   )}
+                  {(() => {
+                    // The proof-map checks an AI sample meets, and what would strengthen it.
+                    const c = aiSampleChecks(sample)
+                    if (!c) return null
+                    return (
+                      <p className="text-xs text-muted-foreground">
+                        {AI_SAMPLE_SPECS[c.type].label}: {c.passed.length} of {c.passed.length + c.missing.length} checks
+                        {c.missing.length > 0 ? ` — to strengthen it: ${c.missing.map((m) => m.label.toLowerCase()).join(', ')}` : ' — complete'}
+                      </p>
+                    )
+                  })()}
                   {(sample.fileUrl || sample.externalUrl) && (
                     <a
                       href={sample.fileUrl ?? sample.externalUrl ?? '#'}

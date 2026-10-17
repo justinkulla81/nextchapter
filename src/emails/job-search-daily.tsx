@@ -128,9 +128,14 @@ const BAR: Record<ScoreStatus, string> = {
   atRisk: '#f56565',
 }
 
+// A job's verdict reads like the board card's (job-card.ts), in plain words; the green stays on the button.
+const verdictStyle: React.CSSProperties = { color: ink, fontWeight: 600 }
+const whyStyle: React.CSSProperties = { display: 'block', color: muted, fontSize: '14px' }
+
 function Bullet({ item }: { item: DailyItem }) {
   return (
     <li style={li}>
+      {item.verdict && <span style={verdictStyle}>{item.verdict}: </span>}
       {item.href ? (
         <a href={item.href} style={itemLink}>
           {item.title}
@@ -139,6 +144,7 @@ function Bullet({ item }: { item: DailyItem }) {
         item.title
       )}
       {item.detail && <span style={tail}> · {item.detail}</span>}
+      {item.why && <span style={whyStyle}>{item.why}</span>}
     </li>
   )
 }

@@ -61,10 +61,25 @@ export function whyLineText(why: { fits: string[]; gap: string | null }): string
 const REMOTE = /\bremote\b/i
 const INTERIM = /\binterim\b/i
 
+/** Past this, a card stops implying the job is live and says when we last checked it. */
+export const STALE_CHECK_DAYS = 3
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** "Last checked 5 days ago" when the posting hasn't been verified live in 3+ days, else null. */
+export function lastCheckedPhrase(verifiedAt: Date | string | null | undefined, now: Date = new Date()): string | null {
+  if (!verifiedAt) return null
+  const at = typeof verifiedAt === 'string' ? new Date(verifiedAt) : verifiedAt
+  if (Number.isNaN(at.getTime())) return null
+  const days = Math.floor((now.getTime() - at.getTime()) / DAY_MS)
+  return days > STALE_CHECK_DAYS ? `Last checked ${days} days ago` : null
+}
+
 /**
  * Posted time · location (or Remote) · pay when known · the kind of work only when it
  * isn't the default full-time role (Contract, Part-time, Interim, Advisory / board,
  * Internship). Never "Full-time" and never the level — the title already says it.
+ * A posting not verified live in over 3 days (verifiedAt = lastVerifiedAt) says so in the
+ * same phrase: "Posted 9 days ago, last checked 5 days ago".
  */
 export function cardMetaParts(input: {
   posted: string | null
@@ -73,9 +88,13 @@ export function cardMetaParts(input: {
   pay: string | null
   workType: JobWorkType
   title: string
+  verifiedAt?: Date | string | null
+  now?: Date
 }): string[] {
   const parts: string[] = []
-  if (input.posted) parts.push(input.posted)
+  const checked = lastCheckedPhrase(input.verifiedAt, input.now)
+  if (input.posted && checked) parts.push(`${input.posted}, ${checked.charAt(0).toLowerCase()}${checked.slice(1)}`)
+  else if (input.posted || checked) parts.push((input.posted ?? checked)!)
   const location = input.location?.trim() || null
   if (location) parts.push(location)
   if (input.remote && !(location && REMOTE.test(location))) parts.push('Remote')
@@ -83,4 +102,32 @@ export function cardMetaParts(input: {
   if (input.workType !== 'full_time') parts.push(WORK_TYPE_CHIP[input.workType])
   else if (INTERIM.test(input.title)) parts.push('Interim')
   return parts
+}
+
+// ── Plain text, for emails and coach views ─────────────────────────────────────
+
+/**
+ * One job card as text (job-card-server.ts builds it from the same helpers as the board):
+ * emails and other no-hover surfaces render the verdict, the why line and the meta line
+ * from this, so every surface says the same thing about a job.
+ */
+export interface JobCardText {
+  verdict: CardVerdict
+  /** "Strong fit" / "Good fit" / "Worth a look". */
+  verdictLabel: string
+  fits: string[]
+  gap: string | null
+  /** "Fits you: your level · finance — Gap: asks for SQL"; '' when nothing specific is known. */
+  whyLine: string
+  /** Posted · place · pay · non-default work type (cardMetaParts). */
+  meta: string[]
+  /** The board's tappable "Likely fewer applicants" hint, for app surfaces. */
+  fewerApplicantsHint: { label: string; because: string } | null
+  /** "Likely fewer applicants (search-firm listing, on-site)", for emails; null unless the estimate is low. */
+  fewerApplicants: string | null
+}
+
+/** The meta line as one string, with the plain-text applicants estimate at the end: "Posted 3h ago · Louisville, KY · Likely fewer applicants (on-site)". */
+export function metaLineText(card: Pick<JobCardText, 'meta' | 'fewerApplicants'>): string {
+  return [...card.meta, card.fewerApplicants].filter(Boolean).join(' · ')
 }

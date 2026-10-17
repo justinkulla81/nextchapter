@@ -9,7 +9,8 @@ import { LikesCard } from '@/components/dashboard/LikesCard'
 import { readLikes } from '@/lib/profile/work-profile'
 import { buildSkillMatrix, readSkillLevels } from '@/lib/profile/skill-matrix'
 import { ToolsChecklist } from '@/components/dashboard/ToolsChecklist'
-import { suggestTools } from '@/lib/profile/tools-checklist'
+import { suggestAiOptions, suggestTools } from '@/lib/profile/tools-checklist'
+import { memberIndustryBuckets } from '@/lib/profile/industry-reading'
 
 export const metadata: Metadata = { title: 'Skills Inventory' }
 
@@ -17,6 +18,8 @@ export default async function SkillsAssessmentPage() {
   const profile = await getDashboardProfile()
   // "Tools you use": their occupation's tools, the ones they already name pre-checked (tools-checklist.ts).
   const tools = (await suggestTools(profile).catch(() => [])).map((t) => ({ name: t.name, checked: t.checked }))
+  // "AI you use": the AI tools and skills postings in their function and industry name most (ai-skill-market.ts).
+  const aiTools = suggestAiOptions({ ...profile, industries: memberIndustryBuckets(profile) }).map((t) => ({ name: t.name, checked: t.checked }))
 
   return (
     <div className="space-y-6">
@@ -54,7 +57,7 @@ export default async function SkillsAssessmentPage() {
             removed={Object.entries(readSkillLevels(profile.skillLevels)).filter(([, v]) => v.removed).map(([k]) => k)}
           />
           <div className="mt-6 border-t border-border pt-4">
-            <ToolsChecklist options={tools} confirmedAt={profile.toolsConfirmedAt?.toISOString() ?? null} />
+            <ToolsChecklist options={tools} aiOptions={aiTools} confirmedAt={profile.toolsConfirmedAt?.toISOString() ?? null} />
           </div>
         </CardContent>
       </Card>

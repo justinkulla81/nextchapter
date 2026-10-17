@@ -11,6 +11,7 @@ import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 import { edgeTip, fewerApplicantsHint, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import { cardMetaParts, cardVerdict } from '@/lib/jobs/job-card'
+import { postingOpenHref } from '@/lib/jobs/posting-open-href'
 import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardParts'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
@@ -269,7 +270,7 @@ export function DiscoverJobCard({
   const highlights = benefitsHighlights(benefits?.benefits)
   const verdict = cardVerdict(fitBucket, { bridge: !!bridge })
   const remote = /\bremote\b/i.test(posting.location ?? '') || (posting.targetRemotePolicy ?? '').toLowerCase() === 'remote'
-  const meta = cardMetaParts({ posted: postedAgo(posting), location: posting.location, remote, pay: payLabel, workType, title: posting.title })
+  const meta = cardMetaParts({ posted: postedAgo(posting), location: posting.location, remote, pay: payLabel, workType, title: posting.title, verifiedAt: posting.lastVerifiedAt })
   // Say less rather than something generic: a field match without `why` adds nothing.
   const fallbackWhy = !why && matchReason && matchReason.kind !== 'field' ? { fits: [matchReason.label], gap: null } : null
 
@@ -444,7 +445,8 @@ export function DiscoverJobCard({
           ) : (
             <Button
               nativeButton={false}
-              render={<a href={posting.url} target="_blank" rel="noopener noreferrer" onClick={handleClick} />}
+              // Crawled jobs open through the click-time liveness check (jobs/[id]/open).
+              render={<a href={posting.source === 'ats_feed' ? postingOpenHref(posting.id) : posting.url} target="_blank" rel="noopener noreferrer" onClick={handleClick} />}
               variant="outline"
               size="sm"
             >

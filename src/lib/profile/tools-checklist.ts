@@ -7,6 +7,8 @@ import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { onetSocForRole } from '@/lib/pivots/onet-soc'
 import { detectSourceRole } from '@/lib/pivots/pivot-map'
 import { skillTerms, type SkillMatrixInput } from '@/lib/profile/skill-matrix'
+import { aiSkillItem, memberAiSkillIds } from '@/lib/skills/ai-skills'
+import { suggestedAiItems, suggestedAiTools } from '@/lib/skills/ai-skill-market'
 
 // "Tools you use": a short checklist on the skills page so the board's skills criterion
 // (src/lib/jobs/relevance.ts) has the member's tools to compare with the tools postings name.
@@ -73,4 +75,22 @@ export async function suggestTools(m: ToolsMember): Promise<ToolOption[]> {
   }
   // The ones they already name first: mostly a confirmation.
   return [...out.filter((o) => o.checked), ...out.filter((o) => !o.checked)]
+}
+
+/**
+ * "AI you use": the AI tools postings in the member's function (and industry) name most, and
+ * the AI skills they ask for most (AI-skills analysis, ai-skill-market.ts), as options on the
+ * same checklist. Ticked ones join the skills matrix like any tool, so the skills gap and the
+ * "Why this job" line stop calling them a gap. Pure lookups — no query, no model call.
+ */
+export function suggestAiOptions(m: SkillMatrixInput & { primaryFunction?: string | null; industries?: string[] }): ToolOption[] {
+  const keywords = skillTerms(m)
+  const mine = memberAiSkillIds(keywords)
+  const lower = new Set(keywords.map((k) => k.trim().toLowerCase()))
+  const tools = suggestedAiTools(m.primaryFunction, m.industries ?? []).map((name) => ({ id: `ai-tool:${name}`, name, checked: lower.has(name.toLowerCase()) }))
+  const skills = suggestedAiItems(m.primaryFunction, m.industries ?? []).map((id) => {
+    const item = aiSkillItem(id)!
+    return { id: `ai-skill:${id}`, name: item.label, checked: mine.has(id) }
+  })
+  return [...tools, ...skills]
 }

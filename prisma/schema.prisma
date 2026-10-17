@@ -2445,6 +2445,11 @@ model WorkSample {
   aiToolsUsed      String?
   beforeMetric     String?
   afterMetric      String?
+  // The guided AI sample types (src/lib/evidence/ai-work-samples.ts): ai_workflow
+  // (automation with before/after), ai_policy (policy or use-case portfolio), ai_rag_eval
+  // (RAG / agent project with an eval). Their template answers: { field: value }.
+  // prisma/manual/2026-10-17-ai-skills.sql.
+  aiDetails        Json?
   verified         Boolean  @default(false)
   verifiedByEmail  String?
   createdAt        DateTime @default(now())
@@ -5015,6 +5020,12 @@ model ExclusiveJobPosting {
   // (src/app/api/cron/expire-job-postings) archives anything past this.
   expiresAt       DateTime?
   lastConfirmedAt DateTime?
+  // When we last confirmed the posting is still up: the crawler saw it in a re-crawl, its
+  // liveness check (ncrawl/liveness.py) or the click-time check (src/lib/jobs/liveness.ts)
+  // found it live. Unlike lastConfirmedAt (stamped on every row of every daily import) this
+  // is real evidence. Cards say "Last checked N days ago" past 3 days; a click re-checks it
+  // past 24 hours. prisma/manual/2026-10-17-job-liveness.sql.
+  lastVerifiedAt  DateTime?
 
   // NC Job Board 2.0 — visibility model. Existing rows are backfilled to
   // audienceTier: 'A_LIST_ONLY' (see the db-push follow-up script) so
@@ -5169,6 +5180,15 @@ model ExclusiveJobPosting {
   // memory (src/lib/jobs/requirements.ts). Null = none found / not sent.
   requirementFlags  Json?
   requirementTags   String?
+  // AI skills the posting asks for, read by the crawler from the FULL posting text
+  // (ncrawl/ai_skills.py: 24 items in 3 groups — builder / applied / leadership — after a
+  // boilerplate filter; ~86% precision hand-checked). Ids and labels: src/lib/skills/ai-skills.ts.
+  // aiToolsNamed / aiCertsNamed are the AI tools and certifications the text names. Empty =
+  // none found or not read yet. prisma/manual/2026-10-17-ai-skills.sql.
+  aiSkillGroups     String[] @default([])
+  aiSkillItems      String[] @default([])
+  aiToolsNamed      String[] @default([])
+  aiCertsNamed      String[] @default([])
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])

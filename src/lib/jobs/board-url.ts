@@ -1,11 +1,11 @@
 // Links and toggles inside the job board change one or two URL parameters and keep
 // every other one: the search (q, loc, remote, sort), the view, work types,
-// seniority, great-pay / great-benefits, the pivot path and the tab. Every in-board
+// seniority, great-pay / great-benefits, AI / Non-AI, the pivot path and the tab. Every in-board
 // link and toggle builds its URL here, so none of them drops an active search or
 // filter. Pure (no I/O): used by server-rendered links and client toggles alike.
 
 /** The board's own URL parameters (anything else on the URL is kept too). */
-export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth'] as const
+export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth', 'ai'] as const
 export type BoardUrlParam = (typeof BOARD_URL_PARAMS)[number]
 
 /** The search's parameters, for "Clear the search". */
@@ -26,7 +26,7 @@ function toParams(current: Current): URLSearchParams {
 
 /**
  * The current board URL with `changes` applied — a string sets that parameter, null
- * or '' removes it — and every other parameter kept. `view: 'all'` and `tab:
+ * or '' removes it — and every other parameter kept. `view: 'all'`, `ai: 'all'` and `tab:
  * 'board'` are the defaults and are removed rather than written. Returns
  * `{pathname}?{query}#{hash}`; with no pathname, a relative `?query` link.
  */
@@ -37,7 +37,7 @@ export function boardHref(
 ): string {
   const sp = toParams(current)
   for (const [k, v] of Object.entries(changes)) {
-    const isDefault = (k === 'view' && v === 'all') || (k === 'tab' && v === 'board') || (k === 'sort' && v === 'best')
+    const isDefault = (k === 'view' && v === 'all') || (k === 'ai' && v === 'all') || (k === 'tab' && v === 'board') || (k === 'sort' && v === 'best')
     if (v === null || v === undefined || v === '' || isDefault) sp.delete(k)
     else sp.set(k, v)
   }

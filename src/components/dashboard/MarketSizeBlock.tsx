@@ -1,6 +1,7 @@
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { growthPhrase, type MarketPrompt } from '@/lib/market/market-size'
 import type { MarketSizeView } from '@/lib/market/market-size-server'
+import { aiMarketLine } from '@/lib/skills/ai-skill-market'
 
 /** Board search results this many or more: too many to work through. */
 export const SEARCH_TOO_MANY = 500
@@ -32,6 +33,8 @@ export function MarketSizeBlock({
   // The member's own number is the strict relevant count (relevance.ts): level, field, place and skills.
   const open = view.relevant?.count ?? view.counts.openNow
   const growth = growthPhrase(view.growth)
+  // One line from the AI-skills analysis for the target's function: share asking, and the premium raw and like-for-like.
+  const ai = aiMarketLine(view.target.fn)
   const track = (step: string, area?: string) => ({ surface, prompt, step, area, target: view.target.label, openNow: open })
 
   const headline =
@@ -65,6 +68,14 @@ export function MarketSizeBlock({
           Target: {view.target.label}
           {searchQuery ? ` · search “${searchQuery}”` : ''}. {view.counts.openNow.toLocaleString()} open in this wider market; the trend compares its last 2 weeks with the 4 before.
         </p>
+        {ai && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            AI skills: {ai.text}{' '}
+            <TrackedLink href="/dashboard/skills-assessment#tools" event="ai_market_line_clicked" properties={{ surface, fn: ai.fn, sharePct: ai.sharePct }} className={LINK}>
+              Show the AI you use
+            </TrackedLink>
+          </p>
+        )}
       </div>
 
       {prompt === 'too_many' && view.slices.length > 0 && (

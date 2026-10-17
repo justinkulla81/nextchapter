@@ -5,7 +5,7 @@ import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { boardListingFitBucketScorerFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { inferFunctionFromTitle, inferLevelFromTitle, rememberTitleFunction } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/competition'
 import { classifyLocation } from '@/lib/jobs/us-location'
@@ -16,6 +16,8 @@ import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, 
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
+import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
 import { loadBreadthClassifier, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
@@ -68,7 +70,10 @@ const PER_COMPANY = 5
 //   alerts, Job Search Daily, coach digest; splitBoardWhere) — is cut from this one
 //   copy in memory instead of each loading its own. After the minute, the next
 //   caller still gets the held copy at once while a fresh one loads (up to
-//   SHARED_STALE_MS old); only a cold server instance waits.
+//   SHARED_STALE_MS old). The fresh one is the held copy again when the board hasn't
+//   changed since (board-snapshot.ts boardFingerprint) — no re-read — and a cold
+//   instance starts from the snapshot another instance wrote, when the board hasn't
+//   changed since it was read; only otherwise is the database read.
 // - Any other filter: its own rows from the wide table, keyed by the filter.
 //
 // Rows are read-only downstream; per-row work is memoised on them (rowFacts).
@@ -76,6 +81,9 @@ const LIGHT_TTL_MS = 60_000
 const SHARED_STALE_MS = 5 * 60_000
 const LIGHT_MAX_KEYS = 20
 const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
+
+/** A job's prior closures (ghost-risk.ts) for its company + title + location. */
+const priorClosures = (p: LightRow, closedCounts: Map<string, number>) => closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0
 
 /** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
 function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): LightRow[] {
@@ -95,12 +103,12 @@ function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): Light
       nonUs.set(p.location, outside)
     }
     if (outside) return false
-    const ghost = ghostRisk({
-      priorClosedCount: closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0,
-      ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
-    })
-    return ghost.level !== 'likely'
+    return notGhost(p, priorClosures(p, closedCounts), nowMs)
   })
+}
+
+function notGhost(p: LightRow, priorClosedCount: number, nowMs: number): boolean {
+  return ghostRisk({ priorClosedCount, ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000 }).level !== 'likely'
 }
 
 // Postgres returns rows in storage order, which every import reshuffles; ranking
@@ -140,6 +148,46 @@ function internRepeated(rows: LightRow[], pool: Map<string, string>): void {
   }
 }
 
+/**
+ * One shared board as held in memory: the kept rows (id order) and, per row, what the
+ * clock alone can change — its expiry (ms; NaN = none) and the prior closures its ghost
+ * risk was read with — so a held board can be brought up to now without a re-read.
+ */
+interface HeldBoard {
+  rows: LightRow[]
+  expires: Float64Array
+  priors: Uint32Array
+  byId: Map<string, LightRow>
+  /** The board's version when these rows were read (boardFingerprint); null = unknown, never reused. */
+  fingerprint: string | null
+  /** When the rows were read (ms). */
+  readAt: number
+}
+
+/**
+ * The held board as a read now would give it: jobs that expired since, or aged into
+ * likely ghost risk, dropped (the rest of the filter can't change without a write to
+ * the board). The same object when nothing dropped.
+ */
+export function stillLive<B extends Pick<HeldBoard, 'rows' | 'expires' | 'priors'>>(board: B, nowMs = Date.now()): B {
+  const keepAt = (i: number) => !(board.expires[i] <= nowMs) && notGhost(board.rows[i], board.priors[i], nowMs)
+  let drop = 0
+  for (let i = 0; i < board.rows.length; i++) if (!keepAt(i)) drop++
+  if (drop === 0) return board
+  const n = board.rows.length - drop
+  const rows: LightRow[] = new Array(n)
+  const expires = new Float64Array(n)
+  const priors = new Uint32Array(n)
+  let k = 0
+  for (let i = 0; i < board.rows.length; i++) {
+    if (!keepAt(i)) continue
+    rows[k] = board.rows[i]
+    expires[k] = board.expires[i]
+    priors[k++] = board.priors[i]
+  }
+  return { ...board, rows, expires, priors }
+}
+
 // The board is read a page at a time (findLightRowsPage), and each page is interned,
 // filtered and folded into the rows the board keeps before the next is read. Reading
 // the whole table into one array, then filtering and sorting copies of it, held the
@@ -150,51 +198,146 @@ async function readSharedRows(
   where: Prisma.ExclusiveJobPostingWhereInput,
   closedCounts: Map<string, number>,
   previous: Map<string, LightRow>
-): Promise<{ rows: LightRow[]; byId: Map<string, LightRow> }> {
+): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt'>> {
   const pool = new Map<string, string>()
   const rows: LightRow[] = []
+  const expiresAt: number[] = []
+  const priors: number[] = []
   const kept = new Map<string, LightRow>()
   let afterId: string | null = null
   for (;;) {
-    const page = await findLightRowsPage(where, afterId, PAGE_ROWS)
-    if (page.length === 0) break
-    afterId = page[page.length - 1].id
+    const read = await findLightRowsPage(where, afterId, PAGE_ROWS)
+    if (read.length === 0) break
+    afterId = read[read.length - 1].id
+    const expiry = new Map<string, number>()
+    const page = read.map(({ expiresAt: at, ...row }) => {
+      if (at) expiry.set(row.id, at.getTime())
+      return row as LightRow
+    })
     internRepeated(page, pool)
     for (const r of keepRelevant(page, closedCounts)) {
       const before = previous.get(r.id)
       const keep = before && sameRow(before, r) ? before : r
       kept.set(keep.id, keep)
       rows.push(keep)
+      expiresAt.push(expiry.get(r.id) ?? NaN)
+      priors.push(priorClosures(r, closedCounts))
     }
-    if (page.length < PAGE_ROWS) break
+    if (read.length < PAGE_ROWS) break
   }
   // Already id-ordered by the pages; sorted anyway so ranking ties never depend on the database's collation.
-  return { rows: rows.sort(byId), byId: kept }
+  const order = rows.map((_, i) => i).sort((a, b) => byId(rows[a], rows[b]))
+  return {
+    rows: order.map((i) => rows[i]),
+    expires: Float64Array.from(order, (i) => expiresAt[i]),
+    priors: Uint32Array.from(order, (i) => priors[i]),
+    byId: kept,
+  }
+}
+
+const SNAPSHOT_PART_ROWS = 50_000
+const SLOW_SHORTLIST_MS = 2_000
+
+/** Writes the held board as a snapshot (board-snapshot.ts) for the next cold instance. */
+function publishBoard(kind: SnapshotKind, board: HeldBoard): void {
+  const fingerprint = board.fingerprint
+  if (snapshotsDisabled()) return
+  if (!fingerprint) return console.log(`[board-snapshot] ${kind} not written: the board changed while it was read`)
+  inBackground(async () => {
+    const parts: unknown[] = []
+    for (let i = 0; i < board.rows.length || i === 0; i += SNAPSHOT_PART_ROWS) {
+      await yieldToRequests()
+      const end = Math.min(board.rows.length, i + SNAPSHOT_PART_ROWS)
+      parts.push(
+        encodeBoardPart({
+          rows: board.rows.slice(i, end),
+          expires: Array.from(board.expires.subarray(i, end), (x) => (Number.isNaN(x) ? null : x)),
+          priors: Array.from(board.priors.subarray(i, end)),
+          // Each title's function too: a cold instance would otherwise work it out for every job.
+          titleFns: board.rows.slice(i, end).map((r) => inferFunctionFromTitle(r.title)),
+        })
+      )
+    }
+    await writeSnapshot(kind, fingerprint, board.readAt, parts, board.rows.length)
+  })
+}
+
+/** The snapshot of this board, when one was written at the board's current version; else null. */
+async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>): Promise<HeldBoard | null> {
+  const [manifest, now] = await Promise.all([readManifest(kind), fingerprint])
+  if (!manifest || !now || manifest.fingerprint !== now) return null
+  const encoded = await readParts(manifest)
+  if (!encoded) return null
+  const pool = new Map<string, string>()
+  const rows: LightRow[] = new Array(manifest.rows)
+  const expires = new Float64Array(manifest.rows)
+  const priors = new Uint32Array(manifest.rows)
+  let k = 0
+  for (let p = 0; p < encoded.length; p++) {
+    const part = decodeBoardPart(encoded[p], pool)
+    encoded[p] = null // the parsed JSON can go as soon as its rows are built
+    if (!part || k + part.rows.length > manifest.rows) return null
+    for (let i = 0; i < part.rows.length; i++, k++) {
+      if (part.titleFns) rememberTitleFunction(part.rows[i].title, part.titleFns[i])
+      rows[k] = part.rows[i]
+      expires[k] = part.expires[i] ?? NaN
+      priors[k] = part.priors[i]
+    }
+  }
+  if (k !== manifest.rows) return null
+  return {
+    rows,
+    expires,
+    priors,
+    byId: new Map(rows.map((r) => [r.id, r])),
+    fingerprint: manifest.fingerprint,
+    readAt: manifest.at,
+  }
 }
 
 // Two shared boards: the core one (everything but the early-career rungs) that
 // every view reads, and the early-career one (ENTRY_IC, EARLY_IC), loaded only
 // when a view's level window includes those rungs — so members who never see
 // early-career jobs, and every email path, don't pay to load them.
-function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string): (closedCounts: Map<string, number>) => Promise<LightRow[]> {
-  let shared: { at: number; rows: Promise<LightRow[]> } | null = null
-  let loading: Promise<LightRow[]> | null = null
-  let previousById = new Map<string, LightRow>()
-  return (closedCounts) => {
+function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: SnapshotKind): () => Promise<LightRow[]> {
+  const name = kind === 'board-core' ? 'core' : 'early career'
+  let shared: { at: number; board: HeldBoard } | null = null
+  let loading: Promise<HeldBoard> | null = null
+  const load = async (held: HeldBoard | null): Promise<HeldBoard> => {
+    const started = Date.now()
+    const fingerprint = snapshotsDisabled() ? Promise.resolve(null) : boardFingerprint()
+    // Unchanged since the held copy was read: the held copy, brought up to now.
+    if (held && held.fingerprint && (await fingerprint) === held.fingerprint) return stillLive(held)
+    // A cold instance: the snapshot another instance wrote, when the board hasn't changed since.
+    if (!held && !snapshotsDisabled()) {
+      const snap = await readBoardSnapshot(kind, fingerprint).catch((error) => {
+        console.error(`Board snapshot (${name}): unreadable, reading the database`, error)
+        return null
+      })
+      if (snap) {
+        logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
+        return stillLive(snap)
+      }
+    }
+    const before = await fingerprint
+    const out = await readSharedRows(liveBoardWhere(extra), await getClosedPostingCounts(), held?.byId ?? new Map())
+    // Version unchanged across the whole read: these rows are that version, and can be reused / shared.
+    const after = before ? await boardFingerprint() : null
+    const board: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started }
+    logBoardMemory(`shared board (${name})`, { rows: board.rows.length, ms: Date.now() - started })
+    publishBoard(kind, board)
+    return board
+  }
+  return () => {
     const now = Date.now()
-    if (shared && now - shared.at < LIGHT_TTL_MS) return shared.rows
+    if (shared && now - shared.at < LIGHT_TTL_MS) return Promise.resolve(shared.board.rows)
     if (!loading) {
       const started = now
-      const next = (async () => {
-        const out = await readSharedRows(liveBoardWhere(extra), closedCounts, previousById)
-        previousById = out.byId
-        logBoardMemory(`shared board (${name})`, { rows: out.rows.length })
-        return out.rows
-      })()
+      const next = load(shared?.board ?? null)
       loading = next
       next.then(
-        () => {
-          shared = { at: started, rows: next }
+        (board) => {
+          shared = { at: started, board }
           loading = null
         },
         (error) => {
@@ -204,13 +347,13 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string):
       )
     }
     // Past the minute: the held copy, while the new one loads.
-    if (shared && now - shared.at < SHARED_STALE_MS) return shared.rows
-    return loading
+    if (shared && now - shared.at < SHARED_STALE_MS) return Promise.resolve(shared.board.rows)
+    return loading.then((b) => b.rows)
   }
 }
 
-const loadCoreBoard = sharedBoard({ OR: [{ level: null }, { level: { notIn: EARLY_CAREER_RUNGS } }] }, 'core')
-const loadEarlyCareerBoard = sharedBoard({ level: { in: EARLY_CAREER_RUNGS } }, 'early career')
+const loadCoreBoard = sharedBoard({ OR: [{ level: null }, { level: { notIn: EARLY_CAREER_RUNGS } }] }, 'board-core')
+const loadEarlyCareerBoard = sharedBoard({ level: { in: EARLY_CAREER_RUNGS } }, 'board-early')
 
 // Both boards in one id-sorted array, kept while neither changes (so subsets cut
 // from it are reused too).
@@ -228,9 +371,9 @@ function mergeById(core: LightRow[], early: LightRow[]): LightRow[] {
   return rows
 }
 
-async function loadSharedBoard(closedCounts: Map<string, number>, withEarlyCareer: boolean): Promise<LightRow[]> {
-  if (!withEarlyCareer) return loadCoreBoard(closedCounts)
-  const [core, early] = await Promise.all([loadCoreBoard(closedCounts), loadEarlyCareerBoard(closedCounts)])
+async function loadSharedBoard(withEarlyCareer: boolean): Promise<LightRow[]> {
+  if (!withEarlyCareer) return loadCoreBoard()
+  const [core, early] = await Promise.all([loadCoreBoard(), loadEarlyCareerBoard()])
   return mergeById(core, early)
 }
 
@@ -366,16 +509,12 @@ export function splitBoardWhere(
   return levelOnlyFilter(where) ? { levelWhere: where, windows: [] } : null
 }
 
-async function loadLightBoardRows(
-  where: Prisma.ExclusiveJobPostingWhereInput | undefined,
-  closedCounts: Map<string, number>,
-  postedWithinHours?: number
-): Promise<LightRow[]> {
+async function loadLightBoardRows(where: Prisma.ExclusiveJobPostingWhereInput | undefined, postedWithinHours?: number): Promise<LightRow[]> {
   const split = splitBoardWhere(where)
   if (split) {
     const keep = levelOnlyFilter(split.levelWhere)!
     const withEarlyCareer = EARLY_CAREER_RUNGS.some((level) => keep({ level }))
-    const all = await loadSharedBoard(closedCounts, withEarlyCareer)
+    const all = await loadSharedBoard(withEarlyCareer)
     const byLevel = subsetOf(all, JSON.stringify(split.levelWhere ?? null), keep)
     const windows = [...split.windows, ...(postedWithinHours === undefined ? [] : [postedWithinFilter(postedWithinHours)])]
     if (windows.length === 0) return byLevel
@@ -390,7 +529,10 @@ async function loadLightBoardRows(
   if (hit && Date.now() - hit.at < LIGHT_TTL_MS) return hit.rows
 
   const rows = (async () => {
-    const all = await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT })
+    const [all, closedCounts] = await Promise.all([
+      prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT }),
+      getClosedPostingCounts(),
+    ])
     return keepRelevant(all, closedCounts)
   })()
 
@@ -414,11 +556,24 @@ interface RowFacts {
   workType?: WorkType
 }
 const factsByRow = new WeakMap<BoardRankRow, RowFacts>()
+// Company names repeat (~55k distinct over the board): normalized once per name. Every
+// light row is counted per company, so this runs for the whole board on a cold instance.
+const COMPANY_KEYS_MAX = 200_000
+const companyKeys = new Map<string, string>()
+function companyKey(name: string | null): string {
+  if (!name) return ''
+  let key = companyKeys.get(name)
+  if (key === undefined) {
+    if (companyKeys.size >= COMPANY_KEYS_MAX) companyKeys.clear()
+    companyKeys.set(name, (key = normalizeOrgName(name)))
+  }
+  return key
+}
 function rowFacts(p: BoardRankRow): RowFacts {
   let f = factsByRow.get(p)
   if (!f) {
     f = {
-      company: p.companyName ? normalizeOrgName(p.companyName) : '',
+      company: companyKey(p.companyName),
       titleKey: p.title.trim().toLowerCase(),
       titleFunction: (inferFunctionFromTitle(p.title) ?? '').toLowerCase(),
       levelRank: calibratedLevelRank(p.targetLevel ?? candidateScaleLevel(p.level) ?? inferLevelFromTitle(p.title), null),
@@ -442,7 +597,8 @@ function companyCounts(light: BoardRankRow[]): Map<string, number> {
   if (!counts) {
     counts = new Map()
     for (const p of light) {
-      const { company } = rowFacts(p)
+      // Not rowFacts: that works out every fact, and only the jobs a member could see need them.
+      const company = companyKey(p.companyName)
       if (company) counts.set(company, (counts.get(company) ?? 0) + 1)
     }
     companyCountsByRows.set(light, counts)
@@ -500,6 +656,8 @@ export interface BoardShortlist {
   }
   /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
   dismiss: { hidden: number; rules: DismissRules | null }
+  /** For each of opts.views: the jobs the board would show with that view (openTotal). */
+  keptCounts: Record<string, number>
 }
 
 /**
@@ -573,8 +731,13 @@ export async function loadBoardShortlist(opts: {
    * window is the member's own (stageWindow omitted); the board passes its own choice.
    */
   seniorityRing?: boolean
+  /**
+   * A choice of views on top of `keep` (the board's AI / Non-AI / All buttons): the board shows
+   * `current`, and keptCounts says how many jobs each view would show (null keep = every job).
+   * Each other view is one more ranking pass over the rows already in memory, no database read.
+   */
+  views?: { current: string; keeps: Record<string, ((p: BoardRankRow) => boolean) | null> }
 }): Promise<BoardShortlist> {
-  const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
   // in the database — this filters the view, it deletes nothing — and the board
@@ -589,12 +752,18 @@ export async function loadBoardShortlist(opts: {
   const levelWhere = boardLevelWindowWhere(opts.where, { window: rowsWindow, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
   const hidden = opts.hiddenSectors ?? (opts.candidate as { hiddenEmployerSectors?: string[] | null } | null)?.hiddenEmployerSectors ?? []
   const inSector = sectorKeep(hidden)
-  const keep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const baseKeep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const withView = (view: ((p: BoardRankRow) => boolean) | null | undefined) =>
+    view && baseKeep ? (p: BoardRankRow) => baseKeep(p) && view(p) : (view ?? baseKeep)
+  const keep = withView(opts.views?.keeps[opts.views.current])
   // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
   const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
+  const t0 = Date.now()
+  const lap: Record<string, number> = {}
+  const timed = <T,>(name: string, p: Promise<T>) => p.finally(() => (lap[name] = Date.now() - t0))
   const [light, classifier, dismissRules] = await Promise.all([
-    loadLightBoardRows(levelWhere, closedCounts, opts.postedWithinHours),
-    breadth === 'off' ? null : loadBreadthClassifier(opts.candidate).catch((error) => {
+    timed('rows', loadLightBoardRows(levelWhere, opts.postedWithinHours)),
+    breadth === 'off' ? null : timed('classifier', loadBreadthClassifier(opts.candidate)).catch((error) => {
       console.error('Search breadth unavailable, showing the whole window:', error)
       return null
     }),
@@ -609,21 +778,34 @@ export async function loadBoardShortlist(opts: {
   const windowed = opts.postedWithinHours !== undefined || (splitBoardWhere(opts.where)?.windows.length ?? 0) > 0
   const marketSize =
     classifier && windowed
-      ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer }), closedCounts), classifier.placeFresh)
+      ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })), classifier.placeFresh)
       : undefined
-  const ranked = rankBoardRows(light, {
-    ...opts,
-    keep,
-    place: classifier?.place,
-    breadth: breadth === 'off' ? undefined : breadth,
-    dismiss: dismissRules ?? undefined,
-    marketSize,
-    levelWindow: seniorityRing ? window : undefined,
-  })
+  lap.inputs = Date.now() - t0
+  const rankWith = (keepRow: typeof keep) =>
+    rankBoardRows(light, {
+      ...opts,
+      keep: keepRow,
+      place: classifier?.place,
+      breadth: breadth === 'off' ? undefined : breadth,
+      dismiss: dismissRules ?? undefined,
+      marketSize,
+      levelWindow: seniorityRing ? window : undefined,
+    })
+  const ranked = rankWith(keep)
+  lap.ranked = Date.now() - t0
+  // The other views' counts (the board's AI / Non-AI / All buttons): same rows, no read.
+  const keptCounts: Record<string, number> = {}
+  for (const [name, view] of Object.entries(opts.views?.keeps ?? {})) {
+    keptCounts[name] = name === opts.views!.current ? ranked.openTotal : rankWith(withView(view)).openTotal
+  }
+  if (opts.views) lap.viewCounts = Date.now() - t0
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
   )
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
+  lap.total = Date.now() - t0
+  // A slow shortlist (a cold instance, a board reload) says where the time went, in Vercel's logs.
+  if (lap.total >= SLOW_SHORTLIST_MS) console.log('[board-timing]', JSON.stringify({ ...lap, jobs: light.length }))
 
   return {
     open: inOrder(ranked.openIds),
@@ -648,6 +830,7 @@ export async function loadBoardShortlist(opts: {
       classifier,
     },
     dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
+    keptCounts,
   }
 }
 
@@ -672,11 +855,7 @@ export type BoardRankRow = LightRow
  * (src/lib/personalization/match-compute.ts) count over.
  */
 export async function loadMemberMarketRows(candidate: FitCandidate & StageMemberLike, window?: StageWindow): Promise<BoardRankRow[]> {
-  const closedCounts = await getClosedPostingCounts()
-  return loadLightBoardRows(
-    boardLevelWindowWhere(undefined, { window: window ?? memberStageWindow(candidate), includeMidLevel: true, includeEarlyCareer: true }),
-    closedCounts
-  )
+  return loadLightBoardRows(boardLevelWindowWhere(undefined, { window: window ?? memberStageWindow(candidate), includeMidLevel: true, includeEarlyCareer: true }))
 }
 type StageMemberLike = Parameters<typeof memberStageWindow>[0]
 

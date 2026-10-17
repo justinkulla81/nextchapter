@@ -52,9 +52,12 @@
 import { seniorityGroupOf } from '@/lib/jobs/job-seniority'
 
 export type JobLifecycleStatus = 'new' | 'reposted' | 'duplicate' | 'closed' | 'expired'
-export type CloseReason = 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' | 'duplicate'
+// 'expired_checked': our liveness check found the posting dead (404, redirect to the careers
+// home, "no longer accepting applications", gone from the aggregator's API) — ncrawl/liveness.py
+// and the click-time check (src/lib/jobs/liveness.ts).
+export type CloseReason = 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' | 'duplicate' | 'expired_checked'
 
-export const CLOSE_REASONS: readonly CloseReason[] = ['removed', 'aged_out', 'expired', 'filtered', 'manual', 'duplicate']
+export const CLOSE_REASONS: readonly CloseReason[] = ['removed', 'aged_out', 'expired', 'filtered', 'manual', 'duplicate', 'expired_checked']
 
 /** Statuses that are current (listed somewhere now). */
 export const CURRENT_STATUSES: readonly JobLifecycleStatus[] = ['new', 'reposted', 'duplicate']
@@ -88,6 +91,7 @@ export function mapCrawlerCloseReason(reason: string | null | undefined): CloseR
   const r = reason.trim().toLowerCase()
   if (r.startsWith('removed')) return 'removed'
   if (r.startsWith('aged_out')) return 'aged_out'
+  if (r === 'expired_checked') return 'expired_checked'
   if (r.startsWith('cleanup') || r.endsWith('_filter')) return 'filtered'
   return null
 }
@@ -209,9 +213,11 @@ export function postingRepostLine(p: { repostCount?: number | null; reopenCount?
 export function lifecycleSentence(l: JobLifecycle): string | null {
   if (!l.isPast || !l.closedAt) return null
   if (l.status === 'closed') {
-    return l.closeReason === 'removed'
-      ? `This job closed on ${fmtDate(l.closedAt)}. The employer took the listing down — it was most likely filled or pulled.`
-      : `This job closed on ${fmtDate(l.closedAt)}.`
+    if (l.closeReason === 'removed')
+      return `This job closed on ${fmtDate(l.closedAt)}. The employer took the listing down — it was most likely filled or pulled.`
+    if (l.closeReason === 'expired_checked')
+      return `This job closed on ${fmtDate(l.closedAt)}. We checked the listing and it is no longer taking applications.`
+    return `This job closed on ${fmtDate(l.closedAt)}.`
   }
   return `No longer listed as of ${fmtDate(l.closedAt)}. It passed our freshness window, so it may still be up on the employer's site, but it is unlikely to be actively hiring.`
 }

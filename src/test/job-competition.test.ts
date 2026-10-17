@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { edgeTip, fewerApplicantsHint, isFresh, postedAgo, scoreCompetition } from '@/lib/jobs/competition'
+import { edgeTip, fewerApplicantsHint, fewerApplicantsText, isFresh, postedAgo, scoreCompetition } from '@/lib/jobs/competition'
 
 const now = new Date('2026-10-09T12:00:00Z')
 const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000)
@@ -80,5 +80,14 @@ describe('non-US screen', () => {
     ['Senior Engineer, Observability', 'Dublin', true],
   ])('%s | %s -> %s', (title, location, expected) => {
     expect(namesNonUsPlace(title, location, NON_US)).toBe(expected)
+  })
+
+  it('says the applicants estimate in plain text for emails, only when it is low', () => {
+    const low = scoreCompetition(job({ sourceCategory: 'search_firm' }), 3, now)
+    expect(fewerApplicantsText(low)).toBe('Likely fewer applicants (search-firm listing, on-site, listed in one place)')
+    expect(fewerApplicantsText(low)).not.toMatch(/low competition/i)
+    const high = scoreCompetition(job({ sourceCategory: 'aggregator', location: 'Remote - US', postedAt: daysAgo(25), sourceCount: 3 }), 400, now)
+    expect(fewerApplicantsText(high)).toBeNull()
+    expect(fewerApplicantsText(undefined)).toBeNull()
   })
 })

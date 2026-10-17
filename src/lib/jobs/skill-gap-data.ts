@@ -6,7 +6,8 @@ import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { aggregateSkillGaps, jobSkillGap, type AggregatedSkillGap, type JobSkillGap } from '@/lib/jobs/job-skill-gap'
+import { aggregateSkillGaps, jobSkillGap, skillGapByKind, type AggregatedSkillGap, type JobSkillGap, type SkillGapByKind } from '@/lib/jobs/job-skill-gap'
+import { isAiSkillLabel } from '@/lib/jobs/ai-view'
 
 // The skills matrix (resume, confirmed skills, certifications, minus removed).
 export function memberSkillKeywords(profile: { resumeKeywords: string[]; confirmedSkillsHave: string[]; certifications?: string[]; skillLevels?: unknown }): string[] {
@@ -15,25 +16,24 @@ export function memberSkillKeywords(profile: { resumeKeywords: string[]; confirm
 
 const BEST_FIT_JOBS = 60
 
-/**
- * The member's skills gap across their best-fit open jobs: which skills those jobs ask
- * for that the member doesn't show. Null if it can't be computed — a report must never
- * fail because this did.
- */
-export async function loadMemberSkillGap(candidateId: string): Promise<AggregatedSkillGap | null> {
-  try {
-    const [profile, unlock] = await Promise.all([
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      isDossierUnlocked(candidateId),
-    ])
-    const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS, includeMidLevel: true, includeEarlyCareer: true })
-    // Strong and good fits only: a gap against jobs the member would never be shortlisted for
-    // is noise, not a skill to build.
-    const fits = open.filter((p) => FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(profile, p)] <= 1)
-    if (fits.length === 0) return null
+type BestFitGaps = { jobs: { companyKey: string; gap: JobSkillGap }[] }
 
-    const keywords = memberSkillKeywords(profile)
-    const gaps: { companyKey: string; gap: JobSkillGap }[] = fits.map((p) => {
+/**
+ * Per-job skill gaps across the member's best-fit open jobs (strong and good fits: a gap
+ * against jobs the member would never be shortlisted for is noise, not a skill to build).
+ * Null when none fit.
+ */
+async function loadBestFitGaps(candidateId: string): Promise<BestFitGaps | null> {
+  const [profile, unlock] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
+    isDossierUnlocked(candidateId),
+  ])
+  const { open } = await loadBoardShortlist({ candidate: profile, isCandidatePlus: unlock.unlocked, size: BEST_FIT_JOBS, includeMidLevel: true, includeEarlyCareer: true })
+  const fits = open.filter((p) => FIT_BUCKET_SORT_RANK[computeBoardListingFitBucket(profile, p)] <= 1)
+  if (fits.length === 0) return null
+  const keywords = memberSkillKeywords(profile)
+  return {
+    jobs: fits.map((p) => {
       const key = normalizeOrgName(p.companyName)
       return {
         companyKey: key || p.id,
@@ -41,13 +41,40 @@ export async function loadMemberSkillGap(candidateId: string): Promise<Aggregate
           title: p.title,
           description: p.description,
           skills: p.skills,
+          aiSkillItems: p.aiSkillItems,
           memberKeywords: keywords,
         }),
       }
-    })
-    return aggregateSkillGaps(gaps)
+    }),
+  }
+}
+
+/**
+ * The member's skills gap across their best-fit open jobs: which skills those jobs ask
+ * for that the member doesn't show. Null if it can't be computed — a report must never
+ * fail because this did.
+ */
+export async function loadMemberSkillGap(candidateId: string): Promise<AggregatedSkillGap | null> {
+  try {
+    const fits = await loadBestFitGaps(candidateId)
+    return fits ? aggregateSkillGaps(fits.jobs) : null
   } catch (error) {
     console.error('Could not compute skills gap for candidate', candidateId, error)
+    return null
+  }
+}
+
+/**
+ * The same best-fit jobs, by skill with AI skills (the 24 items, ai-skills.ts) marked, for the
+ * Learning page's AI skills / Other skills / All section. Null if it can't be computed — the
+ * Learning page must never fail because this did.
+ */
+export async function loadMemberSkillGapByKind(candidateId: string): Promise<SkillGapByKind | null> {
+  try {
+    const fits = await loadBestFitGaps(candidateId)
+    return fits ? skillGapByKind(fits.jobs, isAiSkillLabel) : null
+  } catch (error) {
+    console.error('Could not compute skills gap by kind for candidate', candidateId, error)
     return null
   }
 }

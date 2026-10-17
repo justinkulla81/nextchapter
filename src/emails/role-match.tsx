@@ -50,8 +50,8 @@ export default function RoleMatchEmail({ firstName, role, actionUrl }: RoleMatch
       {/* Every member sees every job (owner's rule, 2026-10-16), so the role is always named. */}
       <>
           <p>
-            A {ROLE_TYPE_LABEL[role.type]} at <strong>{role.companyName}</strong> is a strong match for your
-            background: <strong>{role.roleTitle}</strong>.
+            <strong>{role.verdict}:</strong> {role.roleTitle} at <strong>{role.companyName}</strong>, a{' '}
+            {ROLE_TYPE_LABEL[role.type]} that fits your background.
           </p>
           {role.description && <p>{role.description}</p>}
           <p>{role.compLabel}</p>

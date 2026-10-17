@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getMemberEvidence } from '@/lib/evidence/load'
-import { EVIDENCE_POINTS } from '@/lib/evidence/score'
+import { AI_SAMPLE_MAX_POINTS, EVIDENCE_POINTS } from '@/lib/evidence/score'
 import { platformLabel, REVIEW_STATUS_LABEL } from '@/lib/evidence/external-reviews'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
@@ -43,7 +43,7 @@ export async function EvidenceCard({ candidateId }: { candidateId: string }) {
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          How it&apos;s scored: each completed reference {EVIDENCE_POINTS.reference} points, each work sample {EVIDENCE_POINTS.portfolio},
+          How it&apos;s scored: each completed reference {EVIDENCE_POINTS.reference} points, each work sample {EVIDENCE_POINTS.portfolio}, an AI work sample up to {AI_SAMPLE_MAX_POINTS} (most of it for a measured result),
           imported reviews up to {EVIDENCE_POINTS.importedReviewsMax} (more reviews and a higher rating earn more), reviews from NextChapter
           clients up to {EVIDENCE_POINTS.clientReview}. Each extra one of the same kind counts a bit less. Maximum 100.
         </p>

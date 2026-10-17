@@ -42,13 +42,6 @@ export const MATCH_DIMENSION_LABEL: Record<MatchDimensionKey, string> = {
   goals: 'Goals',
   workStyle: 'Working style',
 }
-export const OVERALL_MATCH_LABEL: Record<OverallMatch, string> = {
-  strong: 'Strong match',
-  good: 'Good match',
-  mixed: 'Mixed match',
-  weak: 'Weak match',
-  unknown: 'Match unclear',
-}
 export const MATCH_STATUS_LABEL: Record<MatchStatus, string> = {
   strong: 'Strong',
   partial: 'Partial',

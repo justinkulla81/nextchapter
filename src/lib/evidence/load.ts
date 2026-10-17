@@ -3,6 +3,7 @@ import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeEvidence, memberTier, type EvidenceResult, type MemberTier } from './score'
+import { aiSampleChecks, AI_SAMPLE_TYPES } from './ai-work-samples'
 
 export interface MemberEvidence extends EvidenceResult {
   candidatePlus: boolean
@@ -15,9 +16,14 @@ export async function loadEvidenceMany(candidateIds: string[]): Promise<Map<stri
   const ids = [...new Set(candidateIds)]
   const out = new Map<string, EvidenceResult>()
   if (ids.length === 0) return out
-  const [refs, samples, imports, clientReviews] = await Promise.all([
+  const [refs, samples, aiSamples, imports, clientReviews] = await Promise.all([
     prisma.reference.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, status: 'COMPLETED' }, _count: { _all: true } }),
-    prisma.workSample.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids } }, _count: { _all: true } }),
+    prisma.workSample.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, sampleType: { notIn: AI_SAMPLE_TYPES } }, _count: { _all: true } }),
+    // AI work samples are scored on their proof-map checks (ai-work-samples.ts).
+    prisma.workSample.findMany({
+      where: { candidateId: { in: ids }, sampleType: { in: AI_SAMPLE_TYPES } },
+      select: { candidateId: true, sampleType: true, aiDetails: true, aiToolsUsed: true, beforeMetric: true, afterMetric: true, externalUrl: true },
+    }),
     prisma.externalReviewStat.findMany({
       where: { candidateId: { in: ids }, status: { not: 'REJECTED' } },
       select: { candidateId: true, rating: true, reviewCount: true, status: true },
@@ -33,6 +39,11 @@ export async function loadEvidenceMany(candidateIds: string[]): Promise<Map<stri
         completedReferences: refCount.get(id) ?? 0,
         portfolioItems: sampleCount.get(id) ?? 0,
         importedReviews: imports.filter((r) => r.candidateId === id),
+        aiSamples: aiSamples
+          .filter((w) => w.candidateId === id)
+          .map((w) => aiSampleChecks(w))
+          .filter((c) => c !== null)
+          .map((c) => ({ hasMetric: c.hasMetric, checksPassed: c.passed.length })),
         clientReviewRatings: clientReviews.filter((r) => r.candidateId === id).map((r) => r.rating),
       })
     )

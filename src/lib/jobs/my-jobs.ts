@@ -3,6 +3,7 @@
 // rule is unit-tested (src/test/my-jobs.test.ts). Loading and saving live in
 // my-jobs-data.ts; the UI in components/dashboard/my-jobs/.
 
+import { isAiSkillLabel } from '@/lib/jobs/ai-view'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 
@@ -189,8 +190,12 @@ export function myJobsFunnel(items: FunnelItem[]): MyJobsFunnel {
 export interface SkillsGapInsight {
   /** Saved/applied jobs with enough skill data to judge. */
   jobsWithData: number
-  /** Skills those jobs ask for that the member doesn't show, most common first. */
-  top: { skill: string; jobs: number }[]
+  /**
+   * Skills those jobs ask for that the member doesn't show, most common first: up to `limit`
+   * AI skills (one of the 24 items, ai-skills.ts) and up to `limit` others, so the AI / Other /
+   * All choice (ai-view.ts) has a list for each.
+   */
+  top: { skill: string; jobs: number; ai: boolean }[]
 }
 
 /** Below this many jobs with skill data, there's no pattern to call. */
@@ -205,11 +210,13 @@ export function skillsGapInsight(jobs: { id: string; gap: JobSkillGap }[], limit
   if (withData.length < MIN_JOBS_FOR_INSIGHT) return null
   const counts = new Map<string, Set<string>>()
   for (const j of withData) for (const s of j.gap.missing) (counts.get(s) ?? counts.set(s, new Set()).get(s)!).add(j.id)
-  const top = [...counts.entries()]
-    .map(([skill, ids]) => ({ skill, jobs: ids.size }))
+  const ranked = [...counts.entries()]
+    .map(([skill, ids]) => ({ skill, jobs: ids.size, ai: isAiSkillLabel(skill) }))
     .filter((s) => s.jobs >= MIN_JOBS_FOR_INSIGHT)
     .sort((a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill))
-    .slice(0, limit)
+  const top = [...ranked.filter((s) => s.ai).slice(0, limit), ...ranked.filter((s) => !s.ai).slice(0, limit)].sort(
+    (a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill)
+  )
   if (top.length === 0) return null
   return { jobsWithData: withData.length, top }
 }

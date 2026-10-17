@@ -9,7 +9,8 @@ import { loadPostingLifecycle } from '@/lib/jobs/past-jobs-data'
 import { lifecycleBadge, lifecycleSentence, postedLine } from '@/lib/jobs/job-status'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { formatUsdK } from '@/lib/pay/market-pay'
-import { ClosedJobAlternatives } from '@/components/jobs/ClosedJobAlternatives'
+import { ClosedJobAlternatives, SimilarLiveJobs } from '@/components/jobs/ClosedJobAlternatives'
+import { similarLiveJobs } from '@/lib/jobs/similar-live-jobs'
 import { ApplyOnEmployerSite, ClosedJobViewed } from '@/components/jobs/JobPageActions'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
 import { NativeApply } from '@/components/jobs/NativeApply'
@@ -27,7 +28,7 @@ import { JobRequirementDetails, JobRequirementLabels } from '@/components/dashbo
 
 export const metadata: Metadata = { title: 'Job' }
 
-const SOURCES = new Set(['my_jobs', 'email', 'job_search_daily', 'fresh_job_alert', 'saved_link', 'board', 'company'])
+const SOURCES = new Set(['my_jobs', 'email', 'job_search_daily', 'fresh_job_alert', 'saved_link', 'board', 'company', 'closed_on_click'])
 
 export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ src?: string }> }) {
   const [{ id }, { src }] = await Promise.all([params, searchParams])
@@ -55,6 +56,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const life = await loadPostingLifecycle(posting.id)
   if (!life) notFound()
   const source = src && SOURCES.has(src) ? src : 'direct'
+  // Sent here by the click-time liveness check (jobs/[id]/open): the posting just died.
+  const justClosed = life.isPast && source === 'closed_on_click'
+  const similar = justClosed ? await similarLiveJobs(posting) : []
   const confidential = posting.disclosure === 'CONFIDENTIAL'
   const company = confidential ? 'Confidential company' : posting.companyName
   const yearly = !posting.payPeriod || posting.payPeriod === 'year'
@@ -108,8 +112,18 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
       {life.isPast ? (
         <div role="status" className="space-y-2 rounded-lg border border-border bg-muted p-4">
-          <p className="text-sm font-medium text-foreground">{sentence}</p>
-          <p className="text-sm text-muted-foreground">You can&apos;t apply to this one any more. These are open now:</p>
+          {justClosed ? (
+            <>
+              <p className="text-sm font-medium text-foreground">This job just closed</p>
+              <p className="text-sm text-muted-foreground">
+                We checked the listing as you opened it, and the employer is no longer taking applications. We&apos;ve taken it off your board.
+              </p>
+              <SimilarLiveJobs jobId={posting.id} jobs={similar} />
+            </>
+          ) : (
+            <p className="text-sm font-medium text-foreground">{sentence}</p>
+          )}
+          <p className="text-sm text-muted-foreground">{justClosed ? 'More like it:' : "You can't apply to this one any more. These are open now:"}</p>
           <ClosedJobAlternatives jobId={posting.id} companyName={confidential ? null : posting.companyName} title={posting.title} surface="job_page" />
         </div>
       ) : (
@@ -117,7 +131,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           {native ? (
             <NativeApply postingId={posting.id} />
           ) : (
-            <ApplyOnEmployerSite job={{ id: posting.id, title: posting.title, companyName: posting.companyName, location: posting.location, url: posting.url }} />
+            <ApplyOnEmployerSite job={{ id: posting.id, title: posting.title, companyName: posting.companyName, location: posting.location, url: posting.url }} viaCheck={posting.source === 'ats_feed'} />
           )}
           {life.repostCount > 0 && (
             <p className="text-xs text-muted-foreground">Reposted before — worth asking someone there whether it is actively being filled.</p>

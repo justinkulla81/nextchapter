@@ -7,15 +7,15 @@ import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlis
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { classifyWorkType } from '@/lib/jobs/work-type'
-import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
+import { boardListingFitBucketFor, emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
-import { postedAgo } from '@/lib/jobs/competition'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
 import FreshJobAlertEmail from '@/emails/fresh-job-alert'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-job-alert-cap'
-import { bridgeEmailNote } from '@/lib/jobs/bridge-note'
+import { boardJobCardTexts } from '@/lib/jobs/job-card-server'
+import { metaLineText } from '@/lib/jobs/job-card'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -97,6 +97,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   const claimed = new Set(claim.postingIds)
   jobs = jobs.filter((p) => claimed.has(p.id))
 
+  // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
+  const cards = boardJobCardTexts({ candidate, shortlist: board, postings: jobs, fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p) })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const subject = neutralizeEmailSubject(
     jobs.length === 1 ? `Just posted: ${jobs[0].title}` : `${jobs.length} roles that fit you were just posted`,
@@ -109,14 +111,16 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     subject,
     react: FreshJobAlertEmail({
       firstName: candidate.firstName,
-      jobs: jobs.map((p) => ({
-        title: p.title,
-        company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : p.companyName,
-        location: p.location,
-        postedAgo: postedAgo(p),
-        // A small strict market widens with bridge jobs (still very strong fits); they say so.
-        bridgeNote: board.breadth.bridges.has(p.id) ? bridgeEmailNote(board.breadth.bridges.get(p.id)!) : null,
-      })),
+      jobs: jobs.map((p) => {
+        const card = cards.get(p.id)!
+        return {
+          title: p.title,
+          company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : p.companyName,
+          verdict: card.verdictLabel,
+          meta: metaLineText(card),
+          why: card.whyLine || null,
+        }
+      }),
       boardUrl: `${appUrl}/dashboard/find-my-job?view=fresh&src=fresh_job_alert#job-recommendations`,
       unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'freshJobAlerts'),
     }),

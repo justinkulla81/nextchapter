@@ -15,6 +15,8 @@
 // earns fixed points, each extra piece of the same kind counts a bit less, and
 // the total is capped at 100.
 
+import { aiSamplePoints, AI_SAMPLE_POINTS } from './ai-work-samples'
+
 export const EVIDENCE_POINTS = {
   reference: 12,
   portfolio: 8,
@@ -37,7 +39,20 @@ export interface EvidenceInputs {
   portfolioItems: number
   importedReviews: { rating: number; reviewCount: number; status: string }[]
   clientReviewRatings: number[] // published NextChapter client reviews only
+  /**
+   * AI work samples (ai-work-samples.ts), NOT counted in portfolioItems: each earns the
+   * work-sample base plus extra for its proof-map checks, most of it for a measured result.
+   */
+  aiSamples?: { hasMetric: boolean; checksPassed: number }[]
 }
+
+/** What one AI work sample earns before the repeat discount. */
+export function aiSampleEvidencePoints(s: { hasMetric: boolean; checksPassed: number }): number {
+  const others = Math.max(0, s.checksPassed - (s.hasMetric ? 1 : 0))
+  return aiSamplePoints({ hasMetric: s.hasMetric, passed: Array.from({ length: others }, () => ({ key: '', label: '' })) }, EVIDENCE_POINTS.portfolio)
+}
+/** The most an AI work sample can earn (all checks, with a measured result). */
+export const AI_SAMPLE_MAX_POINTS = EVIDENCE_POINTS.portfolio + AI_SAMPLE_POINTS.metric + 3 * AI_SAMPLE_POINTS.perOtherCheck
 
 export interface EvidenceResult {
   score: number // 0-100, whole number
@@ -66,7 +81,8 @@ function diminishing(points: number[]): number {
 function rawTotal(input: EvidenceInputs): number {
   return (
     diminishing(Array(Math.max(0, input.completedReferences)).fill(EVIDENCE_POINTS.reference)) +
-    diminishing(Array(Math.max(0, input.portfolioItems)).fill(EVIDENCE_POINTS.portfolio)) +
+    // Work samples and AI work samples share one repeat discount (the best counts in full).
+    diminishing([...Array(Math.max(0, input.portfolioItems)).fill(EVIDENCE_POINTS.portfolio), ...(input.aiSamples ?? []).map(aiSampleEvidencePoints)]) +
     diminishing(input.importedReviews.map(importedReviewPoints).filter((p) => p > 0)) +
     diminishing(input.clientReviewRatings.filter((r) => r > 0).map((r) => EVIDENCE_POINTS.clientReview * (Math.min(5, r) / 5)))
   )
@@ -76,6 +92,7 @@ export function computeEvidence(input: EvidenceInputs): EvidenceResult {
   const pieces =
     Math.max(0, input.completedReferences) +
     Math.max(0, input.portfolioItems) +
+    (input.aiSamples ?? []).length +
     input.importedReviews.filter((r) => importedReviewPoints(r) > 0).length +
     input.clientReviewRatings.filter((r) => r > 0).length
   const total = rawTotal(input)
@@ -88,6 +105,10 @@ export function computeEvidence(input: EvidenceInputs): EvidenceResult {
   const options = [
     { label: 'get one more reference completed', points: gain({ ...input, completedReferences: input.completedReferences + 1 }) },
     { label: 'add a work sample or case study', points: gain({ ...input, portfolioItems: input.portfolioItems + 1 }) },
+    {
+      label: 'add an AI work sample with a measured result',
+      points: gain({ ...input, aiSamples: [...(input.aiSamples ?? []), { hasMetric: true, checksPassed: 3 }] }),
+    },
     {
       label: input.importedReviews.length === 0 ? 'import your reviews from Upwork, Toptal or another platform' : 'import reviews from another platform',
       points: gain({ ...input, importedReviews: [...input.importedReviews, typicalImport] }),
