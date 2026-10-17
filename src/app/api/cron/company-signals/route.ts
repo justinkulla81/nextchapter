@@ -43,7 +43,10 @@ export const GET = withCronRun('company-signals', async () => {
     ])
   )
   let signalErrors = 0
-  const rows: Prisma.CompanySignalCreateManyInput[] = []
+  // Two employer-name keys can resolve to one company (spelling variants, merged
+  // duplicates, aliases). The week's row is unique per company, so those collapse
+  // into one: counts add up, the rest comes from whichever name had more roles.
+  const rowByCompany = new Map<string, Prisma.CompanySignalCreateManyInput>()
   for (const signal of signals) {
     try {
       let companyId = idByKey.get(signal.companyNameNormalized)
@@ -51,7 +54,7 @@ export const GET = withCronRun('company-signals', async () => {
         companyId = (await getOrCreateCompany(signal.companyName)).id
         idByKey.set(signal.companyNameNormalized, companyId)
       }
-      rows.push({
+      const next: Prisma.CompanySignalCreateManyInput = {
         companyId,
         weekStartDate,
         openRolesTotal: signal.openRolesTotal,
@@ -62,12 +65,27 @@ export const GET = withCronRun('company-signals', async () => {
         topFunctionsHiring: signal.topFunctionsHiring as unknown as Prisma.InputJsonValue,
         topSkillsRequested: signal.topSkillsRequested as unknown as Prisma.InputJsonValue,
         medianPostingAgeDays: signal.medianPostingAgeDays,
-      })
+      }
+      const prev = rowByCompany.get(companyId)
+      if (!prev) {
+        rowByCompany.set(companyId, next)
+      } else {
+        const lead = (next.openRolesTotal ?? 0) > (prev.openRolesTotal ?? 0) ? next : prev
+        rowByCompany.set(companyId, {
+          ...lead,
+          openRolesTotal: (prev.openRolesTotal ?? 0) + (next.openRolesTotal ?? 0),
+          openRolesDirectorPlus: (prev.openRolesDirectorPlus ?? 0) + (next.openRolesDirectorPlus ?? 0),
+          rolesDelta4wk: (prev.rolesDelta4wk ?? 0) + (next.rolesDelta4wk ?? 0),
+          rolesDelta12wk: (prev.rolesDelta12wk ?? 0) + (next.rolesDelta12wk ?? 0),
+        })
+      }
     } catch (error) {
       signalErrors++
       console.error(`company-signals: failed for ${signal.companyName}`, error)
     }
   }
+
+  const rows = [...rowByCompany.values()]
 
   // This week's rows are wholly derived from the postings, so they are replaced as
   // a unit: one transaction, readers see the old week until it commits, and a
