@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils'
 import { edgeTip, fewerApplicantsHint, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import { cardMetaParts, cardVerdict, isStillListed } from '@/lib/jobs/job-card'
 import { postingOpenHref } from '@/lib/jobs/posting-open-href'
+import { aggregatorKind } from '@/lib/jobs/liveness'
+import { ReportClosedButton } from '@/components/jobs/ReportClosedButton'
 import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardParts'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
@@ -453,6 +455,7 @@ export function DiscoverJobCard({
               View posting
             </Button>
           )}
+          {!confidential && posting.source === 'ats_feed' && aggregatorKind(posting.url) && <ReportClosedButton jobId={posting.id} />}
           {state?.jobPostingId ? (
             <p className="text-sm text-success">Added to My Applications, with a full fit analysis below.</p>
           ) : (
