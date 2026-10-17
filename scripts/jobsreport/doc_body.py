@@ -25,7 +25,7 @@ The sample is {wc:,} white-collar postings from {o['employers']} employers' own 
 
 ## Coverage
 
-{o['postings']:,} postings were read from {o['employers']} employers; {o['in_county']:,} are in the area and {wc:,} of those are white-collar ({pct(wc, o['in_county'])}). Another {o['unclassified']:,} could not be classified from the title and are left out. The frame is every white-collar job at every level, entry-level included (Census major groups 1 and 2).
+{o['in_county']:,} postings in the area were read from {o['employers']} employers, and {wc:,} of them are white-collar ({pct(wc, o['in_county'])}). Another {o['unclassified']:,} could not be classified from the title and are left out. The frame is every white-collar job at every level, entry-level included (Census major groups 1 and 2).
 
 Employers on career systems we cannot read are missing, so read these figures as describing the employers listed, not every opening in the area.
 
