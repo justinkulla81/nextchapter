@@ -2,7 +2,7 @@ import { Bookmark, Check, Minus, CircleDashed } from 'lucide-react'
 import { TuneStrip } from '@/components/candidate/TuneStrip'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { Avatar, Chip, DarkButton, Meter, PrimaryButton, SecondaryButton, TextLink, Section } from '@/components/candidate/ui'
+import { Avatar, DarkButton, PrimaryButton, SecondaryButton, TextLink, Section } from '@/components/candidate/ui'
 import { cn } from '@/lib/utils'
 
 const JOBS = [

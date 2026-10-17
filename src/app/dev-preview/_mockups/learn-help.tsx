@@ -61,7 +61,7 @@ const field = 'h-11 w-full rounded-xl border border-border px-3.5 text-base'
 
 export function ProfileMock() {
   return (
-    <PreviewShell place="personalize" entry="profile" part="profile">
+    <PreviewShell place="account" entry="profile">
       <PageHeader title="Your profile" intro="The better we know you, the better your jobs. Each answer says what it improves." />
       <div className="space-y-2"><div className="flex justify-between text-sm"><span className="font-semibold text-ink">70% tuned</span><span className="text-muted-foreground">Next: add your tools, 150 more jobs match</span></div><Meter pct={70} label="Profile tuned" /></div>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -77,7 +77,7 @@ export function ProfileMock() {
 
 export function ResumeMock() {
   return (
-    <PreviewShell place="personalize" entry="profile" part="resume">
+    <PreviewShell place="jobs" entry="apply" part="resume">
       <PageHeader title="Résumé" intro="One résumé per kind of job. We check each one against the jobs you are applying to." action={<PrimaryButton>Make a new version</PrimaryButton>} />
       <ul className="divide-y divide-border rounded-2xl border border-border">
         {[['Operations leader', 'Used for 14 applications', 'Matches 86% of what jobs ask for', true], ['Healthcare operations', 'Used for 5 applications', 'Missing: supply chain, vendor contracts', false]].map(([n, u, c, g]) => (
@@ -91,7 +91,7 @@ export function ResumeMock() {
 export function WhyHireMe() {
   const traits = ['Motivation', 'Thoroughness', 'Conscientiousness', 'Helpfulness', 'Communication', 'References', 'Self-awareness', 'Peak strengths', 'Track record']
   return (
-    <PreviewShell place="personalize" entry="profile" part="whyhire">
+    <PreviewShell place="jobs" entry="apply" part="whyhire">
       <PageHeader title="Why hire me" intro="What a résumé cannot show. Everything you do here adds proof, and employers can see it when you choose." />
       <div className="grid gap-3 sm:grid-cols-3">
         {traits.map((t, i) => (
@@ -105,7 +105,7 @@ export function WhyHireMe() {
 
 export function CareerStory() {
   return (
-    <PreviewShell place="personalize" entry="profile" part="career">
+    <PreviewShell place="learn" entry="path" part="story">
       <PageHeader title="Your career story" intro="Your path so far, and the doors it could open. Built from what you tell us." />
       <ol className="space-y-0 border-l-2 border-border pl-6">
         {[['2025–now', 'Between chapters', 'Searching, consulting part-time'], ['2018–2025', 'VP Operations, Meridian', 'Led 400 people, cut costs 14%'], ['2012–2018', 'Director, Harbor Health', 'Opened 6 clinics'], ['2008–2012', 'Ohio State, MBA', '']].map(([y, t, d]) => (
@@ -119,7 +119,7 @@ export function CareerStory() {
 
 export function HowIWork() {
   return (
-    <PreviewShell place="personalize" entry="profile" part="work">
+    <PreviewShell place="learn" entry="know">
       <PageHeader title="How I work" intro="Short assessments that tune your matches and add proof to your dossier." />
       <ul className="divide-y divide-border rounded-2xl border border-border">
         {[['Work interests', '5 minutes', 'Done', 'Finds roles you would enjoy'], ['How I work best', '8 minutes', 'Done', 'Shows employers how you collaborate'], ['Skills inventory', '10 minutes', 'Not started', 'Opens about 40 more jobs']].map(([n, t, s, w]) => (
@@ -130,21 +130,9 @@ export function HowIWork() {
   )
 }
 
-export function MySearch() {
-  return (
-    <PreviewShell place="personalize" entry="search">
-      <PageHeader title="My search" intro="Five short steps. You can come back and change any of them." />
-      <div className="space-y-2"><p className="text-sm font-semibold text-ink">Step 2 of 5: What you want</p><Meter pct={40} label="Step 2 of 5" /></div>
-      <fieldset className="space-y-3"><legend className="text-base font-semibold text-ink">How much do you want to work?</legend><div className="flex flex-wrap gap-2" role="group">{['Full time', 'Part time', 'Contract', 'Either'].map((o, i) => <button key={o} type="button" aria-pressed={i === 0} className={`h-11 rounded-full border px-5 text-base ${i === 0 ? 'border-ink bg-ink text-white' : 'border-border text-ink'}`}>{o}</button>)}</div></fieldset>
-      <fieldset className="space-y-3"><legend className="text-base font-semibold text-ink">Open to relocating? <span className="font-normal text-muted-foreground">(changes which cities we search)</span></legend><div className="flex flex-wrap gap-2" role="group">{['No', 'Within the region', 'Anywhere'].map((o, i) => <button key={o} type="button" aria-pressed={i === 1} className={`h-11 rounded-full border px-5 text-base ${i === 1 ? 'border-ink bg-ink text-white' : 'border-border text-ink'}`}>{o}</button>)}</div></fieldset>
-      <div className="flex items-center gap-4"><PrimaryButton>Continue</PrimaryButton><SecondaryButton>Back</SecondaryButton></div>
-    </PreviewShell>
-  )
-}
-
 export function WhatRecruitersSee() {
   return (
-    <PreviewShell place="personalize" entry="recruiters">
+    <PreviewShell place="account" entry="visibility">
       <PageHeader title="What recruiters see" intro="Exactly what a recruiter sees about you, and you control it." />
       <div className="grid gap-5 md:grid-cols-[1fr_20rem]">
         <section className="space-y-3 rounded-2xl border border-border p-6"><div className="flex items-center gap-2"><Chip tone="ink">Candidate+</Chip><span className="text-sm text-muted-foreground">Earned by 480 minutes of real work</span></div><h2 className="font-display text-2xl font-semibold text-ink">Justin K., Director of Operations</h2><p className="text-base text-ink">New York · open to full-time · healthcare and logistics. 6 of 9 traits shown, each with proof.</p></section>
@@ -156,7 +144,7 @@ export function WhatRecruitersSee() {
 
 export function DocumentsMock() {
   return (
-    <PreviewShell place="personalize" entry="documents">
+    <PreviewShell place="account" entry="documents">
       <PageHeader title="Documents" intro="Files you share with your coach or employers. Only the people you choose can open them." action={<PrimaryButton>Upload a document</PrimaryButton>} />
       <ul className="divide-y divide-border rounded-2xl border border-border">
         {[['Résumé, Operations leader.pdf', 'Shared with: your coach', 'Updated Monday'], ['Reference letter, Meridian.pdf', 'Shared with: nobody yet', 'Added last week'], ['Requested by Sara: 2024 tax summary', 'Waiting for you', 'Asked 2 days ago']].map(([n, s, d]) => (
@@ -169,7 +157,7 @@ export function DocumentsMock() {
 
 export function MembershipMock() {
   return (
-    <PreviewShell place="personalize" entry="membership">
+    <PreviewShell place="account" entry="membership">
       <PageHeader title="Membership" intro="What you have, what it includes, and what more would add." />
       <section className="space-y-3 rounded-2xl border border-border p-6"><Chip tone="good">Your plan</Chip><h2 className="font-display text-2xl font-semibold text-ink">Free, plus Candidate+ from your effort</h2><p className="text-base text-ink">1 point = 1 minute of real search work. At 480 minutes you earn Candidate+. You are at 312. <span className="font-semibold">168 to go, about 3 days.</span></p><Meter pct={65} label="Toward Candidate+" /></section>
       <Section id="more" title="Add more">

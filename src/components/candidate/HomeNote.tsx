@@ -2,12 +2,12 @@
 // these on Home. "Why am I seeing this?" holds the explanation, including what the plan is set up for.
 export function HomeNote({ title, why, startLabel, startHref, whyDetail }: { title: string; why: string; startLabel: string; startHref: string; whyDetail: string }) {
   return (
-    <section aria-labelledby="note" className="space-y-4 rounded-2xl border border-border bg-white p-7">
+    <section aria-labelledby="note" className="space-y-4 rounded-2xl border border-border bg-white p-5 sm:p-7">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">Cue</span>
         <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Today&apos;s note</span>
       </div>
-      <h2 id="note" className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance">
+      <h2 id="note" className="font-display text-2xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-3xl">
         {title}
       </h2>
       <p className="max-w-2xl text-base text-ink">

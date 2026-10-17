@@ -1,6 +1,6 @@
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { Avatar, Chip, DarkButton, Meter, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
+import { Avatar, Chip, DarkButton, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
 import { Module } from '@/components/candidate/Module'
 import { cn } from '@/lib/utils'
 
@@ -253,7 +253,7 @@ export function MarketPivot() {
     ['Management Consultant', 'Related', '$230K', 'Growing 10%', 'Problem solving and client work carry over.', 'Needs: a consulting case portfolio.', '1 funded program in Massachusetts'],
   ]
   return (
-    <PreviewShell place="jobs" entry="market" part="pivot">
+    <PreviewShell place="learn" entry="path" part="roles">
       <PageHeader title="Other roles you could do" intro="Roles close to yours, with what carries over, what is missing, and how to close the gap." />
       <ul className="space-y-4">
         {roles.map(([t, rel, pay, gr, has, needs, train]) => (

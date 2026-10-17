@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, User, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, UserCog, Users, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROPOSED_NAV, type PlaceId } from './proposed-nav'
 
-const ICONS: Record<PlaceId, LucideIcon> = { home: Home, jobs: Briefcase, network: Users, learn: BookOpen, personalize: User, help: LifeBuoy }
+const ICONS: Record<PlaceId, LucideIcon> = { home: Home, jobs: Briefcase, network: Users, learn: BookOpen, account: UserCog, help: LifeBuoy }
 
 // Where a mockup page lives. Each page names its place, entry and (optionally) part, and the shell draws
 // the proposed menu around it: the active place opens to show its entries, and an entry with parts shows
@@ -15,7 +15,10 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
   // The menu can shrink to icons so the page gets the width. The choice is remembered per browser.
   const [collapsed, setCollapsed] = useState(false)
   useEffect(() => {
-    try { setCollapsed(window.localStorage.getItem('nc-menu-collapsed') === '1') } catch {}
+    const t = setTimeout(() => {
+      try { setCollapsed(window.localStorage.getItem('nc-menu-collapsed') === '1') } catch {}
+    }, 0)
+    return () => clearTimeout(t)
   }, [])
   const toggle = () => {
     setCollapsed((c) => {
@@ -80,10 +83,10 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
         <span className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-ink">Menu</span>
       </header>
 
-      <main className={cn('px-5 pt-10 pb-28 lg:pb-12', collapsed ? 'lg:pl-[calc(4rem+2.5rem)]' : 'lg:pl-[calc(18rem+2.5rem)]')}>
+      <main className={cn('px-5 pt-5 pb-28 sm:pt-10 lg:pb-12', collapsed ? 'lg:pl-[calc(4rem+2.5rem)]' : 'lg:pl-[calc(18rem+2.5rem)]')}>
         <div className={cn('mx-auto space-y-8', wide || collapsed ? 'max-w-6xl' : 'max-w-4xl')}>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
+          <div className={cn('space-y-4', place === 'home' && entry === 'today' && 'max-sm:space-y-0')}>
+            <p className={cn('text-sm text-muted-foreground', place === 'home' && entry === 'today' && 'hidden sm:block')}>
               {p.label}
               {place !== 'home' || entry !== 'today' ? <> <span aria-hidden>›</span> <span className="text-ink">{e.label}</span></> : null}
             </p>
@@ -107,7 +110,7 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
       </main>
 
       <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-white lg:hidden">
-        {PROPOSED_NAV.filter((x) => ['home', 'jobs', 'network', 'personalize'].includes(x.id)).map((pl) => {
+        {PROPOSED_NAV.filter((x) => ['home', 'jobs', 'network', 'learn'].includes(x.id)).map((pl) => {
           const Icon = ICONS[pl.id]
           return (
             <Link key={pl.id} href={href(pl.id, pl.entries[0].key, pl.entries[0].parts?.[0]?.key)} className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium', pl.id === place ? 'text-ink' : 'text-muted-foreground')}>

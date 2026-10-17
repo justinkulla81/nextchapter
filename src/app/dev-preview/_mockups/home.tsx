@@ -12,7 +12,7 @@ export function HomeToday() {
     <PreviewShell place="home" entry="today">
       <header className="space-y-1.5">
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya</p>
-        <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-ink text-balance">The right role, fast.</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">The right role, fast.</h1>
       </header>
       <JourneyCard
         journey="Laid off, looking"
