@@ -493,6 +493,11 @@ export interface BreadthClassifier {
   occupations: JobOccupations
   /** Classified at Wide; null = not on either board. */
   place: (row: BreadthRow) => BreadthPlacement | null
+  /**
+   * The same placement, never memoised: for a pass over the member's whole market that won't
+   * be read again (the market-size count), so it leaves no placement behind for every job.
+   */
+  placeFresh: (row: BreadthRow) => BreadthPlacement | null
   /** Every criterion for a job, even one on neither board (reports and diagnostics; not memoised). */
   criteria: (row: BreadthRow) => { cls: JobClass | null; crit: JobCriteria }
 }
@@ -551,6 +556,16 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
       },
     }
   }
+  const placeFresh = (row: BreadthRow): BreadthPlacement | null => {
+    const { cls, crit } = criteria(row)
+    const fn = crit.fn
+    // In some ring at all (the board settles the ring once fit and level are known).
+    if (fn !== 'none' && crit.geo !== null && (crit.skills === 'strong' || crit.skills === 'unknown')) {
+      const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
+      return { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
+    }
+    return null
+  }
   return {
     member,
     occupations,
@@ -558,17 +573,11 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
     place: (row) => {
       const hit = memo.get(row)
       if (hit !== undefined) return hit
-      const { cls, crit } = criteria(row)
-      const fn = crit.fn
-      let placed: BreadthPlacement | null = null
-      // In some ring at all (the board settles the ring once fit and level are known).
-      if (fn !== 'none' && crit.geo !== null && (crit.skills === 'strong' || crit.skills === 'unknown')) {
-        const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
-        placed = { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
-      }
+      const placed = placeFresh(row)
       memo.set(row, placed)
       return placed
     },
+    placeFresh,
   }
 }
 

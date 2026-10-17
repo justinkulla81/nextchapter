@@ -609,7 +609,7 @@ export async function loadBoardShortlist(opts: {
   const windowed = opts.postedWithinHours !== undefined || (splitBoardWhere(opts.where)?.windows.length ?? 0) > 0
   const marketSize =
     classifier && windowed
-      ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer }), closedCounts), classifier.place)
+      ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer }), closedCounts), classifier.placeFresh)
       : undefined
   const ranked = rankBoardRows(light, {
     ...opts,
