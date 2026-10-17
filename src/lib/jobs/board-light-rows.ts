@@ -130,16 +130,22 @@ export function logBoardMemory(label: string, detail: Record<string, number>): v
  * Loading the board a page at a time keeps one page (not the whole table, its filtered
  * copy and its sorted copy) in memory beside the rows the board keeps.
  */
-export async function findLightRowsPage(where: Prisma.ExclusiveJobPostingWhereInput, afterId: string | null, take: number): Promise<LightRow[]> {
+export async function findLightRowsPage(
+  where: Prisma.ExclusiveJobPostingWhereInput,
+  afterId: string | null,
+  take: number
+): Promise<(LightRow & { expiresAt: Date | null })[]> {
   const paged: Prisma.ExclusiveJobPostingWhereInput = afterId === null ? where : { AND: [where, { id: { gt: afterId } }] }
+  // expiresAt too: the shared board drops a job the moment it expires (board-shortlist.ts stillLive).
+  const select = { ...LIGHT_SELECT, expiresAt: true } as const
   if (mirrorCanAnswer(paged) && (await boardLightRowsReady())) {
     try {
-      return await prisma.boardLightRow.findMany({ where: paged as Prisma.BoardLightRowWhereInput, select: LIGHT_SELECT, orderBy: { id: 'asc' }, take })
+      return await prisma.boardLightRow.findMany({ where: paged as Prisma.BoardLightRowWhereInput, select, orderBy: { id: 'asc' }, take })
     } catch (error) {
       console.error('Board light rows: page read failed, reading the wide table', error)
     }
   }
-  return prisma.exclusiveJobPosting.findMany({ where: paged, select: LIGHT_SELECT, orderBy: { id: 'asc' }, take })
+  return prisma.exclusiveJobPosting.findMany({ where: paged, select, orderBy: { id: 'asc' }, take })
 }
 
 /**

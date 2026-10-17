@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot } from '@/lib/jobs/board-snapshot'
+import { decodeOccupations, encodeOccupations } from '@/lib/jobs/board-snapshot-codec'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { jobIndustryBucket, memberIndustryBuckets } from '@/lib/profile/industry-reading'
 import { skillTerms, type SkillMatrixInput } from '@/lib/profile/skill-matrix'
@@ -145,17 +147,55 @@ async function readJobSocs(): Promise<JobOccupations> {
   return { socs, subs, industries, skills, skillIds }
 }
 
+const emptyOccupations = (): JobOccupations => ({
+  socs: new Map<string, string>(),
+  subs: new Map<string, string>(),
+  industries: new Map<string, string>(),
+  skills: new Map<string, readonly string[]>(),
+  skillIds: new Map<string, readonly string[]>(),
+})
+
+/**
+ * A cold instance's first read: the snapshot another instance wrote (board-snapshot.ts),
+ * when it is fresh (JOB_SOC_TTL_MS) or the board hasn't changed since it was read — the
+ * occupations come with the jobs, so an unchanged board has unchanged occupations; one
+ * past the fresh window is served while a fresh read runs, as a warm instance's held
+ * copy is. Else the database, and the result is written as the next snapshot.
+ */
+async function firstJobSocs(): Promise<{ at: number; value: JobOccupations }> {
+  if (!snapshotsDisabled()) {
+    try {
+      const [manifest, fingerprint] = await Promise.all([readManifest('occupations'), boardFingerprint()])
+      if (manifest && (Date.now() - manifest.at < JOB_SOC_TTL_MS || (fingerprint !== null && manifest.fingerprint === fingerprint))) {
+        const parts = await readParts(manifest)
+        const value = parts?.length === 1 ? decodeOccupations(parts[0]) : null
+        if (value) return { at: Math.max(manifest.at, Date.now() - JOB_SOC_STALE_MS + 60_000), value }
+      }
+    } catch (error) {
+      console.error('Job occupations: snapshot unreadable, reading the database', error)
+    }
+  }
+  return readAndPublishJobSocs()
+}
+
+async function readAndPublishJobSocs(): Promise<{ at: number; value: JobOccupations }> {
+  const at = Date.now()
+  const fingerprint = snapshotsDisabled() ? null : await boardFingerprint()
+  const value = await readJobSocs()
+  if (fingerprint) inBackground(() => writeSnapshot('occupations', fingerprint, at, [encodeOccupations(value)], value.socs.size))
+  return { at, value }
+}
+
 /** Live job id → O*NET occupation and stored sub-function. */
 export function loadJobSocs(): Promise<JobOccupations> {
   const now = Date.now()
   if (jobSocs && now - jobSocs.at < JOB_SOC_TTL_MS) return jobSocs.value
   if (!jobSocsLoading) {
-    const started = now
-    const next = readJobSocs()
-    jobSocsLoading = next
+    const next = jobSocs ? readAndPublishJobSocs() : firstJobSocs()
+    jobSocsLoading = next.then((r) => r.value)
     next.then(
-      () => {
-        jobSocs = { at: started, value: next }
+      (r) => {
+        jobSocs = { at: r.at, value: Promise.resolve(r.value) }
         jobSocsLoading = null
       },
       (error) => {
@@ -165,13 +205,7 @@ export function loadJobSocs(): Promise<JobOccupations> {
     )
   }
   if (jobSocs && now - jobSocs.at < JOB_SOC_STALE_MS) return jobSocs.value
-  return jobSocsLoading!.catch(() => ({
-    socs: new Map<string, string>(),
-    subs: new Map<string, string>(),
-    industries: new Map<string, string>(),
-    skills: new Map<string, readonly string[]>(),
-    skillIds: new Map<string, readonly string[]>(),
-  }))
+  return jobSocsLoading!.catch(emptyOccupations)
 }
 
 // ── Member vector ──────────────────────────────────────────────────────────────
@@ -556,15 +590,40 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
       },
     }
   }
+  // The geography ring per job place (jobPlace hands back one object per distinct location).
+  const geoByPlace = new Map<JobPlace, ReturnType<typeof geoRing>>()
+  const geoOf = (row: BreadthRow): ReturnType<typeof geoRing> => {
+    if (!member.geo) return { ring: 0, note: null }
+    const place = jobPlace(row.location, row.targetRemotePolicy)
+    let geo = geoByPlace.get(place)
+    if (geo === undefined) geoByPlace.set(place, (geo = geoRing(member.geo, place)))
+    return geo
+  }
+  // criteria(row), but the cheap tests first: a job no ring reaches (too far away, the
+  // wrong skills, another function) is dropped before the expensive ones are worked out.
+  // Most of the board is dropped on geography alone, so a member's first view classifies
+  // only the jobs that can show. Same placements as from criteria (scripts/perf/board-cold-parity.ts).
   const placeFresh = (row: BreadthRow): BreadthPlacement | null => {
-    const { cls, crit } = criteria(row)
-    const fn = crit.fn
+    const geo = geoOf(row)
+    if (!geo) return null
+    const soc = occupations.socs.get(row.id)
+    const skills = skillsMatch({
+      jobSkills: occupations.skills.get(row.id) ?? [],
+      memberVocab: member.vocab ?? new Set(),
+      occupationBand: soc && member.occupationBand ? member.occupationBand(soc) : null,
+      jobSkillIds: occupations.skillIds.get(row.id),
+      memberSkillIds: member.skillIds,
+    })
+    if (skills !== 'strong' && skills !== 'unknown') return null
+    const facts = jobBreadthFacts(row, occupations)
+    const cls = classifyJob(member, facts, 'wide')
+    const fn = functionMatch(member, cls, soc, facts)
     // In some ring at all (the board settles the ring once fit and level are known).
-    if (fn !== 'none' && crit.geo !== null && (crit.skills === 'strong' || crit.skills === 'unknown')) {
-      const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
-      return { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
-    }
-    return null
+    if (fn === 'none') return null
+    const industryName = occupations.industries.get(row.id) ?? null
+    const crit: JobCriteria = { fn, geo: geo.ring, geoNote: geo.note ?? null, skills, industry: industryRelation(member.industries, industryName), industryName }
+    const kind: JobClass = fn === 'own' && cls?.kind !== 'field' ? { kind: 'field' } : (cls ?? { kind: 'field' })
+    return { cls: kind, rank: MATCH_KIND_RANK[kind.kind], crit, sameStage: !!member.stage && stageOfRung(row.level) === member.stage }
   }
   return {
     member,
