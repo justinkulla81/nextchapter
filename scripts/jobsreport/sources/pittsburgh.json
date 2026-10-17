@@ -153,5 +153,23 @@
         "portal": "18200023232"
       }
     ]
+  },
+  {
+    "name": "wd-philips",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Philips",
+    "tenant": "philips",
+    "wd": "wd3",
+    "site": "jobs-and-careers"
+  },
+  {
+    "name": "wd-chatham-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Chatham University",
+    "tenant": "chatham",
+    "wd": "wd12",
+    "site": "ChathamUniversityStudent"
   }
 ]
