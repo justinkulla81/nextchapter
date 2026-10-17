@@ -23,7 +23,7 @@ export function HomeToday() {
       />
       <HomeNote
         title="Tell 5 more people what you’re looking for."
-        why="Most roles are filled through a person, not a posting."
+        why="Most roles are filled through a person, not a posting, and it brings you closer to providing for your family."
         startLabel="Start"
         startHref="#"
         whyDetail="You are applying, and your plan is set up for that. Reaching out is the fastest way to turn applications into interviews. Change what your plan is set up for in Personalize."
@@ -31,13 +31,14 @@ export function HomeToday() {
       <div className="grid gap-6 md:grid-cols-2">
         <Module title="This week’s plan">
           <ul className="divide-y divide-border text-base">
-            {['Tell 5 more people what you’re looking for', 'Send 5 applications that fit you', 'Follow up on two open applications'].map((t) => (
+            {['Send one short message to someone who already likes you', 'Send 5 applications that fit you', 'Follow up on two open applications'].map((t) => (
               <li key={t} className="flex items-center gap-3 py-2.5">
                 <span className="size-5 shrink-0 rounded-full border-2 border-border" aria-hidden />
                 {t}
               </li>
             ))}
           </ul>
+          <p className="text-sm text-muted-foreground">The first step is there because you said networking is uncomfortable. <a href="#" className="font-medium text-brand underline underline-offset-4">Change what gets in the way</a></p>
           <div className="space-y-2">
             <div className="flex items-baseline justify-between text-sm">
               <span className="font-medium">This week: 105 of 150 minutes</span>
