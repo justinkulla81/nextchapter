@@ -12,7 +12,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { getWatchlistView } from '@/lib/company-tracker/watchlist'
-import { FIT_BUCKET_LABEL, FIT_BUCKET_SORT_RANK, isWeakFit } from '@/lib/jobs/fit-bucket-types'
+import { FIT_BUCKET_SORT_RANK, isWeakFit, type LevelStep } from '@/lib/jobs/fit-bucket-types'
 import { fitScoreToLabel, type FitScoreLabel } from '@/lib/jobs/fit-score-label'
 import { cn } from '@/lib/utils'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
@@ -107,11 +107,12 @@ import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import {
+  bucketFromAssessment,
   computeBoardListingFitBucket,
+  computeFitAssessment,
   computeSurfacedJobFitBucket,
-  computeBoardListingIsIdealMatch,
-  computeSurfacedJobIsIdealMatch,
 } from '@/lib/jobs/job-fit-bucket'
+import { CARD_VERDICT_LABEL, cardVerdict, levelPhrase } from '@/lib/jobs/job-card'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
@@ -674,7 +675,13 @@ async function JobRecommendationsSection({
   const strongBoardPostings = search ? visibleBoardPostings : visibleBoardPostings.filter((p) => !bridgeIds.has(p.id))
   const bridgeBoardPostings = search ? [] : visibleBoardPostings.filter((p) => bridgeIds.has(p.id))
   // "Why this job": up to three fits and one honest gap, in one line (personalization/why-this-job.ts).
-  const whyFor = (p: (typeof visibleBoardPostings)[number], match: ReturnType<typeof matchFor>, gap: ReturnType<typeof skillGapFor>, bridge: Bridge | undefined) => {
+  const whyFor = (
+    p: (typeof visibleBoardPostings)[number],
+    match: ReturnType<typeof matchFor>,
+    gap: ReturnType<typeof skillGapFor>,
+    bridge: Bridge | undefined,
+    level: LevelStep
+  ) => {
     const c = board.breadth.classifier
     const crit = c ? (c.place(p)?.crit ?? c.criteria(p).crit) : null
     return whyThisJob({
@@ -687,10 +694,15 @@ async function JobRecommendationsSection({
       missing: gap.missing,
       blocker: match.requirements.find((r) => r.status === 'blocker')?.label ?? null,
       bridgeGap: bridge ? bridge.missing.split(', ')[0].replace(/\.$/, '') : null,
+      level: levelPhrase(level),
+      // Their field by name instead of "Your field".
+      field: c ? (subFunctionLabel(c.member.subFunction) ?? c.member.functionLabel) : null,
     })
   }
   const boardCard = (posting: (typeof visibleBoardPostings)[number]) => {
-    const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
+    // One fit score (fit scoring v2) gives both the bucket and the level step for the why line.
+    const assessment = computeFitAssessment(profile, { ...posting, companySizeBand: companySizeBandFor(posting.companyName) })
+    const fitBucket = bucketFromAssessment(assessment)
     const match = matchFor(posting)
     const gap = skillGapFor(posting)
     const bridge = bridgeFor(posting)
@@ -718,13 +730,12 @@ async function JobRecommendationsSection({
           track={myJobs.cardStates.get(trackKey('job_board', posting.id))}
           watched={watchedFor(posting.companyName)}
           fitBucket={fitBucket}
-          idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
           employer={employerSignalsOf(posting)}
           benefits={benefitsByPosting.get(posting.id)}
           searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
           matchReason={reasons.get(posting.id)}
           bridge={bridge}
-          why={whyFor(posting, match, gap, bridge)}
+          why={whyFor(posting, match, gap, bridge, assessment.level)}
         />
       ),
     }
@@ -852,7 +863,6 @@ async function JobRecommendationsSection({
                           key={job.id}
                           job={job}
                           fitBucket={fitBucket}
-                          idealMatch={computeSurfacedJobIsIdealMatch(profile, job, companySizeBandFor(job.companyName))}
                           worksHereContacts={worksHere.contacts}
                           worksHereTotalCount={worksHere.totalCount}
                           track={myJobs.cardStates.get(trackKey('surfaced', job.id))}
@@ -1716,7 +1726,7 @@ async function FindMyJobBody({
                         <div className="space-y-0.5">
                           {fitBucket && (
                             <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                              {FIT_BUCKET_LABEL[fitBucket]}
+                              {CARD_VERDICT_LABEL[cardVerdict(fitBucket)]}
                             </span>
                           )}
                           {openRoles > 0 && (

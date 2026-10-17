@@ -203,8 +203,14 @@ import { whyThisJob } from '@/lib/personalization/why-this-job'
 describe('why this job', () => {
   const crit = { fn: 'own', geo: 0, geoNote: null, skills: 'strong', industry: 'own', industryName: 'Technology & Software' } as const
   it('up to three fits, then one honest gap', () => {
-    const w = whyThisJob({ reason: { kind: 'field', label: 'Your field' }, crit, jobRemote: false, city: 'Sunnyvale', hasIndustries: true, have: ['Workday', 'SQL', 'Excel'], missing: ['Tableau'] })
-    expect(w).toEqual({ fits: ['Your field', 'Uses Workday, SQL', 'Near Sunnyvale'], gap: 'asks for Tableau' })
+    const w = whyThisJob({ reason: { kind: 'field', label: 'Your field' }, crit, jobRemote: false, city: 'Sunnyvale', hasIndustries: true, have: ['Workday', 'SQL', 'Excel'], missing: ['Tableau'], field: 'Finance' })
+    expect(w).toEqual({ fits: ['finance', 'near Sunnyvale', 'uses Workday, SQL'], gap: 'asks for Tableau' })
+  })
+  it('leads with seniority, names the field, and never says "Your field"', () => {
+    const w = whyThisJob({ reason: { kind: 'field', label: 'Your field' }, crit, jobRemote: false, city: 'Louisville', hasIndustries: false, have: [], missing: [], level: 'your level', field: 'FP&A' })
+    expect(w).toEqual({ fits: ['your level', 'FP&A', 'near Louisville'], gap: null })
+    const bare = whyThisJob({ reason: { kind: 'field', label: 'Your field' }, crit: null, jobRemote: false, city: null, hasIndustries: false, have: [], missing: [] })
+    expect(bare).toEqual({ fits: [], gap: null })
   })
   it('keeps ring notes, prefers a blocker as the gap, never repeats a skills label', () => {
     const w = whyThisJob({
@@ -217,7 +223,7 @@ describe('why this job', () => {
       missing: ['Tableau'],
       blocker: 'Requires active TS/SCI',
     })
-    expect(w).toEqual({ fits: ['Skills match: scheduling', '45 mi away'], gap: 'Requires active TS/SCI' })
+    expect(w).toEqual({ fits: ['skills match: scheduling', '45 mi away'], gap: 'Requires active TS/SCI' })
   })
 })
 

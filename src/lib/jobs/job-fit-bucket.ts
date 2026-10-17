@@ -13,7 +13,7 @@ import { SHARED_METRO_STATES } from '@/lib/jobs/metro-states'
 import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { roleFamiliesOf } from '@/lib/constants/role-family-keywords'
-import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import type { FitBucket, LevelStep } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
 import { interestBonus } from '@/lib/work-interests/job-interest-fit'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
@@ -181,7 +181,7 @@ const RUNG_LEVEL_POINTS: Partial<Record<RungName, number>> = {
   BOARD: 90,
 }
 
-export type LevelStep = 'same' | 'up' | 'big_up' | 'down' | 'big_down' | 'unknown'
+export type { LevelStep } from '@/lib/jobs/fit-bucket-types'
 
 // The member's level as a window: their stated level, widened by one step
 // toward their calibrated levelRankScore when that differs by 10+ points
@@ -687,7 +687,7 @@ function bucketFromScore(score: number): FitBucket {
 // a step or more below the member is Step Down ('below_level', or
 // 'overqualified' two or more steps down); otherwise Step Up ('stretch'),
 // which also covers missing level data.
-function bucketFromAssessment(a: FitAssessment): FitBucket {
+export function bucketFromAssessment(a: FitAssessment): FitBucket {
   const bucket = bucketFromScore(a.score)
   if (bucket !== 'stretch') return bucket
   if (a.level === 'big_down') return 'overqualified'

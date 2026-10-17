@@ -9,7 +9,7 @@ import { boardHref } from '@/lib/jobs/board-url'
 const VIEWS = [
   { key: 'all', label: 'All jobs' },
   { key: 'fresh', label: 'Last 72 hours' },
-  { key: 'low_competition', label: 'Low competition' },
+  { key: 'low_competition', label: 'Likely fewer applicants' },
 ] as const
 
 /** Switches the job board between all jobs, fresh ones and low-competition ones (the `view` URL parameter). */
