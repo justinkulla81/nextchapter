@@ -289,6 +289,38 @@ def crawl_taleo(src, log):
             yield mk(src, src.get("employer", src["name"]), d[0] + "-" + sec["name"], title=d[9], url=f"https://{host}/careersection/{sec['name']}/jobdetail.ftl?job={d[0]}",
                      description=text, req_id=d[12], location_raw=loc, locations=[loc], employment_type=d[23])
 
+def crawl_oracle(src, log):
+    """Oracle Recruiting Cloud candidate-experience sites (e.g. JPMorgan). src: host, site (siteNumber), employer.
+    Searches the place name, pages 25 at a time, then reads each posting's detail text."""
+    from concurrent.futures import ThreadPoolExecutor
+    base = f"https://{src['host']}/hcmRestApi/resources/latest"
+    site = src.get("site", "CX_1001")
+    def listing(off):
+        q = f'findReqs;siteNumber={site},limit=25,offset={off},keyword={src.get("search") or GEO["search"]},sortBy=POSTING_DATES_DESC'
+        return json.loads(http(f"{base}/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.secondaryLocations&finder={urllib.parse.quote(q, safe=';=,')}", timeout=60))["items"][0]
+    first = listing(0)
+    total = first.get("TotalJobsCount", 0)
+    rows = list(first.get("requisitionList", []))
+    for off in range(25, total, 25): rows += listing(off).get("requisitionList", [])
+    log(f"  {src['name']}: {total} postings match the place name")
+    def detail(r):
+        q = f'ById;Id="{r["Id"]}",siteNumber={site}'
+        try:
+            d = json.loads(http(f"{base}/recruitingCEJobRequisitionDetails?onlyData=true&finder={urllib.parse.quote(q, safe=';=,')}", timeout=40))["items"][0]
+        except Exception:
+            return r, {}
+        return r, d
+    for r, d in ThreadPoolExecutor(max_workers=6).map(detail, rows):
+        loc = r.get("PrimaryLocation") or ""
+        loc = re.sub(r",\s*United States$", "", loc)
+        if not in_metro(loc): continue
+        text = strip_html(" ".join(filter(None, [d.get("ExternalDescriptionStr"), d.get("ExternalResponsibilitiesStr"), d.get("ExternalQualificationsStr")])))
+        yield mk(src, src.get("employer", src["name"]), r["Id"], title=r.get("Title", ""), req_id=str(r["Id"]),
+                 url=f"https://{src['host']}/hcmUI/CandidateExperience/en/sites/{site}/job/{r['Id']}",
+                 description=text or r.get("ShortDescriptionStr") or "", location_raw=loc, locations=[loc],
+                 employment_type=r.get("JobSchedule") or r.get("ContractType"), arrangement=(r.get("WorkplaceType") or "").lower() or None,
+                 posted_at=r.get("PostedDate"), posted_precision="date")
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -381,7 +413,7 @@ def crawl_neogov(src, log):
 
 def crawl_jibe(src, log):
     """Jibe (iCIMS) public jobs API: https://<tenant>.jibeapply.com/api/jobs. src: tenant, employer."""
-    base = f"https://{src['tenant']}.jibeapply.com/api/jobs"
+    base = f"https://{src['host']}/api/jobs" if src.get("host") else f"https://{src['tenant']}.jibeapply.com/api/jobs"
     page, got, total = 1, 0, None
     while total is None or got < total:
         d = json.loads(http(f"{base}?page={page}&limit=100", headers={"Accept": "application/json"}))
@@ -399,7 +431,7 @@ def crawl_jibe(src, log):
             lo = float(lo) if lo and float(lo) > 0 else None
             hi = float(hi) if hi and float(hi) > 0 else lo
             cats = x.get("categories")
-            yield mk(src, x.get("hiring_organization") or src.get("employer", src["tenant"]), x.get("req_id") or x.get("slug"),
+            yield mk(src, x.get("hiring_organization") or src.get("employer", src.get("tenant") or src["host"]), x.get("req_id") or x.get("slug"),
                      title=x.get("title", ""), req_id=x.get("req_id"), url=x.get("apply_url"), description=desc,
                      location_raw=loc, city=x.get("city"), state=x.get("state"), locations=[loc],
                      employment_type=x.get("employment_type"), pay_min=lo, pay_max=hi, pay_period="year" if lo else None,
@@ -461,7 +493,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

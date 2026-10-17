@@ -171,5 +171,45 @@
     "tenant": "chatham",
     "wd": "wd12",
     "site": "ChathamUniversityStudent"
+  },
+  {
+    "name": "wd-giant-eagle",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Giant Eagle",
+    "tenant": "gianteagle",
+    "wd": "wd503",
+    "site": "GEExternalcareers"
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Comcast",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers"
+  },
+  {
+    "name": "neogov-pa-bureau",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Commonwealth of Pennsylvania",
+    "agency": "pabureau"
+  },
+  {
+    "name": "oracle-jpmorgan",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001"
+  },
+  {
+    "name": "jibe-msa-safety",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "MSA Safety",
+    "host": "careers.msasafety.com"
   }
 ]

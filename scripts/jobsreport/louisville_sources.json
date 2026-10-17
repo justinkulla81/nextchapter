@@ -148,5 +148,27 @@
     "host": "kypersonnelcabinet.csod.com",
     "site_id": 49,
     "corp": "kypersonnelcabinet"
+  },
+  {
+    "name": "neogov-louisville-msd",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Louisville and Jefferson County MSD",
+    "agency": "louisvillemsd"
+  },
+  {
+    "name": "oracle-jpmorgan",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001"
+  },
+  {
+    "name": "jibe-lge-ku",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "LG&E and KU (PPL)",
+    "host": "careers.pplweb.com"
   }
 ]
