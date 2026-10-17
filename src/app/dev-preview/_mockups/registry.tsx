@@ -3,6 +3,8 @@ import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
+import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
+import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, CareerStory, HowIWork, MySearch, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpMoney, HelpScams, HelpQuestions } from './learn-help'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -33,6 +35,27 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/market/pivot', place: 'Jobs', title: 'Market: other roles you could do', replaces: '/dashboard/pivot-paths, /dashboard/pivot', Component: MarketPivot },
   { path: 'jobs/interviews', place: 'Jobs', title: 'Interviews', replaces: '/dashboard/interview-prep, /dashboard/review-prep', Component: Interviews },
   { path: 'jobs/offers', place: 'Jobs', title: 'Offers', replaces: '/dashboard/got-hired, /dashboard/in-work', Component: Offers },
+  { path: 'network/circles/know', place: 'Network', title: 'People you know', replaces: '/dashboard/network/contacts, /dashboard/references', Component: PeopleYouKnow },
+  { path: 'network/circles/alumni', place: 'Network', title: 'Alumni and groups', replaces: '/dashboard/groups, /dashboard/universities, /dashboard/past-jobs', Component: AlumniGroups },
+  { path: 'network/circles/industry', place: 'Network', title: 'Industry and function', replaces: '/dashboard/community', Component: IndustryFunction },
+  { path: 'network/circles/recruiters', place: 'Network', title: 'Recruiters', replaces: '/dashboard/recruiter-requests', Component: RecruitersCircle },
+  { path: 'network/week', place: 'Network', title: 'This week', replaces: '/dashboard/network/this-week, /dashboard/network/follow-ups', Component: NetworkThisWeek },
+  { path: 'network/messages', place: 'Network', title: 'Messages', replaces: '/dashboard/messages', Component: Messages },
+  { path: 'learn/learn/skills', place: 'Learn', title: 'Skills and courses', replaces: '/dashboard/learning', Component: LearnSkills },
+  { path: 'learn/learn/videos', place: 'Learn', title: 'Videos and webinars', replaces: '/dashboard/webinars', Component: LearnVideos },
+  { path: 'personalize/profile/profile', place: 'Personalize', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },
+  { path: 'personalize/profile/resume', place: 'Personalize', title: 'Résumé', replaces: '/dashboard/resume, resume/studio, resume/walkthrough', Component: ResumeMock },
+  { path: 'personalize/profile/whyhire', place: 'Personalize', title: 'Why hire me', replaces: '/dashboard/strengths, track-record', Component: WhyHireMe },
+  { path: 'personalize/profile/career', place: 'Personalize', title: 'Career story', replaces: '/dashboard/my-career (other branch)', Component: CareerStory },
+  { path: 'personalize/profile/work', place: 'Personalize', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform, work-interests', Component: HowIWork },
+  { path: 'personalize/search', place: 'Personalize', title: 'My search', replaces: '/dashboard/search-strategy, what-i-need, marketing-plan', Component: MySearch },
+  { path: 'personalize/recruiters', place: 'Personalize', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
+  { path: 'personalize/documents', place: 'Personalize', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
+  { path: 'personalize/membership', place: 'Personalize', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
+  { path: 'help/talk', place: 'Help', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
+  { path: 'help/money', place: 'Help', title: 'Money and benefits', replaces: '/dashboard/benefits, benefits-network', Component: HelpMoney },
+  { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
+  { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
 ]
 
 export const mockupFor = (path: string) => MOCKUPS.find((m) => m.path === path)

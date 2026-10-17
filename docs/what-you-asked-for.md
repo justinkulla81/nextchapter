@@ -66,7 +66,7 @@ None of this has been run. The first real test is to create one demo organizatio
 |---|---|---|---|
 | 23 | Find a job: as professional as LinkedIn, Indeed and Ladders; use our extra data; show where personalizing improves results and how to widen the search; contacts first on likely openings; one-line O*NET credit; stop the one-long-page problem | Partly | Another session already shipped, on the live page: one fit verdict with one reason and one quiet facts line per job, "Likely fewer applicants" as an estimate with its reasons, and "What we know about you: your search is N% tuned" with a next step (that is where personalizing improves results). Still open: the overall layout and polish, contacts first on likely openings, the O*NET credit, and the long page. My own job-row preview is dropped because it duplicated that work. |
 | 24 | Navigation: clearly navigation, fewer than 12 tabs | In progress | New menu grouping is written in code but not finished or checked. The live site is unchanged. |
-| 25 | A full redo of the whole candidate site, then all other portals | Started | The rules are in `docs/candidate-redesign.md`. Nothing else is rebuilt yet. |
+| 25 | A full redo of the whole candidate site, then all other portals | Mockups in progress | Rules in `docs/candidate-redesign.md`. Mockups of every candidate page are in `docs/candidate-mockups.md` (sample data, dev-only). No live page is rebuilt yet; that waits for your approval. |
 | 26 | A map of where everything is | Done | `docs/candidate-feature-map.md` |
 
 ## D. What other sessions are building (checked 2026-10-17)
