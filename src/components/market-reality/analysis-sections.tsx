@@ -4,19 +4,23 @@ import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/ma
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import { INTERVIEWS_PER_OFFER, PLAN_WEEKS } from '@/lib/reports/market-reality-brief/effort-plan'
+import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/evaluators'
+import { buttonVariants } from '@/components/ui/button'
+import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { firstStep, PHASE_LABEL, type Phase } from '@/lib/reports/market-reality-brief/launchpad'
 import { AssessmentMark, Estimate, ReportLink, ReportSection, ReportTable, Stat, SubHeading } from './report-ui'
 
 const n = (v: number) => v.toLocaleString('en-US')
 const Muted = ({ children }: { children: ReactNode }) => <span className="text-muted-foreground">{children}</span>
 
-// ── 02 Market ──────────────────────────────────────────────────────────────
+// ── Market ──────────────────────────────────────────────────────────────
 
 export function MarketSection({ brief, marketScope, candidateId }: { brief: MarketRealityBrief; marketScope: 'state' | 'us'; candidateId: string }) {
   const m = brief.market
   return (
     <ReportSection
       id="market"
-      number="02"
+      number="04"
       title="Market"
       finding={m ? m.readout : 'Set a target function and level on Search Strategy to size the market for this search.'}
     >
@@ -89,13 +93,13 @@ export function MarketSection({ brief, marketScope, candidateId }: { brief: Mark
   )
 }
 
-// ── 03 Search requirements ─────────────────────────────────────────────────
+// ── Search requirements ─────────────────────────────────────────────────
 
 export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
   const e = brief.effort
   if (!e) {
     return (
-      <ReportSection id="requirements" number="03" title="Search requirements" finding="Needs a resume and a target role to estimate how much activity this search takes.">
+      <ReportSection id="requirements" number="05" title="Search requirements" finding="Needs a resume and a target role to estimate how much activity this search takes.">
         <></>
       </ReportSection>
     )
@@ -106,7 +110,7 @@ export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="requirements"
-      number="03"
+      number="05"
       title="Search requirements"
       finding={
         <>
@@ -172,7 +176,7 @@ export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 04 Experience ──────────────────────────────────────────────────────────
+// ── Experience ──────────────────────────────────────────────────────────
 
 export function ExperienceSection({ brief }: { brief: MarketRealityBrief }) {
   const x = brief.experience
@@ -182,7 +186,7 @@ export function ExperienceSection({ brief }: { brief: MarketRealityBrief }) {
       ? `${x.careerYears} years across ${x.roleCount} roles. The history reads cleanly on every check a recruiter runs.`
       : `${x.careerYears} years across ${x.roleCount} roles. ${x.developmentCount} of ${x.findings.length} checks a recruiter runs would draw a question.`
   return (
-    <ReportSection id="experience" number="04" title="Experience" finding={finding}>
+    <ReportSection id="experience" number="06" title="Experience" finding={finding}>
       {x.assessable ? (
         <ReportTable
           label="Experience checks"
@@ -258,7 +262,7 @@ export function ExperienceSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 05 Skills ──────────────────────────────────────────────────────────────
+// ── Skills ──────────────────────────────────────────────────────────────
 
 export function SkillsSection({ brief }: { brief: MarketRealityBrief }) {
   const s = brief.skills
@@ -270,7 +274,7 @@ export function SkillsSection({ brief }: { brief: MarketRealityBrief }) {
         ? `None of the ${s.employers} employers with jobs that fit you ask for a specific AI skill yet.`
         : `${s.employersAskingAi} of the ${s.employers} employers with jobs that fit you ask for a specific AI skill. ${aiGaps === 0 ? 'Each one asked for is on your profile.' : `${aiGaps} ${aiGaps === 1 ? 'is' : 'are'} not on your profile.`}`
   return (
-    <ReportSection id="skills" number="05" title="Skills" finding={finding}>
+    <ReportSection id="skills" number="07" title="Skills" finding={finding}>
       {s?.marketLine && <p className="text-sm text-muted-foreground">{s.marketLine}</p>}
 
       {s && s.ai.length > 0 && (
@@ -334,7 +338,7 @@ export function SkillsSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 06 Resume ──────────────────────────────────────────────────────────────
+// ── Resume ──────────────────────────────────────────────────────────────
 
 export function ResumeSection({ brief }: { brief: MarketRealityBrief }) {
   const r = brief.resume
@@ -344,7 +348,7 @@ export function ResumeSection({ brief }: { brief: MarketRealityBrief }) {
       ? 'No high-impact issues were found on the current resume.'
       : `${r.fixes.length + r.moreFixes} fixes identified, ordered by how much each improves the resume.`
   return (
-    <ReportSection id="resume" number="06" title="Resume" finding={finding}>
+    <ReportSection id="resume" number="08" title="Resume" finding={finding}>
       {r && r.fixes.length > 0 && (
         <>
           <ReportTable
@@ -420,14 +424,14 @@ export function ResumeSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 07 Direction ───────────────────────────────────────────────────────────
+// ── Direction ───────────────────────────────────────────────────────────
 
 export function DirectionSection({ brief }: { brief: MarketRealityBrief }) {
   const p = brief.pivots
   return (
     <ReportSection
       id="direction"
-      number="07"
+      number="09"
       title="Direction"
       finding={
         p
@@ -530,7 +534,7 @@ export function DirectionSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 08 Search activity ─────────────────────────────────────────────────────
+// ── Search activity ─────────────────────────────────────────────────────
 
 const VERDICT_WORD = { act: 'Act', watch: 'Watch', good: 'On track', unknown: 'Too early' } as const
 
@@ -541,7 +545,7 @@ export function ActivitySection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="activity"
-      number="08"
+      number="10"
       title="Search activity to date"
       finding={`${totals.applications} applications have produced ${totals.interviews} interview${totals.interviews === 1 ? '' : 's'}${a.interviewRate !== null ? ` (${a.interviewRate}%)` : ''}, ${totals.rejections} rejection${totals.rejections === 1 ? '' : 's'} and ${totals.noReplyYet} with no reply after three weeks. Updated as new mail arrives.`}
     >
@@ -609,31 +613,81 @@ export function ActivitySection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── 09 This week ───────────────────────────────────────────────────────────
+// ── 11 Start here ──────────────────────────────────────────────────────────
 
-export function WeekSection({ brief }: { brief: MarketRealityBrief }) {
-  if (brief.weekActions.length === 0) return null
+export function LaunchpadSection({ brief }: { brief: MarketRealityBrief }) {
+  const steps = brief.launchpad
+  const next = firstStep(steps)
+  const done = steps.filter((s) => s.done).length
+  const phases = (Object.keys(PHASE_LABEL) as Phase[]).map((p) => ({ phase: p, steps: steps.filter((s) => s.phase === p) })).filter((g) => g.steps.length > 0)
   return (
     <ReportSection
-      id="this-week"
-      number="09"
-      title="This week"
-      finding="Each of these is a real action that counts toward the weekly sprint."
-      className="print:hidden"
+      id="start"
+      number="11"
+      title="Start here: your first twelve weeks"
+      finding="Every step below answers a finding in this report and opens the NextChapter tool that does the work. Tools your current situation keeps off are not offered as steps; each says what turns it on."
     >
-      <ul className="divide-y divide-border">
-        {brief.weekActions.map((a, i) => (
-          <li key={i} className="flex items-baseline justify-between gap-4 py-2 text-sm">
-            <span className="text-foreground">{a.text}</span>
-            {a.isAStandard && <span className="shrink-0 text-xs text-muted-foreground">Part of an A-level week</span>}
-          </li>
-        ))}
-      </ul>
-      <p className="text-sm">
-        <ReportLink href="/dashboard" event="market_reality_action_clicked" properties={{ key: 'open_sprint', area: 'This week' }}>
-          Set the weekly goal in the sprint
-        </ReportLink>
+      {next && (
+        <p className="print:hidden">
+          <TrackedLink
+            href={next.href}
+            event="market_reality_start_clicked"
+            properties={{ key: next.key, phase: next.phase, area: next.area, doneSteps: done, totalSteps: steps.length, surface: 'launchpad' }}
+            className={buttonVariants()}
+          >
+            Start: {next.title}
+          </TrackedLink>
+        </p>
+      )}
+      <p className="text-xs text-muted-foreground">
+        {done} of {steps.length} steps already done.
       </p>
+      {phases.map((g) => (
+        <div key={g.phase}>
+          <SubHeading>{PHASE_LABEL[g.phase]}</SubHeading>
+          <ol className="mt-2 divide-y divide-border border-y border-border">
+            {g.steps.map((st) => (
+              <li key={st.key} className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1 py-3 break-inside-avoid">
+                <div className="min-w-0 max-w-xl">
+                  <p className={st.done ? 'text-sm text-muted-foreground line-through' : 'text-sm font-medium text-foreground'}>{st.title}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{st.because}</p>
+                  {st.lockedNote && <p className="mt-1 text-sm text-foreground">{st.lockedNote}</p>}
+                </div>
+                <div className="shrink-0 text-right text-sm">
+                  {st.done ? (
+                    <span className="text-muted-foreground">Done</span>
+                  ) : (
+                    <span className="print:hidden">
+                      <ReportLink href={st.href} event="market_reality_start_clicked" properties={{ key: st.key, phase: st.phase, area: st.area, surface: 'launchpad_step' }}>
+                        {st.lockedNote ? 'See what turns it on' : `Open ${st.tool}`}
+                      </ReportLink>
+                    </span>
+                  )}
+                  <p className="text-xs text-muted-foreground">{st.minutes ? `About ${st.minutes} min` : st.tool}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+
+      {brief.weekActions.length > 0 && (
+        <div className="print:hidden">
+          <SubHeading>Already queued in your weekly sprint</SubHeading>
+          <ul className="mt-2 divide-y divide-border">
+            {brief.weekActions.map((a, i) => (
+              <li key={i} className="py-2 text-sm text-foreground">
+                {a.text}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm">
+            <ReportLink href="/dashboard" event="market_reality_action_clicked" properties={{ key: 'open_sprint', area: 'Start here' }}>
+              Set the weekly goal in the sprint
+            </ReportLink>
+          </p>
+        </div>
+      )}
     </ReportSection>
   )
 }
@@ -650,5 +704,96 @@ export function MethodNotes() {
         <li>Private notes you share with a coach, such as blockers and motivations, never enter this report.</li>
       </ul>
     </footer>
+  )
+}
+
+// ── 01 How you will be read ────────────────────────────────────────────────
+
+export function EvaluatorSection({ brief }: { brief: MarketRealityBrief }) {
+  return (
+    <ReportSection
+      id="read"
+      number="01"
+      title="How you will be read"
+      finding="Three people decide whether this search moves forward, and each reads for something different. What follows is the likely first read from each, built from the evidence in this report. It is a read of the page and the record, not of the person, and not a prediction of any decision."
+    >
+      <div className="space-y-8">
+        {brief.evaluators.map((e) => (
+          <article key={e.key} className="break-inside-avoid space-y-3 border-l-2 border-navy/30 pl-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+              <h3 className="font-serif text-base font-semibold text-navy">{e.who}</h3>
+              <AssessmentMark value={STANCE_MARK[e.stance]} label={STANCE_LABEL[e.stance]} />
+            </div>
+            <p className="text-sm text-muted-foreground">{e.lens}</p>
+            <p className="text-sm text-foreground">
+              <span className="font-semibold">First impression.</span> {e.firstImpression}
+            </p>
+            <div>
+              <SubHeading>In their head</SubHeading>
+              <ul className="mt-2 space-y-1.5">
+                {e.thinking.map((t) => (
+                  <li key={t} className="text-sm italic leading-relaxed text-foreground">
+                    “{t}”
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <SubHeading>What they will ask</SubHeading>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground">
+                  {e.questions.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+              {e.changesMind.length > 0 && (
+                <div>
+                  <SubHeading>What would move them up</SubHeading>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground">
+                    {e.changesMind.map((q) => (
+                      <li key={q}>{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </ReportSection>
+  )
+}
+
+// ── 02 Likely objections ───────────────────────────────────────────────────
+
+export function ObjectionsSection({ brief }: { brief: MarketRealityBrief }) {
+  const o = brief.objections
+  return (
+    <ReportSection
+      id="objections"
+      number="02"
+      title="Likely objections and your answers"
+      finding={
+        o.length === 0
+          ? 'Nothing in the record or the resume is likely to draw a serious objection. Keep the numbers on the page current.'
+          : `${o.length} ${o.length === 1 ? 'question' : 'questions'} will come up, in roughly this order of weight. Each has a short answer structure. Rehearse them aloud until they take under a minute.`
+      }
+    >
+      {o.length > 0 && (
+        <ReportTable
+          label="Likely objections and suggested answers"
+          head={['What they will ask', 'How to answer', 'From']}
+          rows={o.map((x) => ({
+            key: x.key,
+            cells: [
+              <span key="q" className="font-medium">“{x.question}”</span>,
+              <span key="a" className="font-normal text-foreground">{x.answer}</span>,
+              <Muted key="s">{x.source}</Muted>,
+            ],
+          }))}
+        />
+      )}
+    </ReportSection>
   )
 }

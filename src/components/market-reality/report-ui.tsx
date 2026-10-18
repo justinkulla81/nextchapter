@@ -85,7 +85,7 @@ export function ReportTable({
 }
 
 /** Harvey-ball style mark plus the word, so the meaning never rests on the glyph alone. */
-export function AssessmentMark({ value, className }: { value: Assessment; className?: string }) {
+export function AssessmentMark({ value, label, className }: { value: Assessment; label?: string; className?: string }) {
   const r = 5.5
   return (
     <span className={cn('inline-flex items-center gap-2 whitespace-nowrap', value === 'development' ? 'font-semibold text-foreground' : 'text-foreground', className)}>
@@ -100,7 +100,7 @@ export function AssessmentMark({ value, className }: { value: Assessment; classN
           </>
         )}
       </svg>
-      {ASSESSMENT_LABEL[value]}
+      {label ?? ASSESSMENT_LABEL[value]}
     </span>
   )
 }

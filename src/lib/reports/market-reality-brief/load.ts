@@ -38,6 +38,11 @@ import { demandLine } from '@/lib/pivots/scoring'
 import { analyzeExperience, type ExperienceAnalysis } from './experience'
 import { buildEffortPlan, competitivenessFor, INTERVIEWS_PER_OFFER, PLAN_WEEKS, type EffortPlan } from './effort-plan'
 import { buildPriorities } from './priorities'
+import { buildLaunchpad, type LaunchStep } from './launchpad'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { menuMode } from '@/lib/journey/menu'
+import { isGmailConnected } from '@/lib/dashboard/access-gate'
+import { buildEvaluatorViews, buildObjections, type EvaluatorView, type FirstGlance, type Objection } from './evaluators'
 import type { Assessment, PriorityAction } from './types'
 
 const DAY = 86_400_000
@@ -171,12 +176,15 @@ export interface MarketRealityBrief {
   market: MarketSection | null
   effort: EffortSection | null
   experience: ExperienceAnalysis
+  evaluators: EvaluatorView[]
+  objections: Objection[]
   recruiterRead: RecruiterReadItem[]
   skills: SkillsSection | null
   resume: ResumeSection | null
   pivots: PivotSection | null
   search: SearchSection | null
   weekActions: { text: string; isAStandard?: boolean }[]
+  launchpad: LaunchStep[]
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -311,8 +319,11 @@ export async function loadMarketRealityBrief(
   const asOf = new Date()
   const d28 = new Date(asOf.getTime() - 28 * DAY)
 
-  const [stand, workHistory, education, resumeFixes, ats, recruiterRead, marketLoaded, skills, diagnosis, applicationsLast28] = await Promise.all([
+  const [stand, latestAnalysis, gmailConnected, completedReferences, workHistory, education, resumeFixes, ats, recruiterRead, marketLoaded, skills, diagnosis, applicationsLast28] = await Promise.all([
     safe('where you stand', getWhereYouStand(id)),
+    prisma.resumeAnalysis.findFirst({ where: { candidateId: id }, orderBy: { createdAt: 'desc' }, select: { dimensionScores: true, firstGlanceResult: true, firstGlanceTopFix: true } }),
+    safe('gmail', isGmailConnected(id)),
+    prisma.reference.count({ where: { candidateId: id, status: 'COMPLETED' } }),
     prisma.workHistoryEntry.findMany({ where: { candidateId: id } }),
     prisma.educationEntry.findMany({ where: { candidateId: id }, select: { startDate: true, graduationDate: true } }),
     safe('resume fixes', getResumeFixes(id, opts.resumeRewrites)),
@@ -494,6 +505,20 @@ export async function loadMarketRealityBrief(
     },
   ]
 
+  // How the screeners would read it, and what they would ask.
+  const dims = (latestAnalysis?.dimensionScores ?? null) as Partial<Record<string, number>> | null
+  const evaluatorInput = {
+    targetRole: profile.targetRoleType,
+    experience,
+    firstGlance: (latestAnalysis?.firstGlanceResult ?? null) as FirstGlance | null,
+    firstGlanceTopFix: latestAnalysis?.firstGlanceTopFix ?? null,
+    dims,
+    ai: skills && skills.employers > 0 ? { employersAsking: skills.employersAskingAi, of: skills.employers, haveAny: skills.ai.some((r) => r.have) } : null,
+    conversationsPerWeek: effort ? effort.plan.pace.conversationsPerWeek : null,
+    marketPrompt: market?.prompt ?? null,
+    payFloor: profile.targetCompMin,
+  }
+
   const priorities = buildPriorities({
     resume: resumeFixes && resumeFixes.items.length > 0 ? { topFix: { dimension: resumeFixes.items[0].dimension, fix: resumeFixes.items[0].fix, gain: resumeFixes.items[0].pointValue }, fixCount: resumeFixes.items.length } : null,
     experience: experience.assessable ? { openQuestions: experience.openQuestions } : null,
@@ -528,6 +553,8 @@ export async function loadMarketRealityBrief(
     market,
     effort,
     experience,
+    evaluators: buildEvaluatorViews(evaluatorInput),
+    objections: buildObjections(evaluatorInput),
     recruiterRead: recruiterRead ?? [],
     skills,
     resume: resumeFixes
@@ -536,5 +563,21 @@ export async function loadMarketRealityBrief(
     pivots,
     search: diagnosis ? await loadSearchSection(diagnosis, opts.jobSearchPattern) : null,
     weekActions: opts.suggestedActions.slice(0, 6),
+    launchpad: buildLaunchpad({
+      mode: menuMode(effectiveStage(profile), effectiveJourney(profile)),
+      strategyComplete: goalsComplete,
+      unconfirmedProfileItems: unconfirmed.length,
+      hasResume: latestAnalysis !== null,
+      resumeFixCount: resumeFixes?.items.length ?? 0,
+      unansweredReviewerQuestions: recruiterRead?.length ?? 0,
+      skillsAssessmentDone: profile.skillsAssessmentCompletedAt !== null,
+      gmailConnected: !!gmailConnected,
+      completedReferences,
+      weekly: effort ? { applications: effort.capacity.neededApplications, conversations: effort.capacity.neededConversations } : null,
+      activityObserved: effort?.plan.pace.activityObserved ?? false,
+      topAiGap: aiGaps[0]?.term ?? null,
+      market: market ? { prompt: market.prompt, widest: marketLoaded?.widest?.label ?? null } : null,
+      pivotsShown: pivots !== null,
+    }),
   }
 }

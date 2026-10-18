@@ -19,13 +19,15 @@ import { Letterhead, ExecutiveSummary, BasisSection } from '@/components/market-
 import {
   ActivitySection,
   DirectionSection,
+  EvaluatorSection,
+  ObjectionsSection,
   ExperienceSection,
   MarketSection,
   MethodNotes,
   RequirementsSection,
   ResumeSection,
   SkillsSection,
-  WeekSection,
+  LaunchpadSection,
 } from '@/components/market-reality/analysis-sections'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
@@ -149,6 +151,8 @@ export default async function MarketRealityReportPage({
       <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-8 print:border-0 print:p-0">
         <Letterhead name={brief.candidateName} asOf={brief.asOf} />
         <ExecutiveSummary brief={brief} />
+        <EvaluatorSection brief={brief} />
+        <ObjectionsSection brief={brief} />
         <BasisSection brief={brief} />
         <MarketSection brief={brief} marketScope={marketScope} candidateId={profile.id} />
         <RequirementsSection brief={brief} />
@@ -157,7 +161,7 @@ export default async function MarketRealityReportPage({
         <ResumeSection brief={brief} />
         <DirectionSection brief={brief} />
         <ActivitySection brief={brief} />
-        <WeekSection brief={brief} />
+        <LaunchpadSection brief={brief} />
         <MethodNotes />
       </article>
     </div>

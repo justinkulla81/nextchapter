@@ -272,3 +272,162 @@ describe('buildPriorities', () => {
     expect(out.map((p) => p.weight)).toEqual([...out.map((p) => p.weight)].sort((a, b) => b - a))
   })
 })
+
+// ── Evaluator views, objections, launchpad ─────────────────────────────────
+
+import { buildEvaluatorViews, buildObjections, type EvaluatorInput } from '@/lib/reports/market-reality-brief/evaluators'
+import { buildLaunchpad, firstStep, type LaunchpadInput } from '@/lib/reports/market-reality-brief/launchpad'
+
+const cleanHistory = () =>
+  run([role('Analyst', d(2010, 1), d(2014, 1)), role('Manager of Finance', d(2014, 2), d(2019, 6)), role('Director of Finance', d(2019, 7), null)])
+const shaky = () =>
+  run(
+    [
+      role('Director of Sales', d(2019, 1), d(2019, 8)),
+      role('Director of Sales', d(2019, 9), d(2020, 5)),
+      role('Director of Sales', d(2020, 6), d(2021, 2)),
+      role('Director of Sales', d(2021, 3), null),
+    ],
+    { targetRole: 'VP of Sales' }
+  )
+const evalInput = (over: Partial<EvaluatorInput> = {}): EvaluatorInput => ({
+  targetRole: 'Director of Finance',
+  experience: cleanHistory(),
+  firstGlance: 'PASS',
+  firstGlanceTopFix: null,
+  dims: { quantification: 80, scopeLevel: 80, relevanceRecency: 80, skillCurrency: 80, narrativePositioning: 80 },
+  ai: null,
+  conversationsPerWeek: 3,
+  marketPrompt: 'healthy',
+  payFloor: null,
+  ...over,
+})
+const view = (v: ReturnType<typeof buildEvaluatorViews>, key: string) => v.find((x) => x.key === key)!
+
+describe('buildEvaluatorViews', () => {
+  it('returns the three readers', () => {
+    expect(buildEvaluatorViews(evalInput()).map((v) => v.key)).toEqual(['recruiter', 'hiring_manager', 'executive_recruiter'])
+  })
+
+  it('advances a clean, quantified record', () => {
+    for (const v of buildEvaluatorViews(evalInput())) expect(v.stance).toBe('advance')
+  })
+
+  it('pauses the recruiter on a skip-level first glance with unexplained short stints', () => {
+    const v = view(buildEvaluatorViews(evalInput({ experience: shaky(), firstGlance: 'LIKELY_SKIP' })), 'recruiter')
+    expect(v.stance).toBe('pause')
+    expect(v.thinking.join(' ')).toMatch(/short stints/)
+  })
+
+  it('has the hiring manager discount results with no numbers', () => {
+    const v = view(buildEvaluatorViews(evalInput({ dims: { quantification: 30, scopeLevel: 40, relevanceRecency: 50, skillCurrency: 50 } })), 'hiring_manager')
+    expect(v.stance).toBe('pause')
+    expect(v.thinking.join(' ')).toMatch(/size what this person ran/)
+    expect(v.changesMind.join(' ')).toMatch(/number/)
+  })
+
+  it('caps the hiring manager at reservations when the target level has not been held', () => {
+    const v = view(buildEvaluatorViews(evalInput({ experience: shaky() })), 'hiring_manager')
+    expect(v.stance).not.toBe('advance')
+  })
+
+  it('has the executive recruiter weigh stability, story and network', () => {
+    const v = view(buildEvaluatorViews(evalInput({ experience: shaky(), conversationsPerWeek: 0, marketPrompt: 'too_few' })), 'executive_recruiter')
+    expect(v.stance).toBe('pause')
+    expect(v.thinking.join(' ')).toMatch(/no visible network/)
+    expect(v.thinking.join(' ')).toMatch(/filled by introduction/)
+  })
+
+  it('asks about the AI gap only when employers ask and the profile shows none', () => {
+    const gap = view(buildEvaluatorViews(evalInput({ ai: { employersAsking: 5, of: 8, haveAny: false } })), 'hiring_manager')
+    expect(gap.questions.join(' ')).toMatch(/AI/)
+    const fine = view(buildEvaluatorViews(evalInput({ ai: { employersAsking: 5, of: 8, haveAny: true } })), 'hiring_manager')
+    expect(fine.questions.join(' ')).not.toMatch(/AI/)
+  })
+
+  it('quotes the pay floor in the questions only when one is set', () => {
+    expect(view(buildEvaluatorViews(evalInput({ payFloor: 250000 })), 'recruiter').questions.join(' ')).toMatch(/\$250,000/)
+    expect(view(buildEvaluatorViews(evalInput()), 'recruiter').questions.join(' ')).not.toMatch(/\$/)
+  })
+})
+
+describe('buildObjections', () => {
+  it('lists nothing for a clean record', () => {
+    expect(buildObjections(evalInput())).toEqual([])
+  })
+
+  it('turns findings into questions with an answer structure, heaviest first', () => {
+    const o = buildObjections(evalInput({ experience: shaky(), dims: { quantification: 30, narrativePositioning: 30 }, ai: { employersAsking: 4, of: 6, haveAny: false } }))
+    const keys = o.map((x) => x.key)
+    expect(keys).toEqual(expect.arrayContaining(['tenure', 'quantification', 'positioning', 'ai']))
+    expect(o.every((x) => x.question && x.answer)).toBe(true)
+    expect(o.map((x) => x.severity)).toEqual([...o.map((x) => x.severity)].sort((a, b) => b - a))
+    expect(o.find((x) => x.key === 'ai')?.source).toBe('Skills')
+  })
+})
+
+const launch = (over: Partial<LaunchpadInput> = {}): LaunchpadInput => ({
+  mode: 'ACTIVE',
+  strategyComplete: false,
+  unconfirmedProfileItems: 2,
+  hasResume: true,
+  resumeFixCount: 3,
+  unansweredReviewerQuestions: 1,
+  skillsAssessmentDone: false,
+  gmailConnected: false,
+  completedReferences: 0,
+  weekly: { applications: 11, conversations: 3 },
+  activityObserved: false,
+  topAiGap: 'Prompt design',
+  market: { prompt: 'too_few', widest: 'CFO, any industry' },
+  pivotsShown: true,
+  ...over,
+})
+
+describe('buildLaunchpad', () => {
+  it('starts a new member with the inputs every estimate reads', () => {
+    const steps = buildLaunchpad(launch())
+    expect(steps[0].key).toBe('strategy')
+    expect(steps[0].phase).toBe('today')
+    expect(firstStep(steps)?.key).toBe('strategy')
+  })
+
+  it('links every step to a real in-app path and names the tool', () => {
+    for (const s of buildLaunchpad(launch())) {
+      expect(s.href).toMatch(/^(\/dashboard|#)/)
+      expect(s.tool.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('orders steps by phase', () => {
+    const order = ['today', 'this_week', 'weeks_2_4', 'weeks_5_12']
+    const idx = buildLaunchpad(launch()).map((s) => order.indexOf(s.phase))
+    expect(idx).toEqual([...idx].sort((a, b) => a - b))
+  })
+
+  it('skips what is already done and shows progress for what the member has done', () => {
+    const steps = buildLaunchpad(launch({ strategyComplete: true, unconfirmedProfileItems: 0, unansweredReviewerQuestions: 0, skillsAssessmentDone: true, gmailConnected: true, completedReferences: 3 }))
+    expect(steps.some((s) => s.key === 'strategy' || s.key === 'confirm' || s.key === 'assessment' || s.key === 'gmail')).toBe(false)
+    expect(steps.find((s) => s.key === 'references')?.done).toBe(true)
+  })
+
+  it('does not offer the job board while the situation keeps it locked, and says what turns it on', () => {
+    const apply = buildLaunchpad(launch({ mode: 'EXPLORING' })).find((s) => s.key === 'apply')!
+    expect(apply.lockedNote).toMatch(/ready to apply/)
+    const open = buildLaunchpad(launch({ mode: 'ACTIVE' })).find((s) => s.key === 'apply')!
+    expect(open.lockedNote).toBeNull()
+    const steps = buildLaunchpad(launch({ mode: 'EXPLORING', strategyComplete: true, unconfirmedProfileItems: 0, unansweredReviewerQuestions: 0, resumeFixCount: 0, skillsAssessmentDone: true, gmailConnected: true, completedReferences: 3, topAiGap: null, weekly: { applications: 11, conversations: 3 } }))
+    expect(firstStep(steps)?.key).not.toBe('apply')
+  })
+
+  it('asks for a resume first when none is on file', () => {
+    const steps = buildLaunchpad(launch({ hasResume: false, resumeFixCount: 0, strategyComplete: true, unconfirmedProfileItems: 0 }))
+    expect(steps[0].key).toBe('resume_upload')
+  })
+
+  it('only suggests widening and pivots when the report does', () => {
+    const none = buildLaunchpad(launch({ market: { prompt: 'healthy', widest: null }, pivotsShown: false }))
+    expect(none.some((s) => s.key === 'widen' || s.key === 'pivot')).toBe(false)
+    expect(buildLaunchpad(launch()).some((s) => s.key === 'widen')).toBe(true)
+  })
+})

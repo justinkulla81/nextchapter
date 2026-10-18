@@ -1,5 +1,8 @@
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
+import { buttonVariants } from '@/components/ui/button'
+import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { firstStep } from '@/lib/reports/market-reality-brief/launchpad'
 import { AssessmentMark, Estimate, ReportLink, ReportSection, ReportTable, SubHeading } from './report-ui'
 
 export function Letterhead({ name, asOf }: { name: string; asOf: Date }) {
@@ -48,6 +51,26 @@ export function ExecutiveSummary({ brief }: { brief: MarketRealityBrief }) {
           to start.
         </p>
       )}
+
+      {(() => {
+        const next = firstStep(brief.launchpad)
+        return next ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-y border-navy/20 py-4 print:hidden">
+            <p className="max-w-xl text-sm text-foreground">
+              <span className="font-semibold">Your first move:</span> {next.title}. {next.minutes ? `About ${next.minutes} minutes.` : ''}{' '}
+              <a href="#start" className="text-primary underline underline-offset-4">See the full twelve-week plan</a>
+            </p>
+            <TrackedLink
+              href={next.href}
+              event="market_reality_start_clicked"
+              properties={{ key: next.key, phase: next.phase, area: next.area, surface: 'summary' }}
+              className={buttonVariants()}
+            >
+              Start now
+            </TrackedLink>
+          </div>
+        ) : null
+      })()}
 
       <div>
         <SubHeading>Assessment by dimension</SubHeading>
@@ -105,7 +128,7 @@ export function BasisSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="basis"
-      number="01"
+      number="03"
       title="Basis of assessment"
       finding={
         !brief.basis.goalsComplete
