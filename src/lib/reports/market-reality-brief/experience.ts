@@ -52,6 +52,10 @@ export interface ExperienceFinding {
   assessment: Assessment
   /** What to do about it, when there is something to do. */
   action: string | null
+  /** The question a reviewer will put to the candidate because of this finding, in their words. Null for a strength. */
+  objection: string | null
+  /** How to answer it: the structure of a good one-minute answer. */
+  answer: string | null
 }
 
 export interface TimelineRow {
@@ -73,6 +77,16 @@ export interface ExperienceAnalysis {
   developmentCount: number
   /** Gaps and short stints a reviewer will ask about and the record does not explain. */
   openQuestions: number
+  /** Plain facts the evaluator lenses quote. */
+  facts: ExperienceFacts
+}
+
+export interface ExperienceFacts {
+  latest: { title: string; company: string; months: number; current: boolean } | null
+  /** Employers before the latest role, most recent first, at most three. */
+  priorEmployers: string[]
+  teamSizeMax: number | null
+  longest: { company: string; months: number } | null
 }
 
 export interface ExperienceInput {
@@ -168,8 +182,19 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
       note: r.contract ? (r.e.engagementType === 'FRACTIONAL' ? 'Fractional' : r.e.engagementType === 'INTERIM' ? 'Interim' : 'Consulting') : null,
     }))
 
+  const latestRole = roles.length > 0 ? [...roles].sort((a, b) => b.end.getTime() - a.end.getTime() || b.start.getTime() - a.start.getTime())[0] : null
+  const permanentRoles = roles.filter((r) => !r.contract)
+  const longestRole = permanentRoles.length > 0 ? permanentRoles.reduce((m, r) => (r.months > m.months ? r : m)) : null
+  const teamSizes = roles.map((r) => r.e.teamSize).filter((t): t is number => typeof t === 'number' && t > 0)
+  const facts: ExperienceFacts = {
+    latest: latestRole ? { title: latestRole.e.roleTitle, company: latestRole.e.companyName, months: latestRole.months, current: latestRole.e.isCurrent } : null,
+    priorEmployers: [...new Set([...roles].reverse().filter((r) => r !== latestRole).map((r) => r.e.companyName))].slice(0, 3),
+    teamSizeMax: teamSizes.length > 0 ? Math.max(...teamSizes) : null,
+    longest: longestRole ? { company: longestRole.e.companyName, months: longestRole.months } : null,
+  }
+
   if (roles.length < 2) {
-    return { assessable: false, careerYears, roleCount: roles.length, employerCount, findings: [], timeline, developmentCount: 0, openQuestions: 0 }
+    return { assessable: false, careerYears, roleCount: roles.length, employerCount, findings: [], timeline, developmentCount: 0, openQuestions: 0, facts }
   }
 
   const findings: ExperienceFinding[] = []
@@ -208,6 +233,16 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
           : assessment === 'adequate' && unexplained.length > 0
             ? 'One short stint is normal. Be ready with a one-line reason.'
             : null,
+      objection:
+        unexplained.length >= 2
+          ? `${unexplained.length} stints under a year. Will this person stay, or is this one more?`
+          : unexplained.length === 1
+            ? `One stint under a year, at ${unexplained[0].e.companyName}. What happened?`
+            : null,
+      answer:
+        unexplained.length > 0
+          ? 'Name the cause of each in one clause (a restructuring, a fixed-term role, a poor fit), then prove the opposite pattern since: how long you have stayed and what you delivered there.'
+          : null,
     })
   }
 
@@ -260,6 +295,18 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
         assessment === 'strength'
           ? null
           : 'Close the gap on paper: a one-line reason on the resume, or interim, fractional or contract work that is current and quantified. Unexplained is worse than any actual reason.',
+      objection:
+        assessment === 'strength'
+          ? null
+          : !working && currentGap >= GAP_REPORT_MONTHS && currentGap >= longestUnexplained
+            ? 'What have you been doing since your last role ended, and why are you looking now?'
+            : longestUnexplained > 0
+              ? `What were you doing in the ${longestUnexplained}-month gap?`
+              : 'There is a gap on the page. What was it?',
+      answer:
+        assessment === 'strength'
+          ? null
+          : 'Three sentences: the cause, what you did with the time (contract work, advising, caregiving, study), and what you are targeting now. Keep it factual and short; length reads as discomfort.',
     })
     // The gap is rendered per se above; keep the longest one visible in the timeline.
     if (gaps.length > 0) {
@@ -319,6 +366,12 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
         norm: 'Roughly one level every three to five years reads as steady. Two or more levels at once, or one a year, makes reviewers check the scope behind the title.',
         assessment,
         action,
+        objection: rapid ? 'Titles rose quickly. Was that scope, or title inflation?' : stepDowns > 0 ? 'Why did you take a smaller role?' : null,
+        answer: rapid
+          ? 'Pin every step up to a number: team size, budget, revenue, geography. Let the numbers carry the title.'
+          : stepDowns > 0
+            ? 'Name the deliberate trade (mission, flexibility, a turnaround) and what the role gave you that the bigger one did not.'
+            : null,
       })
     }
   }
@@ -341,6 +394,8 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
           norm: `A decade at one level reads as a plateau unless scope visibly grew inside it.`,
           assessment: reachingUp ? 'development' : 'adequate',
           action: 'Show growth inside the level: larger teams, budgets, geographies or a first-time mandate. Reviewers look for scope, not titles.',
+          objection: `${Math.round(heldYears)} years at ${LEVELS[lastLevel]} level. Why has the next step not come?`,
+          answer: 'Show how the scope grew inside the level, then say plainly what you are now deliberately seeking and why it is the right next move.',
         })
       }
     }
@@ -369,6 +424,18 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
             : diff < 0
               ? 'Address “overqualified” before it is asked: one line on why this level, and a pay expectation that matches it.'
               : null,
+        objection:
+          diff > 0
+            ? `You have not held ${LEVELS[target]} level. Why are you ready for it?`
+            : diff < 0
+              ? `Will a ${LEVELS[target]}-level role hold you, or will you leave when something bigger comes?`
+              : null,
+        answer:
+          diff > 0
+            ? 'Show you already do the next level’s work: ownership of a P&L or budget, directors as direct reports, board exposure. Bring a reference who will say so.'
+            : diff < 0
+              ? 'Say why this level, now; make the pay expectation match it; and state how long you intend to stay.'
+              : null,
       })
     }
   }
@@ -386,10 +453,12 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
         norm: 'Hiring managers favor candidates who have solved the problem in their own industry. Three or more industries needs a clear through-line.',
         assessment: distinct >= 4 ? 'development' : distinct === 3 ? 'adequate' : 'strength',
         action: distinct >= 3 ? 'Write the through-line into the summary: the one capability that travelled across every industry, with a result from each.' : null,
+        objection: distinct >= 3 ? `${distinct} industries in ${LOOKBACK_YEARS} years. What is the common thread?` : null,
+        answer: distinct >= 3 ? 'Name the single capability that travelled and give one result from each industry. A through-line turns breadth from drift into range.' : null,
       })
     }
   }
 
   const developmentCount = findings.filter((f) => f.assessment === 'development').length
-  return { assessable: true, careerYears, roleCount: roles.length, employerCount, findings, timeline, developmentCount, openQuestions }
+  return { assessable: true, careerYears, roleCount: roles.length, employerCount, findings, timeline, developmentCount, openQuestions, facts }
 }
