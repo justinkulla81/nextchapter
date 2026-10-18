@@ -14,8 +14,10 @@ screen should feel like progress toward a job.
 
 ## Decisions already made
 
-- **Six places**: Home, Jobs, Network, Learn, Personalize, Help. One small tab row
-  per place. Nothing sequential is forced: people go back and forth between
+- **Places** (updated 2026-10-18): Home, Jobs, Network, Learn, Finances and benefits
+  (only if the member chose money help), Account and privacy, and Help. Personalize is gone:
+  personalization is the first strip on Home, Jobs, Network and Learn, plus the Improve your
+  search page. One small tab row per place. Nothing sequential is forced: people go back and forth between
   stages, so there is **no stage stepper** (no "Exploring, Preparing, Applying...").
 - **One note per page, and only on Home.** Daily messages, prompts, nudges and
   small check-ins ("still searching? how are you doing?") are one card in one
