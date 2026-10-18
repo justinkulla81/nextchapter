@@ -11,12 +11,12 @@ Audit of 2026-10-18. One file per body of work sits beside this one. Each lists 
 | Journey personalization | The personalization spine, signals, retune, the 11 journeys | On `main`. `PersonalizationQuestion` is only on `origin/claude/awesome-dijkstra-14oi6p` | High |
 | Market reality report | The grade, report, market pages, monthly member report | On `main`. The Employment Report rename branches are superseded | High |
 | Career team | Employer career growth seats. No feature is called "Career team". | On `main` and merged here | Medium |
-| Fit future | **Not found.** Only "FutureFit AI", a competitor named in a vendor doc. Closest real work: job fit verdicts, AI outlook, AI skills layer | | Low: please tell me which |
-| Consulting experience screen | Best guess: the Experience section of the market report on `origin/claude/friendly-noether-118syi` (not merged) | | About 50%: please tell me which |
+| Career Team and Fit Future | Two outside companies (CareerTEAM, a case-management vendor; FutureFit AI, a career-pathing company). The session compared them and the owner chose what to build: the pivot tool, training matching, résumé editor, documents, coach booking and notes, white-label. Merged on `main` (PRs #27, #34, #42) | `docs/session-audit/career-team-fit-future.md` | High |
+| Consulting experience screening | One Search Strategy question (consulting, expert network, fractional, part-time: doing it, done it, not yet), merged as PR #46. It has nothing to do with the market report. | `docs/session-audit/consulting-screening-session.md` | High |
 | Personal assistant | A spec only, on `origin/claude/peaceful-ride-8ib5z2`. No code | | High |
 | Finding future opportunities | "Likely openings", layoffs, USAJOBS, hot alerts, backchannel, the jobs report | Part on `main`, part on about eight small branches | High |
 | Gmail and calendar onboarding | Onboarding v2: Google sign-up and scan reveal, behind a flag | `origin/claude/optimistic-goldberg-fxjmxq`, never run against real Google | High |
-| "nextchapter" | I could not tell which session this is | | Please tell me |
+| "nextchapter" | Still unidentified | | Please tell me |
 
 ## Conflicts that need a decision
 
@@ -66,3 +66,7 @@ Audit of 2026-10-18. One file per body of work sits beside this one. Each lists 
 4. Onboarding: question bundles O1 to O6 first, with the Google scan as a reveal step after O6?
 5. College bar: neutral navy with the college's name and logo only, or keep their accent color?
 6. Delete the stale branches (`higher-ed-portal`, `ai-skills-taxonomy`, the Employment Report rename branches)?
+
+## Corrections after reading the session transcripts
+
+See `transcripts-other-sessions.md`. In short: the market report redo exists (`origin/claude/friendly-noether-118syi`, PR #83, session still active); the career events SQL was already applied to production on 2026-10-17; mood is never shared (decided); the Google onboarding session is waiting on the owner's A, B or C choice for the Your goal and Your plan cards (the redesign's journey card and Build your plan strip are that idea); exclusive jobs for everyone with the dossier attached is an owner statement that conflicts with gating behind Candidate+; the assistant's name, 'free' and the paid recruiter channel are the assistant's readings, not owner decisions; the Higher Ed session edited a design artifact (services menu, donations, digital resources, WIOA funding) and did not write code.
