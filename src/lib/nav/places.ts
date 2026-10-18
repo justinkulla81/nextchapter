@@ -58,6 +58,9 @@ export interface Place {
   alsoPrefixes?: string[]
 }
 
+/** What the menu helpers need of a place, so the redesigned set (redesign-places.ts) shares them. */
+export type PlaceShape = Pick<Place, 'tabs' | 'groups'>
+
 export const PLACES: Place[] = [
   {
     key: 'home',
@@ -178,7 +181,7 @@ export const PLACES: Place[] = [
   },
 ]
 
-function matches(pathname: string, href: string): boolean {
+export function matches(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === '/dashboard'
   return pathname === href || pathname.startsWith(`${href}/`)
 }
@@ -201,7 +204,7 @@ export function placeForPath(pathname: string): Place | null {
   return best?.place ?? null
 }
 
-export function activeTab(place: Place, pathname: string): PlaceTab | null {
+export function activeTab(place: PlaceShape, pathname: string): PlaceTab | null {
   let best: { tab: PlaceTab; len: number } | null = null
   for (const tab of place.tabs) {
     for (const h of [tab.href, ...(tab.alsoMatches ?? [])]) {
@@ -221,12 +224,12 @@ export function tabSituation(tab: PlaceTab, mode: MenuMode | null | undefined): 
   return states.includes('locked') ? 'locked' : 'hide'
 }
 
-export function visibleTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
+export function visibleTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
   return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer) && tabSituation(t, opts.mode) !== 'hide')
 }
 
 // Tabs the member's situation turns off for now, to name in the "Turn on more tools" box.
-export function statusLockedTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
+export function statusLockedTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
   return visibleTabs(place, opts).filter((t) => tabSituation(t, opts.mode) === 'locked').map((t) => t.label)
 }
 
@@ -259,7 +262,7 @@ export function lockReasonFor(href: string, locks: NavLocks, tab?: PlaceTab): st
 }
 
 // The first tab a member can actually open, so a place is never a dead end.
-export function entryHref(place: Place, locks: NavLocks, employed: boolean): string | null {
+export function entryHref(place: PlaceShape, locks: NavLocks, employed: boolean): string | null {
   const tab = visibleTabs(place, { employed, mode: locks.mode }).find((t) => !lockReasonFor(t.href, locks, t))
   return tab?.href ?? null
 }
@@ -279,13 +282,13 @@ export interface MenuEntry {
   activeTab: PlaceTab | null
 }
 
-export function groupsOf(place: Place): PlaceGroup[] {
+export function groupsOf(place: PlaceShape): PlaceGroup[] {
   return place.groups ?? place.tabs.map((t) => ({ label: t.label, hrefs: [t.href] }))
 }
 
 /** The place's menu entries for this member and page: hidden tabs dropped, locks explained. */
 export function menuEntries(
-  place: Place,
+  place: PlaceShape,
   pathname: string,
   opts: { employed: boolean; earlyCareer?: boolean; locks: NavLocks; paidAccess: PaidAccess },
 ): MenuEntry[] {

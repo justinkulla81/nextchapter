@@ -1,6 +1,26 @@
+'use client'
+
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { posthog } from '@/lib/posthog/client'
+
 // Today's note: the one thing to do now, why it matters, and how to start. There is only ever one of
-// these on Home. "Why am I seeing this?" holds the explanation, including what the plan is set up for.
-export function HomeNote({ title, why, startLabel, startHref, whyDetail }: { title: string; why: string; startLabel: string; startHref: string; whyDetail: string }) {
+// these on Home. "Why am I seeing this?" holds the explanation. "Not now" hides it until tomorrow.
+export function HomeNote({ kind = 'note', title, why, startLabel, startHref, whyDetail }: { kind?: string; title: string; why: string; startLabel: string; startHref: string; whyDetail: string }) {
+  const dayKey = `nc-note-dismissed:${kind}`
+  const today = new Date().toISOString().slice(0, 10)
+  const [hidden, setHidden] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        if (window.localStorage.getItem(dayKey) === today) setHidden(true)
+      } catch {}
+    }, 0)
+    return () => clearTimeout(t)
+  }, [dayKey, today])
+
+  if (hidden) return null
   return (
     <section aria-labelledby="note" className="space-y-4 rounded-2xl border border-border bg-white p-5 sm:p-7">
       <div className="flex items-center gap-2">
@@ -14,10 +34,24 @@ export function HomeNote({ title, why, startLabel, startHref, whyDetail }: { tit
         <span className="font-semibold">Why it matters:</span> {why}
       </p>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <a href={startHref} className="inline-flex h-12 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95">
+        <Link
+          href={startHref}
+          onClick={() => posthog.capture('home_note_started', { kind })}
+          className="inline-flex h-12 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95"
+        >
           {startLabel}
-        </a>
-        <button type="button" className="text-sm font-medium text-brand underline underline-offset-4">
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            posthog.capture('home_note_dismissed', { kind })
+            try {
+              window.localStorage.setItem(dayKey, today)
+            } catch {}
+            setHidden(true)
+          }}
+          className="text-sm font-medium text-brand underline underline-offset-4"
+        >
           Not now
         </button>
         <details className="group">

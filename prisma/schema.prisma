@@ -682,6 +682,9 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Whether the member wants help with money (Finances and benefits, a runway, pay and savings questions).
+  // Null until asked. False: none of it is shown or asked. Added by hand: prisma/manual/2026-10-18-money-help.sql.
+  moneyHelp                       Boolean?
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
   // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met

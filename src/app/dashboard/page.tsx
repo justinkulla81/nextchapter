@@ -54,21 +54,26 @@ import { ReportReadyDailyMessage } from '@/components/dashboard/ReportReadyDaily
 import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
 import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrategyDailyMessage'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
-import { computeDossierCompleteness, getDossierLadderTier, getModuleGateStatus, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { buildUnlockLadder, candidatePlusSteps } from '@/lib/unlocks/ladder'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { candidatePlusSteps } from '@/lib/unlocks/ladder'
 import { firstWeekStep } from '@/lib/onboarding/first-week'
 import { FirstWeekCard } from '@/components/dashboard/home/FirstWeekCard'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { timed } from '@/lib/perf/timed'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
-import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
+import { UnlocksSection } from '@/components/dashboard/home/UnlocksSection'
 import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { loadApplyPrompts } from '@/lib/jobs/my-jobs-data'
 import { RecruiterVisibilityGoalCard, type RecruiterGoalStep } from '@/components/dashboard/home/RecruiterVisibilityGoalCard'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { EarlyCareerHomeModule } from '@/components/dashboard/early-career/EarlyCareerHomeModule'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
+import { withBlockerStep } from '@/lib/personalization/blocker-step'
+import { HomeNote } from '@/components/candidate/HomeNote'
+import { JourneyCard } from '@/components/candidate/JourneyCard'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -177,21 +182,8 @@ async function HomeApplyPrompts({ candidateId }: { candidateId: string }) {
   )
 }
 
-async function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
-  const [dossierCompleteness, dossierStatus, ladderTier, moduleGates] = await Promise.all([
-    // Build Your Dossier summary (condensed here, full checklist + "what
-    // moves the needle" lives on /dashboard/portfolio) and the Executive
-    // Dossier lock/unlock status shown alongside it.
-    timed('home', 'dossierCompleteness', profile.id, computeDossierCompleteness(profile.id)),
-    timed('home', 'dossierUnlocked', profile.id, isDossierUnlocked(profile.id)),
-    timed('home', 'ladderTier', profile.id, getDossierLadderTier(profile.id)),
-    timed('home', 'moduleGates', profile.id, getModuleGateStatus(profile.id)),
-  ])
-  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
-  const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
-  return (
-    <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
-  )
+function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
+  return <UnlocksSection profile={profile} />
 }
 
 // "Get seen by recruiters": only for members without Candidate+. Their exact remaining
@@ -229,6 +221,7 @@ async function HomeWeeklyPlan({
   completedReferencesCount,
   latestResumeIssueCount,
   journeyNow,
+  blockers,
 }: {
   profile: HomeProfile
   weekNumber: number
@@ -241,6 +234,8 @@ async function HomeWeeklyPlan({
   completedReferencesCount: number
   latestResumeIssueCount: number
   journeyNow: ReturnType<typeof effectiveJourney>
+  /** The redesigned Home answers what gets in the way with the week's first step. Undefined: leave the plan as it is. */
+  blockers?: string[]
 }) {
   const [weeklyProgress, marketRealityGrade, currentSprint, suggestedActions, profileChecklistItems, resumeFixes] = await Promise.all([
     timed('home', 'weeklyProgress', profile.id, computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode)),
@@ -265,6 +260,7 @@ async function HomeWeeklyPlan({
     Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
   )
   const onTrack = weeklyProgress.weeklyPoints > (weeklyProgress.weeklyPointsTarget * daysElapsedThisWeek) / 7
+  const blockerPlan = blockers ? withBlockerStep(suggestedActions, blockers, journeyNow) : null
 
   return (
     <>
@@ -278,7 +274,7 @@ async function HomeWeeklyPlan({
       </Suspense>
       <SuccessSprintCard
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
-        suggestedActions={suggestedActions}
+        suggestedActions={blockerPlan ? blockerPlan.plan : suggestedActions}
         weeklyPoints={weeklyProgress.weeklyPoints}
         weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
         onTrack={onTrack}
@@ -293,6 +289,14 @@ async function HomeWeeklyPlan({
         hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
         title={journeyNow && !getJourney(journeyNow).searching ? 'Your weekly plan' : undefined}
       />
+      {blockerPlan?.because && (
+        <p className="text-sm text-muted-foreground">
+          The first step is there because of what you told us. {blockerPlan.because}{' '}
+          <Link href="/dashboard/search-strategy" className="font-medium text-brand underline underline-offset-4">
+            Change what gets in the way
+          </Link>
+        </p>
+      )}
     </>
   )
 }
@@ -435,9 +439,145 @@ export default async function DashboardPage() {
           : searchPlaybook
             ? 'search_playbook'
             : 'culture_survey' // the last-priority prompt slot: rate a former job, else describe a company's culture
-  after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber, audience }))
+  const redesign = isRedesignOn(profile.email)
+  if (!redesign) after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: noteKind, journey: journeyNow, stage: stageNow, weekNumber, audience }))
 
   const firstWeek = firstWeekStep(profile.registrationCompletedAt)
+
+  if (redesign) {
+    // The redesigned Home (docs/candidate-redesign.md): a greeting, your journey, one note, your week, and
+    // the modules you act from. Replaces the stage chip, the daily message box, the first-week card, the
+    // engagement card and the recruiter goal card, which are now the one note or live on other pages.
+    const jobCounts = await timed('home', 'jobCounts', profile.id, getHomeJobCounts(profile.id))
+    const searching = !journeyNow || getJourney(journeyNow).searching
+    const firstName = profile.firstName ?? 'there'
+    const note = pickHomeNote({
+      needsCoachingForm,
+      searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
+      reportReady: showReportReadyMessage,
+      accountsNotConnected: !bothConnectedUnlocked,
+      stalledSearch: !!stalledSearchPrompt,
+      passiveToActive: !!passiveToActivePrompt,
+      firstWeek,
+      gotHired: showGotHiredCTA,
+      searchPlaybook: !!searchPlaybook,
+    })
+    after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: note, journey: journeyNow, stage: stageNow, weekNumber, audience, redesign: true }))
+    const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations })
+    const toneSet = profile.coachingStylePreference !== null
+    return (
+      <div className="space-y-8">
+        {user && !user.email_confirmed_at && user.email && <EmailConfirmationBanner email={user.email} />}
+        <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
+        <Suspense fallback={null}>
+          <SeatEndingBanner candidateId={profile.id} />
+        </Suspense>
+
+        <header className="space-y-1.5">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Hello, {firstName}</p>
+          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">
+            {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
+          </h1>
+        </header>
+
+        <OutplacementProgramCard candidateId={profile.id} />
+        <StaffProgramCard candidateId={profile.id} />
+
+        <JourneyCard
+          journey={journeyNow ? getJourney(journeyNow).label : 'Your journey'}
+          since={searching ? `Week ${weekNumber} of your search` : stageNow ? getStage(stageNow).label : ''}
+          facts={searching ? [{ label: 'Saved jobs', value: String(jobCounts.saved) }, { label: 'Applications', value: String(jobCounts.applied) }, { label: 'Interviews', value: String(jobCounts.interviews) }] : []}
+          changes={[
+            'Your plan and weekly target follow your journey and where you are in it',
+            ...(toneSet ? ['Notes come in the tone you chose'] : []),
+          ]}
+          changeHref="/dashboard/privacy"
+          tune={toneSet && profile.changePacePreference ? undefined : { text: 'Two answers tune your week: how hard to push, and how fast to move.', action: 'Answer two questions', href: '/dashboard/search-strategy' }}
+        />
+
+        {plain ? (
+          <HomeNote kind={note} {...plain} />
+        ) : (
+          <>
+            {note === 'connect_accounts' && (
+              <PreConnectDailyMessage firstName={firstName} hasEmailConnection={!!emailConnection} hasCalendarConnection={!!calendarConnection} linkedInConnected={linkedInConnected} />
+            )}
+            {note === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
+            {note === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
+            {note === 'search_playbook' && searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}
+            {note === 'culture_survey' && (
+              <Suspense fallback={null}>
+                <MemberInsightPrompt candidateId={profile.id} />
+              </Suspense>
+            )}
+          </>
+        )}
+
+        <Suspense fallback={null}>
+          <HomeApplyPrompts candidateId={profile.id} />
+        </Suspense>
+
+        {newCheer && (
+          <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
+            <p className="text-xs font-semibold tracking-wide text-success uppercase">A cheer for you</p>
+            <p className="text-base">{newCheer.message}</p>
+            <p className="text-sm text-muted-foreground">
+              From {newCheer.supporter.name}.{' '}
+              <Link href="/dashboard/supporters" className="font-medium text-brand underline underline-offset-4">
+                See your supporters
+              </Link>
+            </p>
+          </section>
+        )}
+        {audience && (
+          <Suspense fallback={null}>
+            <EarlyCareerHomeModule audience={audience} profile={profile} />
+          </Suspense>
+        )}
+        <EmployerInterestSection candidateId={profile.id} />
+        <PortfolioAccessRequestSection candidateId={profile.id} />
+        <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="space-y-6 lg:col-span-2">
+            <Suspense fallback={<WeeklyFocusSkeleton />}>
+              <HomeWeeklyPlan
+                profile={profile}
+                weekNumber={weekNumber}
+                weekStartDate={weekStartDate}
+                bothConnectedUnlocked={bothConnectedUnlocked}
+                hasEmailConnection={!!emailConnection}
+                hasCalendarConnection={!!calendarConnection}
+                linkedInConnected={linkedInConnected}
+                searchStrategyChecklist={searchStrategyChecklist}
+                completedReferencesCount={completedReferencesCount}
+                latestResumeIssueCount={latestResumeIssueCount}
+                journeyNow={journeyNow}
+                blockers={profile.blockers}
+              />
+            </Suspense>
+          </div>
+          <Suspense fallback={<HomeModuleSkeleton title="Jobs" rows={3} />}>
+            <HomeJobsSection profile={profile} />
+          </Suspense>
+          <Suspense fallback={<HomeModuleSkeleton title="Network" />}>
+            <HomeNetworkSection candidateId={profile.id} />
+          </Suspense>
+          {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
+            <div className="lg:col-span-2">
+              <Suspense fallback={<HomeModuleSkeleton title="Unlocks" rows={3} />}>
+                <HomeUnlocksSection profile={profile} />
+              </Suspense>
+            </div>
+          )}
+        </div>
+
+        <Suspense fallback={null}>
+          <SessionImpactSection candidateId={profile.id} />
+        </Suspense>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
