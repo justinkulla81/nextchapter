@@ -10,7 +10,8 @@ Everything from the redesign work and the audit of the other sessions, in the or
 - **No more exclusive jobs.** Every job is shown to every member. The dossier is attached to an application only if the candidate chooses. Candidate+ is signaled to the poster when it is true (and never in confidential mode).
 - Onboarding: question bundles first. **Money is not asked in onboarding.** The choice lives on first opening Finances and benefits, and in Account and privacy, Money help.
 - Turn the redesign on for the owner's account (the owner sets `CANDIDATE_REDESIGN_EMAILS` in Vercel).
-- Market report as one page: owner said "don't know". Default: one page with a short summary first and the rest behind "show more", until told otherwise.
+- **One market report only** (decided 2026-10-18, replacing the earlier default). It is always the accurate picture of the member's hireability as of now, and it regenerates after the member has made improvements or done work. No separate lead-gen version, no history of old grades. Short summary and the first twelve weeks first; the rest behind "show more".
+- Exclusive jobs: confirmed. No more exclusive jobs.
 
 ## Decide now (these block the next build step) — original list, for reference
 
