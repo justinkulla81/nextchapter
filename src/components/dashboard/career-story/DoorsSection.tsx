@@ -88,7 +88,7 @@ export function DoorsSection({ main, more, onTryPause }: { main: Door[]; more: D
   return (
     <section className="space-y-4" aria-labelledby="doors-heading">
       <div className="space-y-1">
-        <h2 id="doors-heading" className="text-lg font-semibold tracking-tight">
+        <h2 id="doors-heading" className="font-display text-xl font-semibold tracking-tight text-ink">
           Doors you could open
         </h2>
         <p className="text-sm text-muted-foreground">Looking is free. Time and cost are ranges from typical paths, not promises, and nothing here changes your search until you say so.</p>

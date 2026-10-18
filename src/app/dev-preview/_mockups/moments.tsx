@@ -127,3 +127,51 @@ export function EmptyEffort() {
     </PreviewShell>
   )
 }
+
+// Asked right after "Which sounds most like you?". Money is personal, so we ask, and either answer is fine.
+export function OnboardingMoney() {
+  return (
+    <Bare>
+      <div className="space-y-2"><p className="text-sm font-semibold text-ink">Step 2 of 5 · about 15 seconds</p><Meter pct={40} label="Step 2 of 5" /></div>
+      <div className="space-y-2">
+        <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-ink text-balance">Would you like help with money while you search?</h1>
+        <p className="text-base text-muted-foreground">Money is personal, so we only get into it if you want us to. Either answer is fine, and you can change it any time.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <section className="space-y-3 rounded-2xl border-2 border-ink p-5">
+          <h2 className="font-display text-xl font-semibold text-ink">Yes, help me with money</h2>
+          <ul className="space-y-2 text-sm text-ink">
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />How many months your money lasts</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />Deadlines you could miss: health coverage, unemployment, severance</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />Jobs filtered to a minimum pay you set</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />A calm way to talk it through with your partner</li>
+          </ul>
+          <PrimaryButton>Yes, turn it on</PrimaryButton>
+        </section>
+        <section className="space-y-3 rounded-2xl border border-border p-5">
+          <h2 className="font-display text-xl font-semibold text-ink">No, keep money out of it</h2>
+          <ul className="space-y-2 text-sm text-ink">
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />We will not ask about past pay, savings or a minimum</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />No runway, and no money steps in your first week</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0" aria-hidden />Pay ranges on jobs still show, because they are not about you</li>
+          </ul>
+          <SecondaryButton>No, skip money</SecondaryButton>
+        </section>
+      </div>
+      <p className="text-sm text-muted-foreground">Nothing you say here is shared with employers, recruiters, schools or coaches.</p>
+    </Bare>
+  )
+}
+
+export function AccountMoney() {
+  return (
+    <PreviewShell place="account" entry="money">
+      <PageHeader title="Money help" intro="Choose whether NextChapter helps with money. You can change this any time." />
+      <section className="space-y-4 rounded-2xl border border-border p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-base font-semibold text-ink">Help with money is off</p><p className="text-sm text-muted-foreground">No runway, no questions about pay or savings, and no Finances and benefits in the menu.</p></div><PrimaryButton>Turn it on</PrimaryButton></div>
+        <div className="rounded-xl bg-muted/60 p-4 text-sm text-ink"><p className="font-semibold">What you would get</p><ul className="mt-1 list-disc space-y-1 pl-5"><li>How many months your money lasts, and what would stretch it</li><li>Dates you could miss, worked out from your last day</li><li>Jobs filtered to a minimum pay you choose</li></ul></div>
+      </section>
+      <p className="text-sm text-muted-foreground">If you turn it off later, we hide it and keep your numbers until you ask us to delete them. <TextLink>Delete my money numbers</TextLink></p>
+    </PreviewShell>
+  )
+}

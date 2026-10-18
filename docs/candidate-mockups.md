@@ -1,7 +1,7 @@
 # Candidate mockups: every screen and what it replaces
 
 Sample data only. Dev-only preview (run the app locally, open `/dev-preview`). Nothing here is wired to real data.
-Each row is one proposed screen and the live pages it absorbs. The Personalize place is gone: its pages moved into Jobs (Get ready to apply), Learn (Know yourself, Your path), Network, Account and privacy, and the Improve your search page and the question flows.
+Each row is one proposed screen and the live pages it absorbs. The Personalize place is gone: its pages moved into Jobs (Get ready to apply), Learn (Know yourself, Your path), Network, Account and privacy, and the Improve your search page and the question flows. Finances and benefits is a new place, shown only when the member chooses money help. The career story is the real page from the career story session, fed sample data.
 
 | Place | Screen | Replaces |
 |---|---|---|
@@ -34,13 +34,12 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Account | Profile (`/dev-preview/account/profile`) | /dashboard/profile, complete-profile |
 | Jobs | Résumé (`/dev-preview/jobs/apply/resume`) | /dashboard/resume, resume/studio, resume/walkthrough |
 | Jobs | Why hire me (`/dev-preview/jobs/apply/whyhire`) | /dashboard/strengths, track-record |
-| Learn | Career story (`/dev-preview/learn/path/story`) | /dashboard/my-career (other branch) |
+| Learn | Career story (`/dev-preview/learn/path/story`) | /dashboard/my-career (the real page, sample data) |
 | Learn | How I work (`/dev-preview/learn/know`) | /dashboard/skills-assessments, how-i-perform, work-interests |
 | Account | What recruiters see (`/dev-preview/account/visibility`) | /dashboard/recruiter-report, privacy |
 | Account | Documents (`/dev-preview/account/documents`) | /dashboard/documents |
 | Account | Membership (`/dev-preview/account/membership`) | /dashboard/membership |
 | Help | Talk to someone (`/dev-preview/help/talk`) | /dashboard/support |
-| Help | Money and benefits (`/dev-preview/help/money`) | /dashboard/benefits, benefits-network |
 | Help | Scam watch (`/dev-preview/help/scams`) | /dashboard/scam-watch |
 | Help | Questions and feedback (`/dev-preview/help/questions`) | /dashboard/help |
 | Home | Improve your search (`/dev-preview/home/tailored`) | new: every personalization in one place |
@@ -62,3 +61,8 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Moments | Empty: no jobs yet (`/dev-preview/moments/empty-jobs`) | Find a job before it can match |
 | Moments | Empty: no contacts yet (`/dev-preview/moments/empty-network`) | People you know with no contacts |
 | Moments | Empty: first day (`/dev-preview/moments/empty-effort`) | Effort and results on day one |
+| Finances and benefits | Your runway (laid off) (`/dev-preview/money/runway`) | /dashboard/benefits (financial bridge) |
+| Finances and benefits | Benefits and deadlines (laid off) (`/dev-preview/money/deadlines`) | /dashboard/benefits action plan, benefits-network |
+| Finances and benefits | Your runway (building something of my own) (`/dev-preview/money/runway-entrepreneur`) | new |
+| Moments | Onboarding: would you like help with money? (`/dev-preview/moments/onboarding-money`) | new |
+| Account | Money help (off state) (`/dev-preview/account/money`) | new |

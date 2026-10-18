@@ -4,7 +4,7 @@ import type { PeerView } from '@/lib/career-story/peers'
 export function PeersCard({ peers, from }: { peers: PeerView; from: string | null }) {
   return (
     <section className="space-y-3 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="peers-heading">
-      <h2 id="peers-heading" className="text-lg font-semibold tracking-tight">
+      <h2 id="peers-heading" className="font-display text-xl font-semibold tracking-tight text-ink">
         People like you
       </h2>
       {peers.enough ? (

@@ -12,7 +12,7 @@ export function ReportStory({ story }: { story: CareerStory }) {
   return (
     <section className="space-y-4 rounded-lg border border-border p-4 print:break-inside-avoid" aria-labelledby="report-story-heading">
       <div className="space-y-1">
-        <h2 id="report-story-heading" className="text-lg font-semibold tracking-tight">
+        <h2 id="report-story-heading" className="font-display text-xl font-semibold tracking-tight text-ink">
           Your career story
         </h2>
         <p className="text-sm text-muted-foreground">{summarizeStory(story.events, now)}</p>

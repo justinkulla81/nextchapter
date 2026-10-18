@@ -103,20 +103,6 @@ export function WhyHireMe() {
   )
 }
 
-export function CareerStory() {
-  return (
-    <PreviewShell place="learn" entry="path" part="story">
-      <PageHeader title="Your career story" intro="Your path so far, and the doors it could open. Built from what you tell us." />
-      <ol className="space-y-0 border-l-2 border-border pl-6">
-        {[['2025–now', 'Between chapters', 'Searching, consulting part-time'], ['2018–2025', 'VP Operations, Meridian', 'Led 400 people, cut costs 14%'], ['2012–2018', 'Director, Harbor Health', 'Opened 6 clinics'], ['2008–2012', 'Ohio State, MBA', '']].map(([y, t, d]) => (
-          <li key={t} className="relative pb-6"><span className="absolute -left-[1.95rem] top-1.5 size-3 rounded-full bg-ink" aria-hidden /><p className="text-sm text-muted-foreground">{y}</p><p className="text-base font-semibold text-ink">{t}</p>{d && <p className="text-sm text-ink">{d}</p>}</li>
-        ))}
-      </ol>
-      <section className="space-y-2 rounded-2xl border border-border p-5"><h2 className="font-display text-xl font-semibold text-ink">Doors you could open</h2><p className="text-base text-ink">Chief operating officer · Head of delivery · Fractional COO. <TextLink>See what each would take</TextLink></p></section>
-    </PreviewShell>
-  )
-}
-
 export function HowIWork() {
   return (
     <PreviewShell place="learn" entry="know">
@@ -169,7 +155,7 @@ export function MembershipMock() {
 
 export function HelpTalk() {
   return (
-    <PreviewShell place="money" entry="wellbeing">
+    <PreviewShell place="help" entry="talk">
       <PageHeader title="Talk to someone" intro="A hard week is normal. You do not have to carry it alone." />
       <section className="space-y-3 rounded-2xl border border-border p-7"><h2 className="font-display text-2xl font-semibold text-ink">Feeling stuck or low?</h2><p className="max-w-xl text-base text-ink">Free, private, and open any time. A person, not a bot.</p><div className="flex flex-wrap gap-3"><PrimaryButton>Talk to a counselor</PrimaryButton><SecondaryButton>Book my coach</SecondaryButton></div><p className="text-sm text-muted-foreground">In crisis? Call or text 988 any time, free.</p></section>
     </PreviewShell>
@@ -178,7 +164,7 @@ export function HelpTalk() {
 
 export function HelpScams() {
   return (
-    <PreviewShell place="money" entry="safe">
+    <PreviewShell place="help" entry="scams">
       <PageHeader title="Scam watch" intro="Fake jobs target people who are searching. Here is how to spot them." />
       <section className="space-y-2 rounded-2xl border border-border p-6"><h2 className="font-display text-xl font-semibold text-ink">Check a message</h2><p className="text-sm text-muted-foreground">Paste an email or message. We tell you what looks wrong, and why.</p><textarea rows={4} aria-label="Message to check" className="w-full rounded-xl border border-border p-3.5 text-base" /><PrimaryButton>Check this message</PrimaryButton></section>
       <Section id="signs" title="Three signs to know">

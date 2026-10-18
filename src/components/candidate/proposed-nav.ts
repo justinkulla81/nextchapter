@@ -50,13 +50,13 @@ export const PROPOSED_NAV: NavPlace[] = [
   },
   {
     id: 'money',
-    label: 'Money and wellbeing',
-    entries: [{ key: 'runway', label: 'Your runway' }, { key: 'deadlines', label: 'Benefits and deadlines' }, { key: 'wellbeing', label: 'Wellbeing' }, { key: 'safe', label: 'Scam watch' }],
+    label: 'Finances and benefits',
+    entries: [{ key: 'runway', label: 'Your runway' }, { key: 'deadlines', label: 'Benefits and deadlines' }],
   },
   {
     id: 'account',
     label: 'Account and privacy',
-    entries: [{ key: 'profile', label: 'Profile' }, { key: 'visibility', label: 'Who can find you' }, { key: 'documents', label: 'Documents' }, { key: 'membership', label: 'Membership' }],
+    entries: [{ key: 'profile', label: 'Profile' }, { key: 'visibility', label: 'Who can find you' }, { key: 'documents', label: 'Documents' }, { key: 'money', label: 'Money help' }, { key: 'membership', label: 'Membership' }],
   },
-  { id: 'help', label: 'Help', entries: [{ key: 'questions', label: 'Questions and feedback' }] },
+  { id: 'help', label: 'Help', entries: [{ key: 'talk', label: 'Talk to someone' }, { key: 'scams', label: 'Scam watch' }, { key: 'questions', label: 'Questions and feedback' }] },
 ]

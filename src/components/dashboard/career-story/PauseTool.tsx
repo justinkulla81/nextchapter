@@ -17,7 +17,7 @@ export function PauseTool({ cushionMonths, months, onMonths }: { cushionMonths: 
   return (
     <section id="pause-tool" className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="pause-heading">
       <div className="space-y-1">
-        <h2 id="pause-heading" className="text-lg font-semibold tracking-tight">
+        <h2 id="pause-heading" className="font-display text-xl font-semibold tracking-tight text-ink">
           What if you took a pause?
         </h2>
         <p className="text-sm text-muted-foreground">Try it on. Nothing here is saved to your story, and it does not change your search.</p>

@@ -51,7 +51,7 @@ export function CareerStoryView({ story, from }: { story: CareerStory; from: str
       <header className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Your career story</h1>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">Your career story</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">{summarizeStory(story.events, now)}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">

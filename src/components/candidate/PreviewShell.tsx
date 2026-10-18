@@ -30,7 +30,7 @@ export function PreviewShell({ place, entry, part, wide = false, children }: { p
   const e = p.entries.find((x) => x.key === entry)!
   const href = (pl: string, en: string, pa?: string) => `/dev-preview/${pl}/${en}${pa ? `/${pa}` : ''}`
   return (
-    <div className="theme-candidate min-h-screen bg-white">
+    <div className="theme-candidate theme-redesign min-h-screen bg-white">
       <aside className={cn('fixed inset-y-0 left-0 z-30 hidden overflow-y-auto border-r border-border bg-white py-6 transition-[width] lg:block', collapsed ? 'w-16 px-2' : 'w-72 px-4')}>
         <div className={cn('flex items-center pb-4', collapsed ? 'justify-center' : 'justify-between px-2')}>
           {!collapsed && <p className="text-xl font-bold text-ink">NextChapter</p>}
