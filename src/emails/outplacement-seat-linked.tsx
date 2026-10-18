@@ -4,6 +4,7 @@ import type { OutplacementProgramType } from '@prisma/client'
 import { PROGRAM_TYPE_BENEFIT } from '@/lib/employer/program-type'
 
 interface OutplacementSeatLinkedEmailProps {
+  growth?: boolean
   orgName: string
   programType?: OutplacementProgramType
 }

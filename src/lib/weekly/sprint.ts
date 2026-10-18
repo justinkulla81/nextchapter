@@ -7,6 +7,7 @@ import { getPace } from '@/lib/weekly/pace'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
 import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
+import { isNotSearching } from '@/lib/journey/intensity'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -264,7 +265,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1, o
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
       select: {
-        journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true,
+        journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, journeyChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true,
         highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true,
       },
     }),
@@ -276,7 +277,11 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1, o
   const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
   const since = p.journeyStageChangedAt ?? p.createdAt
   const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
-  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  // A journey's setup steps are for its first week. Someone who switches in week 12 starts the new
+  // plan at its week 1, not at week 12 of their account.
+  const journeyWeek = Math.floor((Date.now() - (p.journeyChangedAt ?? p.createdAt).getTime()) / (7 * 86_400_000)) + 1
+  const planWeek = Math.max(1, Math.min(weekNumber, journeyWeek))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), planWeek, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isNotSearching(effectiveJourney(p), effectiveStage(p)) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
   // On screens only (never auto-committed by the cron or first sprint): two
   // nudges from their profile (strengths, what to leave behind, how they
   // like to work), text only.
@@ -533,6 +538,39 @@ export async function commitWeeklySprint(
     },
     update: { committedActions: committedActions as unknown as Prisma.InputJsonValue, autoAssigned },
   })
+}
+
+// A member changed journey or stage mid-week (a check-in, the settings, a committed change of field):
+// their plan changes now, not next Monday. Everything they already finished or started this week stays,
+// with its points. Only the steps still open are replaced by the new journey's.
+export async function rebuildCurrentWeekPlan(candidateId: string): Promise<{ kept: number; replaced: number } | null> {
+  const weekStartDate = getMondayOfWeek(new Date())
+  const sprint = await prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
+  if (!sprint) return null
+  const weekNumber = await getCandidateWeekNumber(candidateId, weekStartDate)
+  const suggestions = await getSuggestedActions(candidateId, weekNumber)
+  const { actions, kept, replaced } = mergeRebuiltPlan(sprint.committedActions as unknown as CommittedAction[], suggestions)
+  await prisma.weeklySprint.update({
+    where: { candidateId_weekStartDate: { candidateId, weekStartDate } },
+    data: { committedActions: actions as unknown as Prisma.InputJsonValue },
+  })
+  return { kept, replaced }
+}
+
+// Pure: keep what the member finished or started, replace what is still open.
+export function mergeRebuiltPlan(current: CommittedAction[], suggestions: SuggestedAction[]): { actions: CommittedAction[]; kept: number; replaced: number } {
+  const kept = current.filter((a) => a.completed || a.isGoalBonus || (a.completionCount ?? 0) > 0)
+  const open = current.length - kept.length
+  const doneTexts = new Set(kept.map((a) => a.text))
+  const doneTypes = new Set(kept.filter((a) => a.actionType && !a.recurring).map((a) => a.actionType as string))
+  const fresh: CommittedAction[] = suggestions
+    .filter((a) => !doneTexts.has(a.text) && !(a.actionType && doneTypes.has(a.actionType)))
+    .slice(0, Math.max(open, 4))
+    .map((a) => {
+      const effort = estimateActionEffort(a)
+      return { text: a.text, actionType: a.actionType, points: effort.points, estimatedMinutes: effort.minutes, completed: false, recurring: isRecurringActionType(a.actionType) }
+    })
+  return { actions: [...kept, ...fresh], kept: kept.length, replaced: fresh.length }
 }
 
 // Called once, right when a brand-new candidate commits on the Welcome page

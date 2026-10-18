@@ -39,6 +39,8 @@ A receipt has four parts: a before and after (a number, or a sample for tone), c
 | O4 | Where | City and state as one question [15, 16, 59, 219], work setup [17, 101], relocation [18, 107] | Live count of jobs | A |
 | O5 | How we coach you | Push style [39, 120, 214, 217, 47], pace [121], how actively (not employed) [23, 196] | A sample note in your tone, and your weekly target | B |
 
+| O6 | Money (asked right after O1) | Would you like help with money while you search? Yes or no | If yes: runway, deadlines, jobs filtered to a minimum pay, and a calm way to talk with your partner. If no: nothing about money. | B |
+
 Removed from onboarding: contract [40, dropped], "I just started" and the two counts [25 to 27, dropped], lead source [52, one optional line on first Home visit], network comfort [38 moves to N2], culture [34 to 37 move to J3], coach consent [41, asked when a coach is assigned].
 
 ## Home strip: "Build your plan"
@@ -56,7 +58,7 @@ Removed from onboarding: contract [40, dropped], "I just started" and the two co
 | # | Bundle | Questions (rows) | Payoff shown | Receipt kind |
 |---|---|---|---|---|
 | J1 | Tools and skills you have | Tools [164], skills you have [161, 67], skill levels (optional) [163] | Jobs that ask for them | A |
-| J2 | Pay | Minimum pay [104, 141], flexible [105], equity [106] | Jobs inside your range | A for pay; equity cannot yet |
+| J2 | Pay (only when money help is on) | Minimum pay [104, 141], flexible [105], equity [106]; last salary [66] is asked only here too | Jobs inside your range | A for pay; equity cannot yet |
 | J3 | What a great job looks like | Rank what matters [110]; culture, six short choices in two rounds [34, 35, 123]; one deal-breaker line replacing four boxes [36, 37, 111, 48] | Jobs reordered, with the reason on each | partly A |
 | J4 | Company | Size [99], type [100], employers to hide [112, 221] | Jobs and companies reordered | partly A |
 | J5 | Kind of work | Full-time, part-time, contract, advisory [224]; interim interest [109]; board willingness [144] | Jobs by work type | A |

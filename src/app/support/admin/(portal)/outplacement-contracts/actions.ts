@@ -1,5 +1,6 @@
 'use server'
 
+import { isSponsoredJourney } from '@/lib/journey/sponsored'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createOutplacementOrg, createOutplacementContract, inviteFirstOrgAdmin } from '@/lib/admin/outplacement-contracts'
@@ -31,6 +32,7 @@ export async function createContractAction(_prevState: ActionState, formData: Fo
   const orgId = (formData.get('orgId') as string | null) ?? ''
   const cohortLabel = (formData.get('cohortLabel') as string | null)?.trim() || null
   const tier = formData.get('tier') as OutplacementTier | null
+  const journeyRaw = (formData.get('journey') as string | null) ?? 'LAID_OFF'
   const seatCount = Number(formData.get('seatCount'))
   const termStartAt = formData.get('termStartAt') as string | null
   const termEndAt = formData.get('termEndAt') as string | null
@@ -42,6 +44,7 @@ export async function createContractAction(_prevState: ActionState, formData: Fo
 
   if (!orgId) return { error: 'Choose an organization.' }
   if (!tier) return { error: 'Choose a tier.' }
+  if (!isSponsoredJourney(journeyRaw)) return { error: 'Choose what the seats are for.' }
   if (!Number.isFinite(seatCount) || seatCount < 1) return { error: 'Enter a valid seat count.' }
   if (!termStartAt || !termEndAt) return { error: 'Enter a term start and end date.' }
 
@@ -50,6 +53,7 @@ export async function createContractAction(_prevState: ActionState, formData: Fo
     cohortLabel,
     tier,
     programType,
+    journey: journeyRaw === 'LAID_OFF' ? null : journeyRaw,
     seatCount,
     termStartAt: new Date(termStartAt),
     termEndAt: new Date(termEndAt),

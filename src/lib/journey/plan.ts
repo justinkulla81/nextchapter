@@ -78,7 +78,7 @@ const JOURNEY_PLAN: Record<JourneyType, { firstWeek: PlanItem[]; ongoing: PlanIt
   },
   // Building something of their own: we track and check in. Deliberately light.
   ENTREPRENEUR: {
-    firstWeek: [T('Tell us what you are building and where it stands'), T('Note what you need from your career while you build: income, benefits, a way back')],
+    firstWeek: [T('Add what you are building and where it stands to your situation (Privacy)'), T('Note what you need from your career while you build: income, benefits, a way back')],
     ongoing: [T('Check in: what moved on your venture this month'), T('Keep one door open: one conversation this month with someone in your field', 'OUTREACH_CALL')],
   },
   // Happy with fractional work: the job is the pipeline, not a search.

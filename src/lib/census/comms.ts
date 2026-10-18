@@ -60,14 +60,14 @@ export async function runOutplacementComms(now = new Date()) {
           accessNoticeAt: null,
           OR: [{ accessEndsAt: { gt: now, lte: soon } }, { accessEndsAt: null, contract: { termEndAt: { gt: now, lte: soon } } }],
         },
-        select: { id: true, invitedEmail: true, accessEndsAt: true, contract: { select: { termEndAt: true } } },
+        select: { id: true, invitedEmail: true, accessEndsAt: true, contract: { select: { termEndAt: true, journey: true } } },
         take: BATCH,
       })
       const fmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })
       for (const s of seats) {
         const ends = s.accessEndsAt ?? s.contract.termEndAt
         if (!ends) continue
-        const r = await sendOutplacementAccessEndingEmail(s.invitedEmail, org.name, fmt.format(ends), urlForAppPath('/dashboard'))
+        const r = await sendOutplacementAccessEndingEmail(s.invitedEmail, org.name, fmt.format(ends), urlForAppPath('/dashboard'), { growth: !!s.contract.journey && s.contract.journey !== 'LAID_OFF' })
         if (!r.sent) continue
         await prisma.outplacementSeat.update({ where: { id: s.id }, data: { accessNoticeAt: now } })
         notices++

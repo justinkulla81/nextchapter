@@ -1,4 +1,4 @@
-# Money and wellbeing: the place for everything that is not a job, a person or a course
+# Finances and benefits: the place for money, paperwork and deadlines
 
 Status: design and preview screens with sample data only. Nothing is wired.
 
@@ -12,16 +12,27 @@ Status: design and preview screens with sample data only. Nothing is wired.
 
 Nothing tracks a runway, a deadline, a weekly unemployment certification, a tax date or a decision date. Today these live in Help, which reads as customer support, not as something to manage.
 
+## Money is opt-in
+
+Money is personal, and people get uncomfortable when it is raised without being asked. So we ask first, early (right after "Which sounds most like you?"), and the question itself is a courtesy: it says money is yours to share and we only use it if you want us to.
+
+**"Would you like help with money while you search?"** Two equal buttons.
+
+- **Yes.** Turns on Finances and benefits. What you get: how many months your money lasts (your runway); the deadlines you could miss, like health coverage, unemployment and severance; jobs filtered to a minimum pay you set; and a calm way to talk it through with your partner. For each journey the examples change.
+- **No.** Nothing about money. No runway. We do not ask about past salary, savings or a minimum pay. The Finances and benefits place is hidden. Market pay data on jobs (the posted range) still shows, because it is not about you.
+
+Either answer can be changed any time in Account and privacy. A "no" is never nagged. Asking is also a signal of respect, and it should read that way.
+
+What "no" switches off: the Finances and benefits place; the last-salary question; the minimum-pay, flexible-pay and equity questions (the pay bundle in Jobs); the savings and monthly-need numbers; and the money steps in the first week (unemployment, severance), which are replaced by the next step.
+
 ## The place
 
-**Money and wellbeing**, with four entries:
+**Finances and benefits**, with two entries, only when money help is on:
 
-1. **Your runway**: how long your money lasts, what would stretch it, and the next date that matters. Private to the member. The partner can be shown a calm summary only if the member shares it.
+1. **Your runway**: how long your money lasts, what would stretch it, and the next date that matters.
 2. **Benefits and deadlines**: the paperwork with a date on it, in order, each with why it matters and one button.
-3. **Wellbeing**: the check-in history (private), talk to someone, your coach, and the people in your corner.
-4. **Scam watch**.
 
-Help becomes a single link for questions and feedback.
+Talk to someone and Scam watch return to **Help**, with Questions and feedback. The career story, and its "What if you took a pause?" tool, live under Learn, Your path. Its "months of cushion" number and the runway use the same savings and monthly-need figures, asked once.
 
 ## Ideas for each journey
 
@@ -39,7 +50,7 @@ Help becomes a single link for questions and feedback.
 | Fractional or independent | Quarterly taxes, outstanding invoices, renewals against cash, retirement and health for the self-employed, smoothing income across slow months. |
 | Time off or on leave | Leave pay and benefits timeline, coverage during leave, a budget to the return date, and a restart reminder six weeks before. |
 
-For every journey, wellbeing is the same promise with a different tone: a check-in the member controls, a person to talk to, and the people in their corner.
+Every journey gets this place when money help is on. Stepping back from full-time work (the retirement paths in the career story branch) feeds the next-act and growing rows.
 
 ## What it needs
 
@@ -48,8 +59,12 @@ For every journey, wellbeing is the same promise with a different tone: a check-
 - **To build:** deadline dates from the last day (the 60 days to choose coverage, severance review window); a weekly certification reminder; quarterly tax dates for self-employed members; student loan and Medicare rule cards.
 - **Rules to respect:** this is general information, not financial or legal advice, and it says so on the page. Unemployment and tax rules vary by state and country, so the first version is US only and links to the member's state. Financial data is never shown to employers, recruiters, schools or coaches, and the partner sees it only if the member shares a summary.
 
-## Decisions for the owner
+## Decisions made (owner, 2026-10-17)
 
-1. Name: **Money and wellbeing**, or something warmer.
-2. First version: US only, laid off, building something of my own, and thinking about a move first, then the rest?
-3. Should the member's coach or program (outplacement, school) ever see the runway? Recommended: no, unless the member shares it.
+- The place is called Finances and benefits, and it covers all 11 journeys.
+- Money is opt-in, as above.
+- A coach, school or program never sees a member's runway. Only the member's partner can, if the member chooses to share a summary.
+
+## Open
+
+1. First version: US only, starting with laid off, building something of my own and thinking about a move, then the rest?
