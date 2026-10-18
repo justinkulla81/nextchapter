@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Meter } from './ui'
 
 // The first thing on Home, Jobs, Network and Learn. It says what is not tuned yet, what answering gets the
@@ -9,13 +10,13 @@ export interface TuneAsk {
   gain: string
 }
 
-export function TuneStrip({ title, pct, because, asks, actionLabel = 'Improve this', tunedNote }: { title: string; pct: number; because: string; asks?: TuneAsk[]; actionLabel?: string; tunedNote?: string }) {
+export function TuneStrip({ title, pct, because, asks, actionLabel = 'Improve this', actionHref = '#', tunedNote }: { title: string; pct: number; because: string; asks?: TuneAsk[]; actionLabel?: string; actionHref?: string; tunedNote?: string }) {
   if (pct >= 100) {
     return (
       <p className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground">
         <span className="font-semibold text-ink">{title}: tuned.</span>
         <span>{tunedNote}</span>
-        <a href="#" className="font-medium text-brand underline underline-offset-4">Change</a>
+        <Link href={actionHref} className="font-medium text-brand underline underline-offset-4">Change</Link>
       </p>
     )
   }
@@ -29,7 +30,7 @@ export function TuneStrip({ title, pct, because, asks, actionLabel = 'Improve th
         <div className="flex items-center gap-4">
           <div className="w-28"><Meter pct={pct} label={`${title} tuned`} /></div>
           <span className="text-sm font-semibold text-ink tabular-nums">{pct}%</span>
-          <a href="#" className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:opacity-90">{actionLabel}</a>
+          <Link href={actionHref} className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:opacity-90">{actionLabel}</Link>
         </div>
       </div>
       {asks && (

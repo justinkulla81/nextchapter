@@ -34,6 +34,7 @@ The list below replaces my earlier summaries.
 | 30 | "What gets in the way" changes the first step of the week; "what drives you" changes the Home note's reason | Built, not wired | `src/lib/personalization/blocker-step.ts` with tests. Wiring waits on the plan code (`plan.ts`), which the unmerged career-story branch also edits. |
 | 31 | Use the career story built in another session | Merged into the redesign branch | Branch `claude/compassionate-edison-fkfdu5` merged with `main`. Employer seats keep main's program type and the career branch's seat journey. Type check, lint and all 3,000 tests pass. It still needs `prisma/manual/2026-10-17-career-events.sql` applied before launch. The preview shows the real page under Learn, Your path. |
 | 32 | A place for money, unemployment and benefits, for every journey, asked about first | Designed as mockups | Finances and benefits, shown only if the member says yes to money help; see `docs/finances-and-benefits.md`. |
+| 33 | Redesign wired behind a flag: menu, Improve your search, Home, Money help, Find a job (first slice) | Built, not seen on real data | `CANDIDATE_REDESIGN=on` or `CANDIDATE_REDESIGN_EMAILS`. Find a job: parts (Jobs, Not posted yet, Independent work, Resources), a real tune strip, no stacked sections, no points chip. Not yet: the two-pane list and detail, My jobs. Needs your check on a signed-in preview. |
 
 ## B. The partner portals (higher education, outplacement, coach, hiring, recruiter; workforce is another session's)
 
