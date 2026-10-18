@@ -81,7 +81,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'money/runway', place: 'Finances and benefits', title: 'Your runway (laid off)', replaces: '/dashboard/benefits (financial bridge)', Component: MoneyRunway },
   { path: 'money/deadlines', place: 'Finances and benefits', title: 'Benefits and deadlines (laid off)', replaces: '/dashboard/benefits action plan, benefits-network', Component: MoneyDeadlines },
   { path: 'money/runway-entrepreneur', place: 'Finances and benefits', title: 'Your runway (building something of my own)', replaces: 'new', Component: MoneyEntrepreneur },
-  { path: 'moments/onboarding-money', place: 'Moments', title: 'Onboarding: would you like help with money?', replaces: 'new', Component: OnboardingMoney },
+  { path: 'moments/money-first-visit', place: 'Moments', title: 'First time opening Finances and benefits: would you like help with money?', replaces: 'new (not asked in onboarding)', Component: OnboardingMoney },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 

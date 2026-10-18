@@ -39,7 +39,6 @@ A receipt has four parts: a before and after (a number, or a sample for tone), c
 | O4 | Where | City and state as one question [15, 16, 59, 219], work setup [17, 101], relocation [18, 107] | Live count of jobs | A |
 | O5 | How we coach you | Push style [39, 120, 214, 217, 47], pace [121], how actively (not employed) [23, 196] | A sample note in your tone, and your weekly target | B |
 
-| O6 | Money (asked right after O1) | Would you like help with money while you search? Yes or no | If yes: runway, deadlines, jobs filtered to a minimum pay, and a calm way to talk with your partner. If no: nothing about money. | B |
 
 Removed from onboarding: contract [40, dropped], "I just started" and the two counts [25 to 27, dropped], lead source [52, one optional line on first Home visit], network comfort [38 moves to N2], culture [34 to 37 move to J3], coach consent [41, asked when a coach is assigned].
 

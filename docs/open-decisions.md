@@ -2,7 +2,17 @@
 
 Everything from the redesign work and the audit of the other sessions, in the order it unblocks work. Each has my recommendation. Reply with the number and yes, or what you want instead.
 
-## Decide now (these block the next build step)
+## Decided (owner, 2026-10-18)
+
+- Seven places (explained to the owner), hide what does not apply. Items 8 to 14 below: agreed with my recommendations.
+- No letter grades or verdict labels on the member side.
+- The personal assistant is a layer behind the one note: no tab, no separate app, no name for now.
+- **No more exclusive jobs.** Every job is shown to every member. The dossier is attached to an application only if the candidate chooses. Candidate+ is signaled to the poster when it is true (and never in confidential mode).
+- Onboarding: question bundles first. **Money is not asked in onboarding.** The choice lives on first opening Finances and benefits, and in Account and privacy, Money help.
+- Turn the redesign on for the owner's account (the owner sets `CANDIDATE_REDESIGN_EMAILS` in Vercel).
+- Market report as one page: owner said "don't know". Default: one page with a short summary first and the rest behind "show more", until told otherwise.
+
+## Decide now (these block the next build step) — original list, for reference
 
 1. **Seven places, or your five pillars?** The redesign has Home, Jobs, Network, Learn, Finances and benefits (only if the member chose money help), Account and privacy, and Help. You once framed the menu as five things (personalize, learn, search and apply, network, work). Also: gray out irrelevant parts, or hide them? *Recommended: seven places; hide.*
 2. **Letter grades.** Members see A to F, red for D and F, and "F" means weaknesses that "end most conversations". The new report also labels people "Likely to pause". *Recommended: no letter and no verdict label; "what would move you up" first.*

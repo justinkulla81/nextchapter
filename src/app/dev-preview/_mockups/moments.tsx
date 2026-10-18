@@ -128,11 +128,10 @@ export function EmptyEffort() {
   )
 }
 
-// Asked right after "Which sounds most like you?". Money is personal, so we ask, and either answer is fine.
+// Asked the first time the member opens Finances and benefits (never in onboarding). Either answer is fine.
 export function OnboardingMoney() {
   return (
     <Bare>
-      <div className="space-y-2"><p className="text-sm font-semibold text-ink">Step 2 of 5 · about 15 seconds</p><Meter pct={40} label="Step 2 of 5" /></div>
       <div className="space-y-2">
         <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-ink text-balance">Would you like help with money while you search?</h1>
         <p className="text-base text-muted-foreground">Money is personal, so we only get into it if you want us to. Either answer is fine, and you can change it any time.</p>

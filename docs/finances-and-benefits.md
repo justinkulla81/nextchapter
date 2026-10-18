@@ -14,7 +14,9 @@ Nothing tracks a runway, a deadline, a weekly unemployment certification, a tax 
 
 ## Money is opt-in
 
-Money is personal, and people get uncomfortable when it is raised without being asked. So we ask first, early (right after "Which sounds most like you?"), and the question itself is a courtesy: it says money is yours to share and we only use it if you want us to.
+Decided 2026-10-18: money is **not** asked in onboarding. The question appears the first time the member opens Finances and benefits (the menu shows it until they say no), and it can be changed any time in Account and privacy, Money help. Laid-off members still see the unemployment and severance steps in their first week, as plain steps, with no money questions.
+
+Money is personal, and people get uncomfortable when it is raised without being asked. So we ask first, and the question itself is a courtesy: it says money is yours to share and we only use it if you want us to.
 
 **"Would you like help with money while you search?"** Two equal buttons.
 
