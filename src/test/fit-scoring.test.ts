@@ -3,7 +3,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
-vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map() }))
+vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map(), getStillListedDirect: async () => new Map() }))
 
 import {
   computeBoardListingFitBucket,

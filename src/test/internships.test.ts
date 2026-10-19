@@ -8,7 +8,7 @@ import path from 'path'
 
 const lightRowsStore: { rows: Record<string, unknown>[] } = { rows: [] }
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map() }))
+vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map(), getStillListedDirect: async () => new Map() }))
 vi.mock('@/lib/jobs/board-light-rows', async (orig) => ({
   ...(await orig<typeof import('@/lib/jobs/board-light-rows')>()),
   // The core board (level notIn early rungs) and the early-career board (level in them).

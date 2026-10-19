@@ -143,6 +143,10 @@ import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGap
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { IndependentWorkSections } from '@/components/dashboard/one-board/IndependentWorkSections'
 import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { FindParts, parseFindPart, type FindPart } from '@/components/dashboard/FindParts'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
@@ -926,6 +930,7 @@ export default async function JobFitPage({
     view?: string
     types?: string
     tab?: string
+    part?: string
     great?: string
     pivot?: string
     q?: string
@@ -942,6 +947,8 @@ export default async function JobFitPage({
 }) {
   const profile = await getDashboardData()
   const allParams = await searchParams
+  const redesign = isRedesignOn(profile.email)
+  const part = parseFindPart(allParams.part)
   const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
   // Other board filters that are on (search analytics, and the no-results suggestions).
@@ -993,13 +1000,18 @@ export default async function JobFitPage({
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Find a job</h1>
-        <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
-      </div>
+      {redesign ? (
+        <PageHeader title="Find a job" intro="Roles that fit your background. For each one, we tell you why." />
+      ) : (
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Find a job</h1>
+          <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
+        </div>
+      )}
 
       <MyTabAnchors onMyJobs={tab === 'my_jobs'} />
       <BoardTabs current={tab} myJobsCount={trackedCount + applicationCount} />
+      {redesign && tab === 'board' && <FindParts current={part} independent={featureVisible('interim_launch_plan', earlyCareerAudience(profile))} urlParams={urlParams} />}
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
@@ -1019,6 +1031,8 @@ export default async function JobFitPage({
           boardFilters={boardFilters}
           breadthMode={breadthMode}
           aiView={parseAiView(allParams.ai)}
+          redesign={redesign}
+          part={part}
         />
       </Suspense>
     </div>
@@ -1068,8 +1082,13 @@ async function FindMyJobBody({
   boardFilters,
   breadthMode,
   aiView,
+  redesign,
+  part,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  /** The redesigned page (docs/candidate-redesign.md): one part at a time, no stacked sections. */
+  redesign: boolean
+  part: FindPart
   seniorityGroup: SeniorityGroup | null
   boardView: BoardView
   workTypes: WorkType[]
@@ -1086,6 +1105,8 @@ async function FindMyJobBody({
   aiView: AiView
 }) {
   const onBoard = tab === 'board'
+  // In the redesign each part of the board is its own view: jobs, not posted yet, independent work, resources.
+  const show = (p: FindPart) => !redesign || part === p
   // Early-career members (src/lib/early-career/audience.ts) skip the
   // interim/fractional/board toolkit and expert networks: senior-only tools.
   const audience = earlyCareerAudience(profile)
@@ -1468,7 +1489,7 @@ async function FindMyJobBody({
       )}
 
 
-      {onBoard && !profile.recruiterVisibilityConfirmedAt && (
+      {onBoard && !redesign && !profile.recruiterVisibilityConfirmedAt && (
         <Card className="border-warning/40 bg-warning/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2.5">
@@ -1496,8 +1517,9 @@ async function FindMyJobBody({
         </Card>
       )}
 
-      {onBoard && (
+      {onBoard && show('jobs') && (
       <div id="apply-new-jobs" className="scroll-mt-4 space-y-3">
+        {!redesign && (
         <div className="space-y-2">
           <h2 className="text-lg font-semibold tracking-tight">Apply to new jobs</h2>
           <p className="text-sm text-muted-foreground">
@@ -1505,6 +1527,7 @@ async function FindMyJobBody({
             applied; we also pick up applications from your connected Gmail.
           </p>
         </div>
+        )}
         <BoardSearchBar />
         <PastJobsToggle />
         <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
@@ -1527,9 +1550,12 @@ async function FindMyJobBody({
             <p className="text-sm font-semibold text-foreground">
               {workTypes.length === 1 ? `${WORK_TYPE_LABEL[workTypes[0]]} jobs for you` : 'Jobs for you'}
             </p>
-            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-              +{applicationPoints} pts
-            </span>
+            {!redesign && (
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +{applicationPoints} pts
+              </span>
+            )}
+            {!redesign && (
             <div className="ml-auto flex flex-wrap items-center gap-3">
               {board.breadth.classifier && breadthMode !== 'off' && (
                 <BreadthToggle
@@ -1551,7 +1577,9 @@ async function FindMyJobBody({
               <SeniorityFilter surface="find_my_job" />
               <FunctionFilter surface="find_my_job" />
             </div>
+            )}
           </div>
+          {!redesign && (
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
             <RequirementFilters
@@ -1561,6 +1589,46 @@ async function FindMyJobBody({
               holdsClearance={holdsClearance(profile)}
             />
           </div>
+          )}
+          {redesign && (
+            <details className="mt-3 rounded-lg border border-border px-3 py-2">
+              <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+            <>
+              {board.breadth.classifier && breadthMode !== 'off' && (
+                <BreadthToggle
+                  surface="find_my_job"
+                  current={breadthMode}
+                  counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }}
+                />
+              )}
+              {aiIds && (
+                <AiViewToggle
+                  surface="find_my_job"
+                  kind="jobs"
+                  current={appliedAiView}
+                  counts={{ ai: board.keptCounts.ai ?? 0, other: board.keptCounts.other ?? 0, all: board.keptCounts.all ?? 0 }}
+                />
+              )}
+              <BoardViewToggle surface="find_my_job" />
+              <GreatEmployerFilter surface="find_my_job" />
+              <SeniorityFilter surface="find_my_job" />
+              <FunctionFilter surface="find_my_job" />
+            </>
+                <>
+          <>
+            <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
+            <RequirementFilters
+              surface="find_my_job"
+              hideBlockers={boardFilters.hideBlockers}
+              clearedOnly={boardFilters.clearedOnly}
+              holdsClearance={holdsClearance(profile)}
+            />
+          </>
+                </>
+              </div>
+            </details>
+          )}
           {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
             <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
               {relevanceLine({
@@ -1583,7 +1651,11 @@ async function FindMyJobBody({
           {/* What matching reads (and what's missing, with its payoff), the precision meter, and what changed. */}
           {board.breadth.classifier && (
             <Suspense fallback={null}>
-              <KnowYouSection profile={profile} cityFallback={placePhrase(profile, board.breadth.classifier.member) ?? 'remote jobs'} />
+              {redesign ? (
+                <TuneStripSection profile={profile} />
+              ) : (
+                <KnowYouSection profile={profile} cityFallback={placePhrase(profile, board.breadth.classifier.member) ?? 'remote jobs'} />
+              )}
             </Suspense>
           )}
           {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
@@ -1648,20 +1720,20 @@ async function FindMyJobBody({
       )}
 
       {/* Past jobs: a separate, labelled section, only with "Include past jobs" on (job-status.ts). */}
-      {onBoard && urlParams.past === '1' && (
+      {onBoard && show('jobs') && urlParams.past === '1' && (
         <Suspense fallback={<p className="text-sm text-muted-foreground">Loading past jobs…</p>}>
           <PastJobsSection search={boardSearch} />
         </Suspense>
       )}
 
       {/* SEC filings and news before a senior search: full-time searches. */}
-      {onBoard && workTypes.includes('full_time') && (
+      {onBoard && show('unposted') && workTypes.includes('full_time') && (
         <Suspense fallback={null}>
           <LikelyOpeningsSection profile={profile} />
         </Suspense>
       )}
 
-      {onBoard && (
+      {onBoard && show('jobs') && (
       <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
         {/* Old Interim Work anchor (role-match emails link here). */}
         <span id="board-advisory-work" className="block scroll-mt-4" aria-hidden />
@@ -1679,7 +1751,7 @@ async function FindMyJobBody({
       </div>
       )}
 
-      {onBoard && showIndependentToolkit && (
+      {onBoard && show('independent') && showIndependentToolkit && (
         <Suspense fallback={null}>
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>
@@ -2274,7 +2346,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && (
+      {onBoard && show('resources') && (
       <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
@@ -2315,7 +2387,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && (
+      {onBoard && show('resources') && (
       <div id="job-boards" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Job Boards</h2>
@@ -2330,7 +2402,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && (
+      {onBoard && show('resources') && (
       <div id="resume-book" className="scroll-mt-4 border-t border-border pt-8">
         {profile.resumeBookOptIn && profile.resumeBookOptInConfirmedAt ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
@@ -2357,7 +2429,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && profile.recruiterVisibilityConfirmedAt && (
+      {onBoard && show('resources') && profile.recruiterVisibilityConfirmedAt && (
         <div className="space-y-1.5 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
           <Link href="/dashboard/privacy" className="inline-block underline underline-offset-4">

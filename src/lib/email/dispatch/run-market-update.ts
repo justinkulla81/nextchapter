@@ -1,7 +1,9 @@
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
+import { loadEngagementStates } from '@/lib/email/engagement'
+import { rotationAllowedForEngagement } from '@/lib/email/engagement-state'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCandidateEmail } from '@/lib/email/send-market-digest-candidate'
@@ -33,10 +35,14 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
   // One shared nugget for this run, same as the old cron.
   const nugget = (await getDigestNuggets('CANDIDATE', 1))[0] ?? null
 
+  // Members who have stopped using the product get less email (see engagement-state.ts).
+  const engagement = await loadEngagementStates(eligible.map((c) => c.id))
+
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'MARKET_UPDATE')) continue
+      if (!rotationAllowedForEngagement(engagement.get(candidate.id) ?? 'active', 'MARKET_UPDATE')) continue
       if (await hasAlreadySentToday(candidate.id, 'MARKET_UPDATE')) continue
 
       const marketConditions = await getMarketConditions({

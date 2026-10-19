@@ -7,7 +7,9 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
 import { isQuietCandidate } from '@/lib/email/is-quiet-candidate'
-import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { recordCandidateEmailSent, trackEmailSent } from '@/lib/email/send-log'
+import { buildEmailClickUrl } from '@/lib/email/click-link'
+import type { WeeklyGap } from '@/lib/email/weekly-gap'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
@@ -17,7 +19,7 @@ interface Strength {
   detail: string
 }
 
-export async function sendMidweekCheckin(candidateId: string, introCopy?: string | null) {
+export async function sendMidweekCheckin(candidateId: string, introCopy?: string | null, gap: WeeklyGap | null = null) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping Midweek Check-in email.')
     return { sent: false as const }
@@ -59,8 +61,15 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         })
       : null
 
+    // Behind this week's target: lead with the number (the retired Friday "Close the Gap" email).
+    const gapSubject =
+      gap && !isReset
+        ? `${gap.pointsToGo} points from an A this week${candidate.firstName ? `, ${candidate.firstName}` : ''}`
+        : null
+
     const subject = neutralizeEmailSubject(
-      insights?.subject ??
+      gapSubject ??
+        insights?.subject ??
         (isReset && primaryAction
           ? `${candidate.firstName ? `${candidate.firstName}, let's` : "Let's"} get started — one 5-minute step`
           : null) ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
@@ -83,6 +92,8 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         resetTask: isReset ? (primaryAction?.text ?? null) : null,
         bullets: insights?.bullets ?? null,
         weeklyRecap,
+        gap,
+        dashboardUrl: buildEmailClickUrl(appUrl, candidate.id, 'MIDWEEK_CHECKIN', `${appUrl}/dashboard`),
         appUrl,
         unsubscribeUrl,
       }),
@@ -94,6 +105,7 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
     }
 
     await recordCandidateEmailSent(candidateId, 'MIDWEEK_CHECKIN')
+    trackEmailSent(candidateId, 'MIDWEEK_CHECKIN')
     await prisma.candidateProfile.update({ where: { id: candidateId }, data: { lastDailyEmailSentAt: new Date() } })
 
     return { sent: true as const }

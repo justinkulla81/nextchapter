@@ -22,7 +22,7 @@ import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 import { importBenefitsFields } from '@/lib/jobs/benefits'
 import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
 import { isInternshipJob } from '@/lib/jobs/work-type'
-import { FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
+import { DIRECT_MAX_AGE_DAYS, FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
 import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
 import { stampVerified } from '@/lib/jobs/liveness-store'
 
@@ -91,6 +91,7 @@ interface ImportJobInput {
   locationState?: string | null
   locationCountry?: string | null
   locations?: string[] | null
+  locationStatesList?: string[] | null // loc_states: every US state the crawler resolved, primary first
   externalJobId?: string | null
   requisitionId?: string | null
   repostKey?: string | null
@@ -128,6 +129,9 @@ interface ImportJobInput {
   // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
   // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
   lastVerifiedAt?: string | null
+  // From the employer's own careers site / ATS (ncrawl master-list.py direct_listing): never
+  // aged out by posted date while the crawl still sends it. Optional; left out, the row keeps it.
+  directListing?: boolean
 }
 
 interface ImportRequestBody {
@@ -231,6 +235,7 @@ function rowData({ job, level }: Screened) {
     ...requirementFieldsOf(job),
     // AI skills (ai-skills.ts): known ids only; groups follow from the items.
     ...importAiSkillFields(job),
+    ...(typeof job.directListing === 'boolean' ? { directListing: job.directListing } : {}),
   }
 }
 
@@ -328,16 +333,17 @@ async function closeOpeningsSafely() {
 
 // Archives every ncrawl row the run didn't confirm and records WHY (job-status.ts):
 // past its freshness window (director and above 60 days, others 30, from the posted
-// date or else the import date) → 'aged_out', since the crawl's export drops it even
-// if it is still up; otherwise the employer stopped listing it → 'removed'. One
-// statement, the same rows the old updateMany archived.
+// date or else the import date; a direct employer listing only past the 365-day
+// backstop) → 'aged_out', since the crawl's export drops it even if it is still up;
+// otherwise the employer stopped listing it → 'removed'. One statement, the same rows
+// the old updateMany archived.
 async function archiveStale(startedAt: Date, now: Date): Promise<number> {
   const senior = seniorWindowLevels(levelsInAnyGroup())
   return prisma.$executeRaw`
     UPDATE "ExclusiveJobPosting"
     SET "archivedAt" = ${now},
         "closeReason" = CASE
-          WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
+          WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "directListing" THEN ${DIRECT_MAX_AGE_DAYS}::int WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
           THEN 'aged_out' ELSE 'removed' END
     WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
       AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
@@ -416,7 +422,7 @@ export async function POST(request: NextRequest) {
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
-      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, directListing: true,
       archivedAt: true, closeReason: true,
     },
   })

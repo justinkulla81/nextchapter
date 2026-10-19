@@ -40,7 +40,24 @@ import {
   LaunchpadSection,
 } from '@/components/market-reality/analysis-sections'
 
+import { loadCareerStory } from '@/lib/career-story/load'
+import { ReportStory } from '@/components/dashboard/career-story/ReportStory'
+
 export const metadata: Metadata = { title: 'Market Reality Report' }
+
+// A compact, private view of the member's career story. Nothing here is shared with anyone else.
+async function CareerStorySection({ profile }: { profile: Parameters<typeof loadCareerStory>[0] }) {
+  const story = await loadCareerStory(profile).catch((error) => {
+    console.error('Market reality: career story unavailable', error)
+    return null
+  })
+  if (!story?.hasAnyHistory) return null
+  return (
+    <div className="mt-10">
+      <ReportStory story={story} />
+    </div>
+  )
+}
 
 export default async function MarketRealityReportPage({
   searchParams,
@@ -184,6 +201,7 @@ export default async function MarketRealityReportPage({
         <SkillsSection brief={brief} />
         <ResumeSection brief={brief} />
         <ActivitySection brief={brief} />
+        <CareerStorySection profile={profile} />
         <RubricSection />
         <MethodNotes />
       </article>

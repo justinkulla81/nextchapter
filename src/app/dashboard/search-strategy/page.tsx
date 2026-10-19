@@ -2,6 +2,11 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { getUnlockStatus } from '@/lib/effort/load'
 import { UnlockProgress } from '@/components/effort/UnlockProgress'
 import { unlockNextStrategy } from './unlock-actions'
+import { IndustryRealityCheck } from '@/components/dashboard/pathway/IndustryRealityCheck'
+import { parseRelocation } from '@/lib/journey/relocation'
+import { activeTargets, pivotOf } from '@/lib/journey/pivot'
+import { careerOf, isCareerAnswered } from '@/lib/journey/career'
+import { CareerGoalsForm } from '@/components/dashboard/CareerGoalsForm'
 import type { Metadata } from 'next'
 import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
@@ -289,7 +294,7 @@ export default async function SearchStrategyPage() {
   // "More of the same" default — a guess at the pivot target, not a
   // separate inference pass. Editable right here via SearchStrategyForm.
   const inferredFunction = profile.primaryFunction ?? null
-  const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
+  const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries, searching: !effectiveJourney(profile) || getJourney(effectiveJourney(profile)!).searching, employed: !!effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed })
 
   const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
   const independentWorkSuggestions = suggestIndependentWork(
@@ -319,7 +324,12 @@ export default async function SearchStrategyPage() {
   const stageJourney = effectiveJourney(profile)
   const showCulture = !!stageJourney && getJourney(stageJourney).searching
   const cultureAnswered = parseCultureFit(profile.cultureFit) !== null
-  const wizardPages: WizardPage[] = [
+  const searchingJourney = !stageJourney || getJourney(stageJourney).searching
+  // Staying and promotion members say what they want from their career (src/lib/journey/career.ts).
+  const showCareer = stageJourney === 'GROWING' || stageJourney === 'PROMOTION'
+  const careerAnswered = isCareerAnswered(careerOf(profile.journeyDetails))
+  const allWizardPages: WizardPage[] = [
+    ...(showCareer ? [{ key: 'career', label: 'What You Want From Your Career', items: [{ key: 'career', complete: careerAnswered }] }] : []),
     { key: 'target-role', label: 'Target Role & Company', items: [{ key: 'target-role', complete: targetRoleComplete }] },
     {
       key: 'blockers-motivations',
@@ -403,7 +413,7 @@ export default async function SearchStrategyPage() {
     },
   ]
 
-  const wizardPageContent = [
+  const allWizardContent = [
     <Card key="target-role">
       <CardHeader>
         <div className="flex items-center gap-2">
@@ -428,6 +438,11 @@ export default async function SearchStrategyPage() {
           inferredIndustries={inferredIndustries}
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
+          relocation={parseRelocation(profile.journeyDetails, profile.openToRelocation)}
+          pivotTargets={activeTargets(pivotOf(profile.journeyDetails))}
+          seniorLevel={(profile.levelRankScore ?? 0) >= 60}
+          canSwitchJourney={!!stageJourney && stageJourney !== 'CAREER_CHANGE' && getJourney(stageJourney).searching}
+          journey={stageJourney}
         />
         <div id="employer-sectors" className="scroll-mt-4 space-y-2 border-t border-border pt-4">
           <p className="text-sm font-medium text-foreground">Which employers do you want jobs from?</p>
@@ -525,7 +540,30 @@ export default async function SearchStrategyPage() {
         />
       </CardContent>
     </Card>,
+    ...(showCareer
+      ? [
+          <Card key="career">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">What You Want From Your Career</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Your next review, the next level and whether pay or title matters most. Your weekly plan, your case for a review and your pay comparison use it.
+              </p>
+              <CareerGoalsForm initial={careerOf(profile.journeyDetails)} />
+            </CardContent>
+          </Card>,
+        ]
+      : []),
   ]
+
+  // Someone who is not looking for a job is not asked job-search questions: no target role,
+  // blockers, culture or "strengthen your search". They keep marketing, networking, negotiation and benefits.
+  const SEARCH_ONLY_PAGES = new Set(['target-role', 'blockers-motivations', 'culture', 'other-ways'])
+  const keep = (key: string) => searchingJourney || !SEARCH_ONLY_PAGES.has(key)
+  const careerFirst = (arr: unknown[], keyOf: (x: never) => string) => [...arr].sort((a, b) => Number(keyOf(b as never) === 'career') - Number(keyOf(a as never) === 'career'))
+  const wizardPages = careerFirst(allWizardPages.filter((pg) => keep(pg.key)), (pg: WizardPage) => pg.key) as WizardPage[]
+  const wizardPageContent = careerFirst(allWizardContent.filter((el) => keep(String(el.key))), (el: { key: string | null }) => String(el.key)) as typeof allWizardContent
 
   const actionPlanCard = checklist.incomplete.length > 0 && (
     <Card>
@@ -558,9 +596,11 @@ export default async function SearchStrategyPage() {
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Search Strategy</h1>
         <p className="mt-1 text-muted-foreground">
-          A one-time setup for your Search Goals — editable any time your situation changes.
+          {searchingJourney
+            ? 'A one-time setup for your Search Goals — editable any time your situation changes.'
+            : 'What you want from your career, and how you like to work with us. Editable any time. Job-search questions turn on if you start looking.'}
         </p>
-        {!hasAnsweredOnce && (
+        {searchingJourney && !hasAnsweredOnce && (
           <p className="text-sm text-muted-foreground">
             Once you&apos;ve answered Your Target Role &amp; Company and Blockers and Motivations
             below, Victoria will review your search strategy and give you personalized feedback
@@ -618,6 +658,13 @@ export default async function SearchStrategyPage() {
 
       {/* What the member wants in a culture — compared on each job's match with what
           members who worked at that company said (src/lib/jobs/job-match.ts). */}
+      {searchingJourney && (
+        <Suspense fallback={null}>
+          <IndustryRealityCheck candidateId={profile.id} currentIndustry={profile.industryContext} targetIndustries={profile.targetIndustries} fn={profile.targetFunction ?? profile.primaryFunction} />
+        </Suspense>
+      )}
+
+      {searchingJourney && (
       <Card id="culture-preferences" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Culture you want</CardTitle>
@@ -626,8 +673,9 @@ export default async function SearchStrategyPage() {
           <CulturePreferencesForm initial={culturePreferences} />
         </CardContent>
       </Card>
+      )}
 
-      {stage === 'QUIETLY_LOOKING' && (
+      {searchingJourney && stage === 'QUIETLY_LOOKING' && (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</CardTitle>

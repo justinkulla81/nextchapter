@@ -256,6 +256,18 @@ export function peekSearchIndex({ startCold = true }: { startCold?: boolean } = 
   return held?.value ?? null
 }
 
+/**
+ * The import's stored place facts for one live job — every US state it lists
+ * (locationStates, else locationState) and its work arrangement — from the held
+ * index, without starting a load. null when the index isn't in or doesn't have the job.
+ */
+export function storedPlaceFacts(id: string): { states: readonly string[]; arrangement: 'remote' | 'hybrid' | 'onsite' | null } | null {
+  const index = held?.value
+  const j = index?.pos.get(id)
+  if (!index || j === undefined) return null
+  return { states: index.tables.states[index.states[j]] ?? [], arrangement: ARRANGEMENTS[index.arrangement[j]] ?? null }
+}
+
 /** The index now, or within `waitMs` while one is loading; else null (the caller takes the fast path). */
 export async function searchIndexWithin(waitMs: number, opts?: { startCold?: boolean }): Promise<SearchIndex | null> {
   const now = peekSearchIndex(opts)

@@ -15,6 +15,11 @@ import { culturePlanItems, type CultureFit } from '@/lib/culture/culture-fit'
 import type { SpineGap } from '@/lib/personalization/spine'
 import type { JourneyStage, JourneyType } from './journey'
 import { getJourney, normalizeJourney } from './journey'
+import { pivotPlanItems, type PivotDetails } from './pivot'
+import { careerPlanItems, type CareerDetails } from './career'
+import type { Relocation } from './relocation'
+import { situationPlanItems } from './situation'
+import { deriveLearningPaths, pathPlanItems, pathProgressOf } from './learning-paths'
 
 export type EngagementSignals = {
   journey: JourneyType | null
@@ -24,6 +29,21 @@ export type EngagementSignals = {
   // fractional, interim or part-time work right now. See ./intensity.ts.
   casual: boolean
   workingNow: boolean
+  // What they told us about where they are willing to go, what they want next and what they said they did before joining.
+  // Optional so older callers need not set them.
+  pivot?: PivotDetails | null
+  career?: CareerDetails | null
+  skillsToBuild?: string[]
+  targets?: { roleType: string | null; function: string | null; industries: string[]; compFloor: number | null; relocation: Relocation; applicationGoal: number | null; outreachGoal: number | null; followUp?: boolean | null }
+  venture?: string | null
+  graduation?: Date | null
+  priorActivity?: boolean
+  from?: string | null
+  ownedFunctions?: string[]
+  boardInterest?: boolean
+  seniorLevel?: boolean
+  // journeyDetails as stored: situation facts the plan reads (src/lib/journey/situation.ts).
+  rawDetails?: unknown
   // Their own answers to the Screening Questions (restrictive covenant, fired
   // for cause, drug test, background check). Used only to sharpen this
   // member's own plan; never shown to anyone else (see affiliations/visibility.ts).
@@ -56,7 +76,7 @@ export type EngagementSignals = {
   offers: number
 }
 
-export type RedFlags = { restrictiveCovenant: boolean; firedForCause: boolean; noDrugTest: boolean; noBackgroundCheck: boolean }
+export type RedFlags = { covenantDetails?: string | null; restrictiveCovenant: boolean; firedForCause: boolean; noDrugTest: boolean; noBackgroundCheck: boolean }
 
 export const NO_RED_FLAGS: RedFlags = { restrictiveCovenant: false, firedForCause: false, noDrugTest: false, noBackgroundCheck: false }
 
@@ -216,7 +236,8 @@ function gateMoveFor(s: EngagementSignals): GateMove | null {
   // search that has not "started" is not a problem for someone who is open, not pushing.
   const w = s.casual ? Math.floor(s.weeksInStage / 2) : s.weeksInStage
   if (pattern === 'NOT_STARTED') {
-    if (s.casual || w < 1) return null
+    // Someone who said they had applied before joining has started, off this platform.
+    if (s.casual || w < 1 || s.priorActivity) return null
     return {
       headline: 'Your search has not started yet',
       body: 'Nothing is logged: no applications and no conversations. The first five reach-outs matter more than the next five hours of reading.',
@@ -323,7 +344,8 @@ export function redFlagGuidance(s: EngagementSignals): { text: string; actionTyp
   if (!looking) return []
   const out: { text: string; actionType?: string }[] = []
   if (s.redFlags.restrictiveCovenant) {
-    out.push({ text: 'Read your non-compete or non-solicit before you apply or accept an offer, and have an employment lawyer check what it covers if you are unsure' })
+    const what = s.redFlags.covenantDetails?.trim()
+    out.push({ text: `Read your non-compete or non-solicit${what ? ` (${what.slice(0, 120)})` : ''} before you apply or accept an offer, and have an employment lawyer check what it covers if you are unsure` })
   }
   if (s.redFlags.firedForCause) {
     out.push({ text: 'Prepare a short, honest answer about why you left your last role, and practice saying it calmly', actionType: 'INTERVIEW_PREP' })
@@ -375,6 +397,61 @@ export function journeyDetailItems(s: EngagementSignals, now: Date = new Date())
   return out
 }
 
+const DAYS = 86_400_000
+
+// Steps that come from what the member told us: where they are willing to go, which fields they are
+// open to (with the commitment they made), what they want from their career, their own targets and
+// what they are building. This is what makes two people on the same journey get different plans.
+export function profileDrivenItems(s: EngagementSignals, now: Date = new Date()): { text: string; actionType?: string }[] {
+  const out: { text: string; actionType?: string }[] = []
+  const searching = !!s.journey && getJourney(s.journey).searching && s.stage !== 'STAYING' && s.stage !== 'LANDED'
+  // Other fields they are open to, and the learning they committed to.
+  if (searching) out.push(...pivotPlanItems(s.pivot ?? null, now))
+  // Learning paths, each tied to a goal they told us about or one we can infer from it.
+  out.push(
+    ...pathPlanItems(
+      deriveLearningPaths({
+        from: s.from ?? null,
+        pivot: searching ? (s.pivot ?? null) : null,
+        career: s.journey === 'GROWING' || s.journey === 'PROMOTION' ? (s.career ?? null) : null,
+        skillsToBuild: s.skillsToBuild ?? [],
+        aiDisplaced: !!s.aiDisplaced,
+        boardInterest: !!s.boardInterest,
+        seniorLevel: s.seniorLevel,
+        ownedFunctions: s.ownedFunctions,
+      }),
+      pathProgressOf(s.rawDetails),
+    ),
+  )
+  // Review, next level, pay and skills for people managing their career or going for a promotion.
+  if (s.journey === 'GROWING' || s.journey === 'PROMOTION') out.push(...careerPlanItems(s.career ?? null, s.skillsToBuild ?? [], now))
+  const t = s.targets
+  const active = s.stage === 'PREPARING' || s.stage === 'APPLYING' || s.stage === 'INTERVIEWING'
+  if (searching && t && active && !s.casual) {
+    if (t.industries.length > 0 && (s.stage === 'PREPARING' || s.weeksInStage < 2)) {
+      out.push({ text: `List 10 companies in ${t.industries.slice(0, 2).join(' or ')} that hire for ${t.function ?? 'your function'}`, actionType: 'WATCHLIST_ADD' })
+    }
+    if (t.compFloor && s.stage === 'PREPARING') out.push({ text: `Check that your $${Math.round(t.compFloor / 1000)}k floor fits what ${t.function ?? 'your'} roles pay where you will search` })
+    if (s.stage === 'APPLYING' && t.applicationGoal) out.push({ text: `Apply to ${t.applicationGoal} roles that fit this week`, actionType: 'JOB_APPLICATION_SUBMITTED' })
+    if ((s.stage === 'APPLYING' || s.stage === 'INTERVIEWING') && t.followUp === true) out.push({ text: 'Follow up on applications you sent one to two weeks ago', actionType: 'FOLLOW_UP_NOTE_SENT' })
+    if (s.stage === 'APPLYING' && t.outreachGoal) out.push({ text: `Send ${t.outreachGoal} outreach messages this week`, actionType: 'OUTREACH_MESSAGE' })
+    // A search that has run a while widens by the places they said they would go.
+    if (s.stage === 'APPLYING' && s.weeksInStage >= 6) {
+      const r = t.relocation
+      if (r.scope === 'STATES' && r.states?.length) out.push({ text: `Search roles in ${r.states.join(', ')}: you said you would move there` })
+      else if (r.scope === 'RADIUS') out.push({ text: `Widen your search to about ${r.radiusMiles ?? 50} miles` })
+      else if (r.scope === 'ANYWHERE') out.push({ text: 'Look outside your area: you said you would go anywhere for the right role' })
+    }
+  }
+  out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now }))
+  if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
+  if (s.journey === 'STUDENT_NEW_GRAD' && s.graduation) {
+    const days = Math.ceil((s.graduation.getTime() - now.getTime()) / DAYS)
+    if (days > 0 && days <= 150) out.push({ text: `You graduate in ${days <= 14 ? 'about two weeks' : `${Math.round(days / 7)} weeks`}: line up conversations now so offers arrive near graduation` })
+  }
+  return out
+}
+
 // Plan items for the weekly plan: the gate's new moves, then the top unlock step.
 export function engagementPlanItems(s: EngagementSignals): { text: string; actionType?: string }[] {
   const items: { text: string; actionType?: string }[] = []
@@ -385,6 +462,7 @@ export function engagementPlanItems(s: EngagementSignals): { text: string; actio
   items.push(...aiOutlookItems(s))
   items.push(...culturePlanItems(s.culture, s.stage))
   items.push(...journeyDetailItems(s))
+  items.push(...profileDrivenItems(s))
   const convo = conversationPlanItem(s.conversations)
   if (convo) items.unshift(convo)
   return items

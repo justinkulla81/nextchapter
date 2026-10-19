@@ -28,3 +28,12 @@ Name events `snake_case`, past-tense-ish and specific (`job_rated`, not
 Whenever you mention a page, route or path of this app to the user, give the
 full URL (`https://launchyournextchapter.com/...`), never a bare path like
 `/support/admin/organizations`. This is a strict rule from the owner.
+
+## Candidate site redesign
+
+Every page under `src/app/dashboard` follows `docs/candidate-redesign.md`: the
+owner's brief, the decisions already made, and the page contract (one headline,
+one primary action, three sections at most on the first view, every claim says
+why). A change that adds a card, tag, toggle or section to a candidate page must
+say what it removes. Build or change a page in `src/app/dev-preview/` first and
+look at a screenshot before wiring real data.

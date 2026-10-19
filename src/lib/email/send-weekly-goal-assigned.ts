@@ -1,12 +1,15 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
+import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { buildEmailClickUrl } from '@/lib/email/click-link'
 import WeeklyGoalAssignedEmail from '@/emails/weekly-goal-assigned'
 import { getEngagementLead } from '@/lib/journey/engagement-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
-import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { recordCandidateEmailSent, trackEmailSent } from '@/lib/email/send-log'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 // What's blocking an A, in the same terms as UnlockCandidatePlusCallout on
@@ -54,8 +57,8 @@ export async function sendWeeklyGoalAssignedEmail(
   const engagement = await getEngagementLead(candidate.id).catch(() => null)
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const dashboardUrl = `${appUrl}/dashboard`
-  const marketRealityReportUrl = `${appUrl}/dashboard/market-reality`
+  const dashboardUrl = buildEmailClickUrl(appUrl, candidate.id, 'MORNING_MOTIVATION', `${appUrl}/dashboard`)
+  const marketRealityReportUrl = buildEmailClickUrl(appUrl, candidate.id, 'MORNING_MOTIVATION', `${appUrl}/dashboard/market-reality`)
   const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const {
@@ -71,6 +74,13 @@ export async function sendWeeklyGoalAssignedEmail(
   const hitLastWeekTarget = lastWeekPoints >= lastWeekTarget
   const targetDelta = thisWeekTarget - lastWeekTarget
   const gapSummary = buildGapSummary(grade, weeklySprintsCount, laggingEngines)
+
+  // The one concrete thing to start with: the retired Wednesday "one thing for
+  // today" nudge, folded into this email.
+  const report = await prisma.marketRealityReport.findFirst({ where: { candidateId: candidate.id }, orderBy: { generatedAt: 'desc' } }).catch(() => null)
+  const firstStep = report
+    ? (getTodaysPrimaryAction(report.actionPlan as unknown as Parameters<typeof getTodaysPrimaryAction>[0], report.generatedAt)?.text ?? null)
+    : null
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
@@ -92,6 +102,7 @@ export async function sendWeeklyGoalAssignedEmail(
       gapSummary,
       completedLastWeek,
       thisWeekPlan,
+      firstStep,
       dashboardUrl,
       marketRealityReportUrl,
       unsubscribeUrl,
@@ -104,6 +115,7 @@ export async function sendWeeklyGoalAssignedEmail(
   }
 
   await recordCandidateEmailSent(candidate.id, 'MORNING_MOTIVATION')
+  trackEmailSent(candidate.id, 'MORNING_MOTIVATION')
   if (engagement) {
     captureServerEvent(candidate.id, 'engagement_lead_emailed', {
       email: 'MORNING_MOTIVATION',

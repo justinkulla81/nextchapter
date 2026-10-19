@@ -23,6 +23,10 @@
   --color-brand: #1d4e89;
   --color-light-blue: #2980d4;
   --color-orange: #f4a259;
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-ink: var(--ink);
+  --font-display: var(--font-source-serif), Georgia, "Times New Roman", serif;
   --color-off-white: #f7f9fa;
   --color-light-gray: #e2e8f0;
   --color-gray: #8892a0;
@@ -105,6 +109,10 @@
 }
 
 :root {
+  /* The redesigned candidate pages: one action color, navy ink, serif display. */
+  --action: #f4a259;
+  --action-foreground: #0b2545;
+  --ink: #0b2545;
   --background: #f7f9fa;
   --foreground: #0a0a0a;
   --card: #ffffff;
@@ -219,11 +227,30 @@
      still pins Inter explicitly, redundant with the default today, so a
      future change to --font-heading's default can't silently leak serif
      into partner surfaces. */
+  /* The redesigned candidate site (docs/candidate-redesign.md). Pages already built on the shared
+     components get navy primary controls instead of green until the whole site moves over; the
+     dashboard layout adopts this class once the redesign is wired in. Preview only for now. */
+  .theme-redesign {
+    --primary: var(--ink);
+    --primary-foreground: #ffffff;
+    --color-primary: var(--ink);
+    --color-primary-foreground: #ffffff;
+    --color-success-hover: #1d3d66;
+  }
   .theme-partner {
     --font-heading: var(--font-sans);
     /* A partner's chosen background retones the whole portal; with none chosen
        these resolve to the same page colors as before. */
     background-color: var(--background);
     color: var(--foreground);
+  }
+}
+/* The redesigned menu shrinks to icons (RedesignNav). The page takes the width it gives back. */
+@media (min-width: 64rem) {
+  html[data-nc-nav='collapsed'] .nc-main {
+    padding-left: calc(4rem + 1.5rem);
+  }
+  html[data-nc-nav='collapsed'] .nc-main-inner {
+    max-width: 72rem;
   }
 }

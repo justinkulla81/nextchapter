@@ -1,7 +1,7 @@
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendSearchCheckInEmail } from '@/lib/email/send-search-checkin-email'
 import { checkInDue } from '@/lib/journey/journey'
@@ -34,7 +34,7 @@ export async function runSearchCheckin(introCopy: string | null, eligiblePrivacy
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'SEARCH_CHECKIN')) continue
       // At the stage's pace (src/lib/journey): weekly while applying,
       // monthly while exploring or paused, quarterly once landed.
       if (!checkInDue(candidate)) continue

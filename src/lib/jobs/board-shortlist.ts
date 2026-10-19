@@ -9,8 +9,8 @@ import { inferFunctionFromTitle, inferLevelFromTitle, rememberTitleFunction } fr
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/competition'
 import { classifyLocation } from '@/lib/jobs/us-location'
-import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
-import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
+import { ghostRisk, repostKey, stillListedDirect } from '@/lib/jobs/ghost-risk'
+import { getClosedPostingCounts, getStillListedDirect } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageOfRung, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
@@ -86,7 +86,7 @@ const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
 const priorClosures = (p: LightRow, closedCounts: Map<string, number>) => closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0
 
 /** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
-function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): LightRow[] {
+function keepRelevant(all: LightRow[], closedCounts: Map<string, number>, listed: Map<string, number>): LightRow[] {
   const nowMs = Date.now()
   // Only relevant jobs reach a member. Excluded rows are kept in the database —
   // this filters the view, it deletes nothing — and the board totals are
@@ -103,12 +103,18 @@ function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): Light
       nonUs.set(p.location, outside)
     }
     if (outside) return false
-    return notGhost(p, priorClosures(p, closedCounts), nowMs)
+    return notGhost(p, priorClosures(p, closedCounts), nowMs, listed)
   })
 }
 
-function notGhost(p: LightRow, priorClosedCount: number, nowMs: number): boolean {
-  return ghostRisk({ priorClosedCount, ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000 }).level !== 'likely'
+/** listed: direct listings confirmed still listed, id -> lastVerifiedAt ms (getStillListedDirect). */
+function notGhost(p: LightRow, priorClosedCount: number, nowMs: number, listed: Map<string, number>): boolean {
+  const verifiedAt = listed.get(p.id)
+  return ghostRisk({
+    priorClosedCount,
+    ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
+    stillListed: verifiedAt !== undefined && stillListedDirect(true, verifiedAt, nowMs),
+  }).level !== 'likely'
 }
 
 // Postgres returns rows in storage order, which every import reshuffles; ranking
@@ -166,11 +172,15 @@ interface HeldBoard {
 
 /**
  * The held board as a read now would give it: jobs that expired since, or aged into
- * likely ghost risk, dropped (the rest of the filter can't change without a write to
+ * likely ghost risk (listed: direct listings confirmed still listed, getStillListedDirect), dropped (the rest of the filter can't change without a write to
  * the board). The same object when nothing dropped.
  */
-export function stillLive<B extends Pick<HeldBoard, 'rows' | 'expires' | 'priors'>>(board: B, nowMs = Date.now()): B {
-  const keepAt = (i: number) => !(board.expires[i] <= nowMs) && notGhost(board.rows[i], board.priors[i], nowMs)
+export function stillLive<B extends Pick<HeldBoard, 'rows' | 'expires' | 'priors'>>(
+  board: B,
+  nowMs = Date.now(),
+  listed: Map<string, number> = new Map()
+): B {
+  const keepAt = (i: number) => !(board.expires[i] <= nowMs) && notGhost(board.rows[i], board.priors[i], nowMs, listed)
   let drop = 0
   for (let i = 0; i < board.rows.length; i++) if (!keepAt(i)) drop++
   if (drop === 0) return board
@@ -197,6 +207,7 @@ const PAGE_ROWS = 20_000
 async function readSharedRows(
   where: Prisma.ExclusiveJobPostingWhereInput,
   closedCounts: Map<string, number>,
+  listed: Map<string, number>,
   previous: Map<string, LightRow>
 ): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt'>> {
   const pool = new Map<string, string>()
@@ -215,7 +226,7 @@ async function readSharedRows(
       return row as LightRow
     })
     internRepeated(page, pool)
-    for (const r of keepRelevant(page, closedCounts)) {
+    for (const r of keepRelevant(page, closedCounts, listed)) {
       const before = previous.get(r.id)
       const keep = before && sameRow(before, r) ? before : r
       kept.set(keep.id, keep)
@@ -307,7 +318,9 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
     const started = Date.now()
     const fingerprint = snapshotsDisabled() ? Promise.resolve(null) : boardFingerprint()
     // Unchanged since the held copy was read: the held copy, brought up to now.
-    if (held && held.fingerprint && (await fingerprint) === held.fingerprint) return stillLive(held)
+    // Read every load: a direct listing's still-listed confirmation moves without a board write.
+    const listed = getStillListedDirect()
+    if (held && held.fingerprint && (await fingerprint) === held.fingerprint) return stillLive(held, Date.now(), await listed)
     // A cold instance: the snapshot another instance wrote, when the board hasn't changed since.
     if (!held && !snapshotsDisabled()) {
       const snap = await readBoardSnapshot(kind, fingerprint).catch((error) => {
@@ -316,11 +329,11 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
       })
       if (snap) {
         logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
-        return stillLive(snap)
+        return stillLive(snap, Date.now(), await listed)
       }
     }
     const before = await fingerprint
-    const out = await readSharedRows(liveBoardWhere(extra), await getClosedPostingCounts(), held?.byId ?? new Map())
+    const out = await readSharedRows(liveBoardWhere(extra), await getClosedPostingCounts(), await listed, held?.byId ?? new Map())
     // Version unchanged across the whole read: these rows are that version, and can be reused / shared.
     const after = before ? await boardFingerprint() : null
     const board: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started }
@@ -529,11 +542,12 @@ async function loadLightBoardRows(where: Prisma.ExclusiveJobPostingWhereInput | 
   if (hit && Date.now() - hit.at < LIGHT_TTL_MS) return hit.rows
 
   const rows = (async () => {
-    const [all, closedCounts] = await Promise.all([
+    const [all, closedCounts, listed] = await Promise.all([
       prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT }),
       getClosedPostingCounts(),
+      getStillListedDirect(),
     ])
-    return keepRelevant(all, closedCounts)
+    return keepRelevant(all, closedCounts, listed)
   })()
 
   if (lightCache.size >= LIGHT_MAX_KEYS) lightCache.delete(lightCache.keys().next().value as string)

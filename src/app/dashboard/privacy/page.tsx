@@ -1,9 +1,11 @@
+import { SITUATION_FIELDS } from '@/lib/journey/situation'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
+import { EmailTopicToggles } from '@/components/candidates/EmailTopicToggles'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
@@ -14,7 +16,7 @@ import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptI
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
 import { loadAffiliations } from '@/lib/affiliations/load'
 import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
-import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -114,6 +116,8 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             offering: detailText(profile.journeyDetails, 'offering'),
             openDays: detailText(profile.journeyDetails, 'openDays'),
             engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+            venture: detailText(profile.journeyDetails, 'venture'),
+            situation: Object.fromEntries(SITUATION_FIELDS.map((f) => [f.key, detailText(profile.journeyDetails, f.key)])),
           }}
         />
       </div>
@@ -129,6 +133,12 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             email, Gmail, and recruiter sharing.
           </p>
         </div>
+        {!profile.confidentialSearchMode && effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed && (
+          <p role="status" className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            Your situation is one where you have a job. Confidential Search Mode is off, so other members and your colleges could see your search.
+            Turn it on below if you don&apos;t want anyone at work to find out.
+          </p>
+        )}
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
 
@@ -197,10 +207,18 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
-          How often you hear from us. Your Market Reality Report and any reminder emails always send
+          How often you hear from us, and which emails. Members who have not visited in a few weeks automatically get fewer. Your Market Reality Report and any reminder emails always send
           regardless of this setting.
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
+        <EmailTopicToggles
+          optedOut={{
+            weeklyReportOptedOut: profile.weeklyReportOptedOut,
+            marketDigestOptedOut: profile.marketDigestOptedOut,
+            dailyEmailOptedOut: profile.dailyEmailOptedOut,
+            jobSearchDailyOptedOut: profile.jobSearchDailyOptedOut,
+          }}
+        />
         <ActionWindowSelector current={profile.actionWindow} />
       </div>
 

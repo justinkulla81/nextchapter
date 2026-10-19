@@ -2,7 +2,9 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
-import { isSearchStrategyWizardComplete } from '@/lib/search-strategy'
+import { isNonSearcherStrategyComplete, isSearchStrategyWizardComplete } from '@/lib/search-strategy'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { careerOf, isCareerAnswered } from '@/lib/journey/career'
 
 // Called from the end of every one of the 7 Search Strategy save actions —
 // none of them award their own points anymore (see the removed
@@ -44,10 +46,18 @@ export async function maybeAwardSearchStrategyCompleteBonus(candidateId: string)
       negotiationComfort: true,
       interviewComfort: true,
       benefitsPrioritiesBonusAt: true,
+      journey: true,
+      currentJobStatus: true,
+      journeyDetails: true,
     },
   })
   if (!profile || profile.searchStrategyCompleteBonusAt) return
-  if (!isSearchStrategyWizardComplete(profile)) return
+  const journey = effectiveJourney(profile)
+  const searching = !journey || getJourney(journey).searching
+  const complete = searching
+    ? isSearchStrategyWizardComplete(profile)
+    : isNonSearcherStrategyComplete(profile, { required: journey === 'GROWING', answered: isCareerAnswered(careerOf(profile.journeyDetails)) })
+  if (!complete) return
 
   await prisma.candidateProfile.update({
     where: { id: candidateId },

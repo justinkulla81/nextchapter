@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { SPONSORED_JOURNEYS } from '@/lib/journey/sponsored'
 import { createOrgAction, createContractAction, inviteFirstAdminAction, type ActionState } from '@/app/support/admin/(portal)/outplacement-contracts/actions'
 
 function ActionMessage({ state }: { state: ActionState }) {
@@ -67,6 +69,7 @@ const TIER_OPTIONS: { value: 'CORE' | 'PLUS' | 'PREMIUM'; label: string }[] = [
 export function CreateContractForm({ orgs }: { orgs: { id: string; name: string }[] }) {
   const [state, formAction] = useActionState(createContractAction, undefined)
   const formRef = useRef<HTMLFormElement>(null)
+  const [journey, setJourney] = useState<string>('LAID_OFF')
   useEffect(() => {
     if (state?.success) formRef.current?.reset()
   }, [state])
@@ -74,6 +77,17 @@ export function CreateContractForm({ orgs }: { orgs: { id: string; name: string 
   return (
     <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border p-4">
       <h3 className="font-semibold">New contract</h3>
+      <div className="space-y-2">
+        <Label>What are the seats for?</Label>
+        <ChoiceButtons
+          name="journey"
+          options={SPONSORED_JOURNEYS.map((j) => ({ value: j.key, label: j.label, subtext: j.hint }))}
+          value={journey}
+          onChange={setJourney}
+          columns={4}
+          responsive
+        />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="contract-org">Organization</Label>
