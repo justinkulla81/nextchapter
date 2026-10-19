@@ -18,7 +18,8 @@ const LEGAL = /\b(the|inc|incorporated|llc|llp|lp|ltd|limited|corp|corporation|c
 const TLD = /\.(com|org|net|io|ai|co|tech|us)\b/g
 // "Amazon - SF019", "Intel Corporation - SC11"
 const SITE_CODE = /\s*[-–—]\s*[a-z]{2,5}\d{1,4}[a-z]?\s*$/i
-const TRAILING_US = /[\s,]+(?:\(us\)|us|usa|u\.s\.a\.?|u\.s\.?|-\s*us)\s*$/i
+const TRAILING_US_CAPS = /[\s,]+(?:\(US\)|US|-\s*US)\s*$/
+const TRAILING_USA = /[\s,]+(?:usa|u\.s\.a\.?|u\.s\.?|\(usa\))\s*$/i
 
 function ascii(name: string): string {
   // Accents come off the letter ("Soléa" -> "Solea") instead of leaving a gap that would make it look like "Sola".
@@ -70,7 +71,7 @@ export function nameParts(name: string): NameParts {
   const hadTld = TLD.test(rest.toLowerCase())
   TLD.lastIndex = 0
   let hadUsSuffix = false
-  const noUs = rest.replace(TRAILING_US, '')
+  const noUs = rest.replace(TRAILING_US_CAPS, '').replace(TRAILING_USA, '')
   if (noUs !== rest) { hadUsSuffix = true; rest = noUs }
   // A leading "USA" ("USA The Nature Conservancy"), only when a real name remains.
   const noLeadUsa = rest.replace(/^\s*usa[\s-]+/i, '')

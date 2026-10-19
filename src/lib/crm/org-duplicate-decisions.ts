@@ -1,7 +1,17 @@
 // Decisions a person made about duplicate names, shared by the organization cleanup
 // (scripts/crm/consolidate-duplicate-orgs.ts) and the company-directory cleanup
 // (scripts/companies/consolidate-duplicate-companies.ts) so the two never disagree.
-import { classifyGroup, looseKey, type GroupDecision } from './org-duplicates'
+import { readFileSync } from 'node:fs'
+import { classifyGroup, looseKey, nameParts, type GroupDecision } from './org-duplicates'
+
+let dictionary: Set<string> | null = null
+/** Common English words (the system word list), to tell "Murphy USA" / "Team USA" from "Sanofi US". */
+function isCommonWord(w: string): boolean {
+  if (!dictionary) {
+    try { dictionary = new Set(readFileSync('/usr/share/dict/words', 'utf8').split('\n').map((x) => x.toLowerCase())) } catch { dictionary = new Set() }
+  }
+  return dictionary.has(w.toLowerCase())
+}
 
 /**
  * Groups a person looked at and decided are different companies, keyed by looseKey.
@@ -86,6 +96,15 @@ export function decideGroup(names: string[], websiteProvesIt = false): GroupDeci
   const endings = new Set(names.flatMap((n) => n.toLowerCase().match(/\.(com|org|net|io|ai|co|tech|us)\b/g) ?? []))
   if (endings.size > 1) return { action: 'review', reason: 'Web endings differ (.com vs .ai and so on), so these are probably different companies.' }
   let d = classifyGroup(names)
+  // "Murphy" / "Murphy USA", "Current" / "Current USA", "Team" / "Team USA": a US suffix after a single everyday
+  // word is as likely to be a different company as the same one.
+  if (d.action === 'merge' && !names.some((n) => FORCE_MERGE.has(n))) {
+    const parts = names.map(nameParts)
+    const generic = parts.some((p) => p.hadUsSuffix && p.tokens <= 1) && isCommonWord(parts[0].core)
+    if (generic) {
+      return { action: 'review', reason: 'A US suffix after a single everyday word, which could be a different company.' }
+    }
+  }
   if (d.action === 'review' && names.some((n) => FORCE_MERGE.has(n))) d = { action: 'merge', reason: 'Confirmed by hand.' }
   if (d.action === 'review' && d.reason.startsWith('One has .com') && !names.some((n) => GENERIC_WORDS.has(looseKey(n)))) {
     d = { action: 'merge', reason: 'Same name with a web address on the end.' }

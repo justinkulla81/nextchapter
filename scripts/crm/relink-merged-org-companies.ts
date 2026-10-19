@@ -13,6 +13,7 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { looseKey } from '../../src/lib/crm/org-duplicates'
+import { decideGroup } from '../../src/lib/crm/org-duplicate-decisions'
 import { mergeCompanies } from '../../src/lib/companies/merge-company'
 
 const prisma = new PrismaClient()
@@ -33,7 +34,8 @@ async function main() {
   for (const c of orphans) {
     const k = looseKey(c.name)
     const hit = k ? byKey.get(k) : undefined
-    if (hit?.length === 1 && hit[0].companyId !== c.id) pairs.push({ orphan: c, org: hit[0] })
+    // Only when the same rules that merge organizations call this pair one company (not "HealthPoint (WA)" / "Healthpoint (TX)", not "Team USA" / "The·team").
+    if (hit?.length === 1 && hit[0].companyId !== c.id && decideGroup([c.name, hit[0].name]).action === 'merge') pairs.push({ orphan: c, org: hit[0] })
   }
   console.log(`orphan companies ${orphans.length}; matching an organization linked elsewhere: ${pairs.length}`)
   for (const { orphan, org } of pairs) console.log(`  ${orphan.name} (${orphan.notices} notices, ${orphan.posts} postings) -> org "${org.name}"`)
