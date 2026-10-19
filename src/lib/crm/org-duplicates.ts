@@ -138,5 +138,6 @@ export function cleanestName(names: string[]): string {
     const p = nameParts(n)
     return (p.parens.length ? 100 : 0) + (p.hadSiteCode ? 100 : 0) + (p.hadUsSuffix ? 50 : 0) + (p.hadTld ? 20 : 0) + (/\b(inc|llc|ltd|corp|co)\b\.?,?\s*$/i.test(n) ? 10 : 0)
   }
-  return [...names].sort((a, b) => score(a) - score(b) || a.length - b.length || a.localeCompare(b))[0]
+  const upper = (n: string) => (n.match(/[A-Z]/g) ?? []).length
+  return [...names].sort((a, b) => score(a) - score(b) || upper(b) - upper(a) || a.length - b.length || a.localeCompare(b))[0]
 }

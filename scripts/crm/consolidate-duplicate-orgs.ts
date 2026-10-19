@@ -33,21 +33,15 @@ const NOT_DUPLICATES = new Set<string>([])
 /** A group containing any of these names is left alone, with the reason shown in review.json. */
 const HOLD: Record<string, string> = {
   'The Help Company': 'Different companies: Help USA vs The Help Company.',
-  'SAP.iO': 'SAP.iO is SAP\'s venture studio, not SAP itself.',
-  'NYU (Endless Frontier Labs)': 'An NYU-affiliated lab; may deserve its own record.',
-  'SHRM (SHRMLabs)': 'SHRMLabs is SHRM\'s innovation arm.',
   'Deluxe (media services)': 'Deluxe Corp (checks, payments) and Deluxe Media are different companies.',
   'People Inc. (Dotdash Meredith)': 'People Inc., "People" and People.Co look like three different companies.',
-  'KIPP Public Schools Northern California (East San Jose)': 'A single school site of the network.',
   'Self.': 'SELF the loan fund vs a company called Self.',
   'Care USA': 'CARE USA is a member of CARE International; one record or two?',
   'Valley Health System (New Jersey)': 'There are Valley Health Systems in NJ, VA and NV.',
   'Dart': 'Dart vs DART (Dallas Area Rapid Transit).',
   'Everest Group (Everest Re)': 'Everest Group (consulting) and Everest Re (insurance) are different.',
   'EMPLOYERS (Employers Holdings)': '"Employers" is too generic to merge on a name.',
-  'Spirit Airlines (DFW) May 2026': 'Site-level layoff records; see the question about folding sites into the parent.',
   'The Goddard School of Manhattan (Murray Hill), NY': 'Separate franchise locations.',
-  'Texana Center (Building A) Airport Service Center': 'Separate buildings of one center; fold sites into the parent?',
   'Trinity Academy': 'Generic school name; the Raleigh one may be a different school.',
   'ONE (Open Network Exchange)': '"One" is too generic to merge on a name.',
   'AGS': '"AGS" is too generic to merge on a name.',
@@ -66,12 +60,13 @@ for (const n of [
   'Human Capital', 'DataOne', 'Félix',
 ]) HOLD[n] = SPACING
 /** Names left out of their group's merge (the rest still merge). */
-const EXCLUDE = new Set([
-  'Massachusetts Institute of Technology (Lincoln Lab)', 'Princeton University (PPPL)', 'California Institute of Technology (JPL)',
-  'Carnegie Mellon University (SEI)', 'UC Irvine (incl. UCI Health)',
-])
+const EXCLUDE = new Set<string>([])
 /** Groups merged even though the rules would hold them, by one member's name. */
 const FORCE_MERGE = new Set([
+  'Spirit Airlines', 'KIPP Public Schools Northern California', 'Texana Center (Building A) Airport Service Center',
+  'ETH Zurich (Swiss Federal Institute of Technology)',
+  'SAP.iO', 'NYU (Endless Frontier Labs)', 'SHRM (SHRMLabs)', 'Massachusetts Institute of Technology (Lincoln Lab)', 'Princeton University (PPPL)',
+  'California Institute of Technology (JPL)', 'Carnegie Mellon University (SEI)', 'UC Irvine (incl. UCI Health)',
   'Amazon', 'Walmart', 'MUFG Investor Services (US), LLC', 'National Institutes of Health',
   'The Ladders (Ladders, Inc.)', 'Miami University (Ohio)', 'Omnicom (OMC Group)', 'Zurn Elkay (Elkay Manufacturing)', 'Samsung (US HQ)',
   'Babson College (F.W. Olin Graduate School of Business)', 'Vantor (Maxar Intelligence)', 'Vetter Senior Living (home office)',
@@ -86,13 +81,18 @@ const FORCE_MERGE = new Set([
   'East Valley Institute of Technology (District)',
 ])
 /** One-word names so common that "X" and "X.io" are as likely to be two companies; these stay separate unless a website proves it. */
-const GENERIC_WORDS = new Set([
-  'apollo', 'kit', 'cart', 'tilt', 'owner', 'tomorrow', 'alt', 'via', 'eon', 'jerry', 'mosaic', 'peek', 'incident', 'vast', 'advertising',
-  'sequencing', 'webhosting', 'influential', 'brilliant', 'outreach', 'otter', 'mento', 'calm', 'rover', 'honeycomb', 'prophecy', 'tickets',
-  'bill', 'bluestone', 'kindred', 'teton', 'harmonic', 'dart', 'one', 'self', 'people', 'visit',
-])
+const GENERIC_WORDS = new Set(['apollo'])
 /** Further organizations folded into the group of the first name (legal entities that file WARN notices as Amazon). */
-const EXTRA_MERGES: string[][] = [['Amazon', 'Amazon Data Services', 'Amazon Technologies', 'Amazon Development Center U.S.']]
+const EXTRA_MERGES: string[][] = [
+  ['Amazon', 'Amazon Data Services', 'Amazon Technologies', 'Amazon Development Center U.S.', 'Amazon Last Mile',
+    'Prime Video & Amazon MGM Studios', 'Amazon Web Services', 'AmazonWebServices'],
+  ['Spirit Airlines', 'Spirit Airlines (DFW) May 2026', 'Spirit Airlines (IAH) May 2026'],
+]
+/** Parents that absorb every organization whose name starts with the prefix (sites, group homes, regional schools). */
+const FOLD_PREFIXES: { parent: string; prefix: string }[] = [
+  { parent: 'Texana Center', prefix: 'Texana Center ' },
+  { parent: 'KIPP Public Schools Northern California', prefix: 'KIPP Public Schools Northern California ' },
+]
 
 /** Retries a call when the database connection drops (Prisma P1017 / P1001), which the pooler does now and then. */
 async function retry<T>(fn: () => Promise<T>, tries = 5): Promise<T> {
@@ -122,6 +122,9 @@ async function main() {
     const k = looseKey(o.name)
     if (!k) continue
     groups.set(k, [...(groups.get(k) ?? []), o])
+  }
+  for (const { parent, prefix } of FOLD_PREFIXES) {
+    if (all.some((o) => o.name === parent)) EXTRA_MERGES.push([parent, ...all.filter((o) => o.name.startsWith(prefix)).map((o) => o.name)])
   }
   for (const [first, ...rest] of EXTRA_MERGES) {
     const k = looseKey(first)
