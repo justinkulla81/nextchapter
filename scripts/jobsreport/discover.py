@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = "NextChapterResearch/1.0 (research@launchyournextchapter.com)"
-CLUSTERS = ["wd1", "wd5", "wd3", "wd12", "wd2", "wd501"]
+CLUSTERS = ["wd1", "wd5", "wd3", "wd12", "wd2", "wd501", "wd503", "wd115", "wd102", "wd103", "wd10"]
 DROP = {"inc", "corp", "corporation", "company", "co", "the", "group", "holdings", "llc", "ltd", "plc", "and", "of", "systems", "services", "bancorp", "financial"}
 
 def get(url, data=None, accept="application/json", timeout=12):
@@ -101,8 +101,27 @@ def lever(name, city):
             return {"adapter": "lever", "token": t, "hits": hits}
     return None
 
+def ashby(name, city):
+    for t in variants(name)[:3]:
+        code, body = get(f"https://api.ashbyhq.com/posting-api/job-board/{t}")
+        if code == 200:
+            try: jobs = json.loads(body).get("jobs", [])
+            except Exception: continue
+            hits = sum(1 for j in jobs if city.lower() in (j.get("location") or "").lower() or any(city.lower() in (x.get("location") or "").lower() for x in j.get("secondaryLocations", [])))
+            return {"adapter": "ashby", "token": t, "hits": hits}
+    return None
+
+def smartrecruiters(name, city):
+    for t in variants(name)[:3]:
+        code, body = get(f"https://api.smartrecruiters.com/v1/companies/{t}/postings?q={city}&limit=1")
+        if code == 200:
+            try: n = json.loads(body).get("totalFound", 0)
+            except Exception: continue
+            return {"adapter": "smartrecruiters", "company": t, "hits": n}
+    return None
+
 def find(name, city):
-    for fn in (workday, greenhouse, lever):
+    for fn in (workday, greenhouse, lever, ashby, smartrecruiters):
         r = fn(name, city)
         if r and r["hits"] > 0:
             return {"employer": name, **r}
@@ -112,13 +131,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--geo", required=True)
     ap.add_argument("--names")
+    ap.add_argument("--file", help="candidate file path (default candidates/<geo>.txt)")
     a = ap.parse_args()
     geos = json.load(open(os.path.join(HERE, "geos.json")))
     city = geos[a.geo]["search"]
     if a.names:
         names = [n.strip() for n in a.names.split(",") if n.strip()]
     else:
-        names = [l.strip() for l in open(os.path.join(HERE, "candidates", f"{a.geo}.txt")) if l.strip() and not l.startswith("#")]
+        names = [l.strip() for l in open(a.file or os.path.join(HERE, "candidates", f"{a.geo}.txt")) if l.strip() and not l.startswith("#")]
     with ThreadPoolExecutor(max_workers=10) as ex:
         results = list(ex.map(lambda n: find(n, city), names))
     os.makedirs(os.path.join(HERE, "sources"), exist_ok=True)
@@ -129,7 +149,7 @@ def main():
         if r["adapter"] and r["employer"] not in have:
             slug = re.sub(r"[^a-z0-9]+", "-", r["employer"].lower()).strip("-")
             src = {"name": f"{r['adapter'][:2] if r['adapter'] != 'workday' else 'wd'}-{slug}", "adapter": r["adapter"], "type": "direct_ats", "employer": r["employer"]}
-            for k in ("tenant", "wd", "site", "token"):
+            for k in ("tenant", "wd", "site", "token", "company"):
                 if k in r: src[k] = r[k]
             existing.append(src)
     json.dump(existing, open(path, "w"), indent=2); open(path, "a").write("\n")

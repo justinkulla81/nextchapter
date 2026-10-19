@@ -489,6 +489,19 @@ def crawl_tyler_ess(src, log):
         yield mk(src, src["employer"], req, title=title, req_id=req, url=href, description=text or title,
                  location_raw=src["location"], locations=[src["location"]])
 
+def crawl_ashby(src, log):
+    """Ashby public job-board API (common at startups). src: token, employer."""
+    d = json.loads(http(f"https://api.ashbyhq.com/posting-api/job-board/{src['token']}?includeCompensation=true", timeout=60))
+    for j in d.get("jobs", []):
+        locs = [x for x in [j.get("location")] + [s.get("location") for s in j.get("secondaryLocations", [])] if x]
+        loc = next((x for x in locs if in_metro(x)), None)
+        if not loc: continue
+        comp = (j.get("compensation") or {}).get("compensationTierSummary") or ""
+        text = (j.get("descriptionPlain") or strip_html(j.get("descriptionHtml", ""))) + (" Compensation: " + comp if comp else "")
+        yield mk(src, src.get("employer", src["token"]), j.get("id") or j.get("jobUrl"), title=j.get("title", ""), url=j.get("jobUrl"),
+                 description=text, location_raw=loc, locations=locs, employment_type=j.get("employmentType"),
+                 arrangement="remote" if j.get("isRemote") else None, posted_at=j.get("publishedAt"), posted_precision="timestamp")
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -661,7 +674,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

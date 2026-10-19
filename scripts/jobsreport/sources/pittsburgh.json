@@ -268,5 +268,39 @@
     "employer": "Pittsburgh Public Schools",
     "host": "selfservice.pghschools.org",
     "location": "Pittsburgh, PA"
+  },
+  {
+    "name": "wd-northwest-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Northwest Bank",
+    "tenant": "northwest",
+    "wd": "wd1",
+    "site": "Northwest_Careers"
+  },
+  {
+    "name": "gr-motional",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Motional",
+    "token": "motional"
+  },
+  {
+    "name": "wd-hitachi",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hitachi",
+    "tenant": "hitachi",
+    "wd": "wd1",
+    "site": "hitachi"
+  },
+  {
+    "name": "wd-covestro",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Covestro",
+    "tenant": "covestro",
+    "wd": "wd3",
+    "site": "cov_external"
   }
 ]
