@@ -58,5 +58,5 @@ export const PROPOSED_NAV: NavPlace[] = [
     label: 'Account and privacy',
     entries: [{ key: 'profile', label: 'Profile' }, { key: 'visibility', label: 'Who can find you' }, { key: 'documents', label: 'Documents' }, { key: 'money', label: 'Money help' }, { key: 'membership', label: 'Membership' }],
   },
-  { id: 'help', label: 'Help', entries: [{ key: 'talk', label: 'Talk to someone' }, { key: 'scams', label: 'Scam watch' }, { key: 'questions', label: 'Questions and feedback' }] },
+  { id: 'help', label: 'Help', entries: [{ key: 'talk', label: 'Talk to someone' }, { key: 'work', label: 'A hard situation at work' }, { key: 'scams', label: 'Scam watch' }, { key: 'questions', label: 'Questions and feedback' }] },
 ]

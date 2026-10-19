@@ -1597,6 +1597,8 @@ model CandidateProfile {
   resumes                        Resume[]
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
+  workQuestions                  WorkQuestion[]
+  workQuestionReplies            WorkQuestionReply[]
   expressedInterests             CommunityPostInterest[]
   communityPostReactions         CommunityPostReaction[]
   contentLikes                   ContentLike[]
@@ -3753,6 +3755,69 @@ model CommunityPost {
   @@index([postMetroArea, postFunction, postIndustryBucket])
   @@index([postSeniorityBand, postFunction])
   @@index([moderationStatus, moderationCategory, createdAt])
+}
+
+// "A hard situation at work": a question a member asks others, written in general terms. It lives in
+// its own tables, apart from CommunityPost, so it never reaches the main feed, groups, leaderboards or
+// counts. The author is always shown as a generated handle. excludedCompanies holds the author's current
+// employers (normalized) so people who work there never see it; it is never rendered. The private text a
+// member types into the AI helper is never stored. Only the anonymized question is.
+model WorkQuestion {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle            String
+  kind              String // BOSS | REPORT | COWORKER | CULTURE
+  title             String
+  body              String
+  seniorityBand     String?
+  excludedCompanies String[] @default([])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  replies WorkQuestionReply[]
+
+  @@index([isActive, moderationStatus, createdAt])
+  @@index([candidateId, createdAt])
+}
+
+model WorkQuestionReply {
+  id         String       @id @default(cuid())
+  questionId String
+  question   WorkQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle    String
+  body      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  @@index([questionId, createdAt])
+  @@index([candidateId, createdAt])
 }
 
 // Anonymous (by default) support note sent from one candidate to another

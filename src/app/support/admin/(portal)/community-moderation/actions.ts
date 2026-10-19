@@ -84,3 +84,38 @@ export async function dismissThreadReportAction(threadId: string) {
   captureServerEvent(admin.email ?? 'admin', 'admin_thread_report_dismissed', { threadId })
   revalidatePath('/support/admin/reported-messages')
 }
+
+// "A hard situation at work" questions and replies (src/lib/work-help). Same three moves as for posts: dismiss a
+// report, publish a held item, or remove one. They live in their own tables, so they are separate actions.
+type WorkItemType = 'question' | 'reply'
+
+async function updateWorkItem(type: WorkItemType, id: string, data: Record<string, unknown>) {
+  if (type === 'question') await prisma.workQuestion.update({ where: { id }, data })
+  else await prisma.workQuestionReply.update({ where: { id }, data })
+}
+
+function refreshWork() {
+  revalidatePath('/support/admin/reported-messages')
+  revalidatePath('/dashboard/work-help')
+}
+
+export async function dismissWorkReportAction(type: WorkItemType, id: string) {
+  const admin = await requireAdmin()
+  await updateWorkItem(type, id, { reportedAt: null, reportedByCandidateId: null, reportReason: null })
+  captureServerEvent(admin.email ?? 'admin', 'admin_work_report_dismissed', { type, id })
+  refreshWork()
+}
+
+export async function approveWorkItemAction(type: WorkItemType, id: string) {
+  const email = await reviewerEmail()
+  await updateWorkItem(type, id, { moderationStatus: 'PUBLISHED', isActive: true, reportedAt: null, reportedByCandidateId: null, reportReason: null })
+  captureServerEvent(email ?? 'admin', 'admin_work_item_approved', { type, id })
+  refreshWork()
+}
+
+export async function removeWorkItemAction(type: WorkItemType, id: string) {
+  const email = await reviewerEmail()
+  await updateWorkItem(type, id, { moderationStatus: 'REMOVED', isActive: false })
+  captureServerEvent(email ?? 'admin', 'admin_work_item_removed', { type, id })
+  refreshWork()
+}
