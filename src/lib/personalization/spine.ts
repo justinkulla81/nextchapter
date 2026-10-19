@@ -189,8 +189,9 @@ export const SIGNALS: readonly Signal[] = [
     group: 'want',
     question: 'What is the least you would take?',
     field: 'targetCompMin',
-    where: STRATEGY,
-    needs: { journeys: SEARCHING, stages: READY },
+    // Asked in onboarding as one pick (src/lib/onboarding/pay-floor.ts); Search Strategy opens with it filled in.
+    where: ONBOARDING_LOCATION,
+    needs: { journeys: SEARCHING, stages: ALL_STAGES_BUT_LANDED },
     drives: {
       opportunities: 'Filters roles and shows how many advertised roles clear your floor.',
       plan: 'Offer-stage negotiation starts from your number.',
@@ -198,6 +199,31 @@ export const SIGNALS: readonly Signal[] = [
     },
     opportunity: 'Only roles that can pay what you need, and a plan to negotiate toward it.',
     readBy: ['src/components/market/AdzunaMarketSection.tsx', 'src/lib/matching/compute-match-score.ts'],
+  },
+  {
+    key: 'search_stall_point',
+    group: 'situation',
+    question: 'Where do your searches usually stall?',
+    field: 'searchStallPoint',
+    where: ONBOARDING_LOCATION,
+    needs: { journeys: SEARCHING, stages: ['APPLYING', 'INTERVIEWING', 'OFFER'] },
+    drives: {
+      report: 'Says which reader is losing you (recruiter, hiring manager or executive recruiter) so the fixes go to the right place.',
+      plan: 'Puts the first step against the stage where the search stops.',
+    },
+    opportunity: 'The one fix that moves the search past the stage where it stops.',
+    readBy: ['src/lib/reports/market-reality-brief/load.ts', 'src/lib/reports/market-reality-brief/evaluators.ts'],
+  },
+  {
+    key: 'offers_received',
+    group: 'situation',
+    question: 'How many offers have you received so far?',
+    field: 'offersReceivedCount',
+    where: ONBOARDING_LOCATION,
+    needs: { journeys: SEARCHING, stages: ['APPLYING', 'INTERVIEWING', 'OFFER'] },
+    drives: { report: 'Completes the picture of how far searches get: applications, interviews, offers.', plan: 'Moves offer and negotiation steps up when offers have already come.' },
+    opportunity: 'A negotiation plan sooner when offers have already come.',
+    readBy: ['src/lib/reports/market-reality-brief/load.ts'],
   },
   {
     key: 'deal_breakers',
@@ -241,7 +267,7 @@ export const SIGNALS: readonly Signal[] = [
     needs: { journeys: SEARCHING, stages: READY },
     drives: { opportunities: 'Filters and ranks roles by where the work happens.', report: 'Explains how the market looks for your setup.' },
     opportunity: 'Roles that match how you want to work.',
-    readBy: ['src/lib/matching/compute-match-score.ts', 'src/app/dashboard/market-reality/page.tsx'],
+    readBy: ['src/lib/matching/compute-match-score.ts', 'src/lib/reports/market-reality-brief/load.ts'],
   },
   {
     key: 'tradeoffs',
@@ -360,9 +386,10 @@ export const SIGNALS: readonly Signal[] = [
     field: 'motivations',
     where: STRATEGY,
     needs: { journeys: SEARCHING, stages: 'all' },
-    drives: { coaching: 'Your coach uses what motivates you on a hard day.', report: 'The report speaks to what you care about.' },
+    // Deliberately not read by the Market Reality Report: motivations are private coaching context and never enter it.
+    drives: { coaching: 'Your coach uses what motivates you on a hard day.' },
     opportunity: 'Encouragement that works for you.',
-    readBy: ['src/lib/coach/coaching-notes.ts', 'src/app/dashboard/market-reality/page.tsx'],
+    readBy: ['src/lib/coach/coaching-notes.ts'],
   },
 
   // ── Your situation ────────────────────────────────────────────────────────

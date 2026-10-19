@@ -14,6 +14,7 @@
 // already computed in this report; no model call.
 
 import type { ExperienceAnalysis } from './experience'
+import type { AnswerField } from './answers'
 
 export type HiringStatus = 'in_place' | 'issue' | 'missing' | 'unknown'
 
@@ -36,6 +37,8 @@ export interface HiringReason {
   tool: string
   href: string
   minutes: number | null
+  /** When unknown or not built, a question the member can answer in place. */
+  answer?: AnswerField
 }
 
 export interface HiringCaseInput {
@@ -143,7 +146,7 @@ export function buildHiringCase(i: HiringCaseInput): HiringReason[] {
   add(
     i.linkedInConfirmed
       ? { key: 'presence', reason: 'Look credible when they check', status: 'in_place', seen: 'LinkedIn is confirmed on your profile.', next: 'Match the headline to your positioning line.', tool: 'My Marketing Plan', href: '/dashboard/linkedin', minutes: 20 }
-      : { key: 'presence', reason: 'Look credible when they check', status: 'unknown', seen: 'Your LinkedIn status is not confirmed, so we cannot tell what a recruiter finds.', next: 'Confirm your LinkedIn, then align the headline to your target.', tool: 'My Marketing Plan', href: '/dashboard/linkedin', minutes: 20 }
+      : { key: 'presence', reason: 'Look credible when they check', status: 'unknown', seen: 'Your LinkedIn status is not confirmed, so we cannot tell what a recruiter finds.', next: 'Paste your LinkedIn address, then align the headline to your target.', tool: 'My Marketing Plan', href: '/dashboard/linkedin', minutes: 20, answer: 'linkedin_url' }
   )
 
   // 10. Access
@@ -170,7 +173,7 @@ export function buildHiringCase(i: HiringCaseInput): HiringReason[] {
   add(
     i.payFloor
       ? { key: 'pay', reason: 'Ask for what the role pays', status: 'in_place', seen: `A pay floor of $${i.payFloor.toLocaleString('en-US')} is on file.`, next: 'Check it against advertised pay for your role.', tool: 'Know your worth', href: '/dashboard/pay', minutes: 10 }
-      : { key: 'pay', reason: 'Ask for what the role pays', status: 'unknown', seen: 'No pay floor is set, so we cannot say how many roles clear it.', next: 'Set your floor in Search Strategy, then compare it with the market.', tool: 'My Search Strategy', href: '/dashboard/search-strategy', minutes: 5 }
+      : { key: 'pay', reason: 'Ask for what the role pays', status: 'unknown', seen: 'No pay floor is set, so we cannot say how many roles clear it.', next: 'Pick your range, then compare it with the market.', tool: 'My Search Strategy', href: '/dashboard/search-strategy', minutes: 5, answer: 'pay_floor' }
   )
 
   // 13. Findability

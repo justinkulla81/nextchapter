@@ -867,6 +867,12 @@ model CandidateProfile {
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
   interviewsReceivedCount   Int?
+  // Where searches usually stall (src/lib/onboarding/search-stall.ts): NO_REPLIES |
+  // RECRUITER_SCREEN | HIRING_MANAGER | FINAL_ROUND | OFFER. Self-reported, one question, asked
+  // in onboarding only when the member has already applied. Read by the Market Reality Report.
+  searchStallPoint          String?
+  // Offers received so far, self-reported alongside the two counts above. Asked only after an interview.
+  offersReceivedCount       Int?
   networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
   learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
   triedPartTimeOrConsulting Boolean?

@@ -217,6 +217,9 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
 // while letting onboarding itself ask for a precise number instead of a
 // bucket, per the "we already answered this, don't ask twice with worse
 // precision" fix.
+import { payFloorFromBand } from '@/lib/onboarding/pay-floor'
+import { parseSearchStallPoint } from '@/lib/onboarding/search-stall'
+
 function deriveJobsAppliedBucket(count: number): '0-20' | '20-100' | '100+' {
   if (count <= 20) return '0-20'
   if (count <= 100) return '20-100'
@@ -289,6 +292,11 @@ export async function updateLocationAndSearchStatus(
   const jobsAppliedCount = justStartedSearch ? 0 : jobsAppliedCountRaw ? Number(jobsAppliedCountRaw) : null
   const interviewsCount = justStartedSearch ? 0 : interviewsCountRaw ? Number(interviewsCountRaw) : null
   const networkComfortLevel = formData.get('networkComfortLevel') as string | null
+  // New in onboarding: a pay-floor band (same field Search Strategy uses), where searches stall, offers.
+  const payFloor = payFloorFromBand(formData.get('payFloorBand'))
+  const offersRaw = String(formData.get('offersCount') ?? '').trim()
+  const offersCount = offersRaw !== '' && Number.isInteger(Number(offersRaw)) && Number(offersRaw) >= 0 ? Number(offersRaw) : null
+  const searchStallPoint = parseSearchStallPoint(formData.get('searchStallPoint'))
 
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
@@ -336,6 +344,10 @@ export async function updateLocationAndSearchStatus(
       gapDuration: employed || !searching ? null : (gapDuration as GapDurationBucket),
       jobsAppliedBucket: deriveJobsAppliedBucket(searching ? (jobsAppliedCount as number) : 0),
       interviewsReceivedCount: searching ? interviewsCount : 0,
+      // Only ever set from an answer, never cleared by skipping, so a floor set in Search Strategy survives a revisit.
+      ...(searching && payFloor ? { targetCompMin: payFloor } : {}),
+      ...(searching && !justStartedSearch && searchStallPoint ? { searchStallPoint } : {}),
+      ...(searching && !justStartedSearch && offersCount !== null ? { offersReceivedCount: offersCount } : {}),
       onboardingSearchStatusConfirmedAt: now,
       networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
       ...(coachingStylePreference ? { coachingStylePreference } : {}),

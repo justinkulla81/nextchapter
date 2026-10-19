@@ -301,6 +301,7 @@ const evalInput = (over: Partial<EvaluatorInput> = {}): EvaluatorInput => ({
   conversationsPerWeek: 3,
   marketPrompt: 'healthy',
   payFloor: null,
+  searchStallPoint: null,
   ...over,
 })
 const view = (v: ReturnType<typeof buildEvaluatorViews>, key: string) => v.find((x) => x.key === key)!
@@ -577,6 +578,7 @@ const narr = (over: Partial<NarrativeInput> = {}): NarrativeInput => ({
   topPriority: { title: 'Finish your Search Strategy goals' },
   firstStep: { title: 'Finish your Search Strategy goals' },
   targetRole: 'CFO',
+  stall: null,
   ...over,
 })
 
@@ -615,5 +617,119 @@ describe('timeline chart data', () => {
     expect(a.chart.gaps).toHaveLength(1)
     expect(a.chart.gaps[0].months).toBe(9)
     expect(a.chart.from).toBe(d(2016, 1).getTime())
+  })
+})
+
+// ── Stall point, in-place answers, sharpen panel, Job Fit ──────────────────
+
+import { parseAnswer, ANSWER_FIELDS } from '@/lib/reports/market-reality-brief/answers'
+import { buildSharpen, type SharpenInput } from '@/lib/reports/market-reality-brief/sharpen'
+import { bandForFloor, payFloorFromBand } from '@/lib/onboarding/pay-floor'
+import { parseSearchStallPoint } from '@/lib/onboarding/search-stall'
+
+describe('where searches stall', () => {
+  it('marks the reader the stall points at, and says so in their head', () => {
+    const v = buildEvaluatorViews(evalInput({ searchStallPoint: 'HIRING_MANAGER' }))
+    expect(v.map((x) => x.stalls)).toEqual([false, true, false])
+    expect(view(v, 'hiring_manager').thinking[0]).toMatch(/You told us you reach the hiring manager and it stops/)
+  })
+
+  it('points no-reply and recruiter-screen stalls at the recruiter, final round at the executive recruiter', () => {
+    expect(view(buildEvaluatorViews(evalInput({ searchStallPoint: 'NO_REPLIES' })), 'recruiter').stalls).toBe(true)
+    expect(view(buildEvaluatorViews(evalInput({ searchStallPoint: 'RECRUITER_SCREEN' })), 'recruiter').stalls).toBe(true)
+    expect(view(buildEvaluatorViews(evalInput({ searchStallPoint: 'FINAL_ROUND' })), 'executive_recruiter').stalls).toBe(true)
+  })
+
+  it('marks no reader when the stall is at the offer, or unknown', () => {
+    expect(buildEvaluatorViews(evalInput({ searchStallPoint: 'OFFER' })).some((x) => x.stalls)).toBe(false)
+    expect(buildEvaluatorViews(evalInput()).some((x) => x.stalls)).toBe(false)
+  })
+
+  it('adds a paragraph to the overall read only when the member told us', () => {
+    const stall = { told: 'you reach the hiring manager and it stops', points: 'the hiring manager: proof of scope and results' }
+    expect(buildOverallRead(narr({ stall }))).toHaveLength(5)
+    expect(buildOverallRead(narr({ stall }))[2]).toMatch(/You told us you reach the hiring manager/)
+    expect(buildOverallRead(narr())).toHaveLength(4)
+  })
+
+  it('parses only the five known values', () => {
+    expect(parseSearchStallPoint('FINAL_ROUND')).toBe('FINAL_ROUND')
+    expect(parseSearchStallPoint('nonsense')).toBeNull()
+    expect(parseSearchStallPoint(undefined)).toBeNull()
+  })
+})
+
+describe('pay floor bands', () => {
+  it('stores the bottom of the band in the field Search Strategy already uses', () => {
+    expect(payFloorFromBand('200')).toBe(200_000)
+    expect(payFloorFromBand('bogus')).toBeNull()
+  })
+  it('pre-selects the band a stored floor falls in', () => {
+    expect(bandForFloor(200_000)).toBe('200')
+    expect(bandForFloor(250_000)).toBe('200')
+    expect(bandForFloor(60_000)).toBe('lt100')
+    expect(bandForFloor(null)).toBeNull()
+  })
+})
+
+describe('in-place answers', () => {
+  it('whitelists the fields and rejects anything else', () => {
+    expect(ANSWER_FIELDS.sort()).toEqual(['linkedin_url', 'pay_floor', 'search_stall'])
+    expect(parseAnswer('targetCompMin', '200')).toMatchObject({ ok: false })
+    expect(parseAnswer('pay_floor', '')).toMatchObject({ ok: false })
+  })
+  it('maps each answer to the existing field', () => {
+    expect(parseAnswer('pay_floor', '300')).toEqual({ ok: true, data: { targetCompMin: 300_000 } })
+    expect(parseAnswer('search_stall', 'OFFER')).toEqual({ ok: true, data: { searchStallPoint: 'OFFER' } })
+    const li = parseAnswer('linkedin_url', 'linkedin.com/in/jordan-rivera')
+    expect(li).toMatchObject({ ok: true, confirmLinkedIn: true })
+  })
+  it('keeps a bad answer from saving and says what to do', () => {
+    const bad = parseAnswer('linkedin_url', 'https://example.com/jordan')
+    expect(bad.ok).toBe(false)
+    if (!bad.ok) expect(bad.error).toMatch(/LinkedIn/)
+    expect(parseAnswer('pay_floor', 'x')).toMatchObject({ ok: false })
+  })
+})
+
+const sharp = (over: Partial<SharpenInput> = {}): SharpenInput => ({
+  hasResume: true, strategyComplete: true, payFloor: 200000, hasApplied: true, searchStallPoint: 'OFFER',
+  linkedInConfirmed: true, skillsAssessmentDone: true, roles: 4, completedReferences: 2, gmailConnected: true, ...over,
+})
+
+describe('buildSharpen', () => {
+  it('has nothing left to ask when everything is known', () => {
+    expect(buildSharpen(sharp()).every((i) => i.known && i.control === null)).toBe(true)
+  })
+  it('offers an in-place answer for pay, LinkedIn and where it stalls, and a link for the rest', () => {
+    const items = buildSharpen(sharp({ payFloor: null, linkedInConfirmed: false, searchStallPoint: null, skillsAssessmentDone: false }))
+    const by = (k: string) => items.find((i) => i.key === k)!
+    expect(by('pay').control).toEqual({ kind: 'answer', field: 'pay_floor' })
+    expect(by('linkedin').control).toEqual({ kind: 'answer', field: 'linkedin_url' })
+    expect(by('stall').control).toEqual({ kind: 'answer', field: 'search_stall' })
+    expect(by('assessment').control).toMatchObject({ kind: 'link', href: '/dashboard/skills-assessment' })
+  })
+  it('does not ask where searches stall until the member has applied', () => {
+    expect(buildSharpen(sharp({ hasApplied: false, searchStallPoint: null })).some((i) => i.key === 'stall')).toBe(false)
+  })
+  it('says what each unknown unlocks', () => {
+    for (const i of buildSharpen(sharp({ payFloor: null, hasResume: false, gmailConnected: false }))) expect(i.unlocks.length).toBeGreaterThan(20)
+  })
+})
+
+describe('Job Fit and the hiring case', () => {
+  it('adds a Job Fit step once there is a resume, locked while the situation keeps the board off', () => {
+    const open = buildLaunchpad(launch({ mode: 'ACTIVE' })).find((s) => s.key === 'job_fit')!
+    expect(open).toMatchObject({ href: '/dashboard/job-fit', lockedNote: null })
+    expect(buildLaunchpad(launch({ mode: 'EXPLORING' })).find((s) => s.key === 'job_fit')!.lockedNote).toMatch(/ready to apply/)
+    expect(buildLaunchpad(launch({ hasResume: false })).some((s) => s.key === 'job_fit')).toBe(false)
+  })
+  it('offers to answer pay and LinkedIn in place when they are unknown, and not when known', () => {
+    const rows = buildHiringCase(hire({ payFloor: null, linkedInConfirmed: false }))
+    expect(reason(rows, 'pay').answer).toBe('pay_floor')
+    expect(reason(rows, 'presence').answer).toBe('linkedin_url')
+    const known = buildHiringCase(hire())
+    expect(reason(known, 'pay').answer).toBeUndefined()
+    expect(reason(known, 'presence').answer).toBeUndefined()
   })
 })

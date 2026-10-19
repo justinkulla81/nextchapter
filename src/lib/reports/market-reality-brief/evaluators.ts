@@ -14,6 +14,7 @@
 // "likely first read", not a prediction of any decision.
 
 import type { ExperienceAnalysis, ExperienceFinding } from './experience'
+import { STALL_READER, STALL_TEXT, type SearchStallPoint } from '@/lib/onboarding/search-stall'
 import type { Assessment } from './types'
 
 export type Stance = 'advance' | 'reservations' | 'pause'
@@ -45,6 +46,8 @@ export interface EvaluatorInput {
   conversationsPerWeek: number | null
   marketPrompt: 'too_many' | 'too_few' | 'shrinking' | 'healthy' | null
   payFloor: number | null
+  /** Where the member says their searches usually stall (onboarding), or null. */
+  searchStallPoint: SearchStallPoint | null
 }
 
 export interface EvaluatorView {
@@ -61,6 +64,8 @@ export interface EvaluatorView {
   questions: string[]
   /** What would move the stance one step up. */
   changesMind: string[]
+  /** The member told us their searches stall at this reader. */
+  stalls: boolean
 }
 
 export interface Objection {
@@ -115,6 +120,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
 
   const recruiter: EvaluatorView = {
     key: 'recruiter',
+    stalls: false,
     who: 'Recruiter',
     lens: 'A screen of about thirty seconds per resume. The only question is whether this earns a call.',
     stance: step(recruiterLoad),
@@ -149,6 +155,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
 
   const hiringManager: EvaluatorView = {
     key: 'hiring_manager',
+    stalls: false,
     who: 'Hiring manager',
     lens: 'Whether this person can do the job, judged on evidence of scope, results and judgment.',
     stance: hmStance,
@@ -180,6 +187,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
 
   const executiveRecruiter: EvaluatorView = {
     key: 'executive_recruiter',
+    stalls: false,
     who: 'Executive recruiter',
     lens: 'Whether to put their own name in front of a client: placement risk, story and trajectory.',
     stance: step(partnerLoad),
@@ -199,7 +207,14 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
     ],
   }
 
-  return [recruiter, hiringManager, executiveRecruiter]
+  const views = [recruiter, hiringManager, executiveRecruiter]
+  const stall = i.searchStallPoint
+  const reader = stall ? STALL_READER[stall] : null
+  for (const v of views) {
+    v.stalls = reader === v.key
+    if (v.stalls && stall) v.thinking = [`You told us ${STALL_TEXT[stall].told}. That is decided here: ${STALL_TEXT[stall].points}.`, ...v.thinking].slice(0, 5)
+  }
+  return views
 }
 
 // ── Objections ─────────────────────────────────────────────────────────────

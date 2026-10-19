@@ -29,6 +29,7 @@ import {
   MarketSection,
   MethodNotes,
   RubricSection,
+  SharpenPanel,
   RequirementsSection,
   ResumeSection,
   SkillsSection,
@@ -158,6 +159,7 @@ export default async function MarketRealityReportPage({
       <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-4 print:border-0 print:p-0 print:[zoom:0.75]">
         <Cover brief={brief} />
         <ExecutiveSummary brief={brief} />
+        <SharpenPanel brief={brief} />
         <HiringCaseSection brief={brief} />
         <EvaluatorSection brief={brief} />
         <ObjectionsSection brief={brief} />

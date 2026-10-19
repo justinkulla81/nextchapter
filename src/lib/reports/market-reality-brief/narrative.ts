@@ -19,6 +19,8 @@ export interface NarrativeInput {
   topPriority: { title: string } | null
   firstStep: { title: string } | null
   targetRole: string | null
+  /** What the member told us about where searches stall, already worded. */
+  stall: { told: string; points: string } | null
 }
 
 /** Short noun phrases for each hiring reason, to name gaps in a sentence. */
@@ -78,6 +80,10 @@ export function buildOverallRead(i: NarrativeInput): string[] {
     out.push(`Nothing on file is a problem. ${unknown} of the ${total} things employers hire for cannot be judged yet because the inputs are missing, so the next step is to supply them, not to fix anything.`)
   } else {
     out.push(`All ${total} things employers hire for are in place. The work now is selection and volume, not repair.`)
+  }
+
+  if (i.stall) {
+    out.push(`You told us ${i.stall.told}. That points to ${i.stall.points}, so the fixes aimed there come first.`)
   }
 
   // 3. The market

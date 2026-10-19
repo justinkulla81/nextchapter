@@ -9,6 +9,7 @@ import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/ev
 import { hiringCaseCounts, HIRING_STATUS_LABEL, type HiringStatus } from '@/lib/reports/market-reality-brief/hiring-case'
 import { ADEQUATE_AT, STRENGTH_AT } from '@/lib/reports/market-reality-brief/profile'
 import { GAP_LONG_MONTHS, GAP_REPORT_MONTHS, LOOKBACK_YEARS, RECENT_YEARS, SHORT_STINT_MONTHS } from '@/lib/reports/market-reality-brief/experience'
+import { InlineAnswer } from './InlineAnswer'
 import { CareerTimeline, PaceBars, ProfileScale } from './charts'
 import { sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
@@ -504,6 +505,26 @@ const VERDICT_WORD = { act: 'Act', watch: 'Watch', good: 'On track', unknown: 'T
 
 export function ActivitySection({ brief }: { brief: MarketRealityBrief }) {
   const a = brief.search
+  const snap = brief.snapshot
+  const snapshotLine = snap
+    ? [snap.applied ? `applied to ${snap.applied} roles` : null, snap.interviews !== null ? `${snap.interviews} interview${snap.interviews === 1 ? '' : 's'}` : null, snap.offers !== null ? `${snap.offers} offer${snap.offers === 1 ? '' : 's'}` : null].filter(Boolean).join(', ')
+    : null
+  if (!a && snap) {
+    return (
+      <ReportSection
+        id="activity"
+        number={sectionNumber('activity')}
+        title="Search activity to date"
+        finding={`You told us you have ${snapshotLine || 'started searching'}${snap.stall ? `, and that ${snap.stall.told}. That points to ${snap.stall.points}` : ''}. These are your own numbers. Connect Gmail and they are counted for you, with the reasons.`}
+      >
+        <p className="text-sm print:hidden">
+          <ReportLink href="/dashboard/email-activity" event="market_reality_action_clicked" properties={{ key: 'connect_gmail', area: 'Search activity', surface: 'activity_snapshot' }}>
+            Connect Gmail so applications and replies are counted for you
+          </ReportLink>
+        </p>
+      </ReportSection>
+    )
+  }
   if (!a) {
     return (
       <ReportSection
@@ -694,7 +715,7 @@ export function MethodNotes() {
   return (
     <footer className="border-t border-navy/20 pt-4 text-xs leading-relaxed text-muted-foreground">
       <p>
-        Open-role counts are live postings on the NextChapter board, and trends compare each market with the whole board. Odds, volumes and the grade are working estimates that sharpen as your own results come in. A short stint or a gap is never a verdict on a person. Private notes shared with a coach never enter this report.
+        Open-role counts are live postings on the NextChapter board, and trends compare each market with the whole board. Odds, volumes and the grade are working estimates that sharpen as your own results come in. Answers you gave in onboarding, such as pay, applications and where searches stall, are taken as given and replaced by tracked activity once Gmail is connected. A short stint or a gap is never a verdict on a person. Private notes shared with a coach never enter this report.
       </p>
     </footer>
   )
@@ -718,11 +739,21 @@ export function EvaluatorSection({ brief }: { brief: MarketRealityBrief }) {
           </div>
         </div>
       )}
+      <p className="text-sm text-foreground print:hidden">
+        This is how you read in general. To see how you read for one real posting, with the gaps to close before you apply,{' '}
+        <ReportLink href="/dashboard/job-fit" event="market_reality_action_clicked" properties={{ key: 'job_fit', area: 'How you will be read', surface: 'evaluators' }}>
+          paste a job into Job Fit
+        </ReportLink>
+        .
+      </p>
       <div className="space-y-8">
         {brief.evaluators.map((e) => (
           <article key={e.key} className="break-inside-avoid space-y-3 border-l-2 border-navy/30 pl-5">
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-              <h3 className="font-serif text-base font-semibold text-navy">{e.who}</h3>
+              <h3 className="font-serif text-base font-semibold text-navy">
+                {e.who}
+                {e.stalls && <span className="ml-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Where you told us it stalls</span>}
+              </h3>
               <AssessmentMark value={STANCE_MARK[e.stance]} label={STANCE_LABEL[e.stance]} />
             </div>
             <p className="text-sm text-muted-foreground">{e.lens}</p>
@@ -841,6 +872,11 @@ export function HiringCaseSection({ brief }: { brief: MarketRealityBrief }) {
             <span key="w" className="font-normal text-muted-foreground">{r.seen}</span>,
             <div key="n" className="space-y-1 font-normal">
               <p className="text-foreground">{r.next}</p>
+              {r.answer && (r.status === 'unknown' || r.status === 'missing') && (
+                <div className="print:hidden">
+                  <InlineAnswer field={r.answer} />
+                </div>
+              )}
               <p className="print:hidden">
                 <ReportLink href={r.href} event="market_reality_hiring_case_clicked" properties={{ key: r.key, status: r.status, tool: r.tool }}>
                   {r.status === 'in_place' ? `See it in ${r.tool}` : `Open ${r.tool}`}
@@ -955,5 +991,46 @@ export function AppendixDivider() {
         The evidence behind the findings above: the profile this was read against, how each resume dimension scored, and the detail on experience, skills, the resume and search activity.
       </p>
     </div>
+  )
+}
+
+// ── Sharpen this report ────────────────────────────────────────────────────
+
+/** What the report has and what it would still like to know, each with the one step that tells it. Not a score. */
+export function SharpenPanel({ brief }: { brief: MarketRealityBrief }) {
+  const items = brief.sharpen
+  const known = items.filter((i) => i.known).length
+  const open = items.filter((i) => !i.known)
+  if (open.length === 0) return null
+  return (
+    <section id="sharpen" aria-labelledby="sharpen-title" className="space-y-3 border border-navy/20 p-5 print:hidden">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="sharpen-title" className="font-serif text-lg font-semibold tracking-tight text-navy">
+          Sharpen this report
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          {known} of {items.length} inputs known
+        </p>
+      </div>
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        Anything we do not know is left out of the findings, not counted against you. Each answer below changes a specific part of this report the moment you save it.
+      </p>
+      <ul className="divide-y divide-border">
+        {open.map((i) => (
+          <li key={i.key} className="space-y-1.5 py-3">
+            <p className="text-sm font-medium text-foreground">{i.label}</p>
+            <p className="text-sm text-muted-foreground">{i.unlocks}</p>
+            {i.control?.kind === 'answer' && <InlineAnswer field={i.control.field} />}
+            {i.control?.kind === 'link' && (
+              <p className="text-sm">
+                <ReportLink href={i.control.href} event="market_reality_sharpen_clicked" properties={{ key: i.key }}>
+                  {i.control.cta}
+                </ReportLink>
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

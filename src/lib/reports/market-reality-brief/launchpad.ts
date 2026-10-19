@@ -85,6 +85,20 @@ export function buildLaunchpad(i: LaunchpadInput): LaunchStep[] {
   if (i.hasResume && i.resumeFixCount > 0) {
     add({ key: 'resume_fix', phase: 'this_week', title: `Fix the resume: ${i.resumeFixCount} change${i.resumeFixCount === 1 ? '' : 's'}, highest impact first`, because: 'The resume decides whether the first screen opens or stops.', tool: tool('profile'), href: '/dashboard/resume#resume-fixes', minutes: 45, area: 'Resume', done: false })
   }
+  if (i.hasResume) {
+    add({
+      key: 'job_fit',
+      phase: 'this_week',
+      title: 'Paste a job you want and see how you read for it',
+      because: `Section ${sectionNumber('read')} is how you read in general. Job Fit shows how you read for one real posting, with the gaps to close before you apply.`,
+      tool: 'Job Fit',
+      href: '/dashboard/job-fit',
+      minutes: 5,
+      area: 'Resume',
+      done: false,
+      lockedNote: jobsLocked ? LOCK_NOTE : null,
+    })
+  }
   if (!i.skillsAssessmentDone) {
     add({ key: 'assessment', phase: 'this_week', title: 'Take the skills assessment', because: 'It makes job matches, the skills gap and the learning plan specific to you.', tool: tool('assessments'), href: '/dashboard/skills-assessment', minutes: 15, area: 'Skills', done: false })
   }

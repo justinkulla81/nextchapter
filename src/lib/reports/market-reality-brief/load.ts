@@ -41,6 +41,8 @@ import { buildPriorities } from './priorities'
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { buildHiringCase, type HiringReason } from './hiring-case'
 import { buildOverallRead } from './narrative'
+import { buildSharpen, type SharpenItem } from './sharpen'
+import { STALL_TEXT, parseSearchStallPoint, type SearchStallPoint } from '@/lib/onboarding/search-stall'
 import { firstStep } from './launchpad'
 import { buildCaseForYou, type CaseForYou } from './case'
 import { buildProfile, type ProfileGroup } from './profile'
@@ -161,6 +163,14 @@ export interface SearchSection {
   rejections: { label: string; value: string }[]
 }
 
+/** What the member told us in onboarding about their search so far. Replaced by tracked activity once Gmail is connected. */
+export interface SearchSnapshot {
+  applied: string | null
+  interviews: number | null
+  offers: number | null
+  stall: { point: SearchStallPoint; told: string; points: string } | null
+}
+
 export interface ScorecardRow {
   dimension: string
   assessment: Assessment
@@ -185,6 +195,8 @@ export interface MarketRealityBrief {
   effort: EffortSection | null
   experience: ExperienceAnalysis
   evaluators: EvaluatorView[]
+  snapshot: SearchSnapshot | null
+  sharpen: SharpenItem[]
   caseForYou: CaseForYou
   hiringCase: HiringReason[]
   profile: ProfileGroup[]
@@ -227,6 +239,20 @@ function marketReadout(prompt: MarketPrompt, open: number, trend: string | null)
     default:
       return `${count} open roles fit the current target${trend ? `; the market is ${trend}` : ''}. The market is large enough to work without widening.`
   }
+}
+
+const APPLIED_LABEL: Record<string, string> = { '0-20': 'up to 20', '20-100': '20 to 100', '100+': 'over 100' }
+
+function buildSnapshot(profile: CandidateProfile): SearchSnapshot | null {
+  if (profile.justStartedSearch) return null
+  const stallPoint = parseSearchStallPoint(profile.searchStallPoint)
+  const snap: SearchSnapshot = {
+    applied: profile.jobsAppliedBucket ? (APPLIED_LABEL[profile.jobsAppliedBucket] ?? null) : null,
+    interviews: profile.interviewsReceivedCount,
+    offers: profile.offersReceivedCount,
+    stall: stallPoint ? { point: stallPoint, ...STALL_TEXT[stallPoint] } : null,
+  }
+  return snap.applied || snap.interviews !== null || snap.offers !== null || snap.stall ? snap : null
 }
 
 // ── Sections ───────────────────────────────────────────────────────────────
@@ -529,6 +555,7 @@ export async function loadMarketRealityBrief(
     conversationsPerWeek: effort ? effort.plan.pace.conversationsPerWeek : null,
     marketPrompt: market?.prompt ?? null,
     payFloor: profile.targetCompMin,
+    searchStallPoint: parseSearchStallPoint(profile.searchStallPoint),
   }
 
   const priorities = buildPriorities({
@@ -567,6 +594,19 @@ export async function loadMarketRealityBrief(
     effort,
     experience,
     evaluators: buildEvaluatorViews(evaluatorInput),
+    snapshot: buildSnapshot(profile),
+    sharpen: buildSharpen({
+      hasResume: latestAnalysis !== null,
+      strategyComplete: goalsComplete,
+      payFloor: profile.targetCompMin,
+      hasApplied: (!profile.justStartedSearch && profile.jobsAppliedBucket !== null) || applicationsLast28 > 0 || (diagnosis?.totals.applications ?? 0) > 0,
+      searchStallPoint: profile.searchStallPoint,
+      linkedInConfirmed: profile.linkedInConfirmedAt !== null,
+      skillsAssessmentDone: profile.skillsAssessmentCompletedAt !== null,
+      roles: experience.roleCount,
+      completedReferences,
+      gmailConnected: !!gmailConnected,
+    }),
     hiringCase: buildHiringCase({
       experience,
       dims,
@@ -629,6 +669,7 @@ export async function loadMarketRealityBrief(
     topPriority: brief.summary.priorities[0] ?? null,
     firstStep: firstStep(brief.launchpad),
     targetRole: profile.targetRoleType,
+    stall: evaluatorInput.searchStallPoint ? STALL_TEXT[evaluatorInput.searchStallPoint] : null,
   })
   return { ...brief, summary: { ...brief.summary, overallRead } }
 }
