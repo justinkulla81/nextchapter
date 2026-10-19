@@ -95,8 +95,8 @@ export function HomepageJobBoard() {
     <section className="bg-off-white py-16" aria-labelledby="home-board-heading">
       <div className="mx-auto max-w-5xl px-6">
         <div className="text-center">
-          <h2 id="home-board-heading" className="text-3xl font-bold tracking-tight text-navy">
-            Search real jobs now. No account needed.
+          <h2 id="home-board-heading" className="font-display text-3xl font-semibold tracking-tight text-ink text-balance">
+            Look around first. No account needed.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
             These are current openings, newest first. They are not matched to you. Build your profile to see which ones fit.
@@ -115,7 +115,7 @@ export function HomepageJobBoard() {
             onChange={(e) => setQ(e.target.value)}
             maxLength={100}
             placeholder="Job title or company"
-            className="h-12 flex-1 rounded-lg border border-light-gray bg-white px-4 text-base"
+            className="h-12 flex-1 rounded-lg border border-border bg-white px-4 text-base"
           />
           <label className="sr-only" htmlFor="home-board-loc">City or state</label>
           <input
@@ -124,9 +124,9 @@ export function HomepageJobBoard() {
             onChange={(e) => setLoc(e.target.value)}
             maxLength={100}
             placeholder="City or state"
-            className="h-12 rounded-lg border border-light-gray bg-white px-4 text-base sm:w-56"
+            className="h-12 rounded-lg border border-border bg-white px-4 text-base sm:w-56"
           />
-          <Button type="submit" size="lg" variant="cta" className="h-12 px-6" disabled={loading}>
+          <Button type="submit" size="lg" className="h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95" disabled={loading}>
             {loading ? 'Searching…' : 'Search jobs'}
           </Button>
         </form>
@@ -143,7 +143,7 @@ export function HomepageJobBoard() {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_20rem]">
           <div aria-live="polite" className={cn(loading && 'cursor-wait')}>
             {error ? (
-              <div className="rounded-xl border border-light-gray bg-white p-6 text-sm text-navy">
+              <div className="rounded-2xl border border-border bg-white p-6 text-sm text-ink">
                 <p>{error}</p>
                 <Button type="button" className="mt-3" variant="outline" size="sm" onClick={() => void run({ q: q.trim(), loc: loc.trim(), remote }, searched)}>
                   Try the search again
@@ -152,18 +152,18 @@ export function HomepageJobBoard() {
             ) : loading && !result ? (
               <ul className="space-y-3" aria-label="Loading jobs">
                 {[0, 1, 2, 3].map((i) => (
-                  <li key={i} className="h-20 animate-pulse rounded-xl border border-light-gray bg-white" />
+                  <li key={i} className="h-20 animate-pulse rounded-2xl border border-border bg-white" />
                 ))}
               </ul>
             ) : jobs.length === 0 ? (
-              <div className="rounded-xl border border-light-gray bg-white p-6 text-sm text-navy">
+              <div className="rounded-2xl border border-border bg-white p-6 text-sm text-ink">
                 <p className="font-semibold">No openings matched that search.</p>
                 <p className="mt-1 text-muted-foreground">Try fewer words, a state instead of a city, or turn off Remote only. With a profile, we search by your experience instead of keywords.</p>
                 <TrackedLink
                   href={PERSONALIZE_HREF}
                   event="home_board_personalize_clicked"
                   properties={{ placement: 'empty' }}
-                  className="mt-3 inline-block font-semibold text-orange underline underline-offset-2"
+                  className="mt-3 inline-block font-semibold text-brand underline underline-offset-4"
                 >
                   Build your profile
                 </TrackedLink>
@@ -178,14 +178,14 @@ export function HomepageJobBoard() {
                   {jobs.map((job) => {
                     const pay = salary(job.salaryMin, job.salaryMax)
                     return (
-                      <li key={job.id} className="rounded-xl border border-light-gray bg-white p-4">
+                      <li key={job.id} className="rounded-2xl border border-border bg-white p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <TrackedLink
                               href={job.url}
                               event="home_board_job_opened"
                               properties={{ jobId: job.id, q, loc, remote }}
-                              className="font-semibold text-navy underline-offset-2 hover:underline"
+                              className="font-semibold text-ink underline-offset-2 hover:underline"
                             >
                               {job.title}
                             </TrackedLink>
@@ -208,14 +208,14 @@ export function HomepageJobBoard() {
             )}
           </div>
 
-          <aside className="h-fit rounded-xl border-2 border-orange bg-white p-5 lg:sticky lg:top-6" aria-labelledby="home-board-gap-heading">
-            <h3 id="home-board-gap-heading" className="text-lg font-bold text-navy">
+          <aside className="h-fit rounded-2xl border border-border bg-white p-5 lg:sticky lg:top-6" aria-labelledby="home-board-gap-heading">
+            <h3 id="home-board-gap-heading" className="font-display text-xl font-semibold text-ink">
               This list is not personalized
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Anyone sees these same jobs. Without a profile you don&apos;t get:
             </p>
-            <ul className="mt-3 space-y-2 text-sm text-navy">
+            <ul className="mt-3 space-y-2 text-sm text-ink">
               {MISSING_WITHOUT_PROFILE.map((item) => (
                 <li key={item} className="flex gap-2">
                   <span aria-hidden className="text-muted-foreground">✕</span>
@@ -230,7 +230,7 @@ export function HomepageJobBoard() {
               href={PERSONALIZE_HREF}
               event="home_board_personalize_clicked"
               properties={{ placement: 'panel', q, loc, remote, searched }}
-              className={cn(buttonVariants({ variant: 'cta', size: 'lg' }), 'mt-4 h-12 w-full')}
+              className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}
             >
               Personalize my results
             </TrackedLink>
