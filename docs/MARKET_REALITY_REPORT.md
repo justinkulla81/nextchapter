@@ -7,6 +7,13 @@ The report at `/dashboard/market-reality`. Rules only, no model call: every sent
 - **Appendix A–G:** basis, competency profile, experience, skills, resume, search activity, how ratings are set.
 - Code: `src/lib/reports/market-reality-brief/` (pure rules plus `load.ts`), `src/components/market-reality/`, `src/app/dashboard/market-reality/page.tsx`. Section order and numbers: `sections.ts`.
 
+## The redesigned report (owner, 2026-10-18: one market report only)
+With the redesign on (`isRedesignOn`), `/dashboard/market-reality` is the only market report. Same data, new page (`src/components/market-reality/CurrentReport.tsx`, rules in `src/lib/reports/market-reality-brief/current-report.ts`):
+- Always the member's position as of now; the numbers are live. No letter grade, no verdict label, no "Likely to pause". Each line shows the fact it rests on.
+- First view: the headline ("N of M things employers hire for are in place"), what is working, the first steps, questions to be ready for. The rest sits behind "Show the rest of the report".
+- **Regenerate after your improvements** refreshes the resume rewrites and the weekly plan. It runs only when something new is on file (resume, search details, applications, references since the last report), 30 minutes apart, three a day. Otherwise the page says why and what to do. Event: `market_report_regenerated { reason }`.
+- Other entry points are folded in: the menu's Market tab points here, and the grade tile and week-by-week grade archive on Effort and results are replaced by a link. Report rows and snapshots are kept; nothing is deleted.
+
 ## Questions it reads, and where they are asked
 Every input is an existing field (see `docs/PERSONALIZATION_SPINE.md`). New in onboarding (Location step): pay floor (`targetCompMin`, same field Search Strategy uses), where searches stall (`searchStallPoint`), offers (`offersReceivedCount`). Applications and interviews were already asked. A few answers can be given in place on the report (`answers.ts`, `answer-actions.ts`); each writes to the existing field.
 

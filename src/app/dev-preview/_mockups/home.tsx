@@ -94,7 +94,7 @@ export function HomeToday() {
                 <span key={i} className={`h-1.5 rounded-full ${on ? 'bg-white' : 'bg-white/25'}`} />
               ))}
             </div>
-            <p className="text-sm text-white/80">You need 1 more reference and 2 more applications. Opens exclusive jobs, your recruiter dossier and recruiter visibility.</p>
+            <p className="text-sm text-white/80">You need 1 more reference and 2 more applications. Opens your recruiter dossier and recruiter visibility.</p>
           </div>
           <a href="#" className="text-sm font-medium text-white underline underline-offset-4">See what&apos;s left</a>
         </Module>

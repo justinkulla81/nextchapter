@@ -6,6 +6,11 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Spinner } from '@/components/ui/spinner'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { strengthStepHref } from '@/lib/redesign/jobs-pages'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { StrengthsViewed } from '@/components/dashboard/StrengthsViewed'
 
 export const metadata: Metadata = { title: 'Why hire me' }
@@ -17,8 +22,8 @@ export default async function StrengthsPage() {
   const profile = await getDashboardProfile()
   const st = await loadStrengths(profile.id)
   const lead = st.shape === 'peaked' ? st.peaks : st.broad.slice(0, 4)
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Why hire me</h1>
         <p className="max-w-2xl text-muted-foreground">
@@ -26,8 +31,17 @@ export default async function StrengthsPage() {
           Dossier and LinkedIn copy all lead with these.
         </p>
       </div>
-      <StrengthsViewed shape={st.shape} peaks={st.peaks.map((p) => p.key)} />
+    </>
+  )
 
+  const block1 = (
+    <>
+      <StrengthsViewed shape={st.shape} peaks={st.peaks.map((p) => p.key)} />
+    </>
+  )
+
+  const block2 = (
+    <>
       <section className="space-y-3 rounded-lg border border-border bg-card p-5" aria-labelledby="headline">
         <h2 id="headline" className="text-lg font-semibold">
           {st.headline}
@@ -44,7 +58,11 @@ export default async function StrengthsPage() {
           </Suspense>
         )}
       </section>
+    </>
+  )
 
+  const block3 = (
+    <>
       {lead.length > 0 ? (
         <section className="space-y-3" aria-labelledby="peaks-h">
           <h2 id="peaks-h" className="text-base font-semibold">
@@ -72,7 +90,11 @@ export default async function StrengthsPage() {
       ) : (
         <EmptyState icon={Sparkles} title="Not enough evidence yet" description="Do one of the steps below and this fills in. References count most." />
       )}
+    </>
+  )
 
+  const block4 = (
+    <>
       {st.weakSpots.length > 0 && (
         <section className="space-y-2" aria-labelledby="weak-h">
           <h2 id="weak-h" className="text-base font-semibold">
@@ -88,7 +110,11 @@ export default async function StrengthsPage() {
           </ul>
         </section>
       )}
+    </>
+  )
 
+  const block5 = (
+    <>
       {st.missing.length > 0 && (
         <section className="space-y-2" aria-labelledby="sharpen-h">
           <h2 id="sharpen-h" className="text-base font-semibold">
@@ -109,6 +135,49 @@ export default async function StrengthsPage() {
           </ul>
         </section>
       )}
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    const nextMissing = st.missing[0]
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Why hire me"
+          intro="Where you stand out, shown with the evidence behind it: your assessments, references, track record and skills. Your job matches, LinkedIn copy and dossier lead with these."
+          action={
+            nextMissing ? (
+              <ActionLink href={strengthStepHref(nextMissing)} kind="primary" event="strengths_next_step_clicked" props={{ step: nextMissing, shape: st.shape, evidenceCount: lead.length }}>
+                Add more evidence
+              </ActionLink>
+            ) : (
+              <ActionLink href="/dashboard/linkedin" kind="primary" event="strengths_use_clicked" props={{ shape: st.shape, evidenceCount: lead.length }}>
+                Use it on LinkedIn
+              </ActionLink>
+            )
+          }
+        />
+        {block1}
+        {block2}
+        {block3}
+        {(st.weakSpots.length > 0 || st.missing.length > 0) && (
+          <ShowMore page="strengths" label="Show what to prepare and sharpen">
+            {block4}
+            {block5}
+          </ShowMore>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
+      {block3}
+      {block4}
+      {block5}
     </div>
   )
 }

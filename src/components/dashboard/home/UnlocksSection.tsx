@@ -5,7 +5,7 @@ import { timed } from '@/lib/perf/timed'
 import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 
 // The dossier is open from day one, so the redesign shows only what recruiters add: Candidate+ and what follows.
-const SKIP_IN_REDESIGN: RungKey[] = ['jobDetail', 'taking_shape']
+const SKIP_IN_REDESIGN: RungKey[] = ['community', 'taking_shape']
 
 /** The dossier and the unlock ladder, with the member's own numbers. Wrap in Suspense. */
 export async function UnlocksSection({ profile, redesign = false }: { profile: Pick<CandidateProfile, 'id' | 'confidentialSearchMode'>; redesign?: boolean }) {

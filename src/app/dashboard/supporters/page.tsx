@@ -4,6 +4,14 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { MAX_SUPPORTERS } from '@/lib/supporters/supporters'
 import { InviteSupporterForm, RemoveSupporterButton } from './SupporterForms'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { supportersIntro } from '@/lib/redesign/network-pages'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { ListRow, RowList } from '@/components/candidate/ListRow'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { NetworkParts } from '@/components/network/NetworkParts'
 
 export const metadata: Metadata = { title: 'My supporters' }
 
@@ -21,6 +29,76 @@ export default async function SupportersPage() {
     }),
   ])
   after(() => prisma.supporterCheer.updateMany({ where: { seenAt: null, supporter: { candidateId: profile.id } }, data: { seenAt: new Date() } }))
+
+  // The redesign (docs/candidate-redesign.md): one headline, one primary action (invite), who is in your corner.
+  if (isRedesignOn(profile.email)) {
+    const canInvite = !profile.confidentialSearchMode && supporters.length < MAX_SUPPORTERS
+    captureServerEvent(profile.id, 'supporters_viewed', { supporters: supporters.length, cheers: cheers.length, canInvite })
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Your people"
+          intro={supportersIntro(supporters.length)}
+          action={
+            canInvite ? (
+              <TrackedAction variant="primary" href="#invite" event="supporter_invite_started" properties={{ source: 'supporters_primary', supporters: supporters.length }}>
+                Invite someone
+              </TrackedAction>
+            ) : undefined
+          }
+        />
+        <NetworkParts current="close" />
+        {profile.confidentialSearchMode && (
+          <p className="text-base text-ink">
+            Confidential mode is on, so nothing about your search is shared outside NextChapter. Turn it off in{' '}
+            <TrackedAction variant="text" href="/dashboard/privacy" event="privacy_opened" properties={{ source: 'supporters_confidential' }}>
+              privacy settings
+            </TrackedAction>{' '}
+            when you want to invite someone.
+          </p>
+        )}
+        {cheers.length > 0 && (
+          <Section id="cheers" title="Cheers for you">
+            <RowList label="Cheers for you">
+              {cheers.map((c) => (
+                <ListRow
+                  key={c.id}
+                  name={c.supporter.name}
+                  title={c.message}
+                  fact={`${c.supporter.name} · ${c.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+                />
+              ))}
+            </RowList>
+          </Section>
+        )}
+        {supporters.length > 0 && (
+          <Section id="who" title="In your corner">
+            <RowList label="Your supporters">
+              {supporters.map((s) => (
+                <ListRow key={s.id} name={s.name} title={s.name} fact={s.email} actions={<RemoveSupporterButton id={s.id} name={s.name} />} />
+              ))}
+            </RowList>
+          </Section>
+        )}
+        {canInvite && (
+          <div id="invite" className="scroll-mt-4">
+            <Section id="invite-title" title="Invite someone">
+              <p className="max-w-xl text-sm text-muted-foreground">
+                They get one short note a week about your effort, in numbers only, and can send you a cheer. They never see names, companies or messages, and you can remove them any time.
+              </p>
+              <InviteSupporterForm />
+            </Section>
+          </div>
+        )}
+        <p className="text-sm text-muted-foreground">
+          A coach is part of your close circle too.{' '}
+          <TrackedAction variant="text" href="/dashboard/my-coaching" event="coaching_opened" properties={{ source: 'supporters' }}>
+            See coaching
+          </TrackedAction>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

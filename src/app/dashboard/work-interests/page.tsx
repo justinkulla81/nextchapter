@@ -14,6 +14,8 @@ import {
   type InterestScores,
   type InterestQuestion,
 } from '@/lib/work-interests/areas'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
 
 export const metadata: Metadata = { title: 'Work Interests' }
 
@@ -28,6 +30,56 @@ export default async function WorkInterestsPage() {
   for (const a of (response?.answers ?? []) as unknown as InterestAnswer[]) initialAnswers[a.index] = a.answer
   const scores = response?.scores as unknown as InterestScores | undefined
   const topAreas = (response?.topAreas ?? []) as InterestArea[]
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Work interests"
+          intro="What kind of work energizes you? Sixty quick likes and dislikes, about 10 minutes. It finds roles you would enjoy and courses worth your time."
+        />
+        {scores && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-xl font-semibold text-ink">
+                Your interest profile: {topAreas.map((a) => INTEREST_AREA_LABELS[a]).join(' · ')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {INTEREST_AREA_ORDER.map((area) => (
+                <div key={area} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-ink">{INTEREST_AREA_LABELS[area]}</span>
+                    <span className="tabular-nums text-muted-foreground">{scores[area]} out of 50</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-border" role="presentation">
+                    <div className="h-2 rounded-full bg-ink" style={{ width: `${(scores[area] / 50) * 100}%` }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{INTEREST_AREA_BLURBS[area]}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-xl font-semibold text-ink">{response ? 'Retake the profiler' : 'How much would you like each activity?'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {questions ? (
+              <WorkInterestsForm questions={questions} initialAnswers={initialAnswers} />
+            ) : (
+              <p className="text-sm text-muted-foreground">We could not load the questions just now. Refresh in a minute, and tell us from the help button if it keeps happening.</p>
+            )}
+          </CardContent>
+        </Card>
+        <p className="text-xs text-muted-foreground">
+          Questions and scoring come from the O*NET Interest Profiler.{' '}
+          <Link href="/dashboard/skills-assessments" className="font-medium text-brand underline underline-offset-4">Back to how I work</Link>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

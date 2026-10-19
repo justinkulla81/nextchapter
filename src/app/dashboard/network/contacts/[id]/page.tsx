@@ -14,6 +14,11 @@ import { ContactProfileView } from '@/components/dashboard/ContactProfileView'
 import { StarContactButton } from '@/components/dashboard/StarContactButton'
 import { PLAYBOOK_PURPOSES, ASK_SIZES, HOOKS } from '@/lib/network/playbook'
 import { OutreachCoach } from '@/components/dashboard/OutreachCoach'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { ShowMore } from '@/components/candidate/ShowMore'
 
 export const metadata: Metadata = { title: 'Contact' }
 
@@ -69,6 +74,58 @@ export default async function ContactProfilePage({
 
   const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(contact.email ?? '')}`
 
+  const coach = (
+    <OutreachCoach
+      contactId={row.id}
+      contactName={formatDisplayName(row.name)}
+      contactEmail={row.email}
+      contactCompany={row.company ?? row.inferredCompany}
+      contactTitle={row.title}
+      warmth={row.warmth}
+      daysSinceLastContact={daysSince(row.lastOutreachAt)}
+      candidateFirstName={profile.firstName ?? ''}
+      targetRole={profile.targetRoleType}
+      discreet={profile.confidentialSearchMode}
+      initial={{
+        purpose: PLAYBOOK_PURPOSES.find((p) => p.purpose === sp.purpose)?.purpose,
+        askSize: ASK_SIZES.find((a) => a.size === sp.ask)?.size,
+        hook: HOOKS.find((h) => h.kind === sp.hook)?.kind,
+        roleTitle: sp.role?.slice(0, 120),
+        fromThisWeek: sp.from === 'this-week',
+      }}
+    />
+  )
+
+  // The redesign (docs/candidate-redesign.md): who they are and the message to write come first; the full
+  // history, notes and details open on demand.
+  if (isRedesignOn(profile.email)) {
+    captureServerEvent(profile.id, 'contact_viewed', { contactId: row.id, from: sp.from ?? null, reachedOut: row.hasReachedOut })
+    const subtitle = [row.title, row.company ?? row.inferredCompany].filter(Boolean).join(' at ')
+    return (
+      <div className="mx-auto max-w-2xl space-y-8">
+        <PageHeader
+          title={row.name}
+          intro={subtitle || 'Write a short, specific note. It is the surest way to turn a contact into a conversation.'}
+          action={<StarContactButton contactId={row.id} isPriority={row.isPriority} />}
+        />
+        {coach}
+        <ShowMore page="contact_detail" label="Details and history">
+          <ContactProfileView
+            contact={row}
+            membership={membership}
+            isAtCurrentEmployer={row.isAtCurrentEmployer}
+            referenceHref={referenceHref}
+            companyCardHref={companyCard ? `/dashboard/companies/${encodeURIComponent(companyCard.canonicalNameNormalized)}` : null}
+            sharedCompany={sharedCompany}
+          />
+        </ShowMore>
+        <TrackedAction variant="text" href="/dashboard/network/contacts" event="contacts_opened" properties={{ source: 'contact_detail' }}>
+          Back to people you know
+        </TrackedAction>
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <Link
@@ -93,25 +150,7 @@ export default async function ContactProfilePage({
         sharedCompany={sharedCompany}
       />
 
-      <OutreachCoach
-        contactId={row.id}
-        contactName={formatDisplayName(row.name)}
-        contactEmail={row.email}
-        contactCompany={row.company ?? row.inferredCompany}
-        contactTitle={row.title}
-        warmth={row.warmth}
-        daysSinceLastContact={daysSince(row.lastOutreachAt)}
-        candidateFirstName={profile.firstName ?? ''}
-        targetRole={profile.targetRoleType}
-        discreet={profile.confidentialSearchMode}
-        initial={{
-          purpose: PLAYBOOK_PURPOSES.find((p) => p.purpose === sp.purpose)?.purpose,
-          askSize: ASK_SIZES.find((a) => a.size === sp.ask)?.size,
-          hook: HOOKS.find((h) => h.kind === sp.hook)?.kind,
-          roleTitle: sp.role?.slice(0, 120),
-          fromThisWeek: sp.from === 'this-week',
-        }}
-      />
+      {coach}
     </div>
   )
 }

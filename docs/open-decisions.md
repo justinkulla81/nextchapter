@@ -13,6 +13,11 @@ Everything from the redesign work and the audit of the other sessions, in the or
 - **One market report only** (decided 2026-10-18, replacing the earlier default). It is always the accurate picture of the member's hireability as of now, and it regenerates after the member has made improvements or done work. No separate lead-gen version, no history of old grades. Short summary and the first twelve weeks first; the rest behind "show more".
 - Exclusive jobs: confirmed. No more exclusive jobs.
 
+## Built (2026-10-19, behind the redesign flag)
+
+- **One market report** (item 6): `/dashboard/market-reality` only, with "Regenerate after your improvements". See `docs/MARKET_REALITY_REPORT.md`.
+- **Pivot tool** (item 11): `/dashboard/pivot-paths` is three parts (Where you are now, Where you could go, Your plan), feelings and stances reworded positively, a reason on every suggestion. The target is one field: `targetFunction`; `isPivoting` is written with it and read through `src/lib/journey/pivot-target.ts`. Optional data fix: `prisma/manual/2026-10-19-pivot-flag-sync.sql` (not applied).
+
 ## Decide now (these block the next build step) — original list, for reference
 
 1. **Seven places, or your five pillars?** The redesign has Home, Jobs, Network, Learn, Finances and benefits (only if the member chose money help), Account and privacy, and Help. You once framed the menu as five things (personalize, learn, search and apply, network, work). Also: gray out irrelevant parts, or hide them? *Recommended: seven places; hide.*

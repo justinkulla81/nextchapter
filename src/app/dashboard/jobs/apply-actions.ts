@@ -10,7 +10,7 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 import { classifyWorkType } from '@/lib/jobs/work-type'
 import { buildApplyKit, pickResume, profileSummary, resumeName, workAuthAnswer, type ApplyKitAnswer } from '@/lib/jobs/apply-kit'
-import { applicationMessage, cleanShortAnswers, nativePosterOf, type ApplicationSnapshot } from '@/lib/jobs/native-apply'
+import { applicationMessage, candidatePlusMarkFor, cleanShortAnswers, nativePosterOf, type ApplicationSnapshot } from '@/lib/jobs/native-apply'
 import { deliverApplicationToPoster } from '@/lib/messaging/threads'
 import { setJobStatus } from '@/app/dashboard/find-my-job/my-jobs-actions'
 
@@ -149,6 +149,8 @@ export type NativeApplyPreview =
       snapshot: ApplicationSnapshot
       resumes: { id: string; name: string }[]
       suggestedResumeId: string | null
+      /** Whether the poster will see the Candidate+ mark (false in Confidential Search Mode). */
+      candidatePlus: boolean
       confidentialMode: boolean
       posterLabel: string
       alreadyApplied: boolean
@@ -160,7 +162,8 @@ async function buildSnapshot(
   authEmail: string | null,
   posting: { title: string; companyName: string; disclosure: string },
   resume: { id: string; name: string } | null,
-  answers: { question: string; answer: string }[]
+  answers: { question: string; answer: string }[],
+  extras: { candidatePlus: boolean; dossierUrl: string | null } = { candidatePlus: false, dossierUrl: null }
 ): Promise<ApplicationSnapshot> {
   const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'NextChapter member'
   return {
@@ -174,6 +177,8 @@ async function buildSnapshot(
     summary: profileSummary(kitProfile(profile)),
     workAuthorization: workAuthAnswer(profile),
     resume,
+    candidatePlus: candidatePlusMarkFor(extras.candidatePlus, profile.confidentialSearchMode),
+    dossierUrl: extras.dossierUrl,
     answers,
   }
 }
@@ -205,6 +210,7 @@ export async function loadNativeApplyPreview(postingId: string): Promise<NativeA
     snapshot: await buildSnapshot(profile, user.email ?? null, posting, resume, []),
     resumes: resumes.map((r) => ({ id: r.id, name: resumeName(r) })),
     suggestedResumeId: resume?.id ?? null,
+    candidatePlus: candidatePlusMarkFor((await isDossierUnlocked(profile.id)).unlocked, profile.confidentialSearchMode),
     confidentialMode: profile.confidentialSearchMode,
     posterLabel: await posterLabel(poster, posting),
     alreadyApplied: !!existing,
@@ -216,6 +222,8 @@ export async function submitNativeApplication(input: {
   resumeId: string | null
   answers: { question: string; answer: string }[]
   confidentialConfirmed: boolean
+  /** The member's explicit choice to attach their dossier. Default off. */
+  attachDossier?: boolean
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
@@ -240,7 +248,25 @@ export async function submitNativeApplication(input: {
   if (input.resumeId && !resumeRow) return { ok: false, error: 'That résumé is no longer on file. Pick another one and send again.' }
   const resume = resumeRow ? { id: resumeRow.id, name: resumeName(resumeRow) } : null
 
-  const snapshot = await buildSnapshot(profile, user.email ?? null, posting, resume, cleanShortAnswers(input.answers))
+  // The dossier goes with this application only if the member chose to attach it: a
+  // revocable link made for this one poster, expiring in 30 days (shown in Privacy).
+  let dossierUrl: string | null = null
+  if (input.attachDossier === true) {
+    const share = await prisma.profileShare.create({
+      data: {
+        candidateId: profile.id,
+        recipientType: poster.kind === 'recruiter' ? 'RECRUITER' : 'HIRING_MANAGER',
+        activeProcess: true,
+        includeExtras: [],
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        label: `Application: ${posting.title}`.slice(0, 120),
+      },
+      select: { token: true },
+    })
+    dossierUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'}/share/${share.token}`
+  }
+  const plus = (await isDossierUnlocked(profile.id)).unlocked
+  const snapshot = await buildSnapshot(profile, user.email ?? null, posting, resume, cleanShortAnswers(input.answers), { candidatePlus: plus, dossierUrl })
   const thread = await deliverApplicationToPoster(
     profile.id,
     poster.kind === 'recruiter' ? 'RECRUITER' : 'EMPLOYER',
@@ -273,6 +299,8 @@ export async function submitNativeApplication(input: {
     jobId: posting.id,
     poster: poster.kind,
     hasResume: !!resume,
+    dossierAttached: !!dossierUrl,
+    candidatePlusShown: !!snapshot.candidatePlus,
     answerCount: snapshot.answers.length,
     confidentialMode: profile.confidentialSearchMode,
   })

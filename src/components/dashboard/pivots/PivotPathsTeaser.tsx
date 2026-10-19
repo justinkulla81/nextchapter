@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { loadPivotPaths, type PivotProfile } from '@/lib/pivots/load'
 import { demandLine } from '@/lib/pivots/scoring'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { pivotJobsHref } from '@/lib/pivots/pivot-map'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { cn } from '@/lib/utils'
@@ -21,7 +22,7 @@ export async function PivotPathsTeaser({ profile }: { profile: PivotProfile }) {
     return null
   }
   if (!result.source || result.suggestions.length === 0) return null
-  const prominent = profile.isPivoting || result.contraction.contracting
+  const prominent = isPivotingProfile(profile) || result.contraction.contracting
   const source = { surface: 'search_strategy', sourceRole: result.source.key, contracting: result.contraction.contracting }
 
   if (!prominent) {

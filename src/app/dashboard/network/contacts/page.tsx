@@ -27,6 +27,14 @@ import { SuggestedContactsCard } from '@/components/dashboard/SuggestedContactsC
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { contactsIntro } from '@/lib/redesign/network-pages'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { NetworkParts } from '@/components/network/NetworkParts'
+
 export const metadata: Metadata = { title: 'Contact Directory' }
 
 const PAGE_SIZE = 50
@@ -50,6 +58,20 @@ export default async function ContactDirectoryPage({
   // cost just because it happens to share a page with the contact
   // directory. scope=all still pays it (it genuinely needs both lists).
   if (scope === 'nextchapter') {
+    if (isRedesignOn(profile.email)) {
+      return (
+        <div className="space-y-8">
+          <PageHeader title="People you know" intro="Other members of NextChapter you can meet. Each one is a warm way in." />
+          <NetworkParts current="know" />
+          <ScopeTabs scope={scope} />
+          <NextChapterMembersSection
+            viewerCandidateId={profile.id}
+            query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
+            page={Math.max(1, Number(sp.mpage) || 1)}
+          />
+        </div>
+      )
+    }
     return (
       <div className="space-y-8">
         <div className="space-y-3">
@@ -255,6 +277,120 @@ export default async function ContactDirectoryPage({
     </Accordion>
   )
 
+  const scriptsSection = (
+    <Accordion>
+      <AccordionItem value="scripts">
+        <AccordionTrigger>Scripts &amp; templates</AccordionTrigger>
+        <AccordionContent>
+          <div className="space-y-3">
+            {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} />}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-foreground">Ready-to-send templates</h3>
+              <div className="space-y-3">
+                <CopyableTemplateCard
+                  title="Ask someone for help"
+                  description="Pick one person from your list above and send this."
+                  template={fillHelpScriptTemplate(profile)}
+                  templateType="ask_for_help"
+                  outreach
+                  onCopy={markAskedForHelp}
+                />
+                <CopyableTemplateCard
+                  title="Asking for an intro"
+                  template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
+                  templateType="intro_request"
+                  outreach
+                />
+                <CopyableTemplateCard
+                  title="Putting in a good word"
+                  template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
+                  templateType="good_word"
+                  outreach
+                />
+                <CopyableTemplateCard
+                  title="Checking in about interim work"
+                  template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
+                  templateType="checking_in"
+                  outreach
+                />
+              </div>
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  )
+
+  // The redesign (docs/candidate-redesign.md): People you know. One primary action, the directory and who to add
+  // on the first view; importing, templates, the other lists and the tidy-up pages sit behind Show more.
+  if (isRedesignOn(profile.email)) {
+    captureServerEvent(profile.id, 'contacts_viewed', { total: totalCount, hasAnyContacts, suggestions: suggestions.length, starred: starredCount })
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="People you know"
+          intro={contactsIntro(totalCount)}
+          action={
+            hasAnyContacts ? (
+              <TrackedAction variant="primary" href="/dashboard/network/this-week" event="this_week_opened" properties={{ source: 'contacts_primary' }}>
+                See who to write to first
+              </TrackedAction>
+            ) : (
+              <TrackedAction variant="primary" href="/dashboard/network/contacts?buildList=1#import" event="contacts_import_opened" properties={{ source: 'contacts_primary' }}>
+                Add people
+              </TrackedAction>
+            )
+          }
+        />
+        <NetworkParts current="know" />
+        {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
+        {!hasAnyContacts && buildListSection}
+        <SuggestedContactsCard suggestions={suggestions} />
+        <ContactDirectoryTable
+          contacts={contacts}
+          totalCount={totalCount}
+          removedCount={removedCount}
+          page={Math.min(page, pageCount)}
+          pageCount={pageCount}
+          query={q}
+          sortKey={sortKey}
+          dir={dir}
+          pin={pin}
+          emailFilter={emailFilter}
+          reachedFilter={reachedFilter}
+          relFilter={relFilter}
+          ncFilter={ncFilter}
+          hasAnyContacts={hasAnyContacts}
+        />
+        <ShowMore page="contacts" label="Import, templates and other lists">
+          {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
+            <p className="text-sm text-ink">
+              {`Star ${PRIORITY_CONTACT_TARGET_COUNT} people as priority contacts and they rise to the top of your list. You have starred ${starredCount} so far.`}
+            </p>
+          )}
+          <ScopeTabs scope={scope} />
+          {hasAnyContacts && buildListSection}
+          {scope === 'all' && (
+            <NextChapterMembersSection
+              viewerCandidateId={profile.id}
+              query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
+              page={Math.max(1, Number(sp.mpage) || 1)}
+            />
+          )}
+          {scriptsSection}
+          <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <Link href="/dashboard/network/contacts/removed" className="font-medium text-brand underline underline-offset-4">
+              Removed contacts{removedCount > 0 ? ` (${removedCount})` : ''}
+            </Link>
+            <Link href="/dashboard/network/blocked-senders" className="font-medium text-brand underline underline-offset-4">
+              Blocked senders
+            </Link>
+          </p>
+        </ShowMore>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -307,47 +443,7 @@ export default async function ContactDirectoryPage({
         />
       )}
 
-      <Accordion>
-        <AccordionItem value="scripts">
-          <AccordionTrigger>Scripts &amp; templates</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-3">
-              {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} />}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-foreground">Ready-to-send templates</h3>
-                <div className="space-y-3">
-                  <CopyableTemplateCard
-                    title="Ask someone for help"
-                    description="Pick one person from your list above and send this."
-                    template={fillHelpScriptTemplate(profile)}
-                    templateType="ask_for_help"
-                    outreach
-                    onCopy={markAskedForHelp}
-                  />
-                  <CopyableTemplateCard
-                    title="Asking for an intro"
-                    template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                    templateType="intro_request"
-                    outreach
-                  />
-                  <CopyableTemplateCard
-                    title="Putting in a good word"
-                    template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                    templateType="good_word"
-                    outreach
-                  />
-                  <CopyableTemplateCard
-                    title="Checking in about interim work"
-                    template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                    templateType="checking_in"
-                    outreach
-                  />
-                </div>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      {scriptsSection}
     </div>
   )
 }
