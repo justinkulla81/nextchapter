@@ -19,7 +19,8 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 const n0 = (v: number | null | undefined) => (v == null ? '' : Math.round(v).toLocaleString('en-US'))
 const pct = (v: number | null | undefined, d = 1) => (v == null ? '' : `${v.toFixed(d)}%`)
-const clean = (name: string) => name.replace(/\*[^*]*\*/g, '').replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
+const cleanName = (name: string) => name.replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
+const clean = (name: string) => cleanName(name).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
   .replace(/,?\s+(inc|llc|l\.l\.c|corp|corporation|co|company|ltd|plc|lp|llp)\.?\s*$/i, '').replace(/\s+/g, ' ').trim()
 const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
 const countyBase = (c: string | null | undefined) => (c ?? '').replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
@@ -37,6 +38,7 @@ const salutation = (full: string): string => {
 }
 const validGreeting = (g: string) => g === 'team' || /^([A-Z][a-z]{0,6}\. )?[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]+$/.test(g)
 const monthYear = (ym: string | null | undefined) => { const m = /^(\d{4})-(\d{2})$/.exec(ym ?? ''); return m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : ym ?? '' }
+const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
@@ -44,7 +46,7 @@ interface Notice { employer: string; employees: number; county: string | null; s
 type Row = Record<string, string>
 
 const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.meta.url), 'utf8')) as {
-  signature: string; footer: string[]; templates: { id: string; subjects: string[]; preview: string; body: string; ps: string; fu1: string; fu2: string }[]
+  signature: string; footer: string[]; templates: { id: string; subjects: string[]; subject_fallback: string; preview: string; body: string; ps: string; fu1: string; fu2: string }[]
 }
 const T = new Map(tpl.templates.map((t) => [t.id, t]))
 const FOOT_STYLE = 'display:block;margin-top:14px;font-size:11px;line-height:1.5;color:#8a919c'
@@ -129,11 +131,14 @@ async function main() {
     const effDays = ctx.notice?.effective ? Math.ceil((ctx.notice.effective.getTime() - now.getTime()) / 86_400_000) : null
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
-      company: ctx.notice?.employer ?? '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
+      company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
       county: area?.name ?? ctx.notice?.county ?? stateName, state: stateName, state_code: state,
+      state_poss: poss(stateName),
+      company_poss: ctx.notice && ctx.notice.employer.length <= 45 ? poss(ctx.notice.employer) : '',
+      state_notices_phrase: st ? `${n0(st.notices)} ${st.notices === 1 ? 'notice' : 'notices'} covering ${n0(st.jobs)} jobs` : '',
       state_jobs_90d: n0(st?.jobs), state_notices_90d: n0(st?.notices), state_open_roles: n0((op ?? nat).roles), state_open_mgr_roles: n0((op ?? nat).mgr),
       county_unemp: pct(area?.unemp), county_unemp_as_of: monthYear(area?.asOf), county_wc_share: area?.wc != null ? pct(area.wc * 100, 0) : '',
-      county_jobs_90d: n0(area?.j90), county_jobs_12mo: n0(area?.j12),
+      county_jobs_90d: n0(area?.j90), county_jobs_12mo: area && area.j12 > 0 ? n0(area.j12) : '',
       board: ctx.board ?? ctx.notice?.board ?? '', center: ctx.center ?? '', rr_agency: state ? rrAgency.get(state) ?? '' : '',
       effective_date: ctx.notice?.effective ? `${MONTHS[ctx.notice.effective.getUTCMonth()]} ${ctx.notice.effective.getUTCDate()}` : '', days_to_effective: effDays != null ? String(effDays) : '',
     }
@@ -145,14 +150,18 @@ async function main() {
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
     row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers within days of a notice.` : row.board ? `${row.board} typically meets employers within days of a notice.` : ''
     row.line_local = area && area.j12 > 0
-      ? (area.j12 === area.j90
-        ? `${area.name} employers filed notices for ${n0(area.j90)} jobs in the last 90 days, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
+      ? (area.j12 === area.j90 || area.j90 === 0
+        ? `${area.name} employers filed notices for ${n0(area.j12)} jobs ${area.j90 === 0 ? 'over the last 12 months' : 'in the last 90 days'}, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
         : `${area.name} employers filed notices for ${n0(area.j12)} jobs over the last 12 months (${n0(area.j90)} in the last 90 days), and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`)
       : st ? `${stateName} employers filed notices for ${n0(st.jobs)} jobs in the last 90 days.` : ''
     row.line_majors = area?.majors.length ? `The largest local employers include ${list(area.majors)}.` : ''
     const cName = area?.name ?? ctx.notice?.county ?? ''
-    row.line_company = ctx.notice ? `That includes ${ctx.notice.employer}'s ${n0(ctx.notice.employees)} jobs.` : ''
-    row.line_largest = ctx.notice ? `, the largest being ${ctx.notice.employer}'s ${n0(ctx.notice.employees)}${cName ? ` in ${cName}` : ''}` : ''
+    row.line_company = row.company ? `That includes ${poss(row.company)} ${n0(ctx.notice!.employees)} jobs.` : ''
+    // The largest layoff is named only when the state or area has more than that one notice.
+    row.line_largest = row.company && st && ctx.notice!.employees < st.jobs ? `, the largest being ${poss(row.company)} ${n0(ctx.notice!.employees)}${cName ? ` in ${cName}` : ''}` : ''
+    row.line_researcher_hook = /labor|employment|unemployment|workforce|economist|future of work|\bAI\b|artificial|insurance|job/i.test(who.title)
+      ? `Your work at ${who.org} on work and the labor market is the kind I would like the method checked against.`
+      : `If someone at ${who.org} studies layoffs, AI and the labor market, I would like them to check the method.`
     row.line_college = area?.college ? `${area.college} is nearby, and its career services could use it too.` : ''
 
     row.facts = JSON.stringify({ local: row.line_local, layoff: row.line_company, timing: row.line_timing, board: row.line_board, roles: row.line_open_roles, ai_roles: row.line_ai_roles, functions: row.line_top_functions, majors: row.line_majors, college: row.line_college })
@@ -168,7 +177,10 @@ async function main() {
     const order = [0, 1].sort((a, b) => Number(subjOk[b]) - Number(subjOk[a]))
     const bodyNeeded = [...new Set([...tokens(t.body), ...tokens(t.preview), ...tokens(t.fu1), ...tokens(t.fu2)])].filter((k) => !k.startsWith('line_'))
     const missing = [...(validGreeting(row.first_name) ? [] : ['first_name']), ...bodyNeeded.filter((k) => !row[k] && k !== 'first_name'), ...(subjOk.some(Boolean) ? [] : ['subject'])]
-    row.subject_a = fill(t.subjects[order[0]], row); row.subject_b = fill(t.subjects[order[1]], row); row.preview_text = fill(t.preview, row)
+    // Subjects: at most 62 characters. The first that fits leads; if neither does, the shorter generic one with no name in it.
+    const cand = [t.subjects[order[0]], t.subjects[order[1]], t.subject_fallback].map((x) => fill(x, row)).filter((x, i) => i === 2 || tokens([t.subjects[order[0]], t.subjects[order[1]]][i]).every((k) => k.startsWith('line_') || row[k]))
+    const fits = cand.filter((x) => x.length <= 62)
+    row.subject_a = fits[0] ?? cand[cand.length - 1]; row.subject_b = fits[1] ?? fits[0] ?? cand[cand.length - 1]; row.preview_text = fill(t.preview, row)
     row.followup_1 = fill(t.fu1, row); row.followup_2 = fill(t.fu2, row)
     row.email_text = text; row.email_html = html
     row.ready = missing.length ? 'no' : 'yes'; row.missing = missing.join(' ')
@@ -185,7 +197,8 @@ async function main() {
   })) {
     const t = a.title ?? ''
     const template = isHrLeaderTitle(t) ? 'head_hr' : /total rewards|compensation|benefits/i.test(t) ? 'rewards' : /employee relations|labor relations|business partner|hrbp|human resources (director|manager)|hr (director|manager)/i.test(t) ? 'er' : /talent acquisition|recruit/i.test(t) ? 'ta' : null
-    const notice = byOrg.get(a.orgId)
+    const n0 = byOrg.get(a.orgId)
+    const notice = n0 ? { ...n0, employer: clean(a.org.name) } : undefined
     if (template && notice) add(template, { first: first(a.person.fullName, a.person.firstName), email: a.person.email!, org: a.org.name, title: t }, { notice })
   }
 
@@ -230,18 +243,31 @@ async function main() {
   }
 
   // 5. Chambers, economic development and workforce groups with a named contact.
-  for (const l of await prisma.geoOrgLead.findMany({ where: { dismissedAt: null, contactEmail: { not: null }, contactName: { not: null } }, select: { name: true, state: true, geoAreaId: true, contactName: true, contactTitle: true, contactEmail: true } })) {
+  for (const l of await prisma.geoOrgLead.findMany({ where: { dismissedAt: null, contactEmail: { not: null }, contactName: { not: null } }, select: { name: true, kind: true, state: true, geoAreaId: true, contactName: true, contactTitle: true, contactEmail: true } })) {
+    if (!l.geoAreaId && l.kind !== 'WORKFORCE') continue
     const area = l.geoAreaId ? areaById.get(l.geoAreaId) : undefined
     const notice = area ? byCounty.get(`${l.state}|${countyBase(area.name)}`) : undefined
-    add('edo', { first: first(l.contactName!, null), email: l.contactEmail!, org: l.name, title: l.contactTitle ?? '' }, { notice, area, state: l.state })
+    add(l.kind === 'WORKFORCE' ? 'career_dev' : 'edo', { first: first(l.contactName!, null), email: l.contactEmail!, org: l.name, title: l.contactTitle ?? '' }, { notice, area, state: l.state })
   }
 
+  // People we have already written to, who replied, or whom you passed on, and anyone in ~/nc-hunter-results/suppress.txt (one address a line).
+  const suppress = new Map<string, string>()
+  for (const p of await prisma.crmPerson.findMany({ where: { deletedAt: null, OR: [{ passedAt: { not: null } }, { touchCount: { gt: 0 } }, { firstRepliedAt: { not: null } }] }, select: { email: true, emails: true, passedAt: true, firstRepliedAt: true } })) {
+    const why = p.passedAt ? 'passed' : p.firstRepliedAt ? 'replied' : 'already contacted'
+    for (const e of [p.email, ...p.emails]) if (e) suppress.set(e.toLowerCase(), why)
+  }
+  try { for (const l of readFileSync('/Users/salitkulla/nc-hunter-results/suppress.txt', 'utf8').split('\n')) if (l.trim()) suppress.set(l.trim().toLowerCase(), 'do not contact') } catch { /* no list yet */ }
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k) }
-  const HEAD = ['template', 'ready', 'duplicate', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
+  const HEAD = ['template', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
+  // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
+  const SEND = ['template', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const sendRows = rows.filter((r) => r.send === 'yes')
+  writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
+  console.log(`send list: ${sendRows.length} rows`)
   if (examplesOut) writeFileSync(examplesOut, JSON.stringify(examples, null, 1))
   console.log(counts, `${rows.length} rows (${rows.filter((r) => r.ready === 'yes').length} ready) -> ${out}`)
   await prisma.$disconnect()

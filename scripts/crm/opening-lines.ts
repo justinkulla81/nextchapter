@@ -106,6 +106,21 @@ async function main() {
   const queue = rows.filter((r) => !(`${r.template}|${r.email.toLowerCase()}` in done))
   console.log(`${rows.length} rows, ${queue.length} to write`)
   let cost = 0, written = 0, skipped = 0, n = 0
+  if (mode === 'collect') {
+    // Save the results of a batch that already ran. No new requests, no cost.
+    const id = process.argv[5]
+    for await (const res of await claude.messages.batches.results(id)) {
+      const r = queue[Number(res.custom_id.slice(1))]
+      if (!r || res.result.type !== 'succeeded') { skipped++; continue }
+      const msg = res.result.message
+      cost += (msg.usage.input_tokens * PRICE_IN + msg.usage.output_tokens * PRICE_OUT) / 2
+      const line = clean(msg.content.filter((b) => b.type === 'text').map((b) => (b as Anthropic.TextBlock).text).join(''))
+      if (!problem(line, sourceOf(r))) { done[keyOf(r)] = line; written++ } else skipped++
+    }
+    writeFileSync(out, JSON.stringify(done, null, 1))
+    console.log(`collected ${written} lines, ${skipped} rejected or missing, batch cost about $${cost.toFixed(2)}. Saved ${out}`)
+    return
+  }
   if (mode === 'batch' && queue.length) {
     // The Message Batches API: half price, and not held to the per-minute limits. Results usually arrive within the hour.
     const reqs = queue.map((r, i) => ({ custom_id: `r${i}`, params: params(promptOf(r)) }))
