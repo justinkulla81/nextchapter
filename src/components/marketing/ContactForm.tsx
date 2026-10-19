@@ -112,7 +112,7 @@ export function ContactForm({ initialAudience, source }: { initialAudience: Cont
       <button
         type="submit"
         disabled={pending}
-        className="mt-5 inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover disabled:cursor-wait disabled:opacity-70"
+        className="mt-5 inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
       >
         {pending ? 'Sending…' : 'Send message'}
       </button>
