@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import { after } from 'next/server'
 import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { regenerateMarketRealityReport, resendMyMarketRealityReportEmail } from './actions'
+import { resendMyMarketRealityReportEmail, unlockReportRefresh } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
+import { getUnlockStatus } from '@/lib/effort/load'
+import { UnlockProgress } from '@/components/effort/UnlockProgress'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
@@ -87,8 +88,7 @@ export default async function MarketRealityReportPage({
     )
   }
 
-  const completedTasks = countCompletedTasks(profile)
-  const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
+  const reportUnlock = await getUnlockStatus(profile.id, 'REPORT')
 
   const suggestedActions = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date())).then((weekNumber) =>
     getSuggestedActions(profile.id, weekNumber)
@@ -133,10 +133,7 @@ export default async function MarketRealityReportPage({
 
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="max-w-xl text-sm text-muted-foreground">
-          Every section updates as your profile and activity change.
-          {canRegenerate
-            ? ' Regenerate to refresh the resume rewrites and the weekly action plan.'
-            : ` Resume rewrites and the weekly action plan refresh when you regenerate, after ${TASKS_REQUIRED_TO_REGENERATE_REPORT} completed tasks (${completedTasks} so far).`}
+          Every section updates as your profile and activity change. A full refresh of the resume rewrites and the weekly action plan is earned with effort points, below.
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
           <PrintReportButton event="market_reality_report_printed" properties={{ grade: brief.summary.grade }} />
@@ -147,18 +144,23 @@ export default async function MarketRealityReportPage({
               </SubmitButton>
             </form>
           )}
-          {canRegenerate && (
-            <form action={regenerateMarketRealityReport}>
-              <SubmitButton variant="outline" pendingLabel="Regenerating…">
-                Regenerate my report
-              </SubmitButton>
-            </form>
-          )}
         </div>
       </div>
 
       <div className="mx-auto max-w-4xl print:hidden">
         <PageHeaderBoxes pageKey="market-reality" candidateId={profile.id} />
+      </div>
+
+      <div className="mx-auto max-w-4xl print:hidden">
+        <UnlockProgress
+          status={reportUnlock}
+          title="Unlock a full report refresh"
+          what="Refreshes your resume rewrites and your weekly action plan from everything you have done since the last refresh. The sections on this page already update live."
+          action={unlockReportRefresh}
+          buttonLabel="Refresh my report"
+          pendingLabel="Refreshing…"
+          event="report_refresh_unlock_clicked"
+        />
       </div>
 
       {!report && (

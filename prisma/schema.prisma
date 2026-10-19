@@ -1615,6 +1615,8 @@ model CandidateProfile {
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
   marketRealityReadStates        MarketRealityReadState[]
+  visitDays                      CandidateVisitDay[]
+  effortCycles                   EffortCycle[]
   marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
@@ -4075,6 +4077,38 @@ model MarketRealityReadState {
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, weekStartDate])
+}
+
+// One row per member per UTC day they opened NextChapter. The "logged in" signal behind unlock
+// points (src/lib/effort/points.ts): a day counts once however many pages they open.
+model CandidateVisitDay {
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  day         DateTime // UTC midnight of the day
+  createdAt   DateTime         @default(now())
+
+  @@id([candidateId, day])
+}
+
+enum EffortCycleKind {
+  STRATEGY
+  REPORT
+}
+
+// The window unlock points are counted in: from startedAt until the member unlocks and generates
+// the next strategy (or report), which starts a new cycle. Only that action resets it, so editing
+// goals never throws away earned points. baselineAnswered is how many personalization questions were
+// answered when the cycle began, so only new answers earn points.
+model EffortCycle {
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind             EffortCycleKind
+  startedAt        DateTime
+  baselineAnswered Int              @default(0)
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([candidateId, kind])
 }
 
 enum MarketResponseType {

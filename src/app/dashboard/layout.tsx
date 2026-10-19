@@ -1,3 +1,4 @@
+import { VisitPing } from '@/components/effort/VisitPing'
 import { RetuneHost } from '@/components/dashboard/RetuneMoment'
 import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
@@ -226,6 +227,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             >
               <PlaceTabsWithLocks profileId={profile.id} />
             </Suspense>
+            <VisitPing />
             {children}
           </HardGateGate>
         </div>
