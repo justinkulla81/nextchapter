@@ -9,6 +9,7 @@ import { loadEarlyCareerView } from '@/lib/early-career/data'
 import { nextItem } from '@/lib/early-career/checklist'
 import { formatPay } from '@/lib/early-career/pay'
 import { isInWorkMember } from '@/lib/in-work/constants'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -87,18 +88,6 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
         <EarlyCareerChecklist rows={view.checklist} />
       </Section>
 
-      <Section
-        id="education"
-        title="Your school"
-        intro="Employers hiring new grads filter by school, major and class year. Adding yours also connects you with alumni here."
-      >
-        <Card>
-          <CardContent className="pt-6">
-            <EducationForm initial={view.education} />
-          </CardContent>
-        </Card>
-      </Section>
-
       {featureVisible('major_role_picker', audience) && (
         <Section id="roles" title="Roles your major leads to" intro="The entry-level titles new grads with your major apply to most, with the skills each one asks for (from O*NET).">
           <MajorRolePicker majorKey={view.major?.key ?? null} roles={view.roles} targetRoleType={view.targetRoleType} />
@@ -151,6 +140,19 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
         )}
       </Section>
 
+      <MoreDetails summary="Your school, your first offer and grad school">
+      <Section
+        id="education"
+        title="Your school"
+        intro="Employers hiring new grads filter by school, major and class year. Adding yours also connects you with alumni here."
+      >
+        <Card>
+          <CardContent className="pt-6">
+            <EducationForm initial={view.education} />
+          </CardContent>
+        </Card>
+      </Section>
+
       {newGrad && (
         <Section id="offer" title="Your first offer">
           <ol className="list-decimal space-y-2 pl-5 text-sm">
@@ -178,6 +180,7 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </li>
         </ul>
       </Section>
+      </MoreDetails>
     </div>
   )
 }

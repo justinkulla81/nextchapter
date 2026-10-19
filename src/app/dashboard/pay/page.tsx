@@ -8,6 +8,7 @@ import { OfferedWagesSection } from '@/components/market/OfferedWagesSection'
 import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import { InlineLoadingState } from '@/components/ui/spinner'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { Button } from '@/components/ui/button'
 import { benefitsAsks } from '@/lib/review-prep/benefits'
 import { WORK_VALUE_DOMAIN_LABELS, type WorkValueDomain } from '@/lib/constants/what-i-need'
@@ -26,11 +27,14 @@ export default async function PayPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Know your worth</h1>
-        <p className="mt-1 text-muted-foreground">
-          Before a review, a raise, a promotion, an offer or a move, know where your pay sits and what the market says. Private to you.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Know your worth</h1>
+          <p className="mt-1 text-muted-foreground">Where your pay sits and what the market says, before a review, a raise, an offer or a move. Private to you.</p>
+        </div>
+        <Button nativeButton={false} render={<Link href="/dashboard/review-prep" />}>
+          Build your case for the conversation
+        </Button>
       </div>
 
       <section className="space-y-3" aria-labelledby="your-pay">
@@ -51,6 +55,7 @@ export default async function PayPage() {
         </Suspense>
       </section>
 
+      <MoreDetails summary="The market for your role and what matters besides pay">
       {isAdzunaInsightsEnabled() && (
         <section className="space-y-3" aria-labelledby="market">
           <h2 id="market" className="text-lg font-semibold">
@@ -103,9 +108,7 @@ export default async function PayPage() {
         </section>
       )}
 
-      <Button nativeButton={false} render={<Link href="/dashboard/review-prep" />}>
-        Build your case for the conversation
-      </Button>
+      </MoreDetails>
     </div>
   )
 }

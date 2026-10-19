@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { Lock, TrendingUp, TrendingDown, Minus, Users, DollarSign, Building2, Sparkles, Mail } from 'lucide-react'
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -80,13 +81,7 @@ export default async function MarketIntelligencePage({
     <div className="flex flex-col gap-6 pb-12">
       <div>
         <h1 className="font-heading text-2xl font-semibold text-foreground">Market Intelligence</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Who&apos;s hiring at your level, who to talk to, and what it pays — built from real NextChapter data, not a
-          resold data license.
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Your current access level: <span className="font-medium text-foreground">{MARKET_INTEL_TIER_LABEL[tier]}</span>
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Who&apos;s hiring at your level, what it pays and who to talk to.</p>
       </div>
 
       {/* ── Comp bands ── */}
@@ -101,29 +96,6 @@ export default async function MarketIntelligencePage({
           <Suspense fallback={<SectionSkeleton label="Loading your comp band…" />}>
             <CompBandBody canCompBands={canCompBands} targetFunction={targetFunction} profile={profile} />
           </Suspense>
-        </CardContent>
-      </Card>
-
-      {/* ── Insider network ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="size-4" aria-hidden="true" />
-            Insider network
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!canInsiderNetwork ? (
-            <LockedFeature
-              feature="insider_network"
-              description="Ask real current and former employees at companies you're targeting what the interview process is really like."
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Open any company page and tag where you&apos;ve worked to see who else has worked there and ask them a
-              question.
-            </p>
-          )}
         </CardContent>
       </Card>
 
@@ -161,6 +133,30 @@ export default async function MarketIntelligencePage({
               candidateId={profile.id}
             />
           </Suspense>
+        </CardContent>
+      </Card>
+
+      <MoreDetails summary="More ways to find the right people">
+      {/* ── Insider network ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="size-4" aria-hidden="true" />
+            Insider network
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!canInsiderNetwork ? (
+            <LockedFeature
+              feature="insider_network"
+              description="Ask real current and former employees at companies you're targeting what the interview process is really like."
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Open any company page and tag where you&apos;ve worked to see who else has worked there and ask them a
+              question.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -210,6 +206,10 @@ export default async function MarketIntelligencePage({
           </p>
         </CardContent>
       </Card>
+        <p className="text-xs text-muted-foreground">
+          Your current access level: <span className="font-medium text-foreground">{MARKET_INTEL_TIER_LABEL[tier]}</span>
+        </p>
+      </MoreDetails>
     </div>
   )
 }
