@@ -68,4 +68,15 @@ describe('backchannel-match cron params', () => {
     expect(res.status).toBe(400)
     expect(candidateFindMany).not.toHaveBeenCalled()
   })
+
+  it('marks the application notified only when the email was sent', async () => {
+    await call('')
+    expect(jobUpdate).toHaveBeenCalledTimes(1)
+
+    jobUpdate.mockClear()
+    send.mockResolvedValueOnce({ sent: false as never })
+    const body = await (await call('')).json()
+    expect(body.sent).toBe(0)
+    expect(jobUpdate).not.toHaveBeenCalled()
+  })
 })
