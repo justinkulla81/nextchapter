@@ -109,6 +109,14 @@
       "schedule": "0 11 * * *"
     },
     {
+      "path": "/api/cron/company-outcomes",
+      "schedule": "10 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-graph",
+      "schedule": "20 11 * * *"
+    },
+    {
       "path": "/api/cron/company-hiring-index",
       "schedule": "40 7 * * *"
     },
