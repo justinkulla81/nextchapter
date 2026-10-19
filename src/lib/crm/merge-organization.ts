@@ -121,6 +121,7 @@ export async function mergeOrganizations(
         loggedByEmail: actorEmail,
       },
     })
-  })
+    // A big organization (Amazon has thousands of rows to move) outlasts Prisma's 5-second default.
+  }, { timeout: 120_000, maxWait: 20_000 })
   return { ok: true, merged: source.name }
 }
