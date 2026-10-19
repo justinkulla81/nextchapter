@@ -25,6 +25,9 @@ import { FeedbackRequests } from '@/components/companies/FeedbackRequests'
 import { AiPayPremiumCard } from '@/components/companies/AiPayPremiumCard'
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { SectionSkeleton } from '@/components/ui/section-skeleton'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { CompaniesRedesign } from '@/components/companies/CompaniesRedesign'
 
 export const metadata: Metadata = { title: 'Companies' }
 
@@ -126,21 +129,22 @@ function CompaniesHeading({ params, children }: { params: SearchParams; children
 export default async function CompaniesIndexPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
   const profile = await getDashboardProfile()
+  const redesign = isRedesignOn(profile.email)
   return (
     <Suspense
       fallback={
         <div className="space-y-6">
-          <CompaniesHeading params={params} />
+          {redesign ? <PageHeader title="Companies" intro="Companies worth a look, with the reason for each." /> : <CompaniesHeading params={params} />}
           <SectionSkeleton label="Loading companies…" lines={6} />
         </div>
       }
     >
-      <CompaniesDirectory params={params} profile={profile} />
+      <CompaniesDirectory params={params} profile={profile} redesign={redesign} />
     </Suspense>
   )
 }
 
-async function CompaniesDirectory({ params, profile }: { params: SearchParams; profile: DashboardProfile }) {
+async function CompaniesDirectory({ params, profile, redesign }: { params: SearchParams; profile: DashboardProfile; redesign: boolean }) {
   const query = params.q?.trim() ?? ''
   const page = Math.max(1, Number(params.page) || 1)
   const filterJobs = params.jobs === '1'
@@ -242,6 +246,69 @@ async function CompaniesDirectory({ params, profile }: { params: SearchParams; p
     { key: 'noContracting', label: 'Hide contracting companies', checked: filterNoContracting },
     { key: 'strong', label: 'Strong signals only', checked: filterStrong },
   ]
+
+  if (redesign) {
+    const economyLine = localEconomy
+      ? [
+          localEconomy.metro && localEconomy.metroLayoffEvents90d > 0
+            ? `${localEconomy.metro}: ${localEconomy.metroLayoffEvents90d} layoff ${localEconomy.metroLayoffEvents90d === 1 ? 'notice' : 'notices'} in the last 90 days`
+            : null,
+          localEconomy.unemploymentRate !== null ? `${localEconomy.stateName} unemployment ${localEconomy.unemploymentRate}%` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
+    return (
+      <CompaniesRedesign
+        rows={companies.map((company) => {
+          const ranked = rankingById.get(company.id)
+          return {
+            id: company.id,
+            name: company.name,
+            canonicalNameNormalized: company.canonicalNameNormalized,
+            industry: company.industry,
+            hqMetro: company.hqMetro,
+            openRoles: company.signals[0]?.openRolesTotal ?? 0,
+            contacts: contactCountsByCompany.get(company.name) ?? 0,
+            rank: ranked?.rank ?? null,
+            band: ranked?.ranking.band ?? null,
+            ranking: ranked ? { reasons: ranked.ranking.reasons, cautions: ranked.ranking.cautions } : null,
+          }
+        })}
+        query={query}
+        sort={sort}
+        filters={filterCheckboxes}
+        anyFilter={filterJobs || filterNc1 || filterNc2 || filterMine || filterNoContracting || filterStrong}
+        page={page}
+        pageCount={pageCount}
+        pageSize={PAGE_SIZE}
+        totalCount={totalCount}
+        newStrongCount={newStrongIds.size}
+        buildHref={(overrides) => buildQuery(params, overrides)}
+        more={
+          <>
+            {economyLine && (
+              <p className="text-sm text-muted-foreground">
+                {economyLine}
+                {localEconomy && localEconomy.stress > 0 && '. Your local market is under strain, so local roles draw more competition.'}
+              </p>
+            )}
+            {sort === 'fit' && rankingCandidateIncomplete && (
+              <p className="text-sm text-muted-foreground">
+                Rankings get sharper with your location, function and target industries.{' '}
+                <Link href="/dashboard/improve" className="font-medium text-brand underline underline-offset-4">
+                  Improve your search
+                </Link>
+                .
+              </p>
+            )}
+            <FeedbackRequests candidateId={profile.id} />
+            {aiPay && <AiPayPremiumCard row={aiPay} functionName={aiPay.function} />}
+          </>
+        }
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">

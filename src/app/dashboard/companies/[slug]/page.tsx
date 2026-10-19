@@ -24,6 +24,10 @@ import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { suppressSmallCells, isSuppressedCell } from '@/lib/admin/cell-suppression'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -138,6 +142,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // fields (name, canonicalNameNormalized, atsPlatform), so `company` here
   // is just an alias, not a wait.
   const company = companyRow
+  const redesign = isRedesignOn(profile.email)
   // Real DB id, still needed for every FK-based query below — only the URL
   // itself is slug-based now (canonicalNameNormalized). `slug` (not `id`) is
   // what gets passed as companyPageId to child forms/actions below, so
@@ -233,8 +238,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const TrajectoryIcon =
     latestSignal?.trajectory === 'growing' ? TrendingUp : latestSignal?.trajectory === 'contracting' ? TrendingDown : Minus
 
-  return (
-    <div className="flex flex-col gap-6 pb-12">
+  const headerBlock = (
+    <>
       {/* ── Header ── */}
       <div className="flex items-start gap-3">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-muted">
@@ -256,13 +261,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
-      {/* ATS platform — no real per-employer ATS signal exists anywhere in
-          this codebase (see Company.atsPlatform's schema comment). Explicit
-          "not available yet" rather than a guess, per design-principles.md's
-          "never disable without explaining why" rule. */}
-      {/* The application system is now read from the postings' own URLs (see
-          CompanyIntelPanels' "How to apply"), so the old placeholder is gone. */}
+    </>
+  )
 
+  const signalBlock = (
+    <>
       {/* ── Hiring signal ── */}
       <Card>
         <CardHeader>
@@ -309,6 +312,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const hiringBlock = (
+    <>
       {/* ── Hiring history and pay: every opening we've seen, market pay ── */}
       <Suspense fallback={<CompanyHiringIndexSkeleton />}>
         <CompanyHiringIndex companyId={id} viewer="candidate" />
@@ -316,6 +324,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
 
       <CompanyIntelPanels companyId={id} />
 
+    </>
+  )
+
+  const cultureBlock = (
+    <>
       {/* ── Insider culture: combined answers of members who worked here ── */}
       <Card>
         <CardHeader>
@@ -331,12 +344,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
-      {/* ── Contraction signal ──
-          Removed entirely rather than showing a permanent "not built yet"
-          placeholder — no WARN-filing monitoring exists anywhere in this
-          codebase, so there is never a real signal to show here. Add this
-          card back only once a real WARN/layoff data source exists. */}
+    </>
+  )
 
+  const howToBlock = (
+    <>
       {/* ── How to get hired here ──
           Minimized by default — expanded automatically only once this
           candidate has actually interviewed and been rejected here
@@ -387,6 +399,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </AccordionItem>
       </Accordion>
 
+    </>
+  )
+
+  const faredBlock = (
+    <>
       {/* ── How members have fared ── */}
       <Card>
         <CardHeader>
@@ -425,6 +442,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const ownBlock = (
+    <>
       {/* ── Your own contacts at this company ──
           Grouped by employmentStatusAtCompany — candidate-confirmed only
           (see that field's schema comment for why this can't be inferred).
@@ -474,6 +496,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </Card>
       )}
 
+    </>
+  )
+
+  const secondBlock = (
+    <>
       {/* ── 2nd-degree connections — "who do I know who knows someone
           here?" Only the bridge contact's identity and a count are shown,
           never the bridge's own contacts' names — see
@@ -504,6 +531,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </Card>
       )}
 
+    </>
+  )
+
+  const insidersBlock = (
+    <>
       {/* ── People who know this company (insider network) ── */}
       <Card id="insiders" className="scroll-mt-4">
         <CardHeader>
@@ -607,6 +639,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const recruitBlock = (
+    <>
       {/* ── Recruiting firm sections — only when this company IS a
           recognized staffing/search firm (Recruiter.firmName or
           RecruiterFirm.name fuzzy-matches it). Recruiters have no FK to
@@ -672,6 +709,57 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </>
       )}
 
+    </>
+  )
+
+  if (redesign) {
+    return (
+      <div className="space-y-8 pb-12">
+        <PageHeader
+          title={company.name}
+          action={
+            <ActionLink href="#insiders" kind="primary" event="company_ask_someone_clicked" props={{ companyId: id, source: 'company_page' }}>
+              Ask someone there
+            </ActionLink>
+          }
+        />
+        <div className="space-y-2">
+          <Suspense fallback={<CompanyMetaLineSkeleton />}>
+            <CompanyMetaLine companyRow={companyRow} />
+          </Suspense>
+          {topEmployer && (
+            <p className="text-sm text-foreground">
+              <span className="font-medium">Known for:</span> {knownForLabel(topEmployer)}. <span className="text-muted-foreground">{topEmployerSourceLine(topEmployer)}</span>
+            </p>
+          )}
+        </div>
+        {ownBlock}
+        {secondBlock}
+        {signalBlock}
+        {insidersBlock}
+        <ShowMore page="company_profile">
+          {hiringBlock}
+          {cultureBlock}
+          {howToBlock}
+          {faredBlock}
+          {recruitBlock}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6 pb-12">
+      {headerBlock}
+      {signalBlock}
+      {hiringBlock}
+      {cultureBlock}
+      {howToBlock}
+      {faredBlock}
+      {ownBlock}
+      {secondBlock}
+      {insidersBlock}
+      {recruitBlock}
     </div>
   )
 }
