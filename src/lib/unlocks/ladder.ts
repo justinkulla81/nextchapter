@@ -27,6 +27,8 @@ export interface LadderInput {
   tier: DossierLadderTier
   completeness: DossierCompleteness
   status: DossierUnlockStatus
+  /** Rungs left out of the ladder. The redesign leaves out the two that made the dossier look locked. */
+  skip?: RungKey[]
 }
 
 const TIER_ORDER: DossierLadderTier[] = ['LOCKED', 'PREVIEW', 'COMPLETE', 'RECRUITER_INTROS', 'UNPOSTED_ROLES']
@@ -62,7 +64,7 @@ export function candidatePlusSteps(status: DossierUnlockStatus): CandidatePlusRe
   return candidatePlusRequirements(status).filter((r) => !r.met)
 }
 
-export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
+export function buildUnlockLadder({ gates, tier, completeness, status, skip = [] }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
 
   const jobDetailOpen = gate('matchedJobsFullDetail')?.unlocked === true && gate('community')?.unlocked === true
@@ -124,7 +126,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
 
   // The first rung that is not open is "next"; every later one is locked.
   let nextSeen = false
-  return raw.map(({ open, ...r }) => {
+  return raw.filter((r) => !skip.includes(r.key)).map(({ open, ...r }) => {
     if (open) return { ...r, needs: [], state: 'open' as const }
     if (!nextSeen) {
       nextSeen = true
