@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsFeed } from '@/components/news/NewsFeed'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
@@ -54,6 +55,9 @@ export default async function NewsPage() {
             and the{' '}
             <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Search Index</a>.
           </p>
+          <div className="mt-8 max-w-xl rounded-2xl border border-border bg-white p-6">
+            <NewsletterSignup source="news" />
+          </div>
           <div className="mt-10">
             {items.length === 0 ? (
               <p className="rounded-xl border border-dashed border-border bg-white p-10 text-center text-muted-foreground">
