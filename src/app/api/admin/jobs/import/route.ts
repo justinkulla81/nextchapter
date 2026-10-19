@@ -91,6 +91,7 @@ interface ImportJobInput {
   locationState?: string | null
   locationCountry?: string | null
   locations?: string[] | null
+  locationStatesList?: string[] | null // loc_states: every US state the crawler resolved, primary first
   externalJobId?: string | null
   requisitionId?: string | null
   repostKey?: string | null

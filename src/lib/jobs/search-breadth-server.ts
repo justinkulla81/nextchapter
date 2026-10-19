@@ -14,6 +14,7 @@ import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { placeAt } from '@/lib/workforce/local'
 import { placeKeys } from '@/lib/workforce/places'
 import { statesFromLocation } from '@/lib/pay/market-pay'
+import { storedPlaceFacts } from '@/lib/jobs/board-search-index'
 import {
   FUNCTION_RELAX_MIN_SIMILARITY,
   geoRing,
@@ -522,6 +523,33 @@ function jobPlace(location: string | null | undefined, remotePolicy: string | nu
   return hit
 }
 
+/**
+ * A job's place, read from its location text and — when the board's search index is
+ * held — the import's stored states and work arrangement (ncrawl derive.py reads
+ * "Hybrid, NYC", "US-TX-Austin", multi-location lists and JobPosting data the text
+ * parser here can't). Stored facts only add: states when the text names none, and
+ * remote when the stored arrangement says so.
+ */
+const storedPlaceMemo = new Map<string, JobPlace>()
+function jobPlaceOf(row: BreadthRow & { id: string }): JobPlace {
+  const base = jobPlace(row.location, row.targetRemotePolicy)
+  const facts = storedPlaceFacts(row.id)
+  if (!facts) return base
+  const addStates = base.states.length === 0 && facts.states.length > 0
+  const addRemote = !base.remote && facts.arrangement === 'remote'
+  if (!addStates && !addRemote) return base
+  const states = addStates ? [...facts.states] : base.states
+  const key = `${row.location ?? ''}|${row.targetRemotePolicy ?? ''}|${states.join(',')}|${addRemote ? 1 : 0}|${placeCoordsReady ? 1 : 0}`
+  let hit = storedPlaceMemo.get(key)
+  if (!hit) {
+    const coords = addStates && placeCoordsReady ? cityCoords(row.location, states as string[], placeCoordsReady).slice(0, 1) : base.coords
+    hit = { remote: base.remote || addRemote, coords, states }
+    if (storedPlaceMemo.size > 200_000) storedPlaceMemo.clear()
+    storedPlaceMemo.set(key, hit)
+  }
+  return hit
+}
+
 export interface BreadthClassifier {
   member: MemberBreadthVector
   occupations: JobOccupations
@@ -570,7 +598,7 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
     const facts = jobBreadthFacts(row, occupations)
     const cls = classifyJob(member, facts, 'wide')
     const soc = occupations.socs.get(row.id)
-    const geo = member.geo ? geoRing(member.geo, jobPlace(row.location, row.targetRemotePolicy)) : { ring: 0 as const, note: null }
+    const geo = member.geo ? geoRing(member.geo, jobPlaceOf(row)) : { ring: 0 as const, note: null }
     const industryName = occupations.industries.get(row.id) ?? null
     return {
       cls,
@@ -594,7 +622,7 @@ export async function loadBreadthClassifier(candidate: BreadthCandidate | null |
   const geoByPlace = new Map<JobPlace, ReturnType<typeof geoRing>>()
   const geoOf = (row: BreadthRow): ReturnType<typeof geoRing> => {
     if (!member.geo) return { ring: 0, note: null }
-    const place = jobPlace(row.location, row.targetRemotePolicy)
+    const place = jobPlaceOf(row)
     let geo = geoByPlace.get(place)
     if (geo === undefined) geoByPlace.set(place, (geo = geoRing(member.geo, place)))
     return geo

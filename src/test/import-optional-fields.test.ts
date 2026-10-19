@@ -32,6 +32,18 @@ describe('importSpecFields', () => {
     ).toEqual({ locationCity: 'San Jose', locationState: 'CA', locationCountry: 'US', locationStates: ['CA', 'TX'] })
   })
 
+  it("uses the crawler's resolved state list instead of re-reading the locations", () => {
+    expect(
+      importSpecFields(
+        { locationState: 'NY', locations: ['Delaware, OH', 'Seattle, San Francisco, New York'], locationStatesList: ['NY', 'WA', 'CA', 'ZZ', 'WA'] },
+        statesOf,
+        codes
+      ).locationStates
+    ).toEqual(['NY', 'WA', 'CA'])
+    // A remote-only posting: no primary, the empty list is kept (not re-read from text).
+    expect(importSpecFields({ locationState: null, locations: ['Remote'], locationStatesList: [] }, statesOf, codes).locationStates).toEqual([])
+  })
+
   it('drops a junk city, a non-US state and a malformed country', () => {
     expect(importSpecFields({ locationCity: 'TUCSON-805 ~ 1151 E Hermans Rd', locationState: 'AZ1', locationCountry: 'USA' }, statesOf, codes)).toEqual({
       locationCity: null,
