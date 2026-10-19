@@ -53,6 +53,8 @@ const tokens = (s: string) => [...s.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1])
 
 async function main() {
   const [out, examplesOut] = process.argv.slice(2)
+  // OPENINGS_FILE: {"<template>|<email>": "<opening line>"} written by opening-lines.ts; the line goes right after the greeting.
+  const openings = new Map<string, string>(Object.entries(process.env.OPENINGS_FILE ? (JSON.parse(readFileSync(process.env.OPENINGS_FILE, 'utf8')) as Record<string, string>) : {}))
   if (!out) { console.log('usage: <out.csv> [examples.json]'); return }
   const since = new Date(Date.now() - 90 * 86_400_000), now = new Date()
 
@@ -153,8 +155,13 @@ async function main() {
     row.line_largest = ctx.notice ? `, the largest being ${ctx.notice.employer}'s ${n0(ctx.notice.employees)}${cName ? ` in ${cName}` : ''}` : ''
     row.line_college = area?.college ? `${area.college} is nearby, and its career services could use it too.` : ''
 
-    const text = [fill(t.body, row), tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].join('\n\n')
-    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([fill(t.body, row), tpl.signature, fill(t.ps, row)].join('\n\n')).replace(/\n/g, '<br>')
+    row.facts = JSON.stringify({ local: row.line_local, layoff: row.line_company, timing: row.line_timing, board: row.line_board, roles: row.line_open_roles, ai_roles: row.line_ai_roles, functions: row.line_top_functions, majors: row.line_majors, college: row.line_college })
+    const opening = openings.get(`${template}|${who.email.toLowerCase()}`) ?? ''
+    row.opening_line = opening
+    const bodyBase = fill(t.body, row)
+    const bodyText = opening ? bodyBase.replace('\n\n', `\n\n${opening}\n\n`) : bodyBase
+    const text = [bodyText, tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].join('\n\n')
+    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([bodyText, tpl.signature, fill(t.ps, row)].join('\n\n')).replace(/\n/g, '<br>')
       + `<span style="${FOOT_STYLE}">${esc(tpl.footer.join('\n')).replace(/\n/g, '<br>')}</span></div>`
     // Subjects: the first one whose figures are all present leads; a template is ready when at least one subject can be filled.
     const subjOk = t.subjects.map((x) => tokens(x).filter((k) => !k.startsWith('line_') && !row[k]).length === 0)
@@ -213,7 +220,7 @@ async function main() {
     const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title }
     if (/State Rapid Response Coordinators page/.test(notes)) { if (state) add('rr', who, { notice: byState.get(state), state }); continue }
     if (/Found by web search/.test(notes) && a.org.orgTypes.includes('GOVERNMENT') && state && !/which filed a WARN/.test(notes)) {
-      const template = /unemployment|reemployment|resea/i.test(title) ? 'state_ui' : /labor market|information|career|pathway|adult learner|research/i.test(title) ? 'state_career' : 'state_agency'
+      const template = /unemployment|reemployment|\bRESEA\b/i.test(title) ? 'state_ui' : /labor market|information|career|pathway|adult learner|research/i.test(title) ? 'state_career' : 'state_agency'
       add(template, who, { notice: byState.get(state), state }); continue
     }
     const m = /a ([^.]+?) that buys, funds, refers or advises/.exec(notes)?.[1] ?? ''
@@ -232,7 +239,7 @@ async function main() {
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
   for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k) }
-  const HEAD = ['template', 'ready', 'duplicate', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'email_text', 'email_html', 'followup_1', 'followup_2',
+  const HEAD = ['template', 'ready', 'duplicate', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   if (examplesOut) writeFileSync(examplesOut, JSON.stringify(examples, null, 1))

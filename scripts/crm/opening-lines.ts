@@ -1,0 +1,155 @@
+/**
+ * An opening line for each cold email, written by Claude from the facts we hold about the recipient.
+ *
+ *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/opening-lines.ts <merge.csv> <out.json> [sample|all]
+ *
+ * Reads the merge file from outreach-data.ts (ready, unique rows) and writes {"<template>|<email>": "<line>"}. Then run
+ * outreach-data.ts again with OPENINGS_FILE=<out.json> to put each line right after the greeting.
+ *
+ * One at a time: `one <email>` writes the line for a single recipient (about $0.003); bulk modes are off unless ALLOW_BULK is set.
+ * Metered: one Claude Sonnet 5.5 request per row, about 1,000 tokens in and 150 out, printed as it goes. `sample` does two rows
+ * per template. A line is kept only if it passes the checks below; a row whose line fails twice is left without one and the email
+ * sends as the template reads. The file is saved as it goes, so a stopped run resumes where it left off.
+ */
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import Anthropic from '@anthropic-ai/sdk'
+
+const MODEL = 'claude-sonnet-5-5'
+const PRICE_IN = 2 / 1e6, PRICE_OUT = 10 / 1e6
+
+const WHO: Record<string, string> = {
+  head_hr: 'the head of HR at an employer that just filed a layoff notice', rewards: 'a total rewards, compensation or benefits leader at an employer that just filed a layoff notice',
+  er: 'an employee relations or HR business partner at an employer that just filed a layoff notice', ta: 'a talent acquisition leader at an employer that just filed a layoff notice',
+  rr: 'a state Rapid Response coordinator, who is told about layoffs first and meets the employer', board: 'a local workforce development board director or chair',
+  ajc: 'the business-services or general inbox of an American Job Center', edo: 'a leader at a chamber of commerce, economic development group or workforce nonprofit',
+  state_ui: 'a state unemployment insurance or reemployment leader', state_career: 'a state labor market information, career information, career pathways or adult learner leader',
+  state_agency: 'a state agency head, state workforce board director, economic development head or governor\'s adviser', funder: 'a foundation or funder program officer',
+  partner: 'a leader at an outplacement firm, HR adviser or benefits firm', researcher: 'a researcher or policy analyst on work, unemployment and AI displacement',
+  career_dev: 'a leader at a career-development, career-exploration, association or career-pivot organization',
+}
+
+const SYSTEM = `You write one opening line for a cold email from Justin Kulla, founder of NextChapter, to one specific person. The line comes right after the greeting. Its job is to show, in one sentence, that Justin understands what this person's job is and why this moment matters to it, so the paragraph that follows reads as relevant and not generic.
+
+Rules:
+- One sentence of 12 to 24 words. Plain, declarative, confident and warm, the way a senior peer would write. No question, no exclamation mark, no em dash, no emoji.
+- Use only the facts provided. Say nothing about the person, their organization or its programs that is not in the facts. Describe their role by its function (for example reemployment services, Rapid Response, economic development, career exploration), taken from their title and organization name.
+- Do not use any number, company, county or place name. The email that follows states those; your line frames why they matter to this person's role.
+- Do not flatter. Do not say you admire, follow or read their work. Do not write "I hope", "reaching out", "wanted to", "came across", or "excited".
+- Do not mention pricing, free, or NextChapter's product. The email does that next.
+- Do not repeat what the email says next. Add the reason it matters to this role.
+- Describe what this role cares about, not how their agency or program actually works. Do not state timelines, statistics, deadlines or what "decides" an outcome. Hedge with "often" or "tends to" where you generalize.
+- Never begin with "When a layoff". Follow the style hint you are given, so no two lines read alike.
+
+Reply with the sentence only.`
+
+const HINTS = [
+  'Begin with the function itself as the subject (for example "Reemployment work", "A workforce board", "Benefits planning").',
+  'Begin with a short contrast ("Most ... , but ...").',
+  'Begin with "If" and a short condition about their work.',
+  'Begin with what the people they serve need.',
+  'Begin with a plain statement about the weeks around a layoff, with no numbers.',
+  'Begin with the question their role is always asked, written as a statement.',
+]
+const hint = (key: string) => HINTS[[...key].reduce((a, c) => a + c.charCodeAt(0), 0) % HINTS.length]
+const BANNED = /[!?—–]|\$|\bfree\b|\bprice|\bhope\b|reach(ing)? out|wanted to|came across|admire|excited|thrilled|passionate|nextchapter|\bpilot\b/i
+
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = []
+  let row: string[] = [], cell = '', quoted = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (quoted) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++ } else if (c === '"') quoted = false; else cell += c }
+    else if (c === '"') quoted = true
+    else if (c === ',') { row.push(cell); cell = '' }
+    else if (c === '\n') { row.push(cell); cell = ''; if (row.some((x) => x.trim())) rows.push(row); row = [] }
+    else if (c !== '\r') cell += c
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row) }
+  const [head, ...body] = rows
+  return body.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])))
+}
+
+/** Why a line is not usable, or null. */
+function problem(line: string, source: string): string | null {
+  const words = line.trim().split(/\s+/).length
+  if (words < 10 || words > 28) return `it has ${words} words; it needs 12 to 24`
+  if (/^when a layoff/i.test(line.trim())) return 'it begins with "When a layoff"'
+  if (BANNED.test(line)) return `it uses a banned word or mark (${BANNED.exec(line)?.[0]})`
+  if (/\d/.test(line)) return 'it contains a number'
+  if ((line.match(/[.]/g) ?? []).length > 1 || /\n/.test(line)) return 'it is more than one sentence'
+  // Capitalized words after the first must come from the facts (a name or place the model made up would not).
+  const known = source.toLowerCase()
+  const invented = [...line.matchAll(/(?<![.!?]\s)(?<!^)\b([A-Z][a-z]{3,})\b/g)].map((m) => m[1]).filter((w) => !known.includes(w.toLowerCase()))
+  if (invented.length) return `it names ${invented.join(', ')}, which is not in the facts`
+  return null
+}
+
+const keyOf = (r: Record<string, string>) => `${r.template}|${r.email.toLowerCase()}`
+const sourceOf = (r: Record<string, string>) => `${r.recipient_title} ${r.recipient_org} ${r.facts} ${r.state} ${r.county} ${r.company} ${WHO[r.template] ?? ''}`
+const promptOf = (r: Record<string, string>) => `Style hint: ${hint(keyOf(r))}\nThe reader: ${WHO[r.template] ?? 'a contact'}.\nTheir title: ${r.recipient_title || '(not listed)'}\nTheir organization: ${r.recipient_org}\n\nFacts about their place and the layoff (for background; do not repeat the numbers):\n${r.facts}\n\nThe email that follows your line:\n${r.email_text.split('\n\n').slice(1, 4).join('\n\n')}`
+const clean = (t: string) => t.trim().replace(/^["“]|["”]$/g, '')
+const params = (content: string) => ({ model: MODEL, max_tokens: 600, system: SYSTEM, messages: [{ role: 'user', content }], output_config: { effort: 'low' }, thinking: { type: 'between_tools' } })
+
+async function main() {
+  const [csvPath, out, mode] = process.argv.slice(2)
+  if (!csvPath || !out) { console.log('usage: <merge.csv> <out.json> [sample|all]'); return }
+  // Opening lines are written one at a time, for a layoff email being made or on demand from the CRM, never in bulk.
+  if ((mode === 'all' || mode === 'batch') && !process.env.ALLOW_BULK) { console.log('Bulk opening lines are off. Use: <merge.csv> <out.json> one <email>'); return }
+  const claude = new Anthropic()
+  let rows = parseCsv(readFileSync(csvPath, 'utf8')).filter((r) => r.ready === 'yes' && !r.duplicate)
+  if (mode === 'one') rows = rows.filter((r) => r.email.toLowerCase() === (process.argv[5] ?? '').toLowerCase())
+  if (mode === 'sample') {
+    const seen: Record<string, number> = {}
+    rows = rows.filter((r) => (seen[r.template] = (seen[r.template] ?? 0) + 1) <= 2)
+  }
+  const done: Record<string, string> = existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) : {}
+  const queue = rows.filter((r) => !(`${r.template}|${r.email.toLowerCase()}` in done))
+  console.log(`${rows.length} rows, ${queue.length} to write`)
+  let cost = 0, written = 0, skipped = 0, n = 0
+  if (mode === 'batch' && queue.length) {
+    // The Message Batches API: half price, and not held to the per-minute limits. Results usually arrive within the hour.
+    const reqs = queue.map((r, i) => ({ custom_id: `r${i}`, params: params(promptOf(r)) }))
+    const batch = await claude.messages.batches.create({ requests: reqs as never })
+    console.log(`batch ${batch.id}: ${reqs.length} requests`)
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 30_000))
+      const b = await claude.messages.batches.retrieve(batch.id)
+      console.log(`batch ${b.processing_status}: ${b.request_counts.succeeded} done, ${b.request_counts.errored} errored, ${b.request_counts.processing} processing`)
+      if (b.processing_status === 'ended') break
+    }
+    for await (const res of await claude.messages.batches.results(batch.id)) {
+      const r = queue[Number(res.custom_id.slice(1))]
+      if (res.result.type !== 'succeeded') { skipped++; continue }
+      const msg = res.result.message
+      cost += (msg.usage.input_tokens * PRICE_IN + msg.usage.output_tokens * PRICE_OUT) / 2
+      const line = clean(msg.content.filter((b) => b.type === 'text').map((b) => (b as Anthropic.TextBlock).text).join(''))
+      if (!problem(line, sourceOf(r))) { done[keyOf(r)] = line; written++ } else skipped++
+    }
+    writeFileSync(out, JSON.stringify(done, null, 1))
+    console.log(`batch kept ${written}, ${skipped} to retry, $${cost.toFixed(2)}`)
+    queue.splice(0, queue.length, ...rows.filter((r) => !(keyOf(r) in done)))
+  }
+  const worker = async () => {
+    for (let r = queue.shift(); r; r = queue.shift()) {
+      const key = keyOf(r), source = sourceOf(r), prompt = promptOf(r)
+      let line = '', why: string | null = 'none'
+      for (let attempt = 0; attempt < 3 && why; attempt++) {
+        const msgs: Anthropic.MessageParam[] = [{ role: 'user', content: prompt }]
+        if (attempt > 0) msgs.push({ role: 'assistant', content: line }, { role: 'user', content: `Not usable: ${why}. Write a new sentence that fixes it.` })
+        const msg = await claude.messages.create({ model: MODEL, max_tokens: 600, system: SYSTEM, messages: msgs, output_config: { effort: 'low' }, thinking: { type: 'between_tools' } } as never).catch((e) => { console.error('request failed', e instanceof Error ? e.message.slice(0, 120) : e); return null }) as Anthropic.Message | null
+        if (!msg) break
+        cost += msg.usage.input_tokens * PRICE_IN + msg.usage.output_tokens * PRICE_OUT
+        line = msg.content.filter((b) => b.type === 'text').map((b) => (b as Anthropic.TextBlock).text).join('').trim().replace(/^["“]|["”]$/g, '')
+        why = problem(line, source)
+      }
+      n++
+      if (!why) { done[key] = line; written++ } else skipped++
+      if (mode === 'sample' || mode === 'one') console.log(`[${r.template}] ${r.recipient_title} @ ${r.recipient_org}\n   ${why ? `SKIPPED (${why}): ${line}` : line}`)
+      if (n % 50 === 0) { writeFileSync(out, JSON.stringify(done, null, 1)); console.log(`${n} done, ${written} kept, ${skipped} skipped, $${cost.toFixed(2)}`) }
+    }
+  }
+  await Promise.all(Array.from({ length: Number(process.env.WORKERS ?? 6) }, worker))
+  writeFileSync(out, JSON.stringify(done, null, 1))
+  console.log(`done: ${written} lines kept, ${skipped} left without one, $${cost.toFixed(2)}. Saved ${out}`)
+}
+main().catch((e) => { console.error(e); process.exit(1) })
