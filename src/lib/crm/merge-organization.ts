@@ -11,7 +11,7 @@ export type MergeOrgResult = { ok: true; merged: string } | { ok: false; reason:
  * activity, tasks...), so everything is moved to the survivor first. Where the
  * survivor already has a matching row under a unique key, the source's copy is
  * the duplicate and is dropped. Records that can exist only once per
- * organization (an investor profile, the college record, a production link) are
+ * organization (an investor profile, the college record, a production link; an outplacement profile keeps the newer one) are
  * moved if the survivor has none; if both have one, the merge is refused rather
  * than choosing which to lose.
  */
@@ -23,7 +23,7 @@ export async function mergeOrganizations(
   if (survivorId === sourceId) return { ok: false, reason: 'Pick two different organizations.' }
   const include = {
     investorProfile: { select: { id: true } },
-    outplacementProfile: { select: { id: true } },
+    outplacementProfile: { select: { id: true, announcedAt: true } },
     partnerProfile: { select: { id: true } },
     researchProfile: { select: { id: true } },
     institution: { select: { id: true } },
@@ -37,7 +37,6 @@ export async function mergeOrganizations(
   // Single-slot records that both sides have: refuse.
   const clashes: string[] = []
   if (source.investorProfile && survivor.investorProfile) clashes.push('an investor profile')
-  if (source.outplacementProfile && survivor.outplacementProfile) clashes.push('an outplacement profile')
   if (source.partnerProfile && survivor.partnerProfile) clashes.push('a partner profile')
   if (source.researchProfile && survivor.researchProfile) clashes.push('a research profile')
   if (source.institution && survivor.institution) clashes.push('a college record')
@@ -47,7 +46,16 @@ export async function mergeOrganizations(
     return { ok: false, reason: `${source.name} and ${survivor.name} each have ${clashes.join(' and ')}. Merge these by hand so nothing is lost.` }
   }
 
+  // Both sides have an outplacement profile (a snapshot of one layoff: headcount, date, source). Every notice
+  // stays on its own layoff row, so keep the newer snapshot and drop the other rather than refuse.
+  const sourceProfileNewer = Boolean(source.outplacementProfile && survivor.outplacementProfile
+    && (source.outplacementProfile.announcedAt?.getTime() ?? 0) > (survivor.outplacementProfile.announcedAt?.getTime() ?? 0))
+  const dropSourceProfile = Boolean(source.outplacementProfile && survivor.outplacementProfile && !sourceProfileNewer)
+
   await prisma.$transaction(async (tx) => {
+    if (source.outplacementProfile && survivor.outplacementProfile) {
+      await tx.crmOutplacementProfile.delete({ where: { orgId: sourceProfileNewer ? survivorId : sourceId } })
+    }
     // Unique-keyed children: drop the source's duplicate, then move the rest.
     for (const a of await tx.crmAffiliation.findMany({ where: { orgId: survivorId }, select: { personId: true, title: true } })) {
       await tx.crmAffiliation.deleteMany({ where: { orgId: sourceId, personId: a.personId, title: a.title } })
@@ -87,7 +95,7 @@ export async function mergeOrganizations(
 
     // One-per-organization records move only into an empty slot (clashes were refused above).
     if (source.investorProfile) await tx.crmInvestorProfile.update({ where: { orgId: sourceId }, data: { orgId: survivorId } })
-    if (source.outplacementProfile) await tx.crmOutplacementProfile.update({ where: { orgId: sourceId }, data: { orgId: survivorId } })
+    if (source.outplacementProfile && !dropSourceProfile) await tx.crmOutplacementProfile.update({ where: { orgId: sourceId }, data: { orgId: survivorId } })
     if (source.partnerProfile) await tx.crmPartnerProfile.update({ where: { orgId: sourceId }, data: { orgId: survivorId } })
     if (source.researchProfile) await tx.crmResearchProfile.update({ where: { orgId: sourceId }, data: { orgId: survivorId } })
     if (source.institution) await tx.institution.update({ where: { id: source.institution.id }, data: { crmOrganizationId: survivorId } })
