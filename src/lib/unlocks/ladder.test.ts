@@ -62,7 +62,7 @@ describe('candidatePlusSteps', () => {
   })
 
   it('leaves out skipped rungs and makes the next open one next', () => {
-    const l = buildUnlockLadder({ gates: gates(false, false), tier: 'LOCKED', completeness, status: status(), skip: ['jobDetail', 'taking_shape'] })
+    const l = buildUnlockLadder({ gates: gates(false, false), tier: 'LOCKED', completeness, status: status(), skip: ['community', 'taking_shape'] })
     expect(l.map((r) => r.key)).toEqual(['candidatePlus', 'recruiterIntros', 'unposted'])
     expect(nextRung(l)?.key).toBe('candidatePlus')
   })

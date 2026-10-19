@@ -44,7 +44,6 @@ import { buildUnlockLadder } from '@/lib/unlocks/ladder'
 import { ProgressUnlocks } from '@/components/dashboard/home/ProgressUnlocks'
 import { buildEvidenceTraits } from '@/lib/dossier/evidence-traits'
 import { loadTraitSignals } from '@/lib/dossier/evidence-signals'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { StatsRedesign } from '@/components/dashboard/StatsRedesign'
 import { SeeAllLink } from '@/components/candidate/SeeAllLink'
 
@@ -83,7 +82,6 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
   const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
   const fnParam = typeof params.fn === 'string' ? params.fn : undefined
   // The redesign shows effort and results. The full page (badges, leaderboards, every action) stays at ?view=all.
-  const redesign = isRedesignOn(profile.email)
   if (redesign && params.view !== 'all') return <StatsRedesign profile={profile} />
 
   // Needed up front — computeWeeklyEngines takes it as a direct argument
