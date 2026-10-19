@@ -29,6 +29,13 @@ import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackcha
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
+import { NetworkOverview } from '@/components/network/NetworkOverview'
+import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
+import { getWeeklyOutreachPlan } from '@/lib/network/weekly-outreach'
+import { DOSSIER_UNLOCK_OUTREACH_TARGET } from '@/lib/scoring/dossier-unlock'
+import { captureServerEvent } from '@/lib/posthog/server'
 import {
   resolveSelfLoggedOutreach,
   type SelfLoggedOutreach,
@@ -89,6 +96,7 @@ type NetworkSearchParams = {
   gmailError?: string
   calendarConnected?: string
   calendarError?: string
+  view?: string
 }
 
 const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
@@ -643,6 +651,59 @@ export default async function NetworkPage({
     hasReachedOut: c.outreachLogs.length > 0,
     outreachCount: c._count.outreachLogs,
   }))
+
+  // The redesign (docs/candidate-redesign.md): the five circles, one next move, the moments in reach. The
+  // outreach tracker, Gmail and calendar connection results and the stats stay one link away (?view=all).
+  const isOAuthReturn = Boolean(params.gmailConnected || params.gmailError || params.calendarConnected || params.calendarError)
+  if (isRedesignOn(profile.email) && params.view !== 'all' && !isOAuthReturn) {
+    const [supporters, communities, plan] = await Promise.all([
+      prisma.searchSupporter.count({ where: { candidateId: profile.id, revokedAt: null } }),
+      prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }),
+      getWeeklyOutreachPlan(profile.id),
+    ])
+    const input = {
+      supporters,
+      hasCoach: Boolean(profile.coachId),
+      contacts: contactCount,
+      followUpsDue: needsFollowUp.length,
+      alumniGroups: alumniGroups.map((g) => g.name),
+      communities,
+      candidatePlus: Boolean(profile.candidatePlusUnlockedAt) && !profile.candidatePlusRevokedAt,
+      outreachSent: outreachLogs.length,
+      outreachTarget: DOSSIER_UNLOCK_OUTREACH_TARGET,
+      priorityStarred: starredCount,
+      priorityTarget: PRIORITY_CONTACT_TARGET_COUNT,
+    }
+    const top = plan[0]
+    const next = top
+      ? {
+          title: `Write to ${top.name}${top.company ? ` at ${top.company}` : ''}.`,
+          why: top.reason,
+          sendLabel: 'Draft the message',
+          href: `/dashboard/network/contacts/${top.contactId}?${new URLSearchParams({ purpose: top.purpose, ask: top.askSize, hook: top.hook, from: 'this-week', ...(top.roleTitle ? { role: top.roleTitle } : {}) }).toString()}#outreach-coach`,
+        }
+      : null
+    captureServerEvent(profile.id, 'network_home_viewed', {
+      supporters,
+      contacts: contactCount,
+      followUpsDue: needsFollowUp.length,
+      alumniGroups: alumniGroups.length,
+      communities,
+      hasNextMove: Boolean(top),
+      nextMoveContactId: top?.contactId ?? null,
+    })
+    return (
+      <div className="space-y-8">
+        <Suspense fallback={null}>
+          <TuneStripSection profile={profile} title="Warmer introductions: tune who you reach" />
+        </Suspense>
+        <NetworkOverview circles={buildCircles(input)} headline={networkHeadline(input)} next={next} moments={buildMoments(input)} />
+        <Link href="/dashboard/network?view=all" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
+          See your outreach tracker and stats
+        </Link>
+      </div>
+    )
+  }
 
   if (!profile.networkComfortLevel) {
     return (

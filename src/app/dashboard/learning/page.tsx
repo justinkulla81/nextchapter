@@ -32,6 +32,10 @@ import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
 import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { pickLearnCourses } from '@/lib/redesign/learn-picks'
+import { LearnHome } from '@/components/dashboard/LearnHome'
+import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
 
@@ -75,8 +79,9 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
   )
 }
 
-export default async function LearningPage() {
+export default async function LearningPage({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
   const profile = await getDashboardProfile()
+  const redesign = isRedesignOn(profile.email) && (await searchParams).all !== '1'
   const weekStart = getMondayOfWeek(new Date())
   const learningPaths = await getLearningPaths(profile.id)
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
@@ -105,6 +110,23 @@ export default async function LearningPage() {
   const enrolledTitles = new Set(courseActivity.map((c) => c.courseTitle))
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
   const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
+
+  if (redesign) {
+    const picks = pickLearnCourses(
+      [...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
+      completedTitles,
+      enrolledTitles,
+    )
+    captureServerEvent(profile.id, 'learn_home_viewed', { hasFeatured: !!picks.featured, featuredHasReason: !!picks.featured?.rationale, moreCount: picks.more.length, completedCount: badges.length })
+    return (
+      <div className="space-y-8">
+        <Suspense fallback={null}>
+          <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
+        </Suspense>
+        <LearnHome featured={picks.featured} more={picks.more} enrolledTitles={enrolledTitles} completedCount={badges.length} allHref="/dashboard/learning?all=1" />
+      </div>
+    )
+  }
 
   captureServerEvent(profile.id, 'learning_plan_rendered', {
     sectionCount: plan.sections.length,
