@@ -21945,5 +21945,110 @@ true
 "yard controller 2",
 "OTHER",
 0
+],
+[
+"General Manager in Training - Retail",
+"MANAGER",
+40
+],
+[
+"General Manager - Truck Care",
+"MANAGER",
+40
+],
+[
+"Truck Care General Manager",
+"MANAGER",
+40
+],
+[
+"Deli General Manager",
+"MANAGER",
+40
+],
+[
+"Convenience Store General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager - C-Store",
+"MANAGER",
+40
+],
+[
+"Travel Plaza General Manager",
+"MANAGER",
+40
+],
+[
+"General Manager (Travel Center)",
+"MANAGER",
+40
+],
+[
+"General Manager - Hourly",
+"OTHER",
+0
+],
+[
+"Hourly General Manager",
+"OTHER",
+0
+],
+[
+"General Manager $18/hr",
+"OTHER",
+0
+],
+[
+"Store General Manager - Hourly",
+"OTHER",
+0
+],
+[
+"Asst. General Manager",
+"MANAGER",
+40
+],
+[
+"Unassigned General Manager - GTA West",
+"MANAGER",
+40
+],
+[
+"General Manager - Tucson Premium Outlet",
+"MANAGER",
+40
+],
+[
+"General Manager - Thoroughbred Village SC",
+"MANAGER",
+40
+],
+[
+"VP & General Manager - Retail",
+"C_SUITE",
+100
+],
+[
+"General Manager, Retail Banking",
+"C_SUITE",
+100
+],
+[
+"General Manager, Marketplace",
+"C_SUITE",
+100
+],
+[
+"General Manager (Fueling)",
+"C_SUITE",
+100
+],
+[
+"Regional General Manager - Retail",
+"C_SUITE",
+100
 ]
 ]
