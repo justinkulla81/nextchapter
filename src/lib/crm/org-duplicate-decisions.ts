@@ -27,33 +27,31 @@ export const HOLD: Record<string, string> = {
   'Deluxe (media services)': 'Deluxe Corp (checks, payments) and Deluxe Media are different companies.',
   'People Inc. (Dotdash Meredith)': 'People Inc., "People" and People.Co look like three different companies.',
   'Self.': 'SELF the loan fund vs a company called Self.',
-  'Care USA': 'CARE USA is a member of CARE International; one record or two?',
   'Valley Health System (New Jersey)': 'There are Valley Health Systems in NJ, VA and NV.',
   'Dart': 'Dart vs DART (Dallas Area Rapid Transit).',
   'Everest Group (Everest Re)': 'Everest Group (consulting) and Everest Re (insurance) are different.',
-  'EMPLOYERS (Employers Holdings)': '"Employers" is too generic to merge on a name.',
   'The Goddard School of Manhattan (Murray Hill), NY': 'Separate franchise locations.',
   'Trinity Academy': 'Generic school name; the Raleigh one may be a different school.',
-  'ONE (Open Network Exchange)': '"One" is too generic to merge on a name.',
-  'AGS': '"AGS" is too generic to merge on a name.',
   'Binance US': 'Binance.US is a separate legal entity from Binance.',
   'Smith Inc.': 'Smith Inc. and Smith.ai are different companies.',
   'You.com': 'You.com and "Y.o.u." may be different.',
   'Visit Us': 'Visit Us and Visit.org may be different.',
-  'GovernmentJobs.com': 'Government Jobs / GovernmentJobs.com / US Government Jobs: which is which?',
-  'Nextpower': 'Nextracker renamed itself Nextpower? Confirm it is one company.',
   'Polaris (formerly Polaris Project)': 'Polaris Project (anti-trafficking nonprofit) and Polaris Inc. (vehicles) are different.',
 }
 export const SPACING = 'Differ only by where the spaces are, and the name is generic enough that they could be two companies.'
 for (const n of [
   'Alls Well', 'North Central University', 'Visit Site »', 'Trellis Group', 'Blue Bird, Inc.', 'Health Care Services', 'Braintrust',
   'Office of General Counsel', 'Office of Inspector General', 'Office of State Public Defender', 'Freshpaint', 'TerraFirma', 'Hightouch',
-  'Human Capital', 'DataOne', 'Félix',
+  'Human Capital', 'DataOne',
 ]) HOLD[n] = SPACING
 /** Names left out of their group's merge (the rest still merge). */
 export const EXCLUDE = new Set<string>([])
 /** Groups merged even though the rules would hold them, by one member's name. */
 export const FORCE_MERGE = new Set([
+  // Justin, 2026-10-20: "merge all the held ones except the ones that are clearly different".
+  'Care USA', 'Félix', 'EMPLOYERS (Employers Holdings)', 'ONE (Open Network Exchange)', 'AGS', 'AGS (Agunsa Global Solutions)', 'Nextpower',
+  'GovernmentJobs.com', 'Maverick USA', 'Reveal USA', 'Current USA', 'Concord USA', 'Bloom USA', 'Certa.ai', 'jobright.com',
+  'NewGen Technologies (Maryland)', 'Persistent Systems LLC (New York)', 'Genesis HealthCare System (ohio)',
   // Same company with a note, abbreviation or alias in brackets (approved by Justin: "do all").
   'RTX (Raytheon)', 'UKG (Ultimate Kronos Group)', 'VTS (View The Space)', 'Precision Recruiting Solutions Group® (PRSG®)',
   'Nortek Data Center Cooling (Nortek Data Center Cooling)', 'ARQ ( Prev DolarApp )', 'LVT (LiveView Technologies)', 'Omnicom Group (incl. Interpublic)',
@@ -108,6 +106,7 @@ export const FOLD_PREFIXES: { parent: string; prefix: string }[] = [
 export function decideGroup(names: string[], websiteProvesIt = false): GroupDecision {
   const held = names.find((n) => HOLD[n])
   if (held) return { action: 'review', reason: HOLD[held] }
+  if (names.some((n) => FORCE_MERGE.has(n))) return { action: 'merge', reason: 'Confirmed by hand.' }
   // "Super.com" and "super.AI" end differently, so they are two companies, not one written two ways.
   const endings = new Set(names.flatMap((n) => n.toLowerCase().match(/\.(com|org|net|io|ai|co|tech|us)\b/g) ?? []))
   if (endings.size > 1) return { action: 'review', reason: 'Web endings differ (.com vs .ai and so on), so these are probably different companies.' }
