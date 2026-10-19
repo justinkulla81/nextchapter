@@ -27,7 +27,7 @@ export interface ContactPerson {
 
 const DAY = 86_400_000
 /** Notes written by the pipelines that add public directory contacts (board-crm.ts, college-crm.ts). */
-const AUTO_ADDED = /From the (CareerOneStop directory|college's own website|company's own website|U\.S\. Department of Labor's State Rapid Response Coordinators page)|Found by (web search:|Hunter domain search)/i
+const AUTO_ADDED = /From the (CareerOneStop directory|college's own website|company's own website|U\.S\. Department of Labor's (State Rapid Response Coordinators|ETA regional offices) page)|Found by (web search:|Hunter domain search)/i
 
 export function isAutoAdded(p: Pick<ContactPerson, 'notes'>): boolean {
   return !!p.notes && AUTO_ADDED.test(p.notes)

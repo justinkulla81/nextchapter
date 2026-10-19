@@ -56,7 +56,7 @@ async function main() {
       console.log(`skip (no named person): ${r.jurisdiction}, ${r.agency}${r.teamMailbox ? `, ${r.teamMailbox}` : ''}`)
       continue
     }
-    const note = `${r.title || 'Rapid Response contact'} at ${r.agency} (${r.jurisdiction}). From the U.S. Department of Labor's State Rapid Response Coordinators page.`
+    const note = `${r.title || 'Rapid Response contact'} at ${r.agency} (${r.jurisdiction}). ${r.source || "From the U.S. Department of Labor's State Rapid Response Coordinators page."}`
       + (r.teamMailbox ? ` Team mailbox: ${r.teamMailbox}.` : '')
       + (r.flag ? ` Check: ${r.flag}.` : '')
     if (!apply) { console.log(`would add: ${r.name}, ${r.title}, ${r.agency}, ${r.email || '(no email)'}`); continue }
