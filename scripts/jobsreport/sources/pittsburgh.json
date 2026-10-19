@@ -324,5 +324,33 @@
       "868bc7bd-7c78-41b4-9208-0652da20d4dc",
       "8863ffd4-fbec-4333-a5cb-b8b9d13e64b6"
     ]
+  },
+  {
+    "name": "ab-gecko-robotics",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Gecko Robotics",
+    "token": "gecko-robotics"
+  },
+  {
+    "name": "gr-stackav",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Stack AV",
+    "token": "stackav"
+  },
+  {
+    "name": "gr-peptilogics",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Peptilogics",
+    "token": "peptilogics"
+  },
+  {
+    "name": "gr-waymo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Waymo",
+    "token": "waymo"
   }
 ]
