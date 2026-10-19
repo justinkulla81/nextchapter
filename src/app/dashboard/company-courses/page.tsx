@@ -6,13 +6,30 @@ import { staffProgramsForCandidate } from '@/lib/employer/staff-programs'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CourseStatusButtons } from '@/components/dashboard/staff/StaffButtons'
 import type { CourseStatus } from './actions'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { RowList } from '@/components/candidate/RowList'
 
 export const metadata: Metadata = { title: 'Company courses' }
 
 export default async function CompanyCoursesPage() {
   const profile = await getDashboardProfile()
   const programs = (await staffProgramsForCandidate(profile.id)).filter((p) => p.programType === 'LEARNING')
+  const redesign = isRedesignOn(profile.email)
   if (!programs.length) {
+    if (redesign) {
+      return (
+        <div className="space-y-8">
+          <PageHeader
+            title="Company courses"
+            intro="When your employer offers NextChapter Learning, the courses they cover show up here, free to you."
+            action={<ActionLink href="/dashboard/learning" event="company_courses_skills_plan_opened" props={{ hasPrograms: false }}>See your skills plan</ActionLink>}
+          />
+          <p className="rounded-2xl border border-border p-6 text-base text-ink">Nothing is covered by an employer yet. Your skills plan has the courses that would do the most for your search.</p>
+        </div>
+      )
+    }
     return (
       <div className="mx-auto max-w-3xl space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Company courses</h1>
@@ -37,6 +54,38 @@ export default async function CompanyCoursesPage() {
   const orgName = new Map(programs.map((p) => [p.orgId, p.orgName]))
   captureServerEvent(profile.id, 'company_courses_viewed', { courses: courses.length, started: progress.size })
   const names = [...new Set(programs.map((p) => p.orgName))].join(' and ')
+
+  if (redesign) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title={`Courses ${names} covers`}
+          intro={`Mark where you are on each one. ${names} sees how many people started or finished a course, never who.`}
+          action={<ActionLink href="/dashboard/learning" event="company_courses_skills_plan_opened" props={{ hasPrograms: true, courses: courses.length }}>See your skills plan</ActionLink>}
+        />
+        {courses.length === 0 ? (
+          <p className="rounded-2xl border border-border p-6 text-base text-ink">{names} has not listed any courses yet. Your skills plan has NextChapter’s suggestions in the meantime.</p>
+        ) : (
+          <RowList
+            label="Courses your employer covers"
+            items={courses.map((c) => ({
+              key: c.id,
+              title: c.title,
+              href: c.url ?? undefined,
+              why: c.skills.length > 0 ? `Builds ${c.skills.join(', ')}.` : undefined,
+              fact: [c.provider, c.covered, programs.length > 1 ? orgName.get(c.orgId) : null].filter(Boolean).join(' · ') || undefined,
+              actions: <CourseStatusButtons courseId={c.id} title={c.title} status={progress.get(c.id) ?? 'NONE'} />,
+              detailLabel: c.note ? 'A note from your employer' : undefined,
+              detail: c.note ? <p className="whitespace-pre-line">{c.note}</p> : undefined,
+            }))}
+          />
+        )}
+        <p className="text-sm text-muted-foreground">
+          Courses matched to your target role are in your skills plan.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
