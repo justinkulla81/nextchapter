@@ -153,7 +153,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
               href={ui.fileUrl.value}
               event="benefits_file_claim_clicked"
               properties={{ state: code }}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               File a claim with {agency} →
             </TrackedLink>

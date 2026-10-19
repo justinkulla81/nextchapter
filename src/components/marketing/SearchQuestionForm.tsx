@@ -85,7 +85,7 @@ export function BriefContactForm({ source, audience, messageLabel, hint, placeho
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <button
           type="submit" disabled={pending}
-          className={`inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+          className={`inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
         >
           {pending ? 'Sending…' : submitLabel}
         </button>

@@ -108,7 +108,7 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
             <TrackedLink
               href={item.url} event="news_item_clicked"
               properties={{ itemId: item.id, kind: item.kind, source: item.source, placement: 'item_page' }}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               {linkOutLabel(item.kind, item.source)} →
             </TrackedLink>
