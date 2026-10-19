@@ -80,7 +80,9 @@ export function HomepageJobBoard() {
   }, [])
 
   useEffect(() => {
-    void run({ q: '', loc: '', remote: false }, false)
+    // Deferred a tick so the first fetch does not set state inside the effect body.
+    const t = setTimeout(() => void run({ q: '', loc: '', remote: false }, false), 0)
+    return () => clearTimeout(t)
   }, [run])
 
   const submit = (e: React.FormEvent) => {
