@@ -124,8 +124,13 @@ export const GET = withCronRun('backchannel-match', async (request) => {
           // How many of these emails they've had already — rotates the stat shown.
           candidate.jobPostings.filter((j) => j.backchannelEmailSentAt).length
         )
-        await prisma.jobPosting.update({ where: { id: job.id }, data: { backchannelEmailSentAt: new Date() } })
-        if (result.sent) sentCount += 1
+        // Only mark it notified once the email actually went out — a failed send
+        // (provider error, no address on file) is retried on the next run rather
+        // than silently using up this application's one nudge.
+        if (result.sent) {
+          await prisma.jobPosting.update({ where: { id: job.id }, data: { backchannelEmailSentAt: new Date() } })
+          sentCount += 1
+        }
         break
       }
     } catch (error) {
