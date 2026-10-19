@@ -113,3 +113,70 @@ export function isMissingTable(err: unknown): boolean {
   const message = err instanceof Error ? err.message : ''
   return code === 'P2021' || code === 'P2022' || /does not exist/i.test(message)
 }
+
+export interface AdminWorkItem {
+  type: 'question' | 'reply'
+  id: string
+  /** The real identity trail, for moderation only. Never shown to other members. Same rule as getReportedCommunityPosts. */
+  authorName: string
+  title: string | null
+  body: string
+  /** For a reply: the question it answers. */
+  questionTitle: string | null
+  held: boolean
+  moderationCategory: CommunityModerationCategory | null
+  reportedAt: Date | null
+  reportReason: string | null
+  createdAt: Date
+}
+
+// Admin-only. Reported items, plus anything the classifier held. Held work questions and replies are invisible to
+// everyone but the author, so without this list they would never be reviewed.
+export async function getWorkItemsForReview(): Promise<AdminWorkItem[]> {
+  const where = { OR: [{ reportedAt: { not: null } }, { moderationStatus: 'HELD' as const }] }
+  const author = { select: { firstName: true, lastName: true } }
+  const [questions, replies] = await Promise.all([
+    prisma.workQuestion.findMany({ where, orderBy: { createdAt: 'asc' }, include: { candidate: author } }),
+    prisma.workQuestionReply.findMany({ where, orderBy: { createdAt: 'asc' }, include: { candidate: author, question: { select: { title: true } } } }),
+  ])
+  const name = (c: { firstName: string | null; lastName: string | null }) => [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Candidate'
+  return [
+    ...questions.map((q) => ({
+      type: 'question' as const,
+      id: q.id,
+      authorName: name(q.candidate),
+      title: q.title,
+      body: q.body,
+      questionTitle: null,
+      held: q.moderationStatus === 'HELD',
+      moderationCategory: q.moderationCategory,
+      reportedAt: q.reportedAt,
+      reportReason: q.reportReason,
+      createdAt: q.createdAt,
+    })),
+    ...replies.map((r) => ({
+      type: 'reply' as const,
+      id: r.id,
+      authorName: name(r.candidate),
+      title: null,
+      body: r.body,
+      questionTitle: r.question.title,
+      held: r.moderationStatus === 'HELD',
+      moderationCategory: r.moderationCategory,
+      reportedAt: r.reportedAt,
+      reportReason: r.reportReason,
+      createdAt: r.createdAt,
+    })),
+  ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+}
+
+export async function countWorkItemsForReview(): Promise<number> {
+  const where = { OR: [{ reportedAt: { not: null } }, { moderationStatus: 'HELD' as const }] }
+  try {
+    const [q, r] = await Promise.all([prisma.workQuestion.count({ where }), prisma.workQuestionReply.count({ where })])
+    return q + r
+  } catch (err) {
+    if (isMissingTable(err)) return 0
+    throw err
+  }
+}
