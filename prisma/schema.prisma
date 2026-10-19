@@ -870,6 +870,12 @@ model CandidateProfile {
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
   interviewsReceivedCount   Int?
+  // Where searches usually stall (src/lib/onboarding/search-stall.ts): NO_REPLIES |
+  // RECRUITER_SCREEN | HIRING_MANAGER | FINAL_ROUND | OFFER. Self-reported, one question, asked
+  // in onboarding only when the member has already applied. Read by the Market Reality Report.
+  searchStallPoint          String?
+  // Offers received so far, self-reported alongside the two counts above. Asked only after an interview.
+  offersReceivedCount       Int?
   networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
   learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
   triedPartTimeOrConsulting Boolean?
@@ -1611,6 +1617,9 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
+  marketRealityReadStates        MarketRealityReadState[]
+  visitDays                      CandidateVisitDay[]
+  effortCycles                   EffortCycle[]
   marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
@@ -4055,6 +4064,46 @@ model MarketRealitySnapshot {
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, generatedAt])
+}
+
+// One row per member per week: the Market Reality Report's read as it stood (which hiring-case rows
+// are in place, what is known, the market and pace numbers), saved when the report is viewed or the
+// weekly job runs. The next week's "what changed" note is the difference between two of these
+// (src/lib/reports/market-reality-brief/weekly-change.ts). MarketRealitySnapshot keeps only the grade,
+// so it cannot say what moved.
+model MarketRealityReadState {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC of the week this read belongs to
+  state         Json
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId, weekStartDate])
+}
+
+// One row per member per UTC day they opened NextChapter. The "logged in" signal behind unlock
+// points (src/lib/effort/points.ts): a day counts once however many pages they open.
+model CandidateVisitDay {
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  day         DateTime // UTC midnight of the day
+  createdAt   DateTime         @default(now())
+
+  @@id([candidateId, day])
+}
+
+// The window unlock points are counted in: from startedAt until the member unlocks and generates
+// their next strategy (which also refreshes their report), which starts a new cycle. Only that action
+// resets it, so editing goals never throws away earned points. baselineAnswered is how many
+// personalization questions were answered when the cycle began, so only new answers earn points.
+model EffortCycle {
+  candidateId      String           @id
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startedAt        DateTime
+  baselineAnswered Int              @default(0)
+  updatedAt        DateTime         @updatedAt
 }
 
 enum MarketResponseType {

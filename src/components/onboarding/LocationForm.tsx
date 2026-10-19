@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { NativeSelect } from '@/components/ui/native-select'
+import { PAY_FLOOR_BANDS, bandForFloor } from '@/lib/onboarding/pay-floor'
+import { SEARCH_STALL_OPTIONS } from '@/lib/onboarding/search-stall'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { CultureFitFields } from '@/components/onboarding/CultureFitFields'
@@ -100,18 +103,15 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="travelWillingness"
-          name="travelWillingness"
-          value="on"
-          defaultChecked={travelWillingness}
-          onCheckedChange={(checked) => setTravelWillingness(checked === true)}
-        />
-        <Label htmlFor="travelWillingness" className="font-normal">
-          I&apos;m willing to travel for a role (not the same as relocating)
-        </Label>
-      </div>
+      {searching && (
+        <div className="space-y-2">
+          <Label htmlFor="payFloorBand">
+            The least you would take <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <NativeSelect id="payFloorBand" name="payFloorBand" options={PAY_FLOOR_BANDS.map((b) => ({ value: b.value, label: b.label }))} defaultValue={bandForFloor(profile.targetCompMin)} placeholder="Prefer not to say yet" />
+          <p className="text-sm text-muted-foreground">Total annual pay. It lets us show how many advertised roles clear your floor. Only you see it.</p>
+        </div>
+      )}
 
       {searching && (
         <>
@@ -140,19 +140,6 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
                 options={GAP_DURATION_OPTIONS}
                 value={gapDuration}
                 onChange={setGapDuration}
-                responsive
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <ChoiceButtons
-                name="aiDisplacementReason"
-                options={AI_DISPLACEMENT_OPTIONS}
-                value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
-                onChange={setAiDisplacementReason}
                 responsive
               />
             </div>
@@ -194,23 +181,31 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         </div>
 
         {!justStartedSearch && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="jobsAppliedCount">How many roles have you applied to?</Label>
-              <Input id="jobsAppliedCount" name="jobsAppliedCount" type="number" min={0} />
+          <>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="jobsAppliedCount">Roles applied to</Label>
+                <Input id="jobsAppliedCount" name="jobsAppliedCount" type="number" min={0} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interviewsCount">Interviews</Label>
+                <Input id="interviewsCount" name="interviewsCount" type="number" min={0} defaultValue={profile.interviewsReceivedCount ?? ''} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="offersCount">
+                  Offers <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input id="offersCount" name="offersCount" type="number" min={0} defaultValue={profile.offersReceivedCount ?? ''} />
+              </div>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="interviewsCount">How many interviews have you had?</Label>
-              <Input
-                id="interviewsCount"
-                name="interviewsCount"
-                type="number"
-                min={0}
-                defaultValue={profile.interviewsReceivedCount ?? ''}
-              />
+              <Label htmlFor="searchStallPoint">
+                Where do your searches usually stall? <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <NativeSelect id="searchStallPoint" name="searchStallPoint" options={SEARCH_STALL_OPTIONS} defaultValue={profile.searchStallPoint} placeholder="Not sure yet" />
+              <p className="text-sm text-muted-foreground">It tells us which part of the process to fix first. If you connect Gmail later, we count these for you.</p>
             </div>
-          </div>
+          </>
         )}
         </>
       )}
@@ -279,10 +274,6 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         </div>
       )}
 
-      {searching && journey !== 'GROWING' && (
-        <CultureFitFields defaults={parseCultureFit(profile.cultureFit)} />
-      )}
-
       <div className="border-t border-border pt-5">
         <h2 className="text-sm font-semibold text-foreground">One more thing</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -301,22 +292,61 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         responsive
       />
 
-      <div className="space-y-2">
-        <Label>
-          When you&apos;re stuck, what kind of push works better for you? <span className="text-muted-foreground">(optional)</span>
-        </Label>
-        <p className="text-sm text-muted-foreground">
-          This sets how direct your coaching feedback is. You can change it any time on your profile.
+      <details className="rounded-lg border border-border p-4 [&_summary]:cursor-pointer">
+        <summary className="text-sm font-medium text-foreground">A few optional extras</summary>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Skip these now if you like. Each one only sharpens your plan, and you can answer any of them later from your profile.
         </p>
-        <ChoiceButtons
-          name="coachingStylePreference"
-          options={COACHING_STYLE_OPTIONS}
-          value={coachingStylePreference}
-          onChange={setCoachingStylePreference}
-          columns={3}
-          responsive
-        />
-      </div>
+        <div className="mt-4 space-y-5">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="travelWillingness"
+              name="travelWillingness"
+              value="on"
+              defaultChecked={travelWillingness}
+              onCheckedChange={(checked) => setTravelWillingness(checked === true)}
+            />
+            <Label htmlFor="travelWillingness" className="font-normal">
+              I&apos;m willing to travel for a role (not the same as relocating)
+            </Label>
+          </div>
+
+          {searching && !employed && (
+            <div className="space-y-2">
+              <Label>
+                Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <ChoiceButtons
+                name="aiDisplacementReason"
+                options={AI_DISPLACEMENT_OPTIONS}
+                value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
+                onChange={setAiDisplacementReason}
+                responsive
+              />
+            </div>
+
+          )}
+          {searching && journey !== 'GROWING' && (
+            <CultureFitFields defaults={parseCultureFit(profile.cultureFit)} />
+          )}
+          <div className="space-y-2">
+            <Label>
+              When you&apos;re stuck, what kind of push works better for you? <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              This sets how direct your coaching feedback is. You can change it any time on your profile.
+            </p>
+            <ChoiceButtons
+              name="coachingStylePreference"
+              options={COACHING_STYLE_OPTIONS}
+              value={coachingStylePreference}
+              onChange={setCoachingStylePreference}
+              columns={3}
+              responsive
+            />
+          </div>
+        </div>
+      </details>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

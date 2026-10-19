@@ -53,6 +53,10 @@
       "schedule": "20 20 * * 1"
     },
     {
+      "path": "/api/cron/weekly-read",
+      "schedule": "0 15 * * 2"
+    },
+    {
       "path": "/api/cron/interim-role-reverify",
       "schedule": "0 14 * * *"
     },

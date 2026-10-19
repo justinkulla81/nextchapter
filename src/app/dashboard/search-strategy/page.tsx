@@ -1,3 +1,7 @@
+import { captureServerEvent } from '@/lib/posthog/server'
+import { getUnlockStatus } from '@/lib/effort/load'
+import { UnlockProgress } from '@/components/effort/UnlockProgress'
+import { unlockNextStrategy } from './unlock-actions'
 import { IndustryRealityCheck } from '@/components/dashboard/pathway/IndustryRealityCheck'
 import { parseRelocation } from '@/lib/journey/relocation'
 import { activeTargets, pivotOf } from '@/lib/journey/pivot'
@@ -236,6 +240,22 @@ function SearchStrategyGuidanceSkeleton() {
 // Once getOrDraftSearchStrategyGuidance succeeds it sets
 // searchStrategyFirstAnsweredAt, and the next page load renders the real
 // SearchStrategyGuidanceCard above instead of this.
+async function StrategyUnlockCard({ candidateId }: { candidateId: string }) {
+  const status = await getUnlockStatus(candidateId)
+  captureServerEvent(candidateId, 'unlock_progress_viewed', { points: status.score.total, bar: status.bar.points, unlocked: status.unlocked, workKinds: status.score.workKinds })
+  return (
+    <UnlockProgress
+      status={status}
+      title="Unlock your next strategy and report refresh"
+      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn strategy credits with effort, not time alone."
+      action={unlockNextStrategy}
+      buttonLabel="Generate my next strategy"
+      pendingLabel="Writing your strategy…"
+      event="next_strategy_unlock_clicked"
+    />
+  )
+}
+
 async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidateProfile }) {
   if (isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)) {
     await getOrDraftSearchStrategyGuidance(profile.id)
@@ -591,6 +611,11 @@ export default async function SearchStrategyPage() {
       </div>
 
       <div className="space-y-4">
+        {hasAnsweredOnce && (
+          <Suspense fallback={null}>
+            <StrategyUnlockCard candidateId={profile.id} />
+          </Suspense>
+        )}
         {hasAnsweredOnce ? (
           <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
             <SearchStrategyGuidanceCard profile={profile} checklist={checklist} />
