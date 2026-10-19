@@ -143,7 +143,9 @@ async function main() {
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
     row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers within days of a notice.` : row.board ? `${row.board} typically meets employers within days of a notice.` : ''
     row.line_local = area && area.j12 > 0
-      ? `${area.name} employers filed notices for ${n0(area.j12)} jobs over the last 12 months (${n0(area.j90)} in the last 90 days), and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
+      ? (area.j12 === area.j90
+        ? `${area.name} employers filed notices for ${n0(area.j90)} jobs in the last 90 days, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
+        : `${area.name} employers filed notices for ${n0(area.j12)} jobs over the last 12 months (${n0(area.j90)} in the last 90 days), and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`)
       : st ? `${stateName} employers filed notices for ${n0(st.jobs)} jobs in the last 90 days.` : ''
     row.line_majors = area?.majors.length ? `The largest local employers include ${list(area.majors)}.` : ''
     const cName = area?.name ?? ctx.notice?.county ?? ''
