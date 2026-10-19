@@ -28,6 +28,19 @@ const LABEL: Record<Kind, string> = {
   governor_workforce_adviser: "the governor's workforce or economic policy adviser",
 }
 
+// STATE_PASS=2 looks for the unemployment, reemployment, labor-market and career-exploration roles instead.
+const KINDS_2 = ['unemployment_insurance_director', 'reemployment_services', 'labor_market_information', 'career_pathways', 'adult_learner_programs'] as const
+const LABEL_2: Record<string, string> = {
+  unemployment_insurance_director: 'head of the state unemployment insurance division',
+  reemployment_services: 'director or coordinator of reemployment services (RESEA) for unemployment insurance claimants',
+  labor_market_information: 'director of labor market information or workforce research, including the state career information system',
+  career_pathways: 'state lead for career pathways, career readiness or career exploration programs',
+  adult_learner_programs: 'director of adult learner or returning-adult programs at the state higher education agency',
+}
+const PASS2 = process.env.STATE_PASS === '2'
+const ACTIVE_KINDS: readonly string[] = PASS2 ? KINDS_2 : KINDS
+const ACTIVE_LABEL: Record<string, string> = PASS2 ? LABEL_2 : LABEL
+
 interface Found { name: string; title: string; agency: string; kind: Kind; sourceUrl: string; sourceDate?: string | null; evidence?: string; pageChecked?: 'yes' | 'no' | 'unreachable' }
 interface Result { code: string; state: string; people: Found[]; cost: number; searches: number; error?: string }
 
@@ -36,7 +49,7 @@ const SYSTEM = `You find the current senior people in one U.S. state's governmen
 Return only people whose name AND title appear in a page you actually read. Never fill in a name from memory. For each, give the address of that page, the agency's full name, and a short quote. Give the page's date (year and month) if shown. If the only evidence is more than 18 months old and no current agency page confirms the role, leave the person out.
 
 Roles wanted, with the "kind" value:
-${KINDS.map((k) => `- ${k}: ${LABEL[k]}`).join('\n')}
+${ACTIVE_KINDS.map((k) => `- ${k}: ${ACTIVE_LABEL[k]}`).join('\n')}
 
 At most one person per kind. A kind with no confirmed person is absent. Reply with one JSON object and nothing else:
 {"people": [{"name": "", "title": "", "agency": "", "kind": "", "sourceUrl": "", "sourceDate": "YYYY-MM" | null, "evidence": ""}]}`
@@ -77,7 +90,7 @@ async function lookup(claude: Anthropic, code: string, state: string): Promise<R
   if (!parsed) { r.error = 'no JSON in reply'; return r }
   const seen = new Set<string>()
   for (const p of parsed.people ?? []) {
-    if (!p?.name || !p.title || !p.agency || !p.sourceUrl || !KINDS.includes(p.kind) || p.name.trim().split(/\s+/).length < 2 || seen.has(p.name.toLowerCase())) continue
+    if (!p?.name || !p.title || !p.agency || !p.sourceUrl || !ACTIVE_KINDS.includes(p.kind) || p.name.trim().split(/\s+/).length < 2 || seen.has(p.name.toLowerCase())) continue
     seen.add(p.name.toLowerCase())
     r.people.push({ ...p, pageChecked: await pageNamesPerson(p.sourceUrl, p.name) })
   }
