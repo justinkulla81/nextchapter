@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
-import { PRIVACY_NOTE, PROGRAM_KIND_BLURB, PROGRAM_KIND_LABEL, programKindOf } from '@/lib/employer/program-wording'
+import { PRIVACY_NOTE, PROGRAM_KIND_BLURB, programKindOf } from '@/lib/employer/program-wording'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 

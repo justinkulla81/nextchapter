@@ -88,7 +88,7 @@ export interface SearchStrategyGuidance {
 /**
  * The member's strategy guidance. The first read is drafted automatically once the goals are in.
  * After that it changes only when the member saves new goals (which clears the cache) or unlocks
- * the next strategy with effort points (`force`, src/lib/effort/points.ts), so a new read always
+ * the next strategy with effort (`force`, src/lib/effort/unlock.ts), so a new read always
  * rests on new work. It is no longer re-drafted on a timer.
  */
 export async function getOrDraftSearchStrategyGuidance(candidateId: string, opts: { force?: boolean } = {}): Promise<SearchStrategyGuidance | null> {

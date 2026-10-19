@@ -1,4 +1,3 @@
-import { VisitPing } from '@/components/effort/VisitPing'
 import { RetuneHost } from '@/components/dashboard/RetuneMoment'
 import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
@@ -174,7 +173,7 @@ async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
 
 // The redesigned part switches (Jobs, Not posted yet, ...), with the same locks as the tab row.
 async function RedesignPartsWithLocks({ profileId }: { profileId: string }) {
-  const [profile, gmailConnected, access] = await Promise.all([getDashboardProfile(), isGmailConnected(profileId), accessFor(profileId)])
+  const [profile, access] = await Promise.all([getDashboardProfile(), accessFor(profileId)])
   return (
     <RedesignParts
       employed={isInWorkMember(profile)}
@@ -269,7 +268,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 <PlaceTabsWithLocks profileId={profile.id} />
               </Suspense>
             )}
-            <VisitPing />
             {children}
           </HardGateGate>
         </div>
