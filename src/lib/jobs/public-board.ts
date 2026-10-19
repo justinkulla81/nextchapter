@@ -5,7 +5,7 @@ import { classifyLocation } from '@/lib/jobs/us-location'
 
 // The homepage job board: an anonymous, unpersonalized search over the same live
 // board members see. No fit score, no ranking by who you are — newest first, then
-// the words you typed. Personalization needs an account (see HomepageJobBoard).
+// the words you typed. Personalization needs an account (see the /jobs page).
 //
 // Reads the narrow BoardLightRow copy (see board-light-rows.ts), then checks the
 // handful of rows it returns against ExclusiveJobPosting for the two things the

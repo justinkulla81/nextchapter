@@ -47,6 +47,15 @@ describe('redesigned menu', () => {
     expect(redesignPlaceForPath('/dashboard/profile/personal')?.key).toBe('account')
   })
 
+  it('has one market report: the Market tab opens it, and the market pages stay under it', () => {
+    const jobs = REDESIGN_PLACES.find((p) => p.key === 'jobs')!
+    const tab = jobs.tabs.find((t) => t.href === '/dashboard/market-reality')!
+    expect(tab.label).toBe('Your market report')
+    expect(tab.alsoMatches).toEqual(expect.arrayContaining(['/dashboard/market', '/dashboard/market-intelligence']))
+    expect(jobs.tabs.filter((t) => /market/.test(t.href) && !/local/.test(t.href))).toHaveLength(1)
+    expect(redesignPlaceForPath('/dashboard/market')?.key).toBe('jobs')
+  })
+
   it('shows Finances and benefits unless the member said no to money help', () => {
     expect(redesignPlacesFor({ moneyHelp: true }).some((p) => p.key === 'money')).toBe(true)
     expect(redesignPlacesFor({ moneyHelp: null }).some((p) => p.key === 'money')).toBe(true)

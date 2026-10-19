@@ -49,9 +49,11 @@ export async function reconcileVerifiedActions<T extends ReconcilableAction>(
   ])
   if (!profile) return actions
 
+  // jobsAppliedBucket and interviewsReceivedCount were asked only in the classic onboarding. The short question
+  // bundles do not ask them (real tracked activity replaces them, and the Google reveal counts them), so they
+  // are not required here: a member on that flow would otherwise never finish this action. Members from the
+  // classic flow have both answered anyway, so nothing changes for them.
   const optionalQuestionsAnswered = [
-    profile.jobsAppliedBucket,
-    profile.interviewsReceivedCount,
     profile.networkingLevel,
     profile.learnedNewSkillsLevel,
     profile.triedPartTimeOrConsulting,

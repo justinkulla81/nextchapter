@@ -13,7 +13,7 @@ export function ComparisonCtaLink({ competitorSlug }: { competitorSlug: string }
     <Link
       href="/rfp-template"
       onClick={() => posthog?.capture('comparison_page_rfp_cta_clicked', { competitorSlug })}
-      className="mt-6 inline-flex items-center justify-center rounded-md bg-success px-6 py-3 text-sm font-medium text-white hover:bg-success-hover"
+      className="mt-6 inline-flex items-center justify-center rounded-md bg-action px-6 py-3 text-sm font-medium text-action-foreground hover:brightness-95"
     >
       Get the RFP template
     </Link>

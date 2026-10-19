@@ -36,7 +36,7 @@ export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' })
         <Link href="/for-organizations" className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block">
           For organizations →
         </Link>
-        <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
+        <Button nativeButton={false} size="default" variant="outline" render={<Link href="/auth/login" />}>
           Log in
         </Button>
       </nav>
@@ -72,7 +72,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             href="/onboarding/desire"
             event="about_cta_clicked"
             properties={{ cta: 'footer_get_grade', page }}
-            className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+            className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
           >
             Get your Market Reality Assessment
           </TrackedLink>

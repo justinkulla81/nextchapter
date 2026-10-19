@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
+import posthog from 'posthog-js'
 import { cn } from '@/lib/utils'
 import { loadNativeApplyPreview, submitNativeApplication, type NativeApplyPreview } from '@/app/dashboard/jobs/apply-actions'
 import { SHORT_ANSWER_MAX } from '@/lib/jobs/native-apply'
@@ -24,6 +25,8 @@ export function NativeApply({ postingId, size = 'default' }: { postingId: string
   const [resumeId, setResumeId] = useState<string | null>(null)
   const [answers, setAnswers] = useState(DEFAULT_QUESTIONS.map((question) => ({ question, answer: '' })))
   const [confirmed, setConfirmed] = useState(false)
+  // Explicit choice each time; never remembered, never on by default.
+  const [attachDossier, setAttachDossier] = useState(false)
   const [loading, startLoading] = useTransition()
   const [sending, startSending] = useTransition()
 
@@ -42,12 +45,17 @@ export function NativeApply({ postingId, size = 'default' }: { postingId: string
     })
   }
 
+  function chooseDossier(attached: boolean) {
+    setAttachDossier(attached)
+    posthog.capture('dossier_attach_chosen', { jobId: postingId, attached })
+  }
+
   function send() {
     if (!preview) return
     setError(null)
     startSending(async () => {
       try {
-        const result = await submitNativeApplication({ postingId, resumeId, answers, confidentialConfirmed: confirmed })
+        const result = await submitNativeApplication({ postingId, resumeId, answers, confidentialConfirmed: confirmed, attachDossier })
         if (!result.ok) return setError(result.error)
         setSent(true)
       } catch {
@@ -156,6 +164,24 @@ export function NativeApply({ postingId, size = 'default' }: { postingId: string
           </select>
         )}
         {chosen && <p className="text-xs text-muted-foreground">Attaching: {chosen.name}</p>}
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <legend className="font-medium text-foreground">Your dossier</legend>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant={!attachDossier ? 'default' : 'outline'} aria-pressed={!attachDossier} onClick={() => chooseDossier(false)}>
+            Don&apos;t attach my dossier
+          </Button>
+          <Button type="button" size="sm" variant={attachDossier ? 'default' : 'outline'} aria-pressed={attachDossier} onClick={() => chooseDossier(true)}>
+            Attach my dossier
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {attachDossier
+            ? 'A private link to your dossier goes with this application. It expires in 30 days and you can revoke it any time in Account and privacy.'
+            : 'Your dossier stays with you unless you attach it. Attaching shows the poster the proof behind your résumé.'}
+        </p>
+        {preview.candidatePlus && <p className="text-xs text-muted-foreground">The poster will also see that you are a Candidate+ member.</p>}
       </fieldset>
 
       <fieldset className="space-y-3">

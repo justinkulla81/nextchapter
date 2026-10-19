@@ -51,7 +51,7 @@ export function ReportPdfGateDialog({
               href={pdfHref}
               download={filename}
               onClick={() => posthog?.capture('report_pdf_downloaded', { gated: true })}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-hover"
+              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-2.5 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               Download the PDF →
             </a>
@@ -86,7 +86,7 @@ export function ReportPdfGateDialog({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <button
                   type="submit" disabled={pending}
-                  className={`inline-flex h-11 items-center justify-center rounded-lg bg-success px-5 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+                  className={`inline-flex h-11 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
                 >
                   {pending ? 'Sending…' : 'Email me the PDF →'}
                 </button>

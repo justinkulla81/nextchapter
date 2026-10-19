@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { HomepageJobBoard } from '@/components/home/HomepageJobBoard'
+import { HomeJobSearch } from '@/components/home/HomeJobSearch'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
@@ -58,9 +58,21 @@ export function NewHome() {
             See the other 13
           </Link>
         </p>
+        <div className="mx-auto mt-10 max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
+          <video
+            controls
+            // "none": "metadata" still pulled ~360 KB on load, delaying the hero text (LCP) on
+            // mobile. The video loads when played.
+            preload="none"
+            className="w-full"
+            src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/homepage-explainer.mp4"
+          >
+            Your browser doesn&apos;t support embedded video.
+          </video>
+        </div>
       </section>
 
-      <HomepageJobBoard />
+      <HomeJobSearch />
 
       <HomeLearnMore />
 

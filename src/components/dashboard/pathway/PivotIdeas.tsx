@@ -1,20 +1,24 @@
 import { addSkillToBuild, saveExploredTarget, updateIndustryInterest } from '@/app/dashboard/pivot-paths/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { pivotIdeas } from '@/lib/journey/pivot-ideas'
+import { POSITIVE_TIER_LABEL } from '@/lib/journey/pivot-parts'
 
 type Ideas = ReturnType<typeof pivotIdeas>
 
 // For people who are thinking about a change and do not know where to start, or who feel nervous about it.
 // Realistic options from what they already have. Looking is free: nothing here changes their job search.
-export function PivotIdeas({ ideas, from }: { ideas: Ideas; from: string | null }) {
+export function PivotIdeas({ ideas, from, positive = false }: { ideas: Ideas; from: string | null; positive?: boolean }) {
   return (
     <section className="space-y-4 rounded-lg border border-border p-4" aria-labelledby="ideas-heading">
       <div>
         <h2 id="ideas-heading" className="text-lg font-semibold tracking-tight">
-          Not sure where to start?
+          {positive ? 'Roles you could do' : 'Not sure where to start?'}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Thinking about a change is not a decision, and plenty of people feel nervous about it. These are realistic places to look, based on what you already have
+          {positive
+            ? 'Thinking about a change is not a decision, and plenty of people explore before they choose.'
+            : 'Thinking about a change is not a decision, and plenty of people feel nervous about it.'}{' '}
+          These are realistic places to look, based on what you already have
           {from ? ` as someone in ${from}` : ''}. Add the ones that catch your eye to your radar, and come back whenever you like.
         </p>
       </div>
@@ -26,7 +30,7 @@ export function PivotIdeas({ ideas, from }: { ideas: Ideas; from: string | null 
             {ideas.functions.map((f) => (
               <div key={f.function} className="space-y-2 rounded-md border border-border p-3 text-sm">
                 <p className="font-medium">
-                  {f.function} <span className="font-normal text-muted-foreground">· {f.headline.toLowerCase()}</span>
+                  {f.function} <span className="font-normal text-muted-foreground">· {(positive ? POSITIVE_TIER_LABEL[f.tier] : f.headline).toLowerCase()}</span>
                 </p>
                 <p className="text-muted-foreground">{f.why}</p>
                 <p className="text-muted-foreground">Smallest first step: {f.smallestStep}</p>

@@ -16021,3 +16021,29 @@ model CareerEvent {
   @@index([candidateId])
   @@unique([candidateId, sourceRef])
 }
+
+// A model's written review of one AI work sample (src/lib/evidence/ai-sample-review.ts), shown only to the
+// member who wrote it: never to recruiters or employers, and never part of the evidence score. One row per
+// review; the weekly cap and the monthly budget are counted from here. Plain ids, no relations: the foreign
+// keys (cascade on delete) live in the hand-applied SQL, prisma/manual/2026-10-19-ai-sample-review.sql.
+model AiSampleReview {
+  id          String   @id @default(cuid())
+  candidateId String
+  sampleId    String
+  model       String
+  // 'needs_work' | 'solid' | 'strong'
+  verdict     String
+  // [{ key, met, reason }] in the sample type's check order (ai-work-samples.ts)
+  checks      Json
+  summary     String
+  suggestions String[] @default([])
+  inputTokens  Int
+  outputTokens Int
+  // Cost in millionths of a dollar (tokens x $/MTok), so a sum is exact.
+  costMicros  Int
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+  @@index([sampleId, createdAt])
+  @@index([createdAt])
+}

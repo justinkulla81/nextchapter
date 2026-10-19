@@ -16,6 +16,9 @@ import { PreparedForField } from '@/components/dashboard/PreparedForField'
 import { StatusRow } from '@/components/ui/status-icon'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Logo } from '@/components/Logo'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
 
 // Two things this document deliberately never shows, per the spec's own
 // honesty rule (a false claim discovered once destroys the whole effect):
@@ -77,9 +80,30 @@ function DossierSkeleton() {
 export default async function RecruiterReportPage() {
   const profile = await getDashboardProfile()
   const data = await getRecruiterReportData(profile.id)
+  const redesign = isRedesignOn(profile.email)
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
+      {redesign ? (
+        // The redesign (docs/candidate-redesign.md): one headline, print as the one action. Refreshing the written
+        // sections sits behind Show more. The document below is the thing you hand over, so it stays as it is.
+        <div className="space-y-4 print:hidden">
+          <PageHeader
+            title="What recruiters see"
+            intro="One document with the proof behind your search: references, work samples and your effort. Hand it to a hiring manager, recruiter or coach. It is never sent unless you send it."
+            action={<PrintReportButton />}
+          />
+          <ShowMore page="recruiter_report" label="Refresh the written sections">
+            {/* Regenerates the two AI-written sections. They are cached after the first build. */}
+            <form action={regenerateDossierSections} className="space-y-2">
+              <p className="text-sm text-muted-foreground">Rewrites the proof-point follow-ups and the job-reaction pattern from your latest activity.</p>
+              <SubmitButton variant="outline" pendingLabel="Refreshing…">
+                Refresh AI sections
+              </SubmitButton>
+            </form>
+          </ShowMore>
+        </div>
+      ) : (
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Certified Executive Dossier</h1>
@@ -102,6 +126,7 @@ export default async function RecruiterReportPage() {
           <PrintReportButton />
         </div>
       </div>
+      )}
 
       <div className="print:hidden">
         <Suspense fallback={<DossierSkeleton />}>

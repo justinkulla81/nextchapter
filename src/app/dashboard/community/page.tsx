@@ -55,6 +55,12 @@ import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialMo
 import { CommunityLeaderboardModule } from '@/components/dashboard/CommunityLeaderboardModule'
 import { computeBoard } from '@/lib/leaderboard/queries'
 import { cn } from '@/lib/utils'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { communityIntro } from '@/lib/redesign/network-pages'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { NetworkParts } from '@/components/network/NetworkParts'
 import type { Prisma, PrivacyTier } from '@prisma/client'
 
 export const metadata: Metadata = { title: 'NextChapter Community' }
@@ -151,12 +157,24 @@ export default async function SupportNetworkPage({
   // Computed off the profile snapshot already in hand, before CommunityTab's
   // unconditional communityLastViewedAt reset fires later in this same
   // request — reading it after that reset would always show zero.
+  // The redesign (docs/candidate-redesign.md): one headline per tab, the circle switches, the same content below.
+  // Rankings, filters and the encouragement form move behind Show more inside the community tab.
+  const redesign = isRedesignOn(profile.email)
+  if (redesign) captureServerEvent(profile.id, 'community_viewed', { tab, relation: params.relation ?? null })
+
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">NextChapter Community</h1>
-        <PageHeaderBoxes pageKey="community" candidateId={profile.id} />
-      </div>
+      {redesign ? (
+        <div className="space-y-4">
+          <PageHeader title={tab === 'messages' ? 'Messages' : 'Industry and function'} intro={communityIntro(tab)} />
+          {tab === 'community' && <NetworkParts current="industry" />}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold tracking-tight">NextChapter Community</h1>
+          <PageHeaderBoxes pageKey="community" candidateId={profile.id} />
+        </div>
+      )}
 
       {tab === 'messages' ? (
         <MessagesTab
@@ -179,6 +197,7 @@ export default async function SupportNetworkPage({
           targetRoleType={profile.targetRoleType}
           currentCity={profile.currentCity}
           searchParams={params}
+          redesign={redesign}
         />
       )}
     </div>
@@ -574,6 +593,7 @@ async function CommunityTab({
   targetRoleType,
   currentCity,
   searchParams,
+  redesign,
 }: {
   candidateId: string
   privacyTier: PrivacyTier
@@ -586,6 +606,7 @@ async function CommunityTab({
   targetRoleType: string | null
   currentCity: string | null
   searchParams: SearchParams
+  redesign: boolean
 }) {
   // §14: "Gate: any qualifying badge — Connected does not qualify." Replaces
   // the old privacyTier-only gate (community/access.ts's own comment
@@ -765,11 +786,24 @@ async function CommunityTab({
   const activeCommunity = communities.find((c) => c.communityId === searchParams.community) ?? null
   const feed = [...communityFeed, ...marketBrief]
 
+  // Sending encouragement is a secondary feature, not the reason someone comes to Community.
+  const encouragement = encouragementGivingOptIn ? (
+    <SendEncouragementForm />
+  ) : (
+    <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
+      Want to send encouragement to someone here having a hard week?{' '}
+      <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
+        Opt in from Privacy settings
+      </Link>
+      .
+    </div>
+  )
+
   return (
     <div className="space-y-8">
       {confidentialSearchMode && <ConfidentialModeIndicator />}
 
-      {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
+      {leaderboardTeaser && !redesign && <CommunityLeaderboardModule result={leaderboardTeaser} />}
 
       {unreadNotes.length > 0 && (
         <div className="space-y-3">
@@ -852,7 +886,7 @@ async function CommunityTab({
           </details>
         )}
 
-        <AlumniNetworkOptions candidateId={candidateId} />
+        {!redesign && <AlumniNetworkOptions candidateId={candidateId} />}
 
         <div className="border-b border-border px-4 py-2">
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Feed</p>
@@ -873,19 +907,16 @@ async function CommunityTab({
         )}
       </div>
 
-      {/* Sending encouragement is a secondary feature, not the reason
-          someone comes to Community — moved below the feed so it doesn't
-          compete with actual posts for the top of the page. */}
-      {encouragementGivingOptIn ? (
-        <SendEncouragementForm />
+      {redesign ? (
+        <ShowMore page="community" label="Groups to join, rankings and encouragement">
+          <div className="rounded-2xl border border-border">
+            <AlumniNetworkOptions candidateId={candidateId} />
+          </div>
+          {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
+          {encouragement}
+        </ShowMore>
       ) : (
-        <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
-          Want to send encouragement to someone here having a hard week?{' '}
-          <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
-            Opt in from Privacy settings
-          </Link>
-          .
-        </div>
+        encouragement
       )}
     </div>
   )

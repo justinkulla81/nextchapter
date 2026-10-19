@@ -9,11 +9,16 @@ import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeMa
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { nextPortfolioStep } from '@/lib/redesign/jobs-pages'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { candidatePlusRequirements } from '@/lib/unlocks/ladder'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
@@ -94,10 +99,11 @@ export default async function PortfolioPage() {
   })
   const completedAssetCount = coreAssets.filter((a) => a.done).length
 
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">My Portfolio</h1>
+        <PageHeaderBoxes pageKey="portfolio" candidateId={profile.id} />
         <div className="rounded-lg border border-border p-3">
           <p className="text-sm font-medium text-foreground tabular-nums">
             {completedAssetCount} of {coreAssets.length} core assets built
@@ -114,136 +120,15 @@ export default async function PortfolioPage() {
           </ul>
         </div>
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <div className="space-y-4">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Your Assets
+          Reports &amp; Dossiers
         </h2>
-        <p className="text-sm text-muted-foreground">
-          What you can hand to a recruiter, hiring manager, or coach — your prep for tough
-          interview questions lives on{' '}
-          <Link href="/dashboard/interview-prep" className="underline">
-            Interview Prep
-          </Link>{' '}
-          instead.
-        </p>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Resume</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            {latestResume ? (
-              <p className="text-sm text-foreground">
-                {latestResume.fileName}
-                {profile.resumes.length > 1 && (
-                  <span className="text-muted-foreground"> · {profile.resumes.length} versions</span>
-                )}
-              </p>
-            ) : (
-              <div>
-                <p className="text-sm text-muted-foreground">No resume uploaded yet.</p>
-                <p className="text-xs font-medium text-muted-foreground tabular-nums">
-                  +{RESUME_UPDATE_POINTS} pts toward this week&apos;s goal when you update it
-                </p>
-              </div>
-            )}
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/resume" />}>
-              {latestResume ? 'View versions' : 'Upload resume'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Cover Letters</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-foreground">
-              {coverLettersCount > 0
-                ? `${coverLettersCount} generated, one per job you've applied to`
-                : "Generated automatically as you apply — none yet"}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/find-my-job" />}>
-              {coverLettersCount > 0 ? 'View' : 'Create for a specific job'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">My Narrative</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {narratives.length > 0
-                ? `${narratives.length} narrative${narratives.length === 1 ? '' : 's'} drafted — your core story, adapted for LinkedIn, resumes, and interviews.`
-                : "Your core story, adapted for LinkedIn, resumes, and interviews — not drafted yet."}
-            </p>
-            <Button nativeButton={false} render={<Link href="/dashboard/marketing-plan" />} size="sm">
-              {narratives.length > 0 ? 'Manage' : 'Draft it'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Work Samples</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {profile.workSamples.length > 0
-                ? `${profile.workSamples.length} sample${profile.workSamples.length === 1 ? '' : 's'} uploaded`
-                : 'Real work product that backs up your story.'}
-            </p>
-            <Button
-              nativeButton={false}
-              size="sm"
-              variant="outline"
-              render={<Link href="/dashboard/work-samples" />}
-            >
-              {profile.workSamples.length > 0 ? 'View' : 'Add a sample'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">References</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {completedReferenceCount > 0
-                ? `${completedReferenceCount} / 3 completed`
-                : "Someone else's word for it — none received yet."}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>
-              {completedReferenceCount > 0 ? 'View' : 'Request a reference'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Learning Credentials
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {learningBadgeCount > 0
-                ? `${learningBadgeCount} credential${learningBadgeCount === 1 ? '' : 's'} logged`
-                : 'A course, certification, or project worth mentioning.'}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/learning" />}>
-              {learningBadgeCount > 0 ? 'View' : 'Add a credential'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <MoreDetails summary="Reports, your dossier and Candidate+">
-      <div className="space-y-4">
 
         <Card>
           <CardHeader>
@@ -405,8 +290,172 @@ export default async function PortfolioPage() {
 
         {!profile.coachId && <CoachingCTACard />}
       </div>
+    </>
+  )
 
-      </MoreDetails>
+  const block2 = (
+    <>
+      <div className="space-y-4">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Your Assets
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          What you can hand to a recruiter, hiring manager, or coach — your prep for tough
+          interview questions lives on{' '}
+          <Link href="/dashboard/interview-prep" className="underline">
+            Interview Prep
+          </Link>{' '}
+          instead.
+        </p>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Resume</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            {latestResume ? (
+              <p className="text-sm text-foreground">
+                {latestResume.fileName}
+                {profile.resumes.length > 1 && (
+                  <span className="text-muted-foreground"> · {profile.resumes.length} versions</span>
+                )}
+              </p>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground">No resume uploaded yet.</p>
+                <p className="text-xs font-medium text-muted-foreground tabular-nums">
+                  +{RESUME_UPDATE_POINTS} pts toward this week&apos;s goal when you update it
+                </p>
+              </div>
+            )}
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/resume" />}>
+              {latestResume ? 'View versions' : 'Upload resume'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Cover Letters</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-foreground">
+              {coverLettersCount > 0
+                ? `${coverLettersCount} generated, one per job you've applied to`
+                : "Generated automatically as you apply — none yet"}
+            </p>
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/find-my-job" />}>
+              {coverLettersCount > 0 ? 'View' : 'Create for a specific job'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">My Narrative</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {narratives.length > 0
+                ? `${narratives.length} narrative${narratives.length === 1 ? '' : 's'} drafted — your core story, adapted for LinkedIn, resumes, and interviews.`
+                : "Your core story, adapted for LinkedIn, resumes, and interviews — not drafted yet."}
+            </p>
+            <Button nativeButton={false} render={<Link href="/dashboard/marketing-plan" />} size="sm">
+              {narratives.length > 0 ? 'Manage' : 'Draft it'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Work Samples</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {profile.workSamples.length > 0
+                ? `${profile.workSamples.length} sample${profile.workSamples.length === 1 ? '' : 's'} uploaded`
+                : 'Real work product that backs up your story.'}
+            </p>
+            <Button
+              nativeButton={false}
+              size="sm"
+              variant="outline"
+              render={<Link href="/dashboard/work-samples" />}
+            >
+              {profile.workSamples.length > 0 ? 'View' : 'Add a sample'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">References</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {completedReferenceCount > 0
+                ? `${completedReferenceCount} / 3 completed`
+                : "Someone else's word for it — none received yet."}
+            </p>
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>
+              {completedReferenceCount > 0 ? 'View' : 'Request a reference'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Learning Credentials
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {learningBadgeCount > 0
+                ? `${learningBadgeCount} credential${learningBadgeCount === 1 ? '' : 's'} logged`
+                : 'A course, certification, or project worth mentioning.'}
+            </p>
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/learning" />}>
+              {learningBadgeCount > 0 ? 'View' : 'Add a credential'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    const step = nextPortfolioStep(coreAssets)
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="My portfolio"
+          intro={
+            step
+              ? `${completedAssetCount} of ${coreAssets.length} core assets built. Next: ${step.label.toLowerCase()}. ${step.why}`
+              : `All ${coreAssets.length} core assets are built. Keep them current and recruiters see your best work.`
+          }
+          action={
+            step ? (
+              <ActionLink href={step.href} kind="primary" event="portfolio_next_step_clicked" props={{ step: step.label, built: completedAssetCount, total: coreAssets.length }}>
+                {step.label}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+        {block2}
+        <ShowMore page="portfolio" label="Show reports and dossiers">
+          {block1}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
     </div>
   )
 }
