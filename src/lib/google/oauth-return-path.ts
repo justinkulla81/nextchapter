@@ -11,9 +11,13 @@ const MAX_AGE_SECONDS = 10 * 60
 // Every return path used by this app's OAuth flows lives under /dashboard —
 // restricting to that prefix (rather than accepting any string starting
 // with '/') keeps an unvalidated query param from ever being able to send
-// the post-connect redirect somewhere unexpected.
-function isSafeReturnPath(path: string | null | undefined): path is string {
-  return !!path && path.startsWith('/dashboard')
+// the post-connect redirect somewhere unexpected. The one exception is the
+// Google reveal at the end of onboarding (src/app/onboarding/google), listed
+// by exact path so nothing else under /onboarding can be used.
+const EXTRA_RETURN_PATHS: readonly string[] = ['/onboarding/google']
+
+export function isSafeReturnPath(path: string | null | undefined): path is string {
+  return !!path && (path.startsWith('/dashboard') || EXTRA_RETURN_PATHS.includes(path))
 }
 
 // Where a /api/auth/*/start route sends the candidate when it stops before

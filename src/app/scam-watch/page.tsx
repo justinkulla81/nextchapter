@@ -66,7 +66,7 @@ export default function ScamWatchPage() {
                 href="/onboarding/desire"
                 event="scam_watch_cta_clicked"
                 properties={{ cta: 'hero_get_started', page: 'scam-watch' }}
-                className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+                className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
                 Get free scam watch
               </TrackedLink>

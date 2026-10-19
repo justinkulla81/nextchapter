@@ -48,6 +48,7 @@ import { buildCaseForYou, type CaseForYou } from './case'
 import { buildProfile, type ProfileGroup } from './profile'
 import { buildLaunchpad, type LaunchStep } from './launchpad'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { menuMode } from '@/lib/journey/menu'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { buildEvaluatorViews, buildObjections, type EvaluatorView, type FirstGlance, type Objection } from './evaluators'
@@ -426,16 +427,17 @@ export async function loadMarketRealityBrief(
   // Pivots, only when the case for a change of direction exists.
   let pivots: PivotSection | null = null
   const movingFunction = !!profile.targetFunction && !!profile.primaryFunction && profile.targetFunction.toLowerCase() !== profile.primaryFunction.toLowerCase()
-  const pivotsNeeded = lowGrade || widenNeeded || profile.isPivoting || movingFunction
+  const pivoting = isPivotingProfile({ ...profile, journey: effectiveJourney(profile) })
+  const pivotsNeeded = lowGrade || widenNeeded || pivoting || movingFunction
   const pivotResult = pivotsNeeded ? await safe('pivot paths', loadPivotPaths(profile)) : null
   if (pivotsNeeded) {
-    const functionNeeded = profile.isPivoting || movingFunction || lowGrade || !!pivotResult?.contraction.contracting
+    const functionNeeded = pivoting || movingFunction || lowGrade || !!pivotResult?.contraction.contracting
     const reasons: string[] = []
     if (widenNeeded && market) reasons.push(`The current target has ${market.openRoles.toLocaleString()} open roles${market.trend ? ` and is trending ${market.trend}` : ''}.`)
     if (lowGrade) reasons.push('The estimated odds per application are low enough that a change of target may return more than more volume.')
     if (pivotResult?.contraction.headline) reasons.push(pivotResult.contraction.headline)
     if (movingFunction) reasons.push(`You told us you want to move from ${profile.primaryFunction} into ${profile.targetFunction}.`)
-    else if (profile.isPivoting && reasons.length === 0) reasons.push('Your profile says you are changing direction.')
+    else if (pivoting && reasons.length === 0) reasons.push('Your profile says you are changing direction.')
     pivots = {
       reasons,
       functions: functionNeeded

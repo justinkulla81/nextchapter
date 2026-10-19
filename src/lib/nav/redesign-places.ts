@@ -48,7 +48,8 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Résumé', '/dashboard/resume', { alsoMatches: ['/dashboard/linkedin', '/dashboard/portfolio'] }),
       tab('Why hire me', '/dashboard/strengths', { alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] }),
       legacy('/dashboard/companies'),
-      legacy('/dashboard/market'),
+      // The one market report (owner, 2026-10-18). The job-market widening page and Market Intelligence stay reachable from it.
+      legacy('/dashboard/market', { label: 'Your market report', href: '/dashboard/market-reality', alsoMatches: ['/dashboard/market', '/dashboard/market-intelligence'] }),
       legacy('/dashboard/pay'),
       legacy('/dashboard/local-market'),
       legacy('/dashboard/interview-prep'),
@@ -64,7 +65,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       { label: 'Early career plan', hrefs: ['/dashboard/early-career'] },
       { label: 'Get ready to apply', hrefs: ['/dashboard/resume', '/dashboard/strengths'] },
       { label: 'Companies', hrefs: ['/dashboard/companies'] },
-      { label: 'Market and pay', hrefs: ['/dashboard/market', '/dashboard/pay', '/dashboard/local-market'] },
+      { label: 'Market and pay', hrefs: ['/dashboard/market-reality', '/dashboard/pay', '/dashboard/local-market'] },
       { label: 'Interviews and reviews', hrefs: ['/dashboard/interview-prep', '/dashboard/review-prep'] },
       { label: 'Offers and raises', hrefs: ['/dashboard/got-hired', '/dashboard/in-work'] },
     ],

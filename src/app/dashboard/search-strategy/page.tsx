@@ -34,11 +34,13 @@ import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetwork
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
 import { OtherSearchStrengthenersForm } from '@/components/dashboard/OtherSearchStrengthenersForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { effectiveJourney, effectiveStage, getJourney } from '@/lib/journey/journey'
 import { CultureFitForm } from '@/components/dashboard/CultureFitForm'
 import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
+import { spineGaps } from '@/lib/personalization/spine'
+import { queueQuickQuestions } from '@/lib/search-strategy/quick-questions'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
@@ -53,6 +55,9 @@ import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
 import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { readMemberIndustries } from '@/lib/profile/industry-reading'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ActionLink } from '@/components/candidate/ActionLink'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -214,12 +219,12 @@ function SearchStrategyGuidanceSkeleton() {
 // SearchStrategyGuidanceCard above instead of this.
 async function StrategyUnlockCard({ candidateId }: { candidateId: string }) {
   const status = await getUnlockStatus(candidateId)
-  captureServerEvent(candidateId, 'unlock_progress_viewed', { points: status.score.total, bar: status.bar.points, unlocked: status.unlocked, workKinds: status.score.workKinds })
+  captureServerEvent(candidateId, 'unlock_progress_viewed', { minutes: status.minutes, bar: status.bar.minutes, unlocked: status.unlocked })
   return (
     <UnlockProgress
       status={status}
       title="Unlock your next strategy and report refresh"
-      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn strategy credits with effort, not time alone."
+      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn it with search effort, not time alone."
       action={unlockNextStrategy}
       buttonLabel="Generate my next strategy"
       pendingLabel="Writing your strategy…"
@@ -537,9 +542,28 @@ export default async function SearchStrategyPage() {
   const wizardPageContent = careerFirst(allWizardContent.filter((el) => keep(String(el.key))), (el: { key: string | null }) => String(el.key)) as typeof allWizardContent
 
   const incomplete = wizardPages.filter((pg) => !pg.items.every((i) => i.complete))
+  // The short, one-at-a-time questions come first; the longer forms stay under "What this rests on".
+  const quickCount = queueQuickQuestions(spineGaps(stageJourney, effectiveStage(profile), profile as unknown as Record<string, unknown>)).length
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      {isRedesignOn(profile.email) ? (
+        <PageHeader
+          title="Your search strategy"
+          intro={
+            searchingJourney
+              ? 'Victoria\u2019s read of where you stand, and the few answers it rests on.'
+              : 'What you want from your career, and how you like to work with us. Job-search questions turn on if you start looking.'
+          }
+          action={
+            incomplete.length > 0 ? (
+              <ActionLink variant="primary" href="#answers" event="search_strategy_answer_clicked" props={{ remaining: incomplete.length, answeredOnce: hasAnsweredOnce }}>
+                {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+      ) : (
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1.5">
           <h1 className="font-serif text-3xl leading-tight font-semibold tracking-tight text-navy">Your search strategy</h1>
@@ -549,12 +573,19 @@ export default async function SearchStrategyPage() {
               : 'What you want from your career, and how you like to work with us. Job-search questions turn on if you start looking.'}
           </p>
         </div>
-        {incomplete.length > 0 && (
-          <a href="#answers" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
-            {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
-          </a>
+        {quickCount > 0 ? (
+          <Link href="/dashboard/search-strategy/questions" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
+            {`Answer ${quickCount} quick ${quickCount === 1 ? 'question' : 'questions'}`}
+          </Link>
+        ) : (
+          incomplete.length > 0 && (
+            <a href="#answers" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
+              {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
+            </a>
+          )
         )}
       </header>
+      )}
 
       {searchingJourney &&
         (hasAnsweredOnce ? (

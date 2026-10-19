@@ -9,11 +9,16 @@ import { DocumentStatusBadge } from '@/components/documents/DocumentStatusBadge'
 import { OpenDocumentButton } from '@/components/documents/OpenDocumentButton'
 import { UploadDocumentForm } from '@/components/documents/UploadDocumentForm'
 import { getMyDocumentUrl } from '@/app/dashboard/documents/actions'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Documents' }
 
 export default async function DocumentsPage() {
   const profile = await getDashboardProfile()
+  const redesign = isRedesignOn(profile.email)
   let requests: Awaited<ReturnType<typeof listCandidateRequests>> = []
   let loadFailed = false
   try {
@@ -23,24 +28,11 @@ export default async function DocumentsPage() {
     loadFailed = true
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
-        <p className="text-muted-foreground">Documents your coach or another person has asked you for. Only the person who asked can see what you upload here.</p>
-      </div>
-
-      {loadFailed ? (
-        <EmptyState icon={FileText} title="We could not load your document requests" description="Reload the page in a moment. If it keeps happening, tell us from the help button." />
-      ) : requests.length === 0 ? (
-        <EmptyState icon={FileText} title="Nobody has asked you for a document" description="When your coach asks for something, like an offer letter or a signed form, it will show up here and we will email you." />
-      ) : (
-        <ul className="space-y-4" aria-label="Document requests">
-          {requests.map((r) => {
+  const renderRequest = (r: (typeof requests)[number]) => {
             const status = isDocumentStatus(r.status) ? r.status : 'REQUESTED'
             const overdue = isOverdue(r.dueAt, status)
             return (
-              <li key={r.id}>
+              <li key={r.id} id={redesign ? `request-${r.id}` : undefined}>
                 <Card>
                   <CardContent className="space-y-3 pt-6">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -76,7 +68,53 @@ export default async function DocumentsPage() {
                 </Card>
               </li>
             )
-          })}
+  }
+
+  if (redesign) {
+    // Documents in the redesign: what you were asked for, with the upload as the action, and the older requests behind one fold.
+    const needsYou = requests.filter((r) => candidateCanUpload(isDocumentStatus(r.status) ? r.status : 'REQUESTED'))
+    const first = needsYou[0]
+    const shown = requests.slice(0, 5)
+    const rest = requests.slice(5)
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Documents"
+          intro="Files your coach or someone else asked you for. Only the person who asked can open what you upload."
+          action={first ? <ActionLink variant="primary" href={`#request-${first.id}`} event="document_upload_started" props={{ requestId: first.id, source: 'documents_header' }}>Upload {first.title}</ActionLink> : undefined}
+        />
+        {loadFailed ? (
+          <EmptyState icon={FileText} title="We could not load your document requests" description="Reload the page in a moment. If it keeps happening, tell us from the help button." />
+        ) : requests.length === 0 ? (
+          <EmptyState icon={FileText} title="Nobody has asked you for a document" description="When your coach asks for something, like an offer letter or a signed form, it will show up here and we will email you." />
+        ) : (
+          <>
+            <ul className="space-y-4" aria-label="Document requests">{shown.map(renderRequest)}</ul>
+            {rest.length > 0 && (
+              <MoreDetails summary={`Show more: ${rest.length} more ${rest.length === 1 ? 'request' : 'requests'}`}>
+                <ul className="space-y-4" aria-label="More document requests">{rest.map(renderRequest)}</ul>
+              </MoreDetails>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
+        <p className="text-muted-foreground">Documents your coach or another person has asked you for. Only the person who asked can see what you upload here.</p>
+      </div>
+
+      {loadFailed ? (
+        <EmptyState icon={FileText} title="We could not load your document requests" description="Reload the page in a moment. If it keeps happening, tell us from the help button." />
+      ) : requests.length === 0 ? (
+        <EmptyState icon={FileText} title="Nobody has asked you for a document" description="When your coach asks for something, like an offer letter or a signed form, it will show up here and we will email you." />
+      ) : (
+        <ul className="space-y-4" aria-label="Document requests">
+          {requests.map(renderRequest)}
         </ul>
       )}
     </div>

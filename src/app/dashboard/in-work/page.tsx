@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadWorkspace } from '@/lib/in-work/workspace-data'
+import { isRedesignOn } from '@/lib/redesign/flag'
 import { InWorkWorkspace, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
 
 export const metadata: Metadata = { title: 'In-work workspace' }
@@ -67,7 +68,7 @@ export default async function InWorkPage({
         </Link>
         .
       </p>
-      <InWorkWorkspace data={data} initialTab={initialTab} />
+      <InWorkWorkspace data={data} initialTab={initialTab} redesign={isRedesignOn(profile.email)} />
     </>
   )
 }

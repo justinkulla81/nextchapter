@@ -1,7 +1,4 @@
-import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
-import { Logo } from '@/components/Logo'
-import { Button } from '@/components/ui/button'
+import { AudienceSection, AudienceShell, Disclosure } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { canonical } from '@/lib/seo/canonical'
@@ -42,85 +39,48 @@ export default async function MembershipPage() {
   ])
 
   return (
-    <div className="flex flex-1 flex-col">
+    <>
       <StructuredData data={jsonLd} />
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/" className="font-medium text-brand hover:text-navy">
-              NextChapter
-            </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <span className="font-medium text-foreground">Higher Education &amp; Membership</span>
-          </nav>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-3xl px-6 py-16 text-center">
-        <p className="text-sm font-semibold tracking-wide text-brand uppercase">Higher Education &amp; Membership</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Never start from zero again.
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-          You just did the hardest professional thing there is. Keep the evidence current so the next time
-          takes weeks, not months.
-        </p>
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/dashboard/membership" />}>
-            Join
-          </Button>
-        </div>
-      </main>
-
-      <div className="border-t border-border bg-off-white py-16">
-        <div className="mx-auto max-w-3xl px-6">
+      <AudienceShell
+        page="membership"
+        parent={{ href: '/', label: 'NextChapter' }}
+        eyebrow="Higher Education and membership"
+        headline="Never start from zero again."
+        subhead="You just did the hardest professional thing there is. Keep the evidence current so the next time takes weeks, not months."
+        primary={{ label: 'Join', href: '/dashboard/membership' }}
+        primaryNote="Free for life once you land. Paid membership adds the extras below."
+        footerLinks={[
+          { href: '/pricing', label: 'Full pricing' },
+          { href: '/dossier', label: 'About the Dossier' },
+        ]}
+      >
+        <AudienceSection title="What you get">
           <div className="grid gap-6 sm:grid-cols-2">
             {BEATS.map((beat) => (
               <div key={beat.lead}>
-                <p className="font-semibold text-navy">{beat.lead}</p>
+                <p className="font-semibold">{beat.lead}</p>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{beat.body}</p>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </AudienceSection>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
-        <h2 className="text-center text-xl font-bold tracking-tight text-navy">A real example from the catalog</h2>
-        <div className="mx-auto mt-6 max-w-md rounded-xl border border-light-gray bg-white p-6 shadow-sm">
-          <p className="text-sm text-muted-foreground">
-            Your target roles ask for FP&amp;A depth.
-          </p>
-          <p className="mt-1 text-base font-medium text-foreground">
-            Kellogg exec-ed is offering members 40% off the Corporate Finance certificate through November —
-            sourced by Priya R.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-12 max-w-md text-center">
-          <p className="font-semibold text-navy">NextChapter Higher Education is free for life once you land.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Landed candidates also qualify for a $500 offer bonus. Membership adds the market check,
-            benefits network, and board listings for{' '}
-            {monthly ? formatUsd(monthly.priceCents) : '—'}/mo
-            {annual && <> or {formatUsd(annual.priceCents)}/yr</>}. Free for 12 months to anyone placed
-            through a Premium outplacement seat.
-          </p>
-        </div>
-
-        <div className="mt-16 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <Link href="/pricing" className="underline underline-offset-4">
-            Full pricing
-          </Link>
-          {' · '}
-          <Link href="/dossier" className="underline underline-offset-4">
-            About the Dossier
-          </Link>
-        </div>
-      </main>
-    </div>
+        <AudienceSection title="Show more" className="space-y-3">
+          <Disclosure title="A real example from the catalog">
+            <p className="text-sm text-muted-foreground">Your target roles ask for FP&amp;A depth.</p>
+            <p className="mt-1 text-base font-medium">
+              Kellogg exec-ed is offering members 40% off the Corporate Finance certificate through November, sourced by Priya R.
+            </p>
+          </Disclosure>
+          <Disclosure title="What membership costs">
+            <p className="text-sm text-muted-foreground">
+              NextChapter Higher Education is free for life once you land. Landed candidates also qualify for a $500 offer bonus.
+              Membership adds the market check, benefits network and board listings for {monthly ? formatUsd(monthly.priceCents) : '—'}/mo
+              {annual && <> or {formatUsd(annual.priceCents)}/yr</>}. Free for 12 months to anyone placed through a Premium outplacement seat.
+            </p>
+          </Disclosure>
+        </AudienceSection>
+      </AudienceShell>
+    </>
   )
 }

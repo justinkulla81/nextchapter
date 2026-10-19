@@ -123,14 +123,14 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - **Employer Culture Ranking** — ranking specific real companies (not just abstract criteria, see Culture Match Tool above) against a candidate's Work Style profile. Needs an employer data layer that doesn't exist yet, and the accuracy/liability bar is similar to the Financial Health Brief.
 - **Real-time salary intelligence** — peer-sourced compensation data by function/level/geography. Note `src/lib/market/` already pulls aggregate market data from Adzuna + BLS for the Hireability Report's market-conditions context; this would be a different, peer-sourced-and-current data source specifically for salary benchmarking, not an extension of the existing module.
 
-## Market Reality Report and strategy credits (not built)
+## Market Reality Report and strategy unlock (not built)
 
 - **Validate the rubric with recruiters** — the ratings, thresholds and evaluator rules in the report are published as "not yet validated". Have 3-5 working executive recruiters and hiring managers review the rubric and a handful of sample reports, then tune. The biggest remaining gap to a Korn Ferry-grade assessment.
 - **Peer benchmarks** — "your tenure/promotion pace vs. others at your level and function". Needs enough members per cohort to be honest; show only above a minimum cohort size.
 - **Grounded narrative** — an LLM pass that rewrites the overall read in a more individual voice while being constrained to the computed facts. Rules-only today so prose can never contradict the numbers.
 - **Real PDF generation** — a server-rendered, paginated PDF (with cover, running footer, page numbers in every browser) emailed on request. Print CSS covers Chrome only today.
 - **Pre-account report preview** — a short, anonymous version of the report from a pasted resume and four answers, as the lead-gen front door, ending in "create an account to see the rest".
-- **Credits meter on Home and Progress, and in emails** — "N credits from your next strategy" in the weekly note and nudge emails, and a small meter on the dashboard home.
-- **Credit values from data** — once there is history, replace the guessed credit values and caps with ones fitted to which activities best predict interviews.
+- **Unlock meter on Home and in emails** — "N minutes from your next strategy" in the weekly note and nudge emails, and a small meter on the dashboard home.
+- **Unlock bar from data** — once there is history, replace the guessed 180 minutes with a bar fitted to how much effort precedes a useful new strategy.
 - **Gmail-derived funnel counts** — fill applications, interviews and offers in the last 30 days from connected Gmail so the onboarding fallback question is skipped.
 - **Report history** — keep dated report versions so members can see the read change over months, not just week to week.

@@ -1,20 +1,24 @@
 import { updateIndustryInterest, updatePivotStance } from '@/app/dashboard/pivot-paths/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
-import { PIVOT_FEELINGS, PIVOT_STANCES, stanceLabel, stanceOf, type PivotDetails, type PivotInterests, type PivotTarget } from '@/lib/journey/pivot'
+import { PIVOT_FEELINGS, PIVOT_STANCES, stanceLabel, stanceOf, type PivotDetails, type PivotFeeling, type PivotInterests, type PivotStance, type PivotTarget } from '@/lib/journey/pivot'
+import { POSITIVE_FEELING_LABEL, POSITIVE_STANCE_LABEL } from '@/lib/journey/pivot-parts'
 
 const month = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+// The redesigned page says every state in the direction of the next step (docs/open-decisions.md, item 11).
+const feelingText = (k: PivotFeeling, positive: boolean) => (positive ? POSITIVE_FEELING_LABEL[k] : PIVOT_FEELINGS.find((f) => f.key === k)?.label ?? k)
+const stanceText = (s: PivotStance, positive: boolean) => (positive ? POSITIVE_STANCE_LABEL[s] : stanceLabel(s))
 const selectClass = 'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground'
 
-function Story({ t }: { t: PivotTarget }) {
+function Story({ t, positive }: { t: PivotTarget; positive: boolean }) {
   const h = (t.history ?? []).slice(-3)
   if (h.length === 0) return null
   return (
     <ul className="space-y-0.5 text-xs text-muted-foreground">
       {h.map((e) => (
         <li key={e.at}>
-          {month(e.at)}: {stanceLabel(e.stance).toLowerCase()}
-          {e.feeling ? `, feeling ${PIVOT_FEELINGS.find((f) => f.key === e.feeling)?.label.toLowerCase()}` : ''}
+          {month(e.at)}: {stanceText(e.stance, positive).toLowerCase()}
+          {e.feeling ? `, feeling ${feelingText(e.feeling, positive).toLowerCase()}` : ''}
           {e.note ? `. "${e.note}"` : ''}
         </li>
       ))}
@@ -22,7 +26,7 @@ function Story({ t }: { t: PivotTarget }) {
   )
 }
 
-function Card({ t }: { t: PivotTarget }) {
+function Card({ t, positive }: { t: PivotTarget; positive: boolean }) {
   const stance = stanceOf(t)
   const aside = stance === 'SET_ASIDE'
   return (
@@ -30,13 +34,13 @@ function Card({ t }: { t: PivotTarget }) {
       <div>
         <h3 className="font-semibold">{t.function}</h3>
         <p className="text-sm text-muted-foreground">
-          {stanceLabel(stance)}
+          {stanceText(stance, positive)}
           {t.since ? ` · since ${month(t.since)}` : ''}
-          {t.feeling ? ` · ${PIVOT_FEELINGS.find((f) => f.key === t.feeling)?.label.toLowerCase()}` : ''}
+          {t.feeling ? ` · ${feelingText(t.feeling, positive).toLowerCase()}` : ''}
         </p>
         <p className="text-xs text-muted-foreground">{PIVOT_STANCES.find((s) => s.key === stance)!.hint}</p>
       </div>
-      <Story t={t} />
+      <Story t={t} positive={positive} />
       <form action={updatePivotStance} className="space-y-2">
         <input type="hidden" name="target" value={t.function} />
         <div className="flex flex-wrap items-end gap-3">
@@ -46,7 +50,7 @@ function Card({ t }: { t: PivotTarget }) {
               <option value="">Skip this</option>
               {PIVOT_FEELINGS.map((f) => (
                 <option key={f.key} value={f.key}>
-                  {f.label}
+                  {positive ? POSITIVE_FEELING_LABEL[f.key] : f.label}
                 </option>
               ))}
             </select>
@@ -77,7 +81,7 @@ function Card({ t }: { t: PivotTarget }) {
                 Save how I feel
               </SubmitButton>
               <SubmitButton size="sm" variant="outline" name="stance" value="SET_ASIDE">
-                Set it aside for now
+                {positive ? 'Save it for later' : 'Set it aside for now'}
               </SubmitButton>
               <a href="/dashboard/search-strategy" className="self-center text-sm font-medium text-brand underline underline-offset-4">
                 I am ready to plan it
@@ -92,7 +96,7 @@ function Card({ t }: { t: PivotTarget }) {
 
 // Everything they are thinking about, in their words, with how it feels and how it has changed.
 // Nothing is deleted: setting an idea aside keeps its story, and they can bring it back.
-export function PivotRadar({ pivot, interests }: { pivot: PivotDetails | null; interests: PivotInterests }) {
+export function PivotRadar({ pivot, interests, positive = false }: { pivot: PivotDetails | null; interests: PivotInterests; positive?: boolean }) {
   const targets = pivot?.targets ?? []
   const active = targets.filter((t) => stanceOf(t) !== 'SET_ASIDE')
   const aside = targets.filter((t) => stanceOf(t) === 'SET_ASIDE')
@@ -108,7 +112,7 @@ export function PivotRadar({ pivot, interests }: { pivot: PivotDetails | null; i
       </div>
       <div className="grid gap-3 lg:grid-cols-2">
         {active.map((t) => (
-          <Card key={t.function} t={t} />
+          <Card key={t.function} t={t} positive={positive} />
         ))}
       </div>
       {industries.filter((i) => !i.setAside).length > 0 && (
@@ -138,10 +142,10 @@ export function PivotRadar({ pivot, interests }: { pivot: PivotDetails | null; i
       )}
       {(aside.length > 0 || industries.some((i) => i.setAside)) && (
         <details className="rounded-lg border border-border p-4">
-          <summary className="cursor-pointer text-sm font-medium">Set aside ({aside.length + industries.filter((i) => i.setAside).length})</summary>
+          <summary className="cursor-pointer text-sm font-medium">{positive ? 'Saved for later' : 'Set aside'} ({aside.length + industries.filter((i) => i.setAside).length})</summary>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {aside.map((t) => (
-              <Card key={t.function} t={t} />
+              <Card key={t.function} t={t} positive={positive} />
             ))}
             {industries
               .filter((i) => i.setAside)

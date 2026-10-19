@@ -15,7 +15,7 @@ export function RfpDownloadButton() {
       <a
         href="/api/rfp-template/download"
         onClick={() => posthog?.capture('rfp_template_downloaded', { format: 'pdf' })}
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-success px-6 py-3 text-sm font-medium text-white hover:bg-success-hover"
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-action px-6 py-3 text-sm font-medium text-action-foreground hover:brightness-95"
       >
         <Download className="size-4" />
         Download the PDF

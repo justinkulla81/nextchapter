@@ -3,8 +3,14 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { SituationForm } from '@/components/onboarding/SituationForm'
+import { BundleShell } from '@/components/onboarding/bundles/BundleShell'
+import { BundleForm } from '@/components/onboarding/bundles/BundleForm'
+import { submitWhereYouAre } from '@/app/onboarding/bundle-actions'
 import { JOURNEY_TO_SITUATION } from '@/lib/constants/onboarding'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { flowOfProfile } from '@/lib/onboarding/flag'
+import { storedAnswers } from '@/lib/onboarding/answers'
+import { usableAnswers } from '@/lib/onboarding/bundles'
 
 export default async function SituationPickerPage() {
   const user = await getCurrentUser()
@@ -27,6 +33,19 @@ export default async function SituationPickerPage() {
     redirect('/dashboard')
   }
 
+  const journey = profile ? effectiveJourney(profile) : null
+
+  // The short question bundles (docs/personalization-audit/bundles.md O1), for members on that flow.
+  // Everyone else gets the classic picker below, untouched.
+  if (flowOfProfile(profile, user?.email) === 'bundles') {
+    const initial = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
+    return (
+      <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} />
+      </BundleShell>
+    )
+  }
+
   // Deliberately NOT redirecting forward just because desireComplete is
   // already true — that would make this step unreachable via the browser
   // Back button or the stepper's own link once answered once, which is
@@ -34,7 +53,6 @@ export default async function SituationPickerPage() {
   // own action already redirects on to /onboarding/resume after a (first or
   // changed) submit, so nothing forward-flow depends on this page
   // self-redirecting on load.
-  const journey = profile ? effectiveJourney(profile) : null
   const initialSituation = journey ? JOURNEY_TO_SITUATION[journey] : null
 
   return (

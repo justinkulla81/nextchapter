@@ -11,8 +11,8 @@ import { generateMarketRealityReport } from '@/lib/reports/market-reality-report
 export type UnlockState = { ok?: true; error?: string } | undefined
 
 /**
- * Generates the member's next search strategy, and refreshes their report with it, once their effort
- * points have earned it. Checked again here, server-side: the button is only shown when unlocked, but
+ * Generates the member's next search strategy, and refreshes their report with it, once their search
+ * effort has earned it. Checked again here, server-side: the button is only shown when unlocked, but
  * the action is callable. The next cycle starts only if the strategy was actually produced, so a failed
  * draft costs nothing. The report refresh (resume rewrites and weekly plan) is best-effort: if it fails
  * the strategy still stands and the report keeps its last version.
@@ -40,7 +40,7 @@ export async function unlockNextStrategy(_prev: UnlockState, _formData: FormData
   }
 
   await startNewCycle(profile.id)
-  captureServerEvent(profile.id, 'next_strategy_generated', { points: status.score.total, bar: status.bar.points, workKinds: status.score.workKinds, reportRefreshed })
+  captureServerEvent(profile.id, 'next_strategy_generated', { minutes: status.minutes, bar: status.bar.minutes, reportRefreshed })
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/market-reality')
   return { ok: true }

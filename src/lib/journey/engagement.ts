@@ -151,7 +151,7 @@ export function unlockSteps(s: EngagementSignals): Step[] {
       key: 'references',
       label: `Ask ${s.referencesTarget - s.requestedReferences} more ${s.referencesTarget - s.requestedReferences === 1 ? 'person' : 'people'} for a reference`,
       why: 'A reference from someone who has worked with you says what a résumé cannot, and it is the strongest proof in your Dossier.',
-      unlocks: 'Your Executive Dossier, A-List jobs and recruiter visibility',
+      unlocks: 'Your Executive Dossier and recruiter visibility',
       href: '/dashboard/references',
     })
   } else if (s.completedReferences < s.referencesTarget) {
@@ -159,7 +159,7 @@ export function unlockSteps(s: EngagementSignals): Step[] {
       key: 'references-follow-up',
       label: 'Follow up on your open reference requests',
       why: `${s.completedReferences} of ${s.referencesTarget} are completed. A short personal note usually gets them back.`,
-      unlocks: 'Your Executive Dossier, A-List jobs and recruiter visibility',
+      unlocks: 'Your Executive Dossier and recruiter visibility',
       href: '/dashboard/references',
     })
   }
