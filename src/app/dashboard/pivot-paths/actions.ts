@@ -9,6 +9,7 @@ import { buildTarget, mergeTarget, moveStance, pivotInterestsOf, pivotOf, stance
 import { getLearningPaths } from '@/lib/journey/learning-paths-data'
 import { markStepDone } from '@/lib/journey/learning-paths'
 import { FUNCTION_PROFILES, PIVOT_REASONS } from '@/lib/journey/pathway'
+import { pivotTargetWrite } from '@/lib/journey/pivot-target'
 import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { ROLES } from '@/lib/pivots/pivot-map'
@@ -92,6 +93,34 @@ export async function saveExploredTarget(formData: FormData): Promise<void> {
   await saveDetails(candidateId, p.journeyDetails, { pivot: { targets, updatedAt: now.toISOString() } })
   captureServerEvent(candidateId, 'pivot_target_saved', { from: p.primaryFunction, to: fn, why: String(formData.get('why') ?? '') || null, revived: !!existing })
   revalidate()
+}
+
+/**
+ * "Make this my target": the function they are moving to. Writes the target (the one source of truth,
+ * src/lib/journey/pivot-target.ts) together with the older isPivoting flag, and puts it on the radar so the
+ * plan and Search Strategy agree. Not a commitment: the route and hours are still chosen on Search Strategy.
+ */
+export async function setTargetFunction(formData: FormData): Promise<void> {
+  const candidateId = await getProfileId()
+  const fn = String(formData.get('target') ?? '')
+  if (!candidateId || !FUNCTION_PROFILES[fn]) return
+  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journeyDetails: true, primaryFunction: true, targetFunction: true, levelRankScore: true } })
+  if (!p) return
+  const now = new Date()
+  const previous = pivotOf(p.journeyDetails)
+  const existing = previous?.targets.find((t) => t.function === fn)
+  const built = mergeTarget(existing, buildTarget(p.primaryFunction, fn, {}, now, (p.levelRankScore ?? 0) >= 60), now)
+  const targets = [...(previous?.targets.filter((t) => t.function !== fn) ?? []), built]
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      ...pivotTargetWrite(fn),
+      journeyDetails: { ...((p.journeyDetails as Record<string, unknown> | null) ?? {}), pivot: { targets, updatedAt: now.toISOString() } } as Prisma.InputJsonValue,
+    },
+  })
+  captureServerEvent(candidateId, 'pivot_target_function_set', { candidateId, from: p.primaryFunction, previousTarget: p.targetFunction, to: fn, tier: built.tier, source: String(formData.get('source') ?? 'pivot_plan') })
+  revalidate()
+  revalidatePath('/dashboard')
 }
 
 async function saveDetails(candidateId: string, current: unknown, patch: Record<string, unknown>) {

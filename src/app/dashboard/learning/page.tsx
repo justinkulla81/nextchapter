@@ -31,6 +31,7 @@ import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardr
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { pickLearnCourses } from '@/lib/redesign/learn-picks'
@@ -200,7 +201,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
         />
       </LearningSection>
 
-      {(profile.isPivoting || effectiveJourney(profile) === 'CAREER_CHANGE') && (
+      {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
         <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
       )}
 

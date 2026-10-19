@@ -1,5 +1,6 @@
 import 'server-only'
 import { skillTerms } from '@/lib/profile/skill-matrix'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { prisma } from '@/lib/prisma'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { PayBenchmarkRow } from '@/lib/outcomes/pay-change-estimate'
@@ -19,7 +20,9 @@ export interface PivotProfile {
   primaryFunction: string | null
   targetFunction: string | null
   highestLevelReached: string | null
+  /** Stored flag, kept in step with targetFunction (src/lib/journey/pivot-target.ts). Read it through isPivotingProfile. */
   isPivoting: boolean
+  journey?: string | null
   currentState: string | null
   remotePreference: string | null
   openToRelocation: boolean
@@ -116,7 +119,7 @@ export async function loadPivotPaths(profile: PivotProfile): Promise<PivotPathsR
     primaryFunction: profile.primaryFunction,
     targetFunction: profile.targetFunction,
     highestLevelReached: profile.highestLevelReached,
-    isPivoting: profile.isPivoting,
+    isPivoting: isPivotingProfile(profile),
     state,
     remotePreference: profile.remotePreference,
     openToRelocation: profile.openToRelocation,
@@ -159,6 +162,7 @@ export const PIVOT_PROFILE_SELECT = {
   targetFunction: true,
   highestLevelReached: true,
   isPivoting: true,
+  journey: true,
   currentState: true,
   remotePreference: true,
   openToRelocation: true,
