@@ -4,7 +4,7 @@ import path from 'path'
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
-vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map() }))
+vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map(), getStillListedDirect: async () => new Map() }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({}) }))
 
 import {
