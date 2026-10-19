@@ -15,6 +15,9 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LearningBadgeList, BADGE_TYPE_LABEL } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
+import { aiGapCourseItems } from '@/lib/redesign/learn-ai-gap'
+import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
+import { getActiveCourses } from '@/lib/learning/courses'
 import { AiSkillGapSection } from '@/components/dashboard/learning/AiSkillGapSection'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
 import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
@@ -112,12 +115,23 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
   const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
 
   if (redesign) {
+    // AI skills the member's best-fit employers ask for and the member lacks, each with a tagged course and the reason.
+    const [aiGap, catalog] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses()])
+    const aiGapItems = aiGap ? aiGapCourseItems(aiGap.rows, aiGap.employersWithSkillData, catalog) : []
     const picks = pickLearnCourses(
-      [...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
+      [...aiGapItems, ...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
       completedTitles,
       enrolledTitles,
     )
-    captureServerEvent(profile.id, 'learn_home_viewed', { hasFeatured: !!picks.featured, featuredHasReason: !!picks.featured?.rationale, moreCount: picks.more.length, completedCount: badges.length })
+    const aiTitles = new Set(aiGapItems.map((i) => i.title))
+    captureServerEvent(profile.id, 'learn_home_viewed', {
+      hasFeatured: !!picks.featured,
+      featuredHasReason: !!picks.featured?.rationale,
+      featuredIsAiGap: !!picks.featured && aiTitles.has(picks.featured.title),
+      aiGapCourses: aiGapItems.length,
+      moreCount: picks.more.length,
+      completedCount: badges.length,
+    })
     return (
       <div className="space-y-8">
         <Suspense fallback={null}>
