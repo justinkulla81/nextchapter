@@ -2,7 +2,7 @@ import { NOT_CASUAL_WHERE } from '@/lib/journey/intensity'
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendDailyActionEmail } from '@/lib/email/send-daily-action-email'
 
@@ -23,7 +23,7 @@ export async function runDailyNudge(introCopy: string | null, eligiblePrivacyTie
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'DAILY_NUDGE')) continue
       if (await hasAlreadySentToday(candidate.id, 'DAILY_NUDGE')) continue
 
       const result = await sendDailyActionEmail(candidate.id, introCopy)

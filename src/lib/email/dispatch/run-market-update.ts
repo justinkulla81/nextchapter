@@ -1,7 +1,7 @@
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCandidateEmail } from '@/lib/email/send-market-digest-candidate'
@@ -36,7 +36,7 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'MARKET_UPDATE')) continue
       if (await hasAlreadySentToday(candidate.id, 'MARKET_UPDATE')) continue
 
       const marketConditions = await getMarketConditions({

@@ -18,11 +18,17 @@ const CONCURRENCY = 4
 const DEADLINE_MS = 240_000
 
 // Job Search Daily — every day at 12:00 UTC (8am ET), an hour ahead of the
-// weekday-rotation email from candidate-email-dispatch, which it's sent on
-// top of (founder decision, 2026-10-07). Own opt-out flag, own send-log key.
+// weekday-rotation email from candidate-email-dispatch. To keep a member to
+// about one email a day it only goes out when there's something to say AND
+//  - on a day the rotation email also goes out, only if the top item is urgent
+//    (something due or owed), and
+//  - for Essentials members, only if urgent and at most once a week.
+// Own opt-out flag, own send-log key.
 export const GET = withCronRun('job-search-daily', async () => {
 
   const breakCutoff = new Date(Date.now() - BREAK_ANSWER_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  // Does the weekly rotation send something today (an active row for this weekday)?
+  const rotationToday = (await prisma.candidateEmailSchedule.count({ where: { dayOfWeek: new Date().getUTCDay(), isActive: true } })) > 0
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
@@ -57,6 +63,7 @@ export const GET = withCronRun('job-search-daily', async () => {
   const startedAt = Date.now()
   let sent = 0
   let skippedNothingNew = 0
+  let skippedNotUrgent = 0
   let failed = 0
   let skippedForTime = 0
   let next = 0
@@ -72,9 +79,21 @@ export const GET = withCronRun('job-search-daily', async () => {
       }
       try {
         if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) continue
-        const result = await sendJobSearchDaily(candidate.id)
+        const essentials = candidate.notificationTier === 'ESSENTIALS'
+        if (essentials) {
+          const lastWeek = await prisma.jobSearchDailySend.findFirst({
+            where: { candidateId: candidate.id, sentAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+            select: { id: true },
+          })
+          if (lastWeek) {
+            skippedNotUrgent++
+            continue
+          }
+        }
+        const result = await sendJobSearchDaily(candidate.id, { onlyIfUrgent: essentials || rotationToday })
         if (result.sent) sent++
         else if (result.reason === 'nothing new') skippedNothingNew++
+        else if (result.reason === 'not urgent') skippedNotUrgent++
       } catch (error) {
         failed++
         console.error('Job Search Daily failed for candidate', candidate.id, error)
@@ -88,13 +107,14 @@ export const GET = withCronRun('job-search-daily', async () => {
     checked: eligible.length,
     sent,
     skippedNothingNew,
+    skippedNotUrgent,
     failed,
     skippedForTime,
   })
   // Candidates left unsent make the run FAILED so the job watchdog emails about
   // it. Re-running by hand is safe: anyone already sent today is skipped.
   return NextResponse.json(
-    { checked: eligible.length, sent, skippedNothingNew, failed, skippedForTime },
+    { checked: eligible.length, sent, skippedNothingNew, skippedNotUrgent, failed, skippedForTime },
     { status: skippedForTime > 0 ? 500 : 200 }
   )
 })

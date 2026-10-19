@@ -18,6 +18,7 @@ interface WeeklyGoalAssignedEmailProps {
   gapSummary: string | null
   completedLastWeek: string[]
   thisWeekPlan: string[]
+  firstStep?: string | null
   dashboardUrl: string
   marketRealityReportUrl: string
   unsubscribeUrl: string
@@ -108,6 +109,7 @@ export default function WeeklyGoalAssignedEmail({
   gapSummary,
   completedLastWeek,
   thisWeekPlan,
+  firstStep = null,
   dashboardUrl,
   marketRealityReportUrl,
   unsubscribeUrl,
@@ -161,6 +163,12 @@ export default function WeeklyGoalAssignedEmail({
       ) : (
         <p style={{ marginTop: '4px' }}>
           Already picked for you and ready on your dashboard — no setup needed, just get started.
+        </p>
+      )}
+
+      {firstStep && (
+        <p style={{ marginTop: '16px' }}>
+          <strong>Start with:</strong> {firstStep}
         </p>
       )}
 

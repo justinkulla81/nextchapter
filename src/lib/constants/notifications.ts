@@ -11,7 +11,7 @@ export const NOTIFICATION_TIERS: Array<{
     value: 'FULL',
     label: 'Full',
     description:
-      'Daily nudge every day, a Friday check-in on your weekly progress, and a weekly Community & Coaching digest — plus your Market Reality Report and any reminder emails.',
+      'Your Monday plan, a Tuesday market update, a Thursday check-in on where you stand, a Sunday week-in-review, and a daily job email whenever there is something new — plus your Market Reality Report and any reminder emails.',
     preview: 'Everything, as it happens',
     recommended: true,
   },
@@ -19,14 +19,14 @@ export const NOTIFICATION_TIERS: Array<{
     value: 'ESSENTIALS',
     label: 'Essentials',
     description:
-      'Daily nudge twice a week (Monday and Thursday) instead of every day — still includes the Friday check-in and weekly digest.',
+      'Two emails a week (Monday plan, Thursday check-in), plus a job email only when something is urgent — and your Market Reality Report and any reminder emails.',
     preview: 'Twice a week, not every day',
   },
   {
     value: 'MINIMAL',
     label: 'Minimal',
     description:
-      "No recurring nudge, no Friday check-in, no weekly digest — you'll still get your Market Reality Report and any reminder emails.",
+      "No recurring emails — you'll still get your Market Reality Report and any reminder emails.",
     preview: 'Just the essentials, no recurring nudges',
   },
 ]

@@ -28,6 +28,7 @@ export const GET = withCronRun('fresh-job-alerts', async () => {
       deactivatedAt: null,
       freshJobAlertsOptedOut: false,
       jobSearchDailyOptedOut: false,
+      notificationTier: { not: 'MINIMAL' },
     },
     select: {
       id: true,

@@ -1,7 +1,7 @@
 import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendWeeklyGoalAssignedEmail } from '@/lib/email/send-weekly-goal-assigned'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -59,7 +59,7 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'MORNING_MOTIVATION')) continue
       if (await hasAlreadySentToday(candidate.id, 'MORNING_MOTIVATION')) continue
 
       const currentSprint = await prisma.weeklySprint.findUnique({
