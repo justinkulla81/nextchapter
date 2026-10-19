@@ -14,6 +14,8 @@ import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { loadMarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
+import { buildWeeklyChange, readStateOf } from '@/lib/reports/market-reality-brief/weekly-change'
+import { previousReadState, saveReadState } from '@/lib/reports/market-reality-brief/read-state-store'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PrintFrame } from '@/components/market-reality/report-ui'
 import { Cover, ExecutiveSummary, BasisSection } from '@/components/market-reality/summary-sections'
@@ -30,6 +32,7 @@ import {
   MethodNotes,
   RubricSection,
   SharpenPanel,
+  WhatChangedCard,
   RequirementsSection,
   ResumeSection,
   SkillsSection,
@@ -97,8 +100,17 @@ export default async function MarketRealityReportPage({
     suggestedActions,
   })
 
+  // What moved since the last saved read. Saved after the response, so a slow or missing table never
+  // holds the page up; the latest view in a week is the read that week keeps.
+  const weekStart = getMondayOfWeek(new Date())
+  const prevRead = await previousReadState(profile.id, weekStart)
+  const currentRead = readStateOf(brief)
+  const change = prevRead ? buildWeeklyChange(prevRead.state, currentRead, brief.hiringCase, prevRead.weekStartDate.toISOString()) : null
+  after(() => saveReadState(profile.id, weekStart, currentRead))
+
   after(() =>
     captureServerEvent(profile.id, 'market_reality_report_viewed', {
+      changedSinceLastWeek: change ? change.hasChange : null,
       grade: brief.summary.grade,
       assessments: Object.fromEntries(brief.summary.scorecard.map((r) => [r.dimension, r.assessment])),
       priorities: brief.summary.priorities.map((p) => p.key),
@@ -159,6 +171,7 @@ export default async function MarketRealityReportPage({
       <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-4 print:border-0 print:p-0 print:[zoom:0.75]">
         <Cover brief={brief} />
         <ExecutiveSummary brief={brief} />
+        <WhatChangedCard change={change} brief={brief} />
         <SharpenPanel brief={brief} />
         <HiringCaseSection brief={brief} />
         <EvaluatorSection brief={brief} />

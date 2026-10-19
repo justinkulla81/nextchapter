@@ -9,6 +9,7 @@ import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/ev
 import { hiringCaseCounts, HIRING_STATUS_LABEL, type HiringStatus } from '@/lib/reports/market-reality-brief/hiring-case'
 import { ADEQUATE_AT, STRENGTH_AT } from '@/lib/reports/market-reality-brief/profile'
 import { GAP_LONG_MONTHS, GAP_REPORT_MONTHS, LOOKBACK_YEARS, RECENT_YEARS, SHORT_STINT_MONTHS } from '@/lib/reports/market-reality-brief/experience'
+import type { WeeklyChange } from '@/lib/reports/market-reality-brief/weekly-change'
 import { InlineAnswer } from './InlineAnswer'
 import { CareerTimeline, PaceBars, ProfileScale } from './charts'
 import { sectionNumber } from '@/lib/reports/market-reality-brief/sections'
@@ -1031,6 +1032,63 @@ export function SharpenPanel({ brief }: { brief: MarketRealityBrief }) {
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+// ── What changed ───────────────────────────────────────────────────────────
+
+const MOVE_WORD = { up: 'Moved up', learned: 'Now known', down: 'Slipped' } as const
+
+/** The report's movement since the last saved read. Says "nothing moved" plainly when that is true. */
+export function WhatChangedCard({ change, brief }: { change: WeeklyChange | null; brief: MarketRealityBrief }) {
+  const next = firstStep(brief.launchpad)
+  if (!change) {
+    return (
+      <p className="border-l-2 border-navy/30 pl-4 text-sm text-muted-foreground print:hidden">
+        This is your first saved read. Next week this space shows what moved: which of the reasons an employer would hire you changed, what the market did, and how your pace compared.
+      </p>
+    )
+  }
+  const since = new Date(change.since).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return (
+    <section id="changed" aria-labelledby="changed-title" className="space-y-3 break-inside-avoid border border-navy/20 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="changed-title" className="font-serif text-lg font-semibold tracking-tight text-navy">
+          What changed since {since}
+        </h2>
+        {change.inputsKnown && (
+          <p className="text-xs text-muted-foreground">
+            Inputs known: {change.inputsKnown.from} to {change.inputsKnown.to} of {change.inputsKnown.total}
+          </p>
+        )}
+      </div>
+      <p className="text-sm font-medium text-foreground">{change.headline}</p>
+      {change.moves.length > 0 && (
+        <ul className="divide-y divide-border border-y border-border">
+          {change.moves.map((m) => (
+            <li key={m.key} className="flex flex-wrap items-baseline justify-between gap-x-4 py-2 text-sm">
+              <span className="text-foreground">{m.line}</span>
+              <span className={m.kind === 'down' ? 'text-xs font-semibold text-foreground' : 'text-xs text-muted-foreground'}>{MOVE_WORD[m.kind]}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {change.market && <p className="text-sm text-foreground">{change.market}</p>}
+      {change.activity && <p className="text-sm text-foreground">{change.activity}</p>}
+      {change.grade && (
+        <p className="text-sm text-foreground">
+          Market Reality Grade moved from {change.grade.from} to {change.grade.to}.<span className="ml-1.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">estimate</span>
+        </p>
+      )}
+      {next && (
+        <p className="text-sm print:hidden">
+          <span className="font-semibold">Next:</span> {next.title}.{' '}
+          <ReportLink href={next.href} event="market_reality_start_clicked" properties={{ key: next.key, phase: next.phase, area: next.area, surface: 'what_changed' }}>
+            Do it now
+          </ReportLink>
+        </p>
+      )}
     </section>
   )
 }

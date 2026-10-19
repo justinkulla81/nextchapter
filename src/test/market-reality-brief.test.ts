@@ -733,3 +733,96 @@ describe('Job Fit and the hiring case', () => {
     expect(reason(known, 'presence').answer).toBeUndefined()
   })
 })
+
+// ── Weekly what-changed ────────────────────────────────────────────────────
+
+import { buildWeeklyChange, readStateOf, type ReadState } from '@/lib/reports/market-reality-brief/weekly-change'
+
+const rs = (over: Partial<ReadState> = {}): ReadState => ({
+  v: 1,
+  statuses: { references: 'missing', pay: 'unknown', results: 'issue', access: 'issue', level: 'in_place' },
+  known: 4, total: 9, openRoles: 24, marketPrompt: 'too_few',
+  applicationsPerWeek: 3, conversationsPerWeek: 0.5, neededApplications: 18, neededConversations: 5, grade: 'C',
+  ...over,
+})
+const reasons = [{ key: 'references', reason: 'Are vouched for by people who worked with them' }, { key: 'pay', reason: 'Ask for what the role pays' }, { key: 'results', reason: 'Can prove their results with numbers' }, { key: 'access', reason: 'Come through someone the employer trusts' }, { key: 'level', reason: 'Have already operated at this level' }]
+
+describe('buildWeeklyChange', () => {
+  it('says nothing moved when nothing did, and does not invent progress', () => {
+    const c = buildWeeklyChange(rs(), rs(), reasons, '2026-10-12T00:00:00Z')
+    expect(c.hasChange).toBe(false)
+    expect(c.headline).toBe('Nothing in your read moved this week.')
+    expect(c.moves).toEqual([])
+  })
+
+  it('names rows that moved in the member’s favor, first', () => {
+    const c = buildWeeklyChange(rs(), rs({ statuses: { references: 'in_place', pay: 'in_place', results: 'issue', access: 'issue', level: 'in_place' } }), reasons, 'x')
+    expect(c.moves.map((m) => m.key)).toEqual(['references', 'pay'])
+    expect(c.moves.every((m) => m.kind === 'up')).toBe(true)
+    expect(c.headline).toBe('2 things moved in your favor this week.')
+    expect(c.moves[0].line).toMatch(/now in place/)
+  })
+
+  it('says started, not fixed, when a missing row only reaches needs-fixing', () => {
+    const c = buildWeeklyChange(rs(), rs({ statuses: { references: 'issue', pay: 'unknown', results: 'issue', access: 'issue', level: 'in_place' } }), reasons, 'x')
+    expect(c.moves[0].kind).toBe('up')
+    expect(c.moves[0].line).toMatch(/started, and still needs work/)
+    expect(c.moves[0].line).not.toMatch(/now needs fixing/)
+  })
+
+  it('treats unknown becoming a problem as learning, not as a slip', () => {
+    const c = buildWeeklyChange(rs(), rs({ statuses: { references: 'missing', pay: 'issue', results: 'issue', access: 'issue', level: 'in_place' } }), reasons, 'x')
+    expect(c.moves).toHaveLength(1)
+    expect(c.moves[0].kind).toBe('learned')
+    expect(c.headline).toBe('Your read got more specific this week.')
+  })
+
+  it('names a slip plainly and orders it last', () => {
+    const c = buildWeeklyChange(rs(), rs({ statuses: { references: 'in_place', pay: 'unknown', results: 'issue', access: 'issue', level: 'issue' } }), reasons, 'x')
+    expect(c.moves.map((m) => m.kind)).toEqual(['up', 'down'])
+    expect(c.headline).toBe('1 thing moved in your favor and 1 slipped.')
+    expect(c.moves[1].line).toMatch(/slipped/)
+  })
+
+  it('reports market moves only when real: a change of 10 percent or more, or a change of kind', () => {
+    expect(buildWeeklyChange(rs(), rs({ openRoles: 26 }), reasons, 'x').market).toBeNull()
+    expect(buildWeeklyChange(rs(), rs({ openRoles: 31 }), reasons, 'x').market).toMatch(/rose from 24 to 31 \(\+29%\)/)
+    expect(buildWeeklyChange(rs(), rs({ openRoles: 140, marketPrompt: 'healthy' }), reasons, 'x').market).toMatch(/workable market/)
+  })
+
+  it('reports pace against what the market calls for, only when it moved meaningfully', () => {
+    expect(buildWeeklyChange(rs(), rs({ conversationsPerWeek: 0.7 }), reasons, 'x').activity).toBeNull()
+    const a = buildWeeklyChange(rs(), rs({ conversationsPerWeek: 2.5 }), reasons, 'x').activity
+    expect(a).toMatch(/conversations 0.5 to 2.5 a week \(the market calls for about 5\)/)
+  })
+
+  it('reports grade movement and newly known inputs', () => {
+    const c = buildWeeklyChange(rs(), rs({ grade: 'B', known: 6 }), reasons, 'x')
+    expect(c.grade).toEqual({ from: 'C', to: 'B' })
+    expect(c.inputsKnown).toEqual({ from: 4, to: 6, total: 9 })
+    expect(c.hasChange).toBe(true)
+  })
+
+  it('ignores rows with no earlier status instead of calling them moves', () => {
+    const c = buildWeeklyChange(rs({ statuses: { level: 'in_place' } }), rs(), reasons, 'x')
+    expect(c.moves).toEqual([])
+  })
+})
+
+describe('readStateOf', () => {
+  it('keeps just what the note compares, and is JSON-safe', () => {
+    const state = readStateOf({
+      hiringCase: buildHiringCase(hire({ completedReferences: 0 })),
+      sharpen: [{ known: true }, { known: false }, { known: true }],
+      market: { openRoles: 24, prompt: 'too_few' },
+      effort: { plan: { pace: { applicationsPerWeek: 3, conversationsPerWeek: 0.5, activityObserved: true }, routes: [{ key: 'balanced', applicationsPerWeek: 18, conversationsPerWeek: 5 }] } },
+      summary: { grade: 'C' },
+    })
+    expect(state.v).toBe(1)
+    expect(state.statuses.references).toBe('missing')
+    expect(state.known).toBe(2)
+    expect(state.total).toBe(3)
+    expect(state.neededConversations).toBe(5)
+    expect(JSON.parse(JSON.stringify(state))).toEqual(state)
+  })
+})

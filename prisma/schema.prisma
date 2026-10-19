@@ -1614,6 +1614,7 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
+  marketRealityReadStates        MarketRealityReadState[]
   marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
@@ -4057,6 +4058,23 @@ model MarketRealitySnapshot {
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, generatedAt])
+}
+
+// One row per member per week: the Market Reality Report's read as it stood (which hiring-case rows
+// are in place, what is known, the market and pace numbers), saved when the report is viewed or the
+// weekly job runs. The next week's "what changed" note is the difference between two of these
+// (src/lib/reports/market-reality-brief/weekly-change.ts). MarketRealitySnapshot keeps only the grade,
+// so it cannot say what moved.
+model MarketRealityReadState {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC of the week this read belongs to
+  state         Json
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId, weekStartDate])
 }
 
 enum MarketResponseType {
