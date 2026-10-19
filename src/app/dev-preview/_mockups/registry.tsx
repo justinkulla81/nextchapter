@@ -12,7 +12,7 @@ import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
 import { MarketReportShort } from './report-short'
-import { WorkHelpStart, WorkHelpOptions, WorkHelpAsk } from './work-help'
+import { WorkHelpMock } from './work-help'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -60,9 +60,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
   { path: 'account/membership', place: 'Account', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
   { path: 'help/talk', place: 'Help', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
-  { path: 'help/work/start', place: 'Help', title: 'A hard situation at work: describe it (private)', replaces: 'new: for people considering leaving', Component: WorkHelpStart },
-  { path: 'help/work/options', place: 'Help', title: 'A hard situation at work: your options', replaces: 'new', Component: WorkHelpOptions },
-  { path: 'help/work/ask', place: 'Help', title: 'A hard situation at work: review before asking others', replaces: 'new', Component: WorkHelpAsk },
+  { path: 'help/work', place: 'Help', title: 'A hard situation at work (the real screens, sample answers)', replaces: 'new: for people considering leaving', Component: WorkHelpMock },
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
   { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },

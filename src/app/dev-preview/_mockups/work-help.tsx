@@ -1,101 +1,86 @@
-import { Lock, ShieldCheck } from 'lucide-react'
+'use client'
+
 import { PreviewShell } from '@/components/candidate/PreviewShell'
-import { PageHeader } from '@/components/candidate/PageHeader'
-import { Chip, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
+import { WorkHelpFlow, type WorkHelpActions } from '@/components/work-help/WorkHelpFlow'
+import { OPTION_CATALOG, type WorkAnalysis, type WorkQuestionView } from '@/lib/work-help/constants'
 
-const KINDS = ['My boss', 'Someone I manage', 'A coworker', 'The workload or culture']
+// The real screens with sample answers. Nothing here reaches the server or the AI.
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-function PrivateLine() {
-  return (
-    <p className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Lock className="size-4 shrink-0" aria-hidden />
-      Only you see this. It is never shown to your employer, recruiters or the community.
-    </p>
-  )
+const ANALYSIS: WorkAnalysis = {
+  acknowledgement: 'Having your work credited to someone else is frustrating, and it is common. It is usually fixable.',
+  needsLegalPointer: false,
+  generic: false,
+  options: [
+    { key: 'document_impact', why: 'credit goes to whoever is on record, and a short weekly note fixes that without a confrontation', firstStep: 'Each Friday, send your manager and their boss three lines on what you shipped. Keep a copy. Your impact log already holds the facts.' },
+    { key: 'talk_directly', why: 'they may not know how it lands, and a calm conversation can fix it early', firstStep: 'Pick one example. Try: "I want to talk about how the board update went, because I think we can handle credit better."' },
+    { key: 'internal_move', why: 'a new manager can reset this without leaving the company', firstStep: 'Check internal roles that report to a different leader and ask for a short conversation.' },
+    { key: 'look_outside', why: 'if nothing changes, you keep your options open', firstStep: 'Confirm your privacy settings first, then browse roles for a week without applying.' },
+  ].map((o) => {
+    const c = OPTION_CATALOG[o.key as keyof typeof OPTION_CATALOG]
+    return { ...o, key: o.key as keyof typeof OPTION_CATALOG, title: c.title, actionLabel: c.actionLabel, href: c.href }
+  }),
 }
 
-export function WorkHelpStart() {
-  return (
-    <PreviewShell place="help" entry="work" part="start">
-      <PageHeader title="A hard situation at work" intro="Say what is going on. We help you see your options, including staying. We do not push you to leave." />
-      <section className="space-y-5 rounded-2xl border border-border p-7">
-        <div className="space-y-2">
-          <h2 className="font-display text-xl font-semibold text-ink">Who is it about?</h2>
-          <div role="group" aria-label="Who it is about" className="flex flex-wrap gap-3">
-            {KINDS.map((k, i) => (
-              <button key={k} type="button" aria-pressed={i === 0} className={i === 0 ? 'h-11 rounded-full bg-ink px-5 text-sm font-semibold text-white' : 'h-11 rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted'}>{k}</button>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="what" className="text-base font-semibold text-ink">What is happening?</label>
-          <textarea id="what" rows={4} className="w-full rounded-xl border border-border p-3.5 text-base" defaultValue="My manager keeps taking credit for my work in front of leadership, and my last two reviews did not mention it." />
-          <PrivateLine />
-        </div>
-        <PrimaryButton>Help me think it through</PrimaryButton>
-      </section>
-      <p className="max-w-xl text-sm text-muted-foreground">We cannot give legal advice. If this involves harassment or discrimination, we will point you to the right people. In crisis? Call or text 988 any time, free.</p>
-    </PreviewShell>
-  )
+const MINE: WorkQuestionView[] = [
+  {
+    id: 'q1',
+    handle: 'SteadyNavigator412',
+    title: 'How do you handle a manager who takes credit for your work?',
+    body: 'I lead operations projects at a mid-size company.',
+    createdAt: '2026-10-12T14:00:00.000Z',
+    status: 'PUBLISHED',
+    replies: [
+      { id: 'r1', handle: 'CalmPathfinder208', body: 'A short written update to your manager and their boss every week fixed this for me. It put my name on the record without a fight.', createdAt: '2026-10-13T09:00:00.000Z', mine: false },
+      { id: 'r2', handle: 'QuietAnalyst731', body: 'I asked for five minutes in my next one-on-one and named one specific meeting. They had not realized.', createdAt: '2026-10-14T16:00:00.000Z', mine: false },
+    ],
+  },
+]
+
+const OTHERS: WorkQuestionView[] = [
+  {
+    id: 'o1',
+    handle: 'BrightBuilder519',
+    title: 'How do you tell a direct report their work is not meeting the bar?',
+    body: 'I manage a small team at a large company. One person is well liked but keeps missing deadlines. I have hinted at it twice. What worked for you?',
+    createdAt: '2026-10-16T11:00:00.000Z',
+    status: 'PUBLISHED',
+    replies: [],
+  },
+  {
+    id: 'o2',
+    handle: 'ResilientOperator140',
+    title: 'Is it worth staying when the workload never lets up?',
+    body: 'My team lost two people and none were replaced. I am covering three roles. How did you decide whether to push back or leave?',
+    createdAt: '2026-10-17T08:00:00.000Z',
+    status: 'PUBLISHED',
+    replies: [],
+  },
+]
+
+const ACTIONS: WorkHelpActions = {
+  analyze: async () => (await wait(600), { ok: true, analysis: ANALYSIS }),
+  prepare: async () => (
+    await wait(800),
+    {
+      ok: true,
+      question: {
+        title: 'How do you handle a manager who takes credit for your work?',
+        body: 'I lead operations projects at a mid-size company. In meetings with senior leaders, my manager presents my work as theirs. I have not raised it yet. What worked for you?',
+        removed: ['Your company name', 'Names of people', 'Your team, office or city', 'Your exact job title'],
+      },
+    }
+  ),
+  post: async () => (await wait(600), { ok: true, status: 'PUBLISHED', handle: 'SteadyNavigator412' }),
+  remove: async () => (await wait(300), { ok: true }),
+  reply: async () => (await wait(500), { ok: true, held: false }),
+  report: async () => (await wait(300), { ok: true }),
 }
 
-export function WorkHelpOptions() {
+export function WorkHelpMock() {
   return (
-    <PreviewShell place="help" entry="work" part="options">
-      <PageHeader title="Your options" intro="Taking credit for your work is common, and it is usually fixable. Here are four ways forward, easiest first." />
-      <section className="space-y-4 rounded-2xl border border-border p-7">
-        <Chip tone="good">Start here</Chip>
-        <h2 className="font-display text-2xl font-semibold text-ink">Make your work visible in writing</h2>
-        <p className="max-w-2xl text-base text-ink"><span className="font-semibold">Why:</span> credit goes to whoever is on record. A short weekly note to your manager and their boss, listing what you shipped, fixes this in most cases without a confrontation.</p>
-        <p className="text-sm text-muted-foreground">About 10 minutes a week. Your impact log already holds the facts.</p>
-        <PrimaryButton>Draft my first update</PrimaryButton>
-      </section>
-      <Section id="other" title="If that is not enough">
-        <ul className="divide-y divide-border rounded-2xl border border-border">
-          {[
-            ['Talk to your manager directly', 'Why: they may not know how it lands. We can script the first two sentences.', 'Write the script'],
-            ['See if a move inside your company helps', 'Why: a new manager can reset this. Your internal roles are listed.', 'See internal roles'],
-            ['Look outside, quietly', 'Why: if nothing changes, you keep your options open. Confidential mode hides your search.', 'Start a private search'],
-          ].map(([t, w, a]) => (
-            <li key={t} className="flex flex-wrap items-center justify-between gap-4 p-4">
-              <div className="max-w-xl"><p className="text-base font-semibold text-ink">{t}</p><p className="text-sm text-muted-foreground">{w}</p></div>
-              <SecondaryButton>{a}</SecondaryButton>
-            </li>
-          ))}
-        </ul>
-      </Section>
-      <p className="text-sm text-muted-foreground">Want to hear from people who have been through this? <TextLink href="/dev-preview/help/work/ask">Ask others, without your name or company</TextLink></p>
-    </PreviewShell>
-  )
-}
-
-export function WorkHelpAsk() {
-  return (
-    <PreviewShell place="help" entry="work" part="ask">
-      <PageHeader title="Ask others who have been there" intro="Check what people will see before anything is posted. Nothing is shared until you say so." />
-      <section className="space-y-5 rounded-2xl border border-border p-7">
-        <h2 className="font-display text-xl font-semibold text-ink">What others will see</h2>
-        <blockquote className="max-w-2xl space-y-1.5 rounded-xl bg-muted p-5">
-          <p className="text-base font-semibold text-ink">How do you handle a manager who takes credit for your work?</p>
-          <p className="text-base text-ink">I lead operations projects at a mid-size company. In meetings with senior leaders, my manager presents my work as theirs. I have not raised it yet. What worked for you?</p>
-        </blockquote>
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-ink">We took out</p>
-          <div className="flex flex-wrap gap-2">
-            {['Your company name', 'Your manager’s name', 'Your team and city', 'Your exact job title'].map((r) => <Chip key={r} tone="warm">{r}</Chip>)}
-          </div>
-        </div>
-        <ul className="space-y-2 text-sm text-ink">
-          <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />Posted as <span className="font-semibold">SteadyNavigator412</span>, not your name.</li>
-          <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />Seen only by people at your level who work at other companies.</li>
-          <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />You can delete it any time.</li>
-        </ul>
-        <div className="flex flex-wrap items-center gap-4">
-          <PrimaryButton>Post this question</PrimaryButton>
-          <SecondaryButton>Edit the wording</SecondaryButton>
-          <TextLink>Keep it private instead</TextLink>
-        </div>
-      </section>
+    <PreviewShell place="help" entry="work">
+      <WorkHelpFlow actions={ACTIONS} initialMine={MINE} initialOthers={OTHERS} />
     </PreviewShell>
   )
 }
