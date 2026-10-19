@@ -135,7 +135,6 @@ export async function updateSearchStrategy(
   const isPivoting = !!main
   const targetFunction = main?.function ?? null
   const journeyDetails = { ...((current?.journeyDetails as Record<string, unknown> | null) ?? {}), relocation, pivot } as Prisma.InputJsonValue
-  const travelWillingness = formData.get('travelWillingness') === 'on'
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
   const equityImportant = formData.get('equityImportant') === 'on'

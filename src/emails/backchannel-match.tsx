@@ -100,7 +100,7 @@ export default function BackchannelMatchEmail({
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        you applied for {roleNode} at {companyName}
+        {role ? <>you applied for {roleNode} at {companyName}</> : <>you applied to {companyName}</>}
         {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} you know
         {people.length + moreCount === 1 ? ' works' : ' work'} there, and a word from inside gets your name in front of a
         real person.
@@ -138,7 +138,11 @@ export default function BackchannelMatchEmail({
           </p>
         )}
       </div>
-      <p style={{ ...emailStyles.muted, margin: '24px 0 0' }}>The draft each button opens. Edit it, then send.</p>
+      <p style={{ ...emailStyles.muted, margin: '24px 0 0' }}>
+        {people.some((person) => person.email)
+          ? 'The draft each Email button opens. Edit it, then send.'
+          : 'A note you could send. Add an email on a contact’s page and we’ll open it as a Gmail draft.'}
+      </p>
       <p style={noteBox}>{note.body}</p>
       {otherCompanyCount > 0 && (
         <p style={emailStyles.muted}>

@@ -69,12 +69,12 @@ export function draftBackchannelNote(params: {
   companyName: string
   senderFirstName: string | null
 }): { subject: string; body: string } {
-  const roleText = params.role ?? 'a role'
+  const appliedText = params.role ? `applied for ${params.role} at ${params.companyName}` : `applied to ${params.companyName}`
   const subject = params.role ? `Quick favor: ${params.role} at ${params.companyName}` : `Quick favor: ${params.companyName}`
   const lines = [
     `Hi ${firstNameOf(params.contactName)},`,
     '',
-    `Hope you're doing well. I just applied for ${roleText} at ${params.companyName} and saw you're there.`,
+    `Hope you're doing well. I just ${appliedText} and saw you're there.`,
     '',
     'Would you be open to mentioning my name to the hiring manager, or pointing me to the right person? Happy to send a short summary of my background so it takes you two minutes.',
     '',

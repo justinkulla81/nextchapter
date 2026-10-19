@@ -225,7 +225,7 @@ export default async function MarketRealityReportPage({
       </div>
 
       <p className="mx-auto max-w-4xl text-sm text-muted-foreground print:hidden">
-        {unlock.unlocked ? 'Your next strategy is earned, and it refreshes this report with it. ' : `${unlock.score.total} of ${unlock.bar.points} strategy credits toward your next strategy and a full refresh of this report. `}
+        {unlock.unlocked ? 'Your next strategy is earned, and it refreshes this report with it. ' : `${unlock.minutes} of ${unlock.bar.minutes} minutes of search effort toward your next strategy and a full refresh of this report. `}
         <Link href="/dashboard/search-strategy#unlock" className="text-primary underline underline-offset-4">
           {unlock.unlocked ? 'Generate it' : 'See how to earn the rest'}
         </Link>
