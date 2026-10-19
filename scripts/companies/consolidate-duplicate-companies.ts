@@ -12,7 +12,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { PrismaClient } from '@prisma/client'
 import { looseKey } from '../../src/lib/crm/org-duplicates'
-import { decideGroup, EXCLUDE, NOT_DUPLICATES } from '../../src/lib/crm/org-duplicate-decisions'
+import { decideGroup, EXCLUDE, EXTRA_MERGES, NOT_DUPLICATES } from '../../src/lib/crm/org-duplicate-decisions'
 import { suggestKeeper } from '../../src/lib/duplicates/suggest'
 import { mergeCompanies } from '../../src/lib/companies/merge-company'
 
@@ -34,12 +34,25 @@ async function main() {
   const groups = new Map<string, typeof all>()
   for (const c of all.filter((x) => !EXCLUDE.has(x.name))) { const k = looseKey(c.name); if (k) groups.set(k, [...(groups.get(k) ?? []), c]) }
 
+  // Named divisions folded into a parent (Amazon Music into Amazon), as in the organization cleanup.
+  for (const [first, ...rest] of EXTRA_MERGES) {
+    const k = looseKey(first)
+    const g = groups.get(k)
+    if (!g || !g.some((x) => x.name === first)) continue
+    const extra = rest.flatMap((n) => all.filter((x) => x.name === n))
+    groups.set(k, [...g, ...extra.filter((e) => !g.includes(e))])
+    for (const e of extra) { const ek = looseKey(e.name); if (ek !== k) groups.set(ek, (groups.get(ek) ?? []).filter((x) => x !== e)) }
+  }
+
   const merges: { key: string; keepId: string; keepName: string; mergeIds: string[]; names: string[]; reason: string }[] = []
   const review: { key: string; names: string[]; reason: string }[] = []
   for (const [key, g] of groups) {
     if (g.length < 2 || NOT_DUPLICATES.has(key)) continue
     const names = g.map((c) => c.name)
     const d = decideGroup(names)
+    // A group that folds named divisions in is merged by hand-approved rule, whatever its names look like.
+    const folded = EXTRA_MERGES.some(([first, ...rest]) => names.includes(first) && rest.some((n) => names.includes(n)))
+    if (folded && d.action === 'review') { d.action = 'merge'; d.reason = 'Division folded into its parent by hand.' }
     if (d.action === 'review') { review.push({ key, names, reason: d.reason }); continue }
     const keeper = suggestKeeper(g.map((c) => ({ id: c.id, activity: c.postings + c.notices + (c.verified ? 5 : 0), linked: c.org, createdAt: c.createdAt })))
     const keep = g.find((c) => c.id === keeper.id)!

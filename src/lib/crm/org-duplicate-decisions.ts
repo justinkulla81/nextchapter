@@ -53,6 +53,19 @@ for (const n of [
 export const EXCLUDE = new Set<string>([])
 /** Groups merged even though the rules would hold them, by one member's name. */
 export const FORCE_MERGE = new Set([
+  // Same company with a note, abbreviation or alias in brackets (approved by Justin: "do all").
+  'RTX (Raytheon)', 'UKG (Ultimate Kronos Group)', 'VTS (View The Space)', 'Precision Recruiting Solutions Group® (PRSG®)',
+  'Nortek Data Center Cooling (Nortek Data Center Cooling)', 'ARQ ( Prev DolarApp )', 'LVT (LiveView Technologies)', 'Omnicom Group (incl. Interpublic)',
+  'Attune (YC X25)', 'Software Guidance & Assistance, Inc. (SGA, Inc.)', 'Gauss Management Research & Engineering (GMRE Inc.)',
+  'Technology Credit Union (Tech CU)', 'AXIS (AXIS Capital)', 'Mathnasium (ID: 5600601)', 'CenterWell Senior Primary Care (By Humana)',
+  'Trata (YC W25)', 'Accede Solutions Inc (accedesolution.com)', 'Ford Audio-Video (Ford AV)', 'Kiewit Corporation (Peter Kiewit Sons\')',
+  'Gray Architects and Engineers, LLC ("Gray AES")', 'Lightsprint (YC P26)', 'Tria Federal (Tria)', 'FalconSmartIT',
+  'GetWyz Mortgage, LLC (NMLS# 2672632)', 'Everything BUT the House (Ebth)', 'CVP (Customer Value Partners)', 'DMI (Digital Management, LLC)',
+  'April (Getapril.com)', 'BeautyHealth (Hydrafacial)', 'A Boutique Hedge Fund (confidential)', 'Facility Solutions Group ("FSG")',
+  'Department of the Air Force (Agency Wide)', 'Apex Group Ltd (UK Branch)', 'DB Insurance Co., LTD. (U.s. Branch)',
+  'Kyocera International, Inc. (North America)', 'General Dynamics - Ordnance and Tactical Systems (PA)', 'Spirit Airlines (DFW) May 2026',
+  // US suffix on a well-known one-word brand.
+  'Bosch USA', 'Brother USA', 'Canon U.S.A.', 'Sika USA', 'Photon USA', 'AES US', 'Ahead USA', 'Marsh USA', 'Mane USA', "L'Oreal USA", 'Sigma USA',
   'Spirit Airlines', 'KIPP Public Schools Northern California', 'Texana Center (Building A) Airport Service Center',
   'ETH Zurich (Swiss Federal Institute of Technology)',
   'NYU (Endless Frontier Labs)', 'SHRM (SHRMLabs)', 'Massachusetts Institute of Technology (Lincoln Lab)', 'Princeton University (PPPL)',
@@ -77,6 +90,8 @@ export const EXTRA_MERGES: string[][] = [
   ['Amazon', 'Amazon Data Services', 'Amazon Technologies', 'Amazon Development Center U.S.', 'Amazon Last Mile',
     'Prime Video & Amazon MGM Studios', 'Amazon Web Services', 'AmazonWebServices'],
   ['Spirit Airlines', 'Spirit Airlines (DFW) May 2026', 'Spirit Airlines (IAH) May 2026'],
+  // Company directory: Amazon's own divisions (acquisitions with their own brand, like Twitch, Audible and Zappos, stay separate).
+  ['Amazon', 'Amazon.com Services', 'Amazon Music', 'Amazon Delivery Service Partner', 'Amazon Web Services (AWS)', 'Amazon Science', 'Amazon Business', 'AWS'],
 ]
 /** Parents that absorb every organization whose name starts with the prefix (sites, group homes, regional schools). */
 export const FOLD_PREFIXES: { parent: string; prefix: string }[] = [
