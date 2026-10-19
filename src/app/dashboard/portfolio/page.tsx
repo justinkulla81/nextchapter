@@ -14,6 +14,11 @@ import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { nextPortfolioStep } from '@/lib/redesign/jobs-pages'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { candidatePlusRequirements } from '@/lib/unlocks/ladder'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
@@ -94,8 +99,8 @@ export default async function PortfolioPage() {
   })
   const completedAssetCount = coreAssets.filter((a) => a.done).length
 
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">My Portfolio</h1>
         <PageHeaderBoxes pageKey="portfolio" candidateId={profile.id} />
@@ -115,7 +120,11 @@ export default async function PortfolioPage() {
           </ul>
         </div>
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <div className="space-y-4">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Reports &amp; Dossiers
@@ -281,7 +290,11 @@ export default async function PortfolioPage() {
 
         {!profile.coachId && <CoachingCTACard />}
       </div>
+    </>
+  )
 
+  const block2 = (
+    <>
       <div className="space-y-4">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Your Assets
@@ -408,6 +421,41 @@ export default async function PortfolioPage() {
           </CardContent>
         </Card>
       </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    const step = nextPortfolioStep(coreAssets)
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="My portfolio"
+          intro={
+            step
+              ? `${completedAssetCount} of ${coreAssets.length} core assets built. Next: ${step.label.toLowerCase()}. ${step.why}`
+              : `All ${coreAssets.length} core assets are built. Keep them current and recruiters see your best work.`
+          }
+          action={
+            step ? (
+              <ActionLink href={step.href} kind="primary" event="portfolio_next_step_clicked" props={{ step: step.label, built: completedAssetCount, total: coreAssets.length }}>
+                {step.label}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+        {block2}
+        <ShowMore page="portfolio" label="Show reports and dossiers">
+          {block1}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
     </div>
   )
 }

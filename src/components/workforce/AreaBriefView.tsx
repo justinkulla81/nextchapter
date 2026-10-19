@@ -1,5 +1,6 @@
 import { showCount } from '@/lib/workforce/area-brief'
 import type { AreaBrief } from '@/lib/workforce/area-brief-data'
+import { ShowMore } from '@/components/candidate/ShowMore'
 
 function money(n: number): string {
   return n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`
@@ -26,10 +27,10 @@ function Empty({ children }: { children: React.ReactNode }) {
 // news and (for boards) funding. Members never see funding, which is for
 // organizations. Used on the member's local-market page and in the admin preview
 // of what a board receives.
-export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience: 'member' | 'board' }) {
+export function AreaBriefView({ brief, audience, redesign = false }: { brief: AreaBrief; audience: 'member' | 'board'; redesign?: boolean }) {
   const c = brief.candidates
-  return (
-    <div className="space-y-8">
+  const members = (
+    <>
       <Section
         title={`NextChapter members in ${brief.candidatesScope === 'area' ? brief.area.name : brief.area.stateName}`}
         note="Counts only, never names. A group smaller than 10 is not shown. People in Confidential Search Mode are not counted at all."
@@ -75,7 +76,11 @@ export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience:
           </p>
         )}
       </Section>
+    </>
+  )
 
+  const layoffs = (
+    <>
       <Section title="Layoffs filed" note={`Public WARN notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days.`}>
         {brief.layoffs.companies.length === 0 ? (
           <Empty>No layoff notices on file for this period.</Empty>
@@ -98,7 +103,11 @@ export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience:
           </>
         )}
       </Section>
+    </>
+  )
 
+  const hiring = (
+    <>
       <Section title="Companies hiring" note="Open roles on the NextChapter job board in this state. Not the whole market.">
         {brief.hiring.openRoles === 0 ? (
           <Empty>No open roles on the NextChapter job board here right now.</Empty>
@@ -120,7 +129,11 @@ export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience:
           </>
         )}
       </Section>
+    </>
+  )
 
+  const news = (
+    <>
       <Section title="News" note="Local articles on layoffs and AI at work.">
         {brief.news.length === 0 ? (
           <Empty>No local articles found yet.</Empty>
@@ -140,7 +153,28 @@ export function AreaBriefView({ brief, audience }: { brief: AreaBrief; audience:
           </ul>
         )}
       </Section>
+    </>
+  )
 
+  if (redesign) {
+    return (
+      <div className="space-y-8">
+        {hiring}
+        {layoffs}
+        {members}
+        <ShowMore page="local_market_news" label="Show local news">
+          {news}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {members}
+      {layoffs}
+      {hiring}
+      {news}
       {audience === 'board' && (
         <Section title="Funding a board could apply for" note="Open federal opportunities open to state and local government in this state.">
           {brief.funding.length === 0 ? (
