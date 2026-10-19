@@ -1,26 +1,57 @@
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
+import { SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { firstStep } from '@/lib/reports/market-reality-brief/launchpad'
 import { AssessmentMark, Estimate, ReportLink, ReportSection, ReportTable, SubHeading } from './report-ui'
 
-export function Letterhead({ name, asOf }: { name: string; asOf: Date }) {
+export function Cover({ brief }: { brief: MarketRealityBrief }) {
+  const target = brief.basis.rows.find((r) => r.label === 'Target role')?.value ?? null
   return (
-    <header className="border-t-4 border-navy pt-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">NextChapter</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-navy">Market Reality Report</h1>
-        </div>
-        <div className="text-right text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">Prepared for {name}</p>
-          <p>Data as of {asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        </div>
+    <header className="space-y-10 print:break-after-page print:pb-16">
+      <div className="border-t-4 border-navy pt-6">
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">NextChapter</p>
+        <h1 className="mt-4 font-serif text-4xl font-semibold tracking-tight text-navy">Market Reality Report</h1>
+        <p className="mt-2 max-w-xl font-serif text-lg text-muted-foreground">How the market will read you, and the first twelve weeks to change it.</p>
+        <dl className="mt-8 grid max-w-xl grid-cols-[8rem_1fr] gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Prepared for</dt>
+          <dd className="font-medium text-foreground">{brief.candidateName}</dd>
+          {target && (
+            <>
+              <dt className="text-muted-foreground">Search target</dt>
+              <dd className="font-medium text-foreground">{target}</dd>
+            </>
+          )}
+          <dt className="text-muted-foreground">Data as of</dt>
+          <dd className="font-medium text-foreground">{brief.asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</dd>
+        </dl>
       </div>
-      <p className="mt-4 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-        Confidential. Prepared solely for the named candidate and not for distribution to employers or other third parties without
-        the candidate&apos;s consent.
+
+      <nav aria-label="Contents">
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Contents</p>
+        <ol className="mt-3 grid gap-x-10 gap-y-1.5 text-sm sm:grid-cols-2">
+          <li>
+            <a href="#summary" className="flex gap-3 underline-offset-4 hover:underline">
+              <span className="w-6 tabular-nums text-muted-foreground">—</span>
+              <span className="text-foreground">Executive summary</span>
+            </a>
+          </li>
+          {SECTIONS.map((sec) => (
+            <li key={sec.id}>
+              <a href={`#${sec.id}`} className="flex gap-3 underline-offset-4 hover:underline">
+                <span className="w-6 tabular-nums text-muted-foreground">{sectionNumber(sec.id)}</span>
+                <span className="text-foreground">{sec.title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+        Confidential. Prepared solely for the named candidate and not for distribution to employers or other third parties without the
+        candidate&apos;s consent. Every statement is computed from your profile and activity by fixed rules, with no model writing it, so a
+        sentence cannot disagree with the number beside it.
       </p>
     </header>
   )
@@ -128,7 +159,7 @@ export function BasisSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="basis"
-      number="03"
+      number={sectionNumber('basis')}
       title="Basis of assessment"
       finding={
         !brief.basis.goalsComplete

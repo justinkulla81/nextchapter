@@ -15,12 +15,14 @@ import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-re
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { loadMarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { Letterhead, ExecutiveSummary, BasisSection } from '@/components/market-reality/summary-sections'
+import { Cover, ExecutiveSummary, BasisSection } from '@/components/market-reality/summary-sections'
 import {
   ActivitySection,
   DirectionSection,
+  CaseSection,
   EvaluatorSection,
   ObjectionsSection,
+  ProfileSection,
   ExperienceSection,
   MarketSection,
   MethodNotes,
@@ -86,6 +88,7 @@ export default async function MarketRealityReportPage({
   )
   const brief = await loadMarketRealityBrief(profile, {
     resumeRewrites: report?.resumeRewrites ?? null,
+    documentStrengths: report?.strengths ?? null,
     jobSearchPattern: report?.jobSearchPattern ?? null,
     suggestedActions,
   })
@@ -149,10 +152,12 @@ export default async function MarketRealityReportPage({
       )}
 
       <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-8 print:border-0 print:p-0">
-        <Letterhead name={brief.candidateName} asOf={brief.asOf} />
+        <Cover brief={brief} />
         <ExecutiveSummary brief={brief} />
         <EvaluatorSection brief={brief} />
+        <CaseSection brief={brief} />
         <ObjectionsSection brief={brief} />
+        <ProfileSection brief={brief} />
         <BasisSection brief={brief} />
         <MarketSection brief={brief} marketScope={marketScope} candidateId={profile.id} />
         <RequirementsSection brief={brief} />

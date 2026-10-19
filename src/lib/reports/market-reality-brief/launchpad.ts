@@ -9,6 +9,7 @@
 // turns them on instead, so the plan never points at a door that is shut.
 
 import { itemVisibility, MENU_LABELS, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
+import { sectionNumber } from './sections'
 import type { BriefArea } from './types'
 
 export type Phase = 'today' | 'this_week' | 'weeks_2_4' | 'weeks_5_12'
@@ -77,7 +78,7 @@ export function buildLaunchpad(i: LaunchpadInput): LaunchStep[] {
     add({ key: 'resume_upload', phase: 'today', title: 'Upload your resume', because: 'The experience, resume and recruiter reads need it.', tool: tool('profile'), href: '/dashboard/resume', minutes: 3, area: 'Resume', done: false })
   }
   if (i.unansweredReviewerQuestions > 0) {
-    add({ key: 'reviewer', phase: 'today', title: `Write a one-line answer to ${i.unansweredReviewerQuestions} recruiter question${i.unansweredReviewerQuestions === 1 ? '' : 's'}`, because: 'Section 02 lists what you will be asked. A prepared answer removes the doubt.', tool: tool('profile'), href: '#recruiter-read', minutes: 10, area: 'Experience', done: false })
+    add({ key: 'reviewer', phase: 'today', title: `Write a one-line answer to ${i.unansweredReviewerQuestions} recruiter question${i.unansweredReviewerQuestions === 1 ? '' : 's'}`, because: `Section ${sectionNumber('objections')} lists what you will be asked. A prepared answer removes the doubt.`, tool: tool('profile'), href: '#recruiter-read', minutes: 10, area: 'Experience', done: false })
   }
 
   // This week: fix the document, switch on tracking, start the rhythm.
@@ -120,7 +121,7 @@ export function buildLaunchpad(i: LaunchpadInput): LaunchStep[] {
     add({ key: 'widen', phase: 'weeks_5_12', title: i.market.widest ? `Widen the search: ${i.market.widest}` : 'Widen the search', because: 'The current target is thin. Lifting one limit opens the most roles.', tool: tool('strategy'), href: '/dashboard/search-strategy', minutes: 10, area: 'Market', done: false })
   }
   if (i.pivotsShown) {
-    add({ key: 'pivot', phase: 'weeks_5_12', title: 'Test one pivot alongside the main search', because: 'Section 09 names the options with the most open roles and the best fit.', tool: 'Pivot paths', href: '/dashboard/pivot-paths', minutes: 20, area: 'Market', done: false })
+    add({ key: 'pivot', phase: 'weeks_5_12', title: 'Test one pivot alongside the main search', because: `Section ${sectionNumber('direction')} names the options with the most open roles and the best fit.`, tool: 'Pivot paths', href: '/dashboard/pivot-paths', minutes: 20, area: 'Market', done: false })
   }
   add({ key: 'recheck', phase: 'weeks_5_12', title: 'Re-read this report at week 6 and week 12', because: 'It recalculates from your own results, so the estimates sharpen as you go.', tool: tool('marketReality'), href: '/dashboard/market-reality', minutes: 10, area: 'Search activity', done: false })
 

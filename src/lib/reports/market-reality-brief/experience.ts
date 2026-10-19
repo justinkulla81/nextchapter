@@ -111,7 +111,8 @@ function years(months: number): string {
 }
 
 function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? '' : 's'}`
+  if (n === 1) return `${n} ${word}`
+  return `${n} ${/[^aeiou]y$/.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`}`
 }
 
 function monthYear(d: Date): string {

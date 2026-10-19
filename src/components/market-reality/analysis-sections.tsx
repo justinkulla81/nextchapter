@@ -5,6 +5,7 @@ import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import { INTERVIEWS_PER_OFFER, PLAN_WEEKS } from '@/lib/reports/market-reality-brief/effort-plan'
 import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/evaluators'
+import { sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { firstStep, PHASE_LABEL, type Phase } from '@/lib/reports/market-reality-brief/launchpad'
@@ -20,7 +21,7 @@ export function MarketSection({ brief, marketScope, candidateId }: { brief: Mark
   return (
     <ReportSection
       id="market"
-      number="04"
+      number={sectionNumber('market')}
       title="Market"
       finding={m ? m.readout : 'Set a target function and level on Search Strategy to size the market for this search.'}
     >
@@ -99,7 +100,7 @@ export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
   const e = brief.effort
   if (!e) {
     return (
-      <ReportSection id="requirements" number="05" title="Search requirements" finding="Needs a resume and a target role to estimate how much activity this search takes.">
+      <ReportSection id="requirements" number={sectionNumber('requirements')} title="Search requirements" finding="Needs a resume and a target role to estimate how much activity this search takes.">
         <></>
       </ReportSection>
     )
@@ -110,7 +111,7 @@ export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="requirements"
-      number="05"
+      number={sectionNumber('requirements')}
       title="Search requirements"
       finding={
         <>
@@ -186,7 +187,7 @@ export function ExperienceSection({ brief }: { brief: MarketRealityBrief }) {
       ? `${x.careerYears} years across ${x.roleCount} roles. The history reads cleanly on every check a recruiter runs.`
       : `${x.careerYears} years across ${x.roleCount} roles. ${x.developmentCount} of ${x.findings.length} checks a recruiter runs would draw a question.`
   return (
-    <ReportSection id="experience" number="06" title="Experience" finding={finding}>
+    <ReportSection id="experience" number={sectionNumber('experience')} title="Experience" finding={finding}>
       {x.assessable ? (
         <ReportTable
           label="Experience checks"
@@ -274,7 +275,7 @@ export function SkillsSection({ brief }: { brief: MarketRealityBrief }) {
         ? `None of the ${s.employers} employers with jobs that fit you ask for a specific AI skill yet.`
         : `${s.employersAskingAi} of the ${s.employers} employers with jobs that fit you ask for a specific AI skill. ${aiGaps === 0 ? 'Each one asked for is on your profile.' : `${aiGaps} ${aiGaps === 1 ? 'is' : 'are'} not on your profile.`}`
   return (
-    <ReportSection id="skills" number="07" title="Skills" finding={finding}>
+    <ReportSection id="skills" number={sectionNumber('skills')} title="Skills" finding={finding}>
       {s?.marketLine && <p className="text-sm text-muted-foreground">{s.marketLine}</p>}
 
       {s && s.ai.length > 0 && (
@@ -348,7 +349,7 @@ export function ResumeSection({ brief }: { brief: MarketRealityBrief }) {
       ? 'No high-impact issues were found on the current resume.'
       : `${r.fixes.length + r.moreFixes} fixes identified, ordered by how much each improves the resume.`
   return (
-    <ReportSection id="resume" number="08" title="Resume" finding={finding}>
+    <ReportSection id="resume" number={sectionNumber('resume')} title="Resume" finding={finding}>
       {r && r.fixes.length > 0 && (
         <>
           <ReportTable
@@ -431,7 +432,7 @@ export function DirectionSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="direction"
-      number="09"
+      number={sectionNumber('direction')}
       title="Direction"
       finding={
         p
@@ -540,12 +541,27 @@ const VERDICT_WORD = { act: 'Act', watch: 'Watch', good: 'On track', unknown: 'T
 
 export function ActivitySection({ brief }: { brief: MarketRealityBrief }) {
   const a = brief.search
-  if (!a) return null
+  if (!a) {
+    return (
+      <ReportSection
+        id="activity"
+        number={sectionNumber('activity')}
+        title="Search activity to date"
+        finding="No applications are logged yet. Once you apply, this section reads your results as they arrive: interviews, rejections, silence, and whether the search is focused or scattered."
+      >
+        <p className="text-sm print:hidden">
+          <ReportLink href="/dashboard/email-activity" event="market_reality_action_clicked" properties={{ key: 'connect_gmail', area: 'Search activity', surface: 'activity_empty' }}>
+            Connect Gmail so applications and replies are counted for you
+          </ReportLink>
+        </p>
+      </ReportSection>
+    )
+  }
   const { totals } = a
   return (
     <ReportSection
       id="activity"
-      number="10"
+      number={sectionNumber('activity')}
       title="Search activity to date"
       finding={`${totals.applications} applications have produced ${totals.interviews} interview${totals.interviews === 1 ? '' : 's'}${a.interviewRate !== null ? ` (${a.interviewRate}%)` : ''}, ${totals.rejections} rejection${totals.rejections === 1 ? '' : 's'} and ${totals.noReplyYet} with no reply after three weeks. Updated as new mail arrives.`}
     >
@@ -623,7 +639,7 @@ export function LaunchpadSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="start"
-      number="11"
+      number={sectionNumber('start')}
       title="Start here: your first twelve weeks"
       finding="Every step below answers a finding in this report and opens the NextChapter tool that does the work. Tools your current situation keeps off are not offered as steps; each says what turns it on."
     >
@@ -713,7 +729,7 @@ export function EvaluatorSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="read"
-      number="01"
+      number={sectionNumber('read')}
       title="How you will be read"
       finding="Three people decide whether this search moves forward, and each reads for something different. What follows is the likely first read from each, built from the evidence in this report. It is a read of the page and the record, not of the person, and not a prediction of any decision."
     >
@@ -772,7 +788,7 @@ export function ObjectionsSection({ brief }: { brief: MarketRealityBrief }) {
   return (
     <ReportSection
       id="objections"
-      number="02"
+      number={sectionNumber('objections')}
       title="Likely objections and your answers"
       finding={
         o.length === 0
@@ -794,6 +810,84 @@ export function ObjectionsSection({ brief }: { brief: MarketRealityBrief }) {
           }))}
         />
       )}
+    </ReportSection>
+  )
+}
+
+// ── Case for you ───────────────────────────────────────────────────────────
+
+export function CaseSection({ brief }: { brief: MarketRealityBrief }) {
+  const c = brief.caseForYou
+  return (
+    <ReportSection
+      id="case"
+      number={sectionNumber('case')}
+      title="The case for you"
+      finding={
+        c.items.length > 0
+          ? `${c.items.length} ${c.items.length === 1 ? 'thing' : 'things'} in the record a buyer would pay for. Each one cites its evidence and says where to lead with it. These are tools to use, so use them in the resume, in outreach and in the first minute of an interview.`
+          : 'The record does not yet carry a lead differentiator a reader can verify on the page. That is a finding, not a judgment: the actions in this report are what build one, and this section fills in as they land.'
+      }
+    >
+      {c.items.length > 0 && (
+        <ReportTable
+          label="The case for you"
+          head={['Strength', 'Evidence', 'Lead with it in']}
+          rows={c.items.map((x) => ({
+            key: x.key,
+            cells: [x.headline, <span key="e" className="font-normal text-foreground">{x.evidence}</span>, <Muted key="l">{x.leadWith}</Muted>],
+          }))}
+        />
+      )}
+      {c.positioningLine && (
+        <div className="border-l-2 border-navy/30 pl-5">
+          <SubHeading>A draft positioning line</SubHeading>
+          <p className="mt-2 font-serif text-base leading-relaxed text-navy">{c.positioningLine}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Built only from facts on your profile. Edit it until it sounds like you, then use it as the top line of the resume, the LinkedIn headline and every first message.</p>
+        </div>
+      )}
+    </ReportSection>
+  )
+}
+
+// ── Competency profile ─────────────────────────────────────────────────────
+
+export function ProfileSection({ brief }: { brief: MarketRealityBrief }) {
+  const groups = brief.profile
+  const rows = groups.flatMap((g) => g.rows)
+  const dev = rows.filter((r) => r.assessment === 'development').length
+  return (
+    <ReportSection
+      id="profile"
+      number={sectionNumber('profile')}
+      title="Competency profile"
+      finding={
+        rows.length === 0
+          ? 'Upload a resume to see how it scores on each of the thirteen things a reviewer reads.'
+          : `${rows.length} dimensions a reviewer reads, in the groups they think in. ${dev === 0 ? 'None is a development area.' : `${dev} ${dev === 1 ? 'is a development area' : 'are development areas'}; the observation beside each says what to change first.`}`
+      }
+    >
+      {groups.map((g) => (
+        <div key={g.title} className="break-inside-avoid">
+          <SubHeading>{g.title}</SubHeading>
+          <ReportTable
+            label={g.title}
+            head={['Dimension', 'What a reviewer reads', 'Rating']}
+            className="mt-2"
+            rows={g.rows.map((r) => ({
+              key: r.key,
+              cells: [
+                r.label,
+                <div key="r" className="space-y-1">
+                  <p className="font-normal text-muted-foreground">{r.reads}</p>
+                  {r.observation && <p className="font-normal text-foreground">{r.observation}</p>}
+                </div>,
+                <AssessmentMark key="a" value={r.assessment} />,
+              ],
+            }))}
+          />
+        </div>
+      ))}
     </ReportSection>
   )
 }

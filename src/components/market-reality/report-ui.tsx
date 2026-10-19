@@ -28,20 +28,22 @@ export function ReportSection({
 }) {
   return (
     <section id={id} aria-labelledby={`${id}-title`} className={cn('scroll-mt-24 border-t border-navy/20 pt-8', className)}>
-      <div className="flex items-baseline gap-3">
-        {number && <span className="text-sm font-semibold tabular-nums text-muted-foreground">{number}</span>}
-        <h2 id={`${id}-title`} className="text-lg font-semibold tracking-tight text-navy">
-          {title}
-        </h2>
+      <div className="print:break-inside-avoid print:break-after-avoid">
+        <div className="flex items-baseline gap-3">
+          {number && <span className="text-sm font-semibold tabular-nums text-muted-foreground">{number}</span>}
+          <h2 id={`${id}-title`} className="font-serif text-xl font-semibold tracking-tight text-navy">
+            {title}
+          </h2>
+        </div>
+        {finding && <p className="mt-3 max-w-3xl text-[0.95rem] leading-relaxed text-foreground">{finding}</p>}
       </div>
-      {finding && <p className="mt-3 max-w-3xl text-[0.95rem] leading-relaxed text-foreground">{finding}</p>}
-      <div className="mt-5 space-y-6">{children}</div>
+      <div className="mt-5 space-y-6 print:break-before-avoid">{children}</div>
     </section>
   )
 }
 
 export function SubHeading({ children }: { children: ReactNode }) {
-  return <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">{children}</h3>
+  return <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:break-after-avoid">{children}</h3>
 }
 
 /** A ruled table. `head` labels the columns; rows are plain nodes so cells can hold links. */
@@ -57,7 +59,7 @@ export function ReportTable({
   className?: string
 }) {
   return (
-    <div className={cn('overflow-x-auto', className)}>
+    <div className={cn('overflow-x-auto print:overflow-visible', className)}>
       <table className="w-full min-w-[34rem] border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="border-b-2 border-navy text-left">

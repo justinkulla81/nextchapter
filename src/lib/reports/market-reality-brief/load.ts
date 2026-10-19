@@ -38,6 +38,8 @@ import { demandLine } from '@/lib/pivots/scoring'
 import { analyzeExperience, type ExperienceAnalysis } from './experience'
 import { buildEffortPlan, competitivenessFor, INTERVIEWS_PER_OFFER, PLAN_WEEKS, type EffortPlan } from './effort-plan'
 import { buildPriorities } from './priorities'
+import { buildCaseForYou, type CaseForYou } from './case'
+import { buildProfile, type ProfileGroup } from './profile'
 import { buildLaunchpad, type LaunchStep } from './launchpad'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { menuMode } from '@/lib/journey/menu'
@@ -177,6 +179,8 @@ export interface MarketRealityBrief {
   effort: EffortSection | null
   experience: ExperienceAnalysis
   evaluators: EvaluatorView[]
+  caseForYou: CaseForYou
+  profile: ProfileGroup[]
   objections: Objection[]
   recruiterRead: RecruiterReadItem[]
   skills: SkillsSection | null
@@ -313,7 +317,7 @@ async function loadSearchSection(diagnosis: SearchDiagnosis, jobSearchPattern: u
 
 export async function loadMarketRealityBrief(
   profile: CandidateProfile,
-  opts: { resumeRewrites: unknown; jobSearchPattern: unknown; suggestedActions: { text: string; isAStandard?: boolean }[] }
+  opts: { resumeRewrites: unknown; jobSearchPattern: unknown; documentStrengths: unknown; suggestedActions: { text: string; isAStandard?: boolean }[] }
 ): Promise<MarketRealityBrief> {
   const id = profile.id
   const asOf = new Date()
@@ -321,7 +325,7 @@ export async function loadMarketRealityBrief(
 
   const [stand, latestAnalysis, gmailConnected, completedReferences, workHistory, education, resumeFixes, ats, recruiterRead, marketLoaded, skills, diagnosis, applicationsLast28] = await Promise.all([
     safe('where you stand', getWhereYouStand(id)),
-    prisma.resumeAnalysis.findFirst({ where: { candidateId: id }, orderBy: { createdAt: 'desc' }, select: { dimensionScores: true, firstGlanceResult: true, firstGlanceTopFix: true } }),
+    prisma.resumeAnalysis.findFirst({ where: { candidateId: id }, orderBy: { createdAt: 'desc' }, select: { dimensionScores: true, dimensionFindings: true, firstGlanceResult: true, firstGlanceTopFix: true } }),
     safe('gmail', isGmailConnected(id)),
     prisma.reference.count({ where: { candidateId: id, status: 'COMPLETED' } }),
     prisma.workHistoryEntry.findMany({ where: { candidateId: id } }),
@@ -554,6 +558,19 @@ export async function loadMarketRealityBrief(
     effort,
     experience,
     evaluators: buildEvaluatorViews(evaluatorInput),
+    caseForYou: buildCaseForYou({
+      experience,
+      dims,
+      ai: evaluatorInput.ai,
+      conversationsPerWeek: evaluatorInput.conversationsPerWeek,
+      documentStrengths: (Array.isArray(opts.documentStrengths) ? opts.documentStrengths : []).filter(
+        (x): x is { title: string; detail: string } => !!x && typeof (x as { title?: unknown }).title === 'string' && typeof (x as { detail?: unknown }).detail === 'string'
+      ),
+      targetRole: profile.targetRoleType,
+      function: profile.primaryFunction,
+      yearsExperience: profile.yearsExperience,
+    }),
+    profile: buildProfile(dims, (latestAnalysis?.dimensionFindings ?? null) as Parameters<typeof buildProfile>[1]),
     objections: buildObjections(evaluatorInput),
     recruiterRead: recruiterRead ?? [],
     skills,

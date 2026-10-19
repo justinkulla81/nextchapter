@@ -143,6 +143,7 @@ describe('analyzeExperience', () => {
       role('Director', d(2024, 2), null, { companyIndustry: 'Energy' }),
     ]
     expect(finding(run(roles), 'industry')?.assessment).toBe('development')
+    expect(finding(run(roles), 'industry')?.measure).toMatch(/4 industries/)
     expect(finding(run(roles.map((r) => ({ ...r, companyIndustry: null }))), 'industry')).toBeUndefined()
   })
 
@@ -429,5 +430,76 @@ describe('buildLaunchpad', () => {
     const none = buildLaunchpad(launch({ market: { prompt: 'healthy', widest: null }, pivotsShown: false }))
     expect(none.some((s) => s.key === 'widen' || s.key === 'pivot')).toBe(false)
     expect(buildLaunchpad(launch()).some((s) => s.key === 'widen')).toBe(true)
+  })
+})
+
+// ── Case for you, competency profile, sections ─────────────────────────────
+
+import { buildCaseForYou, type CaseInput } from '@/lib/reports/market-reality-brief/case'
+import { buildProfile, ratingFor } from '@/lib/reports/market-reality-brief/profile'
+import { SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
+
+const caseInput = (over: Partial<CaseInput> = {}): CaseInput => ({
+  experience: run([role('Manager', d(2008, 1), d(2016, 1), { teamSize: 40 }), role('Director', d(2016, 2), null)], { targetRole: 'Director' }),
+  dims: { quantification: 80, narrativePositioning: 80 },
+  ai: { employersAsking: 5, of: 8, haveAny: true },
+  conversationsPerWeek: 4,
+  documentStrengths: [],
+  targetRole: 'Director of Finance',
+  function: 'Finance',
+  yearsExperience: 18,
+  ...over,
+})
+
+describe('buildCaseForYou', () => {
+  it('cites evidence for each item and caps the list at five', () => {
+    const c = buildCaseForYou(caseInput({ documentStrengths: [{ title: 'Turnaround', detail: 'Cut close time from 12 days to 6.' }, { title: 'Board', detail: 'Presented to the board quarterly.' }] }))
+    expect(c.items.length).toBeLessThanOrEqual(5)
+    expect(c.items.every((x) => x.evidence.length > 0 && x.leadWith.length > 0)).toBe(true)
+    expect(c.items.map((x) => x.weight)).toEqual([...c.items.map((x) => x.weight)].sort((a, b) => b - a))
+  })
+
+  it('reads stability, scale, numbers and network from the record', () => {
+    // Six qualify; the list keeps the five heaviest.
+    const keys = buildCaseForYou(caseInput()).items.map((x) => x.key)
+    expect(keys).toEqual(['numbers', 'scale', 'level', 'network', 'stability'])
+  })
+
+  it('never invents a strength: a thin record gives an empty list and no positioning line', () => {
+    const c = buildCaseForYou(caseInput({ experience: run([role('Analyst', d(2024, 1), d(2024, 6)), role('Analyst', d(2024, 8), null)]), dims: { quantification: 30, narrativePositioning: 30 }, ai: null, conversationsPerWeek: 0 }))
+    expect(c.items).toEqual([])
+    expect(c.positioningLine).toBeNull()
+  })
+
+  it('drafts a positioning line only from facts on file', () => {
+    const c = buildCaseForYou(caseInput())
+    expect(c.positioningLine).toMatch(/Director of Finance with 18\+ years in Finance/)
+    expect(buildCaseForYou(caseInput({ targetRole: null })).positioningLine).toBeNull()
+  })
+})
+
+describe('buildProfile', () => {
+  it('rates by score and keeps the analysis’s own top finding', () => {
+    expect(ratingFor(80)).toBe('strength')
+    expect(ratingFor(60)).toBe('adequate')
+    expect(ratingFor(20)).toBe('development')
+    const groups = buildProfile(
+      { quantification: 40, narrativePositioning: 90, scopeLevel: 70 },
+      { quantification: [{ candidateFacingCopy: 'Few results carry numbers.', estimatedPointGain: 9 }, { candidateFacingCopy: 'Minor.', estimatedPointGain: 2 }] }
+    )
+    const rows = groups.flatMap((g) => g.rows)
+    expect(rows.find((r) => r.key === 'quantification')).toMatchObject({ assessment: 'development', observation: 'Few results carry numbers.' })
+    expect(rows.find((r) => r.key === 'narrativePositioning')?.observation).toBeNull()
+  })
+
+  it('returns nothing without scores', () => {
+    expect(buildProfile(null, null)).toEqual([])
+  })
+})
+
+describe('sections', () => {
+  it('numbers every section once, in order', () => {
+    expect(SECTIONS.map((s) => sectionNumber(s.id))).toEqual(SECTIONS.map((_, i) => String(i + 1).padStart(2, '0')))
+    expect(new Set(SECTIONS.map((s) => s.id)).size).toBe(SECTIONS.length)
   })
 })
