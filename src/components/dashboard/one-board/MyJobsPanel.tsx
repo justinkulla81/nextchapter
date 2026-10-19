@@ -23,7 +23,7 @@ const STATUS_STYLE: Record<JobStatus, string> = {
 
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-function Funnel({ funnel }: { funnel: MyJobsView['funnel'] }) {
+export function MyJobsFunnel({ funnel }: { funnel: MyJobsView['funnel'] }) {
   const steps = [
     { label: 'Opened an application', n: funnel.clicked },
     { label: 'Applied', n: funnel.applied },
@@ -67,7 +67,7 @@ export function MyJobsPanel({ view }: { view: MyJobsView }) {
         </p>
       </div>
 
-      <Funnel funnel={view.funnel} />
+      <MyJobsFunnel funnel={view.funnel} />
 
       <ApplyPrompts prompts={view.prompts.map((p) => ({ trackedJobId: p.trackedJobId, title: p.title, companyName: p.companyName, clickedOn: fmt(p.clickedAt) }))} />
 
