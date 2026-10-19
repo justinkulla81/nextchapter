@@ -6,6 +6,10 @@ import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'LinkedIn' }
@@ -15,13 +19,17 @@ export default async function LinkedInPage() {
   const profile = await getDashboardProfile()
   const postGeneratorUnlocked = profile.linkedinUsageFrequency !== null
 
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">LinkedIn</h1>
         <PageHeaderBoxes pageKey="linkedin" candidateId={profile.id} />
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">LinkedIn Analysis</CardTitle>
@@ -34,7 +42,11 @@ export default async function LinkedInPage() {
           )}
         </CardContent>
       </Card>
+    </>
+  )
 
+  const block2 = (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -55,9 +67,17 @@ export default async function LinkedInPage() {
           </p>
         </CardContent>
       </Card>
+    </>
+  )
 
+  const block3 = (
+    <>
       <HeadshotCreator />
+    </>
+  )
 
+  const block4 = (
+    <>
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">LinkedIn Post Generator</h2>
         <p className="text-sm text-muted-foreground">
@@ -83,6 +103,40 @@ export default async function LinkedInPage() {
           </div>
         )}
       </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="LinkedIn"
+          intro="A current profile and regular posts put you in front of the people who hire. We check your profile and help you write posts."
+          action={
+            <ActionLink href="#post" kind="primary" event="linkedin_post_start_clicked" props={{ confirmed: profile.linkedInConfirmedAt !== null, postGeneratorReady: postGeneratorUnlocked }}>
+              Write a post
+            </ActionLink>
+          }
+        />
+        {block1}
+        <div id="post" className="scroll-mt-4">
+          {block4}
+        </div>
+        <ShowMore page="linkedin">
+          {block2}
+          {block3}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
+      {block3}
+      {block4}
     </div>
   )
 }

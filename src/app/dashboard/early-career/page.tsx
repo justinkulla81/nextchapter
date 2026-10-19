@@ -9,6 +9,10 @@ import { loadEarlyCareerView } from '@/lib/early-career/data'
 import { nextItem } from '@/lib/early-career/checklist'
 import { formatPay } from '@/lib/early-career/pay'
 import { isInWorkMember } from '@/lib/in-work/constants'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -63,8 +67,8 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
   const newGrad = audience === 'NEW_GRAD'
   const employed = isInWorkMember(profile)
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-10">
+  const block0 = (
+    <>
       <div className="space-y-3">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{AUDIENCE_LABEL[audience]}</p>
         <h1 className="text-2xl font-semibold tracking-tight">{newGrad ? 'Your first job plan' : 'Your next step plan'}</h1>
@@ -82,11 +86,19 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </Button>
         )}
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <Section id="checklist" title={newGrad ? 'Your first job checklist' : 'Your growth checklist'}>
         <EarlyCareerChecklist rows={view.checklist} />
       </Section>
+    </>
+  )
 
+  const block2 = (
+    <>
       <Section
         id="education"
         title="Your school"
@@ -98,13 +110,21 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </CardContent>
         </Card>
       </Section>
+    </>
+  )
 
+  const block3 = (
+    <>
       {featureVisible('major_role_picker', audience) && (
         <Section id="roles" title="Roles your major leads to" intro="The entry-level titles new grads with your major apply to most, with the skills each one asks for (from O*NET).">
           <MajorRolePicker majorKey={view.major?.key ?? null} roles={view.roles} targetRoleType={view.targetRoleType} />
         </Section>
       )}
+    </>
+  )
 
+  const block4 = (
+    <>
       {featureVisible('early_promotion_path', audience) && (
         <Section id="promotion" title="The path to senior or manager" intro="Most promotions in years two to five come from the same four moves.">
           <ol className="list-decimal space-y-2 pl-5 text-sm">
@@ -133,7 +153,11 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           )}
         </Section>
       )}
+    </>
+  )
 
+  const block5 = (
+    <>
       <Section id="pay" title={newGrad ? 'Starting pay' : 'Market pay for your level'}>
         {view.pay ? (
           <div className="space-y-1">
@@ -150,7 +174,11 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </p>
         )}
       </Section>
+    </>
+  )
 
+  const block6 = (
+    <>
       {newGrad && (
         <Section id="offer" title="Your first offer">
           <ol className="list-decimal space-y-2 pl-5 text-sm">
@@ -164,7 +192,11 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </Link>
         </Section>
       )}
+    </>
+  )
 
+  const block7 = (
+    <>
       <Section id="grad-school" title="Grad school or work?" intro="A light guide. Decide on purpose, not by default.">
         <ul className="list-disc space-y-2 pl-5 text-sm">
           <li>
@@ -178,6 +210,50 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
           </li>
         </ul>
       </Section>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title={newGrad ? 'Your first job plan' : 'Your next step plan'}
+          intro={`${
+            newGrad
+              ? 'Ten steps from résumé to first offer. No full-time experience yet is normal: internships, projects and coursework count.'
+              : 'Two to five years in is when careers speed up or stall. These steps get you to senior or manager, here or somewhere new.'
+          } ${doneCount} of ${view.checklist.length} done.`}
+          action={
+            next ? (
+              <ActionLink href={next.href} kind="primary" event="early_career_next_step_clicked" props={{ audience, step: next.linkLabel, done: doneCount, total: view.checklist.length }}>
+                Next: {next.linkLabel.toLowerCase()}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+        {block1}
+        {block2}
+        {block5}
+        <ShowMore page="early_career" label="Show roles, promotion, offers and grad school">
+          {block3}
+          {block4}
+          {block6}
+          {block7}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-10">
+      {block0}
+      {block1}
+      {block2}
+      {block3}
+      {block4}
+      {block5}
+      {block6}
+      {block7}
     </div>
   )
 }
