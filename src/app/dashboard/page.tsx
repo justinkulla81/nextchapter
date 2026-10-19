@@ -63,6 +63,9 @@ import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkelet
 import { timed } from '@/lib/perf/timed'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
 import { UnlocksSection } from '@/components/dashboard/home/UnlocksSection'
+import { LearnModule } from '@/components/dashboard/home/LearnModule'
+import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { nextStep } from '@/lib/journey/learning-paths'
 import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { loadApplyPrompts } from '@/lib/jobs/my-jobs-data'
 import { RecruiterVisibilityGoalCard, type RecruiterGoalStep } from '@/components/dashboard/home/RecruiterVisibilityGoalCard'
@@ -182,8 +185,18 @@ async function HomeApplyPrompts({ candidateId }: { candidateId: string }) {
   )
 }
 
-function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
-  return <UnlocksSection profile={profile} />
+function HomeUnlocksSection({ profile, redesign = false }: { profile: HomeProfile; redesign?: boolean }) {
+  return <UnlocksSection profile={profile} redesign={redesign} />
+}
+
+async function HomeLearnSection({ candidateId }: { candidateId: string }) {
+  const [{ paths, progress }, finished] = await Promise.all([
+    timed('home', 'learningPaths', candidateId, getLearningPaths(candidateId)),
+    timed('home', 'learningBadges', candidateId, prisma.learningBadge.count({ where: { candidateId } })),
+  ])
+  const path = paths[0]
+  const step = path ? nextStep(path, progress) : null
+  return <LearnModule next={path && step ? { goal: path.goal, step: step.title } : null} finished={finished} />
 }
 
 // "Get seen by recruiters": only for members without Candidate+. Their exact remaining
@@ -268,6 +281,9 @@ async function HomeWeeklyPlan({
         <WeeklyFocusCard
           candidateId={profile.id}
           locked={!bothConnectedUnlocked}
+          hasEmailConnection={hasEmailConnection}
+          hasCalendarConnection={hasCalendarConnection}
+          linkedInConnected={linkedInConnected}
           weeklyPoints={weeklyProgress.weeklyPoints}
           weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
         />
@@ -563,10 +579,13 @@ export default async function DashboardPage() {
           <Suspense fallback={<HomeModuleSkeleton title="Network" />}>
             <HomeNetworkSection candidateId={profile.id} />
           </Suspense>
+          <Suspense fallback={<HomeModuleSkeleton title="Learn" />}>
+            <HomeLearnSection candidateId={profile.id} />
+          </Suspense>
           {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
             <div className="lg:col-span-2">
               <Suspense fallback={<HomeModuleSkeleton title="Unlocks" rows={3} />}>
-                <HomeUnlocksSection profile={profile} />
+                <HomeUnlocksSection profile={profile} redesign />
               </Suspense>
             </div>
           )}

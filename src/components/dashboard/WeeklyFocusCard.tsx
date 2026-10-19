@@ -1,4 +1,8 @@
+import Link from 'next/link'
 import { Lock } from 'lucide-react'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
+import { connectGmailCalendarHref } from '@/components/dashboard/PreConnectDailyMessage'
 import { getOrDraftWeeklyFocus, type WeeklyFocus } from '@/lib/reports/weekly-focus'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -38,9 +42,16 @@ export async function WeeklyFocusCard({
   locked,
   weeklyPoints,
   weeklyPointsTarget,
+  hasEmailConnection = false,
+  hasCalendarConnection = false,
+  linkedInConnected = false,
 }: {
   candidateId: string
   locked: boolean
+  // What is still missing while locked, so the card can offer the button for each.
+  hasEmailConnection?: boolean
+  hasCalendarConnection?: boolean
+  linkedInConnected?: boolean
   // Same live numbers already shown in Your Stats / the Weekly Search
   // Sprint card (computeWeeklyProgress, computed once per page load) —
   // passed in rather than recomputed so this can never disagree with them.
@@ -69,6 +80,21 @@ export async function WeeklyFocusCard({
               </p>
             </div>
             <Lock className="size-4 shrink-0 text-orange" aria-hidden />
+          </div>
+          <div className="flex flex-wrap gap-3 pt-3 pl-12">
+            {(!hasEmailConnection || !hasCalendarConnection) && (
+              <ConnectGmailCalendarButton
+                href={withOAuthReturnTo(connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection), '/dashboard')}
+                label={!hasEmailConnection && !hasCalendarConnection ? 'Connect Gmail and Calendar' : !hasEmailConnection ? 'Connect Gmail' : 'Connect Calendar'}
+                analyticsKey="weekly_focus_locked"
+                className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand/90"
+              />
+            )}
+            {!linkedInConnected && (
+              <Link href="/dashboard/network/contacts?buildList=1#import" className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-muted">
+                Import your LinkedIn connections
+              </Link>
+            )}
           </div>
         </CardHeader>
       </Card>

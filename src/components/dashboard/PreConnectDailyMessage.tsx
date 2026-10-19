@@ -9,7 +9,7 @@ import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailC
 // (Victoria's advice, auto-detected actions, matches) has real data to draw
 // on yet, so the honest daily message is just "go connect these two things"
 // rather than a generic tip unrelated to what's actually blocking them.
-function connectGmailCalendarHref(hasEmailConnection: boolean, hasCalendarConnection: boolean): string {
+export function connectGmailCalendarHref(hasEmailConnection: boolean, hasCalendarConnection: boolean): string {
   if (!hasEmailConnection && !hasCalendarConnection) return '/api/auth/google-connect/start'
   if (!hasCalendarConnection) return '/api/auth/calendar/start'
   return '/api/auth/gmail/start'
