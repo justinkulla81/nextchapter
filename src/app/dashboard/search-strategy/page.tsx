@@ -53,6 +53,9 @@ import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
 import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { readMemberIndustries } from '@/lib/profile/industry-reading'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ActionLink } from '@/components/candidate/ActionLink'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -540,6 +543,23 @@ export default async function SearchStrategyPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      {isRedesignOn(profile.email) ? (
+        <PageHeader
+          title="Your search strategy"
+          intro={
+            searchingJourney
+              ? 'Victoria\u2019s read of where you stand, and the few answers it rests on.'
+              : 'What you want from your career, and how you like to work with us. Job-search questions turn on if you start looking.'
+          }
+          action={
+            incomplete.length > 0 ? (
+              <ActionLink href="#answers" event="search_strategy_answer_clicked" props={{ remaining: incomplete.length, answeredOnce: hasAnsweredOnce }}>
+                {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+      ) : (
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1.5">
           <h1 className="font-serif text-3xl leading-tight font-semibold tracking-tight text-navy">Your search strategy</h1>
@@ -555,6 +575,7 @@ export default async function SearchStrategyPage() {
           </a>
         )}
       </header>
+      )}
 
       {searchingJourney &&
         (hasAnsweredOnce ? (
