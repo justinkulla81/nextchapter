@@ -7,7 +7,8 @@ import { getVictoriaName } from '@/lib/victoria'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
-import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { recordCandidateEmailSent, trackEmailSent } from '@/lib/email/send-log'
+import { buildEmailClickUrl } from '@/lib/email/click-link'
 import FinishLineEmail from '@/emails/finish-line'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
@@ -92,12 +93,18 @@ export async function sendFinishLineEmail(
   candidateId: string,
   introCopy?: string | null,
   encouragementCount = 0,
-  hadCoachSession = false
+  hadCoachSession = false,
+  includeCheckIn = false
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping Finish Line email.')
     return { sent: false as const }
   }
+
+  // The "still searching?" question (the retired Saturday Search Check-in) rides
+  // along when this member is due one. Its row and token are created first and
+  // removed again if the send fails, so a failed attempt leaves nothing behind.
+  const checkIn = includeCheckIn ? await prisma.candidateSearchCheckIn.create({ data: { candidateId } }) : null
 
   try {
     const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
@@ -105,7 +112,10 @@ export async function sendFinishLineEmail(
     const admin = createAdminClient()
     const { data: userData } = await admin.auth.admin.getUserById(candidate.userId)
     const email = userData.user?.email
-    if (!email) return { sent: false as const }
+    if (!email) {
+      if (checkIn) await prisma.candidateSearchCheckIn.delete({ where: { id: checkIn.id } }).catch(() => {})
+      return { sent: false as const }
+    }
 
     const victoriaName = getVictoriaName('daily-email')
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -131,6 +141,14 @@ export async function sendFinishLineEmail(
         victoriaName,
         introCopy: introCopy ?? null,
         bullets,
+        checkIn: checkIn
+          ? {
+              stillSearchingUrl: `${appUrl}/api/checkin/${checkIn.token}?answer=still_searching`,
+              managingMyCareerUrl: `${appUrl}/api/checkin/${checkIn.token}?answer=managing_my_career`,
+              gotAnOfferUrl: `${appUrl}/api/checkin/${checkIn.token}?answer=got_an_offer`,
+            }
+          : null,
+        dashboardUrl: buildEmailClickUrl(appUrl, candidate.id, 'FINISH_LINE', `${appUrl}/dashboard`),
         appUrl,
         unsubscribeUrl,
       }),
@@ -138,15 +156,18 @@ export async function sendFinishLineEmail(
 
     if (error) {
       console.error('Failed to send Finish Line email:', error)
+      if (checkIn) await prisma.candidateSearchCheckIn.delete({ where: { id: checkIn.id } }).catch(() => {})
       return { sent: false as const }
     }
 
     await recordCandidateEmailSent(candidateId, 'FINISH_LINE')
+    trackEmailSent(candidateId, 'FINISH_LINE')
     await prisma.candidateProfile.update({ where: { id: candidateId }, data: { lastDailyEmailSentAt: new Date() } })
 
     return { sent: true as const }
   } catch (error) {
     console.error('Failed to send Finish Line email:', error)
+    if (checkIn) await prisma.candidateSearchCheckIn.delete({ where: { id: checkIn.id } }).catch(() => {})
     return { sent: false as const }
   }
 }

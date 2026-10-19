@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { sendWinBackEmail } from '@/lib/email/send-win-back'
 import { effectiveJourney, returnDateOf } from '@/lib/journey/journey'
-import { nextWinBackStep, WIN_BACK_AFTER_DAYS } from '@/lib/winback/sequence'
+import { nextWinBackStep, winBackSpacedOut, WIN_BACK_AFTER_DAYS } from '@/lib/winback/sequence'
 
-// Daily. Members with no login or page activity for 21+ days get up to three
+// Weekly (Wednesday). Members with no login or page activity for 21+ days get up to three
 // emails (21, 42, 63 days quiet). Anyone who returns starts the count over.
 export async function runWinBack(now = new Date()) {
   const oldest = new Date(now.getTime() - WIN_BACK_AFTER_DAYS[0] * 86_400_000)
@@ -42,6 +42,8 @@ export async function runWinBack(now = new Date()) {
         const awayOnPurpose = back ? back.getTime() > now.getTime() : now.getTime() - lastActivity.getTime() < 90 * 86_400_000
         if (awayOnPurpose) continue
       }
+      const lastWinBack = await prisma.candidateEmailSendLog.findFirst({ where: { candidateId: c.id, emailKey: 'WIN_BACK' }, orderBy: { sentAt: 'desc' }, select: { sentAt: true } })
+      if (!winBackSpacedOut(lastWinBack?.sentAt ?? null, now)) continue
       const already = await prisma.candidateEmailSendLog.count({ where: { candidateId: c.id, emailKey: 'WIN_BACK', sentForDate: { gt: lastActivity } } })
       const step = nextWinBackStep(lastActivity, already, now)
       if (!step) continue

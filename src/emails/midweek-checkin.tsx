@@ -15,6 +15,8 @@ interface MidweekCheckinEmailProps {
   resetTask?: string | null
   bullets: string[] | null
   weeklyRecap: WeeklyRecap | null
+  gap?: { weeklyPoints: number; weeklyPointsTarget: number; pointsToGo: number } | null
+  dashboardUrl?: string
   appUrl: string
   unsubscribeUrl: string
 }
@@ -101,6 +103,8 @@ export default function MidweekCheckinEmail({
   resetTask,
   bullets,
   weeklyRecap,
+  gap = null,
+  dashboardUrl,
   appUrl,
   unsubscribeUrl,
 }: MidweekCheckinEmailProps) {
@@ -138,15 +142,22 @@ export default function MidweekCheckinEmail({
         <p>Check your dashboard for today&apos;s plan.</p>
       )}
 
-      <a href={`${appUrl}/dashboard`} style={button}>
+      <a href={dashboardUrl ?? `${appUrl}/dashboard`} style={button}>
         {isReset && resetTask ? 'Start this now' : 'Open my dashboard'}
       </a>
+
+      {gap && (
+        <p style={{ marginTop: '20px', fontWeight: 600 }}>
+          You&apos;re at {gap.weeklyPoints} of {gap.weeklyPointsTarget} points — {gap.pointsToGo} to go to lock in an A this week.
+        </p>
+      )}
 
       {weeklyRecap && (
         <div style={recapBox}>
           <p style={recapTitle}>
-            This week so far: {weeklyRecap.pointsEarned} of {weeklyRecap.pointsTarget} points — nice
-            work.
+            {gap
+              ? 'Done so far this week:'
+              : `This week so far: ${weeklyRecap.pointsEarned} of ${weeklyRecap.pointsTarget} points — nice work.`}
           </p>
           <ul style={recapList}>
             {weeklyRecap.completedTexts.map((text, i) => (

@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { repostKey } from '@/lib/jobs/ghost-risk'
+import { LIKELY_AGE_DAYS, repostKey, STILL_LISTED_DAYS } from '@/lib/jobs/ghost-risk'
 import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
 
 // How many times each company + title + location has been posted and closed. One query over
@@ -44,4 +44,39 @@ export function getClosedPostingCounts(): Promise<Map<string, number>> {
     })
   }
   return cache.counts
+}
+
+// Direct employer listings recently confirmed still listed (ghost-risk.ts stillListedDirect),
+// id -> lastVerifiedAt (ms). Only rows old enough for age to matter (past 90 days, less a
+// day of slack so a held board's rows that age past 90 before the next load are covered)
+// — an index scan on (archivedAt, createdAt), a few ms. Neither column is on
+// BoardLightRow, so the board looks them up here, memoised like the closure counts.
+// Unreadable = empty map: age rules for every listing as before (the stricter side).
+let listedCache: { at: number; ids: Promise<Map<string, number>> } | null = null
+
+async function loadStillListed(): Promise<Map<string, number>> {
+  const now = Date.now()
+  const ids = new Map<string, number>()
+  try {
+    const rows = await prisma.exclusiveJobPosting.findMany({
+      where: {
+        archivedAt: null,
+        status: 'approved',
+        directListing: true,
+        createdAt: { lt: new Date(now - (LIKELY_AGE_DAYS - 1) * 86_400_000) },
+        lastVerifiedAt: { gte: new Date(now - STILL_LISTED_DAYS * 86_400_000) },
+      },
+      select: { id: true, lastVerifiedAt: true },
+    })
+    for (const r of rows) if (r.lastVerifiedAt) ids.set(r.id, r.lastVerifiedAt.getTime())
+  } catch (error) {
+    console.error('ghost risk: could not read still-listed direct listings', error)
+  }
+  return ids
+}
+
+/** Direct listings confirmed still listed, id -> lastVerifiedAt ms (pass to stillListedDirect with true). */
+export function getStillListedDirect(): Promise<Map<string, number>> {
+  if (!listedCache || Date.now() - listedCache.at > TTL_MS) listedCache = { at: Date.now(), ids: loadStillListed() }
+  return listedCache.ids
 }

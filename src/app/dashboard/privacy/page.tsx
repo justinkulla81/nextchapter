@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
+import { EmailTopicToggles } from '@/components/candidates/EmailTopicToggles'
+import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
@@ -205,10 +207,19 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
-          How often you hear from us. Your Market Reality Report and any reminder emails always send
+          How often you hear from us, and which emails. Members who have not visited in a few weeks automatically get fewer. Your Market Reality Report and any reminder emails always send
           regardless of this setting.
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
+        <EmailTopicToggles
+          optedOut={{
+            weeklyReportOptedOut: profile.weeklyReportOptedOut,
+            marketDigestOptedOut: profile.marketDigestOptedOut,
+            dailyEmailOptedOut: profile.dailyEmailOptedOut,
+            jobSearchDailyOptedOut: profile.jobSearchDailyOptedOut,
+          }}
+        />
+        <ActionWindowSelector current={profile.actionWindow} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

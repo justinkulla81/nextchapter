@@ -18,7 +18,8 @@
 //              (closeReason 'removed'; also 'filtered' / 'manual' — we took it down).
 //   expired    it aged past our freshness window while possibly still listed
 //              (closeReason 'aged_out': director and above 60 days, everyone else 30,
-//              the same windows the crawler's master-list.py export uses), or it was
+//              the same windows the crawler's master-list.py export uses; a direct
+//              employer listing — directListing — only past DIRECT_MAX_AGE_DAYS), or it was
 //              not reconfirmed before its expiresAt ('expired').
 // Every past job carries closedAt, closeReason and daysOpen (closedAt − posted date,
 // or first-seen date when the source gives no posting date).
@@ -65,6 +66,13 @@ export const CURRENT_STATUSES: readonly JobLifecycleStatus[] = ['new', 'reposted
 /** Freshness windows (days), matching the crawler's export (ncrawl config.max_age_for). */
 export const FRESH_DAYS_DEFAULT = 30
 export const FRESH_DAYS_SENIOR = 60
+/**
+ * Direct employer listings (directListing: from the employer's own careers site / ATS,
+ * ncrawl config.is_direct) have no 30 / 60-day window: they stay while the employer still
+ * lists them, up to this backstop (ncrawl NC_DIRECT_MAX_AGE_DAYS), which catches evergreen
+ * "always hiring" reqs. Owner's call 2026-10-19.
+ */
+export const DIRECT_MAX_AGE_DAYS = 365
 const SENIOR_GROUPS = new Set(['EXECUTIVE', 'VP', 'DIRECTOR'])
 
 const DAY_MS = 86_400_000
@@ -101,9 +109,10 @@ export function mapCrawlerCloseReason(reason: string | null | undefined): CloseR
  * our freshness window → 'aged_out' (it may well still be up), otherwise the
  * employer stopped listing it → 'removed'.
  */
-export function finalizeCloseReason(row: { postedAt: Date | null; createdAt: Date; level: string | null }, now: Date): CloseReason {
+export function finalizeCloseReason(row: { postedAt: Date | null; createdAt: Date; level: string | null; directListing?: boolean | null }, now: Date): CloseReason {
   const since = row.postedAt ?? row.createdAt
-  return (now.getTime() - since.getTime()) / DAY_MS > freshnessWindowDays(row.level) ? 'aged_out' : 'removed'
+  const window = row.directListing ? DIRECT_MAX_AGE_DAYS : freshnessWindowDays(row.level)
+  return (now.getTime() - since.getTime()) / DAY_MS > window ? 'aged_out' : 'removed'
 }
 
 /** For a past job archived before reasons were kept: same rule, judged at its close date. */

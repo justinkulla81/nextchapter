@@ -100,9 +100,13 @@ describe('fresh-job alert cap', () => {
     expect(src).toContain('MAX_JOBS = 2')
   })
 
-  it('runs several times a day', () => {
-    const cron = JSON.parse(readFileSync('vercel.json', 'utf8')).crons.find((c: { path: string }) => c.path === '/api/cron/fresh-job-alerts')
-    expect(cron.schedule.split(' ')[1].split(',').length).toBeGreaterThan(1)
+  // Retired as a default (2026-10-19): Job Search Daily already carries a
+  // "Posted in the last 72 hours" section, so a separate alert email doubled
+  // the strong-fit job pushes. The route stays for an explicit opt-in later;
+  // re-add the cron to vercel.json only together with that preference.
+  it('is not scheduled by default', () => {
+    const crons = JSON.parse(readFileSync('vercel.json', 'utf8')).crons as { path: string }[]
+    expect(crons.some((c) => c.path === '/api/cron/fresh-job-alerts')).toBe(false)
   })
 })
 

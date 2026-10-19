@@ -6,6 +6,8 @@ interface FinishLineEmailProps {
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
   introCopy: string | null
   bullets: string[]
+  checkIn?: { stillSearchingUrl: string; managingMyCareerUrl: string; gotAnOfferUrl: string } | null
+  dashboardUrl?: string
   appUrl: string
   unsubscribeUrl: string
 }
@@ -58,6 +60,8 @@ export default function FinishLineEmail({
   victoriaName,
   introCopy,
   bullets,
+  checkIn = null,
+  dashboardUrl,
   appUrl,
   unsubscribeUrl,
 }: FinishLineEmailProps) {
@@ -79,9 +83,20 @@ export default function FinishLineEmail({
         ))}
       </ul>
 
-      <a href={`${appUrl}/dashboard`} style={button}>
+      <a href={dashboardUrl ?? `${appUrl}/dashboard`} style={button}>
         Open my dashboard
       </a>
+
+      {checkIn && (
+        <div style={{ marginTop: '28px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+          <p style={{ fontWeight: 600, margin: 0 }}>One tap, so we send the right things: where are you in your search?</p>
+          <ul style={bulletList}>
+            <li style={bulletItem}><a href={checkIn.stillSearchingUrl}>Still searching</a></li>
+            <li style={bulletItem}><a href={checkIn.managingMyCareerUrl}>Managing my career, not actively searching</a></li>
+            <li style={bulletItem}><a href={checkIn.gotAnOfferUrl}>I got an offer</a></li>
+          </ul>
+        </div>
+      )}
 
       <p style={footer}>
         Don&apos;t want daily emails?{' '}

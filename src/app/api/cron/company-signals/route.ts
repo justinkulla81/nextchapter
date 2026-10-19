@@ -17,6 +17,12 @@ export const maxDuration = 300
 
 const INDUSTRY_SWEEP_LIMIT = 300 // companies per night (~$0.60 at most)
 const INDUSTRY_SWEEP_DEADLINE_MS = 150_000
+// The whole run must finish inside maxDuration. The signals and outcomes are the
+// job; the graph sync and industry sweep are incremental extras, so they only run
+// with time to spare and the sweep's own deadline is trimmed to what is left.
+const RUN_BUDGET_MS = 270_000
+const GRAPH_SYNC_MIN_LEFT_MS = 90_000
+const SWEEP_MIN_LEFT_MS = 40_000
 
 // Nightly company_signals + company_application_outcomes job — Phase 2
 // Master Script, Part C, Prompt 2. Everything here comes from
@@ -29,6 +35,8 @@ const INDUSTRY_SWEEP_DEADLINE_MS = 150_000
 // mid-run crash just gets overwritten cleanly on the next run, not left
 // half-stale.
 export const GET = withCronRun('company-signals', async () => {
+  const runStart = Date.now()
+  const msLeft = () => RUN_BUDGET_MS - (Date.now() - runStart)
   const weekStartDate = getMondayOfWeek(new Date())
   const now = new Date()
 
@@ -107,6 +115,10 @@ export const GET = withCronRun('company-signals', async () => {
   let outcomesWritten = 0
   let outcomeErrors = 0
   for (const outcome of outcomes) {
+    if (msLeft() < 60_000) {
+      console.warn('company-signals: outcomes cut short, out of time')
+      break
+    }
     try {
       const company = await lookupCompanyByNormalizedName(outcome.companyNameNormalized)
       if (!company) continue
@@ -142,15 +154,26 @@ export const GET = withCronRun('company-signals', async () => {
   // and give new companies an industry — both bounded, both incremental.
   let graph = null
   let industries = null
-  try {
-    graph = await syncCompanyGraph({ postingNameLimit: 300 })
-  } catch (error) {
-    console.error('company-signals: company graph sync failed', error)
+  if (msLeft() > GRAPH_SYNC_MIN_LEFT_MS) {
+    try {
+      graph = await syncCompanyGraph({ postingNameLimit: 300 })
+    } catch (error) {
+      console.error('company-signals: company graph sync failed', error)
+    }
+  } else {
+    console.warn('company-signals: skipped company graph sync, out of time')
   }
-  try {
-    industries = await sweepCompanyIndustries({ limit: INDUSTRY_SWEEP_LIMIT, deadlineMs: INDUSTRY_SWEEP_DEADLINE_MS })
-  } catch (error) {
-    console.error('company-signals: industry sweep failed', error)
+  if (msLeft() > SWEEP_MIN_LEFT_MS) {
+    try {
+      industries = await sweepCompanyIndustries({
+        limit: INDUSTRY_SWEEP_LIMIT,
+        deadlineMs: Math.min(INDUSTRY_SWEEP_DEADLINE_MS, msLeft() - 20_000),
+      })
+    } catch (error) {
+      console.error('company-signals: industry sweep failed', error)
+    }
+  } else {
+    console.warn('company-signals: skipped industry sweep, out of time')
   }
 
   return NextResponse.json({

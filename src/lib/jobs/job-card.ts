@@ -74,6 +74,26 @@ export function lastCheckedPhrase(verifiedAt: Date | string | null | undefined, 
   return days > STALE_CHECK_DAYS ? `Last checked ${days} days ago` : null
 }
 
+/** Past this many days a direct listing's card says the employer still lists it (job-status.ts FRESH_DAYS_DEFAULT). */
+const STILL_LISTED_AFTER_DAYS = 30
+
+/**
+ * True for a direct employer listing (directListing: from the employer's own careers site /
+ * ATS, exempt from the 30 / 60-day windows) posted more than 30 days ago that we confirmed
+ * up within STALE_CHECK_DAYS (lastVerifiedAt: the last re-crawl that listed it, or a live
+ * liveness check). The card then reads "Posted 45 days ago · still listed by the employer",
+ * so an older date doesn't read as a dead posting.
+ */
+export function isStillListed(
+  p: { directListing?: boolean | null; postedAt: Date | null; createdAt: Date; lastVerifiedAt?: Date | string | null },
+  now: Date = new Date()
+): boolean {
+  if (!p.directListing || !p.lastVerifiedAt) return false
+  const at = typeof p.lastVerifiedAt === 'string' ? new Date(p.lastVerifiedAt) : p.lastVerifiedAt
+  if (Number.isNaN(at.getTime()) || now.getTime() - at.getTime() > STALE_CHECK_DAYS * DAY_MS) return false
+  return (now.getTime() - (p.postedAt ?? p.createdAt).getTime()) / DAY_MS > STILL_LISTED_AFTER_DAYS
+}
+
 /**
  * Posted time · location (or Remote) · pay when known · the kind of work only when it
  * isn't the default full-time role (Contract, Part-time, Interim, Advisory / board,
@@ -89,11 +109,14 @@ export function cardMetaParts(input: {
   workType: JobWorkType
   title: string
   verifiedAt?: Date | string | null
+  /** isStillListed(): a direct listing older than 30 days the employer still lists. */
+  stillListed?: boolean
   now?: Date
 }): string[] {
   const parts: string[] = []
   const checked = lastCheckedPhrase(input.verifiedAt, input.now)
   if (input.posted && checked) parts.push(`${input.posted}, ${checked.charAt(0).toLowerCase()}${checked.slice(1)}`)
+  else if (input.posted && input.stillListed) parts.push(`${input.posted} · still listed by the employer`)
   else if (input.posted || checked) parts.push((input.posted ?? checked)!)
   const location = input.location?.trim() || null
   if (location) parts.push(location)

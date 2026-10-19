@@ -5030,6 +5030,11 @@ model ExclusiveJobPosting {
   // is real evidence. Cards say "Last checked N days ago" past 3 days; a click re-checks it
   // past 24 hours. prisma/manual/2026-10-17-job-liveness.sql.
   lastVerifiedAt  DateTime?
+  // Taken straight from the employer's own careers site / ATS (ncrawl config.is_direct):
+  // exempt from the 30 / 60-day posted-date windows while the employer still lists it
+  // (only a 365-day backstop applies); cards add "still listed by the employer".
+  // prisma/manual/2026-10-19-direct-listing.sql.
+  directListing   Boolean   @default(false)
 
   // NC Job Board 2.0 — visibility model. Existing rows are backfilled to
   // audienceTier: 'A_LIST_ONLY' (see the db-push follow-up script) so

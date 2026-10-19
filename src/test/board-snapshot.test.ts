@@ -114,4 +114,16 @@ describe('stillLive: a held board brought up to now, as a fresh read would give 
     expect(out.rows.map((r) => r.id)).toEqual(['edge'])
     expect(Array.from(out.priors)).toEqual([1])
   })
+
+  it('keeps an old direct listing the employer still lists, unless another signal joins the age', () => {
+    const created = new Date(NOW - (LIKELY_AGE_DAYS + 30) * DAY)
+    const listed = row('listed', { createdAt: created })
+    const relisted = row('relisted', { createdAt: created })
+    const lapsed = row('lapsed', { createdAt: created })
+    const b = board([listed, relisted, lapsed], [NaN, NaN, NaN], [0, 1, 0])
+    const verified = new Map([['listed', NOW - DAY], ['relisted', NOW - DAY], ['lapsed', NOW - 20 * DAY]])
+    expect(stillLive(b, NOW, verified).rows.map((r) => r.id)).toEqual(['listed'])
+    // without the still-listed lookup, age alone drops all three as before
+    expect(stillLive(b, NOW).rows).toEqual([])
+  })
 })

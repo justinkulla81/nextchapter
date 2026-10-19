@@ -8,6 +8,13 @@ export const WIN_BACK_AFTER_DAYS = [21, 42, 63] as const
 
 const DAY = 86_400_000
 
+/** Minimum days between win-back emails, so catching up on several overdue steps never sends them back to back. */
+export const WIN_BACK_MIN_GAP_DAYS = 14
+
+export function winBackSpacedOut(lastSentAt: Date | null, now: Date): boolean {
+  return !lastSentAt || now.getTime() - lastSentAt.getTime() >= WIN_BACK_MIN_GAP_DAYS * DAY
+}
+
 export type WinBackStep = 1 | 2 | 3
 
 export function daysQuiet(lastActivity: Date, now: Date): number {

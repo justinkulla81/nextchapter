@@ -21,6 +21,10 @@
       "schedule": "15 13 * * *"
     },
     {
+      "path": "/api/cron/win-back",
+      "schedule": "0 15 * * 3"
+    },
+    {
       "path": "/api/cron/job-search-daily",
       "schedule": "0 12 * * *"
     },
@@ -207,10 +211,6 @@
     {
       "path": "/api/cron/landed-to-managing",
       "schedule": "20 10 * * *"
-    },
-    {
-      "path": "/api/cron/fresh-job-alerts",
-      "schedule": "30 13,16,19,22,1 * * *"
     },
     {
       "path": "/api/cron/likely-openings",

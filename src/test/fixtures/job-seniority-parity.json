@@ -4396,8 +4396,8 @@
 ],
 [
 "ClickHouse Operations Engineer",
-"OTHER",
-0
+"EARLY_IC",
+25
 ],
 [
 "Senior Software Engineer, Enterprise Build",
@@ -8226,8 +8226,8 @@
 ],
 [
 "Business Development Lead - Americas",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Premium Support Engineer (Foster City, Weekend Shift)",
@@ -9206,8 +9206,8 @@
 ],
 [
 "Senior, Majors Account Executive",
-"MID_IC",
-30
+"SENIOR_IC",
+45
 ],
 [
 "Full Stack Engineer - Internal Audit",
@@ -9476,8 +9476,8 @@
 ],
 [
 "Business Development Lead, Compute Strategy",
-"OTHER",
-0
+"SENIOR_IC",
+45
 ],
 [
 "Senior Software Engineer, Backend (Merchant & Partner Lifecycle)",
@@ -21815,5 +21815,135 @@ true
 "Senior Logistics Specialist",
 "SENIOR_IC",
 45
+],
+[
+"Sr. TPM, AWS",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Mgr, Program Management",
+"SR_MANAGER",
+50
+],
+[
+"Supply Chain Mgr II, Amazon",
+"MANAGER",
+40
+],
+[
+"Sr. PMT, Alexa",
+"SENIOR_IC",
+45
+],
+[
+"Software Development Engineer, Amazon Customer Service",
+"EARLY_IC",
+25
+],
+[
+"Robotics Systems Engineer I, Tech Deployment",
+"ENTRY_IC",
+20
+],
+[
+"Business Intelligence Engineer - AWS, AWS DC Construction",
+"EARLY_IC",
+25
+],
+[
+"Delivery Consultant - Data , Professional Services, AWS Industries",
+"MID_IC",
+30
+],
+[
+"HR Partner, Human Resources, NACF",
+"MID_IC",
+30
+],
+[
+"Senior Device Driver Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Data Scientist, Server Fleet",
+"SENIOR_IC",
+45
+],
+[
+"Director, Technology Operations - Driver Defects, Agentic AI - Last Mile Delivery",
+"DIRECTOR",
+65
+],
+[
+"Delivery Driver, Amazon Flex",
+"OTHER",
+0
+],
+[
+"Banquet Server",
+"OTHER",
+0
+],
+[
+"Staff, Software Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Merchant- Footwear (Digital)",
+"SENIOR_IC",
+45
+],
+[
+"Associate Merchant- Home Decor",
+"EARLY_IC",
+25
+],
+[
+"Merchant Services Representative",
+"OTHER",
+0
+],
+[
+"Member Team Lead",
+"OTHER",
+0
+],
+[
+"Tire and Battery Center Team Leader",
+"OTHER",
+0
+],
+[
+"Vision Center Manager L3",
+"OTHER",
+0
+],
+[
+"Store Mgr",
+"OTHER",
+0
+],
+[
+"Hub Supervisor",
+"EARLY_IC",
+25
+],
+[
+"Part Time Hub Supervisor",
+"OTHER",
+0
+],
+[
+"Preload Supervisor peak help",
+"OTHER",
+0
+],
+[
+"yard controller 2",
+"OTHER",
+0
 ]
 ]

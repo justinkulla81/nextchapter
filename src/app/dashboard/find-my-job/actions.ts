@@ -31,6 +31,8 @@ import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { classifyWorkType, isWorkType } from '@/lib/jobs/work-type'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { aggregatorKind } from '@/lib/jobs/liveness'
+import { archiveDeadPostings, closeOpeningsQuietly } from '@/lib/jobs/liveness-store'
 import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 
 export type FormState = { error?: string } | undefined
@@ -667,6 +669,29 @@ export async function refreshSurfacedJobs() {
 // never blocks or preventDefaults the navigation, just logs it. Denormalized
 // into JobClickEvent (not just the PostHog event) so admin can group by
 // company/title with a real Prisma groupBy — see the schema comment.
+// "This job is closed" on a job listed only through an aggregator (Jooble, Careerjet):
+// their terms bar us from fetching the listing to check it, so a member who lands on the
+// dead page is the one signal we get. The job is taken off the board for everyone
+// (closeReason 'expired_checked', which the crawler copies via the liveness endpoint, so the
+// next import doesn't bring it back). Direct employer / ATS jobs are never closed by a
+// report — the click-time check and the crawler verify those.
+export async function reportJobClosed(postingId: string): Promise<{ ok: boolean }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { ok: false }
+  const posting = await prisma.exclusiveJobPosting.findUnique({
+    where: { id: postingId },
+    select: { id: true, url: true, source: true, sourceName: true, archivedAt: true },
+  })
+  if (!posting || posting.source !== 'ats_feed' || !aggregatorKind(posting.url)) return { ok: false }
+  if (!posting.archivedAt) {
+    await archiveDeadPostings({ ids: [posting.id] })
+    after(closeOpeningsQuietly)
+  }
+  captureServerEvent(profile.id, 'job_reported_closed', { jobId: posting.id, aggregator: aggregatorKind(posting.url), source: posting.sourceName })
+  revalidatePath('/dashboard/find-my-job')
+  return { ok: true }
+}
+
 export async function recordJobClick(input: {
   // 'surfaced' | 'job_board' | 'matched_role' are jobs (tracked in My jobs);
   // 'platform' (an expert network / marketplace Join link) and 'likely_opening'

@@ -14,6 +14,7 @@ import { CrmOrganizationsViewTracker } from '@/components/admin/WorkforceBoardsV
 import { hasLearningDevHead, missingLearningDevHead } from '@/lib/crm/learning-dev'
 import { ORG_RELATIONSHIPS, ORG_RELATIONSHIP_LABELS, isOrgRelationshipFilter, relationshipWhere, type OrgRelationshipFilter } from '@/lib/crm/org-relationships'
 import { countOpenByOrg } from '@/lib/funding-opportunities/store'
+import { layoffsByOrg, orgIdsWithLayoffs } from '@/lib/crm/org-layoffs'
 import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
@@ -32,6 +33,7 @@ export default async function CrmOrganizationsPage({
   const rel: OrgRelationshipFilter | '' = isOrgRelationshipFilter(sp.rel) ? sp.rel : ''
   const goal = sp.goal ?? ''
   const deal = sp.deal ?? ''
+  const layoffs = sp.layoffs === 'any' ? 'any' : ''
   const ldHead = sp.ldhead === 'missing' || sp.ldhead === 'has' ? sp.ldhead : ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
@@ -43,7 +45,9 @@ export default async function CrmOrganizationsPage({
     : sort.sort === 'people' ? [{ affiliations: { _count: sort.dir } }]
     : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
+  const layoffOrgIds = layoffs ? await orgIdsWithLayoffs() : null
   const where: Prisma.CrmOrganizationWhereInput = {
+    ...(layoffOrgIds ? { id: { in: layoffOrgIds } } : {}),
     ...(rel ? { AND: [relationshipWhere(rel)] } : {}),
     ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
     ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
@@ -71,18 +75,18 @@ export default async function CrmOrganizationsPage({
       },
     }),
   ])
-  const oppCounts = await countOpenByOrg(rows.map((o) => o.id))
+  const [oppCounts, layoffCounts] = await Promise.all([countOpenByOrg(rows.map((o) => o.id)), layoffsByOrg(rows.map((o) => o.id))])
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, ldhead: ldHead, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
   return (
     <div className="space-y-6">
       <CrmPeekPanel />
-      <CrmOrganizationsViewTracker q={q} type={type} rel={rel} goal={goal} deal={deal} ldHead={ldHead} results={total} />
+      <CrmOrganizationsViewTracker q={q} type={type} rel={rel} goal={goal} deal={deal} ldHead={ldHead} layoffs={layoffs} results={total} />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Organizations</h1>
@@ -121,6 +125,7 @@ export default async function CrmOrganizationsPage({
           { key: 'type', label: 'Type', value: type, options: [{ value: '', label: 'Any type' }, ...ORG_TYPES.map((t) => ({ value: t, label: ORG_TYPE_LABELS[t] }))] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           { key: 'ldhead', label: 'Head of L&D', value: ldHead, options: [{ value: 'missing', label: 'Missing a head of L&D' }, { value: 'has', label: 'Has a head of L&D' }] },
+          { key: 'layoffs', label: 'Layoffs', value: layoffs, options: [{ value: '', label: 'Any layoff history' }, { value: 'any', label: 'Has layoffs' }] },
           { key: 'deal', label: 'Deal', value: deal, options: [{ value: '', label: 'Any deal status' }, { value: 'any', label: 'Has a deal' }, ...DEAL_STATUSES.map((d) => ({ value: d, label: DEAL_STATUS_LABELS[d] }))] },
         ]}
       />
@@ -153,11 +158,12 @@ export default async function CrmOrganizationsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
-                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, ldhead: ldHead, per: String(perPage) }} />
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
                 <th className="px-3 py-2 font-medium">Deal</th>
-                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
+                <th className="px-3 py-2 font-medium" title="WARN filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium" title="Open grants and forecasts this organization issues">Funding</th>
                 <th className="px-3 py-2 font-medium" title="Open RFPs, RFIs and pre-solicitations this organization issues">RFPs</th>
@@ -197,6 +203,19 @@ export default async function CrmOrganizationsPage({
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {(() => {
+                      const l = layoffCounts.get(o.id)
+                      if (!l || (l.notices === 0 && l.news === 0)) return <span className="text-muted-foreground">—</span>
+                      return (
+                        <Link href={`/support/admin/crm/warn?${new URLSearchParams({ q: o.name, status: 'all' })}`} className="block hover:underline">
+                          {l.notices > 0 && <span className="font-medium">{l.notices} {l.notices === 1 ? 'notice' : 'notices'}</span>}
+                          {l.employees > 0 && <span className="block text-muted-foreground">{l.employees.toLocaleString()} jobs{l.latest ? `, ${l.latest.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : ''}</span>}
+                          {l.news > 0 && <span className="block text-muted-foreground">{l.news} in the news</span>}
+                        </Link>
+                      )
+                    })()}
                   </td>
                   <td className="px-3 py-2">{o._count.opportunities || <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2">{oppCounts.get(o.id)?.funding || <span className="text-muted-foreground">—</span>}</td>

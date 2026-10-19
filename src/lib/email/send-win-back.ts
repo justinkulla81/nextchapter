@@ -3,6 +3,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import WinBackEmail from '@/emails/win-back'
 import { winBackContent, type WinBackStep } from '@/lib/winback/sequence'
 import { effectiveJourney } from '@/lib/journey/journey'
@@ -30,7 +31,7 @@ export async function sendWinBackEmail(candidateId: string, step: WinBackStep) {
     replyTo: 'support@launchyournextchapter.com',
     to: email,
     subject: content.subject,
-    react: WinBackEmail({ content, ctaUrl, unsubscribeUrl: `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly` }),
+    react: WinBackEmail({ content, ctaUrl, unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly') }),
   })
   if (error) {
     console.error('Failed to send win-back email:', error)
