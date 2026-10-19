@@ -12,6 +12,15 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { RunwayCard, type RunwayStateFacts } from '@/components/dashboard/RunwayCard'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { weeksUnemployed } from '@/lib/outcomes/duration-bucket'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { moneyGate, stepHeadline, summarizeSteps } from '@/lib/redesign/benefits'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
+import { SeeAllLink } from '@/components/candidate/SeeAllLink'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { setMoneyHelp } from '@/app/dashboard/money-help/actions'
 
 export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
 
@@ -131,8 +140,44 @@ const TOPICS: Topic[] = [
 // keeping WIOA/budgeting/retirement/severance as the standalone topic cards.
 const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bridge']
 
-export default async function BenefitsPage() {
-  const profile = await getDashboardProfile()
+export default async function BenefitsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const [profile, params] = await Promise.all([getDashboardProfile(), searchParams])
+  const redesign = isRedesignOn(profile.email)
+  const gate = moneyGate(profile.moneyHelp)
+  const fullPage = !redesign || params.view === 'all'
+
+  // Money is the member's to ask for: the question comes first, and a no leaves the page quiet.
+  if (redesign && !fullPage && gate !== 'on') {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Finances and benefits"
+          intro={gate === 'ask' ? 'Money is personal, so we only get into it if you want us to.' : 'Help with money is off, so nothing here asks about pay or savings.'}
+          action={gate === 'off' ? <ActionLink variant="primary" href="/dashboard/money-help" event="money_help_turn_on_clicked" props={{ surface: 'benefits_page' }}>Turn on money help</ActionLink> : undefined}
+        />
+        {gate === 'ask' && (
+          <section aria-labelledby="money-ask" className="space-y-4 rounded-2xl border border-border p-6 sm:p-7">
+            <h2 id="money-ask" className="font-display text-2xl font-semibold text-ink">Would you like help with money while you search?</h2>
+            <p className="max-w-xl text-base text-ink">Yes shows how long your money lasts and the deadlines you could miss, like health coverage and unemployment. You can change your mind any time, and nothing here is shared with employers, recruiters or schools.</p>
+            <div className="flex flex-wrap gap-3">
+              <form action={setMoneyHelp}>
+                <input type="hidden" name="moneyHelp" value="yes" />
+                <input type="hidden" name="surface" value="benefits_page" />
+                <ActionSubmit variant="secondary" pendingLabel="Turning it on…" event="money_help_chosen" props={{ choice: 'yes', surface: 'benefits_page' }}>Yes, help me with money</ActionSubmit>
+              </form>
+              <form action={setMoneyHelp}>
+                <input type="hidden" name="moneyHelp" value="no" />
+                <input type="hidden" name="surface" value="benefits_page" />
+                <ActionSubmit variant="secondary" pendingLabel="Saving…" event="money_help_chosen" props={{ choice: 'no', surface: 'benefits_page' }}>No, keep money out of it</ActionSubmit>
+              </form>
+            </div>
+          </section>
+        )}
+        <SeeAllLink href="/dashboard/benefits?view=all">Read the general benefits guide anyway</SeeAllLink>
+      </div>
+    )
+  }
+
   const isSenior = isBoardReady(profile) && !isPivotingProfile(profile)
   const budgetingIndex = TOPICS.findIndex((t) => t.title === 'Budgeting through a search')
   const topics = [...TOPICS.slice(0, budgetingIndex), getWioaTopic(isSenior), ...TOPICS.slice(budgetingIndex)]
@@ -159,8 +204,107 @@ export default async function BenefitsPage() {
     : null
   const weeksSinceLastJob = weeksUnemployed(profile.lastJobEndedAt, new Date())
 
+  if (redesign && !fullPage) {
+    // Benefits and deadlines in the redesign: your next steps, your runway, and the full guide behind one fold.
+    const steps = summarizeSteps(actionItems, completedItemIds)
+    const fileUrl = runwayFacts?.fileUrl ?? null
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Benefits and deadlines"
+          intro="The paperwork that has a date on it, in the order it matters. Private to you."
+          action={
+            fileUrl ? (
+              <ActionLink variant="primary" href={fileUrl} external event="benefits_state_site_opened" props={{ state: runwayFacts?.stateCode ?? null, source: 'benefits_header' }}>
+                Open {runwayFacts?.agencyName ?? 'your state'}’s site
+              </ActionLink>
+            ) : steps.next ? (
+              <ActionLink href="#steps" variant="primary" event="benefits_next_step_clicked" props={{ step: steps.next.id }}>
+                See your next step
+              </ActionLink>
+            ) : undefined
+          }
+        />
+
+        <Section id="steps" title={profile.benefitsPressures.length === 0 ? 'What is weighing on you?' : 'Your next steps'}>
+          {profile.benefitsPressures.length === 0 ? (
+            <BenefitsPressureForm />
+          ) : actionItems.length === 0 ? (
+            <p className="rounded-2xl border border-border p-5 text-base text-ink">No steps are open. If something changes, tell us and we will update your list.</p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {steps.done} of {steps.total} done. We chose these from what you told us is weighing on you.{steps.next ? ` Next: ${stepHeadline(steps.next.text)}.` : ' You have finished them all.'}
+              </p>
+              <div className="space-y-2">
+                {actionItems.slice(0, 3).map((item) => (
+                  <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+                ))}
+              </div>
+              {actionItems.length > 3 && (
+                <details className="text-sm">
+                  <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Show the other {actionItems.length - 3} {actionItems.length - 3 === 1 ? 'step' : 'steps'}</summary>
+                  <div className="mt-2 space-y-2">
+                    {actionItems.slice(3).map((item) => (
+                      <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
+        </Section>
+
+        <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
+
+        <MoreDetails summary="Show more: the full benefits guide">
+          {actionPlanLinks.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-ink">Where to start</p>
+              {actionPlanLinks.map((link) => (
+                <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
+                  {link.name}
+                </a>
+              ))}
+            </div>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {cardTopics.map((topic) => (
+              <section key={topic.title} className="space-y-3 rounded-2xl border border-border p-5">
+                <h2 className="font-display text-lg font-semibold text-ink">{topic.title}</h2>
+                {topic.body.map((paragraph, i) => (
+                  <p key={i} className="text-sm text-muted-foreground">{paragraph}</p>
+                ))}
+                <div className="space-y-1">
+                  {topic.links.map((link) => (
+                    <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
+                      {link.name}
+                    </a>
+                  ))}
+                  {topic.relatedLink && (
+                    <Link href={topic.relatedLink.href} className="block text-sm font-medium text-brand underline underline-offset-4">
+                      {topic.relatedLink.label}
+                    </Link>
+                  )}
+                </div>
+              </section>
+            ))}
+          </div>
+          <p className="text-sm text-ink">
+            Looking for discounts on programs and degrees?{' '}
+            <Link href="/dashboard/benefits-network" className="font-medium text-brand underline underline-offset-4">See the higher education benefits network</Link>.
+          </p>
+          <GuideCallout pageSlot="benefits" currentJobStatus={profile.currentJobStatus} />
+        </MoreDetails>
+
+        <p className="text-xs text-muted-foreground">General information, not financial or legal advice. Rules differ by state. Only you see this page. <Link href="/dashboard/money-help" className="font-medium text-brand underline underline-offset-4">Money help settings</Link></p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
+      {redesign && <SeeAllLink href="/dashboard/benefits">Back to benefits and deadlines</SeeAllLink>}
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Benefits &amp; Financial Bridge</h1>
         <p className="mt-1 text-muted-foreground">

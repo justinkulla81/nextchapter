@@ -17,6 +17,10 @@ import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture } from '@/app/dashboard/actions'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import Link from 'next/link'
+import { Children } from 'react'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
 
@@ -45,36 +49,9 @@ export default async function CompleteProfilePage() {
   const earnedPoints = items.filter((i) => i.complete).reduce((sum, i) => sum + i.points, 0)
   const doneItems = items.filter((i) => i.complete)
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Complete Your Profile</h1>
-        <p className="mt-1 text-muted-foreground">
-          Every one-time setup item across the app, in one place. Answer a box and it saves
-          immediately — no separate submit step for the page as a whole. This page goes away once
-          everything below is done.
-        </p>
-        <p className="mt-2 text-sm font-medium text-foreground">
-          <span className="tabular-nums">{earnedPoints}</span> of{' '}
-          <span className="tabular-nums">{totalPoints}</span> points earned
-        </p>
-      </div>
-
-      {doneItems.length > 0 && (
-        <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4">
-          {doneItems.map((item) => (
-            <p key={item.actionType} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-              <span className="line-through">{item.label}</span>
-              <span className="ml-auto shrink-0 tabular-nums">{item.points} pts</span>
-            </p>
-          ))}
-        </div>
-      )}
-
-      <div className="space-y-6">
+  // Every open item, in order. The legacy page lists them all; the redesign shows the first two and keeps the rest one click away.
+  const blocks = (
+    <>
         {isIncomplete('WORKING_STYLE_QUIZ') && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
             <div>
@@ -262,7 +239,71 @@ export default async function CompleteProfilePage() {
             </Link>
           </div>
         )}
+    </>
+  )
+  const openBlocks = Children.toArray(blocks.props.children)
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Finish setting up"
+          intro={`${openBlocks.length} ${openBlocks.length === 1 ? 'thing is' : 'things are'} left. Each answer saves as you go, and each one makes your matches and your advice fit you better.`}
+        />
+        <div className="space-y-6">{openBlocks.slice(0, 2)}</div>
+        {openBlocks.length > 2 && (
+          <MoreDetails summary={`Show more: ${openBlocks.length - 2} more to finish`}>
+            <div className="space-y-6">{openBlocks.slice(2)}</div>
+          </MoreDetails>
+        )}
+        {doneItems.length > 0 && (
+          <details className="text-sm">
+            <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Done so far ({doneItems.length})</summary>
+            <ul className="mt-2 space-y-1.5">
+              {doneItems.map((item) => (
+                <li key={item.actionType} className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-success" aria-hidden>✓</span>
+                  <span>{item.label}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+        <p className="text-sm text-muted-foreground">1 point is 1 minute of real search work. You have earned {earnedPoints} of {totalPoints}. This page goes away when everything is done.</p>
       </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Complete Your Profile</h1>
+        <p className="mt-1 text-muted-foreground">
+          Every one-time setup item across the app, in one place. Answer a box and it saves
+          immediately — no separate submit step for the page as a whole. This page goes away once
+          everything below is done.
+        </p>
+        <p className="mt-2 text-sm font-medium text-foreground">
+          <span className="tabular-nums">{earnedPoints}</span> of{' '}
+          <span className="tabular-nums">{totalPoints}</span> points earned
+        </p>
+      </div>
+
+      {doneItems.length > 0 && (
+        <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4">
+          {doneItems.map((item) => (
+            <p key={item.actionType} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="text-success" aria-hidden>
+                ✓
+              </span>
+              <span className="line-through">{item.label}</span>
+              <span className="ml-auto shrink-0 tabular-nums">{item.points} pts</span>
+            </p>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-6">{blocks}</div>
     </div>
   )
 }
