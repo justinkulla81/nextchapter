@@ -502,6 +502,43 @@ def crawl_ashby(src, log):
                  description=text, location_raw=loc, locations=locs, employment_type=j.get("employmentType"),
                  arrangement="remote" if j.get("isRemote") else None, posted_at=j.get("publishedAt"), posted_precision="timestamp")
 
+def crawl_ukg(src, log):
+    """UKG Pro Recruiting job boards (recruiting.ultipro.com). src: company (e.g. FIR1042FCW), boards [id, ...], employer.
+    Pages 100 at a time through LoadSearchResults, keeps postings located in the metro, reads each posting's detail page."""
+    from concurrent.futures import ThreadPoolExecutor
+    root = f"https://recruiting.ultipro.com/{src['company']}/JobBoard"
+    def page(bid, skip):
+        body = {"opportunitySearch": {"Top": 100, "Skip": skip, "QueryString": "", "OrderBy": [{"Value": "postedDateDesc", "PropertyName": "PostedDate", "Ascending": False}],
+                "Filters": [{"t": "TermsSearchFilterDto", "fieldName": f, "extra": None, "values": []} for f in (4, 5, 6)]},
+                "matchCriteria": {"PreferredJobs": [], "Criteria": [], "SearchFilterModel": None}}
+        return json.loads(http(f"{root}/{bid}/JobBoardView/LoadSearchResults", data=body, timeout=60))
+    jobs = {}
+    for bid in src["boards"]:
+        skip, total = 0, None
+        while total is None or skip < total:
+            d = page(bid, skip); total = d.get("totalCount", 0)
+            if not d.get("opportunities"): break
+            for o in d["opportunities"]: jobs[o["Id"]] = (bid, o)
+            skip += len(d["opportunities"])
+    log(f"  {src['name']}: {len(jobs)} postings on the board(s)")
+    def locs(o):
+        out = []
+        for l in o.get("Locations", []):
+            a = l.get("Address") or {}
+            out.append(", ".join(x for x in (a.get("City"), (a.get("State") or {}).get("Code")) if x) or (l.get("LocalizedName") or ""))
+        return out
+    keep = [(bid, o) for bid, o in jobs.values() if any(in_metro(x) for x in locs(o))]
+    def detail(item):
+        bid, o = item
+        try: return item, strip_html(http(f"{root}/{bid}/OpportunityDetail?opportunityId={o['Id']}", headers={"Accept": "text/html"}, timeout=40))
+        except Exception: return item, ""
+    for (bid, o), text in ThreadPoolExecutor(max_workers=6).map(detail, keep):
+        ls = [x for x in locs(o) if in_metro(x)]
+        yield mk(src, src.get("employer", src["company"]), o["Id"], title=o.get("Title", ""), req_id=o.get("RequisitionNumber"),
+                 url=f"{root}/{bid}/OpportunityDetail?opportunityId={o['Id']}", description=text or o.get("BriefDescription") or "",
+                 location_raw=ls[0], locations=ls, employment_type="Full-time" if o.get("FullTime") else "Part-time",
+                 posted_at=o.get("PostedDate"), posted_precision="timestamp")
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -674,7 +711,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "ukg": crawl_ukg, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

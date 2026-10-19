@@ -206,5 +206,15 @@
       "Shepherdsville, Kentucky, USA",
       "New Albany, Indiana, USA"
     ]
+  },
+  {
+    "name": "ukg-republic-bank",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "Republic Bank",
+    "company": "REP1009RBTCO",
+    "boards": [
+      "14c95af9-22e9-47a9-a87a-9700767f54b6"
+    ]
   }
 ]

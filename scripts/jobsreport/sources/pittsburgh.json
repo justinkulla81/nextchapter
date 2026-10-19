@@ -302,5 +302,27 @@
     "tenant": "covestro",
     "wd": "wd3",
     "site": "cov_external"
+  },
+  {
+    "name": "ukg-first-commonwealth",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "First Commonwealth Bank",
+    "company": "FIR1042FCW",
+    "boards": [
+      "4a7e0dd8-8227-42d8-baa0-4e909292dcf1"
+    ]
+  },
+  {
+    "name": "ukg-heritage-valley",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "Heritage Valley Health System",
+    "company": "HER1004HERIT",
+    "boards": [
+      "68189271-8c8d-4634-bb50-bd2edf375278",
+      "868bc7bd-7c78-41b4-9208-0652da20d4dc",
+      "8863ffd4-fbec-4333-a5cb-b8b9d13e64b6"
+    ]
   }
 ]
