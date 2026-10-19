@@ -26,12 +26,6 @@ export interface JobListItem {
   href: string
 }
 
-/** "a", "a and b", "a, b and c". */
-export function joinList(parts: string[]): string {
-  if (parts.length <= 1) return parts[0] ?? ''
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
-}
-
 const sentence = (s: string) => (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}${/[.!?]$/.test(s) ? '' : '.'}` : s)
 
 export const NO_REASON_YET = 'Matches your search. Answer a few more questions to see why.'
@@ -44,7 +38,7 @@ export const NO_REASON_YET = 'Matches your search. Answer a few more questions t
 export function reasonLine(why: { fits: string[]; gap: string | null } | null | undefined, verdict: CardVerdict | null): string {
   const fits = (why?.fits ?? []).filter(Boolean)
   const gap = why?.gap?.trim() || null
-  const fitText = fits.length > 0 ? `Fits ${joinList(fits)}` : null
+  const fitText = fits.length > 0 ? `Fits you: ${fits.join(' · ')}` : null
   if (verdict === 'worth_a_look') {
     if (gap && fitText) return `${sentence(gap)} ${sentence(fitText)}`
     if (gap) return sentence(gap)

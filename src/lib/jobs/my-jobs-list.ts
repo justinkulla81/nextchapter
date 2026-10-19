@@ -125,9 +125,9 @@ export function nextAction(input: NextActionInput, now: Date): NextAction | null
       if (days >= FOLLOW_UP_AFTER_DAYS) return { label: 'Send a follow-up', href: FOLLOW_UPS_HREF, reason: `No reply in ${days} days. A short note often gets one.` }
       return { label: 'Wait for a reply', href: null, reason: `Follow up in ${FOLLOW_UP_AFTER_DAYS - days} ${FOLLOW_UP_AFTER_DAYS - days === 1 ? 'day' : 'days'} if you have not heard back.` }
     case 'interviewing':
-      return { label: 'Prepare for the interview', href: INTERVIEW_PREP_HREF, reason: 'Preparing for the next conversation is the best use of the time.' }
+      return { label: 'Prepare for the interview', href: INTERVIEW_PREP_HREF, reason: 'Practice the questions you are most likely to be asked.' }
     case 'offer':
-      return { label: 'Compare and negotiate', href: OFFERS_HREF, reason: 'Compare the offer with your goals before you answer.' }
+      return { label: 'Compare and negotiate', href: OFFERS_HREF, reason: 'Check it against your goals and your numbers before you answer.' }
     case 'closed':
       return null
   }

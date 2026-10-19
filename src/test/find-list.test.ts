@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fitFactors, joinList, listItemOf, LIST_PAGE_SIZE, nextStepFor, NO_REASON_YET, oneFact, reasonLine, selectedJobId, visibleCount } from '@/lib/jobs/find-list'
+import { fitFactors, listItemOf, LIST_PAGE_SIZE, nextStepFor, NO_REASON_YET, oneFact, reasonLine, selectedJobId, visibleCount } from '@/lib/jobs/find-list'
 import type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus } from '@/lib/jobs/job-match-types'
 
 const dim = (key: MatchDimensionKey, status: MatchStatus, evidence: string[] = []): MatchDimension => ({ key, score: null, status, evidence })
@@ -13,24 +13,15 @@ const match = (d: Partial<Record<MatchDimensionKey, [MatchStatus, string[]]>>): 
   ) as JobMatch['dimensions'],
 })
 
-describe('joinList', () => {
-  it('joins in plain words', () => {
-    expect(joinList([])).toBe('')
-    expect(joinList(['a'])).toBe('a')
-    expect(joinList(['a', 'b'])).toBe('a and b')
-    expect(joinList(['a', 'b', 'c'])).toBe('a, b and c')
-  })
-})
-
 describe('reasonLine', () => {
   it('says what fits for a good fit', () => {
-    expect(reasonLine({ fits: ['your level', 'finance'], gap: null }, 'good')).toBe('Fits your level and finance.')
+    expect(reasonLine({ fits: ['your level', 'finance'], gap: null }, 'good')).toBe('Fits you: your level · finance.')
   })
   it('names the one gap after the fits', () => {
-    expect(reasonLine({ fits: ['your level'], gap: 'asks for SQL' }, 'strong')).toBe('Fits your level. One gap: asks for SQL.')
+    expect(reasonLine({ fits: ['your level'], gap: 'asks for SQL' }, 'strong')).toBe('Fits you: your level. One gap: asks for SQL.')
   })
   it('leads with the gap when it is worth a look', () => {
-    expect(reasonLine({ fits: ['finance'], gap: 'one level up' }, 'worth_a_look')).toBe('One level up. Fits finance.')
+    expect(reasonLine({ fits: ['finance'], gap: 'one level up' }, 'worth_a_look')).toBe('One level up. Fits you: finance.')
   })
   it('never leaves a verdict without a reason', () => {
     expect(reasonLine(null, 'good')).toBe(NO_REASON_YET)
@@ -53,7 +44,7 @@ describe('listItemOf', () => {
   const base = { id: 'j1', kind: 'board' as const, title: 'CFO', companyName: 'Arsenault', place: ' New York, NY ', verdict: 'good' as const, why: { fits: ['finance'], gap: null }, fact: 'Posted today' }
   it('builds one row with one verdict, one reason and one fact', () => {
     const item = listItemOf(base)
-    expect(item).toMatchObject({ company: 'Arsenault', place: 'New York, NY', verdictLabel: 'Good fit', reason: 'Fits finance.', fact: 'Posted today', href: '/dashboard/jobs/j1?src=board' })
+    expect(item).toMatchObject({ company: 'Arsenault', place: 'New York, NY', verdictLabel: 'Good fit', reason: 'Fits you: finance.', fact: 'Posted today', href: '/dashboard/jobs/j1?src=board' })
   })
   it('never names the employer of a confidential search', () => {
     expect(listItemOf({ ...base, confidential: true }).company).toBe('Confidential search')
