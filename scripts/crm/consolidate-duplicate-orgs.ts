@@ -77,7 +77,7 @@ async function main() {
     const weight = (o: (typeof g)[number]) => o._count.affiliations + o._count.opportunities + o._count.mandates
     const keeper = suggestKeeper(g.map((o) => ({ id: o.id, activity: weight(o) + (o.hiringClient ? 5 : 0), linked: Boolean(o.companyId), createdAt: o.createdAt })))
     const keep = g.find((o) => o.id === keeper.id)!
-    merges.push({ key, keepId: keep.id, keepName: keep.name, finalName: cleanestName(names), mergeIds: g.filter((o) => o.id !== keep.id).map((o) => o.id), names, reason: d.reason })
+    merges.push({ key, keepId: keep.id, keepName: keep.name, finalName: EXTRA_MERGES.find(([first]) => names.includes(first))?.[0] ?? cleanestName(names), mergeIds: g.filter((o) => o.id !== keep.id).map((o) => o.id), names, reason: d.reason })
   }
   const removable = merges.reduce((n, m) => n + m.mergeIds.length, 0)
   console.log(`groups: ${dupes.length}  safe to merge: ${merges.length} (removes ${removable})  needs a person: ${review.length}`)
