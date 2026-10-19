@@ -5,7 +5,7 @@
 // Anything else leaves the live site as it is. Pure, so tests and server components share it.
 
 // Always on for the owner's own sign-in, so the new site can be checked without touching deployment settings.
-const OWNER_EMAILS = ['justin.kulla@gmail.com']
+const OWNER_EMAILS = ['justin.kulla@gmail.com', 'jkulla@alum.mit.edu', 'jkulla@post.harvard.edu']
 
 export function isRedesignOn(email: string | null | undefined, env: Record<string, string | undefined> = process.env): boolean {
   if ((env.CANDIDATE_REDESIGN ?? '').trim().toLowerCase() === 'on') return true
