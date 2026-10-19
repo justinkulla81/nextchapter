@@ -254,3 +254,12 @@
     max-width: 72rem;
   }
 }
+/* Every page title in the redesigned site: serif display, ink. Pages not yet rebuilt pick it up from here
+   (unlayered, so it wins over each page's own text-2xl). Rebuilt pages already set the same look. */
+.theme-redesign .nc-main-inner h1 {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
