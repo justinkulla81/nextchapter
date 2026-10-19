@@ -3,6 +3,10 @@ import { randomBytes } from 'node:crypto'
 import { __internals } from '@/lib/security/token-crypto-extension'
 import { isEncryptedToken } from '@/lib/security/token-crypto'
 
+// Test-only: the encrypted shapes are inspected structurally.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Loose = any
+
 const { encryptArgs, decryptDeep, mayReachTokens } = __internals
 
 describe('token-crypto extension internals', () => {
@@ -15,7 +19,7 @@ describe('token-crypto extension internals', () => {
       where: { candidateId: 'c1' },
       create: { candidateId: 'c1', accessToken: 'a', refreshToken: 'r', expiresAt: 1 },
       update: { accessToken: { set: 'a2' }, lastSyncAt: 2 },
-    }) as any
+    }) as Loose
     expect(out.where).toEqual({ candidateId: 'c1' })
     expect(isEncryptedToken(out.create.accessToken)).toBe(true)
     expect(isEncryptedToken(out.create.refreshToken)).toBe(true)
@@ -25,12 +29,12 @@ describe('token-crypto extension internals', () => {
   })
 
   it('encrypts createMany arrays', () => {
-    const out = encryptArgs({ data: [{ accessToken: 'a' }, { accessToken: 'b' }] }) as any
-    expect(out.data.every((d: any) => isEncryptedToken(d.accessToken))).toBe(true)
+    const out = encryptArgs({ data: [{ accessToken: 'a' }, { accessToken: 'b' }] }) as Loose
+    expect(out.data.every((d: Loose) => isEncryptedToken(d.accessToken))).toBe(true)
   })
 
   it('decrypts nested relation results and leaves bearer-style tokens alone', () => {
-    const enc = (encryptArgs({ data: { refreshToken: 'secret-r', accessToken: 'secret-a' } }) as any).data
+    const enc = (encryptArgs({ data: { refreshToken: 'secret-r', accessToken: 'secret-a' } }) as Loose).data
     const rows = [{ id: 'm1', connection: { ...enc, id: 'x' } }, { id: 'm2', connection: null }]
     decryptDeep(rows)
     expect(rows[0].connection.refreshToken).toBe('secret-r')
