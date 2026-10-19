@@ -19,5 +19,7 @@ describe('isRedesignOn', () => {
 
   it('is always on for the owner, with no settings', () => {
     expect(isRedesignOn('Justin.Kulla@gmail.com', {})).toBe(true)
+    expect(isRedesignOn('jkulla@alum.mit.edu', {})).toBe(true)
+    expect(isRedesignOn('jkulla@post.harvard.edu', {})).toBe(true)
   })
 })
