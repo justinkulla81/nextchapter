@@ -35,7 +35,7 @@ Each item has a member-facing label and the aliases that show a member has it (m
 ## Known limits
 
 - Gaps describe what postings say, not a test of the person. Copy says "on your profile", never "you have" or "you lack".
-- Still no tagged course for AI coding assistants, AI for content (creative tools), MLOps, fine-tuning, GPU, or leading AI teams. Microsoft Learn and Google Cloud Skills Boost paths tried for some of these did not resolve; add verified links when found.
+- Still no tagged course for leading AI teams (`l_ai_org_lead`): the only options found are paid university programs on cohort-specific pages, and they are for managers using AI, not for heads of AI. Add a verified link when found. On 2026-10-19 courses were added and tagged for AI coding assistants, content tools, MLOps, fine-tuning, GPU and automation (every link fetched that day).
 - Own assessments and badges (proof beyond completions) are not built; completions, AI projects and AI work samples count as evidence today.
 - No trend yet: the analysis had two weeks of full-scale crawl. A weekly snapshot would make it measurable in 8 to 12 weeks.
 - Excerpt-only sources (Careerjet, Jooble, Phenom, Consider) carry little text, so AI asks there are undercounted.
