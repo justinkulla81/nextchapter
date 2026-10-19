@@ -170,10 +170,13 @@ async function main() {
   let done = 0, refused = 0
   for (const m of merges) {
     for (const id of m.mergeIds) {
+      // One bad group must not stop the run: log the error and move on (a failed merge rolls back whole).
       const r = await retry(() => mergeOrganizations(m.keepId, id, 'consolidate-duplicate-orgs'))
+        .catch((e: Error) => ({ ok: false as const, reason: `error: ${String(e.message).split('\n').filter(Boolean).slice(-2).join(' ')}` }))
       log.push({ key: m.key, keepId: m.keepId, sourceId: id, sourceName: byId.get(id)?.name, ...r })
       if (r.ok) done++
-      else { refused++; console.log(`  refused: ${r.reason}`) }
+      else { refused++; console.log(`  not merged: ${byId.get(id)?.name} -> ${m.keepName}: ${r.reason}`) }
+      writeFileSync(`${OUT}/merge-log.json`, JSON.stringify(log, null, 2))
     }
     // Write the cleanest spelling onto the survivor when it differs and the key is free.
     if (m.finalName !== m.keepName) {
